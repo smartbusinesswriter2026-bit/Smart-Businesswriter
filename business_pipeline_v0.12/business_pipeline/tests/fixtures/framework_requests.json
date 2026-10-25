@@ -1,0 +1,194 @@
+{
+ "version": "0.1",
+ "author": "builder",
+ "expert_review": "pending",
+ "note": "Tuning cases were used to set the routing policy; held-out cases were written first and not inspected during tuning. Expected ids are the builder's reading of the catalogue text and need expert review.",
+ "cases": [
+  {
+   "id": "T01",
+   "split": "tuning",
+   "text": "Our company faces strong competition from rival firms. Analyze the competitive forces in our industry, including buyer and supplier power.",
+   "expect_framework_any": [
+    "STR-01"
+   ]
+  },
+  {
+   "id": "T02",
+   "split": "tuning",
+   "text": "Assess the political, economic, social, technological, environmental and legal factors affecting our expansion into a new country.",
+   "expect_framework_any": [
+    "STR-06"
+   ]
+  },
+  {
+   "id": "T03",
+   "split": "tuning",
+   "text": "We are a startup and need to describe our business model: customers, value proposition, revenue streams and costs.",
+   "expect_framework_any": [
+    "STR-15",
+    "STR-16",
+    "STR-17"
+   ]
+  },
+  {
+   "id": "T04",
+   "split": "tuning",
+   "text": "Employees resist the new system, so we need a plan for organizational change and to manage the transition.",
+   "expect_framework_any": [
+    "CHG-01",
+    "CHG-02",
+    "CHG-03"
+   ]
+  },
+  {
+   "id": "T05",
+   "split": "tuning",
+   "text": "Identify the failure modes in our production line and prioritize the risks.",
+   "expect_framework_any": [
+    "OPS-08"
+   ]
+  },
+  {
+   "id": "T06",
+   "split": "tuning",
+   "text": "The order fulfilment process has too many delays and defects; map the process and find the root causes.",
+   "expect_framework_any": [
+    "OPS-02",
+    "OPS-03",
+    "OPS-07"
+   ]
+  },
+  {
+   "id": "T07",
+   "split": "tuning",
+   "text": "Which customer segments should we target and how should we position the product?",
+   "expect_framework_any": [
+    "MKT-01"
+   ]
+  },
+  {
+   "id": "T08",
+   "split": "tuning",
+   "text": "Compare three strategic options against criteria and weights to decide which to pursue.",
+   "expect_framework_any": [
+    "RSK-09"
+   ]
+  },
+  {
+   "id": "T09",
+   "split": "tuning",
+   "text": "Calculate the net present value and break-even point for this investment.",
+   "expect_quant_any": [
+    "QNT-FIN-01",
+    "QNT-FIN-02"
+   ],
+   "expect_linked_methods_any": [
+    "npv",
+    "breakeven"
+   ]
+  },
+  {
+   "id": "T10",
+   "split": "tuning",
+   "text": "Compare exam scores between two groups using a t-test and look at the correlation with study time.",
+   "expect_quant_any": [
+    "QNT-STA-03",
+    "QNT-STA-04"
+   ],
+   "expect_linked_methods_any": [
+    "welch_t",
+    "pearson",
+    "ols"
+   ]
+  },
+  {
+   "id": "T11",
+   "split": "tuning",
+   "text": "Please use SWOT and the Business Model Canvas for this case.",
+   "expect_named_all": [
+    "STR-07",
+    "STR-15"
+   ]
+  },
+  {
+   "id": "T12",
+   "split": "tuning",
+   "text": "Explain how Maslow and Herzberg motivation theories relate to employee turnover.",
+   "expect_named_any": [
+    "THE-02"
+   ],
+   "forbid_in_frameworks": [
+    "THE-02"
+   ]
+  },
+  {
+   "id": "N01",
+   "split": "tuning",
+   "text": "Write a poem about the sea.",
+   "expect_none": true
+  },
+  {
+   "id": "N02",
+   "split": "tuning",
+   "text": "What is the capital of France?",
+   "expect_none": true
+  },
+  {
+   "id": "H01",
+   "split": "held_out",
+   "text": "We want to enter new markets; evaluate growth options such as market penetration, new products and diversification.",
+   "expect_framework_any": [
+    "STR-09"
+   ]
+  },
+  {
+   "id": "H02",
+   "split": "held_out",
+   "text": "Our suppliers are concentrated in one region; how should we classify our purchases and manage supplier relationships?",
+   "expect_framework_any": [
+    "OPS-10"
+   ]
+  },
+  {
+   "id": "H03",
+   "split": "held_out",
+   "text": "How satisfied are customers with our service quality, and what do they expect from the service?",
+   "expect_framework_any": [
+    "MKT-07",
+    "MKT-06"
+   ]
+  },
+  {
+   "id": "H04",
+   "split": "held_out",
+   "text": "Which stakeholders have the most power and interest in this project?",
+   "expect_framework_any": [
+    "RSK-05"
+   ]
+  },
+  {
+   "id": "H05",
+   "split": "held_out",
+   "text": "Evaluate whether the training program improved employee skills and behavior.",
+   "expect_framework_any": [
+    "PPL-02",
+    "IMP-04"
+   ]
+  },
+  {
+   "id": "H06",
+   "split": "held_out",
+   "text": "Design a theory of change and logic model for our community nutrition program.",
+   "expect_named_all": [
+    "CHG-07",
+    "CHG-08"
+   ]
+  },
+  {
+   "id": "H07",
+   "split": "held_out",
+   "text": "Translate this sentence into French.",
+   "expect_none": true
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+# Changelog (build)
+- 0.13 (2026-10-21): provider decision B-036 resolved (DeepSeek for computation); OpenAI-compatible Chat Completions adapter (OpenAI/DeepSeek/local endpoints, BP_LLM_BASE_URL override); Stage 7 literature-source boundary first slice (Crossref/OpenAlex, verify_reference) per B-040.
+- 0.12 (2026-10-21): model-provider boundary (llm.py), validated assistance tasks (assist.py), /api/assist endpoints, workbench Assistant panel, run hashes in spec and appendix. Off unless configured.
+- 0.11 (2026-10-21): Stage 8 ledger-engine spike (custom kernel arm, 12 trap cases, invariants, 22 tests); Stage 7 blocker document.
+- 0.10 (2026-10-21): business-case slice `case_decision` (T2): alternatives compared by NPV with crossover rates across a user range, preference only under a user decision rule; template machinery generalized (artifacts, text references, tier, sensitivity).
+- 0.9 (2026-10-21): SWOT (with STR-18 audit) and Five Forces templates (tier T4, user evidence only, verified, sandboxed, re-performable); registry template links; /api/templates; control-character filter fix.
+- 0.8 (2026-10-21): Stage 6 registry (140 records from catalogue v0.2), importer, method links, contextual recommendations with explanations, user selection frozen into the spec, framework-only (T4) delivery, /api/frameworks, workbench framework section.
+- 0.7 (2026-10-21): guarded-subprocess sandbox, fail-closed; environment fingerprint with source hash; re-performance bundle and CLI; workbench bundle download; sandbox default ON in the server.
+- 0.6 (2026-10-21): Welch t-test and Mann-Whitney fallback (Hodges-Lehmann interval by test inversion); column_map min/max columns; typing hook for request units; df-bound tolerance fix.
+- 0.5 (2026-10-20): OLS and OLS-robust (HC3) regression; four pre-declared diagnostics; fail-closed blocking messages; Frisch-Waugh cross-check; minus sign for non-currency negatives.
+- 0.4 (2026-10-20): Pearson and Spearman correlation; pre-declared assumption screen with fallback as logged amendment; spec fallbacks; DataError blocking with reasons; scipy-generated offline golden fixtures.
+- 0.3 (2026-10-20, Stage 5 increment): method contract and discovery; schema validation; multi-output methods; descriptive statistics with golden, metamorphic, trap tests; spec and artifact fields aligned to v0.3 Appendix A and B; sources added under docs/sources.
+- 0.2: Stage 1-2 workbench shell, checkpoint pause/resume, stage states, Work Plan.
+- 0.1: Stage 0 audit and foundation slice.

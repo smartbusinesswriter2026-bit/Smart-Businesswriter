@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adaptive Workbench: Stage 2 shell</title>
+<style>
+:root{--ink:#202a36;--muted:#687582;--line:#dfe5ea;--bg:#f4f6f8;--card:#fff;--accent:#315f78;--ok:#286746;--okbg:#eaf5ee;--warn:#805a16;--warnbg:#fff5df;--bad:#8a2b2b;--badbg:#fbeaea}
+@media(prefers-color-scheme:dark){:root{--ink:#e6ebf0;--muted:#9aa8b4;--line:#33414d;--bg:#141b22;--card:#1b242d;--accent:#7fb3cf;--ok:#7cc89b;--okbg:#1c3326;--warn:#e0b562;--warnbg:#3a2f17;--bad:#e59a9a;--badbg:#3a1f1f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px;display:grid;gap:16px}
+h1{margin:0;font-size:24px}h2{margin:0 0 10px;font-size:15px}.sub{color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+textarea,input{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{min-height:150px;font-family:ui-monospace,monospace;font-size:12px}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.field{border:1px solid var(--line);border-radius:8px;padding:9px 11px}.label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stage{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}.stage:last-child{border:0}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--line)}
+.passed{background:var(--okbg);color:var(--ok)}.failed,.blocked{background:var(--badbg);color:var(--bad)}.awaiting_user{background:var(--warnbg);color:var(--warn)}
+/*fw*/.fwrow{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start}.fwrow input{width:auto;margin-top:4px}.fwt{font-weight:600}.grp{margin:12px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
+.report{white-space:pre-wrap;font-size:15px;border-left:3px solid var(--accent);padding-left:12px}
+</style></head><body><main>
+<div><h1>What are we working on?</h1><div class="sub">Stage 2 shell. Real backend: only NPV and break-even are executable. Everything shown below comes from recorded pipeline events.</div></div>
+<section class="card"><h2>Task request</h2>
+<div class="row" style="margin-bottom:8px"><span class="sub">Start from:</span><span id="presets" class="row"></span></div>
+<textarea id="req" aria-label="Request as JSON"></textarea>
+<div class="row" style="margin-top:10px"><button class="primary" id="plan">Draft work plan</button><span id="err" class="sub"></span></div></section>
+<section class="card" id="asst"><h2>Assistant (optional)</h2><div id="asstcfg" class="sub">Checking whether a model provider is configured…</div>
+<div id="asstbody" hidden><div class="sub" id="asstnote"></div>
+<textarea id="casetext" placeholder="Paste the case text here" aria-label="Case text" style="margin-top:8px"></textarea>
+<div><label><input type="checkbox" id="consent" style="width:auto"> I consent to sending this text to the model provider.</label></div>
+<div><label><input type="checkbox" id="piiok" style="width:auto"> I have checked the text for personal or confidential data and accept sending it anyway.</label></div>
+<div class="row" style="margin-top:8px"><button id="aFacts" type="button">Extract facts</button><button id="aAlts" type="button">Propose alternatives</button><button id="aCrit" type="button">Challenge my analysis</button><span id="aerr" class="sub"></span></div>
+<div class="sub" style="margin-top:6px">Proposals appear below. Nothing is used unless you tick it and add it to the request. The model writes no numbers; you supply cash flows and rates.</div><div id="aout"></div></div></section>
+<section class="card" id="brief" hidden><div class="row" style="justify-content:space-between"><h2>Proposed Work Brief</h2><span id="status" class="badge"></span></div>
+<div class="grid" id="fields"></div>
+<h2 style="margin-top:14px">Planned checks</h2><div id="checks" class="sub"></div>
+<h2 style="margin-top:14px">Assumptions and ambiguities</h2><div id="amb" class="sub"></div>
+<h2 style="margin-top:14px">Frameworks, models and methods</h2>
+<div class="sub">Tick what you want recorded in the frozen spec. Nothing is applied unless ticked. Framework templates are not built yet, so selections guide a framework-only (T4) answer and are listed in the appendix of computed analyses. Every catalogue item is currently unreviewed.</div>
+<div id="fw"></div>
+<div class="row" style="margin-top:8px"><input id="fwq" placeholder="Search the library (for example: stakeholder, Kano, SWOT)" aria-label="Search the library" style="flex:1"><button id="fwgo">Search</button></div><div id="fwres"></div>
+<div class="row" style="margin-top:14px"><button class="primary" id="confirm">Confirm spec and run</button><button id="reject">Reject</button><span class="sub" id="confnote"></span></div></section>
+<section class="card" id="runcard" hidden><h2>Stage status (from run events)</h2><div id="stages"></div></section>
+<section class="card" id="out" hidden><h2>Result</h2><div id="report" class="report"></div><div id="blocked" class="sub"></div>
+<div class="row" style="margin-top:12px"><span id="sbx" class="sub"></span><button id="dl" hidden>Download re-performance bundle</button></div>
+<details style="margin-top:12px"><summary>Provenance appendix</summary><pre id="appendix"></pre></details>
+<details style="margin-top:8px"><summary>Run log</summary><pre id="log"></pre></details></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);let sid=null;
+function add(parent,tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;parent.appendChild(e);return e}
+async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+function fwItem(parent,x,checked,locked){const row=add(parent,"label",undefined,"fwrow");const cb=document.createElement("input");cb.type="checkbox";cb.dataset.id=x.id;cb.checked=checked;cb.disabled=locked;row.appendChild(cb);const d=add(row,"div");
+  add(d,"div",x.name+" ("+x.type_label+", "+x.id+")","fwt");add(d,"div",x.why||x.structures,"sub");if(x.evidence_needs)add(d,"div","Evidence needed: "+x.evidence_needs,"sub");
+  const lm=x.linked_methods&&x.linked_methods.length?" · available methods: "+x.linked_methods.map(l=>l.method_id).join(", ")+" ("+x.linked_methods[0].note+")":(x.type==="Q"?" · not implemented":"");
+  if(x.template){const b=add(d,"button","Load the "+x.template+" template request");b.type="button";b.onclick=async e=>{e.preventDefault();const t=await api("/api/templates/"+x.template);$("req").value=JSON.stringify(t.example_request,null,2);$("err").textContent="Template example loaded (synthetic evidence). Replace it with your own evidence, then draft the plan again."}}
+  add(d,"div","Evidence status: "+x.evidence_status+(x.verify_edition_and_permissions?" · verify current edition and permitted use":"")+lm,"sub")}
+function renderFw(S,locked){const box=$("fw");box.replaceChildren();if(!S)return;
+  const groups=[["Named in your request",S.named,true],["Suggested frameworks and models",S.frameworks,false],["Quantitative methods",S.quantitative,false],["Supporting theories (retrieve and cite; not templates)",S.theories,false]];let n=0;
+  groups.forEach(([t,list,chk])=>{if(list.length){add(box,"div",t,"grp");list.forEach(x=>fwItem(box,x,chk,locked));n+=list.length}});
+  if(!n)add(box,"div",S.none_reason||"No suggestions.","sub")}
+$("fwgo").onclick=async()=>{const q=$("fwq").value.trim();$("fwres").replaceChildren();if(!q)return;const r=await api("/api/frameworks?q="+encodeURIComponent(q));if(!r.results.length)add($("fwres"),"div","No match in the library.","sub");else{add($("fwres"),"div","Library results","grp");r.results.forEach(x=>fwItem($("fwres"),x,false,$("confirm").disabled))}};
+function chosen(){return[...document.querySelectorAll("#fw input:checked,#fwres input:checked")].map(c=>c.dataset.id)}
+function field(label,val){const f=add($("fields"),"div",undefined,"field");add(f,"div",label,"label");add(f,"div",val)}
+function render(s){
+  const p=s.work_plan;$("brief").hidden=false;$("fields").replaceChildren();
+  field("Task family",p.task_family);field("Method / tier",`${p.method} v${p.method_version||"-"} · ${p.tier} (${p.tier_label})`);field("Intended use",p.intended_use||"n/a");field("Not supported",p.unsupported_use||"n/a");field("Limitations",p.limitations.join(" ")||"n/a");field("Assumption checks / fallback",(p.assumption_checks.join(", ")||"none")+" → "+(Object.values(p.fallbacks).join(", ")||"none"));field("Declared thresholds",Object.entries(p.thresholds).map(([k,v])=>k+"="+v).join("; ")||"none");
+  field("Objective",p.objective);field("Inputs",Object.entries(p.inputs).map(([k,v])=>`${k}: ${v.value} [${v.provenance}]`).join("; ")||"none");
+  field("Sensitivity range",JSON.stringify(p.sensitivity));field("Expected outputs",p.expected_outputs.join(", "));
+  $("checks").textContent=p.planned_checks.join(" · ")||"none (no computed answer)";
+  $("amb").replaceChildren();p.ambiguities.forEach(a=>add($("amb"),"div",`${a.question}: default taken: ${a.default_chosen} (impact: ${a.impact})`));
+  const st=$("status");st.textContent=s.status.replace("_"," ");st.className="badge "+(s.status==="delivered"?"passed":s.status==="blocked"?"blocked":"awaiting_user");
+  const open=s.status==="awaiting_confirmation";renderFw(p.framework_suggestions,!open);$("confirm").disabled=!open;$("reject").disabled=!open;
+  $("confnote").textContent=open?p.confirmation_required:"Checkpoint closed.";
+  $("runcard").hidden=false;$("stages").replaceChildren();
+  Object.entries(s.stage_states).forEach(([k,v])=>{const r=add($("stages"),"div",undefined,"stage");add(r,"span",k.replace("_"," "));add(r,"span",v.replace("_"," "),"badge "+v)});
+  if(s.delivery){$("out").hidden=false;$("report").textContent=s.delivery.report||"";$("blocked").textContent=s.delivery.blocked_reason?"Blocked: "+s.delivery.blocked_reason:"Tier: "+s.delivery.tier;
+    $("appendix").textContent=JSON.stringify(s.delivery.appendix,null,2);const A=s.delivery.appendix||{};$("sbx").textContent=A.sandbox?("Executed: "+(typeof A.sandbox==="string"?A.sandbox:"sandboxed process; network blocked; writes limited to a temp folder")):"";$("dl").hidden=!A.reperform;$("dl").onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(A.reperform,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=u;a.download="reperform_"+s.id+".json";a.click();URL.revokeObjectURL(u)};$("log").textContent=s.events.map(e=>JSON.stringify(e)).join("\n")}else $("out").hidden=true}
+let runs=[];
+function reqObj(){try{return JSON.parse($("req").value)}catch(e){throw new Error("The request box does not contain valid JSON")}}
+function setReq(o){$("req").value=JSON.stringify(o,null,2)}
+async function acall(body){body.consent=$("consent").checked;body.pii_acknowledged=$("piiok").checked;const r=await fetch("/api/assist",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();
+  if(!r.ok){const e=new Error(j.error||("HTTP "+r.status));e.rejected=j.rejected||[];throw e}runs.push(j.run.run_id);return j}
+function showRejected(list){list.forEach(x=>add($("aout"),"div","Rejected by code: "+x.reason+(x.quote?" ("+x.quote+")":""),"sub"))}
+function pick(parent,p,label){const row=add(parent,"label",undefined,"fwrow");const cb=document.createElement("input");cb.type="checkbox";cb.checked=false;row.appendChild(cb);const d=add(row,"div");add(d,"div",label(p),"fwt");return {cb,p}}
+function nextId(list,pre){let n=list.length+1;const ids=new Set(list.map(x=>x.id));while(ids.has(pre+n))n++;return pre+n}
+function addButton(rows,text,fn){const b=add($("aout"),"button",text);b.type="button";b.onclick=()=>{try{fn(rows.filter(r=>r.cb.checked).map(r=>r.p));$("aerr").textContent="Added to the request box. Review it, then draft the plan."}catch(e){$("aerr").textContent=e.message}}}
+$("aFacts").onclick=async()=>{$("aerr").textContent="";$("aout").replaceChildren();try{const j=await acall({task:"facts",case_text:$("casetext").value});add($("aout"),"div","Proposed facts (exact excerpts of your text; tick the ones that are right)","grp");
+  const rows=j.proposals.map(p=>pick($("aout"),p,x=>x.text));showRejected(j.rejected);addButton(rows,"Add ticked facts to the request",ps=>{const o=reqObj();o.inputs=o.inputs||{};o.inputs.facts=o.inputs.facts||[];ps.forEach(p=>o.inputs.facts.push({id:nextId(o.inputs.facts,"F"),text:p.text,provenance:"sourced",source:p.source}));setReq(o)})}catch(e){$("aerr").textContent=e.message;showRejected(e.rejected||[])}};
+$("aAlts").onclick=async()=>{$("aerr").textContent="";$("aout").replaceChildren();try{const o=reqObj();const facts=((o.inputs||{}).facts||[]).map((f,i)=>({id:f.id||("F"+(i+1)),text:f.text}));
+  const j=await acall({task:"alternatives",facts,objective:o.objective||""});add($("aout"),"div","Proposed alternatives (no numbers; you must supply cash flows)","grp");
+  const rows=j.proposals.map(p=>pick($("aout"),p,x=>x.name+": "+x.description+" (cites "+x.supports.join(", ")+")"));showRejected(j.rejected);
+  addButton(rows,"Add ticked alternatives to the request",ps=>{const o2=reqObj();o2.inputs=o2.inputs||{};o2.inputs.alternatives=o2.inputs.alternatives||[];ps.forEach(p=>o2.inputs.alternatives.push({id:nextId(o2.inputs.alternatives,"A"),name:p.name,description:p.description,supports:p.supports,cashflows:[],cashflow_provenance:"user"}));setReq(o2)})}catch(e){$("aerr").textContent=e.message;showRejected(e.rejected||[])}};
+$("aCrit").onclick=async()=>{$("aerr").textContent="";$("aout").replaceChildren();try{const o=reqObj();const i=o.inputs||{};const facts=(i.facts||[]).map((f,k)=>({id:f.id||("F"+(k+1)),text:f.text}));const alts=(i.alternatives||[]).map((a,k)=>({id:a.id||("A"+(k+1)),name:a.name,description:a.description||"",supports:a.supports||[]}));
+  const j=await acall({task:"critique",facts,alternatives:alts});add($("aout"),"div","Model critique: opinion, not verified, advisory only"+(j.reviewer_same_as_builder?" (the reviewer is the same model as the builder, so errors may be correlated)":""),"grp");
+  j.items.forEach(x=>{const d=add($("aout"),"div",undefined,"fwrow");const b=add(d,"div");add(b,"div",x.category.replace(/_/g," ")+" · "+x.target,"fwt");add(b,"div",x.text,"sub")});showRejected(j.rejected)}catch(e){$("aerr").textContent=e.message;showRejected(e.rejected||[])}};
+fetch("/api/assist/config").then(r=>r.json()).then(c=>{if(!c.enabled){$("asstcfg").textContent=c.reason||"Model assistance is off.";return}$("asstcfg").textContent="Provider: "+c.provider+" · builder model: "+c.builder_model+" · reviewer model: "+c.reviewer_model+(c.same_model?" (same model for both roles)":"")+" · calls used: "+c.limits.calls_used+" of "+c.limits.max_calls_total;$("asstnote").textContent=c.privacy_notice;$("asstbody").hidden=false});
+$("plan").onclick=async()=>{$("err").textContent="";try{const rq=JSON.parse($("req").value);if(runs.length)rq.assist_runs=runs;const s=await api("/api/sessions",rq);sid=s.id;render(s)}catch(e){$("err").textContent=e.message}};
+$("confirm").onclick=async()=>{try{render(await api(`/api/sessions/${sid}/confirm`,{frameworks:chosen()}))}catch(e){$("err").textContent=e.message}};
+$("reject").onclick=async()=>render(await api(`/api/sessions/${sid}/reject`,{}));
+api("/api/presets").then(P=>{Object.entries(P).forEach(([k,v])=>{const b=add($("presets"),"button",k);b.onclick=()=>$("req").value=JSON.stringify(v,null,2)});$("req").value=JSON.stringify(P.npv,null,2)});
+</script></body></html>

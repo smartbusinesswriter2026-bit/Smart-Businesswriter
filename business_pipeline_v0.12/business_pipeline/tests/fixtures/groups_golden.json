@@ -1,0 +1,222 @@
+[
+ {
+  "name": "lecture_workshop",
+  "method": "welch_t",
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "diff": "-8.819444444444443",
+   "se_diff": "2.327556861510071",
+   "t_stat": "-3.7891424223778447",
+   "df": "14.998101450382645",
+   "p_value": "0.0017827234983478508",
+   "ci_lower": "-13.780569156837887",
+   "ci_upper": "-3.858319732050999",
+   "n_excluded": "0.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ },
+ {
+  "name": "hand_checked_1to5_vs_evens",
+  "method": "welch_t",
+  "groups": {
+   "a": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+   ],
+   "b": [
+    "2",
+    "4",
+    "6",
+    "8",
+    "10"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "diff": "-3.0",
+   "se_diff": "1.5811388300841898",
+   "t_stat": "-1.8973665961010275",
+   "df": "5.882352941176471",
+   "p_value": "0.10753119493062728",
+   "ci_lower": "-6.887741643736975",
+   "ci_upper": "0.887741643736975",
+   "n_excluded": "0.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ },
+ {
+  "name": "unequal_sizes_with_missing_code",
+  "method": "welch_t",
+  "groups": {
+   "a": [
+    "10",
+    "12",
+    "11",
+    "99",
+    "13",
+    "12",
+    "14"
+   ],
+   "b": [
+    "15",
+    "17",
+    "16",
+    "18",
+    "99",
+    "17",
+    "19",
+    "16",
+    "20"
+   ]
+  },
+  "missing_codes": [
+   "99"
+  ],
+  "expected": {
+   "diff": "-5.25",
+   "se_diff": "0.8255589736945623",
+   "t_stat": "-6.35932764016248",
+   "df": "11.746558466077452",
+   "p_value": "3.985304649438459e-05",
+   "ci_lower": "-7.053052229791074",
+   "ci_upper": "-3.4469477702089253",
+   "n_excluded": "2.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ },
+ {
+  "name": "mwu_lecture_workshop",
+  "method": "mann_whitney",
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "u_stat": "7.0",
+   "p_value": "0.006098945931214367",
+   "rank_biserial": "-0.8055555555555556",
+   "hl_shift": "-9.0",
+   "n_excluded": "0.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ },
+ {
+  "name": "mwu_with_ties",
+  "method": "mann_whitney",
+  "groups": {
+   "a": [
+    "1",
+    "2",
+    "2",
+    "3",
+    "4",
+    "4",
+    "5",
+    "6"
+   ],
+   "b": [
+    "2",
+    "3",
+    "3",
+    "4",
+    "5",
+    "6",
+    "6",
+    "7",
+    "8"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "u_stat": "20.5",
+   "p_value": "0.14466148777280907",
+   "rank_biserial": "-0.4305555555555556",
+   "hl_shift": "-1.5",
+   "n_excluded": "0.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ },
+ {
+  "name": "mwu_skewed",
+  "method": "mann_whitney",
+  "groups": {
+   "a": [
+    "1",
+    "1",
+    "1",
+    "2",
+    "1",
+    "1",
+    "2",
+    "3",
+    "30"
+   ],
+   "b": [
+    "2",
+    "3",
+    "4",
+    "5",
+    "3",
+    "4",
+    "6",
+    "5",
+    "4"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "u_stat": "12.0",
+   "p_value": "0.011880707238335094",
+   "rank_biserial": "-0.7037037037037037",
+   "hl_shift": "-2.0",
+   "n_excluded": "0.0"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); scipy has no Hodges-Lehmann interval or Hedges g, so those are not in the fixture"
+ }
+]

@@ -1,0 +1,109 @@
+import sys, os, json, socket, subprocess, tempfile, threading, unittest
+from decimal import Decimal as D
+sys.path.insert(0, "src")
+from bp import methods, server, envpin
+from bp.methods import LIBRARY
+from bp.orchestrator import Pipeline
+from bp.reperform import reperform
+from bp.sandbox import SubprocessSandbox, SandboxError
+from bp.session import SessionManager
+
+yes = lambda s: True
+SB = SubprocessSandbox(timeout=60)
+NPV = {"objective": "Invest?", "method": "npv", "currency": "USD", "inputs": {"rate": "0.10", "cashflows": ["-1000", "400", "400", "400"]}, "sensitivity": {"rate": ["0.05", "0.25"]}}
+CASES = {"npv": NPV["inputs"], "breakeven": {"fixed": "1000", "price": "20", "variable": "10"},
+         "descriptive_stats": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"]},
+         "pearson": {"x": [str(i) for i in range(1, 9)], "y": ["52", "55", "61", "58", "70", "72", "69", "80"]},
+         "spearman": {"x": ["3", "1", "4", "1", "5", "9", "2", "6", "5", "3"], "y": ["2", "7", "1", "8", "2", "8", "1", "8", "2", "8"]},
+         "ols": {"y": ["52", "55", "61", "58", "70", "72", "69", "80", "66", "74"], "predictors": {"study_hours": ["1", "2", "3", "4", "5", "6", "7", "8", "4", "6"], "sleep_hours": ["6", "7", "5", "8", "6", "7", "8", "6", "7", "7"]}},
+         "welch_t": {"groups": {"lecture": ["62", "70", "68", "75", "66", "71", "64", "73"], "workshop": ["72", "78", "74", "85", "80", "77", "69", "83", "79"]}},
+         "mann_whitney": {"groups": {"lecture": ["62", "70", "68", "75", "66", "71", "64", "73"], "workshop": ["72", "78", "74", "85", "80", "77", "69", "83", "79"]}}}
+
+class Policy(unittest.TestCase):
+    def test_guards_block_escape_routes(self):
+        escape = os.path.join(tempfile.gettempdir(), "bp_sandbox_escape.txt")
+        if os.path.exists(escape): os.remove(escape)
+        probes = SB.selftest()
+        for k in ("network_connect", "name_resolution", "write_outside_workdir", "os_system", "subprocess"): self.assertEqual(probes[k], "blocked", k)
+        self.assertTrue(probes["write_inside_workdir"].startswith("allowed")); self.assertFalse(os.path.exists(escape))
+    def test_child_cannot_reach_a_real_listener(self):
+        srv = socket.socket(); srv.bind(("127.0.0.1", 0)); srv.listen(5); srv.settimeout(0.5); hits = []
+        def acc():
+            try: c, _ = srv.accept(); hits.append(1); c.close()
+            except OSError: pass
+        t = threading.Thread(target=acc); t.start()
+        try: self.assertEqual(SB.selftest(srv.getsockname()[1])["network_connect"], "blocked")
+        finally: t.join(); srv.close()
+        self.assertEqual(hits, [])
+    def test_timeout_kills_runaway_process(self):
+        with self.assertRaises(SandboxError) as c: SubprocessSandbox(timeout=1.5).spin()
+        self.assertIn("timed out", str(c.exception))
+    def test_policy_reported(self):
+        _, _, meta = SB.verify_execute("npv", NPV["inputs"]); p = meta["policy"]
+        self.assertEqual((p["network"], p["process_spawn"], p["seed"]), ("blocked", "blocked", 0)); self.assertIn(p["memory_limit_mb"], (None, 1024)); self.assertIn("not a security boundary", p["isolation"])
+
+class Parity(unittest.TestCase):
+    def test_sandbox_outputs_equal_in_process_for_every_method(self):
+        for name, inp in CASES.items():
+            m = LIBRARY[name]; results, outputs, meta = SB.verify_execute(name, inp); self.assertTrue(all(ok for _, ok in results), name)
+            local = m.impl(inp); local = local if isinstance(local, dict) else {m.metric: local}
+            self.assertEqual({k: str(v) for k, v in outputs.items()}, {k: str(v) for k, v in local.items()}, name)
+    def test_deterministic_across_processes(self):
+        a = SB.verify_execute("ols", CASES["ols"]); b = SB.verify_execute("ols", CASES["ols"])
+        self.assertEqual({k: str(v) for k, v in a[1].items()}, {k: str(v) for k, v in b[1].items()}); self.assertEqual(a[2]["env_hash"], b[2]["env_hash"])
+    def test_pipeline_report_identical_with_and_without_sandbox(self):
+        r = {"objective": "x", "method": "welch_t", "unit": "points", "inputs": CASES["welch_t"]}
+        d1 = Pipeline().run(r, yes); d2 = Pipeline(sandbox=SB).run(r, yes)
+        self.assertEqual(d1.report, d2.report); self.assertIsInstance(d2.appendix["sandbox"], dict); self.assertIsInstance(d1.appendix["sandbox"], str)
+    def test_fallback_and_blocks_work_through_sandbox(self):
+        sk = {"a": ["1", "1", "1", "2", "1", "1", "2", "3", "30"], "b": ["2", "3", "4", "5", "3", "4", "6", "5", "4"]}
+        d = Pipeline(sandbox=SB).run({"objective": "x", "method": "welch_t", "unit": "points", "inputs": {"groups": sk}}, yes)
+        self.assertEqual(d.status, "delivered"); self.assertEqual(d.appendix["fallback_used"]["to"], "mann_whitney"); self.assertIn("Hodges-Lehmann", d.report)
+        c = Pipeline(sandbox=SB).run({"objective": "x", "method": "ols", "inputs": {"y": ["3", "5", "4", "7", "8", "6", "9", "11", "10", "12", "14", "13"], "predictors": {"a": [str(i) for i in range(1, 13)], "b": [str(i + (0.01 if i % 2 else -0.01)) for i in range(1, 13)]}}}, yes)
+        self.assertEqual(c.status, "blocked"); self.assertIn("multicollinearity_screen", c.blocked_reason)
+        e = Pipeline(sandbox=SB).run({"objective": "x", "method": "pearson", "inputs": {"x": ["1", "2", "3", "4"], "y": ["2", "4", "6", "8"]}}, yes)
+        self.assertEqual(e.status, "blocked"); self.assertIn("perfect correlation", e.blocked_reason)
+
+class FailClosed(unittest.TestCase):
+    def test_unavailable_sandbox_blocks(self):
+        d = Pipeline(sandbox=SubprocessSandbox(python=os.path.join(tempfile.gettempdir(), "no_such_python"))).run(NPV, yes)
+        self.assertEqual(d.status, "blocked"); self.assertIn("sandbox", d.blocked_reason)
+    def test_timeout_blocks_not_hangs(self):
+        d = Pipeline(sandbox=SubprocessSandbox(timeout=0.01)).run(NPV, yes); self.assertEqual(d.status, "blocked"); self.assertIn("timed out", d.blocked_reason)
+    def test_builder_not_allowed_with_sandbox(self):
+        with self.assertRaises(ValueError): Pipeline(sandbox=SB).run(NPV, yes, builder=lambda impl, failed: impl)
+
+class Reperform(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls): cls.d = Pipeline(sandbox=SB).run(NPV, yes); cls.b = cls.d.appendix["reperform"]
+    def test_untouched_bundle_verifies_exactly(self):
+        r = reperform(self.b, SB); self.assertTrue(r["verified"]); self.assertTrue(r["all_exact"]); self.assertTrue(r["environment_match"])
+    def test_tampered_output_is_detected(self):
+        t = json.loads(json.dumps(self.b)); t["outputs"]["npv"] = "123.45"; r = reperform(t, SB); self.assertFalse(r["verified"]); self.assertTrue(any("npv" in x for x in r["differences"]))
+    def test_tampered_input_is_detected(self):
+        t = json.loads(json.dumps(self.b)); t["inputs"]["cashflows"][1] = "401"; self.assertFalse(reperform(t, SB)["verified"])
+    def test_environment_difference_is_reported_not_hidden(self):
+        t = json.loads(json.dumps(self.b)); t["env_hash"] = "x"; t["fingerprint"]["python"] = "0.0.0"; r = reperform(t, SB)
+        self.assertTrue(r["verified"]); self.assertFalse(r["environment_match"]); self.assertIn("python", r["environment_differences"])
+    def test_unknown_method_fails_closed(self):
+        t = json.loads(json.dumps(self.b)); t["method"]["id"] = "nope"; self.assertFalse(reperform(t, SB)["verified"])
+    def test_command_line_tool(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = os.path.join(td, "b.json"); json.dump(self.d.appendix["reperform"], open(f, "w"), default=str)
+            env = {**os.environ, "PYTHONPATH": "src"}
+            ok = subprocess.run([sys.executable, "-m", "bp.reperform", f], env=env, capture_output=True, text=True); self.assertEqual(ok.returncode, 0, ok.stderr)
+            bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+            self.assertEqual(subprocess.run([sys.executable, "-m", "bp.reperform", f], env=env, capture_output=True, text=True).returncode, 1)
+    def test_fingerprint_pins_source_and_has_no_third_party(self):
+        fp = envpin.fingerprint(); self.assertEqual(fp["third_party_packages"], []); self.assertEqual(len(fp["bp_source"]), 64); self.assertEqual(envpin.env_hash(fp), envpin.env_hash())
+
+class ServerWithSandbox(unittest.TestCase):
+    def test_full_flow_over_http(self):
+        from http.server import ThreadingHTTPServer; import urllib.request as u
+        old = server.M; server.M = SessionManager(SB); srv = ThreadingHTTPServer(("127.0.0.1", 0), server.H); threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            call = lambda path, b=None: json.load(u.urlopen(u.Request(f"http://127.0.0.1:{srv.server_address[1]}{path}", data=None if b is None else json.dumps(b).encode(), headers={"Content-Type": "application/json"})))
+            s = call("/api/sessions", server.PRESETS["pearson"]); d = call(f"/api/sessions/{s['id']}/confirm", {})
+            self.assertEqual(d["status"], "delivered"); self.assertEqual(d["delivery"]["appendix"]["sandbox"]["network"], "blocked"); self.assertIn("reperform", d["delivery"]["appendix"])
+        finally: srv.shutdown(); server.M = old
+if __name__ == "__main__": unittest.main()
