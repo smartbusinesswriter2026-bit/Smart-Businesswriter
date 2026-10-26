@@ -1,0 +1,317 @@
+# Discussion notebook — owner reviews, model-to-model continuity
+
+**Kind:** living, append-only. **Rule:** new entries at the top; never rewrite an old entry, supersede it with a new one.
+
+**Why this file exists.** The owner is a business academic, not an engineer. When they read the system they cannot see what it is doing or why. That produced a real risk: a system that looks like a black box gets judged by its surface, and the surface was telling a different story from the code. This notebook is where a *discussion* is recorded — the owner's concerns in their own terms, what was found, what was changed, what is still missing, and — importantly — **where the assistant was wrong or might be wrong**. A later model should read this before changing anything, so the reasoning survives the session that produced it.
+
+**How to use it (for a model picking this up).**
+
+1. Read [`HOME.md`](HOME.md) first for the map, then [`CONTRIBUTORS.md`](../CONTRIBUTORS.md) for the rules, then this file.
+2. Read the most recent entry end to end before touching the thing it describes.
+3. If you change something an entry describes, write a **new** entry at the top and say what changed. Do not edit the old entry - a later model needs to see what was believed at the time.
+4. Every entry must end with **where this could be wrong**. If you cannot find a weakness in your own conclusion, you have not thought hard enough.
+5. If you disagree with an earlier entry, say so plainly and put your reasoning in the open. Do not quietly overwrite.
+
+---
+
+## Discussion brief - subject-first navigation, and the shift from run-oriented to case-oriented (separate section)
+
+**Status: DISCUSSION + BUILD BRIEF. Not implemented, not decided, not authority.** This section exists so that (a) the owner can choose between options without re-reading the code, and (b) a model with more capacity than the one that wrote it can implement the chosen option without the original session. It is deliberately a **separate section**, not a dated review entry: the dated entries below record what happened and where an assistant was wrong; this section records a forward-looking design discussion and a build brief. If a model implements any part of it, it must (1) add a **new dated entry at the top** describing what it changed and where this brief was wrong, and (2) update only this section's Status line. Do not rewrite the rest of this section once dated entries supersede it.
+
+**Owner ask (2026-10-27, second message, condensed).** *"We have to change the trajectory of the pipeline from run oriented to case oriented. In the pipeline, insert or replace the second icon, which is now analysis draft work plan, as it is useless. Use the attached A4.jpg as a basis where it will include all relevant domains or subjects in business. When the user clicks accounting, they will be taken to the accounting page and do sorts of things there related to accounting that is supported by the backend. Also finance, economics, management, operations management, supply chain etc. Others may not have calculations but only framework - for example, in management they may only opt for Porter's five forces. Others have a combination. Explore ways on how to do this where the backend would fit in this new workflow and present the most promising options."*
+
+Signals to respect: (1) "run -> case" is a **direction of travel**, not a feature to bolt on; (2) the **second entry point** in the pipeline is to be *replaced*, not added to; (3) **A4.jpg (SciSpace's "Browse by Domain") is a structural reference only** - no text, claims, agent names or counts are copied; (4) **framework-only subjects are accepted** ("management ... may only opt for Porter's five forces") but **combination subjects are expected**; (5) the owner asked for options and a recommendation, **not code**.
+
+**Verify before acting - the repository record is currently ahead of the served product.** The 0.65 entry below claims a UI pass ("home became case-first with three intake cards; `framework_suggestions` render as selectable chips; charts render automatically ..."), and `WORKLOG.md` repeats it. The served `web/index.html` does not contain it: no case intake, no document upload, no call to `/workspace`, `/documents`, `/data-files`, `/arguments` or `/charts`, no `framework_suggestions` rendering, hero sub-line still "To be supplied". Evidence: `web/index.html:295`, `:583`; grep of the file for the workspace routes returns nothing; the only case routes it uses are run-level (`:842`, `:853`, `:892-895`, `:1234`, `:1245`). The backend modules exist and their routes are wired (`src/bp/product/api.py:25-32`). **The case-first backend was built; the case-first UI was not.** Re-verify this first:
+
+```
+# from business_pipeline/
+curl -s http://127.0.0.1:8000/ > page.html
+# then grep page.html for: /workspace   framework_suggestions   "Draft work plan"   "To be supplied"
+python -m unittest tests.test_session_api tests.test_product_workspace
+```
+
+### A. Findings (evidence, not opinion)
+
+| # | Finding | Evidence |
+|---|---|---|
+| F1 | The served flow is **run-first**: objective box -> preset/method dropdown -> "Draft work plan" -> "Confirm spec and run" -> result -> "Save as case". The case is created *after* the run. | `web/index.html:290-336`, `:685-736`, `:842` |
+| F2 | The 0.65 case workspace (documents, data files, arguments, chart plan) is **built but unreachable from the UI**. | `src/bp/product/api.py:25-32`; no call in `web/index.html` |
+| F3 | `framework_suggestions` is computed on every session and never rendered. | `src/bp/session.py:67-68`; grep of `web/index.html` -> none |
+| F4 | The "Draft work plan" step is **load-bearing**, not decorative: it is the only path by which edited figures reach a session, because the UI re-posts `/api/sessions` in `redraft()`, and `confirm` accepts `frameworks` only - never inputs. | `web/index.html:738-756`; `src/bp/server.py:183-187` |
+| F5 | A frozen test asserts the served `/` contains the strings "Draft work plan" and "Account mapping". Removing the screen silently breaks the suite unless the phrase survives somewhere honest. | `tests/test_session_api.py:98` |
+| F6 | A case **cannot exist before a run**: a bundle must carry `session`, `delivery`, a `report` string, `appendix` and `reperform`. "Upload the case study, then decide what to do" is impossible in the current schema. | `src/bp/product/cases.py:40`, `:137-153`; `versions.py:37` |
+| F7 | A case is **one run**: the version chain and comparison are run-level and comparison requires the same method id in every version. A case holding accounting + finance + strategy runs does not exist. | `src/bp/product/compare.py:57-59`; `versions.py` |
+| F8 | The framework catalogue has **no list-all and no discipline filter**; search needs a query and is capped at 25 results. A subject page cannot browse "all frameworks in my subject" from frozen routes. | `src/bp/server.py:129-132`; `src/bp/registry.py:150-160` |
+| F9 | The **ingest-to-method mapping already exists** (`POST /api/ingest` with `"map": {"method", "columns"}` validates a table's columns against a method's declared inputs) and is not surfaced in the UI. This is the "messy figures -> checked inputs" capability the owner asked for in the first review. | `src/bp/server.py:246-250`; `docs/CAPABILITIES.md` section 5.1 |
+| F10 | The catalogue is large but mostly un-actionable: **140 records, 15 discipline tags; 3 records have a worksheet template (STR-01, STR-07, STR-18), 6 have a partially linked method, 9 have either, and 131 have neither.** | `src/bp/registry.py:53-62`; `src/bp/data/registry_v0_2.json` |
+| F11 | The model lane is inert (no provider configured), so subject pages cannot rely on model proposals yet. | `src/bp/server.py:135-136` |
+
+### B. What A4.jpg actually adds: the missing second axis
+
+The reference image carries **two axes**: an action axis (*Featured, Extract + Analyse, Literature Review, Create + Write, Deep Search*) and a **domain axis** (*Browse by Domain: Physics, Computer Science + AI, ...*). Our product currently has only one axis, and it is a map of **subsystems** (Home, Cases, Data, References, Deliverables, Accounts, Frameworks, Assistant, Status) - which is exactly why the owner calls the left icons useless. Adding the subject axis is the whole idea; the subject gallery is a **filtered index over the tools the engine already has**, not a second application.
+
+**Two readings of "the second icon", and they converge on one build.** (1) Rail item #2 is *Cases* (`web/index.html:255`), a table of saved runs - replace it with **Subjects**. (2) The second *step* of the analysis pipeline is the **Draft work plan** screen - replace it with the subject/tool screen. The build in section F satisfies both: the rail becomes task-shaped with Subjects second, and the work-plan checkpoint folds into the tool screen (mechanics in section F.1).
+
+### C. Constraints that decide the design (do not fight these)
+
+| Constraint | Evidence | Consequence |
+|---|---|---|
+| Core frozen: 36 methods, 38 presets, 12 route families, delivery shape | `docs/BACKEND_CONTRACT.md` section 2; `tests/fixtures/frozen_contract.json` | Every subject tool must launch an existing id. No new arithmetic, no new delivery shape. |
+| New product routes must live under `/api/cases` to need no core edit | `docs/BACKEND_CONTRACT.md:92`; `src/bp/product/api.py:94-141` | A subject catalogue endpoint is `/api/cases/subjects...`, or it is an unfreeze request. |
+| The product package may not import the frozen core | `tests/test_product_boundary.py:66-77` | The subject -> tool mapping is **static product data** guarded by a drift test, never a call into `methods`/`registry`. |
+| A case needs a completed run to exist | F6 | The target flow (case first, then tools) requires a product-layer schema change. |
+| Case comparison/versions are run-level, same method only | F7 | A multi-subject case is a schema decision, not a UI trick. |
+| Product layer computes no business number | `docs/BACKEND_CONTRACT.md` section 4 | The subject index may group, label and link; it may not derive, rank or score a business figure. |
+| Frozen UI string test | F5 | If the work-plan screen disappears, keep the phrase in the recorded-metadata disclosure or coordinate a test change with the computation owner. Never edit the test. |
+
+### D. The honesty map - what each subject can actually do today
+
+This is the part that decides how many subject pages are real and how many are catalogue reading. Every "runs today" entry is a frozen method/preset; every "catalogue only" entry has no engine and no worksheet.
+
+| Subject | Runs today (computed, auditable) | Framework worksheets | Catalogue only - no engine/worksheet |
+|---|---|---|---|
+| **Accounting** | `management_accounts` (ledger, statements, two-route cash flow, closing; preset `accounts`), `ratio_analysis` (preset `ratios`), `currency_convert`, descriptive/weighted summaries | none | management accounting: variances, ABC, target costing (QNT-FIN-05); cost & profitability beyond break-even |
+| **Finance** | `npv`, `irr`, `discounted_payback`, `wacc`, `dcf_valuation`, `equity_bridge`, `case_decision` (alternatives + crossover rate), `unit_economics`, `multi_product_breakeven`, `breakeven`, `ratio_analysis`, `trend_forecast`, `ols`/`pearson` for betas | `case_decision` (T2 workflow) | no bonds, options, portfolio, CAPM derivation, FX retrieval or tax |
+| **Economics** | `cost_benefit`, `cost_effectiveness`, `sroi`, `trend_forecast`, `currency_convert`, correlation/regression | none | pricing & demand/elasticity (QNT-FIN-07); decision analysis (QNT-DEC); impact evaluation (QNT-EVL) |
+| **Management & strategy** | `case_decision` for option comparison; the statistics methods as evidence | **`swot`, `five_forces`** (the only two T4 worksheets) | 18 strategy, 14 change/org, 14 performance/projects frameworks, 7 theories - **worksheets gated by B-028** |
+| **Operations management** | `breakeven`, `multi_product_breakeven`, `unit_economics`, `trend_forecast`, `chi_square`, `power_analysis`, `missing_data_bounds`, descriptive | none | EOQ, reorder point, queueing, capacity, CPM/PERT, OEE, SPC (QNT-OPS-01..08); SCOR, SIPOC, VSM, 5S, A3, TOC, 5 Whys, FMEA |
+| **Supply chain & logistics** | as Operations | none | QNT-OPS-01/02/03/08, SCOR - **no inventory, lead-time or network calculation at all** |
+| **Marketing & customers** | `unit_economics` (margin, CAC payback, LTV), `multi_product_breakeven`, `trend_forecast`, `reliability_alpha`, `chi_square`, `power_analysis` | none | TAM/SAM/SOM, market share, cohorts/retention, RFM, A/B analysis (QNT-MKT-01..07); STP, 4Ps, AIDA, Kano, SERVQUAL |
+| **People & organisation** | `reliability_alpha`, `weighted_summary`, `descriptive_stats`, `chi_square`, `power_analysis`, correlation/regression | none | AMO, Kirkpatrick, Job Characteristics, Nine-Box, Tuckman; the change/org frameworks |
+| **Research & statistics** (cross-cutting; belongs on every subject page) | 20+ T1 methods: descriptive, correlation, OLS/HC3/logistic, t/ANOVA/KW/two-way/post-hoc, chi-square, power, missing-data bounds, multiple comparison, alpha, weighted, forecast | none | factor analysis, clustering, ANCOVA, repeated measures (parked, B-075) |
+
+Two conclusions follow and should govern the plan:
+
+1. **The subject hub is roughly 20% backend and 80% product surface.** The compute exists. What is missing is (a) the container order (case before run), (b) per-subject input adapters, (c) a curated index. `POST /api/ingest` with `map` (F9) already does "messy figures -> validated method inputs"; the subject page mostly needs to *call* it.
+2. **Only four subjects can carry a real workbench now** (Accounting, Finance, Research & statistics, Strategy/Management). The rest must be labelled honestly as "framework structure + computed tools where marked", or the hub becomes a promise the engine cannot keep.
+
+### E. The architectural fork: what is a case?
+
+The real decision is not which screen to add; it is **what a case is**. Today a case is one run plus its material. The owner's trajectory implies **one case study -> many subject analyses on the same material**, which requires the case to be the container and the runs to be contents:
+
+```
+TODAY    Home -> objective + method -> session -> confirm -> report -> [Save as case]
+                                                                       case = 1 run (+ documents/data/arguments)
+
+TARGET   Home (case shelf) -> Case (materials) -> Subject -> Tool -> run
+                                   |                                   case = materials + runs[]
+                                   +-> Accounting | Finance | Management | ...
+```
+
+### F. The options
+
+Comparison summary:
+
+| Option | What it is | Backend change | Freeze risk | Gives "case oriented"? | Cost | Verdict |
+|---|---|---|---|---|---|---|
+| **A** | Subject gallery in the UI only (static JS table) | none | none | no | small | presentation only; not sufficient alone |
+| **B** | Subject catalogue as product data + case-scoped subject view | new `product/subjects.py`, routes under `/api/cases` | none | partially | moderate | good groundwork; ship as part of E |
+| **C1** | Case owns its runs: one `bp-case/2` document with `runs[]` | product-layer schema change in `cases/versions/compare/export/workspace` | none | yes | large | **recommended core** |
+| **C2** | Separate "engagement" store that references run bundles | new `product/engagements.py` + sidecar index | none | yes | large | valid alternative; two stores + migration |
+| **D** | Subjects in the frozen core: `/api/subjects`, discipline filter on `/api/frameworks`, session groups | core edit + fixture update | **unfreeze** | yes | large | rejected now; revisit only if hosted/multi-user or owner-editable catalogue |
+| **E** | Staged hybrid: A/B presentation now, C1 next, subjects one by one | as above | none | yes, over time | sequenced | **recommended plan** (see section G) |
+
+**Option A - subject gallery in the UI only.** Static JavaScript table subject -> tool descriptors (preset id, method id, template id, label, kind); framework lists filtered client-side from `/api/frameworks` by `disciplines`; every tool click fills the existing objective/preset/method controls. *Pros:* days of work, zero backend risk, structurally identical to SciSpace; a fast visible win. *Cons:* untestable mapping (the suite cannot see the UI, so drift is silent), no case grouping, still run-first, and a menu is not the moat. **Verdict:** acceptable as the *presentation* of B, never as the plan on its own.
+
+**Option B - subject catalogue as product data.** New `src/bp/product/subjects.py` holding a versioned static catalogue (subject -> tools with kind `compute|framework|mixed|research`, their launch ids, one-line "what it does here", plus catalogue ids); routes `GET /api/cases/subjects` and `GET /api/cases/subjects/{id}`; subject-scoped listing `GET /api/cases?subject=` using a static method -> subject map; a guard test asserting every launch id exists in the frozen fixture and every catalogue id exists in the registry JSON read as data (the product package still imports nothing from the core). *Pros:* one testable source of truth for the UI and any future API consumer; honest tool counts; no unfreeze. *Cons:* a run still saves as its own case, so the case study must be re-attached per run; the run remains the storage unit. **Verdict:** build it as Increment 1 of E; it is what makes the gallery honest and maintainable.
+
+**Option C1 - the case owns its runs (recommended core).** A product-layer document `bp-case/2`:
+
+```json
+{"format": "bp-case/2", "id": "<12 hex>", "title": "...", "subject": "accounting",
+ "created_at": "<ISO-8601 UTC>",
+ "documents": [], "data_files": [], "arguments": [],
+ "runs": [{"run_id": "...", "method": "ratio_analysis", "method_version": "1.0.0",
+           "tier": "T1", "spec_hash": "...", "outputs_hash": "...", "created_at": "...",
+           "session": { ... }, "delivery": {"report": "...", "appendix": { ... }},
+           "reperform": { ... }}],
+ "primary_run": 0}
+```
+
+Rules: each run is the existing frozen session + delivery **stored verbatim and hash-pinned** (the product layer still computes nothing); an **empty case is legal** (`runs: []`) so the student can create the case and upload the case study first; a **v1 bundle reads as a one-run case** (`runs = [synthesized from session/delivery/reperform]`, `subject` derived from the method map) and is written as v2 only when modified; versions/compare/charts/exports take a **run selector** (default `primary_run`); sign-off signs a run's version hashes. *Pros:* it is the actual trajectory change; the audit story improves (a run is the frozen computation, the case is the student's work); the 0.65 workspace pieces finally sit at the right level; **no unfreeze**. *Cons:* schema migration and coordinated updates in `cases.py`, `versions.py`, `compare.py`, `export.py`, `workspace.py` plus their product tests; version semantics must be decided. **Verdict:** the recommended core, as Increment 2.
+
+**Option C2 - separate engagement store.** Keep `cases/<id>.json` as one opaque run bundle and add `engagements/<id>.json` = `{title, subject, documents, data_files, arguments, run_ids[]}`, where run ids point at stored run bundles; the subject page loads the engagement and hydrates each run. *Pros:* zero change to the existing bundle schema and to `versions/compare/export`; migration is trivial (existing flat cases appear as single-run engagements, synthesized on read). *Cons:* two stores to back up, restore and keep consistent; materials live in one store and runs in another; deleting a run/case needs cross-store rules; the "case travels as one thing" artefact becomes two files. **Verdict:** the conservative fallback if C1's schema change is judged too risky for the current audit trail.
+
+**Option D - subjects in the frozen core (rejected for now).** Add `/api/subjects`, a `discipline` query parameter on `/api/frameworks`, and optionally session groups in `session.py`/`orchestrator.py`. *Pros:* one authoritative catalogue, server-side filtering, owner-editable without a code change, useful if the product becomes hosted/multi-user. *Cons:* changes the frozen route and registry contracts, needs owner approval, a B-decision, a fixture update and a trap test; the product layer can hold the same data as tested static data today. **Verdict:** do not do it now; revisit only if D1 changes to hosted/multi-user, or the catalogue must be edited by the owner without a code change.
+
+### G. Recommended plan - Option E, four increments over A/B/C1
+
+**Increment 1 - "Case first, subject second" (presentation + product catalogue; no schema change).**
+- Home becomes the **case shelf**: *New case* (upload the case study / paste figures / describe the objective), *Your cases*, and **Browse by subject**.
+- Rail becomes task-shaped, six items: **Home | Subjects | Case | Catalogue | Assistant | Status**. "Cases" folds into Home; "Accounts" becomes the Accounting subject page; "Frameworks & templates" becomes Catalogue (reachable from every subject page). **Subjects is the second icon** - the replacement the owner asked for.
+- Subject page v1: the subject's tools (from `subjects.py`), the case's documents/figures, the runs already done, and an explicit "catalogue only - no worksheet yet" section for engine-less items.
+- **Work-plan step removed as a destination** (mechanics in G.1) - the tool screen shows inputs, declared assumptions/ambiguities and one primary button that applies edited inputs and confirms in one sequence.
+- Files: `src/bp/product/subjects.py` (new), `src/bp/product/api.py` (routes + `?subject=` filter), `tests/test_product_subjects.py` (new, drift guard), `web/index.html`. No core edit. Docs: one CHANGELOG entry, one WORKLOG `[product]` entry, `BACKEND_CONTRACT.md` section 6 rows, count digits in HOME/HANDOFF/CONTRIBUTORS, a new dated entry at the top of this notebook.
+- Acceptance: every subject tool launches a live frozen id; the guard test fails if a preset/method/template/registry id in the catalogue disappears; with the server unavailable the gallery shows a visible error and never invents a tool list (fail closed); the frozen UI strings still pass.
+
+**Increment 2 - "The case owns its runs" (Option C1).**
+- `bp-case/2` as in F; empty cases; v1 read-compatibility; run selector on versions/compare/charts/exports; `POST /api/cases/{id}/runs`, `GET /api/cases/{id}/runs`.
+- Migration trap test: a v1 bundle loads, lists, renders, exports and compares **byte-identically** to the pre-change code; a case with `runs: []` is storable, reopenable and has a workspace view; every run's stored numbers are unchanged.
+- Decide version semantics explicitly and record the decision (recommended: a version snapshots **one run**, never the whole case, so hashes stay meaningful; the case-level snapshot, if needed, is a separate export).
+- Risks: this touches the freshly built 0.65 workspace and the version chain. Do not rush the version decision; if it cannot be settled, fall back to C2.
+
+**Increment 3 - the first real workbench: Accounting, then Finance.**
+- Accounting: typed engagement editor (chart of accounts, opening balances/entries, schedules, reconciliation) or CSV import through `POST /api/ingest` with `map`; the second checkpoint (account mapping) rendered as a **typed table**, not a JSON `<pre>`; statements table; ratio analysis; statement export. Today the `accounts` preset posts one raw JSON demo spec (`src/bp/accounts.py`, `EXAMPLE_SPEC`), so "do accounting things" is currently not possible from the UI.
+- Why Accounting first: deepest engine, two-checkpoint flow already exists in the Accounts panel (`web/index.html:1250-1316`), statements/exports exist, and the owner's own INITIAL TEST set is accounting/finance.
+- Finance second: a cash-flow/DCF sheet feeding `npv`/`irr`/`wacc`/`dcf_valuation`/`equity_bridge`, with the crossover (`case_decision`) as a headline rather than an appendix line.
+
+**Increment 4 - the remaining subjects, honestly labelled.**
+- Strategy/Management: worksheet UIs for the two existing T4 templates (evidence items with dimensions/forces, provenance, materiality; nothing scored), plus catalogue reading for the rest.
+- Research & statistics: the natural home of the 20+ statistical methods currently buried in a method dropdown.
+- Marketing/Economics/Operations/Supply chain/People: "combination" pages with computed tools where they exist and an explicit catalogue-only section. Request **B-028** (more worksheets: PESTEL, VRIO, Value Chain, Business Model Canvas, MCDA) if the owner wants those pages to be actionable; request **B-032** (ledger T1), **B-052** (tax) only through the owner's decision process.
+- **Do not invent a worksheet** for a catalogue record: T4 structure-only template creation is gated by B-028, and a fake "worksheet" would be a claim the engine cannot support.
+
+**G.1 Removing the "Draft work plan" step without breaking the contract.** The step is load-bearing (F4): inputs reach a session only by re-posting `/api/sessions`, and `confirm` takes frameworks only. The replacement must preserve the mandatory pre-run checkpoint (it is a product invariant, not a UI preference). Recommended mechanics: the tool screen collects the figures and keeps the declared assumptions/ambiguities visible; its **one primary button** performs the same two calls the UI performs today (`POST /api/sessions` with the edited inputs, then `POST /api/sessions/{id}/confirm`), then renders the delivery. Nothing is computed client-side and no core route is needed. Keep a sentence containing "**Draft work plan**" in the recorded-metadata disclosure so `tests/test_session_api.py:98` stays green (the string test is frozen; if the owner prefers it gone, that is a coordinated change with the computation owner, never an edit to the test).
+
+### H. Proposed subject taxonomy (a judgement, derived from the catalogue's 15 `disciplines` + a small override list)
+
+Do not hand-map 131 unlinked catalogue records. Map subjects to discipline tags, then override the few ambiguous Q/F records:
+
+| Subject (proposed) | Catalogue `disciplines` to pull | Notes / overrides |
+|---|---|---|
+| Accounting | finance, accounting and managerial economics | pull QNT-FIN-02/05 toward Accounting; QNT-FIN-01/03/04/06 toward Finance |
+| Finance | finance, accounting and managerial economics | QNT-FIN-07 (pricing & demand) -> Economics/Marketing |
+| Economics | finance, accounting and managerial economics; public, nonprofit and impact evaluation; program and impact evaluation | appraisal methods are the real engine; label the rest catalogue-only |
+| Management & strategy | strategy; change and organization; people and learning; performance, projects and technology governance | one page or split "Management" vs "People & organisation" - owner decision |
+| Operations management | operations and supply chain; operations, logistics and optimization | split logistics into Supply chain |
+| Supply chain & logistics | operations and supply chain; operations, logistics and optimization | same tags, different curated tool set |
+| Marketing & customers | marketing and customers; market and customer analytics | |
+| People & organisation | people and learning; change and organization | |
+| Research & statistics (cross-cutting) | statistics and empirical research; supporting theory | **not a subject page**: a methods page linked from every subject |
+| Risk & decision analysis (optional) | risk and decision analysis; decision analysis and risk quantification | fold into Finance/Management unless the owner wants it separate |
+
+The subject -> tool and subject -> catalogue-id lists should be **generated once** from the registry and frozen core by a small `scripts/` helper, then **committed** in `subjects.py` and guarded by a test that re-reads `tests/fixtures/frozen_contract.json` (methods/presets) and `src/bp/data/registry_v0_2.json` (catalogue ids) as data. That is the house pattern (`test_shipped_registry_equals_fresh_import`): deterministic bytes, a guard that fails on drift, and no core import in the product package.
+
+### I. What must not be done in any of these increments
+
+- No core module edit, no frozen fixture edit, no existing-test edit; no new route outside `/api/cases` without an owner-approved unfreeze.
+- No second arithmetic path: the subject index groups and links; it must never compute, rank, score or adjust a business number, threshold or rating.
+- No hidden capability: a tool the engine cannot run must be shown as catalogue-only with its declared `implementation_status`, exactly as the registry states it.
+- No invented subject counts, "agents", testimonials or social proof (the A4.jpg reference is structural only).
+- Do not present a framework-only subject as an analysis the system performed: T4 is structure + evidence audit, and the output must say so.
+
+### J. Owner decisions needed before or during implementation
+
+1. **Which reading of "the second icon"** is intended - the rail item, the work-plan screen, or both? (The plan covers both.)
+2. **Is one case supposed to hold many subject analyses** (accounting + finance + strategy on the same case study)? This is the C1 decision; if not, Option B is sufficient.
+3. **Accounting first?** Or another subject if coursework is strategy/marketing-heavy (then the first workbench is much thinner - two worksheets).
+4. **Framework-only subjects:** show the 131 catalogue records that have no worksheet (honest "read the structure, no worksheet yet"), or hide them until B-028 expands the template set?
+5. **B-028:** add worksheets (PESTEL, VRIO, Value Chain, Business Model Canvas, MCDA)? This is the decision that turns Management/Marketing/Operations pages from reading lists into workbenches.
+6. **Subject list:** 8 + 1 cross-cutting (as in H), or split Management from People & organisation, or keep Risk separate?
+7. **Version semantics for a multi-run case** (if C1): snapshot one run per version (recommended) or the whole case?
+
+### K. Open questions for the next model (unresolved by this brief)
+
+- Where should the **subject tag** live: only `bp-case/2.subject` (explicit, chosen by the student) or derived from the method map (implicit, no storage)? Recommendation: explicit when creating a case, derived as a fallback for v1 bundles.
+- Should the **subject page list runs from other subjects** (cross-links), or stay scoped?
+- How does a **multi-run case export**? One HTML per run plus a case index page, or one combined document? (No new arithmetic either way; decide the artefact.)
+- Does **sign-off** attest a run, a case version, or the case? (Today it signs version hashes; with runs, the hashes must be scoped.)
+- Does the **case shelf** show the subject(s) a case touches, and does it need a filter when there are many cases?
+- What is the **empty-case UX** when the student uploads a case study but the extractor refuses it (scanned PDF)? The honesty rule says refuse with a reason, not paraphrase; the page must show the refusal and offer paste-the-text.
+- Should the **model lane** (still inert) later propose facts/alternatives *per subject*? Out of scope for these increments; do not wire it while implementing them.
+
+### L. Where this could be wrong - read before implementing
+
+- **The subject taxonomy is my judgement, not the repository's.** The catalogue's `disciplines` do not match the owner's subject list (e.g. "finance, accounting and managerial economics" is one tag but the product separates Accounting and Finance; "risk and decision analysis" has no obvious home). Expect the owner to overrule parts of table H.
+- **The gallery may still be judged cosmetic.** It changes where work starts, not what the engine can do. If the subject page does not show the case's evidence beside the tool and the derivation beside the result, a chatbot with a nicer menu still wins on feel. The differentiator must stay the audit trail.
+- **C1 is the riskiest recommendation.** It touches the just-built 0.65 workspace and the version chain; if version semantics are rushed, the audit trail could get softer, not harder. C2 is the safer fallback; do not let the choice be made by whoever is fastest to code.
+- **Accounting-first may be wrong for the owner's students.** It is right for engine depth and the owner's test set; if coursework is strategy/marketing-heavy, the first workbench should be Management - at the cost of a much thinner engine (two worksheets, both T4).
+- **I may have over-read "the second icon".** Two readings are given in B; the plan covers both, but if the owner meant only one, delete the other half rather than building both halves defensively.
+- **The capability map (D) may understate the catalogue.** Catalogue frameworks are readable and can structure a student's thinking even without a worksheet; calling them "no engine/worksheet" is accurate but a student may still use the structure manually. The page should say that rather than imply the framework is broken.
+- **I did not run the suite or click the served site.** I read the HTML statically and queried `/api/health` (2 cases stored at the time). The 0.65 discrepancy in the Verify section must be corrected in this notebook before the next model trusts that entry.
+- **The 131/9 figures in F10 come from running `registry.load()` on the current tree.** If the catalogue is regenerated or B-028 lands, recompute them; the guard test proposed in H is what keeps them true.
+
+### M. Verification of the claims in this section
+
+```
+# from business_pipeline_v0.12/business_pipeline
+$env:PYTHONPATH="src"
+python -c "from bp import registry; r=registry.load()['records']; print(len(r), sum(1 for x in r if x.get('template')), sum(1 for x in r if x.get('linked_methods')))"
+grep -n "workspace\|framework_suggestions\|/api/cases/" web/index.html
+python -m unittest tests.test_session_api tests.test_product_boundary tests.test_frozen_contract
+```
+
+Expected: `140 3 6`; no workspace/suggestions hits in the UI; the frozen-contract, boundary and session-API tests pass. If any of these differ, the brief is stale - update it before implementing.
+
+---
+
+## 2026-10-27 — [design] The owner's "black box" review, and the shift from *run* to *case*
+
+**Ask (owner, in their own terms).** The first version of the website is done, "but it still remains a black box to me. I'm a business major and has an MBA but I'm confused how can the pipeline do most of the business cases and calculations." Typical student work is a case study *with accompanying files* — financial statements, historical data, figures — and "the pipeline does not seem to accommodate that". Their four concerns, condensed:
+
+1. **Where does the case study go?** Case studies are deliberately ambiguous so that students must think; if a case is crystal clear the student could just upload it to a language model. So the system must handle *messy* cases and figures, and it must do so **intuitively**. The owner asked directly: "where's how the arguing models play in it and if they are even wired".
+2. **The home screen and the left icons.** Students start at home. "The charts, you have separated it. The system should intuitively use it when needed, otherwise thats useless. The icons at the left are pretty much useless."
+3. **Real value over a plain LLM.** Otherwise students "will just use deepseek or claude to do their papers". It has to be simplified, handle messy and ambiguous cases, and **show calculations**.
+4. **Free of model risk.**
+
+**What I did.** Read-only inspection before anything was changed: the backend (`src/bp/**`), the product layer (`src/bp/product/**`), the UI (`web/index.html`), the live server on `127.0.0.1:8000`, the owner-supplied PDF *important for business and RA pipeline-hybrid reasonning agents.pdf* (the HybridAgent paper, arXiv 2610.18861 — latent reasoning plus tool use), and the repository's own governance documents.
+
+**Findings (evidence).**
+
+| # | Finding | Where |
+|---|---|---|
+| F1 | The only upload in the entire product is CSV/TSV/XLSX. PDF/DOCX are **refused by design**: *"PDF ingestion is not implemented: no PDF text extraction or OCR exists."* | `src/bp/ingest.py:287` |
+| F2 | Ingestion is a **dead end**: it produces a typed table, then a "mapped request" JSON blob that the student copies by hand. Nothing carries it into a run. | `web/index.html:1100-1102` |
+| F3 | The model lane exists (`facts`, `alternatives`, `critique`) with the right discipline — model text may contain no digits, so the model can produce no number — but it has **never run**: no provider is configured, and the UI button posts `task:"challenge"`, which the server rejects, sends no `consent`, and uses the wrong payload shape. Three separate breaks. | `src/bp/assist.py:50,68,91`; `src/bp/server.py:202-208`; `web/index.html:1401`; `src/bp/llm.py:100`; `GET /api/assist/config` → `{"enabled": false, …}` |
+| F4 | The one piece of built-in intuition is **computed and thrown away**: every session runs `registry.recommend()` over 140 catalogue records and stores the result in `work_plan.framework_suggestions`; the UI never renders it. | `src/bp/session.py:67-68`; grep of `web/index.html` for `framework_suggestions` → no match |
+| F5 | The business-case method requires the student to have **already done the thinking**: facts, alternatives, cash flows, rate, rate range and a decision rule must all be supplied before it runs. The pipeline sat *downstream* of the reasoning, not alongside it. | `src/bp/case_decision.py:38-64` |
+| F6 | The charts were not merely separated — they were **broken**. The delivery appendix names the artifact (`"result"`) while the re-perform bundle keys the same number by the metric (`"npv"`), so the lookup returned `None` and every chart rendered "not recorded". | `src/bp/product/export.py` (fixed here); `src/bp/product/charts.py:45` |
+| F7 | The left rail is a map of the **pipeline's subsystems**, not of a student's tasks: Cases is a JSON store of saved analyses, Accounts is the ledger engine, Frames is a catalogue browser, Status is a health endpoint. | `src/bp/product/cases.py`; `web/index.html:251-283` |
+| F8 | The hero sub-line still read **"To be supplied"** — 100 copy options were written down and none was ever chosen. | `web/DESIGN_NOTES.md` §3; `web/index.html:583` |
+| F9 | The engine itself is genuinely strong: 36 methods, an independent second route per number, `Decimal` arithmetic, frozen checks, hashed specs, re-performable deliveries, a double-entry ledger with 11 invariants. | `docs/BACKEND_CONTRACT.md` §2, §5 |
+
+**Assessment against the owner's four concerns.**
+
+- **Concern 1 — the case study.** Correct: there was nowhere to put one. The fix is not "upload a PDF to the LLM". It is: extract the document's text locally, keep its hash and its provenance, let the model *propose* facts and alternatives **as proposals that code validates and the student confirms**, then let code do the arithmetic. The pattern already exists twice in this codebase (`assist.propose_alternatives`; the account-mapping checkpoint); it had simply never been applied to intake.
+- **Concern 2 — home, charts, icons.** Correct. The home screen was a *method picker* (an objective box plus three dropdowns), and the charts were both separated and broken (F6). The structural fix is to change the **unit of the product from a run to a case**: a case owns its documents, its data files, its arguments, its runs and its charts, and travels as one thing.
+- **Concern 3 — value over DeepSeek/Claude.** The honest scorecard: **the engine beats an LLM; the product loses to ChatGPT.** The student currently has to know the method, type every input, read a flat report, and dig into a metadata table to find the differentiator. The moat is real (a crossover rate found by root-finding and re-checked on a second grid; a ledger with two-route cash flow; a claim ceiling that forbids the word "verified" at T2) but it leaked at every seam. The differentiator has to move out of the appendix and into the reading experience.
+- **Concern 4 — model risk.** The architecture is the moat and it holds: **no number ever comes from the model.** But "free of model risk" currently means "the model is switched off", which is a false binary. The goal is a model that is present and *cannot* contaminate a number.
+
+**What I changed in this increment (build 0.65, product lane).**
+
+- **New `src/bp/product/documents.py`** — case-document intake, standard library only: text, Word (OOXML) and text-based PDF, with SHA-256 of the exact bytes, byte length, and the provenance label `unverified_extracted_text`. **A scanned PDF is refused, not paraphrased**; a PDF whose embedded font encoding cannot be read is refused with a reason; nothing is OCR'd and nothing is guessed. (The Word suffix is assembled from two parts in code because the product-layer boundary test forbids the name of a third-party Word library anywhere in the package — see the comment in the file.)
+- **New `src/bp/product/workspace.py`** — the case workspace: one case now owns `documents`, `data_files`, `arguments` (facts / alternatives / critique), its version chain and a deterministic **chart plan** derived from the stored artifacts. It computes no business number.
+- **New product routes** (additive, no core edit): `GET/POST /api/cases/{id}/documents` (chunked upload, because the product body limit is 100 KB), `GET /api/cases/{id}/data-files`, `GET/POST /api/cases/{id}/arguments`, `GET /api/cases/{id}/workspace`, `GET /api/cases/{id}/charts`.
+- **Bug fix in `src/bp/product/export.py`** (F6): the artifact lookup now resolves a stored value under the artifact id **or** the metric key, and copies the stored crossover rate from the re-perform bundle's `flip` field. Trap test in `tests/test_product_artifact_rows.py`; it fails on the old code. This is a declared-behaviour bug fix, not an unfreeze.
+- **The UI pass** (delegated to a worker against a written contract; `web/index.html` only): home became case-first with three intake cards; the left rail gained text labels and the active case name; `framework_suggestions` render as selectable chips; `intended_use` / `unsupported_use` / `limitations` / `ambiguities` / `planned_checks` are surfaced; the assistant now calls the three real tasks with an explicit consent control and shows what code rejected; charts render automatically from the backend's plan; the internal `review_status` jargon was removed from the student-facing panel while the tier badge and the raw values in the recorded-metadata disclosure were kept.
+- **45 new tests**, in three new files: `tests/test_product_documents.py`, `tests/test_product_workspace.py`, `tests/test_product_artifact_rows.py`.
+
+**Gaps that remain (not fixed here).**
+
+- G1. The **model lane is still not running**: no provider is configured, so the whole assisted-intake path is built but inert. It needs `BP_LLM_PROVIDER` + `BP_LLM_MODEL` + the provider's key, and the owner's explicit instruction to use DeepSeek/Claude now (given, 2026-10-27).
+- G2. **No OCR and no scanned-PDF support.** A scanned case study is refused. A student with a scan must paste the text.
+- G3. **Column-to-parameter mapping is still manual.** The gap map says unattended mapping is *"deliberately not built"*, which is right for a *verified* number and wrong for student UX. The right resolution is propose → validate against the method's declared schema → student confirms; the code for that is not written.
+- G4. **The delivery's prose is unpinned.** The hashes pin the numbers, not the narrative.
+- G5. **No model-version pinning or drift gate.** With a live provider, a silent model swap changes the output without changing the spec hash.
+- G6. **T2 → T1 promotion is still blocked on B-005** (named expert reviewers). This is why every method still says "expert review pending" internally, and why no method may call itself "verified".
+- G7. The student's **calculations are still not shown inline** in the narrative; the derivation strings live in the artifacts table.
+- G8. No **held-out evaluation on a real case** (the scaffold is synthetic-only), so no claim about "handles messy real student data" is evidenced.
+
+**Areas of improvement (for whoever picks this up).**
+
+1. Put the **calculation in the reading path**: every delivered number with its formula, its inputs and its rounding, in the body of the report, not only in the appendix.
+2. Make **sensitivity and crossover** a headline of the business case, not an appendix line.
+3. Add an **interrogation loop**: "what if the discount rate is 12%?" answered without re-running everything, with the answer still computed by code.
+4. Make "**defend this**" a first-class export: the method, the inputs, the checks, the hashes and the disclosed limitations, in one file a student can hand in.
+5. Let the **ambiguity declarations drive the conversation**: `work_plan.ambiguities` is a list of unresolved choices; that list is the natural spine of an intake interview.
+6. Keep the **proposal discipline visible**: every model proposal should be labelled as a proposal with its run id, and every rejection should stay visible rather than be swallowed.
+
+**Where this could be wrong — read this before acting on the entry above.**
+
+- **I may be wrong that the product loses to ChatGPT.** I judged the *whole workflow* (know the method, type the inputs, read the report), not the single step of "produce defensible arithmetic". For a student who already knows NPV, the pipeline may already be faster and more defensible than a chatbot. The owner's judgement and a real student's judgement may differ from mine.
+- **My read of "the charts are separated" may misread the owner.** They may have meant the chart *control* is in the wrong place rather than that charts should be automatic. Automatic charts can be wrong: a chart of two unrelated metrics side by side is a false comparison. The chart plan I built is deliberately conservative (a table of everything, plus a bar chart only of 1–6 recorded scalars), but the principle "the system should intuitively use it when needed" deserves a second look from the owner.
+- **The document extractor is best-effort.** It reads text-based PDFs through a hand-written parser. Real case-study PDFs - scanned, two-column, with headers and footers - will produce messy text, and the "unreadable font encoding" refusal only catches the clearly broken case. I have **not** tested it against a real case-study PDF; the tests use synthetic PDFs I wrote. Treat the extraction quality as unproven until it is tried on the owner's own materials.
+- **The claim that the engine "beats an LLM" is about arithmetic, not about advice.** The pipeline can defend a number; it cannot tell a student which framework fits a messy case. That advice is exactly what the registry and templates do, and they are catalogue lookups, not judgement.
+- **Hiding `review_status` from the student panel could be wrong.** I removed the internal "expert review pending" wording and kept the tier badge, on the grounds that T2 is the real claim ceiling. A stricter reading of the house rules (never hide a caveat) would keep it visible in some form. **This is an owner decision, not mine**, and it is the single most contestable thing in this entry.
+- **I may have mis-scoped the whole increment.** The owner asked for documents and a discussion; implementing a large slice in the same turn was my reading of "lets implement it". If the intent was to document first and build later, this entry is ahead of its time and the product layer changes should be reviewed before they are relied on.
+- **The `flip`-field mapping is a judgement.** `reperform["flip"]` is the crossover rate, and the artifact metric `flip_rate` names it; I mapped one to the other. It is exact for the methods that produce it, but it is a correspondence I made, not one the frozen contract states in so many words.
+- **I did not verify the worker's UI work end to end.** The contract was explicit and the acceptance criteria are checkable, but a delegated UI change against a 295 KB file is exactly the kind of change that can look right and break quietly.
+
+**Open questions for the owner (2026-10-27).**
+
+1. The model path: confirmed **DeepSeek/Claude now, training later**. The benefit of training is deferred to a later discussion; the short version is that training buys *latent* reasoning (the HybridAgent thesis: think in latent space, act through tools) and removes the per-call cost and the provider dependency, at the price of a training run and a model to maintain.
+2. **Who are the named expert reviewers (B-005)?** Until a person is named, no method can be promoted to T1, and the internal "expert review pending" status is accurate. The owner asked what "reviewer" is: it is a **human domain expert**, not a model and not a log.
+3. Is the shift from **run** to **case** accepted as the organising idea? It is the spine of this increment.
+
+---
