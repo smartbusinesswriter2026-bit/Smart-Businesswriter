@@ -28,7 +28,7 @@ def work_plan(request: dict, spec: ProblemSpec | None) -> dict:
         "objective": request.get("objective"),
         "task_family": ("Descriptive statistics" if m.category == "descriptive statistics" else "Correlation analysis" if m.category == "correlation" else "Regression analysis" if m.category == "regression" else "Group comparison" if m.category == "group comparison" else "Quantitative business analysis") if m else ("Framework guidance (no computed answer)" if request.get("method") in (None, "", "framework_only") else "Unsupported method (framework-only response)"),
         "method": request.get("method"), "tier": m.tier if m else "T4",
-        "tier_label": ("standard method; expert review pending" if m and m.review_status == "pending_named_reviewer" else "standard method") if m else "framework only",
+        "tier_label": ("custom analysis (T2); expert review pending" if m and m.tier == "T2" and m.review_status == "pending_named_reviewer" else "standard method; expert review pending" if m and m.review_status == "pending_named_reviewer" else "standard method") if m else "framework only",
         "stages": list(STAGES),
         "planned_checks": list(m.test_names) if m else [],
         "inputs": spec.inputs if spec else {}, "assumptions": request.get("assumptions", []),

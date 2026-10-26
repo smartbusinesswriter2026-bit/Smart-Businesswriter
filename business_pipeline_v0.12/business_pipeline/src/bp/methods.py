@@ -71,6 +71,10 @@ def _check(key, v, spec):
                 if not re.fullmatch(r"[A-Za-z_]{1,30}", str(name)) or str(name).lower() == "intercept":
                     errs.append(f"'{key}' column name {name!r}: use 1-30 letters or underscores (no digits or spaces); 'intercept' is reserved")
                 errs += _check(f"{key}.{name}", col, {"type": "value_list", "min_items": spec.get("min_items", 0)})
+        elif t == "engagement_spec":
+            from . import accounts
+            if not isinstance(v, dict): return [f"'{key}' must be an object (the engagement spec)"]
+            errs += [f"'{key}': {e}" for e in accounts.validate_spec(v)]
         elif t == "count_table":
             if not isinstance(v, list) or not v: return [f"'{key}' must be a non-empty list of rows"]
             minr, maxr = spec.get("min_rows", 2), spec.get("max_rows", 99); minc, maxc = spec.get("min_cols", 2), spec.get("max_cols", 99)
@@ -1286,6 +1290,45 @@ _FORECAST_DEFAULTS = (
 _FORECAST_ASSUME = ("Observations are in time order with one value per period.", "The trend is linear in time.", "Errors around the trend are independent and roughly normal.")
 _FORECAST_LIM = ("No seasonality, cycles, external drivers or structural-break handling.", "Extrapolation: the forecast projects the trend beyond the observed range and becomes less reliable the further ahead it goes.", "Prediction intervals are approximate in small samples.")
 
+# ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
+def accounts_impl(inp):
+    from . import accounts
+    return accounts.build(inp["spec"])
+
+def accounts_tests(inp, impl):
+    return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def accounts_profile(inp):
+    from . import accounts
+    try:
+        accounts.build(inp["spec"])
+        return []
+    except ValueError as e:
+        return [f"the engagement does not build: {e}"]
+
+def accounts_typing(metric):
+    if metric.startswith("n_") or metric in ("checks_passed", "checks_total"): return "count", 0
+    return "currency", 2
+
+def accounts_caveats(out, th):
+    return ["These are management accounts, not GAAP or IFRS statements and not assurance; this is custom analysis (T2), expert review pending.",
+            "The ledger engine and the cash-flow classification rules are provisional pending the manual's account-mapping checkpoint and the Beancount comparison (B-032).",
+            "Flags mark judgment items for a human; the checks guard arithmetic and balance, not business substance."]
+
+def accounts_template(out, P, th):
+    tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P)
+    return (f"The engagement posts {tok('n_entries')} entries. Net income is {tok('net_income')}; total assets are {tok('total_assets')} against liabilities of {tok('total_liabilities')} and equity of {tok('total_equity')}. "
+            f"Closing retained earnings are {tok('retained_earnings_closing')}. The cash flow statement shows a net change in cash of {tok('cash_net')} and its two routes agree. "
+            f"{tok('checks_passed')} of {tok('checks_total')} checks passed, with {tok('n_flags')} item(s) flagged for human review.")
+
+_ACC_INPUTS = {"spec": {"type": "engagement_spec", "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules"}}
+_ACC_DEFAULTS = (
+    {"question": "Reporting framework", "default_chosen": "A required input with no default (manual D-010).", "impact": "Standards differ by framework; none is asserted."},
+    {"question": "Closing", "default_chosen": "Every engagement closes: income, expenses and declared dividends move into retained earnings.", "impact": "Post-closing statements carry the period result in retained earnings."},
+    {"question": "Prior closing balances", "default_chosen": "A required input (an empty object for a first period); the opening entry is checked against it.", "impact": "A mismatch fails the opening-balances check."})
+_ACC_ASSUME = ("Every entry is balanced and inside the period (enforced by the kernel).", "The chart reflects the owner's account mapping.", "Amounts respect the declared currency places.")
+_ACC_LIM = ("Management accounts only: not GAAP or IFRS statements and not assurance (manual 9.5).", "Cash-flow activity classification is a declared heuristic unless accounts carry explicit activity tags.", "Custom analysis (T2); expert review pending.", "The ledger engine decision (custom kernel vs Beancount) is still open (B-032).")
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -1396,6 +1439,12 @@ LIBRARY = {
                   unsupported_use="Seasonal, cyclical or structural-break series; causal claims; multi-series or driver-based models; long horizons; policy simulations.",
                   input_schema=_FORECAST_INPUTS, defaults=_FORECAST_DEFAULTS, assumptions=_FORECAST_ASSUME, limitations=_FORECAST_LIM, default_period="annual",
                   caveats=forecast_caveats, template=forecast_template, claim_ceiling="predictive", default_thresholds=_FORECAST_THRESH, typing=forecast_typing),
+    "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
+                  ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing"),
+                  category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",
+                  unsupported_use="GAAP or IFRS statements; assurance; tax filings; multi-currency consolidation; posting anything the owner did not declare.",
+                  input_schema=_ACC_INPUTS, defaults=_ACC_DEFAULTS, assumptions=_ACC_ASSUME, limitations=_ACC_LIM, default_period="annual",
+                  caveats=accounts_caveats, template=accounts_template, claim_ceiling="descriptive", default_thresholds={}, typing=accounts_typing),
 }
 
 # ---------- discovery (never executes a method) ----------

@@ -39,7 +39,7 @@ class SubprocessSandbox:
     def verify_execute(self, method, inp):
         d = self._run({"mode": "verify_execute", "method": method, "inputs": inp})
         outputs = {k: D(str(v)) for k, v in d["outputs"].items()} if "outputs" in d else None
-        return [(n, ok) for n, ok in d["results"]], outputs, {"env_hash": d["env_hash"], "fingerprint": d["fingerprint"], "policy": d["policy"], "code_hash": d["code_hash"]}
+        return [(n, ok) for n, ok in d["results"]], outputs, {"env_hash": d["env_hash"], "fingerprint": d["fingerprint"], "policy": d["policy"], "code_hash": d["code_hash"], "appendix_extra": d.get("appendix_extra")}
 
     def template(self, kind, inp):
         d = self._run({"mode": "template", "kind": kind, "inputs": inp})

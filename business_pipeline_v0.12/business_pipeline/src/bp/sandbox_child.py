@@ -72,7 +72,10 @@ def main():
                 import inspect
                 res = m.tests(inp, m.impl); out["results"] = [[n, bool(ok)] for n, ok in res]
                 if all(ok for _, ok in res):
-                    raw = m.impl(inp); out["outputs"] = raw if isinstance(raw, dict) else {m.metric: raw}
+                    raw = m.impl(inp)
+                    if isinstance(raw, dict):
+                        raw = dict(raw); out["appendix_extra"] = raw.pop("_appendix", None); raw.pop("_checks", None); out["outputs"] = raw
+                    else: out["outputs"] = {m.metric: raw}
                 out["code_hash"] = M.sha_source(m.impl)
             elif mode == "flip":
                 f = M.decision_flip(m, m.impl, inp, D(req["lo"]), D(req["hi"])); out["flip"] = None if f is None else str(f)

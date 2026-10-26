@@ -21,7 +21,13 @@ CASES = {"npv": NPV["inputs"], "breakeven": {"fixed": "1000", "price": "20", "va
          "anova": {"groups": {"lecture": ["62", "70", "68", "75", "66", "71", "64", "73"], "workshop": ["72", "78", "74", "85", "80", "77", "69", "83", "79"], "online": ["60", "63", "58", "66", "61", "65", "60"]}},
          "kruskal_wallis": {"groups": {"a": ["1", "2", "2", "3", "4", "4"], "b": ["2", "3", "3", "4", "5", "6"], "c": ["5", "6", "6", "7", "8", "8"]}},
          "chi_square": {"table": [[45, 30, 25], [20, 40, 40], [10, 20, 70]]},
-         "trend_forecast": {"values": ["10", "12", "11", "14", "13", "16", "15", "18", "17", "20", "19", "22"]}}
+         "trend_forecast": {"values": ["10", "12", "11", "14", "13", "16", "15", "18", "17", "20", "19", "22"]},
+         "management_accounts": {"spec": {"period": {"start": "2026-01-01", "end": "2026-03-31"}, "currency": "USD", "framework": "local", "places": 2,
+                                           "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"}, {"code": "3000", "name": "Owner capital", "type": "equity", "line": "Capital", "role": "capital"},
+                                                     {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"}, {"code": "4000", "name": "Sales", "type": "income", "line": "Revenue"}],
+                                           "prior_closing": {"1000": "1000", "3000": "1000"},
+                                           "opening": [{"lines": [{"account": "1000", "debit": "1000"}, {"account": "3000", "credit": "1000"}]}],
+                                           "entries": [{"date": "2026-01-15", "description": "sale", "lines": [{"account": "1000", "debit": "500"}, {"account": "4000", "credit": "500"}]}], "schedules": []}}}
 
 class Policy(unittest.TestCase):
     def test_guards_block_escape_routes(self):
@@ -51,6 +57,7 @@ class Parity(unittest.TestCase):
         for name, inp in CASES.items():
             m = LIBRARY[name]; results, outputs, meta = SB.verify_execute(name, inp); self.assertTrue(all(ok for _, ok in results), name)
             local = m.impl(inp); local = local if isinstance(local, dict) else {m.metric: local}
+            local = {k: v for k, v in local.items() if k not in ("_appendix", "_checks")}
             self.assertEqual({k: str(v) for k, v in outputs.items()}, {k: str(v) for k, v in local.items()}, name)
     def test_deterministic_across_processes(self):
         a = SB.verify_execute("ols", CASES["ols"]); b = SB.verify_execute("ols", CASES["ols"])

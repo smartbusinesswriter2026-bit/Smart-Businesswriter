@@ -5,7 +5,7 @@ from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
-from . import methods, registry, templates, assist, llm, literature
+from . import methods, registry, templates, assist, llm, literature, accounts
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -40,6 +40,8 @@ PRESETS = {
                    "inputs": {"table": [[45, 30, 25], [20, 40, 40], [10, 20, 70]]}},
     "forecast": {"objective": "Forecast the next three periods", "method": "trend_forecast", "unit": "units",
                  "inputs": {"values": ["10", "12", "11", "14", "13", "16", "15", "18", "17", "20", "19", "22"], "missing_codes": [], "horizon": "3"}},
+    "accounts": {"objective": "Prepare the management accounts for the period", "method": "management_accounts", "currency": "USD",
+                 "inputs": {"spec": accounts.EXAMPLE_SPEC}},
     "case": {"objective": "A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.", "context": "Single owner, three shops"},
     "swot": templates.EXAMPLES["template_swot"], "five_forces": templates.EXAMPLES["template_five_forces"], "case_decision": templates.EXAMPLES["case_decision"],
     "unsupported": {"objective": "Value this startup", "method": "monte_carlo_valuation", "inputs": {"x": "1"}},

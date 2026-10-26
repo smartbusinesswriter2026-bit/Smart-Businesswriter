@@ -139,6 +139,9 @@ class Pipeline:
         if tuple(n for n, _ in results) != planned:
             return self._block("verification", "test set differs from frozen plan", "T4")
         if not self.sb: raw = impl(inp); outputs = raw if isinstance(raw, dict) else {m.metric: raw}
+        extra = (meta or {}).get("appendix_extra")          # structured, non-numeric results some methods attach
+        if isinstance(outputs, dict):
+            outputs = dict(outputs); extra = outputs.pop("_appendix", extra); outputs.pop("_checks", None)
         base_unit = request.get("unit", "value") if m.unit == "from_request" else m.unit
         fp = meta["fingerprint"] if meta else envpin.fingerprint()
         run_id, env, code_h, created = uuid.uuid4().hex[:12], (meta["env_hash"] if meta else envpin.env_hash(fp)), (meta["code_hash"] if meta else _code_hash(impl)), datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -194,6 +197,7 @@ class Pipeline:
                     "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.", "code_hash": code_h, "sandbox": meta["policy"] if meta else "in-process (development mode; no isolation)", "environment": fp, "tests": [n for n, _ in results], "amendments": amendments,
                     "assumptions": spec.assumptions + list(m.assumptions), "ambiguities": spec.ambiguity_register, "limitations": list(m.limitations),
                     "artifacts": [(a.id, a.labels, a.derivation) for a in self.store.all()]}
+        if extra is not None: appendix["accounts"] = extra
         flip_s = str(flip) if flip is not None else None
         appendix["reperform"] = {"format": "bp-reperform/1", "method": {"id": m.name, "version": m.version}, "inputs": inp, "sensitivity": spec.sensitivity,
                                  "outputs": {k: str(v) for k, v in outputs.items()}, "flip": flip_s, "env_hash": env, "fingerprint": fp, "spec_hash": spec.hash,

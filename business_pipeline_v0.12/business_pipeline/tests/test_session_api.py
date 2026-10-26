@@ -32,6 +32,12 @@ class S(unittest.TestCase):
                "anova": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["1","2","3","4","5"]}}, "kruskal_wallis": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["3","1","5","2","4"]}},
                "chi_square": {"table": [[10, 20, 30], [20, 40, 60]]},
                "trend_forecast": {"values": ["10", "12", "11", "14", "13", "16", "15", "18"]},
+               "management_accounts": {"spec": {"period": {"start": "2026-01-01", "end": "2026-03-31"}, "currency": "USD", "framework": "local",
+                                                 "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"}, {"code": "3000", "name": "Owner capital", "type": "equity", "line": "Capital", "role": "capital"},
+                                                           {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"}, {"code": "4000", "name": "Sales", "type": "income", "line": "Revenue"}],
+                                                 "prior_closing": {"1000": "1000", "3000": "1000"},
+                                                 "opening": [{"lines": [{"account": "1000", "debit": "1000"}, {"account": "3000", "credit": "1000"}]}],
+                                                 "entries": [{"date": "2026-01-15", "description": "sale", "lines": [{"account": "1000", "debit": "500"}, {"account": "4000", "credit": "500"}]}], "schedules": []}},
                "ols": {"y": ["52","55","61","58","70","72","69","80"], "predictors": {"a": ["1","2","3","4","5","6","7","8"], "b": ["6","7","5","8","6","7","8","6"]}}}[{"ols_robust": "ols"}.get(m.name, m.name)]
             self.assertEqual(tuple(n for n, _ in m.tests(inp, m.impl)), m.test_names)
     def test_malformed_input_blocks_not_crashes(self):
