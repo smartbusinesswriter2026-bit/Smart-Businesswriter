@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.35**, **457 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.36**, **465 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -35,7 +35,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Module | Owns | Main tests | Authority |
 |---|---|---|---|
 | [`orchestrator.py`](../src/bp/orchestrator.py) | Stage order, `Pipeline.start/resume/run`, `Delivery`, `Pause`, `_appendix`/`_checks` | `test_pipeline`, `test_stage5` | steps 4, 5.2 (P4, P8) |
-| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast`, `test_ratio`, `test_multicomp` | 5.3, 5.5, 9B; B-042/B-043/B-056/B-060 |
+| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast`, `test_ratio`, `test_multicomp`, `test_power` | 5.3, 5.5, 9B; B-042/B-043/B-056/B-060/B-061 |
 | [`spec.py`](../src/bp/spec.py) | Problem Spec: draft → confirm → frozen + hashed | `test_stage5` | 5.2 |
 | [`session.py`](../src/bp/session.py) | Session/work-plan states, checkpoints, JSON contracts | `test_session_api` | 4, 5.2 |
 | [`sandbox.py`](../src/bp/sandbox.py), [`sandbox_child.py`](../src/bp/sandbox_child.py) | Guarded subprocess execution, parent/child protocol | `test_sandbox` | 5.4 |
@@ -66,7 +66,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Deterministic compute → verified report pipeline | Built, T1 methods with independent routes | B-003/B-004 |
 | Framework-only (T4) answers + registry | Built; catalogue records unreviewed | B-021, B-023, B-026, B-027 |
 | Model assistance (proposals only) | Built; quality unmeasured | B-031, B-036, B-037, B-038, B-039, B-041 |
-| Statistics: descriptive, correlation, regression, two-group, ANOVA/KW, chi-square, multiple-comparison correction | Built; conventions `[UNVERIFIED]`; 9B.3 disclosure layer in every delivery | B-042, B-057, B-060 |
+| Statistics: descriptive, correlation, regression, two-group ANOVA/KW, chi-square, multiple-comparison correction, power/minimum effect | Built; conventions `[UNVERIFIED]`; 9B.3 disclosure layer in every delivery | B-042, B-057, B-060, B-061 |
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
 | Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |

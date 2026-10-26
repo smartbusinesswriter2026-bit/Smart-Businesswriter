@@ -137,6 +137,11 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with the power and minimum-effect method (B-061)
+- `power_analysis` uses the **normal approximation**: exact when the standard deviations are known or planned, but with sds estimated from a pilot the exact power is somewhat lower (noncentral t is not implemented). This is declared in the template, the caveats and the appendix.
+- It covers a two-sample or one-sample comparison of means only: no proportions, no cluster/weighted/repeated designs, no multiplicity (a family needs a smaller per-test alpha; use `multiple_comparison`), and no correlation or regression power.
+- Power is a property of the planned design, not evidence about a result; a low-power study can still be significant and a high-power one can still fail. The reported "smallest effect at target power" is not a licence to ignore smaller effects.
+
 ## Added with the multiple-comparison correction (B-060)
 - `multiple_comparison` corrects a family the user has already declared: it does not decide what the family should be, and choosing the family after seeing the p-values cannot be undone by a correction.
 - Only Holm and Bonferroni are implemented. Both control the family-wise error rate under arbitrary dependence; neither models dependence, and there is no false-discovery-rate control (Benjamini-Hochberg) or resampling correction.

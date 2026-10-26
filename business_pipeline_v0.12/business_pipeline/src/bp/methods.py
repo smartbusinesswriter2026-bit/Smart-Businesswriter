@@ -1523,6 +1523,118 @@ def _mc_template(outputs, period, thresholds=None):
             f"{tok('n_rejected')} adjusted p-values are at or below that level. The correction changes only the p-values, "
             "not the design or the assumption checks behind each test; the family must have been declared before the results were seen.")
 
+# ---------- Power and minimum detectable effect (manual 9B.3; B-061) ----------
+# Planning arithmetic for a two-sample or one-sample comparison of means under the NORMAL approximation.
+# With known or planning standard deviations the normal model is exact; with estimated sds the exact
+# calculation would use the noncentral t distribution (not implemented). That approximation is declared.
+_POWER_DESIGNS = ("two_sample", "one_sample")
+
+def _phi(x): return NormalDist().cdf(float(x))
+def _zinv(p): return NormalDist().inv_cdf(float(p))
+
+def _phi_ref(x): return 0.5 * math.erfc(-x / math.sqrt(2))
+def _z_ref(p):
+    lo, hi = -10.0, 10.0
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if _phi_ref(mid) < float(p): lo = mid
+        else: hi = mid
+    return (lo + hi) / 2
+
+def _power_core(design, effect, n1, n2, sd1, sd2, alpha, tails, target):
+    if design not in _POWER_DESIGNS: raise DataError("design must be two_sample or one_sample")
+    if sd1 <= 0 or (design == "two_sample" and sd2 <= 0): raise DataError("standard deviations must be positive")
+    if n1 < 2 or (design == "two_sample" and n2 < 2): raise DataError("each sample size must be at least 2")
+    if not (0.0 < alpha < 1.0): raise DataError("alpha must be between 0 and 1")
+    if not (0.0 < target < 1.0): raise DataError("target_power must be between 0 and 1")
+    if effect < 0: raise DataError("effect must be non-negative")
+    se = math.sqrt(sd1 * sd1 / n1 + sd2 * sd2 / n2) if design == "two_sample" else sd1 / math.sqrt(n1)
+    za = _zinv(1 - alpha / 2 if tails == "two_sided" else 1 - alpha)
+    ncp = abs(effect) / se
+    power = _phi(ncp - za) + (_phi(-ncp - za) if tails == "two_sided" else 0.0)
+    return {"se": se, "ncp": ncp, "z_alpha": za, "power": power, "mde": (za + _zinv(target)) * se}
+
+def _power_reference(design, effect, n1, n2, sd1, sd2, alpha, tails, target):
+    """Independent route: erfc-based normal CDF and a bisection inverse (no NormalDist class)."""
+    se = math.sqrt(sd1 * sd1 / n1 + sd2 * sd2 / n2) if design == "two_sample" else sd1 / math.sqrt(n1)
+    za = _z_ref(1 - alpha / 2 if tails == "two_sided" else 1 - alpha); ncp = abs(effect) / se
+    power = _phi_ref(ncp - za) + (_phi_ref(-ncp - za) if tails == "two_sided" else 0.0)
+    return {"se": se, "ncp": ncp, "z_alpha": za, "power": power, "mde": (za + _z_ref(target)) * se}
+
+def _power_impl(inp):
+    design = inp["design"]; n1 = float(D(str(inp["n1"]))); n2 = float(D(str(inp.get("n2", "0"))))
+    sd1 = float(D(str(inp["sd1"]))); sd2 = float(D(str(inp.get("sd2", "0"))))
+    alpha = float(D(str(inp.get("alpha", "0.05")))); target = float(D(str(inp.get("target_power", "0.8"))))
+    tails = inp.get("tails", "two_sided"); effect = float(D(str(inp["effect"])))
+    c = _power_core(design, effect, n1, n2, sd1, sd2, alpha, tails, target)
+    out = {"power": _fd(c["power"]), "mde": _fd(c["mde"]), "se": _fd(c["se"]), "ncp": _fd(c["ncp"]), "z_alpha": _fd(c["z_alpha"]),
+           "alpha": _fd(alpha), "target_power": _fd(target), "n1": D(str(inp["n1"]))}
+    if design == "two_sample": out["n2"] = D(str(inp["n2"]))
+    appendix = {"design": design, "tails": tails, "effect": str(abs(effect)), "standard_deviations": [str(sd1), (str(sd2) if design == "two_sample" else None)],
+                "model": "normal approximation: power = Phi(ncp - z_alpha) + (Phi(-ncp - z_alpha) if two-sided else 0); mde = (z_alpha + z_target) * se",
+                "approx_limits": "exact when the standard deviations are known/planned; with estimated sds an exact calculation would use the noncentral t distribution (not implemented)."}
+    return {**out, "_appendix": appendix, "_checks": _power_checks(inp, out)}
+
+def _power_checks(inp, out):
+    design = inp["design"]; two = design == "two_sample"
+    e = float(D(str(inp["effect"]))); n1 = float(D(str(inp["n1"]))); n2 = float(D(str(inp.get("n2", "0")))) if two else 0.0
+    sd1 = float(D(str(inp["sd1"]))); sd2 = float(D(str(inp.get("sd2", "0")))) if two else 0.0
+    alpha = float(D(str(inp.get("alpha", "0.05")))); target = float(D(str(inp.get("target_power", "0.8")))); tails = inp.get("tails", "two_sided")
+    ref = _power_reference(design, e, n1, n2, sd1, sd2, alpha, tails, target)
+    zero = _power_core(design, 0.0, n1, n2, sd1, sd2, alpha, tails, target)
+    bigger = _power_core(design, e * 2 + 1, n1, n2, sd1, sd2, alpha, tails, target)
+    more_n = _power_core(design, e, n1 * 2, n2 * 2 if two else 0.0, sd1, sd2, alpha, tails, target)
+    return [
+        ("second_implementation_agrees", _close(out["power"], ref["power"]) and _close(out["mde"], ref["mde"]) and _close(out["ncp"], ref["ncp"]), "erfc-based route agrees with the NormalDist route"),
+        ("power_at_zero_effect_equals_alpha", _close(zero["power"], alpha), "with no effect the rejection rate is the declared alpha"),
+        ("power_increases_with_effect_size", bigger["power"] > _power_core(design, e, n1, n2, sd1, sd2, alpha, tails, target)["power"], "a larger effect is easier to detect"),
+        ("power_increases_with_sample_size", more_n["power"] >= _power_core(design, e, n1, n2, sd1, sd2, alpha, tails, target)["power"], "more observations do not reduce power"),
+        ("mde_decreases_with_sample_size", more_n["mde"] < _power_core(design, e, n1, n2, sd1, sd2, alpha, tails, target)["mde"], "more observations detect a smaller effect at the same power"),
+    ]
+
+def _power_tests(inp, impl): return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def _power_profile(inp):
+    try:
+        design = inp["design"]; two = design == "two_sample"
+        n1 = float(D(str(inp["n1"]))); sd1 = float(D(str(inp["sd1"])))
+        effect = float(D(str(inp["effect"]))); alpha = float(D(str(inp.get("alpha", "0.05")))); target = float(D(str(inp.get("target_power", "0.8"))))
+        errs = []
+        if design not in _POWER_DESIGNS: return ["design must be two_sample or one_sample"]
+        if two:
+            if "n2" not in inp: errs.append("two_sample design needs n2")
+            if "sd2" not in inp: errs.append("two_sample design needs sd2")
+            if "n2" in inp and float(D(str(inp["n2"]))) < 2: errs.append("n2 must be at least 2")
+            if "sd2" in inp and float(D(str(inp["sd2"]))) <= 0: errs.append("sd2 must be positive")
+        else:
+            if "n2" in inp or "sd2" in inp: errs.append("one_sample design does not take n2 or sd2")
+        if n1 < 2: errs.append("n1 must be at least 2")
+        if sd1 <= 0: errs.append("sd1 must be positive")
+        if effect < 0: errs.append("effect must be non-negative")
+        if not (0.0 < alpha < 1.0): errs.append("alpha must be between 0 and 1")
+        if not (0.0 < target < 1.0): errs.append("target_power must be between 0 and 1")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["power_analysis inputs are malformed: design, effect, n1 and sd1 are required numbers"]
+
+def _power_typing(metric):
+    if metric in ("n1", "n2"): return ("count", 0)
+    if metric in ("se", "mde"): return ("@unit", 2)
+    if metric in ("power", "alpha", "target_power"): return ("probability", 4)
+    return ("ratio", 3)
+
+def _power_caveats(out, thresholds):
+    return ["Power is calculated under the normal approximation with the standard deviations you supplied; with sds estimated from a pilot, the exact power is somewhat lower (noncentral t, not implemented).",
+            "Power is a planning property of the design, not evidence about the result: a low-powered study can still be significant and a high-powered one can still fail.",
+            "The calculation assumes independent observations and a single comparison; it does not account for clustering, weights, repeated measures or multiplicity.",
+            "A minimum detectable effect is not a justification for ignoring a smaller effect that matters."]
+
+def _power_template(outputs, period, thresholds=None):
+    P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return (f"At the stated effect the design has power {tok('power')} against a declared alpha of {tok('alpha')} "
+            f"(target power {tok('target_power')}). The smallest effect that reaches that target power is {tok('mde')}, with a standard error of {tok('se')} for that effect. "
+            "Power is calculated under the normal approximation and describes the planned design, not any observed result.")
+
 # ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
 def accounts_impl(inp):
     from . import accounts
@@ -1705,6 +1817,25 @@ LIBRARY = {
                   assumptions=("Each test is individually valid (its own assumptions hold).", "The family was declared before the results were seen.", "The p-values are the raw p-values of that family, not already adjusted."),
                   limitations=("Holm and Bonferroni only; no false-discovery-rate control and no dependence modelling.", "The correction does not fix a biased sample, a violated assumption or a family chosen after the fact."),
                   default_period="cross_section", caveats=_mc_caveats, template=_mc_template, claim_ceiling="descriptive", typing=_mc_typing),
+    "power_analysis": Method("power_analysis", "T1", _power_impl, _power_tests, _power_profile, "power", "probability", None,
+                  ("second_implementation_agrees", "power_at_zero_effect_equals_alpha", "power_increases_with_effect_size", "power_increases_with_sample_size", "mde_decreases_with_sample_size"),
+                  category="study design",
+                  intended_use="Plan a two-sample or one-sample comparison of means: the power for a stated effect, and the minimum detectable effect at a declared target power, under the normal approximation.",
+                  unsupported_use="Exact power under the noncentral t distribution; proportions or counts; cluster, weighted or repeated-measures designs; multiplicity; treating a high power as a guarantee of significance.",
+                  input_schema={"design": {"type": "enum", "values": ["two_sample", "one_sample"], "desc": "two_sample compares two means; one_sample tests a single mean"},
+                                "effect": {"type": "decimal", "desc": "the difference (or mean) to detect, in the units of the outcome"},
+                                "n1": {"type": "decimal", "desc": "sample size of group 1 (or the single sample for one_sample)"},
+                                "n2": {"type": "decimal", "required": False, "desc": "sample size of group 2 (two_sample only)"},
+                                "sd1": {"type": "decimal", "desc": "standard deviation of group 1 (or the single sample)"},
+                                "sd2": {"type": "decimal", "required": False, "desc": "standard deviation of group 2 (two_sample only)"},
+                                "alpha": {"type": "decimal", "required": False, "desc": "significance level, default 0.05"},
+                                "tails": {"type": "enum", "values": ["two_sided", "one_sided"], "required": False, "desc": "two_sided (default) or one_sided"},
+                                "target_power": {"type": "decimal", "required": False, "desc": "power used to compute the minimum detectable effect, default 0.8"}},
+                  defaults=({"question": "Underlying distribution", "default_chosen": "The normal approximation. It is exact when the standard deviations are known or planned; with sds estimated from a pilot, exact power uses the noncentral t distribution.", "impact": "Exact power is somewhat lower than the normal approximation when sds are estimated."},
+                            {"question": "Multiplicity", "default_chosen": "A single comparison is assumed; the correction does not account for several planned tests.", "impact": "A family of tests needs a smaller per-test alpha (see multiple_comparison)."}),
+                  assumptions=("Observations are independent within and between groups.", "The standard deviations supplied are the planning values and are positive.", "A single test at the declared alpha, with the declared number of tails."),
+                  limitations=("Normal approximation; no noncentral t exactness.", "No clustering, weights or repeated measures.", "Power describes the design, not the study's actual outcome."),
+                  default_period="cross_section", caveats=_power_caveats, template=_power_template, claim_ceiling="descriptive", typing=_power_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
                   ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",
