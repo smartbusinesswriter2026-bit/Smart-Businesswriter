@@ -19,7 +19,7 @@ Model assistance (optional, off by default; providers: `deepseek`, `openai`, `an
 
 Currencies: `GET /api/currencies` lists the ISO 4217 registry with minor units; there is no FX price service, so a conversion needs a declared rate (B-069).
 
-Ingestion: `POST /api/ingest` {filename, content_base64} reads a CSV/TSV or XLSX file into a typed table with a provenance pointer (file, SHA-256, row/column); the workbench has a Data ingestion card and `python -m bp.ingest <file>` prints the same summary. PDF, scans and SPSS are refused: no OCR or PDF text extraction is implemented.
+Ingestion: `POST /api/ingest` {filename, content_base64, sheet?, merged?} reads a CSV/TSV or XLSX file into a typed table with a provenance pointer (file, SHA-256, row/column, sheet). For XLSX, `sheet` selects a sheet by exact name or 1-based number (default: the first) and `merged` is the merged-cell policy: `refuse` (default) or `top_left`, which repeats the anchor value across each merged range under a declared convention and records what was expanded. API returns `sheets` and `sheet_index`; the workbench has a Data ingestion card and `python -m bp.ingest <file> [--sheet NAME|N] [--merged refuse|top_left]` prints the same summary. PDF, scans and SPSS are refused: no OCR or PDF text extraction is implemented.
 
 Product gaps and the recommended build order: docs/PRODUCT_GAP_MAP.md. Documentation spine: docs/HANDOFF.md (handoff brief for the next coding agent), docs/HOME.md (map of the repository), docs/CONTRIBUTORS.md (rules for any model or person changing it), docs/WORKLOG.md (append-only log of what was done), docs/DECISIONS.md, docs/KNOWN_LIMITATIONS.md and docs/CHANGELOG.md.
 

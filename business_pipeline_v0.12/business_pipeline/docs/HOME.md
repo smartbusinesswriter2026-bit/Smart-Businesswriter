@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.48**, **588 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.49**, **598 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -25,7 +25,7 @@
 | Change retrieval/citation | `RESEARCH_EVIDENCE_WORKFLOW.md` §9, B-040/B-054 | `src/bp/literature.py` + both literature test files |
 | Change the accounting engine | `CONTRIBUTORS.md` §4/§5, B-032/B-044–B-051 | `src/bp/ledger.py`, `schedules.py`, `accounts.py`, `reconcile.py`, `report.py` |
 | Add a framework template | `DECISIONS.md` B-028 (owner decision first!) | `src/bp/templates.py`, registry, `tests/test_templates.py` |
-| Ingest a data file | `KNOWN_LIMITATIONS.md` (B-065) | `src/bp/ingest.py`, `POST /api/ingest`, `python -m bp.ingest` |
+| Ingest a data file | `KNOWN_LIMITATIONS.md` (B-065/B-076) | `src/bp/ingest.py`, `POST /api/ingest`, `python -m bp.ingest` |
 | Add a catalogue record / regenerate registry | `docs/STAGE6_REPORT.md` | `src/bp/catalogue_import.py`, `src/bp/data/registry_v0_2.json` |
 | Compute ratios from a balance sheet / income statement | `KNOWN_LIMITATIONS.md` (B-056) | `src/bp/methods.py` (`ratio_analysis`), preset `ratios` |
 | Review what a deliverable claims | `src/bp/claims.py` | claim ceiling per method in `LIBRARY` |
@@ -58,7 +58,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`assist.py`](../src/bp/assist.py) | Model proposals under code validation | `test_assist` | 10, 11; B-037 |
 | [`evaluate.py`](../src/bp/evaluate.py) | Held-out evaluation scaffold (synthetic fixtures) | `test_evaluate` | B-039 |
 | [`currency.py`](../src/bp/currency.py) | ISO 4217 registry with minor units; declared-rate conversion; no FX source | `test_currency` | B-069 |
-| [`ingest.py`](../src/bp/ingest.py) | Structured-file ingestion: CSV/TSV + XLSX to a typed table with provenance; PDF/OCR/SPSS refused | `test_ingest`, `test_ingest_api` | B-065; gap map P0 |
+| [`ingest.py`](../src/bp/ingest.py) | Structured-file ingestion: CSV/TSV + XLSX to a typed table with provenance; XLSX sheet selection and a declared merged-cell policy (refuse by default); PDF/OCR/SPSS refused | `test_ingest`, `test_ingest_api` | B-065, B-076; gap map P0 |
 | [`literature.py`](../src/bp/literature.py) | DOI retrieval + verification, response audit, durable retrieval log, provisional citation | `test_literature`, `test_literature_api`, `test_literature_log` | B-040, B-054, B-058; REW §9 |
 | [`server.py`](../src/bp/server.py) | Stdlib HTTP API, `PRESETS` | `test_session_api`, `test_literature_api` | B-002 |
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | — |
@@ -82,7 +82,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Literature retrieval/verification | Built; PROVISIONAL match rule; durable log with failover attempts, APA/Harvard citations, drift sweep | B-040, B-054, B-058, B-059, B-064 |
 | Research & Evidence Workflow (REW) | Manual ratified (R11); **no stage built** | B-053, R1–R10 proposals |
 | Taxation | Deliberately deferred | B-052 |
-| Ingestion (CSV/TSV/XLSX) | Built (B-065, B-071); PDF/scan/OCR and SPSS refused explicitly | P0 gap map |
+| Ingestion (CSV/TSV/XLSX) | Built (B-065, B-071, B-076); sheet selection + declared merged-cell policy; PDF/scan/OCR and SPSS refused explicitly | P0 gap map |
 | Statistics remainder: range procedures, unbalanced/ANCOVA/repeated measures, clustering, factor analysis, non-linear time series | **Parked** for the frontier-model lane — registered, not built | B-075; [`PARKED_QUEUE.md`](PARKED_QUEUE.md) |
 | Breadth templates | Not built | B-028 gate |
 

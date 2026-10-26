@@ -178,11 +178,19 @@
 
 ## Added with structured-file ingestion (B-065)
 - Only **CSV/TSV** and **XLSX** are read. **PDF, scans, images and SPSS `.sav` are refused** with explicit messages: no OCR and no PDF text extraction is implemented, so reading them would be invention. Convert the source or paste its values with the source named.
-- XLSX: only the **first sheet** is read; merged cells, multi-sheet selection, styles beyond date detection, and rich text are not handled. Formula cells use the cached value stored in the file; a formula with no cached value is a missing cell.
+- XLSX: the **first sheet** is read by default; `sheet=<name>` (exact, case-sensitive) or `sheet=<n>` (1-based) selects another (B-076). Merged cells are refused by default; the declared `merged="top_left"` policy repeats each anchor value across its range and records the expansion (B-076). Styles beyond date detection and rich text are not handled. Formula cells use the cached value stored in the file; a formula with no cached value is a missing cell.
 - Declared conventions: first non-empty row is the header; headers must be non-empty and unique after trimming; a column mixing numbers and text is typed `mixed` (never coerced); empty/whitespace means missing; dates are normalised to `YYYY-MM-DD` using the workbook date system.
 - Caps are **refused, not truncated**: 5 MB, 1000 data rows, 50 columns.
 - Provenance is table-level (file, SHA-256, data row i and column j, sheet): it says where every value came from, not that the value is correct. The importer performs no type coercion, no imputation and no unit inference.
 - Ingested columns are **not mapped automatically** into a method's inputs: choosing which column is `values`, `y` or `predictors` is the user's decision, so no column semantics are invented.
+
+## Added with XLSX sheet selection and the merged-cell policy (B-076)
+- Sheet selection is by **exact case-sensitive name** or **1-based position**; there is no fuzzy matching, wildcard or "all sheets" mode, and one table still comes from one sheet. Reading every sheet would need a declared concatenation rule (same header? same order?), which does not exist, so it is not offered.
+- The workbook's sheet list is reported (`sheets`, `sheet_index`) but **not** sheet visibility (hidden/very-hidden sheets are selectable if named); a missing worksheet part for the selected sheet is refused rather than falling back to another sheet.
+- Merged cells are **refused by default**: expanding an anchor value across a range repeats data the file only stores once, and silently blanking the range would lose the anchor. The refusal names the ranges and offers the declared `merged="top_left"` alternative.
+- Under `merged="top_left"` the expansion is **a declared convention, not a verified fact**: the anchor value is assumed to apply to the whole range, ranges whose anchor is blank are left blank, and overlapping/nested merges (which Excel does not produce) are refused as malformed. A merged *header* row spans two columns and expands to two identical names, which the duplicate-header rule then refuses — unmerge the header or use a single header column.
+- Merged-cell detection covers the standard `<mergeCells>` element only; an equivalent visual merge simulated with borders or repeated text is invisible to the importer.
+- `merged` and `sheet` are **XLSX-only**: supplying them for CSV/TSV is refused instead of silently ignored. The workbench ingestion card does not yet expose either control (OPEN, design-owner wiring).
 
 ## Added with retrieval failover and the drift sweep (B-064)
 - Failover covers only the two configured literature sources (Crossref, then OpenAlex). If both are unreachable the lookup fails with a 502 rather than silently marking the DOI unverified; if both report "not found", the reference stays unverified.

@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 0.48 (see docs/CHANGELOG.md)
-Tests        : 588 tests, all passing
+Build        : 0.49 (see docs/CHANGELOG.md)
+Tests        : 598 tests, all passing
 ```
 
 ```powershell
@@ -39,10 +39,10 @@ python -m bp.literature drift retrieval_log.jsonl 20
 - **Methods (T1 unless noted)**: npv, breakeven, descriptive_stats, pearson/spearman, ols/ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, paired_t, one_sample_t, two_way_anova (balanced only), posthoc_pairwise, wacc, currency_convert, unit_economics, multi_product_breakeven, logistic_regression, reliability_alpha, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary; **T2**: cost_benefit, cost_effectiveness, sroi, dcf_valuation, management_accounts. Templates: SWOT, Five Forces, case_decision (T2/T4).
 - **Accounting (Stage 8, T2)**: ledger kernel, schedules (depreciation/amortization/accruals), two-route cash flow, closing + retained-earnings rollforward, declarative engagement spec, reconciliation, account-mapping checkpoint, plain-text statement exports. Ledger engine choice open (B-032).
 - **Retrieval**: Crossref→OpenAlex with declared failover and recorded attempts, response SHA-256 + UTC time, durable append-only JSONL log, drift sweep, APA 7 + Harvard citation formatting.
-- **Ingestion**: CSV/TSV + XLSX → typed table with provenance; PDF/scan/OCR/SPSS refused explicitly.
+- **Ingestion**: CSV/TSV + XLSX → typed table with provenance; XLSX sheet selection by exact name or 1-based number, and merged cells refused by default (declared `top_left` expansion recorded when chosen) — B-076; PDF/scan/OCR/SPSS refused explicitly.
 - **Model boundary**: DeepSeek/OpenAI-compatible/Anthropic adapters, proposals-only validation, held-out evaluation scaffold (synthetic fixtures only).
 - **Research & Evidence Workflow (REW)**: living manual ratified as authority (R11) with stages R0–R8 **proposed**, none built.
-- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-075, incl. B-075 the parked queue), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited).
+- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-076, incl. B-075 the parked queue), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited).
 
 ## 4. Owner decisions that gate work (ask before building)
 
