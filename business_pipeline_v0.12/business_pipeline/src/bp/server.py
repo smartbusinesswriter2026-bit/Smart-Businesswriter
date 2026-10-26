@@ -12,7 +12,8 @@ ASSIST_RUNS = {}
 M = SessionManager(assist_runs=ASSIST_RUNS)
 MODELS = None            # llm.Models or None (model assistance off)
 LITERATURE_SOURCES = {"crossref": literature.CrossrefSource(), "openalex": literature.OpenAlexSource()}
-LITERATURE_LABELS = {"crossref": "Crossref", "openalex": "OpenAlex"}
+LITERATURE_AUTO = ("crossref", "openalex")   # declared priority order (B-064): Crossref first, OpenAlex fallback
+LITERATURE_LABELS = {"crossref": "Crossref", "openalex": "OpenAlex", "auto": "Auto (Crossref, then OpenAlex)"}
 LITERATURE_CALLS = 0
 LITERATURE_CAP = 100     # per server run; the public APIs are free, but this stops a runaway loop
 LITERATURE_LOG = os.environ.get("BP_RETRIEVAL_LOG") or "retrieval_log.jsonl"   # durable retrieval audit; "" disables it
@@ -87,9 +88,18 @@ class H(BaseHTTPRequestHandler):
                 c = MODELS.config; return self._send(200, {"enabled": c.enabled, "provider": MODELS.builder.name, "builder_model": MODELS.builder.model, "reviewer_model": MODELS.reviewer.model, "same_model": MODELS.same_model,
                                                           "limits": {"max_calls_total": c.max_calls_total, "calls_used": MODELS.calls, "max_input_chars": c.max_input_chars}, "privacy_notice": c.privacy_notice, "prompt_version": assist.PROMPT_VERSION})
             if u.path == "/api/literature/sources":
-                return self._send(200, {"sources": [{"name": k, "label": LITERATURE_LABELS.get(k, k)} for k in LITERATURE_SOURCES], "notice": LITERATURE_NOTICE,
+                names = ["auto"] + [k for k in LITERATURE_AUTO if k in LITERATURE_SOURCES] + [k for k in LITERATURE_SOURCES if k not in LITERATURE_AUTO]
+                return self._send(200, {"sources": [{"name": n, "label": LITERATURE_LABELS.get(n, n)} for n in names], "notice": LITERATURE_NOTICE,
                                         "citation_styles": list(literature.CITATION_STYLES), "citation_notices": dict(literature.CITATION_NOTICES),
-                                        "log_enabled": bool(LITERATURE_LOG)})
+                                        "priority": [k for k in LITERATURE_AUTO if k in LITERATURE_SOURCES] or list(LITERATURE_SOURCES), "log_enabled": bool(LITERATURE_LOG)})
+            if u.path == "/api/literature/drift":
+                if not LITERATURE_LOG: return self._send(200, {"enabled": False, "checked": 0, "result": [], "notice": "The retrieval log is disabled on this server."})
+                try: n = max(1, min(int((qs.get("limit") or [10])[0]), 25))
+                except ValueError: return self._send(400, {"error": "limit must be an integer"})
+                srcs = [LITERATURE_SOURCES[k] for k in LITERATURE_AUTO if k in LITERATURE_SOURCES] or list(LITERATURE_SOURCES.values())
+                try: rep = literature.drift_check(LITERATURE_LOG, n, srcs)
+                except literature.SourceError as e: return self._send(502, {"error": str(e)})
+                return self._send(200, rep)
             if u.path == "/api/literature/log":
                 if not LITERATURE_LOG: return self._send(200, {"enabled": False, "entries": [], "notice": "The retrieval log is disabled on this server."})
                 try: n = max(1, min(int((qs.get("limit") or [20])[0]), 100))
@@ -142,16 +152,21 @@ class H(BaseHTTPRequestHandler):
     def _literature(self, b):
         global LITERATURE_CALLS
         if not isinstance(b, dict): raise ValueError("body must be an object")
-        title, doi, name = b.get("title"), b.get("doi"), b.get("source") or "crossref"
+        title, doi, name = b.get("title"), b.get("doi"), b.get("source") or "auto"
         if not isinstance(title, str) or not title.strip(): raise ValueError("title is required")
-        if not isinstance(name, str) or name not in LITERATURE_SOURCES: raise ValueError("source must be one of: " + ", ".join(sorted(LITERATURE_SOURCES)))
+        if not isinstance(name, str) or (name != "auto" and name not in LITERATURE_SOURCES):
+            raise ValueError("source must be 'auto' or one of: " + ", ".join(sorted(LITERATURE_SOURCES)))
         style = b.get("cite")
         if style is not None and (not isinstance(style, str) or style not in literature.CITATION_STYLES):
             raise ValueError("cite must be one of: " + ", ".join(literature.CITATION_STYLES))
         if LITERATURE_CALLS >= LITERATURE_CAP: return self._send(429, {"error": "literature verification call cap reached for this server run"})
         LITERATURE_CALLS += 1
         try:
-            ref = literature.verify_reference(title, doi, LITERATURE_SOURCES[name], log=LITERATURE_LOG or None)
+            if name == "auto":
+                srcs = [LITERATURE_SOURCES[k] for k in LITERATURE_AUTO if k in LITERATURE_SOURCES] or list(LITERATURE_SOURCES.values())
+                ref = literature.verify_reference(title, doi, sources=srcs, log=LITERATURE_LOG or None)
+            else:
+                ref = literature.verify_reference(title, doi, LITERATURE_SOURCES[name], log=LITERATURE_LOG or None)
         except literature.SourceError as e:
             return self._send(502, {"error": str(e)})
         body = {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,

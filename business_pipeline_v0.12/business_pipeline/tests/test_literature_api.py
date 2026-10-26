@@ -14,6 +14,9 @@ class FakeSource(literature.Source):
         if self.exc: raise self.exc
         return self.rec
 
+class NamedSource(FakeSource):
+    def __init__(self, name, **kw): super().__init__(**kw); self.name = name
+
 class LiteratureApi(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -32,7 +35,9 @@ class LiteratureApi(unittest.TestCase):
             with urllib.request.urlopen(req) as r: return r.status, json.loads(r.read())
         except urllib.error.HTTPError as e: return e.code, json.loads(e.read())
     def test_sources_are_listed_with_a_notice(self):
-        c, b = self.call("/api/literature/sources"); self.assertEqual(c, 200); self.assertEqual([s["name"] for s in b["sources"]], ["fake"])
+        c, b = self.call("/api/literature/sources"); self.assertEqual(c, 200)
+        self.assertEqual([s["name"] for s in b["sources"]], ["auto", "fake"])
+        self.assertEqual(b["priority"], ["fake"])
         self.assertIn("bibliographic", b["notice"]); self.assertIn("Crossref", server.LITERATURE_NOTICE)
     def test_verified_on_exact_title(self):
         c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake"})
@@ -87,9 +92,22 @@ class LiteratureApi(unittest.TestCase):
         server.LITERATURE_LOG = ""
         try: c, b = self.call("/api/literature/log"); self.assertEqual((c, b["enabled"], b["entries"]), (200, False, []))
         finally: server.LITERATURE_LOG = self.log
+    def test_auto_source_uses_the_declared_failover_order(self):
+        old = server.LITERATURE_SOURCES
+        server.LITERATURE_SOURCES = {"one": NamedSource("one", exc=literature.SourceError("down")), "two": NamedSource("two", rec=REC)}
+        try:
+            c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/auto", "source": "auto"})
+            self.assertEqual((c, b["reference"]["status"], b["reference"]["source"]), (200, "verified", "two"))
+        finally: server.LITERATURE_SOURCES = old
+    def test_drift_endpoint_summarizes_reverification(self):
+        self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/drift", "source": "fake"})
+        c, b = self.call("/api/literature/drift?limit=10")
+        self.assertEqual(c, 200); self.assertGreaterEqual(b["checked"], 1); self.assertGreaterEqual(b["hash_match"], 1)
+        self.assertIn("never rewritten", b["notice"])
+        self.assertEqual(self.call("/api/literature/drift?limit=abc")[0], 400)
     def test_ui_has_the_references_panel(self):
         body = urllib.request.urlopen(self.base + "/").read().decode()
         self.assertIn("References (optional)", body); self.assertIn("Verify reference", body); self.assertIn("/api/literature/sources", body)
         self.assertIn("Retrieval audit", body); self.assertIn("Get citation", body); self.assertIn("Show retrieval log", body)
-        self.assertIn('id="refstyle"', body); self.assertIn("APA 7", body); self.assertIn("Harvard", body)
+        self.assertIn("Check drift", body); self.assertIn('id="refstyle"', body); self.assertIn("APA 7", body); self.assertIn("Harvard", body)
 if __name__ == "__main__": unittest.main()

@@ -137,6 +137,13 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with retrieval failover and the drift sweep (B-064)
+- Failover covers only the two configured literature sources (Crossref, then OpenAlex). If both are unreachable the lookup fails with a 502 rather than silently marking the DOI unverified; if both report "not found", the reference stays unverified.
+- The drift sweep is **manual**, bounded (API default 10, cap 25) and network-bound: it re-resolves recent logged DOIs and reports `hash_match` / `hash_differs` / `unresolvable_now` / `unreachable`. There is no scheduled or automatic re-check, and it never rewrites the log.
+- A `hash_differs` result means the source served different bytes since the citation was logged — it is a prompt for a human to re-check the metadata and the citation, not an automatic correction. `hash_match` proves the bytes are identical, not that the record is correct.
+- The sweep uses the same priority order as verification, so a source that is down can make entries `unreachable` even though the log itself is intact.
+- Standards, company-filing and tax source families are still not implemented, and no additional scholarly APIs (arXiv, PubMed, Semantic Scholar, Europe PMC) are configured; adding them needs a source/licensing decision, not more code.
+
 ## Added with the weighted summary (B-063)
 - `weighted_summary` produces **summaries only**: weighted mean, weighted standard deviation, effective sample size and design effect. There is **no standard error, confidence interval or test**, because design-based inference needs a declared complex design (stratification, clustering, replicate weights) that is not implemented. The delivery says this explicitly.
 - The weight kind must be declared: `reliability` (precision-style, unbiased weighted variance) or `frequency` (counts of observations). The two give different standard deviations; the convention is stated in the appendix.

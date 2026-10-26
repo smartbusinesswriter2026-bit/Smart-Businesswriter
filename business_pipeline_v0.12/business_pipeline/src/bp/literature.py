@@ -133,18 +133,43 @@ class OpenAlexSource(Source):
 
 def _norm(s): return re.sub(r"[^a-z0-9]+", "", (s or "").lower())
 
-def verify_reference(title, doi=None, source=None, log=None):
-    """Return a Reference. status is 'verified' only when a DOI is provided, it resolves against `source`, and the
+# Source priority and failover policy (B-064): Crossref first, OpenAlex second. A source error at one is not
+# silently swallowed — the attempt is recorded and the next source is tried; if every source errors the call
+# fails closed rather than calling the DOI "unverified".
+def default_sources(): return (CrossrefSource(), OpenAlexSource())
+
+def _resolve_with_failover(doi, sources):
+    """Try each source in order. Returns (winning source or None, record or None, attempts)."""
+    attempts = []
+    for s in sources:
+        try: rec = s.resolve(doi)
+        except SourceError as e:
+            attempts.append({"source": s.name, "outcome": "error", "detail": str(e)}); continue
+        if rec is None:
+            attempts.append({"source": s.name, "outcome": "not_found"}); continue
+        attempts.append({"source": s.name, "outcome": "resolved"})
+        return s, rec, attempts
+    return None, None, attempts
+
+def verify_reference(title, doi=None, source=None, sources=None, log=None):
+    """Return a Reference. status is 'verified' only when a DOI is provided, it resolves against a source, and the
     normalized title matches exactly (PROVISIONAL rule pending the manuals). Anything else is 'unverified_user_supplied'.
     A resolved retrieval always carries its audit fields (retrieved_at, response_hash), even when the title then fails to
-    match; a reference that never reached a source carries neither. When `log` is a path, every resolved retrieval is
-    appended to that retrieval log first; if the log cannot be written the call FAILS (fail-closed) rather than
-    returning an unaudited result."""
+    match; a reference that never reached a source carries neither. `source` pins one source; `sources` tries a list in
+    order with failover (B-064) and records every attempt. When `log` is a path, every resolved retrieval is appended to
+    that retrieval log first; if the log cannot be written the call FAILS (fail-closed) rather than returning an
+    unaudited result."""
     if not isinstance(title, str) or not title.strip(): raise SourceError("title is required")
     ref = Reference(title=title.strip(), doi=(doi.strip() if isinstance(doi, str) and doi.strip() else None))
     if not ref.doi: return ref
-    source = source or CrossrefSource()
-    rec = source.resolve(ref.doi)
+    attempts = []
+    if sources:
+        source, rec, attempts = _resolve_with_failover(ref.doi, tuple(sources))
+        if rec is None and attempts and all(a["outcome"] == "error" for a in attempts):
+            raise SourceError("every retrieval source failed: " + "; ".join(f"{a['source']}: {a['detail']}" for a in attempts))
+    else:
+        source = source or CrossrefSource()
+        rec = source.resolve(ref.doi)
     if rec is None: return ref                                                  # DOI did not resolve; stays unverified
     ref.source, ref.resolved_title = source.name, (rec.get("title").strip() if rec.get("title") else None)
     ref.authors, ref.year, ref.container = tuple(rec.get("authors") or ()), rec.get("year"), rec.get("container")
@@ -154,7 +179,7 @@ def verify_reference(title, doi=None, source=None, log=None):
     ref.retrieved_at, ref.response_hash = rec.get("retrieved_at"), rec.get("response_hash")
     if _norm(rec.get("title")) == _norm(title):
         ref.status, ref.title = "verified", (rec.get("title") or title).strip()  # canonicalize to the source title
-    if log: _append_log(log, _log_record(title.strip(), ref))
+    if log: _append_log(log, _log_record(title.strip(), ref, attempts))
     return ref
 
 # ---------- durable retrieval log (B-058; REW manual section 9) ----------
@@ -165,11 +190,12 @@ LOG_FORMAT = "bp-retrieval-log/1"
 
 def default_log_path(): return os.environ.get("BP_RETRIEVAL_LOG") or "retrieval_log.jsonl"
 
-def _log_record(supplied_title, ref):
+def _log_record(supplied_title, ref, attempts=None):
     return {"format": LOG_FORMAT, "logged_at": utcnow(), "source": ref.source, "doi": ref.doi,
             "status": ref.status, "title_supplied": supplied_title, "title_resolved": ref.resolved_title,
             "authors": list(ref.authors), "year": ref.year, "container": ref.container,
-            "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash}
+            "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash,
+            "attempts": list(attempts or [])}
 
 def _append_log(path, rec):
     """Append one record as a single line and flush to disk. Any failure raises: an unlogged retrieval is refused."""
@@ -196,17 +222,47 @@ def read_log(path=None, limit=50):
         out.append(rec)
     return out[-limit:] if limit else out
 
-def reverify(entry, source=None):
+def reverify(entry, source=None, sources=None):
     """Re-check a logged retrieval against the source now. States: hash_match (same bytes as logged),
-    hash_differs (the source served different bytes since) or unresolvable_now (the DOI no longer resolves)."""
+    hash_differs (the source served different bytes since) or unresolvable_now (the DOI no longer resolves).
+    With `sources`, the same failover order as verification is used."""
     if not entry.get("doi"): return {"doi": None, "state": "no_doi_logged"}
-    source = source or CrossrefSource()
-    rec = source.resolve(entry["doi"])
-    if rec is None: return {"doi": entry["doi"], "state": "unresolvable_now", "logged_hash": entry.get("response_hash"), "logged_at": entry.get("retrieved_at")}
+    attempts = []
+    if sources:
+        source, rec, attempts = _resolve_with_failover(entry["doi"], tuple(sources))
+        if rec is None and attempts and all(a["outcome"] == "error" for a in attempts):
+            raise SourceError("every retrieval source failed: " + "; ".join(f"{a['source']}: {a['detail']}" for a in attempts))
+    else:
+        source = source or CrossrefSource(); rec = source.resolve(entry["doi"])
+    if rec is None: return {"doi": entry["doi"], "state": "unresolvable_now", "logged_hash": entry.get("response_hash"), "logged_at": entry.get("retrieved_at"), "attempts": attempts}
     same = rec.get("response_hash") == entry.get("response_hash")
     return {"doi": entry["doi"], "state": "hash_match" if same else "hash_differs", "logged_hash": entry.get("response_hash"),
             "current_hash": rec.get("response_hash"), "logged_at": entry.get("retrieved_at"), "current_retrieved_at": rec.get("retrieved_at"),
+            "checked_with": source.name, "attempts": attempts,
             "title_still_matches": _norm(rec.get("title")) == _norm(entry.get("title_resolved"))}
+
+def drift_check(path=None, limit=20, sources=None):
+    """Re-verify the most recent logged retrievals and summarize what changed (B-064). This is a manual sweep:
+    it performs network calls, reports hash_match / hash_differs / unresolvable_now / unreachable per entry, and
+    never rewrites the log."""
+    entries = read_log(path, limit)
+    srcs = tuple(sources) if sources else default_sources()
+    results = []
+    for e in entries:
+        if not e.get("doi"):
+            results.append({"doi": None, "state": "no_doi_logged", "title_supplied": e.get("title_supplied")}); continue
+        try: r = reverify(e, sources=srcs)
+        except SourceError as ex:
+            r = {"doi": e["doi"], "state": "unreachable", "detail": str(ex), "title_supplied": e.get("title_supplied")}
+        r["title_supplied"] = e.get("title_supplied"); results.append(r)
+    summary = {"checked": len(results),
+               "hash_match": sum(1 for r in results if r["state"] == "hash_match"),
+               "hash_differs": [r["doi"] for r in results if r["state"] == "hash_differs"],
+               "unresolvable_now": [r["doi"] for r in results if r["state"] == "unresolvable_now"],
+               "unreachable": [r["doi"] for r in results if r["state"] == "unreachable"],
+               "notice": "Manual drift sweep over the local retrieval log. A hash_match means the source served identical bytes; hash_differs means it changed since it was logged and the citation must be re-checked by a person; the log is never rewritten."}
+    return {**summary, "results": results}
+
 
 # ---------- citation formatting: APA 7 and Harvard (Cite Them Right) — ratified by the owner (B-059) ----------
 # The owner ratified two styles. What is formatted is the metadata the source actually returned: authors are
@@ -299,4 +355,12 @@ def format_citation(ref, style="apa"):
     text = _book_text(ref, names, style)
     return {"style": style, "text": text, "status": ref.status, "verified": True, "notice": notice,
             "note": ((note + " ") if note else "") + f"Generic layout: only journal articles and books are fully styled (source type: {ref.reference_type or 'not supplied'}).", "layout": "other"}
+
+if __name__ == "__main__":
+    import sys as _sys
+    _a = _sys.argv[1:]
+    if not _a or _a[0] != "drift":
+        print("usage: python -m bp.literature drift [log_path] [limit]"); raise SystemExit(2)
+    _limit = int(_a[2]) if len(_a) > 2 else 20
+    print(json.dumps(drift_check(_a[1] if len(_a) > 1 else None, _limit), indent=2, ensure_ascii=False))
 

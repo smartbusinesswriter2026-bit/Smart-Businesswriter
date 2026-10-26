@@ -103,7 +103,7 @@ Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codeboo
 
 `[OWNER]` decision B-040 (retrieval boundary approved), implementation `[REPO]`, rules marked below as **PROVISIONAL** are `[OPEN]` for the manuals that no longer exist.
 
-**Sources.** Crossref primary, OpenAlex fallback; both keyless. Optional `BP_CROSSREF_MAILTO` for a polite User-Agent. Source priority and failover policy, and whether to add arXiv/PubMed/Semantic Scholar/Europe PMC, are `[OPEN]` Q7.
+**Sources.** Crossref primary, OpenAlex fallback; both keyless. Optional `BP_CROSSREF_MAILTO` for a polite User-Agent. The priority order and failover are now declared in code (B-064): Crossref first, OpenAlex second, every attempt recorded, and an all-source failure fails closed. Whether to add arXiv/PubMed/Semantic Scholar/Europe PMC is still `[OPEN]` Q7.
 
 **Verification rule (PROVISIONAL).** A reference is `verified` only when (a) a DOI resolves at the source **and** (b) the returned title equals the supplied title after case/punctuation/whitespace normalisation. Everything else — no DOI, unresolvable DOI, title mismatch, source error — is `unverified_user_supplied` (fail-closed, never retried silently, never upgraded by guesswork). Source errors are mapped, not swallowed.
 
@@ -113,7 +113,7 @@ Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codeboo
 
 **Retrieval audit** `[REPO]` (B-054; Q10 answered): every retrieval that reaches a source records the **SHA-256 of the exact response bytes received** and a **UTC retrieval timestamp**, both carried with the reference to the API and shown in the workbench. The hash is over raw bytes, not a re-serialised object, so it pins what the source actually served at that moment — it is not proof that the metadata is correct. A reference that never reached a source (no DOI, unresolvable DOI) records neither, fail-closed.
 
-**Durable retrieval log** `[REPO]` (B-058): each resolved retrieval is appended to a local newline-delimited JSON log (source, DOI, supplied and resolved title, status, authors, year, container, UTC time, response SHA-256) **before** the reference is returned — an unwritable log fails the retrieval closed, so no unaudited citation is produced. `read_log` refuses a corrupt or unknown-format log, and `reverify` re-checks a logged entry against the source (`hash_match` / `hash_differs` / `unresolvable_now`). Still open: drift monitoring, retention/rotation, and a shared source cache (`[OPEN]` §15B, manual line 534).
+**Durable retrieval log** `[REPO]` (B-058): each resolved retrieval is appended to a local newline-delimited JSON log (source, DOI, supplied and resolved title, status, authors, year, container, UTC time, response SHA-256, failover attempts) **before** the reference is returned — an unwritable log fails the retrieval closed, so no unaudited citation is produced. `read_log` refuses a corrupt or unknown-format log, and a **drift sweep** (B-064) re-verifies recent entries (`hash_match` / `hash_differs` / `unresolvable_now` / `unreachable`, via `drift_check`, `GET /api/literature/drift` or `python -m bp.literature drift`) and never rewrites the log. Still open: scheduled drift checks, retention/rotation, and a shared source cache (`[OPEN]` §15B, manual line 534).
 
 **Never** (binding, §2): cite from memory; invent a study or a DOI; silently "correct" a reference's metadata; treat a retrieved sketch as an established fact without opening it.
 
@@ -191,7 +191,7 @@ Answers can arrive as owner statements, old chat exports, or later retrieval; ea
 | Q4 | Data-output schemas: what statistical/CSV outputs are expected, and what must the manuscript contain? | R5, §8 |
 | Q5 | Cross-cutting statistics gaps (multiple comparison, power, missing-data mechanisms, weights) — which are in v1? | R5 |
 | Q6 | Qualitative/exploratory study taxonomy and instruments? | R4, §7 |
-| Q7 | Which sources, in what priority, with what failover? | R1 |
+| Q7 | Which sources, in what priority, with what failover? **PARTLY ANSWERED 2026-10-21 (B-064):** Crossref then OpenAlex, failover recorded, all-failure fails closed; adding arXiv/PubMed/Semantic Scholar/Europe PMC or standards/filings sources is still open | R1 |
 | Q8 | Do "papers" mean academic papers, business reports, or both in v1? | R0, R7 |
 | Q9 | Citation style(s) to support, and the exact verification/match threshold? **ANSWERED 2026-10-21 (owner ratified APA 7 and Harvard; B-059).** Both styles are implemented with declared plain-text and name-form limits; the match threshold remains exact normalised-title equality (PROVISIONAL) and bibliography ordering/de-duplication or in-text numbering are not implemented | R1, R7 (only the match threshold remains open) |
 | Q10 | Hash-audit requirement: response hash + retrieval date per reference — implement now or after the design? **ANSWERED 2026-10-21:** audit fields (B-054) and a **durable append-only retrieval log** with fail-closed writes and `reverify` (B-058) are implemented; unresolved/no-DOI retrievals stay unlogged rather than inventing a record | — answered; follow-up: drift monitoring and log rotation/retention |
