@@ -1,5 +1,27 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Sign-off wording and multi-period Option A resolved (B-084)
+
+**Ask:** owner answered D4 and the multi-period question: **"a."** (sign-off Option A) and **"option a"** (multi-period Option A); also noted the workspace-root `A1.jpg` is a website reference for later and the logo is to be left alone.
+**Did:** recorded both choices as B-084 and updated the plan: **D4 = Option A** — the stored signature text is now fixed and quoted in Phase 2 ("I reviewed the named case bundle and its disclosed limitations. This signature records that review; it does not assert that the inputs are true or that the analysis is correct."). **Multi-period comparatives and case versioning = Option A** — product-layer, no unfreeze, moved from the unfreeze queue (Phase 3) into the delegated Phase 2 slice: one frozen session per period, immutable case versions (monotonic version, spec/output hashes, method id+version), side-by-side comparison of stored bundles under declared comparability rules, missing periods shown as "not computed" and never filled, every displayed number byte-identical to its stored bundle, no arithmetic in the product layer. Phase 3 now holds only PDF/OCR ingestion and any core-lane export. Recorded `A1.jpg` as the owner's UI-phase website reference (outside the repo, not committed; logo untouched).
+**Files:** `docs/DECISIONS.md` (B-084; B-083's D4 status updated), `docs/PRODUCT_BACKEND_PLAN.md` (Phase 0/2/3/5 + definition of done), `docs/BACKEND_CONTRACT.md` (§6 planned surface), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only; full suite (frozen-contract + docs-state guards) **625 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** MiniMax's slice 1 (case store + dispatch + HTML export) to review; then delegate slice 2 (sign-off record, multi-period Option A comparison, ops/packaging). D3 disclosure remains deferred by choice.
+
+---
+
+## 2026-10-21 — [computation] Phase-0 answers, slice-1 rescope and the multi-period proposal (B-083)
+
+**Ask:** owner answered the plan's four Phase-0 questions and said "okay do the things while waiting for minimax".
+**Did:** recorded the answers as B-083 and amended the plan: **D1 accepted** (local single-user v1, to be improved after it is seen working), **D2 accepted** (cases kept until the owner deletes them, no outbound transfer, model assistance off by default), **D3 deferred** — the AI-use disclosure export is removed from slice 1 and returns later as its own separately-decided slice, **D4 open** — explanation requested; sign-off stays in Phase 2 and its record schema does not depend on the wording. Rescoped slice 1 accordingly: local case store + additive route dispatch + **stdlib HTML export** of the delivered report verbatim (no disclosure, no third-party dependency; DOCX/XLSX deferred behind a declared product-layer dependency). Wrote `docs/proposals/MULTI_PERIOD_VERSIONING.md`: multi-period comparatives and case versioning split into **Option A** (product layer, no unfreeze — one existing session per period stored as an immutable case version, compared side by side under declared comparability rules, recommendation) and **Option B** (core multi-period delivery: single spec with N periods, per-period artifacts and a deterministic in-delivery diff — a genuine unfreeze), with acceptance criteria and the owner questions.
+**Files:** `docs/DECISIONS.md` (B-083), `docs/PRODUCT_BACKEND_PLAN.md`, `docs/BACKEND_CONTRACT.md` (§6 planned surface), `docs/proposals/MULTI_PERIOD_VERSIONING.md` (new), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only; full suite (frozen-contract + docs-state guards) **625 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** D4 wording choice (owner); A-vs-B choice for multi-period (owner); MiniMax's slice 1 to review — the delegation addendum says item 3 (disclosure) is deferred and must not be committed. My next computation-owner work while waiting: review slice 1 and wire the product dispatch into the server once it passes.
+
+---
+
 ## 2026-10-21 — [computation] REW manual inventory refresh (v0.4, from the review queue)
 
 **Ask:** queue item from the decision-briefs review (appendix B items 2-4): the ratified REW manual's "what exists in code today" table had gone stale.
