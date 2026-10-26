@@ -55,7 +55,9 @@ Owner deferred it on 2026-10-21 ("lets add the disclosure later. this is not don
 
 ## Phase 2c — deliverable graphics and spreadsheets (B-087; before the UI)
 
-The owner asked how spreadsheets, charts and business graphics fit. The answer is **rendering, not modelling**: graphics are produced by code from stored values, never drawn by a model.
+**SHIPPED (B-089, build 0.63):** `src/bp/product/charts.py` (declarative `bp-chart/1` spec → deterministic SVG for bar/line/stacked bar/waterfall/pie/sparkline/table, stored values only, digit-free labels, missing or non-numeric artifacts refused), `src/bp/product/spreadsheets.py` (CSV + SpreadsheetML 2003 workbook of stored strings), `src/bp/product/diagrams.py` (structure-only SVG templates: process, 2x2 matrix, pyramid, funnel, tree), `export_html(charts=…, diagrams=…)`, and the render/export routes. No model call in the rendering path.
+
+Design record (as planned):
 
 - **Declarative graphic spec** (product layer): a small JSON document naming the chart type and the stored series to draw (e.g. `{"kind": "bar", "title": "...", "series": [{"label": "NPV", "artifact": "npv"}]}`). The renderer looks every value up in a stored bundle; a spec that names an artifact the bundle does not record is refused, and a chart cannot introduce a number, axis label or annotation that is not a stored value.
 - **Charts** rendered as deterministic **SVG** (stdlib string building): bar, line, stacked bar, waterfall, pie/donut, sparkline, and a table view; every bar/point labelled with the stored string. Charts embed in the HTML export and in the comparison view.

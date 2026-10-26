@@ -119,14 +119,28 @@ def _title(bundle):
     return title or case_id or "Case export"
 
 
-def export_html(bundle, path):
+def export_html(bundle, path, charts=None, diagrams=None):
     """Write the self-contained HTML export of `bundle` to `path`.
 
     Returns the path written.  The stored report text and the stored artifact
-    values are copied, never recomputed.
+    values are copied, never recomputed.  Optional `charts` and `diagrams` are
+    lists of specs rendered by `bp.product.charts` / `bp.product.diagrams` into
+    inline SVG from the same stored values (no network, no model, no new number).
     """
     if not isinstance(bundle, dict):
         raise ValueError("case bundle must be an object")
+    chart_section = ""
+    if charts:
+        from . import charts as chart_renderer
+        figures = "".join('<figure class="chart">%s</figure>' % chart_renderer.render_svg(bundle, spec)
+                          for spec in charts)
+        chart_section = '<section id="charts">\n<h2>Charts</h2>\n%s\n</section>\n' % figures
+    diagram_section = ""
+    if diagrams:
+        from . import diagrams as diagram_renderer
+        figures = "".join('<figure class="chart">%s</figure>' % diagram_renderer.render_svg(spec)
+                          for spec in diagrams)
+        diagram_section = '<section id="diagrams">\n<h2>Business graphics</h2>\n%s\n</section>\n' % figures
     target = Path(path)
     if str(target.parent) not in ("", "."):
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -164,6 +178,8 @@ def export_html(bundle, path):
         html.escape(report, quote=False),
         _artifacts_html(bundle),
     )
+    if chart_section or diagram_section:
+        document = document.replace("</main>", chart_section + diagram_section + "</main>")
 
     handle, temp_name = tempfile.mkstemp(dir=str(target.parent or "."), prefix=".tmp-export-", suffix=".html")
     try:

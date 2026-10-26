@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Product slice 2c: charts, spreadsheets and business graphics (B-089)
+
+**Ask:** "do 1" — the last backend item: the graphics/spreadsheets addition (B-087), then stop before the UI.
+**Did:** three new product modules, all deterministic and stdlib-only, with **no model in the rendering path**. **`charts.py`**: a declarative `bp-chart/1` spec renders SVG for bar, line, stacked bar, waterfall, pie, sparkline and table; every series names a stored artifact (metric or id), a missing artifact / no recorded value / non-numeric value is refused with a reason, the spec's text fields (title, labels, axis labels, note) **may not contain digits** so only stored value strings can appear, and geometry scaling never alters the strings; same bundle + spec → byte-identical SVG. **`spreadsheets.py`**: CSV of the artifact table (LF endings) and a SpreadsheetML 2003 workbook with Case/Artifacts/Report sheets where every cell is a string (so `50.00` never becomes `50.0`). **`diagrams.py`**: structure-only (T4) SVG templates — process, 2x2 matrix, pyramid, funnel, tree — from owner-supplied digit-free labels; nothing is scored or ranked. `export_html` now embeds charts/diagrams; routes `POST /api/cases/{id}/render` (SVG preview) and `POST /api/cases/{id}/export` (`csv` / `spreadsheetml` / `html`).
+**Files:** `src/bp/product/charts.py`, `.spreadsheets.py`, `.diagrams.py` (new), `src/bp/product/export.py`, `src/bp/product/api.py`, `tests/test_product_charts.py`, `tests/test_product_diagrams.py`, `tests/test_product_spreadsheets.py` (new), `tests/test_product_routes.py` (extended), docs (B-089, CHANGELOG 0.63, BACKEND_CONTRACT §6, PRODUCT_BACKEND_PLAN 2c, README, HOME/HANDOFF/CONTRIBUTORS digits, this entry).
+**Verified:** full suite **733 tests OK** including the frozen-contract and docs-state guards; SVG validated as well-formed XML, determinism and number-fidelity tested (a chart cannot print a number that is not a stored value), spreadsheets checked cell-by-cell as strings, and the render/export routes exercised through the dispatch.
+**Commit:** `this commit`.
+**Status:** the backend product sequence is **complete** (2a, 2b, 2c). Per the owner's instruction I am **stopping before any UI/homepage/interface work** and waiting for the special UI instructions. Remaining non-backend items are decision-gated (D3 disclosure, REW R1–R10/B-082, tax B-052, ledger B-032, templates B-028, reviewers B-005, frontier stats B-075).
+
+---
+
 ## 2026-10-21 — [computation] Product slice 2b: ops surface and the local launcher (B-088)
 
 **Ask:** continue the backend sequence, and the owner asked "will you also build the server? i notice there is no server yet". Answer: the server already exists (`src/bp/server.py`, stdlib HTTP, `python -m bp.server`, serving the workbench and API, wired to the product routes since B-085); what was missing was the operational/deployment surface, which is this slice.

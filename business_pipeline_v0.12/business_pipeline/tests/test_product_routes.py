@@ -74,6 +74,28 @@ class ProductRouteTest(unittest.TestCase):
         self.assertEqual(api.handle("POST", "/api/cases/%s/signoff" % case_id, {"reviewer": "X"})[0], 422)
         self.assertEqual(api.handle("POST", "/api/cases/%s/signoff" % case_id, {"version": 9, "reviewer": "X"})[0], 404)
 
+    def test_render_and_export_routes(self):
+        case_id = "0123456789ab"
+        bundle = versioned()
+        bundle["delivery"]["appendix"]["artifacts"] = [["npv", ["npv", "annual", "entity", "base"], "npv formula"]]
+        self.assertEqual(api.handle("POST", "/api/cases/%s/versions" % case_id, bundle)[0], 201)
+        chart = {"format": "bp-chart/1", "kind": "bar", "title": "Capital budgeting",
+                 "series": [{"label": "Net present value", "artifact": "npv"}]}
+        status, rendered = api.handle("POST", "/api/cases/%s/render" % case_id, {"chart": chart})
+        self.assertEqual(status, 200); self.assertIn("<svg", rendered["svg"]); self.assertIn("50.00", rendered["svg"])
+        self.assertEqual(api.handle("POST", "/api/cases/%s/render" % case_id,
+                                    {"chart": {**chart, "title": "Year 2025"}})[0], 422)
+        self.assertEqual(api.handle("POST", "/api/cases/%s/render" % case_id, {})[0], 422)
+        with tempfile.TemporaryDirectory() as folder:
+            for kind, suffix in (("csv", "csv"), ("spreadsheetml", "xml"), ("html", "html")):
+                destination = os.path.join(folder, "case." + suffix)
+                status, result = api.handle("POST", "/api/cases/%s/export" % case_id,
+                                            {"kind": kind, "destination": destination})
+                self.assertEqual(status, 200, result)
+                self.assertTrue(os.path.isfile(destination), kind)
+            self.assertEqual(api.handle("POST", "/api/cases/%s/export" % case_id,
+                                        {"kind": "pdf", "destination": os.path.join(folder, "x.pdf")})[0], 422)
+
     def test_deleting_a_case_removes_its_versions(self):
         case_id = self.make_case()
         status, deleted = api.handle("DELETE", "/api/cases/%s" % case_id)

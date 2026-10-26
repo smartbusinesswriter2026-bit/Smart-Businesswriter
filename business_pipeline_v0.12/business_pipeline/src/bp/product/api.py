@@ -23,9 +23,13 @@ Routes:
 """
 
 from . import cases as case_store
+from . import charts as chart_renderer
 from . import compare as comparator
+from . import diagrams as diagram_renderer
+from . import export as case_export
 from . import ops
 from . import signoff as signoff_store
+from . import spreadsheets
 from . import versions as version_store
 
 CASE_ROUTE = "/api/cases"
@@ -193,6 +197,56 @@ def handle(method, path, body=None):
             except version_store.VersionError as error:
                 return 404, {"error": str(error)}
         return 405, {"error": "method %s is not allowed on signoff" % verb}
+
+    # -- rendering and exports (Phase 2c) ------------------------------------
+    if tail == ["render"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on render" % verb}
+        if not isinstance(body, dict):
+            return 422, {"error": "a chart or diagram spec object is required"}
+        try:
+            case_id_doc = version_store.latest(case_id) if version_store._existing_versions(case_id) else {"bundle": case_store.load(case_id)}
+        except (case_store.CaseNotFound, version_store.VersionError) as error:
+            return 404, {"error": str(error)}
+        except ValueError as error:
+            return _error(error)
+        bundle = case_id_doc["bundle"]
+        try:
+            if body.get("chart") is not None:
+                return 200, {"svg": chart_renderer.render_svg(bundle, body["chart"])}
+            if body.get("diagram") is not None:
+                return 200, {"svg": diagram_renderer.render_svg(body["diagram"])}
+        except (chart_renderer.ChartError, diagram_renderer.DiagramError) as error:
+            return _error(error)
+        return 422, {"error": "render needs a 'chart' or a 'diagram' spec"}
+
+    if tail == ["export"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on export" % verb}
+        if not isinstance(body, dict) or not body.get("kind"):
+            return 422, {"error": "export needs a 'kind' (csv, spreadsheetml, html) and a 'destination' path"}
+        if not isinstance(body.get("destination"), str) or not body["destination"].strip():
+            return 422, {"error": "export needs a 'destination' path"}
+        try:
+            document = version_store.latest(case_id) if version_store._existing_versions(case_id) else {"bundle": case_store.load(case_id)}
+            bundle = document["bundle"]
+        except (case_store.CaseNotFound, version_store.VersionError) as error:
+            return 404, {"error": str(error)}
+        except ValueError as error:
+            return _error(error)
+        try:
+            kind = body["kind"]
+            destination = body["destination"]
+            if kind == "csv":
+                return 200, {"kind": kind, "path": spreadsheets.export_csv(bundle, destination)}
+            if kind == "spreadsheetml":
+                return 200, {"kind": kind, **spreadsheets.export_spreadsheetml(bundle, destination, sha=True)}
+            if kind == "html":
+                return 200, {"kind": kind, "path": case_export.export_html(
+                    bundle, destination, charts=body.get("charts"), diagrams=body.get("diagrams"))}
+            return 422, {"error": "unknown export kind %r (csv, spreadsheetml, html)" % kind}
+        except (OSError, ValueError, chart_renderer.ChartError, diagram_renderer.DiagramError) as error:
+            return _error(error)
 
     # -- the original flat case ---------------------------------------------
     if tail:

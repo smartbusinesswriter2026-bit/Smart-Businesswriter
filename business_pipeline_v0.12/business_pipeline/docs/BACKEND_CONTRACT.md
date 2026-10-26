@@ -81,6 +81,7 @@ An unfreeze is a decision, not a commit:
 | Health and request log (B-088) | `GET /api/health`; `bp.product.ops`; additive timing hook in the server | case-store counts, state/log paths, sandbox/model flags; JSONL of method/query-free path/status/duration only (opt-in via `BP_REQUEST_LOG`) |
 | Case backup/restore (B-088) | `POST /api/cases/backup`, `POST /api/cases/restore`, `GET /api/cases/backups`; `bp.product.ops` | the case store's JSON documents only, with a manifest + SHA-256; zip-slip/non-JSON refused |
 | Local launcher (B-088) | `scripts/serve.py` (`--port`, `--host`, `--no-sandbox`, `--check`) | starts the frozen server; resolves `BP_CASES_DIR`/`BP_STATE_DIR`/`BP_REQUEST_LOG` |
+| Charts, spreadsheets, diagrams (B-089) | `POST /api/cases/{id}/render`, `POST /api/cases/{id}/export`; `bp.product.charts`, `.spreadsheets`, `.diagrams` | stored artifact values only: SVG charts and structure-only diagrams with digit-free labels, CSV/SpreadsheetML cells copied as strings; deterministic; no model call |
 
 **Wiring note.** The `/api/cases` routes are served by the frozen server through an additive extension (B-085): `server.py` imports `bp.product.api`, delegates GET/POST/DELETE to `api.handle`, and adds `do_DELETE`; the frozen route fixture is unchanged because the product surface is tracked **here**, not among the frozen 12. New product routes are added in `product/api.py` and need no further core edit. The store holds an opaque bundle; the product layer computes nothing.
 
