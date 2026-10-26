@@ -46,7 +46,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 | Gap | Tier / verification note |
 |---|---|
 | **Financial statement ratio analysis** (liquidity, profitability, solvency, efficiency) computed from the statements | **Built** (B-056, `ratio_analysis`, T1): 15 declared ratios in Decimal, exact-rational second route, not-computed reasons, no benchmarks or verdicts. Remaining in this row: nothing that needs a decision, though industry-benchmark comparison would need retrieved sources (P0). |
-| DCF valuation + WACC | T2 — WACC and growth are assumptions, never invented weights; grows `case_decision` |
+| DCF valuation + WACC | **Built** (B-068): `wacc` (T1, declared costs; no tax) and `dcf_valuation` (T2, declared cash flows, rates and Gordon growth; five frozen checks each). Remaining: equity bridge, mid-year convention, scenario/real-option valuation, and CAPM/beta estimation. |
 | Unit economics (unit margin, LTV/CAC), multi-product break-even | T1/T2 |
 | Cost-benefit / cost-effectiveness / SROI | T2 — valuation assumptions, expert review pending |
 

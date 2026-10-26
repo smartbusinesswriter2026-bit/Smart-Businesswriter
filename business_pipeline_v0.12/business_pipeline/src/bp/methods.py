@@ -1620,6 +1620,141 @@ def ratio_template(outputs, period, thresholds=None):
         if names: t += "The " + group + " ratios are " + ", ".join(_RATIO_LABEL[n] + " of " + tok(n) for n in names) + ". "
     return t + "Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated."
 
+# ---------- Valuation: WACC and DCF (gap map P1 finance; B-068) ----------
+# Both are arithmetic on declared inputs. No tax is computed: the cost of debt is supplied AFTER tax.
+# DCF assumptions (end-of-period free cash flows, Gordon-growth terminal value) are declared, not hidden.
+
+def wacc_impl(inp):
+    E, Dv = D(str(inp["equity_value"])), D(str(inp["debt_value"]))
+    ke, kd = D(str(inp["cost_of_equity"])), D(str(inp["cost_of_debt_after_tax"]))
+    if E < 0 or Dv < 0: raise DataError("equity and debt market values must be non-negative")
+    if ke < 0 or kd < 0: raise DataError("costs of capital must be non-negative")
+    total = E + Dv
+    if total <= 0: raise DataError("at least one of equity and debt must be positive")
+    we, wd = E / total, Dv / total
+    return {"wacc": we * ke + wd * kd, "weight_equity": we, "weight_debt": wd,
+            "cost_of_equity": ke, "cost_of_debt_after_tax": kd}
+
+def _wacc_reference(inp):
+    E, Dv = float(D(str(inp["equity_value"]))), float(D(str(inp["debt_value"])))
+    ke, kd = float(D(str(inp["cost_of_equity"]))), float(D(str(inp["cost_of_debt_after_tax"])))
+    total = E + Dv; we = E / total; wd = Dv / total
+    return {"wacc": we * ke + wd * kd, "weight_equity": we, "weight_debt": wd}
+
+def _wacc_tests(inp, impl):
+    base, ref = impl(inp), _wacc_reference(inp)
+    E, Dv = D(str(inp["equity_value"])), D(str(inp["debt_value"])); ke = D(str(inp["cost_of_equity"])); kd = D(str(inp["cost_of_debt_after_tax"]))
+    scaled = impl({**inp, "equity_value": str(E * 7), "debt_value": str(Dv * 7)})
+    up = impl({**inp, "cost_of_equity": str(ke + D("0.1"))})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("weights_sum_to_one", _close(base["weight_equity"] + base["weight_debt"], D(1)), "the capital-structure weights are exhaustive"),
+        ("wacc_is_between_the_two_costs", min(ke, kd) <= base["wacc"] <= max(ke, kd), "a weighted average lies between its components"),
+        ("scaling_both_market_values_changes_nothing", _close(scaled["wacc"], base["wacc"]) and _close(scaled["weight_equity"], base["weight_equity"]), "only the relative weights matter"),
+        ("rising_cost_of_equity_raises_wacc", up["wacc"] > base["wacc"], "a more expensive source of capital raises the average"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _wacc_profile(inp):
+    try:
+        E, Dv = D(str(inp["equity_value"])), D(str(inp["debt_value"]))
+        ke, kd = D(str(inp["cost_of_equity"])), D(str(inp["cost_of_debt_after_tax"]))
+        errs = []
+        if E < 0 or Dv < 0: errs.append("equity and debt values must be non-negative")
+        if E + Dv <= 0: errs.append("equity plus debt must be positive")
+        if ke < 0 or kd < 0: errs.append("costs of capital must be non-negative")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["wacc inputs are malformed: equity_value, debt_value, cost_of_equity and cost_of_debt_after_tax are required numbers"]
+
+def _wacc_typing(metric): return ("rate", 4)
+
+def _wacc_caveats(out, th):
+    return ["The costs of capital are inputs, not estimates made here: the cost of equity and the AFTER-TAX cost of debt must be declared, and no tax is computed by this method.",
+            "Market values of equity and debt are used for the weights; book values would give different weights and a different WACC.",
+            "WACC is a single discount rate for a whole firm or project; it is not appropriate for cash flows with materially different risk."]
+
+def _wacc_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The weighted average cost of capital is " + tok("wacc") + ", with an equity weight of " + tok("weight_equity") +
+            " and a debt weight of " + tok("weight_debt") + ". The costs of equity and after-tax debt are inputs; no tax is computed here.")
+
+def dcf_impl(inp):
+    cfs = [D(str(x)) for x in inp["cashflows"]]
+    r = D(str(inp["discount_rate"]))
+    raw_g = inp.get("terminal_growth")
+    g = None if raw_g is None or (isinstance(raw_g, str) and not raw_g.strip()) else D(str(raw_g))
+    if not cfs: raise DataError("at least one cash flow is required")
+    if r <= -1: raise DataError("the discount rate must be greater than -100%")
+    if g is not None and not (r > g): raise DataError("the terminal growth rate must be below the discount rate")
+    n = len(cfs)
+    pv = sum((cf / (1 + r) ** t for t, cf in enumerate(cfs, 1)), D(0))
+    tv = (cfs[-1] * (1 + g) / (r - g)) if g is not None else D(0)
+    pvt = tv / (1 + r) ** n
+    ev = pv + pvt
+    out = {"pv_explicit": pv, "pv_terminal": pvt, "terminal_value": tv, "enterprise_value": ev,
+           "terminal_share": (pvt / ev) if ev != 0 else D(0), "n_periods": D(n), "discount_rate": r}
+    if g is not None: out["terminal_growth"] = g
+    return out
+
+def _dcf_reference(inp):
+    cfs = [float(D(str(x))) for x in inp["cashflows"]]; r = float(D(str(inp["discount_rate"])))
+    raw_g = inp.get("terminal_growth"); g = None if raw_g is None or (isinstance(raw_g, str) and not raw_g.strip()) else float(D(str(raw_g)))
+    pv = 0.0
+    for t, cf in enumerate(cfs, 1): pv += cf / (1 + r) ** t
+    n = len(cfs); tv = cfs[-1] * (1 + g) / (r - g) if g is not None else 0.0; pvt = tv / (1 + r) ** n
+    return {"pv_explicit": pv, "pv_terminal": pvt, "terminal_value": tv, "enterprise_value": pv + pvt}
+
+def _dcf_tests(inp, impl):
+    base, ref = impl(inp), _dcf_reference(inp)
+    cfs = [D(str(x)) for x in inp["cashflows"]]; r = D(str(inp["discount_rate"]))
+    doubled = impl({**inp, "cashflows": [str(c * 2) for c in cfs]})
+    raw_g = inp.get("terminal_growth")
+    g = None if raw_g is None or (isinstance(raw_g, str) and not raw_g.strip()) else D(str(raw_g))
+    higher_r = impl({**inp, "discount_rate": str(r + D("0.01"))}) if (g is None or r + D("0.01") > g) else base
+    no_g = impl({k: v for k, v in inp.items() if k != "terminal_growth"})
+    expect_tv = (cfs[-1] * (1 + g) / (r - g)) if g is not None else D(0)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("value_scales_with_the_cash_flows", all(_close(doubled[k], base[k] * 2) for k in ("pv_explicit", "pv_terminal", "enterprise_value")), "doubling every cash flow doubles the value"),
+        ("a_higher_discount_rate_lowers_the_value", higher_r["enterprise_value"] < base["enterprise_value"], "discounting more heavily reduces the present value"),
+        ("terminal_value_is_gordon_growth_on_the_last_flow", _close(base["terminal_value"], expect_tv), "terminal value = last cash flow x (1+g) / (r-g)"),
+        ("without_terminal_growth_there_is_no_terminal_value", no_g["pv_terminal"] == 0 and no_g["enterprise_value"] == no_g["pv_explicit"], "omitting growth leaves the explicit forecast only"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _dcf_profile(inp):
+    try:
+        cfs = [D(str(x)) for x in inp["cashflows"]]
+        r = D(str(inp["discount_rate"]))
+        raw_g = inp.get("terminal_growth"); g = None if raw_g is None or (isinstance(raw_g, str) and not raw_g.strip()) else D(str(raw_g))
+        errs = []
+        if not cfs: errs.append("at least one cash flow is required")
+        if r <= -1: errs.append("the discount rate must be greater than -100%")
+        if g is not None and not (r > g): errs.append("the terminal growth rate must be below the discount rate")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["dcf inputs are malformed: cashflows and a numeric discount_rate are required"]
+
+def _dcf_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric == "terminal_share": return ("ratio", 3)
+    if metric in ("discount_rate", "terminal_growth"): return ("rate", 2)
+    return ("currency", 2)
+
+def _dcf_caveats(out, th):
+    c = ["The value is model-conditional: it is the present value of the cash flows and terminal growth you declared, not a market price or a forecast guarantee.",
+         "End-of-period cash flows are assumed; a mid-year convention would raise the value. No tax is computed: supply after-tax cash flows.",
+         "The terminal value usually dominates the result and rests entirely on the growth and discount-rate assumptions."]
+    if out.get("terminal_share", D(0)) > D("0.75"): c.append("The terminal value is more than three quarters of the total value, so the growth assumption drives the answer.")
+    return c
+
+def _dcf_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The present value of the explicit forecast is " + tok("pv_explicit") + ", and the present value of the terminal value is " +
+            tok("pv_terminal") + " (a terminal share of " + tok("terminal_share") + "), giving an enterprise value of " + tok("enterprise_value") + ". "
+            "The value is computed from the declared cash flows, discount rate and terminal-growth assumptions; it is not a market price.")
+
 # ---------- Multiple-comparison correction (manual 9B.3; B-060) ----------
 # Pure arithmetic on a family of p-values that the user has already declared. Holm is the default choice
 # because it controls the family-wise error rate under arbitrary dependence while being uniformly more
@@ -2201,6 +2336,35 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "wacc": Method("wacc", "T1", wacc_impl, _wacc_tests, _wacc_profile, "wacc", "rate", None,
+                  ("second_implementation_agrees", "weights_sum_to_one", "wacc_is_between_the_two_costs",
+                   "scaling_both_market_values_changes_nothing", "rising_cost_of_equity_raises_wacc"),
+                  category="valuation",
+                  intended_use="Compute the weighted average cost of capital from declared market values of equity and debt and declared costs of equity and AFTER-TAX debt.",
+                  unsupported_use="Estimating the cost of equity (CAPM is not implemented); computing tax; using one WACC for cash flows of materially different risk; leverage-dependent WACC recalculations.",
+                  input_schema={"equity_value": {"type": "decimal", "desc": "market value of equity"},
+                                "debt_value": {"type": "decimal", "desc": "market value of debt (interest-bearing)"},
+                                "cost_of_equity": {"type": "decimal", "desc": "required return on equity, e.g. 0.11"},
+                                "cost_of_debt_after_tax": {"type": "decimal", "desc": "cost of debt AFTER tax, e.g. 0.05; no tax is computed here"}},
+                  defaults=({"question": "What the costs mean", "default_chosen": "Both costs are declared inputs. The cost of debt must already be after tax; the method computes no tax.", "impact": "Passing a pre-tax cost of debt without applying (1 - tax rate) overstates the WACC."},
+                            {"question": "Weights", "default_chosen": "Market values of equity and debt determine the weights.", "impact": "Book values would give different weights and a different WACC."}),
+                  assumptions=("The market values and costs are the owner's declared inputs.", "The same WACC applies to the cash flows it will discount."),
+                  limitations=("No CAPM or other cost-of-equity model; no tax computation.", "A single WACC does not fit heterogeneous cash flows.", "Weights are current, not target, capital structure."),
+                  default_period="annual", caveats=_wacc_caveats, template=_wacc_template, claim_ceiling="descriptive", typing=_wacc_typing),
+    "dcf_valuation": Method("dcf_valuation", "T2", dcf_impl, _dcf_tests, _dcf_profile, "enterprise_value", "currency", None,
+                  ("second_implementation_agrees", "value_scales_with_the_cash_flows", "a_higher_discount_rate_lowers_the_value",
+                   "terminal_value_is_gordon_growth_on_the_last_flow", "without_terminal_growth_there_is_no_terminal_value"),
+                  category="valuation",
+                  intended_use="Discount a declared stream of end-of-period free cash flows at a declared rate, with an optional Gordon-growth terminal value, to an enterprise value.",
+                  unsupported_use="Forecasting the cash flows; choosing the discount rate or growth (declare them, or use wacc and your own inputs); mid-year discounting; equity value bridge (debt/net cash adjustment); tax computation; real-option or scenario valuation.",
+                  input_schema={"cashflows": {"type": "value_list", "min_items": 1, "desc": "free cash flows, one per period, first at end of period 1"},
+                                "discount_rate": {"type": "decimal", "desc": "periodic discount rate, e.g. 0.10"},
+                                "terminal_growth": {"type": "decimal", "required": False, "desc": "optional perpetual growth after the forecast; must be below the discount rate"}},
+                  defaults=({"question": "Terminal value", "default_chosen": "No terminal value unless terminal_growth is declared; then a Gordon-growth value on the last cash flow, discounted at the same rate.", "impact": "Without a terminal value the valuation covers only the explicit forecast and will usually understate a going concern."},
+                            {"question": "Timing and taxes", "default_chosen": "Cash flows are end-of-period and after tax as supplied; no mid-year convention and no tax computation.", "impact": "A mid-year convention raises the value; pre-tax cash flows with an after-tax discount rate are inconsistent."}),
+                  assumptions=("The cash flows and the discount rate are the owner's declared inputs.", "The terminal growth rate persists forever and stays below the discount rate."),
+                  limitations=("The result is model-conditional arithmetic, not a market price or a forecast guarantee.", "The terminal value typically dominates the answer and rests on the growth assumption.", "No mid-year convention, no equity bridge and no tax computation."),
+                  default_period="annual", caveats=_dcf_caveats, template=_dcf_template, claim_ceiling="descriptive", typing=_dcf_typing),
     "weighted_summary": Method("weighted_summary", "T1", _w_impl, _w_tests, _w_profile, "weighted_mean", "from_request", None,
                   ("second_implementation_agrees", "equal_weights_reproduce_the_unweighted_summary", "mean_is_invariant_to_weight_scaling",
                    "larger_values_weighted_more_raise_the_mean", "design_effect_is_one_for_equal_weights"),

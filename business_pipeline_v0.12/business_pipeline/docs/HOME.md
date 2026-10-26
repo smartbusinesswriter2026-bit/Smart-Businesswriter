@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.42**, **520 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.43**, **531 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -36,7 +36,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Module | Owns | Main tests | Authority |
 |---|---|---|---|
 | [`orchestrator.py`](../src/bp/orchestrator.py) | Stage order, `Pipeline.start/resume/run`, `Delivery`, `Pause`, `_appendix`/`_checks` | `test_pipeline`, `test_stage5` | steps 4, 5.2 (P4, P8) |
-| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast`, `test_ratio`, `test_multicomp`, `test_power`, `test_missing`, `test_weighted`, `test_inference_more`, `test_literature_failover` | 5.3, 5.5, 9B; B-042/B-043/B-056/B-060/B-061/B-062/B-063/B-067 |
+| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast`, `test_ratio`, `test_multicomp`, `test_power`, `test_missing`, `test_weighted`, `test_inference_more`, `test_valuation`, `test_literature_failover` | 5.3, 5.5, 9B; B-042/B-043/B-056/B-060/B-061/B-062/B-063/B-067/B-068 |
 | [`spec.py`](../src/bp/spec.py) | Problem Spec: draft → confirm → frozen + hashed | `test_stage5` | 5.2 |
 | [`session.py`](../src/bp/session.py) | Session/work-plan states, checkpoints, JSON contracts | `test_session_api` | 4, 5.2 |
 | [`sandbox.py`](../src/bp/sandbox.py), [`sandbox_child.py`](../src/bp/sandbox_child.py) | Guarded subprocess execution, parent/child protocol | `test_sandbox` | 5.4 |
@@ -72,6 +72,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
 | Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |
+| Valuation: WACC and DCF | Built, T1/T2; assumptions declared, no tax computed | B-068 |
 | Literature retrieval/verification | Built; PROVISIONAL match rule; durable log with failover attempts, APA/Harvard citations, drift sweep | B-040, B-054, B-058, B-059, B-064 |
 | Research & Evidence Workflow (REW) | Manual ratified (R11); **no stage built** | B-053, R1–R10 proposals |
 | Taxation | Deliberately deferred | B-052 |

@@ -137,6 +137,12 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with WACC and DCF valuation (B-068)
+- `wacc` does not estimate anything: the cost of equity and the AFTER-TAX cost of debt are declared inputs, and **no tax is computed** (B-052 still deferred). There is no CAPM, no beta estimation, no target-capital-structure iteration and no leverage-dependent recalculation; market weights are current, not target.
+- One WACC is a single discount rate; it is not appropriate for cash flows of materially different risk.
+- `dcf_valuation` is **arithmetic under declared assumptions**, not a market price or a forecast: the method does not forecast cash flows or choose the rate, uses end-of-period cash flows (no mid-year convention), has no equity-value bridge (net debt adjustment), no tax computation and no scenario or real-option analysis.
+- The terminal value typically dominates the answer and rests entirely on the terminal-growth and discount-rate assumptions; the delivery flags a terminal share above three quarters.
+
 ## Added with paired and one-sample t-tests (B-067)
 - `paired_t` matches pairs **by position** in the two columns; a mis-sorted file silently pairs the wrong observations and produces a wrong test. There is no signed-rank (Wilcoxon) fallback for non-normal differences.
 - `one_sample_t` compares a mean with a reference the user declares; it cannot say whether the reference is right. There is no one-sided test, trimmed-mean or median test.
