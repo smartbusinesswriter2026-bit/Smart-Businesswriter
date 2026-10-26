@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [review] Decision briefs draft (MiniMax task 3), reviewed and merged
+
+**Delivered by:** MiniMax/OpenCode on branch `opencode/decision-briefs`, commit `566a6af`: `docs/proposals/DECISION_BRIEFS.md` (369 lines) with five briefs for the open owner decisions — B-005 reviewers, B-028 next templates, B-032 ledger engine, B-052 taxation, REW R1-R10 — each giving "what it blocks today" citations, the state of the code, options with costs, one clearly labelled MiniMax recommendation, plus an OPEN-items appendix and an appendix of contradictions it found between repository documents.
+**Review:** substantive and useful. I verified 55 of its `path:line` citations against the code and docs: 37 exact at master, 13 shifted by under 30 lines (later increments added lines) and 5 shifted materially by B-077's new section — the cited content was found in every case and **no factual claim was contradicted**. Re-checked the contradiction list: #1 (two B-031 rows with different statuses), #2-#4 (the REW manual's inventory still says "no durable log yet" / Excel ingestion not built / statistics library without the later methods), #6 (ledger engine pre-empted by B-044) and #7 (R1-R10 has no decision id of its own) are real; #5 is a wording matter (B-052 is deferred but deliberately kept on the gate list); #8 (SOURCE_INVENTORY.md missing from the HOME spine) was real and is already fixed in `5023aa4`. Annotated the draft rather than rewriting it: a review-status block states the drafting base (`c06c61f`) and that line numbers are as-of that base, the B-066 citation is fixed, #8 is marked fixed, A12 is marked resolved. The stale REW inventory (#2-#4) is **queued** as a separate REW manual refresh (not done here — it edits the ratified manual). The file stays a **DRAFT** in `docs/proposals/`: it changes no decision, no number and no test.
+**Files:** `docs/proposals/DECISION_BRIEFS.md` (new), `docs/HOME.md` (proposals row + version), `docs/HANDOFF.md`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only increment; full suite **625 tests OK**; docs links resolve; docs-state guard passes.
+**Commit:** `this commit`.
+
+---
+
 ## 2026-10-21 — [review] Docs-state sync guard (MiniMax task 1), reviewed and merged
 
 **Delivered by:** MiniMax/OpenCode on branch `opencode/docs-sync`, commit `264fee1` "Add docs-state sync tests": a 335-line `tests/test_docs_sync.py` (7 tests) plus count updates in HOME/HANDOFF/CONTRIBUTORS.
