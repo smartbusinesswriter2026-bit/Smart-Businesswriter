@@ -1635,6 +1635,74 @@ def _power_template(outputs, period, thresholds=None):
             f"(target power {tok('target_power')}). The smallest effect that reaches that target power is {tok('mde')}, with a standard error of {tok('se')} for that effect. "
             "Power is calculated under the normal approximation and describes the planned design, not any observed result.")
 
+# ---------- Missing-data bounds (manual 9B.3; B-062) ----------
+# The system cannot know WHY values are missing. Instead of imputing, this method reports the worst-case
+# (extreme-case) bounds on the complete-data mean: every missing value at the observed minimum or at the
+# observed maximum. It also records the mechanism the owner DECLARES, clearly labelled as declared, not verified.
+_MECHANISMS = ("unknown", "mcar", "mar", "mnar")
+
+def _md_impl(inp):
+    vals, miss = _clean(inp); total = len(vals) + miss
+    if not vals: raise DataError("no valid values remain, so the missing-data bounds are undefined")
+    mech = inp.get("mechanism", "unknown")
+    if mech not in _MECHANISMS: raise DataError("mechanism must be one of: " + ", ".join(_MECHANISMS))
+    n, mn, mx = len(vals), min(vals), max(vals)
+    s = sum(vals, D(0)); mean = s / n
+    if miss:
+        low, high = (s + miss * mn) / total, (s + miss * mx) / total
+    else:
+        low = high = mean
+    pct = D(miss) / D(total)
+    out = {"n_valid": D(n), "n_missing": D(miss), "pct_missing": _fd(pct), "mean_observed": mean,
+           "bound_low": low, "bound_high": high, "bound_width": high - low}
+    appendix = {"mechanism_declared": mech,
+                "mechanism_note": "The mechanism is the owner's declaration; the system cannot verify it from the data.",
+                "convention": "Extreme-case bounds: the complete-data mean if every missing value sat at the smallest observed value (lower) or the largest observed value (upper). No imputation and no probabilistic missing-data model is used.",
+                "observed_range": [str(mn), str(mx)]}
+    return {**out, "_appendix": appendix, "_checks": _md_checks(inp, vals, miss, out)}
+
+def _md_checks(inp, vals, miss, out):
+    n, mn, mx = len(vals), min(vals), max(vals); total = n + miss; s = sum(vals, D(0))
+    ref_low = (s + miss * mn) / total if miss else s / n
+    ref_high = (s + miss * mx) / total if miss else s / n
+    more_miss, more_total = miss + 2, total + 2                       # two extra missing entries, recomputed directly
+    more_width = (s + more_miss * mx) / more_total - (s + more_miss * mn) / more_total
+    return [
+        ("bounds_bracket_the_observed_mean", out["bound_low"] <= out["mean_observed"] <= out["bound_high"], "the observed mean lies inside the bounds"),
+        ("bounds_are_the_extreme_cases", _close(out["bound_low"], ref_low) and _close(out["bound_high"], ref_high), "independently recomputed extreme-case values agree"),
+        ("bounds_widen_with_more_missing_values", mn == mx or more_width >= out["bound_width"], "adding missing values cannot narrow the bounds"),
+        ("percentage_is_missing_over_total", _close(out["pct_missing"], D(miss) / D(total)), "the reported share is missing / total"),
+        ("no_missing_values_means_a_zero_width_bound", out["bound_width"] == 0 if miss == 0 else True, "with no missing values the bounds collapse to the observed mean"),
+    ]
+
+def _md_tests(inp, impl): return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def _md_profile(inp):
+    try:
+        vals, miss = _clean(inp)
+        if not vals: return ["no valid values remain after excluding missing values"]
+        mech = inp.get("mechanism", "unknown")
+        if mech not in _MECHANISMS: return ["mechanism must be one of: " + ", ".join(_MECHANISMS)]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["missing-data inputs are malformed: values must be a list of numbers"]
+
+def _md_typing(metric):
+    if metric in ("n_valid", "n_missing"): return ("count", 0)
+    if metric == "pct_missing": return ("probability", 4)
+    return ("@unit", 2)
+
+def _md_caveats(out, thresholds):
+    return ["The bounds are the extreme cases: every missing value at the observed minimum, or every one at the observed maximum. They are honest bounds, not estimates, and they can be very wide.",
+            "No imputation and no MAR/MCAR/MNAR model is used; the declared mechanism is recorded as the owner's declaration and is not verifiable from the data.",
+            "Bounds cover the complete-data mean only; they say nothing about other statistics or about which mechanism actually holds."]
+
+def _md_template(outputs, period, thresholds=None):
+    P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The observed values have a mean of " + tok("mean_observed") + ", with " + tok("n_missing") + " of the entries missing (" + tok("pct_missing") + " of the total). "
+            "Under the extreme-case convention the complete-data mean lies between " + tok("bound_low") + " and " + tok("bound_high") + ". "
+            "The declared missing-data mechanism is recorded as a declaration, not as a verified fact.")
+
 # ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
 def accounts_impl(inp):
     from . import accounts
@@ -1836,6 +1904,20 @@ LIBRARY = {
                   assumptions=("Observations are independent within and between groups.", "The standard deviations supplied are the planning values and are positive.", "A single test at the declared alpha, with the declared number of tails."),
                   limitations=("Normal approximation; no noncentral t exactness.", "No clustering, weights or repeated measures.", "Power describes the design, not the study's actual outcome."),
                   default_period="cross_section", caveats=_power_caveats, template=_power_template, claim_ceiling="descriptive", typing=_power_typing),
+    "missing_data_bounds": Method("missing_data_bounds", "T1", _md_impl, _md_tests, _md_profile, "pct_missing", "probability", None,
+                  ("bounds_bracket_the_observed_mean", "bounds_are_the_extreme_cases", "bounds_widen_with_more_missing_values",
+                   "percentage_is_missing_over_total", "no_missing_values_means_a_zero_width_bound"),
+                  category="data quality",
+                  intended_use="Report how much of a variable is missing and bound the complete-data mean under the worst case: every missing value at the observed minimum or maximum, with the missing-data mechanism recorded as the owner's declaration.",
+                  unsupported_use="Imputation; MAR/MCAR/MNAR modelling; bounds for statistics other than the mean; treating a declared mechanism as verified.",
+                  input_schema={"values": {"type": "value_list", "min_items": 1, "desc": "the observations; blank or null counts as missing"},
+                                "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes such as 99; never read as values"},
+                                "mechanism": {"type": "enum", "values": ["unknown", "mcar", "mar", "mnar"], "required": False, "desc": "the mechanism you declare (recorded, not verified); default unknown"}},
+                  defaults=({"question": "How missingness is handled", "default_chosen": "Extreme-case bounds: no imputation, and every missing value is placed at the observed minimum (lower bound) or maximum (upper bound).", "impact": "Bounds are honest but can be wide; imputation would be narrower and would assume a mechanism."},
+                            {"question": "Declared mechanism", "default_chosen": "The mechanism you declare is recorded with a note that the system cannot verify it from the data.", "impact": "A declared mechanism does not change the bounds; only the wording and the reader's interpretation."}),
+                  assumptions=("The observed values are correct and the declared missing codes fully identify missing entries.", "Missing values lie somewhere between the observed minimum and maximum."),
+                  limitations=("Bounds cover the mean only; they are not estimates and imply no probabilistic mechanism.", "No imputation, no MAR/MCAR/MNAR model and no verification of the declared mechanism.", "With many missing values the bounds can be so wide as to be uninformative, which is the honest answer."),
+                  default_period="cross_section", caveats=_md_caveats, template=_md_template, claim_ceiling="descriptive", typing=_md_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
                   ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",

@@ -29,7 +29,7 @@ def _honesty(m, inp):
     types = {s.get("type") for s in m.input_schema.values()}
     inferential = m.claim_ceiling in ("associational", "predictive") or bool(m.assumption_checks)
     missing = ("Missing values (blank entries and declared missing codes) are excluded listwise before the computation; "
-               "the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.") if types.intersection(_DATA_INPUT_TYPES) and m.name != "multiple_comparison" else None
+               "the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.") if types.intersection(_DATA_INPUT_TYPES) and m.name not in ("multiple_comparison", "missing_data_bounds") else None
     if m.name == "multiple_comparison":
         multiple = "The declared correction is applied to the family you supplied; the method does not decide whether that family is the right one, and it does not model dependence between the tests."
     elif m.name in ("ols", "ols_robust"):

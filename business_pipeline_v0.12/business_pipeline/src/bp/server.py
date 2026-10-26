@@ -50,6 +50,8 @@ PRESETS = {
                   "inputs": {"p_values": ["0.01", "0.04", "0.03", "0.005"], "method": "holm", "alpha": "0.05"}},
     "power": {"objective": "Size a study to detect a stated effect", "method": "power_analysis", "unit": "points", "period": "cross_section",
               "inputs": {"design": "two_sample", "effect": "5", "n1": "30", "n2": "40", "sd1": "10", "sd2": "12", "alpha": "0.05", "tails": "two_sided", "target_power": "0.8"}},
+    "missing": {"objective": "How much could the missing values move the mean?", "method": "missing_data_bounds", "unit": "points", "period": "cross_section",
+                "inputs": {"values": ["10", "12", "", "14", "99", "16"], "missing_codes": ["99"], "mechanism": "unknown"}},
     "accounts": {"objective": "Prepare the management accounts for the period", "method": "management_accounts", "currency": "USD",
                  "inputs": {"spec": accounts.EXAMPLE_SPEC}},
     "case": {"objective": "A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.", "context": "Single owner, three shops"},

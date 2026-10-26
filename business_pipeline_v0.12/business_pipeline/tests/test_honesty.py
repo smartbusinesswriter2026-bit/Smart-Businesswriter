@@ -20,6 +20,8 @@ RATIOS = {"objective": "Ratios", "method": "ratio_analysis",
           "inputs": {"current_assets": "5000", "current_liabilities": "2000", "revenue": "20000", "net_income": "1800"}}
 MULTICOMP = {"objective": "Correct the family", "method": "multiple_comparison",
              "inputs": {"p_values": ["0.01", "0.04", "0.03", "0.005"], "method": "holm"}}
+MISSING = {"objective": "Bound the missing-data sensitivity", "method": "missing_data_bounds", "unit": "points",
+           "inputs": {"values": ["10", "12", "", "14", "99", "16"], "missing_codes": ["99"], "mechanism": "unknown"}}
 
 
 def delivered(req):
@@ -30,9 +32,14 @@ def delivered(req):
 
 class HonestyBlock(unittest.TestCase):
     def test_every_delivered_library_result_carries_the_honesty_block(self):
-        for req in (OLS, ANOVA, DESC, NPV, RATIOS, MULTICOMP):
+        for req in (OLS, ANOVA, DESC, NPV, RATIOS, MULTICOMP, MISSING):
             d = delivered(req)
             self.assertEqual(set(d.appendix["honesty"]), {"missing_data", "multiple_comparisons", "power", "weights_and_clusters"}, req["method"])
+
+    def test_the_missing_data_method_is_not_given_a_contradictory_listwise_notice(self):
+        d = delivered(MISSING)
+        self.assertIsNone(d.appendix["honesty"]["missing_data"])       # this method bounds missingness instead of assuming it away
+        self.assertIn("extreme-case convention", d.report)
 
     def test_the_correction_method_discloses_its_scope_and_invents_no_missing_data_handling(self):
         h = delivered(MULTICOMP).appendix["honesty"]

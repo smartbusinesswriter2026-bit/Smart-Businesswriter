@@ -38,7 +38,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 | Logistic regression | T1 — diagnostics analogous to the OLS/HC3 pair |
 | Reliability (Cronbach's α) and factor analysis | T1, but factor analysis needs declared extraction/rotation defaults ([§9B.4](sources/business_pipeline_v0_3.md#L377)) |
 | Clustering (segmentation) | T2 initially — many algorithms, no single "right" answer; needs a labelled evaluation set |
-| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | **Mostly built (B-057, B-060, B-061):** disclosure layer in every delivery; **multiple-comparison correction** as `multiple_comparison` (Holm/Bonferroni, T1, order-invariant); **power and minimum effect** as `power_analysis` (normal approximation, T1, declared limits). **Still open:** missing-data mechanism modelling/imputation and survey-weight/clustered-data estimation ([§9B.3, lines 369–375](sources/business_pipeline_v0_3.md#L369)) |
+| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | **Mostly built (B-057, B-060, B-061, B-062):** disclosure layer in every delivery; **multiple-comparison correction** (`multiple_comparison`); **power and minimum effect** (`power_analysis`, normal approximation declared); **missing-data bounds with a declared-but-unverified mechanism** (`missing_data_bounds`, no imputation). **Still open:** survey-weight/clustered-data estimation and any imputation/MAR model ([§9B.3, lines 369–375](sources/business_pipeline_v0_3.md#L369)) |
 | Time series beyond linear trend (seasonality, backtesting, break detection) | Highest stats risk — sits under the §8 regime-change controls |
 
 ### C. Finance & valuation (sits on the finished ledger) — P1
@@ -74,7 +74,7 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
 1. **Ratify the remaining research-manual proposals (R1–R10)** — free, unblocks the REW track and turns proposals into a build spec; R11 (the manual as working authority) is already ratified, and the original Smart Researcher manuals remain welcome and would be reconciled against it.
 2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
 3. ~~Statement ratio analysis (P1/C)~~ — **done** (B-056, commit for 0.31).
-4. **9B.3 upgrades (P1/B)** — disclosure layer (B-057), multiple-comparison correction (B-060) and power/minimum-effect (B-061) are done; **missing-data mechanism modelling and survey weights are the remaining statistical work**, so existing statistics stop under-reporting before more statistics are added.
+4. **9B.3 upgrades (P1/B)** — disclosure layer (B-057), multiple-comparison correction (B-060), power/minimum-effect (B-061) and missing-data bounds (B-062) are done; **survey weights are the last statistical item**, and any imputation model remains a separate declared choice.
 5. **Ingestion (P0/A)** in parallel with the above.
 6. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
 
