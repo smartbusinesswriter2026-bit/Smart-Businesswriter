@@ -137,6 +137,11 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with factorial ANOVA and post-hoc pairwise tests (B-070)
+- `two_way_anova` is **balanced only**: every cell must hold the same number of observations. Unbalanced designs are refused because type I/II/III sums of squares are different conventions and none is ratified; three-way, repeated-measures and ANCOVA designs are not implemented, and factorial assumption checks (normality, homoscedasticity) are not run.
+- An interaction makes the omnibus F tests insufficient: the method does not localise simple effects, and `posthoc_pairwise` is the separate tool for that.
+- `posthoc_pairwise` compares every pair with a **Welch** test and a declared correction (Holm, Bonferroni, or explicitly `none`). There is no Tukey HSD, Dunnett (vs control), Games-Howell or Dunn test, and the family is whatever the user declared — choosing it after seeing the p-values is exactly what a correction cannot repair.
+
 ## Added with multi-currency support (B-069)
 - The currency table is a **declared ISO 4217 table** (code, name, minor units) embedded in `src/bp/currency.py`; verify it against the current standard when precision matters. Metals (XAU/XAG/XPT/XPD), testing/no-currency codes (XTS/XXX) and units of account without a minor unit (XDR) are not accepted.
 - **No exchange rate is retrieved, verified, interpolated or triangulated.** A conversion needs a rate the owner declares; its provenance (`user`/`sourced`/`assumption`), optional source and date are recorded as declarations, not facts. A stale rate gives a silently stale amount beyond the caveat text.

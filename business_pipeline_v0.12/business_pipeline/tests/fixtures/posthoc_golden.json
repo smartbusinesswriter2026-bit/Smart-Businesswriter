@@ -1,0 +1,61 @@
+{
+  "generated_by": "scipy.stats.ttest_ind(equal_var=False) + an explicit Holm step-down (offline generation 2026-10-21); not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "groups": {
+    "a": [
+      10,
+      12,
+      11,
+      13
+    ],
+    "b": [
+      14,
+      15,
+      16,
+      14
+    ],
+    "c": [
+      18,
+      17,
+      19,
+      20
+    ]
+  },
+  "adjust": "holm",
+  "alpha": 0.05,
+  "expected": {
+    "pairs": [
+      {
+        "pair": [
+          "a",
+          "b"
+        ],
+        "diff": -3.25,
+        "t": -4.044111609448659,
+        "p_raw": 0.008012970510769492,
+        "p_adj": 0.008494710691944879
+      },
+      {
+        "pair": [
+          "a",
+          "c"
+        ],
+        "diff": -7.0,
+        "t": -7.668115805072326,
+        "p_raw": 0.0002571978168251655,
+        "p_adj": 0.0007715934504754964
+      },
+      {
+        "pair": [
+          "b",
+          "c"
+        ],
+        "diff": -3.75,
+        "t": -4.666282626286915,
+        "p_raw": 0.0042473553459724395,
+        "p_adj": 0.008494710691944879
+      }
+    ],
+    "n_rejected": 3
+  }
+}

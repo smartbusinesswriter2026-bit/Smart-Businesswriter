@@ -78,6 +78,21 @@ def _check(key, v, spec):
             from . import accounts
             if not isinstance(v, dict): return [f"'{key}' must be an object (the engagement spec)"]
             errs += [f"'{key}': {e}" for e in accounts.validate_spec(v)]
+        elif t == "records":
+            if not isinstance(v, list): return [f"'{key}' must be a list of records"]
+            if len(v) < spec.get("min_items", 1): errs.append(f"'{key}' needs at least {spec['min_items']} records")
+            fields = spec.get("fields", {})
+            for i, rec in enumerate(v):
+                if not isinstance(rec, dict): errs.append(f"'{key}'[{i}] must be an object"); continue
+                extra = set(rec) - set(fields)
+                if extra: errs.append(f"'{key}'[{i}] has unknown field(s): {sorted(extra)}")
+                for f, ft in fields.items():
+                    if f not in rec: errs.append(f"'{key}'[{i}] is missing '{f}'"); continue
+                    if ft == "decimal":
+                        try: _num(rec[f])
+                        except (InvalidOperation, ValueError, TypeError): errs.append(f"'{key}'[{i}].{f} = {rec[f]!r}: not a number")
+                    elif not isinstance(rec[f], str) or not rec[f].strip():
+                        errs.append(f"'{key}'[{i}].{f} must be non-empty text")
         elif t == "currency":
             try: currency.minor_units(v)
             except currency.CurrencyError as e: errs.append(str(e))
@@ -1683,6 +1698,225 @@ def _cc_template(out, P, th):
             "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
             "the rate, its provenance and any declared date.")
 
+# ---------- Two-way factorial ANOVA and post-hoc pairwise tests (B-070) ----------
+# Balanced designs only: with unequal cell counts the sums of squares depend on the SS type (I/II/III),
+# which is a convention the manual does not fix, so an unbalanced design BLOCKS instead of guessing one.
+# Post-hoc pairs are Welch t-tests on every pair of groups, with a declared family-wise correction.
+
+def _two_way_rows(inp):
+    cells, ex = {}, 0
+    for r in inp["data"]:
+        a, b = str(r["factor_a"]).strip(), str(r["factor_b"]).strip()
+        if r.get("response") is None or (isinstance(r.get("response"), str) and not r["response"].strip()): ex += 1; continue
+        cells.setdefault((a, b), []).append(D(str(r["response"])))
+    if not cells: raise DataError("no records with a response value remain")
+    la = sorted({a for a, _ in cells}); lb = sorted({b for _, b in cells})
+    if len(la) < 2 or len(lb) < 2: raise DataError("both factors need at least two levels")
+    if len(cells) != len(la) * len(lb): raise DataError("the design has empty cells: every level combination needs observations")
+    counts = {len(v) for v in cells.values()}
+    if len(counts) != 1: raise DataError("the design is unbalanced: every cell must hold the same number of observations (unbalanced two-way ANOVA is not implemented)")
+    n_cell = counts.pop()
+    if n_cell < 2: raise DataError("every cell needs at least two observations for the error term")
+    return cells, la, lb, n_cell, ex
+
+def _f_sf(F, df1, df2):
+    d1, d2 = float(D(str(df1))), float(D(str(df2)))
+    return _fd(_betai(d2 / 2, d1 / 2, d2 / (d2 + d1 * float(F))))
+
+def two_way_impl(inp):
+    cells, la, lb, n_cell, ex = _two_way_rows(inp)
+    allv = [v for cv in cells.values() for v in cv]; N = len(allv); grand = _mean(allv)
+    cm = {k: _mean(v) for k, v in cells.items()}
+    ma = {a: _mean([x for (aa, _b), v in cells.items() if aa == a for x in v]) for a in la}
+    mb = {b: _mean([x for (_a, bb), v in cells.items() if bb == b for x in v]) for b in lb}
+    ss_tot = sum(((x - grand) ** 2 for x in allv), D(0))
+    ss_a = D(len(lb) * n_cell) * sum(((ma[a] - grand) ** 2 for a in la), D(0))
+    ss_b = D(len(la) * n_cell) * sum(((mb[b] - grand) ** 2 for b in lb), D(0))
+    ss_cells = D(n_cell) * sum(((cm[(a, b)] - grand) ** 2 for a in la for b in lb), D(0))
+    ss_ab = ss_cells - ss_a - ss_b
+    ss_err = ss_tot - ss_cells
+    df_a, df_b, df_ab = len(la) - 1, len(lb) - 1, (len(la) - 1) * (len(lb) - 1)
+    df_err = N - len(la) * len(lb); 
+    if df_err <= 0: raise DataError("the error degrees of freedom are zero; the design is too small")
+    ms_e = ss_err / df_err
+    out = {"ss_a": ss_a, "ss_b": ss_b, "ss_ab": ss_ab, "ss_error": ss_err, "ss_total": ss_tot,
+           "ms_a": ss_a / df_a, "ms_b": ss_b / df_b, "ms_ab": ss_ab / df_ab, "ms_error": ms_e,
+           "f_a": (ss_a / df_a) / ms_e, "f_b": (ss_b / df_b) / ms_e, "f_ab": (ss_ab / df_ab) / ms_e,
+           "df_a": D(df_a), "df_b": D(df_b), "df_ab": D(df_ab), "df_error": D(df_err),
+           "partial_eta2_a": ss_a / (ss_a + ss_err), "partial_eta2_b": ss_b / (ss_b + ss_err), "partial_eta2_ab": ss_ab / (ss_ab + ss_err),
+           "n": D(N), "n_cell": D(n_cell), "n_excluded": D(ex), "mean_grand": grand}
+    out["p_a"] = _f_sf(out["f_a"], D(df_a), D(df_err)); out["p_b"] = _f_sf(out["f_b"], D(df_b), D(df_err)); out["p_ab"] = _f_sf(out["f_ab"], D(df_ab), D(df_err))
+    return out
+
+def _two_way_ref(inp):
+    """Independent float route: numpy-free nested loops with a different summation order."""
+    cells, la, lb, n_cell, ex = _two_way_rows(inp)
+    data = [[float(x) for x in v] for v in cells.values()]; flat = [x for v in data for x in v]; N = len(flat)
+    gm = sum(flat) / N
+    def cell_mean(a, b): return sum(float(x) for x in cells[(a, b)]) / n_cell
+    ss_tot = sum((x - gm) ** 2 for x in flat)
+    ss_a = sum(len(lb) * n_cell * (sum(cell_mean(a, b) for b in lb) / len(lb) - gm) ** 2 for a in la)
+    ss_b = sum(len(la) * n_cell * (sum(cell_mean(a, b) for a in la) / len(la) - gm) ** 2 for b in lb)
+    ss_cells = sum(n_cell * (cell_mean(a, b) - gm) ** 2 for a in la for b in lb)
+    return {"ss_a": ss_a, "ss_b": ss_b, "ss_ab": ss_cells - ss_a - ss_b, "ss_error": ss_tot - ss_cells, "ss_total": ss_tot}
+
+def two_way_tests(inp, impl):
+    base, ref = impl(inp), _two_way_ref(inp)
+    cells, la, lb, n_cell, ex = _two_way_rows(inp)
+    allv = [v for cv in cells.values() for v in cv]; k = D(5)
+    shifted = impl({**inp, "data": [{**r, "response": (None if r.get("response") in (None, "") else str(D(str(r["response"])) + k))} for r in inp["data"]]})
+    def scale(c): return None if c in (None, "") else str(D(str(c)) * 3)
+    scaled = impl({**inp, "data": [{**r, "response": scale(r.get("response"))} for r in inp["data"]]})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[x], ref[x]) for x in ref), "the independent float route reproduces every sum of squares"),
+        ("sums_of_squares_decompose_the_total", _close(base["ss_a"] + base["ss_b"] + base["ss_ab"] + base["ss_error"], base["ss_total"]), "A + B + AB + error = total"),
+        ("f_equals_mean_square_over_mean_square_error", _close(base["f_a"], base["ms_a"] / base["ms_error"]) and _close(base["f_ab"], base["ms_ab"] / base["ms_error"]), "each F is its mean square over the error mean square"),
+        ("shifting_every_response_leaves_the_effects_unchanged", all(_close(shifted[x], base[x]) for x in ("ss_a", "ss_b", "ss_ab", "ss_error", "f_a", "f_b", "f_ab")), "adding a constant changes no sum of squares and no F"),
+        ("scaling_every_response_scales_sums_of_squares_keeps_f", all(_close(scaled[x], base[x] * 9) for x in ("ss_a", "ss_b", "ss_ab", "ss_error")) and all(_close(scaled[x], base[x]) for x in ("f_a", "f_b", "f_ab")), "multiplying responses by three multiplies sums of squares by nine and leaves F unchanged"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def two_way_profile(inp):
+    try: _two_way_rows(inp); return []
+    except (DataError, InvalidOperation, ValueError, TypeError, KeyError) as e:
+        return [str(e)] if isinstance(e, DataError) else ["two-way inputs are malformed: data must be records with response, factor_a and factor_b"]
+
+def _two_typing(metric):
+    if metric in ("n", "n_cell", "n_excluded", "df_a", "df_b", "df_ab", "df_error"): return ("count", 0)
+    if metric.startswith("p_"): return ("probability", 4)
+    if metric.startswith("partial_eta2"): return ("ratio", 3)
+    if metric.startswith("f_"): return ("ratio", 3)
+    return ("@unit", 3)
+
+def two_way_caveats(out, th):
+    return ["Balanced two-way ANOVA only: unequal cell counts are refused because the sums of squares would depend on a type-of-SS convention the manual does not fix.",
+            "A significant interaction means the simple effect of one factor depends on the level of the other; the omnibus tests alone do not say where the difference lies (use the post-hoc pairwise method for the groups you intended).",
+            "Assumptions (normality, equal variances, independence) are not tested; the design and the cell sizes must be checked by the person who collected the data."]
+
+def two_way_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The balanced two-way ANOVA over " + tok("n") + " observations has an F of " + tok("f_a") + " for the first factor with a p-value of " + tok("p_a") +
+            ", an F of " + tok("f_b") + " for the second factor with a p-value of " + tok("p_b") +
+            ", and an interaction F of " + tok("f_ab") + " with a p-value of " + tok("p_ab") + ". The decomposition is reported in the appendix; no post-hoc comparison is implied by an omnibus test.")
+
+def _grp_any(inp):
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}
+    out, ex = {}, 0
+    for nm, col in inp["groups"].items():
+        v = []
+        for x in col:
+            if x is None or (isinstance(x, str) and not x.strip()) or D(str(x)) in codes: ex += 1
+            else: v.append(D(str(x)))
+        out[nm] = v
+    return out, ex
+
+def _adjust(raw, method):
+    m = len(raw)
+    if method == "none": return list(raw)
+    if method == "bonferroni": return [min(1.0, m * p) for p in raw]
+    order = sorted(range(m), key=lambda i: (raw[i], i)); out = [0.0] * m; run = 0.0
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (m - rank) * raw[i])); out[i] = run
+    return out
+
+def posthoc_impl(inp):
+    g, ex = _grp_any(inp); names = list(g)
+    if len(names) < 2: raise DataError("at least two groups are needed")
+    for nm in names:
+        if len(g[nm]) < 2: raise DataError(f"group {nm!r} needs at least two observations")
+        if _var(g[nm]) == 0: raise DataError(f"group {nm!r} has zero variance, so a pairwise comparison is undefined")
+    method = inp.get("adjust", "holm"); alpha = D(str(inp.get("alpha", "0.05")))
+    if method not in ("holm", "bonferroni", "none"): raise DataError("adjust must be holm, bonferroni or none")
+    pairs = [(names[i], names[j]) for i in range(len(names)) for j in range(i + 1, len(names))]
+    out, raw = {}, []
+    for a, b in pairs:
+        va, vb = g[a], g[b]; na, nb = D(len(va)), D(len(vb)); ma, mb = _mean(va), _mean(vb)
+        qa, qb = _var(va) / na, _var(vb) / nb; se = (qa + qb).sqrt(); diff = ma - mb; t = diff / se
+        df = (qa + qb) ** 2 / (qa ** 2 / (na - 1) + qb ** 2 / (nb - 1)); p = _p_t(float(t), float(df)); raw.append(float(p))
+        out[f"diff_{a}_{b}"] = diff; out[f"p_raw_{a}_{b}"] = _fd(p); out[f"df_{a}_{b}"] = df; out[f"t_{a}_{b}"] = t
+    adj = _adjust(raw, method); n_rej = 0
+    for (a, b), p in zip(pairs, adj):
+        out[f"p_adj_{a}_{b}"] = _fd(p)
+        if D(str(p)) <= alpha: n_rej += 1
+    out.update({"n_pairs": D(len(pairs)), "n_rejected": D(n_rej), "alpha": alpha, "n_excluded": D(ex),
+                "_appendix": {"adjust": method, "alpha": str(alpha), "pairs": [a + " vs " + b for a, b in pairs],
+                              "correction": ("Holm step-down family-wise correction" if method == "holm" else "Bonferroni family-wise correction" if method == "bonferroni" else "none: raw p-values, declared as uncorrected")}})
+    return out
+
+def _posthoc_ref(inp):
+    g, ex = _grp_any(inp); names = list(g)
+    pairs = [(names[i], names[j]) for i in range(len(names)) for j in range(i + 1, len(names))]
+    raw = []
+    for a, b in pairs:
+        xa = [float(x) for x in g[a]]; xb = [float(x) for x in g[b]]
+        ma, mb = statistics.fmean(xa), statistics.fmean(xb); va, vb = statistics.variance(xa), statistics.variance(xb)
+        qa, qb = va / len(xa), vb / len(xb); se = math.sqrt(qa + qb); t = (ma - mb) / se
+        df = (qa + qb) ** 2 / (qa ** 2 / (len(xa) - 1) + qb ** 2 / (len(xb) - 1))
+        raw.append(_betai(df / 2, 0.5, df / (df + t * t)))
+    return {"raw": raw, "adj": _adjust(raw, inp.get("adjust", "holm"))}
+
+def posthoc_tests(inp, impl):
+    base, ref = impl(inp), _posthoc_ref(inp)
+    g, ex = _grp_any(inp); names = list(g)
+    pairs = [(names[i], names[j]) for i in range(len(names)) for j in range(i + 1, len(names))]
+    raw_keys = [f"p_raw_{a}_{b}" for a, b in pairs]; adj_keys = [f"p_adj_{a}_{b}" for a, b in pairs]
+    rev = {**inp, "groups": {k: list(reversed(v)) for k, v in reversed(list(inp["groups"].items()))}}
+    rev_out = impl(rev)
+    expected_pairs = len(names) * (len(names) - 1) // 2
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], r) for k, r in zip(raw_keys, ref["raw"])) and all(_close(base[k], r) for k, r in zip(adj_keys, ref["adj"])), "independent float route agrees on every raw and adjusted p-value"),
+        ("adjusted_p_is_never_below_the_raw_p", all(D(str(base[a])) >= D(str(base[r])) - D("1e-15") for a, r in zip(adj_keys, raw_keys)), "a correction cannot make evidence look stronger"),
+        ("correction_matches_its_definition", _posthoc_adjust_ok(base, pairs, inp), "the adjusted p-values reproduce the declared correction step by step"),
+        ("pair_count_is_choose_k_2", int(base["n_pairs"]) == expected_pairs, "every unordered pair of groups is compared once"),
+        ("reversing_group_order_keeps_the_evidence", all(_close(rev_out[f"p_raw_{b}_{a}"], base[f"p_raw_{a}_{b}"]) for a, b in pairs) and all(_close(rev_out[f"diff_{b}_{a}"], -base[f"diff_{a}_{b}"]) for a, b in pairs), "swapping the column order negates each difference but keeps every p-value"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _posthoc_adjust_ok(base, pairs, inp):
+    """Recompute the declared correction from the raw p-values with an explicit step-by-step loop."""
+    method = inp.get("adjust", "holm"); m = len(pairs)
+    raw = [float(D(str(base[f"p_raw_{a}_{b}"]))) for a, b in pairs]
+    adj = [float(D(str(base[f"p_adj_{a}_{b}"]))) for a, b in pairs]
+    if method == "none": return all(abs(x - y) <= 1e-12 for x, y in zip(adj, raw))
+    if method == "bonferroni": return all(abs(x - min(1.0, m * y)) <= 1e-12 for x, y in zip(adj, raw))
+    order = sorted(range(m), key=lambda i: (raw[i], i)); run = 0.0; want = [0.0] * m
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (m - rank) * raw[i])); want[i] = run
+    return all(abs(x - y) <= 1e-12 for x, y in zip(adj, want))
+
+def posthoc_profile(inp):
+    try:
+        g, ex = _grp_any(inp)
+        if len(g) < 2: return ["at least two groups are needed"]
+        for nm, v in g.items():
+            if len(v) < 2: return [f"group {nm!r} needs at least two observations"]
+            if len(set(v)) == 1: return [f"group {nm!r} has zero variance"]
+        if inp.get("adjust", "holm") not in ("holm", "bonferroni", "none"): return ["adjust must be holm, bonferroni or none"]
+        a = D(str(inp.get("alpha", "0.05")))
+        if not (0 < a < 1): return ["alpha must be between 0 and 1"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["post-hoc inputs are malformed: supply a groups object of name -> observations"]
+
+def _posthoc_typing(metric):
+    if metric in ("n_pairs", "n_rejected", "n_excluded"): return ("count", 0)
+    if metric.startswith("p_"): return ("probability", 4)
+    if metric.startswith("df_"): return ("ratio", 3)
+    if metric.startswith("t_"): return ("ratio", 3)
+    if metric == "alpha": return ("rate", 2)
+    return ("@unit", 3)
+
+def posthoc_caveats(out, th):
+    return ["Every pair of groups is compared with a Welch t-test (unequal variances assumed); the family-wise correction declared in the request (Holm, Bonferroni or none) is recorded in the appendix.",
+            "A correction controls the family-wise error rate; it does not fix a biased sample, a violated normality assumption or a family chosen after looking at the data.",
+            "Pairs are only meaningful for comparisons the study intended; scanning all pairs for the smallest p-value is exactly what the correction is for."]
+
+def posthoc_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared family has " + tok("n_pairs") + " pairwise comparisons. With the declared correction at level " + tok("alpha") +
+            ", " + tok("n_rejected") + " adjusted p-values are at or below that level. Each pair is a Welch comparison; the corrected and raw p-values are both in the appendix.")
+
+
 # ---------- Valuation: WACC and DCF (gap map P1 finance; B-068) ----------
 # Both are arithmetic on declared inputs. No tax is computed: the cost of debt is supplied AFTER tax.
 # DCF assumptions (end-of-period free cash flows, Gordon-growth terminal value) are declared, not hidden.
@@ -2399,6 +2633,35 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "two_way_anova": Method("two_way_anova", "T1", two_way_impl, two_way_tests, two_way_profile, "f_ab", "ratio", None,
+                  ("second_implementation_agrees", "sums_of_squares_decompose_the_total", "f_equals_mean_square_over_mean_square_error",
+                   "shifting_every_response_leaves_the_effects_unchanged", "scaling_every_response_scales_sums_of_squares_keeps_f"),
+                  category="group comparison",
+                  intended_use="Two-way balanced factorial ANOVA on one numeric response: the two main effects and their interaction, with F tests and partial eta-squared.",
+                  unsupported_use="Unbalanced designs (refused, because the SS type would be a convention); more than two factors; repeated measures or ANCOVA; post-hoc comparisons (use posthoc_pairwise); causal claims.",
+                  input_schema={"data": {"type": "records", "min_items": 8, "fields": {"response": "decimal", "factor_a": "text", "factor_b": "text"},
+                                         "desc": "one record per observation: the numeric response and its two factor levels; every cell must have the same count"}},
+                  defaults=({"question": "Design balance", "default_chosen": "Balanced only: every combination of the two factor levels must have the same number of observations.", "impact": "An unbalanced design is refused because type I/II/III sums of squares are different conventions and none is ratified."},
+                            {"question": "Effect sizes", "default_chosen": "Partial eta-squared is reported for each effect.", "impact": "Other effect sizes (omega-squared, generalized eta-squared) are not implemented."}),
+                  assumptions=("Observations are independent.", "The response is approximately normal within cells and the cell variances are similar (not tested).", "The design is balanced by construction."),
+                  limitations=("Balanced two-way only; no three-way, repeated measures or ANCOVA.", "Assumption checks (normality, homoscedasticity) are not run for factorial designs.", "An interaction means simple effects differ; the omnibus test does not localise them."),
+                  default_period="cross_section", caveats=two_way_caveats, template=two_way_template, claim_ceiling="associational",
+                  default_thresholds={"small_sample_n": "30"}, typing=_two_typing),
+    "posthoc_pairwise": Method("posthoc_pairwise", "T1", posthoc_impl, posthoc_tests, posthoc_profile, "n_rejected", "count", None,
+                  ("second_implementation_agrees", "adjusted_p_is_never_below_the_raw_p", "correction_matches_its_definition",
+                   "pair_count_is_choose_k_2", "reversing_group_order_keeps_the_evidence"),
+                  category="group comparison",
+                  intended_use="Compare every pair of independent groups with a Welch t-test and a declared family-wise correction (Holm, Bonferroni or none), reporting raw and adjusted p-values.",
+                  unsupported_use="Paired or repeated designs; more than ten groups; causal claims; scanning all pairs to find the smallest p-value without declaring the family.",
+                  input_schema={"groups": {"type": "column_map", "min_columns": 2, "max_columns": 10, "min_items": 2, "desc": "name -> observations; every unordered pair of groups is compared"},
+                                "adjust": {"type": "enum", "values": ["holm", "bonferroni", "none"], "required": False, "desc": "family-wise correction, default holm"},
+                                "alpha": {"type": "decimal", "required": False, "desc": "family-wise level, default 0.05"},
+                                "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes; excluded within each group"}},
+                  defaults=({"question": "Correction", "default_chosen": "Holm step-down by default; Bonferroni and uncorrected are available but must be declared.", "impact": "Holm is never less powerful than Bonferroni and still controls the family-wise error rate."},
+                            {"question": "Pairwise test", "default_chosen": "Welch t-test for every pair (unequal variances assumed).", "impact": "A pooled-variance test would differ when group variances differ."}),
+                  assumptions=("Groups are independent and each observation belongs to one group.", "Within-group observations are approximately normal (not tested)."),
+                  limitations=("Welch pairwise only; no Dunnett, Tukey HSD or Games-Howell.", "Uncorrected p-values are available only when explicitly declared as 'none'.", "The family must be declared before the results are seen."),
+                  default_period="cross_section", caveats=posthoc_caveats, template=posthoc_template, claim_ceiling="associational", typing=_posthoc_typing),
     "currency_convert": Method("currency_convert", "T1", currency_convert_impl, _cc_tests, _cc_profile, "amount", "currency", None,
                   ("second_implementation_agrees", "round_trip_at_the_inverse_rate_returns_the_original", "zero_amount_converts_to_zero",
                    "negative_amount_converts_with_the_same_magnitude", "scaling_the_amount_scales_the_result"),
