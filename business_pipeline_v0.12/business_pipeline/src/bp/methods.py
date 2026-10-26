@@ -1153,6 +1153,139 @@ _KW_LIM = ("The p-value is a chi-square approximation, less accurate for small g
 _CHI2_ASSUME = ("Observations are independent and each is counted in exactly one cell.", "Expected counts are large enough (screened; at least 5).")
 _CHI2_LIM = ("The p-value is an approximation; exact tests are not implemented.", "No Yates continuity correction for 2x2 tables.", "Cramer's V cut-offs are coarse [UNVERIFIED].")
 
+# ---------- Linear-trend forecast with prediction intervals and an out-of-sample holdout (manual 9B.2, 9B.3, 7-8 forecast safeguards) ----------
+def _series(inp):
+    """Time series in period order: missing entries keep their position (the time index is not shifted)."""
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}; pairs, ex = [], 0
+    for i, x in enumerate(inp["values"], start=1):
+        if x is None or (isinstance(x, str) and not x.strip()) or D(str(x)) in codes: ex += 1
+        else: pairs.append((D(i), D(str(x))))
+    return pairs, ex
+
+def _lin2(pairs):
+    """Two-parameter least-squares fit used for the out-of-sample check: tolerates a perfect fit (residual SE of zero)."""
+    n = len(pairs); ts = [t for t, _ in pairs]; ys = [v for _, v in pairs]
+    tbar = sum(ts, D(0)) / n; ybar = sum(ys, D(0)) / n
+    Sxx = sum(((t - tbar) ** 2 for t in ts), D(0)); Sxy = sum(((t - tbar) * (y - ybar) for t, y in pairs), D(0))
+    if Sxx == 0: raise DataError("the time index is degenerate")
+    b = Sxy / Sxx; a = ybar - b * tbar
+    ssr = sum(((y - (a + b * t)) ** 2 for t, y in pairs), D(0))
+    return a, b, (ssr / (n - 2)).sqrt(), tbar, Sxx
+
+def forecast_impl(inp):
+    pairs, ex = _series(inp); n = len(pairs); n0 = len(inp["values"]); H = int(D(str(inp.get("horizon", "3"))))
+    X = [[D(1), t] for t, _ in pairs]; y = [v for _, v in pairs]; f = _fit(X, y)
+    a, b = f["beta"][0], f["beta"][1]; df = f["df"]; se_b = f["se"][1]; conf = _CONF(inp); tc = _fd(_t_crit(float(df), conf))
+    res_se = (f["ssr"] / df).sqrt(); r2 = 1 - f["ssr"] / f["sst"]
+    tbar = sum((t for t, _ in pairs), D(0)) / n; Sxx = sum(((t - tbar) ** 2 for t, _ in pairs), D(0))
+    out = {"intercept": a, "slope": b, "r_squared": r2, "residual_se": res_se, "p_slope": _fd(_p_t(float(b / se_b), float(df))),
+           "n_fitted": D(n), "n_excluded": D(ex), "horizon": D(H), "confidence_level": conf}
+    for h in range(1, H + 1):
+        t_ = D(n0 + h); mu = a + b * t_; se = res_se * (D(1) + D(1) / n + (t_ - tbar) ** 2 / Sxx).sqrt()
+        out[f"forecast_{h}"] = mu; out[f"ci_lower_{h}"] = mu - tc * se; out[f"ci_upper_{h}"] = mu + tc * se
+    m = max(1, min(3, n0 // 4)); train, held = pairs[:-m], pairs[-m:]           # out-of-sample: the last m periods are held out before fitting
+    ah, bh, sh, tbh, Sxxh = _lin2(train); nt = len(train); tch = _fd(_t_crit(float(nt - 2), conf))
+    mae, inside = D(0), D(0)
+    for t_, v in held:
+        mu = ah + bh * t_; se = sh * (D(1) + D(1) / nt + (t_ - tbh) ** 2 / Sxxh).sqrt()
+        mae += abs(v - mu)
+        if mu - tch * se <= v <= mu + tch * se: inside += 1
+    out.update({"mae_holdout": mae / len(held), "coverage_holdout": inside / len(held), "n_holdout": D(len(held))})
+    return out
+
+def _forecast_ref(inp):
+    """Independent route: float arithmetic with the QR fit and the series incomplete beta for the p-value and critical value."""
+    pairs, ex = _series(inp); n = len(pairs); n0 = len(inp["values"]); H = int(D(str(inp.get("horizon", "3"))))
+    Xf = [[1.0, float(t)] for t, _ in pairs]; yf = [float(v) for _, v in pairs]
+    beta, inv, _h = _qr_fit(Xf, yf); df = len(Xf) - 2
+    e = [yi - sum((a * b for a, b in zip(r, beta))) for r, yi in zip(Xf, yf)]; ssr = sum((x * x for x in e)); my = sum(yf) / len(yf); sst = sum(((v - my) ** 2 for v in yf))
+    se_b = math.sqrt(ssr / df * inv[1][1]); res_se = math.sqrt(ssr / df); conf = float(_CONF(inp)); target = 1 - conf; lo, hi = 0.0, 1e4
+    for _ in range(300):
+        mid = (lo + hi) / 2
+        if _betai_series(df / 2, 0.5, df / (df + mid * mid)) > target: lo = mid
+        else: hi = mid
+    tc = (lo + hi) / 2; ts = [float(t) for t, _ in pairs]; tbar = sum(ts) / n; Sxx = sum(((t - tbar) ** 2 for t in ts))
+    out = {"intercept": beta[0], "slope": beta[1], "r_squared": 1 - ssr / sst, "residual_se": res_se, "p_slope": _betai_series(df / 2, 0.5, df / (df + (beta[1] / se_b) ** 2)), "n_fitted": n, "n_excluded": ex, "horizon": H}
+    for h in range(1, H + 1):
+        t_ = float(n0 + h); mu = beta[0] + beta[1] * t_; se = res_se * math.sqrt(1 + 1 / n + (t_ - tbar) ** 2 / Sxx)
+        out[f"forecast_{h}"] = mu; out[f"ci_lower_{h}"] = mu - tc * se; out[f"ci_upper_{h}"] = mu + tc * se
+    return out
+
+def _holdout_ref(inp):
+    pairs, _ = _series(inp); n0 = len(inp["values"]); m = max(1, min(3, n0 // 4)); train, held = pairs[:-m], pairs[-m:]
+    Xf = [[1.0, float(t)] for t, _ in train]; yf = [float(v) for _, v in train]
+    beta, inv, _h = _qr_fit(Xf, yf); df = len(Xf) - 2; e = [yi - sum((a * b for a, b in zip(r, beta))) for r, yi in zip(Xf, yf)]
+    s = math.sqrt(sum((x * x for x in e)) / df); conf = float(_CONF(inp)); target = 1 - conf; lo, hi = 0.0, 1e4
+    for _ in range(300):
+        mid = (lo + hi) / 2
+        if _betai_series(df / 2, 0.5, df / (df + mid * mid)) > target: lo = mid
+        else: hi = mid
+    tc = (lo + hi) / 2; ts = [float(t) for t, _ in train]; tbar = sum(ts) / len(train); Sxx = sum(((t - tbar) ** 2 for t in ts))
+    mae = sum((abs(float(v) - (beta[0] + beta[1] * float(t))) for t, v in held)) / len(held)
+    inside = sum((1 for t, v in held if abs(float(v) - (beta[0] + beta[1] * float(t))) <= tc * s * math.sqrt(1 + 1 / len(Xf) + (float(t) - tbar) ** 2 / Sxx)))
+    return mae, inside / len(held), m
+
+def _forecast_tests(inp, impl):
+    base, ref = impl(inp), _forecast_ref(inp); pairs, ex = _series(inp); n0 = len(inp["values"]); H = int(D(str(inp.get("horizon", "3"))))
+    vals = inp["values"]; codeset = {D(str(c)) for c in inp.get("missing_codes", [])}
+    miss = lambda v: v is None or (isinstance(v, str) and not v.strip()) or D(str(v)) in codeset
+    sh = impl({**inp, "values": [v if miss(v) else str(D(str(v)) + D("250.25")) for v in vals]})
+    sc = impl({**inp, "values": [v if miss(v) else str(D(str(v)) * 3) for v in vals]})
+    mae_r, cov_r, m_r = _holdout_ref(inp)
+    FK = tuple(f"forecast_{h}" for h in range(1, H + 1)); CIK = tuple(k for h in range(1, H + 1) for k in (f"ci_lower_{h}", f"ci_upper_{h}"))
+    K = lambda x, y, ks: all(_rclose(x[k], y[k], 1e-9) for k in ks)
+    return [("second_implementation_agrees", all(_rclose(base[k], ref[k], 1e-8) for k in ref)),
+            ("out_of_sample_check_agrees", _rclose(base["mae_holdout"], mae_r, 1e-8) and _rclose(base["coverage_holdout"], cov_r, 1e-9) and base["n_holdout"] == m_r),
+            ("shift_moves_intercept_and_forecasts_not_slope", K(sh, base, ("slope", "r_squared", "residual_se", "p_slope")) and all(_rclose(sh[f"forecast_{h}"], base[f"forecast_{h}"] + D("250.25")) and _rclose(sh[f"ci_lower_{h}"], base[f"ci_lower_{h}"] + D("250.25")) for h in range(1, H + 1)) and _rclose(sh["mae_holdout"], base["mae_holdout"])),
+            ("positive_scale_equivariance", K(sc, base, ("r_squared", "p_slope", "coverage_holdout")) and all(_rclose(sc[f"forecast_{h}"], base[f"forecast_{h}"] * 3) and _rclose(sc[f"ci_lower_{h}"], base[f"ci_lower_{h}"] * 3) for h in range(1, H + 1)) and _rclose(sc["slope"], base["slope"] * 3) and _rclose(sc["mae_holdout"], base["mae_holdout"] * 3)),
+            ("bounded_and_consistent", 0 <= base["r_squared"] <= 1 and 0 <= base["p_slope"] <= 1 and 0 <= base["coverage_holdout"] <= 1 and base["mae_holdout"] >= 0
+                                        and all(base[f"ci_lower_{h}"] <= base[f"forecast_{h}"] <= base[f"ci_upper_{h}"] for h in range(1, H + 1)))]
+
+def forecast_profile(inp):
+    issues = []
+    pairs, ex = _series(inp); n = len(pairs)
+    if n < 6: issues.append("fewer than six valid observations for a trend fit")
+    if len({y for _, y in pairs}) == 1: issues.append("the series is constant after excluding missing values")
+    h = D(str(inp.get("horizon", "3")))
+    if h != h.to_integral_value() or h < 1 or h > 12: issues.append("horizon must be a whole number between 1 and 12")
+    if not (0 < _CONF(inp) < 1): issues.append("confidence_level must be between 0 and 1")
+    return issues
+
+def forecast_typing(metric):
+    if metric == "p_slope": return "probability", 4
+    if metric in ("confidence_level", "coverage_holdout"): return "rate", 2
+    if metric == "r_squared": return "ratio", 3
+    if metric.startswith("n_") or metric == "horizon": return "count", 0
+    return "@unit", 3
+
+def forecast_caveats(out, th):
+    c = []
+    if int(out["n_fitted"]) < int(th.get("small_sample_n", 30)): c.append("Caution: the series is short, so the trend and the forecast are imprecise.")
+    c.append("The linear trend ignores seasonality, cycles and structural breaks; inspect the series before relying on the forecast.")
+    c.append("The out-of-sample check measures only the recent past, not future performance.")
+    return c
+
+def forecast_template(out, P, th):
+    tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P); H = int(out["horizon"]); pp = out["p_slope"]
+    t = (f"The fitted linear trend on {tok('n_fitted')} observations has a slope of {tok('slope')} per period and accounts for {tok('r_squared')} of the variation in the series ({tok('n_excluded')} entries excluded as missing). ")
+    t += "The forecast for the next " + tok("horizon") + " period(s) is " + "; ".join(f"{tok('forecast_' + str(h))} (interval at level {tok('confidence_level')} from {tok('ci_lower_' + str(h))} to {tok('ci_upper_' + str(h))})" for h in range(1, H + 1)) + ". "
+    t += ("The trend slope has a p-value " + ("of " + tok("p_slope") if pp >= D("0.0001") else "below the reporting floor") + ". ")
+    t += f"An out-of-sample check on the last {tok('n_holdout')} periods, held out before fitting, gave a mean absolute error of {tok('mae_holdout')}, with {tok('coverage_holdout')} of the held-out values inside the prediction intervals. "
+    return t + "A forecast projects the past pattern forward and does not show causation; it assumes the trend continues and becomes less reliable the further ahead it goes."
+
+_FORECAST_INPUTS = {"values": {"type": "value_list", "min_items": 6, "desc": "the time series in period order; blank or null counts as missing at that position"},
+                    "horizon": {"type": "decimal", "required": False, "desc": "number of periods ahead to forecast, default 3 (a whole number from 1 to 12)"},
+                    "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes"},
+                    "confidence_level": {"type": "decimal", "required": False, "desc": "default 0.95"}}
+_FORECAST_THRESH = {"small_sample_n": "30"}
+_FORECAST_DEFAULTS = (
+    {"question": "Trend model", "default_chosen": "A linear trend in time fitted by ordinary least squares; no seasonality, cycles or external drivers.", "impact": "Seasonal or structural-break series will be forecast badly; the out-of-sample check surfaces the recent error."},
+    {"question": "Missing-value handling", "default_chosen": "Missing entries keep their position in time and are excluded from the fit; they are not filled in.", "impact": "Filling gaps (interpolation) would change the fit."},
+    {"question": "Prediction intervals", "default_chosen": "Classical intervals for the mean forecast plus residual uncertainty, using the t critical value at the declared confidence level.", "impact": "They assume independent, roughly normal errors around the trend."},
+    {"question": "Out-of-sample check", "default_chosen": "The last m periods (m is a quarter of the series length, capped at 3) are held out, the trend is refit on the rest, and the mean absolute error and interval coverage on the held-out periods are reported.", "impact": "It measures only recent past performance, not future accuracy."})
+_FORECAST_ASSUME = ("Observations are in time order with one value per period.", "The trend is linear in time.", "Errors around the trend are independent and roughly normal.")
+_FORECAST_LIM = ("No seasonality, cycles, external drivers or structural-break handling.", "Extrapolation: the forecast projects the trend beyond the observed range and becomes less reliable the further ahead it goes.", "Prediction intervals are approximate in small samples.")
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -1257,6 +1390,12 @@ LIBRARY = {
                   input_schema=_CHI2_INPUTS, defaults=_CHI2_DEFAULTS, assumptions=_CHI2_ASSUME, limitations=_CHI2_LIM, default_period="cross_section",
                   caveats=chi2_caveats, template=chi2_template, claim_ceiling="associational",
                   assumption_checks=chi2_checks, assumption_check_names=("minimum_expected_count",), default_thresholds=_CHI2_THRESH, typing=chi2_typing),
+    "trend_forecast": Method("trend_forecast", "T1", forecast_impl, _forecast_tests, forecast_profile, "forecast_1", "from_request", None,
+                  ("second_implementation_agrees", "out_of_sample_check_agrees", "shift_moves_intercept_and_forecasts_not_slope", "positive_scale_equivariance", "bounded_and_consistent"),
+                  category="forecasting", intended_use="Project a linear trend in a single time series forward for a user-chosen horizon, with prediction intervals and a disclosed out-of-sample error on the recent past.",
+                  unsupported_use="Seasonal, cyclical or structural-break series; causal claims; multi-series or driver-based models; long horizons; policy simulations.",
+                  input_schema=_FORECAST_INPUTS, defaults=_FORECAST_DEFAULTS, assumptions=_FORECAST_ASSUME, limitations=_FORECAST_LIM, default_period="annual",
+                  caveats=forecast_caveats, template=forecast_template, claim_ceiling="predictive", default_thresholds=_FORECAST_THRESH, typing=forecast_typing),
 }
 
 # ---------- discovery (never executes a method) ----------

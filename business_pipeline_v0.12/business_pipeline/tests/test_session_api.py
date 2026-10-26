@@ -31,6 +31,7 @@ class S(unittest.TestCase):
                "welch_t": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}}, "mann_whitney": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}},
                "anova": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["1","2","3","4","5"]}}, "kruskal_wallis": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["3","1","5","2","4"]}},
                "chi_square": {"table": [[10, 20, 30], [20, 40, 60]]},
+               "trend_forecast": {"values": ["10", "12", "11", "14", "13", "16", "15", "18"]},
                "ols": {"y": ["52","55","61","58","70","72","69","80"], "predictors": {"a": ["1","2","3","4","5","6","7","8"], "b": ["6","7","5","8","6","7","8","6"]}}}[{"ols_robust": "ols"}.get(m.name, m.name)]
             self.assertEqual(tuple(n for n, _ in m.tests(inp, m.impl)), m.test_names)
     def test_malformed_input_blocks_not_crashes(self):

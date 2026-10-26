@@ -38,6 +38,8 @@ PRESETS = {
               "inputs": {"groups": {"lecture": ["62", "70", "68", "75", "66", "71", "64", "73"], "workshop": ["72", "78", "74", "85", "80", "77", "69", "83", "79"], "online": ["60", "63", "58", "66", "61", "65", "60"]}, "missing_codes": []}},
     "chi_square": {"objective": "Is the outcome category associated with the treatment group?", "method": "chi_square",
                    "inputs": {"table": [[45, 30, 25], [20, 40, 40], [10, 20, 70]]}},
+    "forecast": {"objective": "Forecast the next three periods", "method": "trend_forecast", "unit": "units",
+                 "inputs": {"values": ["10", "12", "11", "14", "13", "16", "15", "18", "17", "20", "19", "22"], "missing_codes": [], "horizon": "3"}},
     "case": {"objective": "A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.", "context": "Single owner, three shops"},
     "swot": templates.EXAMPLES["template_swot"], "five_forces": templates.EXAMPLES["template_five_forces"], "case_decision": templates.EXAMPLES["case_decision"],
     "unsupported": {"objective": "Value this startup", "method": "monte_carlo_valuation", "inputs": {"x": "1"}},

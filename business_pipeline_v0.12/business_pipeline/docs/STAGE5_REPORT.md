@@ -152,3 +152,25 @@ Not tested: post-hoc pairwise tests, repeated-measures or factorial designs, Fis
 - All conventions are placeholders [UNVERIFIED], declared and overridable: skew/kurtosis limits 2/7, Levene level 0.05, eta/epsilon cut-offs 0.01/0.06/0.14, Cramer's V cut-offs 0.1/0.3/0.5, expected-count floor 5 (B-042).
 - Blocking on small expected counts is fail-closed (P8); a Fisher-exact fallback for small tables is future work.
 - No post-hoc tests, no Welch ANOVA (equal-variance failures fall back to Kruskal-Wallis instead), no goodness-of-fit chi-square.
+
+---
+# Increment 7: linear-trend forecasting with an out-of-sample check (2026-10-21)
+**Status: PARTIAL (library still incomplete).** Owner-requested forecasting increment.
+
+## What was built
+- **`trend_forecast`**: fits a linear trend in time (t = 1..n) by least squares and forecasts a user-chosen horizon (1-12 periods, default 3) with classical prediction intervals at the declared confidence level. Outputs: intercept, slope, R-squared, residual SE, slope p-value, per-period forecasts and intervals, and fit/missing counts.
+- **Out-of-sample check, disclosed not gating:** the last m periods (m = max(1, min(3, n/4))) are held out, the trend is refit on the rest, and the mean absolute error and the fraction of held-out values inside the prediction intervals are reported as artifacts and in the report.
+- **Missing values keep their position in time** and are excluded from the fit (never filled in). Constant series and fewer than six valid observations block. A perfect fit blocks for the main trend (inference undefined) but the holdout tolerates it (its intervals degenerate to the fitted line).
+- Claim ceiling: **predictive** (no causal or intervention wording); the report states that the forecast projects the past pattern forward, assumes the trend continues, and gets less reliable further ahead.
+
+## Verification
+Independent second route: float QR fit with the series incomplete beta for the p-value and critical value. Properties: shift moves the intercept and forecasts but not the slope or p-value; positive scale equivariance; bounds; and an independent float recomputation of the holdout error and coverage. Golden fixtures generated offline with numpy 2.5.3 + scipy 1.18.1 (linregress, t.ppf); the implementation agrees to about 4e-15. Deliberately wrong implementations (flat forecast, narrowed interval, negative MAE, coverage above one, flipped slope) are blocked.
+
+## Tests
+`python -m unittest discover -s tests`: **320 tests, OK** (307 before; 13 new). Sandbox parity set extended to the new method.
+Not tested: seasonal or non-linear series, multiple series, long horizons, real business data.
+
+## Open items
+- The holdout-size rule (a quarter of the series, capped at 3), the minimum series length (6) and the horizon cap (12) are placeholders (B-043).
+- No seasonality, cycles, external drivers or structural-break handling; no exponential smoothing or ARIMA.
+- Prediction intervals assume independent, roughly normal errors around the trend.
