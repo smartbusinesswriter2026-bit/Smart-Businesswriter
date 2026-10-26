@@ -1,6 +1,7 @@
 """T1 method library with an explicit method contract (Stage 5 brief s6; manual 5.3, 5.5, 9B).
 Discovery (describe/list) never executes a method. Inputs are schema-validated before anything runs."""
 import statistics, re
+from . import currency
 from dataclasses import dataclass, field
 from decimal import Decimal as D, InvalidOperation
 from typing import Callable
@@ -77,6 +78,12 @@ def _check(key, v, spec):
             from . import accounts
             if not isinstance(v, dict): return [f"'{key}' must be an object (the engagement spec)"]
             errs += [f"'{key}': {e}" for e in accounts.validate_spec(v)]
+        elif t == "currency":
+            try: currency.minor_units(v)
+            except currency.CurrencyError as e: errs.append(str(e))
+        elif t == "text":
+            if not isinstance(v, str): return [f"'{key}' must be text"]
+            if spec.get("max_chars") and len(v) > spec["max_chars"]: errs.append(f"'{key}' must be at most {spec['max_chars']} characters")
         elif t == "enum":
             if not isinstance(v, str): return [f"'{key}' must be a string"]
             if v not in spec.get("values", []): errs.append(f"'{key}' must be one of: " + ", ".join(spec.get("values", [])))
@@ -1620,6 +1627,62 @@ def ratio_template(outputs, period, thresholds=None):
         if names: t += "The " + group + " ratios are " + ", ".join(_RATIO_LABEL[n] + " of " + tok(n) for n in names) + ". "
     return t + "Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated."
 
+# ---------- Declared-rate currency conversion (B-069) ----------
+# Converts at a rate the owner DECLARES. No FX rate is retrieved, hard-coded or guessed; the provenance and
+# any source/date are recorded as declarations, not verified facts.
+
+def currency_convert_impl(inp):
+    r = currency.convert(inp["amount"], inp["from_currency"], inp["to_currency"], inp["rate"],
+                         rate_date=inp.get("rate_date"), rate_source=inp.get("rate_source"),
+                         rate_provenance=inp.get("rate_provenance", "user"))
+    return {"amount": r["amount"], "amount_from": r["amount_from"], "rate": r["rate"], "_appendix": {
+        "from_currency": r["from_currency"], "to_currency": r["to_currency"], "rate": str(r["rate"]),
+        "rate_date": r["rate_date"], "rate_source": r["rate_source"], "rate_provenance": r["rate_provenance"],
+        "converted": str(r["amount"]), "note": r["provenance_note"]}}
+
+def _cc_reference(inp):
+    a = float(D(str(inp["amount"]))); r = float(D(str(inp["rate"])))
+    return {"amount": a * r, "amount_from": a, "rate": r}
+
+def _cc_tests(inp, impl):
+    base, ref = impl(inp), _cc_reference(inp)
+    a, r = D(str(inp["amount"])), D(str(inp["rate"]))
+    back = impl({**inp, "amount": str(base["amount"]), "from_currency": inp["to_currency"], "to_currency": inp["from_currency"], "rate": str(D(1) / r)})
+    zero = impl({**inp, "amount": "0"})
+    neg = impl({**inp, "amount": str(-a)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("round_trip_at_the_inverse_rate_returns_the_original", _close(back["amount"], a), "converting back with the reciprocal rate recovers the amount"),
+        ("zero_amount_converts_to_zero", zero["amount"] == 0, "a zero amount stays zero"),
+        ("negative_amount_converts_with_the_same_magnitude", _close(neg["amount"], -base["amount"]), "the sign carries through and the magnitude scales"),
+        ("scaling_the_amount_scales_the_result", _close(impl({**inp, "amount": str(a * 3)})["amount"], base["amount"] * 3), "conversion is linear in the amount"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _cc_profile(inp):
+    try:
+        currency.convert(inp["amount"], inp["from_currency"], inp["to_currency"], inp["rate"],
+                         rate_source=inp.get("rate_source"), rate_provenance=inp.get("rate_provenance", "user"))
+        return []
+    except currency.CurrencyError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["currency-conversion inputs are malformed: amount, from_currency, to_currency and rate are required"]
+
+def _cc_typing(metric):
+    return ("ratio", 6) if metric == "rate" else ("currency", 2)
+
+def _cc_caveats(out, th):
+    return ["The exchange rate is a declaration, not a retrieved price: the appendix records the currencies, the rate, its provenance (user, sourced or assumption) and any declared date. The system does not fetch, verify or interpolate exchange rates.",
+            "The converted amount is only as good as the declared rate and its date; a stale rate produces a stale value, and a sourced rate is the owner's claim, not something this system checked.",
+            "No conversion happens automatically anywhere else: one engagement still uses one currency, and multi-currency consolidation or translation is not implemented."]
+
+def _cc_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At the declared rate, " + tok("amount_from") + " converts to " + tok("amount") + ". "
+            "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
+            "the rate, its provenance and any declared date.")
+
 # ---------- Valuation: WACC and DCF (gap map P1 finance; B-068) ----------
 # Both are arithmetic on declared inputs. No tax is computed: the cost of debt is supplied AFTER tax.
 # DCF assumptions (end-of-period free cash flows, Gordon-growth terminal value) are declared, not hidden.
@@ -2336,6 +2399,24 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "currency_convert": Method("currency_convert", "T1", currency_convert_impl, _cc_tests, _cc_profile, "amount", "currency", None,
+                  ("second_implementation_agrees", "round_trip_at_the_inverse_rate_returns_the_original", "zero_amount_converts_to_zero",
+                   "negative_amount_converts_with_the_same_magnitude", "scaling_the_amount_scales_the_result"),
+                  category="currency",
+                  intended_use="Convert an amount from one ISO 4217 currency to another at a rate the owner declares, recording the rate, its provenance, any source and date.",
+                  unsupported_use="Retrieving or verifying exchange rates; interpolation, forward rates or triangulation; translating a set of statements; multi-currency consolidation; tax or fee conversion.",
+                  input_schema={"amount": {"type": "decimal", "desc": "the amount in the source currency"},
+                                "from_currency": {"type": "currency", "desc": "ISO 4217 code, e.g. USD"},
+                                "to_currency": {"type": "currency", "desc": "ISO 4217 code, e.g. EUR, CNY, JPY"},
+                                "rate": {"type": "decimal", "desc": "units of the target currency per one unit of the source currency (declared)"},
+                                "rate_provenance": {"type": "enum", "values": ["user", "sourced", "assumption"], "required": False, "desc": "default user"},
+                                "rate_source": {"type": "text", "max_chars": 200, "required": False, "desc": "where a sourced rate came from (recorded, not verified)"},
+                                "rate_date": {"type": "text", "max_chars": 10, "required": False, "desc": "the rate date as YYYY-MM-DD (recorded, not verified)"}},
+                  defaults=({"question": "Where the rate comes from", "default_chosen": "The owner declares it, with provenance user/sourced/assumption; a sourced rate must name its source. Nothing is retrieved or verified.", "impact": "A wrong or stale rate gives a wrong converted amount with no warning from the system."},
+                            {"question": "Result currency", "default_chosen": "The converted amount is carried in the request's currency field, so set that field to the TARGET currency; the appendix states both codes.", "impact": "If the request currency is not the target, the displayed label is wrong even though the appendix is right."}),
+                  assumptions=("The rate is the owner's declaration and describes the instant it is intended for.", "Both currencies are ISO 4217 codes present in the declared table."),
+                  limitations=("No FX retrieval, verification, interpolation or triangulation; no forward rates.", "One rate per conversion, no spread or fee handling.", "Single-currency engagements only: no consolidation or translation of statements."),
+                  default_period="cross_section", caveats=_cc_caveats, template=_cc_template, claim_ceiling="descriptive", typing=_cc_typing),
     "wacc": Method("wacc", "T1", wacc_impl, _wacc_tests, _wacc_profile, "wacc", "rate", None,
                   ("second_implementation_agrees", "weights_sum_to_one", "wacc_is_between_the_two_costs",
                    "scaling_both_market_values_changes_nothing", "rising_cost_of_equity_raises_wacc"),

@@ -7,7 +7,7 @@ from .artifacts import Artifact, ArtifactStore, sha, env_hash
 from .spec import ProblemSpec
 from .methods import LIBRARY, validate_inputs, DataError, decision_flip
 from .sandbox import SandboxError
-from . import envpin, registry, templates
+from . import envpin, registry, templates, currency as currencies
 from .claims import license_check
 
 STAGES = ["intake", "formalization", "method_selection", "test_planning", "execution",
@@ -87,6 +87,9 @@ class Pipeline:
         if t: issues = templates.validate(request["method"], inp)
         elif m:
             issues = validate_inputs(m, inp)            # schema first: actionable errors, no defaults substituted
+            if request.get("currency"):
+                try: currencies.minor_units(request["currency"])
+                except currencies.CurrencyError as e: issues.append(str(e))
             if not issues:
                 try: issues = m.profile(inp)
                 except (InvalidOperation, KeyError, TypeError, ValueError, ZeroDivisionError) as e:
@@ -210,6 +213,9 @@ class Pipeline:
             if m.typing: mu, prec = m.typing(metric)
             else: mu, prec = ("count" if metric in ("n", "n_missing") else m.output_units.get(metric, base_unit)), m.output_precision.get(metric, request.get("precision", 2))
             if mu == "count": prec = 0
+            if mu == "currency" and "precision" not in request and cur:
+                try: prec = currencies.minor_units(cur)
+                except currencies.CurrencyError: pass
             cur_here = cur if mu == "@unit" else None
             if mu == "@unit": mu = base_unit
             q = Quantity(val, unit=mu, currency=cur_here if cur_here else None if mu in ("count", "units", "correlation", "probability", "rate", "coefficient", "ratio", "days") else cur,

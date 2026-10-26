@@ -5,7 +5,7 @@ from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
-from . import methods, registry, templates, assist, llm, literature, accounts, ingest
+from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -56,6 +56,8 @@ PRESETS = {
              "inputs": {"equity_value": "800000", "debt_value": "200000", "cost_of_equity": "0.12", "cost_of_debt_after_tax": "0.05"}},
     "dcf": {"objective": "Value the project from its free cash flows", "method": "dcf_valuation", "currency": "USD", "period": "annual",
             "inputs": {"cashflows": ["100000", "120000", "140000", "155000"], "discount_rate": "0.10", "terminal_growth": "0.02"}},
+    "currency": {"objective": "Convert a USD amount to EUR at a declared rate", "method": "currency_convert", "currency": "EUR", "period": "cross_section",
+                 "inputs": {"amount": "1000", "from_currency": "USD", "to_currency": "EUR", "rate": "0.92", "rate_provenance": "user", "rate_date": "2026-10-20"}},
     "multicomp": {"objective": "Correct a declared family of hypothesis tests", "method": "multiple_comparison", "period": "cross_section",
                   "inputs": {"p_values": ["0.01", "0.04", "0.03", "0.005"], "method": "holm", "alpha": "0.05"}},
     "power": {"objective": "Size a study to detect a stated effect", "method": "power_analysis", "unit": "points", "period": "cross_section",
@@ -96,6 +98,8 @@ class H(BaseHTTPRequestHandler):
                 if not MODELS: return self._send(200, {"enabled": False, "reason": "No model provider is configured on this server. Set BP_LLM_PROVIDER and BP_LLM_MODEL (and the provider's API key) and restart."})
                 c = MODELS.config; return self._send(200, {"enabled": c.enabled, "provider": MODELS.builder.name, "builder_model": MODELS.builder.model, "reviewer_model": MODELS.reviewer.model, "same_model": MODELS.same_model,
                                                           "limits": {"max_calls_total": c.max_calls_total, "calls_used": MODELS.calls, "max_input_chars": c.max_input_chars}, "privacy_notice": c.privacy_notice, "prompt_version": assist.PROMPT_VERSION})
+            if u.path == "/api/currencies":
+                return self._send(200, {"currencies": currency.catalog(), "note": "ISO 4217 codes and their minor units (decimal places). No exchange rates are provided: a conversion needs a declared rate (B-069)."})
             if u.path == "/api/literature/sources":
                 names = ["auto"] + [k for k in LITERATURE_AUTO if k in LITERATURE_SOURCES] + [k for k in LITERATURE_SOURCES if k not in LITERATURE_AUTO]
                 return self._send(200, {"sources": [{"name": n, "label": LITERATURE_LABELS.get(n, n)} for n in names], "notice": LITERATURE_NOTICE,

@@ -5,7 +5,12 @@ never posts anything the owner did not declare. Declared policy changes (a chang
 prospectively from their date and are disclosed in the appendix. Management accounts only: not GAAP/IFRS statements
 (manual 9.5)."""
 from decimal import Decimal as D
-from . import ledger, schedules, reconcile, report
+from . import ledger, schedules, reconcile, report, currency
+
+def _default_places(spec):
+    """Decimal places for the engagement currency (ISO 4217 minor units), 2 when the code is unknown."""
+    try: return currency.minor_units(spec.get("currency"))
+    except currency.CurrencyError: return 2
 
 class EngagementError(ValueError): pass
 
@@ -81,9 +86,12 @@ def validate_spec(spec):
     if not isinstance(p, dict) or not ledger.DATE.fullmatch(str(p.get("start", "") or "")) or not ledger.DATE.fullmatch(str(p.get("end", "") or "")) or str(p.get("start", "")) > str(p.get("end", "")):
         errs.append("period must have start <= end as YYYY-MM-DD")
     if not isinstance(spec.get("currency"), str) or not spec["currency"].strip(): errs.append("currency is required")
+    else:
+        try: currency.minor_units(spec["currency"])
+        except currency.CurrencyError as e: errs.append(str(e))
     try: ledger.require_framework(spec.get("framework"))
     except ledger.LedgerError as e: errs.append(str(e))
-    places = spec.get("places", 2)
+    places = spec.get("places", _default_places(spec))
     if isinstance(places, bool) or not isinstance(places, int) or not 0 <= places <= 6: errs.append("places must be a whole number from 0 to 6")
     chart, codes = spec.get("chart"), set()
     if not isinstance(chart, list) or not chart: errs.append("chart must be a non-empty list of accounts")
@@ -166,7 +174,7 @@ def build(spec):
     and return scalar outputs plus a serialized appendix (statements, trial balance, cash flow, checks, flags, export)."""
     errs = validate_spec(spec)
     if errs: raise EngagementError("; ".join(errs))
-    p, places, cur = spec["period"], spec.get("places", 2), spec["currency"]
+    p, places, cur = spec["period"], spec.get("places", _default_places(spec)), spec["currency"]
     chart = ledger.Chart([ledger.Account(**a) for a in spec["chart"]])
     j = ledger.Journal(chart, p["start"], p["end"], cur); n_posted = 0
     for e in spec.get("opening", []):

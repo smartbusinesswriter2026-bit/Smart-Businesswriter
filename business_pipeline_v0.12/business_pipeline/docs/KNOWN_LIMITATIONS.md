@@ -137,6 +137,13 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with multi-currency support (B-069)
+- The currency table is a **declared ISO 4217 table** (code, name, minor units) embedded in `src/bp/currency.py`; verify it against the current standard when precision matters. Metals (XAU/XAG/XPT/XPD), testing/no-currency codes (XTS/XXX) and units of account without a minor unit (XDR) are not accepted.
+- **No exchange rate is retrieved, verified, interpolated or triangulated.** A conversion needs a rate the owner declares; its provenance (`user`/`sourced`/`assumption`), optional source and date are recorded as declarations, not facts. A stale rate gives a silently stale amount beyond the caveat text.
+- **One currency per engagement.** The ledger, schedules and statements use a single declared currency; there is **no consolidation, translation, FX revaluation or multi-currency reporting**. That would need retrieved rates plus a translation standard, neither of which is implemented.
+- The converted amount is carried in the request's `currency` field, so that field must be set to the **target** currency for the display label to be right; the appendix always records both codes.
+- Unknown currency codes are now **refused at intake** (previously any string was accepted), which is a deliberate fail-closed behaviour change.
+
 ## Added with WACC and DCF valuation (B-068)
 - `wacc` does not estimate anything: the cost of equity and the AFTER-TAX cost of debt are declared inputs, and **no tax is computed** (B-052 still deferred). There is no CAPM, no beta estimation, no target-capital-structure iteration and no leverage-dependent recalculation; market weights are current, not target.
 - One WACC is a single discount rate; it is not appropriate for cash flows of materially different risk.
