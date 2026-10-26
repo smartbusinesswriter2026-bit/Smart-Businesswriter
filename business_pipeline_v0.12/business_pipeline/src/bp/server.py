@@ -58,6 +58,10 @@ PRESETS = {
             "inputs": {"cashflows": ["100000", "120000", "140000", "155000"], "discount_rate": "0.10", "terminal_growth": "0.02"}},
     "currency": {"objective": "Convert a USD amount to EUR at a declared rate", "method": "currency_convert", "currency": "EUR", "period": "cross_section",
                  "inputs": {"amount": "1000", "from_currency": "USD", "to_currency": "EUR", "rate": "0.92", "rate_provenance": "user", "rate_date": "2026-10-20"}},
+    "unitecon": {"objective": "What does a customer cost and return?", "method": "unit_economics", "currency": "USD", "period": "annual",
+                 "inputs": {"price": "49", "variable_cost": "12", "acquisition_cost": "80", "churn_rate": "0.04"}},
+    "multibreakeven": {"objective": "How many units must the product mix sell to break even?", "method": "multi_product_breakeven", "currency": "USD", "period": "annual",
+                       "inputs": {"fixed_costs": "6000", "products": [{"name": "coffee", "price": "5", "variable_cost": "2", "mix_units": "3"}, {"name": "cake", "price": "6", "variable_cost": "3", "mix_units": "1"}]}},
     "factorial": {"objective": "Do the two factors and their interaction matter?", "method": "two_way_anova", "unit": "points", "period": "cross_section",
                   "inputs": {"data": [{"response": "1", "factor_a": "low", "factor_b": "x"}, {"response": "3", "factor_a": "low", "factor_b": "x"}, {"response": "5", "factor_a": "low", "factor_b": "y"}, {"response": "7", "factor_a": "low", "factor_b": "y"}, {"response": "3", "factor_a": "high", "factor_b": "x"}, {"response": "5", "factor_a": "high", "factor_b": "x"}, {"response": "7", "factor_a": "high", "factor_b": "y"}, {"response": "9", "factor_a": "high", "factor_b": "y"}]}},
     "posthoc": {"objective": "Which groups differ from which?", "method": "posthoc_pairwise", "unit": "points", "period": "cross_section",
@@ -197,9 +201,15 @@ class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
 
     def _ingest(self, b):
-        try: table = ingest.decode_request(b)
+        try:
+            table = ingest.decode_request(b)
+            body = {"table": table}
+            if isinstance(b, dict) and b.get("map") is not None:
+                mp = b["map"]
+                if not isinstance(mp, dict) or "method" not in mp or "columns" not in mp: raise ingest.IngestError("map needs {method, columns}")
+                body["mapped_request"] = ingest.to_method_inputs(table, mp["method"], mp["columns"])
         except ingest.IngestError as e: return self._send(422, {"error": str(e)})
-        return self._send(200, {"table": table})
+        return self._send(200, body)
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS

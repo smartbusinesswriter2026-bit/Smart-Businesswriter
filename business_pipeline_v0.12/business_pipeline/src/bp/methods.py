@@ -1698,6 +1698,164 @@ def _cc_template(out, P, th):
             "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
             "the rate, its provenance and any declared date.")
 
+# ---------- Unit economics and multi-product break-even (gap map P1 finance; B-072) ----------
+# All arithmetic on declared inputs. No tax, no customer-lifetime modelling beyond the declared churn rate.
+
+def unit_econ_impl(inp):
+    price, vc = D(str(inp["price"])), D(str(inp["variable_cost"])); cac = D(str(inp["acquisition_cost"]))
+    margin = price - vc
+    if price <= 0: raise DataError("price must be positive")
+    if vc < 0: raise DataError("variable cost must be non-negative")
+    if margin <= 0: raise DataError("the unit contribution margin is not positive, so payback and LTV are undefined")
+    if cac < 0: raise DataError("acquisition cost must be non-negative")
+    out = {"unit_margin": margin, "margin_pct": margin / price, "payback_periods": (cac / margin) if cac > 0 else D(0),
+           "price": price, "variable_cost": vc, "acquisition_cost": cac}
+    raw_churn = inp.get("churn_rate")
+    if raw_churn is not None and not (isinstance(raw_churn, str) and not raw_churn.strip()):
+        churn = D(str(raw_churn))
+        if not (0 < churn < 1): raise DataError("churn_rate must be between 0 and 1 (exclusive)")
+        out["churn_rate"] = churn; out["ltv"] = margin / churn; out["ltv_cac"] = (margin / churn) / cac if cac > 0 else None
+        if out["ltv_cac"] is None: out.pop("ltv_cac")
+    return out
+
+def _unit_ref(inp):
+    p_, v_ = float(D(str(inp["price"]))), float(D(str(inp["variable_cost"]))); cac = float(D(str(inp["acquisition_cost"])))
+    m = p_ - v_; out = {"unit_margin": m, "margin_pct": m / p_, "payback_periods": cac / m if cac > 0 else 0.0}
+    ch = inp.get("churn_rate")
+    if ch not in (None, ""):
+        c = float(D(str(ch))); out["ltv"] = m / c
+        if cac > 0: out["ltv_cac"] = (m / c) / cac
+    return out
+
+def unit_econ_tests(inp, impl):
+    base, ref = impl(inp), _unit_ref(inp)
+    p_, v_ = D(str(inp["price"])), D(str(inp["variable_cost"])); cac = D(str(inp["acquisition_cost"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("margin_is_price_minus_variable_cost", base["unit_margin"] == p_ - v_, "the contribution margin identity holds"),
+        ("payback_is_acquisition_cost_over_margin", _close(base["payback_periods"], cac / base["unit_margin"]), "payback periods = CAC / unit margin"),
+        ("raising_price_raises_margin_by_the_same_amount", _close(impl({**inp, "price": str(p_ + 5)})["unit_margin"], base["unit_margin"] + 5), "price passes straight through the margin"),
+        ("lower_churn_raises_ltv", true_or_ltv(impl, inp, base), "a longer customer life raises LTV"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def true_or_ltv(impl, inp, base):
+    if "ltv" not in base: return True
+    ch = D(str(inp["churn_rate"])); lower = impl({**inp, "churn_rate": str(ch / 2)})
+    return lower["ltv"] > base["ltv"]
+
+def unit_econ_profile(inp):
+    try:
+        p_, v_ = D(str(inp["price"])), D(str(inp["variable_cost"])); cac = D(str(inp["acquisition_cost"]))
+        errs = []
+        if p_ <= 0: errs.append("price must be positive")
+        if v_ < 0: errs.append("variable cost must be non-negative")
+        if p_ - v_ <= 0: errs.append("the unit contribution margin must be positive")
+        if cac < 0: errs.append("acquisition cost must be non-negative")
+        ch = inp.get("churn_rate")
+        if ch not in (None, "") and not (0 < D(str(ch)) < 1): errs.append("churn_rate must be between 0 and 1")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["unit-economics inputs are malformed: price, variable_cost and acquisition_cost are required numbers"]
+
+def _unit_typing(metric):
+    if metric in ("price", "variable_cost", "acquisition_cost", "unit_margin", "ltv"): return ("currency", 2)
+    if metric in ("margin_pct", "churn_rate"): return ("rate", 4)
+    if metric in ("payback_periods", "ltv_cac"): return ("ratio", 3)
+    return ("@unit", 2)
+
+def unit_econ_caveats(out, th):
+    return ["The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; none of them is estimated by a model.",
+            "LTV divides the unit margin by the declared churn rate; that assumes a constant churn and no discounting, so it is a period-value, not a present value.",
+            "No tax, financing cost, cross-sell or retention curve is included."]
+
+def unit_econ_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The unit contribution margin is " + tok("unit_margin") + " (a margin rate of " + tok("margin_pct") + "), and payback takes " + tok("payback_periods") + " periods. ")
+    if "ltv" in out: t += "At the declared churn rate the lifetime value is " + tok("ltv") + "."
+    return t
+
+def multi_breakeven_impl(inp):
+    fixed = D(str(inp["fixed_costs"])); rows = inp["products"]; seen = set()
+    prods = []
+    for i, r in enumerate(rows):
+        name = str(r["name"]).strip()
+        if not name: raise DataError(f"product {i} needs a name")
+        slug = re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_") or f"product_{i + 1}"
+        suffix = 2; base_slug = slug
+        while slug in seen: slug = f"{base_slug}_{suffix}"; suffix += 1
+        seen.add(slug)
+        price, vc, mix = D(str(r["price"])), D(str(r["variable_cost"])), D(str(r["mix_units"]))
+        if price <= 0: raise DataError(f"product {name!r}: price must be positive")
+        if mix <= 0: raise DataError(f"product {name!r}: mix_units must be positive (it is the weighting)")
+        prods.append({"name": name, "slug": slug, "price": price, "vc": vc, "mix": mix, "margin": price - vc})
+    if len(prods) < 2: raise DataError("at least two products are needed")
+    total_mix = sum((p["mix"] for p in prods), D(0)); total_contrib = sum((p["mix"] * p["margin"] for p in prods), D(0))
+    wc = total_contrib / total_mix
+    if wc <= 0: raise DataError("the weighted contribution margin is not positive, so no break-even exists")
+    total_units = fixed / wc
+    out = {"weighted_contribution": wc, "breakeven_total_units": total_units,
+           "breakeven_revenue": sum((total_units * p["mix"] / total_mix * p["price"] for p in prods), D(0)),
+           "fixed_costs": fixed, "total_mix_units": total_mix}
+    for p in prods: out[f"units_{p['slug']}"] = total_units * p["mix"] / total_mix
+    return out
+
+def _mb_ref(inp):
+    fixed = float(D(str(inp["fixed_costs"])))
+    rows = [(float(D(str(r["price"]))), float(D(str(r["variable_cost"]))), float(D(str(r["mix_units"])))) for r in inp["products"]]
+    tm = sum(m for _, _, m in rows); contrib = sum(m * (p - v) for p, v, m in rows); wc = contrib / tm
+    return {"weighted_contribution": wc, "breakeven_total_units": fixed / wc}
+
+def multi_breakeven_tests(inp, impl):
+    base, ref = impl(inp), _mb_ref(inp)
+    fixed = D(str(inp["fixed_costs"]))
+    rows = [(D(str(r["price"])), D(str(r["variable_cost"])), D(str(r["mix_units"]))) for r in inp["products"]]
+    tm = sum((m for _, _, m in rows), D(0)); expected_wc = sum((m * (p - v) for p, v, m in rows), D(0)) / tm
+    unit_keys = [k for k in base if k.startswith("units_")]
+    profit = sum((base[k] * (p - v) for k, (p, v, _) in zip(unit_keys, rows)), D(0)) - fixed
+    scaled = impl({**inp, "fixed_costs": str(fixed * 4)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("weighted_contribution_is_the_mix_weighted_margin", _close(base["weighted_contribution"], expected_wc), "the weighted margin uses the declared mix weights"),
+        ("profit_at_break_even_is_zero", abs(profit) <= D("1e-9") * max(D(1), abs(fixed)), "selling the break-even mix exactly covers the fixed costs"),
+        ("scaling_fixed_costs_scales_break_even_units", _close(scaled["breakeven_total_units"], base["breakeven_total_units"] * 4), "four times the fixed cost needs four times the units"),
+        ("per_product_units_sum_to_the_total", _close(sum((base[k] for k in unit_keys), D(0)), base["breakeven_total_units"]), "the product units add up"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def multi_breakeven_profile(inp):
+    try:
+        rows = inp["products"]; fixed = D(str(inp["fixed_costs"]))
+        errs = []
+        if len(rows) < 2: errs.append("at least two products are needed")
+        if fixed < 0: errs.append("fixed costs must be non-negative")
+        for i, r in enumerate(rows):
+            p_, v_, m_ = D(str(r["price"])), D(str(r["variable_cost"])), D(str(r["mix_units"]))
+            if p_ <= 0: errs.append(f"product {i}: price must be positive")
+            if m_ <= 0: errs.append(f"product {i}: mix_units must be positive")
+        if not errs:
+            tm = sum((D(str(r["mix_units"])) for r in rows), D(0))
+            wc = sum((D(str(r["mix_units"])) * (D(str(r["price"])) - D(str(r["variable_cost"]))) for r in rows), D(0)) / tm
+            if wc <= 0: errs.append("the weighted contribution margin must be positive for a break-even to exist")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["multi-product break-even inputs are malformed: fixed_costs and products (name, price, variable_cost, mix_units) are required"]
+
+def _mb_typing(metric):
+    if metric in ("breakeven_total_units", "total_mix_units") or metric.startswith("units_"): return ("units", 2)
+    if metric in ("fixed_costs", "breakeven_revenue"): return ("currency", 2)
+    return ("ratio", 4)
+
+def multi_breakeven_caveats(out, th):
+    return ["Break-even assumes a fixed product mix and constant unit prices and costs; a change in mix changes the weighted contribution and therefore the break-even.",
+            "The per-product units are the break-even mix, not a target or a forecast.",
+            "No step costs, capacity limits or tax are modelled."]
+
+def multi_breakeven_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The mix-weighted contribution margin is " + tok("weighted_contribution") + ", so break-even needs " + tok("breakeven_total_units") +
+            " units in total and revenue of " + tok("breakeven_revenue") + " at the declared mix. The per-product break-even units are in the appendix.")
+
 # ---------- Two-way factorial ANOVA and post-hoc pairwise tests (B-070) ----------
 # Balanced designs only: with unequal cell counts the sums of squares depend on the SS type (I/II/III),
 # which is a convention the manual does not fix, so an unbalanced design BLOCKS instead of guessing one.
@@ -2633,6 +2791,35 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "unit_economics": Method("unit_economics", "T1", unit_econ_impl, unit_econ_tests, unit_econ_profile, "unit_margin", "currency", None,
+                  ("second_implementation_agrees", "margin_is_price_minus_variable_cost", "payback_is_acquisition_cost_over_margin",
+                   "raising_price_raises_margin_by_the_same_amount", "lower_churn_raises_ltv"),
+                  category="unit economics",
+                  intended_use="Unit contribution margin, payback of the acquisition cost and (when a churn rate is declared) a period-value LTV and LTV/CAC.",
+                  unsupported_use="Estimating churn, retention curves or customer lifetime modelling; discounting LTV to present value; tax, financing or cross-sell; segment-level CAC.",
+                  input_schema={"price": {"type": "decimal", "desc": "price per unit"},
+                                "variable_cost": {"type": "decimal", "desc": "variable cost per unit"},
+                                "acquisition_cost": {"type": "decimal", "desc": "cost to acquire one customer"},
+                                "churn_rate": {"type": "decimal", "required": False, "desc": "period churn in (0,1); if supplied, LTV = unit margin / churn"}},
+                  defaults=({"question": "LTV definition", "default_chosen": "LTV = unit margin / declared churn rate (period value, no discounting); omitted when no churn is declared.", "impact": "A different LTV convention (e.g. discounted, cohort-based) would give a different number."},
+                            {"question": "Payback", "default_chosen": "Payback periods = acquisition cost / unit margin.", "impact": "It assumes the margin is earned every period at the same rate."}),
+                  assumptions=("Prices, costs and churn are the owner's declared inputs.", "The unit margin is earned each period until churn."),
+                  limitations=("No present-value discounting, retention curve, tax or financing.", "Churn is a single constant rate.", "Segment or product-level CAC is not modelled."),
+                  default_period="annual", caveats=unit_econ_caveats, template=unit_econ_template, claim_ceiling="descriptive", typing=_unit_typing),
+    "multi_product_breakeven": Method("multi_product_breakeven", "T1", multi_breakeven_impl, multi_breakeven_tests, multi_breakeven_profile, "breakeven_total_units", "units", None,
+                  ("second_implementation_agrees", "weighted_contribution_is_the_mix_weighted_margin", "profit_at_break_even_is_zero",
+                   "scaling_fixed_costs_scales_break_even_units", "per_product_units_sum_to_the_total"),
+                  category="cost-volume-profit",
+                  intended_use="Break-even in units and revenue for a fixed product mix: the mix-weighted contribution margin and the per-product break-even quantities.",
+                  unsupported_use="A changing mix, step costs, capacity limits, price-volume relationships or tax; forecasting which mix will actually occur.",
+                  input_schema={"fixed_costs": {"type": "decimal", "desc": "total fixed costs for the period"},
+                                "products": {"type": "records", "min_items": 2, "fields": {"name": "text", "price": "decimal", "variable_cost": "decimal", "mix_units": "decimal"},
+                                             "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)"}},
+                  defaults=({"question": "Mix assumption", "default_chosen": "The declared mix_units are held constant and used as the weighting.", "impact": "A different mix changes the weighted contribution and the break-even."},
+                            {"question": "Cost behaviour", "default_chosen": "Fixed costs are constant and unit prices and variable costs are constant over the range.", "impact": "Step costs or volume discounts break the single break-even point."}),
+                  assumptions=("Each product's price and variable cost are constant.", "The declared mix is the mix that will be sold.", "Fixed costs do not change with volume."),
+                  limitations=("One break-even point for one declared mix; no capacity limits or step costs.", "No tax, financing or working-capital effects.", "Per-product units are a break-even mix, not a target."),
+                  default_period="annual", caveats=multi_breakeven_caveats, template=multi_breakeven_template, claim_ceiling="descriptive", typing=_mb_typing),
     "two_way_anova": Method("two_way_anova", "T1", two_way_impl, two_way_tests, two_way_profile, "f_ab", "ratio", None,
                   ("second_implementation_agrees", "sums_of_squares_decompose_the_total", "f_equals_mean_square_over_mean_square_error",
                    "shifting_every_response_leaves_the_effects_unchanged", "scaling_every_response_scales_sums_of_squares_keeps_f"),

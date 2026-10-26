@@ -137,6 +137,12 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with ingestion mapping and finance methods (B-071, B-072)
+- Ingestion mapping only handles **list-shaped inputs** (`value_list`, `code_list`, `column_map`); scalar inputs such as a discount rate cannot be mapped from a column. Long-format data (one row per observation with a group label) cannot be turned into the `groups` shape by mapping — the wide layout is required for group columns.
+- Mapped inputs are recorded as owner-supplied with a file/SHA-256 provenance note; the hash identifies the source, it does **not** verify the data, and no conversion, cleaning or imputation is performed by the mapping.
+- `unit_economics` uses a single constant churn rate and a period-value LTV (no discounting, no retention curve, no tax or financing); payback assumes the margin is earned every period.
+- `multi_product_breakeven` assumes one fixed product mix and constant prices/costs; no step costs, capacity limits or price-volume effects. Per-product units are a break-even mix, not a target.
+
 ## Added with factorial ANOVA and post-hoc pairwise tests (B-070)
 - `two_way_anova` is **balanced only**: every cell must hold the same number of observations. Unbalanced designs are refused because type I/II/III sums of squares are different conventions and none is ratified; three-way, repeated-measures and ANCOVA designs are not implemented, and factorial assumption checks (normality, homoscedasticity) are not run.
 - An interaction makes the omnibus F tests insufficient: the method does not localise simple effects, and `posthoc_pairwise` is the separate tool for that.

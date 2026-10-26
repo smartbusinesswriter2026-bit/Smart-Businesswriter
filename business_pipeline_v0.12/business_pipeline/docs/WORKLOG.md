@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Ingestion mapping, unit economics and multi-product break-even (B-071, B-072)
+
+**Ask:** "go on: … unit economics / multi-product break-even … ingestion→method mapping helper."
+**Did:** `ingest.to_method_inputs` maps named columns into a method's declared inputs — `value_list`/`code_list` from one column, `column_map` from an object of name → column, cleaned through the method's own `validate_inputs` and `profile` so a bad mapping is refused before running; only list-shaped inputs (a scalar rate cannot come from a column), and the provenance note says the file hash identifies the source, not that the data is verified. Exposed as an optional `map` on `POST /api/ingest`. Then two T1 finance methods: `unit_economics` (margin, margin rate, payback, optional period-value LTV and LTV/CAC) and `multi_product_breakeven` (mix-weighted contribution margin, break-even units and revenue, per-product units), each with five frozen checks and declared assumptions (constant churn, fixed mix, no tax/discounting).
+**Files:** `src/bp/ingest.py`, `src/bp/server.py`, `src/bp/methods.py`, `tests/test_economics.py`, `tests/test_sandbox.py`, `tests/test_session_api.py`, docs (B-071/B-072, changelog 0.46, limitations, gap map, HOME, README, CONTRIBUTORS, WORKLOG).
+**Verified:** 11 new tests — column→method mapping (value and column_map shapes), refusals for text/unknown/scalar/unmapped inputs, unit-economics arithmetic and refusals, multi-product break-even arithmetic (break-even 2000 units; 1500 coffee / 500 cake; revenue 10500) and refusals, frozen checks, pipeline delivery, contract/preset, determinism; sandbox and session coverage. **568 tests OK.**
+**Commit:** `this commit`.
+**Open/next:** CBA/CEA/SROI, reliability (Cronbach's α), logistic regression, clustering, non-linear time series; ANCOVA/repeated-measures/unbalanced designs and Tukey/Dunnett/Games-Howell need distributional work (studentized range / multivariate t) not in the standard library.
+
+---
+
 ## 2026-10-21 — [computation] Factorial two-way ANOVA and post-hoc pairwise tests (B-070)
 
 **Ask:** "go: factorial ANOVA + post-hoc pairwise tests."

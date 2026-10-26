@@ -198,6 +198,53 @@ def read_table(filename, raw):
     if kind == "spss": raise IngestError("SPSS .sav ingestion is not implemented; export the file to CSV/XLSX first.")
     raise IngestError("unsupported file type: supply a .csv/.tsv or .xlsx file (PDF, scans and .sav are refused)")
 
+_NUMBERISH = ("number",)
+
+def to_method_inputs(table, method_id, mapping):
+    """Map named table columns into a method's declared inputs (B-071). Pure computation, no semantics invented:
+    only the mapping the caller supplies is used, and only list-shaped inputs are accepted (a scalar such as a
+    discount rate cannot come from a column).
+
+    Supported shapes: a `value_list`/`code_list` input maps from one column name (missing cells become null);
+    a `column_map` input (groups, predictors, pairs) maps from an object of output-name -> column name.
+    The returned request carries a provenance note naming the file and hash. Mapping does not upgrade the data:
+    the pipeline still treats it as owner-supplied and the note says so.
+    """
+    from . import methods as methodlib
+    m = methodlib.LIBRARY.get(method_id)
+    if m is None: raise IngestError(f"unknown method {method_id!r}; GET /api/methods lists the available ids")
+    if not isinstance(mapping, dict) or not mapping: raise IngestError("map must be an object of method-input name -> column name")
+    cols = {c["name"]: c for c in table["columns"]}
+    rows = table["rows"]
+    def column(name):
+        if not isinstance(name, str) or name not in cols: raise IngestError(f"unknown column {name!r}; the file has: " + ", ".join(cols))
+        idx = [c["name"] for c in table["columns"]].index(name)
+        return [r[idx] if idx < len(r) else None for r in rows]
+    out = {}
+    for key, spec in m.input_schema.items():
+        if key not in mapping: continue
+        t = spec["type"]; target = mapping[key]
+        if t in ("value_list", "code_list"):
+            if not isinstance(target, str): raise IngestError(f"'{key}' takes one column name")
+            vals = column(target)
+            if t == "value_list" and spec.get("min_items", 0) and cols[target]["type"] == "mixed":
+                raise IngestError(f"column {target!r} mixes numbers and text; it cannot feed '{key}' without a declared conversion")
+            out[key] = vals
+        elif t == "column_map":
+            if not isinstance(target, dict) or not target: raise IngestError(f"'{key}' takes an object of name -> column name")
+            out[key] = {name: column(c) for name, c in target.items()}
+        else:
+            raise IngestError(f"'{key}' has type {t!r}, which cannot be mapped from a column; provide it directly in the request")
+    errs = methodlib.validate_inputs(m, out)
+    if errs: raise IngestError("the mapped columns do not form a valid request for " + method_id + ": " + "; ".join(errs))
+    prof = m.profile(out)
+    if prof: raise IngestError("the mapped columns fail the method's pre-checks: " + "; ".join(prof))
+    return {"method": method_id, "inputs": out,
+            "provenance": {"kind": "sourced", "file": table.get("filename"), "sha256": table.get("sha256"),
+                           "locator": table.get("provenance", {}).get("locator"),
+                           "note": "Values were read from the named file; the pipeline records them as owner-supplied. The file hash identifies the source, it does not verify the data."},
+            "not_mapped": sorted(k for k in m.input_schema if k not in out)}
+
 def decode_request(body):
     """API helper: {'filename': str, 'content_base64': str} -> (table). Validates shape and size first."""
     if not isinstance(body, dict): raise IngestError("body must be an object")
