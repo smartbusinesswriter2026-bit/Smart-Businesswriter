@@ -1,20 +1,20 @@
 # Research & Evidence Workflow (REW) — living manual
 
-**Formerly "Build Charter Stage 7".** Version 0.1 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed, partly unratified** — read §3 before trusting any section.
+**Formerly "Build Charter Stage 7".** Version 0.2 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed; R11 RATIFIED (2026-10-21)** — this manual is the working authority for REW and B-035 is closed. Everything still tagged `[PROPOSAL]`, `[2ND]` or `[OPEN]` is **not** ratified (R1–R10 remain open); read §3 before trusting any section.
 
 ## 0. What this document is, and is not
 
 **Is:** the working definition of the research capability — from a research question, through literature and gap analysis, study design, data, analysis, to a manuscript or report — written so that any model or person editing this repo knows what the workflow must do, what it may never do, what is decided, and what is still open.
 
-**Is not:** a recovered copy of the Smart Researcher research-pipeline manuals. Those were never supplied. The Build Charter (also not in this repo) forbids *reconstructing the pipeline from memory and presenting it as the original*. This manual honours that by never pretending: every section carries a provenance tag, and the stage list and taxonomies are marked `[PROPOSAL]` until the owner ratifies them (see §14).
+**Is not:** a recovered copy of the Smart Researcher research-pipeline manuals. Those were never supplied. The Build Charter (also not in this repo) forbids *reconstructing the pipeline from memory and presenting it as the original*. This manual honours that by never pretending: every section carries a provenance tag, and the stage list and taxonomies are marked `[PROPOSAL]` until the owner ratifies them (see §14). The manual's own authority is ratified (R11), but that ratifies *the document as the working reference*, not its proposals.
 
 The literature retrieval/verification layer already exists and is governed by §9; it was never blocked.
 
 ## 1. Naming and authority
 
 - **REW** = the product capability. "Stage 7" was a *build-sequence* label in the Build Charter (Stage 5 = method library, Stage 6 = catalogue, Stage 8 = management accounts), not a product name. It is renamed here so the capability can be discussed without build-order numbering.
-- Authority order when rules conflict: (1) the owner's directives recorded in `docs/DECISIONS.md`; (2) the v0.3 business-pipeline manual (`docs/sources/business_pipeline_v0_3.md`) where it speaks; (3) this manual; (4) build reports.
-- This manual is **living**: it is versioned in §16, and every material change bumps the version. Ratifying a `[PROPOSAL]` edits the tag in place and is logged in §16 and in `docs/DECISIONS.md`.
+- Authority order when rules conflict: (1) the owner's directives recorded in `docs/DECISIONS.md`; (2) the v0.3 business-pipeline manual (`docs/sources/business_pipeline_v0_3.md`) where it speaks; (3) this manual, **which is the working authority for REW by owner ratification R11 (2026-10-21), closing B-035**; (4) build reports.
+- This manual is **living**: it is versioned in §16, and every material change bumps the version. Ratifying a `[PROPOSAL]` edits the tag in place and is logged in §16 and in `docs/DECISIONS.md`. A ratified item is not silently re-opened; if reality diverges, the divergence is logged, not the tag.
 
 ## 2. Non-negotiables (binding on everything below)
 
@@ -161,7 +161,7 @@ No REW stage is wired into the pipeline. The method library, templates, sandbox,
 
 ## 14. Ratification register
 
-Each item needs the owner's yes/no; ratifying edits the tag in this file and logs it in §16 and `docs/DECISIONS.md`.
+Each item needs the owner's yes/no; ratifying edits the tag in this file and logs it in §16 and `docs/DECISIONS.md`. **Ratified: R11 (2026-10-21).** The rest remain proposals; a proposal is not binding merely because the manual is authoritative.
 
 | Id | Item | Default until ratified |
 |---|---|---|
@@ -175,7 +175,7 @@ Each item needs the owner's yes/no; ratifying edits the tag in this file and log
 | R8 | Claim-ceiling → wording enforcement applies to manuscripts, not just reports (§10) | PROPOSAL |
 | R9 | Synthetic-data rules for papers (§11) | PROPOSAL — charter wording is binding; the paper-specific additions are not |
 | R10 | Pre-declared honesty statements where 9B.3 upgrades are absent (§10) | PROPOSAL |
-| R11 | This manual itself as the working authority for REW, superseding B-035 | **This document asks for R11.** Until ratified, B-035 remains the recorded blocker |
+| R11 | This manual itself as the working authority for REW, superseding B-035 | **RATIFIED 2026-10-21 (owner: "yes to R11")** — this manual is the working reference; B-035 is closed. It ratifies the document's authority only, not R1–R10 |
 
 ## 15. Open questions (preserved from the old blocker, plus new)
 
@@ -199,4 +199,5 @@ Answers can arrive as owner statements, old chat exports, or later retrieval; ea
 
 ## 16. Change log
 
+- **0.2 (2026-10-21):** R11 **ratified by the owner** — this manual is the working authority for REW; B-035 closed (B-053 resolved). Header, §0, §1 and §14 updated to say exactly what that does and does not ratify (the document, not R1–R10). R1–R10 remain proposals.
 - **0.1 (2026-10-21):** created as the living REW manual, merging and replacing `STAGE7_BLOCKER.md` and `STAGE7_API_DATABASE_PLAN.md` (owner direction). Marked everything not already established as `[PROPOSAL]`/`[2ND]`/`[OPEN]`; preserved the ten original blocking questions (Q1–Q12 after merge); stated the one honest gap in the retrieval layer (no response hash yet). No code changed.
