@@ -52,6 +52,8 @@ PRESETS = {
               "inputs": {"design": "two_sample", "effect": "5", "n1": "30", "n2": "40", "sd1": "10", "sd2": "12", "alpha": "0.05", "tails": "two_sided", "target_power": "0.8"}},
     "missing": {"objective": "How much could the missing values move the mean?", "method": "missing_data_bounds", "unit": "points", "period": "cross_section",
                 "inputs": {"values": ["10", "12", "", "14", "99", "16"], "missing_codes": ["99"], "mechanism": "unknown"}},
+    "weighted": {"objective": "Summarize the survey scores with the design weights", "method": "weighted_summary", "unit": "points", "period": "cross_section",
+                 "inputs": {"values": ["1", "2", "3", "4"], "weights": ["1", "1", "1", "3"], "weight_kind": "reliability"}},
     "accounts": {"objective": "Prepare the management accounts for the period", "method": "management_accounts", "currency": "USD",
                  "inputs": {"spec": accounts.EXAMPLE_SPEC}},
     "case": {"objective": "A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.", "context": "Single owner, three shops"},

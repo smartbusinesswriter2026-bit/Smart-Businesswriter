@@ -1703,6 +1703,103 @@ def _md_template(outputs, period, thresholds=None):
             "Under the extreme-case convention the complete-data mean lies between " + tok("bound_low") + " and " + tok("bound_high") + ". "
             "The declared missing-data mechanism is recorded as a declaration, not as a verified fact.")
 
+# ---------- Weighted summary (manual 9B.3; B-063) ----------
+# Summaries under design or frequency weights. NO inference is provided: without a declared complex design
+# there is no honest standard error, so none is manufactured. The weight kind is declared and overridable.
+_WEIGHT_KINDS = ("reliability", "frequency")
+
+def _w_missing_codes(inp): return {D(str(c)) for c in inp.get("missing_codes", [])}
+
+def _w_is_missing(x, codes):
+    return x is None or (isinstance(x, str) and not x.strip()) or D(str(x)) in codes
+
+def _w_pairs(inp):
+    """(valid (value, weight) pairs, number of missing entries). One weight per value, including missing ones."""
+    codes = _w_missing_codes(inp); pairs, miss = [], 0
+    for x, w in zip(inp["values"], inp["weights"]):
+        if _w_is_missing(x, codes): miss += 1; continue
+        pairs.append((D(str(x)), D(str(w))))
+    return pairs, miss
+
+def _w_stats(pairs, kind):
+    sw = sum((w for _, w in pairs), D(0)); sw2 = sum((w * w for _, w in pairs), D(0))
+    mean = sum((w * x for x, w in pairs), D(0)) / sw
+    ss = sum((w * (x - mean) ** 2 for x, w in pairs), D(0))
+    denom = sw - sw2 / sw if kind == "reliability" else sw - 1
+    if denom <= 0: raise DataError("the weights leave no degrees of freedom for the weighted standard deviation")
+    n_eff = sw * sw / sw2
+    return {"weighted_mean": mean, "weighted_sd": (ss / denom).sqrt(), "sum_weights": sw,
+            "n_eff": n_eff, "design_effect": D(len(pairs)) / n_eff}
+
+def _w_reference(pairs, kind):
+    f = [(float(x), float(w)) for x, w in pairs]
+    sw = sum(w for _, w in f); sw2 = sum(w * w for _, w in f); mean = sum(w * x for x, w in f) / sw
+    ss = sum(w * (x - mean) ** 2 for x, w in f); denom = sw - sw2 / sw if kind == "reliability" else sw - 1
+    n_eff = sw * sw / sw2
+    return {"weighted_mean": mean, "weighted_sd": math.sqrt(ss / denom), "sum_weights": sw, "n_eff": n_eff, "design_effect": len(f) / n_eff}
+
+def _w_impl(inp):
+    pairs, miss = _w_pairs(inp)
+    if len(pairs) < 2: raise DataError("at least two valid weighted observations are needed")
+    if any(w <= 0 for _, w in pairs): raise DataError("every weight must be positive")
+    kind = inp.get("weight_kind", "reliability")
+    if kind not in _WEIGHT_KINDS: raise DataError("weight_kind must be one of: " + ", ".join(_WEIGHT_KINDS))
+    st = _w_stats(pairs, kind)
+    out = {"n": D(len(pairs)), "n_missing": D(miss), "sum_weights": _fd(st["sum_weights"]), "weighted_mean": st["weighted_mean"],
+           "weighted_sd": st["weighted_sd"], "n_eff": _fd(st["n_eff"]), "design_effect": _fd(st["design_effect"])}
+    appendix = {"weight_kind": kind,
+                "definitions": {"weighted_mean": "sum(w*x) / sum(w)",
+                                "reliability_sd": "sqrt( sum(w*(x-mean)^2) / (sum(w) - sum(w^2)/sum(w)) )  [unbiased under reliability weights]",
+                                "frequency_sd": "sqrt( sum(w*(x-mean)^2) / (sum(w) - 1) )  [frequency weights count observations]",
+                                "n_eff": "sum(w)^2 / sum(w^2)  [effective sample size]", "design_effect": "n / n_eff"},
+                "inference": "None is provided. No standard error, confidence interval or test is computed, because that needs a declared complex design (stratification, clustering, replicate weights)."}
+    return {**out, "_appendix": appendix, "_checks": _w_checks(inp, pairs, out)}
+
+def _w_checks(inp, pairs, out):
+    kind = inp.get("weight_kind", "reliability")
+    ref = _w_reference(pairs, kind)
+    vals = [x for x, _ in pairs]; mn = min(vals); spread = len(set(vals)) > 1
+    eq = _w_stats([(x, D(1)) for x, _ in pairs], "reliability")
+    scaled = _w_stats([(x, w * 3) for x, w in pairs], kind)
+    heavier = _w_stats([(x, w * (D(1) + (x - mn) ** 2)) for x, w in pairs], kind)
+    ordinary = describe_impl({"values": [str(x) for x in vals], "missing_codes": []})
+    return [
+        ("second_implementation_agrees", all(_close(out[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("equal_weights_reproduce_the_unweighted_summary", _close(eq["weighted_mean"], ordinary["mean"]) and _close(eq["weighted_sd"], ordinary["sd"]), "unit weights are the ordinary sample summary"),
+        ("mean_is_invariant_to_weight_scaling", _close(scaled["weighted_mean"], out["weighted_mean"]), "multiplying every weight by a constant leaves the mean unchanged"),
+        ("larger_values_weighted_more_raise_the_mean", heavier["weighted_mean"] > out["weighted_mean"] if spread else True, "extra weight on values farther above the minimum moves the mean upward"),
+        ("design_effect_is_one_for_equal_weights", _close(eq["design_effect"], D(1)), "equal weights give an effective sample size equal to n"),
+    ]
+
+def _w_tests(inp, impl): return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def _w_profile(inp):
+    try:
+        vals, wts = inp["values"], inp["weights"]
+        if len(vals) != len(wts): return ["'weights' must have one entry per value (missing values included)"]
+        pairs, _miss = _w_pairs(inp)
+        if len(pairs) < 2: return ["at least two valid weighted observations are needed"]
+        if any(w <= 0 for _, w in pairs): return ["every weight must be positive; zero or negative weights are refused"]
+        if inp.get("weight_kind", "reliability") not in _WEIGHT_KINDS: return ["weight_kind must be one of: " + ", ".join(_WEIGHT_KINDS)]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["weighted-summary inputs are malformed: values and weights must be lists of numbers of the same length"]
+
+def _w_typing(metric):
+    if metric in ("n", "n_missing"): return ("count", 0)
+    if metric in ("sum_weights", "n_eff", "design_effect"): return ("ratio", 4)
+    return ("@unit", 2)
+
+def _w_caveats(out, thresholds):
+    return ["The weight kind is declared: reliability weights treat the weights as precision-style weights (unbiased variance), frequency weights treat them as counts of observations. The two give different standard deviations.",
+            "Weights are not validated: a design weight recorded incorrectly is used as given, and unequal weights reduce the effective sample size (the reported design effect shows by how much)."]
+
+def _w_template(outputs, period, thresholds=None):
+    P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The weighted mean is " + tok("weighted_mean") + " with a weighted standard deviation of " + tok("weighted_sd") + ", over " + tok("n") + " observations with a total weight of " + tok("sum_weights") + ". "
+            "The effective sample size is " + tok("n_eff") + ", so the design effect is " + tok("design_effect") + ". "
+            "No standard error or test is reported: that needs a declared complex design, which this method does not assume.")
+
 # ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
 def accounts_impl(inp):
     from . import accounts
@@ -1918,6 +2015,21 @@ LIBRARY = {
                   assumptions=("The observed values are correct and the declared missing codes fully identify missing entries.", "Missing values lie somewhere between the observed minimum and maximum."),
                   limitations=("Bounds cover the mean only; they are not estimates and imply no probabilistic mechanism.", "No imputation, no MAR/MCAR/MNAR model and no verification of the declared mechanism.", "With many missing values the bounds can be so wide as to be uninformative, which is the honest answer."),
                   default_period="cross_section", caveats=_md_caveats, template=_md_template, claim_ceiling="descriptive", typing=_md_typing),
+    "weighted_summary": Method("weighted_summary", "T1", _w_impl, _w_tests, _w_profile, "weighted_mean", "from_request", None,
+                  ("second_implementation_agrees", "equal_weights_reproduce_the_unweighted_summary", "mean_is_invariant_to_weight_scaling",
+                   "larger_values_weighted_more_raise_the_mean", "design_effect_is_one_for_equal_weights"),
+                  category="descriptive statistics",
+                  intended_use="Summarize a variable under declared design or frequency weights: weighted mean, weighted standard deviation, effective sample size and design effect.",
+                  unsupported_use="Standard errors, confidence intervals or tests that need a complex design; stratification, clustering or replicate weights; imputing or dropping weights; validating that the supplied weights are correct.",
+                  input_schema={"values": {"type": "value_list", "min_items": 1, "desc": "the observations; blank or null counts as missing"},
+                                "weights": {"type": "value_list", "min_items": 1, "desc": "one positive weight per value, same length as values (a missing value's weight is dropped with it)"},
+                                "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes such as 99; never read as values"},
+                                "weight_kind": {"type": "enum", "values": ["reliability", "frequency"], "required": False, "desc": "reliability (precision-style, default) or frequency (counts of observations)"}},
+                  defaults=({"question": "What the weights mean", "default_chosen": "Reliability weights: the variance is the unbiased weighted variance sum(w(x-mean)^2)/(sum(w) - sum(w^2)/sum(w)). Frequency weights use sum(w(x-mean)^2)/(sum(w)-1) and must be declared.", "impact": "The two conventions give different weighted standard deviations."},
+                            {"question": "Inference", "default_chosen": "No standard error, interval or test is computed, because an honest one needs a declared complex design.", "impact": "Users who need design-based inference must supply a design-aware method, which is not implemented."}),
+                  assumptions=("Each weight is positive and belongs to its value.", "The declared weight kind matches how the weights were produced.", "Missing values are excluded listwise together with their weights."),
+                  limitations=("Summaries only; no design-based inference, stratification, clustering or replicate weights.", "Weights are not validated; a wrong weight is used as given.", "Reliability and frequency weights give different weighted standard deviations; the kind must be declared."),
+                  default_period="cross_section", caveats=_w_caveats, template=_w_template, claim_ceiling="descriptive", typing=_w_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
                   ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",

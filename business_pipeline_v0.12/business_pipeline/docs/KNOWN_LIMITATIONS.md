@@ -137,6 +137,12 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with the weighted summary (B-063)
+- `weighted_summary` produces **summaries only**: weighted mean, weighted standard deviation, effective sample size and design effect. There is **no standard error, confidence interval or test**, because design-based inference needs a declared complex design (stratification, clustering, replicate weights) that is not implemented. The delivery says this explicitly.
+- The weight kind must be declared: `reliability` (precision-style, unbiased weighted variance) or `frequency` (counts of observations). The two give different standard deviations; the convention is stated in the appendix.
+- Weights are not validated. A wrong design weight is used as given, and unequal weights reduce the effective sample size — the design effect shows by how much. Zero, negative, mismatched-length and blank weights are refused rather than silently dropped.
+- This is the only method that accepts weights. Other statistical methods still refuse a `weights` input with a specific reason, so a weighted dataset cannot be analysed as if it were a simple random sample elsewhere.
+
 ## Added with the missing-data bounds (B-062)
 - `missing_data_bounds` reports **extreme-case bounds** for the complete-data mean: every missing value at the observed minimum or maximum. The bounds are honest but can be very wide, and a wide bound is the correct answer when little can be assumed.
 - There is **no imputation** and **no MAR/MCAR/MNAR model**. The `mechanism` input is the owner's declaration: it is recorded with a note that it cannot be verified from the data, and it changes no number.

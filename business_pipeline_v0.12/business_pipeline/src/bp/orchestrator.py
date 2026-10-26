@@ -44,8 +44,10 @@ def _honesty(m, inp):
         multiple = None
     power = ("No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved."
              if inferential else None)
-    weights = ("Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent."
-               if inferential else None)
+    weights = ("Weights are applied to the summary only; no standard error, interval or test is computed because that needs a declared complex design (stratification, clustering, replicate weights)."
+               if m.name == "weighted_summary" else
+               ("Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent."
+                if inferential else None))
     out = {"missing_data": missing, "multiple_comparisons": multiple, "power": power, "weights_and_clusters": weights}
     return out, [v for v in out.values() if v]
 
