@@ -1,5 +1,22 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-26 — [product] Subject-first navigation and the Calculator launcher (build 0.65)
+
+**Ask:** "read discussion notebook and implement it" — the notebook's build brief (section G, Increment 1) plus the owner's rail Calculator instruction (section N).
+
+**Did:** implemented the first increment, not the whole four-increment plan. **Product catalogue:** new `src/bp/product/subjects.py` is a committed, testable index of 9 subjects (Accounting, Finance, Economics, Management & strategy, Operations, Supply chain & logistics, Marketing & customers, People & organisation, Research & statistics as a cross-cutting shelf). Each subject maps to the frozen preset ids / method ids it can actually launch, the three existing T4 worksheets (STR-01 Five Forces, STR-07 and STR-18 SWOT) as structure-only, and the registry records it can only read or structure with the registry's own `implementation_status` wording. A generation helper (`scripts/generate_subjects.py`) writes the registry slice; `tests/test_product_subjects.py` re-reads the frozen fixture and registry as data and fails on any drift. **Routes (additive, `/api/cases` only):** `GET /api/cases/subjects`, `GET /api/cases/subjects/{id}`, `GET /api/cases/calculator`, and `GET /api/cases?subject=<id>` (stored cases filtered by the methods the subject can launch). **Calculator:** seven business-function groups (Finance, Accounting, Statistics, Economics, Operations, Marketing, People) built from the same compute tools; it arranges inputs and calls the existing create-then-confirm pipeline. No client-side formula, no product-layer arithmetic, no new arithmetic path; free-form expressions are named as unsupported rather than silently absent. **Served UI (`web/index.html`):** seven-item rail Home | Subjects | Calculator | Case | Catalogue | Assistant | Status; Home is a case shelf (stored cases + subject cards + the existing objective box); subject pages show tools, worksheets, stored cases and an explicit catalogue-only table; a searchable Calculator; the "Draft work plan" destination is replaced by a one-button tool screen ("Apply figures and calculate" performs the same two calls), while the phrase survives honestly in the recorded-metadata panel the frozen test asserts; `framework_suggestions` is finally rendered (informational only); the hero sub-line is no longer "To be supplied"; a malformed `</section` in the served HTML was fixed. **Not implemented, deliberately:** C1 `bp-case/2` multi-run cases, the Accounting/Finance workbenches, and the remaining subject workbenches (Increments 2–4); the Home copy says a run is still saved as a one-run case.
+
+**Files:** `src/bp/product/subjects.py` (new), `scripts/generate_subjects.py` (new), `src/bp/product/api.py` (imports, subject/calculator routes, subject filter), `tests/test_product_subjects.py` (new, 14 tests), `tests/test_product_server.py` (one HTTP route test), `web/index.html`, `docs/DISCUSSION_NOTEBOOK.md` (new dated entry + brief Status line), `docs/CHANGELOG.md` (0.65), `docs/DECISIONS.md` (B-090), `docs/BACKEND_CONTRACT.md` §6 + test count, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`, this entry.
+
+**Verified:** full suite **748 tests OK**; `node --check` on the extracted page script; the subject drift guard confirms every launch id exists in the frozen fixture and every catalogue id in the registry; the product boundary test still shows no core import and no product-layer arithmetic. No frozen module, frozen fixture or existing test was edited.
+
+**Commit:** `this commit`.
+
+**Open/next:** the owner decisions in notebook section J remain open, especially (2) whether one case should hold many subject analyses (the C1 decision) and (4)/(5) whether the 131 catalogue-only records should stay visible and whether B-028 should add worksheets. Increment 2 (C1), the Accounting workbench and the Finance/DCF sheet are the next build steps, not part of this increment.
+
+---
+
+
 ## 2026-10-21 — [documentation] Website UI brief for the design owner (plan mode)
 
 **Ask:** write the instruction for MiniMax/OpenCode to build the website: A1.jpg as inspiration, the owner's logo as the site logo, colored feature icons on the left rail, remove the API/Enterprise top-right items, delete the "Trusted by 11 million" block and the university row, retain the circular chat button restyled to the brand, UI sans-serif except generated document text (Times New Roman), and **plan mode first** so MiniMax can ask clarifying questions before building.

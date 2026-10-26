@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.64**, **733 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.65**, **748 tests**, 2026-10-26. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -63,7 +63,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`literature.py`](../src/bp/literature.py) | DOI retrieval + verification, response audit, durable retrieval log, provisional citation | `test_literature`, `test_literature_api`, `test_literature_log` | B-040, B-054, B-058; REW §9 |
 | [`server.py`](../src/bp/server.py) | Stdlib HTTP API, `PRESETS` | `test_session_api`, `test_literature_api` | B-002 |
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | — |
-| [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch. Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088 |
+| [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch, and the subject index + Calculator launcher (`subjects.py`). Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088, B-090 |
 
 ## 3. By capability and status
 
@@ -111,6 +111,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`SOURCE_INVENTORY.md`](SOURCE_INVENTORY.md) | Historical snapshot — which supplied documents had been read, at the time | Never rewrite; it records that point in time, not the current inventory |
 | [`proposals/`](proposals/) | Draft proposals for owner review (not authority) | Marked DRAFT; never cite as a decision, and never as the computation owner's advice |
 | [`UI_BRIEF.md`](UI_BRIEF.md) | Owner instruction for the website UI phase (design owner) | Plan-mode first; keep the frozen contract, compute nothing in the UI, no invented content |
+| [`DISCUSSION_NOTEBOOK.md`](DISCUSSION_NOTEBOOK.md) | Living, append-only owner-review and design-discussion record; newest entry at the top | Never rewrite an old entry; supersede it; every entry must end with where it could be wrong |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** — never edit; amend via decisions |
 
 ## 5. Conventions for this map

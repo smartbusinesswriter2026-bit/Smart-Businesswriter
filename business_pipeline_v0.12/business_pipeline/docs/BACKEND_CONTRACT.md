@@ -63,7 +63,7 @@ An unfreeze is a decision, not a commit:
 - **Methods (36).** T1: npv, irr, discounted_payback, breakeven, descriptive_stats, pearson, spearman, ols, ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, paired_t, one_sample_t, two_way_anova, posthoc_pairwise, wacc, currency_convert, unit_economics, multi_product_breakeven, logistic_regression, reliability_alpha, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary. T2: cost_benefit, cost_effectiveness, sroi, dcf_valuation, equity_bridge, management_accounts.
 - **Presets (38).** See `GET /api/presets`; each preset names a method, a period, optional unit/currency and a valid declared input set.
 - **Templates (T4/T2).** swot, five_forces, case_decision (registry-linked, evidence-only).
-- **Test suite:** 618 tests. The guard adds three contract tests.
+- **Test suite:** 748 tests. The guard adds three contract tests.
 
 ## 6. Product surface added by the design owner (B-080)
 
@@ -82,6 +82,7 @@ An unfreeze is a decision, not a commit:
 | Case backup/restore (B-088) | `POST /api/cases/backup`, `POST /api/cases/restore`, `GET /api/cases/backups`; `bp.product.ops` | the case store's JSON documents only, with a manifest + SHA-256; zip-slip/non-JSON refused |
 | Local launcher (B-088) | `scripts/serve.py` (`--port`, `--host`, `--no-sandbox`, `--check`) | starts the frozen server; resolves `BP_CASES_DIR`/`BP_STATE_DIR`/`BP_REQUEST_LOG` |
 | Charts, spreadsheets, diagrams (B-089) | `POST /api/cases/{id}/render`, `POST /api/cases/{id}/export`; `bp.product.charts`, `.spreadsheets`, `.diagrams` | stored artifact values only: SVG charts and structure-only diagrams with digit-free labels, CSV/SpreadsheetML cells copied as strings; deterministic; no model call |
+| Subject index and Calculator (B-090) | `GET /api/cases/subjects`, `GET /api/cases/subjects/{id}`, `GET /api/cases/calculator`, `GET /api/cases?subject=<id>`; `bp.product.subjects`, `scripts/generate_subjects.py` | **launcher descriptors only**: frozen preset ids, method ids and template ids, grouped by business subject and business function; stored case summaries filtered by their recorded method. No formula, no scoring, no product-layer arithmetic; the Calculator calls the normal `POST /api/sessions` -> `confirm` pipeline |
 
 **Wiring note.** The `/api/cases` routes are served by the frozen server through an additive extension (B-085): `server.py` imports `bp.product.api`, delegates GET/POST/DELETE to `api.handle`, and adds `do_DELETE`; the frozen route fixture is unchanged because the product surface is tracked **here**, not among the frozen 12. New product routes are added in `product/api.py` and need no further core edit. The store holds an opaque bundle; the product layer computes nothing.
 

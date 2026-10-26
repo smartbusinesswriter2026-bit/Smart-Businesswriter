@@ -79,6 +79,15 @@ class ProductRoutes(unittest.TestCase):
         status, listed = self.call("GET", "/api/cases/%s/signoff?version=1" % case_id)
         self.assertEqual(status, 200); self.assertEqual(len(listed["signoffs"]), 1)
 
+    def test_subject_and_calculator_routes_are_reachable_over_http(self):
+        status, gallery = self.call("GET", "/api/cases/subjects")
+        self.assertEqual(status, 200); self.assertEqual(len(gallery["subjects"]), 9)
+        status, page = self.call("GET", "/api/cases/subjects/finance")
+        self.assertEqual(status, 200); self.assertIn("npv", {tool["method"] for tool in page["tools"]})
+        status, calculator = self.call("GET", "/api/cases/calculator")
+        self.assertEqual(status, 200); self.assertEqual(calculator["format"], "bp-calculator/1")
+        self.assertEqual(self.call("GET", "/api/cases/subjects/astrology")[0], 404)
+
     def test_health_backup_and_restore_routes(self):
         case_id = "0123456789ab"
         self.assertEqual(self.call("POST", "/api/cases/%s/versions" % case_id, product_fixtures.make_bundle())[0], 201)

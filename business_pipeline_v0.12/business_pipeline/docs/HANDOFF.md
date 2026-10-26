@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 0.64 (see docs/CHANGELOG.md)
-Tests        : 733 tests, all passing
+Build        : 0.65 (see docs/CHANGELOG.md)
+Tests        : 748 tests, all passing
 ```
 
 ```powershell

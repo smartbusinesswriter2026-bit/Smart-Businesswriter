@@ -11,6 +11,10 @@ The computation owner wired the `/api/cases` prefix into `src/bp/server.py`
 Routes:
 
     GET    /api/cases                            -> 200 {"cases": [summary, ...]}
+    GET    /api/cases?subject=<id>               -> 200 {"cases": [summary, ...]}
+    GET    /api/cases/subjects                   -> 200 subject gallery
+    GET    /api/cases/subjects/{id}              -> 200 subject page
+    GET    /api/cases/calculator                 -> 200 Calculator tool groups
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
     DELETE /api/cases/{id}                       -> 200 {"deleted": id}
@@ -30,6 +34,7 @@ from . import export as case_export
 from . import ops
 from . import signoff as signoff_store
 from . import spreadsheets
+from . import subjects as subject_index
 from . import versions as version_store
 
 CASE_ROUTE = "/api/cases"
@@ -81,7 +86,13 @@ def handle(method, path, body=None):
     # -- the case collection -------------------------------------------------
     if not segments:
         if verb == "GET":
-            return 200, {"cases": case_store.list_cases()}
+            summaries = case_store.list_cases()
+            subject_id = query.get("subject")
+            if subject_id:
+                if not subject_index.exists(subject_id):
+                    return _error("unknown subject %r" % subject_id)
+                summaries = subject_index.filter_cases(summaries, subject_id)
+            return 200, {"cases": summaries}
         if verb == "POST":
             try:
                 case_id = case_store.save(body if isinstance(body, dict) else {})
@@ -89,6 +100,23 @@ def handle(method, path, body=None):
                 return _error(error)
             return 201, case_store.load(case_id)
         return 405, {"error": "method %s is not allowed on %s" % (verb, CASE_ROUTE)}
+
+    # -- subject index and Calculator (product data, no computation) ---------
+    if segments == ["subjects"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on subjects" % verb}
+        return 200, subject_index.catalogue()
+    if len(segments) == 2 and segments[0] == "subjects":
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on a subject" % verb}
+        try:
+            return 200, subject_index.detail(segments[1])
+        except subject_index.SubjectNotFound as error:
+            return 404, {"error": str(error)}
+    if segments == ["calculator"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on the calculator" % verb}
+        return 200, subject_index.calculator_groups()
 
     case_id = segments[0]
     tail = segments[1:]
