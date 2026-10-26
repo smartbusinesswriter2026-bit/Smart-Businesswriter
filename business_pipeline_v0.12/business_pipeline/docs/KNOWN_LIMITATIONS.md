@@ -137,6 +137,10 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with logistic regression and Cronbach's alpha (B-074)
+- `logistic_regression` supports **numeric predictors only** (no categorical dummies, interactions or splines), uses large-sample Wald inference and produces **no goodness-of-fit or calibration statistics**. There is no regularisation: complete separation, a single-class outcome or collinearity block the run instead of returning huge or unstable coefficients. Coefficients are log-odds, not effect sizes or probabilities.
+- `reliability_alpha` measures **internal consistency only**: it is not validity, not unidimensionality and not a factor analysis. It uses listwise deletion and the classic formula (sample variances); ordinal items, standardised alpha, confidence intervals and missing-data mechanisms are not modelled.
+
 ## Added with cost-benefit, cost-effectiveness and SROI (B-073)
 - All three appraisal methods are **arithmetic on declared valuations**. The system does not monetise an unvalued effect, choose a discount rate, apply deadweight/additionality/attribution adjustments, or assume a willingness-to-pay threshold.
 - `cost_benefit` and `sroi` use one rate for all periods and end-of-period timing; there is no risk adjustment, sensitivity distribution or distributional weighting.
