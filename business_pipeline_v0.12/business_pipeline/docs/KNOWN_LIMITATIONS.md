@@ -71,9 +71,9 @@
 
 ## Added with the model provider
 - Never run against a real model. The Anthropic, OpenAI-compatible and DeepSeek adapters are unit-tested with a fake opener only; no live call has been made.
-- Proposal quality is unmeasured; no evaluation set of real cases exists.
+- Proposal quality is unmeasured; no evaluation set of real cases exists yet (a scaffold with synthetic fixtures was added, `src/bp/evaluate.py`).
 - The quote check prevents additions beyond submitted text but cannot stop quoted injected text; user review is the control.
-- The PII scan is a heuristic. Text leaves the machine when assistance is used.
+- The PII scan is a heuristic. Text leaves the machine when assistance is used; personal data is allowed only with explicit acknowledgment (B-038).
 - Proposals are not reproducible; only their hashes are recorded.
 - Only three tasks (facts, alternatives, critique) and only the business-case flow use assistance; other methods and templates do not.
 - Cost is capped by call count only; no price table.

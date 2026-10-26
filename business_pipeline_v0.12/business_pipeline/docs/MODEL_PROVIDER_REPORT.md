@@ -10,7 +10,7 @@ It may **propose**: facts quoted from your case text, alternatives that follow f
 - **References must exist.** Alternatives may cite only fact ids you provided; critique targets must be existing ids or "case"; categories come from a fixed list.
 - **Strict reply shape.** One JSON object with only the expected key; anything else is rejected, never repaired. Counts are capped (15 facts, 5 alternatives, 8 critique items).
 - **Independence.** The critique uses a separate reviewer role; if it is the same model as the builder, the output says so. The critique is labelled "opinion, not verified" and cannot alter the analysis.
-- **Consent and privacy gate.** No call without explicit consent. A heuristic scan for emails, phone-like and long digit sequences blocks the call until you acknowledge. This scan will miss things and is not anonymisation.
+- **Consent and privacy gate.** No call without explicit consent. A heuristic scan for emails, phone-like and long digit sequences blocks the call until you acknowledge it; personal data is permitted only on that explicit acknowledgment (B-038). This scan will miss things and is not anonymisation.
 - **Budget.** Per-server call cap, input size cap, output token cap; exceeding them stops the call.
 - **No secrets.** The API key is read only from the server environment and never logged, returned by any endpoint, or put in client code. Errors never include it (tested).
 - **Audit trail.** Every call is logged by hash (prompt, output), model, provider, prompt-template version and token counts, not by content. Runs you used appear in the frozen spec and the appendix with the statement that the model produced no numbers.
@@ -50,16 +50,19 @@ $env:BP_LLM_BASE_URL = "https://<host>/v1/chat/completions"   # optional overrid
 No model id is defaulted; you choose it. Without these variables the Assistant panel says it is off. The DeepSeek API is billed separately from the "DeepSeek Pro" chat-app subscription.
 
 ## Tests
-`python -m unittest discover -s tests`: **265 tests, OK** (253 before; 12 new). Covered with scripted fake models: exact-excerpt rule, invented and paraphrased facts, injection attempts, digit and currency rejection, id validation, shape rules, caps, reviewer role and same-model disclosure, consent, budget, PII gate, hash-only logging, the Anthropic and DeepSeek/OpenAI-compatible adapters' request construction, headers, timeout and error mapping without key leakage, environment configuration (including BP_LLM_BASE_URL), all endpoints and status codes (400, 422, 429, 502, 503), and the run-to-spec-to-appendix flow.
-**Not tested:** any real model; the adapter against the live API; the Assistant panel in a browser; Windows.
+`python -m unittest discover -s tests`: **271 tests, OK** (265 before; 6 new). Covered with scripted fake models: exact-excerpt rule, invented and paraphrased facts, injection attempts, digit and currency rejection, id validation, shape rules, caps, reviewer role and same-model disclosure, consent, budget, PII gate, hash-only logging, the Anthropic and DeepSeek/OpenAI-compatible adapters' request construction, headers, timeout and error mapping without key leakage, environment configuration (including BP_LLM_BASE_URL), all endpoints and status codes (400, 422, 429, 502, 503), the run-to-spec-to-appendix flow, and the held-out evaluation scorer (facts precision/recall/F1, alternatives/critique coverage).
+**Not tested:** any real model; the adapter against the live API; the Assistant panel in a browser; Windows; the evaluation harness against real held-out cases.
+
+## Held-out evaluation (B-039, PROVISIONAL)
+`src/bp/evaluate.py` scores proposals against human-labelled gold data: facts by precision/recall/F1 (exact quotes, the rule the code already enforces), alternatives by a coarse containment proxy, and critique by category+target coverage. Run it with `PYTHONPATH=src python -m bp.evaluate tests/fixtures/eval_cases.json` against a configured provider. The two fixtures are **synthetic author-written cases, not real held-out cases**; a real evaluation needs cases the prompt was not designed against, plus a baseline. Until then the alternatives/critique scores are review indicators, not verdicts.
 
 ## Risks that remain
-- **Model quality is unmeasured.** The charter (8.3) requires a baseline and held-out cases before trusting a prompt. None exist for real cases. Prompt version `assist-0.1` is unevaluated; expect reasonable but unproven fact extraction, generic alternatives, and critiques that may be vague.
+- **Model quality is unmeasured.** The charter (8.3) requires a baseline and held-out cases before trusting a prompt. A scaffold now exists but the fixtures are synthetic; real held-out cases and a baseline are still missing. Prompt version `assist-0.1` is unevaluated on real cases; expect reasonable but unproven fact extraction, generic alternatives, and critiques that may be vague.
 - **Non-determinism.** Temperature 0 does not make a model reproducible; re-performance reproduces computation, not proposals. Proposals you used are recorded by hash only.
 - **Correlated errors** if builder and reviewer are the same model.
-- **Privacy and contracts.** Submitted text leaves your machine. Retention, training use and regulatory status depend on your agreement with the provider, which I cannot see.
+- **Privacy and contracts.** Submitted text leaves your machine. The owner has accepted the provider's retention/training terms (B-038) and personal data is allowed only with explicit acknowledgment, but retention, training use and regulatory status depend on the agreement with the provider, which I cannot verify.
 - **Cost.** No price table is built in; usage is logged in tokens and capped by calls. The default cap of 50 calls per server run is a placeholder.
 - **Vendor choice.** Adapters now exist for Anthropic (Messages API) and for OpenAI-compatible Chat Completions (OpenAI, DeepSeek, local vLLM/Ollama). The owner chose DeepSeek for computation (B-036). DeepSeek's live adapter is still untested against the real API in this build, exactly as the Anthropic adapter was.
 
-## Owner decisions needed
-B-036 is now resolved (DeepSeek). Still open: B-038 (DeepSeek's data-handling, retention and training terms, and whether personal data may ever be sent) and B-039 (the budget and a held-out-case evaluation plan) in `docs/DECISIONS.md`. The PII gate is a heuristic, not anonymisation, and DeepSeek's retention is a fact you must confirm against your agreement with the provider.
+## Owner decisions
+B-036 resolved: DeepSeek for computation. B-038 resolved: personal data may be sent only with the user's explicit acknowledgment, and the owner accepts the provider's retention and training terms. B-039 partial: the budget is still the placeholder and a real held-out evaluation is pending; the scaffold above is the starting point.

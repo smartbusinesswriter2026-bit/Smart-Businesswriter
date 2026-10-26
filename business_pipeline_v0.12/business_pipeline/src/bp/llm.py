@@ -87,8 +87,7 @@ class LLMConfig:
     max_calls_total: int = 50            # per server run
     max_input_chars: int = 20000
     max_output_tokens: int = 1500
-    privacy_notice: str = ("Text you submit is sent to the model provider you configured. Do not submit personal, confidential or regulated data unless your agreement with that provider "
-                           "allows it. Model output is a proposal only: code validates it and you confirm it. The model produces no numbers.")
+    privacy_notice: str = ("Text you submit is sent to the model provider you configured. Personal or confidential data may be submitted only with your explicit acknowledgment, and only if your agreement with the provider covers its retention and use. Model output is a proposal only: code validates it and you confirm it. The model produces no numbers.")
 
 class Models:
     """Builder and reviewer roles. Using different models for the two roles is recommended (manual 10: decorrelate errors)."""
