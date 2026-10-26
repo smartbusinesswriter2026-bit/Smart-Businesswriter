@@ -18,3 +18,8 @@ env/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Runtime artefacts: never commit case data, operational state or retrieval logs
+business_pipeline_v0.12/business_pipeline/cases/
+business_pipeline_v0.12/business_pipeline/state/
+business_pipeline_v0.12/business_pipeline/retrieval_log.jsonl

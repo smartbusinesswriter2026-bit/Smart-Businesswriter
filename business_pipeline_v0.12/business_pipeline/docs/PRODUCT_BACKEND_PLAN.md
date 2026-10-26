@@ -48,10 +48,10 @@ Owner deferred it on 2026-10-21 ("lets add the disclosure later. this is not don
 
 - ~~Reviewer sign-off record~~ — **done in 2a** (append-only records with the owner-approved Option-A wording and the signed per-version hashes).
 - ~~Multi-period comparatives and case versioning (Option A)~~ — **done in 2a** (immutable versions; comparison with declared comparability rules and stored values only).
-- **2b. AI-use disclosure export** — deferred by D3; returns as its own decided slice (audience + wording) after the core product backend works.
-- **2b. Model pinning / drift gate surface**: display and record which model id/version was used for optional assistance, with the existing `assist`/`llm` contract; no new model capability.
-- **2b. Ops and observability**: request log that excludes case content and personal data, model-call counters/budgets, health endpoint, export/backup-restore of the case directory.
-- **2b. Offline packaging**: a single local install/run path for the frozen core + product layer (stdlib core preserved), with a version pin and a windowless start.
+- ~~Model pinning / drift gate surface~~ — **covered in 2b**: `/api/health` reports whether model assistance is on and `/api/assist/config` reports the provider/model ids and call counts; no new model capability.
+- ~~Ops and observability~~ — **done in 2b** for the local scope: content-free request log, health endpoint, backup/restore. A hosted deployment would add rate limits and external log shipping under D1's later "improve" step.
+- ~~Offline packaging~~ — **done in 2b**: `scripts/serve.py` is the single local run path with a `--check` dry-run; a packaged installer (or pyproject/one-file build) is deferred until the UI phase is settled.
+- **2b — remaining:** AI-use disclosure export (deferred by D3; needs its own decision on audience/wording).
 
 ## Phase 2c — deliverable graphics and spreadsheets (B-087; before the UI)
 

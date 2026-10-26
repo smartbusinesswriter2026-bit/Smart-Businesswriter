@@ -19,8 +19,10 @@ class ProductRoutes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dir = tempfile.mkdtemp(prefix="bp-server-cases-")
-        cls.prev = os.environ.get("BP_CASES_DIR")
+        cls.prev = {key: os.environ.get(key) for key in ("BP_CASES_DIR", "BP_STATE_DIR", "BP_REQUEST_LOG")}
         os.environ["BP_CASES_DIR"] = cls.dir
+        os.environ["BP_STATE_DIR"] = os.path.join(cls.dir, "state")
+        os.environ["BP_REQUEST_LOG"] = os.path.join(cls.dir, "state", "requests.jsonl")
         cls.srv = ThreadingHTTPServer(("127.0.0.1", 0), server.H)
         cls.base = f"http://127.0.0.1:{cls.srv.server_address[1]}"
         threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
@@ -28,8 +30,9 @@ class ProductRoutes(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.srv.shutdown(); cls.srv.server_close()
-        if cls.prev is None: os.environ.pop("BP_CASES_DIR", None)
-        else: os.environ["BP_CASES_DIR"] = cls.prev
+        for key, value in cls.prev.items():
+            if value is None: os.environ.pop(key, None)
+            else: os.environ[key] = value
         import shutil
         shutil.rmtree(cls.dir, ignore_errors=True)
 
@@ -75,6 +78,31 @@ class ProductRoutes(unittest.TestCase):
         self.assertEqual(status, 201); self.assertEqual(record["decision"], "reviewed")
         status, listed = self.call("GET", "/api/cases/%s/signoff?version=1" % case_id)
         self.assertEqual(status, 200); self.assertEqual(len(listed["signoffs"]), 1)
+
+    def test_health_backup_and_restore_routes(self):
+        case_id = "0123456789ab"
+        self.assertEqual(self.call("POST", "/api/cases/%s/versions" % case_id, product_fixtures.make_bundle())[0], 201)
+        status, health = self.call("GET", "/api/health")
+        self.assertEqual(status, 200); self.assertEqual(health["format"], "bp-ops/1")
+        self.assertIn("sandbox", health); self.assertGreaterEqual(health["case_store"]["versions"], 1)
+        status, info = self.call("POST", "/api/cases/backup", {})
+        self.assertEqual(status, 201); self.assertTrue(os.path.isfile(info["archive"]))
+        status, listed = self.call("GET", "/api/cases/backups")
+        self.assertEqual(status, 200); self.assertTrue(any(row["archive"] == info["archive"] for row in listed["backups"]))
+        self.assertEqual(self.call("POST", "/api/cases/restore", {})[0], 422)
+        status, restored = self.call("POST", "/api/cases/restore", {"archive": info["archive"], "overwrite": True})
+        self.assertEqual(status, 200, restored); self.assertGreaterEqual(restored["restored"], 1)
+
+    def test_the_request_log_records_no_case_content(self):
+        body = product_fixtures.make_bundle()
+        self.call("POST", "/api/cases", body)
+        log = os.environ["BP_REQUEST_LOG"]
+        self.assertTrue(os.path.isfile(log), "the request log was not written")
+        text = open(log, encoding="utf-8").read()
+        self.assertIn('"path": "/api/cases"', text)
+        self.assertNotIn("The net present value is 50.00", text)     # no report text
+        self.assertNotIn("cashflows", text)                          # no input body
+        self.assertNotIn('"title"', text)                            # no case metadata
 
     def test_existing_routes_are_unchanged(self):
         status, presets = self.call("GET", "/api/presets")

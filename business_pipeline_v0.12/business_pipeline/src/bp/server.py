@@ -1,17 +1,18 @@
 """Minimal JSON API + static shell (stdlib only; FastAPI can replace this later behind the same routes)."""
-import json, os, re, sys
+import json, os, re, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api
+from .product import api as product_api, ops as product_ops
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
 M = SessionManager(assist_runs=ASSIST_RUNS)
 MODELS = None            # llm.Models or None (model assistance off)
+SANDBOX_ENABLED = True   # set by serve(); reported by /api/health
 LITERATURE_SOURCES = {"crossref": literature.CrossrefSource(), "openalex": literature.OpenAlexSource()}
 LITERATURE_AUTO = ("crossref", "openalex")   # declared priority order (B-064): Crossref first, OpenAlex fallback
 LITERATURE_LABELS = {"crossref": "Crossref", "openalex": "OpenAlex", "auto": "Auto (Crossref, then OpenAlex)"}
@@ -106,12 +107,20 @@ class H(BaseHTTPRequestHandler):
         b = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
         self.send_header("X-Content-Type-Options", "nosniff"); self.end_headers(); self.wfile.write(b)
+        started = getattr(self, "_started", None)
+        if started is not None:
+            product_ops.log_request(self.command, self.path, code,
+                                    (time.monotonic() - started) * 1000.0)   # method/path/status/ms only: no body
     def _body(self, maxb=None):
         n = int(self.headers.get("Content-Length") or 0)
         if n > (maxb or MAXBODY): raise ValueError("body too large")
         return json.loads(self.rfile.read(n) or b"{}", parse_float=Decimal)
     def do_GET(self):
+        self._started = time.monotonic()
         try:
+            if self.path == "/api/health":
+                return self._send(200, product_ops.health({"sandbox": "on" if SANDBOX_ENABLED else "off (development)",
+                                                          "model_assistance": bool(MODELS)}))
             if self.path == "/": 
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/api/presets": return self._send(200, PRESETS)
@@ -161,6 +170,7 @@ class H(BaseHTTPRequestHandler):
             self._send(404, {"error": "not found"})
         except KeyError as e: self._send(404, {"error": "unknown session" if "registry" not in str(e) else str(e).strip("'\"")})
     def do_POST(self):
+        self._started = time.monotonic()
         try:
             if self.path.startswith(product_api.CASE_ROUTE):
                 n = int(self.headers.get("Content-Length") or 0)
@@ -179,6 +189,7 @@ class H(BaseHTTPRequestHandler):
         except KeyError: self._send(404, {"error": "unknown session"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
     def do_DELETE(self):
+        self._started = time.monotonic()
         try:
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("DELETE", self.path))
             self._send(404, {"error": "not found"})
@@ -242,9 +253,12 @@ class H(BaseHTTPRequestHandler):
         return self._send(200, body)
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
-    global M, MODELS
+    global M, MODELS, SANDBOX_ENABLED
     M = SessionManager(SubprocessSandbox() if sandbox else None, ASSIST_RUNS); MODELS = models if models is not None else llm.from_env()
-    print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})"); ThreadingHTTPServer((host, port), H).serve_forever()
+    SANDBOX_ENABLED = bool(sandbox)
+    print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})")
+    print("Health: /api/health | cases: /api/cases | request log: " + (str(product_ops.request_log_path()) if product_ops.request_log_path() else "disabled"))
+    ThreadingHTTPServer((host, port), H).serve_forever()
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]

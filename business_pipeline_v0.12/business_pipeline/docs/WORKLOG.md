@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Product slice 2b: ops surface and the local launcher (B-088)
+
+**Ask:** continue the backend sequence, and the owner asked "will you also build the server? i notice there is no server yet". Answer: the server already exists (`src/bp/server.py`, stdlib HTTP, `python -m bp.server`, serving the workbench and API, wired to the product routes since B-085); what was missing was the operational/deployment surface, which is this slice.
+**Did:** new `src/bp/product/ops.py` — `health()` (case-store counts, state dir, request-log status, checks, ok/degraded), `log_request()` (JSONL: timestamp, method, query-free path, status, duration only; never a body/title/input/report; `BP_REQUEST_LOG=""` disables; best-effort), `backup()` (zip of the case store's JSON documents + manifest + SHA-256; state/logs/prior archives excluded), `restore()` (zip-slip/drive/non-JSON refusal, staging then copy, refuses overwrite unless asked), `list_backups()`. Additive core instrumentation in `server.py`: a timing hook feeding the request log, `GET /api/health` (merging sandbox/model flags), and startup lines for URL/health/log — no existing route, output or claim changed (frozen guard still passes). New `scripts/serve.py` launcher as the single local run path: `--port`, `--host`, `--no-sandbox`, and `--check` dry-run printing the resolved config; it adds `src` to `sys.path` so a clean checkout needs no install. Product routes `POST /api/cases/backup`, `POST /api/cases/restore`, `GET /api/cases/backups`.
+**Files:** `src/bp/product/ops.py` (new), `src/bp/product/api.py`, `src/bp/server.py` (additive instrumentation), `scripts/serve.py` (new), `tests/test_product_ops.py`, `tests/test_launcher.py`, `tests/test_product_server.py` (extended), docs (B-088, CHANGELOG 0.62, BACKEND_CONTRACT §6, PRODUCT_BACKEND_PLAN 2b, README, HOME, HANDOFF/CONTRIBUTORS digits, this entry).
+**Verified:** full suite **714 tests OK** (frozen-contract and docs-state guards included); health/backup/restore and the launcher were exercised over a real HTTP server; the request-log test asserts no report text, input body or title reaches the log.
+**Commit:** `this commit`.
+**Open/next:** Phase 2c (deterministic charts/SpreadsheetML/diagram templates, B-087) is the last backend task before the UI; after it I stop, per the owner's instruction to hold the interface until special instructions.
+
+---
+
 ## 2026-10-21 — [computation] Product slice 2a: case versions, comparison and sign-off (B-086)
 
 **Ask:** "continue on the sequence of backend product building. do it yourself the job you are delegating because you will not accept cline's work and still edit it." Plus the important addition about spreadsheets/charts (recorded as B-087 and planned as Phase 2c; nothing in this slice draws graphics).

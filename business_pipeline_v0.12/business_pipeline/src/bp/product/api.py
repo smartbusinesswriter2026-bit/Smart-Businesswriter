@@ -24,6 +24,7 @@ Routes:
 
 from . import cases as case_store
 from . import compare as comparator
+from . import ops
 from . import signoff as signoff_store
 from . import versions as version_store
 
@@ -87,6 +88,27 @@ def handle(method, path, body=None):
 
     case_id = segments[0]
     tail = segments[1:]
+
+    # -- maintenance surface (backup / restore / list backups) ---------------
+    if not tail and segments[0] in ("backup", "restore", "backups"):
+        action = segments[0]
+        if action == "backups" and verb == "GET":
+            return 200, {"backups": ops.list_backups()}
+        if action == "backup" and verb == "POST":
+            try:
+                destination = body.get("destination") if isinstance(body, dict) else None
+                return 201, ops.backup(destination)
+            except (OSError, ValueError) as error:
+                return _error(error)
+        if action == "restore" and verb == "POST":
+            if not isinstance(body, dict) or not body.get("archive"):
+                return 422, {"error": "restore needs an 'archive' path"}
+            try:
+                return 200, ops.restore(body["archive"], overwrite=body.get("overwrite") is True)
+            except (OSError, ValueError) as error:
+                return _error(error)
+        return 405, {"error": "method %s is not allowed on %s" % (verb, route)}
+
     try:
         version_store._check_id(case_id)
     except ValueError as error:

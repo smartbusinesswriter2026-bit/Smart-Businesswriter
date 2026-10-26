@@ -78,6 +78,9 @@ An unfreeze is a decision, not a commit:
 | Case versions (B-086) | `GET/POST /api/cases/{id}/versions`, `GET /api/cases/{id}/versions/{n}`; `bp.product.versions` | immutable version envelopes over the stored bundle, with canonical bundle hashes |
 | Multi-period comparison (B-086, Option A) | `GET /api/cases/{id}/compare?versions=1,2`; `bp.product.compare` | stored versions only: rows aligned by metric, stored values verbatim, missing metrics reported as not computed |
 | Reviewer sign-off (B-086) | `POST/GET /api/cases/{id}/signoff`; `bp.product.signoff` | version hashes + the owner-approved Option-A signature text, append-only |
+| Health and request log (B-088) | `GET /api/health`; `bp.product.ops`; additive timing hook in the server | case-store counts, state/log paths, sandbox/model flags; JSONL of method/query-free path/status/duration only (opt-in via `BP_REQUEST_LOG`) |
+| Case backup/restore (B-088) | `POST /api/cases/backup`, `POST /api/cases/restore`, `GET /api/cases/backups`; `bp.product.ops` | the case store's JSON documents only, with a manifest + SHA-256; zip-slip/non-JSON refused |
+| Local launcher (B-088) | `scripts/serve.py` (`--port`, `--host`, `--no-sandbox`, `--check`) | starts the frozen server; resolves `BP_CASES_DIR`/`BP_STATE_DIR`/`BP_REQUEST_LOG` |
 
 **Wiring note.** The `/api/cases` routes are served by the frozen server through an additive extension (B-085): `server.py` imports `bp.product.api`, delegates GET/POST/DELETE to `api.handle`, and adds `do_DELETE`; the frozen route fixture is unchanged because the product surface is tracked **here**, not among the frozen 12. New product routes are added in `product/api.py` and need no further core edit. The store holds an opaque bundle; the product layer computes nothing.
 
