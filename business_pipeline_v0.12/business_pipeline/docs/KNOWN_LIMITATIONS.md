@@ -137,6 +137,13 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with the multiple-comparison correction (B-060)
+- `multiple_comparison` corrects a family the user has already declared: it does not decide what the family should be, and choosing the family after seeing the p-values cannot be undone by a correction.
+- Only Holm and Bonferroni are implemented. Both control the family-wise error rate under arbitrary dependence; neither models dependence, and there is no false-discovery-rate control (Benjamini-Hochberg) or resampling correction.
+- The correction changes the reported p-values, not the design: a biased sample, a violated test assumption or a badly specified model stays biased or violated after correction.
+- The existing statistical methods do **not** apply a correction automatically; their honesty block says so and points to `multiple_comparison`. There is no facility to assemble a family across several separate method runs.
+- Power/MDE calculation, missing-data mechanism modelling/imputation and survey weights remain unimplemented (B-057 disclosure still applies to them).
+
 ## Added with the retrieval log and provisional citations (B-058)
 - The retrieval log is **local and append-only** (one JSONL file, default `retrieval_log.jsonl`, `BP_RETRIEVAL_LOG` overrides): it is not a shared cache, is not encrypted, has no rotation or retention policy yet, and has no locking between concurrent server instances. It holds DOIs, titles and hashes, not case text.
 - The log records **what the source served at that moment**, not that the metadata is correct, and the source may change afterwards. `reverify` is manual — there is no scheduled drift check.

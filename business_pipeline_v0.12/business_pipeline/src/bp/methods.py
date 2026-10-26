@@ -77,6 +77,9 @@ def _check(key, v, spec):
             from . import accounts
             if not isinstance(v, dict): return [f"'{key}' must be an object (the engagement spec)"]
             errs += [f"'{key}': {e}" for e in accounts.validate_spec(v)]
+        elif t == "enum":
+            if not isinstance(v, str): return [f"'{key}' must be a string"]
+            if v not in spec.get("values", []): errs.append(f"'{key}' must be one of: " + ", ".join(spec.get("values", [])))
         elif t == "count_table":
             if not isinstance(v, list) or not v: return [f"'{key}' must be a non-empty list of rows"]
             minr, maxr = spec.get("min_rows", 2), spec.get("max_rows", 99); minc, maxc = spec.get("min_cols", 2), spec.get("max_cols", 99)
@@ -1448,6 +1451,78 @@ def ratio_template(outputs, period, thresholds=None):
         if names: t += "The " + group + " ratios are " + ", ".join(_RATIO_LABEL[n] + " of " + tok(n) for n in names) + ". "
     return t + "Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated."
 
+# ---------- Multiple-comparison correction (manual 9B.3; B-060) ----------
+# Pure arithmetic on a family of p-values that the user has already declared. Holm is the default choice
+# because it controls the family-wise error rate under arbitrary dependence while being uniformly more
+# powerful than Bonferroni; both are implemented as declared conventions, with the definition stated.
+def _mc_apply(ps, method):
+    k = len(ps)
+    if method == "bonferroni": return [min(1.0, k * p) for p in ps]
+    pairs = list(enumerate(ps)); pairs.sort(key=lambda t: (t[1], t[0]))
+    out, prev = [0.0] * k, 0.0
+    for pos, (i, p) in enumerate(pairs):
+        prev = max(prev, min(1.0, (k - pos) * p)); out[i] = prev
+    return out
+
+def _mc_reference(ps, method):
+    """Independent route: float arithmetic with an explicit rank loop (different number type from _fd outputs)."""
+    k = len(ps)
+    if method == "bonferroni": return [min(1.0, float(D(str(k))) * p) for p in ps]
+    order = sorted(range(k), key=lambda i: (ps[i], i)); out = [0.0] * k; run = 0.0
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (k - rank) * ps[i])); out[i] = run
+    return out
+
+def _mc_checks(ps, adj, method, alpha):
+    ref = _mc_reference(ps, method)
+    k = len(ps)
+    reversed_map = list(reversed(_mc_apply(list(reversed(ps)), method)))
+    if method == "bonferroni": definition = all(abs(a - min(1.0, k * p)) <= 1e-12 for a, p in zip(adj, ps))
+    else: definition = all(abs(a - r) <= 1e-12 * max(1.0, abs(r)) for a, r in zip(adj, ref)) and all(x <= y + 1e-12 for x, y in zip(sorted(adj), sorted(adj)[1:]))
+    return [
+        ("adjusted_p_values_are_at_least_the_raw_ones", all(a >= p - 1e-12 for a, p in zip(adj, ps)), "a correction never makes evidence look stronger"),
+        ("adjusted_p_values_are_bounded_in_zero_one", all(0.0 <= a <= 1.0 for a in adj), "adjusted values stay in [0, 1]"),
+        ("declared_correction_matches_its_definition", definition, "Holm is a monotone step-down; Bonferroni is k x p capped at 1"),
+        ("second_implementation_agrees", all(abs(a - r) <= 1e-12 * max(1.0, abs(r)) for a, r in zip(adj, ref)), "the declared formula is reproduced by an independent route"),
+        ("correction_is_order_invariant", all(abs(a - b) <= 1e-12 for a, b in zip(adj, reversed_map)), "reordering the family does not change the adjusted values"),
+    ]
+
+def _mc_impl(inp):
+    ps = [float(D(str(x))) for x in inp["p_values"]]
+    if any(not (0.0 <= p <= 1.0) for p in ps): raise DataError("every p-value must be between 0 and 1")
+    method = inp["method"]; alpha = float(D(str(inp.get("alpha", "0.05"))))
+    if not (0.0 < alpha < 1.0): raise DataError("alpha must be between 0 and 1")
+    adj, k = _mc_apply(ps, method), len(ps)
+    out = {f"p_adj_{i + 1}": _fd(adj[i]) for i in range(k)}
+    out.update({"n_tests": D(k), "n_rejected": D(sum(1 for a in adj if a <= alpha)), "alpha": _fd(alpha)})
+    appendix = {"method": method, "alpha": str(alpha), "raw_p_values": [repr(p) for p in ps], "adjusted_p_values": [repr(a) for a in adj],
+                "definition": ("Holm step-down: sort p ascending, multiply the i-th smallest by (k - i + 1), take a running maximum, cap at 1." if method == "holm"
+                               else "Bonferroni: multiply each p by the number of tests and cap at 1.")}
+    return {**out, "_appendix": appendix, "_checks": _mc_checks(ps, adj, method, alpha)}
+
+def _mc_tests(inp, impl): return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def _mc_profile(inp):
+    p = [float(D(str(x))) for x in inp.get("p_values", [])]
+    if any(not (0.0 <= x <= 1.0) for x in p): return ["every p-value must be between 0 and 1"]
+    a = float(D(str(inp.get("alpha", "0.05"))))
+    if not (0.0 < a < 1.0): return ["alpha must be between 0 and 1"]
+    return []
+
+def _mc_typing(metric):
+    return ("count", 0) if metric in ("n_tests", "n_rejected") else ("probability", 4)
+
+def _mc_caveats(out, thresholds):
+    return ["The family of hypotheses must be declared before looking at the p-values; a correction cannot undo a family chosen afterwards.",
+            "Holm and Bonferroni control the family-wise error rate under arbitrary dependence; they do not model dependence and are therefore less powerful than methods that do (not implemented).",
+            "A correction fixes the reported evidence, not the design: a biased sample or a violated test assumption is still biased or violated."]
+
+def _mc_template(outputs, period, thresholds=None):
+    P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return (f"The declared family has {tok('n_tests')} tests. After the declared correction at level {tok('alpha')}, "
+            f"{tok('n_rejected')} adjusted p-values are at or below that level. The correction changes only the p-values, "
+            "not the design or the assumption checks behind each test; the family must have been declared before the results were seen.")
+
 # ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
 def accounts_impl(inp):
     from . import accounts
@@ -1616,6 +1691,20 @@ LIBRARY = {
                   assumptions=("The figures are as reported for one period, in one currency and on one accounting basis.", "Balance-sheet figures are period-end balances."),
                   limitations=("Descriptive arithmetic only; no benchmark, threshold or verdict is applied because none is supplied or verified.", "The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.", "There is no tax computation; net income is used exactly as supplied."),
                   default_period="annual", caveats=ratio_caveats, template=ratio_template, claim_ceiling="descriptive", typing=_ratio_typing),
+    "multiple_comparison": Method("multiple_comparison", "T1", _mc_impl, _mc_tests, _mc_profile, "n_rejected", "count", None,
+                  ("adjusted_p_values_are_at_least_the_raw_ones", "adjusted_p_values_are_bounded_in_zero_one", "declared_correction_matches_its_definition",
+                   "second_implementation_agrees", "correction_is_order_invariant"),
+                  category="inference control",
+                  intended_use="Adjust a pre-declared family of p-values for multiple testing with Holm's step-down or Bonferroni, and count how many remain significant at a declared alpha.",
+                  unsupported_use="Deciding what the family is; choosing the hypothesis set after seeing results; modelling dependence between tests; rescuing a study whose assumptions or design are flawed.",
+                  input_schema={"p_values": {"type": "value_list", "min_items": 2, "desc": "the raw p-values of one declared family"},
+                                "method": {"type": "enum", "values": ["holm", "bonferroni"], "desc": "holm (step-down, uniformly more powerful) or bonferroni"},
+                                "alpha": {"type": "decimal", "required": False, "desc": "family-wise level, default 0.05"}},
+                  defaults=({"question": "Correction method", "default_chosen": "The user declares Holm or Bonferroni; both control the family-wise error rate under arbitrary dependence, and Holm is never less powerful than Bonferroni.", "impact": "Other corrections (Benjamini-Hochberg false-discovery control, resampling) are not implemented."},
+                            {"question": "Family definition", "default_chosen": "The p-values supplied are treated as one family, as declared by the user; the system does not infer the family.", "impact": "Splitting or merging families changes the adjusted values."}),
+                  assumptions=("Each test is individually valid (its own assumptions hold).", "The family was declared before the results were seen.", "The p-values are the raw p-values of that family, not already adjusted."),
+                  limitations=("Holm and Bonferroni only; no false-discovery-rate control and no dependence modelling.", "The correction does not fix a biased sample, a violated assumption or a family chosen after the fact."),
+                  default_period="cross_section", caveats=_mc_caveats, template=_mc_template, claim_ceiling="descriptive", typing=_mc_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
                   ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",

@@ -29,10 +29,12 @@ def _honesty(m, inp):
     types = {s.get("type") for s in m.input_schema.values()}
     inferential = m.claim_ceiling in ("associational", "predictive") or bool(m.assumption_checks)
     missing = ("Missing values (blank entries and declared missing codes) are excluded listwise before the computation; "
-               "the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.") if types.intersection(_DATA_INPUT_TYPES) else None
-    if m.name in ("ols", "ols_robust"):
+               "the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.") if types.intersection(_DATA_INPUT_TYPES) and m.name != "multiple_comparison" else None
+    if m.name == "multiple_comparison":
+        multiple = "The declared correction is applied to the family you supplied; the method does not decide whether that family is the right one, and it does not model dependence between the tests."
+    elif m.name in ("ols", "ols_robust"):
         k = len(inp.get("predictors") or {})
-        multiple = (f"No multiple-comparison correction is applied: {k} coefficient hypotheses are tested at the same time, so the family-wise chance of a small p-value is higher than the per-test level; read individual coefficient p-values as a family, not in isolation."
+        multiple = (f"No multiple-comparison correction is applied automatically: {k} coefficient hypotheses are tested at the same time, so the family-wise chance of a small p-value is higher than the per-test level; read individual coefficient p-values as a family, not in isolation. A declared correction can be computed with the multiple_comparison method (Holm or Bonferroni)."
                     if k > 1 else "One coefficient hypothesis is tested, so no multiple-comparison correction is needed.")
     elif m.name in ("anova", "kruskal_wallis"):
         multiple = "One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied."

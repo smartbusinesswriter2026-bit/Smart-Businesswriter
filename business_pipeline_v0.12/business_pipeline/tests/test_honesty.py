@@ -18,6 +18,8 @@ DESC = {"objective": "Describe the scores", "method": "descriptive_stats",
 NPV = {"objective": "Invest?", "method": "npv", "inputs": {"rate": "0.10", "cashflows": ["-1000", "400", "400", "400"]}}
 RATIOS = {"objective": "Ratios", "method": "ratio_analysis",
           "inputs": {"current_assets": "5000", "current_liabilities": "2000", "revenue": "20000", "net_income": "1800"}}
+MULTICOMP = {"objective": "Correct the family", "method": "multiple_comparison",
+             "inputs": {"p_values": ["0.01", "0.04", "0.03", "0.005"], "method": "holm"}}
 
 
 def delivered(req):
@@ -28,9 +30,14 @@ def delivered(req):
 
 class HonestyBlock(unittest.TestCase):
     def test_every_delivered_library_result_carries_the_honesty_block(self):
-        for req in (OLS, ANOVA, DESC, NPV, RATIOS):
+        for req in (OLS, ANOVA, DESC, NPV, RATIOS, MULTICOMP):
             d = delivered(req)
             self.assertEqual(set(d.appendix["honesty"]), {"missing_data", "multiple_comparisons", "power", "weights_and_clusters"}, req["method"])
+
+    def test_the_correction_method_discloses_its_scope_and_invents_no_missing_data_handling(self):
+        h = delivered(MULTICOMP).appendix["honesty"]
+        self.assertIn("family you supplied", h["multiple_comparisons"]); self.assertIn("does not model dependence", h["multiple_comparisons"])
+        self.assertIsNone(h["missing_data"])          # p-values are not a missing-data problem; no invented listwise note
 
     def test_single_hypothesis_inferential_methods_disclose_no_correction_and_no_power(self):
         d = delivered(DESC)
