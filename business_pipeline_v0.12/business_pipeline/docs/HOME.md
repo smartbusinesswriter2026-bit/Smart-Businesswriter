@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.52**, **618 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.53**, **625 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -106,6 +106,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) | Living backlog | Status changes only with verification + commit |
 | [`RESEARCH_EVIDENCE_WORKFLOW.md`](RESEARCH_EVIDENCE_WORKFLOW.md) | Living manual, ratified R11 | Proposals stay tagged until ratified |
 | [`MODEL_PROVIDER_REPORT.md`](MODEL_PROVIDER_REPORT.md), `STAGE*_REPORT.md` | Historical snapshots | Never rewrite; describe as "at the time of the stage" |
+| [`SOURCE_INVENTORY.md`](SOURCE_INVENTORY.md) | Historical snapshot — which supplied documents had been read, at the time | Never rewrite; it records that point in time, not the current inventory |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** — never edit; amend via decisions |
 
 ## 5. Conventions for this map

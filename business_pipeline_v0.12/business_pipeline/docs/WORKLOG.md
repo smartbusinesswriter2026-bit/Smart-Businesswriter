@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [review] Docs-state sync guard (MiniMax task 1), reviewed and merged
+
+**Delivered by:** MiniMax/OpenCode on branch `opencode/docs-sync`, commit `264fee1` "Add docs-state sync tests": a 335-line `tests/test_docs_sync.py` (7 tests) plus count updates in HOME/HANDOFF/CONTRIBUTORS.
+**Review:** the design is sound and the non-tautology requirement is met — every expectation is read from somewhere other than the document being checked (test count from a real `TestLoader().discover`, build from the newest CHANGELOG bullet, method ids from the imported `LIBRARY`, decision rows from `DECISIONS.md`, spine coverage from the `docs/*.md` listing), a missing pattern raises instead of silently skipping, and test 7 proves the parsers actually move when a document's own digits change. I re-ran the claimed proof independently: changing `**625 tests**` to `**626 tests**` in HOME made it fail with `docs/HOME.md says 626 tests, but the suite holds 625 tests`; restoring it went green.
+**What I had to reconcile:** the branch was based before B-077/B-078/B-079, so its counts (622) and build (0.51) were stale; on merge the guard correctly failed on 618 vs 625 and on one genuine gap — `docs/SOURCE_INVENTORY.md` had no row in the HOME documentation spine (exactly the kind of drift the guard exists to catch). Fixed the spine row and bumped the docs to build **0.53** / **625 tests**; no assertion was weakened.
+**Files:** `tests/test_docs_sync.py` (new), `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+**Verified:** 7 new tests; full suite **625 tests OK**; mutation proof above; docs links resolve.
+**Commit:** `this commit`.
+
+---
+
 ## 2026-10-21 — [computation] Freeze the core deterministic backend, delegate the product backend (B-079, B-080)
 
 **Ask:** "freeze the core deterministic backend. let minimax do the product backend."
