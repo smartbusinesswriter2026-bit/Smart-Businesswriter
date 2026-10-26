@@ -137,6 +137,13 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with the retrieval log and provisional citations (B-058)
+- The retrieval log is **local and append-only** (one JSONL file, default `retrieval_log.jsonl`, `BP_RETRIEVAL_LOG` overrides): it is not a shared cache, is not encrypted, has no rotation or retention policy yet, and has no locking between concurrent server instances. It holds DOIs, titles and hashes, not case text.
+- The log records **what the source served at that moment**, not that the metadata is correct, and the source may change afterwards. `reverify` is manual — there is no scheduled drift check.
+- A citation layout is **PROVISIONAL** (author-date, title, container, DOI) and will change when an institutional style is ratified (REW Q9). Author names are printed exactly as the source returned them: no APA name inversion, no initials normalisation, no bibliography ordering or de-duplication, and no in-text citation numbering.
+- An unverified reference is always formatted with the `[unverified user-supplied…]` prefix, but the system cannot stop that text being pasted elsewhere; the label is the only control.
+- The workbench citation and log views are read-only conveniences over the API; the durable record is the file itself.
+
 ## Added with the 9B.3 honesty layer (B-057) — disclosure only, not the fix
 - Every delivered computation now **states** the 9B.3 limits in the report and in an `appendix.honesty` block: missing values are excluded listwise without an established mechanism; multiple hypotheses are not corrected; no power or minimum-detectable-effect is computed; weights, clusters and repeated measures are unsupported and observations are treated as independent.
 - **No number changes.** The actual upgrades are NOT implemented: there is no Holm/Bonferroni or other multiple-comparison correction, no power/MDE calculation, no missing-data mechanism modelling or imputation, and no survey-weight or clustered-data estimation. The disclosure makes the gap visible; it does not close it.

@@ -109,9 +109,11 @@ Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codeboo
 
 **Labels in output.** `verified: DOI + source` · `unverified_user_supplied` · `declared by you (not verified)` for any rule or figure the user asserts. The manuscript and appendix must show which is which; a verified-looking citation is never manufactured.
 
-**Citation formatting** `[OPEN]` Q9: not implemented, and deliberately so — the manual defines the institution's style. References stay structured records until a style is ratified.
+**Citation formatting** `[REPO]` + `[OPEN]` Q9 (B-058): one **PROVISIONAL** author-date layout is implemented (authors as returned, year, title, container, DOI) and every formatted citation carries an explicit notice that no institutional style has been ratified. An unverified reference is formatted only with the `[unverified user-supplied…]` prefix, never as if checked. The institution's actual style, name inversion, bibliography ordering/deduplication and in-text numbering are still `[OPEN]` Q9.
 
-**Retrieval audit** `[REPO]` (B-054; Q10 answered): every retrieval that reaches a source records the **SHA-256 of the exact response bytes received** and a **UTC retrieval timestamp**, both carried with the reference to the API and shown in the workbench. The hash is over raw bytes, not a re-serialised object, so it pins what the source actually served at that moment — it is not proof that the metadata is correct. A reference that never reached a source (no DOI, unresolvable DOI) records neither, fail-closed. **Still open:** the audit is returned with the response but not persisted in a durable retrieval log, so a submission still needs re-verification rather than a stored hash alone.
+**Retrieval audit** `[REPO]` (B-054; Q10 answered): every retrieval that reaches a source records the **SHA-256 of the exact response bytes received** and a **UTC retrieval timestamp**, both carried with the reference to the API and shown in the workbench. The hash is over raw bytes, not a re-serialised object, so it pins what the source actually served at that moment — it is not proof that the metadata is correct. A reference that never reached a source (no DOI, unresolvable DOI) records neither, fail-closed.
+
+**Durable retrieval log** `[REPO]` (B-058): each resolved retrieval is appended to a local newline-delimited JSON log (source, DOI, supplied and resolved title, status, authors, year, container, UTC time, response SHA-256) **before** the reference is returned — an unwritable log fails the retrieval closed, so no unaudited citation is produced. `read_log` refuses a corrupt or unknown-format log, and `reverify` re-checks a logged entry against the source (`hash_match` / `hash_differs` / `unresolvable_now`). Still open: drift monitoring, retention/rotation, and a shared source cache (`[OPEN]` §15B, manual line 534).
 
 **Never** (binding, §2): cite from memory; invent a study or a DOI; silently "correct" a reference's metadata; treat a retrieved sketch as an established fact without opening it.
 
@@ -191,8 +193,8 @@ Answers can arrive as owner statements, old chat exports, or later retrieval; ea
 | Q6 | Qualitative/exploratory study taxonomy and instruments? | R4, §7 |
 | Q7 | Which sources, in what priority, with what failover? | R1 |
 | Q8 | Do "papers" mean academic papers, business reports, or both in v1? | R0, R7 |
-| Q9 | Citation style(s) to support, and the exact verification/match threshold? | R1, R7 |
-| Q10 | Hash-audit requirement: response hash + retrieval date per reference — implement now or after the design? **ANSWERED 2026-10-21 (B-054):** each resolved retrieval carries the response SHA-256 and a UTC retrieval time; unresolved/no-DOI carry neither | — answered; follow-up: durable retrieval log |
+| Q9 | Citation style(s) to support, and the exact verification/match threshold? **PARTLY ANSWERED 2026-10-21 (B-058):** a PROVISIONAL author-date layout is implemented and labelled; the ratified institutional style, name inversion, bibliography ordering/duplication and in-text numbering remain open. The match threshold is still exact normalised-title equality (PROVISIONAL) | R1, R7 (style ratification still open) |
+| Q10 | Hash-audit requirement: response hash + retrieval date per reference — implement now or after the design? **ANSWERED 2026-10-21:** audit fields (B-054) and a **durable append-only retrieval log** with fail-closed writes and `reverify` (B-058) are implemented; unresolved/no-DOI retrievals stay unlogged rather than inventing a record | — answered; follow-up: drift monitoring and log rotation/retention |
 | Q11 | Synthetic-data paper rules beyond the label (§11)? | R9 |
 | Q12 | Institution AI-use / ethics / privacy requirements to show? | R7, §12 |
 | Q13 | Which research-gap path to build first (T-A is the cheapest real end-to-end slice)? | sequencing |

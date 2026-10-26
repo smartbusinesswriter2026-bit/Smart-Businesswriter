@@ -1,4 +1,4 @@
-import sys, json, threading, unittest, urllib.request, urllib.error
+import sys, json, threading, tempfile, os, unittest, urllib.request, urllib.error
 sys.path.insert(0, "src")
 from http.server import ThreadingHTTPServer
 from bp import server, literature
@@ -16,13 +16,15 @@ class FakeSource(literature.Source):
 class LiteratureApi(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.old = (server.LITERATURE_SOURCES, server.LITERATURE_CALLS)
-        server.LITERATURE_SOURCES = {"fake": FakeSource(REC)}; server.LITERATURE_CALLS = 0
+        cls.old = (server.LITERATURE_SOURCES, server.LITERATURE_CALLS, server.LITERATURE_LOG)
+        cls.tmp = tempfile.TemporaryDirectory(); cls.log = os.path.join(cls.tmp.name, "retrieval_log.jsonl")
+        server.LITERATURE_SOURCES = {"fake": FakeSource(REC)}; server.LITERATURE_CALLS = 0; server.LITERATURE_LOG = cls.log
         cls.srv = ThreadingHTTPServer(("127.0.0.1", 0), server.H); cls.base = f"http://127.0.0.1:{cls.srv.server_address[1]}"
         threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
     @classmethod
     def tearDownClass(cls):
-        cls.srv.shutdown(); cls.srv.server_close(); server.LITERATURE_SOURCES, server.LITERATURE_CALLS = cls.old
+        cls.srv.shutdown(); cls.srv.server_close(); server.LITERATURE_SOURCES, server.LITERATURE_CALLS, server.LITERATURE_LOG = cls.old
+        cls.tmp.cleanup()
     def call(self, path, body=None):
         req = urllib.request.Request(self.base + path, data=None if body is None else json.dumps(body).encode(), headers={"Content-Type": "application/json"})
         try:
@@ -58,8 +60,32 @@ class LiteratureApi(unittest.TestCase):
             self.assertEqual(self.call("/api/literature/verify", {"title": "x", "doi": "10.1/x", "source": "fake"})[0], 429)
         finally:
             server.LITERATURE_CALLS = 0
+    def test_sources_advertise_the_citation_style_and_the_log(self):
+        c, b = self.call("/api/literature/sources")
+        self.assertEqual(b["citation_styles"], ["provisional"]); self.assertTrue(b["log_enabled"])
+        self.assertIn("PROVISIONAL", b["citation_notice"])
+    def test_verify_with_cite_returns_a_provisional_citation(self):
+        c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake", "cite": "provisional"})
+        self.assertEqual(c, 200); cit = b["citation"]
+        self.assertTrue(cit["verified"]); self.assertIn("A. Author (2024). A Study of Markets", cit["text"])
+        self.assertIn("PROVISIONAL", cit["notice"])
+        self.assertNotIn("citation", self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake"})[1])
+    def test_unknown_citation_style_is_400(self):
+        self.assertEqual(self.call("/api/literature/verify", {"title": "x", "doi": "10.1/x", "source": "fake", "cite": "apa"})[0], 400)
+    def test_retrieval_log_endpoint_returns_recorded_entries(self):
+        c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/logged", "source": "fake"})
+        self.assertEqual(c, 200)
+        c, b = self.call("/api/literature/log?limit=5")
+        self.assertEqual(c, 200); self.assertTrue(b["enabled"]); self.assertEqual(b["format"], literature.LOG_FORMAT)
+        entry = [e for e in b["entries"] if e["doi"] == "10.1/logged"][-1]
+        self.assertEqual((entry["source"], entry["status"], entry["response_hash"]), ("fake", "verified", "b" * 64))
+    def test_retrieval_log_limit_validation_and_disabled_state(self):
+        self.assertEqual(self.call("/api/literature/log?limit=abc")[0], 400)
+        server.LITERATURE_LOG = ""
+        try: c, b = self.call("/api/literature/log"); self.assertEqual((c, b["enabled"], b["entries"]), (200, False, []))
+        finally: server.LITERATURE_LOG = self.log
     def test_ui_has_the_references_panel(self):
         body = urllib.request.urlopen(self.base + "/").read().decode()
         self.assertIn("References (optional)", body); self.assertIn("Verify reference", body); self.assertIn("/api/literature/sources", body)
-        self.assertIn("Retrieval audit", body)
+        self.assertIn("Retrieval audit", body); self.assertIn("Get provisional citation", body); self.assertIn("Show retrieval log", body)
 if __name__ == "__main__": unittest.main()

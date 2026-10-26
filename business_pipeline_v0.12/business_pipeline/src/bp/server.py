@@ -15,9 +15,11 @@ LITERATURE_SOURCES = {"crossref": literature.CrossrefSource(), "openalex": liter
 LITERATURE_LABELS = {"crossref": "Crossref", "openalex": "OpenAlex"}
 LITERATURE_CALLS = 0
 LITERATURE_CAP = 100     # per server run; the public APIs are free, but this stops a runaway loop
+LITERATURE_LOG = os.environ.get("BP_RETRIEVAL_LOG") or "retrieval_log.jsonl"   # durable retrieval audit; "" disables it
 LITERATURE_NOTICE = ("The title and DOI you enter are sent to the selected public bibliographic API (Crossref or OpenAlex) "
                      "to look the reference up. No case text is sent. A citation is marked verified only when the DOI resolves "
-                     "and the title matches exactly.")
+                     "and the title matches exactly. Every resolved retrieval is recorded in the local retrieval log (source, "
+                     "UTC time, SHA-256 of the response bytes) so a citation can be re-checked later.")
 WEB = os.path.join(os.path.dirname(__file__), "..", "..", "web")
 MAXBODY = 100_000
 PRESETS = {
@@ -77,7 +79,17 @@ class H(BaseHTTPRequestHandler):
                 c = MODELS.config; return self._send(200, {"enabled": c.enabled, "provider": MODELS.builder.name, "builder_model": MODELS.builder.model, "reviewer_model": MODELS.reviewer.model, "same_model": MODELS.same_model,
                                                           "limits": {"max_calls_total": c.max_calls_total, "calls_used": MODELS.calls, "max_input_chars": c.max_input_chars}, "privacy_notice": c.privacy_notice, "prompt_version": assist.PROMPT_VERSION})
             if u.path == "/api/literature/sources":
-                return self._send(200, {"sources": [{"name": k, "label": LITERATURE_LABELS.get(k, k)} for k in LITERATURE_SOURCES], "notice": LITERATURE_NOTICE})
+                return self._send(200, {"sources": [{"name": k, "label": LITERATURE_LABELS.get(k, k)} for k in LITERATURE_SOURCES], "notice": LITERATURE_NOTICE,
+                                        "citation_styles": list(literature.CITATION_STYLES), "citation_notice": literature.CITATION_NOTICE,
+                                        "log_enabled": bool(LITERATURE_LOG)})
+            if u.path == "/api/literature/log":
+                if not LITERATURE_LOG: return self._send(200, {"enabled": False, "entries": [], "notice": "The retrieval log is disabled on this server."})
+                try: n = max(1, min(int((qs.get("limit") or [20])[0]), 100))
+                except ValueError: return self._send(400, {"error": "limit must be an integer"})
+                try: entries = literature.read_log(LITERATURE_LOG, n)
+                except literature.SourceError as e: return self._send(502, {"error": str(e)})
+                return self._send(200, {"enabled": True, "format": literature.LOG_FORMAT, "entries": entries,
+                                        "notice": "Local append-only retrieval log: source, UTC time, response SHA-256. Entries are not evidence that the metadata is correct."})
             if u.path == "/api/templates": return self._send(200, [templates.describe(k) for k in templates.TEMPLATES])
             tm = re.fullmatch(r"/api/templates/(\w+)", u.path)
             if tm:
@@ -125,16 +137,21 @@ class H(BaseHTTPRequestHandler):
         title, doi, name = b.get("title"), b.get("doi"), b.get("source") or "crossref"
         if not isinstance(title, str) or not title.strip(): raise ValueError("title is required")
         if not isinstance(name, str) or name not in LITERATURE_SOURCES: raise ValueError("source must be one of: " + ", ".join(sorted(LITERATURE_SOURCES)))
+        style = b.get("cite")
+        if style is not None and (not isinstance(style, str) or style not in literature.CITATION_STYLES):
+            raise ValueError("cite must be one of: " + ", ".join(literature.CITATION_STYLES))
         if LITERATURE_CALLS >= LITERATURE_CAP: return self._send(429, {"error": "literature verification call cap reached for this server run"})
         LITERATURE_CALLS += 1
         try:
-            ref = literature.verify_reference(title, doi, LITERATURE_SOURCES[name])
+            ref = literature.verify_reference(title, doi, LITERATURE_SOURCES[name], log=LITERATURE_LOG or None)
         except literature.SourceError as e:
             return self._send(502, {"error": str(e)})
-        return self._send(200, {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,
-                                             "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source,
-                                             "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash},
-                                 "notice": LITERATURE_NOTICE})
+        body = {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,
+                              "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source,
+                              "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash},
+                "notice": LITERATURE_NOTICE}
+        if style: body["citation"] = literature.format_citation(ref, style)
+        return self._send(200, body)
     def log_message(self, *a): pass
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):

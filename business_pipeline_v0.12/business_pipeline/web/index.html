@@ -38,8 +38,10 @@ pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
 <div id="refbody" hidden><div class="sub" id="refnote"></div>
 <div class="row" style="margin-top:8px"><select id="refsource" aria-label="Source" style="width:auto"></select>
 <input id="reftitle" placeholder="Reference title" aria-label="Reference title" style="flex:1;min-width:220px"></div>
-<div class="row" style="margin-top:8px"><input id="refdoi" placeholder="DOI (optional, e.g. 10.1234/abcd)" aria-label="DOI" style="flex:1"><button id="refgo" type="button">Verify reference</button></div>
-<div id="refout" style="margin-top:8px"></div></div></section>
+<div class="row" style="margin-top:8px"><input id="refdoi" placeholder="DOI (optional, e.g. 10.1234/abcd)" aria-label="DOI" style="flex:1"><button id="refgo" type="button">Verify reference</button><button id="refcite" type="button">Get provisional citation</button></div>
+<div id="refout" style="margin-top:8px"></div>
+<div class="sub" style="margin-top:10px">Every resolved reference is written to the local retrieval log (source, UTC time, response SHA-256) so it can be re-checked later. <button id="reflog" type="button" style="font-size:12px;padding:2px 8px">Show retrieval log</button></div>
+<pre id="reflogout" aria-live="polite"></pre></div></section>
 <section class="card" id="mapcard" hidden><h2>Account mapping (second checkpoint)</h2>
 <div class="sub">This is the manual's second mandatory checkpoint. Nothing is posted and no statement is computed until you confirm this mapping.</div>
 <div id="maprows" style="margin-top:8px"></div><div id="mapchecks" class="sub" style="margin-top:8px"></div></section>
@@ -121,10 +123,15 @@ $("confirm").onclick=async()=>{try{render(await api(`/api/sessions/${sid}/confir
 $("reject").onclick=async()=>render(await api(`/api/sessions/${sid}/reject`,{}));
 api("/api/presets").then(P=>{Object.entries(P).forEach(([k,v])=>{const b=add($("presets"),"button",k);b.onclick=()=>$("req").value=JSON.stringify(v,null,2)});$("req").value=JSON.stringify(P.npv,null,2)});
 fetch("/api/literature/sources").then(r=>r.json()).then(s=>{$("refcfg").textContent="";const sel=$("refsource");s.sources.forEach(x=>{const o=document.createElement("option");o.value=x.name;o.textContent=x.label;sel.appendChild(o)});$("refnote").textContent=s.notice;$("refbody").hidden=false}).catch(()=>{$("refcfg").textContent="Literature sources are not reachable from this page."});
-function renderRef(ref){const r=$("refout");r.replaceChildren();add(r,"div",ref.status==="verified"?"Verified citation":"Unverified — check it yourself",ref.status==="verified"?"badge passed":"badge awaiting_user");
+function renderRef(j){const ref=j.reference,r=$("refout");r.replaceChildren();add(r,"div",ref.status==="verified"?"Verified citation":"Unverified — check it yourself",ref.status==="verified"?"badge passed":"badge awaiting_user");
  add(r,"div","Title: "+(ref.resolved_title||ref.title),"sub");if(ref.authors&&ref.authors.length)add(r,"div","Authors: "+ref.authors.join(", "),"sub");if(ref.year)add(r,"div","Year: "+ref.year,"sub");if(ref.container)add(r,"div","Published in: "+ref.container,"sub");if(ref.doi)add(r,"div","DOI: "+ref.doi,"sub");if(ref.source)add(r,"div","Source: "+ref.source,"sub");
  if(ref.response_hash)add(r,"div","Retrieval audit: sha256 "+ref.response_hash+" at "+(ref.retrieved_at||"unknown time"),"sub");
+ if(j.citation){add(r,"div","Citation: "+j.citation.text,"sub");add(r,"div",j.citation.notice,"sub");if(j.citation.note)add(r,"div",j.citation.note,"sub")}
  add(r,"div",ref.status==="verified"?"The DOI resolved and the title matched exactly.":"No exact match was confirmed. The reference stays unverified and must not be cited as checked.","sub")}
-$("refgo").onclick=async()=>{$("refout").replaceChildren();const title=$("reftitle").value.trim();if(!title){add($("refout"),"div","Enter a reference title.","sub");return}
- try{const r=await fetch("/api/literature/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,doi:$("refdoi").value.trim(),source:$("refsource").value})});const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));renderRef(j.reference)}catch(e){add($("refout"),"div",e.message,"sub")}};
+async function verifyRef(cite){$("refout").replaceChildren();const title=$("reftitle").value.trim();if(!title){add($("refout"),"div","Enter a reference title.","sub");return}
+ try{const body={title,doi:$("refdoi").value.trim(),source:$("refsource").value};if(cite)body.cite="provisional";
+  const r=await fetch("/api/literature/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));renderRef(j)}catch(e){add($("refout"),"div",e.message,"sub")}}
+$("refgo").onclick=()=>verifyRef(false);$("refcite").onclick=()=>verifyRef(true);
+$("reflog").onclick=async()=>{try{const r=await fetch("/api/literature/log?limit=20");const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+ $("reflogout").textContent=j.entries.length?j.entries.map(e=>(e.logged_at||"")+"  "+(e.source||"")+"  "+(e.doi||"")+"  "+e.status+"  "+(e.response_hash||"").slice(0,16)).join("\n"):(j.enabled?"No retrievals logged yet.":"Retrieval log disabled on this server.")}catch(e){$("reflogout").textContent=e.message}};
 </script></body></html>

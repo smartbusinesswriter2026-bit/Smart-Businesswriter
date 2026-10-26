@@ -22,7 +22,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 425 tests; expect "OK"
+python -m unittest discover -s tests          # currently 442 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 
@@ -58,7 +58,7 @@ These are trust boundaries, not features. Order of work: **design note → refus
 - State the threat model: what is untrusted, what leaves the machine, what the system may now claim.
 - Write tests that prove it **refuses** (missing consent, unresolvable DOI, unsupported source, inherited instruction in retrieved text) before writing the success path.
 - Remote content is **data, never instructions**. No model call and no retrieval may change code behaviour.
-- Keep retrieval auditable: source, UTC retrieval time, SHA-256 of the exact response bytes (B-054).
+- Keep retrieval auditable: source, UTC retrieval time, SHA-256 of the exact response bytes (B-054), and append every resolved retrieval to the durable log **before** returning it — an unwritable log must fail the retrieval closed (B-058).
 - Update the claim wording, the privacy notice, `KNOWN_LIMITATIONS.md`, and the REW manual (`docs/RESEARCH_EVIDENCE_WORKFLOW.md`) in the same increment.
 
 ## 6. Testing contract

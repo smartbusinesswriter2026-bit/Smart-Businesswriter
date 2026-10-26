@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.32**, **425 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.33**, **442 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -55,7 +55,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`llm.py`](../src/bp/llm.py) | Provider boundary (DeepSeek/OpenAI-compatible/Anthropic) | `test_assist` | B-031/B-036/B-038/B-041 |
 | [`assist.py`](../src/bp/assist.py) | Model proposals under code validation | `test_assist` | 10, 11; B-037 |
 | [`evaluate.py`](../src/bp/evaluate.py) | Held-out evaluation scaffold (synthetic fixtures) | `test_evaluate` | B-039 |
-| [`literature.py`](../src/bp/literature.py) | DOI retrieval + verification + response audit | `test_literature`, `test_literature_api` | B-040, B-054; REW §9 |
+| [`literature.py`](../src/bp/literature.py) | DOI retrieval + verification, response audit, durable retrieval log, provisional citation | `test_literature`, `test_literature_api`, `test_literature_log` | B-040, B-054, B-058; REW §9 |
 | [`server.py`](../src/bp/server.py) | Stdlib HTTP API, `PRESETS` | `test_session_api`, `test_literature_api` | B-002 |
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | — |
 
@@ -70,7 +70,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
 | Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |
-| Literature retrieval/verification | Built; PROVISIONAL match rule; no durable log | B-040, B-054 |
+| Literature retrieval/verification | Built; PROVISIONAL match rule; durable retrieval log and provisional citations | B-040, B-054, B-058 |
 | Research & Evidence Workflow (REW) | Manual ratified (R11); **no stage built** | B-053, R1–R10 proposals |
 | Taxation | Deliberately deferred | B-052 |
 | Ingestion (PDF/Excel/SPSS) | Not built | P0 gap map |
