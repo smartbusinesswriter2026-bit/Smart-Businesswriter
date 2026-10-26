@@ -129,3 +129,26 @@ Independent second routes: float arithmetic with the statistics module and a ser
 
 ## What this does not claim
 It is process isolation plus policy guards for **our own vetted code**. It is not a security boundary: model-written code (T2/T3) must wait for an OS-level container (for example Docker with no network, a read-only filesystem and resource limits). That decision, and the Windows deployment path, need the owner.
+
+---
+# Increment 6: ANOVA, Kruskal-Wallis and chi-square (2026-10-21)
+**Status: PARTIAL (library still incomplete).** Owner-requested: one-way ANOVA with a pre-declared Kruskal-Wallis fallback, and a chi-square test of independence.
+
+## What was built
+- **One-way ANOVA** (`anova`, three or more groups): F statistic, between/within degrees of freedom, two-sided p-value, eta-squared effect size, grand mean, and per-group n, mean and SD. Missing entries are excluded and counted.
+- **Pre-declared screens and fallback:** per-group skewness/kurtosis against declared limits and Levene's test (mean version) for equal variances at a declared level. Either failure switches to **Kruskal-Wallis** (`kruskal_wallis`) as a logged, disclosed amendment; both checks and the fallback are frozen in the spec.
+- **Kruskal-Wallis:** average ranks for ties, tie-corrected H, chi-square-approximation p-value, epsilon-squared effect size, per-group n and median.
+- **Chi-square test of independence** (`chi_square`) on a table of non-negative whole counts: chi-squared, df, p-value, Cramer's V, smallest expected count. A screen requires every expected count to be at least the declared floor (5); if not, the analysis **blocks fail-closed** (no fallback declared, per the B-013 pattern). Zero row/column totals and empty tables block.
+- Wording: associational ceiling everywhere; the reports state that group differences / association do not show causation.
+
+## Verification
+Independent second routes: float recomputation with the series incomplete beta for the F p-value; counting-based ranks plus an exact integer-degree-of-freedom closed form (Poisson sum for even df, erfc series for odd df) for the chi-square survival, against the primary incomplete-gamma (NR series + continued fraction) route. Properties: within-group permutation, group relabeling, equal shift, positive scale, monotone transforms, missing exclusion, transpose and row-order invariance, uniform count scaling, independence giving chi-squared zero, and bounds. Golden fixtures generated offline with scipy 1.18.1 (f_oneway, kruskal, chi2_contingency); the two chi-square survival routes agree with scipy to about 4e-15. Deliberately wrong implementations (one-sided p, wrong df, inverted eta-squared, squared F, uncorrected p, doubled H, negative epsilon, V without the square root, wrong df) are all blocked.
+
+## Tests
+`python -m unittest discover -s tests`: **307 tests, OK** (278 before this increment; 29 new, plus the sandbox parity set extended to the three new methods).
+Not tested: post-hoc pairwise tests, repeated-measures or factorial designs, Fisher's exact or Yates corrections, very large tables, real survey data.
+
+## Open items
+- All conventions are placeholders [UNVERIFIED], declared and overridable: skew/kurtosis limits 2/7, Levene level 0.05, eta/epsilon cut-offs 0.01/0.06/0.14, Cramer's V cut-offs 0.1/0.3/0.5, expected-count floor 5 (B-042).
+- Blocking on small expected counts is fail-closed (P8); a Fisher-exact fallback for small tables is future work.
+- No post-hoc tests, no Welch ANOVA (equal-variance failures fall back to Kruskal-Wallis instead), no goodness-of-fit chi-square.

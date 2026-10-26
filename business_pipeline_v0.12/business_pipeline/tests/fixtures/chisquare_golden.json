@@ -1,0 +1,55 @@
+[
+ {
+  "name": "3x3_associated",
+  "method": "chi_square",
+  "table": [
+   [
+    45,
+    30,
+    25
+   ],
+   [
+    20,
+    40,
+    40
+   ],
+   [
+    10,
+    20,
+    70
+   ]
+  ],
+  "expected": {
+   "chi_squared": "56.0",
+   "p_value": "2.0051760310126603e-11",
+   "df": 4,
+   "cramers_v": "0.30550504633038933",
+   "min_expected_count": "25.0"
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); Cramer's V computed from the chi-square statistic"
+ },
+ {
+  "name": "2x3",
+  "method": "chi_square",
+  "table": [
+   [
+    20,
+    35,
+    45
+   ],
+   [
+    40,
+    30,
+    30
+   ]
+  ],
+  "expected": {
+   "chi_squared": "10.051282051282051",
+   "p_value": "0.006567375289373721",
+   "df": 2,
+   "cramers_v": "0.224179415327122",
+   "min_expected_count": "30.0"
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); Cramer's V computed from the chi-square statistic"
+ }
+]

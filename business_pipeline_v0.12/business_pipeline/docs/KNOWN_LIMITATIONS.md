@@ -77,3 +77,9 @@
 - Proposals are not reproducible; only their hashes are recorded.
 - Only three tasks (facts, alternatives, critique) and only the business-case flow use assistance; other methods and templates do not.
 - Cost is capped by call count only; no price table.
+
+## Added with ANOVA, Kruskal-Wallis and chi-square
+- ANOVA covers three or more independent groups only; no post-hoc pairwise tests, repeated measures, factorial designs or Welch ANOVA (equal-variance failures switch to Kruskal-Wallis instead).
+- Chi-square is independence-only on count tables; goodness of fit, Fisher's exact and Yates corrections are not implemented, and any expected count below the declared floor (5) blocks the analysis.
+- Skew/kurtosis limits (2/7), Levene level (0.05), eta/epsilon cut-offs (0.01/0.06/0.14), Cramer's V cut-offs (0.1/0.3/0.5) and the expected-count floor (5) are conventions from memory [UNVERIFIED], declared and overridable (B-042).
+- Kruskal-Wallis p-values and Cramer's V use approximations; no confidence interval is reported for the rank-based effect size.

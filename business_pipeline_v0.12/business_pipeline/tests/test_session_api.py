@@ -29,6 +29,8 @@ class S(unittest.TestCase):
             inp = {"npv": REQ["inputs"], "breakeven": {"fixed": "1000", "price": "20", "variable": "10"}, "descriptive_stats": {"values": ["1", "2", "4"], "missing_codes": []},
                "pearson": {"x": ["1","2","3","4","5"], "y": ["2","4","5","4","5"]}, "spearman": {"x": ["1","2","3","4","5"], "y": ["1","4","9","16","10"]},
                "welch_t": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}}, "mann_whitney": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}},
+               "anova": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["1","2","3","4","5"]}}, "kruskal_wallis": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["3","1","5","2","4"]}},
+               "chi_square": {"table": [[10, 20, 30], [20, 40, 60]]},
                "ols": {"y": ["52","55","61","58","70","72","69","80"], "predictors": {"a": ["1","2","3","4","5","6","7","8"], "b": ["6","7","5","8","6","7","8","6"]}}}[{"ols_robust": "ols"}.get(m.name, m.name)]
             self.assertEqual(tuple(n for n, _ in m.tests(inp, m.impl)), m.test_names)
     def test_malformed_input_blocks_not_crashes(self):

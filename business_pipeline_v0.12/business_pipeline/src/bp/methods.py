@@ -71,6 +71,23 @@ def _check(key, v, spec):
                 if not re.fullmatch(r"[A-Za-z_]{1,30}", str(name)) or str(name).lower() == "intercept":
                     errs.append(f"'{key}' column name {name!r}: use 1-30 letters or underscores (no digits or spaces); 'intercept' is reserved")
                 errs += _check(f"{key}.{name}", col, {"type": "value_list", "min_items": spec.get("min_items", 0)})
+        elif t == "count_table":
+            if not isinstance(v, list) or not v: return [f"'{key}' must be a non-empty list of rows"]
+            minr, maxr = spec.get("min_rows", 2), spec.get("max_rows", 99); minc, maxc = spec.get("min_cols", 2), spec.get("max_cols", 99)
+            if len(v) < minr: errs.append(f"'{key}' needs at least {minr} rows")
+            if len(v) > maxr: errs.append(f"'{key}' allows at most {maxr} rows")
+            cols = len(v[0]) if v and isinstance(v[0], list) else 0
+            if cols < minc: errs.append(f"'{key}' needs at least {minc} columns")
+            if cols > maxc: errs.append(f"'{key}' allows at most {maxc} columns")
+            for i, row in enumerate(v):
+                if not isinstance(row, list) or (cols and len(row) != cols): errs.append(f"'{key}' row {i} must be a list of {cols} numbers")
+                else:
+                    for j, x in enumerate(row):
+                        try:
+                            d = _num(x)
+                            if d < 0: errs.append(f"'{key}'[{i}][{j}] must be a non-negative count")
+                            elif d != d.to_integral_value(): errs.append(f"'{key}'[{i}][{j}] must be a whole number")
+                        except (InvalidOperation, ValueError, TypeError): errs.append(f"'{key}'[{i}][{j}] = {x!r}: not a number")
         elif t in ("decimal_list", "value_list", "code_list"):
             if not isinstance(v, list): return [f"'{key}' must be a list"]
             if len(v) < spec.get("min_items", 0): errs.append(f"'{key}' needs at least {spec['min_items']} items")
@@ -806,6 +823,336 @@ _GRP_DEFAULTS = ({"question": "Missing-value handling", "default_chosen": "Blank
                  {"question": "Multiple comparisons", "default_chosen": "One test, so no correction.", "impact": "Several comparisons inflate false positives; declare a correction in the spec."},
                  {"question": "Assumption screen and fallback", "default_chosen": "If either group's skewness or excess kurtosis exceeds the declared limits, switch to the Mann-Whitney test as a logged amendment.", "impact": "Mann-Whitney compares rank distributions and reports a median-type shift, not a mean difference."})
 
+# ---------- One-way ANOVA with pre-declared fallbacks to Kruskal-Wallis (manual 9B.2, 9B.3) ----------
+def _groups_multi(inp):
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}; out, ex = {}, 0
+    for nm, col in inp["groups"].items():
+        v = []
+        for x in col:
+            if x is None or (isinstance(x, str) and not x.strip()) or D(str(x)) in codes: ex += 1
+            else: v.append(D(str(x)))
+        out[nm] = v
+    return out, ex
+
+# --- chi-square survival of the incomplete gamma: primary (NR series + continued fraction) and reference (exact integer-df closed form) ---
+def _gser(a, x):
+    ap = a; s = 1.0 / a; de = s
+    for _ in range(500):
+        ap += 1.0; de *= x / ap; s += de
+        if abs(de) < abs(s) * 1e-16: break
+    return s * math.exp(-x + a * math.log(x) - math.lgamma(a))
+
+def _gcf(a, x):
+    b = x + 1.0 - a; c = 1e300; d = 1.0 / b; h = d
+    for i in range(1, 500):
+        an = -i * (i - a); b += 2.0
+        d = an * d + b; d = 1e-300 if abs(d) < 1e-300 else d
+        c = b + an / c; c = 1e-300 if abs(c) < 1e-300 else c
+        d = 1.0 / d; de = d * c; h *= de
+        if abs(de - 1.0) < 1e-16: break
+    return math.exp(-x + a * math.log(x) - math.lgamma(a)) * h
+
+def _gammq(a, x):
+    if x <= 0: return 1.0
+    return 1.0 - _gser(a, x) if x < a + 1.0 else _gcf(a, x)
+
+def _chi2_survival(x, df): return _gammq(df / 2.0, x / 2.0)
+
+def _chi2_survival_ref(x, df):
+    """Independent route: exact survival for integer degrees of freedom (Poisson sum for even df; erfc series for odd df)."""
+    x, df, half = float(x), int(df), float(x) / 2.0
+    if x <= 0: return 1.0
+    if df % 2 == 0:
+        m = df // 2; s = 0.0; term = 1.0
+        for j in range(m): s += term; term *= half / (j + 1)
+        return math.exp(-half) * s
+    m = (df - 1) // 2; s = 0.0; dbl = 1.0; xp = math.sqrt(x)
+    for i in range(m): s += xp / dbl; xp *= x; dbl *= (2 * i + 3)
+    return 2.0 * (1.0 - NormalDist().cdf(math.sqrt(x))) + math.exp(-half) * math.sqrt(2.0 / math.pi) * s
+
+def anova_impl(inp):
+    g, ex = _groups_multi(inp); names = list(g); k, N = len(names), sum((len(v) for v in g.values()))
+    if k < 2: raise DataError("at least two groups are required")
+    if N - k < 1: raise DataError("not enough observations for the degrees of freedom")
+    grand = sum((sum(v, D(0)) for v in g.values()), D(0)) / N
+    ssb = sum((D(len(g[nm])) * (_mean(g[nm]) - grand) ** 2 for nm in names), D(0))
+    ssw = sum((sum(((x - _mean(g[nm])) ** 2 for x in g[nm]), D(0)) for nm in names), D(0))
+    if ssw == 0: raise DataError("all observations within each group are identical, so the within-group variance is zero")
+    dfb, dfw = D(k - 1), D(N - k); msb, msw = ssb / dfb, ssw / dfw; F = msb / msw
+    p = _fd(_betai(float(dfw) / 2, float(dfb) / 2, float(dfw) / (float(dfw) + float(dfb) * float(F))))
+    sst = ssb + ssw; eta2 = ssb / sst if sst != 0 else D(0)
+    out = {"f_stat": F, "df_between": dfb, "df_within": dfw, "p_value": p, "eta_squared": eta2, "n_groups": D(k), "n_total": D(N), "n_excluded": D(ex), "grand_mean": grand, "alpha": _ALPHA(inp)}
+    for nm in names: out[f"n_{nm}"] = D(len(g[nm])); out[f"mean_{nm}"] = _mean(g[nm]); out[f"sd_{nm}"] = _var(g[nm]).sqrt()
+    return out
+
+def _anova_ref(inp):
+    """Independent route: float arithmetic and the series incomplete beta (a different algorithm from the Decimal fit and continued fraction)."""
+    g, ex = _groups_multi(inp); names = list(g); N = sum((len(v) for v in g.values())); k = len(names)
+    fa = {nm: [float(x) for x in v] for nm, v in g.items()}
+    grand = sum((sum(v) for v in fa.values()), 0.0) / N
+    ssb = sum((len(fa[nm]) * (statistics.fmean(fa[nm]) - grand) ** 2 for nm in names), 0.0)
+    ssw = sum((sum(((x - statistics.fmean(fa[nm])) ** 2 for x in fa[nm]), 0.0) for nm in names), 0.0)
+    dfb, dfw = k - 1, N - k; F = (ssb / dfb) / (ssw / dfw)
+    out = {"f_stat": F, "df_between": dfb, "df_within": dfw, "p_value": _betai_series(dfw / 2, dfb / 2, dfw / (dfw + dfb * F)), "eta_squared": ssb / (ssb + ssw), "n_groups": k, "n_total": N, "n_excluded": ex, "grand_mean": grand}
+    for nm in names: out[f"n_{nm}"] = len(fa[nm]); out[f"mean_{nm}"] = statistics.fmean(fa[nm]); out[f"sd_{nm}"] = statistics.stdev(fa[nm])
+    return out
+
+def _amk(inp, cols): return {**inp, "groups": cols, "missing_codes": []}
+
+def _anova_tests(inp, impl):
+    base, ref = impl(inp), _anova_ref(inp); g, _ = _groups_multi(inp); names = list(g)
+    strs = {nm: [str(x) for x in v] for nm, v in g.items()}; b0 = impl(_amk(inp, strs))
+    nms = names[:]; nms[0], nms[1] = nms[1], nms[0]; rel = impl(_amk(inp, {nm: strs[nm] for nm in nms}))
+    perm = impl(_amk(inp, {nm: v[::-1] for nm, v in strs.items()}))
+    sh = impl(_amk(inp, {nm: [str(D(v) + D("250.25")) for v in lst] for nm, lst in strs.items()}))
+    sc = impl(_amk(inp, {nm: [str(D(v) * 3) for v in lst] for nm, lst in strs.items()}))
+    pad = impl({**inp, "groups": {nm: list(col) + [None] for nm, col in inp["groups"].items()}})
+    K = lambda x, y, ks: all(_rclose(x[k], y[k], 1e-9) for k in ks); FKEYS = ("f_stat", "p_value", "eta_squared")
+    return [("second_implementation_agrees", all(_rclose(base[k], ref[k], 1e-8) for k in ref)),
+            ("within_group_permutation_invariant", K(perm, b0, tuple(k for k in b0 if k != "n_excluded"))),
+            ("group_relabeling_invariant", K(rel, b0, FKEYS)),
+            ("equal_shift_leaves_F_and_effect_unchanged", K(sh, b0, FKEYS) and all(_rclose(sh[f"mean_{nm}"], b0[f"mean_{nm}"] + D("250.25")) for nm in names)),
+            ("positive_scale_equivariance", K(sc, b0, FKEYS) and all(_rclose(sc[f"mean_{nm}"], b0[f"mean_{nm}"] * 3) and _rclose(sc[f"sd_{nm}"], b0[f"sd_{nm}"] * 3) for nm in names)),
+            ("missing_entries_excluded_not_valued", K(pad, base, tuple(k for k in base if k != "n_excluded")) and pad["n_excluded"] == base["n_excluded"] + len(names)),
+            ("bounded_and_consistent", base["f_stat"] >= 0 and 0 <= base["eta_squared"] <= 1 and 0 <= base["p_value"] <= 1 and base["df_between"] + base["df_within"] == base["n_total"] - 1)]
+
+def kw_impl(inp):
+    g, ex = _groups_multi(inp); names = list(g); N = sum((len(v) for v in g.values())); k = len(names)
+    if k < 2: raise DataError("at least two groups are required")
+    allv = [x for v in g.values() for x in v]; ranks = _ranks(allv); rsums, idx = {}, 0
+    for nm in names: rsums[nm] = sum((ranks[idx:idx + len(g[nm])]), D(0)); idx += len(g[nm])
+    H = D(12) / (N * (N + 1)) * sum((rsums[nm] ** 2 / len(g[nm]) for nm in names), D(0)) - D(3) * (N + 1)
+    from collections import Counter
+    ties = sum((c ** 3 - c for c in Counter([str(x) for x in allv]).values())); corr = D(1) - D(ties) / (N ** 3 - N); Hc = H / corr if corr != 0 else H
+    out = {"h_stat": Hc, "df": D(k - 1), "p_value": _fd(_chi2_survival(float(Hc), k - 1)), "epsilon_squared": Hc / (N - 1), "n_groups": D(k), "n_total": D(N), "n_excluded": D(ex), "alpha": _ALPHA(inp)}
+    for nm in names: out[f"n_{nm}"] = D(len(g[nm])); out[f"median_{nm}"] = statistics.median(sorted(g[nm]))
+    return out
+
+def _kw_ref(inp):
+    """Independent route: counting-based ranks and the exact integer-df chi-square survival."""
+    g, ex = _groups_multi(inp); names = list(g); N = sum((len(v) for v in g.values())); k = len(names)
+    fa = [float(x) for v in g.values() for x in v]; rk = _rank_reference(fa); rsums, idx = {}, 0
+    for nm in names: rsums[nm] = sum((rk[idx:idx + len(g[nm])])); idx += len(g[nm])
+    H = 12.0 / (N * (N + 1)) * sum((rs ** 2 / len(g[nm]) for nm, rs in rsums.items()), 0.0) - 3.0 * (N + 1)
+    from collections import Counter
+    ties = sum((c ** 3 - c for c in Counter(fa).values())); corr = 1.0 - ties / (N ** 3 - N); Hc = H / corr if corr else H
+    return {"h_stat": Hc, "df": k - 1, "p_value": _chi2_survival_ref(Hc, k - 1), "epsilon_squared": Hc / (N - 1), "n_groups": k, "n_total": N, "n_excluded": ex}
+
+def _kw_tests(inp, impl):
+    base, ref = impl(inp), _kw_ref(inp); g, _ = _groups_multi(inp); names = list(g)
+    strs = {nm: [str(x) for x in v] for nm, v in g.items()}; b0 = impl(_amk(inp, strs))
+    cube = impl(_amk(inp, {nm: [str(D(v) ** 3) for v in lst] for nm, lst in strs.items()}))
+    sh = impl(_amk(inp, {nm: [str(D(v) + D("250.25")) for v in lst] for nm, lst in strs.items()}))
+    nms = names[:]; nms[0], nms[1] = nms[1], nms[0]; rel = impl(_amk(inp, {nm: strs[nm] for nm in nms}))
+    perm = impl(_amk(inp, {nm: v[::-1] for nm, v in strs.items()}))
+    pad = impl({**inp, "groups": {nm: list(col) + [None] for nm, col in inp["groups"].items()}})
+    K = lambda x, y, ks: all(_rclose(x[k], y[k], 1e-9) for k in ks); RKEYS = ("h_stat", "p_value", "epsilon_squared")
+    return [("second_implementation_agrees", all(_rclose(base[k], ref[k], 1e-8) for k in ref)),
+            ("monotone_transform_keeps_ranks", K(cube, b0, RKEYS)),
+            ("shift_invariant", K(sh, b0, RKEYS)),
+            ("group_relabeling_invariant", K(rel, b0, RKEYS)),
+            ("within_group_permutation_invariant", K(perm, b0, tuple(k for k in b0 if k != "n_excluded"))),
+            ("missing_entries_excluded_not_valued", K(pad, base, tuple(k for k in base if k != "n_excluded")) and pad["n_excluded"] == base["n_excluded"] + len(names)),
+            ("bounded_and_consistent", base["h_stat"] >= 0 and 0 <= base["epsilon_squared"] <= 1 and 0 <= base["p_value"] <= 1)]
+
+# ---------- Chi-square test of independence on a table of observed counts (manual 9B.2, 9B.3) ----------
+def chi_square_impl(inp):
+    tbl = [[D(str(x)) for x in row] for row in inp["table"]]; R, C = len(tbl), len(tbl[0])
+    rt = [sum(r, D(0)) for r in tbl]; ct = [sum((tbl[i][j] for i in range(R)), D(0)) for j in range(C)]; N = sum(rt, D(0))
+    if N == 0: raise DataError("the table has no observations")
+    chi2 = sum(((tbl[i][j] - rt[i] * ct[j] / N) ** 2 / (rt[i] * ct[j] / N) for i in range(R) for j in range(C) if rt[i] * ct[j] != 0), D(0))
+    df = (R - 1) * (C - 1); p = _fd(_chi2_survival(float(chi2), df)); V = (chi2 / (N * min(R - 1, C - 1))).sqrt()
+    mine = min((rt[i] * ct[j] / N for i in range(R) for j in range(C)))
+    return {"chi_squared": chi2, "df": D(df), "p_value": p, "cramers_v": V, "n_total": D(N), "n_cells": D(R * C), "min_expected_count": mine, "alpha": _ALPHA(inp)}
+
+def _chi2_ref(inp):
+    """Independent route: float recomputation and the exact integer-df chi-square survival."""
+    tbl = [[float(x) for x in row] for row in inp["table"]]; R, C = len(tbl), len(tbl[0])
+    rt = [sum(r) for r in tbl]; ct = [sum((tbl[i][j] for i in range(R))) for j in range(C)]; N = sum(rt)
+    chi2 = sum(((tbl[i][j] - rt[i] * ct[j] / N) ** 2 / (rt[i] * ct[j] / N) for i in range(R) for j in range(C) if rt[i] * ct[j] > 0))
+    df = (R - 1) * (C - 1)
+    return {"chi_squared": chi2, "df": df, "p_value": _chi2_survival_ref(chi2, df), "cramers_v": (chi2 / (N * min(R - 1, C - 1))) ** 0.5, "n_total": N, "n_cells": R * C,
+            "min_expected_count": min((rt[i] * ct[j] / N for i in range(R) for j in range(C)))}
+
+def _chi2_tests(inp, impl):
+    base, ref = impl(inp), _chi2_ref(inp); tbl = inp["table"]
+    rows_perm = impl({"table": [list(r) for r in tbl[::-1]]})
+    transp = impl({"table": [list(row) for row in zip(*tbl)]})
+    scaled = impl({"table": [[int(x) * 2 for x in row] for row in tbl]})
+    indep = impl({"table": [[10, 20, 30], [20, 40, 60]]})
+    K = lambda x, y, ks: all(_rclose(x[k], y[k], 1e-9) for k in ks)
+    return [("second_implementation_agrees", all(_rclose(base[k], ref[k], 1e-8) for k in ref)),
+            ("row_order_invariant", K(rows_perm, base, ("chi_squared", "p_value", "cramers_v", "df"))),
+            ("transpose_invariant", K(transp, base, ("chi_squared", "p_value", "df"))),
+            ("uniform_scaling_scales_chi2_keeps_V", _rclose(scaled["chi_squared"], base["chi_squared"] * 2) and _rclose(scaled["cramers_v"], base["cramers_v"], 1e-9)),
+            ("independence_gives_zero_chi2", indep["chi_squared"] == 0 and indep["p_value"] == 1 and indep["cramers_v"] == 0),
+            ("bounded_and_consistent", base["chi_squared"] >= 0 and 0 <= base["cramers_v"] <= 1 and 0 <= base["p_value"] <= 1)]
+
+def anova_normality(inp, th):
+    g, _ = _groups_multi(inp); sl, kl = float(th.get("skew_limit", "2")), float(th.get("kurtosis_limit", "7")); bad = []
+    for nm, v in g.items():
+        sk, ku = _moments(v)
+        if abs(sk) > sl or abs(ku) > kl: bad.append(f"{nm}: skewness {sk:.2f}, excess kurtosis {ku:.2f}")
+    return [("group_normality_screen", not bad, "; ".join(bad) or "within declared limits")]
+
+def anova_homogeneity(inp, th):
+    """Levene's test (mean version) on absolute deviations; W is F(k-1, N-k) under equal variances."""
+    g, _ = _groups_multi(inp); names = list(g); k, N = len(names), sum((len(v) for v in g.values()))
+    if k < 2 or N - k < 1: return [("homogeneity_of_variance_screen", False, "not enough observations for Levene's test")]
+    Z = {nm: [abs(x - _mean(g[nm])) for x in g[nm]] for nm in names}; zb = {nm: _mean(Z[nm]) for nm in names}
+    gz = sum((sum(Z[nm], D(0)) for nm in names), D(0)) / N
+    ssb = sum((D(len(Z[nm])) * (zb[nm] - gz) ** 2 for nm in names), D(0))
+    ssw = sum((sum(((z - zb[nm]) ** 2 for z in Z[nm]), D(0)) for nm in names), D(0))
+    if ssw == 0: return [("homogeneity_of_variance_screen", True, "within-group deviations are constant; no evidence of unequal variance")]
+    W = D(N - k) / D(k - 1) * ssb / ssw; p = _fd(_betai(float(N - k) / 2, float(k - 1) / 2, float(N - k) / (float(N - k) + float(k - 1) * float(W))))
+    lev = float(th.get("levene_alpha", "0.05"))
+    return [("homogeneity_of_variance_screen", p >= lev, f"Levene W {float(W):.2f}, p {float(p):.4f}; declared level {lev:g}")]
+
+def anova_checks(inp, th): return anova_normality(inp, th) + anova_homogeneity(inp, th)
+
+def chi2_screen(inp, th):
+    tbl = [[D(str(x)) for x in row] for row in inp["table"]]; R, C = len(tbl), len(tbl[0])
+    rt = [sum(r, D(0)) for r in tbl]; ct = [sum((tbl[i][j] for i in range(R)), D(0)) for j in range(C)]; N = sum(rt, D(0))
+    if N == 0: return [("minimum_expected_count", False, "the table has no observations")]
+    mine = min((rt[i] * ct[j] / N for i in range(R) for j in range(C))); lim = D(str(th.get("min_expected", "5")))
+    return [("minimum_expected_count", mine >= lim, f"smallest expected count {float(mine):.2f}; declared minimum {float(lim):g}")]
+
+def chi2_checks(inp, th): return chi2_screen(inp, th)
+
+def anova_profile(inp):
+    issues = []
+    g, _ = _groups_multi(inp); names = list(g); N = sum((len(v) for v in g.values()))
+    if len(names) < 3: issues.append("one-way ANOVA compares at least three groups")
+    for nm, v in g.items():
+        if len(v) < 2: issues.append(f"group '{nm}' has fewer than two valid observations")
+    if N - len(names) < 1: issues.append("not enough observations for the degrees of freedom")
+    if not (0 < _ALPHA(inp) < 1): issues.append("alpha must be between 0 and 1")
+    return issues
+
+def kw_profile(inp):
+    issues = []
+    g, _ = _groups_multi(inp); names = list(g)
+    if len(names) < 3: issues.append("Kruskal-Wallis compares at least three groups")
+    for nm, v in g.items():
+        if len(v) < 2: issues.append(f"group '{nm}' has fewer than two valid observations")
+    if not (0 < _ALPHA(inp) < 1): issues.append("alpha must be between 0 and 1")
+    return issues
+
+def chi2_profile(inp):
+    tbl = inp["table"]; R, C = len(tbl), len(tbl[0]); issues = []
+    rt = [sum((D(str(x)) for x in row), D(0)) for row in tbl]; ct = [sum((D(str(tbl[i][j])) for i in range(R)), D(0)) for j in range(C)]
+    if sum(rt, D(0)) == 0: issues.append("the table has no observations")
+    if any(r == 0 for r in rt): issues.append("a row sums to zero")
+    if any(c == 0 for c in ct): issues.append("a column sums to zero")
+    if not (0 < _ALPHA(inp) < 1): issues.append("alpha must be between 0 and 1")
+    return issues
+
+def anova_typing(metric):
+    if metric == "p_value": return "probability", 4
+    if metric == "alpha": return "rate", 2
+    if metric in ("f_stat", "eta_squared"): return "ratio", 3
+    if metric.startswith("n_") or metric.startswith("df"): return "count", 0
+    return "@unit", 3
+
+def kw_typing(metric):
+    if metric == "p_value": return "probability", 4
+    if metric == "alpha": return "rate", 2
+    if metric in ("h_stat", "epsilon_squared"): return "ratio", 3
+    if metric.startswith("n_") or metric.startswith("df"): return "count", 0
+    return "@unit", 3
+
+def chi2_typing(metric):
+    if metric == "p_value": return "probability", 4
+    if metric == "alpha": return "rate", 2
+    if metric in ("chi_squared", "cramers_v"): return "ratio", 3
+    if metric.startswith("n_") or metric.startswith("df") or metric == "min_expected_count": return "count", 0
+    return "@unit", 3
+
+def _eta_size(x, th):
+    a = abs(x); g = lambda k, d: D(str(th.get(k, d)))
+    return "negligible" if a < g("eta_small", "0.01") else "small" if a < g("eta_medium", "0.06") else "medium" if a < g("eta_large", "0.14") else "large"
+
+def _cramers_size(x, th):
+    a = abs(x); g = lambda k, d: D(str(th.get(k, d)))
+    return "negligible" if a < g("v_small", "0.1") else "small" if a < g("v_medium", "0.3") else "medium" if a < g("v_large", "0.5") else "large"
+
+def anova_caveats(out, th):
+    c = []
+    if int(out["n_total"]) < int(th.get("small_sample_n", 30)): c.append("Caution: the sample is small, so these estimates are imprecise and should be described, not generalized.")
+    c.append("A difference among group means does not show that group membership produces it; assignment and other differences between groups were not assessed, and no causal claim is made.")
+    c.append("The normality and equal-variance screens are coarse; inspect the data before relying on the result.")
+    return c
+
+def kw_caveats(out, th):
+    c = []
+    if int(out["n_total"]) < int(th.get("small_sample_n", 30)): c.append("Caution: the sample is small, so these estimates are imprecise and should be described, not generalized.")
+    c.append("Kruskal-Wallis compares rank distributions, not means; a difference does not show that group membership produces it, and no causal claim is made.")
+    c.append("The p-value uses a chi-square approximation that is less accurate for small groups.")
+    return c
+
+def chi2_caveats(out, th):
+    c = []
+    if out["min_expected_count"] < D(str(th.get("min_expected", "5"))): c.append("Some expected counts are small, so the chi-square p-value is approximate.")
+    c.append("An association between the row and column variables does not show that one causes the other.")
+    c.append("The test treats the counts as independent observations of a single sample.")
+    return c
+
+def anova_template(out, P, th):
+    names = _names(out, "mean_"); tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P); pp = out["p_value"]
+    t = f"The analysis compares {tok('n_groups')} groups. " + " ".join(f"Group {nm} has {tok('n_' + nm)} valid observations with a mean of {tok('mean_' + nm)};" for nm in names)
+    t += f" {tok('n_excluded')} entries were excluded as missing. One-way ANOVA gives F({tok('df_between')}, {tok('df_within')}) = {tok('f_stat')} with a p-value "
+    t += ("of " + tok("p_value") + ". " if pp >= D("0.0001") else "below the reporting floor. ")
+    t += ("At the declared significance level of {{ref:alpha:alpha:%s}} the group means are statistically significantly different. " if pp < out["alpha"] else "At the declared significance level of {{ref:alpha:alpha:%s}} the group means are not statistically significantly different. ") % P
+    t += f"Eta-squared is {tok('eta_squared')}, a {_eta_size(out['eta_squared'], th)} effect by the declared thresholds. "
+    return t + "Statistical significance and practical importance are separate questions."
+
+def kw_template(out, P, th):
+    names = _names(out, "median_"); tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P); pp = out["p_value"]
+    t = f"The analysis compares {tok('n_groups')} groups. " + " ".join(f"Group {nm} has {tok('n_' + nm)} valid observations with a median of {tok('median_' + nm)};" for nm in names)
+    t += f" {tok('n_excluded')} entries were excluded as missing. Kruskal-Wallis gives H = {tok('h_stat')} with a p-value "
+    t += ("of " + tok("p_value") + ". " if pp >= D("0.0001") else "below the reporting floor. ")
+    t += ("At the declared significance level of {{ref:alpha:alpha:%s}} the rank distributions are statistically significantly different. " if pp < out["alpha"] else "At the declared significance level of {{ref:alpha:alpha:%s}} the rank distributions are not statistically significantly different. ") % P
+    t += f"Epsilon-squared is {tok('epsilon_squared')}, a {_eta_size(out['epsilon_squared'], th)} effect by the declared thresholds. "
+    return t + "Statistical significance and practical importance are separate questions."
+
+def chi2_template(out, P, th):
+    tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P); pp = out["p_value"]
+    t = (f"The table has {tok('n_total')} observations across {tok('n_cells')} cells. The chi-square test of independence gives chi-squared = {tok('chi_squared')} with {tok('df')} degree(s) of freedom and a p-value ")
+    t += ("of " + tok("p_value") + ". " if pp >= D("0.0001") else "below the reporting floor. ")
+    t += ("At the declared significance level of {{ref:alpha:alpha:%s}} the row and column variables are statistically significantly associated. " if pp < out["alpha"] else "At the declared significance level of {{ref:alpha:alpha:%s}} the row and column variables are not statistically significantly associated. ") % P
+    t += f"Cramer's V is {tok('cramers_v')}, a {_cramers_size(out['cramers_v'], th)} association by the declared thresholds. The smallest expected count is {tok('min_expected_count')}."
+    return t + " Statistical significance and practical importance are separate questions."
+
+_ANOVA_INPUTS = {"groups": {"type": "column_map", "min_columns": 3, "max_columns": 12, "min_items": 2, "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)"},
+                 "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes"},
+                 "alpha": {"type": "decimal", "required": False, "desc": "significance level, default 0.05"}}
+_CHI2_INPUTS = {"table": {"type": "count_table", "min_rows": 2, "min_cols": 2, "desc": "a table of non-negative whole-number counts (rows x columns)"},
+                "alpha": {"type": "decimal", "required": False, "desc": "significance level, default 0.05"}}
+_ANOVA_THRESH = {"small_sample_n": "30", "skew_limit": "2", "kurtosis_limit": "7", "levene_alpha": "0.05", "eta_small": "0.01", "eta_medium": "0.06", "eta_large": "0.14"}
+_KW_THRESH = {"small_sample_n": "30", "eta_small": "0.01", "eta_medium": "0.06", "eta_large": "0.14"}
+_CHI2_THRESH = {"min_expected": "5", "v_small": "0.1", "v_medium": "0.3", "v_large": "0.5"}
+_ANOVA_DEFAULTS = (
+    {"question": "Missing-value handling", "default_chosen": "Blank, null and declared missing codes are excluded within each group and counted.", "impact": "Excluded counts are reported."},
+    {"question": "Test", "default_chosen": "One-way independent ANOVA (F test), two-sided, comparing group means.", "impact": "Repeated-measures, two-way and ANCOVA designs are not supported."},
+    {"question": "Effect size", "default_chosen": "Eta-squared (between-group SS over total SS), with Cohen-style cut-offs 0.01, 0.06, 0.14 [UNVERIFIED conventions].", "impact": "Omega-squared (less biased) is not reported."},
+    {"question": "Assumption screens and fallback", "default_chosen": "If any group's skewness or excess kurtosis exceeds the declared limits, or Levene's test for equal variances rejects at the declared level, switch to Kruskal-Wallis as a logged amendment.", "impact": "Kruskal-Wallis compares rank distributions, not means."},
+    {"question": "Multiple comparisons", "default_chosen": "The omnibus F test makes no pairwise comparisons, so no correction is applied.", "impact": "Post-hoc pairwise tests would need their own correction."})
+_KW_DEFAULTS = (
+    {"question": "Missing-value handling", "default_chosen": "Blank, null and declared missing codes are excluded within each group and counted.", "impact": "Excluded counts are reported."},
+    {"question": "Test", "default_chosen": "Kruskal-Wallis rank test (nonparametric), with a chi-square approximation for the p-value.", "impact": "It compares rank distributions, not means, and is less powerful when the ANOVA assumptions hold."},
+    {"question": "Effect size", "default_chosen": "Epsilon-squared (H over N minus one), with Cohen-style cut-offs 0.01, 0.06, 0.14 [UNVERIFIED conventions].", "impact": "Interpretation mirrors eta-squared."},
+    {"question": "Ties", "default_chosen": "Tied values receive average ranks and the statistic is corrected for ties.", "impact": "Other tie rules change H slightly."})
+_CHI2_DEFAULTS = (
+    {"question": "Test", "default_chosen": "Pearson chi-square test of independence on a table of observed counts.", "impact": "Goodness-of-fit (one variable) and Fisher's exact test are not implemented."},
+    {"question": "Expected-count rule", "default_chosen": "If any expected count is below 5, the analysis blocks (fail-closed) instead of reporting an unreliable p-value.", "impact": "Small tables may block; larger samples or collapsing categories may be needed."},
+    {"question": "Effect size", "default_chosen": "Cramer's V, with coarse cut-offs 0.1, 0.3, 0.5 [UNVERIFIED conventions].", "impact": "The interpretation of V depends on the table dimensions."})
+_ANOVA_ASSUME = ("Observations are independent within and between groups.", "Group distributions are approximately normal (screened by skewness and kurtosis only).", "Group variances are approximately equal (screened by Levene's test).")
+_ANOVA_LIM = ("Normality and Levene screen limits are conventional placeholders [UNVERIFIED].", "Independence is not tested.", "No post-hoc pairwise comparisons or repeated-measures designs.", "Eta-squared is a sample effect size and is not bias-corrected.")
+_KW_ASSUME = ("Observations are independent within and between groups.", "The groups differ at most by location if the result is read as a shift.")
+_KW_LIM = ("The p-value is a chi-square approximation, less accurate for small groups or many ties.", "No post-hoc pairwise comparisons.", "No confidence interval for the effect size.")
+_CHI2_ASSUME = ("Observations are independent and each is counted in exactly one cell.", "Expected counts are large enough (screened; at least 5).")
+_CHI2_LIM = ("The p-value is an approximation; exact tests are not implemented.", "No Yates continuity correction for 2x2 tables.", "Cramer's V cut-offs are coarse [UNVERIFIED].")
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -889,6 +1236,27 @@ LIBRARY = {
                   limitations=("Descriptive claims only; no inference.", "Float reference comparison tolerance is 1e-9 relative."),
                   output_precision={"n": 0, "n_missing": 0}, default_period="cross_section",
                   caveats=describe_caveats, template=describe_template, default_thresholds={"small_sample_n": "30"}),
+    "anova": Method("anova", "T1", anova_impl, _anova_tests, anova_profile, "eta_squared", "from_request", None,
+                  ("second_implementation_agrees", "within_group_permutation_invariant", "group_relabeling_invariant", "equal_shift_leaves_F_and_effect_unchanged", "positive_scale_equivariance", "missing_entries_excluded_not_valued", "bounded_and_consistent"),
+                  category="group comparison", intended_use="Compare the means of three or more independent groups with an omnibus F test, an eta-squared effect size and per-group summaries.",
+                  unsupported_use="Repeated measures; two-way or factorial designs; post-hoc pairwise tests; causal claims; fewer than three groups.",
+                  input_schema=_ANOVA_INPUTS, defaults=_ANOVA_DEFAULTS, assumptions=_ANOVA_ASSUME, limitations=_ANOVA_LIM, default_period="cross_section",
+                  caveats=anova_caveats, template=anova_template, claim_ceiling="associational",
+                  assumption_checks=anova_checks, assumption_check_names=("group_normality_screen", "homogeneity_of_variance_screen"),
+                  fallbacks={"group_normality_screen": "kruskal_wallis", "homogeneity_of_variance_screen": "kruskal_wallis"}, default_thresholds=_ANOVA_THRESH, typing=anova_typing),
+    "kruskal_wallis": Method("kruskal_wallis", "T1", kw_impl, _kw_tests, kw_profile, "epsilon_squared", "from_request", None,
+                  ("second_implementation_agrees", "monotone_transform_keeps_ranks", "shift_invariant", "group_relabeling_invariant", "within_group_permutation_invariant", "missing_entries_excluded_not_valued", "bounded_and_consistent"),
+                  category="group comparison", intended_use="Compare three or more independent groups without assuming normality; nonparametric fallback for one-way ANOVA.",
+                  unsupported_use="Repeated measures; causal claims; post-hoc pairwise tests; reading the result as a mean difference.",
+                  input_schema=_ANOVA_INPUTS, defaults=_KW_DEFAULTS, assumptions=_KW_ASSUME, limitations=_KW_LIM, default_period="cross_section",
+                  caveats=kw_caveats, template=kw_template, claim_ceiling="associational", default_thresholds=_KW_THRESH, typing=kw_typing),
+    "chi_square": Method("chi_square", "T1", chi_square_impl, _chi2_tests, chi2_profile, "cramers_v", "ratio", None,
+                  ("second_implementation_agrees", "row_order_invariant", "transpose_invariant", "uniform_scaling_scales_chi2_keeps_V", "independence_gives_zero_chi2", "bounded_and_consistent"),
+                  category="categorical association", intended_use="Test whether two categorical variables are independent from a table of observed counts, with a Cramer's V effect size.",
+                  unsupported_use="Goodness of fit; ordered categories; repeated or paired counts; causal claims; tables with small expected counts (blocks).",
+                  input_schema=_CHI2_INPUTS, defaults=_CHI2_DEFAULTS, assumptions=_CHI2_ASSUME, limitations=_CHI2_LIM, default_period="cross_section",
+                  caveats=chi2_caveats, template=chi2_template, claim_ceiling="associational",
+                  assumption_checks=chi2_checks, assumption_check_names=("minimum_expected_count",), default_thresholds=_CHI2_THRESH, typing=chi2_typing),
 }
 
 # ---------- discovery (never executes a method) ----------
