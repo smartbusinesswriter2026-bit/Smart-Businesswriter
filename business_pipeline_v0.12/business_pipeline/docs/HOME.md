@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.54**, **625 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.55**, **625 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -100,6 +100,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living — parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |
 | [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) | Living — frozen core contract + product-backend lane | Frozen surface changes only by an owner-approved unfreeze; product additions recorded in its §6 |
+| [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md) | Living — product-backend sequence, slices and boundary rules | Update when a phase ships or an owner decision resolves (B-081) |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
 | [`CHANGELOG.md`](CHANGELOG.md) | Append-only build log | Newest first; one entry per increment |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |

@@ -46,7 +46,7 @@ An unfreeze is a decision, not a commit:
 
 ## 4. Product-backend lane (B-080, design owner)
 
-**May build, additively:** presentation and interaction (`web/**`), new product routes/modules/storage/workflows that *use* the frozen computation through the session/preset/API contracts, product documentation, and product-surface entries in §6.
+**May build, additively:** presentation and interaction (`web/**`), a **new product package `src/bp/product/**`** (new files only, importing the frozen core), **new flat product test files `tests/test_product_*.py`** (existing tests and fixtures are frozen), new product routes/modules/storage/workflows that *use* the frozen computation through the session/preset/API contracts, product documentation, and product-surface entries in §6. Per increment the design owner may also update **only the count/version digits** in `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`, add one `CHANGELOG.md` entry and one `WORKLOG.md` entry tagged `[product]`, and its own §6 rows; the computation owner verifies those digits at review. The sequence is in [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md) (B-081).
 
 **Must not:**
 - edit the frozen core modules listed in §2, `tests/**` (including the frozen contract fixture), or the factual content of `docs/**`;
@@ -72,3 +72,5 @@ An unfreeze is a decision, not a commit:
 | Product feature | Route / surface | Consumes (frozen) |
 |---|---|---|
 | — | — | — |
+
+**Planned for Phase 1-2** (not yet shipped; sequence and acceptance in [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md)): local durable case store (`src/bp/product/**` + additive `/api/cases` routes over the session JSON and delivery appendix), AI-use disclosure export from recorded metadata, DOCX/XLSX export of the delivered report verbatim, reviewer sign-off record, ops/observability counters, offline packaging. None of these may compute a number.

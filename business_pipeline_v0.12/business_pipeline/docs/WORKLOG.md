@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Product-backend sequence and delegation boundary (B-081)
+
+**Ask:** "let's do your recommended sequence of finishing the backend product before finally doing the UI. delegate some work to minimax when you dont have to do it."
+**Did:** wrote the sequence down as a working plan instead of ad-hoc instructions, and fixed the file-level boundary that lets both owners work in the same repo in parallel. New `docs/PRODUCT_BACKEND_PLAN.md`: **Phase 0** four owner questions (deployment model, case retention/privacy, disclosure audience, sign-off semantics) each with a slice-1-safe default; **Phase 1** delegated to MiniMax - local durable case store (`src/bp/product/**` as new files + additive `/api/cases` routes, opaque JSON bundles with atomic writes, export/restore/delete), AI-use disclosure export from recorded metadata, DOCX/XLSX export of the delivered report verbatim; **Phase 2** delegated - reviewer sign-off record, ops/observability counters (no case content in logs), offline packaging; **Phase 3** computation-owner unfreeze requests, ordered (multi-period comparatives/versioning, then PDF/OCR + SPSS ingestion, core-lane exports only if the product layer cannot host them); **Phase 4** owner-gated tracks (REW ratification, retrieval sources, tax/ledger/templates/reviewers, real-case evaluation); **Phase 5** the UI only after 1-2 are accepted. Boundary rules recorded in B-081 and in `BACKEND_CONTRACT.md` §4: product code and product tests are new files (`src/bp/product/**`, `tests/test_product_*.py`); per increment MiniMax may update only count/version digits in HOME/HANDOFF/CONTRIBUTORS plus one CHANGELOG and one WORKLOG `[product]` entry; the frozen core, existing tests/fixtures, `DECISIONS.md` and claim wording stay untouched; both guards must pass.
+**Files:** `docs/PRODUCT_BACKEND_PLAN.md` (new), `docs/BACKEND_CONTRACT.md` (§4/§6), `docs/DECISIONS.md` (B-081), `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only increment; full suite (including the frozen-contract and docs-state guards) **625 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** owner answers to D1-D4 (or acceptance of the defaults); MiniMax's Phase-1 slice to review; the queued REW inventory refresh is the next computation-owner item.
+
+---
+
 ## 2026-10-21 — [review] Decision briefs draft (MiniMax task 3), reviewed and merged
 
 **Delivered by:** MiniMax/OpenCode on branch `opencode/decision-briefs`, commit `566a6af`: `docs/proposals/DECISION_BRIEFS.md` (369 lines) with five briefs for the open owner decisions — B-005 reviewers, B-028 next templates, B-032 ledger engine, B-052 taxation, REW R1-R10 — each giving "what it blocks today" citations, the state of the code, options with costs, one clearly labelled MiniMax recommendation, plus an OPEN-items appendix and an appendix of contradictions it found between repository documents.
