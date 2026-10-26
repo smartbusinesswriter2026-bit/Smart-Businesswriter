@@ -83,6 +83,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Document | Kind | Rule |
 |---|---|---|
 | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) | Living — how to work here | Update when a rule changes |
+| [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
 | [`HOME.md`](HOME.md) | Living — this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
