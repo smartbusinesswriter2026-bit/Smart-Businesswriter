@@ -1292,6 +1292,151 @@ _FORECAST_DEFAULTS = (
 _FORECAST_ASSUME = ("Observations are in time order with one value per period.", "The trend is linear in time.", "Errors around the trend are independent and roughly normal.")
 _FORECAST_LIM = ("No seasonality, cycles, external drivers or structural-break handling.", "Extrapolation: the forecast projects the trend beyond the observed range and becomes less reliable the further ahead it goes.", "Prediction intervals are approximate in small samples.")
 
+# ---------- Financial-statement ratio analysis (manual 9.5; gap map P1/C; T1) ----------
+# Every ratio is a DECLARED formula over figures the owner supplies. No benchmark, industry
+# average, cut-off or good/bad verdict is invented (manual 5.3, P1): the method computes and
+# reports, it does not rate. A ratio whose inputs are missing or whose denominator is zero is
+# listed as not computed in the appendix, never estimated or replaced by a large number.
+_RATIO_FIGURES = {
+    "current_assets": "current assets at the period end",
+    "current_liabilities": "current liabilities at the period end",
+    "cash": "cash and cash equivalents",
+    "inventory": "inventory",
+    "receivables": "trade receivables",
+    "payables": "trade payables",
+    "total_assets": "total assets",
+    "total_liabilities": "total liabilities",
+    "equity": "total equity",
+    "revenue": "revenue for the period",
+    "cost_of_sales": "cost of sales for the period",
+    "operating_profit": "operating profit for the period",
+    "net_income": "net income for the period (as supplied; no tax computation is performed)",
+    "interest_expense": "interest expense for the period, as a positive amount",
+}
+
+# (name, group, figures needed, denominator figures, formula, unit, definition)
+_RATIOS = (
+    ("current_ratio", "liquidity", ("current_assets", "current_liabilities"), ("current_liabilities",),
+     lambda f: f["current_assets"] / f["current_liabilities"], "ratio", "current assets / current liabilities"),
+    ("quick_ratio", "liquidity", ("current_assets", "inventory", "current_liabilities"), ("current_liabilities",),
+     lambda f: (f["current_assets"] - f["inventory"]) / f["current_liabilities"], "ratio", "(current assets - inventory) / current liabilities"),
+    ("cash_ratio", "liquidity", ("cash", "current_liabilities"), ("current_liabilities",),
+     lambda f: f["cash"] / f["current_liabilities"], "ratio", "cash / current liabilities"),
+    ("gross_margin", "profitability", ("revenue", "cost_of_sales"), ("revenue",),
+     lambda f: (f["revenue"] - f["cost_of_sales"]) / f["revenue"], "ratio", "(revenue - cost of sales) / revenue"),
+    ("operating_margin", "profitability", ("operating_profit", "revenue"), ("revenue",),
+     lambda f: f["operating_profit"] / f["revenue"], "ratio", "operating profit / revenue"),
+    ("net_margin", "profitability", ("net_income", "revenue"), ("revenue",),
+     lambda f: f["net_income"] / f["revenue"], "ratio", "net income / revenue"),
+    ("return_on_assets", "profitability", ("net_income", "total_assets"), ("total_assets",),
+     lambda f: f["net_income"] / f["total_assets"], "ratio", "net income / total assets"),
+    ("return_on_equity", "profitability", ("net_income", "equity"), ("equity",),
+     lambda f: f["net_income"] / f["equity"], "ratio", "net income / equity"),
+    ("debt_to_equity", "solvency", ("total_liabilities", "equity"), ("equity",),
+     lambda f: f["total_liabilities"] / f["equity"], "ratio", "total liabilities / equity"),
+    ("equity_multiplier", "solvency", ("total_assets", "equity"), ("equity",),
+     lambda f: f["total_assets"] / f["equity"], "ratio", "total assets / equity"),
+    ("interest_cover", "solvency", ("operating_profit", "interest_expense"), ("interest_expense",),
+     lambda f: f["operating_profit"] / f["interest_expense"], "ratio", "operating profit / interest expense"),
+    ("asset_turnover", "efficiency", ("revenue", "total_assets"), ("total_assets",),
+     lambda f: f["revenue"] / f["total_assets"], "ratio", "revenue / total assets"),
+    ("receivables_days", "efficiency", ("receivables", "revenue"), ("revenue",),
+     lambda f: f["receivables"] / f["revenue"] * 365, "days", "receivables / revenue x 365"),
+    ("inventory_days", "efficiency", ("inventory", "cost_of_sales"), ("cost_of_sales",),
+     lambda f: f["inventory"] / f["cost_of_sales"] * 365, "days", "inventory / cost of sales x 365"),
+    ("payables_days", "efficiency", ("payables", "cost_of_sales"), ("cost_of_sales",),
+     lambda f: f["payables"] / f["cost_of_sales"] * 365, "days", "payables / cost of sales x 365"),
+)
+_RATIO_GROUP = {r[0]: r[1] for r in _RATIOS}
+_RATIO_DENOMS = {r[0]: r[3] for r in _RATIOS}
+_RATIO_UNIT = {r[0]: r[5] for r in _RATIOS}
+_RATIO_DEF = {r[0]: r[6] for r in _RATIOS}
+_RATIO_LABEL = {"current_ratio": "current ratio", "quick_ratio": "quick ratio", "cash_ratio": "cash ratio",
+                "gross_margin": "gross margin", "operating_margin": "operating margin", "net_margin": "net margin",
+                "return_on_assets": "return on assets", "return_on_equity": "return on equity",
+                "debt_to_equity": "debt to equity", "equity_multiplier": "equity multiplier", "interest_cover": "interest cover",
+                "asset_turnover": "asset turnover", "receivables_days": "receivables days", "inventory_days": "inventory days",
+                "payables_days": "payables days"}
+
+def _ratio_figures(inp): return {k: D(str(inp[k])) for k in _RATIO_FIGURES if k in inp}
+
+def _ratio_reference(fig):
+    """Independent route: exact rational arithmetic (Fraction), a different number system from the
+    Decimal route. Rounded to float only at comparison time, so a Decimal-precision drift shows up."""
+    from fractions import Fraction
+    f = {k: Fraction(v) for k, v in fig.items()}
+    out = {}
+    for name, _g, needs, denoms, fn, _u, _d in _RATIOS:
+        if all(x in f for x in needs) and all(f[x] != 0 for x in denoms): out[name] = float(fn(f))
+    return out
+
+def _ratio_checks(inp, fig, outputs, rows, not_computed):
+    names = [r[0] for r in _RATIOS]
+    computed = [r["ratio"] for r in rows]
+    explained = [r["ratio"] for r in not_computed]
+    ref = _ratio_reference(fig)
+    bs = "not applicable"
+    if all(k in fig for k in ("total_assets", "total_liabilities", "equity")):
+        bs = "holds" if fig["total_assets"] == fig["total_liabilities"] + fig["equity"] else "does not hold: total assets != total liabilities + equity"
+    return [
+        ("every_ratio_is_either_computed_or_explained", set(computed) | set(explained) == set(names) and not set(computed) & set(explained), "each declared ratio appears exactly once as computed or as not computed with a reason"),
+        ("denominators_are_nonzero", all(all(fig[d] != 0 for d in _RATIO_DENOMS[r]) for r in computed), "a zero denominator is never divided by"),
+        ("negative_denominators_are_flagged_not_dropped", all(bool(r["negative_base"]) == any(fig[d] < 0 for d in _RATIO_DENOMS[r["ratio"]]) for r in rows), "a negative base is computed and flagged, not hidden"),
+        ("second_route_agrees_on_every_ratio", all(_close(outputs[r["ratio"]], ref[r["ratio"]]) for r in rows), "exact rational route agrees with the Decimal route to 1e-9 relative"),
+        ("balance_sheet_identity_holds_when_checkable", bs in ("holds", "not applicable"), bs),
+        ("figures_parsed_exactly_as_supplied", all(fig[k] == D(str(inp[k])) for k in fig), "every figure used is exactly the value supplied, with nothing rounded or silently altered"),
+    ]
+
+def ratio_impl(inp):
+    fig = _ratio_figures(inp)
+    outputs, rows, not_computed = {}, [], []
+    for name, group, needs, denoms, fn, unit, definition in _RATIOS:
+        missing = [x for x in needs if x not in fig]
+        if missing:
+            not_computed.append({"ratio": name, "group": group, "definition": definition, "reason": "missing input: " + ", ".join(missing)}); continue
+        zero = [x for x in denoms if fig[x] == 0]
+        if zero:
+            not_computed.append({"ratio": name, "group": group, "definition": definition, "reason": "zero denominator: " + ", ".join(zero)}); continue
+        value, negative = fn(fig), [x for x in denoms if fig[x] < 0]
+        outputs[name] = value
+        rows.append({"ratio": name, "group": group, "definition": definition, "value": str(value), "unit": unit,
+                     "inputs": {x: str(fig[x]) for x in needs}, "status": "computed_with_negative_base" if negative else "computed",
+                     "negative_base": negative})
+    outputs["n_computed"] = D(len(rows))
+    appendix = {"ratios": rows, "not_computed": not_computed, "figures_supplied": {k: str(inp[k]) for k in fig},
+                "conventions": "Period-end balances; a 365-day year for the efficiency ratios; a zero denominator is not computed; a negative base is computed and flagged; no benchmark, cut-off or verdict is applied."}
+    return {**outputs, "_appendix": appendix, "_checks": _ratio_checks(inp, fig, outputs, rows, not_computed)}
+
+def _ratio_tests(inp, impl): return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def ratio_profile(inp):
+    fig = _ratio_figures(inp)
+    n = sum(1 for _n, _g, needs, denoms, *_r in _RATIOS if all(x in fig for x in needs) and all(fig[x] != 0 for x in denoms))
+    if n == 0: return ["no ratio can be computed from the supplied figures; supply at least one ratio's inputs (for example current_assets and current_liabilities)"]
+    return []
+
+def _ratio_typing(metric):
+    if metric == "n_computed": return ("count", 0)
+    return ("days", 1) if _RATIO_UNIT.get(metric) == "days" else ("ratio", 3)
+
+def ratio_caveats(out, thresholds):
+    n = int(out.get("n_computed", 0)); c = [
+        "A ratio that cannot be computed is listed in the appendix with its reason and is never estimated.",
+        "A negative denominator (for example negative equity) produces a ratio that must not be read conventionally; it is flagged in the appendix.",
+        "The efficiency ratios use period-end balances and a 365-day year; average balances would give different numbers.",
+        "The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check."]
+    if n < 4: c.insert(0, "Only a few ratios could be computed from the supplied figures, so this is a partial pack.")
+    return c
+
+def ratio_template(outputs, period, thresholds=None):
+    P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    order = [r[0] for r in _RATIOS if r[0] in outputs]
+    t = f"The analysis computes {tok('n_computed')} financial-statement ratios from the figures supplied. "
+    for group in ("liquidity", "profitability", "solvency", "efficiency"):
+        names = [n for n in order if _RATIO_GROUP[n] == group]
+        if names: t += "The " + group + " ratios are " + ", ".join(_RATIO_LABEL[n] + " of " + tok(n) for n in names) + ". "
+    return t + "Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated."
+
 # ---------- Declarative management accounts: an engagement spec run through the ledger kernel (Stage 8, manual 9.1-9.3; T2) ----------
 def accounts_impl(inp):
     from . import accounts
@@ -1447,6 +1592,19 @@ LIBRARY = {
                   unsupported_use="Seasonal, cyclical or structural-break series; causal claims; multi-series or driver-based models; long horizons; policy simulations.",
                   input_schema=_FORECAST_INPUTS, defaults=_FORECAST_DEFAULTS, assumptions=_FORECAST_ASSUME, limitations=_FORECAST_LIM, default_period="annual",
                   caveats=forecast_caveats, template=forecast_template, claim_ceiling="predictive", default_thresholds=_FORECAST_THRESH, typing=forecast_typing),
+    "ratio_analysis": Method("ratio_analysis", "T1", ratio_impl, _ratio_tests, ratio_profile, "n_computed", "count", None,
+                  ("every_ratio_is_either_computed_or_explained", "denominators_are_nonzero", "negative_denominators_are_flagged_not_dropped",
+                   "second_route_agrees_on_every_ratio", "balance_sheet_identity_holds_when_checkable", "figures_parsed_exactly_as_supplied"),
+                  category="financial statement analysis",
+                  intended_use="Compute liquidity, profitability, solvency and efficiency ratios from figures on your own financial statements, showing each ratio's declared formula and the figures it used.",
+                  unsupported_use="Benchmarks, industry averages or pass/fail judgements; GAAP or IFRS presentation; restating or adjusting figures; multi-period comparatives; segment, consolidated or multi-currency analysis; forecasting.",
+                  input_schema={k: {"type": "decimal", "required": False, "desc": v} for k, v in _RATIO_FIGURES.items()},
+                  defaults=({"question": "Benchmarks and cut-offs", "default_chosen": "None are applied, because none is supplied or verified. Ratios are computed, not rated.", "impact": "Whether a value is good or bad is left to the reader and the context."},
+                            {"question": "Balance conventions", "default_chosen": "Period-end balances and a 365-day year for the efficiency ratios.", "impact": "Average balances or a 360-day year would give different numbers."},
+                            {"question": "Uncomputable ratios", "default_chosen": "A ratio with a missing figure or a zero denominator is listed in the appendix with its reason and is not estimated.", "impact": "The pack is partial rather than invented."}),
+                  assumptions=("The figures are as reported for one period, in one currency and on one accounting basis.", "Balance-sheet figures are period-end balances."),
+                  limitations=("Descriptive arithmetic only; no benchmark, threshold or verdict is applied because none is supplied or verified.", "The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.", "There is no tax computation; net income is used exactly as supplied."),
+                  default_period="annual", caveats=ratio_caveats, template=ratio_template, claim_ceiling="descriptive", typing=_ratio_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
                   ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",

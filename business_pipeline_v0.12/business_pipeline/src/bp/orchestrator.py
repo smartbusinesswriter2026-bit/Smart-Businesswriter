@@ -177,7 +177,7 @@ class Pipeline:
             if mu == "count": prec = 0
             cur_here = cur if mu == "@unit" else None
             if mu == "@unit": mu = base_unit
-            q = Quantity(val, unit=mu, currency=cur_here if cur_here else None if mu in ("count", "units", "correlation", "probability", "rate", "coefficient", "ratio") else cur,
+            q = Quantity(val, unit=mu, currency=cur_here if cur_here else None if mu in ("count", "units", "correlation", "probability", "rate", "coefficient", "ratio", "days") else cur,
                          period=period, precision=prec)
             aid = "result" if len(outputs) == 1 else metric
             self.store.put(Artifact(aid, q, (metric, period, entity, "base"), spec.hash, code_h, sha(inp),

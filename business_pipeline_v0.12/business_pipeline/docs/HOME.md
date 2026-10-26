@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.30**, **400 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.31**, **415 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -25,6 +25,7 @@
 | Change the accounting engine | `CONTRIBUTORS.md` §4/§5, B-032/B-044–B-051 | `src/bp/ledger.py`, `schedules.py`, `accounts.py`, `reconcile.py`, `report.py` |
 | Add a framework template | `DECISIONS.md` B-028 (owner decision first!) | `src/bp/templates.py`, registry, `tests/test_templates.py` |
 | Add a catalogue record / regenerate registry | `docs/STAGE6_REPORT.md` | `src/bp/catalogue_import.py`, `src/bp/data/registry_v0_2.json` |
+| Compute ratios from a balance sheet / income statement | `KNOWN_LIMITATIONS.md` (B-056) | `src/bp/methods.py` (`ratio_analysis`), preset `ratios` |
 | Review what a deliverable claims | `src/bp/claims.py` | claim ceiling per method in `LIBRARY` |
 
 ## 2. By module
@@ -34,7 +35,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Module | Owns | Main tests | Authority |
 |---|---|---|---|
 | [`orchestrator.py`](../src/bp/orchestrator.py) | Stage order, `Pipeline.start/resume/run`, `Delivery`, `Pause`, `_appendix`/`_checks` | `test_pipeline`, `test_stage5` | steps 4, 5.2 (P4, P8) |
-| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast` | 5.3, 5.5, 9B; B-042/B-043 |
+| [`methods.py`](../src/bp/methods.py) | T1 method library, contract, independent second routes, assumption checks | `test_stage5`, `test_groups`, `test_correlation`, `test_regression`, `test_anova`, `test_chisquare`, `test_forecast`, `test_ratio` | 5.3, 5.5, 9B; B-042/B-043/B-056 |
 | [`spec.py`](../src/bp/spec.py) | Problem Spec: draft → confirm → frozen + hashed | `test_stage5` | 5.2 |
 | [`session.py`](../src/bp/session.py) | Session/work-plan states, checkpoints, JSON contracts | `test_session_api` | 4, 5.2 |
 | [`sandbox.py`](../src/bp/sandbox.py), [`sandbox_child.py`](../src/bp/sandbox_child.py) | Guarded subprocess execution, parent/child protocol | `test_sandbox` | 5.4 |
@@ -68,11 +69,12 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Statistics: descriptive, correlation, regression, two-group, ANOVA/KW, chi-square | Built; conventions `[UNVERIFIED]` | B-042 |
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
+| Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |
 | Literature retrieval/verification | Built; PROVISIONAL match rule; no durable log | B-040, B-054 |
 | Research & Evidence Workflow (REW) | Manual ratified (R11); **no stage built** | B-053, R1–R10 proposals |
 | Taxation | Deliberately deferred | B-052 |
 | Ingestion (PDF/Excel/SPSS) | Not built | P0 gap map |
-| Ratio analysis, DCF/WACC, breadth templates | Not built | P1/P2 gap map; B-005/B-028 gates |
+| DCF/WACC, 9B.3 honesty upgrades, breadth templates | Not built | P1/P2 gap map; B-005/B-028 gates |
 
 ## 4. The documentation spine
 

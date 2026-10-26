@@ -12,6 +12,7 @@ The pipeline grew **method-by-method** (provider → statistics → forecasting 
 - **Statistics**: descriptive, Pearson/Spearman, OLS + HC3 (diagnostics), Welch t-test + Mann-Whitney, one-way ANOVA + Kruskal-Wallis, chi-square; effect sizes + intervals throughout.
 - **Forecasting**: linear trend with prediction intervals and an out-of-sample holdout (linear only).
 - **Accounting (Stage 8)**: declarative engagement → ledger kernel → schedules (depreciation/amortization/accruals) → cash flow (two routes) → closing + retained-earnings rollforward → reconciliation → statement exports, with the account-mapping checkpoint.
+- **Ratio analysis**: `ratio_analysis` (T1, B-056) computes 15 declared liquidity, profitability, solvency and efficiency ratios from supplied statement figures, with a not-computed reason for anything uncomputable and no invented benchmarks.
 - **Templates**: SWOT, Five Forces, and `case_decision` (2–5 alternatives compared by NPV).
 
 ## The four gaps, with tier/verification notes
@@ -44,7 +45,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 
 | Gap | Tier / verification note |
 |---|---|
-| **Financial statement ratio analysis** (liquidity, profitability, solvency, efficiency) computed from the statements | T1 — pure arithmetic on ledger/statement artifacts; the natural next step after Stage 8 |
+| **Financial statement ratio analysis** (liquidity, profitability, solvency, efficiency) computed from the statements | **Built** (B-056, `ratio_analysis`, T1): 15 declared ratios in Decimal, exact-rational second route, not-computed reasons, no benchmarks or verdicts. Remaining in this row: nothing that needs a decision, though industry-benchmark comparison would need retrieved sources (P0). |
 | DCF valuation + WACC | T2 — WACC and growth are assumptions, never invented weights; grows `case_decision` |
 | Unit economics (unit margin, LTV/CAC), multi-product break-even | T1/T2 |
 | Cost-benefit / cost-effectiveness / SROI | T2 — valuation assumptions, expert review pending |
@@ -72,8 +73,8 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
 
 1. **Ratify the remaining research-manual proposals (R1–R10)** — free, unblocks the REW track and turns proposals into a build spec; R11 (the manual as working authority) is already ratified, and the original Smart Researcher manuals remain welcome and would be reconciled against it.
 2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
-3. **Statement ratio analysis (P1/C)** — crisp, low-risk value on the ledger output we just finished.
-4. **9B.3 honesty upgrades (P1/B)** — power, multiple-comparison, missing-data mechanisms and weights, so existing statistics stop under-reporting before more statistics are added.
+3. ~~Statement ratio analysis (P1/C)~~ — **done** (B-056, commit for 0.31).
+4. **9B.3 honesty upgrades (P1/B)** — power, multiple-comparison, missing-data mechanisms and weights, so existing statistics stop under-reporting before more statistics are added. This is the other half of Slice 1.
 5. **Ingestion (P0/A)** in parallel with the above.
 6. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
 

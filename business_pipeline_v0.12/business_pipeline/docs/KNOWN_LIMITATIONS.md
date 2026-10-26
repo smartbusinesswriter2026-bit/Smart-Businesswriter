@@ -137,5 +137,11 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with ratio analysis (B-056)
+- `ratio_analysis` is purely descriptive arithmetic on figures the owner supplies: no benchmark, industry average, cut-off or good/bad verdict is applied, because none is supplied or verified. A ratio being high or low is for the reader and the context to judge.
+- Period-end balances and a 365-day year are declared conventions; average balances or a 360-day year would give different efficiency ratios.
+- A ratio with a missing figure or a zero denominator is reported as not computed with its reason and never estimated; a negative denominator (for example negative equity) is computed and flagged, not hidden or reinterpreted.
+- The supplied figures are not validated against a trial balance here, and no tax computation is performed (net income is used exactly as supplied). Multi-period comparatives, segment and multi-currency analysis are not supported; use `management_accounts` for the bookkeeping-level check.
+
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.
