@@ -11,7 +11,9 @@ from bp.session import SessionManager
 yes = lambda s: True
 SB = SubprocessSandbox(timeout=60)
 NPV = {"objective": "Invest?", "method": "npv", "currency": "USD", "inputs": {"rate": "0.10", "cashflows": ["-1000", "400", "400", "400"]}, "sensitivity": {"rate": ["0.05", "0.25"]}}
-CASES = {"npv": NPV["inputs"], "breakeven": {"fixed": "1000", "price": "20", "variable": "10"},
+CASES = {"npv": NPV["inputs"], "irr": {"cashflows": ["-1000", "400", "400", "400", "400"]},
+         "discounted_payback": {"cashflows": ["-1000", "400", "400", "400", "400"], "rate": "0.10"},
+         "breakeven": {"fixed": "1000", "price": "20", "variable": "10"},
          "descriptive_stats": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"]},
          "pearson": {"x": [str(i) for i in range(1, 9)], "y": ["52", "55", "61", "58", "70", "72", "69", "80"]},
          "spearman": {"x": ["3", "1", "4", "1", "5", "9", "2", "6", "5", "3"], "y": ["2", "7", "1", "8", "2", "8", "1", "8", "2", "8"]},

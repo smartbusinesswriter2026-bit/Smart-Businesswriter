@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 0.49 (see docs/CHANGELOG.md)
-Tests        : 598 tests, all passing
+Build        : 0.50 (see docs/CHANGELOG.md)
+Tests        : 609 tests, all passing
 ```
 
 ```powershell
@@ -36,7 +36,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 ## 3. What is already built (do not rebuild)
 
 - **Core**: frozen spec/hashed artefacts, sandboxed execution, second-route verification, claim ceilings, re-performance bundles, deterministic reports (`spec.py`, `orchestrator.py`, `sandbox.py`, `artifacts.py`, `claims.py`, `reperform.py`).
-- **Methods (T1 unless noted)**: npv, breakeven, descriptive_stats, pearson/spearman, ols/ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, paired_t, one_sample_t, two_way_anova (balanced only), posthoc_pairwise, wacc, currency_convert, unit_economics, multi_product_breakeven, logistic_regression, reliability_alpha, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary; **T2**: cost_benefit, cost_effectiveness, sroi, dcf_valuation, management_accounts. Templates: SWOT, Five Forces, case_decision (T2/T4).
+- **Methods (T1 unless noted)**: npv, irr, discounted_payback, breakeven, descriptive_stats, pearson/spearman, ols/ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, paired_t, one_sample_t, two_way_anova (balanced only), posthoc_pairwise, wacc, currency_convert, unit_economics, multi_product_breakeven, logistic_regression, reliability_alpha, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary; **T2**: cost_benefit, cost_effectiveness, sroi, dcf_valuation, management_accounts. Templates: SWOT, Five Forces, case_decision (T2/T4).
 - **Accounting (Stage 8, T2)**: ledger kernel, schedules (depreciation/amortization/accruals), two-route cash flow, closing + retained-earnings rollforward, declarative engagement spec, reconciliation, account-mapping checkpoint, plain-text statement exports. Ledger engine choice open (B-032).
 - **Retrieval**: Crossref→OpenAlex with declared failover and recorded attempts, response SHA-256 + UTC time, durable append-only JSONL log, drift sweep, APA 7 + Harvard citation formatting.
 - **Ingestion**: CSV/TSV + XLSX → typed table with provenance; XLSX sheet selection by exact name or 1-based number, and merged cells refused by default (declared `top_left` expansion recorded when chosen) — B-076; PDF/scan/OCR/SPSS refused explicitly.

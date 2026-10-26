@@ -184,6 +184,13 @@
 - Provenance is table-level (file, SHA-256, data row i and column j, sheet): it says where every value came from, not that the value is correct. The importer performs no type coercion, no imputation and no unit inference.
 - Ingested columns are **not mapped automatically** into a method's inputs: choosing which column is `values`, `y` or `predictors` is the user's decision, so no column semantics are invented.
 
+## Added with IRR and discounted payback (B-077)
+- `irr` reports **one** internal rate of return, found numerically in the declared range -99.99% to 1000%; a root outside that range is treated as absent. When the cash flows change sign more than once the NPV function can cross zero several times, so the method **refuses and lists the roots** instead of picking one — which IRR is "the" IRR is not something the method may decide.
+- IRR is a rate, not a value: it says nothing about the scale of the investment, cannot rank projects by itself, and assumes cash flows are reinvested at the IRR (a convention the method does not verify). It uses the same end-of-period, t=0-first timing as `npv`; unequal period lengths are not modelled.
+- `discounted_payback` is a **liquidity** measure: it ignores every cash flow after the recovery point, so a project that pays back quickly and then loses money still looks acceptable. Interpolation inside the recovering period assumes the flow is spread evenly, and the ordinary payback at rate 0 is the same convention.
+- Discounted payback requires a **negative first cash flow**; a positive first cash flow is refused. An outlay that is never recovered within the declared horizon **blocks** rather than reporting "> n periods" as a number.
+- Neither method discounts at a rate it chooses: the rate (payback) or the cash flows (IRR) are the owner's declared inputs. No tax, financing or mid-year convention is applied.
+
 ## Added with XLSX sheet selection and the merged-cell policy (B-076)
 - Sheet selection is by **exact case-sensitive name** or **1-based position**; there is no fuzzy matching, wildcard or "all sheets" mode, and one table still comes from one sheet. Reading every sheet would need a declared concatenation rule (same header? same order?), which does not exist, so it is not offered.
 - The workbook's sheet list is reported (`sheets`, `sheet_index`) but **not** sheet visibility (hidden/very-hidden sheets are selectable if named); a missing worksheet part for the selected sheet is refused rather than falling back to another sheet.

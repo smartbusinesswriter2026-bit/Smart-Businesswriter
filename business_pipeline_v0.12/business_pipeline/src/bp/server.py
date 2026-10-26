@@ -27,6 +27,10 @@ INGEST_MAXBODY = 7_500_000   # base64 of the 5 MB ingestion limit, plus JSON ove
 PRESETS = {
     "npv": {"objective": "Should we invest in this project?", "method": "npv", "currency": "USD", "period": "annual",
            "inputs": {"rate": "0.10", "cashflows": ["-1000", "400", "400", "400"]}, "sensitivity": {"rate": ["0.05", "0.25"]}},
+    "irr": {"objective": "What rate of return does the project earn?", "method": "irr", "period": "annual",
+            "inputs": {"cashflows": ["-1000", "400", "400", "400", "400"]}},
+    "dpayback": {"objective": "How long until the discounted cash flows repay the investment?", "method": "discounted_payback", "currency": "USD", "period": "annual",
+                 "inputs": {"cashflows": ["-1000", "400", "400", "400", "400"], "rate": "0.10"}},
     "breakeven": {"objective": "How many units must we sell to break even?", "method": "breakeven", "period": "annual",
                   "inputs": {"fixed": "1000", "price": "20", "variable": "10"}},
     "descriptive": {"objective": "Describe the exam scores", "method": "descriptive_stats", "unit": "points",

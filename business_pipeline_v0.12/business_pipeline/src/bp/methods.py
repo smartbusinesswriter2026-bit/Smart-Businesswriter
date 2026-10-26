@@ -178,6 +178,217 @@ def npv_profile(inp):
     if len(inp["cashflows"]) < 2: issues.append("fewer than two periods")
     return issues
 
+# ---------- IRR and discounted payback (capital budgeting; B-077) ----------
+# Same timing convention as npv: the first cash flow is at t=0 and is undiscounted. IRR is a numerical
+# root of the same NPV function, so a conventional cash flow (one sign change) has at most one IRR; a
+# non-conventional one can have several, and then a single IRR is not defined and the method refuses.
+_IRR_LOW, _IRR_HIGH, _IRR_GRID = -0.9999, 10.0, 2000
+
+def _cfs_float(inp):
+    try:
+        return [float(D(str(c))) for c in inp["cashflows"]]
+    except (InvalidOperation, ValueError, TypeError):
+        raise DataError("the cash flows must be numbers (strings, integers or exact decimals)")
+
+def _cfs_decimal(inp):
+    try:
+        return [D(str(c)) for c in inp["cashflows"]]
+    except (InvalidOperation, ValueError, TypeError):
+        raise DataError("the cash flows must be numbers (strings, integers or exact decimals)")
+
+def _npv_float(cfs, r):
+    return sum(cf / (1.0 + r) ** t for t, cf in enumerate(cfs))
+
+def _irr_scan(cfs):
+    lo, hi, n = _IRR_LOW, _IRR_HIGH, _IRR_GRID
+    roots, prev_r, prev_f = [], lo, _npv_float(cfs, lo)
+    for k in range(1, n + 1):
+        r = lo + (hi - lo) * k / n
+        f = _npv_float(cfs, r)
+        if prev_f == 0.0:
+            roots.append(prev_r)
+        elif prev_f * f < 0.0:
+            a, b, fa = prev_r, r, prev_f
+            for _ in range(120):
+                m = (a + b) / 2.0
+                fm = _npv_float(cfs, m)
+                if fa * fm <= 0.0: b = m
+                else: a, fa = m, fm
+            roots.append((a + b) / 2.0)
+        prev_r, prev_f = r, f
+    out = []
+    for r in roots:
+        if not out or abs(r - out[-1]) > 1e-7: out.append(r)
+    return out
+
+def irr_impl(inp):
+    cfs = _cfs_float(inp)
+    if len(cfs) < 2: raise DataError("at least two cash flows are required")
+    if not any(c > 0 for c in cfs) or not any(c < 0 for c in cfs):
+        raise DataError("no internal rate of return exists: the cash flows never change sign, so the net present value cannot reach zero")
+    roots = _irr_scan(cfs)
+    if not roots:
+        raise DataError("no internal rate of return exists in the searched range (-99.99% to 1000%): the net present value does not reach zero there")
+    if len(roots) > 1:
+        raise DataError("the cash flows change sign more than once, so more than one internal rate of return exists ("
+                        + ", ".join("%.6f" % r for r in roots[:5]) + "); a single IRR is not defined and the method refuses to choose one")
+    r = roots[0]
+    return {"irr": _fd(r), "npv_at_irr": _fd(_npv_float(cfs, r)), "n_roots": D(1), "n_periods": D(len(cfs))}
+
+def _irr_reference(inp):
+    """Independent route: Newton-Raphson from a different starting point, falling back to the bracketing scan."""
+    cfs = _cfs_float(inp)
+    r = 0.37
+    for _ in range(200):
+        f = _npv_float(cfs, r)
+        d = sum(-t * cf / (1.0 + r) ** (t + 1) for t, cf in enumerate(cfs))
+        if d == 0.0: break
+        step = f / d
+        r -= step
+        if abs(step) < 1e-14: break
+        if r <= -0.999 or r > 1e6: r = 0.11
+    if abs(_npv_float(cfs, r)) <= 1e-6:
+        return r
+    roots = _irr_scan(cfs)
+    if len(roots) != 1: raise DataError("the reference route cannot isolate a single internal rate of return")
+    return roots[0]
+
+def _irr_tests(inp, impl):
+    base = impl(inp)
+    ref = _irr_reference(inp)
+    cfs = [D(str(c)) for c in inp["cashflows"]]
+    def npv_at(r):
+        return sum((cf / (1 + r) ** t for t, cf in enumerate(cfs)), D(0))
+    r = D(str(base["irr"]))
+    scale = max(D(1), sum(abs(c) for c in cfs))
+    scaled = impl({**inp, "cashflows": [str(c * 3) for c in cfs]})
+    def refuses(x):
+        try: impl(x); return False
+        except DataError: return True
+    checks = [
+        ("second_implementation_agrees", abs(float(r) - float(ref)) <= 1e-9, "Newton-Raphson route agrees with the bracketing route"),
+        ("net_present_value_at_the_irr_is_zero", abs(npv_at(r)) <= scale * D("1e-9"), "the IRR is a root of the NPV function"),
+        ("npv_is_positive_below_and_negative_above_the_irr", npv_at(r - D("0.001")) > 0 and npv_at(r + D("0.001")) < 0, "the NPV crosses zero at the IRR"),
+        ("scaling_the_cash_flows_leaves_the_irr_unchanged", abs(float(scaled["irr"]) - float(r)) <= 1e-9, "IRR is scale-free"),
+        ("unconventional_or_signless_cash_flows_are_refused", refuses({**inp, "cashflows": ["100", "200", "300"]})
+            and refuses({"cashflows": ["-100", "400", "-300"]}), "no sign change or several sign changes blocks instead of choosing a root"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _irr_profile(inp):
+    try:
+        cfs = [float(D(str(c))) for c in inp["cashflows"]]
+        errs = []
+        if len(cfs) < 2: errs.append("fewer than two cash flows")
+        if not any(c > 0 for c in cfs) or not any(c < 0 for c in cfs):
+            errs.append("the cash flows never change sign, so no IRR exists")
+        else:
+            roots = _irr_scan(cfs)
+            if not roots: errs.append("no IRR in the searched range (-99.99% to 1000%)")
+            elif len(roots) > 1: errs.append("more than one IRR exists: the cash flows change sign more than once")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["IRR inputs are malformed: a list of cash flows is required"]
+
+def _irr_typing(metric):
+    if metric in ("n_roots", "n_periods"): return ("count", 0)
+    if metric == "irr": return ("rate", 4)
+    return ("currency", 2)
+
+def _irr_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The internal rate of return is " + tok("irr") +
+            ": the discount rate at which the declared cash flows have a net present value of zero "
+            "(the residual value at that rate is " + tok("npv_at_irr") + "). "
+            "A single IRR is reported because the cash flows change sign once; IRR says nothing about the scale of the investment.")
+
+def dpb_impl(inp):
+    cfs = _cfs_decimal(inp)
+    r = D(str(inp.get("rate", "0")))
+    if len(cfs) < 2: raise DataError("at least two cash flows are required")
+    if r <= -1: raise DataError("the discount rate must be greater than -100%")
+    if cfs[0] >= 0: raise DataError("the first cash flow must be negative: discounted payback measures how long an initial outlay takes to be recovered")
+    npv_total = sum((cf / (1 + r) ** t for t, cf in enumerate(cfs)), D(0))
+    cum, prev = D(0), D(0)
+    for t, cf in enumerate(cfs):
+        v = cf / (1 + r) ** t
+        prev, cum = cum, cum + v
+        if t > 0 and cum >= 0 and prev < 0:
+            return {"discounted_payback": D(t - 1) + (-prev) / v, "recovered_in_period": D(t),
+                    "net_present_value": npv_total, "n_periods": D(len(cfs))}
+    raise DataError("the discounted cash flows do not recover the initial outlay within " + str(len(cfs) - 1) + " periods")
+
+def _dpb_reference(inp):
+    """Independent float route: iterative discount factors and an independent interpolation."""
+    cfs = [float(D(str(c))) for c in inp["cashflows"]]
+    r = float(D(str(inp.get("rate", "0"))))
+    factor, cum, prev = 1.0, 0.0, 0.0
+    for t, cf in enumerate(cfs):
+        cum += cf * factor
+        if t > 0 and cum >= 0.0 and prev < 0.0:
+            return (t - 1) + (-prev) / (cf * factor)
+        prev = cum
+        factor /= (1.0 + r)
+    raise DataError("the float reference route does not recover the outlay")
+
+def _dpb_tests(inp, impl):
+    base = impl(inp)
+    ref = _dpb_reference(inp)
+    cfs = [D(str(c)) for c in inp["cashflows"]]
+    r = D(str(inp.get("rate", "0")))
+    zero = impl({**inp, "rate": "0"})
+    cum, expect0 = D(0), None
+    for t, cf in enumerate(cfs):
+        prev, cum = cum, cum + cf
+        if t > 0 and cum >= 0 and prev < 0:
+            expect0 = D(t - 1) + (-prev) / cf
+            break
+    higher = None
+    try: higher = impl({**inp, "rate": str(r + D("0.05"))})
+    except DataError: higher = None
+    scaled = impl({**inp, "cashflows": [str(c * 3) for c in cfs]})
+    def refuses(x):
+        try: impl(x); return False
+        except DataError: return True
+    checks = [
+        ("second_implementation_agrees", abs(float(base["discounted_payback"]) - float(ref)) <= 1e-9, "float route agrees with the Decimal route"),
+        ("zero_rate_equals_undiscounted_payback", expect0 is not None and _close(zero["discounted_payback"], expect0), "at a zero rate the discounted payback is the ordinary payback"),
+        ("a_higher_rate_cannot_shorten_payback", higher is None or higher["discounted_payback"] > base["discounted_payback"], "discounting harder delays recovery"),
+        ("scaling_the_cash_flows_leaves_payback_unchanged", _close(scaled["discounted_payback"], base["discounted_payback"]), "payback is scale-free"),
+        ("unrecovered_outlays_are_refused", refuses({**inp, "cashflows": ["-1000", "100", "100"]})
+            and refuses({**inp, "cashflows": ["1000", "100"]}), "cash flows that never recover the outlay block"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _dpb_profile(inp):
+    try:
+        cfs = [D(str(c)) for c in inp["cashflows"]]
+        r = D(str(inp.get("rate", "0")))
+        errs = []
+        if len(cfs) < 2: errs.append("fewer than two cash flows")
+        if r <= -1: errs.append("rate <= -100%")
+        if cfs and cfs[0] >= 0: errs.append("the first cash flow must be negative (the initial outlay)")
+        if len(cfs) >= 2 and cfs[0] < 0:
+            cum, recovered = D(0), False
+            for t, cf in enumerate(cfs):
+                cum += cf / (1 + r) ** t
+                if t > 0 and cum >= 0: recovered = True; break
+            if not recovered: errs.append("the discounted cash flows never recover the initial outlay within the horizon")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["discounted-payback inputs are malformed: a list of cash flows is required"]
+
+def _dpb_typing(metric):
+    if metric in ("recovered_in_period", "n_periods"): return ("count", 0)
+    if metric == "discounted_payback": return ("periods", 2)
+    return ("currency", 2)
+
+def _dpb_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The discounted cash flows recover the initial outlay after " + tok("discounted_payback") +
+            " periods (during period " + tok("recovered_in_period") + "), and the net present value over the whole horizon is " +
+            tok("net_present_value") + ". Discounted payback is a liquidity measure: it ignores every cash flow after the recovery point.")
+
 # ---------- Break-even ----------
 def breakeven(inp):
     return D(str(inp["fixed"])) / (D(str(inp["price"])) - D(str(inp["variable"])))
@@ -3008,6 +3219,30 @@ LIBRARY = {
                                 "cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0"}},
                   defaults=({"question": "Timing and rate convention", "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.", "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."},),
                   assumptions=("Cash flows are certain given the inputs.",), limitations=("Single constant discount rate.",)),
+    "irr": Method("irr", "T1", irr_impl, _irr_tests, _irr_profile, "irr", "rate", None,
+                  ("second_implementation_agrees", "net_present_value_at_the_irr_is_zero",
+                   "npv_is_positive_below_and_negative_above_the_irr", "scaling_the_cash_flows_leaves_the_irr_unchanged",
+                   "unconventional_or_signless_cash_flows_are_refused"),
+                  category="capital budgeting",
+                  intended_use="The discount rate at which a declared stream of cash flows has a net present value of zero (the IRR, for conventional cash flows).",
+                  unsupported_use="Ranking or choosing between projects; non-conventional cash flows (more than one sign change) where several IRRs can exist; comparing IRRs of projects of unequal scale or life; choosing or assuming a reinvestment rate.",
+                  input_schema={"cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0 (normally the negative outlay)"}},
+                  defaults=({"question": "Root and timing convention", "default_chosen": "End-of-period cash flows with the first at t=0, exactly as in npv. The cash flows must change sign once, giving one IRR; several sign changes are refused rather than resolved.", "impact": "Non-conventional cash flows have multiple IRRs, so any single answer would be a choice."},),
+                  assumptions=("The cash flows are certain given the inputs and change sign once.",),
+                  limitations=("Single constant rate; IRR ignores project scale and can mislead when comparing projects.", "The root is found numerically in the range -99.99% to 1000%; a root outside that range is treated as absent.", "Several sign changes block instead of choosing a root."),
+                  default_period="annual", typing=_irr_typing, template=_irr_template, claim_ceiling="descriptive"),
+    "discounted_payback": Method("discounted_payback", "T1", dpb_impl, _dpb_tests, _dpb_profile, "discounted_payback", "periods", None,
+                  ("second_implementation_agrees", "zero_rate_equals_undiscounted_payback", "a_higher_rate_cannot_shorten_payback",
+                   "scaling_the_cash_flows_leaves_payback_unchanged", "unrecovered_outlays_are_refused"),
+                  category="capital budgeting",
+                  intended_use="How many periods the discounted cash flows need to recover a declared initial outlay, interpolated within the recovery period.",
+                  unsupported_use="Outlays the cash flows never recover; a positive first cash flow; comparing liquidity across projects of different scale; choosing the discount rate; timing inside a period.",
+                  input_schema={"cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0 and negative (the initial outlay)"},
+                                "rate": {"type": "decimal", "required": False, "desc": "periodic discount rate, default 0"}},
+                  defaults=({"question": "Timing and recovery", "default_chosen": "End-of-period cash flows; recovery inside the recovering period is interpolated linearly between the two period-end balances.", "impact": "A different within-period timing assumption shifts the payback by less than one period."},),
+                  assumptions=("Cash flows occur at period ends; the recovering period's flow is spread evenly.",),
+                  limitations=("Ignores every cash flow after the payback point, so it measures liquidity, not value.", "Within-period interpolation is a declared convention, not a data fact.", "A higher rate can push recovery beyond the horizon, which blocks instead of reporting 'never within the horizon' as a number."),
+                  default_period="annual", typing=_dpb_typing, template=_dpb_template, claim_ceiling="descriptive"),
     "breakeven": Method("breakeven", "T1", breakeven, breakeven_tests, breakeven_profile, "breakeven_units", "units", None,
                   ("profit_at_breakeven_is_zero", "monotone_in_fixed_cost", "positive_quantity"),
                   category="cost-volume-profit", intended_use="Units needed to cover fixed cost at a constant unit contribution.",

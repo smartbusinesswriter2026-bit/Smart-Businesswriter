@@ -26,7 +26,9 @@ class S(unittest.TestCase):
         with self.assertRaises(ValueError): s.confirm(True)
     def test_declared_test_names_match_real_tests(self):
         for m in methods.LIBRARY.values():
-            inp = {"npv": REQ["inputs"], "breakeven": {"fixed": "1000", "price": "20", "variable": "10"}, "descriptive_stats": {"values": ["1", "2", "4"], "missing_codes": []},
+            inp = {"npv": REQ["inputs"], "irr": {"cashflows": ["-1000", "400", "400", "400", "400"]},
+               "discounted_payback": {"cashflows": ["-1000", "400", "400", "400", "400"], "rate": "0.10"},
+               "breakeven": {"fixed": "1000", "price": "20", "variable": "10"}, "descriptive_stats": {"values": ["1", "2", "4"], "missing_codes": []},
                "pearson": {"x": ["1","2","3","4","5"], "y": ["2","4","5","4","5"]}, "spearman": {"x": ["1","2","3","4","5"], "y": ["1","4","9","16","10"]},
                "welch_t": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}}, "mann_whitney": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"]}},
                "anova": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["1","2","3","4","5"]}}, "kruskal_wallis": {"groups": {"a": ["1","2","3","4","5"], "b": ["2","4","6","8","10"], "c": ["3","1","5","2","4"]}},
