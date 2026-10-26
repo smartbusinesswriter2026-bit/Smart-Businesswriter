@@ -111,3 +111,9 @@
 - The engagement method is T2 custom analysis pending the engine decision (B-032) and a named expert review; the report and the appendix state this.
 - The spec must declare `prior_closing` balances ({} for a first period) and a reporting framework; the kernel posts only what the owner declares (entries, schedules, closing) and never posts silently.
 - Structured results (statements, trial balance, cash flow, flags, export) travel in the appendix; the narrative report carries only scalar totals.
+
+## Added with the reconciliation engine
+- Matching pairs a book movement with a statement line of the same signed amount only; several lines with the same amount are paired first-unused and flagged `ambiguous_match`. No date or reference matching is implemented.
+- Unrecorded statement items (for example bank charges) are listed for the owner to book; they are action items, not failures. The reconciliation ties once the disclosed adjustments are shown.
+- The reconciliation checks are "not applicable" when the engagement supplies no reconciliation; they are counted in `checks_na` rather than silently passing.
+- Reconciliation runs on the engagement's period only; opening balances come from the opening entries and must equal the statement's opening balance.

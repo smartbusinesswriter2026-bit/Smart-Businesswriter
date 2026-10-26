@@ -3,7 +3,7 @@ posts the declared opening balances, entries and schedules into the ledger kerne
 statements, trial balance, two-route cash flow, every check and the human-review flags. The spec is data; the kernel
 never posts anything the owner did not declare. Management accounts only: not GAAP/IFRS-compliant statements (manual 9.5)."""
 from decimal import Decimal as D
-from . import ledger, schedules
+from . import ledger, schedules, reconcile
 
 class EngagementError(ValueError): pass
 
@@ -17,8 +17,13 @@ EXAMPLE_SPEC = {
     "prior_closing": {"1000": "5000", "3000": "5000"},
     "opening": [{"lines": [{"account": "1000", "debit": "5000"}, {"account": "3000", "credit": "5000"}]}],
     "entries": [{"date": "2026-01-15", "description": "sale", "lines": [{"account": "1000", "debit": "2000"}, {"account": "4000", "credit": "2000"}]},
-                {"date": "2026-02-28", "description": "rent", "lines": [{"account": "5000", "debit": "500"}, {"account": "1000", "credit": "500"}]}],
+                {"date": "2026-02-28", "description": "rent", "lines": [{"account": "5000", "debit": "500"}, {"account": "1000", "credit": "500"}]},
+                {"date": "2026-03-31", "description": "deposit in transit", "lines": [{"account": "1000", "debit": "150"}, {"account": "4000", "credit": "150"}]}],
     "schedules": [],
+    "reconciliation": {"account": "1000", "statement": {"opening_balance": "5000", "closing_balance": "6475", "lines": [
+        {"date": "2026-01-15", "description": "sale deposit", "amount": "2000", "direction": "in"},
+        {"date": "2026-02-28", "description": "rent cheque", "amount": "500", "direction": "out"},
+        {"date": "2026-03-31", "description": "bank charge", "amount": "25", "direction": "out"}]}},
 }
 
 _KINDS = ("depreciation", "amortization", "accrual")
@@ -86,6 +91,12 @@ def validate_spec(spec):
         for j, e in enumerate(es):
             for l in e["lines"]:
                 if l["account"] not in codes: errs.append(f"schedules[{i}] uses unknown account {l['account']}")
+    rec = spec.get("reconciliation")
+    if rec is not None:
+        if not isinstance(rec, dict): errs.append("reconciliation must be an object with an account and a statement")
+        else:
+            if rec.get("account") not in codes: errs.append(f"reconciliation account {rec.get('account')!r} is not in the chart")
+            errs += [f"reconciliation: {e}" for e in reconcile.validate_statement(rec.get("statement"))]
     return errs
 
 def build(spec):
@@ -111,9 +122,20 @@ def build(spec):
     checks = ledger.check_invariants(j, st, spec.get("prior_closing")) + cf["checks"] + ledger.retained_earnings_rollforward(j, pre)
     re_code = next(c for c, a in chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings")
     flags = ledger.flags(j) + cf["flags"]
+    rec = spec.get("reconciliation")
+    if rec:
+        r = reconcile.reconcile(j, rec["account"], rec["statement"])
+        checks = checks + r["checks"]; flags = flags + r["flags"]; rec_report = _s(r["report"])
+    else:
+        checks = checks + [("statement_internally_consistent", True, "no reconciliation was supplied"),
+                           ("opening_balances_agree", True, "no reconciliation was supplied")]
+        rec_report = None
+    na = 0 if rec else 2     # checks that were not applicable rather than passed
     scalars = {"net_income": pre["net_income"], "total_assets": st["total_assets"], "total_liabilities": st["total_liabilities"], "total_equity": st["equity_with_current_earnings"],
                "retained_earnings_closing": ledger.closing_balances(j).get(re_code, D(0)), "cash_net": cf["net_direct"],
-               "checks_passed": D(sum(1 for _, ok, _ in checks if ok)), "checks_total": D(len(checks)), "n_entries": D(n_posted), "n_flags": D(len(flags))}
+               "checks_passed": D(sum(1 for _, ok, _ in checks if ok) - na), "checks_total": D(len(checks)), "checks_na": D(na),
+               "n_entries": D(n_posted), "n_flags": D(len(flags))}
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text()}
+    if rec_report is not None: extra["reconciliation"] = rec_report
     return {**scalars, "_appendix": extra, "_checks": checks}

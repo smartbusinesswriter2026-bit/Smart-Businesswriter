@@ -1307,7 +1307,7 @@ def accounts_profile(inp):
         return [f"the engagement does not build: {e}"]
 
 def accounts_typing(metric):
-    if metric.startswith("n_") or metric in ("checks_passed", "checks_total"): return "count", 0
+    if metric.startswith("n_") or metric in ("checks_passed", "checks_total", "checks_na"): return "count", 0
     return "currency", 2
 
 def accounts_caveats(out, th):
@@ -1319,7 +1319,8 @@ def accounts_template(out, P, th):
     tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P)
     return (f"The engagement posts {tok('n_entries')} entries. Net income is {tok('net_income')}; total assets are {tok('total_assets')} against liabilities of {tok('total_liabilities')} and equity of {tok('total_equity')}. "
             f"Closing retained earnings are {tok('retained_earnings_closing')}. The cash flow statement shows a net change in cash of {tok('cash_net')} and its two routes agree. "
-            f"{tok('checks_passed')} of {tok('checks_total')} checks passed, with {tok('n_flags')} item(s) flagged for human review.")
+            f"{tok('checks_passed')} of {tok('checks_total')} checks passed ({tok('checks_na')} not applicable), with {tok('n_flags')} item(s) flagged for human review. "
+            "Any reconciliation supplied for the engagement is listed in the appendix with its in-transit and unrecorded items.")
 
 _ACC_INPUTS = {"spec": {"type": "engagement_spec", "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules"}}
 _ACC_DEFAULTS = (
@@ -1440,7 +1441,7 @@ LIBRARY = {
                   input_schema=_FORECAST_INPUTS, defaults=_FORECAST_DEFAULTS, assumptions=_FORECAST_ASSUME, limitations=_FORECAST_LIM, default_period="annual",
                   caveats=forecast_caveats, template=forecast_template, claim_ceiling="predictive", default_thresholds=_FORECAST_THRESH, typing=forecast_typing),
     "management_accounts": Method("management_accounts", "T2", accounts_impl, accounts_tests, accounts_profile, "net_income", "currency", None,
-                  ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing"),
+                  ("trial_balance_debits_equal_credits", "assets_equal_liabilities_plus_equity", "net_income_agrees_across_routes", "opening_balances_equal_prior_closing", "statement_lines_foot_to_totals", "journal_hash_chain_intact", "cash_flow_agrees_across_routes", "retained_earnings_rollforward", "income_expense_and_dividends_zero_after_closing", "statement_internally_consistent", "opening_balances_agree"),
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",
                   unsupported_use="GAAP or IFRS statements; assurance; tax filings; multi-currency consolidation; posting anything the owner did not declare.",
                   input_schema=_ACC_INPUTS, defaults=_ACC_DEFAULTS, assumptions=_ACC_ASSUME, limitations=_ACC_LIM, default_period="annual",

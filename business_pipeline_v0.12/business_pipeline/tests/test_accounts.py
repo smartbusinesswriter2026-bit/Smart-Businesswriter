@@ -33,8 +33,9 @@ class Build(unittest.TestCase):
         out = accounts.build(SPEC)
         self.assertEqual((out["net_income"], out["total_assets"], out["total_liabilities"], out["total_equity"]), (D(300), D(6200), D(0), D(6200)))
         self.assertEqual((out["retained_earnings_closing"], out["cash_net"]), (D(0), D(1200)))
-        self.assertEqual((out["n_entries"], out["checks_passed"], out["checks_total"], out["n_flags"]), (D(19), D(9), D(9), D(0)))
+        self.assertEqual((out["n_entries"], out["checks_passed"], out["checks_total"], out["checks_na"], out["n_flags"]), (D(19), D(9), D(11), D(2), D(0)))
         self.assertTrue(all(ok for _, ok, _ in out["_checks"]))
+        self.assertNotIn("reconciliation", out["_appendix"])
         ap = out["_appendix"]; self.assertEqual(ap["statements"]["income"], {}); self.assertEqual(ap["statements"]["expenses"], {})   # closed
         self.assertIn("closing: income to retained earnings", ap["export"]); self.assertEqual(ap["closing_balances"]["3100"], "0.00")
         self.assertEqual(ap["framework"], "local")
@@ -70,7 +71,7 @@ class PipelineFlow(unittest.TestCase):
         self.assertEqual(d.status, "delivered", d.blocked_reason); self.assertEqual(d.tier, "T2")
         for frag in ("posts 19 entries", "Net income is USD 300.00", "total assets are USD 6,200.00", "equity of USD 6,200.00",
                      "Closing retained earnings are USD 0.00", "net change in cash of USD 1,200.00",
-                     "9 of 9 checks passed, with 0 item(s) flagged", "not GAAP or IFRS", "expert review pending"): self.assertIn(frag, d.report)
+                     "9 of 11 checks passed (2 not applicable), with 0 item(s) flagged", "not GAAP or IFRS", "expert review pending", "reconciliation supplied"): self.assertIn(frag, d.report)
         self.assertNotIn("{{", d.report)
         ap = d.appendix["accounts"]; self.assertIn("closing: income to retained earnings", ap["export"]); self.assertEqual(ap["checks"][0][1], True)
         self.assertEqual(d.appendix["method"]["review_status"], "pending_named_reviewer")
@@ -84,12 +85,21 @@ class PipelineFlow(unittest.TestCase):
     def test_plan_shows_t2(self):
         from bp.session import SessionManager
         s = SessionManager().create(req()); self.assertEqual(s.plan["task_family"], "Quantitative business analysis"); self.assertEqual(s.plan["tier"], "T2"); self.assertIn("custom analysis (T2)", s.plan["tier_label"])
-        self.assertEqual(len(s.plan["planned_checks"]), 9)
+        self.assertEqual(len(s.plan["planned_checks"]), 11)
     def test_sandbox_path_matches_in_process(self):
         from bp.sandbox import SubprocessSandbox
         d1 = Pipeline().run(req(SPEC), yes); d2 = Pipeline(sandbox=SubprocessSandbox(timeout=60)).run(req(SPEC), yes)
         self.assertEqual((d1.status, d2.status), ("delivered", "delivered")); self.assertEqual(d1.report, d2.report)
         self.assertEqual(d1.appendix["accounts"]["export"], d2.appendix["accounts"]["export"]); self.assertIsInstance(d2.appendix["sandbox"], dict)
-    def test_example_spec_builds(self):
-        out = accounts.build(accounts.EXAMPLE_SPEC); self.assertTrue(all(ok for _, ok, _ in out["_checks"])); self.assertEqual(accounts.validate_spec(accounts.EXAMPLE_SPEC), [])
+    def test_example_spec_builds_with_reconciliation(self):
+        out = accounts.build(accounts.EXAMPLE_SPEC); self.assertTrue(all(ok for _, ok, _ in out["_checks"]))
+        self.assertEqual(accounts.validate_spec(accounts.EXAMPLE_SPEC), [])
+        self.assertEqual((out["checks_passed"], out["checks_total"], out["checks_na"], out["n_entries"]), (D(11), D(11), D(0), D(6)))
+        rp = out["_appendix"]["reconciliation"]; self.assertEqual((rp["difference"], rp["receipts_in_transit"], rp["unrecorded_payments"]), ("0", "150", "25"))
+        self.assertEqual(out["_appendix"]["statements"]["equity"]["Capital"], "5000"); self.assertEqual(out["total_assets"], D(6650))
+    def test_reconciliation_block_is_validated(self):
+        bad = copy.deepcopy(SPEC); bad["reconciliation"] = {"account": "9999", "statement": {"opening_balance": "1", "closing_balance": "1", "lines": []}}
+        self.assertIn("not in the chart", " ".join(accounts.validate_spec(bad)))
+        bad["reconciliation"] = {"account": "1000", "statement": {"opening_balance": "1", "closing_balance": "1", "lines": [{"amount": "1", "direction": "up"}]}}
+        self.assertIn("direction", " ".join(accounts.validate_spec(bad)))
 if __name__ == "__main__": unittest.main()
