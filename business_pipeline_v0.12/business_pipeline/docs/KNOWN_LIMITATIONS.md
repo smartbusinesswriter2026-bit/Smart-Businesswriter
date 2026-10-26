@@ -168,7 +168,7 @@
 ## Added with WACC and DCF valuation (B-068)
 - `wacc` does not estimate anything: the cost of equity and the AFTER-TAX cost of debt are declared inputs, and **no tax is computed** (B-052 still deferred). There is no CAPM, no beta estimation, no target-capital-structure iteration and no leverage-dependent recalculation; market weights are current, not target.
 - One WACC is a single discount rate; it is not appropriate for cash flows of materially different risk.
-- `dcf_valuation` is **arithmetic under declared assumptions**, not a market price or a forecast: the method does not forecast cash flows or choose the rate, uses end-of-period cash flows (no mid-year convention), has no equity-value bridge (net debt adjustment), no tax computation and no scenario or real-option analysis.
+- `dcf_valuation` is **arithmetic under declared assumptions**, not a market price or a forecast: the method does not forecast cash flows or choose the rate; timing is end-of-period by default or the explicitly declared mid-year convention (B-078), and the enterprise-to-equity bridge is the separate `equity_bridge` method (B-078). No tax computation and no scenario or real-option analysis.
 - The terminal value typically dominates the answer and rests entirely on the terminal-growth and discount-rate assumptions; the delivery flags a terminal share above three quarters.
 
 ## Added with paired and one-sample t-tests (B-067)
@@ -183,6 +183,13 @@
 - Caps are **refused, not truncated**: 5 MB, 1000 data rows, 50 columns.
 - Provenance is table-level (file, SHA-256, data row i and column j, sheet): it says where every value came from, not that the value is correct. The importer performs no type coercion, no imputation and no unit inference.
 - Ingested columns are **not mapped automatically** into a method's inputs: choosing which column is `values`, `y` or `predictors` is the user's decision, so no column semantics are invented.
+
+## Added with the equity bridge and the mid-year DCF convention (B-078)
+- `equity_bridge` subtracts only the claims the owner **declares** (net debt, minority interest, preferred equity). Pension deficits, lease liabilities, options/dilution, contingent liabilities and any other claim are missing unless the owner includes them — the bridge cannot discover them, and it says so.
+- The enterprise value is an input: the method does not value the business, verify the EV, or state a market price, control premium or liquidity discount. A per-share value is reported only when `shares_outstanding` is declared, and no treasury-stock or dilution method is applied.
+- A **negative equity value is reported**, not refused: an enterprise value that does not cover the declared claims is a real result, and refusing it would hide the finding. Negative bridge components are refused because they usually mean a sign error.
+- `dcf_valuation`'s **mid-year convention** (`timing="mid"`) discounts explicit flow t and the terminal value at exponent t−0.5 / n−0.5, i.e. every flow is assumed to arrive mid-period. It is a declared convention, not evidence about actual timing; the default remains end-of-period, so existing valuations and their re-performance bundles keep their numbers. The method still does not choose the rate, growth or timing convention for the owner.
+- The mid-year change applies to `dcf_valuation` only; other discounting methods (`npv`, `cost_benefit`, `sroi`) remain end-of-period with a t=0 first flow and do not accept a timing input.
 
 ## Added with IRR and discounted payback (B-077)
 - `irr` reports **one** internal rate of return, found numerically in the declared range -99.99% to 1000%; a root outside that range is treated as absent. When the cash flows change sign more than once the NPV function can cross zero several times, so the method **refuses and lists the roots** instead of picking one — which IRR is "the" IRR is not something the method may decide.

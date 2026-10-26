@@ -70,6 +70,22 @@ class Dcf(unittest.TestCase):
         out = self.m().impl({k: v for k, v in DCF_IN.items() if k != "terminal_growth"})
         self.assertEqual(out["pv_terminal"], D(0)); self.assertEqual(out["enterprise_value"], out["pv_explicit"])
 
+    def mid_expected(self, inp):
+        cfs = [D(str(x)) for x in inp["cashflows"]]; r = D(str(inp["discount_rate"]))
+        pv = sum((cf / (1 + r) ** (D(t) - D("0.5")) for t, cf in enumerate(cfs, 1)), D(0))
+        g = D(str(inp["terminal_growth"]))
+        tv = cfs[-1] * (1 + g) / (r - g); pvt = tv / (1 + r) ** (D(len(cfs)) - D("0.5"))
+        return {"pv_explicit": pv, "pv_terminal": pvt, "terminal_value": tv, "enterprise_value": pv + pvt}
+
+    def test_mid_year_convention_discounts_every_flow_half_a_period_earlier(self):
+        mid = self.m().impl({**DCF_IN, "timing": "mid"}); exp = self.mid_expected(DCF_IN)
+        for k, v in exp.items(): self.assertTrue(close(mid[k], v), k)
+        end = self.m().impl(DCF_IN)
+        self.assertGreater(mid["enterprise_value"], end["enterprise_value"])
+        self.assertTrue(all(ok for _, ok in self.m().tests(DCF_IN, self.m().impl)))
+        for bad in ("start", "middle"):
+            self.assertEqual(Pipeline().run({"objective": "x", "method": "dcf_valuation", "inputs": {**DCF_IN, "timing": bad}}, YES).status, "blocked")
+
     def test_invalid_assumptions_are_refused(self):
         bad = ({**DCF_IN, "terminal_growth": "0.10"}, {"cashflows": [], "discount_rate": "0.1"}, {"cashflows": ["1"], "discount_rate": "-1"})
         for inputs in bad:
@@ -83,16 +99,59 @@ class Dcf(unittest.TestCase):
         self.assertIn("terminal value", d.report.lower())
 
 
+EB_IN = {"enterprise_value": "1750939.14", "debt": "300000", "cash": "150000",
+         "minority_interest": "20000", "preferred_equity": "10000", "shares_outstanding": "100000"}
+
+
+class EquityBridge(unittest.TestCase):
+    def m(self): return LIBRARY["equity_bridge"]
+
+    def test_bridges_enterprise_to_equity_value(self):
+        out = self.m().impl(EB_IN)
+        self.assertEqual(out["net_debt"], D("150000"))
+        self.assertEqual(out["equity_value"], D("1570939.14"))
+        self.assertTrue(close(out["per_share_value"], "15.7093914"))
+        self.assertTrue(close(self.m().impl(EB_IN)["equity_value"], "1570939.14"))
+
+    def test_frozen_checks_pass_and_are_declared(self):
+        for inp in (EB_IN, {k: v for k, v in EB_IN.items() if k != "shares_outstanding"}):
+            checks = self.m().tests(inp, self.m().impl)
+            self.assertEqual(tuple(n for n, _ in checks), self.m().test_names)
+            self.assertTrue(all(ok for _, ok in checks))
+
+    def test_without_shares_there_is_no_per_share_value(self):
+        out = self.m().impl({k: v for k, v in EB_IN.items() if k != "shares_outstanding"})
+        self.assertNotIn("per_share_value", out); self.assertNotIn("shares_outstanding", out)
+
+    def test_negative_components_and_bad_share_counts_are_refused(self):
+        bad = ({**EB_IN, "debt": "-1"}, {**EB_IN, "cash": "-1"}, {**EB_IN, "minority_interest": "-1"},
+               {**EB_IN, "preferred_equity": "-1"}, {**EB_IN, "shares_outstanding": "0"}, {**EB_IN, "shares_outstanding": "-5"},
+               {"debt": "1"})
+        for inputs in bad:
+            self.assertEqual(Pipeline().run({"objective": "x", "method": "equity_bridge", "inputs": inputs}, YES).status, "blocked", inputs)
+
+    def test_pipeline_delivers(self):
+        d = delivered({"objective": "Bridge the valuation", "method": "equity_bridge", "currency": "USD", "period": "annual", "inputs": EB_IN})
+        self.assertIn("equity value", d.report); self.assertIn("USD", d.report)
+        self.assertTrue(all(ok for ok in d.appendix["tests"]))
+        self.assertEqual(len(d.appendix["artifacts"]), 9)
+
+
 class Registration(unittest.TestCase):
     def test_contracts_and_presets(self):
         from bp import server
         self.assertEqual((LIBRARY["wacc"].tier, LIBRARY["wacc"].claim_ceiling), ("T1", "descriptive"))
         self.assertEqual((LIBRARY["dcf_valuation"].tier, LIBRARY["dcf_valuation"].claim_ceiling), ("T2", "descriptive"))
+        self.assertEqual((LIBRARY["equity_bridge"].tier, LIBRARY["equity_bridge"].claim_ceiling), ("T2", "descriptive"))
         self.assertIn("wacc", server.PRESETS); self.assertIn("dcf", server.PRESETS)
+        self.assertIn("dcfmid", server.PRESETS); self.assertIn("equitybridge", server.PRESETS)
         self.assertEqual(server.PRESETS["wacc"]["method"], "wacc"); self.assertEqual(server.PRESETS["dcf"]["method"], "dcf_valuation")
+        self.assertEqual(server.PRESETS["dcfmid"]["inputs"]["timing"], "mid")
+        self.assertEqual(server.PRESETS["equitybridge"]["method"], "equity_bridge")
+        self.assertEqual(LIBRARY["dcf_valuation"].input_schema["timing"]["values"], ["end", "mid"])
 
     def test_deterministic(self):
-        for mid, inp in (("wacc", WACC_IN), ("dcf_valuation", DCF_IN)):
+        for mid, inp in (("wacc", WACC_IN), ("dcf_valuation", DCF_IN), ("equity_bridge", EB_IN)):
             m = LIBRARY[mid]
             self.assertEqual({k: str(v) for k, v in m.impl(inp).items()}, {k: str(v) for k, v in m.impl(inp).items()})
 

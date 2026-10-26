@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.50**, **609 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.51**, **615 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -74,7 +74,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
 | Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |
-| Valuation: WACC and DCF | Built, T1/T2; assumptions declared, no tax computed | B-068 |
+| Valuation: WACC, DCF, equity bridge | Built, T1/T2; declared timing (end or mid-year), declared claims only, no tax computed | B-068, B-078 |
 | Capital budgeting: NPV, IRR, discounted payback | Built, T1; IRR refuses multiple sign changes, payback blocks when the outlay is never recovered | B-077 |
 | Logistic regression, Cronbach's alpha | Built, T1; separation blocks, listwise deletion declared | B-074 |
 | Appraisal: CBA, CEA, SROI | Built, T2; declared valuations, no monetisation or threshold invented | B-073 |
