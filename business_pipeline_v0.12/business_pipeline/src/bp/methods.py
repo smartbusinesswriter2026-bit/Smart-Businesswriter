@@ -1698,6 +1698,217 @@ def _cc_template(out, P, th):
             "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
             "the rate, its provenance and any declared date.")
 
+# ---------- Logistic regression and reliability (B-074) ----------
+# Logistic regression by Newton-Raphson (IRLS) on binary 0/1 outcomes; reliability by Cronbach's alpha.
+# Both declare their conventions: convergence tolerance and no regularisation; listwise deletion and the
+# classic alpha formula. Separation or non-convergence blocks rather than reporting an unstable fit.
+
+def _logit_rows(inp):
+    rows, ex = [], 0
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}
+    names = list(inp["predictors"])
+    cols = [inp["predictors"][n] for n in names]
+    for i, yv in enumerate(inp["y"]):
+        x = [c[i] if i < len(c) else None for c in cols]
+        vals = [yv] + x
+        if any(v is None or (isinstance(v, str) and not v.strip()) or (v is not None and not isinstance(v, bool) and D(str(v)) in codes) for v in vals):
+            ex += 1; continue
+        yi = D(str(yv))
+        if yi not in (D(0), D(1)): raise DataError("the outcome must be coded 0/1")
+        rows.append((yi, [D(str(v)) for v in x]))
+    return names, rows, ex
+
+def _logit_fit(X, y):
+    """Newton-Raphson (IRLS) with a Gaussian solve; returns beta, se, ll, ll0, iterations."""
+    n, p = len(y), len(X[0])
+    beta = [0.0] * p; ll_old = -1e300; it = 0; converged = False
+    for it in range(1, 101):
+        eta = [sum(b * x for b, x in zip(beta, row)) for row in X]
+        pr = [1.0 / (1.0 + math.exp(-e)) if e > -700 else 1.0 for e in eta]
+        if any(0.0 < q < 1.0 and False for q in pr): pass
+        w = [max(q * (1 - q), 1e-12) for q in pr]
+        grad = [sum((y[i] - pr[i]) * X[i][j] for i in range(n)) for j in range(p)]
+        H = [[sum(w[i] * X[i][a] * X[i][b] for i in range(n)) for b in range(p)] for a in range(p)]
+        delta = _solve(H, grad)
+        beta = [b + d for b, d in zip(beta, delta)]
+        ll = sum(y[i] * math.log(max(pr[i], 1e-300)) + (1 - y[i]) * math.log(max(1 - pr[i], 1e-300)) for i in range(n))
+        if abs(ll - ll_old) < 1e-10 and max(abs(d) for d in delta) < 1e-10: converged = True; break
+        ll_old = ll
+    if not converged: raise DataError("the logistic fit did not converge; the outcome may be separated or the predictors collinear")
+    eta = [sum(b * x for b, x in zip(beta, row)) for row in X]
+    pr = [1.0 / (1.0 + math.exp(-e)) if e > -700 else 1.0 for e in eta]
+    w = [max(q * (1 - q), 1e-12) for q in pr]
+    H = [[sum(w[i] * X[i][a] * X[i][b] for i in range(n)) for b in range(p)] for a in range(p)]
+    inv = _inverse(H)
+    se = [math.sqrt(max(inv[j][j], 0.0)) for j in range(p)]
+    ll = sum(y[i] * math.log(max(pr[i], 1e-300)) + (1 - y[i]) * math.log(max(1 - pr[i], 1e-300)) for i in range(n))
+    rate = sum(y) / n; ll0 = n * (rate * math.log(max(rate, 1e-300)) + (1 - rate) * math.log(max(1 - rate, 1e-300)))
+    return beta, se, ll, ll0, it
+
+def _solve(A, b):
+    n = len(A); M = [list(map(float, A[i])) + [float(b[i])] for i in range(n)]
+    for c in range(n):
+        piv = max(range(c, n), key=lambda r: abs(M[r][c]))
+        if abs(M[piv][c]) < 1e-14: raise DataError("the design matrix is singular; a predictor may be collinear or the outcome may be separated")
+        M[c], M[piv] = M[piv], M[c]
+        d = M[c][c]; M[c] = [v / d for v in M[c]]
+        for r in range(n):
+            if r != c:
+                f = M[r][c]; M[r] = [a - f * b for a, b in zip(M[r], M[c])]
+    return [M[i][n] for i in range(n)]
+
+def _inverse(A):
+    n = len(A); M = [list(map(float, A[i])) + [1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    for c in range(n):
+        piv = max(range(c, n), key=lambda r: abs(M[r][c]))
+        if abs(M[piv][c]) < 1e-14: raise DataError("the information matrix is singular; the fit is not identified")
+        M[c], M[piv] = M[piv], M[c]
+        d = M[c][c]; M[c] = [v / d for v in M[c]]
+        for r in range(n):
+            if r != c:
+                f = M[r][c]; M[r] = [a - f * b for a, b in zip(M[r], M[c])]
+    return [row[n:] for row in M]
+
+def _norm_sf(z): return 0.5 * math.erfc(z / math.sqrt(2))
+
+def logit_impl(inp):
+    names, rows, ex = _logit_rows(inp)
+    if len(rows) < 5: raise DataError("at least five complete observations are needed")
+    X = [[1.0] + [float(v) for v in xs] for _, xs in rows]; y = [float(t) for t, _ in rows]
+    beta, se, ll, ll0, it = _logit_fit(X, y)
+    out = {"log_likelihood": _fd(ll), "ll_null": _fd(ll0), "mcfadden_r2": _fd(1 - ll / ll0 if ll0 != 0 else 0),
+           "n": D(len(rows)), "n_excluded": D(ex), "iterations": D(it)}
+    for j, nm in enumerate(["intercept"] + names):
+        b, s = beta[j], se[j]
+        out[f"coef_{nm}"] = _fd(b); out[f"se_{nm}"] = _fd(s)
+        out[f"p_{nm}"] = _fd(2 * _norm_sf(abs(b / s))) if s > 0 else D(0)
+        out[f"odds_ratio_{nm}"] = _fd(math.exp(b))
+    return out
+
+def _logit_ref(inp):
+    """Independent route: float IRLS with a different linear solve (Gauss-Jordan on the normal equations)."""
+    names, rows, ex = _logit_rows(inp)
+    X = [[1.0] + [float(v) for v in xs] for _, xs in rows]; y = [float(t) for t, _ in rows]
+    p = len(X[0]); beta = [0.0] * p
+    for _ in range(100):
+        eta = [sum(b * x for b, x in zip(beta, row)) for row in X]
+        pr = [1.0 / (1.0 + math.exp(-e)) if e > -700 else 1.0 for e in eta]
+        w = [max(q * (1 - q), 1e-12) for q in pr]
+        A = [[sum(w[i] * X[i][a] * X[i][b] for i in range(len(y))) for b in range(p)] for a in range(p)]
+        g = [sum((y[i] - pr[i]) * X[i][j] for i in range(len(y))) for j in range(p)]
+        inv = _inverse(A); d = [sum(inv[j][k] * g[k] for k in range(p)) for j in range(p)]
+        beta = [b + x for b, x in zip(beta, d)]
+        if max(abs(x) for x in d) < 1e-12: break
+    return {"beta": beta, "coef_intercept": beta[0]}
+
+def logit_tests(inp, impl):
+    base, ref = impl(inp), _logit_ref(inp)
+    names, rows, ex = _logit_rows(inp)
+    X = [[1.0] + [float(v) for v in xs] for _, xs in rows]; y = [float(t) for t, _ in rows]
+    beta = [float(D(str(base[f"coef_{n}"]))) for n in ["intercept"] + names]
+    def ll(b):
+        return sum(y[i] * math.log(max(1 / (1 + math.exp(-sum(bb * xx for bb, xx in zip(b, X[i])))), 1e-300))
+                   + (1 - y[i]) * math.log(max(1 - 1 / (1 + math.exp(-sum(bb * xx for bb, xx in zip(b, X[i])))), 1e-300)) for i in range(len(y)))
+    perturbed = list(beta); perturbed[1] += 0.05
+    checks = [
+        ("second_implementation_agrees", _close(base["coef_intercept"], ref["coef_intercept"]), "the independent IRLS route reproduces the intercept"),
+        ("coefficients_maximise_the_log_likelihood", ll(perturbed) <= float(base["log_likelihood"]) + 1e-9, "a small perturbation lowers the log-likelihood"),
+        ("odds_ratio_is_exp_of_the_coefficient", all(_close(base[f"odds_ratio_{n}"], math.exp(float(D(str(base[f'coef_{n}']))))) for n in names), "each odds ratio is exp(coefficient)"),
+        ("p_values_are_probabilities", all(0 <= float(D(str(base[f"p_{n}"]))) <= 1 for n in names), "every Wald p-value is in [0,1]"),
+        ("fitted_probabilities_are_valid", all(0 < 1 / (1 + math.exp(-sum(bb * xx for bb, xx in zip(beta, row)))) < 1 for row in X), "every fitted probability is inside (0,1)"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def logit_profile(inp):
+    try:
+        names, rows, ex = _logit_rows(inp)
+        if len(rows) < 5: return ["at least five complete observations are needed"]
+        if len(set(t for t, _ in rows)) < 2: return ["the outcome has only one class; logistic regression needs both 0 and 1"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["logistic-regression inputs are malformed: y (0/1) and predictors (named columns of equal length) are required"]
+
+def _logit_typing(metric):
+    if metric in ("n", "n_excluded", "iterations"): return ("count", 0)
+    if metric.startswith("p_"): return ("probability", 4)
+    if metric.startswith("odds_ratio_") or metric == "mcfadden_r2": return ("ratio", 4)
+    if metric.startswith("coef_") or metric.startswith("se_") or metric.startswith("log_likelihood") or metric == "ll_null": return ("ratio", 6)
+    return ("@unit", 4)
+
+def logit_caveats(out, th):
+    return ["The outcome must be coded 0/1; the model estimates log-odds, so a coefficient is not a probability or an effect size.",
+            "No regularisation is applied; complete separation or a collinear design blocks with an error instead of reporting an unstable fit.",
+            "Standard errors are the usual large-sample Wald ones; small samples and rare outcomes make them optimistic, and no goodness-of-fit test is run."]
+
+def logit_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The logistic model over " + tok("n") + " observations converged in " + tok("iterations") + " iterations with a McFadden pseudo R-squared of " + tok("mcfadden_r2") +
+            ". Coefficients are log-odds and odds ratios are reported per predictor; a coefficient is not an effect size and no causal claim is made.")
+
+def alpha_impl(inp):
+    names = list(inp["items"]); cols = [inp["items"][n] for n in names]; k = len(names)
+    if k < 2: raise DataError("at least two items are needed")
+    rows, ex = [], 0
+    for i in range(max(len(c) for c in cols)):
+        vals = [c[i] if i < len(c) else None for c in cols]
+        if any(v is None or (isinstance(v, str) and not v.strip()) for v in vals): ex += 1; continue
+        rows.append([D(str(v)) for v in vals])
+    n = len(rows)
+    if n < 2: raise DataError("at least two complete rows are needed")
+    item_var = [_var([r[j] for r in rows]) for j in range(k)]
+    totals = [sum(r, D(0)) for r in rows]
+    tv = _var(totals)
+    if tv == 0: raise DataError("the total scores have zero variance, so alpha is undefined")
+    return {"alpha": (D(k) / D(k - 1)) * (1 - sum(item_var, D(0)) / tv), "k_items": D(k), "n": D(n), "n_excluded": D(ex),
+            "sum_item_variance": sum(item_var, D(0)), "total_variance": tv}
+
+def _alpha_ref(inp):
+    names = list(inp["items"]); cols = [inp["items"][n] for n in names]; k = len(names)
+    rows = []
+    for i in range(max(len(c) for c in cols)):
+        vals = [c[i] if i < len(c) else None for c in cols]
+        if any(v is None or (isinstance(v, str) and not v.strip()) for v in vals): continue
+        rows.append([float(v) for v in vals])
+    iv = [statistics.variance([r[j] for r in rows]) for j in range(k)]
+    tv = statistics.variance([sum(r) for r in rows])
+    return {"alpha": (k / (k - 1)) * (1 - sum(iv) / tv)}
+
+def alpha_tests(inp, impl):
+    base, ref = impl(inp), _alpha_ref(inp)
+    names = list(inp["items"]); k = len(names)
+    dup = {**inp, "items": {**inp["items"], "duplicate": list(names and inp["items"][names[0]])}}
+    checks = [
+        ("second_implementation_agrees", _close(base["alpha"], ref["alpha"]), "float route agrees with the Decimal route"),
+        ("alpha_is_at_most_k_over_k_minus_one", base["alpha"] <= D(k) / D(k - 1) + D("1e-12"), "the classic alpha bound holds"),
+        ("duplicating_an_item_raises_alpha", impl(dup)["alpha"] >= base["alpha"], "adding a copy of an item cannot lower reliability"),
+        ("row_order_invariant", _close(impl({**inp, "items": {n: list(reversed(v)) for n, v in inp["items"].items()}})["alpha"], base["alpha"]), "reversing the respondent order changes nothing"),
+        ("missing_rows_are_excluded", int(impl({**inp, "items": {n: list(v) + [""] for n, v in inp["items"].items()}})["n_excluded"]) == int(base["n_excluded"]) + 1, "a row with a blank item is dropped and counted"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def alpha_profile(inp):
+    try:
+        cols = list(inp["items"].values()); k = len(cols)
+        if k < 2: return ["at least two items are needed"]
+        if len({len(c) for c in cols}) > 1: return ["every item needs the same number of responses"]
+        return []
+    except (ValueError, TypeError, KeyError):
+        return ["reliability inputs are malformed: items must be a column map of name -> responses"]
+
+def _alpha_typing(metric):
+    if metric in ("k_items", "n", "n_excluded"): return ("count", 0)
+    return ("ratio", 4)
+
+def alpha_caveats(out, th):
+    return ["Cronbach's alpha measures internal consistency, not unidimensionality, validity or a single underlying factor.",
+            "The classic formula assumes continuous, roughly interval items and listwise-complete responses; ordinal items and missing-data mechanisms are not modelled.",
+            "A high alpha can come from redundant items; a low alpha does not by itself mean the construct is invalid."]
+
+def alpha_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("k_items") + " items and " + tok("n") + " complete responses the reliability is " + tok("alpha") +
+            ". It measures internal consistency of these items, not validity or a single factor.")
+
 # ---------- Cost-benefit, cost-effectiveness and social return (B-073) ----------
 # T2 appraisal arithmetic over declared costs, benefits and effects. No tax, no financing, no monetisation of
 # non-monetised effects: an effect that is not valued in currency is not turned into money here.
@@ -2975,6 +3186,32 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "logistic_regression": Method("logistic_regression", "T1", logit_impl, logit_tests, logit_profile, "mcfadden_r2", "ratio", None,
+                  ("second_implementation_agrees", "coefficients_maximise_the_log_likelihood", "odds_ratio_is_exp_of_the_coefficient",
+                   "p_values_are_probabilities", "fitted_probabilities_are_valid"),
+                  category="regression",
+                  intended_use="Binary logistic regression (0/1 outcome) with up to five numeric predictors: coefficients as log-odds, odds ratios, Wald p-values and a McFadden pseudo R-squared.",
+                  unsupported_use="Causal claims; categorical predictors, interactions or non-linear terms; regularisation; separation or collinear designs (refused); predicted probabilities outside the observed range without support.",
+                  input_schema={"y": {"type": "value_list", "min_items": 5, "desc": "the outcome, coded 0 or 1"},
+                                "predictors": {"type": "column_map", "min_columns": 1, "max_columns": 5, "min_items": 5, "desc": "named numeric predictor columns, same length as y"},
+                                "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes; a row missing anything is dropped and counted"}},
+                  defaults=({"question": "Estimation", "default_chosen": "Newton-Raphson (IRLS) with a 1e-10 convergence tolerance and no regularisation; non-convergence or separation blocks.", "impact": "A penalised or Bayesian fit would give different coefficients."},
+                            {"question": "Inference", "default_chosen": "Large-sample Wald standard errors and two-sided p-values; no goodness-of-fit test.", "impact": "Small samples or rare outcomes make these optimistic."}),
+                  assumptions=("The outcome is binary 0/1 and observations are independent.", "The log-odds are linear in the predictors.", "No perfect separation or collinearity (refused rather than ignored)."),
+                  limitations=("Numeric predictors only; no categorical, interaction or spline terms.", "Wald inference only; no likelihood-ratio tests or calibration statistics.", "No regularisation, so separation blocks rather than biases."),
+                  default_period="cross_section", caveats=logit_caveats, template=logit_template, claim_ceiling="associational", default_thresholds={"small_sample_n": "30"}, typing=_logit_typing),
+    "reliability_alpha": Method("reliability_alpha", "T1", alpha_impl, alpha_tests, alpha_profile, "alpha", "ratio", None,
+                  ("second_implementation_agrees", "alpha_is_at_most_k_over_k_minus_one", "duplicating_an_item_raises_alpha",
+                   "row_order_invariant", "missing_rows_are_excluded"),
+                  category="measurement",
+                  intended_use="Cronbach's alpha for the internal consistency of a set of items answered by the same respondents.",
+                  unsupported_use="Validity, unidimensionality or factor structure (see factor analysis, not implemented); ordinal-item or missing-data models; comparing alphas across different samples without caution.",
+                  input_schema={"items": {"type": "column_map", "min_columns": 2, "max_columns": 20, "min_items": 2, "desc": "named item columns, one response per row"}},
+                  defaults=({"question": "Missing responses", "default_chosen": "A respondent missing any item is dropped (listwise) and counted; no imputation.", "impact": "Pairwise deletion or imputation would change alpha."},
+                            {"question": "Formula", "default_chosen": "The classic Cronbach alpha: k/(k-1) * (1 - sum of item variances / total variance), sample variances with n-1.", "impact": "Standardised alpha or a covariance-based estimator would differ."}),
+                  assumptions=("Items are continuous or roughly interval and measure one construct.", "Responses are complete per retained respondent."),
+                  limitations=("Alpha is a lower bound on reliability under tau-equivalence, not a measure of unidimensionality.", "Listwise deletion only.", "No confidence interval is computed."),
+                  default_period="cross_section", caveats=alpha_caveats, template=alpha_template, claim_ceiling="descriptive", typing=_alpha_typing),
     "cost_benefit": Method("cost_benefit", "T2", cba_impl, cba_tests, cba_profile, "net_present_value", "currency", None,
                   ("second_implementation_agrees", "net_value_is_present_value_of_benefits_minus_costs", "zero_discount_rate_gives_undiscounted_sums",
                    "scaling_the_benefits_scales_the_benefit_side", "a_higher_discount_rate_lowers_the_present_value"),
