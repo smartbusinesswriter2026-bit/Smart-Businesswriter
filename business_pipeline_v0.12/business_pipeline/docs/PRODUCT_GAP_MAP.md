@@ -33,7 +33,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 
 | Gap | Tier / verification note |
 |---|---|
-| Paired and one-sample t-tests | T1 — reuses the Welch/Mann-Whitney machinery and golden-fixture pattern |
+| Paired and one-sample t-tests | **Built** (B-067): `paired_t` and `one_sample_t`, T1, five frozen checks each, scipy goldens. Remaining: no signed-rank fallback; no one-sided test. |
 | Factorial ANOVA, ANCOVA, repeated measures, post-hoc tests | T1 (one-way already there); post-hoc needs a declared multiple-comparison correction |
 | Logistic regression | T1 — diagnostics analogous to the OLS/HC3 pair |
 | Reliability (Cronbach's α) and factor analysis | T1, but factor analysis needs declared extraction/rotation defaults ([§9B.4](sources/business_pipeline_v0_3.md#L377)) |

@@ -168,6 +168,175 @@ def breakeven_tests(inp, impl):
 def breakeven_profile(inp):
     return ["price <= variable cost: no break-even"] if D(str(inp["price"])) <= D(str(inp["variable"])) else []
 
+# ---------- Paired and one-sample t-tests (manual 9B.2; B-067) ----------
+# Paired: within-pair differences on matched observations, dropping a pair if either side is missing.
+# One-sample: one mean against a declared reference value mu0. Both default to two-sided and report a CI.
+
+
+def _paired_rows(inp):
+    cols = list(inp["pairs"].items())
+    if len(cols) != 2: raise DataError("exactly two paired columns are required")
+    (na, a), (nb, b) = cols
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}
+    miss = lambda x: x is None or (isinstance(x, str) and not x.strip()) or D(str(x)) in codes
+    xs, ys, dropped = [], [], 0
+    for x, y in zip(a, b):
+        if miss(x) or miss(y): dropped += 1; continue
+        xs.append(D(str(x))); ys.append(D(str(y)))
+    return (na, xs), (nb, ys), dropped
+
+def paired_impl(inp):
+    (na, xs), (nb, ys), dropped = _paired_rows(inp); n = len(xs)
+    if n < 2: raise DataError("at least two complete pairs are needed")
+    diffs = [x - y for x, y in zip(xs, ys)]
+    md, sd = _mean(diffs), _var(diffs).sqrt()
+    if sd == 0: raise DataError("all paired differences are identical, so the t statistic is undefined")
+    se = sd / D(n).sqrt(); t = md / se; df = D(n - 1); conf = _CONF(inp); tc = _fd(_t_crit(float(df), conf))
+    return {"mean_diff": md, "sd_diff": sd, "se_diff": se, "t_stat": t, "df": df, "p_value": _fd(_p_t(float(t), float(df))),
+            "ci_lower": md - tc * se, "ci_upper": md + tc * se, "cohens_dz": md / sd, "n_pairs": D(n), "n_dropped": D(dropped),
+            f"mean_{na}": _mean(xs), f"mean_{nb}": _mean(ys), "confidence_level": conf, "alpha": _ALPHA(inp)}
+
+def _paired_ref(inp):
+    """Independent float route: statistics.fmean/variance and the series incomplete-beta tail."""
+    (na, xs), (nb, ys), dropped = _paired_rows(inp); d = [float(x) - float(y) for x, y in zip(xs, ys)]; n = len(d)
+    m, sd = statistics.fmean(d), statistics.stdev(d); se = sd / math.sqrt(n); t = m / se; df = n - 1
+    lo, hi, target = 0.0, 1e3, _p_t(t, df)
+    tc = _t_crit(df, _CONF(inp)); p = _betai_series(df / 2, 0.5, df / (df + t * t))
+    return {"mean_diff": m, "sd_diff": sd, "se_diff": se, "t_stat": t, "df": df, "p_value": p,
+            "ci_lower": m - tc * se, "ci_upper": m + tc * se, "cohens_dz": m / sd, "n_pairs": n, "n_dropped": dropped}
+
+def _paired_tests(inp, impl):
+    base, ref = impl(inp), _paired_ref(inp)
+    cols = list(inp["pairs"].values()); swapped = {**inp, "pairs": {list(inp["pairs"])[1]: cols[1], list(inp["pairs"])[0]: cols[0]}}
+    rev = {**inp, "pairs": {k: list(reversed(v)) for k, v in inp["pairs"].items()}}
+    both = {**inp, "pairs": {k: [str(D(str(x)) + 5) for x in v] for k, v in inp["pairs"].items()}}
+    scaled = {**inp, "pairs": {k: [str(D(str(x)) * 3) for x in v] for k, v in inp["pairs"].items()}}
+    sw, rv, bt, sc = impl(swapped), impl(rev), impl(both), impl(scaled)
+    probe = {"pairs": {"a": ["1", "2", "4", "7", "11"], "b": ["0", "1", "1", "3", "5"]}, "missing_codes": []}
+    blank = {"pairs": {"a": ["", "2", "4", "7", "11"], "b": ["0", "1", "1", "3", "5"]}, "missing_codes": []}
+    pb, bl = impl(probe), impl(blank)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("swapping_the_paired_columns_negates_the_difference_keeps_p", _close(sw["mean_diff"], -base["mean_diff"]) and _close(sw["t_stat"], -base["t_stat"]) and _close(sw["p_value"], base["p_value"]), "the sign follows column order; the evidence does not"),
+        ("shift_and_scale_behave", _close(bt["mean_diff"], base["mean_diff"]) and _close(bt["t_stat"], base["t_stat"])
+            and _close(sc["mean_diff"], base["mean_diff"] * 3) and _close(sc["t_stat"], base["t_stat"]), "adding a constant to both sides changes nothing; scaling both scales the difference only"),
+        ("row_order_invariant", all(_close(rv[k], base[k]) for k in ("mean_diff", "t_stat", "p_value", "ci_lower", "ci_upper")), "pair order does not change the result"),
+        ("missing_pairs_are_excluded_not_imputed", int(bl["n_pairs"]) == int(pb["n_pairs"]) - 1 and int(bl["n_dropped"]) == int(pb["n_dropped"]) + 1, "a pair missing either side is dropped and counted, never filled in"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _paired_profile(inp):
+    try:
+        (na, xs), (nb, ys), dropped = _paired_rows(inp); n = len(xs)
+        if n < 2: return ["at least two complete pairs are needed"]
+        if len(set(x - y for x, y in zip(xs, ys))) == 1: return ["all paired differences are identical, so the t statistic is undefined"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["paired inputs are malformed: supply two columns of equal length under 'pairs'"]
+
+def _paired_typing(metric):
+    if metric in ("n_pairs", "n_dropped"): return ("count", 0)
+    if metric in ("confidence_level", "alpha"): return ("rate", 2)
+    if metric == "p_value": return ("probability", 4)
+    if metric in ("t_stat", "df", "cohens_dz"): return ("ratio", 3)
+    return ("@unit", 2)
+
+def _paired_caveats(out, th):
+    c = ["Pairs are matched by position in the two columns: if the rows are not genuinely paired, this test is the wrong test.",
+         "The test assumes the paired differences are approximately independent and roughly normal; with few pairs the approximation is weak.",
+         f"{int(out.get('n_dropped', 0))} pair(s) were dropped because one side was missing or blank; nothing was imputed."]
+    if int(out.get("n_pairs", 0)) < int(th.get("small_sample_n", 30)): c.append("Caution: few pairs, so the estimate is imprecise and should be described, not generalized.")
+    return c
+
+def _paired_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The paired comparison over " + tok("n_pairs") + " complete pairs gives a mean within-pair difference of " + tok("mean_diff") +
+            " with a confidence interval from " + tok("ci_lower") + " to " + tok("ci_upper") + ", a t statistic of " + tok("t_stat") +
+            " and a p-value of " + tok("p_value") + ". Pairs with either side missing were dropped and counted, not filled in.")
+
+_ONE_INPUTS = {"values": {"type": "value_list", "min_items": 3, "desc": "the observations; blank or null counts as missing"},
+               "mu0": {"type": "decimal", "desc": "the reference value the mean is compared with"},
+               "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes such as 99; never read as values"},
+               "confidence_level": {"type": "decimal", "required": False, "desc": "default 0.95"}}
+_ONE_DEFAULTS = ({"question": "Missing-value handling", "default_chosen": "Blank, null and declared missing codes are excluded and counted.", "impact": "Excluded counts are reported; nothing is imputed."},
+                 {"question": "Test tails", "default_chosen": "Two-sided by default, with a confidence interval at the declared level.", "impact": "A one-sided test would need a different critical value and is not offered."})
+_ONE_ASSUME = ("Observations are independent.", "The outcome is approximately normal, screened only by the interval's sensitivity to outliers.")
+_ONE_LIM = ("A one-sample t-test compares a mean with a declared reference value; it does not show where the reference came from.", "Normality is assumed, not tested.", "No one-sided test, trimmed mean or median test is offered.")
+_PAIRED_INPUTS = {"pairs": {"type": "column_map", "min_columns": 2, "max_columns": 2, "min_items": 3, "desc": "exactly two columns of paired values: name -> observations; pair i is (column 1 item i, column 2 item i)"},
+                  "missing_codes": {"type": "code_list", "required": False, "desc": "user-defined missing codes such as 99; applied to both columns"},
+                  "confidence_level": {"type": "decimal", "required": False, "desc": "default 0.95"}}
+_PAIRED_DEFAULTS = ({"question": "What makes a pair", "default_chosen": "Position in the two columns: row i of the first column is matched with row i of the second. A pair is dropped if either side is missing.", "impact": "If rows are not genuinely paired, use an independent-groups test instead."},
+                    {"question": "Difference direction", "default_chosen": "First column minus second column; swapping the columns negates the difference and the t statistic but not the p-value.", "impact": "Read the sign against the column order you supplied."})
+_PAIRED_ASSUME = ("Observations are paired by construction, not by coincidence.", "The paired differences are independent and approximately normal.")
+_PAIRED_LIM = ("Pairing is positional; a mis-sorted file silently produces the wrong pairing.", "Normality of the differences is assumed, not tested.", "No Wilcoxon signed-rank fallback is implemented.")
+
+def one_sample_impl(inp):
+    vals, ex = _clean(inp); n = len(vals)
+    if n < 2: raise DataError("at least two valid observations are needed")
+    mu0 = D(str(inp["mu0"])); m, sd = _mean(vals), _var(vals).sqrt()
+    if sd == 0: raise DataError("the sample has zero variance, so the t statistic is undefined")
+    se = sd / D(n).sqrt(); t = (m - mu0) / se; df = D(n - 1); conf = _CONF(inp); tc = _fd(_t_crit(float(df), conf))
+    return {"mean": m, "mu0": mu0, "sd": sd, "se_mean": se, "t_stat": t, "df": df, "p_value": _fd(_p_t(float(t), float(df))),
+            "ci_lower": m - tc * se, "ci_upper": m + tc * se, "cohens_d": (m - mu0) / sd, "n": D(n), "n_excluded": D(ex),
+            "confidence_level": conf, "alpha": _ALPHA(inp)}
+
+def _one_ref(inp):
+    """Independent float route for the one-sample test (statistics module + series incomplete beta)."""
+    vals, ex = _clean(inp); f = [float(v) for v in vals]; n = len(f); mu0 = float(D(str(inp["mu0"])))
+    m, sd = statistics.fmean(f), statistics.stdev(f); se = sd / math.sqrt(n); t = (m - mu0) / se; df = n - 1
+    tc = _t_crit(df, _CONF(inp))
+    return {"mean": m, "sd": sd, "se_mean": se, "t_stat": t, "df": df, "p_value": _betai_series(df / 2, 0.5, df / (df + t * t)),
+            "ci_lower": m - tc * se, "ci_upper": m + tc * se, "cohens_d": (m - mu0) / sd, "n": n, "n_excluded": ex}
+
+def _one_tests(inp, impl):
+    base, ref = impl(inp), _one_ref(inp)
+    codes = {D(str(c)) for c in inp.get("missing_codes", [])}
+    miss = lambda v: v is None or (isinstance(v, str) and not v.strip()) or D(str(v)) in codes
+    k = D("4")
+    shifted = impl({**inp, "values": [v if miss(v) else str(D(str(v)) + k) for v in inp["values"]],
+                    "mu0": str(D(str(inp["mu0"])) + k)})
+    scaled = impl({**inp, "values": [v if miss(v) else str(D(str(v)) * 3) for v in inp["values"]],
+                   "mu0": str(D(str(inp["mu0"])) * 3)})
+    rev = impl({**inp, "values": list(reversed(inp["values"]))})
+    padded = impl({**inp, "values": list(inp["values"]) + ["", ""]})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k2], ref[k2]) for k2 in ref), "float route agrees with the Decimal route"),
+        ("shift_invariance", _close(shifted["t_stat"], base["t_stat"]) and _close(shifted["p_value"], base["p_value"]), "adding a constant to the data and the reference leaves t unchanged"),
+        ("positive_scale_equivariance", _close(scaled["t_stat"], base["t_stat"]) and _close(scaled["mean"], base["mean"] * 3), "scaling data and reference leaves t unchanged"),
+        ("row_order_invariant", _close(rev["t_stat"], base["t_stat"]) and _close(rev["p_value"], base["p_value"]), "observation order does not change the result"),
+        ("missing_entries_are_excluded_not_valued", _close(padded["t_stat"], base["t_stat"]) and int(padded["n_excluded"]) == int(base["n_excluded"]) + 2, "blanks are excluded and counted, never read as zero"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def _one_profile(inp):
+    try:
+        vals, _ = _clean(inp)
+        if len(vals) < 2: return ["at least two valid observations are needed"]
+        if len(set(vals)) == 1: return ["the sample has zero variance, so the t statistic is undefined"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["one-sample inputs are malformed: values and a numeric mu0 are required"]
+
+def _one_typing(metric):
+    if metric in ("n", "n_excluded"): return ("count", 0)
+    if metric in ("confidence_level", "alpha"): return ("rate", 2)
+    if metric == "p_value": return ("probability", 4)
+    if metric in ("t_stat", "df", "cohens_d"): return ("ratio", 3)
+    return ("@unit", 2)
+
+def _one_caveats(out, th):
+    c = ["The reference value was declared, not derived from this sample; the test says how far the mean is from it, not whether the reference is right.",
+         "The interval and p-value assume the observations are roughly normal and independent; outliers inflate the spread."]
+    if int(out.get("n", 0)) < int(th.get("small_sample_n", 30)): c.append("Caution: the sample is small, so the interval is wide and the estimate imprecise.")
+    return c
+
+def _one_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The sample mean is " + tok("mean") + ", compared with the declared reference value " + tok("mu0") +
+            ". The t statistic is " + tok("t_stat") + " with a p-value of " + tok("p_value") +
+            ", and the confidence interval for the mean runs from " + tok("ci_lower") + " to " + tok("ci_upper") + ".")
+
+
 # ---------- Descriptive statistics (one numeric variable; manual 9B.2, 9B.4) ----------
 def _clean(inp):
     """User-missing codes are never read as values (manual 5.1, 9B). Returns (valid values, n excluded)."""
@@ -2015,6 +2184,23 @@ LIBRARY = {
                   assumptions=("The observed values are correct and the declared missing codes fully identify missing entries.", "Missing values lie somewhere between the observed minimum and maximum."),
                   limitations=("Bounds cover the mean only; they are not estimates and imply no probabilistic mechanism.", "No imputation, no MAR/MCAR/MNAR model and no verification of the declared mechanism.", "With many missing values the bounds can be so wide as to be uninformative, which is the honest answer."),
                   default_period="cross_section", caveats=_md_caveats, template=_md_template, claim_ceiling="descriptive", typing=_md_typing),
+    "paired_t": Method("paired_t", "T1", paired_impl, _paired_tests, _paired_profile, "mean_diff", "from_request", None,
+                  ("second_implementation_agrees", "swapping_the_paired_columns_negates_the_difference_keeps_p", "shift_and_scale_behave",
+                   "row_order_invariant", "missing_pairs_are_excluded_not_imputed"),
+                  category="group comparison",
+                  intended_use="Compare two matched measurements on the same observations (for example before and after) using the mean within-pair difference, with a confidence interval, a paired t test and Cohen's dz.",
+                  unsupported_use="Independent groups; more than two measurements; a causal claim about what produced the change; non-normal differences (no signed-rank fallback).",
+                  input_schema=_PAIRED_INPUTS, defaults=_PAIRED_DEFAULTS, assumptions=_PAIRED_ASSUME, limitations=_PAIRED_LIM,
+                  default_period="cross_section", caveats=_paired_caveats, template=_paired_template, claim_ceiling="associational",
+                  default_thresholds={"small_sample_n": "30"}, typing=_paired_typing),
+    "one_sample_t": Method("one_sample_t", "T1", one_sample_impl, _one_tests, _one_profile, "mean", "from_request", None,
+                  ("second_implementation_agrees", "shift_invariance", "positive_scale_equivariance", "row_order_invariant", "missing_entries_are_excluded_not_valued"),
+                  category="group comparison",
+                  intended_use="Compare one sample mean with a declared reference value, with a confidence interval, a one-sample t test and Cohen's d.",
+                  unsupported_use="Comparing two samples; one-sided tests; trimmed means or medians; causal claims; clustered or weighted data.",
+                  input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
+                  default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
+                  default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
     "weighted_summary": Method("weighted_summary", "T1", _w_impl, _w_tests, _w_profile, "weighted_mean", "from_request", None,
                   ("second_implementation_agrees", "equal_weights_reproduce_the_unweighted_summary", "mean_is_invariant_to_weight_scaling",
                    "larger_values_weighted_more_raise_the_mean", "design_effect_is_one_for_equal_weights"),

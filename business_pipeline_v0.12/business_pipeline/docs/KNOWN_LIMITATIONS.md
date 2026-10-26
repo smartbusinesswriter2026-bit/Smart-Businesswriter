@@ -137,6 +137,11 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with paired and one-sample t-tests (B-067)
+- `paired_t` matches pairs **by position** in the two columns; a mis-sorted file silently pairs the wrong observations and produces a wrong test. There is no signed-rank (Wilcoxon) fallback for non-normal differences.
+- `one_sample_t` compares a mean with a reference the user declares; it cannot say whether the reference is right. There is no one-sided test, trimmed-mean or median test.
+- Both assume approximate normality and independent observations, screened only by wording; neither tests normality. Missing entries are excluded and counted, never imputed.
+
 ## Added with structured-file ingestion (B-065)
 - Only **CSV/TSV** and **XLSX** are read. **PDF, scans, images and SPSS `.sav` are refused** with explicit messages: no OCR and no PDF text extraction is implemented, so reading them would be invention. Convert the source or paste its values with the source named.
 - XLSX: only the **first sheet** is read; merged cells, multi-sheet selection, styles beyond date detection, and rich text are not handled. Formula cells use the cached value stored in the file; a formula with no cached value is a missing cell.

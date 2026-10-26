@@ -35,6 +35,8 @@ class S(unittest.TestCase):
                "ratio_analysis": {"current_assets": "5000", "current_liabilities": "2000", "cash": "800", "inventory": "1200",
                                   "receivables": "1500", "payables": "900", "total_assets": "12000", "total_liabilities": "7000", "equity": "5000",
                                   "revenue": "20000", "cost_of_sales": "12000", "operating_profit": "3000", "net_income": "1800", "interest_expense": "400"},
+               "paired_t": {"pairs": {"before": ["10", "12", "11", "9", "13"], "after": ["12", "13", "12", "10", "14"]}},
+               "one_sample_t": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"], "mu0": "75"},
                "multiple_comparison": {"p_values": ["0.01", "0.04", "0.03", "0.005"], "method": "holm"},
                "power_analysis": {"design": "two_sample", "effect": "5", "n1": "30", "n2": "40", "sd1": "10", "sd2": "12", "alpha": "0.05", "tails": "two_sided", "target_power": "0.8"},
                "missing_data_bounds": {"values": ["10", "12", "", "14", "99", "16"], "missing_codes": ["99"], "mechanism": "unknown"},

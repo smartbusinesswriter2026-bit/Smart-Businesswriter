@@ -1,0 +1,129 @@
+{
+  "generated_by": "scipy.stats.ttest_rel / ttest_1samp and scipy.stats.t.ppf (offline generation 2026-10-21); not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "paired": [
+    {
+      "name": "before_after_small",
+      "inputs": {
+        "pairs": {
+          "before": [
+            "10",
+            "12",
+            "11",
+            "9",
+            "13"
+          ],
+          "after": [
+            "12",
+            "13",
+            "12",
+            "10",
+            "14"
+          ]
+        }
+      },
+      "expected": {
+        "mean_diff": -1.2,
+        "t_stat": -5.999999999999998,
+        "p_value": 0.0038825370469605146,
+        "df": 4,
+        "ci_lower": -1.7552890210395586,
+        "ci_upper": -0.6447109789604413,
+        "cohens_dz": -2.6832815729997477,
+        "n_pairs": 5,
+        "n_dropped": 0
+      }
+    },
+    {
+      "name": "before_after_with_blanks",
+      "inputs": {
+        "pairs": {
+          "before": [
+            "5",
+            "6",
+            "",
+            "8",
+            "9",
+            "7",
+            "6"
+          ],
+          "after": [
+            "4",
+            "6",
+            "5",
+            "7",
+            "",
+            "6",
+            "5"
+          ]
+        }
+      },
+      "expected": {
+        "mean_diff": 0.8,
+        "t_stat": 3.9999999999999996,
+        "p_value": 0.016130089900092553,
+        "df": 4,
+        "ci_lower": 0.24471097896044136,
+        "ci_upper": 1.3552890210395587,
+        "cohens_dz": 1.788854381999832,
+        "n_pairs": 5,
+        "n_dropped": 2
+      }
+    }
+  ],
+  "one_sample": [
+    {
+      "name": "scores_against_target",
+      "inputs": {
+        "values": [
+          "72",
+          "85",
+          "90",
+          "68",
+          "99",
+          "77",
+          "81"
+        ],
+        "missing_codes": [
+          "99"
+        ],
+        "mu0": "75"
+      },
+      "expected": {
+        "mean": 78.83333333333333,
+        "t_stat": 1.147421200192877,
+        "p_value": 0.3031285135265191,
+        "df": 5,
+        "ci_lower": 70.24546949139851,
+        "ci_upper": 87.42119717526815,
+        "cohens_d": 0.46843274342073593,
+        "n": 6
+      }
+    },
+    {
+      "name": "weights_against_spec",
+      "inputs": {
+        "values": [
+          "49.5",
+          "50.1",
+          "48.9",
+          "50.4",
+          "49.8",
+          "50.0"
+        ],
+        "missing_codes": [],
+        "mu0": "50.0"
+      },
+      "expected": {
+        "mean": 49.78333333333333,
+        "t_stat": -1.0071771255866262,
+        "p_value": 0.36007543550521,
+        "df": 5,
+        "ci_lower": 49.23034281798896,
+        "ci_upper": 50.3363238486777,
+        "cohens_d": -0.4111783397150476,
+        "n": 6
+      }
+    }
+  ]
+}
