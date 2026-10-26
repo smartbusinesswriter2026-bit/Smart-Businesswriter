@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [documentation] Website UI brief for the design owner (plan mode)
+
+**Ask:** write the instruction for MiniMax/OpenCode to build the website: A1.jpg as inspiration, the owner's logo as the site logo, colored feature icons on the left rail, remove the API/Enterprise top-right items, delete the "Trusted by 11 million" block and the university row, retain the circular chat button restyled to the brand, UI sans-serif except generated document text (Times New Roman), and **plan mode first** so MiniMax can ask clarifying questions before building.
+**Did:** wrote `docs/UI_BRIEF.md` as the authoritative instruction: assets and where they live (logo copied into `web/assets/`, A1 as inspiration only, never shipped); the A1 structure to imitate (fixed left icon rail, centered hero with logo, large action box with an inner controls row, quick-action chips, floating chat button) and the exact removals (top-right API/Enterprise/Pricing/Login/Sign-up; the trusted-by block and university logos; no invented social proof); the nine real features for the rail mapped to the actual API routes (Home/New analysis, Cases, Data, References, Deliverables, Accounts, Frameworks & templates, Assistant & method info, Status); typography (sans-serif system stack for UI; Times New Roman for generated document text, with the note that `export.py` is a computation-owner file and must not be edited); the non-negotiables (display API values verbatim, no client-side computation, never hide caveats/honesty/limitations/tier labels, no invented content, offline/no CDNs, `web/**` write scope, backend needs requested rather than invented) and the frozen workbench strings the suite asserts. The brief's first deliverable is a **plan** (IA, screen map, wireframes, design tokens sampled from the logo, component inventory, responsive/accessibility, phased build, test-impact statement, and questions for the owner) with no code until approved.
+**Files:** `docs/UI_BRIEF.md` (new), `docs/HOME.md` (spine row + build digit), `docs/HANDOFF.md` (build digit), `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only; full suite (frozen-contract + docs-state guards) **733 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** MiniMax replies in plan mode with its plan/questions; the owner reviews; after approval the UI is built in `web/**` on its own branch. Nothing UI has been started by the computation lane.
+
+---
+
 ## 2026-10-21 — [computation] Product slice 2c: charts, spreadsheets and business graphics (B-089)
 
 **Ask:** "do 1" — the last backend item: the graphics/spreadsheets addition (B-087), then stop before the UI.
