@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] REW manual inventory refresh (v0.4, from the review queue)
+
+**Ask:** queue item from the decision-briefs review (appendix B items 2-4): the ratified REW manual's "what exists in code today" table had gone stale.
+**Did:** `docs/RESEARCH_EVIDENCE_WORKFLOW.md` §13 refreshed to match the code and bumped to v0.4: the durable append-only retrieval log with fail-closed writes and `reverify` (B-058), Crossref→OpenAlex failover with recorded attempts and the manual drift sweep (B-064), the full verified-method library and applied methods, CSV/TSV + XLSX ingestion with sheet selection and a declared merged-cell policy (B-065/B-071/B-076), APA/Harvard citation formatting (B-059), and the AI-use disclosure export listed as a planned product-backend item (B-081). §16 change log records the refresh. The stage list, checkpoints, screening log and manuscript assembly remain **not built**, and R1-R10 remain proposals — the refresh changes only the factual inventory, not any status claim.
+**Files:** `docs/RESEARCH_EVIDENCE_WORKFLOW.md`, `docs/proposals/DECISION_BRIEFS.md` (appendix B items marked fixed), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/WORKLOG.md`.
+**Verified:** docs-only; full suite (frozen-contract + docs-state guards) **625 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** owner answers to the plan's D1-D4 (or acceptance of the defaults); MiniMax's Phase-1 product slice. The two register-hygiene items from the briefs were fixed in this same increment: the duplicate B-031 row is marked SUPERSEDED, and the R1-R10 ratification now has the open decision row **B-082** (the row tracks it; the owner still decides it).
+
+---
+
 ## 2026-10-21 — [computation] Product-backend sequence and delegation boundary (B-081)
 
 **Ask:** "let's do your recommended sequence of finishing the backend product before finally doing the UI. delegate some work to minimax when you dont have to do it."

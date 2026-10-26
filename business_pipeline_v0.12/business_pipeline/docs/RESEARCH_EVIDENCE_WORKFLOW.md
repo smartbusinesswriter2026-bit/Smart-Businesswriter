@@ -1,6 +1,6 @@
 # Research & Evidence Workflow (REW) — living manual
 
-**Formerly "Build Charter Stage 7".** Version 0.3 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed; R11 RATIFIED (2026-10-21)** — this manual is the working authority for REW and B-035 is closed. Everything still tagged `[PROPOSAL]`, `[2ND]` or `[OPEN]` is **not** ratified (R1–R10 remain open); read §3 before trusting any section.
+**Formerly "Build Charter Stage 7".** Version 0.4 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed; R11 RATIFIED (2026-10-21)** — this manual is the working authority for REW and B-035 is closed. Everything still tagged `[PROPOSAL]`, `[2ND]` or `[OPEN]` is **not** ratified (R1–R10 remain open); read §3 before trusting any section.
 
 ## 0. What this document is, and is not
 
@@ -147,16 +147,16 @@ Binding from the charter (as reported) and `[REPO]` (tag vocabulary + `SYNTHETIC
 
 | Piece | Where | Status |
 |---|---|---|
-| Literature retrieval + DOI/title verification | `src/bp/literature.py`, `tests/test_literature.py`, `tests/test_literature_api.py`, API `/api/literature/*`, workbench References panel | Built, PROVISIONAL rules, live smoke-tested on one DOI (and again live for the audit); one test caught a real mismatch bug. Each resolved retrieval carries a response SHA-256 + UTC time (B-054); no durable log yet |
+| Literature retrieval + DOI/title verification | `src/bp/literature.py`, `tests/test_literature.py`, `tests/test_literature_api.py`, API `/api/literature/*`, workbench References panel | Built, PROVISIONAL rules, live smoke-tested on one DOI (and again live for the audit); one test caught a real mismatch bug. Each resolved retrieval carries a response SHA-256 + UTC time (B-054); the durable append-only retrieval log with fail-closed writes and `reverify` (B-058), Crossref→OpenAlex failover with recorded attempts, and a manual drift sweep (B-064) are built |
 | Typed provenance, Decimal quantities | `src/bp/quantity.py` | Built |
 | Claim ceilings and licensing | `src/bp/claims.py` | Built |
-| Verified statistics (the R5 toolset) | `src/bp/methods.py` (descriptive, correlation, regression, two-group, ANOVA/KW, chi-square, linear trend) | Built, tier-gated |
+| Verified statistics (the R5 toolset) | `src/bp/methods.py` (descriptive, correlation, OLS/HC3, paired/one-sample t, two-group and multi-group tests, ANOVA/KW, factorial and post-hoc, chi-square, logistic regression, reliability, multiple comparison, power, missing-data bounds, weighted summaries, linear-trend forecasting) plus the applied methods (NPV/IRR/payback/WACC/DCF/equity bridge, unit economics, CBA/CEA/SROI, ratios, currency, management accounts) | Built, tier-gated; heavy statistics remain parked (B-075) |
 | Structure-only evidence templates | `src/bp/templates.py` (SWOT, Five Forces), `case_decision` | Built, T4/T2 |
 | Sandbox, re-performance bundles, run log | `src/bp/sandbox.py`, `reperform.py`, orchestrator | Built |
 | Stage list, checkpoints, research spec, screening log, study spec | — | **Not built** (this manual proposes them) |
-| Manuscript assembly, citation formatting | — | **Not built** |
-| Ingestion from PDF/scan/Excel/SPSS | — | **Not built** (gap map P0) |
-| AI-use disclosure export | — | **Not built** |
+| Manuscript assembly, citation formatting | Citation **formatting** is built (APA 7 / Harvard, B-059); manuscript assembly is not | **Partly built** |
+| Ingestion from PDF/scan/Excel/SPSS | `src/bp/ingest.py` | CSV/TSV + **XLSX** built to a typed table with provenance, sheet selection and a declared merged-cell policy (B-065/B-071/B-076); PDF/scan/OCR and SPSS refused by design |
+| AI-use disclosure export | — | **Not built** (planned product-backend slice 1, B-081) |
 | Qualitative instruments | — | **Unknown / OPEN** Q6 |
 
 No REW stage is wired into the pipeline. The method library, templates, sandbox, claims and provenance artefacts are reusable as-is; the stage contracts in §5 are not implemented.
@@ -201,6 +201,7 @@ Answers can arrive as owner statements, old chat exports, or later retrieval; ea
 
 ## 16. Change log
 
+- **0.4 (2026-10-21):** §13 inventory refreshed to match the code: the durable append-only retrieval log + fail-closed writes + `reverify` (B-058), the failover attempts and manual drift sweep (B-064), the full verified-method library and applied methods, CSV/TSV + XLSX ingestion with sheet selection and merged-cell policy (B-065/B-071/B-076), citation formatting (B-059), and the AI-use disclosure export as a planned product-backend item (B-081). This resolves the stale-inventory contradictions reported in `docs/proposals/DECISION_BRIEFS.md` appendix B items 2-4. No behaviour changed; the stage list remains unbuilt.
 - **0.3 (2026-10-21):** Q10 answered in code (B-054): every retrieval that reaches a source now records the SHA-256 of the exact response bytes and a UTC retrieval timestamp; the fields travel through the API to the workbench, and a reference that never reached a source records neither. Live-smoked against Crossref. §9, §13 and §15 updated; the remaining gap (no durable retrieval log) is stated rather than glossed.
 - **0.2 (2026-10-21):** R11 **ratified by the owner** — this manual is the working authority for REW; B-035 closed (B-053 resolved). Header, §0, §1 and §14 updated to say exactly what that does and does not ratify (the document, not R1–R10). R1–R10 remain proposals.
 - **0.1 (2026-10-21):** created as the living REW manual, merging and replacing `STAGE7_BLOCKER.md` and `STAGE7_API_DATABASE_PLAN.md` (owner direction). Marked everything not already established as `[PROPOSAL]`/`[2ND]`/`[OPEN]`; preserved the ten original blocking questions (Q1–Q12 after merge); stated the one honest gap in the retrieval layer (no response hash yet). No code changed.
