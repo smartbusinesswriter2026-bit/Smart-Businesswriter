@@ -35,6 +35,8 @@ class Method:
     default_thresholds: dict = field(default_factory=dict)
     output_units: dict = field(default_factory=dict)
     typing: Callable | None = None                     # metric -> (unit, precision) for dynamic output names
+    mapping: Callable | None = None                    # account-mapping checkpoint: (inputs) -> {"rows": [...], "checks": [(name, ok, detail)]}
+    mapping_check_names: tuple = ()
 
 import hashlib, inspect
 def sha_source(fn):
@@ -1306,6 +1308,10 @@ def accounts_profile(inp):
     except ValueError as e:
         return [f"the engagement does not build: {e}"]
 
+def accounts_mapping(inp):
+    from . import accounts
+    return accounts.account_mapping(inp["spec"])
+
 def accounts_typing(metric):
     if metric.startswith("n_") or metric in ("checks_passed", "checks_total", "checks_na"): return "count", 0
     return "currency", 2
@@ -1445,7 +1451,8 @@ LIBRARY = {
                   category="accounting", intended_use="Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",
                   unsupported_use="GAAP or IFRS statements; assurance; tax filings; multi-currency consolidation; posting anything the owner did not declare.",
                   input_schema=_ACC_INPUTS, defaults=_ACC_DEFAULTS, assumptions=_ACC_ASSUME, limitations=_ACC_LIM, default_period="annual",
-                  caveats=accounts_caveats, template=accounts_template, claim_ceiling="descriptive", default_thresholds={}, typing=accounts_typing),
+                  caveats=accounts_caveats, template=accounts_template, claim_ceiling="descriptive", default_thresholds={}, typing=accounts_typing,
+                  mapping=accounts_mapping, mapping_check_names=("every_account_maps_to_a_statement_line", "at_least_one_cash_account", "exactly_one_retained_earnings_account")),
 }
 
 # ---------- discovery (never executes a method) ----------

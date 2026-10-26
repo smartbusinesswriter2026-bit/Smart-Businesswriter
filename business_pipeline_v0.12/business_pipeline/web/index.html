@@ -40,6 +40,9 @@ pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
 <input id="reftitle" placeholder="Reference title" aria-label="Reference title" style="flex:1;min-width:220px"></div>
 <div class="row" style="margin-top:8px"><input id="refdoi" placeholder="DOI (optional, e.g. 10.1234/abcd)" aria-label="DOI" style="flex:1"><button id="refgo" type="button">Verify reference</button></div>
 <div id="refout" style="margin-top:8px"></div></div></section>
+<section class="card" id="mapcard" hidden><h2>Account mapping (second checkpoint)</h2>
+<div class="sub">This is the manual's second mandatory checkpoint. Nothing is posted and no statement is computed until you confirm this mapping.</div>
+<div id="maprows" style="margin-top:8px"></div><div id="mapchecks" class="sub" style="margin-top:8px"></div></section>
 <section class="card" id="brief" hidden><div class="row" style="justify-content:space-between"><h2>Proposed Work Brief</h2><span id="status" class="badge"></span></div>
 <div class="grid" id="fields"></div>
 <h2 style="margin-top:14px">Planned checks</h2><div id="checks" class="sub"></div>
@@ -73,14 +76,23 @@ function chosen(){return[...document.querySelectorAll("#fw input:checked,#fwres 
 function field(label,val){const f=add($("fields"),"div",undefined,"field");add(f,"div",label,"label");add(f,"div",val)}
 function render(s){
   const p=s.work_plan;$("brief").hidden=false;$("fields").replaceChildren();
+  const map=s.account_mapping,awaitingMap=s.status==="awaiting_mapping_confirmation";
+  $("mapcard").hidden=!map;
+  if(map){$("maprows").replaceChildren();const t=document.createElement("table");t.style.width="100%";t.style.borderCollapse="collapse";
+    const h=document.createElement("tr");["Code","Account","Type","Statement line","Role","Activity"].forEach(x=>{const th=document.createElement("th");th.textContent=x;th.style.textAlign="left";th.style.fontSize="11px";h.appendChild(th)});t.appendChild(h);
+    map.rows.forEach(r=>{const tr=document.createElement("tr");[r.code,r.name,r.type,r.line,r.role||"—",r.activity||"default"].forEach(x=>{const td=document.createElement("td");td.textContent=x;td.style.fontSize="12px";td.style.padding="2px 6px";td.style.borderTop="1px solid var(--line)";tr.appendChild(td)});t.appendChild(tr)});
+    $("maprows").appendChild(t);
+    $("mapchecks").textContent="Mapping checks: "+(map.checks||[]).map(c=>(c[1]?"ok — ":"FAILED — ")+c[0]+" ("+c[2]+")").join(" · ");}
   field("Task family",p.task_family);field("Method / tier",`${p.method} v${p.method_version||"-"} · ${p.tier} (${p.tier_label})`);field("Intended use",p.intended_use||"n/a");field("Not supported",p.unsupported_use||"n/a");field("Limitations",p.limitations.join(" ")||"n/a");field("Assumption checks / fallback",(p.assumption_checks.join(", ")||"none")+" → "+(Object.values(p.fallbacks).join(", ")||"none"));field("Declared thresholds",Object.entries(p.thresholds).map(([k,v])=>k+"="+v).join("; ")||"none");
   field("Objective",p.objective);field("Inputs",Object.entries(p.inputs).map(([k,v])=>`${k}: ${v.value} [${v.provenance}]`).join("; ")||"none");
   field("Sensitivity range",JSON.stringify(p.sensitivity));field("Expected outputs",p.expected_outputs.join(", "));
   $("checks").textContent=p.planned_checks.join(" · ")||"none (no computed answer)";
   $("amb").replaceChildren();p.ambiguities.forEach(a=>add($("amb"),"div",`${a.question}: default taken: ${a.default_chosen} (impact: ${a.impact})`));
   const st=$("status");st.textContent=s.status.replace("_"," ");st.className="badge "+(s.status==="delivered"?"passed":s.status==="blocked"?"blocked":"awaiting_user");
-  const open=s.status==="awaiting_confirmation";renderFw(p.framework_suggestions,!open);$("confirm").disabled=!open;$("reject").disabled=!open;
-  $("confnote").textContent=open?p.confirmation_required:"Checkpoint closed.";
+  const open=s.status==="awaiting_confirmation"||awaitingMap;
+  $("confirm").textContent=awaitingMap?"Confirm account mapping and run":"Confirm spec and run";
+  renderFw(p.framework_suggestions,!open);$("confirm").disabled=!open;$("reject").disabled=!open;
+  $("confnote").textContent=awaitingMap?"Confirm the account mapping before anything is posted.":open?p.confirmation_required:"Checkpoint closed.";
   $("runcard").hidden=false;$("stages").replaceChildren();
   Object.entries(s.stage_states).forEach(([k,v])=>{const r=add($("stages"),"div",undefined,"stage");add(r,"span",k.replace("_"," "));add(r,"span",v.replace("_"," "),"badge "+v)});
   if(s.delivery){$("out").hidden=false;$("report").textContent=s.delivery.report||"";$("blocked").textContent=s.delivery.blocked_reason?"Blocked: "+s.delivery.blocked_reason:"Tier: "+s.delivery.tier;

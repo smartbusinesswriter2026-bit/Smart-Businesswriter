@@ -1,7 +1,7 @@
 """Work Plan record, stage states derived from recorded events, JSON-safe serialization (Stage 1 contracts)."""
 import json, uuid, threading
 from dataclasses import asdict, is_dataclass
-from .orchestrator import Pipeline, Delivery, STAGES
+from .orchestrator import Pipeline, Delivery, Pause, STAGES
 from .spec import ProblemSpec
 from .methods import LIBRARY
 from . import registry as REG, templates as TPL
@@ -59,6 +59,7 @@ def _plain(o):
 class Session:
     def __init__(self, request: dict, sandbox=None, assist_runs=None):
         self.id = uuid.uuid4().hex[:12]; self.request = request; self.assist = self._runs(request, assist_runs or {}); self.p = Pipeline(sandbox=sandbox); self.delivery = None
+        self.pause = None; self.spec_confirmed = False
         r = self.p.start(request)
         if isinstance(r, Delivery): self.delivery, self.spec = r, None
         else: self.spec = r
@@ -69,7 +70,7 @@ class Session:
     @property
     def status(self):
         if self.delivery: return self.delivery.status
-        return "awaiting_confirmation"
+        return "awaiting_mapping_confirmation" if self.pause else "awaiting_confirmation"
 
     @staticmethod
     def _runs(request, known):
@@ -96,17 +97,29 @@ class Session:
 
     def confirm(self, confirmed: bool = True, frameworks=None):
         if self.delivery: raise ValueError("session already finished")
+        if self.pause:       # second mandatory checkpoint: the account mapping must be confirmed before anything is posted
+            r = self.p.resume(True, mapping_confirmed=True) if confirmed else self.p.reject_mapping()
+            self.delivery, self.pause = r, None
+            return self._attach_assist()
         if confirmed:       # nothing is applied unless the user selected it; selection is frozen with the spec
             self.p.spec.frameworks_selected = self._selection(frameworks or []); self.p.spec.registry = self.suggestions["registry"]
             self.p.spec.model_assistance = [{k: r[k] for k in ("run_id", "task", "provider", "model", "template_version", "prompt_sha256", "output_sha256")} for r in self.assist]
-        self.delivery = self.p.resume(confirmed)
-        if self.delivery.status == "delivered" and self.assist:
+            self.spec_confirmed = True
+        r = self.p.resume(confirmed)
+        if isinstance(r, Pause): self.pause = r
+        else: self.delivery = r
+        self._attach_assist()
+
+    def _attach_assist(self):
+        if self.delivery is not None and self.delivery.status == "delivered" and self.assist:
             ev = (self.request.get("inputs") or {}).get("facts", []); n = sum(1 for f in ev if isinstance(f, dict) and str(f.get("source", "")).startswith("case text (model-extracted"))
             self.delivery.appendix["model_assistance"] = {"runs": self.p.spec.model_assistance, "facts_marked_model_extracted": n,
                 "statement": "Model proposals were validated by code and used only if you confirmed them. The model produced no numbers; every number in this result comes from your inputs or from computation."}
 
     def to_dict(self):
+        mp = self.pause.mapping if self.pause else (self.p.mapping if getattr(self.p, "mapping", None) else None)
         return _plain({"id": self.id, "status": self.status, "work_plan": self.plan,
+                       "account_mapping": mp,
                        "spec": {**self.spec.content(), "hash": self.spec.hash} if self.spec else None,
                        "stage_states": stage_states(self.p.events, self.delivery is not None),
                        "events": self.p.events, "delivery": self.delivery})

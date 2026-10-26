@@ -99,6 +99,22 @@ def validate_spec(spec):
             errs += [f"reconciliation: {e}" for e in reconcile.validate_statement(rec.get("statement"))]
     return errs
 
+def account_mapping(spec):
+    """The account-mapping table for the second mandatory checkpoint (manual 9.3): every chart account with its type,
+    statement line, role, activity tag and contra flag, plus the mapping checks the owner confirms before anything is
+    posted. Raises EngagementError when the spec does not validate."""
+    errs = validate_spec(spec)
+    if errs: raise EngagementError("; ".join(errs))
+    chart = ledger.Chart([ledger.Account(**a) for a in spec["chart"]])
+    rows = [{"code": a.code, "name": a.name, "type": a.type, "line": a.line, "role": a.role, "activity": a.activity, "contra": a.contra} for a in chart.accounts.values()]
+    unmapped = [a.code for a in chart.accounts.values() if not str(a.line).strip()]
+    cash = [a.code for a in chart.accounts.values() if a.role == "cash"]
+    re_acc = [a.code for a in chart.accounts.values() if a.type == "equity" and a.role == "retained_earnings"]
+    checks = [("every_account_maps_to_a_statement_line", not unmapped, "unmapped: " + ", ".join(unmapped) if unmapped else "all accounts map to a statement line"),
+              ("at_least_one_cash_account", bool(cash), "cash accounts: " + ", ".join(cash) if cash else "no account is tagged role cash"),
+              ("exactly_one_retained_earnings_account", len(re_acc) == 1, "retained earnings accounts: " + ", ".join(re_acc) if re_acc else "no retained earnings account")]
+    return {"rows": rows, "checks": checks, "framework": spec["framework"]}
+
 def build(spec):
     """Run the engagement: validate, build the chart and journal, post opening + entries + schedules, close the period,
     and return scalar outputs plus a serialized appendix (statements, trial balance, cash flow, checks, flags, export)."""

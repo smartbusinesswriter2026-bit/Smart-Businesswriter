@@ -102,4 +102,43 @@ class PipelineFlow(unittest.TestCase):
         self.assertIn("not in the chart", " ".join(accounts.validate_spec(bad)))
         bad["reconciliation"] = {"account": "1000", "statement": {"opening_balance": "1", "closing_balance": "1", "lines": [{"amount": "1", "direction": "up"}]}}
         self.assertIn("direction", " ".join(accounts.validate_spec(bad)))
+class MappingCheckpoint(unittest.TestCase):
+    def test_mapping_table_and_checks(self):
+        mp = accounts.account_mapping(SPEC)
+        self.assertEqual(len(mp["rows"]), 10); self.assertEqual((mp["rows"][0]["code"], mp["rows"][0]["role"]), ("1000", "cash"))
+        self.assertEqual([c[0] for c in mp["checks"]], ["every_account_maps_to_a_statement_line", "at_least_one_cash_account", "exactly_one_retained_earnings_account"])
+        self.assertTrue(all(ok for _, ok, _ in mp["checks"]))
+        self.assertEqual(mp["framework"], "local")
+    def test_mapping_checks_catch_problems(self):
+        bad = copy.deepcopy(SPEC); bad["chart"][0]["line"] = ""
+        self.assertFalse({n: ok for n, ok, _ in accounts.account_mapping(bad)["checks"]}["every_account_maps_to_a_statement_line"])
+        bad = copy.deepcopy(SPEC); bad["chart"].append({"code": "3110", "name": "Retained earnings 2", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"})
+        self.assertFalse({n: ok for n, ok, _ in accounts.account_mapping(bad)["checks"]}["exactly_one_retained_earnings_account"])
+        bad = copy.deepcopy(SPEC)
+        for a in bad["chart"]:
+            if a["code"] == "1000": a.pop("role")
+        self.assertFalse({n: ok for n, ok, _ in accounts.account_mapping(bad)["checks"]}["at_least_one_cash_account"])
+    def test_session_pauses_for_the_mapping_and_resumes(self):
+        from bp.session import SessionManager
+        s = SessionManager().create(req(SPEC))
+        self.assertEqual(s.status, "awaiting_confirmation")
+        s.confirm(True)
+        self.assertEqual(s.status, "awaiting_mapping_confirmation")
+        d = s.to_dict(); self.assertEqual(len(d["account_mapping"]["rows"]), 10); self.assertIsNone(d["delivery"])
+        self.assertEqual(d["stage_states"]["formalization"], "awaiting_user"); self.assertEqual(d["stage_states"]["execution"], "planned")
+        events = [e for e in d["events"] if e.get("checkpoint") == "account_mapping"]
+        self.assertEqual(len(events), 1); self.assertEqual(events[0]["status"], "awaiting_confirmation")
+        s.confirm(True)
+        self.assertEqual(s.status, "delivered"); d = s.to_dict()
+        self.assertEqual(d["stage_states"]["formalization"], "passed"); self.assertIn("9 of 11 checks passed (2 not applicable)", d["delivery"]["report"])
+        with self.assertRaises(ValueError): s.confirm(True)
+    def test_rejecting_the_mapping_blocks(self):
+        from bp.session import SessionManager
+        s = SessionManager().create(req(SPEC)); s.confirm(True); s.confirm(False)
+        self.assertEqual(s.status, "blocked"); self.assertIn("account mapping", s.to_dict()["delivery"]["blocked_reason"])
+    def test_non_mapping_method_keeps_a_single_checkpoint(self):
+        from bp.orchestrator import Pipeline
+        d = Pipeline().run({"objective": "x", "method": "npv", "currency": "USD", "inputs": {"rate": "0.10", "cashflows": ["-1000", "400"]}}, yes)
+        self.assertEqual(d.status, "delivered")
+
 if __name__ == "__main__": unittest.main()

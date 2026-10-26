@@ -71,5 +71,23 @@ class API(unittest.TestCase):
         self.assertEqual(self.call("/api/sessions", {"method": "npv"})[0], 400)
         self.assertEqual(self.call("/api/sessions/nope")[0], 404)
     def test_index_served(self):
-        c, b = self.call("/"); self.assertEqual(c, 200); self.assertIn(b"Draft work plan", b)
+        c, b = self.call("/"); self.assertEqual(c, 200); self.assertIn(b"Draft work plan", b); self.assertIn(b"Account mapping", b)
+    def test_two_phase_account_mapping_checkpoint(self):
+        from bp import accounts
+        c, b = self.call("/api/sessions", {"objective": "Prepare the management accounts.", "method": "management_accounts", "currency": "USD", "inputs": {"spec": accounts.EXAMPLE_SPEC}})
+        s = json.loads(b); self.assertEqual((c, s["status"]), (201, "awaiting_confirmation"))
+        c, b = self.call(f"/api/sessions/{s['id']}/confirm", {}); d = json.loads(b)
+        self.assertEqual((c, d["status"]), (200, "awaiting_mapping_confirmation"))
+        self.assertEqual([r["code"] for r in d["account_mapping"]["rows"]], ["1000", "3000", "3100", "4000", "5000"])
+        self.assertEqual(d["stage_states"]["formalization"], "awaiting_user"); self.assertIsNone(d["delivery"])
+        c, b = self.call(f"/api/sessions/{s['id']}/confirm", {}); d = json.loads(b)
+        self.assertEqual((c, d["status"]), (200, "delivered")); self.assertIn("11 of 11 checks passed", d["delivery"]["report"])
+        self.assertEqual(d["stage_states"]["formalization"], "passed")
+        self.assertEqual(self.call(f"/api/sessions/{s['id']}/confirm", {})[0], 400)      # already finished
+    def test_rejecting_the_account_mapping_blocks(self):
+        from bp import accounts
+        c, b = self.call("/api/sessions", {"objective": "x", "method": "management_accounts", "currency": "USD", "inputs": {"spec": accounts.EXAMPLE_SPEC}})
+        s = json.loads(b); self.call(f"/api/sessions/{s['id']}/confirm", {})
+        c, b = self.call(f"/api/sessions/{s['id']}/reject", {}); d = json.loads(b)
+        self.assertEqual(d["delivery"]["status"], "blocked"); self.assertIn("account mapping", d["delivery"]["blocked_reason"])
 if __name__ == "__main__": unittest.main()

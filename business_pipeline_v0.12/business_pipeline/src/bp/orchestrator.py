@@ -25,6 +25,11 @@ class Delivery:
     blocked_reason: str = ""
     appendix: dict = field(default_factory=dict)
 
+@dataclass
+class Pause:
+    """A mandatory checkpoint that is open: the pipeline waits for a user decision before continuing."""
+    mapping: dict
+
 def _code_hash(impl):
     try: return sha(inspect.getsource(impl))
     except (OSError, TypeError): return sha(getattr(impl, "__name__", "impl"))
@@ -34,6 +39,7 @@ class Pipeline:
         self.N = amendment_budget; self.sb = sandbox     # sandbox=None runs in-process (development and unit tests)
         self.events: list[dict] = []   # the UI reflects these records, not agent self-reports
         self.store = ArtifactStore()
+        self.mapping = None
 
     def log(self, stage, status, **detail): self.events.append({"stage": stage, "status": status, **detail})
 
@@ -70,15 +76,22 @@ class Pipeline:
         return spec
 
     def run(self, request: dict, confirm_spec, builder=None, template: str | None = None) -> Delivery:
+        """Convenience path: runs to completion, confirming both mandatory checkpoints (the spec and, where the method
+        declares one, the account mapping). Use start/resume to honour the checkpoints interactively."""
         r = self.start(request)
         if isinstance(r, Delivery): return r
-        return self.resume(bool(confirm_spec(r)), builder, template)
+        return self.resume(bool(confirm_spec(r)), builder, template, mapping_confirmed=True)
 
-    def resume(self, confirmed: bool, builder=None, template: str | None = None) -> Delivery:
+    def reject_mapping(self):
+        """The owner rejected the account mapping at the second mandatory checkpoint: nothing is posted."""
+        m = LIBRARY.get(self.request["method"])
+        return self._block("formalization", "user did not confirm the account mapping", m.tier if m else "T4")
+
+    def resume(self, confirmed: bool, builder=None, template: str | None = None, mapping_confirmed: bool = False) -> "Delivery | Pause":
         request, spec = self.request, self.spec
         inp = request["inputs"]; m = LIBRARY.get(request["method"])
         if not confirmed: return self._block("formalization", "user did not confirm spec", "T4")
-        spec.freeze(); self.log("formalization", "frozen", spec_hash=spec.hash)
+        if not spec.hash: spec.freeze(); self.log("formalization", "frozen", spec_hash=spec.hash)
 
         if request["method"] in templates.TEMPLATES: return self._template_resume(spec, request)
         # 3 Method selection: escalation by missing method, never by "difficulty"
@@ -90,6 +103,18 @@ class Pipeline:
                                       "note": "Framework-only response: nothing was computed. Frameworks are suggestions recorded in the frozen spec; the catalogue marks every item as unreviewed."})
         period = request.get("period", m.default_period); entity = request.get("entity", "entity"); cur = request.get("currency")
         tier = m.tier; self.log("method_selection", "selected", method=m.name, version=m.version, tier=tier, review_status=m.review_status)
+
+        # 3b Second mandatory checkpoint (manual 9.3): the account mapping must be confirmed before anything is posted
+        if m.mapping:
+            try: mp = m.mapping(inp)
+            except (ValueError, TypeError) as e: return self._block("formalization", f"account mapping problem: {e}", tier)
+            bad = [n for n, ok, _ in mp["checks"] if not ok]
+            if bad: return self._block("formalization", "account mapping checks failed: " + ", ".join(bad), tier)
+            self.mapping = mp
+            if not mapping_confirmed:
+                self.log("formalization", "awaiting_confirmation", checkpoint="account_mapping", rows=mp["rows"], checks=[[n, bool(ok), d] for n, ok, d in mp["checks"]])
+                return Pause(mp)
+            self.log("formalization", "frozen", checkpoint="account_mapping_confirmed", spec_hash=spec.hash)
 
         # 4 Test planning: names frozen before execution
         planned = tuple(m.test_names) or tuple(n for n, _ in m.tests(inp, m.impl))
