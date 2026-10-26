@@ -17,6 +17,32 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 9. **The supplied sources are read-only.** Anything under `docs/sources/` is authority material. Do not edit it; record your amendment in `DECISIONS.md`.
 10. **Every change is traceable.** One increment = one commit = one CHANGELOG entry = one WORKLOG entry = (if it decides something) one B-xxx decision.
 
+## 1A. Model ownership: computation vs design (owner directive, B-066)
+
+**This repository is split between two model owners.** Read this before touching anything, and do not cross the line without the owner's explicit instruction.
+
+**The computation owner (DeepSeek) has exclusive domain over everything that produces or verifies a fact, number or rule.** Concretely:
+
+- `src/bp/**` — the method library, orchestrator, spec, claims, quantities, artefacts, sandbox, ledger, schedules, reconciliation, statement exports, retrieval verification and citation rules, ingestion and type inference, model-boundary validation, re-performance.
+- `tests/**` and `tests/fixtures/**` — the verification contract, goldens, trap tests.
+- The factual content of `docs/**`: `DECISIONS.md`, `CHANGELOG.md`, `KNOWN_LIMITATIONS.md`, `PRODUCT_GAP_MAP.md`, `WORKLOG.md`, `RESEARCH_EVIDENCE_WORKFLOW.md`, `HANDOFF.md`, this file, and the rendered claim wording of any output.
+- Any prompt change that can change what the system asserts or how a number is produced/validated.
+
+**The design owner (MiniMax) has exclusive domain over presentation and aesthetics.** Concretely:
+
+- The look and feel of the workbench (`web/`): layout, CSS, typography, colour, spacing, iconography, responsiveness, visual hierarchy, component styling and the visual presentation of results.
+- Interaction affordances that do not change behaviour: labels, helper copy, empty states, ordering of controls, animations.
+- Visual design of reports/exports (as presentation only; the numbers, wording ceilings and disclaimers stay computation-owned).
+
+**Boundary rules, binding on both owners:**
+
+1. **Design changes must not change any number, claim wording, threshold, check, schema meaning or test.** A restyled results panel still shows the same values, caveats and honesty notices.
+2. **Computation changes must not silently restyle the UI.** Functional wiring (a new button that calls an existing endpoint) is allowed; choosing how it looks is the design owner's call.
+3. **Neither owner edits the other's files to "fix" them.** Read everything; write only in your domain. If a change is genuinely needed in the other domain, say so in `WORKLOG.md` (tag the entry `[computation]` or `[design]`) and let the owner instruct it.
+4. **Cross-domain work is split, not merged.** A feature with both halves lands as two commits by the two owners: the computation commit first (contract, endpoint, tests), then the design commit (UI) against that contract.
+5. **Conflicts and ambiguities escalate to the owner.** Do not reinterpret this split in your own favour.
+6. **The verification rules in §1 apply to both owners.** Design cannot weaken a caveat to look cleaner; computation cannot bypass a test to ship faster.
+
 ## 2. Five-minute orientation
 
 ```powershell

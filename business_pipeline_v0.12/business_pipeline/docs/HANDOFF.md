@@ -31,6 +31,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 6. Every increment: tests + `CHANGELOG.md` + `WORKLOG.md` entry + `DECISIONS.md` B-number if a convention is chosen + updated `KNOWN_LIMITATIONS.md`/`PRODUCT_GAP_MAP.md` + README/HOME if the surface changed. One commit per increment.
 7. `docs/sources/` is read-only authority material. Never edit it.
 8. Do not mark a gap closed, or a PROPOSAL ratified, without the tests and an owner decision.
+9. **Two model owners (B-066).** The computation owner (DeepSeek) exclusively owns `src/bp/**`, `tests/**`, the factual docs and every rule/number/citation/claim; the design owner (MiniMax) exclusively owns the workbench's presentation and aesthetics. Read `CONTRIBUTORS.md` §1A before editing; write only in your domain, and split cross-domain features into a computation commit then a design commit.
 
 ## 3. What is already built (do not rebuild)
 
