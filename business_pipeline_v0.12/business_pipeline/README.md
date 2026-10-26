@@ -13,7 +13,7 @@ Templates: methods `template_swot` and `template_five_forces` take your own evid
 
 Business case: method `case_decision` compares 2-5 of your own alternatives by NPV, finds where the ranking changes across your rate range, and states a preference only under your decision rule. See GET /api/templates/case_decision for the input format and an example.
 
-Spike (Stage 8): `python spike/run_custom_arm.py` runs the ledger trap cases against the custom kernel (src/bp/ledger.py). Not wired into the pipeline. See docs/STAGE8_SPIKE_REPORT.md. Stage 7 is blocked: docs/STAGE7_BLOCKER.md.
+Spike (Stage 8): `python spike/run_custom_arm.py` runs the ledger trap cases against the custom kernel (src/bp/ledger.py). Schedule engines (src/bp/schedules.py): straight-line depreciation, loan amortization and accruals that generate journal lines posting into the kernel. Not wired into the pipeline. See docs/STAGE8_SPIKE_REPORT.md. Stage 7 is blocked: docs/STAGE7_BLOCKER.md.
 
 Model assistance (optional, off by default; providers: `deepseek`, `openai`, `anthropic`): see docs/MODEL_PROVIDER_REPORT.md for setup (environment variables) and the rules it runs under. The model proposes; code validates; you confirm; it writes no numbers.
 

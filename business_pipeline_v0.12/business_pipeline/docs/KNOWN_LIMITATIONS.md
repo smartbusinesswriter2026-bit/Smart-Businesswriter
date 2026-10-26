@@ -89,3 +89,9 @@
 - The out-of-sample check holds out a quarter of the series (capped at 3 periods) and reports the recent-past error; it cannot measure future accuracy.
 - The holdout-size rule, minimum series length (6), horizon cap (12) and small-sample wording threshold are placeholders (B-043).
 - Prediction intervals assume independent, roughly normal errors around the trend.
+
+## Added with the Stage 8 schedule engines
+- Schedules cover straight-line depreciation, level- or fixed-payment loan amortization, and straight accruals only; no declining-balance or units-of-production depreciation, no variable-rate loans, no prepayments.
+- Rounding rules are declared: depreciation's final period absorbs the remainder; interest rounds half-even; a payment never exceeds the balance due (so a large fixed payment repays early); the level annuity rounds up. Amounts beyond the currency places are rejected, never silently rounded.
+- Schedule specs are validated data, but the module is not yet wired into the pipeline, the sandbox, or the workbench, and there is no account-mapping confirmation checkpoint yet.
+- Management accounts only; not GAAP/IFRS-compliant statements (manual 9.5).
