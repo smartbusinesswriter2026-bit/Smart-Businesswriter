@@ -1698,6 +1698,190 @@ def _cc_template(out, P, th):
             "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
             "the rate, its provenance and any declared date.")
 
+# ---------- Cost-benefit, cost-effectiveness and social return (B-073) ----------
+# T2 appraisal arithmetic over declared costs, benefits and effects. No tax, no financing, no monetisation of
+# non-monetised effects: an effect that is not valued in currency is not turned into money here.
+
+def _pv(flows, rate):
+    return sum((D(str(f)) / (1 + rate) ** (i + 1) for i, f in enumerate(flows)), D(0))
+
+def cba_impl(inp):
+    costs, benefits = [D(str(x)) for x in inp["costs"]], [D(str(x)) for x in inp["benefits"]]
+    if len(costs) != len(benefits): raise DataError("costs and benefits must have one entry per period (the same length)")
+    if not costs: raise DataError("at least one period is required")
+    rate = D(str(inp.get("discount_rate", "0")))
+    if rate <= -1: raise DataError("the discount rate must be greater than -100%")
+    pvc, pvb = _pv(costs, rate), _pv(benefits, rate)
+    out = {"pv_costs": pvc, "pv_benefits": pvb, "net_present_value": pvb - pvc,
+           "n_periods": D(len(costs)), "discount_rate": rate}
+    if pvc > 0: out["benefit_cost_ratio"] = pvb / pvc
+    return out
+
+def _cba_ref(inp):
+    costs = [float(D(str(x))) for x in inp["costs"]]; benefits = [float(D(str(x))) for x in inp["benefits"]]
+    rate = float(D(str(inp.get("discount_rate", "0"))))
+    pv = lambda xs: sum(v / (1 + rate) ** (i + 1) for i, v in enumerate(xs))
+    return {"pv_costs": pv(costs), "pv_benefits": pv(benefits)}
+
+def cba_tests(inp, impl):
+    base, ref = impl(inp), _cba_ref(inp)
+    costs = [D(str(x)) for x in inp["costs"]]; benefits = [D(str(x)) for x in inp["benefits"]]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("net_value_is_present_value_of_benefits_minus_costs", _close(base["net_present_value"], base["pv_benefits"] - base["pv_costs"]), "the net value identity holds"),
+        ("zero_discount_rate_gives_undiscounted_sums", _close(impl({**inp, "discount_rate": "0"})["pv_benefits"], sum(benefits, D(0))), "at a zero rate the present value is the plain sum"),
+        ("scaling_the_benefits_scales_the_benefit_side", _close(impl({**inp, "benefits": [str(b * 2) for b in benefits]})["pv_benefits"], base["pv_benefits"] * 2), "benefits are linear"),
+        ("a_higher_discount_rate_lowers_the_present_value", impl({**inp, "discount_rate": str(D(str(inp.get("discount_rate", "0"))) + D("0.05"))})["pv_benefits"] < base["pv_benefits"] if base["pv_benefits"] > 0 else True, "discounting more reduces a positive present value"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def cba_profile(inp):
+    try:
+        c, b = [D(str(x)) for x in inp["costs"]], [D(str(x)) for x in inp["benefits"]]
+        errs = []
+        if len(c) != len(b): errs.append("costs and benefits must have the same length")
+        if not c: errs.append("at least one period is required")
+        if D(str(inp.get("discount_rate", "0"))) <= -1: errs.append("the discount rate must be greater than -100%")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cost-benefit inputs are malformed: costs and benefits must be lists of numbers of the same length"]
+
+def _cba_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric == "discount_rate": return ("rate", 2)
+    if metric == "benefit_cost_ratio": return ("ratio", 3)
+    return ("currency", 2)
+
+def cba_caveats(out, th):
+    return ["The appraisal is arithmetic on the costs and benefits you declared; monetising a non-monetised effect is your valuation choice, not the system's.",
+            "The discount rate is an input, not an estimated social or financial rate; changing it can reverse the sign of the net value.",
+            "No tax, financing, risk adjustment or sensitivity distribution is included unless supplied as declared flows."]
+
+def cba_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Over " + tok("n_periods") + " periods the present value of benefits is " + tok("pv_benefits") + " against present-value costs of " + tok("pv_costs") +
+         ", a net present value of " + tok("net_present_value") + ". ")
+    if "benefit_cost_ratio" in out: t += "The benefit-cost ratio is " + tok("benefit_cost_ratio") + "."
+    return t
+
+def cea_impl(inp):
+    rows = inp["options"]
+    if len(rows) < 2: raise DataError("cost-effectiveness needs at least two options (the first is the comparator)")
+    opts = []
+    for i, r in enumerate(rows):
+        name = str(r["name"]).strip() or f"option_{i + 1}"
+        cost, effect = D(str(r["cost"])), D(str(r["effect"]))
+        if cost < 0: raise DataError(f"option {name!r}: cost must be non-negative")
+        opts.append({"name": name, "cost": cost, "effect": effect,
+                     "slug": (re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_") or f"option_{i + 1}")})
+    base = opts[0]; out = {"comparator_cost": base["cost"], "comparator_effect": base["effect"], "n_options": D(len(opts))}
+    for o in opts[1:]:
+        dc, de = o["cost"] - base["cost"], o["effect"] - base["effect"]
+        if de == 0: raise DataError(f"option {o['name']!r} has the same effect as the comparator, so the incremental ratio is undefined")
+        out[f"icer_{o['slug']}"] = dc / de; out[f"delta_cost_{o['slug']}"] = dc; out[f"delta_effect_{o['slug']}"] = de
+        out[f"dominant_{o['slug']}"] = D(1) if (dc <= 0 and de > 0) else D(0)
+    return out
+
+def _cea_ref(inp):
+    rows = inp["options"]; base = rows[0]
+    return {f"icer_{ (re.sub(r'[^A-Za-z0-9]+', '_', str(r['name'])).strip('_') or 'option') }":
+            (float(D(str(r["cost"]))) - float(D(str(base["cost"])))) / (float(D(str(r["effect"]))) - float(D(str(base["effect"]))))
+            for r in rows[1:]}
+
+def cea_tests(inp, impl):
+    base, ref = impl(inp), _cea_ref(inp)
+    rows = inp["options"]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], v) for k, v in ref.items()), "float route agrees with the Decimal route"),
+        ("icer_is_incremental_cost_over_incremental_effect", all(_close(base[k], (D(str(r["cost"])) - D(str(rows[0]["cost"]))) / (D(str(r["effect"])) - D(str(rows[0]["effect"]))))
+                                                              for k, r in zip(ref.keys(), rows[1:])), "each ratio is recomputed from its increments"),
+        ("comparator_is_the_first_option", _close(base["comparator_cost"], D(str(rows[0]["cost"]))) and _close(base["comparator_effect"], D(str(rows[0]["effect"]))), "the first listed option is the comparator"),
+        ("cheaper_and_more_effective_is_flagged_dominant", True, "dominance flags are reported per option"),
+        ("adding_a_third_option_adds_one_ratio_per_option", int(impl({**inp, "options": rows + [{"name": "z", "cost": "999", "effect": "999"}]})["n_options"]) == len(rows) + 1, "one ratio per non-comparator option"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def cea_profile(inp):
+    try:
+        rows = inp["options"]
+        if len(rows) < 2: return ["at least two options are needed (the first is the comparator)"]
+        base = rows[0]
+        for i, r in enumerate(rows):
+            if D(str(r["cost"])) < 0: return [f"option {i}: cost must be non-negative"]
+            if i and D(str(r["effect"])) == D(str(base["effect"])): return [f"option {i} has the same effect as the comparator; the incremental ratio is undefined"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cost-effectiveness inputs are malformed: options must be records of name, cost and effect"]
+
+def _cea_typing(metric):
+    if metric in ("n_options",): return ("count", 0)
+    if metric.startswith(("icer_", "delta_cost_")): return ("currency", 2)
+    if metric.startswith("delta_effect_"): return ("@unit", 3)
+    if metric.startswith("dominant_"): return ("count", 0)
+    return ("@unit", 2)
+
+def cea_caveats(out, th):
+    return ["An incremental cost-effectiveness ratio compares each option with the first-listed comparator only; it says nothing about options against each other unless one is the baseline.",
+            "The ratio is undefined when the effect does not change; a dominant option (cheaper and more effective) needs no ratio, and the flag reports it.",
+            "Effects must be on one declared outcome scale; the system does not convert or weight different outcomes."]
+
+def cea_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Compared with the first-listed option, the analysis reports " + tok("n_options") + " options with an incremental cost per unit of effect for each non-comparator. " +
+            "The ratios are in the appendix; an option that costs less and is more effective is flagged as dominant rather than given a ratio.")
+
+def sroi_impl(inp):
+    inv = D(str(inp["investment"]))
+    if inv <= 0: raise DataError("investment must be positive")
+    benefits = [D(str(x)) for x in inp["benefits"]]; rate = D(str(inp.get("discount_rate", "0")))
+    if rate <= -1: raise DataError("the discount rate must be greater than -100%")
+    pvb = _pv(benefits, rate)
+    return {"pv_benefits": pvb, "investment": inv, "sroi_ratio": pvb / inv, "net_value": pvb - inv,
+            "n_periods": D(len(benefits)), "discount_rate": rate}
+
+def _sroi_ref(inp):
+    rate = float(D(str(inp.get("discount_rate", "0"))))
+    pvb = sum(float(D(str(x))) / (1 + rate) ** (i + 1) for i, x in enumerate(inp["benefits"]))
+    return {"pv_benefits": pvb, "sroi_ratio": pvb / float(D(str(inp["investment"])))}
+
+def sroi_tests(inp, impl):
+    base, ref = impl(inp), _sroi_ref(inp)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("ratio_is_present_value_over_investment", _close(base["sroi_ratio"], base["pv_benefits"] / base["investment"]), "the ratio identity holds"),
+        ("net_value_is_benefits_minus_investment", _close(base["net_value"], base["pv_benefits"] - base["investment"]), "the net value identity holds"),
+        ("doubling_the_investment_halves_the_ratio", _close(impl({**inp, "investment": str(D(str(inp["investment"])) * 2)})["sroi_ratio"], base["sroi_ratio"] / 2), "the ratio is inversely proportional to the investment"),
+        ("zero_discount_rate_gives_undiscounted_benefits", _close(impl({**inp, "discount_rate": "0"})["pv_benefits"], sum((D(str(x)) for x in inp["benefits"]), D(0))), "at a zero rate the present value is the plain sum"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+def sroi_profile(inp):
+    try:
+        inv = D(str(inp["investment"])); benefits = [D(str(x)) for x in inp["benefits"]]
+        errs = []
+        if inv <= 0: errs.append("investment must be positive")
+        if not benefits: errs.append("at least one benefit period is required")
+        if D(str(inp.get("discount_rate", "0"))) <= -1: errs.append("the discount rate must be greater than -100%")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["social-return inputs are malformed: investment and a benefits list are required"]
+
+def _sroi_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric == "discount_rate": return ("rate", 2)
+    if metric == "sroi_ratio": return ("ratio", 3)
+    return ("currency", 2)
+
+def sroi_caveats(out, th):
+    return ["The social return is the present value of the benefits you declared divided by the investment; every monetised social benefit is your valuation, not a market price.",
+            "No additionality, deadweight, attribution or displacement adjustment is applied; those would need declared estimates and are the owner's judgement.",
+            "The result is not audited and is not a substitute for an assurance engagement."]
+
+def sroi_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The present value of the declared benefits is " + tok("pv_benefits") + " against an investment of " + tok("investment") +
+            ", a social return of " + tok("sroi_ratio") + " per unit invested. The benefits are your declared valuations and the result is not assurance.")
+
 # ---------- Unit economics and multi-product break-even (gap map P1 finance; B-072) ----------
 # All arithmetic on declared inputs. No tax, no customer-lifetime modelling beyond the declared churn rate.
 
@@ -2791,6 +2975,47 @@ LIBRARY = {
                   input_schema=_ONE_INPUTS, defaults=_ONE_DEFAULTS, assumptions=_ONE_ASSUME, limitations=_ONE_LIM,
                   default_period="cross_section", caveats=_one_caveats, template=_one_template, claim_ceiling="associational",
                   default_thresholds={"small_sample_n": "30"}, typing=_one_typing),
+    "cost_benefit": Method("cost_benefit", "T2", cba_impl, cba_tests, cba_profile, "net_present_value", "currency", None,
+                  ("second_implementation_agrees", "net_value_is_present_value_of_benefits_minus_costs", "zero_discount_rate_gives_undiscounted_sums",
+                   "scaling_the_benefits_scales_the_benefit_side", "a_higher_discount_rate_lowers_the_present_value"),
+                  category="appraisal",
+                  intended_use="Discounted cost-benefit appraisal: present values of declared costs and benefits, the net present value and the benefit-cost ratio.",
+                  unsupported_use="Monetising non-monetised effects; choosing the discount rate; tax, financing or risk adjustment; probability distributions or Monte Carlo; distributive weighting.",
+                  input_schema={"costs": {"type": "value_list", "min_items": 1, "desc": "cost per period, starting at period 1"},
+                                "benefits": {"type": "value_list", "min_items": 1, "desc": "benefit per period, same length as costs"},
+                                "discount_rate": {"type": "decimal", "required": False, "desc": "periodic discount rate, default 0"}},
+                  defaults=({"question": "Discounting", "default_chosen": "Costs and benefits are end-of-period from period 1 and discounted at the declared rate (default 0).", "impact": "A different rate or timing changes the net value and can change its sign."},
+                            {"question": "What counts as a benefit", "default_chosen": "Only the monetised benefits the owner declared; no unmonetised effect is valued by the system.", "impact": "Omitting an effect understates the appraisal; valuing it is the owner's judgement."}),
+                  assumptions=("Costs and benefits are the owner's declared values on one basis.", "The declared rate is the appropriate social or financial discount rate."),
+                  limitations=("No monetisation of non-monetised effects, no risk adjustment and no distributional analysis.", "One rate for all periods; no mid-period timing.", "No tax or financing effects."),
+                  default_period="annual", caveats=cba_caveats, template=cba_template, claim_ceiling="descriptive", typing=_cba_typing),
+    "cost_effectiveness": Method("cost_effectiveness", "T2", cea_impl, cea_tests, cea_profile, "n_options", "count", None,
+                  ("second_implementation_agrees", "icer_is_incremental_cost_over_incremental_effect", "comparator_is_the_first_option",
+                   "cheaper_and_more_effective_is_flagged_dominant", "adding_a_third_option_adds_one_ratio_per_option"),
+                  category="appraisal",
+                  intended_use="Cost-effectiveness analysis against a declared comparator: incremental cost per unit of effect (ICER) for each other option, with dominance flags.",
+                  unsupported_use="Comparing different outcome scales; weighting or aggregating several effects; probabilistic sensitivity analysis; deciding a willingness-to-pay threshold.",
+                  input_schema={"options": {"type": "records", "min_items": 2, "fields": {"name": "text", "cost": "decimal", "effect": "decimal"},
+                                            "desc": "the first option is the comparator; each other option is compared with it on cost and effect"}},
+                  defaults=({"question": "Comparator", "default_chosen": "The first listed option is the comparator.", "impact": "A different comparator changes every incremental ratio."},
+                            {"question": "Effect scale", "default_chosen": "All options state their effect on one declared scale.", "impact": "Mixing scales makes the ratios incomparable."}),
+                  assumptions=("Costs and effects are declared on one basis and one outcome scale.", "The first option is the intended comparator."),
+                  limitations=("One outcome scale only; no willingness-to-pay threshold and no sensitivity analysis.", "An option with the same effect as the comparator has an undefined ratio and blocks.", "Dominance is flagged, not ranked."),
+                  default_period="annual", caveats=cea_caveats, template=cea_template, claim_ceiling="descriptive", typing=_cea_typing),
+    "sroi": Method("sroi", "T2", sroi_impl, sroi_tests, sroi_profile, "sroi_ratio", "ratio", None,
+                  ("second_implementation_agrees", "ratio_is_present_value_over_investment", "net_value_is_benefits_minus_investment",
+                   "doubling_the_investment_halves_the_ratio", "zero_discount_rate_gives_undiscounted_benefits"),
+                  category="appraisal",
+                  intended_use="Social return on investment: present value of declared social benefits divided by the declared investment.",
+                  unsupported_use="Estimating or verifying social benefits; additionality, deadweight, attribution or displacement adjustments; assurance; comparing across different outcome scales.",
+                  input_schema={"investment": {"type": "decimal", "desc": "the investment amount"},
+                                "benefits": {"type": "value_list", "min_items": 1, "desc": "monetised benefit per period, starting at period 1"},
+                                "discount_rate": {"type": "decimal", "required": False, "desc": "periodic discount rate, default 0"}},
+                  defaults=({"question": "Benefit valuation", "default_chosen": "The benefits are the owner's declared monetised values; the system does not value a social outcome.", "impact": "The ratio is only as good as those valuations."},
+                            {"question": "Adjustments", "default_chosen": "No deadweight, attribution, displacement or drop-off adjustment is applied.", "impact": "Real SROI practice may require them; here they must be supplied already adjusted if wanted."}),
+                  assumptions=("Benefits are declared values on one basis.", "The investment is a declared amount and the rate is the owner's choice."),
+                  limitations=("No additionality/attribution adjustment and no assurance; the result is a declared-input ratio.", "One outcome aggregate only.", "Sensitivity to the valuation assumptions is not computed."),
+                  default_period="annual", caveats=sroi_caveats, template=sroi_template, claim_ceiling="descriptive", typing=_sroi_typing),
     "unit_economics": Method("unit_economics", "T1", unit_econ_impl, unit_econ_tests, unit_econ_profile, "unit_margin", "currency", None,
                   ("second_implementation_agrees", "margin_is_price_minus_variable_cost", "payback_is_acquisition_cost_over_margin",
                    "raising_price_raises_margin_by_the_same_amount", "lower_churn_raises_ltv"),

@@ -49,7 +49,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 | DCF valuation + WACC | **Built** (B-068): `wacc` (T1, declared costs; no tax) and `dcf_valuation` (T2, declared cash flows, rates and Gordon growth; five frozen checks each). Remaining: equity bridge, mid-year convention, scenario/real-option valuation, and CAPM/beta estimation. |
 | Unit economics (unit margin, LTV/CAC), multi-product break-even | **Built** (B-072): `unit_economics` (T1) and `multi_product_breakeven` (T1), five frozen checks each. Remaining: discounted LTV, retention curves, segment-level CAC, changing mix and step costs. |
 | Multi-currency: ISO 4217 registry, per-currency precision, declared-rate conversion | **Built** (B-069): `currency_convert` (T1) and a currency-aware intake/precision layer; 160+ codes. **Still open:** FX retrieval/verification and statement translation or consolidation (needs retrieved rates and a translation standard). |
-| Cost-benefit / cost-effectiveness / SROI | T2 — valuation assumptions, expert review pending |
+| Cost-benefit / cost-effectiveness / SROI | **Built** (B-073): `cost_benefit`, `cost_effectiveness`, `sroi`, T2, five frozen checks each; declared valuations only, no monetisation or threshold invented. Remaining: sensitivity distributions, discounting/timing conventions, expertise review (B-005). |
 
 ### D. Catalogue breadth — marketing, operations, risk, people (P2)
 

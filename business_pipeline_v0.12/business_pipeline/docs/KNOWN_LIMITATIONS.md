@@ -137,6 +137,12 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with cost-benefit, cost-effectiveness and SROI (B-073)
+- All three appraisal methods are **arithmetic on declared valuations**. The system does not monetise an unvalued effect, choose a discount rate, apply deadweight/additionality/attribution adjustments, or assume a willingness-to-pay threshold.
+- `cost_benefit` and `sroi` use one rate for all periods and end-of-period timing; there is no risk adjustment, sensitivity distribution or distributional weighting.
+- `cost_effectiveness` compares each option with the **first-listed comparator** only, on one outcome scale. An option with the same effect as the comparator blocks (undefined ratio); dominance is flagged, not ranked; there is no threshold-based recommendation.
+- SROI is not assurance and does not substitute for an audit.
+
 ## Added with ingestion mapping and finance methods (B-071, B-072)
 - Ingestion mapping only handles **list-shaped inputs** (`value_list`, `code_list`, `column_map`); scalar inputs such as a discount rate cannot be mapped from a column. Long-format data (one row per observation with a group label) cannot be turned into the `groups` shape by mapping — the wide layout is required for group columns.
 - Mapped inputs are recorded as owner-supplied with a file/SHA-256 provenance note; the hash identifies the source, it does **not** verify the data, and no conversion, cleaning or imputation is performed by the mapping.
