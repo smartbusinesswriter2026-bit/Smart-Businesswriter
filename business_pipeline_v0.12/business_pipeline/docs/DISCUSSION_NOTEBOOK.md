@@ -139,7 +139,7 @@ Rules: each run is the existing frozen session + delivery **stored verbatim and 
 
 **Increment 1 - "Case first, subject second" (presentation + product catalogue; no schema change).**
 - Home becomes the **case shelf**: *New case* (upload the case study / paste figures / describe the objective), *Your cases*, and **Browse by subject**.
-- Rail becomes task-shaped, six items: **Home | Subjects | Case | Catalogue | Assistant | Status**. "Cases" folds into Home; "Accounts" becomes the Accounting subject page; "Frameworks & templates" becomes Catalogue (reachable from every subject page). **Subjects is the second icon** - the replacement the owner asked for.
+- Rail becomes task-shaped, seven items: **Home | Subjects | Calculator | Case | Catalogue | Assistant | Status** (the Calculator is an owner instruction; see section N). "Cases" folds into Home; "Accounts" becomes the Accounting subject page; "Frameworks & templates" becomes Catalogue (reachable from every subject page). **Subjects is the second icon** - the replacement the owner asked for.
 - Subject page v1: the subject's tools (from `subjects.py`), the case's documents/figures, the runs already done, and an explicit "catalogue only - no worksheet yet" section for engine-less items.
 - **Work-plan step removed as a destination** (mechanics in G.1) - the tool screen shows inputs, declared assumptions/ambiguities and one primary button that applies edited inputs and confirms in one sequence.
 - Files: `src/bp/product/subjects.py` (new), `src/bp/product/api.py` (routes + `?subject=` filter), `tests/test_product_subjects.py` (new, drift guard), `web/index.html`. No core edit. Docs: one CHANGELOG entry, one WORKLOG `[product]` entry, `BACKEND_CONTRACT.md` section 6 rows, count digits in HOME/HANDOFF/CONTRIBUTORS, a new dated entry at the top of this notebook.
@@ -200,6 +200,7 @@ The subject -> tool and subject -> catalogue-id lists should be **generated once
 5. **B-028:** add worksheets (PESTEL, VRIO, Value Chain, Business Model Canvas, MCDA)? This is the decision that turns Management/Marketing/Operations pages from reading lists into workbenches.
 6. **Subject list:** 8 + 1 cross-cutting (as in H), or split Management from People & organisation, or keep Risk separate?
 7. **Version semantics for a multi-run case** (if C1): snapshot one run per version (recommended) or the whole case?
+8. **The rail Calculator (section N):** build it as a launcher over the frozen methods, and is free-form arithmetic in scope (which would need a core method and an unfreeze)?
 
 ### K. Open questions for the next model (unresolved by this brief)
 
@@ -233,6 +234,37 @@ python -m unittest tests.test_session_api tests.test_product_boundary tests.test
 ```
 
 Expected: `140 3 6`; no workspace/suggestions hits in the UI; the frozen-contract, boundary and session-API tests pass. If any of these differ, the brief is stale - update it before implementing.
+
+### N. Owner instruction - a rail Calculator for financial and business calculations (instruction only, not implemented)
+
+**Owner instruction (2026-10-27, third message).** *"Add in the left rail a calculator button that can do all financial and business calculations."* This section records the instruction so it is not forgotten. It is **not** part of the increments in section G, nothing here is built, and it is instruction text: a model implementing it should first re-read sections C (constraints), F (options) and I (what must not be done), then double-check this section's own risks (below) before writing code.
+
+**Where it sits.** A seventh rail destination, between Subjects and Case (see section G Increment 1):
+
+```
+Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
+```
+
+**What it must be.** An **index and launcher over the frozen method library**, not a new arithmetic engine. "All financial and business calculations" can only honestly mean **every calculation the product can actually perform today**: the 36 frozen methods and 38 presets, grouped by business function (capital budgeting, valuation, cost-volume-profit, financial statement ratios, appraisal, unit economics, accounting, forecasting, statistics), plus the three T4 templates (structure only, no computed answer). It must also show what it cannot do.
+
+**Hard rules (non-negotiable; they follow from BACKEND_CONTRACT sections 1-4).**
+- Every number displayed comes from a frozen method through the normal pipeline (`POST /api/sessions` -> `POST /api/sessions/{id}/confirm`) and is stored verbatim as a delivery; or it is a declared preset input the student typed.
+- **No client-side formulas and no product-layer arithmetic.** A calculator that adds, discounts, ratios or annualises by itself is the second arithmetic path the freeze exists to prevent. The Calculator arranges inputs and calls methods; it computes nothing.
+- Tier, claim wording, limitations, honesty notes, provenance and blocked reasons travel with the result exactly as the delivery records them.
+- No invented method, formula or "quick estimate": a request the engine cannot perform gets the framework-only (T4) answer or an explicit refusal, never an invented number.
+- Every calculator run is a **run of a case** (attached to the open case, or to a scratch case created first), so no number exists outside the audit trail. Nothing is computed client-side and no core route is added.
+
+**Free-form arithmetic is a separate capability and an owner decision.** Typed expressions ("2 + 2", "15% of 84,000") are not a UI feature: they would need a computation-owner method with a declared contract, an independent second route, frozen checks, tests and a fixture update (i.e. an unfreeze, B-079), plus an owner decision on scope and claim wording. Until that decision, the Calculator accepts typed input only into a chosen method's declared inputs. Do not build a background arithmetic engine "just for the calculator".
+
+**UX.** A calculator glyph in the rail (accessible label, keyboard shortcut, tooltip); a search field plus business-function chips (Finance, Accounting, Statistics, Economics, Operations, Marketing, People) fed by the `subjects.py` compute tools; selecting a tool opens the same input screen the subject page uses, prefilled from the preset; one primary button ("Calculate and record") applies the figures and confirms in the same two-call sequence as the tool screen (section G.1), then renders the delivery's report, derivation rows, checks, tier and limitations; actions: attach to the open case, start a case, export. Blocked and refused paths show the server's reason verbatim.
+
+**Data and guard.** The Calculator's tool list is the union of the compute tools in `subjects.py` - one source of truth for subject pages and Calculator, guarded by the same drift test (every launch id exists in the frozen fixture). `/api/methods` supplies the input schemas; `/api/presets` supplies the worked examples. If the union is empty, or the server is unreachable, the Calculator fails closed with a visible error and lists nothing invented.
+
+**Acceptance criteria.** (1) every displayed number is byte-identical to a stored delivery value; (2) removing a method/preset id from the catalogue makes the guard test fail; (3) no JavaScript performs arithmetic on business figures; (4) a method that blocks shows the blocked reason and computes nothing; (5) a method the engine does not implement is shown as catalogue-only, never as a calculator; (6) works offline, keyboard reachable, no new route outside `/api/cases`, frozen UI strings unchanged.
+
+**Owner decisions.** (a) Is free-form arithmetic in scope, and if so, is the unfreeze worth it? (b) Should a Calculator run with no open case create a scratch case automatically (recommended: yes - it keeps every number auditable) or be blocked until a case exists? (c) Should the Calculator include calculations that today exist only inside the accounting engagement spec (depreciation, amortisation, closing schedules)? If yes, that is a request for new methods/input adapters, not a UI change.
+
+**Where this could be wrong.** "Calculator" may mean free-form arithmetic to the owner; if so, this instruction delivers something narrower than expected and should say so on the panel ("calculations the engine supports"), with the free-form decision surfaced rather than silently absent. A calculator is also the feature most likely to drift into a second arithmetic path: every future contributor must keep it a launcher, and the guard test should be treated as the enforcement, not the documentation. Finally, a Calculator makes the product's coverage visible at a glance - 36 methods against an unbounded expectation of "all business calculations" - which is honest but may read as limited; the panel must present the catalogue-only items as a roadmap, not as broken tools.
 
 ---
 
