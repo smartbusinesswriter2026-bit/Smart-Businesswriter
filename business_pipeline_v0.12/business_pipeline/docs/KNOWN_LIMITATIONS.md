@@ -137,6 +137,12 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with the 9B.3 honesty layer (B-057) — disclosure only, not the fix
+- Every delivered computation now **states** the 9B.3 limits in the report and in an `appendix.honesty` block: missing values are excluded listwise without an established mechanism; multiple hypotheses are not corrected; no power or minimum-detectable-effect is computed; weights, clusters and repeated measures are unsupported and observations are treated as independent.
+- **No number changes.** The actual upgrades are NOT implemented: there is no Holm/Bonferroni or other multiple-comparison correction, no power/MDE calculation, no missing-data mechanism modelling or imputation, and no survey-weight or clustered-data estimation. The disclosure makes the gap visible; it does not close it.
+- Inputs that name an unsupported structure (`weights`, `weight`, `strata`, `cluster(s)`, `repeated`, `id`, `time`, `pair(s)`) are refused with a specific reason at intake, so such a dataset cannot be passed in and silently analysed as independent observations.
+- Single-method runs test one hypothesis (OLS tests one per coefficient, with the family-wise exposure named); there is no facility to combine several methods into one corrected family. Post-hoc pairwise tests do not exist yet, so no correction is applied to comparisons that are not made.
+
 ## Added with ratio analysis (B-056)
 - `ratio_analysis` is purely descriptive arithmetic on figures the owner supplies: no benchmark, industry average, cut-off or good/bad verdict is applied, because none is supplied or verified. A ratio being high or low is for the reader and the context to judge.
 - Period-end balances and a 365-day year are declared conventions; average balances or a 360-day year would give different efficiency ratios.

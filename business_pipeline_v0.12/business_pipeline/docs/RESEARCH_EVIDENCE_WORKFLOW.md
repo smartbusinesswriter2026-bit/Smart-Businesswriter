@@ -120,7 +120,7 @@ Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codeboo
 `[REPO]` unless marked.
 - Every result carries its method tier and claim ceiling (`src/bp/claims.py`; `license_check`). The manuscript's wording is generated from the ceiling, not chosen by the writer.
 - **Pre-declared analysis plan** at R3; deviations are logged amendments.
-- **Cross-cutting honesty upgrades are still missing** `[OPEN]` Q5 and P1 in the gap map: multiple-comparison correction, power/precision statements, missing-data mechanism declaration, survey weights/clustered-data detection. Until they exist, REW must at least *state* that they were not applied — silence is the failure mode.
+- **Cross-cutting honesty** `[REPO]` (B-057): every delivered computation **states** the 9B.3 limits — missing values excluded listwise with no established mechanism, the number of uncorrected hypotheses and its family-wise exposure, no power/MDE calculation, and independence assumed because weights/clusters/repeated measures are unsupported — and inputs naming an unsupported structure are refused at intake. The *upgrades* themselves (correction, power, mechanism modelling, weight estimation) are still missing `[OPEN]` Q5: the disclosure makes the gap visible, it does not close it.
 - **Independent verification**: floats checked on a second route, golden fixtures, wrong-implementation blocking tests, sandbox parity `[REPO]`.
 - **No model-authorised numbers**: a model may propose, never compute (`docs/MODEL_PROVIDER_REPORT.md`).
 

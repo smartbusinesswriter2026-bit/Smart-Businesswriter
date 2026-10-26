@@ -38,7 +38,7 @@ The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeli
 | Logistic regression | T1 — diagnostics analogous to the OLS/HC3 pair |
 | Reliability (Cronbach's α) and factor analysis | T1, but factor analysis needs declared extraction/rotation defaults ([§9B.4](sources/business_pipeline_v0_3.md#L377)) |
 | Clustering (segmentation) | T2 initially — many algorithms, no single "right" answer; needs a labelled evaluation set |
-| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | Upgrades to existing methods, not new ones; currently only listwise deletion and a "one test, no correction" note exist ([§9B.3, lines 369–375](sources/business_pipeline_v0_3.md#L369)) |
+| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | **Disclosure layer built** (B-057, 0.32): every delivery states listwise deletion with no established mechanism, the number of uncorrected hypotheses and the family-wise exposure, the absence of power/MDE, and the unsupported weights/clusters; unsupported-structure inputs are refused. **Still open:** the actual upgrades — Holm/Bonferroni correction, power/MDE calculation, missing-data mechanism modelling, survey-weight estimation ([§9B.3, lines 369–375](sources/business_pipeline_v0_3.md#L369)) |
 | Time series beyond linear trend (seasonality, backtesting, break detection) | Highest stats risk — sits under the §8 regime-change controls |
 
 ### C. Finance & valuation (sits on the finished ledger) — P1
@@ -74,7 +74,7 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
 1. **Ratify the remaining research-manual proposals (R1–R10)** — free, unblocks the REW track and turns proposals into a build spec; R11 (the manual as working authority) is already ratified, and the original Smart Researcher manuals remain welcome and would be reconciled against it.
 2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
 3. ~~Statement ratio analysis (P1/C)~~ — **done** (B-056, commit for 0.31).
-4. **9B.3 honesty upgrades (P1/B)** — power, multiple-comparison, missing-data mechanisms and weights, so existing statistics stop under-reporting before more statistics are added. This is the other half of Slice 1.
+4. **9B.3 honesty upgrades (P1/B)** — disclosure layer done (B-057, 0.32); the actual statistical upgrades (correction, power, missing-data modelling, weights) are the next step of this row, so existing statistics stop under-reporting before more statistics are added.
 5. **Ingestion (P0/A)** in parallel with the above.
 6. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
 

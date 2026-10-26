@@ -105,11 +105,22 @@ def _check(key, v, spec):
         errs.append(f"'{key}' = {v!r}: {str(e) if isinstance(e, ValueError) else 'not a valid number'}")
     return errs
 
+# Inputs that name a data structure the method does NOT model. They are refused with a specific reason
+# rather than a generic "unknown input", so a weighted or clustered dataset cannot be passed in and silently
+# treated as independent observations (manual 9B.3; B-057).
+_UNSUPPORTED_CONCEPTS = {"weights": "survey weights", "weight": "survey weights", "strata": "stratified sampling",
+                         "cluster": "clustered observations", "clusters": "clustered observations", "repeated": "repeated measures",
+                         "id": "a panel or subject identifier", "time": "time-series structure", "pair": "paired observations", "pairs": "paired observations"}
+
 def validate_inputs(m, inp) -> list[str]:
     if not isinstance(inp, dict): return ["inputs must be an object"]
     errs, sch = [], m.input_schema
     if not sch: return errs
-    errs += [f"unknown input '{k}'; allowed: {sorted(sch)}" for k in inp if k not in sch]
+    for k in inp:
+        if k in sch: continue
+        concept = _UNSUPPORTED_CONCEPTS.get(str(k).lower())
+        errs.append(f"'{k}' is refused: {concept} are not supported by {m.name}, which treats every observation as independent; "
+                    "supply only the declared inputs or use a method that models the structure" if concept else f"unknown input '{k}'; allowed: {sorted(sch)}")
     for k, spec in sch.items():
         if k not in inp:
             if spec.get("required", True): errs.append(f"missing required input '{k}' ({spec['desc']})")

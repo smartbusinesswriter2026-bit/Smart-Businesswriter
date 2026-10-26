@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.31**, **415 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.32**, **425 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -66,7 +66,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Deterministic compute → verified report pipeline | Built, T1 methods with independent routes | B-003/B-004 |
 | Framework-only (T4) answers + registry | Built; catalogue records unreviewed | B-021, B-023, B-026, B-027 |
 | Model assistance (proposals only) | Built; quality unmeasured | B-031, B-036, B-037, B-038, B-039, B-041 |
-| Statistics: descriptive, correlation, regression, two-group, ANOVA/KW, chi-square | Built; conventions `[UNVERIFIED]` | B-042 |
+| Statistics: descriptive, correlation, regression, two-group, ANOVA/KW, chi-square | Built; conventions `[UNVERIFIED]`; 9B.3 disclosure layer in every delivery | B-042, B-057 |
 | Forecasting: linear trend + holdout | Built; linear only | B-043 |
 | Management accounts (ledger → statements) | Built on the custom kernel; T2 until B-032 | B-032, B-044–B-051 |
 | Ratio analysis (statements) | Built, T1; descriptive only, no benchmarks | B-056 |

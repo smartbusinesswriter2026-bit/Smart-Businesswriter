@@ -17,6 +17,37 @@ TOKEN = re.compile(r"\{\{ref:(\w+):(\w+):(\w+)\}\}")
 TXT = re.compile(r"\{\{txt:([A-Za-z0-9_]{1,20})\}\}")
 SYNTHETIC_NOTE = "Note: these results are computed from synthetic data and must not be read as observations."
 
+# ---------- cross-cutting honesty layer (manual 9B.3; B-057) ----------
+# These notices do not change any number. They make the limits that the 9B.3 upgrades would otherwise
+# fix visible in every delivery, so a result cannot be read as more than it is: missing data are removed
+# listwise without an established mechanism, multiple hypotheses are not corrected, no power calculation
+# is reported, and weights/clusters/repeated measures are not supported.
+_DATA_INPUT_TYPES = ("value_list", "column_map", "count_table")
+
+def _honesty(m, inp):
+    """Return ({field: disclosure sentence or None}, [sentences to append to the report])."""
+    types = {s.get("type") for s in m.input_schema.values()}
+    inferential = m.claim_ceiling in ("associational", "predictive") or bool(m.assumption_checks)
+    missing = ("Missing values (blank entries and declared missing codes) are excluded listwise before the computation; "
+               "the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.") if types.intersection(_DATA_INPUT_TYPES) else None
+    if m.name in ("ols", "ols_robust"):
+        k = len(inp.get("predictors") or {})
+        multiple = (f"No multiple-comparison correction is applied: {k} coefficient hypotheses are tested at the same time, so the family-wise chance of a small p-value is higher than the per-test level; read individual coefficient p-values as a family, not in isolation."
+                    if k > 1 else "One coefficient hypothesis is tested, so no multiple-comparison correction is needed.")
+    elif m.name in ("anova", "kruskal_wallis"):
+        multiple = "One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied."
+    elif inferential:
+        multiple = "One hypothesis is tested, so no multiple-comparison correction is applied."
+    else:
+        multiple = None
+    power = ("No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved."
+             if inferential else None)
+    weights = ("Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent."
+               if inferential else None)
+    out = {"missing_data": missing, "multiple_comparisons": multiple, "power": power, "weights_and_clusters": weights}
+    return out, [v for v in out.values() if v]
+
+
 @dataclass
 class Delivery:
     status: str                 # delivered | blocked
@@ -210,6 +241,8 @@ class Pipeline:
             probs = license_check(s, "prescriptive" if re.search(r"\bshould\b|\brecommend", s, re.I) else m.claim_ceiling)
             if probs: return self._block("draft_audit", f"claim licensing: {probs}", tier)
         notes = list(m.caveats(outputs, spec.thresholds)) if m.caveats else []
+        honesty, honesty_notes = _honesty(m, inp)
+        notes.extend(honesty_notes)
         if any(v.get("provenance") == "synthetic" for v in spec.inputs.values()): notes.append(SYNTHETIC_NOTE)
         if used_fallback:
             notes.insert(0, f"Because the pre-declared {used_fallback['check'].replace('_', ' ')} failed, the analysis switched from {used_fallback['from']} to the pre-declared fallback, {used_fallback['to']}. This switch is logged as an amendment.")
@@ -223,6 +256,7 @@ class Pipeline:
                     "assumptions": spec.assumptions + list(m.assumptions), "ambiguities": spec.ambiguity_register, "limitations": list(m.limitations),
                     "artifacts": [(a.id, a.labels, a.derivation) for a in self.store.all()]}
         if extra is not None: appendix["accounts"] = extra
+        appendix["honesty"] = honesty   # 9B.3 disclosure layer: what was NOT corrected, powered, weighted or established
         flip_s = str(flip) if flip is not None else None
         appendix["reperform"] = {"format": "bp-reperform/1", "method": {"id": m.name, "version": m.version}, "inputs": inp, "sensitivity": spec.sensitivity,
                                  "outputs": {k: str(v) for k, v in outputs.items()}, "flip": flip_s, "env_hash": env, "fingerprint": fp, "spec_hash": spec.hash,
