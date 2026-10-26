@@ -17,6 +17,8 @@ Spike (Stage 8): `python spike/run_custom_arm.py` runs the ledger trap cases aga
 
 Model assistance (optional, off by default; providers: `deepseek`, `openai`, `anthropic`): see docs/MODEL_PROVIDER_REPORT.md for setup (environment variables) and the rules it runs under. The model proposes; code validates; you confirm; it writes no numbers.
 
+Product gaps and the recommended build order: docs/PRODUCT_GAP_MAP.md.
+
 Stage 7 literature source (first slice): `src/bp/literature.py` resolves and verifies references by DOI (Crossref primary, OpenAlex fallback). API: `GET /api/literature/sources`, `POST /api/literature/verify` {title, doi?, source?}; the workbench has a References panel. The research pipeline itself is still blocked: docs/STAGE7_BLOCKER.md and docs/STAGE7_API_DATABASE_PLAN.md.
 
 Evaluation (optional, PROVISIONAL): `PYTHONPATH=src python -m bp.evaluate tests/fixtures/eval_cases.json` scores model proposals against held-out gold data (needs a configured provider). See docs/MODEL_PROVIDER_REPORT.md.
