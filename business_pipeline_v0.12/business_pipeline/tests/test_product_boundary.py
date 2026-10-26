@@ -88,7 +88,13 @@ class ProductBoundaryTest(unittest.TestCase):
                 self.assertNotIn(package, source, "%s references %s" % (name, package))
 
     def test_the_product_layer_computes_no_number(self):
-        """Every number the product layer shows was already recorded."""
+        """Every number the product layer shows was already recorded.
+
+        The comparison is real: the numbers shown by the dispatch and by the
+        HTML export are checked against the numbers in the bundle that was
+        actually written to the case store, so a route or renderer that
+        invented, rounded or recomputed a value would fail this test.
+        """
         root = tempfile.mkdtemp(prefix="bp-boundary-test-")
         previous = os.environ.get("BP_CASES_DIR")
         os.environ["BP_CASES_DIR"] = root
@@ -96,9 +102,9 @@ class ProductBoundaryTest(unittest.TestCase):
             bundle = product_fixtures.make_bundle()
             status, stored = api.handle("POST", "/api/cases", bundle)
             self.assertEqual(status, 201)
-            recorded = set(re.findall(r"\d+(?:\.\d+)*", json.dumps(stored, ensure_ascii=False)))
+            recorded = set(re.findall(r"\d+(?:\.\d+)*", json.dumps(cases.load(stored["id"]), ensure_ascii=False)))
             shown = set(re.findall(r"\d+(?:\.\d+)*", json.dumps(stored, ensure_ascii=False)))
-            self.assertEqual(shown - recorded, set())
+            self.assertEqual(shown - recorded, set(), "the route returned a number that is not in the stored bundle")
 
             target = os.path.join(root, "export.html")
             export.export_html(stored, target)
@@ -106,7 +112,8 @@ class ProductBoundaryTest(unittest.TestCase):
                 document = stream.read()
             sections = re.findall(r"<section id=\"[a-z]+\">(.*?)</section>", document, re.S)
             content = " ".join(re.sub(r"<[^>]+>", "", section) for section in sections)
-            self.assertEqual(set(re.findall(r"\d+(?:\.\d+)*", content)) - recorded, set())
+            self.assertEqual(set(re.findall(r"\d+(?:\.\d+)*", content)) - recorded, set(),
+                             "the export showed a number that is not in the stored bundle")
         finally:
             if previous is None:
                 os.environ.pop("BP_CASES_DIR", None)

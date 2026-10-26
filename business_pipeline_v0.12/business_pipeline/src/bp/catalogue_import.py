@@ -77,7 +77,11 @@ def import_catalogue(path):
     for r in records:
         r.update({"evidence_status": "unreviewed", "pipeline_status": "catalogued", "limitations": [], "when_not_to_use": [], "related": [], "licensing_review": "not_reviewed",
                   "catalogue_version": ver, "version": "0.1"})
-    return {"schema_version": "1", "registry_version": "0.1.0", "source": {"file": path.replace("\\", "/").split("/")[-1], "catalogue_version": ver, "sha256": hashlib.sha256(raw).hexdigest()},
+    # The source hash is over the catalogue text with line endings normalised to LF. Git's Windows
+    # checkout converts committed LF to CRLF, so hashing the raw working-tree bytes made the shipped
+    # registry disagree with a fresh import in any newly created worktree (B-085).
+    source_hash = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+    return {"schema_version": "1", "registry_version": "0.1.0", "source": {"file": path.replace("\\", "/").split("/")[-1], "catalogue_version": ver, "sha256": source_hash},
             "import_warnings": warnings, "records": records}
 
 if __name__ == "__main__":

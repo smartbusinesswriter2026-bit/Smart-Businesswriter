@@ -13,6 +13,16 @@ class Import(unittest.TestCase):
         fresh = CI.import_catalogue(CAT); shipped = json.load(open(R.DATA, encoding="utf-8"))
         self.assertEqual(json.loads(json.dumps(fresh, ensure_ascii=False)), shipped)
     @unittest.skipUnless(os.path.exists(CAT), "catalogue not in docs/sources")
+    def test_source_hash_is_line_ending_insensitive(self):
+        """A CRLF checkout must hash the same as an LF checkout (B-085)."""
+        import tempfile
+        with open(CAT, "rb") as stream:
+            text = stream.read().replace(b"\r\n", b"\n")
+        with tempfile.TemporaryDirectory() as folder:
+            copy = os.path.join(folder, "catalogue_crlf.md")
+            with open(copy, "wb") as stream: stream.write(text.replace(b"\n", b"\r\n"))
+            self.assertEqual(CI.import_catalogue(copy)["source"]["sha256"], CI.import_catalogue(CAT)["source"]["sha256"])
+    @unittest.skipUnless(os.path.exists(CAT), "catalogue not in docs/sources")
     def test_every_catalogue_row_is_present_and_nothing_is_dropped(self):
         import re
         ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]

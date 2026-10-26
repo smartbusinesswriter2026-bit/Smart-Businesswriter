@@ -6,6 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
+from .product import api as product_api
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -114,6 +115,7 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/": 
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/api/presets": return self._send(200, PRESETS)
+            if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("GET", self.path))
             u = urlparse(self.path); qs = parse_qs(u.query)
             if u.path == "/api/frameworks":
                 q = (qs.get("q") or [""])[0]; ty = (qs.get("type") or [None])[0]
@@ -160,6 +162,10 @@ class H(BaseHTTPRequestHandler):
         except KeyError as e: self._send(404, {"error": "unknown session" if "registry" not in str(e) else str(e).strip("'\"")})
     def do_POST(self):
         try:
+            if self.path.startswith(product_api.CASE_ROUTE):
+                n = int(self.headers.get("Content-Length") or 0)
+                if n > MAXBODY: raise ValueError("body too large")
+                return self._send(*product_api.handle("POST", self.path, json.loads(self.rfile.read(n) or b"{}")))
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             if self.path == "/api/assist": return self._assist(self._body())
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
@@ -171,6 +177,11 @@ class H(BaseHTTPRequestHandler):
                 s.confirm(m[2] == "confirm", body.get("frameworks")); return self._send(200, s.to_dict())
             self._send(404, {"error": "not found"})
         except KeyError: self._send(404, {"error": "unknown session"})
+        except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
+    def do_DELETE(self):
+        try:
+            if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("DELETE", self.path))
+            self._send(404, {"error": "not found"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
     def _assist(self, b):
         if not isinstance(b, dict): raise ValueError("body must be an object")
