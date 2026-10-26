@@ -1,0 +1,791 @@
+{
+  "note": "Frozen core deterministic contract (B-079). A difference between this file and the code is a contract change: it requires an owner-approved unfreeze and a matching B-decision before this fixture is edited. Bug fixes that do not change the contract do not need an unfreeze.",
+  "methods": {
+    "anova": {
+      "tier": "T1",
+      "metric": "eta_squared",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "within_group_permutation_invariant",
+        "group_relabeling_invariant",
+        "equal_shift_leaves_F_and_effect_unchanged",
+        "positive_scale_equivariance",
+        "missing_entries_excluded_not_valued",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "alpha",
+        "groups",
+        "missing_codes"
+      ]
+    },
+    "breakeven": {
+      "tier": "T1",
+      "metric": "breakeven_units",
+      "unit": "units",
+      "test_names": [
+        "profit_at_breakeven_is_zero",
+        "monotone_in_fixed_cost",
+        "positive_quantity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "cost-volume-profit",
+      "inputs": [
+        "fixed",
+        "price",
+        "variable"
+      ]
+    },
+    "chi_square": {
+      "tier": "T1",
+      "metric": "cramers_v",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "row_order_invariant",
+        "transpose_invariant",
+        "uniform_scaling_scales_chi2_keeps_V",
+        "independence_gives_zero_chi2",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "associational",
+      "category": "categorical association",
+      "inputs": [
+        "alpha",
+        "table"
+      ]
+    },
+    "cost_benefit": {
+      "tier": "T2",
+      "metric": "net_present_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "net_value_is_present_value_of_benefits_minus_costs",
+        "zero_discount_rate_gives_undiscounted_sums",
+        "scaling_the_benefits_scales_the_benefit_side",
+        "a_higher_discount_rate_lowers_the_present_value"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "appraisal",
+      "inputs": [
+        "benefits",
+        "costs",
+        "discount_rate"
+      ]
+    },
+    "cost_effectiveness": {
+      "tier": "T2",
+      "metric": "n_options",
+      "unit": "count",
+      "test_names": [
+        "second_implementation_agrees",
+        "icer_is_incremental_cost_over_incremental_effect",
+        "comparator_is_the_first_option",
+        "cheaper_and_more_effective_is_flagged_dominant",
+        "adding_a_third_option_adds_one_ratio_per_option"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "appraisal",
+      "inputs": [
+        "options"
+      ]
+    },
+    "currency_convert": {
+      "tier": "T1",
+      "metric": "amount",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "round_trip_at_the_inverse_rate_returns_the_original",
+        "zero_amount_converts_to_zero",
+        "negative_amount_converts_with_the_same_magnitude",
+        "scaling_the_amount_scales_the_result"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "currency",
+      "inputs": [
+        "amount",
+        "from_currency",
+        "rate",
+        "rate_date",
+        "rate_provenance",
+        "rate_source",
+        "to_currency"
+      ]
+    },
+    "dcf_valuation": {
+      "tier": "T2",
+      "metric": "enterprise_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "value_scales_with_the_cash_flows",
+        "a_higher_discount_rate_lowers_the_value",
+        "terminal_value_is_gordon_growth_on_the_last_flow",
+        "without_terminal_growth_there_is_no_terminal_value",
+        "mid_year_convention_raises_the_value"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "valuation",
+      "inputs": [
+        "cashflows",
+        "discount_rate",
+        "terminal_growth",
+        "timing"
+      ]
+    },
+    "descriptive_stats": {
+      "tier": "T1",
+      "metric": "mean",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "shift_moves_location_not_spread",
+        "scale_scales_spread",
+        "permutation_invariant",
+        "missing_entries_excluded_not_valued",
+        "order_statistics_bounded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "descriptive statistics",
+      "inputs": [
+        "missing_codes",
+        "values"
+      ]
+    },
+    "discounted_payback": {
+      "tier": "T1",
+      "metric": "discounted_payback",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "zero_rate_equals_undiscounted_payback",
+        "a_higher_rate_cannot_shorten_payback",
+        "scaling_the_cash_flows_leaves_payback_unchanged",
+        "unrecovered_outlays_are_refused"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "cashflows",
+        "rate"
+      ]
+    },
+    "equity_bridge": {
+      "tier": "T2",
+      "metric": "equity_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "equity_value_is_enterprise_value_minus_net_debt_and_claims",
+        "adding_cash_raises_equity_value_one_for_one",
+        "per_share_value_is_equity_value_over_shares",
+        "negative_bridge_components_are_refused"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "valuation",
+      "inputs": [
+        "cash",
+        "debt",
+        "enterprise_value",
+        "minority_interest",
+        "preferred_equity",
+        "shares_outstanding"
+      ]
+    },
+    "irr": {
+      "tier": "T1",
+      "metric": "irr",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "net_present_value_at_the_irr_is_zero",
+        "npv_is_positive_below_and_negative_above_the_irr",
+        "scaling_the_cash_flows_leaves_the_irr_unchanged",
+        "unconventional_or_signless_cash_flows_are_refused"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "cashflows"
+      ]
+    },
+    "kruskal_wallis": {
+      "tier": "T1",
+      "metric": "epsilon_squared",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "monotone_transform_keeps_ranks",
+        "shift_invariant",
+        "group_relabeling_invariant",
+        "within_group_permutation_invariant",
+        "missing_entries_excluded_not_valued",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "alpha",
+        "groups",
+        "missing_codes"
+      ]
+    },
+    "logistic_regression": {
+      "tier": "T1",
+      "metric": "mcfadden_r2",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "coefficients_maximise_the_log_likelihood",
+        "odds_ratio_is_exp_of_the_coefficient",
+        "p_values_are_probabilities",
+        "fitted_probabilities_are_valid"
+      ],
+      "claim_ceiling": "associational",
+      "category": "regression",
+      "inputs": [
+        "missing_codes",
+        "predictors",
+        "y"
+      ]
+    },
+    "management_accounts": {
+      "tier": "T2",
+      "metric": "net_income",
+      "unit": "currency",
+      "test_names": [
+        "trial_balance_debits_equal_credits",
+        "assets_equal_liabilities_plus_equity",
+        "net_income_agrees_across_routes",
+        "opening_balances_equal_prior_closing",
+        "statement_lines_foot_to_totals",
+        "journal_hash_chain_intact",
+        "cash_flow_agrees_across_routes",
+        "retained_earnings_rollforward",
+        "income_expense_and_dividends_zero_after_closing",
+        "statement_internally_consistent",
+        "opening_balances_agree"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "accounting",
+      "inputs": [
+        "spec"
+      ]
+    },
+    "mann_whitney": {
+      "tier": "T1",
+      "metric": "hl_shift",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "interval_is_test_inversion",
+        "monotone_transform_keeps_rank_statistics",
+        "swapping_groups_flips_effect_keeps_p",
+        "shift_and_scale_behave",
+        "row_order_invariant",
+        "missing_entries_excluded_not_valued",
+        "identical_samples_give_no_effect",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "groups",
+        "missing_codes"
+      ]
+    },
+    "missing_data_bounds": {
+      "tier": "T1",
+      "metric": "pct_missing",
+      "unit": "probability",
+      "test_names": [
+        "bounds_bracket_the_observed_mean",
+        "bounds_are_the_extreme_cases",
+        "bounds_widen_with_more_missing_values",
+        "percentage_is_missing_over_total",
+        "no_missing_values_means_a_zero_width_bound"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "data quality",
+      "inputs": [
+        "mechanism",
+        "missing_codes",
+        "values"
+      ]
+    },
+    "multi_product_breakeven": {
+      "tier": "T1",
+      "metric": "breakeven_total_units",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "weighted_contribution_is_the_mix_weighted_margin",
+        "profit_at_break_even_is_zero",
+        "scaling_fixed_costs_scales_break_even_units",
+        "per_product_units_sum_to_the_total"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "cost-volume-profit",
+      "inputs": [
+        "fixed_costs",
+        "products"
+      ]
+    },
+    "multiple_comparison": {
+      "tier": "T1",
+      "metric": "n_rejected",
+      "unit": "count",
+      "test_names": [
+        "adjusted_p_values_are_at_least_the_raw_ones",
+        "adjusted_p_values_are_bounded_in_zero_one",
+        "declared_correction_matches_its_definition",
+        "second_implementation_agrees",
+        "correction_is_order_invariant"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "inference control",
+      "inputs": [
+        "alpha",
+        "method",
+        "p_values"
+      ]
+    },
+    "npv": {
+      "tier": "T1",
+      "metric": "npv",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "boundary_zero_rate_equals_sum",
+        "t0_cash_flow_shifts_npv_one_for_one"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "cashflows",
+        "rate"
+      ]
+    },
+    "ols": {
+      "tier": "T1",
+      "metric": "r_squared",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "shift_changes_intercept_only",
+        "scaling_rescales_coefficients_not_significance",
+        "row_order_invariant",
+        "incomplete_rows_excluded_not_valued",
+        "bounded_and_consistent",
+        "cross_check_partial_regression_and_pearson"
+      ],
+      "claim_ceiling": "associational",
+      "category": "regression",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "missing_codes",
+        "predictors",
+        "y"
+      ]
+    },
+    "ols_robust": {
+      "tier": "T1",
+      "metric": "r_squared",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "shift_changes_intercept_only",
+        "scaling_rescales_coefficients_not_significance",
+        "row_order_invariant",
+        "incomplete_rows_excluded_not_valued",
+        "bounded_and_consistent",
+        "cross_check_partial_regression_and_pearson"
+      ],
+      "claim_ceiling": "associational",
+      "category": "regression",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "missing_codes",
+        "predictors",
+        "y"
+      ]
+    },
+    "one_sample_t": {
+      "tier": "T1",
+      "metric": "mean",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "shift_invariance",
+        "positive_scale_equivariance",
+        "row_order_invariant",
+        "missing_entries_are_excluded_not_valued"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "confidence_level",
+        "missing_codes",
+        "mu0",
+        "values"
+      ]
+    },
+    "paired_t": {
+      "tier": "T1",
+      "metric": "mean_diff",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "swapping_the_paired_columns_negates_the_difference_keeps_p",
+        "shift_and_scale_behave",
+        "row_order_invariant",
+        "missing_pairs_are_excluded_not_imputed"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "confidence_level",
+        "missing_codes",
+        "pairs"
+      ]
+    },
+    "pearson": {
+      "tier": "T1",
+      "metric": "r",
+      "unit": "correlation",
+      "test_names": [
+        "second_implementation_agrees",
+        "invariant_to_positive_linear_transform",
+        "negating_y_flips_sign_keeps_p",
+        "symmetric_in_x_and_y",
+        "bounded_and_consistent",
+        "missing_pairs_excluded_not_valued"
+      ],
+      "claim_ceiling": "associational",
+      "category": "correlation",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "missing_codes",
+        "x",
+        "y"
+      ]
+    },
+    "posthoc_pairwise": {
+      "tier": "T1",
+      "metric": "n_rejected",
+      "unit": "count",
+      "test_names": [
+        "second_implementation_agrees",
+        "adjusted_p_is_never_below_the_raw_p",
+        "correction_matches_its_definition",
+        "pair_count_is_choose_k_2",
+        "reversing_group_order_keeps_the_evidence"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "adjust",
+        "alpha",
+        "groups",
+        "missing_codes"
+      ]
+    },
+    "power_analysis": {
+      "tier": "T1",
+      "metric": "power",
+      "unit": "probability",
+      "test_names": [
+        "second_implementation_agrees",
+        "power_at_zero_effect_equals_alpha",
+        "power_increases_with_effect_size",
+        "power_increases_with_sample_size",
+        "mde_decreases_with_sample_size"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "study design",
+      "inputs": [
+        "alpha",
+        "design",
+        "effect",
+        "n1",
+        "n2",
+        "sd1",
+        "sd2",
+        "tails",
+        "target_power"
+      ]
+    },
+    "ratio_analysis": {
+      "tier": "T1",
+      "metric": "n_computed",
+      "unit": "count",
+      "test_names": [
+        "every_ratio_is_either_computed_or_explained",
+        "denominators_are_nonzero",
+        "negative_denominators_are_flagged_not_dropped",
+        "second_route_agrees_on_every_ratio",
+        "balance_sheet_identity_holds_when_checkable",
+        "figures_parsed_exactly_as_supplied"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "financial statement analysis",
+      "inputs": [
+        "cash",
+        "cost_of_sales",
+        "current_assets",
+        "current_liabilities",
+        "equity",
+        "interest_expense",
+        "inventory",
+        "net_income",
+        "operating_profit",
+        "payables",
+        "receivables",
+        "revenue",
+        "total_assets",
+        "total_liabilities"
+      ]
+    },
+    "reliability_alpha": {
+      "tier": "T1",
+      "metric": "alpha",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "alpha_is_at_most_k_over_k_minus_one",
+        "duplicating_an_item_raises_alpha",
+        "row_order_invariant",
+        "missing_rows_are_excluded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "measurement",
+      "inputs": [
+        "items"
+      ]
+    },
+    "spearman": {
+      "tier": "T1",
+      "metric": "rho",
+      "unit": "correlation",
+      "test_names": [
+        "second_implementation_agrees",
+        "invariant_to_monotone_transform",
+        "negating_y_flips_sign_keeps_p",
+        "symmetric_in_x_and_y",
+        "bounded_and_consistent",
+        "missing_pairs_excluded_not_valued"
+      ],
+      "claim_ceiling": "associational",
+      "category": "correlation",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "missing_codes",
+        "x",
+        "y"
+      ]
+    },
+    "sroi": {
+      "tier": "T2",
+      "metric": "sroi_ratio",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "ratio_is_present_value_over_investment",
+        "net_value_is_benefits_minus_investment",
+        "doubling_the_investment_halves_the_ratio",
+        "zero_discount_rate_gives_undiscounted_benefits"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "appraisal",
+      "inputs": [
+        "benefits",
+        "discount_rate",
+        "investment"
+      ]
+    },
+    "trend_forecast": {
+      "tier": "T1",
+      "metric": "forecast_1",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "out_of_sample_check_agrees",
+        "shift_moves_intercept_and_forecasts_not_slope",
+        "positive_scale_equivariance",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "predictive",
+      "category": "forecasting",
+      "inputs": [
+        "confidence_level",
+        "horizon",
+        "missing_codes",
+        "values"
+      ]
+    },
+    "two_way_anova": {
+      "tier": "T1",
+      "metric": "f_ab",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "sums_of_squares_decompose_the_total",
+        "f_equals_mean_square_over_mean_square_error",
+        "shifting_every_response_leaves_the_effects_unchanged",
+        "scaling_every_response_scales_sums_of_squares_keeps_f"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "data"
+      ]
+    },
+    "unit_economics": {
+      "tier": "T1",
+      "metric": "unit_margin",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "margin_is_price_minus_variable_cost",
+        "payback_is_acquisition_cost_over_margin",
+        "raising_price_raises_margin_by_the_same_amount",
+        "lower_churn_raises_ltv"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "unit economics",
+      "inputs": [
+        "acquisition_cost",
+        "churn_rate",
+        "price",
+        "variable_cost"
+      ]
+    },
+    "wacc": {
+      "tier": "T1",
+      "metric": "wacc",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "weights_sum_to_one",
+        "wacc_is_between_the_two_costs",
+        "scaling_both_market_values_changes_nothing",
+        "rising_cost_of_equity_raises_wacc"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "valuation",
+      "inputs": [
+        "cost_of_debt_after_tax",
+        "cost_of_equity",
+        "debt_value",
+        "equity_value"
+      ]
+    },
+    "weighted_summary": {
+      "tier": "T1",
+      "metric": "weighted_mean",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "equal_weights_reproduce_the_unweighted_summary",
+        "mean_is_invariant_to_weight_scaling",
+        "larger_values_weighted_more_raise_the_mean",
+        "design_effect_is_one_for_equal_weights"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "descriptive statistics",
+      "inputs": [
+        "missing_codes",
+        "values",
+        "weight_kind",
+        "weights"
+      ]
+    },
+    "welch_t": {
+      "tier": "T1",
+      "metric": "diff",
+      "unit": "from_request",
+      "test_names": [
+        "second_implementation_agrees",
+        "shift_leaves_difference_inference_unchanged",
+        "positive_scale_equivariance",
+        "swapping_groups_negates_difference_keeps_p",
+        "row_order_invariant",
+        "missing_entries_excluded_not_valued",
+        "bounded_and_consistent"
+      ],
+      "claim_ceiling": "associational",
+      "category": "group comparison",
+      "inputs": [
+        "alpha",
+        "confidence_level",
+        "groups",
+        "missing_codes"
+      ]
+    }
+  },
+  "presets": [
+    "accounts",
+    "alpha",
+    "anova",
+    "breakeven",
+    "case",
+    "case_decision",
+    "cba",
+    "cea",
+    "chi_square",
+    "currency",
+    "dcf",
+    "dcfmid",
+    "descriptive",
+    "dpayback",
+    "equitybridge",
+    "factorial",
+    "five_forces",
+    "forecast",
+    "irr",
+    "logit",
+    "missing",
+    "multibreakeven",
+    "multicomp",
+    "npv",
+    "ols",
+    "onesample",
+    "paired",
+    "pearson",
+    "posthoc",
+    "power",
+    "ratios",
+    "sroi",
+    "swot",
+    "unitecon",
+    "unsupported",
+    "wacc",
+    "weighted",
+    "welch"
+  ],
+  "routes": [
+    "/api/presets",
+    "/api/methods",
+    "/api/frameworks",
+    "/api/templates",
+    "/api/currencies",
+    "/api/assist",
+    "/api/sessions",
+    "/api/ingest",
+    "/api/literature/sources",
+    "/api/literature/verify",
+    "/api/literature/log",
+    "/api/literature/drift"
+  ]
+}

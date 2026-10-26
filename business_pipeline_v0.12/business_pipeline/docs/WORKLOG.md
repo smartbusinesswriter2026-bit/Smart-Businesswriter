@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Freeze the core deterministic backend, delegate the product backend (B-079, B-080)
+
+**Ask:** "freeze the core deterministic backend. let minimax do the product backend."
+**Did:** two things. **(1) Freeze, with a guard.** New `docs/BACKEND_CONTRACT.md` states exactly what is frozen (stage/flow contract, spec + hash, the 36 method contracts — id, tier, metric, unit, `test_names` order, claim ceiling, category, input names — the 38 presets, the 12 API route families, the delivery shape and the verification invariants), the unfreeze policy (owner approval → computation owner writes the B-decision, changes code + tests, updates the fixture in the same commit; bug fixes restoring declared behaviour need a trap test but no unfreeze) and the product-backend lane rules. The freeze is **enforced**, not just declared: `tests/test_frozen_contract.py` compares the live library/presets/server source against `tests/fixtures/frozen_contract.json` and fails with a message naming the freeze. **(2) Ownership.** Recorded the owner directive that the product backend is the design owner's lane (B-080) — additive routes/modules/storage/workflows over the frozen core, with the hard boundary that MiniMax may not edit frozen modules, tests, the fixture or factual docs, may not compute or adjust any number/threshold/rating/caveat/honesty notice/claim wording, and new endpoints must delegate computation to the frozen method library (never reimplement a formula). A needed core change is an unfreeze request handled by the computation owner under B-079.
+**Files:** `tests/test_frozen_contract.py` (new), `tests/fixtures/frozen_contract.json` (new), `docs/BACKEND_CONTRACT.md` (new), `docs/DECISIONS.md` (B-079, B-080), `docs/CONTRIBUTORS.md` (§1B, stop-and-ask, fact map), `docs/HANDOFF.md`, `docs/HOME.md`, `README.md`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+**Verified:** 3 new contract tests (methods/presets/routes match the frozen fixture; route count still 12); full suite **618 tests OK**; docs links resolve.
+**Commit:** `this commit`.
+**Open/next:** nothing computation-side is unblocked now — the lane is drained and frozen. The next phase is the design owner's product backend (B-080). Open owner decisions remain B-005 (reviewers), B-028 (templates), B-032 (ledger engine), B-052 (tax), REW R1–R10 (ratification), plus the frontier-model lane parked in B-075. MiniMax's docs-sync test and decision-brief drafts are still awaiting the owner's go for review/merge.
+
+---
+
 ## 2026-10-21 — [computation] Equity bridge and mid-year DCF timing (B-078)
 
 **Ask:** "go" for the valuation completion — the last unblocked computation item.

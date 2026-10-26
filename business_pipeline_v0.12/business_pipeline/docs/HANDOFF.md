@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 0.51 (see docs/CHANGELOG.md)
-Tests        : 615 tests, all passing
+Build        : 0.52 (see docs/CHANGELOG.md)
+Tests        : 618 tests, all passing
 ```
 
 ```powershell
@@ -31,7 +31,8 @@ python -m bp.literature drift retrieval_log.jsonl 20
 6. Every increment: tests + `CHANGELOG.md` + `WORKLOG.md` entry + `DECISIONS.md` B-number if a convention is chosen + updated `KNOWN_LIMITATIONS.md`/`PRODUCT_GAP_MAP.md` + README/HOME if the surface changed. One commit per increment.
 7. `docs/sources/` is read-only authority material. Never edit it.
 8. Do not mark a gap closed, or a PROPOSAL ratified, without the tests and an owner decision.
-9. **Two model owners (B-066).** The computation owner (DeepSeek) exclusively owns `src/bp/**`, `tests/**`, the factual docs and every rule/number/citation/claim; the design owner (MiniMax) exclusively owns the workbench's presentation and aesthetics. Read `CONTRIBUTORS.md` §1A before editing; write only in your domain, and split cross-domain features into a computation commit then a design commit.
+9. **Two model owners (B-066, extended by B-080).** The computation owner (DeepSeek) exclusively owns `src/bp/**`, `tests/**`, the factual docs and every rule/number/citation/claim; the design owner (MiniMax) owns the workbench's presentation and may now also build the **product backend** — additive routes/modules/storage/workflows over the frozen core. Read `CONTRIBUTORS.md` §1A/§1B before editing; write only in your domain, and split cross-domain features into a computation commit then a design commit.
+10. **The core deterministic backend is FROZEN (B-079).** The stage contract, the 36 method contracts, the 38 presets, the 12 API route families and the delivery shape are pinned by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json`. Never edit that fixture to go green; an unfreeze needs the owner's approval and a B-decision. Full rules: `docs/BACKEND_CONTRACT.md`.
 
 ## 3. What is already built (do not rebuild)
 
@@ -42,7 +43,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 - **Ingestion**: CSV/TSV + XLSX → typed table with provenance; XLSX sheet selection by exact name or 1-based number, and merged cells refused by default (declared `top_left` expansion recorded when chosen) — B-076; PDF/scan/OCR/SPSS refused explicitly.
 - **Model boundary**: DeepSeek/OpenAI-compatible/Anthropic adapters, proposals-only validation, held-out evaluation scaffold (synthetic fixtures only).
 - **Research & Evidence Workflow (REW)**: living manual ratified as authority (R11) with stages R0–R8 **proposed**, none built.
-- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-076, incl. B-075 the parked queue), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited).
+- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-080, incl. B-075 the parked queue, B-079 the frozen core, B-080 the product-backend lane), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited), **BACKEND_CONTRACT** (frozen surface + unfreeze policy; read before touching `src/bp/**`).
 
 ## 4. Owner decisions that gate work (ask before building)
 
@@ -55,6 +56,8 @@ python -m bp.literature drift retrieval_log.jsonl 20
 | REW R1–R10 | Ratify (or not) the proposed stages/checkpoints/taxonomy | Any REW stage build |
 
 Do not invent answers to these. If the owner says "go", build only what is listed below as unblocked.
+
+**Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 618 tests).
 
 ## 5. The work left, in priority order, with acceptance criteria
 
@@ -75,8 +78,8 @@ If ratified, start with the cheapest real slice: R0 intake → R1 literature sea
 ### E. Breadth (blocked on B-005/B-028)
 Framework templates as T4 structure-only, each with evidence schema + checks, registry linkage, docs.
 
-### F. Non-computational product gaps (unblocked but larger)
-AI-use disclosure export, reviewer sign-off workflow, multi-period comparatives, case workspace retention/privacy, model pinning/drift gate, security/privacy review, budgets/observability. Each needs its own B-decision before building.
+### F. Product backend — design owner's lane (B-080; unblocked for the design owner)
+Product-surface work now belongs to MiniMax: the workbench, plus additive routes/modules/storage/workflows that consume the frozen core. Candidate items (each still needs its own B-decision before building): AI-use disclosure export, reviewer sign-off workflow, multi-period comparatives/report versioning, case workspace retention/privacy, model pinning/drift gate, security/privacy review, budgets/observability, durable case storage (serializes the existing JSON contracts; a core change is an unfreeze request). The computation owner reviews the boundary and the frozen contract, and must not be asked to ship numbers or wording through this lane.
 
 ### G. Stage 8 remainder (blocked on B-032)
 Beancount arm / final engine decision; standards retrieval feeding the statements; tax once resumed.

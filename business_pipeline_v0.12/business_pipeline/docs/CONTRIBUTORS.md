@@ -2,7 +2,7 @@
 
 **Read this before your first edit.** It is the bridge between the project's rules (`docs/sources/business_pipeline_v0_3.md`, `docs/DECISIONS.md`) and the actual code. It is written for an AI model as much as for a person: if a rule below and a habit of yours conflict, the rule wins.
 
-Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WORKLOG.md) (what was done, when), [`DECISIONS.md`](DECISIONS.md) (why), [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) (what it cannot do), [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) (what is missing), [`PARKED_QUEUE.md`](PARKED_QUEUE.md) (what is deliberately parked and what un-parks it).
+Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WORKLOG.md) (what was done, when), [`DECISIONS.md`](DECISIONS.md) (why), [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) (what it cannot do), [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) (what is missing), [`PARKED_QUEUE.md`](PARKED_QUEUE.md) (what is deliberately parked and what un-parks it), [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) (the frozen core and the product-backend lane).
 
 ## 1. The ten non-negotiables
 
@@ -43,12 +43,22 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 5. **Conflicts and ambiguities escalate to the owner.** Do not reinterpret this split in your own favour.
 6. **The verification rules in §1 apply to both owners.** Design cannot weaken a caveat to look cleaner; computation cannot bypass a test to ship faster.
 
+## 1B. The frozen core and the product-backend lane (B-079, B-080)
+
+**The core deterministic backend is FROZEN.** Read [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) before touching anything in `src/bp/**` or the public surface. In short:
+
+1. **Frozen:** the stage/flow contract, spec + hash, the public contract of every method (36 ids, tier, metric, unit, `test_names` order, claim ceiling, input names), the 38 presets, the 12 API route families, the delivery shape, and the verification invariants. `tests/test_frozen_contract.py` fails when the code diverges from `tests/fixtures/frozen_contract.json`.
+2. **Never** edit `tests/fixtures/frozen_contract.json`, loosen a frozen check, or trim a contract field to make a UI/product change pass. That is an unfreeze, not a fix.
+3. **Unfreeze** = owner approval → computation owner writes the B-decision, changes code + tests, and updates the fixture **in the same commit** (B-079). Bug fixes that restore declared behaviour ship with a trap test and need no unfreeze.
+4. **Product backend (B-080)** is the design owner's lane: presentation/interaction plus *additive* product routes, modules, storage and workflows that consume the frozen core through its API. The design owner may not compute, round, re-derive or adjust any business number, threshold, rating, caveat, honesty notice, refusal message, tier label or claim wording, and may not edit frozen modules, `tests/**` or factual docs. Any genuinely needed core change is recorded in `WORKLOG.md` as a `[design]` request for the owner, never made directly.
+5. Cross-domain features still land as two commits: computation contract first (if the owner unfreezes), presentation second (B-066 rule 4).
+
 ## 2. Five-minute orientation
 
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 615 tests; expect "OK"
+python -m unittest discover -s tests          # currently 618 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 
@@ -122,6 +132,7 @@ Rules: no network in the suite (use fake openers/sources); no sleeps; no relianc
 | What is missing versus the catalogue/manual? | `docs/PRODUCT_GAP_MAP.md` |
 | What is deliberately parked, and what releases it? | `docs/PARKED_QUEUE.md` |
 | What are the rules for the research capability? | `docs/RESEARCH_EVIDENCE_WORKFLOW.md` (ratified living manual, R11) |
+| What is frozen, and how do I change it? | `docs/BACKEND_CONTRACT.md` (B-079/B-080) |
 | What happened in this session and what is next? | `docs/WORKLOG.md` |
 | How do I work on this repo without breaking it? | `CONTRIBUTORS.md` (this file) |
 | Where is everything? | `docs/HOME.md` |
@@ -149,4 +160,4 @@ Rules: no network in the suite (use fake openers/sources); no sleeps; no relianc
 
 ## 11. Stop and ask (do not decide these yourself)
 
-These are owner decisions with live entries in `docs/DECISIONS.md`: naming **expert reviewers** and any T2→T1 promotion (B-005), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: **starting any item parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)** without the owner explicitly granting the frontier-model lane (a general "continue" does not release it, B-075), adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.
+These are owner decisions with live entries in `docs/DECISIONS.md`: naming **expert reviewers** and any T2→T1 promotion (B-005), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: **starting any item parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)** without the owner explicitly granting the frontier-model lane (a general "continue" does not release it, B-075), **unfreezing any part of the core** ([`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md), B-079) or satisfying a product need by editing the core/fixture instead of requesting the unfreeze (B-080), adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.

@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.51**, **615 tests**, 2026-10-21. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.52**, **618 tests**, 2026-10-21. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -12,6 +12,7 @@
 | **Know what is broken or absent** | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) + [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) |
 | **Know what happened** | [`WORKLOG.md`](WORKLOG.md) — append-only session log |
 | **Know what is parked and why** | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) — frontier-model work; do not start without the owner's grant |
+| **Know what is frozen / what the product may rely on** | [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) — frozen core, unfreeze policy, product-backend lane (B-079/B-080) |
 | **Understand the research capability** | [`RESEARCH_EVIDENCE_WORKFLOW.md`](RESEARCH_EVIDENCE_WORKFLOW.md) — ratified living manual (R11) |
 
 ## 1. By task
@@ -68,6 +69,8 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Capability | Status | Decisions |
 |---|---|---|
 | Deterministic compute → verified report pipeline | Built, T1 methods with independent routes | B-003/B-004 |
+| Core deterministic backend | **FROZEN** (B-079): method contracts, presets, API routes and delivery shape pinned by `test_frozen_contract` | B-079 |
+| Product backend / product surface | Delegated to the design owner (B-080): additive features over the frozen core; numbers and claim wording stay computation-owned | B-080 |
 | Framework-only (T4) answers + registry | Built; catalogue records unreviewed | B-021, B-023, B-026, B-027 |
 | Model assistance (proposals only) | Built; quality unmeasured | B-031, B-036, B-037, B-038, B-039, B-041 |
 | Statistics: descriptive, correlation, regression, paired/one-sample t, two-group ANOVA/KW, chi-square, multiple-comparison correction, power/minimum effect, missing-data bounds, weighted summaries | Built; conventions `[UNVERIFIED]`; 9B.3 disclosure layer in every delivery | B-042, B-057, B-060, B-061, B-062, B-063, B-067 |
@@ -96,6 +99,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`HOME.md`](HOME.md) | Living — this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living — parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |
+| [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) | Living — frozen core contract + product-backend lane | Frozen surface changes only by an owner-approved unfreeze; product additions recorded in its §6 |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
 | [`CHANGELOG.md`](CHANGELOG.md) | Append-only build log | Newest first; one entry per increment |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |
