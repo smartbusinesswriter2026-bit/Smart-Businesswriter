@@ -67,7 +67,7 @@ class Amortization(unittest.TestCase):
         j.post(L.Entry.make("2026-01-01", "opening", [{"account": "1000", "debit": "1000"}, {"account": "2000", "credit": "1000"}], opening=True))
         for e in S.amortization(AM): j.post(L.Entry.make(e["date"], e["description"], e["lines"]))
         r = L.check_invariants(j, L.statements(j)); self.assertTrue(all(ok for _, ok, _ in r), r)
-        st = L.statements(j); self.assertEqual(st["liabilities"]["Loans"], D(0)); self.assertEqual(st["net_income"], -sum((D(e["lines"][0]["debit"]) for e in S.amortization(AM)), D(0)))
+        st = L.statements(j); self.assertEqual(st["liabilities"], {}); self.assertEqual(st["net_income"], -sum((D(e["lines"][0]["debit"]) for e in S.amortization(AM)), D(0)))
 
 class Accrual(unittest.TestCase):
     def test_hand_checked(self):

@@ -53,7 +53,7 @@ def _amount(x, places):
 
 @dataclass(frozen=True)
 class Entry:
-    date: str; description: str; lines: tuple; opening: bool = False
+    date: str; description: str; lines: tuple; opening: bool = False; closing: bool = False
     def __post_init__(self):
         if not DATE.fullmatch(self.date or ""): raise LedgerError(f"date must be YYYY-MM-DD, got {self.date!r}")
         if len(self.lines) < 2: raise UnbalancedEntry("an entry needs at least two lines")
@@ -61,16 +61,16 @@ class Entry:
         dr = sum((l.amount for l in self.lines if l.side == "D"), D(0)); cr = sum((l.amount for l in self.lines if l.side == "C"), D(0))
         if dr != cr: raise UnbalancedEntry(f"entry '{self.description}' on {self.date} does not balance: debits {dr}, credits {cr}")
     @staticmethod
-    def make(date, description, lines, places=2, opening=False):
+    def make(date, description, lines, places=2, opening=False, closing=False):
         """lines: [{"account": code, "debit": x} or {"credit": x}]"""
         out = []
         for l in lines:
             if ("debit" in l) == ("credit" in l): raise UnbalancedEntry("each line needs exactly one of debit or credit")
             side, x = ("D", l["debit"]) if "debit" in l else ("C", l["credit"])
             out.append(Line(l["account"], side, _amount(x, places)))
-        return Entry(date, description, tuple(out), opening)
+        return Entry(date, description, tuple(out), opening, closing)
 
-def _canon(e): return json.dumps([e.date, e.description, e.opening, [[l.account, l.side, str(l.amount)] for l in e.lines]])
+def _canon(e): return json.dumps([e.date, e.description, e.opening, e.closing, [[l.account, l.side, str(l.amount)] for l in e.lines]])
 
 class Journal:
     def __init__(self, chart, start, end, currency):
@@ -118,7 +118,7 @@ def _signed(chart, code, d, c):
 def statements(j):
     ch = j.chart; sect = {"income": {}, "expense": {}, "asset": {}, "liability": {}, "equity": {}}
     for code, (d, c) in j.balances().items():
-        if d == 0 and c == 0: continue
+        if _signed(ch, code, d, c) == 0: continue                      # zero net contribution (includes closed accounts)
         a = ch.get(code); sect[a.type][a.line] = sect[a.type].get(a.line, D(0)) + _signed(ch, code, d, c)
     tot = lambda k: sum(sect[k].values(), D(0)); ni = tot("income") - tot("expense")
     return {"income": sect["income"], "expenses": sect["expense"], "net_income": ni, "assets": sect["asset"], "liabilities": sect["liability"], "equity": sect["equity"],
@@ -168,6 +168,79 @@ def cash_flow(j, st=None):
     direct = op + inv + fin
     return {"operating": op, "investing": inv, "financing": fin, "net_direct": direct, "net_indirect": indirect,
             "checks": [("cash_flow_agrees_across_routes", direct == indirect, f"direct {direct}, indirect {indirect}")], "flags": fl}
+
+# ---------- Period-end closing and the retained-earnings rollforward (manual 9.3; B-034, B-046) ----------
+def closing_entries(j, st=None):
+    """Generate the period-end closing entries (dated j.end): income balances close to retained earnings, expense balances
+    close against it, and declared dividends close against it. The caller posts them; the kernel never posts silently.
+    Accounts with an abnormal balance among the closed types block (a human decision is required)."""
+    st = st or statements(j)
+    re_codes = [c for c, a in j.chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings"]
+    if not re_codes: raise LedgerError("closing needs a retained earnings account (role 'retained_earnings')")
+    re_code = re_codes[0]
+    inc, exp, divs, bad = [], [], [], []
+    for code, (d, c) in j.balances().items():
+        a = j.chart.get(code); n = natural(j.chart, code, d, c)
+        if n == 0: continue
+        if n < 0: bad.append(f"{code} ({a.name})")
+        if a.type == "income": inc.append({"account": code, "debit": str(n)})
+        elif a.type == "expense": exp.append({"account": code, "credit": str(n)})
+        elif a.role == "dividends": divs.append({"account": code, "credit": str(n)})   # dividends carry a debit balance and reduce equity
+    if bad: raise LedgerError("closing with abnormal balances needs a human decision (flags(j) reports them): " + ", ".join(bad))
+    out = []
+    if inc: out.append({"date": j.end, "description": "closing: income to retained earnings", "closing": True,
+                        "lines": inc + [{"account": re_code, "credit": str(sum((D(l["debit"]) for l in inc), D(0)))}]})
+    if exp: out.append({"date": j.end, "description": "closing: expenses to retained earnings", "closing": True,
+                        "lines": [{"account": re_code, "debit": str(sum((D(l["credit"]) for l in exp), D(0)))}] + exp})
+    if divs: out.append({"date": j.end, "description": "closing: dividends to retained earnings", "closing": True,
+                         "lines": [{"account": re_code, "debit": str(sum((D(l["credit"]) for l in divs), D(0)))}] + divs})
+    return out
+
+def retained_earnings_rollforward(j, st_pre=None):
+    """The manual 9.3 rollforward, meaningful now that closing entries exist: closing retained earnings must equal opening
+    retained earnings plus the pre-closing net income, minus declared dividends, plus any direct (non-opening, non-closing)
+    postings to retained earnings. Also checks that closing zeroed the income, expense and dividend accounts."""
+    st_pre = st_pre or statements(j)
+    def re_natural(entries):
+        t = D(0)
+        for e in entries:
+            for l in e.lines:
+                a = j.chart.get(l.account)
+                if a.type == "equity" and a.role == "retained_earnings":
+                    t += l.amount if l.side == a.normal else -l.amount
+        return t
+    opening_re = re_natural([e for e in j.entries if e.opening])
+    direct_re = re_natural([e for e in j.entries if not e.opening and not e.closing])
+    closing_re = re_natural(j.entries)
+    divs = D(0)
+    for e in j.entries:
+        if e.opening or e.closing: continue
+        for l in e.lines:
+            a = j.chart.get(l.account)
+            if a.role == "dividends": divs += l.amount if l.side == a.normal else -l.amount
+    expect = opening_re + st_pre["net_income"] - divs + direct_re
+    res = [("retained_earnings_rollforward", closing_re == expect, f"closing {closing_re}, expected {expect}")]
+    open_after = []
+    for code, (d, c) in j.balances().items():
+        a = j.chart.get(code)
+        if (a.type in ("income", "expense") or a.role == "dividends") and natural(j.chart, code, d, c) != 0: open_after.append(code)
+    res.append(("income_expense_and_dividends_zero_after_closing", not open_after, f"still open: {open_after}" if open_after else "all closed"))
+    return res
+
+def closing_balances(j):
+    """Natural closing balance of every account, for the next period's prior_closing argument."""
+    return {c: natural(j.chart, c, d, cr) for c, (d, cr) in j.balances().items() if d or cr}
+
+def opening_lines(j):
+    """Lines for the next period's opening entry: each account's closing balance on its natural side. An abnormal balance
+    (negative natural) is carried on the opposite side with a positive amount; flags(j) reports it separately."""
+    lines = []
+    for code, (d, c) in j.balances().items():
+        a = j.chart.get(code); n = natural(j.chart, code, d, c)
+        if n == 0: continue
+        if n > 0: lines.append({"account": code, ("debit" if a.normal == "D" else "credit"): str(n)})
+        else: lines.append({"account": code, ("credit" if a.normal == "D" else "debit"): str(-n)})
+    return lines
 
 def check_invariants(j, st, prior_closing=None):
     """Independent recomputation from the journal lines, compared with the derived statements (manual 9.3). Returns [(name, ok, detail)].
