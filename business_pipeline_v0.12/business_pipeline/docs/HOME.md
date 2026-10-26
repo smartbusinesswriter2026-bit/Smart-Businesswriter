@@ -11,6 +11,7 @@
 | **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) — every B-xxx with status |
 | **Know what is broken or absent** | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) + [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) |
 | **Know what happened** | [`WORKLOG.md`](WORKLOG.md) — append-only session log |
+| **Know what is parked and why** | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) — frontier-model work; do not start without the owner's grant |
 | **Understand the research capability** | [`RESEARCH_EVIDENCE_WORKFLOW.md`](RESEARCH_EVIDENCE_WORKFLOW.md) — ratified living manual (R11) |
 
 ## 1. By task
@@ -81,8 +82,9 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Literature retrieval/verification | Built; PROVISIONAL match rule; durable log with failover attempts, APA/Harvard citations, drift sweep | B-040, B-054, B-058, B-059, B-064 |
 | Research & Evidence Workflow (REW) | Manual ratified (R11); **no stage built** | B-053, R1–R10 proposals |
 | Taxation | Deliberately deferred | B-052 |
-| Ingestion (CSV/TSV/XLSX) | Built (B-065); PDF/scan/OCR and SPSS refused explicitly | P0 gap map |
-| DCF/WACC, 9B.3 honesty upgrades, breadth templates | Not built | P1/P2 gap map; B-005/B-028 gates |
+| Ingestion (CSV/TSV/XLSX) | Built (B-065, B-071); PDF/scan/OCR and SPSS refused explicitly | P0 gap map |
+| Statistics remainder: range procedures, unbalanced/ANCOVA/repeated measures, clustering, factor analysis, non-linear time series | **Parked** for the frontier-model lane — registered, not built | B-075; [`PARKED_QUEUE.md`](PARKED_QUEUE.md) |
+| Breadth templates | Not built | B-028 gate |
 
 ## 4. The documentation spine
 
@@ -92,6 +94,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
 | [`HOME.md`](HOME.md) | Living — this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
+| [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living — parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
 | [`CHANGELOG.md`](CHANGELOG.md) | Append-only build log | Newest first; one entry per increment |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |

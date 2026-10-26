@@ -2,7 +2,7 @@
 
 **Read this before your first edit.** It is the bridge between the project's rules (`docs/sources/business_pipeline_v0_3.md`, `docs/DECISIONS.md`) and the actual code. It is written for an AI model as much as for a person: if a rule below and a habit of yours conflict, the rule wins.
 
-Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WORKLOG.md) (what was done, when), [`DECISIONS.md`](DECISIONS.md) (why), [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) (what it cannot do), [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) (what is missing).
+Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WORKLOG.md) (what was done, when), [`DECISIONS.md`](DECISIONS.md) (why), [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) (what it cannot do), [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) (what is missing), [`PARKED_QUEUE.md`](PARKED_QUEUE.md) (what is deliberately parked and what un-parks it).
 
 ## 1. The ten non-negotiables
 
@@ -120,6 +120,7 @@ Rules: no network in the suite (use fake openers/sources); no sleeps; no relianc
 | What shipped, in order, at which build version? | `docs/CHANGELOG.md` |
 | What can it not do? | `docs/KNOWN_LIMITATIONS.md` |
 | What is missing versus the catalogue/manual? | `docs/PRODUCT_GAP_MAP.md` |
+| What is deliberately parked, and what releases it? | `docs/PARKED_QUEUE.md` |
 | What are the rules for the research capability? | `docs/RESEARCH_EVIDENCE_WORKFLOW.md` (ratified living manual, R11) |
 | What happened in this session and what is next? | `docs/WORKLOG.md` |
 | How do I work on this repo without breaking it? | `CONTRIBUTORS.md` (this file) |
@@ -148,4 +149,4 @@ Rules: no network in the suite (use fake openers/sources); no sleeps; no relianc
 
 ## 11. Stop and ask (do not decide these yourself)
 
-These are owner decisions with live entries in `docs/DECISIONS.md`: naming **expert reviewers** and any T2→T1 promotion (B-005), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.
+These are owner decisions with live entries in `docs/DECISIONS.md`: naming **expert reviewers** and any T2→T1 promotion (B-005), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: **starting any item parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)** without the owner explicitly granting the frontier-model lane (a general "continue" does not release it, B-075), adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.

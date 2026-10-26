@@ -7,9 +7,9 @@ You are taking over a working repo, not starting one. Read this file first, then
 ```
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
-Git          : branch master, last commit 3dfb56d, no remote, clean tree expected
-Build        : 0.40 (see docs/CHANGELOG.md)
-Tests        : 510 tests, all passing
+Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
+Build        : 0.48 (see docs/CHANGELOG.md)
+Tests        : 588 tests, all passing
 ```
 
 ```powershell
@@ -36,13 +36,13 @@ python -m bp.literature drift retrieval_log.jsonl 20
 ## 3. What is already built (do not rebuild)
 
 - **Core**: frozen spec/hashed artefacts, sandboxed execution, second-route verification, claim ceilings, re-performance bundles, deterministic reports (`spec.py`, `orchestrator.py`, `sandbox.py`, `artifacts.py`, `claims.py`, `reperform.py`).
-- **Methods (T1 unless noted)**: npv, breakeven, descriptive_stats, pearson/spearman, ols/ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary. Templates: SWOT, Five Forces, case_decision (T2/T4).
+- **Methods (T1 unless noted)**: npv, breakeven, descriptive_stats, pearson/spearman, ols/ols_robust, welch_t, mann_whitney, anova, kruskal_wallis, chi_square, trend_forecast, ratio_analysis, paired_t, one_sample_t, two_way_anova (balanced only), posthoc_pairwise, wacc, currency_convert, unit_economics, multi_product_breakeven, logistic_regression, reliability_alpha, multiple_comparison, power_analysis, missing_data_bounds, weighted_summary; **T2**: cost_benefit, cost_effectiveness, sroi, dcf_valuation, management_accounts. Templates: SWOT, Five Forces, case_decision (T2/T4).
 - **Accounting (Stage 8, T2)**: ledger kernel, schedules (depreciation/amortization/accruals), two-route cash flow, closing + retained-earnings rollforward, declarative engagement spec, reconciliation, account-mapping checkpoint, plain-text statement exports. Ledger engine choice open (B-032).
 - **Retrieval**: Crossref→OpenAlex with declared failover and recorded attempts, response SHA-256 + UTC time, durable append-only JSONL log, drift sweep, APA 7 + Harvard citation formatting.
 - **Ingestion**: CSV/TSV + XLSX → typed table with provenance; PDF/scan/OCR/SPSS refused explicitly.
 - **Model boundary**: DeepSeek/OpenAI-compatible/Anthropic adapters, proposals-only validation, held-out evaluation scaffold (synthetic fixtures only).
 - **Research & Evidence Workflow (REW)**: living manual ratified as authority (R11) with stages R0–R8 **proposed**, none built.
-- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-065), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP.
+- **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-075, incl. B-075 the parked queue), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited).
 
 ## 4. Owner decisions that gate work (ask before building)
 
@@ -58,20 +58,16 @@ Do not invent answers to these. If the owner says "go", build only what is liste
 
 ## 5. The work left, in priority order, with acceptance criteria
 
-### A. Ingestion → method-input mapping (unblocked, recommended first)
-**Why**: ingestion produces a table, but a user must still copy values by hand into a method request.
-**Do**: add a pure helper `ingest.to_method_inputs(table, method_id, columns: dict)` that maps named columns to a method's declared `input_schema` and refuses type conflicts (e.g. a `text` column into `values`). Extend `POST /api/ingest` with optional `map: {"method": ..., "columns": {"values": "score"}}` → response gains `inputs` (ready for `POST /api/sessions`) plus a note that mapped inputs carry provenance `sourced` with the file's SHA-256. No column semantics invented: only the user's mapping is used.
-**Acceptance**: unit tests (valid mapping, wrong type refused, unmapped required input refused, unknown method refused, determinism), API tests, workbench "Use column…" wiring or at least a documented JSON example, docs (B-066, changelog, limitations, gap map row), full suite green.
+### A. ~~Ingestion → method-input mapping~~ — done (B-071, build 0.46)
+`ingest.to_method_inputs` maps named columns into a method's declared inputs (list and `column_map` shapes), validates through the method's own `validate_inputs`/`profile`, refuses scalars/unknown/text conflicts, and is exposed as the optional `map` on `POST /api/ingest` with a source-hash provenance note. No column semantics are invented.
 
 ### B. Standards / filings / tax retrieval sources (blocked on an owner source decision)
 **Do not implement** until the owner names sources and licensing. Questions to ask: which accounting standards (and is retrieval licensed?), which filing source (e.g. SEC EDGAR is free; confirm jurisdiction), tax (B-052 deferred). When answered: add sources behind the existing `Source` boundary, keep fail-closed verification, extend `test_literature*`, docs.
 
-### C. Statistics remainder (partly blocked on a declared model)
-1. **Paired / one-sample t-tests** — unblocked. T1: impl + Fraction/float second route + goldens (scipy offline) + 5 frozen checks + sandbox `CASES` + session input map + preset + docs.
-2. **Factorial ANOVA / ANCOVA / repeated measures / post-hoc** — post-hoc needs `multiple_comparison` (already built) as the declared correction; factorial needs a declared sums-of-squares convention.
-3. **Logistic regression** — needs declared convergence/regularisation defaults.
-4. **Reliability (Cronbach's α), factor analysis, clustering** — need declared extraction/rotation/k conventions; clustering T2 with a labelled evaluation set.
-5. **Imputation / complex-design inference** — requires an owner-declared model (recommended default: none; keep extreme-case bounds only). Do not invent.
+### C. Statistics remainder — current status
+Built and tested (do not rebuild): paired/one-sample t (B-067), balanced two-way ANOVA and posthoc Welch pairs with declared Holm/Bonferroni (B-070), logistic regression and Cronbach's alpha (B-074), plus the 9B.3 disclosure layer, multiple comparisons, power/MDE, missing-data bounds and weighted summaries (B-057/B-060/B-061/B-062/B-063).
+**Not built, deliberately parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)**: Tukey/Dunnett/Games-Howell (needs the studentized-range and multivariate-t distributions), unbalanced two-way/ANCOVA/three-way (needs a declared Type II/III SS convention), repeated measures (needs a declared sphericity rule), k-means clustering (T2, needs a labelled evaluation set), factor analysis (needs declared extraction/rotation defaults), non-linear time series (highest-risk conventions). **Do not start any of these without the owner granting the frontier-model budget** — see §F.
+Imputation / complex-design inference stays blocked on an owner-declared model (recommended default: none; keep the extreme-case bounds only). Do not invent one.
 
 ### D. REW stages (blocked until R1–R10 ratified)
 If ratified, start with the cheapest real slice: R0 intake → R1 literature search with the existing retrieval + screening log → R2 gap statement. Acceptance includes the stage contracts in the manual.
@@ -84,6 +80,9 @@ AI-use disclosure export, reviewer sign-off workflow, multi-period comparatives,
 
 ### G. Stage 8 remainder (blocked on B-032)
 Beancount arm / final engine decision; standards retrieval feeding the statements; tax once resumed.
+
+### H. Parked frontier-model queue (do not start without an explicit owner grant)
+The remaining heavy statistics work is **parked, not forgotten**: Tukey/Dunnett/Games-Howell, unbalanced two-way/ANCOVA/three-way, repeated measures, k-means, factor analysis and non-linear time series. All of it is registered with its blocker, its offline oracle and its acceptance sketch in [`PARKED_QUEUE.md`](PARKED_QUEUE.md) (decision B-075). The owner has reserved these for the **DeepSeek Pro frontier-model lane** and will release them when credits allow; a "continue" from the owner does **not** un-park them — only an explicit grant of that lane does. Finishing one item is one commit, and for the convention-heavy ones the convention decision comes before the code.
 
 ## 6. Definition of done for the whole product (checklist)
 
