@@ -17,7 +17,7 @@ Spike (Stage 8): `python spike/run_custom_arm.py` runs the ledger trap cases aga
 
 Model assistance (optional, off by default; providers: `deepseek`, `openai`, `anthropic`): see docs/MODEL_PROVIDER_REPORT.md for setup (environment variables) and the rules it runs under. The model proposes; code validates; you confirm; it writes no numbers.
 
-Product gaps and the recommended build order: docs/PRODUCT_GAP_MAP.md.
+Product gaps and the recommended build order: docs/PRODUCT_GAP_MAP.md. Documentation spine: docs/HOME.md (map of the repository), docs/CONTRIBUTORS.md (rules for any model or person changing it), docs/WORKLOG.md (append-only log of what was done), docs/DECISIONS.md, docs/KNOWN_LIMITATIONS.md and docs/CHANGELOG.md.
 
 Research & Evidence Workflow (REW, formerly Stage 7) literature source (first slice): `src/bp/literature.py` resolves and verifies references by DOI (Crossref primary, OpenAlex fallback) and audits each resolved retrieval with a SHA-256 of the response bytes and a UTC retrieval time (B-054). API: `GET /api/literature/sources`, `POST /api/literature/verify` {title, doi?, source?}; the workbench has a References panel. The REW stages are proposed, not built: docs/RESEARCH_EVIDENCE_WORKFLOW.md.
 

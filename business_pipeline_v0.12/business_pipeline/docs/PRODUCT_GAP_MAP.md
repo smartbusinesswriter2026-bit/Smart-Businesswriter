@@ -22,22 +22,22 @@ Priorities: **P0** = gatekeeper (unblocks other work) · **P1** = high leverage,
 
 | Gap | Why it matters | Tier / verification note |
 |---|---|---|
-| **Retrieval + citation layer** — standards, company filings, tax, literature | The manual makes retrieval mandatory before trusting any drifting rule ([manual §15, line 520](docs/sources/business_pipeline_v0_3.md#L520)); it unblocks framework citation, tax (B-052), the research workflow (REW), and valuation multiples | A *boundary*, not a computation: hash-audited, fail-closed, labels of `retrieved + cited` vs `declared by you (not verified)`, never a silent memory citation. The literature slice exists and audits each resolved retrieval (response sha256 + UTC time, B-054); a durable retrieval log and citation formatting do not |
-| **Ingestion** — PDF/scan/Excel/SPSS → structured, reusing the quote/provenance discipline | Most of the 140 catalogue items are data-hungry; the system today only eats hand-typed JSON. Manual open question ([§16, line 552](docs/sources/business_pipeline_v0_3.md#L552)) | Structured files → T1; OCR/PDF → unverified text → T2 + label + human confirm |
+| **Retrieval + citation layer** — standards, company filings, tax, literature | The manual makes retrieval mandatory before trusting any drifting rule ([manual §15, line 520](sources/business_pipeline_v0_3.md#L520)); it unblocks framework citation, tax (B-052), the research workflow (REW), and valuation multiples | A *boundary*, not a computation: hash-audited, fail-closed, labels of `retrieved + cited` vs `declared by you (not verified)`, never a silent memory citation. The literature slice exists and audits each resolved retrieval (response sha256 + UTC time, B-054); a durable retrieval log and citation formatting do not |
+| **Ingestion** — PDF/scan/Excel/SPSS → structured, reusing the quote/provenance discipline | Most of the 140 catalogue items are data-hungry; the system today only eats hand-typed JSON. Manual open question ([§16, line 552](sources/business_pipeline_v0_3.md#L552)) | Structured files → T1; OCR/PDF → unverified text → T2 + label + human confirm |
 | **Decision dependencies** | Reviewers to promote T2→T1 (B-005), the ledger-engine choice (B-032), ratification of the research-manual proposals (B-053; R11 done, R1–R10 open) | Owner decisions, not build; they gate promotion and any jurisdiction-dependent work |
 
 ### B. Statistics completion (manual 9B.2/9B.3) — P1
 
-The manual's own growth order ([§9B.2, lines 345–359](docs/sources/business_pipeline_v0_3.md#L345)) minus what exists:
+The manual's own growth order ([§9B.2, lines 345–359](sources/business_pipeline_v0_3.md#L345)) minus what exists:
 
 | Gap | Tier / verification note |
 |---|---|
 | Paired and one-sample t-tests | T1 — reuses the Welch/Mann-Whitney machinery and golden-fixture pattern |
 | Factorial ANOVA, ANCOVA, repeated measures, post-hoc tests | T1 (one-way already there); post-hoc needs a declared multiple-comparison correction |
 | Logistic regression | T1 — diagnostics analogous to the OLS/HC3 pair |
-| Reliability (Cronbach's α) and factor analysis | T1, but factor analysis needs declared extraction/rotation defaults ([§9B.4](docs/sources/business_pipeline_v0_3.md#L377)) |
+| Reliability (Cronbach's α) and factor analysis | T1, but factor analysis needs declared extraction/rotation defaults ([§9B.4](sources/business_pipeline_v0_3.md#L377)) |
 | Clustering (segmentation) | T2 initially — many algorithms, no single "right" answer; needs a labelled evaluation set |
-| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | Upgrades to existing methods, not new ones; currently only listwise deletion and a "one test, no correction" note exist ([§9B.3, lines 369–375](docs/sources/business_pipeline_v0_3.md#L369)) |
+| **Cross-cutting (9B.3)**: multiple-comparison correction, power/precision statements, missing-data mechanisms + imputation, survey weights / clustered-data detection | Upgrades to existing methods, not new ones; currently only listwise deletion and a "one test, no correction" note exist ([§9B.3, lines 369–375](sources/business_pipeline_v0_3.md#L369)) |
 | Time series beyond linear trend (seasonality, backtesting, break detection) | Highest stats risk — sits under the §8 regime-change controls |
 
 ### C. Finance & valuation (sits on the finished ledger) — P1
@@ -60,12 +60,12 @@ Most of these start as **T4 structure-only** evidence templates (organise the ow
 
 ### E. Non-computational product gaps (manual §15B, §16)
 
-These are requirements the manual already flags as [OPEN](docs/sources/business_pipeline_v0_3.md#L522), not methods:
+These are requirements the manual already flags as [OPEN](sources/business_pipeline_v0_3.md#L522), not methods:
 
 - Multi-period comparatives, restated prior periods, report versioning with diffs.
-- Academic-integrity / AI-use **disclosure-ready export** and a **reviewer sign-off workflow** ([line 544](docs/sources/business_pipeline_v0_3.md#L544)).
-- Case workspace: retention/privacy, returning users, shared source caching ([§5.9](docs/sources/business_pipeline_v0_3.md#L185)).
-- **Model version pinning + drift gate** ([line 528](docs/sources/business_pipeline_v0_3.md#L528)); security/hostile content + privacy-law review ([line 526](docs/sources/business_pipeline_v0_3.md#L526)); budgets/observability.
+- Academic-integrity / AI-use **disclosure-ready export** and a **reviewer sign-off workflow** ([line 544](sources/business_pipeline_v0_3.md#L544)).
+- Case workspace: retention/privacy, returning users, shared source caching ([§5.9](sources/business_pipeline_v0_3.md#L185)).
+- **Model version pinning + drift gate** ([line 528](sources/business_pipeline_v0_3.md#L528)); security/hostile content + privacy-law review ([line 526](sources/business_pipeline_v0_3.md#L526)); budgets/observability.
 - **Research & Evidence Workflow (REW, formerly Stage 7)** — the living manual is the ratified working authority (`docs/RESEARCH_EVIDENCE_WORKFLOW.md`, B-053 / R11) and proposes stages R0–R8, but no stage is built and R1–R10 remain unratified proposals; only the literature retrieval boundary (B-040) is real.
 
 ## Recommended order
