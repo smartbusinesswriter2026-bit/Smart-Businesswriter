@@ -1,6 +1,6 @@
 # Research & Evidence Workflow (REW) — living manual
 
-**Formerly "Build Charter Stage 7".** Version 0.2 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed; R11 RATIFIED (2026-10-21)** — this manual is the working authority for REW and B-035 is closed. Everything still tagged `[PROPOSAL]`, `[2ND]` or `[OPEN]` is **not** ratified (R1–R10 remain open); read §3 before trusting any section.
+**Formerly "Build Charter Stage 7".** Version 0.3 (2026-10-21). Supersedes `docs/STAGE7_BLOCKER.md` and `docs/STAGE7_API_DATABASE_PLAN.md` (merged here; git history keeps both). Status: **LIVING, owner-directed; R11 RATIFIED (2026-10-21)** — this manual is the working authority for REW and B-035 is closed. Everything still tagged `[PROPOSAL]`, `[2ND]` or `[OPEN]` is **not** ratified (R1–R10 remain open); read §3 before trusting any section.
 
 ## 0. What this document is, and is not
 
@@ -111,7 +111,7 @@ Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codeboo
 
 **Citation formatting** `[OPEN]` Q9: not implemented, and deliberately so — the manual defines the institution's style. References stay structured records until a style is ratified.
 
-**Not yet built for the hash-audit rule** `[OPEN]` Q10: retrieval records evidence but does **not** yet store a response hash or a retrieval date per reference; the "hash-audited retrieval" language in `docs/PRODUCT_GAP_MAP.md` describes the requirement, not the current state.
+**Retrieval audit** `[REPO]` (B-054; Q10 answered): every retrieval that reaches a source records the **SHA-256 of the exact response bytes received** and a **UTC retrieval timestamp**, both carried with the reference to the API and shown in the workbench. The hash is over raw bytes, not a re-serialised object, so it pins what the source actually served at that moment — it is not proof that the metadata is correct. A reference that never reached a source (no DOI, unresolvable DOI) records neither, fail-closed. **Still open:** the audit is returned with the response but not persisted in a durable retrieval log, so a submission still needs re-verification rather than a stored hash alone.
 
 **Never** (binding, §2): cite from memory; invent a study or a DOI; silently "correct" a reference's metadata; treat a retrieved sketch as an established fact without opening it.
 
@@ -145,7 +145,7 @@ Binding from the charter (as reported) and `[REPO]` (tag vocabulary + `SYNTHETIC
 
 | Piece | Where | Status |
 |---|---|---|
-| Literature retrieval + DOI/title verification | `src/bp/literature.py`, `tests/test_literature.py`, `tests/test_literature_api.py`, API `/api/literature/*`, workbench References panel | Built, PROVISIONAL rules, live smoke-tested on one DOI; one test caught a real mismatch bug |
+| Literature retrieval + DOI/title verification | `src/bp/literature.py`, `tests/test_literature.py`, `tests/test_literature_api.py`, API `/api/literature/*`, workbench References panel | Built, PROVISIONAL rules, live smoke-tested on one DOI (and again live for the audit); one test caught a real mismatch bug. Each resolved retrieval carries a response SHA-256 + UTC time (B-054); no durable log yet |
 | Typed provenance, Decimal quantities | `src/bp/quantity.py` | Built |
 | Claim ceilings and licensing | `src/bp/claims.py` | Built |
 | Verified statistics (the R5 toolset) | `src/bp/methods.py` (descriptive, correlation, regression, two-group, ANOVA/KW, chi-square, linear trend) | Built, tier-gated |
@@ -179,7 +179,7 @@ Each item needs the owner's yes/no; ratifying edits the tag in this file and log
 
 ## 15. Open questions (preserved from the old blocker, plus new)
 
-Answers can arrive as owner statements, old chat exports, or later retrieval; each answer gets a decision id.
+Answers can arrive as owner statements, old chat exports, or later retrieval; each answer gets a decision id. Answered questions **stay** in the register with the answer in the Question cell and `—` in Blocks, so the trail is visible; they are never deleted.
 
 | Id | Question | Blocks |
 |---|---|---|
@@ -192,12 +192,13 @@ Answers can arrive as owner statements, old chat exports, or later retrieval; ea
 | Q7 | Which sources, in what priority, with what failover? | R1 |
 | Q8 | Do "papers" mean academic papers, business reports, or both in v1? | R0, R7 |
 | Q9 | Citation style(s) to support, and the exact verification/match threshold? | R1, R7 |
-| Q10 | Hash-audit requirement: response hash + retrieval date per reference — implement now or after the design? | R1 |
+| Q10 | Hash-audit requirement: response hash + retrieval date per reference — implement now or after the design? **ANSWERED 2026-10-21 (B-054):** each resolved retrieval carries the response SHA-256 and a UTC retrieval time; unresolved/no-DOI carry neither | — answered; follow-up: durable retrieval log |
 | Q11 | Synthetic-data paper rules beyond the label (§11)? | R9 |
 | Q12 | Institution AI-use / ethics / privacy requirements to show? | R7, §12 |
 | Q13 | Which research-gap path to build first (T-A is the cheapest real end-to-end slice)? | sequencing |
 
 ## 16. Change log
 
+- **0.3 (2026-10-21):** Q10 answered in code (B-054): every retrieval that reaches a source now records the SHA-256 of the exact response bytes and a UTC retrieval timestamp; the fields travel through the API to the workbench, and a reference that never reached a source records neither. Live-smoked against Crossref. §9, §13 and §15 updated; the remaining gap (no durable retrieval log) is stated rather than glossed.
 - **0.2 (2026-10-21):** R11 **ratified by the owner** — this manual is the working authority for REW; B-035 closed (B-053 resolved). Header, §0, §1 and §14 updated to say exactly what that does and does not ratify (the document, not R1–R10). R1–R10 remain proposals.
 - **0.1 (2026-10-21):** created as the living REW manual, merging and replacing `STAGE7_BLOCKER.md` and `STAGE7_API_DATABASE_PLAN.md` (owner direction). Marked everything not already established as `[PROPOSAL]`/`[2ND]`/`[OPEN]`; preserved the ten original blocking questions (Q1–Q12 after merge); stated the one honest gap in the retrieval layer (no response hash yet). No code changed.

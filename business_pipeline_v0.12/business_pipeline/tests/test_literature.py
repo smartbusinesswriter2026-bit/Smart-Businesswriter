@@ -1,4 +1,4 @@
-import sys, json, unittest, urllib.request, urllib.error, io
+import sys, json, unittest, urllib.request, urllib.error, io, hashlib
 sys.path.insert(0, "src")
 from bp import literature
 from bp.literature import CrossrefSource, OpenAlexSource, verify_reference, SourceError, Reference
@@ -35,6 +35,36 @@ class Verify(unittest.TestCase):
     def test_openalex_mapping(self):
         r = OpenAlexSource(opener=self.opener(OPENALEX)).resolve("10.1234/abc")
         self.assertEqual((r["title"], r["year"], r["container"], r["authors"]), ("A Study of Markets", "2024", "Journal of Business", ("A. Author",)))
+    def raw_opener(self, raw):
+        def op(req, timeout=None): return io.BytesIO(raw)
+        return op
+    def test_resolved_retrieval_records_hash_and_utc_time(self):
+        raw = json.dumps(CROSSREF_MSG).encode()
+        r = verify_reference("A Study of Markets", "10.1234/abc", CrossrefSource(opener=self.raw_opener(raw), clock=lambda: "2026-10-21T00:00:00Z"))
+        self.assertEqual((r.status, r.retrieved_at), ("verified", "2026-10-21T00:00:00Z"))
+        self.assertEqual(r.response_hash, hashlib.sha256(raw).hexdigest())
+    def test_audit_fields_survive_a_title_mismatch(self):
+        raw = json.dumps(CROSSREF_MSG).encode()
+        r = verify_reference("A Different Paper", "10.1234/abc", CrossrefSource(opener=self.raw_opener(raw), clock=lambda: "T"))
+        self.assertEqual((r.status, r.retrieved_at, r.response_hash), ("unverified_user_supplied", "T", hashlib.sha256(raw).hexdigest()))
+    def test_unresolved_doi_or_no_doi_records_no_audit(self):
+        a = verify_reference("Any title"); self.assertEqual((a.retrieved_at, a.response_hash), (None, None))
+        r = verify_reference("A Study of Markets", "10.1234/missing", CrossrefSource(opener=self.opener(exc=urllib.error.HTTPError("u", 404, "no", {}, io.BytesIO(b"")))))
+        self.assertEqual((r.status, r.retrieved_at, r.response_hash), ("unverified_user_supplied", None, None))
+    def test_hash_pins_the_exact_bytes_not_the_parsed_record(self):
+        one = b'{"message": {"title": ["A Study of Markets"]}}'
+        two = b'{"message":  {"title": ["A Study of Markets"]}}'   # same JSON meaning, different bytes
+        ra = verify_reference("A Study of Markets", "10.1/x", CrossrefSource(opener=self.raw_opener(one)))
+        rb = verify_reference("A Study of Markets", "10.1/x", CrossrefSource(opener=self.raw_opener(two)))
+        self.assertEqual((ra.status, rb.status), ("verified", "verified"))
+        self.assertEqual(ra.response_hash, hashlib.sha256(one).hexdigest())
+        self.assertNotEqual(ra.response_hash, rb.response_hash)
+    def test_default_clock_is_iso_utc_and_openalex_also_audits(self):
+        r = verify_reference("A Study of Markets", "10.1234/abc", CrossrefSource(opener=self.opener(CROSSREF_MSG)))
+        self.assertRegex(r.retrieved_at, r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+        raw = json.dumps(OPENALEX).encode()
+        rec = OpenAlexSource(opener=self.raw_opener(raw), clock=lambda: "X").resolve("10.1234/abc")
+        self.assertEqual((rec["retrieved_at"], rec["response_hash"]), ("X", hashlib.sha256(raw).hexdigest()))
     def test_errors_are_mapped(self):
         for exc in (urllib.error.URLError("net"), TimeoutError(), io.UnsupportedOperation("x")):
             with self.assertRaises(SourceError): CrossrefSource(opener=self.opener(exc=exc)).resolve("10.1234/abc")

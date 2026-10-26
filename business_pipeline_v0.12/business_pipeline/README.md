@@ -19,6 +19,6 @@ Model assistance (optional, off by default; providers: `deepseek`, `openai`, `an
 
 Product gaps and the recommended build order: docs/PRODUCT_GAP_MAP.md.
 
-Research & Evidence Workflow (REW, formerly Stage 7) literature source (first slice): `src/bp/literature.py` resolves and verifies references by DOI (Crossref primary, OpenAlex fallback). API: `GET /api/literature/sources`, `POST /api/literature/verify` {title, doi?, source?}; the workbench has a References panel. The REW stages are proposed, not built: docs/RESEARCH_EVIDENCE_WORKFLOW.md.
+Research & Evidence Workflow (REW, formerly Stage 7) literature source (first slice): `src/bp/literature.py` resolves and verifies references by DOI (Crossref primary, OpenAlex fallback) and audits each resolved retrieval with a SHA-256 of the response bytes and a UTC retrieval time (B-054). API: `GET /api/literature/sources`, `POST /api/literature/verify` {title, doi?, source?}; the workbench has a References panel. The REW stages are proposed, not built: docs/RESEARCH_EVIDENCE_WORKFLOW.md.
 
 Evaluation (optional, PROVISIONAL): `PYTHONPATH=src python -m bp.evaluate tests/fixtures/eval_cases.json` scores model proposals against held-out gold data (needs a configured provider). See docs/MODEL_PROVIDER_REPORT.md.

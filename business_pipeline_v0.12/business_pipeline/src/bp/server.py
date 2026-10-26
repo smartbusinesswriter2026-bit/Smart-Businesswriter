@@ -128,7 +128,8 @@ class H(BaseHTTPRequestHandler):
         except literature.SourceError as e:
             return self._send(502, {"error": str(e)})
         return self._send(200, {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,
-                                             "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source},
+                                             "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source,
+                                             "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash},
                                  "notice": LITERATURE_NOTICE})
     def log_message(self, *a): pass
 

@@ -68,7 +68,7 @@
 - Mid-year policy changes cannot be detected without a declared input.
 - Beancount was not evaluated; the manual's statements about it are unverified.
 - The research workflow (formerly Stage 7) has a **ratified living manual** but no built stages: `docs/RESEARCH_EVIDENCE_WORKFLOW.md` is the working authority for REW (B-053, R11 ratified), while its stages R0–R8, feasibility tiers and study taxonomy remain PROPOSAL/OPEN until the owner ratifies R1–R10; the ten original blocking questions are preserved there as Q1–Q12.
-- Only the literature retrieval/verification boundary exists (src/bp/literature.py, PROVISIONAL; smoke-tested live against one DOI, not evaluated across sources or formats) and it does **not** yet store a retrieval response hash or date per reference.
+- Only the literature retrieval/verification boundary exists (src/bp/literature.py, PROVISIONAL; smoke-tested live against one DOI, not evaluated across sources or formats). It records a response SHA-256 + UTC retrieval time per resolved retrieval (B-054), but keeps no durable retrieval log, so a hash proves what the source served at verification time — not that its metadata is correct, nor that the DOI still resolves later.
 
 ## Added with the model provider
 - Never run against a real model. The Anthropic, OpenAI-compatible and DeepSeek adapters are unit-tested with a fake opener only; no live call has been made.

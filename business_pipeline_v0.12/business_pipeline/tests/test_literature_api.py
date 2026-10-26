@@ -3,7 +3,8 @@ sys.path.insert(0, "src")
 from http.server import ThreadingHTTPServer
 from bp import server, literature
 
-REC = {"title": "A Study of Markets", "authors": ("A. Author",), "year": "2024", "container": "Journal of Business"}
+REC = {"title": "A Study of Markets", "authors": ("A. Author",), "year": "2024", "container": "Journal of Business",
+       "retrieved_at": "2026-10-21T00:00:00Z", "response_hash": "b" * 64}
 
 class FakeSource(literature.Source):
     name = "fake"
@@ -33,12 +34,15 @@ class LiteratureApi(unittest.TestCase):
     def test_verified_on_exact_title(self):
         c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake"})
         self.assertEqual((c, b["reference"]["status"], b["reference"]["year"], b["reference"]["authors"]), (200, "verified", "2024", ["A. Author"]))
+        self.assertEqual((b["reference"]["retrieved_at"], b["reference"]["response_hash"]), ("2026-10-21T00:00:00Z", "b" * 64))
     def test_title_mismatch_is_kept_unverified(self):
         c, b = self.call("/api/literature/verify", {"title": "Something Else", "doi": "10.1/x", "source": "fake"})
         self.assertEqual((c, b["reference"]["status"], b["reference"]["resolved_title"]), (200, "unverified_user_supplied", "A Study of Markets"))
+        self.assertEqual(b["reference"]["response_hash"], "b" * 64)          # the retrieval happened, so it is audited
     def test_no_doi_is_unverified_without_resolving(self):
         c, b = self.call("/api/literature/verify", {"title": "Any title", "source": "fake"})
         self.assertEqual((c, b["reference"]["status"], b["reference"]["source"]), (200, "unverified_user_supplied", None))
+        self.assertEqual((b["reference"]["retrieved_at"], b["reference"]["response_hash"]), (None, None))
     def test_validation_and_source_errors(self):
         self.assertEqual(self.call("/api/literature/verify", {})[0], 400)
         self.assertEqual(self.call("/api/literature/verify", {"title": "x", "source": "nope"})[0], 400)
@@ -57,4 +61,5 @@ class LiteratureApi(unittest.TestCase):
     def test_ui_has_the_references_panel(self):
         body = urllib.request.urlopen(self.base + "/").read().decode()
         self.assertIn("References (optional)", body); self.assertIn("Verify reference", body); self.assertIn("/api/literature/sources", body)
+        self.assertIn("Retrieval audit", body)
 if __name__ == "__main__": unittest.main()
