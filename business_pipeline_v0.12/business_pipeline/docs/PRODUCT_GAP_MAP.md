@@ -22,9 +22,9 @@ Priorities: **P0** = gatekeeper (unblocks other work) · **P1** = high leverage,
 
 | Gap | Why it matters | Tier / verification note |
 |---|---|---|
-| **Retrieval + citation layer** — standards, company filings, tax, literature | The manual makes retrieval mandatory before trusting any drifting rule ([manual §15, line 520](docs/sources/business_pipeline_v0_3.md#L520)); it unblocks framework citation, tax (B-052), Stage 7, and valuation multiples | A *boundary*, not a computation: hash-audited, fail-closed, labels of `retrieved + cited` vs `declared by you (not verified)`, never a silent memory citation |
+| **Retrieval + citation layer** — standards, company filings, tax, literature | The manual makes retrieval mandatory before trusting any drifting rule ([manual §15, line 520](docs/sources/business_pipeline_v0_3.md#L520)); it unblocks framework citation, tax (B-052), the research workflow (REW), and valuation multiples | A *boundary*, not a computation: hash-audited, fail-closed, labels of `retrieved + cited` vs `declared by you (not verified)`, never a silent memory citation. The literature slice exists (B-040); the response hash/date audit is not built yet |
 | **Ingestion** — PDF/scan/Excel/SPSS → structured, reusing the quote/provenance discipline | Most of the 140 catalogue items are data-hungry; the system today only eats hand-typed JSON. Manual open question ([§16, line 552](docs/sources/business_pipeline_v0_3.md#L552)) | Structured files → T1; OCR/PDF → unverified text → T2 + label + human confirm |
-| **Decision dependencies** | Reviewers to promote T2→T1 (B-005), the ledger-engine choice (B-032), Stage 7 manuals (B-035) | Owner decisions, not build; they gate promotion and any jurisdiction-dependent work |
+| **Decision dependencies** | Reviewers to promote T2→T1 (B-005), the ledger-engine choice (B-032), ratification of the living research manual (B-053, register R1–R11) | Owner decisions, not build; they gate promotion and any jurisdiction-dependent work |
 
 ### B. Statistics completion (manual 9B.2/9B.3) — P1
 
@@ -66,19 +66,20 @@ These are requirements the manual already flags as [OPEN](docs/sources/business_
 - Academic-integrity / AI-use **disclosure-ready export** and a **reviewer sign-off workflow** ([line 544](docs/sources/business_pipeline_v0_3.md#L544)).
 - Case workspace: retention/privacy, returning users, shared source caching ([§5.9](docs/sources/business_pipeline_v0_3.md#L185)).
 - **Model version pinning + drift gate** ([line 528](docs/sources/business_pipeline_v0_3.md#L528)); security/hostile content + privacy-law review ([line 526](docs/sources/business_pipeline_v0_3.md#L526)); budgets/observability.
-- **Stage 7 research pipeline** — blocked on the manuals (B-035); the literature retrieval boundary (B-040) is built, the pipeline definition is not.
+- **Research & Evidence Workflow (REW, formerly Stage 7)** — the living manual exists (`docs/RESEARCH_EVIDENCE_WORKFLOW.md`, B-053) with proposed stages R0–R8, but no stage is built and R1–R11 await owner ratification; only the literature retrieval boundary (B-040) is real.
 
 ## Recommended order
 
-1. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, Stage 7, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
-2. **Statement ratio analysis (P1/C)** — crisp, low-risk value on the ledger output we just finished.
-3. **9B.3 honesty upgrades (P1/B)** — power, multiple-comparison, missing-data mechanisms and weights, so existing statistics stop under-reporting before more statistics are added.
-4. **Ingestion (P0/A)** in parallel with the above.
-5. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
+1. **Ratify the living research manual (R1–R11)** — free, unblocks the REW track and turns proposals into a build spec; the alternative (original Smart Researcher manuals) is still welcome and would be reconciled against it.
+2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
+3. **Statement ratio analysis (P1/C)** — crisp, low-risk value on the ledger output we just finished.
+4. **9B.3 honesty upgrades (P1/B)** — power, multiple-comparison, missing-data mechanisms and weights, so existing statistics stop under-reporting before more statistics are added.
+5. **Ingestion (P0/A)** in parallel with the above.
+6. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
 
 ## Owner asks to un-block this
 
 - Name **expert reviewers** (B-005) — needed to promote anything T2→T1.
 - Pick the **next framework templates** (B-028) for section D.
 - Decide the **ledger engine** (B-032) before tax/valuation sit on the ledger for real.
-- Provide the **Stage 7 manuals** or re-confirm the API-database route (B-035).
+- **Ratify the living research manual** R1–R11 (B-053), or supply the original Smart Researcher manuals and it will be reconciled against them.

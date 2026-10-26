@@ -1,8 +1,8 @@
-"""Stage 7 literature-source boundary (decision B-040, PROVISIONAL first slice).
+"""Research & Evidence Workflow (REW, formerly Build Charter Stage 7) literature-source boundary (decision B-040, PROVISIONAL first slice).
 
 Owner plan: an API-based literature database (public scholarly APIs) while the proprietary database is under construction.
-This module only RESOLVES and VERIFIES references; it does not define the research pipeline (stage list, research-gap
-feasibility tiers, study-type taxonomy), which remains blocked on the missing manuals (docs/STAGE7_BLOCKER.md).
+This module only RESOLVES and VERIFIES references; it does not implement the workflow stages. Those are defined as proposals in
+docs/RESEARCH_EVIDENCE_WORKFLOW.md (living manual, B-053; owner ratification register R1-R11).
 
 Same rules as the model boundary (llm.py): standard library only, no keys committed, network in the server process,
 remote responses treated as untrusted data, fail-closed. Verification rules here are PROVISIONAL placeholders that the
