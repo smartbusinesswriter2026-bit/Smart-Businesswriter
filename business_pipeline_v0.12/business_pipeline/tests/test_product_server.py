@@ -59,6 +59,23 @@ class ProductRoutes(unittest.TestCase):
         self.assertEqual(self.call("POST", "/api/cases", {})[0], 422)
         self.assertEqual(self.call("POST", "/api/cases", {"format": "bp-case/1"})[0], 422)
 
+    def test_version_compare_and_signoff_routes_are_reachable_over_http(self):
+        import uuid
+        case_id = uuid.uuid4().hex[:12]
+        bundle = product_fixtures.make_bundle()
+        status, first = self.call("POST", "/api/cases/%s/versions" % case_id, bundle)
+        self.assertEqual((status, first["version"]), (201, 1))
+        status, second = self.call("POST", "/api/cases/%s/versions" % case_id, bundle)
+        self.assertEqual((status, second["version"]), (201, 2))
+        status, versions = self.call("GET", "/api/cases/%s/versions" % case_id)
+        self.assertEqual(status, 200); self.assertEqual([v["version"] for v in versions["versions"]], [1, 2])
+        status, comparison = self.call("GET", "/api/cases/%s/compare?versions=1,2" % case_id)
+        self.assertEqual(status, 200); self.assertEqual(comparison["rows"][0]["values"], {"1": "50.00", "2": "50.00"})
+        status, record = self.call("POST", "/api/cases/%s/signoff" % case_id, {"version": 1, "reviewer": "A. Reviewer"})
+        self.assertEqual(status, 201); self.assertEqual(record["decision"], "reviewed")
+        status, listed = self.call("GET", "/api/cases/%s/signoff?version=1" % case_id)
+        self.assertEqual(status, 200); self.assertEqual(len(listed["signoffs"]), 1)
+
     def test_existing_routes_are_unchanged(self):
         status, presets = self.call("GET", "/api/presets")
         self.assertEqual(status, 200); self.assertIn("npv", presets); self.assertIn("dcf", presets)

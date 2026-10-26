@@ -1,5 +1,16 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-21 — [computation] Product slice 2a: case versions, comparison and sign-off (B-086)
+
+**Ask:** "continue on the sequence of backend product building. do it yourself the job you are delegating because you will not accept cline's work and still edit it." Plus the important addition about spreadsheets/charts (recorded as B-087 and planned as Phase 2c; nothing in this slice draws graphics).
+**Did:** implemented slice 2a directly, in the product layer, with no frozen module touched. **`versions.py`** — an immutable version chain per case (`<BP_CASES_DIR>/<id>/vNNN.json`), a canonical-JSON `bundle_hash` recorded in each envelope, legacy flat cases adopted as version 1, corrupt/tampered versions refused on read, delete removes the chain. **`compare.py`** — Option-A comparison over stored versions: same-method rule enforced, artifact rows aligned by metric, stored values copied verbatim, a metric absent from a version reported as "not computed for this version", differences in `spec_hash`/`outputs_hash`/`method_version` listed, a disclosure naming each compared version's `bundle_hash`/`outputs_hash`, deterministic stdlib HTML rendering. **`signoff.py`** — append-only sign-off records carrying the owner-approved Option-A signature text, reviewer name/role/scope/decision, the signed version hashes and a tamper-evident integrity check. **Routes** added to the pure dispatch (already reachable through the server delegation, so no core edit): `GET/POST /api/cases/{id}/versions`, `GET /api/cases/{id}/versions/{n}`, `GET /api/cases/{id}/compare`, `POST/GET /api/cases/{id}/signoff`. Tests: `tests/test_product_versions.py`, `tests/test_product_compare.py`, `tests/test_product_signoff.py`, `tests/test_product_routes.py` plus an HTTP extension in `tests/test_product_server.py` (22 new tests).
+**Files:** `src/bp/product/versions.py`, `src/bp/product/compare.py`, `src/bp/product/signoff.py`, `src/bp/product/api.py`, new product tests, docs (B-086/B-087, CHANGELOG 0.61, BACKEND_CONTRACT §6, PRODUCT_BACKEND_PLAN 2a/2c, README, HOME/HANDOFF/CONTRIBUTORS digits, this entry).
+**Verified:** full suite **702 tests OK** including the frozen-contract and docs-state guards; the version chain, comparison rules, sign-off wording and tamper cases are all tested; the routes were exercised over HTTP.
+**Commit:** `this commit`.
+**Open/next:** Phase 2b (ops/observability, offline packaging) then Phase 2c (deterministic charts/SpreadsheetML, B-087), then **stop before the UI** per the owner's instruction.
+
+---
+
 ## 2026-10-21 — [review] Product slice 1 reviewed, wired in, and two defects fixed (B-085)
 
 **Delivered by:** MiniMax/OpenCode on branch `opencode/product-slice-1`, commit `b411083`: new `src/bp/product/**` (case store, route dispatch, stdlib HTML export) + 51 product tests + the §6 rows and count/version/changelog/worklog docs.

@@ -40,14 +40,29 @@ Owner deferred it on 2026-10-21 ("lets add the disclosure later. this is not don
 - May **not** edit: any frozen core module, any existing test or fixture (`tests/fixtures/frozen_contract.json` included), `docs/DECISIONS.md`, `docs/BACKEND_CONTRACT.md` §1-§5, `docs/KNOWN_LIMITATIONS.md`, `docs/PRODUCT_GAP_MAP.md`, `docs/RESEARCH_EVIDENCE_WORKFLOW.md`, or any caveat/honesty/claim wording.
 - The suite must be green including `tests/test_frozen_contract.py` and `tests/test_docs_sync.py`. The computation owner reviews the numeric doc edits at merge.
 
-## Phase 2 — slice 2, delegated to the design owner
+## Phase 2 — slice 2, delegated to the design owner (now implemented by the computation owner)
 
-- **Reviewer sign-off record** on a case: reviewer name/role (owner-supplied), scope, decision, timestamp, and the hash of the exact bundle reviewed. **D4 resolved (owner, 2026-10-21): Option A.** The stored signature text is exactly: *"I reviewed the named case bundle and its disclosed limitations. This signature records that review; it does not assert that the inputs are true or that the analysis is correct."* The record is additive metadata; it changes no number and claims no quality.
-- **Multi-period comparatives and case versioning (Option A, owner-chosen 2026-10-21)** — product-layer only, no unfreeze, per [`proposals/MULTI_PERIOD_VERSIONING.md`](proposals/MULTI_PERIOD_VERSIONING.md): each period is an ordinary frozen session; the case store keeps immutable versions (monotonic version, `spec_hash`, `outputs_hash`, method id+version, timestamp); a comparison renderer lays stored bundles side by side under declared comparability rules (same method id, unit and period basis; differing spec fields listed; missing periods shown as "not computed", never filled); every displayed number is byte-identical to its stored bundle; no arithmetic in the product layer.
-- **AI-use disclosure export** — deferred by D3; returns as its own decided slice (audience + wording) after the core product backend works.
-- **Model pinning / drift gate surface**: display and record which model id/version was used for optional assistance, with the existing `assist`/`llm` contract; no new model capability.
-- **Ops and observability**: request log that excludes case content and personal data, model-call counters/budgets, health endpoint, export/backup-restore of the case directory.
-- **Offline packaging**: a single local install/run path for the frozen core + product layer (stdlib core preserved), with a version pin and a windowless start.
+*Owner instruction 2026-10-21: "do it yourself the job you are delegating" — slice 2 is implemented by the computation owner, in the product layer, so no review round-trip is needed.*
+
+**2a — SHIPPED (B-086, build 0.61):** immutable case versions, the Option-A multi-period comparison (same-method rule, rows aligned by metric, stored values verbatim, missing metrics reported as not computed, per-version hash disclosure, stdlib HTML rendering) and the append-only reviewer sign-off with the owner-approved Option-A wording and tamper evidence.
+
+- ~~Reviewer sign-off record~~ — **done in 2a** (append-only records with the owner-approved Option-A wording and the signed per-version hashes).
+- ~~Multi-period comparatives and case versioning (Option A)~~ — **done in 2a** (immutable versions; comparison with declared comparability rules and stored values only).
+- **2b. AI-use disclosure export** — deferred by D3; returns as its own decided slice (audience + wording) after the core product backend works.
+- **2b. Model pinning / drift gate surface**: display and record which model id/version was used for optional assistance, with the existing `assist`/`llm` contract; no new model capability.
+- **2b. Ops and observability**: request log that excludes case content and personal data, model-call counters/budgets, health endpoint, export/backup-restore of the case directory.
+- **2b. Offline packaging**: a single local install/run path for the frozen core + product layer (stdlib core preserved), with a version pin and a windowless start.
+
+## Phase 2c — deliverable graphics and spreadsheets (B-087; before the UI)
+
+The owner asked how spreadsheets, charts and business graphics fit. The answer is **rendering, not modelling**: graphics are produced by code from stored values, never drawn by a model.
+
+- **Declarative graphic spec** (product layer): a small JSON document naming the chart type and the stored series to draw (e.g. `{"kind": "bar", "title": "...", "series": [{"label": "NPV", "artifact": "npv"}]}`). The renderer looks every value up in a stored bundle; a spec that names an artifact the bundle does not record is refused, and a chart cannot introduce a number, axis label or annotation that is not a stored value.
+- **Charts** rendered as deterministic **SVG** (stdlib string building): bar, line, stacked bar, waterfall, pie/donut, sparkline, and a table view; every bar/point labelled with the stored string. Charts embed in the HTML export and in the comparison view.
+- **Spreadsheet export** as **CSV** (stdlib) and **SpreadsheetML 2003 XML** (stdlib; opens in Excel/LibreOffice) with one sheet per artifact table and the report text kept verbatim. A native `.xlsx` writer (OOXML zip) is a later option if the SpreadsheetML path proves limiting; it is still stdlib.
+- **Business graphics**: diagram templates as declarative SVG from owner-supplied labels (process, matrix/2×2, pyramid, funnel, org-style tree), T4 structure-only — they organise the owner's words and compute nothing; a model may *suggest* labels only under the proposals-only boundary and its output is audited before use.
+- **Model tiering (B-087)**: while the pipeline is being proven, the optional assist lane runs on free/cheap OpenAI-compatible endpoints (local Ollama or a free tier); later it upgrades to a paid tier (DeepSeek Pro-class for numeric narrative, Claude Sonnet-class for prose/design critique, Gemini Flash/Pro-class for multimodal suggestions). The chart/table renderer does not call a model at all, so a weaker free model cannot make a graphic wrong.
+- **Acceptance for 2c**: deterministic bytes for the same bundle+spec; every rendered number equals a stored value (boundary test); a spec naming a missing artifact or a non-stored metric blocks with a reason; CSV/SpreadsheetML round-trip the stored strings; SVG is well-formed XML with no external resources; no model call in the rendering path.
 
 ## Phase 3 — computation owner, needs an unfreeze (owner approval, B-079)
 
