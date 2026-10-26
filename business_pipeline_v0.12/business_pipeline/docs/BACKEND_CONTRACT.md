@@ -71,6 +71,9 @@ An unfreeze is a decision, not a commit:
 
 | Product feature | Route / surface | Consumes (frozen) |
 |---|---|---|
-| — | — | — |
+| Local durable case store (`src/bp/product/cases.py`) | `BP_CASES_DIR` (default `cases/`), one JSON bundle per case, atomic writes | `session.to_dict()`, the delivery `report` + `appendix` and the re-perform bundle, stored as opaque documents |
+| Case listing and retrieval (additive dispatch, not yet wired into the server) | `GET /api/cases`, `GET /api/cases/{id}` | the stored case bundles, returned verbatim |
+| Case capture and deletion (additive dispatch, not yet wired into the server) | `POST /api/cases`, `DELETE /api/cases/{id}` | the session/delivery bundle supplied by the caller, stored as given |
+| Self-contained HTML export of a stored case | `bp.product.export.export_html(bundle, path)` (standard library only) | the stored report text and the stored artifact values, copied and not recomputed |
 
 **Planned for Phase 1-2** (not yet shipped; sequence and acceptance in [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md)): local durable case store (`src/bp/product/**` + additive `/api/cases` routes over the session JSON and delivery appendix), stdlib HTML export of the delivered report verbatim (DOCX/XLSX later, behind a declared product-layer dependency), **case versions + multi-period side-by-side comparison (Option A: stored bundles under declared comparability rules, no arithmetic)**, reviewer sign-off record with the owner-approved Option-A wording, ops/observability counters, offline packaging. The **AI-use disclosure export is deferred by the owner (D3)** and is not planned here until its audience and wording are decided. None of these may compute a number.
