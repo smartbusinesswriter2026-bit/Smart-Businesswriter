@@ -80,7 +80,7 @@ class H(BaseHTTPRequestHandler):
                                                           "limits": {"max_calls_total": c.max_calls_total, "calls_used": MODELS.calls, "max_input_chars": c.max_input_chars}, "privacy_notice": c.privacy_notice, "prompt_version": assist.PROMPT_VERSION})
             if u.path == "/api/literature/sources":
                 return self._send(200, {"sources": [{"name": k, "label": LITERATURE_LABELS.get(k, k)} for k in LITERATURE_SOURCES], "notice": LITERATURE_NOTICE,
-                                        "citation_styles": list(literature.CITATION_STYLES), "citation_notice": literature.CITATION_NOTICE,
+                                        "citation_styles": list(literature.CITATION_STYLES), "citation_notices": dict(literature.CITATION_NOTICES),
                                         "log_enabled": bool(LITERATURE_LOG)})
             if u.path == "/api/literature/log":
                 if not LITERATURE_LOG: return self._send(200, {"enabled": False, "entries": [], "notice": "The retrieval log is disabled on this server."})
@@ -147,7 +147,8 @@ class H(BaseHTTPRequestHandler):
         except literature.SourceError as e:
             return self._send(502, {"error": str(e)})
         body = {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,
-                              "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source,
+                              "container": ref.container, "volume": ref.volume, "issue": ref.issue, "pages": ref.pages,
+                              "reference_type": ref.reference_type, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source,
                               "retrieved_at": ref.retrieved_at, "response_hash": ref.response_hash},
                 "notice": LITERATURE_NOTICE}
         if style: body["citation"] = literature.format_citation(ref, style)

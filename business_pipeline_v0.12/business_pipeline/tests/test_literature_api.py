@@ -4,6 +4,7 @@ from http.server import ThreadingHTTPServer
 from bp import server, literature
 
 REC = {"title": "A Study of Markets", "authors": ("A. Author",), "year": "2024", "container": "Journal of Business",
+       "volume": "12", "issue": "3", "pages": "45-60", "reference_type": "journal-article",
        "retrieved_at": "2026-10-21T00:00:00Z", "response_hash": "b" * 64}
 
 class FakeSource(literature.Source):
@@ -60,18 +61,20 @@ class LiteratureApi(unittest.TestCase):
             self.assertEqual(self.call("/api/literature/verify", {"title": "x", "doi": "10.1/x", "source": "fake"})[0], 429)
         finally:
             server.LITERATURE_CALLS = 0
-    def test_sources_advertise_the_citation_style_and_the_log(self):
+    def test_sources_advertise_both_ratified_styles_and_the_log(self):
         c, b = self.call("/api/literature/sources")
-        self.assertEqual(b["citation_styles"], ["provisional"]); self.assertTrue(b["log_enabled"])
-        self.assertIn("PROVISIONAL", b["citation_notice"])
-    def test_verify_with_cite_returns_a_provisional_citation(self):
-        c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake", "cite": "provisional"})
+        self.assertEqual(b["citation_styles"], ["apa", "harvard"]); self.assertTrue(b["log_enabled"])
+        self.assertIn("APA 7", b["citation_notices"]["apa"]); self.assertIn("Harvard", b["citation_notices"]["harvard"])
+    def test_verify_with_cite_returns_the_requested_style(self):
+        c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake", "cite": "apa"})
         self.assertEqual(c, 200); cit = b["citation"]
-        self.assertTrue(cit["verified"]); self.assertIn("A. Author (2024). A Study of Markets", cit["text"])
-        self.assertIn("PROVISIONAL", cit["notice"])
+        self.assertTrue(cit["verified"]); self.assertEqual(cit["style"], "apa"); self.assertEqual(cit["layout"], "journal-article")
+        self.assertEqual(cit["text"], "A. Author (2024). A Study of Markets. Journal of Business, 12(3), 45–60. https://doi.org/10.1/x")
         self.assertNotIn("citation", self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake"})[1])
+        c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/x", "source": "fake", "cite": "harvard"})
+        self.assertIn("doi: 10.1/x.", b["citation"]["text"])
     def test_unknown_citation_style_is_400(self):
-        self.assertEqual(self.call("/api/literature/verify", {"title": "x", "doi": "10.1/x", "source": "fake", "cite": "apa"})[0], 400)
+        self.assertEqual(self.call("/api/literature/verify", {"title": "x", "doi": "10.1/x", "source": "fake", "cite": "chicago"})[0], 400)
     def test_retrieval_log_endpoint_returns_recorded_entries(self):
         c, b = self.call("/api/literature/verify", {"title": "A Study of Markets", "doi": "10.1/logged", "source": "fake"})
         self.assertEqual(c, 200)
@@ -87,5 +90,6 @@ class LiteratureApi(unittest.TestCase):
     def test_ui_has_the_references_panel(self):
         body = urllib.request.urlopen(self.base + "/").read().decode()
         self.assertIn("References (optional)", body); self.assertIn("Verify reference", body); self.assertIn("/api/literature/sources", body)
-        self.assertIn("Retrieval audit", body); self.assertIn("Get provisional citation", body); self.assertIn("Show retrieval log", body)
+        self.assertIn("Retrieval audit", body); self.assertIn("Get citation", body); self.assertIn("Show retrieval log", body)
+        self.assertIn('id="refstyle"', body); self.assertIn("APA 7", body); self.assertIn("Harvard", body)
 if __name__ == "__main__": unittest.main()

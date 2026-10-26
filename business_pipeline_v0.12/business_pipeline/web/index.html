@@ -38,7 +38,7 @@ pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
 <div id="refbody" hidden><div class="sub" id="refnote"></div>
 <div class="row" style="margin-top:8px"><select id="refsource" aria-label="Source" style="width:auto"></select>
 <input id="reftitle" placeholder="Reference title" aria-label="Reference title" style="flex:1;min-width:220px"></div>
-<div class="row" style="margin-top:8px"><input id="refdoi" placeholder="DOI (optional, e.g. 10.1234/abcd)" aria-label="DOI" style="flex:1"><button id="refgo" type="button">Verify reference</button><button id="refcite" type="button">Get provisional citation</button></div>
+<div class="row" style="margin-top:8px"><input id="refdoi" placeholder="DOI (optional, e.g. 10.1234/abcd)" aria-label="DOI" style="flex:1"><select id="refstyle" aria-label="Citation style" style="width:auto"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select><button id="refgo" type="button">Verify reference</button><button id="refcite" type="button">Get citation</button></div>
 <div id="refout" style="margin-top:8px"></div>
 <div class="sub" style="margin-top:10px">Every resolved reference is written to the local retrieval log (source, UTC time, response SHA-256) so it can be re-checked later. <button id="reflog" type="button" style="font-size:12px;padding:2px 8px">Show retrieval log</button></div>
 <pre id="reflogout" aria-live="polite"></pre></div></section>
@@ -129,7 +129,7 @@ function renderRef(j){const ref=j.reference,r=$("refout");r.replaceChildren();ad
  if(j.citation){add(r,"div","Citation: "+j.citation.text,"sub");add(r,"div",j.citation.notice,"sub");if(j.citation.note)add(r,"div",j.citation.note,"sub")}
  add(r,"div",ref.status==="verified"?"The DOI resolved and the title matched exactly.":"No exact match was confirmed. The reference stays unverified and must not be cited as checked.","sub")}
 async function verifyRef(cite){$("refout").replaceChildren();const title=$("reftitle").value.trim();if(!title){add($("refout"),"div","Enter a reference title.","sub");return}
- try{const body={title,doi:$("refdoi").value.trim(),source:$("refsource").value};if(cite)body.cite="provisional";
+ try{const body={title,doi:$("refdoi").value.trim(),source:$("refsource").value};if(cite)body.cite=$("refstyle").value;
   const r=await fetch("/api/literature/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));renderRef(j)}catch(e){add($("refout"),"div",e.message,"sub")}}
 $("refgo").onclick=()=>verifyRef(false);$("refcite").onclick=()=>verifyRef(true);
 $("reflog").onclick=async()=>{try{const r=await fetch("/api/literature/log?limit=20");const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));

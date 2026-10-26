@@ -4,7 +4,8 @@ from bp import literature
 from bp.literature import verify_reference, read_log, reverify, format_citation, CrossrefSource, SourceError, LOG_FORMAT
 
 MSG = {"message": {"title": ["A Study of Markets"], "author": [{"given": "A.", "family": "Author"}, {"given": "B.", "family": "Baker"}],
-                   "issued": {"date-parts": [[2024]]}, "container-title": ["Journal of Business"]}}
+                   "issued": {"date-parts": [[2024]]}, "container-title": ["Journal of Business"],
+                   "type": "journal-article", "volume": "12", "issue": "3", "page": "45-60", "publisher": "Test Press"}}
 
 
 def opener_for(raw):
@@ -83,20 +84,40 @@ class Citations(unittest.TestCase):
     def verified(self, raw=RAW):
         return verify_reference("A Study of Markets", "10.1234/abc", CrossrefSource(opener=opener_for(raw)))
 
-    def test_verified_citation_carries_structure_and_is_declared_provisional(self):
-        c = format_citation(self.verified())
-        self.assertTrue(c["verified"])
-        self.assertIn("A. Author; B. Baker (2024). A Study of Markets. Journal of Business.", c["text"])
-        self.assertIn("https://doi.org/10.1234/abc", c["text"])
-        self.assertIn("PROVISIONAL", c["notice"])
-        self.assertIn("not an endorsed APA", c["notice"])
+    def test_apa_seven_formatting_from_structured_metadata(self):
+        c = format_citation(self.verified(), "apa")
+        self.assertTrue(c["verified"]); self.assertEqual(c["layout"], "journal-article")
+        self.assertEqual(c["text"], "Author, A., & Baker, B. (2024). A Study of Markets. Journal of Business, 12(3), 45–60. https://doi.org/10.1234/abc")
+        self.assertIn("APA 7", c["notice"]); self.assertIn("plain text", c["notice"])
+
+    def test_harvard_cite_them_right_formatting(self):
+        c = format_citation(self.verified(), "harvard")
+        self.assertEqual(c["text"], "Author, A. and Baker, B. (2024) 'A Study of Markets', Journal of Business, 12(3), pp. 45–60. doi: 10.1234/abc.")
+        self.assertIn("Harvard", c["notice"])
+
+    def test_book_and_unknown_types_get_their_declared_layouts(self):
+        from bp.literature import Reference
+        book = Reference(title="A Book", doi="10.1/b", status="verified", authors=("A. Author",), year="2020", publisher="Test Press", reference_type="book")
+        self.assertEqual(format_citation(book, "apa")["layout"], "book")
+        self.assertEqual(format_citation(book, "apa")["text"], "A. Author (2020). A Book. Test Press. https://doi.org/10.1/b")
+        other = Reference(title="A Report", doi=None, status="verified", authors=("A. Author",), year="2021", reference_type="report")
+        c = format_citation(other, "apa")
+        self.assertEqual(c["layout"], "other"); self.assertIn("Generic layout", c["note"]); self.assertIn("report", c["note"])
+
+    def test_authors_are_inverted_only_when_the_source_supplies_structured_names(self):
+        from bp.literature import Reference
+        ref = Reference(title="T", doi="10.1/x", status="verified", authors=("A. Author", "B. Baker"), year="2024", container="J")
+        c = format_citation(ref, "apa")
+        self.assertIn("A. Author, & B. Baker (2024)", c["text"])
+        self.assertIn("not inverted", c["note"])
 
     def test_unverified_citation_is_labelled_and_never_looks_checked(self):
         ref = verify_reference("A Different Paper", "10.1234/abc", CrossrefSource(opener=opener_for(RAW)))
-        c = format_citation(ref)
-        self.assertFalse(c["verified"]); self.assertTrue(c["text"].startswith("[unverified user-supplied"))
-        self.assertIn("A Different Paper", c["text"]); self.assertIn("not confirmed", c["text"])
-        self.assertIn("different title", c["note"])
+        for style in ("apa", "harvard"):
+            c = format_citation(ref, style)
+            self.assertFalse(c["verified"]); self.assertTrue(c["text"].startswith("[unverified user-supplied"))
+            self.assertIn("A Different Paper", c["text"]); self.assertIn("not confirmed", c["text"])
+            self.assertIn("different title", c["note"])
         ref = verify_reference("Anything", log=None)
         self.assertTrue(format_citation(ref)["text"].startswith("[unverified user-supplied"))
 
@@ -106,10 +127,13 @@ class Citations(unittest.TestCase):
         self.assertIn("[no author] ([n.d.]). Untitled.", c["text"])
 
     def test_unknown_style_is_refused(self):
-        with self.assertRaises(SourceError): format_citation(self.verified(), "apa")
+        with self.assertRaises(SourceError): format_citation(self.verified(), "chicago")
 
-    def test_formatting_is_deterministic(self):
-        self.assertEqual(format_citation(self.verified()), format_citation(self.verified()))
+    def test_both_ratified_styles_are_offered_and_formatting_is_deterministic(self):
+        from bp.literature import CITATION_STYLES
+        self.assertEqual(CITATION_STYLES, ("apa", "harvard"))
+        for style in CITATION_STYLES:
+            self.assertEqual(format_citation(self.verified(), style), format_citation(self.verified(), style))
 
 
 if __name__ == "__main__":

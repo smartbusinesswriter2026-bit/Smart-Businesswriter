@@ -35,6 +35,13 @@ class Reference:
     source: str | None = None
     retrieved_at: str | None = None                       # UTC timestamp of the retrieval that resolved the DOI
     response_hash: str | None = None                      # SHA-256 of the exact response bytes received
+    # bibliographic fields used by the ratified citation styles (mapped only where the source supplies them)
+    authors_structured: tuple = ()                        # ((family, given), ...) when the source supplies both parts
+    volume: str | None = None
+    issue: str | None = None
+    pages: str | None = None
+    publisher: str | None = None
+    reference_type: str | None = None                     # source-declared type, e.g. journal-article / book
 
 class Source:
     name = "base"
@@ -50,6 +57,18 @@ def _crossref_authors(msg):
             n = f"{a.get('given', '')} {a.get('family', '')}".strip()
             if n: out.append(n)
     return out
+
+def _crossref_structured(msg):
+    out = []
+    for a in msg.get("author", []) or []:
+        if isinstance(a, dict) and (a.get("family") or a.get("given")):
+            out.append((str(a.get("family") or "").strip(), str(a.get("given") or "").strip()))
+    return tuple(out)
+
+def _str_or_none(v):
+    if v is None: return None
+    s = str(v).strip()
+    return s or None
 
 class CrossrefSource(Source):
     """Crossref REST API (no key required for basic metadata). Smoke-tested live against one DOI on 2026-10-21; coverage not yet evaluated."""
@@ -73,6 +92,10 @@ class CrossrefSource(Source):
         year = ((msg.get("issued") or {}).get("date-parts") or [[None]])[0][0]
         return {"title": _title(msg), "authors": tuple(_crossref_authors(msg)), "year": str(year) if year is not None else None,
                 "container": (msg.get("container-title") or [None])[0],
+                "authors_structured": _crossref_structured(msg),
+                "volume": _str_or_none(msg.get("volume")), "issue": _str_or_none(msg.get("issue")),
+                "pages": _str_or_none(msg.get("page")), "publisher": _str_or_none(msg.get("publisher")),
+                "reference_type": _str_or_none(msg.get("type")),
                 "retrieved_at": self._clock(), "response_hash": digest(raw)}
 
 class OpenAlexSource(Source):
@@ -94,8 +117,18 @@ class OpenAlexSource(Source):
         except ValueError: raise SourceError("openalex returned a response that is not JSON")
         if not isinstance(data, dict): raise SourceError("unexpected openalex response shape")
         src = (data.get("primary_location") or {}).get("source") or {}
+        biblio = data.get("biblio") or {}
+        first, last = _str_or_none(biblio.get("first_page")), _str_or_none(biblio.get("last_page"))
+        pages = None
+        if first and last and first != last: pages = f"{first}-{last}"
+        elif first: pages = first
+        oa_type = _str_or_none(data.get("type"))
+        ref_type = {"article": "journal-article", "book": "book", "preprint": "posted-content", "review": "journal-article"}.get((oa_type or "").lower(), oa_type)
         return {"title": data.get("title"), "authors": tuple(a.get("author", {}).get("display_name") for a in data.get("authorships", []) if isinstance(a, dict) and (a.get("author") or {}).get("display_name")),
                 "year": str(data["publication_year"]) if data.get("publication_year") is not None else None, "container": src.get("display_name"),
+                "authors_structured": (),
+                "volume": _str_or_none(biblio.get("volume")), "issue": _str_or_none(biblio.get("issue")),
+                "pages": pages, "publisher": _str_or_none(src.get("host_organization_name")), "reference_type": ref_type,
                 "retrieved_at": self._clock(), "response_hash": digest(raw)}
 
 def _norm(s): return re.sub(r"[^a-z0-9]+", "", (s or "").lower())
@@ -115,6 +148,9 @@ def verify_reference(title, doi=None, source=None, log=None):
     if rec is None: return ref                                                  # DOI did not resolve; stays unverified
     ref.source, ref.resolved_title = source.name, (rec.get("title").strip() if rec.get("title") else None)
     ref.authors, ref.year, ref.container = tuple(rec.get("authors") or ()), rec.get("year"), rec.get("container")
+    ref.authors_structured = tuple(rec.get("authors_structured") or ())
+    ref.volume, ref.issue, ref.pages = rec.get("volume"), rec.get("issue"), rec.get("pages")
+    ref.publisher, ref.reference_type = rec.get("publisher"), rec.get("reference_type")
     ref.retrieved_at, ref.response_hash = rec.get("retrieved_at"), rec.get("response_hash")
     if _norm(rec.get("title")) == _norm(title):
         ref.status, ref.title = "verified", (rec.get("title") or title).strip()  # canonicalize to the source title
@@ -172,25 +208,95 @@ def reverify(entry, source=None):
             "current_hash": rec.get("response_hash"), "logged_at": entry.get("retrieved_at"), "current_retrieved_at": rec.get("retrieved_at"),
             "title_still_matches": _norm(rec.get("title")) == _norm(entry.get("title_resolved"))}
 
-# ---------- citation formatting (PROVISIONAL layout; REW Q9 still open) ----------
-# No institutional citation style has been ratified. Rather than pretend to implement APA/Harvard/MLA, the
-# only style is a DECLARED provisional author-date layout, and every formatted citation says so.
-CITATION_STYLES = ("provisional",)
-CITATION_NOTICE = ("PROVISIONAL citation layout (author-date, title, container, DOI). No institutional citation style has been "
-                   "ratified (REW Q9), so this is not an endorsed APA, Harvard or MLA format; author names are printed exactly "
-                   "as the source returned them, with no name re-parsing.")
+# ---------- citation formatting: APA 7 and Harvard (Cite Them Right) — ratified by the owner (B-059) ----------
+# The owner ratified two styles. What is formatted is the metadata the source actually returned: authors are
+# inverted only when the source supplies family and given names; titles are printed as returned (no sentence-case
+# rewriting); plain text has no italics. Those limits are declared in CITATION_NOTICES rather than papered over.
+CITATION_STYLES = ("apa", "harvard")
+CITATION_NOTICES = {
+    "apa": ("APA 7 (author-date), rendered in plain text: italics are not representable, titles are printed as the source returned "
+            "them, and author names are inverted only when the source supplies family and given names."),
+    "harvard": ("Harvard (Cite Them Right), rendered in plain text: italics are not representable, titles are printed as the source "
+                "returns them, and author names are inverted only when the source supplies family and given names."),
+}
+_ARTICLE_TYPES = {"journal-article", "proceedings-article", "posted-content", "article"}
+_BOOK_TYPES = {"book", "monograph", "edited-book", "reference-book"}
 
-def format_citation(ref, style="provisional"):
-    """Format a Reference for display. Never upgrades an unverified reference: the text is prefixed and `verified` is False."""
+def _initials(given):
+    return " ".join(f"{p[0]}." for p in re.split(r"[\s\-]+", (given or "").strip()) if p)
+
+def _en_dash(pages):
+    return re.sub(r"^(\d+)-(\d+)$", r"\1–\2", (pages or "").strip())
+
+def _author_names(ref, style):
+    """Return (text, note). Note is non-None only when the source could not provide invertible names."""
+    if ref.authors_structured:
+        pairs = [(f.strip(), _initials(g)) for f, g in ref.authors_structured]
+        names = [f"{fam}, {ini}".strip().rstrip(",") if ini else fam for fam, ini in pairs]
+        if len(names) > 20: names = names[:19] + ["..."] + names[-1:]
+        if len(names) == 1: return (names[0], None)
+        if style == "apa": return (", ".join(names[:-1]) + ", & " + names[-1], None)
+        return (", ".join(names[:-1]) + " and " + names[-1], None)
+    if ref.authors:
+        if len(ref.authors) == 1: joined = ref.authors[0]
+        elif style == "apa": joined = ", ".join(ref.authors[:-1]) + ", & " + ref.authors[-1]
+        else: joined = ", ".join(ref.authors[:-1]) + " and " + ref.authors[-1]
+        return (joined, "Author names were not inverted for this source (it returned display names only); check the author formatting before use.")
+    return ("[no author]", None)
+
+def _year_text(ref): return ref.year or "[n.d.]"
+
+def _article_text(ref, names, style):
+    vol, iss, pages, year, doi = ref.volume, ref.issue, _en_dash(ref.pages), _year_text(ref), ref.doi
+    if style == "apa":
+        loc = ""
+        if vol: loc += f", {vol}" + (f"({iss})" if iss else "")
+        if pages: loc += f", {pages}"
+        text = f"{names} ({year}). {ref.title}."
+        if ref.container: text += f" {ref.container}{loc}."
+        elif loc: text += f"{loc}."
+        if doi: text += f" https://doi.org/{doi}"
+        return text
+    src = ref.container or ""
+    vol_iss = (vol or "") + (f"({iss})" if vol and iss else (iss or ""))
+    bits = ", ".join(x for x in (vol_iss, f"pp. {pages}" if pages else "") if x)
+    text = f"{names} ({year}) '{ref.title}'"
+    if src: text += f", {src}"
+    if bits: text += f", {bits}"
+    text += "."
+    if doi: text += f" doi: {doi}."
+    return text
+
+def _book_text(ref, names, style):
+    year = _year_text(ref)
+    if style == "apa":
+        parts = [f"{names} ({year}).", f"{ref.title}."]
+        if ref.publisher: parts.append(f"{ref.publisher}.")
+        if ref.doi: parts.append(f"https://doi.org/{ref.doi}")
+        return " ".join(parts)
+    text = f"{names} ({year}) {ref.title}."
+    if ref.publisher: text += f" {ref.publisher}."
+    if ref.doi: text += f" doi: {ref.doi}."
+    return text
+
+def format_citation(ref, style="apa"):
+    """Format a Reference for display in a RATIFIED style (apa or harvard). An unverified reference is never
+    formatted as if checked: the text is prefixed and `verified` is False whatever the requested style."""
     if style not in CITATION_STYLES: raise SourceError("unknown citation style; available: " + ", ".join(CITATION_STYLES))
+    notice, note = CITATION_NOTICES[style], None
     if ref.status != "verified":
         text = "[unverified user-supplied: not checked against a source] " + (ref.title or "").strip()
         if ref.doi: text += f" (DOI given: {ref.doi}; not confirmed)"
-        note = ("The DOI resolved to a different title, so the citation stays unverified." if ref.resolved_title else None)
-        return {"style": style, "text": text, "status": ref.status, "verified": False, "notice": CITATION_NOTICE, "note": note}
-    authors = "; ".join(ref.authors) if ref.authors else "[no author]"
-    year = ref.year or "[n.d.]"
-    text = f"{authors} ({year}). {ref.title}. " + (f"{ref.container}. " if ref.container else "")
-    text += f"https://doi.org/{ref.doi}" if ref.doi else ""
-    return {"style": style, "text": text.strip(), "status": ref.status, "verified": True, "notice": CITATION_NOTICE, "note": None}
+        if ref.resolved_title: note = "The DOI resolved to a different title, so the citation stays unverified."
+        return {"style": style, "text": text, "status": ref.status, "verified": False, "notice": notice, "note": note}
+    names, name_note = _author_names(ref, style)
+    if name_note: note = name_note
+    kind = (ref.reference_type or "").lower()
+    if kind in _ARTICLE_TYPES or (not kind and ref.container):
+        return {"style": style, "text": _article_text(ref, names, style), "status": ref.status, "verified": True, "notice": notice, "note": note, "layout": "journal-article"}
+    if kind in _BOOK_TYPES:
+        return {"style": style, "text": _book_text(ref, names, style), "status": ref.status, "verified": True, "notice": notice, "note": note, "layout": "book"}
+    text = _book_text(ref, names, style)
+    return {"style": style, "text": text, "status": ref.status, "verified": True, "notice": notice,
+            "note": ((note + " ") if note else "") + f"Generic layout: only journal articles and books are fully styled (source type: {ref.reference_type or 'not supplied'}).", "layout": "other"}
 

@@ -4,9 +4,11 @@ from bp import literature
 from bp.literature import CrossrefSource, OpenAlexSource, verify_reference, SourceError, Reference
 
 CROSSREF_MSG = {"message": {"title": [" A Study of Markets "], "author": [{"given": "A.", "family": "Author"}, {"given": "B.", "family": "Baker"}],
-                            "issued": {"date-parts": [[2024]]}, "container-title": ["Journal of Business"]}}
-OPENALEX = {"title": "A Study of Markets", "authorships": [{"author": {"display_name": "A. Author"}}], "publication_year": 2024,
-            "primary_location": {"source": {"display_name": "Journal of Business"}}}
+                            "issued": {"date-parts": [[2024]]}, "container-title": ["Journal of Business"],
+                            "type": "journal-article", "volume": "12", "issue": "3", "page": "45-60", "publisher": "Test Press"}}
+OPENALEX = {"title": "A Study of Markets", "authorships": [{"author": {"display_name": "A. Author"}}], "publication_year": 2024, "type": "article",
+            "biblio": {"volume": "12", "issue": "3", "first_page": "45", "last_page": "60"},
+            "primary_location": {"source": {"display_name": "Journal of Business", "host_organization_name": "Test Press"}}}
 
 class Verify(unittest.TestCase):
     def opener(self, payload=None, exc=None, seen=None):
@@ -35,6 +37,14 @@ class Verify(unittest.TestCase):
     def test_openalex_mapping(self):
         r = OpenAlexSource(opener=self.opener(OPENALEX)).resolve("10.1234/abc")
         self.assertEqual((r["title"], r["year"], r["container"], r["authors"]), ("A Study of Markets", "2024", "Journal of Business", ("A. Author",)))
+    def test_crossref_bibliographic_fields_for_citations(self):
+        r = CrossrefSource(opener=self.opener(CROSSREF_MSG)).resolve("10.1234/abc")
+        self.assertEqual((r["reference_type"], r["volume"], r["issue"], r["pages"], r["publisher"]), ("journal-article", "12", "3", "45-60", "Test Press"))
+        self.assertEqual(r["authors_structured"], (("Author", "A."), ("Baker", "B.")))
+    def test_openalex_bibliographic_fields_and_type_mapping(self):
+        r = OpenAlexSource(opener=self.opener(OPENALEX)).resolve("10.1234/abc")
+        self.assertEqual((r["reference_type"], r["volume"], r["issue"], r["pages"], r["publisher"]), ("journal-article", "12", "3", "45-60", "Test Press"))
+        self.assertEqual(r["authors_structured"], ())          # OpenAlex returns display names only; declared as such
     def raw_opener(self, raw):
         def op(req, timeout=None): return io.BytesIO(raw)
         return op

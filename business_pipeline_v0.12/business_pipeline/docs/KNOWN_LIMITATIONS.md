@@ -140,8 +140,9 @@
 ## Added with the retrieval log and provisional citations (B-058)
 - The retrieval log is **local and append-only** (one JSONL file, default `retrieval_log.jsonl`, `BP_RETRIEVAL_LOG` overrides): it is not a shared cache, is not encrypted, has no rotation or retention policy yet, and has no locking between concurrent server instances. It holds DOIs, titles and hashes, not case text.
 - The log records **what the source served at that moment**, not that the metadata is correct, and the source may change afterwards. `reverify` is manual — there is no scheduled drift check.
-- A citation layout is **PROVISIONAL** (author-date, title, container, DOI) and will change when an institutional style is ratified (REW Q9). Author names are printed exactly as the source returned them: no APA name inversion, no initials normalisation, no bibliography ordering or de-duplication, and no in-text citation numbering.
-- An unverified reference is always formatted with the `[unverified user-supplied…]` prefix, but the system cannot stop that text being pasted elsewhere; the label is the only control.
+- Citations follow the owner-ratified styles **APA 7** and **Harvard (Cite Them Right)** (B-059), but in plain text: italics (journal names, volumes) are not representable, titles are printed as the source returns them rather than case-converted, and author names are inverted only when the source supplies family and given names (Crossref does; OpenAlex returns display names only, and its citations carry a note saying so). There is no bibliography ordering or de-duplication and no in-text citation numbering.
+- Only journal articles and books are fully styled. Any other source type (report, chapter, thesis, dataset) gets a declared generic layout with a note naming the source type, rather than a style that would imply it was handled properly.
+- An unverified reference is always formatted with the `[unverified user-supplied…]` prefix in either style; the system cannot stop that text being pasted elsewhere, but the label is in the text itself.
 - The workbench citation and log views are read-only conveniences over the API; the durable record is the file itself.
 
 ## Added with the 9B.3 honesty layer (B-057) — disclosure only, not the fix
