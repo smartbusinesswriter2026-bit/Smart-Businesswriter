@@ -1,4 +1,5 @@
 # Changelog (build)
+- 0.15 (2026-10-21): literature source wired into the API (GET /api/literature/sources, POST /api/literature/verify, call cap) and the workbench UI (References panel); live smoke test against Crossref/OpenAlex passed for one DOI.
 - 0.14 (2026-10-21): B-038 resolved (personal data only with explicit acknowledgment; owner accepts provider terms); held-out evaluation scaffold (src/bp/evaluate.py, tests/fixtures/eval_cases.json) with fact P/R/F1 scoring per B-039.
 - 0.13 (2026-10-21): provider decision B-036 resolved (DeepSeek for computation); OpenAI-compatible Chat Completions adapter (OpenAI/DeepSeek/local endpoints, BP_LLM_BASE_URL override); Stage 7 literature-source boundary first slice (Crossref/OpenAlex, verify_reference) per B-040.
 - 0.12 (2026-10-21): model-provider boundary (llm.py), validated assistance tasks (assist.py), /api/assist endpoints, workbench Assistant panel, run hashes in spec and appendix. Off unless configured.

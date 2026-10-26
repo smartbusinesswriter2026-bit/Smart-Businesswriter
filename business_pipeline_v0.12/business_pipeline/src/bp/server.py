@@ -5,12 +5,19 @@ from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
-from . import methods, registry, templates, assist, llm
+from . import methods, registry, templates, assist, llm, literature
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
 M = SessionManager(assist_runs=ASSIST_RUNS)
 MODELS = None            # llm.Models or None (model assistance off)
+LITERATURE_SOURCES = {"crossref": literature.CrossrefSource(), "openalex": literature.OpenAlexSource()}
+LITERATURE_LABELS = {"crossref": "Crossref", "openalex": "OpenAlex"}
+LITERATURE_CALLS = 0
+LITERATURE_CAP = 100     # per server run; the public APIs are free, but this stops a runaway loop
+LITERATURE_NOTICE = ("The title and DOI you enter are sent to the selected public bibliographic API (Crossref or OpenAlex) "
+                     "to look the reference up. No case text is sent. A citation is marked verified only when the DOI resolves "
+                     "and the title matches exactly.")
 WEB = os.path.join(os.path.dirname(__file__), "..", "..", "web")
 MAXBODY = 100_000
 PRESETS = {
@@ -57,6 +64,8 @@ class H(BaseHTTPRequestHandler):
                 if not MODELS: return self._send(200, {"enabled": False, "reason": "No model provider is configured on this server. Set BP_LLM_PROVIDER and BP_LLM_MODEL (and the provider's API key) and restart."})
                 c = MODELS.config; return self._send(200, {"enabled": c.enabled, "provider": MODELS.builder.name, "builder_model": MODELS.builder.model, "reviewer_model": MODELS.reviewer.model, "same_model": MODELS.same_model,
                                                           "limits": {"max_calls_total": c.max_calls_total, "calls_used": MODELS.calls, "max_input_chars": c.max_input_chars}, "privacy_notice": c.privacy_notice, "prompt_version": assist.PROMPT_VERSION})
+            if u.path == "/api/literature/sources":
+                return self._send(200, {"sources": [{"name": k, "label": LITERATURE_LABELS.get(k, k)} for k in LITERATURE_SOURCES], "notice": LITERATURE_NOTICE})
             if u.path == "/api/templates": return self._send(200, [templates.describe(k) for k in templates.TEMPLATES])
             tm = re.fullmatch(r"/api/templates/(\w+)", u.path)
             if tm:
@@ -71,6 +80,7 @@ class H(BaseHTTPRequestHandler):
         try:
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             if self.path == "/api/assist": return self._assist(self._body())
+            if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)
             if m:
                 body = self._body(); s = M.get(m[1])
@@ -97,12 +107,27 @@ class H(BaseHTTPRequestHandler):
         except assist.AssistError as e: return self._send(422, {"error": str(e), "rejected": e.rejected})
         rid = uuid.uuid4().hex[:12]; run = {**res["run"], "run_id": rid, "accepted_by_code": len(res.get("proposals", res.get("items", []))), "rejected_by_code": len(res["rejected"])}
         ASSIST_RUNS[rid] = run; res["run"] = run; return self._send(200, res)
+    def _literature(self, b):
+        global LITERATURE_CALLS
+        if not isinstance(b, dict): raise ValueError("body must be an object")
+        title, doi, name = b.get("title"), b.get("doi"), b.get("source") or "crossref"
+        if not isinstance(title, str) or not title.strip(): raise ValueError("title is required")
+        if not isinstance(name, str) or name not in LITERATURE_SOURCES: raise ValueError("source must be one of: " + ", ".join(sorted(LITERATURE_SOURCES)))
+        if LITERATURE_CALLS >= LITERATURE_CAP: return self._send(429, {"error": "literature verification call cap reached for this server run"})
+        LITERATURE_CALLS += 1
+        try:
+            ref = literature.verify_reference(title, doi, LITERATURE_SOURCES[name])
+        except literature.SourceError as e:
+            return self._send(502, {"error": str(e)})
+        return self._send(200, {"reference": {"title": ref.title, "doi": ref.doi, "authors": list(ref.authors), "year": ref.year,
+                                             "container": ref.container, "resolved_title": ref.resolved_title, "status": ref.status, "source": ref.source},
+                                 "notice": LITERATURE_NOTICE})
     def log_message(self, *a): pass
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS
     M = SessionManager(SubprocessSandbox() if sandbox else None, ASSIST_RUNS); MODELS = models if models is not None else llm.from_env()
-    print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'})"); ThreadingHTTPServer((host, port), H).serve_forever()
+    print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})"); ThreadingHTTPServer((host, port), H).serve_forever()
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]

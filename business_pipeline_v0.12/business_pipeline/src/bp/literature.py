@@ -39,7 +39,7 @@ def _crossref_authors(msg):
     return out
 
 class CrossrefSource(Source):
-    """Crossref REST API (no key required for basic metadata). Untested against the live service in this build."""
+    """Crossref REST API (no key required for basic metadata). Smoke-tested live against one DOI on 2026-10-21; coverage not yet evaluated."""
     name = "crossref"
     URL = "https://api.crossref.org/works/{doi}"
     def __init__(self, mailto=None, timeout=30, opener=None):
@@ -61,7 +61,7 @@ class CrossrefSource(Source):
                 "container": (msg.get("container-title") or [None])[0]}
 
 class OpenAlexSource(Source):
-    """OpenAlex (free, no key). Untested against the live service in this build."""
+    """OpenAlex (free, no key). Smoke-tested live against one DOI on 2026-10-21; coverage not yet evaluated."""
     name = "openalex"
     URL = "https://api.openalex.org/works/doi:{doi}"
     def __init__(self, timeout=30, opener=None): self.timeout = timeout; self._open = opener

@@ -23,4 +23,4 @@ The Stage 7 pipeline itself — the stage list from research problem to paper, t
 4. **The research-pipeline manuals** to unblock the actual Stage 7 stages (still the hard blocker).
 
 ## Tests
-`python -m unittest tests.test_literature`: request construction (Crossref URL encoding + User-Agent, OpenAlex URL), title match/mismatch/canonicalisation, unresolved DOI, 404 vs non-404 error mapping, and OpenAlex field mapping. **Not tested:** the live APIs (Crossref was rate-limited during the build; OpenAlex was reachable).
+`python -m unittest tests.test_literature tests.test_literature_api`: request construction (Crossref URL encoding + User-Agent, OpenAlex URL), title match/mismatch/canonicalisation, unresolved DOI, 404 vs non-404 error mapping, OpenAlex field mapping, and the HTTP endpoints (sources list, verify, 400/429/502) with a fake injected source. **Live smoke test (2026-10-21):** both Crossref and OpenAlex resolved DOI `10.1038/nature12373` and the exact title verified. Broader coverage of sources, formats and rate-limit behaviour is still unevaluated.

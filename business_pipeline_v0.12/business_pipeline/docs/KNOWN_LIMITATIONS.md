@@ -67,7 +67,7 @@
 - Flags (abnormal balance, contra-name heuristic, missing accrual) are heuristics that suggest items to confirm; they will miss problems and produce false alarms.
 - Mid-year policy changes cannot be detected without a declared input.
 - Beancount was not evaluated; the manual's statements about it are unverified.
-- Stage 7 is blocked for the pipeline definition (docs/STAGE7_BLOCKER.md); only the literature retrieval/verification boundary exists (src/bp/literature.py, PROVISIONAL, untested against the live APIs).
+- Stage 7 is blocked for the pipeline definition (docs/STAGE7_BLOCKER.md); only the literature retrieval/verification boundary exists (src/bp/literature.py, PROVISIONAL; smoke-tested live against one DOI, not evaluated across sources or formats).
 
 ## Added with the model provider
 - Never run against a real model. The Anthropic, OpenAI-compatible and DeepSeek adapters are unit-tested with a fake opener only; no live call has been made.
