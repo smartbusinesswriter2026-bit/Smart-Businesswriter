@@ -19,10 +19,12 @@ FRAMEWORKS = ("IFRS", "US_GAAP", "local")        # required input, never a defau
 @dataclass(frozen=True)
 class Account:
     code: str; name: str; type: str; line: str; contra: bool = False
-    role: str = ""                 # "retained_earnings" | "capital" | "dividends" | ""
+    role: str = ""                 # "retained_earnings" | "capital" | "dividends" | "cash" | ""
+    activity: str = ""             # "operating" | "investing" | "financing" | "" (cash-flow classification override; empty falls back to the type default)
     def __post_init__(self):
         if self.type not in NORMAL: raise ChartError(f"{self.code}: type must be one of {sorted(NORMAL)}")
         if not re.fullmatch(r"[A-Za-z0-9_.\-]{1,20}", self.code): raise ChartError(f"bad account code {self.code!r}")
+        if self.activity not in ("", "operating", "investing", "financing"): raise ChartError(f"{self.code}: activity must be operating, investing or financing (or empty)")
         if self.role == "dividends" and self.type == "equity" and not self.contra: object.__setattr__(self, "contra", True)    # dividends normally carry a debit balance and reduce equity
     @property
     def normal(self): return ({"D": "C", "C": "D"}[NORMAL[self.type]]) if self.contra else NORMAL[self.type]
@@ -132,6 +134,40 @@ def _sum_type(j, types, include_opening=True, role=None, only_opening=False):
                 signed = l.amount if l.side == a.normal else -l.amount      # movement on the account's normal side
                 t += -signed if a.contra else signed
     return t
+
+# ---------- Cash flow statement by two routes (manual 9.2, 9.3; PROVISIONAL pending the manual) ----------
+TYPE_ACTIVITY = {"income": "operating", "expense": "operating", "asset": "investing", "liability": "financing", "equity": "financing"}
+PRIORITY = ("operating", "investing", "financing")
+
+def cash_flow(j, st=None):
+    """Two independent computations of the period's cash movement, which must agree:
+    route A (direct) classifies each entry's cash delta by its non-cash counterpart activity; route B (indirect) derives
+    the same total from net income and the changes in non-cash assets, liabilities and non-earnings equity.
+    Cash accounts are identified by role 'cash'. Opening entries are excluded (they are prior-period balances).
+    Classification rule (declared): a counterpart account's explicit `activity` tag wins; otherwise its type defaults
+    (income/expense operating, asset investing, liability/equity financing). Entries whose counterparts mix activities are
+    classified operating-first and flagged; cash-to-cash transfers are flagged and carry no activity."""
+    st = st or statements(j)
+    op = inv = fin = D(0); fl = []
+    def is_cash(l): return j.chart.get(l.account).role == "cash"
+    for e in j.entries:
+        if e.opening: continue
+        dr = sum((l.amount for l in e.lines if l.side == "D" and is_cash(l)), D(0))
+        cr = sum((l.amount for l in e.lines if l.side == "C" and is_cash(l)), D(0))
+        if dr == 0 and cr == 0: continue
+        acts = {j.chart.get(l.account).activity or TYPE_ACTIVITY[j.chart.get(l.account).type] for l in e.lines if not is_cash(l)}
+        if len(acts) > 1: fl.append({"kind": "mixed_classification", "entry": e.description, "detail": f"counterpart activities {sorted(acts)}; classified by the operating-first priority rule"})
+        if not acts: fl.append({"kind": "cash_to_cash_transfer", "entry": e.description, "detail": "cash moved between cash accounts; no activity recorded"})
+        net = dr - cr
+        if "operating" in acts: op += net
+        elif "investing" in acts: inv += net
+        else: fin += net
+    d_cash = _sum_type(j, ("asset",), include_opening=False, role="cash")
+    d_nca = _sum_type(j, ("asset",), include_opening=False) - d_cash
+    indirect = st["net_income"] + _sum_type(j, ("equity",), include_opening=False) + _sum_type(j, ("liability",), include_opening=False) - d_nca
+    direct = op + inv + fin
+    return {"operating": op, "investing": inv, "financing": fin, "net_direct": direct, "net_indirect": indirect,
+            "checks": [("cash_flow_agrees_across_routes", direct == indirect, f"direct {direct}, indirect {indirect}")], "flags": fl}
 
 def check_invariants(j, st, prior_closing=None):
     """Independent recomputation from the journal lines, compared with the derived statements (manual 9.3). Returns [(name, ok, detail)].
