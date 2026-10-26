@@ -129,3 +129,9 @@
 - A change is applied prospectively from the period containing its date; earlier periods are never restated.
 - An UNDECLARED change remains undetectable from the journal alone — the spike's mid-year-change trap is unchanged; the declared input is the only way the system learns of it.
 - The change total remains exact: the final period absorbs the rounding remainder, so accumulated depreciation still equals cost minus the final residual.
+
+## Added with the statement exports
+- Exports are plain text only (no PDF, XLSX or DOCX); fixed-width formatting is designed for a monospace view and a text download.
+- The income statement is rendered from pre-closing figures while the balance sheet is post-closing, which is the correct pairing for a closed period; the trial balance omits zero-net rows.
+- The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
+- Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.

@@ -74,6 +74,9 @@ class PipelineFlow(unittest.TestCase):
                      "9 of 11 checks passed (2 not applicable), with 0 item(s) flagged", "not GAAP or IFRS", "expert review pending", "reconciliation supplied"): self.assertIn(frag, d.report)
         self.assertNotIn("{{", d.report)
         ap = d.appendix["accounts"]; self.assertIn("closing: income to retained earnings", ap["export"]); self.assertEqual(ap["checks"][0][1], True)
+        se = ap["statements_export"]
+        for k in ("trial_balance", "income_statement", "balance_sheet", "cash_flow", "notes", "combined"): self.assertIn(k, se)
+        self.assertIn("Net income", se["income_statement"]); self.assertIn("TRIAL BALANCE", se["trial_balance"]); self.assertIn("TOTAL" if False else "Total assets", se["balance_sheet"])
         self.assertEqual(d.appendix["method"]["review_status"], "pending_named_reviewer")
         a = {x.id: x for x in p.store.all()}; self.assertEqual((a["net_income"].value.unit, a["net_income"].value.currency), ("currency", "USD")); self.assertEqual(a["checks_passed"].value.unit, "count")
     def test_bad_spec_blocks_with_reason(self):

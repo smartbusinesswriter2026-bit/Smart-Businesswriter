@@ -71,7 +71,7 @@ class API(unittest.TestCase):
         self.assertEqual(self.call("/api/sessions", {"method": "npv"})[0], 400)
         self.assertEqual(self.call("/api/sessions/nope")[0], 404)
     def test_index_served(self):
-        c, b = self.call("/"); self.assertEqual(c, 200); self.assertIn(b"Draft work plan", b); self.assertIn(b"Account mapping", b)
+        c, b = self.call("/"); self.assertEqual(c, 200); self.assertIn(b"Draft work plan", b); self.assertIn(b"Account mapping", b); self.assertIn(b"Download financial statements", b)
     def test_two_phase_account_mapping_checkpoint(self):
         from bp import accounts
         c, b = self.call("/api/sessions", {"objective": "Prepare the management accounts.", "method": "management_accounts", "currency": "USD", "inputs": {"spec": accounts.EXAMPLE_SPEC}})

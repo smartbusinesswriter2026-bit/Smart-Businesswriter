@@ -5,7 +5,7 @@ never posts anything the owner did not declare. Declared policy changes (a chang
 prospectively from their date and are disclosed in the appendix. Management accounts only: not GAAP/IFRS statements
 (manual 9.5)."""
 from decimal import Decimal as D
-from . import ledger, schedules, reconcile
+from . import ledger, schedules, reconcile, report
 
 class EngagementError(ValueError): pass
 
@@ -185,23 +185,24 @@ def build(spec):
     checks = ledger.check_invariants(j, st, spec.get("prior_closing")) + cf["checks"] + ledger.retained_earnings_rollforward(j, pre)
     re_code = next(c for c, a in chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings")
     flags = ledger.flags(j) + cf["flags"]
-    rec = spec.get("reconciliation")
+    rec = spec.get("reconciliation"); rec_raw = None
     if rec:
         r = reconcile.reconcile(j, rec["account"], rec["statement"])
-        checks = checks + r["checks"]; flags = flags + r["flags"]; rec_report = _s(r["report"])
+        checks = checks + r["checks"]; flags = flags + r["flags"]; rec_raw = r["report"]
     else:
         checks = checks + [("statement_internally_consistent", True, "no reconciliation was supplied"),
                            ("opening_balances_agree", True, "no reconciliation was supplied")]
-        rec_report = None
     na = 0 if rec else 2     # checks that were not applicable rather than passed
     scalars = {"net_income": pre["net_income"], "total_assets": st["total_assets"], "total_liabilities": st["total_liabilities"], "total_equity": st["equity_with_current_earnings"],
                "retained_earnings_closing": ledger.closing_balances(j).get(re_code, D(0)), "cash_net": cf["net_direct"],
                "checks_passed": D(sum(1 for _, ok, _ in checks if ok) - na), "checks_total": D(len(checks)), "checks_na": D(na),
                "n_entries": D(n_posted), "n_flags": D(len(flags))}
+    policies = spec.get("policy_changes") or []
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
-             "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text()}
-    if rec_report is not None: extra["reconciliation"] = rec_report
+             "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text(),
+             "statements_export": report.financial_statements(j, pre, cf, spec["framework"], policy_changes=policies, rec_report=rec_raw, places=places)}
+    if rec_raw is not None: extra["reconciliation"] = _s(rec_raw)
     notes = [{"date": c["date"], "kind": c["kind"], "description": c["description"], "treatment": c["treatment"],
-              "applied_prospectively": c["kind"] != "disclosure"} for c in (spec.get("policy_changes") or [])]
+              "applied_prospectively": c["kind"] != "disclosure"} for c in policies]
     if notes: extra["policy_changes"] = notes
     return {**scalars, "_appendix": extra, "_checks": checks}

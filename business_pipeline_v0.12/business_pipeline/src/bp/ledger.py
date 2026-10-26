@@ -107,7 +107,7 @@ def trial_balance(j):
     rows, td, tc = [], D(0), D(0)
     for code, (d, c) in j.balances().items():
         net = d - c
-        if net == 0 and d == 0: continue
+        if net == 0: continue                                          # closed accounts and fully settled balances carry no line
         rows.append((code, j.chart.get(code).name, net if net > 0 else D(0), -net if net < 0 else D(0))); td += rows[-1][2]; tc += rows[-1][3]
     return {"rows": rows, "total_debits": td, "total_credits": tc}
 
@@ -148,7 +148,7 @@ def cash_flow(j, st=None):
     (income/expense operating, asset investing, liability/equity financing). Entries whose counterparts mix activities are
     classified operating-first and flagged; cash-to-cash transfers are flagged and carry no activity."""
     st = st or statements(j)
-    op = inv = fin = D(0); fl = []
+    op = inv = fin = D(0); fl = []; detail = []
     def is_cash(l): return j.chart.get(l.account).role == "cash"
     for e in j.entries:
         if e.opening: continue
@@ -159,14 +159,15 @@ def cash_flow(j, st=None):
         if len(acts) > 1: fl.append({"kind": "mixed_classification", "entry": e.description, "detail": f"counterpart activities {sorted(acts)}; classified by the operating-first priority rule"})
         if not acts: fl.append({"kind": "cash_to_cash_transfer", "entry": e.description, "detail": "cash moved between cash accounts; no activity recorded"})
         net = dr - cr
-        if "operating" in acts: op += net
-        elif "investing" in acts: inv += net
-        else: fin += net
+        if "operating" in acts: kind, op = "operating", op + net
+        elif "investing" in acts: kind, inv = "investing", inv + net
+        else: kind, fin = "financing", fin + net
+        if net != 0: detail.append({"date": e.date, "description": e.description, "activity": kind, "amount": net})
     d_cash = _sum_type(j, ("asset",), include_opening=False, role="cash")
     d_nca = _sum_type(j, ("asset",), include_opening=False) - d_cash
     indirect = st["net_income"] + _sum_type(j, ("equity",), include_opening=False) + _sum_type(j, ("liability",), include_opening=False) - d_nca
     direct = op + inv + fin
-    return {"operating": op, "investing": inv, "financing": fin, "net_direct": direct, "net_indirect": indirect,
+    return {"operating": op, "investing": inv, "financing": fin, "net_direct": direct, "net_indirect": indirect, "detail": detail,
             "checks": [("cash_flow_agrees_across_routes", direct == indirect, f"direct {direct}, indirect {indirect}")], "flags": fl}
 
 # ---------- Period-end closing and the retained-earnings rollforward (manual 9.3; B-034, B-046) ----------

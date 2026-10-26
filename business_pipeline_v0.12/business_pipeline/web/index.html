@@ -54,7 +54,7 @@ pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
 <div class="row" style="margin-top:14px"><button class="primary" id="confirm">Confirm spec and run</button><button id="reject">Reject</button><span class="sub" id="confnote"></span></div></section>
 <section class="card" id="runcard" hidden><h2>Stage status (from run events)</h2><div id="stages"></div></section>
 <section class="card" id="out" hidden><h2>Result</h2><div id="report" class="report"></div><div id="blocked" class="sub"></div>
-<div class="row" style="margin-top:12px"><span id="sbx" class="sub"></span><button id="dl" hidden>Download re-performance bundle</button></div>
+<div class="row" style="margin-top:12px"><span id="sbx" class="sub"></span><button id="dl" hidden>Download re-performance bundle</button><button id="dlst" hidden>Download financial statements</button></div>
 <details style="margin-top:12px"><summary>Provenance appendix</summary><pre id="appendix"></pre></details>
 <details style="margin-top:8px"><summary>Run log</summary><pre id="log"></pre></details></section>
 </main>
@@ -96,7 +96,7 @@ function render(s){
   $("runcard").hidden=false;$("stages").replaceChildren();
   Object.entries(s.stage_states).forEach(([k,v])=>{const r=add($("stages"),"div",undefined,"stage");add(r,"span",k.replace("_"," "));add(r,"span",v.replace("_"," "),"badge "+v)});
   if(s.delivery){$("out").hidden=false;$("report").textContent=s.delivery.report||"";$("blocked").textContent=s.delivery.blocked_reason?"Blocked: "+s.delivery.blocked_reason:"Tier: "+s.delivery.tier;
-    $("appendix").textContent=JSON.stringify(s.delivery.appendix,null,2);const A=s.delivery.appendix||{};$("sbx").textContent=A.sandbox?("Executed: "+(typeof A.sandbox==="string"?A.sandbox:"sandboxed process; network blocked; writes limited to a temp folder")):"";$("dl").hidden=!A.reperform;$("dl").onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(A.reperform,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=u;a.download="reperform_"+s.id+".json";a.click();URL.revokeObjectURL(u)};$("log").textContent=s.events.map(e=>JSON.stringify(e)).join("\n")}else $("out").hidden=true}
+    $("appendix").textContent=JSON.stringify(s.delivery.appendix,null,2);const A=s.delivery.appendix||{};$("sbx").textContent=A.sandbox?("Executed: "+(typeof A.sandbox==="string"?A.sandbox:"sandboxed process; network blocked; writes limited to a temp folder")):"";$("dl").hidden=!A.reperform;$("dl").onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(A.reperform,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=u;a.download="reperform_"+s.id+".json";a.click();URL.revokeObjectURL(u)};const SE=(A.accounts||{}).statements_export;$("dlst").hidden=!SE;$("dlst").onclick=()=>{const u=URL.createObjectURL(new Blob([SE.combined],{type:"text/plain"}));const a=document.createElement("a");a.href=u;a.download="statements_"+s.id+".txt";a.click();URL.revokeObjectURL(u)};$("log").textContent=s.events.map(e=>JSON.stringify(e)).join("\n")}else $("out").hidden=true}
 let runs=[];
 function reqObj(){try{return JSON.parse($("req").value)}catch(e){throw new Error("The request box does not contain valid JSON")}}
 function setReq(o){$("req").value=JSON.stringify(o,null,2)}
