@@ -137,6 +137,14 @@
 - The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
 - Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
 
+## Added with structured-file ingestion (B-065)
+- Only **CSV/TSV** and **XLSX** are read. **PDF, scans, images and SPSS `.sav` are refused** with explicit messages: no OCR and no PDF text extraction is implemented, so reading them would be invention. Convert the source or paste its values with the source named.
+- XLSX: only the **first sheet** is read; merged cells, multi-sheet selection, styles beyond date detection, and rich text are not handled. Formula cells use the cached value stored in the file; a formula with no cached value is a missing cell.
+- Declared conventions: first non-empty row is the header; headers must be non-empty and unique after trimming; a column mixing numbers and text is typed `mixed` (never coerced); empty/whitespace means missing; dates are normalised to `YYYY-MM-DD` using the workbook date system.
+- Caps are **refused, not truncated**: 5 MB, 1000 data rows, 50 columns.
+- Provenance is table-level (file, SHA-256, data row i and column j, sheet): it says where every value came from, not that the value is correct. The importer performs no type coercion, no imputation and no unit inference.
+- Ingested columns are **not mapped automatically** into a method's inputs: choosing which column is `values`, `y` or `predictors` is the user's decision, so no column semantics are invented.
+
 ## Added with retrieval failover and the drift sweep (B-064)
 - Failover covers only the two configured literature sources (Crossref, then OpenAlex). If both are unreachable the lookup fails with a 502 rather than silently marking the DOI unverified; if both report "not found", the reference stays unverified.
 - The drift sweep is **manual**, bounded (API default 10, cap 25) and network-bound: it re-resolves recent logged DOIs and reports `hash_match` / `hash_differs` / `unresolvable_now` / `unreachable`. There is no scheduled or automatic re-check, and it never rewrites the log.

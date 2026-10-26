@@ -97,7 +97,7 @@ Existing artifact discipline that REW must reuse:
 - **Run log + provenance appendix + delivery bundle** with hashes; re-performance via `src/bp/reperform.py` `[REPO]`.
 - **Statement exports** are deterministic plain text `[REPO]` (B-051); there is no PDF/XLSX writer.
 
-Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codebook schema, screening-log schema, dataset-versioning rules, and the ingestion path for structured data (CSV/XLSX/SPSS) — ingestion is a P0 gap in `docs/PRODUCT_GAP_MAP.md`. **A useful schema proposal must include, per variable: name, type, unit, allowed range, provenance allowed, missing-code policy.**
+Still needed for research `[OPEN]` Q4: analysis-table/CSV export schema, codebook schema, screening-log schema and dataset-versioning rules. Structured **ingestion** is built (B-065): CSV/TSV and XLSX become a typed table with a provenance pointer (file, SHA-256, row/column), while PDF/scan/OCR and SPSS are refused explicitly and would need a declared extraction step plus human confirmation before any value could be treated as data.
 
 ## 9. Literature retrieval, citation and verification
 

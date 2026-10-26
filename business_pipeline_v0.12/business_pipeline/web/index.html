@@ -43,6 +43,10 @@ pre{white-space:pre-wrap;overflow-x:auto;font-size:12px;margin:0}
 <div class="sub" style="margin-top:10px">Every resolved reference is written to the local retrieval log (source, UTC time, response SHA-256) so it can be re-checked later. <button id="reflog" type="button" style="font-size:12px;padding:2px 8px">Show retrieval log</button> <button id="refdrift" type="button" style="font-size:12px;padding:2px 8px">Check drift</button></div>
 <pre id="reflogout" aria-live="polite"></pre>
 <pre id="refdriftout" aria-live="polite"></pre></div></section>
+<section class="card" id="ingest"><h2>Data ingestion (structured files)</h2>
+<div class="sub">Read a CSV/TSV or XLSX file into a typed table with a provenance pointer (file, SHA-256, data row i and column j). PDF, scans, images and SPSS files are refused: no PDF text extraction or OCR is implemented, so nothing is invented. Limits: 5 MB, 1000 data rows, 50 columns.</div>
+<div class="row" style="margin-top:8px"><input type="file" id="ingfile" accept=".csv,.tsv,.txt,.xlsx" aria-label="Structured data file" style="flex:1"><button id="inggo" type="button">Ingest file</button></div>
+<pre id="ingout" aria-live="polite"></pre></section>
 <section class="card" id="mapcard" hidden><h2>Account mapping (second checkpoint)</h2>
 <div class="sub">This is the manual's second mandatory checkpoint. Nothing is posted and no statement is computed until you confirm this mapping.</div>
 <div id="maprows" style="margin-top:8px"></div><div id="mapchecks" class="sub" style="margin-top:8px"></div></section>
@@ -142,4 +146,15 @@ $("refdrift").onclick=async()=>{try{const r=await fetch("/api/literature/drift?l
  $("refdriftout").textContent=lines.join("\n")}catch(e){$("refdriftout").textContent=e.message}};
 $("reflog").onclick=async()=>{try{const r=await fetch("/api/literature/log?limit=20");const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
  $("reflogout").textContent=j.entries.length?j.entries.map(e=>(e.logged_at||"")+"  "+(e.source||"")+"  "+(e.doi||"")+"  "+e.status+"  "+(e.response_hash||"").slice(0,16)).join("\n"):(j.enabled?"No retrievals logged yet.":"Retrieval log disabled on this server.")}catch(e){$("reflogout").textContent=e.message}};
+function toB64(buf){const b=new Uint8Array(buf);let s="";for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s)}
+$("inggo").onclick=async()=>{const f=$("ingfile").files[0];if(!f){$("ingout").textContent="Choose a CSV/TSV or XLSX file first.";return}
+ $("ingout").textContent="Reading "+f.name+"…";
+ try{const raw=await f.arrayBuffer();
+  const r=await fetch("/api/ingest",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({filename:f.name,content_base64:toB64(raw)})});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+  const t=j.table,lines=[t.filename+" ("+t.kind+(t.sheet?", sheet "+t.sheet:"")+") — "+t.n_rows+" rows, "+t.n_cols+" columns","sha256 "+t.sha256];
+  t.columns.forEach(c=>lines.push("  "+c.name+": "+c.type+", "+c.n_present+" present, "+c.n_missing+" missing, sample "+c.sample.join(" | ")));
+  (t.rows||[]).slice(0,5).forEach(row=>lines.push("  "+row.map(v=>v===null?"·":v).join(" | ")));
+  lines.push("Provenance: "+t.provenance.locator+" — "+t.provenance.note);
+  $("ingout").textContent=lines.join("\n")}catch(e){$("ingout").textContent=e.message}};
 </script></body></html>

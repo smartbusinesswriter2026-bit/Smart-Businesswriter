@@ -24,7 +24,7 @@ Priorities: **P0** = gatekeeper (unblocks other work) · **P1** = high leverage,
 | Gap | Why it matters | Tier / verification note |
 |---|---|---|
 | **Retrieval + citation layer** — standards, company filings, tax, literature | The manual makes retrieval mandatory before trusting any drifting rule ([manual §15, line 520](sources/business_pipeline_v0_3.md#L520)); it unblocks framework citation, tax (B-052), the research workflow (REW), and valuation multiples | A *boundary*, not a computation: hash-audited, fail-closed, labels of `retrieved + cited` vs `declared by you (not verified)`, never a silent memory citation. **Built:** literature slice with response sha256 + UTC time (B-054), durable retrieval log (B-058), APA/Harvard citation formatting (B-059), Crossref→OpenAlex failover with recorded attempts and a drift sweep (B-064). **Still missing:** standards/filings/tax source families and any additional scholarly APIs. |
-| **Ingestion** — PDF/scan/Excel/SPSS → structured, reusing the quote/provenance discipline | Most of the 140 catalogue items are data-hungry; the system today only eats hand-typed JSON. Manual open question ([§16, line 552](sources/business_pipeline_v0_3.md#L552)) | Structured files → T1; OCR/PDF → unverified text → T2 + label + human confirm |
+| **Ingestion** — PDF/scan/Excel/SPSS → structured, reusing the quote/provenance discipline | Most of the 140 catalogue items are data-hungry; the system today only eats hand-typed JSON. Manual open question ([§16, line 552](sources/business_pipeline_v0_3.md#L552)) | **Built (B-065):** CSV/TSV and XLSX → typed table with types, missing counts and a provenance pointer; caps refused, not truncated. **Still missing:** PDF/scan/OCR and SPSS ingestion (refused explicitly), multi-sheet/merged-cell handling, and automatic column→method-input mapping. Structured files → T1; OCR/PDF → unverified text → T2 + label + human confirm (not implemented) |
 | **Decision dependencies** | Reviewers to promote T2→T1 (B-005), the ledger-engine choice (B-032), ratification of the research-manual proposals (B-053; R11 done, R1–R10 open) | Owner decisions, not build; they gate promotion and any jurisdiction-dependent work |
 
 ### B. Statistics completion (manual 9B.2/9B.3) — P1
@@ -72,10 +72,10 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
 ## Recommended order
 
 1. **Ratify the remaining research-manual proposals (R1–R10)** — free, unblocks the REW track and turns proposals into a build spec; R11 (the manual as working authority) is already ratified, and the original Smart Researcher manuals remain welcome and would be reconciled against it.
-2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable.
+2. **Retrieval + citation (P0)** — the highest-leverage single item; it unlocks tax, REW, framework citation and valuation, and is the one thing the manual treats as non-negotiable. Literature retrieval, audit log, APA/Harvard, failover and drift are built (B-040/B-054/B-058/B-059/B-064); standards/filings/tax sources remain a source decision.
 3. ~~Statement ratio analysis (P1/C)~~ — **done** (B-056, commit for 0.31).
 4. **9B.3 upgrades (P1/B)** — disclosure layer (B-057), multiple-comparison correction (B-060), power/minimum-effect (B-061), missing-data bounds (B-062) and weighted summaries (B-063) are done; **imputation and complex-design inference are the remaining statistical items**, each needing a declared model/design choice.
-5. **Ingestion (P0/A)** in parallel with the above.
+5. **Ingestion (P0/A)** — structured ingestion is built (B-065: CSV/TSV and XLSX → typed table with provenance, caps refused); PDF/scan/OCR/SPSS remain refused by design and would need a declared extraction step plus human confirmation.
 6. **Breadth (P2)** only after reviewers are named (B-005) and templates are chosen (B-028), so promotion and scope decisions are made once.
 
 ## Owner asks to un-block this

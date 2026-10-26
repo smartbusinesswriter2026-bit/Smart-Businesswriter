@@ -5,7 +5,7 @@ from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
-from . import methods, registry, templates, assist, llm, literature, accounts
+from . import methods, registry, templates, assist, llm, literature, accounts, ingest
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -23,6 +23,7 @@ LITERATURE_NOTICE = ("The title and DOI you enter are sent to the selected publi
                      "UTC time, SHA-256 of the response bytes) so a citation can be re-checked later.")
 WEB = os.path.join(os.path.dirname(__file__), "..", "..", "web")
 MAXBODY = 100_000
+INGEST_MAXBODY = 7_500_000   # base64 of the 5 MB ingestion limit, plus JSON overhead
 PRESETS = {
     "npv": {"objective": "Should we invest in this project?", "method": "npv", "currency": "USD", "period": "annual",
            "inputs": {"rate": "0.10", "cashflows": ["-1000", "400", "400", "400"]}, "sensitivity": {"rate": ["0.05", "0.25"]}},
@@ -67,9 +68,9 @@ class H(BaseHTTPRequestHandler):
         b = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
         self.send_header("X-Content-Type-Options", "nosniff"); self.end_headers(); self.wfile.write(b)
-    def _body(self):
+    def _body(self, maxb=None):
         n = int(self.headers.get("Content-Length") or 0)
-        if n > MAXBODY: raise ValueError("body too large")
+        if n > (maxb or MAXBODY): raise ValueError("body too large")
         return json.loads(self.rfile.read(n) or b"{}", parse_float=Decimal)
     def do_GET(self):
         try:
@@ -122,6 +123,7 @@ class H(BaseHTTPRequestHandler):
         try:
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             if self.path == "/api/assist": return self._assist(self._body())
+            if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)
             if m:
@@ -177,6 +179,11 @@ class H(BaseHTTPRequestHandler):
         if style: body["citation"] = literature.format_citation(ref, style)
         return self._send(200, body)
     def log_message(self, *a): pass
+
+    def _ingest(self, b):
+        try: table = ingest.decode_request(b)
+        except ingest.IngestError as e: return self._send(422, {"error": str(e)})
+        return self._send(200, {"table": table})
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS
