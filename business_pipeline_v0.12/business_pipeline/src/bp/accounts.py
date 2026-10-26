@@ -1,7 +1,9 @@
 """Declarative layer for the Stage 8 ledger (manual 9.1-9.3): a JSON-serializable engagement spec that builds a chart,
 posts the declared opening balances, entries and schedules into the ledger kernel, closes the period, and returns the
 statements, trial balance, two-route cash flow, every check and the human-review flags. The spec is data; the kernel
-never posts anything the owner did not declare. Management accounts only: not GAAP/IFRS-compliant statements (manual 9.5)."""
+never posts anything the owner did not declare. Declared policy changes (a change in an accounting estimate) apply
+prospectively from their date and are disclosed in the appendix. Management accounts only: not GAAP/IFRS statements
+(manual 9.5)."""
 from decimal import Decimal as D
 from . import ledger, schedules, reconcile
 
@@ -27,6 +29,24 @@ EXAMPLE_SPEC = {
 }
 
 _KINDS = ("depreciation", "amortization", "accrual")
+_POLICY_KINDS = ("useful_life_revision", "residual_value_revision", "disclosure")
+
+def _at_period(start, date):
+    """1-based period index of `date` within a schedule starting at `start` (YYYY-MM)."""
+    y1, m1 = map(int, start.split("-")); y2, m2 = map(int, date[:7].split("-"))
+    return (y2 - y1) * 12 + (m2 - m1) + 1
+
+def _schedule_changes(spec):
+    """Map the declared policy changes onto their schedules as prospective schedule revisions (life and/or residual)."""
+    out = {}
+    for c in spec.get("policy_changes") or []:
+        if not isinstance(c, dict) or c.get("kind") not in ("useful_life_revision", "residual_value_revision"): continue
+        s = spec["schedules"][c["schedule"]]
+        rec = {"at_period": _at_period(s["start"], c["date"]),
+               "life": c["life"] if c["kind"] == "useful_life_revision" else s["life"],
+               "residual": c.get("residual", s.get("residual", "0"))}
+        out.setdefault(c["schedule"], []).append(rec)
+    return out
 
 def _s(x):
     if isinstance(x, D): return str(x)
@@ -86,11 +106,37 @@ def validate_spec(spec):
     for i, s in enumerate(spec.get("schedules") or []):
         if not isinstance(s, dict) or s.get("kind") not in _KINDS: errs.append(f"schedules[{i}] needs a kind in {list(_KINDS)}"); continue
         s2 = dict(s); kind = s2.pop("kind")
+        try: s2["changes"] = _schedule_changes(spec).get(i, [])
+        except (KeyError, IndexError, TypeError, ValueError): s2["changes"] = []
         try: es = getattr(schedules, kind)(s2)
         except schedules.ScheduleError as e: errs.append(f"schedules[{i}]: {e}"); continue
         for j, e in enumerate(es):
             for l in e["lines"]:
                 if l["account"] not in codes: errs.append(f"schedules[{i}] uses unknown account {l['account']}")
+    pcs = spec.get("policy_changes")
+    if pcs is not None:
+        if not isinstance(pcs, list): errs.append("policy_changes must be a list")
+        else:
+            sched_list = spec.get("schedules") or []
+            end = (p or {}).get("end") if isinstance(p, dict) else None
+            for i, c in enumerate(pcs):
+                tag = f"policy_changes[{i}]"
+                if not isinstance(c, dict): errs.append(f"{tag} must be an object"); continue
+                if not ledger.DATE.fullmatch(str(c.get("date", "")) or ""): errs.append(f"{tag} date must be YYYY-MM-DD")
+                elif start and end and not (start <= c["date"] <= end): errs.append(f"{tag} date is outside the period")
+                if c.get("treatment") != "prospective": errs.append(f"{tag} treatment must be 'prospective' (retrospective restatement is not implemented)")
+                if not isinstance(c.get("description"), str) or not c["description"].strip(): errs.append(f"{tag} description is required")
+                kind = c.get("kind")
+                if kind not in _POLICY_KINDS: errs.append(f"{tag} kind must be one of {list(_POLICY_KINDS)}"); continue
+                if kind == "disclosure": continue
+                idx = c.get("schedule")
+                if isinstance(idx, bool) or not isinstance(idx, int) or not (0 <= idx < len(sched_list)): errs.append(f"{tag} schedule must be the index of a schedules entry"); continue
+                if not isinstance(sched_list[idx], dict) or sched_list[idx].get("kind") != "depreciation": errs.append(f"{tag} only a depreciation schedule can carry this change"); continue
+                if kind == "useful_life_revision" and not (isinstance(c.get("life"), int) and not isinstance(c.get("life"), bool) and c["life"] > 0): errs.append(f"{tag} life must be a positive whole number")
+                if kind == "residual_value_revision":
+                    try: r = D(str(c.get("residual")))
+                    except Exception: errs.append(f"{tag} residual is required"); continue
+                    if not r.is_finite() or r < 0: errs.append(f"{tag} residual must not be negative")
     rec = spec.get("reconciliation")
     if rec is not None:
         if not isinstance(rec, dict): errs.append("reconciliation must be an object with an account and a statement")
@@ -127,8 +173,9 @@ def build(spec):
         j.post(ledger.Entry.make(p["start"], e.get("description", "opening"), e["lines"], places, opening=True)); n_posted += 1
     for e in spec.get("entries", []):
         j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
-    for s in spec.get("schedules", []):
-        s2 = dict(s); kind = s2.pop("kind")
+    by_sched = _schedule_changes(spec)
+    for i, s in enumerate(spec.get("schedules", [])):
+        s2 = dict(s); kind = s2.pop("kind"); s2["changes"] = by_sched.get(i, [])
         for e in getattr(schedules, kind)(s2):
             j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
     pre = ledger.statements(j)
@@ -154,4 +201,7 @@ def build(spec):
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text()}
     if rec_report is not None: extra["reconciliation"] = rec_report
+    notes = [{"date": c["date"], "kind": c["kind"], "description": c["description"], "treatment": c["treatment"],
+              "applied_prospectively": c["kind"] != "disclosure"} for c in (spec.get("policy_changes") or [])]
+    if notes: extra["policy_changes"] = notes
     return {**scalars, "_appendix": extra, "_checks": checks}

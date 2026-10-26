@@ -141,4 +141,39 @@ class MappingCheckpoint(unittest.TestCase):
         d = Pipeline().run({"objective": "x", "method": "npv", "currency": "USD", "inputs": {"rate": "0.10", "cashflows": ["-1000", "400"]}}, yes)
         self.assertEqual(d.status, "delivered")
 
+class PolicyChanges(unittest.TestCase):
+    def test_declared_change_is_applied_prospectively_and_disclosed(self):
+        spec = copy.deepcopy(SPEC)
+        spec["policy_changes"] = [{"date": "2026-07-01", "kind": "useful_life_revision", "schedule": 0, "life": 10,
+                                   "description": "useful life revised from 12 to 10 periods", "treatment": "prospective"}]
+        self.assertEqual(accounts.validate_spec(spec), [])
+        out = accounts.build(spec)
+        self.assertEqual(out["n_entries"], D(17))          # 1 opening + 3 entries + 10 depreciation + 3 closing
+        self.assertTrue(all(ok for _, ok, _ in out["_checks"]))
+        notes = out["_appendix"]["policy_changes"]; self.assertEqual(len(notes), 1)
+        self.assertEqual((notes[0]["treatment"], notes[0]["applied_prospectively"]), ("prospective", True))
+        self.assertEqual(out["_appendix"]["export"].count("depreciation"), 10)   # total unchanged, spread over fewer periods (post-closing statements carry no expense lines)
+        self.assertIn("Any declared policy change is listed in the appendix", Pipeline().run(req(spec), yes).report)
+    def test_disclosure_only_change_has_no_computation_effect(self):
+        spec = copy.deepcopy(SPEC)
+        spec["policy_changes"] = [{"date": "2026-02-01", "kind": "disclosure", "description": "reclassification of rent", "treatment": "prospective"}]
+        self.assertEqual(accounts.validate_spec(spec), []); out = accounts.build(spec)
+        self.assertEqual(out["n_entries"], D(19)); self.assertFalse(out["_appendix"]["policy_changes"][0]["applied_prospectively"])
+    def test_validation_traps(self):
+        cases = (
+            (lambda s: s.update(policy_changes=[{"date": "2027-01-01", "kind": "disclosure", "description": "x", "treatment": "prospective"}]), "outside the period"),
+            (lambda s: s.update(policy_changes=[{"kind": "disclosure", "description": "x", "treatment": "prospective"}]), "date must be"),
+            (lambda s: s.update(policy_changes=[{"date": "2026-02-01", "kind": "disclosure", "treatment": "prospective"}]), "description is required"),
+            (lambda s: s.update(policy_changes=[{"date": "2026-02-01", "kind": "other", "description": "x", "treatment": "prospective"}]), "kind must be"),
+            (lambda s: s.update(policy_changes=[{"date": "2026-07-01", "kind": "useful_life_revision", "schedule": 3, "life": 10, "description": "x", "treatment": "prospective"}]), "schedule must be"),
+            (lambda s: s.update(policy_changes=[{"date": "2026-02-01", "kind": "disclosure", "description": "x", "treatment": "retrospective"}]), "retrospective"),
+        )
+        for mut, frag in cases:
+            s = copy.deepcopy(SPEC); mut(s); self.assertIn(frag, " ".join(accounts.validate_spec(s)), frag)
+    def test_impossible_change_blocks_the_pipeline(self):
+        spec = copy.deepcopy(SPEC)
+        spec["policy_changes"] = [{"date": "2026-07-01", "kind": "useful_life_revision", "schedule": 0, "life": 6,
+                                   "description": "x", "treatment": "prospective"}]
+        d = Pipeline().run(req(spec), yes); self.assertEqual(d.status, "blocked"); self.assertIn("policy change", d.blocked_reason)
+
 if __name__ == "__main__": unittest.main()

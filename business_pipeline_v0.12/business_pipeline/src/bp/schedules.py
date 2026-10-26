@@ -46,7 +46,11 @@ def _common(spec):
     return places, start
 
 def depreciation(spec):
-    """Straight-line depreciation: one Dr expense / Cr accumulated-depreciation entry per period."""
+    """Straight-line depreciation: one Dr expense / Cr accumulated-depreciation entry per period. An optional `changes`
+    list applies a declared PROSPECTIVE revision of useful life and/or residual value from a period onward (a change in
+    accounting estimate): earlier periods keep the old amount, and the remaining carrying amount is spread over the
+    revised remaining life. The final period absorbs the rounding remainder so the schedule sums exactly to
+    cost minus the final residual. Retrospective restatement is not implemented."""
     cost = _dec(spec.get("cost"), "cost"); residual = _dec(spec.get("residual"), "residual"); life = spec.get("life")
     places, start = _common(spec)
     if isinstance(life, bool) or not isinstance(life, int) or life < 1: raise ScheduleError("life must be a whole number of at least one period")
@@ -54,12 +58,37 @@ def depreciation(spec):
     if residual < 0 or residual >= cost: raise ScheduleError("residual must be between zero and the cost")
     _check_places(cost, places, "cost"); _check_places(residual, places, "residual")
     _codes(spec, ("dep_account", "accum_account"))
-    total = cost - residual; per = (total / life).quantize(D(1).scaleb(-places), rounding=ROUND_HALF_EVEN)
-    out = []
-    for i in range(life):
-        amount = per if i < life - 1 else total - per * (life - 1)      # declared rule: the final period absorbs the remainder
-        out.append({"date": _month_end(start, i), "description": spec.get("description", "depreciation"),
-                    "lines": [{"account": spec["dep_account"], "debit": str(amount)}, {"account": spec["accum_account"], "credit": str(amount)}]})
+    chs = []
+    for c in spec.get("changes") or []:
+        at, new_life = c.get("at_period"), c.get("life")
+        if isinstance(at, bool) or not isinstance(at, int) or at < 1: raise ScheduleError("a policy change needs a whole at_period of at least one")
+        if isinstance(new_life, bool) or not isinstance(new_life, int) or new_life < 1: raise ScheduleError("a policy change needs a whole new life of at least one")
+        r2 = _dec(c.get("residual", residual), "change residual"); _check_places(r2, places, "change residual")
+        if r2 < 0 or r2 >= cost: raise ScheduleError("a change residual must be between zero and the cost")
+        chs.append({"at_period": at, "life": new_life, "residual": r2})
+    chs.sort(key=lambda c: c["at_period"])
+    segs = []; life_cur, resid_cur, seg_start, ci = life, residual, 1, 0
+    while True:
+        seg_end = (chs[ci]["at_period"] - 1) if ci < len(chs) else life_cur
+        if seg_end > life_cur: raise ScheduleError("a policy change falls after the current useful life ends")
+        if seg_end < seg_start: raise ScheduleError("a policy change leaves no periods to depreciate before it")
+        segs.append((seg_start, seg_end, life_cur, resid_cur))
+        if ci >= len(chs): break
+        c = chs[ci]
+        if c["at_period"] < 2: raise ScheduleError("a policy change must take effect after at least one period")
+        life_cur, resid_cur, seg_start = c["life"], c["residual"], c["at_period"]
+        if life_cur < seg_start: raise ScheduleError("a policy change leaves no periods to depreciate after it")
+        ci += 1
+    out = []; charged = D(0); last_k = len(segs) - 1; resid_final = segs[-1][3]
+    for k, (s, e, life_k, resid_k) in enumerate(segs):
+        if cost - charged - resid_k <= 0: raise ScheduleError("a policy change leaves nothing to depreciate")
+        rem = life_k - (s - 1); per = ((cost - charged - resid_k) / rem).quantize(D(1).scaleb(-places), rounding=ROUND_HALF_EVEN)
+        if per == 0 and e > s: raise ScheduleError("the depreciation per period rounds to zero; the amount is too small for the declared places")
+        for period in range(s, e + 1):
+            amount = (cost - charged - resid_final) if (k == last_k and period == e) else per
+            out.append({"date": _month_end(start, period - 1), "description": spec.get("description", "depreciation"),
+                        "lines": [{"account": spec["dep_account"], "debit": str(amount)}, {"account": spec["accum_account"], "credit": str(amount)}]})
+            charged += amount
     return out
 
 def amortization(spec):

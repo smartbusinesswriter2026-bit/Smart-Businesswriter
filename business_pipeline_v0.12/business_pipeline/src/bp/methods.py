@@ -1326,7 +1326,8 @@ def accounts_template(out, P, th):
     return (f"The engagement posts {tok('n_entries')} entries. Net income is {tok('net_income')}; total assets are {tok('total_assets')} against liabilities of {tok('total_liabilities')} and equity of {tok('total_equity')}. "
             f"Closing retained earnings are {tok('retained_earnings_closing')}. The cash flow statement shows a net change in cash of {tok('cash_net')} and its two routes agree. "
             f"{tok('checks_passed')} of {tok('checks_total')} checks passed ({tok('checks_na')} not applicable), with {tok('n_flags')} item(s) flagged for human review. "
-            "Any reconciliation supplied for the engagement is listed in the appendix with its in-transit and unrecorded items.")
+            "Any reconciliation supplied for the engagement is listed in the appendix with its in-transit and unrecorded items. "
+            "Any declared policy change is listed in the appendix with its prospective treatment.")
 
 _ACC_INPUTS = {"spec": {"type": "engagement_spec", "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules"}}
 _ACC_DEFAULTS = (

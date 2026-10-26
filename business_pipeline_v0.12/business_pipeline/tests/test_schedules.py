@@ -85,4 +85,34 @@ class Accrual(unittest.TestCase):
         for e in S.accrual(ACC): j.post(L.Entry.make(e["date"], e["description"], e["lines"]))
         r = L.check_invariants(j, L.statements(j)); self.assertTrue(all(ok for _, ok, _ in r), r)
         self.assertEqual(L.statements(j)["liabilities"]["Accruals"], D(1500))
+class PolicyChanges(unittest.TestCase):
+    """Declared prospective changes in an accounting estimate (manual 9.3, B-050)."""
+    BASE = {"cost": "1200", "residual": "0", "life": 10, "start": "2026-01", "dep_account": "5100", "accum_account": "1510"}
+    def test_useful_life_revision_applies_prospectively(self):
+        es = S.depreciation({**self.BASE, "changes": [{"at_period": 7, "life": 9}]})
+        amts = [D(e["lines"][0]["debit"]) for e in es]
+        self.assertEqual(len(es), 9); self.assertEqual([str(a) for a in amts], ["120.00"] * 6 + ["160.00"] * 3)
+        self.assertEqual(sum(amts, D(0)), D(1200)); self.assertEqual(es[6]["date"], "2026-07-31")
+    def test_residual_revision_changes_the_remaining_base(self):
+        es = S.depreciation({**self.BASE, "changes": [{"at_period": 7, "life": 10, "residual": "240"}]})
+        amts = [D(e["lines"][0]["debit"]) for e in es]
+        self.assertEqual([str(a) for a in amts], ["120.00"] * 6 + ["60.00"] * 4); self.assertEqual(sum(amts, D(0)), D(960))
+    def test_life_extension(self):
+        es = S.depreciation({**self.BASE, "changes": [{"at_period": 7, "life": 12}]})
+        amts = [D(e["lines"][0]["debit"]) for e in es]
+        self.assertEqual(len(es), 12); self.assertEqual([str(a) for a in amts], ["120.00"] * 6 + ["80.00"] * 6); self.assertEqual(sum(amts, D(0)), D(1200))
+    def test_remainder_is_absorbed_after_a_change(self):
+        es = S.depreciation({"cost": "1000", "residual": "0", "life": 3, "start": "2026-01", "dep_account": "5100", "accum_account": "1510",
+                             "changes": [{"at_period": 3, "life": 4}]})
+        amts = [D(e["lines"][0]["debit"]) for e in es]
+        self.assertEqual(len(es), 4); self.assertEqual(sum(amts, D(0)), D(1000)); self.assertTrue(all(a > 0 for a in amts))
+    def test_invalid_changes_block(self):
+        for ch, frag in (([{"at_period": 1, "life": 9}], "leaves no periods to depreciate before"),
+                         ([{"at_period": 7, "life": 6}], "leaves no periods to depreciate after"),
+                         ([{"at_period": 7, "life": 9}, {"at_period": 12, "life": 12}], "after the current useful life"),
+                         ([{"at_period": 7, "life": 9, "residual": "1200"}], "between zero and the cost"),
+                         ([{"at_period": 7, "life": 0}], "whole new life")):
+            with self.assertRaises(S.ScheduleError) as c: S.depreciation({**self.BASE, "changes": ch})
+            self.assertIn(frag, str(c.exception))
+
 if __name__ == "__main__": unittest.main()
