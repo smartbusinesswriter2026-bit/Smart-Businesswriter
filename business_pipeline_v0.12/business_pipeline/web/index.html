@@ -22,7 +22,7 @@
   --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08); --sh-3:0 18px 48px rgba(2,40,76,.14);
   --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --doc:"Times New Roman",Times,serif;
-  --rail-w:64px; --rail-w-open:232px;
+  --rail-w:64px; --rail-w-open:272px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -59,49 +59,48 @@ label.field{display:block;font-size:14.4px;color:var(--text-2);margin:0 0 4px}
 .locale select{padding:5px 8px;font-size:14.4px}
 
 /* ---------- shell + rail ---------- */
-.shell{display:grid;grid-template-columns:var(--rail-w) 1fr;align-items:start}
+.shell{display:flex;align-items:flex-start}
 .rail{position:sticky;top:56px;height:calc(100vh - 56px);background:var(--surface);border-right:1px solid var(--border);
-      padding:10px 8px;display:flex;flex-direction:column;gap:4px;overflow:hidden;transition:width .18s ease;z-index:20}
-body.rail-open .shell{grid-template-columns:var(--rail-w-open) 1fr}
+      width:var(--rail-w);flex:0 0 auto;padding:12px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;
+      transition:width .34s cubic-bezier(.32,.72,0,1),padding .34s cubic-bezier(.32,.72,0,1);z-index:20}
 body.rail-open .rail{width:var(--rail-w-open)}
-.railtoggle{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:40px;height:36px;padding:0 9px;
+.railtoggle{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0 10px;
             border-radius:var(--r-sm);color:var(--text-2);flex:0 0 auto}
 .railtoggle:hover{background:var(--sunken)}
-.railtoggle .rt-collapse,.railtoggle .rt-label{display:none}
-.railtoggle .rt-label{font-size:14.4px;font-weight:600;color:var(--text-2);white-space:nowrap}
-body.rail-open .railtoggle{width:100%;justify-content:flex-start}
+.railtoggle .rt-collapse{display:none}
+body.rail-open .railtoggle{justify-content:flex-end}
 body.rail-open .railtoggle .rt-expand{display:none}
 body.rail-open .railtoggle .rt-collapse{display:block}
-body.rail-open .railtoggle .rt-label{display:inline}
-.railitem{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;height:42px;padding:0 9px;border-radius:var(--r-md);
+.railitem{all:unset;cursor:pointer;display:flex;align-items:center;gap:14px;height:42px;padding:0 12px;border-radius:var(--r-md);
           color:var(--navy-700);position:relative;white-space:nowrap}
 .railitem:hover{background:var(--sunken)}
 .railitem svg{flex:0 0 22px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.railitem .railtext{font-size:15.6px;opacity:0;transition:opacity .12s ease}
-body.rail-open .railitem .railtext{opacity:1}
+.railitem .railtext{font-size:15.6px;opacity:0;transform:translateX(-8px);
+                    transition:opacity .2s ease,transform .34s cubic-bezier(.32,.72,0,1)}
+body.rail-open .railitem .railtext{opacity:1;transform:none}
 .railitem[aria-current=page]{background:var(--navy-100);color:var(--navy-900);font-weight:600}
 .railitem[aria-current=page]::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--navy-900)}
 .railitem .ic{color:var(--i,var(--navy-700))}
 .railitem[aria-current=page] .ic{color:var(--i,var(--navy-900))}
-.railsep{height:1px;background:var(--border-2);margin:6px 9px}
+.railsep{height:1px;background:var(--border-2);margin:6px 12px}
 .railtip{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:var(--navy-900);color:#fff;
          font-size:14.4px;padding:5px 9px;border-radius:var(--r-sm);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s;z-index:40}
 .railitem:hover .railtip,body.rail-open .railtip{display:none}
 body.rail-open .railitem:hover .railtip{display:block;opacity:1;left:calc(100% + 6px)}
 /* the subject list scrolls inside the rail; Calculator stays pinned at the foot */
-.railsubjects{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
+.railsubjects{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
               scrollbar-color:var(--border) transparent}
 .railsubjects::-webkit-scrollbar{width:6px}
 .railsubjects::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .railsubjects .railitem{flex:0 0 auto}
 .railgroup-label{font-size:12.0px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);
-                 padding:8px 9px 2px;opacity:0;transition:opacity .12s ease}
+                 padding:8px 12px 2px;opacity:0;transition:opacity .2s ease}
 body.rail-open .railgroup-label{opacity:1}
 .railfoot{margin-top:auto;padding-top:6px;flex:0 0 auto;background:var(--surface)}
 .railfallback{font-size:13.2px;color:var(--text-3);padding:6px 9px;white-space:normal}
 
 /* ---------- main + hero ---------- */
-main{padding:28px 32px 96px;max-width:1180px;width:100%;margin:0 auto}
+main{padding:28px 32px 96px;max-width:1180px;width:100%;margin:0 auto;flex:1 1 auto;min-width:0}
 .panel[hidden]{display:none}
 .hero{text-align:center;padding:34px 0 26px}
 .hero img{height:72px;width:auto}
@@ -269,9 +268,8 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:900px){
-  .shell{grid-template-columns:56px 1fr}
+  :root{--rail-w:56px}
   .topbar .tagline{display:none}
-  body.rail-open .shell{grid-template-columns:1fr}
   body.rail-open .rail{position:fixed;left:0;top:56px;width:var(--rail-w-open);height:calc(100vh - 56px)}
   main{padding:20px 16px 90px}
   .hero h1{font-size:31.2px}
@@ -295,7 +293,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: clean Home, larger text and chat button lower right">v0.72</span>
+  <span class="pill" id="buildpill" title="Served build: wider, smoother rail with the arrow on the right">v0.73</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -312,7 +310,6 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
     <button class="railtoggle" id="railtoggle" type="button" aria-expanded="false" aria-controls="rail" aria-label="Expand navigation" title="Expand navigation">
       <svg class="rt-expand" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="rt-collapse" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-      <span class="rt-label">Collapse</span>
     </button>
 
     <a class="railitem" href="#/home" data-panel="home" style="--i:var(--navy-900)" title="Home: the case shelf, the chat and a new analysis">
