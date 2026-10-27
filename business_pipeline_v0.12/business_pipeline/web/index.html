@@ -398,6 +398,10 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <span class="ic"><svg viewBox="0 0 384 512" aria-hidden="true"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM96 64H288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg></span>
         <span class="railtext">Calculator</span><span class="railtip">Calculator: launch any financial or business calculation the engine supports</span>
       </a>
+      <a class="railitem" href="#/check" data-panel="check" style="--i:#5AD1A8" title="Check: compare your own trial balance with the one your journal produces">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6a1 1 0 0 1 1 1v1h1.5A1.5 1.5 0 0 1 19 7.5V19a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.5A1.5 1.5 0 0 1 6.5 6H8V5a1 1 0 0 1 1-1z"/><path d="M9 4v3h6V4"/><path d="M8.5 14l2 2 4-4"/></svg></span>
+        <span class="railtext">Check</span><span class="railtip">Check: compare your own trial balance with the one your journal produces</span>
+      </a>
     </div>
   </nav>
 
@@ -547,6 +551,26 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <div id="statusout"></div>
       </div>
     </section>
+
+    <section class="panel" id="panel-check" hidden aria-labelledby="check-title">
+      <div class="card">
+        <h2 id="check-title">Check my trial balance</h2>
+        <p class="muted">Paste your trial balance straight from Excel: one account per line, with its debit or
+          credit. Nothing is calculated on this page &mdash; the engine compares what you give it with the
+          trial balance your own journal produces, and tells you where the two disagree.</p>
+        <label class="field" for="tbinput">Your trial balance &mdash; account, debit, credit (tab, comma or semicolon)</label>
+        <textarea id="tbinput" rows="12" spellcheck="false" placeholder="Cash&#9;1500&#9;&#10;Capital&#9;&#9;1500"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="checkrun" type="button">Check</button>
+          <button class="btn" id="checkdemo" type="button">Use an example</button>
+          <button class="btn" id="checkclear" type="button">Clear</button>
+        </div>
+        <p class="muted" style="margin-top:10px">With only a trial balance I can check that it balances and is
+          internally consistent. That is the weakest check in accounting: errors of principle, commission,
+          original entry, omission, reversal and compensating errors all leave a trial balance balanced.</p>
+      </div>
+      <div id="checkout"></div>
+    </section>
   </main>
 </div>
 
@@ -681,7 +705,7 @@ const state = {
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null
 };
-const PANELS = ["home", "subjects", "subject", "calculator", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+const PANELS = ["home", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 
 /* ---------- language ---------- */
 const LOCALES = {
@@ -1941,6 +1965,105 @@ async function exportStatements() {
 }
 
 /* ---------- status ---------- */
+/* ---------- check my trial balance ---------- */
+const CHECK_DEMO_JOURNAL = {
+  period: { start: "2026-01-01", end: "2026-03-31" }, currency: "USD", framework: "IFRS", places: 2,
+  chart: [
+    { code: "1000", name: "Cash", type: "asset", line: "Cash", role: "cash" },
+    { code: "3000", name: "Capital", type: "equity", line: "Capital", role: "capital" },
+    { code: "3100", name: "Retained earnings", type: "equity", line: "Retained earnings", role: "retained_earnings" }
+  ],
+  prior_closing: { "1000": "1000", "3000": "1000" },
+  opening: [{ description: "opening", lines: [{ account: "1000", debit: "1000" }, { account: "3000", credit: "1000" }] }],
+  entries: [{ date: "2026-02-01", description: "capital introduced",
+              lines: [{ account: "1000", debit: "500" }, { account: "3000", credit: "500" }] }],
+  schedules: []
+};
+let checkJournal = null;
+
+function parseTrialBalance(text) {
+  const rows = [], problems = [], numeric = (v) => v === "" || /^-?\d+(\.\d+)?$/.test(v);
+  String(text || "").split(/\r?\n/).forEach((line, i) => {
+    if (!line.trim()) return;
+    const cells = line.split(/\t|;|,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((x) => x.replace(/^"|"$/g, "").trim());
+    if (cells.length < 3) { problems.push("Line " + (i + 1) + ": needs three columns - account, debit, credit."); return; }
+    const name = cells[0], debit = cells[1].replace(/[,\s]/g, ""), credit = cells[2].replace(/[,\s]/g, "");
+    if (!numeric(debit) || !numeric(credit)) {
+      if (i === 0 && /account|debit|credit/i.test(cells.join(" "))) return;      // a header row is not an error
+      problems.push("Line " + (i + 1) + ": the debit and credit must be numbers, or blank.");
+      return;
+    }
+    if (!name) { problems.push("Line " + (i + 1) + ": the account name is blank."); return; }
+    rows.push({ name: name, debit: debit || "0", credit: credit || "0" });
+  });
+  return { rows: rows, problems: problems };
+}
+
+function checkMoney(v) { return v === null || v === undefined ? "" : esc(String(v)); }
+
+function checkReport(d, det) {
+  const verdict = det.verdict || (d.delivery && d.delivery.report) || "";
+  let html = '<div class="card"><h2>The verdict</h2><p>' + esc(verdict) + "</p>";
+  if (det.findings && det.findings.length) {
+    html += "<h3>What I found</h3><ul>" + det.findings.map((f) =>
+      "<li><strong>" + esc(String(f.kind).replace(/-/g, " ")) + "</strong> &mdash; " + esc(f.detail) + "</li>").join("") + "</ul>";
+  }
+  html += "</div>";
+  if (det.rows && det.rows.length) {
+    html += '<div class="card"><h2>Line by line</h2><table><thead><tr><th>Account</th><th>Your figure</th>' +
+      "<th>From your journal</th><th>Difference</th><th></th></tr></thead><tbody>" + det.rows.map((r) =>
+      "<tr><td>" + esc(r.name || r.code || "") + "</td><td>" + checkMoney(r.submitted) + "</td><td>" +
+      checkMoney(r.rebuilt) + "</td><td>" + checkMoney(r.difference) + "</td><td>" + esc(r.status) + "</td></tr>").join("") +
+      "</tbody></table></div>";
+  }
+  if (det.cannot_prove && det.cannot_prove.length) {
+    html += '<div class="card"><h2>What this check cannot prove</h2><ul>' +
+      det.cannot_prove.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul></div>";
+  }
+  return html;
+}
+
+async function runCheck() {
+  const out = $("#checkout");
+  const parsed = parseTrialBalance($("#tbinput").value);
+  if (parsed.problems.length) {
+    out.innerHTML = '<div class="card">' + banner("blocked", "I cannot read that yet",
+      "<ul>" + parsed.problems.slice(0, 6).map((p) => "<li>" + esc(p) + "</li>").join("") + "</ul>") + "</div>";
+    return;
+  }
+  if (!parsed.rows.length) {
+    out.innerHTML = '<div class="card">' + banner("blocked", "Nothing to check",
+      "Paste at least one line with an account and a debit or credit.") + "</div>";
+    return;
+  }
+  out.innerHTML = '<div class="card">' + loading("Checking your trial balance") + "</div>";
+  try {
+    const inputs = { trial_balance: parsed.rows };
+    if (checkJournal) inputs.journal = checkJournal;
+    let d = await post("/api/sessions", { objective: "Check my trial balance",
+                                          method: "trial_balance_check", period: "annual", inputs: inputs });
+    if (d.status === "awaiting_confirmation") d = await post("/api/sessions/" + encodeURIComponent(d.id) + "/confirm", {});
+    if (d.status !== "delivered") {
+      const why = (d.delivery && d.delivery.blocked_reason) || "The check did not deliver.";
+      out.innerHTML = '<div class="card">' + banner("blocked", "The check did not run", esc(why)) + "</div>";
+      return;
+    }
+    out.innerHTML = checkReport(d, (d.delivery && d.delivery.appendix && d.delivery.appendix.detail) || {});
+  } catch (e) {
+    out.innerHTML = '<div class="card">' + banner("blocked", "The check did not run", esc(e.message)) + "</div>";
+  }
+}
+
+RENDERERS.check = function () {
+  $("#checkrun").onclick = runCheck;
+  $("#checkclear").onclick = () => { $("#tbinput").value = ""; $("#checkout").innerHTML = ""; checkJournal = null; };
+  $("#checkdemo").onclick = () => {
+    checkJournal = CHECK_DEMO_JOURNAL;
+    $("#tbinput").value = "Cash\t1500\t\nCapital\t\t1500";
+    runCheck();
+  };
+};
+
 RENDERERS.status = function () {
   const p = $("#panel-status");
   p.innerHTML = '<div class="card">' + loading("Reading the local status") + "</div>";
