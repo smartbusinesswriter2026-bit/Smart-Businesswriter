@@ -1,0 +1,130 @@
+{
+ "note": "Schedule arithmetic generated with exact fractions, rounding half-even at the declared places and letting the final period absorb the remainder. The library under test uses Decimal; this uses Fraction, so agreement is evidence rather than tautology.",
+ "generator": "tests/fixtures/generate_schedule_golden.py",
+ "numeric_route": "fractions.Fraction",
+ "python": "3.14.2",
+ "rounding": "ROUND_HALF_EVEN at the declared places; final period absorbs the remainder",
+ "cases": [
+  {
+   "name": "straight_line_even",
+   "kind": "depreciation",
+   "spec": {
+    "start": "2026-01",
+    "dep_account": "5100",
+    "accum_account": "1100",
+    "cost": "10000",
+    "residual": "1000",
+    "life": 4,
+    "places": 2
+   },
+   "expected": [
+    "2250.00",
+    "2250.00",
+    "2250.00",
+    "2250.00"
+   ]
+  },
+  {
+   "name": "straight_line_rounding",
+   "kind": "depreciation",
+   "spec": {
+    "start": "2026-01",
+    "dep_account": "5100",
+    "accum_account": "1100",
+    "cost": "1000",
+    "residual": "0",
+    "life": 3,
+    "places": 2
+   },
+   "expected": [
+    "333.33",
+    "333.33",
+    "333.34"
+   ]
+  },
+  {
+   "name": "reducing_balance_40pct",
+   "kind": "depreciation",
+   "spec": {
+    "start": "2026-01",
+    "dep_account": "5100",
+    "accum_account": "1100",
+    "cost": "10000",
+    "residual": "1000",
+    "life": 4,
+    "rate": "0.4",
+    "places": 2,
+    "method": "reducing_balance"
+   },
+   "expected": [
+    "4000.00",
+    "2400.00",
+    "1440.00",
+    "1160.00"
+   ]
+  },
+  {
+   "name": "units_of_production",
+   "kind": "depreciation",
+   "spec": {
+    "start": "2026-01",
+    "dep_account": "5100",
+    "accum_account": "1100",
+    "cost": "10000",
+    "residual": "1000",
+    "total_units": "1000",
+    "units_per_period": [
+     100,
+     400,
+     500
+    ],
+    "places": 2,
+    "method": "units_of_production"
+   },
+   "expected": [
+    "900.00",
+    "3600.00",
+    "4500.00"
+   ]
+  },
+  {
+   "name": "prepayment_three",
+   "kind": "prepayment",
+   "spec": {
+    "total": "1000",
+    "periods": 3,
+    "places": 2,
+    "start": "2026-01",
+    "date": "2026-01-05",
+    "prepaid_account": "1300",
+    "expense_account": "5000",
+    "cash_account": "1000"
+   },
+   "expected": [
+    "333.33",
+    "333.33",
+    "333.34"
+   ]
+  },
+  {
+   "name": "deferred_income_four",
+   "kind": "deferred_income",
+   "spec": {
+    "total": "900",
+    "periods": 4,
+    "places": 2,
+    "start": "2026-01",
+    "date": "2026-01-10",
+    "cash_account": "1000",
+    "deferred_account": "2100",
+    "revenue_account": "4000"
+   },
+   "expected": [
+    "225.00",
+    "225.00",
+    "225.00",
+    "225.00"
+   ]
+  }
+ ]
+}

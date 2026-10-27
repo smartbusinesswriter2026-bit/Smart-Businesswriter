@@ -1,5 +1,37 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Close the two gaps the verification pass found
+
+**Why.** The pass proved the invariants hold, and said plainly what it did not prove: there was no golden
+fixture for the schedule arithmetic, and sandbox parity for the new schedule kinds had been checked by hand
+once rather than permanently. Both were cheap and both were the difference between "the invariants hold"
+and "the numbers are right".
+
+**1. A golden fixture with an independent numeric route.** `tests/fixtures/generate_schedule_golden.py`
+computes the expected amounts with exact `fractions.Fraction` and does **not import** `bp.schedules`; the
+library computes with `Decimal`. Six cases: straight-line even and with a rounding remainder,
+40% reducing balance, units of production, a three-period prepayment and a four-period deferred income.
+The comparison is exact - a tolerance would hide precisely the rounding defect the fixture exists to catch.
+Result: the two numeric models agree on every amount, including the 333.33 / 333.33 / 333.34 split and the
+1,160.00 final reducing-balance charge.
+
+**2. Permanent sandbox parity.** `tests/test_accounting_sandbox_parity.py` builds the combined engagement
+(reversal, three depreciation methods through schedules, prepayment, deferred income, allowance and
+write-off, disposal, revaluation, dividends) inside the guarded subprocess and in-process, then asserts the
+eleven check results, their names, and every delivered scalar agree exactly. It agrees.
+
+**A bug in the fixture generator, caught before it mattered.** The first depreciation cases omitted `start`
+and the account codes, so the generator produced a fixture the engine could not run at all - every case
+failed with "start must be YYYY-MM". Fixed by giving the depreciation cases their structural defaults; the
+amounts were never affected.
+
+**What remains unproven, stated rather than hidden:** no multi-period chaining test (closing balances
+feeding the next period's opening with a revaluation reserve and deferrals carried forward), and no
+re-performance run of a delivered bundle carrying the new appendix fields. Both are noted for the next
+verification pass rather than assumed to be fine.
+
+**Verified.** 909 tests OK. No unfreeze. No build number. Nothing pushed.
+
 ## 2026-10-27 — [computation] Verification pass over the accounting pipeline
 
 **Why.** Every increment tonight was proven in isolation, and the suite that guards them was written
