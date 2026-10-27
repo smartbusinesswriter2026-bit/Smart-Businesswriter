@@ -208,6 +208,8 @@ def build(spec):
     policies = spec.get("policy_changes") or []
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text(),
+             "ledgers": _s(ledger.account_ledgers(j)),
+             "t_accounts_export": {lg["code"]: report.t_account(lg, places) for lg in ledger.account_ledgers(j)},
              "statements_export": report.financial_statements(j, pre, cf, spec["framework"], policy_changes=policies, rec_report=rec_raw, places=places)}
     if rec_raw is not None: extra["reconciliation"] = _s(rec_raw)
     notes = [{"date": c["date"], "kind": c["kind"], "description": c["description"], "treatment": c["treatment"],

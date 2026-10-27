@@ -111,6 +111,60 @@ def trial_balance(j):
         rows.append((code, j.chart.get(code).name, net if net > 0 else D(0), -net if net < 0 else D(0))); td += rows[-1][2]; tc += rows[-1][3]
     return {"rows": rows, "total_debits": td, "total_credits": tc}
 
+def account_ledger(j, code):
+    """One account as a T-account: its opening balance, every posting in date order with the
+    running balance on the account's normal side, and its closing balance.
+
+    The running balance is a *reading of the account*, not a presentation choice, so it is
+    produced here rather than assembled in the page.  Closing entries are included and marked:
+    a T-account that silently dropped the close would not foot to the trial balance, which is
+    the whole point of being able to look at one account.
+
+    Postings are ordered by date, keeping the journal's own order for same-date entries, so the
+    running balance reads chronologically even when opening or closing entries were posted last.
+    """
+    a = j.chart.get(code)
+    ordered = sorted(enumerate(j.entries), key=lambda t: (t[1].date, t[0]))
+
+    # Pass 1: the opening balance, so the running balance can start from it.
+    od = oc = D(0)
+    for _, e in ordered:
+        if not e.opening:
+            continue
+        for l in e.lines:
+            if l.account != code:
+                continue
+            if l.side == "D": od += l.amount
+            else: oc += l.amount
+    opening = natural(j.chart, code, od, oc)
+
+    # Pass 2: the period movements, running on from the opening balance.
+    dr = cr = D(0)
+    running = opening
+    rows = []
+    for _, e in ordered:
+        if e.opening:
+            continue
+        for l in e.lines:
+            if l.account != code:
+                continue
+            if l.side == "D": dr += l.amount
+            else: cr += l.amount
+            running += l.amount if l.side == a.normal else -l.amount
+            rows.append({"date": e.date, "entry": e.description, "closing": bool(e.closing),
+                         "debit": l.amount if l.side == "D" else D(0),
+                         "credit": l.amount if l.side == "C" else D(0),
+                         "balance": running})
+    return {"code": code, "name": a.name, "type": a.type, "normal": a.normal, "contra": bool(a.contra),
+            "opening_debit": od, "opening_credit": oc, "opening_balance": opening,
+            "movements": rows, "movement_debits": dr, "movement_credits": cr,
+            "closing_balance": running,
+            "closing_debits": od + dr, "closing_credits": oc + cr}
+
+def account_ledgers(j):
+    """Every account's T-account, in chart order."""
+    return [account_ledger(j, code) for code in j.chart.accounts]
+
 def _signed(chart, code, d, c):
     """Contribution of an account to its statement section: contra accounts reduce the section they sit in."""
     a = chart.get(code); n = natural(chart, code, d, c); return -n if a.contra else n

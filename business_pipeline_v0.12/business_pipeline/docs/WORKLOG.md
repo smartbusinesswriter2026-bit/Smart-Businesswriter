@@ -1,5 +1,58 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] T-accounts: the ledger can now be read one account at a time
+
+**Ask.** Phase 1 of the accounting build, first increment: the owner named "no T-tree balancing" as a
+missing capability, and nothing in the engine could show a single account's movement — only a trial
+balance total and derived statements. Layout first, wiring later; this is the computation side.
+
+**B-032 closed (owner instruction, this session).** The ledger engine is the **custom kernel for
+management accounts v1**, as the provisional recommendation already on record. The Beancount arm was
+never run and is recorded as not run; the decision note records that it can be revisited if an external
+engine is ever wanted. Phase 1 sits directly on this decision, which is why it was closed first.
+
+**Did.**
+
+- `ledger.account_ledger(j, code)` — one account as a T-account: opening balance (from the opening
+  entry), every period posting in **date order** with the **running balance on the account's normal
+  side**, the movement totals, and the closing balance. Closing entries are included and marked, so an
+  income account that reads zero explains why instead of hiding the close.
+- `ledger.account_ledgers(j)` — every chart account, in chart order, including accounts with no
+  postings (an empty account is information).
+- `report.t_account(lg)` / `report.t_accounts(...)` — deterministic plain-text rendering, same
+  conventions as the other statement exports (fixed width, parentheses for negatives). It renders the
+  numbers it is given and recomputes nothing.
+- `accounts.build` now emits `ledgers` (serialised) and `t_accounts_export` (rendered text per account)
+  in the appendix, so the workbench can show a T-account without ever computing a balance itself.
+
+**Two design decisions worth recording.**
+
+1. The running balance is computed **in the core, not the page**, because it is a reading of the account
+   rather than a presentation choice. A design-layer balance would be a derived business number, which
+   §1A forbids.
+2. The **frozen contract was deliberately not touched.** `management_accounts` is T2 with eleven
+   `test_names` pinned in `tests/fixtures/frozen_contract.json`; adding a twelfth invariant to
+   `check_invariants` would have forced a fixture change for no gain. The footing property is instead
+   proven by `tests/test_t_account_ledger.py`, which rebuilds the journal and compares every account's
+   debit and credit totals against `j.balances()`.
+
+**A bug I wrote and caught.** The first version read `l.opening` (a line attribute that does not exist)
+instead of `e.opening`, and started the running balance at zero rather than at the opening balance. Both
+were caught by the new tests before any commit.
+
+**Verified.** 769 tests OK, including 8 new ones:
+every account foots to the trial balance; opening + movement = closing; the running balance recomputes
+from its own rows; postings read chronologically; the close is visible and zeroes an income account; a
+contra asset stays credit-normal and still reduces its section; an unposted account is present and
+empty; and a trap test showing a ledger that omits the opening balance would **not** foot — so the
+footing assertion can actually fail.
+
+**Still not fixed, carried forward:** `multi_product_breakeven` does not flag a negative-contribution
+product (needs an unfreeze because it changes `test_names`).
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
 ## 2026-10-27 — [computation] The server told browsers to cache a page it recomputes every time
 
 **Found while verifying the catalogue fix.** After correcting the catalogue and restarting

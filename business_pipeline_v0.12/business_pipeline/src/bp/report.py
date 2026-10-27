@@ -13,6 +13,31 @@ def _num(v, places=2):
 def _row(label, value, places=2, width=46):
     return f"{label[:width]:<{width}}{_num(value, places):>20}"
 
+def t_account(lg, places=2):
+    """One account as a readable T-account: opening balance, dated postings with a running
+    balance, the movement, and the closing balance.
+
+    The numbers are rendered exactly as `ledger.account_ledger` computed them; nothing is
+    recalculated here. A closing entry is marked, because a reader who sees the income and
+    expense accounts go to zero deserves to know why.
+    """
+    out = [f"ACCOUNT {lg['code']} {lg['name']}", f"  {lg['type']}, normal side {'debit' if lg['normal'] == 'D' else 'credit'}"
+                                                 + (", contra" if lg.get("contra") else "")]
+    out.append(_row("  Opening balance", lg["opening_balance"], places))
+    if not lg["movements"]:
+        out.append("  no movement in the period")
+    for r in lg["movements"]:
+        mark = " (closing)" if r.get("closing") else ""
+        out.append(f"  {r['date']}  Dr {_num(r['debit'], places):>16}  Cr {_num(r['credit'], places):>16}"
+                   f"  balance {_num(r['balance'], places):>16}{mark}  {r['entry'][:40]}")
+    out.append(_row("  Movement, debits less credits", lg["movement_debits"] - lg["movement_credits"], places))
+    out.append(_row("  Closing balance", lg["closing_balance"], places))
+    return "\n".join(out)
+
+def t_accounts(ledgers, places=2):
+    """Every account's T-account, separated by a blank line."""
+    return "\n\n".join(t_account(lg, places) for lg in ledgers)
+
 def _money(v, currency, places=2):
     s = f"{abs(v):,.{places}f}"
     return f"{currency} ({s})" if v < 0 else f"{currency} {s}"
