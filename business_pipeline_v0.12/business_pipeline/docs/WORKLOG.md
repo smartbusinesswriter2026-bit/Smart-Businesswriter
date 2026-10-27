@@ -1,5 +1,50 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Depreciation beyond straight-line: reducing balance and units of production
+
+**Ask.** Phase 1, fourth increment: `schedules.py` could only do straight-line, so any case with an
+asset depreciated against its carrying amount, or against how much it actually produced, could not be
+represented at all.
+
+**Did.** `depreciation(spec)` now dispatches on a declared `method`: `straight_line` (the default, so
+every existing spec is unchanged), `reducing_balance` and `units_of_production`. All three keep the
+two guarantees the straight-line implementation already made - the charge never takes the carrying
+amount below the declared residual, and the schedule sums exactly to cost minus residual with the
+final charge absorbing the rounding remainder - and all three emit the same Dr expense / Cr
+accumulated-depreciation shape, so nothing downstream changes.
+
+- **Reducing balance** charges a declared per-period `rate` against the carrying amount. The rate is
+  declared, never derived: the choice of rate is the owner's estimate, not a fact the engine can find.
+- **Units of production** spreads the depreciable amount over a declared `total_units` and charges each
+  period's own usage. The rounding remainder is absorbed by the **last period that actually produced**,
+  not by a trailing idle period - dumping it into a month with no production would misstate both.
+
+**Refused:** an unknown method; a rate outside `(0, 1)`; a charge that rounds to zero while the asset is
+still above its residual; units summing to more than `total_units`; negative units; all-zero units; and
+`changes` on a non-straight-line method, because a revised useful life has no defined meaning there.
+Refusing is deliberate - silently ignoring `changes` would post a schedule the owner did not ask for.
+
+**A now-false claim, corrected.** `KNOWN_LIMITATIONS.md` stated that schedules cover "straight-line
+depreciation ... only; no declining-balance or units-of-production depreciation". That sentence became
+false the moment this landed, so it was rewritten in the same commit - the same discipline the
+catalogue correction applied earlier today.
+
+**Verified.** 806 tests OK, including 19 new ones: all three methods sum to cost minus residual and
+never dip below the residual; reducing balance charges 4000/2400/1440/1160 on a 10,000 asset at 40%;
+units of production charges per usage and puts the remainder in the last producing period; every
+refusal above is exercised; a trap test shows the new methods genuinely differ from straight-line; and
+two integration tests post a reducing-balance and a units schedule through a **full engagement**,
+confirming the balance sheet still balances, the expense closes to nil and net income carries the charge.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**Still not done, and now clearly queued:** asset disposal and revaluation (a disposal closes the
+accumulated depreciation against the asset and recognises the gain or loss), then the remaining
+adjusting-entry types.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
 ## 2026-10-27 — [computation] Reversing entries: a correction you can see, not a balance you adjust
 
 **Ask.** Phase 1, third increment: bookkeeping corrections were only possible by hand-writing the

@@ -45,7 +45,101 @@ def _common(spec):
     if not (MONTH.fullmatch(start or "")): raise ScheduleError("start must be YYYY-MM")
     return places, start
 
+_DEPRECIATION_METHODS = ("straight_line", "reducing_balance", "units_of_production")
+
 def depreciation(spec):
+    """Depreciation by the method the owner declares: `straight_line` (default), `reducing_balance`
+    or `units_of_production`.
+
+    Every method produces the same shape - one Dr expense / Cr accumulated-depreciation entry per
+    period - and every method guarantees the same two things: the charge never takes the carrying
+    amount below the declared residual, and the schedule sums exactly to cost minus residual (the
+    final charge absorbs the rounding remainder).
+
+    Only `straight_line` supports `changes` (a prospective revision of life and/or residual): the
+    other two methods have no defined meaning for a revised life, so they refuse it rather than
+    silently ignore it.
+    """
+    method = spec.get("method", "straight_line")
+    if method not in _DEPRECIATION_METHODS:
+        raise ScheduleError(f"depreciation method must be one of {list(_DEPRECIATION_METHODS)}")
+    if method == "straight_line":
+        return _depreciation_straight_line(spec)
+    if spec.get("changes"):
+        raise ScheduleError("policy changes are only supported by the straight_line method")
+    if method == "reducing_balance":
+        return _depreciation_reducing_balance(spec)
+    return _depreciation_units(spec)
+
+def _depreciation_reducing_balance(spec):
+    """Reducing-balance depreciation: each period charges a declared rate against the carrying
+    amount, never pushing it below the residual, and the final period takes the remainder.
+
+    The rate is a per-period proportion (0 < rate < 1); it is declared, never derived, because the
+    choice of rate is the owner's estimate and not a fact the engine can discover.
+    """
+    cost = _dec(spec.get("cost"), "cost"); residual = _dec(spec.get("residual"), "residual")
+    rate = _dec(spec.get("rate"), "rate"); life = spec.get("life")
+    places, start = _common(spec)
+    if isinstance(life, bool) or not isinstance(life, int) or life < 1: raise ScheduleError("life must be a whole number of at least one period")
+    if cost <= 0: raise ScheduleError("cost must be positive")
+    if residual < 0 or residual >= cost: raise ScheduleError("residual must be between zero and the cost")
+    if not (0 < rate < 1): raise ScheduleError("rate must be a per-period proportion between zero and one")
+    _check_places(cost, places, "cost"); _check_places(residual, places, "residual")
+    _codes(spec, ("dep_account", "accum_account"))
+    q = D(1).scaleb(-places); out = []; carrying = cost
+    for period in range(1, life + 1):
+        if period == life:
+            amount = carrying - residual
+        else:
+            amount = (carrying * rate).quantize(q, rounding=ROUND_HALF_EVEN)
+            if carrying - amount < residual: amount = carrying - residual
+        if amount < 0: amount = D(0)
+        if amount == 0 and carrying > residual:
+            raise ScheduleError("the depreciation per period rounds to zero; the amount is too small for the declared places")
+        out.append({"date": _month_end(start, period - 1), "description": spec.get("description", "depreciation"),
+                    "lines": [{"account": spec["dep_account"], "debit": str(amount)}, {"account": spec["accum_account"], "credit": str(amount)}]})
+        carrying -= amount
+    return out
+
+def _depreciation_units(spec):
+    """Units-of-production depreciation: the depreciable amount is spread over declared total units
+    and each period charges its own usage.
+
+    `units_per_period` is one entry per period. Charges are rounded to the declared places, and the
+    last period **that uses any units** absorbs the rounding remainder, so the schedule still sums
+    exactly to cost minus residual without dumping the remainder into a period with no production.
+    """
+    cost = _dec(spec.get("cost"), "cost"); residual = _dec(spec.get("residual"), "residual")
+    total_units = _dec(spec.get("total_units"), "total_units"); units = spec.get("units_per_period")
+    places, start = _common(spec)
+    if cost <= 0: raise ScheduleError("cost must be positive")
+    if residual < 0 or residual >= cost: raise ScheduleError("residual must be between zero and the cost")
+    if total_units <= 0: raise ScheduleError("total_units must be positive")
+    if not isinstance(units, list) or not units: raise ScheduleError("units_per_period must be a non-empty list, one entry per period")
+    per = []
+    for i, u in enumerate(units):
+        v = _dec(u, f"units_per_period[{i}]")
+        if v < 0: raise ScheduleError(f"units_per_period[{i}] must not be negative")
+        per.append(v)
+    used = sum(per, D(0))
+    if used > total_units: raise ScheduleError("units_per_period sums to more than total_units")
+    last_used = max((i for i, u in enumerate(per) if u > 0), default=None)
+    if last_used is None: raise ScheduleError("at least one period must declare units above zero")
+    _check_places(cost, places, "cost"); _check_places(residual, places, "residual")
+    _codes(spec, ("dep_account", "accum_account"))
+    depreciable = cost - residual; q = D(1).scaleb(-places); out = []; charged = D(0)
+    for i, u in enumerate(per):
+        if i == last_used:
+            amount = depreciable - charged
+        else:
+            amount = (depreciable * u / total_units).quantize(q, rounding=ROUND_HALF_EVEN)
+        out.append({"date": _month_end(start, i), "description": spec.get("description", "depreciation"),
+                    "lines": [{"account": spec["dep_account"], "debit": str(amount)}, {"account": spec["accum_account"], "credit": str(amount)}]})
+        charged += amount
+    return out
+
+def _depreciation_straight_line(spec):
     """Straight-line depreciation: one Dr expense / Cr accumulated-depreciation entry per period. An optional `changes`
     list applies a declared PROSPECTIVE revision of useful life and/or residual value from a period onward (a change in
     accounting estimate): earlier periods keep the old amount, and the remaining carrying amount is spread over the
