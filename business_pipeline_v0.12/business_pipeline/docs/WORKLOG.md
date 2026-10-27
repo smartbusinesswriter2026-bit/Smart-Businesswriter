@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [product] Clean Home: logo + unchanged slogan + chat box only (build 0.70)
+
+**Ask:** the owner rejected the 0.69 Home as regressed and over-filled: it should be clean and contain only the chat box and its logo; the side rail is already fine; do not change the slogan; do not act without permission. Confirmed scope: remove the dropdowns too; the chat box is only the text area and up arrow.
+
+**Did:** removed from Home the extra sentence under the slogan, the preset/method/currency selects, the preset chips, the Examples card, "Your cases", "Or choose a subject", the "Two ways in" note and the Enter hint. Kept the logo, wordmark, the tagline exactly as written, the text area and the up-arrow. Side rail, Calculator, Status pill, top bar, subject pages and backend untouched. Guarded the absence of the removed elements; guarded `startFromHome` against the removed selects (it now toasts to the rail/Calculator because Home has no method control).
+
+**Files:** `web/index.html`, `tests/test_product_subjects.py`, docs: `CHANGELOG.md` (0.70), `DECISIONS.md` (B-094), `DISCUSSION_NOTEBOOK.md` (entry + Status line), `HOME.md`, `HANDOFF.md`, this entry.
+
+**Verified:** 753 tests OK; `node --check`; `<section>` counts equal; no Home markup for `preset`/`method`/`currency`/`data-example`/`hero-sub`/case or subject shelves. No computation, API, side rail or business number changed.
+
+**Open/next:** the Home arrow cannot launch without a method; method choice lives in the subject rail and Calculator. `loadHomeShelf` is now unused. If the slogan meant the sentence under the tagline, it must be restored verbatim on request.
+
 ## 2026-10-27 — [product] Static-first expandable subject rail, centred chat, up-arrow Enter control (build 0.68)
 
 **Ask:** another agent's served copy lost the subject rail; re-implement it, ensure the rail is expandable, centre the big Home chatbox with even side space without changing its length, and move Run to the right as an up arrow suggesting Enter.

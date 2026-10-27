@@ -100,14 +100,16 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('aria-label="Expand navigation"', self.html)
         self.assertIn('class="rt-label">Collapse', self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.69", self.html)
+        self.assertIn("v0.70", self.html)
 
     def test_the_home_chat_uses_an_up_arrow_and_enter(self):
         self.assertIn('id="run"', self.html)
         self.assertIn('aria-label="Start the analysis"', self.html)
         self.assertIn('title="Start the analysis (Enter)"', self.html)
         self.assertIn('M12 19V5M6 11l6-6 6 6', self.html)
-        self.assertIn("Enter to start", self.html)
+        for gone in ('id="preset"', 'id="method"', 'id="currency"', 'data-example', 'id="hero-sub"',
+                     "Your cases", "Or choose a subject", "Enter to start"):
+            self.assertNotIn(gone, self.html)
 
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
