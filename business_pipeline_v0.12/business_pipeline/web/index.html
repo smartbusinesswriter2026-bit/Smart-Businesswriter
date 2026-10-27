@@ -185,7 +185,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tabpanel[hidden]{display:none}
 
 /* ---------- chat + drawer ---------- */
-.chatbtn{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+.chatbtn{position:fixed;right:24px;bottom:24px;left:auto;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
          background:linear-gradient(150deg,var(--navy-700),var(--navy-900));box-shadow:0 10px 26px rgba(2,40,76,.30);
          display:grid;place-items:center;z-index:45;padding:0}
 .chatbtn img{height:30px;width:30px;object-fit:contain;background:var(--canvas);border-radius:50%}
@@ -295,7 +295,7 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: the subject rail and up-arrow control are present">v0.70</span>
+  <span class="pill" id="buildpill" title="Served build: clean Home, subject rail and chat button lower right">v0.71</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
