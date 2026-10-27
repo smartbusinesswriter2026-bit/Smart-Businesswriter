@@ -47,6 +47,8 @@ Rail items are the website's real capabilities (final labels, icon choice and co
 | 8 | Assistant & method info | optional local assistant; method catalogue, limitations, honesty | `GET /api/assist/config`, `GET /api/methods` |
 | 9 | Status | health, version, request-log state (dev-facing) | `GET /api/health` |
 
+**Current served UI (2026-10-27, build 0.67, B-092):** the rail enumerates the ten subjects (with Entrepreneurship) plus the Calculator. Items 7 (Catalogue) and 8 (Assistant) are **no longer surfaced in the served UI**; their backend routes remain and the assistant lane is retained for a later release. Item 9 (Status) remains, reached from the health pill rather than the rail. Subject pages carry their own catalogue-only tables and worksheet tiles, and the Calculator lists every calculation, so no computation or method is lost.
+
 ## 5. Fonts
 
 - **UI text: a sans-serif system stack only** — e.g. `system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`. No remote/web fonts (the product is offline), no more than two families.

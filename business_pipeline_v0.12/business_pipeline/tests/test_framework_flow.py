@@ -68,6 +68,6 @@ class Http(unittest.TestCase):
         c, s = self.call("/api/sessions", CASE); self.assertEqual(c, 201); self.assertIn("framework_suggestions", s["work_plan"])
         c, d = self.call(f"/api/sessions/{s['id']}/confirm", {"frameworks": ["STR-01"]}); self.assertEqual((c, d["status"]), (200, "delivered")); self.assertEqual(d["spec"]["frameworks_selected"][0]["id"], "STR-01")
         c, s2 = self.call("/api/sessions", CASE); self.assertEqual(self.call(f"/api/sessions/{s2['id']}/confirm", {"frameworks": "STR-01"})[0], 400); self.assertEqual(self.call(f"/api/sessions/{s2['id']}/confirm", [])[0], 400)
-    def test_ui_has_framework_section(self):
-        req = urllib.request.urlopen(f"http://127.0.0.1:{self.port}/").read().decode(); self.assertIn("Frameworks, models and methods", req); self.assertIn("Nothing is applied unless ticked", req)
+    def test_ui_no_longer_has_framework_section(self):
+        req = urllib.request.urlopen(f"http://127.0.0.1:{self.port}/").read().decode(); self.assertIn("All subjects", req); self.assertNotIn("Frameworks, models and methods", req); self.assertNotIn("Nothing is applied unless ticked", req)
 if __name__ == "__main__": unittest.main()

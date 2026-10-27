@@ -215,6 +215,6 @@ class Http(unittest.TestCase):
         server.MODELS, _ = models(J(facts=[{"quote": Q1}])); rid = self.call("/api/assist", {"task": "facts", "consent": True, "case_text": CASE})[1]["run"]["run_id"]
         req = json.loads(json.dumps(server.PRESETS["case_decision"])); c, s = self.call("/api/sessions", {**req, "assist_runs": [rid]}); d = self.call(f"/api/sessions/{s['id']}/confirm", {})[1]
         self.assertEqual(d["delivery"]["tier"], "T2"); self.assertNotIn("model", d["delivery"]["report"].split("\n\n", 1)[0].lower())
-    def test_ui_has_the_assistant_panel(self):
-        html = urllib.request.urlopen(self.base + "/").read().decode(); self.assertIn("Assistant (optional)", html); self.assertIn("Challenge my analysis", html); self.assertIn("The model writes no numbers", html)
+    def test_ui_has_help_drawer_and_no_assistant_panel(self):
+        html = urllib.request.urlopen(self.base + "/").read().decode(); self.assertIn("Help &amp; about", html); self.assertNotIn("Assistant (optional)", html); self.assertNotIn("Challenge my analysis", html)
 if __name__ == "__main__": unittest.main()

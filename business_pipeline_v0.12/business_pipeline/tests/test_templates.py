@@ -139,6 +139,6 @@ class RegistryAndApi(unittest.TestCase):
             pre = get("/api/presets"); self.assertIn("swot", pre); self.assertIn("five_forces", pre)
             post = lambda p, b: json.load(urllib.request.urlopen(urllib.request.Request(base + p, data=json.dumps(b).encode(), headers={"Content-Type": "application/json"})))
             s = post("/api/sessions", pre["swot"]); d = post(f"/api/sessions/{s['id']}/confirm", {}); self.assertEqual((d["status"], d["delivery"]["tier"]), ("delivered", "T4"))
-            self.assertIn("Load the", urllib.request.urlopen(base + "/").read().decode())
+            page = urllib.request.urlopen(base + "/").read().decode(); self.assertIn("Help &amp; about", page); self.assertNotIn("Load the", page)
         finally: srv.shutdown(); srv.server_close(); server.M = old
 if __name__ == "__main__": unittest.main()

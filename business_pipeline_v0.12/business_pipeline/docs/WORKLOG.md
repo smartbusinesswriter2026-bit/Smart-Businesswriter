@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [product] Catalogue and Assistant panels deleted from the UI (build 0.67)
+
+**Ask:** "whats the use of catalogue, assistant and status? are they needed? or okay to be deleted?" followed by **"go"** for the recommendation: delete Catalogue and Assistant from the UI, keep Status behind the health pill, keep all backend routes and tests.
+
+**Did:** removed `panel-frames` and `panel-assistant` markup, `RENDERERS.frames`, `searchFrameworks`, `loadTemplate`, `RENDERERS.assistant`, `challengeAnalysis`, `fillAssistantDrawer`, the subject-page "Browse the full method catalogue" button, the drawer's Assistant tab, the `/api/assist/config` boot call, the `state.assist` field and the unused `.dtab` CSS. The chat button now opens a single Help & about drawer; the health pill still opens Status. Kept `/api/frameworks`, `/api/frameworks/{id}`, `/api/templates`, `/api/assist` and their tests; subject catalogue-only tables, worksheet tiles and the Calculator are unchanged.
+
+**Files:** `web/index.html`, docs: `CHANGELOG.md` (0.67), `DECISIONS.md` (B-092), `BACKEND_CONTRACT.md` §6, `DISCUSSION_NOTEBOOK.md` (new dated entry + Status line), `UI_BRIEF.md` note, `HOME.md`, `HANDOFF.md`, this entry.
+
+**Verified:** 750 tests OK; `node --check` on the extracted page script; zero remaining references to `panel-frames`, `panel-assistant`, `RENDERERS.frames`, `RENDERERS.assistant`, `challengeAnalysis`, `fillAssistantDrawer`, `dtab`, `state.assist` or `api/assist`; `<section>` open/close counts equal. Three UI-presence assertions in `test_assist`, `test_framework_flow` and `test_templates` were retargeted to the new surface (no backend test or assertion changed). No frozen module, fixture, route or business number changed.
+
+**Open/next:** the backend assistant and framework/template routes are now reachable only by direct API/test call. If a provider is configured later, the assistant UI must be re-surfaced **and fixed** (use `critique`, supply facts/alternatives, send `consent`). Status remains a dev-facing panel behind the pill.
+
 ## 2026-10-27 — [product] Subject rail, capability tiles and Home reconciliation (build 0.66)
 
 **Ask:** the owner's rail instruction — enumerate the subjects (Accounting, Finance, Economics, Management, ..., now Entrepreneurship) with icons; clicking one shows its capabilities in the centre as clickable tiles; reconcile with Home chat; delete Case, Catalogue, Assistant and Status from the rail and keep Calculator at the bottom.
