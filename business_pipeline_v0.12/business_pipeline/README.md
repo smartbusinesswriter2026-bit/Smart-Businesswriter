@@ -1,4 +1,8 @@
 # business_pipeline (Stage 5 first increment)
+
+> **Serving a page? Read [`SERVING.md`](../../SERVING.md) first.**
+> **http://127.0.0.1:8021/ is the owner's default working page** — branch `design/v0.73-rail`, build v0.73, always up. Do not serve another folder on port 8021; use a different port and say which.
+
 Tests: `python3 -m unittest discover -s tests -v` (run from this folder; Python 3.10+, stdlib only)
 Run the workbench: `python scripts/serve.py` (or `PYTHONPATH=src python3 -m bp.server 8000`) then open http://127.0.0.1:8000
 `scripts/serve.py --check` prints the resolved host/port/sandbox paths and exits; `--port`, `--host`, `--no-sandbox` are supported.
