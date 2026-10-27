@@ -51,11 +51,40 @@ def tokens(text):
 
 # Maps catalogue Q bullets to implemented, tested methods in bp.methods. Coverage is always stated; most items stay uncovered.
 METHOD_LINK_RULES = [
-    (r"^Capital budgeting", ["npv"], "NPV only; IRR, profitability index and payback are not implemented"),
-    (r"^Cost and profitability", ["breakeven"], "break-even only; relevant-cost and make-or-buy analysis are not implemented"),
+    (r"^Capital budgeting:",
+     ["npv", "irr", "discounted_payback"],
+     "NPV, IRR and discounted payback are implemented; profitability index is not implemented"),
+    (r"^Cost and profitability:",
+     ["breakeven", "multi_product_breakeven"],
+     "single-product and multi-product break-even are implemented; operating-leverage, relevant-cost and "
+     "make-or-buy analysis are not implemented"),
+    (r"^Financial performance:",
+     ["ratio_analysis"],
+     "15 declared financial-statement ratios are implemented; common-size, trend, DuPont and cash-conversion-cycle "
+     "analysis are not implemented"),
+    (r"^Valuation and financing:",
+     ["wacc", "dcf_valuation", "equity_bridge"],
+     "WACC, discounted cash flow valuation and the enterprise-to-equity bridge are implemented; CAPM, debt-capacity "
+     "and scenario valuation are not implemented"),
+    (r"^Management accounting:",
+     ["management_accounts"],
+     "a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial "
+     "balance, statements, two-route cash flow, closing and bank reconciliation); the standard-costing, "
+     "activity-based, target, life-cycle and budget-variance topics named here are not implemented"),
+    (r"^Unit economics:",
+     ["unit_economics"],
+     "contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics "
+     "are not implemented"),
     (r"^Data profiling, descriptive statistics", ["descriptive_stats"], "descriptive statistics for one variable only; cross-tabulation and visualization are not implemented"),
-    (r"^Chi-square tests, t-tests, ANOVA", ["welch_t", "mann_whitney"], "two-group Welch t-test and Mann-Whitney only; chi-square and ANOVA are not implemented"),
-    (r"^Correlation and regression", ["pearson", "spearman", "ols", "ols_robust"], "correlation and linear regression only; logistic regression is not implemented"),
+    (r"^Chi-square tests, t-tests, ANOVA",
+     ["welch_t", "mann_whitney", "chi_square", "anova", "kruskal_wallis", "two_way_anova", "posthoc_pairwise",
+      "paired_t", "one_sample_t"],
+     "chi-square, Welch and Mann-Whitney, one-way and two-way ANOVA with Kruskal-Wallis, post-hoc pairwise, and "
+     "paired and one-sample t-tests are implemented; ANCOVA is not implemented"),
+    (r"^Correlation and regression",
+     ["pearson", "spearman", "ols", "ols_robust", "logistic_regression"],
+     "Pearson and Spearman correlation, OLS and robust OLS, and binary logistic regression are implemented; "
+     "categorical predictors, interactions and non-linear terms are not implemented"),
     (r"^Sensitivity analysis, scenario analysis", ["npv"], "decision-flip on the NPV discount rate only"),
 ]
 

@@ -1,5 +1,64 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] The catalogue told students that built accounting methods did not exist
+
+**Ask.** Phase 0 of the accounting build: "correct those that are erroneous" before adding
+anything. The owner had seen the Accounting page say *"Management accounting — not implemented"*
+while `management_accounts` was running on that same page.
+
+**Found.** The subject pages derive every record's `implementation_status` from
+`METHOD_LINK_RULES` in `src/bp/registry.py` — a six-rule table that matches a record's *summary*
+and returns its linked methods plus a hand-written note. Only six rules existed, all written
+before IRR, discounted payback, ratio analysis, the valuation family, the ledger engagement, unit
+economics and most of the statistics library shipped. Everything unmatched falls through to
+`"not implemented"`. Consequences verified against the live API:
+
+- `QNT-FIN-01` claimed IRR and payback were missing — both are T1 methods
+- `QNT-FIN-02` claimed "break-even only" — `multi_product_breakeven` also exists
+- `QNT-FIN-03`, `QNT-FIN-04`, `QNT-FIN-05`, `QNT-FIN-06` each read **"not implemented"** while
+  `ratio_analysis`, `wacc`/`dcf_valuation`/`equity_bridge`, `management_accounts` and
+  `unit_economics` respectively run
+- `QNT-STA-03` claimed chi-square and ANOVA were missing; `QNT-STA-04` claimed logistic
+  regression was missing — all present
+
+Two of 36 methods were claimed by the catalogue; the other 34 were reachable only through the
+Calculator.
+
+**Did.** Rewrote `METHOD_LINK_RULES` so each rule matches on its record's summary prefix and
+carries an accurate note and the real method list, then regenerated the committed slice with
+`scripts/generate_subjects.py` — the documented single source of truth. `QNT-FIN-07` (pricing and
+demand) stays `not implemented` because it genuinely is. `currency_convert` was deliberately **not**
+claimed against `QNT-FIN-04`, whose summary does not mention currency: fixing an underclaim must
+not create an overclaim.
+
+Added `tests/test_catalogue_truth.py` (6 tests): every linked method id resolves; no record both
+links methods and says "not implemented"; the accounting, finance and regression records claim the
+methods the engine registers; every compute tool resolves to a real preset. Updated the test count
+in `HOME.md`, `HANDOFF.md` and `CONTRIBUTORS.md` from 753 to 759.
+
+**Verified.** 759 tests OK. Corrected rows confirmed from the live API
+(`/api/cases/subjects/accounting`), not from the module.
+
+**Not fixed, recorded as findings:**
+
+1. `multi_product_breakeven` accepts a product with negative contribution and reports a
+   break-even without flagging that one product loses money on every unit. The arithmetic is
+   right under the declared mix; the absence of a warning is the gap. Adding a check would change
+   `test_names` and needs an unfreeze.
+2. `server.py` sends **no** `Cache-Control`/`Pragma` header, although CHANGELOG 0.69 claims it
+   does. A browser served a stale catalogue during this very session until the server restarted.
+   Next increment.
+
+**No build number.** This changes API data, not page markup, and `tests/test_product_subjects.py`
+pins the served pill at `v0.73`. Bumping the changelog without changing the pill would make the
+documents disagree with the page the owner checks.
+
+**Lane note.** The correction touches `src/bp/product/subjects.py`, which is the design owner's
+file, because the wrong text was a *factual claim about the engine* — computation-owned content
+(§1A). It was regenerated from the core rule rather than hand-edited, and the guard test lives in
+`tests/`. If the design owner disagrees with that call, the revert is local and this entry records
+why it was made.
+
 ## 2026-10-27 — [product] Clean Home: logo + unchanged slogan + chat box only (build 0.70)
 
 **Ask:** the owner rejected the 0.69 Home as regressed and over-filled: it should be clean and contain only the chat box and its logo; the side rail is already fine; do not change the slogan; do not act without permission. Confirmed scope: remove the dropdowns too; the chat box is only the text area and up arrow.
