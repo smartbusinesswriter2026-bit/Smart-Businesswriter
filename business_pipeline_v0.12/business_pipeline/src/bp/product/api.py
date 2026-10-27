@@ -265,7 +265,7 @@ def handle(method, path, body=None):
             return 405, {"error": "method %s is not allowed on export" % verb}
         if not isinstance(body, dict) or not body.get("kind"):
             return 422, {"error": "export needs a 'kind' (csv, spreadsheetml, html) and a 'destination' path"}
-        if not isinstance(body.get("destination"), str) or not body["destination"].strip():
+        if not body.get("download") and (not isinstance(body.get("destination"), str) or not body["destination"].strip()):
             return 422, {"error": "export needs a 'destination' path"}
         try:
             document = version_store.latest(case_id) if version_store._existing_versions(case_id) else {"bundle": case_store.load(case_id)}
