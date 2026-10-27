@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [product] Subject rail, capability tiles and Home reconciliation (build 0.66)
+
+**Ask:** the owner's rail instruction — enumerate the subjects (Accounting, Finance, Economics, Management, ..., now Entrepreneurship) with icons; clicking one shows its capabilities in the centre as clickable tiles; reconcile with Home chat; delete Case, Catalogue, Assistant and Status from the rail and keep Calculator at the bottom.
+
+**Did:** (1) `bp.product.subjects`: added Entrepreneurship as a combination shelf (8 frozen compute tools, the existing STR-18 SWOT worksheet, 5 catalogue-only canvas/innovation records) and a unique presentation `icon` key on all 10 subjects, exposed by the gallery and detail routes; added an Entrepreneurship group to the Calculator groups. (2) `web/index.html`: rail rebuilt as Home + the 10 subjects (icon, label, native tooltip, aria-current on the active subject) + Calculator pinned at the foot; the Case/Catalogue/Assistant/Status rail items removed, with their existing panels kept reachable from Home/subject pages, the subject catalogue button, the chat drawer and the health pill. (3) A subject click renders a capability **tile grid** (one tile per frozen method or worksheet, with description, preset/typed-input footer and kind icon) instead of a vertical row list; stored cases and the catalogue-only table follow. (4) Home-chat reconciliation: copy states the two routes, the same subject cards remain under the box, and every subject page links to the chat. (5) Hash routing now supports `#/subject/<id>`. (6) Two guard tests: rail order/unique icons/icon round-trip, and Entrepreneurship's tool/worksheet/canvas composition.
+
+**Files:** `src/bp/product/subjects.py`, `web/index.html`, `tests/test_product_subjects.py`, `tests/test_product_server.py`, docs: `CHANGELOG.md` (0.66), `DECISIONS.md` (B-091), `BACKEND_CONTRACT.md` §6, `DISCUSSION_NOTEBOOK.md` (dated entry + Status line), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, this entry.
+
+**Verified:** full suite **750 tests OK**; `node --check` on the extracted page script; a live server smoke test returned the 10-subject gallery with icons, the Entrepreneurship page (8 tools, 1 worksheet, 5 catalogue records), the 8 Calculator groups and HTTP 200 for the page. No frozen module, frozen fixture, existing route contract or business number changed.
+
+**Open/next:** the same open items as build 0.65 (C1 multi-run cases, per-subject workbenches, free-form arithmetic, owner decisions in notebook section J). A browser-level UI test is still absent; the rail/tile checks are catalogue guards plus a JS syntax check.
+
 ## 2026-10-26 — [product] Subject-first navigation and the Calculator launcher (build 0.65)
 
 **Ask:** "read discussion notebook and implement it" — the notebook's build brief (section G, Increment 1) plus the owner's rail Calculator instruction (section N).

@@ -79,6 +79,17 @@ body.rail-open .railitem .railtext{opacity:1}
          font-size:12px;padding:5px 9px;border-radius:var(--r-sm);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s;z-index:40}
 .railitem:hover .railtip,body.rail-open .railtip{display:none}
 body.rail-open .railitem:hover .railtip{display:block;opacity:1;left:calc(100% + 6px)}
+/* the subject list scrolls inside the rail; Calculator stays pinned at the foot */
+.railsubjects{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
+              scrollbar-color:var(--border) transparent}
+.railsubjects::-webkit-scrollbar{width:6px}
+.railsubjects::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.railsubjects .railitem{flex:0 0 auto}
+.railgroup-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);
+                 padding:8px 9px 2px;opacity:0;transition:opacity .12s ease}
+body.rail-open .railgroup-label{opacity:1}
+.railfoot{margin-top:auto;padding-top:6px;flex:0 0 auto;background:var(--surface)}
+.railfallback{font-size:11px;color:var(--text-3);padding:6px 9px;white-space:normal}
 
 /* ---------- main + hero ---------- */
 main{padding:28px 32px 96px;max-width:1180px;width:100%}
@@ -187,10 +198,35 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
 .subjectgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
 .subjectcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:16px 18px;
-            display:flex;flex-direction:column;gap:8px;text-align:left}
-.subjectcard h3{margin:0;font-size:15px;text-transform:none;letter-spacing:0;color:var(--navy-900);font-weight:650}
-.subjectcard p{margin:0;font-size:12.5px;color:var(--text-2);line-height:1.5}
+            display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;
+            transition:border-color .12s ease,box-shadow .12s ease,transform .12s ease}
+.subjectcard:hover{border-color:var(--navy-300);box-shadow:var(--sh-2);transform:translateY(-1px)}
+.subjectcard .shield{display:flex;align-items:center;gap:10px}
+.subjectcard .shield .capicon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+            background:var(--navy-100);color:var(--navy-900);flex:0 0 auto}
+.subjectcard h3,.subjectcard .sctitle{margin:0;font-size:15px;text-transform:none;letter-spacing:0;color:var(--navy-900);font-weight:650}
+.subjectcard p,.subjectcard .scdesc{margin:0;font-size:12.5px;color:var(--text-2);line-height:1.5}
 .subjectcard .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.shield{display:flex;align-items:center;gap:10px;min-width:0}
+/* capability tiles: what a subject can actually do, one click each */
+.capgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px;margin:10px 0 4px}
+.capcard{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;background:var(--surface);
+         border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:14px 15px;
+         transition:border-color .12s ease,box-shadow .12s ease,transform .12s ease}
+.capcard:hover{border-color:var(--navy-300);box-shadow:var(--sh-2);transform:translateY(-1px)}
+.capcard:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:var(--r-lg)}
+.capcard .caphead{display:flex;align-items:center;gap:10px}
+.capcard .capicon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+                  background:var(--navy-100);color:var(--navy-900);flex:0 0 auto}
+.capcard .capicon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.subjectcard .capicon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.capcard strong{font-size:13.5px;color:var(--navy-900);display:block;line-height:1.3}
+.capcard p,.capcard .capdesc{margin:0;font-size:12px;color:var(--text-2);line-height:1.45}
+.capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+                  font-size:11px;color:var(--text-3)}
+.capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap}
+.capgroup{margin-top:18px}
+.subjectask{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .toolrow{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border-2);padding:10px 0}
 .toolrow:last-child{border-bottom:none}
 .toolrow .tooltext{max-width:70ch}
@@ -262,34 +298,20 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
 
-    <a class="railitem" href="#/home" data-panel="home" style="--i:var(--navy-900)">
+    <a class="railitem" href="#/home" data-panel="home" style="--i:var(--navy-900)" title="Home: the case shelf, the chat and a new analysis">
       <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-6h4v6"/></svg></span>
       <span class="railtext">Home</span><span class="railtip">Home: the case shelf and a new analysis</span>
     </a>
-    <a class="railitem" href="#/subjects" data-panel="subjects" style="--i:var(--green-600)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg></span>
-      <span class="railtext">Subjects</span><span class="railtip">Subjects: accounting, finance, economics, management and more</span>
-    </a>
-    <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:var(--teal)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h.01M8 15h2M12 15h2M16 15h.01M8 18h2M12 18h2M16 18h.01"/></svg></span>
-      <span class="railtext">Calculator</span><span class="railtip">Calculator: launch any financial or business calculation the engine supports</span>
-    </a>
-    <a class="railitem" href="#/cases" data-panel="cases" style="--i:var(--ochre)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h5l2 2h11v10H3z"/><path d="M3 7V5.5h4l2 2H20"/></svg></span>
-      <span class="railtext">Case</span><span class="railtip">Case: stored analyses, versions, comparison and sign-off</span>
-    </a>
-    <a class="railitem" href="#/frames" data-panel="frames" style="--i:var(--violet)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v14H4z"/><path d="M11 5h4a3 3 0 0 1 3 3v11h-7z"/><path d="M6.5 9h2M6.5 12h2"/></svg></span>
-      <span class="railtext">Catalogue</span><span class="railtip">Catalogue: frameworks, templates and method contracts</span>
-    </a>
-    <a class="railitem" href="#/assistant" data-panel="assistant" style="--i:var(--slate)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/></svg></span>
-      <span class="railtext">Assistant</span><span class="railtip">Assistant and method information (optional)</span>
-    </a>
-    <a class="railitem" href="#/status" data-panel="status" style="--i:var(--moss)">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg></span>
-      <span class="railtext">Status</span><span class="railtip">Status: local health, version, request log</span>
-    </a>
+    <div class="railgroup-label" aria-hidden="true">Subjects</div>
+    <div class="railsubjects" id="railsubjects" aria-label="Subjects"></div>
+
+    <div class="railfoot">
+      <div class="railsep"></div>
+      <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:var(--teal)" title="Calculator: launch any financial or business calculation the engine supports">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h.01M8 15h2M12 15h2M16 15h.01M8 18h2M12 18h2M16 18h.01"/></svg></span>
+        <span class="railtext">Calculator</span><span class="railtip">Calculator: launch any financial or business calculation the engine supports</span>
+      </a>
+    </div>
   </nav>
 
   <main id="main">
@@ -324,9 +346,9 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
 
     <section class="panel" id="panel-subjects" hidden aria-labelledby="subjects-title">
       <div class="card">
-        <h2 id="subjects-title">Subjects</h2>
-        <p class="sub">Business subjects, mapped to the calculations and worksheets the engine actually supports.
-          A subject page shows its tools, the stored cases that used them, and an explicit catalogue-only section.</p>
+        <h2 id="subjects-title">All subjects</h2>
+        <p class="sub">Every subject in the rail, mapped to the calculations and worksheets the engine actually supports.
+          Open a subject to see its capabilities as tiles, the stored cases that used them, and an explicit catalogue-only section.</p>
         <div id="subjectgallery"></div>
       </div>
     </section>
@@ -528,6 +550,45 @@ const esc = (v) => String(v === null || v === undefined ? "" : v)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const txt = (v) => (v === null || v === undefined || v === "") ? "not recorded" : String(v);
 
+/* Subject and tool icons. Presentation only: the server supplies the icon key,
+   the client owns the drawing. No icon carries a number or a claim. */
+const ICONS = {
+  accounting: '<path d="M5 3h11a3 3 0 0 1 3 3v15H8a3 3 0 0 1-3-3z"/><path d="M8 7h7M8 11h7M8 15h4"/>',
+  finance: '<path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/>',
+  economics: '<path d="M12 3v18M5 7h14"/><path d="M5 7l-2 6a3 3 0 0 0 6 0z"/><path d="M19 7l-2 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/>',
+  management: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
+  entrepreneurship: '<path d="M12 3c3 2 5 5 5 9l-3 3H10l-3-3c0-4 2-7 5-9z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 4 3-1M15 16l2 4-3-1"/>',
+  operations: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+  "supply-chain": '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+  marketing: '<path d="M3 10v4l12 5V5L3 10z"/><path d="M15 9a3 3 0 0 1 0 6"/><path d="M7 15v5h3v-4"/>',
+  people: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M18 20a5 5 0 0 0-3-4.6"/>',
+  research: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/>',
+  subjects: '<path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/>',
+  calculator: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h.01M8 15h2M12 15h2M16 15h.01M8 18h2M12 18h2M16 18h.01"/>',
+  worksheet: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  decision: '<path d="M12 3v5M12 17v4M5 8h14M5 8l-2 5a3 3 0 0 0 6 0zM19 8l-2 5a3 3 0 0 0 6 0z"/>'
+};
+const SUBJECT_TONES = {
+  accounting: "var(--navy-700)", finance: "var(--green-600)", economics: "var(--teal)",
+  management: "var(--violet)", entrepreneurship: "var(--ochre)", operations: "var(--indigo)",
+  "supply-chain": "var(--forest)", marketing: "var(--moss)", people: "var(--slate)",
+  research: "var(--navy-500)"
+};
+function iconSvg(name) {
+  return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || ICONS.subjects) + "</svg>";
+}
+function toneOf(id) { return SUBJECT_TONES[id] || "var(--navy-700)"; }
+function toolIcon(tool) {
+  if (!tool) return "calculator";
+  if (tool.kind === "worksheet") return "worksheet";
+  if (tool.method === "case_decision") return "decision";
+  if (["npv", "irr", "discounted_payback", "wacc", "dcf_valuation", "dcf_midyear",
+       "equity_bridge", "unit_economics", "forecast", "currency"].indexOf(tool.method) >= 0) return "finance";
+  if (["management_accounts", "ratio_analysis"].indexOf(tool.method) >= 0) return "accounting";
+  if (["cost_benefit_analysis", "cost_effectiveness", "sroi"].indexOf(tool.method) >= 0) return "economics";
+  return "calculator";
+}
+
 async function api(path, opts) {
   const res = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, opts || {}));
   let data = null;
@@ -586,16 +647,28 @@ function kv(pairs) {
 function show(id) {
   PANELS.forEach((p) => { const el = document.getElementById("panel-" + p); if (el) el.hidden = p !== id; });
   $$(".railitem").forEach((a) => {
-    if (a.dataset.panel === id) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    const on = a.dataset.panel === id && (id !== "subject" || a.dataset.subject === state.subjectId);
+    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
-  document.title = "Smart BusinessWriter - " + id;
+  document.title = "Smart BusinessWriter - " + (id === "subject" && state.subjectId ? state.subjectId : id);
   const render = RENDERERS[id];
   if (render) render();
-  if (location.hash !== "#/" + id) history.replaceState(null, "", "#/" + id);
+  const target = (id === "subject" && state.subjectId)
+    ? "#/subject/" + encodeURIComponent(state.subjectId)
+    : "#/" + id;
+  if (location.hash !== target) history.replaceState(null, "", target);
 }
 function route() {
-  const id = (location.hash || "#/home").replace("#/", "") || "home";
-  show(PANELS.includes(id) ? id : "home");
+  const raw = (location.hash || "#/home").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean);
+  const head = parts[0] || "home";
+  if (head === "subject" && parts[1]) {
+    state.subjectId = decodeURIComponent(parts[1]);
+    state.subject = null;
+    show("subject");
+    return;
+  }
+  show(PANELS.includes(head) ? head : "home");
 }
 
 /* ---------- panels ---------- */
@@ -630,6 +703,8 @@ RENDERERS.home = function () {
         '<span class="grow"></span>' +
         '<span class="muted">Type the figures on the tool screen; the method is the server\'s.</span>' +
       "</div>" +
+      '<p class="muted" style="margin:10px 2px 0">Two ways in: ask here in your own words, or pick a subject in the rail. ' +
+        "A subject opens only the tools it actually supports, so you do not have to know the method name first.</p>" +
     "</div>" +
     '<div class="chips">' +
       shown.slice(0, 10).map((id) => {
@@ -648,7 +723,7 @@ RENDERERS.home = function () {
         '<button class="btn sm" data-example="descriptive">Describe exam scores</button>' +
       "</div></div>" +
     '<div class="card"><h2>Your cases</h2><div id="homecases">' + loading("Reading the case store") + "</div></div>" +
-    '<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Browse by subject</h2>' +
+    '<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Or choose a subject</h2>' +
       '<button class="btn sm" id="allsubjects">All subjects</button></div><div id="homesubjects" style="margin-top:10px">' +
       loading("Reading the subject index") + "</div></div>";
   $("#run").onclick = startFromHome;
@@ -670,21 +745,65 @@ RENDERERS.home = function () {
 };
 
 function subjectCard(row) {
-  return '<div class="subjectcard">' +
-    "<h3>" + esc(row.label) + "</h3>" +
-    "<p>" + esc(row.summary) + "</p>" +
-    '<div class="meta">' +
+  return '<button class="subjectcard" type="button" data-subject="' + esc(row.id) + '">' +
+    '<span class="shield"><span class="capicon" style="color:' + toneOf(row.id) + '">' + iconSvg(row.icon) + "</span>" +
+      '<span class="sctitle">' + esc(row.label) + "</span></span>" +
+    '<span class="scdesc">' + esc(row.summary) + "</span>" +
+    '<span class="meta">' +
       '<span class="badge">' + esc(row.tool_count) + " calculations</span>" +
       (row.worksheet_count ? '<span class="badge mute">' + esc(row.worksheet_count) + " worksheets</span>" : "") +
       '<span class="badge mute">' + esc(row.catalogue_count) + " catalogue</span>" +
       (row.cross_cutting ? '<span class="badge warn">cross-cutting</span>' : "") +
-    "</div>" +
-    '<div class="row" style="margin-top:6px"><button class="btn sm" data-subject="' + esc(row.id) + '">Open ' + esc(row.label) + "</button></div>" +
-  "</div>";
+    "</span>" +
+    '<span class="capgo">Open the capabilities</span>' +
+  "</button>";
 }
 
 function bindSubjectCards(root) {
   $$("[data-subject]", root).forEach((b) => { b.onclick = () => openSubject(b.dataset.subject); });
+}
+
+/* One source of truth for the rail and the shelf: the product's subject index. */
+function ensureSubjects() {
+  if (state.subjects && state.subjects.length) return Promise.resolve(state.subjects);
+  return api("/api/cases/subjects").then((d) => {
+    state.subjects = (d && d.subjects) || [];
+    renderRailSubjects();
+    return state.subjects;
+  });
+}
+
+function renderRailSubjects() {
+  const box = $("#railsubjects"); if (!box) return;
+  const rows = state.subjects || [];
+  box.innerHTML = rows.map((row) =>
+    '<a class="railitem" href="#/subject/' + encodeURIComponent(row.id) + '" data-panel="subject" data-subject="' +
+      esc(row.id) + '" style="--i:' + toneOf(row.id) + '" title="' + esc(row.label) + ": " + esc(row.tool_count) +
+      " calculations" + (row.worksheet_count ? ", " + esc(row.worksheet_count) + " worksheet" : "") + '">' +
+      '<span class="ic">' + iconSvg(row.icon) + "</span>" +
+      '<span class="railtext">' + esc(row.label) + "</span>" +
+      '<span class="railtip">' + esc(row.label) + ": " + esc(row.tool_count) + " calculations" +
+        (row.worksheet_count ? ", " + esc(row.worksheet_count) + " worksheet" : "") +
+        (row.catalogue_count ? ", " + esc(row.catalogue_count) + " catalogue records" : "") + "</span>" +
+    "</a>").join("");
+  // show() is not re-run here, so set the current marker for an already-open subject
+  $$(".railitem").forEach((a) => {
+    const on = a.dataset.panel === "subject" && a.dataset.subject === state.subjectId;
+    if (on) a.setAttribute("aria-current", "page");
+  });
+}
+
+function loadRailSubjects() {
+  return api("/api/cases/subjects").then((d) => {
+    state.subjects = (d && d.subjects) || [];
+    renderRailSubjects();
+    return state.subjects;
+  }).catch((e) => {
+    const box = $("#railsubjects");
+    if (box) box.innerHTML = '<a class="railitem" href="#/subjects" data-panel="subjects" style="--i:var(--green-600)">' +
+      '<span class="ic">' + iconSvg("subjects") + "</span><span class=\"railtext\">Subjects</span>" +
+      '<span class="railtip">The subject index did not load: ' + esc(e.message) + "</span></a>";
+  });
 }
 
 async function loadHomeShelf() {
@@ -704,9 +823,8 @@ async function loadHomeShelf() {
     }).catch((e) => { casesBox.innerHTML = errorBanner(e); });
   }
   if (subjectsBox) {
-    api("/api/cases/subjects").then((d) => {
-      state.subjects = (d && d.subjects) || [];
-      subjectsBox.innerHTML = '<div class="subjectgrid">' + state.subjects.map(subjectCard).join("") + "</div>";
+    ensureSubjects().then((rows) => {
+      subjectsBox.innerHTML = '<div class="subjectgrid">' + rows.map(subjectCard).join("") + "</div>";
       bindSubjectCards(subjectsBox);
     }).catch((e) => { subjectsBox.innerHTML = errorBanner(e); });
   }
@@ -716,13 +834,12 @@ async function loadHomeShelf() {
 RENDERERS.subjects = function () {
   const box = $("#subjectgallery");
   box.innerHTML = loading("Reading the subject index");
-  api("/api/cases/subjects").then((d) => {
-    state.subjects = (d && d.subjects) || [];
-    if (!state.subjects.length) {
+  ensureSubjects().then((rows) => {
+    if (!rows.length) {
       box.innerHTML = banner("blocked", "No subjects returned", "<div>The server returned an empty subject index. Nothing has been invented here; check the local API.</div>");
       return;
     }
-    box.innerHTML = '<div class="subjectgrid">' + state.subjects.map(subjectCard).join("") + "</div>";
+    box.innerHTML = '<div class="subjectgrid">' + rows.map(subjectCard).join("") + "</div>";
     bindSubjectCards(box);
   }).catch((e) => { box.innerHTML = errorBanner(e); });
 };
@@ -736,7 +853,7 @@ function openSubject(id) {
 RENDERERS.subject = function () {
   const out = $("#subjectout");
   if (!state.subjectId) {
-    out.innerHTML = '<div class="empty"><h3>No subject chosen</h3><p>Open Subjects from the rail and pick one.</p></div>';
+    out.innerHTML = '<div class="empty"><h3>No subject chosen</h3><p>Pick a subject from the rail, or open <a href="#/subjects">all subjects</a>.</p></div>';
     return;
   }
   out.innerHTML = loading("Reading the subject");
@@ -746,30 +863,50 @@ RENDERERS.subject = function () {
 };
 
 
+function capabilityCard(item, kind) {
+  const isSheet = kind === "worksheet";
+  const attrs = isSheet
+    ? 'data-worksheet="' + esc(item.template) + '" data-wlabel="' + esc(item.label) + '"'
+    : 'data-tool="' + esc(item.key) + '"';
+  const footer = isSheet
+    ? "Catalogue " + esc(item.catalogue_id)
+    : (item.preset ? "Preset " + esc(item.preset) : "Typed inputs");
+  return '<button class="capcard" type="button" ' + attrs + ">" +
+    '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' + iconSvg(toolIcon(isSheet ? { kind: "worksheet" } : item)) + "</span>" +
+      "<strong>" + esc(item.label) + "</strong></span>" +
+    '<span class="capdesc">' + esc(item.what) + "</span>" +
+    '<span class="capfoot"><span>' + footer + '</span><span class="capgo">' +
+      (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
+  "</button>";
+}
+
 function renderSubject() {
   const s = state.subject; if (!s) return;
   const out = $("#subjectout");
   let html = '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
-    '<div><h2 style="margin:0">' + esc(s.label) + '</h2><p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div>" +
+    '<div class="shield"><span class="capicon" style="width:44px;height:44px;color:' + toneOf(s.id) + '">' +
+      iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + '</h2>' +
+      '<p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     '<p class="muted" style="margin-top:6px">Catalogue disciplines: ' + esc((s.disciplines || []).join("; ") || "not recorded") +
-      (s.cross_cutting ? " - this shelf is linked from every subject." : "") + "</p>";
-  if (s.id !== "research") {
-    html += '<div class="row" style="margin-top:8px"><button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' +
-      '<button class="btn sm" id="subjectcalc">Open the Calculator</button></div>';
-  }
-  html += "<h3>Calculations the engine can run</h3>";
-  html += s.tools.length
-    ? s.tools.map((t) => '<div class="toolrow"><div class="tooltext"><strong>' + esc(t.label) + "</strong>" +
-        "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></div>" +
-        '<button class="btn sm" data-tool="' + esc(t.key) + '">Open tool</button></div>').join("")
-    : '<p class="muted">No computed tool is assigned to this subject yet.</p>';
+      (s.cross_cutting ? " - this shelf is linked from every subject." : "") + "</p>" +
+    '<div class="subjectask">' +
+      '<button class="btn sm primary" id="subjectcalc">Open the Calculator</button>' +
+      '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
+      (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
+    "</div>";
+  html += '<div class="capgroup"><h3 style="margin-top:0">Choose what to do in ' + esc(s.label) + "</h3>" +
+    '<p class="muted">Each tile opens the tool with the method the server will run. Nothing is calculated until you ' +
+    "supply or confirm the figures on the next screen.</p>";
+  const cards = [];
+  (s.tools || []).forEach((t) => cards.push(capabilityCard(t, "compute")));
+  (s.worksheets || []).forEach((w) => cards.push(capabilityCard(w, "worksheet")));
+  html += cards.length
+    ? '<div class="capgrid">' + cards.join("") + "</div>"
+    : '<p class="muted">No computed tool or worksheet is assigned to this subject yet.</p>';
+  html += "</div>";
   if (s.worksheets.length) {
-    html += "<h3>Worksheets - structure and evidence audit only</h3>" +
-      '<p class="muted">A worksheet organises your evidence. It scores and ranks nothing; the output says so.</p>' +
-      s.worksheets.map((w) => '<div class="toolrow"><div class="tooltext"><strong>' + esc(w.label) + "</strong>" +
-        "<span>" + esc(w.what) + " <em>Catalogue " + esc(w.catalogue_id) + "</em></span></div>" +
-        '<button class="btn sm" data-worksheet="' + esc(w.template) + '" data-wlabel="' + esc(w.label) + '">Open worksheet</button></div>').join("");
+    html += '<p class="muted">Worksheets are structure and evidence audit only: they score and rank nothing, and the output says so.</p>';
   }
   html += '<h3>Stored cases in this subject</h3><div id="subjectcases">' + loading("Reading the case store") + "</div>";
   html += '<h3>Catalogue only - no worksheet or method yet</h3>' +
@@ -781,9 +918,12 @@ function renderSubject() {
           esc(txt(row.implementation_status)) + "</td><td>" + esc((row.linked_methods || []).join(", ") || "none") + "</td></tr>").join("") +
         "</tbody></table></div>"
       : '<div class="empty">No catalogue records are assigned to this subject.</div>');
+  html += '<div class="row" style="margin-top:12px"><button class="btn sm" id="subjectcatalogue">Browse the full method catalogue</button></div>';
   out.innerHTML = html;
   $("#subjectback").onclick = () => show("subjects");
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
+  const home = $("#subjecthome"); if (home) home.onclick = () => show("home");
+  const catalogue = $("#subjectcatalogue"); if (catalogue) catalogue.onclick = () => show("frames");
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
     const tool = (s.tools || []).find((t) => t.key === b.dataset.tool);
@@ -1813,6 +1953,10 @@ async function boot() {
     $("#panel-home").insertAdjacentHTML("afterbegin", banner("blocked", "The local API did not answer completely",
       "<div>" + esc(failed[0].reason && failed[0].reason.message ? failed[0].reason.message : String(failed[0].reason)) + "</div>"));
   }
+  // Status is no longer a rail item: the health pill is its entry point (a dev-facing view).
+  const pill = $("#healthpill");
+  if (pill) { pill.style.cursor = "pointer"; pill.title = "Status: local health, version, request log"; pill.onclick = () => show("status"); }
+  await loadRailSubjects();
   window.addEventListener("hashchange", route);
   route();
 }

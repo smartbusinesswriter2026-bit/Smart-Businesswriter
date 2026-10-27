@@ -141,6 +141,7 @@ SUBJECT_DEFS = [
     {
         "id": "accounting",
         "label": "Accounting",
+        "icon": "accounting",
         "summary": "Ledger, statements, ratios and the cost-volume-profit questions built on them.",
         "disciplines": ["finance, accounting and managerial economics"],
         "cross_cutting": False,
@@ -151,6 +152,7 @@ SUBJECT_DEFS = [
     {
         "id": "finance",
         "label": "Finance",
+        "icon": "finance",
         "summary": "Capital budgeting, valuation, cost of capital and the option comparison behind a decision.",
         "disciplines": ["finance, accounting and managerial economics", "decision analysis and risk quantification"],
         "cross_cutting": False,
@@ -164,6 +166,7 @@ SUBJECT_DEFS = [
     {
         "id": "economics",
         "label": "Economics",
+        "icon": "economics",
         "summary": "Appraisal and impact questions: cost-benefit, cost-effectiveness and social value.",
         "disciplines": ["public, nonprofit and impact evaluation", "program and impact evaluation"],
         "cross_cutting": False,
@@ -175,6 +178,7 @@ SUBJECT_DEFS = [
     {
         "id": "management",
         "label": "Management & strategy",
+        "icon": "management",
         "summary": "Structure the evidence on a competitive position, then compare the options that follow.",
         "disciplines": ["strategy", "change and organization",
                         "performance, projects and technology governance", "supporting theory"],
@@ -191,8 +195,21 @@ SUBJECT_DEFS = [
     },
 
     {
+        "id": "entrepreneurship",
+        "label": "Entrepreneurship",
+        "icon": "entrepreneurship",
+        "summary": "Test a venture idea: break-even, unit economics, appraisal and the canvas records that structure it.",
+        "disciplines": ["strategy", "marketing and customers"],
+        "cross_cutting": False,
+        "tools": ["breakeven", "multibreakeven", "unitecon", "npv", "irr", "dpayback",
+                  "forecast", "case_decision"],
+        "worksheets": ["STR-18"],
+        "catalogue_ids": ["STR-15", "STR-16", "STR-17", "STR-13", "THE-06"],
+    },
+    {
         "id": "operations",
         "label": "Operations management",
+        "icon": "operations",
         "summary": "Cost-volume-profit, process evidence and the statistics used to inspect a process.",
         "disciplines": ["operations and supply chain", "operations, logistics and optimization"],
         "cross_cutting": False,
@@ -204,6 +221,7 @@ SUBJECT_DEFS = [
     {
         "id": "supply-chain",
         "label": "Supply chain & logistics",
+        "icon": "supply-chain",
         "summary": "The same evidence tools as Operations, with the inventory and network gaps stated plainly.",
         "disciplines": ["operations and supply chain", "operations, logistics and optimization"],
         "cross_cutting": False,
@@ -214,6 +232,7 @@ SUBJECT_DEFS = [
     {
         "id": "marketing",
         "label": "Marketing & customers",
+        "icon": "marketing",
         "summary": "Unit economics, funnel evidence and the survey statistics behind customer analysis.",
         "disciplines": ["marketing and customers", "market and customer analytics"],
         "cross_cutting": False,
@@ -224,6 +243,7 @@ SUBJECT_DEFS = [
     {
         "id": "people",
         "label": "People & organisation",
+        "icon": "people",
         "summary": "Survey reliability, weighted summaries and group comparisons on people data.",
         "disciplines": ["people and learning", "change and organization"],
         "cross_cutting": False,
@@ -234,6 +254,7 @@ SUBJECT_DEFS = [
     {
         "id": "research",
         "label": "Research & statistics",
+        "icon": "research",
         "summary": "The cross-cutting method shelf: every statistical method the engine can run, linked from every subject.",
         "disciplines": ["statistics and empirical research", "supporting theory"],
         "cross_cutting": True,
@@ -262,6 +283,9 @@ CALCULATOR_GROUPS = [
                "logit", "alpha", "weighted", "forecast"]},
     {"id": "economics", "label": "Economics",
      "tools": ["cba", "cea", "sroi", "forecast", "currency"]},
+    {"id": "entrepreneurship", "label": "Entrepreneurship",
+     "tools": ["breakeven", "multibreakeven", "unitecon", "npv", "irr", "dpayback",
+               "forecast", "case_decision"]},
     {"id": "operations", "label": "Operations",
      "tools": ["breakeven", "multibreakeven", "unitecon", "forecast",
                "chi_square", "power", "missing", "descriptive"]},
@@ -306,6 +330,7 @@ def catalogue():
         rows.append({
             "id": definition["id"],
             "label": definition["label"],
+            "icon": definition["icon"],
             "summary": definition["summary"],
             "disciplines": list(definition["disciplines"]),
             "cross_cutting": bool(definition["cross_cutting"]),
@@ -341,6 +366,7 @@ def detail(subject_id):
         "format": FORMAT,
         "id": definition["id"],
         "label": definition["label"],
+        "icon": definition["icon"],
         "summary": definition["summary"],
         "disciplines": list(definition["disciplines"]),
         "cross_cutting": bool(definition["cross_cutting"]),

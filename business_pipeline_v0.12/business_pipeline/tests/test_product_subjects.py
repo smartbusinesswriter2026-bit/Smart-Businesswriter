@@ -49,13 +49,32 @@ def registry_records():
 
 
 class SubjectCatalogueTest(unittest.TestCase):
-    def test_the_gallery_declares_nine_subjects_and_a_cross_cutting_shelf(self):
+    def test_the_gallery_declares_ten_subjects_and_a_cross_cutting_shelf(self):
         gallery = subjects.catalogue()
         self.assertEqual(gallery["format"], "bp-subjects/1")
-        self.assertEqual(len(gallery["subjects"]), 9)
+        self.assertEqual(len(gallery["subjects"]), 10)
         self.assertEqual([row["id"] for row in gallery["subjects"]][:2], ["accounting", "finance"])
         cross = [row for row in gallery["subjects"] if row["cross_cutting"]]
         self.assertEqual([row["id"] for row in cross], ["research"])
+
+    def test_the_rail_lists_every_subject_in_order_with_a_distinct_icon(self):
+        rows = subjects.catalogue()["subjects"]
+        self.assertEqual([row["id"] for row in rows],
+                         ["accounting", "finance", "economics", "management", "entrepreneurship",
+                          "operations", "supply-chain", "marketing", "people", "research"])
+        icons = [row["icon"] for row in rows]
+        self.assertTrue(all(icons), "a subject has no icon key")
+        self.assertEqual(len(set(icons)), len(icons), "two subjects share an icon key")
+        for row in rows:
+            self.assertEqual(subjects.detail(row["id"])["icon"], row["icon"])
+
+    def test_entrepreneurship_offers_venture_tools_and_canvas_records(self):
+        page = subjects.detail("entrepreneurship")
+        self.assertEqual(page["label"], "Entrepreneurship")
+        self.assertTrue({"breakeven", "multi_product_breakeven", "unit_economics", "npv", "irr",
+                         "discounted_payback"}.issubset({tool["method"] for tool in page["tools"]}))
+        self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]], ["template_swot"])
+        self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only
@@ -142,11 +161,11 @@ class CalculatorGuardTest(unittest.TestCase):
         self.assertEqual(set(grouped), union)
         self.assertEqual(len(grouped), len(subjects.compute_tools()))
 
-    def test_the_calculator_has_seven_business_function_groups(self):
+    def test_the_calculator_has_eight_business_function_groups(self):
         payload = subjects.calculator_groups()
         self.assertEqual(payload["format"], "bp-calculator/1")
         self.assertEqual([group["id"] for group in payload["groups"]],
-                         ["finance", "accounting", "statistics", "economics",
+                         ["finance", "accounting", "statistics", "economics", "entrepreneurship",
                           "operations", "marketing", "people"])
         self.assertIn("computes nothing", payload["note"])
         self.assertIn("free-form arithmetic is not supported", payload["note"])
@@ -176,7 +195,7 @@ class SubjectRouteTest(unittest.TestCase):
     def test_gallery_and_detail_are_served_without_computing_anything(self):
         status, gallery = api.handle("GET", "/api/cases/subjects")
         self.assertEqual(status, 200)
-        self.assertEqual(len(gallery["subjects"]), 9)
+        self.assertEqual(len(gallery["subjects"]), 10)
         status, page = api.handle("GET", "/api/cases/subjects/accounting")
         self.assertEqual(status, 200)
         self.assertEqual(page["id"], "accounting")
