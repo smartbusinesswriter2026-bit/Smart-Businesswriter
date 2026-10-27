@@ -323,6 +323,63 @@ def opening_lines(j):
         else: lines.append({"account": code, ("credit" if a.normal == "D" else "debit"): str(-n)})
     return lines
 
+def _equity_kind(j, account, code, e):
+    """Classify an equity movement from the chart, not from the entry's wording.
+
+    A movement is a distribution when it sits on an account with the `dividends` role, a contribution on
+    `capital`, and the period result when it is a closing entry whose counterparts are income or expense
+    accounts. Anything else is honestly "other" rather than being forced into a flattering category.
+    """
+    if account.role == "dividends": return "dividends"
+    if account.role == "capital": return "capital"
+    if e.closing:
+        others = [j.chart.get(l.account) for l in e.lines if l.account != code]
+        if any(o.type in ("income", "expense") for o in others): return "profit for the period"
+        if any(o.role == "dividends" for o in others): return "dividends"
+    return "other"
+
+def changes_in_equity(j):
+    """Statement of changes in equity: every equity account's opening balance, each movement with its
+    kind, and its closing balance, plus totals by kind.
+
+    The identity the statement exists to show is per account: opening + the movements it lists = closing.
+    Movements are classified from the chart (role and counterpart account types), so a re-labelled
+    description cannot reclassify a distribution as profit.
+
+    `total_closing` is the same figure the balance sheet reports as equity, which is why it is worth
+    asserting: a statement of changes in equity that does not agree with the equity on the balance sheet
+    is decoration.
+    """
+    totals = {"opening": D(0), "closing": D(0)}
+    by_kind = {}
+    rows = []
+    for code, account in j.chart.accounts.items():
+        if account.type != "equity": continue
+        opening = D(0); moves = []
+        for e in j.entries:
+            for l in e.lines:
+                if l.account != code: continue
+                signed = l.amount if (l.side == account.normal) else -l.amount
+                if e.opening:
+                    opening += signed
+                    continue
+                kind = _equity_kind(j, account, code, e)
+                moves.append({"date": e.date, "description": e.description, "kind": kind,
+                              "closing_entry": bool(e.closing), "amount": signed})
+                by_kind[kind] = by_kind.get(kind, D(0)) + signed
+        closing = natural(j.chart, code, *j.balances()[code])
+        running = opening
+        for m in moves:
+            running += m["amount"]
+            m["balance"] = running
+        rows.append({"code": code, "name": account.name, "role": account.role,
+                     "opening": opening, "movements": moves, "closing": closing,
+                     "movement_total": running - opening})
+        totals["opening"] += opening; totals["closing"] += closing
+    return {"accounts": rows, "by_kind": by_kind, "total_opening": totals["opening"],
+            "total_closing": totals["closing"], "total_movement": totals["closing"] - totals["opening"]}
+
+
 def check_invariants(j, st, prior_closing=None):
     """Independent recomputation from the journal lines, compared with the derived statements (manual 9.3). Returns [(name, ok, detail)].
     Retained-earnings rollforward is deliberately absent: with one period and no closing entries it would be a tautology."""

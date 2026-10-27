@@ -1,5 +1,48 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Statement of changes in equity: opening + movements = closing, and it ties to the balance sheet
+
+**Ask.** Phase 2, first increment, in the systematic order agreed: present the books, not just keep them.
+Equity could be read only as a single number on the balance sheet; nothing showed why it moved.
+
+**Did.** `ledger.changes_in_equity(j)` returns, for every equity account: its opening balance, each
+movement with a **kind**, a running balance and its closing balance, plus totals by kind and in total.
+`report.statement_of_equity` renders it, and `accounts.build` exposes `equity_statement` and
+`equity_statement_export` in the appendix.
+
+**Classification is structural, never textual.** A movement is a distribution when it sits on an account
+with the `dividends` role, a contribution on `capital`, and the period result when it is a closing entry
+whose *counterpart accounts* are income or expense accounts. A test builds the same journal with every
+closing entry re-described as a dividend and asserts the classification is unchanged - a
+description-based classifier would relabel profit as a distribution there.
+
+**Two properties carry the statement**, and both are tested: per account, opening + the movements listed
+= closing; and, in total, closing equity equals the figure the balance sheet reports. The second is the
+one that matters, because a statement of changes in equity that disagrees with the balance sheet is
+decoration.
+
+**A serious mistake I made and caught.** The first edit that added these functions replaced the
+`def check_invariants(...)` line instead of inserting before it. Because a function body may legally
+continue after a `return`, the whole of `check_invariants` was silently absorbed into `changes_in_equity`
+as unreachable code: **the module still imported and `py_compile` passed**, and the function simply no
+longer existed. Only an explicit `hasattr` check found it. Restored, re-verified, and the full suite is
+green. Worth recording because the failure mode is invisible to a syntax check and to an import.
+
+**Verified.** 858 tests OK, including 10 new ones: the per-account identity; the running balance ending at
+the closing balance; total closing equalling the balance sheet; total movement equalling closing less
+opening; profit for the period equal to net income; dividends classified and negative; capital classified;
+the misleading-description test; the rendered statement carrying opening, movement, closing and the
+closing marker; and a trap showing that dropping one movement breaks the per-account identity.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Next in Phase 2:** the current/non-current balance-sheet split (an optional per-account classification,
+so existing specifications keep their behaviour), then the other-comprehensive-income route that
+revaluation waits on.
+
 ## 2026-10-27 — [computation] Bad-debt allowance: the engine computes the movement, never the estimate
 
 **Ask.** Phase 1, final increment: the last adjusting entry. An allowance for doubtful debts could be

@@ -38,6 +38,29 @@ def t_accounts(ledgers, places=2):
     """Every account's T-account, separated by a blank line."""
     return "\n\n".join(t_account(lg, places) for lg in ledgers)
 
+def statement_of_equity(eq, places=2):
+    """The statement of changes in equity as text: per account, opening, each movement with its kind,
+    and closing, then the totals.
+
+    Nothing is recalculated here. The per-account identity (opening + movements = closing) is the point
+    of the statement, so it is printed in a form a reader can check line by line.
+    """
+    out = ["STATEMENT OF CHANGES IN EQUITY"]
+    for row in eq["accounts"]:
+        out.append(f"{row['code']} {row['name']}")
+        out.append(_row("  Opening balance", row["opening"], places))
+        if not row["movements"]:
+            out.append("  no movement in the period")
+        for m in row["movements"]:
+            mark = " (closing)" if m.get("closing_entry") else ""
+            out.append(f"  {m['date']}  {m['kind'][:22]:<22}{_num(m['amount'], places):>16}  {m['description'][:34]}{mark}")
+        out.append(_row("  Closing balance", row["closing"], places))
+        out.append("")
+    out.append(_row("Total opening", eq["total_opening"], places))
+    out.append(_row("Total movement", eq["total_movement"], places))
+    out.append(_row("Total closing", eq["total_closing"], places))
+    return "\n".join(out)
+
 def journal(j, places=2):
     """The journal as text: each entry with its lines, and the entry's own debit and credit totals.
 
