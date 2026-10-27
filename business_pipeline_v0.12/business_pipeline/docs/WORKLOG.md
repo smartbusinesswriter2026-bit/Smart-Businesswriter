@@ -1,5 +1,41 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] The journal itself: the audit trail behind every balance
+
+**Ask.** Phase 1, second increment, in the order agreed: the ledger engine should let a reader see
+the entries, not just the totals derived from them. T-accounts showed one account's movements;
+nothing showed the double entry that produced them.
+
+**Did.**
+
+- `ledger.journal_view(j)` — every entry in posting order as data: date, description, opening and
+  closing flags, each line named and sided with its debit or credit, the entry's own debit and credit
+  totals, and the entry hash from the chain `verify_chain` checks.
+- `report.journal(j)` — the same journal as deterministic plain text, marking opening and closing
+  entries and printing each entry's totals so a line that did not balance could never read as though
+  it had.
+- `accounts.build` now exposes `journal` (serialised) and `journal_export` (rendered) in the appendix.
+  The existing `export` field is untouched.
+
+**Why the totals are in the view.** The kernel already refuses to post an unbalanced entry, so the
+totals are redundant for the engine. They are not redundant for a *reader*: an audit trail that shows
+lines without proving the entry balances asks to be trusted rather than checked.
+
+**Verified.** 776 tests OK, including 7 new ones: the view matches the journal entry for entry
+(dates, descriptions, hashes) and the chain verifies; every entry balances in the view; rebuilding
+every account's debits and credits **from the view** agrees exactly with `j.balances()`, which is what
+the statements are built from; every line names a chart account; opening and closing entries are
+marked, never both; and a trap test that drops one entry and shows the recomputation stops agreeing.
+
+**No unfreeze.** The method contract is untouched: `management_accounts` keeps its eleven `test_names`
+and the frozen fixture is unchanged. This is additive appendix data.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Next in order:** reversing and correcting entries (a declared reversal in the spec, with validation),
+then depreciation beyond straight-line, then the remaining adjusting-entry types.
+
 ## 2026-10-27 — [computation] T-accounts: the ledger can now be read one account at a time
 
 **Ask.** Phase 1 of the accounting build, first increment: the owner named "no T-tree balancing" as a

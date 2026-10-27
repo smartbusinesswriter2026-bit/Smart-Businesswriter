@@ -165,6 +165,32 @@ def account_ledgers(j):
     """Every account's T-account, in chart order."""
     return [account_ledger(j, code) for code in j.chart.accounts]
 
+def journal_view(j):
+    """The journal as data: every entry in posting order, with each line named and sided.
+
+    This is the audit trail the statements, the trial balance and the T-accounts are all derived
+    from.  Each entry carries its hash so a reader can see the chain that `verify_chain` checks,
+    and each entry carries its own debit and credit totals so a line that did not balance could
+    never be shown as though it had.
+    """
+    if len(j.entries) != len(j.hashes):
+        raise LedgerError("journal and hash chain are different lengths")
+    out = []
+    for e, h in zip(j.entries, j.hashes):
+        lines = []
+        for l in e.lines:
+            a = j.chart.get(l.account)
+            lines.append({"account": l.account, "name": a.name, "side": l.side,
+                          "debit": l.amount if l.side == "D" else D(0),
+                          "credit": l.amount if l.side == "C" else D(0)})
+        out.append({"date": e.date, "description": e.description,
+                    "opening": bool(e.opening), "closing": bool(e.closing),
+                    "lines": lines,
+                    "debits": sum((x["debit"] for x in lines), D(0)),
+                    "credits": sum((x["credit"] for x in lines), D(0)),
+                    "hash": h})
+    return out
+
 def _signed(chart, code, d, c):
     """Contribution of an account to its statement section: contra accounts reduce the section they sit in."""
     a = chart.get(code); n = natural(chart, code, d, c); return -n if a.contra else n

@@ -38,6 +38,24 @@ def t_accounts(ledgers, places=2):
     """Every account's T-account, separated by a blank line."""
     return "\n\n".join(t_account(lg, places) for lg in ledgers)
 
+def journal(j, places=2):
+    """The journal as text: each entry with its lines, and the entry's own debit and credit totals.
+
+    Opening and closing entries are marked. The totals are printed so an entry that did not
+    balance could not be read as though it had, even though the kernel refuses to post one.
+    """
+    out = [f"JOURNAL  {j.start} to {j.end}  {j.currency}"]
+    for row in ledger.journal_view(j):
+        tag = " (opening)" if row["opening"] else (" (closing)" if row["closing"] else "")
+        out.append(f"{row['date']}  {row['description']}{tag}")
+        for l in row["lines"]:
+            side = "Dr" if l["side"] == "D" else "Cr"
+            amount = l["debit"] if l["side"] == "D" else l["credit"]
+            out.append(f"    {l['account']:<8} {l['name'][:34]:<34} {side} {_num(amount, places):>16}")
+        out.append(f"    {'':<8} {'entry totals':<34} Dr {_num(row['debits'], places):>13}"
+                   f"  Cr {_num(row['credits'], places):>13}")
+    return "\n".join(out)
+
 def _money(v, currency, places=2):
     s = f"{abs(v):,.{places}f}"
     return f"{currency} ({s})" if v < 0 else f"{currency} {s}"

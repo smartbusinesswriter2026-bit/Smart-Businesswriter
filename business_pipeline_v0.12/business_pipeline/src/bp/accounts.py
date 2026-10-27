@@ -210,6 +210,8 @@ def build(spec):
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text(),
              "ledgers": _s(ledger.account_ledgers(j)),
              "t_accounts_export": {lg["code"]: report.t_account(lg, places) for lg in ledger.account_ledgers(j)},
+             "journal": _s(ledger.journal_view(j)),
+             "journal_export": report.journal(j, places),
              "statements_export": report.financial_statements(j, pre, cf, spec["framework"], policy_changes=policies, rec_report=rec_raw, places=places)}
     if rec_raw is not None: extra["reconciliation"] = _s(rec_raw)
     notes = [{"date": c["date"], "kind": c["kind"], "description": c["description"], "treatment": c["treatment"],
