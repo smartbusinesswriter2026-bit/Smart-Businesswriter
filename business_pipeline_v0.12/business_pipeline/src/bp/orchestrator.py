@@ -265,7 +265,10 @@ class Pipeline:
                     "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.", "code_hash": code_h, "sandbox": meta["policy"] if meta else "in-process (development mode; no isolation)", "environment": fp, "tests": [n for n, _ in results], "amendments": amendments,
                     "assumptions": spec.assumptions + list(m.assumptions), "ambiguities": spec.ambiguity_register, "limitations": list(m.limitations),
                     "artifacts": [(a.id, a.labels, a.derivation) for a in self.store.all()]}
-        if extra is not None: appendix["accounts"] = extra
+        if extra is not None:
+            # the key is part of the existing delivery shape for every method that had an appendix;
+            # only the new check gets its own, so nothing already consumed moves
+            appendix["detail" if m.name == "trial_balance_check" else "accounts"] = extra
         appendix["honesty"] = honesty   # 9B.3 disclosure layer: what was NOT corrected, powered, weighted or established
         flip_s = str(flip) if flip is not None else None
         appendix["reperform"] = {"format": "bp-reperform/1", "method": {"id": m.name, "version": m.version}, "inputs": inp, "sensitivity": spec.sensitivity,

@@ -100,6 +100,22 @@ PRESETS = {
     "case": {"objective": "A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.", "context": "Single owner, three shops"},
     "swot": templates.EXAMPLES["template_swot"], "five_forces": templates.EXAMPLES["template_five_forces"], "case_decision": templates.EXAMPLES["case_decision"],
     "unsupported": {"objective": "Value this startup", "method": "monte_carlo_valuation", "inputs": {"x": "1"}},
+    "tbcheck": {"objective": "Check my trial balance against my journal", "method": "trial_balance_check",
+                "currency": "USD", "period": "annual", "places": 2,
+                "inputs": {
+                    "journal": {"period": {"start": "2026-01-01", "end": "2026-03-31"}, "currency": "USD",
+                                "framework": "IFRS", "places": 2,
+                                "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"},
+                                          {"code": "3000", "name": "Capital", "type": "equity", "line": "Capital", "role": "capital"},
+                                          {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"}],
+                                "prior_closing": {"1000": "1000", "3000": "1000"},
+                                "opening": [{"description": "opening", "lines": [{"account": "1000", "debit": "1000"}, {"account": "3000", "credit": "1000"}]}],
+                                "entries": [{"date": "2026-02-01", "description": "capital introduced",
+                                             "lines": [{"account": "1000", "debit": "500"}, {"account": "3000", "credit": "500"}]}],
+                                "schedules": []},
+                    "trial_balance": [{"code": "1000", "name": "Cash", "debit": "1500", "credit": "0"},
+                                      {"code": "3000", "name": "Capital", "debit": "0", "credit": "1500"}],
+                }},
 }
 
 class H(BaseHTTPRequestHandler):

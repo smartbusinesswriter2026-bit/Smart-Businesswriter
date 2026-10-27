@@ -93,6 +93,13 @@ def _check(key, v, spec):
                         except (InvalidOperation, ValueError, TypeError): errs.append(f"'{key}'[{i}].{f} = {rec[f]!r}: not a number")
                     elif not isinstance(rec[f], str) or not rec[f].strip():
                         errs.append(f"'{key}'[{i}].{f} must be non-empty text")
+        elif t == "rows":
+            # a list of objects whose fields the method itself validates, so a student's own column
+            # headings can be accepted without the schema demanding every one of them
+            if not isinstance(v, list): return [f"'{key}' must be a list of rows"]
+            if len(v) < spec.get("min_items", 1): errs.append(f"'{key}' needs at least {spec['min_items']} rows")
+            for i, rec in enumerate(v):
+                if not isinstance(rec, dict): errs.append(f"'{key}'[{i}] must be an object")
         elif t == "currency":
             try: currency.minor_units(v)
             except currency.CurrencyError as e: errs.append(str(e))
@@ -3306,7 +3313,122 @@ _ACC_DEFAULTS = (
     {"question": "Closing", "default_chosen": "Every engagement closes: income, expenses and declared dividends move into retained earnings.", "impact": "Post-closing statements carry the period result in retained earnings."},
     {"question": "Prior closing balances", "default_chosen": "A required input (an empty object for a first period); the opening entry is checked against it.", "impact": "A mismatch fails the opening-balances check."})
 _ACC_ASSUME = ("Every entry is balanced and inside the period (enforced by the kernel).", "The chart reflects the owner's account mapping.", "Amounts respect the declared currency places.")
-_ACC_LIM = ("Management accounts only: not GAAP or IFRS statements and not assurance (manual 9.5).", "Cash-flow activity classification is a declared heuristic unless accounts carry explicit activity tags.", "Custom analysis (T2); expert review pending.", "The ledger engine decision (custom kernel vs Beancount) is still open (B-032).")
+_ACC_LIM = ("Management accounts only: not GAAP or IFRS statements and not assurance (manual 9.5).", "Cash-flow activity classification is a declared heuristic unless accounts carry explicit activity tags.", "Custom analysis (T2); expert review pending.", "The ledger engine decision is closed: the custom kernel is management accounts v1 (B-032, RESOLVED 2026-10-27); the Beancount comparison was never run.")
+
+_CHK_INPUTS = {
+    "journal": {"type": "engagement_spec", "required": False,
+                "desc": "the student's journal in the engagement shape (period, chart, opening, entries); optional, and supplying it is what makes the check meaningful"},
+    "trial_balance": {"type": "rows", "min_items": 1, "required": False,
+                      "desc": "the student's own trial balance rows: a code or a name, and a debit or a credit"},
+    "places": {"type": "decimal", "required": False,
+               "desc": "decimal places the figures were stated to (default 2)"},
+}
+_CHK_DEFAULTS = (
+    {"question": "Matching an account",
+     "default_chosen": "By account code when both sides carry one, otherwise by name; an ambiguous name is refused rather than resolved.",
+     "impact": "A shared name would otherwise be matched arbitrarily."},
+    {"question": "Which figure is right",
+     "default_chosen": "Neither. The check compares two declared figures and does not decide between them.",
+     "impact": "The verdict names where they disagree, never which is correct."},
+)
+_CHK_ASSUME = ("Both inputs are the student's own declared figures.",
+               "An account code, where given, means the same account on both sides.")
+_CHK_LIM = ("A balanced trial balance is not proof of correct entries: errors of principle, commission, original entry, omission, reversal and compensating errors all leave it balanced.",
+            "Candidate causes are heuristics labelled as such, never conclusions.",
+            "It cannot check amounts against source documents, and it corrects nothing.",
+            "Custom analysis (T2); expert review pending.")
+
+def tbcheck_places(inp):
+    raw = inp.get("places", 2)
+    try:
+        d = D(str(raw))
+    except (InvalidOperation, ValueError, TypeError):
+        raise DataError("places must be a whole number from 0 to 6")
+    if d != d.to_integral_value() or not (0 <= d <= 6):
+        raise DataError("places must be a whole number from 0 to 6")
+    return int(d)
+
+def _tbcheck_checks(inp, report, second):
+    rows = report["rows"]
+    counts, amounts = report["counts"], report["amounts"]
+    known = {"agrees", "differs", "only-in-yours", "only-in-journal", "unchecked"}
+    both = bool(inp.get("journal")) and bool(inp.get("trial_balance"))
+    unexplained = [r for r in rows if r["status"] not in known]
+    silent = [r for r in rows if both and r["status"] != "agrees" and r["status"] != "unchecked"
+              and not any(f.get("account") == (r["name"] or r["code"]) for f in report["findings"])]
+    line_sum = sum((D(r["difference"]) for r in rows if r["difference"] is not None), D(0))
+    sub_rows = [r for r in rows if r["submitted"] is not None]
+    sub_balance = sum((D(r["submitted"]) for r in sub_rows), D(0))
+    div9 = amounts["submitted_balance_difference"] != 0 and check_divisible(amounts["submitted_balance_difference"])
+    hinted = (not div9) or any("hint" in (f.get("detail") or "") for f in report["findings"])
+    return [
+        ("every_row_is_matched_or_explained", not unexplained and not silent,
+         f"{len(unexplained)} unknown status, {len(silent)} unexplained"),
+        ("second_route_agrees",
+         second["n_matched"] == counts["n_matched"] and second["n_differing"] == counts["n_differing"]
+         and second["n_missing_submitted"] == counts["n_missing_submitted"]
+         and second["difference_net"] == amounts["difference_net"],
+         f"linear scan {second['n_differing']} differing vs index {counts['n_differing']}"),
+        ("net_difference_agrees_with_lines", line_sum == amounts["difference_net"],
+         f"lines {line_sum} vs reported {amounts['difference_net']}"),
+        ("submitted_balance_difference_agrees", sub_balance == amounts["submitted_balance_difference"],
+         f"rows {sub_balance} vs reported {amounts['submitted_balance_difference']}"),
+        ("divisibility_rule_is_reported_not_concluded", hinted,
+         "the rule fired and is labelled a hint" if div9 else "the rule did not fire"),
+    ]
+
+def check_divisible(value):
+    from . import check as _check
+    return _check._divisible_by_nine(value)
+
+def tbcheck_impl(inp):
+    from . import check
+    places = tbcheck_places(inp)
+    report = check.compare(inp.get("journal"), inp.get("trial_balance"), places)
+    second = check.recount(inp.get("journal"), inp.get("trial_balance"), places)
+    checks = _tbcheck_checks(inp, report, second)
+    out = {k: D(v) for k, v in report["counts"].items()}
+    out.update({k: D(v) for k, v in report["amounts"].items()})
+    out["_checks"] = checks
+    out["_appendix"] = {
+        "rows": [{"code": r["code"], "name": r["name"], "status": r["status"],
+                  "submitted": None if r["submitted"] is None else str(r["submitted"]),
+                  "rebuilt": None if r["rebuilt"] is None else str(r["rebuilt"]),
+                  "difference": None if r["difference"] is None else str(r["difference"])} for r in report["rows"]],
+        "findings": report["findings"],
+        "verdict": report["verdict"],
+        "cannot_prove": report["cannot_prove"],
+        "inputs_supplied": {"journal": inp.get("journal") is not None,
+                            "trial_balance": inp.get("trial_balance") is not None},
+    }
+    return out
+
+def tbcheck_tests(inp, impl):
+    return [(n, ok) for n, ok, _ in impl(inp)["_checks"]]
+
+def tbcheck_profile(inp):
+    from . import check
+    try:
+        check.compare(inp.get("journal"), inp.get("trial_balance"), tbcheck_places(inp))
+        return []
+    except ValueError as e:
+        return [f"the check cannot run: {e}"]
+
+def tbcheck_typing(metric):
+    if metric.startswith("n_"): return "count", 0
+    return "currency", 2
+
+def tbcheck_caveats(out, th):
+    return ["This compares two declared figures; it does not decide which one is right.",
+            "A balanced trial balance is not proof of correct entries.",
+            "Custom analysis (T2); expert review pending (B-005)."]
+
+def tbcheck_template(out, P, th):
+    tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P)
+    return (f"The check found {tok('n_differing')} differing line(s), {tok('n_missing_submitted')} present only in "
+            f"the journal and {tok('n_missing_rebuilt')} present only in the trial balance, with a net difference of "
+            f"{tok('difference_net')} and {tok('n_findings')} finding(s). A balanced trial balance is not proof of "
+            f"correct entries.")
 
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
@@ -3733,6 +3855,17 @@ LIBRARY = {
                   input_schema=_ACC_INPUTS, defaults=_ACC_DEFAULTS, assumptions=_ACC_ASSUME, limitations=_ACC_LIM, default_period="annual",
                   caveats=accounts_caveats, template=accounts_template, claim_ceiling="descriptive", default_thresholds={}, typing=accounts_typing,
                   mapping=accounts_mapping, mapping_check_names=("every_account_maps_to_a_statement_line", "at_least_one_cash_account", "exactly_one_retained_earnings_account")),
+    "trial_balance_check": Method("trial_balance_check", "T2", tbcheck_impl, tbcheck_tests, tbcheck_profile, "n_differing", "count", None,
+                  ("every_row_is_matched_or_explained", "second_route_agrees", "net_difference_agrees_with_lines", "submitted_balance_difference_agrees", "divisibility_rule_is_reported_not_concluded"),
+                  category="accounting",
+                  intended_use="Compare a student's own trial balance with the one rebuilt from their own journal: every line that matches, differs or has no counterpart, with candidate causes labelled as heuristics.",
+                  unsupported_use="Deciding which of the two figures is correct; checking amounts against source documents; detecting an error of principle that the journal itself encodes; correcting anything.",
+                  input_schema=_CHK_INPUTS, defaults=_CHK_DEFAULTS, assumptions=_CHK_ASSUME, limitations=_CHK_LIM,
+                  default_period="annual", caveats=tbcheck_caveats, template=tbcheck_template, claim_ceiling="descriptive",
+                  output_precision={"n_submitted": 0, "n_rebuilt": 0, "n_matched": 0, "n_differing": 0,
+                                    "n_missing_submitted": 0, "n_missing_rebuilt": 0, "n_findings": 0,
+                                    "total_absolute_difference": 2, "difference_net": 2, "submitted_balance_difference": 2},
+                  typing=tbcheck_typing),
 }
 
 # ---------- discovery (never executes a method) ----------

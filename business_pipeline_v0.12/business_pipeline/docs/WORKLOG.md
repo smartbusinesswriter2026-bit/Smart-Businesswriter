@@ -1,5 +1,53 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [computation] The trial-balance check: the first feature built for the student's own homework
+
+**Ask.** The owner's priority is a tool a student can use on their own assignment, not only on a supplied
+case, and chose "check" over "compute" for the first UI work. A student arrives with a journal and a trial
+balance and wants to know whether they are right.
+
+**Did.** A new method, `trial_balance_check` (T2, the 37th method and 39th preset), compares the trial
+balance a student submitted with the one their own journal rebuilds to, and reports every line that agrees,
+differs, or has no counterpart - with candidate causes labelled as hints and an explicit list of what the
+check cannot prove. Registered as a method rather than a new route: it rides the existing session API, gets
+the sandbox, the bundle and the re-performance hash for free, and adds **no new route family**.
+
+**Design decisions worth recording.**
+
+1. **Matching is declared, not guessed**: by account code when both sides carry one, otherwise by name, and
+   a name listed twice is refused rather than double-counted.
+2. **The ×9 rule is only applied where the textbook applies it** - to a trial balance that does not balance
+   - and the finding says "a hint about where to look, not a finding". Applying it to the difference between
+   two balanced statements would have been a misuse dressed as a diagnostic.
+3. **The verdicts lead with what the input allows.** With only a trial balance the verdict is: *"I can check
+   that your trial balance balances, and that is all... all leave a trial balance balanced. Paste your journal
+   and I can check the entries themselves."* That sentence is the teaching.
+4. **It never decides which of the two figures is right.** The check locates disagreement; correctness depends
+   on what the student intended.
+
+**Two things the build itself exposed.**
+
+1. A student listing the same account twice was silently double-counted. Found while writing the ambiguity
+   test, which could not be constructed the way I expected because the chart does not allow two accounts with
+   the same name - the real risk was on the *submitted* side. Now refused with a reason.
+2. The delivery appendix was filed under `accounts` for every method that had one, including
+   `currency_convert`, so renaming the key for the new method broke an existing test. The key is now
+   unchanged for everything that already had one and `detail` only for the new check.
+
+**Contract impact, stated deliberately.** This is an unfreeze: 36 methods became 37 and 38 presets became 39,
+and `tests/fixtures/frozen_contract.json` was updated in the same commit (B-079). The change is additive -
+no existing method, preset, route or check moved.
+
+**Verified.** 946 tests OK, including 20 new ones: exact agreement and its caveat; a balance-preserving
+difference located on both sides; an account only in the journal and one only in the trial balance; the
+unbalanced-first ordering; the ×9 hint; the equal-and-opposite wrong-side hint; both single-input verdicts;
+refusals for a duplicate row, a negative figure, over-precise figures, a row with no identifier and no input
+at all; the partial-row schema; all five declared checks running and passing; the second route agreeing; the
+appendix carrying the verdict and four `cannot_prove` items; the preset delivering under `detail`; and a trap
+showing a tampered figure is never reported as agreeing.
+
+**No UI yet.** The screen this feeds is the next increment, and the export/credit mechanism is B.
+
 ## 2026-10-27 — [computation] Re-performance now covers the document, not only the scalars
 
 **Ask.** The owner asked what re-performance meant before accepting it as solid. Answering it honestly

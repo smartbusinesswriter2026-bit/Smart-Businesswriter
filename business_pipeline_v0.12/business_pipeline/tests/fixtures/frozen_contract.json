@@ -732,6 +732,25 @@
         "groups",
         "missing_codes"
       ]
+    },
+    "trial_balance_check": {
+      "tier": "T2",
+      "metric": "n_differing",
+      "unit": "count",
+      "test_names": [
+        "every_row_is_matched_or_explained",
+        "second_route_agrees",
+        "net_difference_agrees_with_lines",
+        "submitted_balance_difference_agrees",
+        "divisibility_rule_is_reported_not_concluded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "accounting",
+      "inputs": [
+        "journal",
+        "places",
+        "trial_balance"
+      ]
     }
   },
   "presets": [
@@ -768,6 +787,7 @@
     "ratios",
     "sroi",
     "swot",
+    "tbcheck",
     "unitecon",
     "unsupported",
     "wacc",

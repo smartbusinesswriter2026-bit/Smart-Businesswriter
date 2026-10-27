@@ -62,7 +62,16 @@ class S(unittest.TestCase):
                                                  "prior_closing": {"1000": "1000", "3000": "1000"},
                                                  "opening": [{"lines": [{"account": "1000", "debit": "1000"}, {"account": "3000", "credit": "1000"}]}],
                                                  "entries": [{"date": "2026-01-15", "description": "sale", "lines": [{"account": "1000", "debit": "500"}, {"account": "4000", "credit": "500"}]}], "schedules": []}},
-               "ols": {"y": ["52","55","61","58","70","72","69","80"], "predictors": {"a": ["1","2","3","4","5","6","7","8"], "b": ["6","7","5","8","6","7","8","6"]}}}[{"ols_robust": "ols"}.get(m.name, m.name)]
+               "ols": {"y": ["52","55","61","58","70","72","69","80"], "predictors": {"a": ["1","2","3","4","5","6","7","8"], "b": ["6","7","5","8","6","7","8","6"]}},
+               "trial_balance_check": {"journal": {"period": {"start": "2026-01-01", "end": "2026-03-31"}, "currency": "USD", "framework": "IFRS", "places": 2,
+                                                     "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"},
+                                                               {"code": "3000", "name": "Capital", "type": "equity", "line": "Capital", "role": "capital"},
+                                                               {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"}],
+                                                     "prior_closing": {"1000": "1000", "3000": "1000"},
+                                                     "opening": [{"lines": [{"account": "1000", "debit": "1000"}, {"account": "3000", "credit": "1000"}]}],
+                                                     "entries": [{"date": "2026-02-01", "description": "capital", "lines": [{"account": "1000", "debit": "500"}, {"account": "3000", "credit": "500"}]}],
+                                                     "schedules": []},
+                                        "trial_balance": [{"code": "1000", "debit": "1500"}, {"code": "3000", "credit": "1500"}]}}[{"ols_robust": "ols"}.get(m.name, m.name)]
             self.assertEqual(tuple(n for n, _ in m.tests(inp, m.impl)), m.test_names)
     def test_malformed_input_blocks_not_crashes(self):
         s = SessionManager().create({**REQ, "inputs": {"rate": "abc", "cashflows": ["1", "2"]}})

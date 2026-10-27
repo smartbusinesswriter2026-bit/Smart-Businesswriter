@@ -245,7 +245,7 @@ class SubjectRouteTest(unittest.TestCase):
         self.assertEqual(page["id"], "accounting")
         self.assertEqual({tool["method"] for tool in page["tools"]},
                          {"management_accounts", "ratio_analysis",
-                          "breakeven", "multi_product_breakeven"})
+                          "breakeven", "multi_product_breakeven", "trial_balance_check"})
 
     def test_a_stored_case_is_filtered_by_the_methods_of_a_subject(self):
         status, stored = api.handle("POST", "/api/cases", product_fixtures.make_bundle())
