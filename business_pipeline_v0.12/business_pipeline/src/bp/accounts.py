@@ -33,7 +33,7 @@ EXAMPLE_SPEC = {
         {"date": "2026-03-31", "description": "bank charge", "amount": "25", "direction": "out"}]}},
 }
 
-_KINDS = ("depreciation", "amortization", "accrual", "disposal")
+_KINDS = ("depreciation", "amortization", "accrual", "disposal", "prepayment", "deferred_income")
 _POLICY_KINDS = ("useful_life_revision", "residual_value_revision", "disclosure")
 
 def _at_period(start, date):

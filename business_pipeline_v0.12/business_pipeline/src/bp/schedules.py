@@ -242,6 +242,77 @@ def disposal(spec, journal=None):
     return [{"date": date, "description": spec.get("description", "disposal"),
              "lines": lines}]
 
+def prepayment(spec):
+    """An expense paid in advance, then released over the periods it covers.
+
+    Two things happen and both are visible in the journal: the payment (Dr prepaid asset, Cr cash) on
+    its own date, and one release per period (Dr expense, Cr prepaid asset). The final release absorbs
+    the rounding remainder, so the prepaid account ends at exactly zero and the expense carries exactly
+    the amount paid - a prepayment that never fully released would leave an asset that is not an asset.
+
+    The payment must land on or before the first release period, otherwise the prepaid account would go
+    to a credit balance, which is a liability wearing an asset's name.
+    """
+    total = _dec(spec.get("total"), "total"); periods = spec.get("periods")
+    places = _places(spec.get("places", 2)); start = spec.get("start"); date = spec.get("date")
+    if not MONTH.fullmatch(start or ""): raise ScheduleError("start must be YYYY-MM")
+    if not DAY.fullmatch(date or ""): raise ScheduleError("date must be YYYY-MM-DD (the payment date)")
+    if total <= 0: raise ScheduleError("total must be positive")
+    if isinstance(periods, bool) or not isinstance(periods, int) or periods < 1: raise ScheduleError("periods must be a whole number of at least one")
+    _check_places(total, places, "total")
+    _codes(spec, ("prepaid_account", "expense_account", "cash_account"))
+    first_end = _month_end(start, 0)
+    if date > first_end: raise ScheduleError(f"the payment date must be on or before the first release period end ({first_end})")
+    q = D(1).scaleb(-places)
+    per = (total / periods).quantize(q, rounding=ROUND_HALF_EVEN)
+    if per == 0 and periods > 1: raise ScheduleError("the release per period rounds to zero; the amount is too small for the declared places")
+    label = spec.get("description", "prepayment")
+    out = [{"date": date, "description": label,
+            "lines": [{"account": spec["prepaid_account"], "debit": str(total)},
+                      {"account": spec["cash_account"], "credit": str(total)}]}]
+    released = D(0)
+    for i in range(periods):
+        amount = (total - released) if i == periods - 1 else per
+        out.append({"date": _month_end(start, i), "description": label + " released",
+                    "lines": [{"account": spec["expense_account"], "debit": str(amount)},
+                              {"account": spec["prepaid_account"], "credit": str(amount)}]})
+        released += amount
+    return out
+
+def deferred_income(spec):
+    """Cash received before the revenue is earned, then recognised over the periods it covers.
+
+    The exact mirror of `prepayment`: Dr cash / Cr deferred income on the receipt date, then one entry
+    per period moving the balance to revenue (Dr deferred income, Cr revenue). The final recognition
+    absorbs the remainder so the deferred-income liability ends at exactly zero - revenue held on the
+    balance sheet after it has been earned is a liability that should not be there.
+    """
+    total = _dec(spec.get("total"), "total"); periods = spec.get("periods")
+    places = _places(spec.get("places", 2)); start = spec.get("start"); date = spec.get("date")
+    if not MONTH.fullmatch(start or ""): raise ScheduleError("start must be YYYY-MM")
+    if not DAY.fullmatch(date or ""): raise ScheduleError("date must be YYYY-MM-DD (the receipt date)")
+    if total <= 0: raise ScheduleError("total must be positive")
+    if isinstance(periods, bool) or not isinstance(periods, int) or periods < 1: raise ScheduleError("periods must be a whole number of at least one")
+    _check_places(total, places, "total")
+    _codes(spec, ("cash_account", "deferred_account", "revenue_account"))
+    first_end = _month_end(start, 0)
+    if date > first_end: raise ScheduleError(f"the receipt date must be on or before the first recognition period end ({first_end})")
+    q = D(1).scaleb(-places)
+    per = (total / periods).quantize(q, rounding=ROUND_HALF_EVEN)
+    if per == 0 and periods > 1: raise ScheduleError("the amount recognised per period rounds to zero")
+    label = spec.get("description", "deferred income")
+    out = [{"date": date, "description": label,
+            "lines": [{"account": spec["cash_account"], "debit": str(total)},
+                      {"account": spec["deferred_account"], "credit": str(total)}]}]
+    recognised = D(0)
+    for i in range(periods):
+        amount = (total - recognised) if i == periods - 1 else per
+        out.append({"date": _month_end(start, i), "description": label + " recognised",
+                    "lines": [{"account": spec["deferred_account"], "debit": str(amount)},
+                              {"account": spec["revenue_account"], "credit": str(amount)}]})
+        recognised += amount
+    return out
+
 def amortization(spec):
     """Loan amortization: one Dr interest / Dr loan / Cr cash entry per period; the final payment absorbs the balance."""
     principal = _dec(spec.get("principal"), "principal"); rate = _dec(spec.get("rate"), "rate"); term = spec.get("term")

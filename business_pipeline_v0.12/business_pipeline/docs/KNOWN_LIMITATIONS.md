@@ -92,7 +92,7 @@
 - Prediction intervals assume independent, roughly normal errors around the trend.
 
 ## Added with the Stage 8 schedule engines
-- Schedules cover straight-line, reducing-balance and units-of-production depreciation, level- or fixed-payment loan amortization, and straight accruals only; no sum-of-digits depreciation, no variable-rate loans, no prepayments. A depreciation `method` is declared; `changes` (a prospective revision of life or residual) is supported by straight-line only, because a revised life has no defined meaning for the other two methods.
+- Schedules cover straight-line, reducing-balance and units-of-production depreciation, level- or fixed-payment loan amortization, straight accruals, asset disposal, prepayments and deferred income. Not covered: sum-of-digits depreciation, variable-rate loans, revaluation (needs an other-comprehensive-income route and a declared framework), and bad-debt allowances. A depreciation `method` is declared; `changes` (a prospective revision of life or residual) is supported by straight-line only, because a revised life has no defined meaning for the other two methods.
 - Rounding rules are declared: depreciation's final period absorbs the remainder; interest rounds half-even; a payment never exceeds the balance due (so a large fixed payment repays early); the level annuity rounds up. Amounts beyond the currency places are rejected, never silently rounded.
 - Schedule specs are validated data, but the module is not yet wired into the pipeline, the sandbox, or the workbench, and there is no account-mapping confirmation checkpoint yet.
 - Management accounts only; not GAAP/IFRS-compliant statements (manual 9.5).

@@ -1,5 +1,54 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Prepayments and deferred income: the two deferrals, and they must clear
+
+**Ask.** Phase 1, sixth increment: adjusting entries beyond depreciation. A prepayment paid in advance
+and income received before it was earned could not be represented except by hand-writing every release
+entry, which is where a deferral silently fails to release and leaves a phantom asset on the balance
+sheet.
+
+**Did.** Two new schedule kinds, exact mirrors of each other:
+
+- **`prepayment`** - on the payment date, Dr prepaid asset / Cr cash; then one release per period,
+  Dr expense / Cr prepaid asset. The final release absorbs the rounding remainder.
+- **`deferred_income`** - on the receipt date, Dr cash / Cr deferred income; then one recognition per
+  period, Dr deferred income / Cr revenue. The final recognition absorbs the remainder.
+
+Both therefore end their balance-sheet account at **exactly zero**. That is the load-bearing property:
+a prepayment that never fully released leaves an asset that is not an asset, and deferred income that
+was never recognised leaves a liability that should not be there. Neither is a rounding detail.
+
+**Refused:** a non-positive total; a period count that is not a positive whole number; a malformed
+`start` (YYYY-MM) or `date` (YYYY-MM-DD); a release per period that rounds to zero; and a payment or
+receipt **dated after the first period end** - which would drive the prepaid asset, or the deferred
+liability, into the opposite side of the account and mislabel a liability as an asset.
+
+**A now-false claim, corrected.** `KNOWN_LIMITATIONS.md` said schedules had "no prepayments". That
+sentence became false with this commit, so the same paragraph now lists exactly what the schedule layer
+covers and what it still does not (sum-of-digits depreciation, variable-rate loans, revaluation,
+bad-debt allowances).
+
+**Verified.** 832 tests OK, including 13 new ones: payment plus one release per period; the prepaid and
+deferred accounts ending at exactly zero; the expense and the revenue carrying exactly what was paid or
+received; the remainder landing in the final release (1,000 over three periods gives 333.33 / 333.33 /
+333.34); every refusal above; a full engagement carrying both deferrals with the balance sheet still
+balancing and both accounts cleared by period end; the release being *visible* in the prepaid T-account
+rather than netted away; and a trap showing that dropping the final release would leave 333.34 sitting
+on the balance sheet.
+
+**A bug I wrote and caught.** The test helper was defined as `prep` but called as `pre`, so seven tests
+failed with a `NameError` before any of the accounting was exercised. Fixed in the test, not by
+renaming the engine.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Next in order:** bad-debt allowance (an estimate, so it needs a declared target or charge plus an
+optional write-off), then Phase 2 - the statement of changes in equity, the current/non-current split,
+and the other-comprehensive-income route that revaluation waits on.
+
 ## 2026-10-27 — [computation] Asset disposal: the one schedule that must read the books
 
 **Ask.** Phase 1, fifth increment: an asset could be depreciated but never derecognised, so a disposal
