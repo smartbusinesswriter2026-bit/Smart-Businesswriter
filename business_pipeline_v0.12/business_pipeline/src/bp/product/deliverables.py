@@ -122,7 +122,23 @@ def block(bundle, name):
     appendix = _appendix(bundle) or {}
     accounts = _accounts(bundle)
     if name == "statements":
-        return _lines(accounts.get("statements_export"))
+        value = accounts.get("statements_export")
+        if isinstance(value, str):
+            return _lines(value)
+        if isinstance(value, dict):
+            # the exporter hands back one string per statement, not one blob; a submission needs them all,
+            # in reading order, and must not fall back to "combined" (that would repeat every line)
+            out = []
+            for key in ("trial_balance", "income_statement", "balance_sheet", "cash_flow",
+                        "reconciliation", "notes"):
+                part = value.get(key)
+                if isinstance(part, str) and part.strip():
+                    out.extend(part.splitlines())
+                    out.append("")
+            if not out:
+                out = _lines(value.get("combined"))
+            return out
+        return []
     if name == "workings":
         out = []
         t_accounts = accounts.get("t_accounts_export") or {}

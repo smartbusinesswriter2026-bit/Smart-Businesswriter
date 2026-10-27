@@ -192,6 +192,26 @@ class DeliverableProfileTest(unittest.TestCase):
         }
         return bundle
 
+    def test_a_dict_of_statements_is_not_silently_dropped(self):
+        """The exporter returns the statements as a dict of parts, not one string.
+
+        A text-only reader drops every statement without an error - which is exactly what happened the first
+        time this document was rendered for the owner. The combined blob must not be used as a fallback when
+        the parts exist, or every line would appear twice.
+        """
+        bundle = json.loads(json.dumps(self.bundle))
+        appendix = bundle["delivery"].setdefault("appendix", {})
+        appendix["accounts"] = {"statements_export": {
+            "trial_balance": "TRIAL BALANCE\n  Cash 100.00",
+            "income_statement": "INCOME STATEMENT\n  Net income 50.00",
+            "balance_sheet": "BALANCE SHEET\n  Cash 100.00",
+            "combined": "COMBINED - must not be used"}}
+        lines = dict(self.d.sections(bundle, "submission"))["Statements"]
+        self.assertIn("TRIAL BALANCE", lines[0])
+        self.assertTrue(any("BALANCE SHEET" in line for line in lines))
+        self.assertFalse(any("COMBINED" in line for line in lines),
+                         "the combined blob would duplicate every statement")
+
     def test_the_blocks_come_from_the_stored_bundle(self):
         sections = dict(self.d.sections(self.accounting_bundle(), "submission"))
         self.assertIn("Statements", sections)

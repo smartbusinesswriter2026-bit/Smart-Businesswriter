@@ -1,5 +1,49 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [product] The artefact decides the format, and the first look at a submission found a bug
+
+**The owner's correction, and it was right.** A free menu of Word, PDF, Excel and PowerPoint for everything is
+wrong: a slide deck of an accounting submission is not the Word file in landscape, it is a different artefact
+with different content. The earlier increment had built that menu; this replaces it.
+
+**Three layers.** *Blocks* are a fixed vocabulary assembled from the stored bundle - statements, workings,
+checks, limitations, citation, headline, recorded values - and none of them computes anything. *Profiles* are
+data: which blocks an artefact contains, which formats can carry it, and the default. *Renderers* are handed
+the blocks.
+
+| Artefact | Blocks | Formats |
+|---|---|---|
+| Assignment submission | statements · workings · checks · limitations · citation | Word, print-ready HTML |
+| Working papers | statements · recorded values · citation | SpreadsheetML, CSV |
+| Case presentation | headline · statements · checks · citation | **none yet** |
+
+**A format is only offered when a renderer exists.** `presentation` is declared with its blocks and audience,
+marked unavailable, and refused with the reason. Listing a format nobody has opened in its own application
+would be the dishonesty this repository exists to remove.
+
+**Refusals name what works:** *"Working papers cannot be produced as docx; it can be produced as
+spreadsheetml or csv"*.
+
+**Credits changed unit:** the free-first rule now applies to the artefact, so choosing PDF over Word does not
+cost a student a credit; a second export of the same artefact does.
+
+**A flake chased, not shrugged at.** One suite run failed and the next passed on identical code. The tests
+were charging the repository's **real** credit ledger because `BP_STATE_DIR` was not isolated - 93 credits
+left and falling, and at zero every export would have failed. `test_product_routes` now isolates the wallet,
+the polluted `state/credits.jsonl` was deleted, and five consecutive runs were clean.
+
+**The bug that only looking could find.** Rendering the first real submission for the owner produced a
+document with **no statements in it**, silently: the exporter returns statements as a dict of parts and the
+block assembler accepted only text, so the most important block vanished. Green tests had not caught it;
+thirty seconds of looking did. Fixed to read the parts in order, with a regression test that also asserts the
+combined blob is not used as a fallback (that would print every statement twice).
+
+**Process note.** A concurrent design session was editing this tree at the same time. Its work was committed
+separately and unmodified rather than folded into this commit, and this entry was deferred until that session
+finished.
+
+**Verified.** 988 tests OK, including the new profile tests and the statements-block regression.
+
 ## 2026-10-28 - [product] Home accepts attached files: intake store, routes and the Home controls
 
 **Ask.** The owner: *"just provide intake capability to the pipeline. ill instruct you the rest. you may want to
