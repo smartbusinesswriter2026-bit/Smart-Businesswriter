@@ -76,6 +76,41 @@ class SubjectCatalogueTest(unittest.TestCase):
         self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]], ["template_swot"])
         self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
+
+class ServedUiContractTest(unittest.TestCase):
+    """The served page must carry the subject rail and the Enter affordance.
+
+    The Python suite cannot run the browser, so this guards the static markup
+    the client starts from: if another agent replaces the page, the ten subject
+    links, the expandable rail toggle and the up-arrow run button either exist
+    in the file or this test fails. It is a presence guard, not a DOM test.
+    """
+
+    def setUp(self):
+        with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
+            self.html = stream.read()
+
+    def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
+        for subject_id in ["accounting", "finance", "economics", "management", "entrepreneurship",
+                           "operations", "supply-chain", "marketing", "people", "research"]:
+            self.assertIn('href="#/subject/%s"' % subject_id, self.html)
+            self.assertIn('data-subject="%s"' % subject_id, self.html)
+        self.assertIn('id="railtoggle"', self.html)
+        self.assertIn('aria-controls="rail"', self.html)
+        self.assertIn('aria-label="Expand navigation"', self.html)
+        self.assertIn('class="rt-label">Collapse', self.html)
+
+    def test_the_home_chat_uses_an_up_arrow_and_enter(self):
+        self.assertIn('id="run"', self.html)
+        self.assertIn('aria-label="Start the analysis"', self.html)
+        self.assertIn('title="Start the analysis (Enter)"', self.html)
+        self.assertIn('M12 19V5M6 11l6-6 6 6', self.html)
+        self.assertIn("Enter to start", self.html)
+
+    def test_the_removed_panels_have_not_come_back(self):
+        for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
+            self.assertNotIn(gone, self.html)
+
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only
 

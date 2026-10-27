@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [product] Static-first expandable subject rail, centred chat, up-arrow Enter control (build 0.68)
+
+**Ask:** another agent's served copy lost the subject rail; re-implement it, ensure the rail is expandable, centre the big Home chatbox with even side space without changing its length, and move Run to the right as an up arrow suggesting Enter.
+
+**Did:** wrote the ten subject links and icons as static markup in `#railsubjects` so the rail renders before `/api/cases/subjects` and survives its absence; the live call still replaces them with full labels/counts, and a failure now appends a note instead of wiping the list. Reworked the rail toggle (hamburger collapsed, chevron + "Collapse" open, `aria-expanded`, label, title, persisted state). Added `main{margin:0 auto}` so the action box centres in the content column at unchanged width. Moved `#run` from the left of the action row to the right and replaced it with a circular up-arrow button; added Enter-to-start / Shift+Enter-newline and an inline hint. Added three static-markup presence guards in `tests/test_product_subjects.py`.
+
+**Files:** `web/index.html`, `tests/test_product_subjects.py`, docs: `CHANGELOG.md` (0.68), `DECISIONS.md` (B-093), `DISCUSSION_NOTEBOOK.md` (new dated entry + Status line), `UI_BRIEF.md` note, `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, this entry.
+
+**Verified:** 753 tests OK; `node --check` on the extracted page script; `<section>` counts equal; the static rail has all ten subject ids; the panels removed in 0.67 are still absent. No computation, frozen module, fixture, API route or business number changed.
+
+**Open/next:** static labels are shorter than the live ones and only the ten known ids are guarded. The static rail is navigation, not capability: with an old backend the subject page still 404s. The chat centring is within the content column (the rail offsets the visual centre by ~32px). No browser test exists.
+
 ## 2026-10-27 — [product] Catalogue and Assistant panels deleted from the UI (build 0.67)
 
 **Ask:** "whats the use of catalogue, assistant and status? are they needed? or okay to be deleted?" followed by **"go"** for the recommendation: delete Catalogue and Assistant from the UI, keep Status behind the health pill, keep all backend routes and tests.

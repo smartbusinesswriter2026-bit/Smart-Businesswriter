@@ -62,8 +62,15 @@ label.field{display:block;font-size:12px;color:var(--text-2);margin:0 0 4px}
       padding:10px 8px;display:flex;flex-direction:column;gap:4px;overflow:hidden;transition:width .18s ease;z-index:20}
 body.rail-open .shell{grid-template-columns:var(--rail-w-open) 1fr}
 body.rail-open .rail{width:var(--rail-w-open)}
-.railtoggle{all:unset;cursor:pointer;display:grid;place-items:center;width:40px;height:36px;border-radius:var(--r-sm);color:var(--text-2)}
+.railtoggle{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:40px;height:36px;padding:0 9px;
+            border-radius:var(--r-sm);color:var(--text-2);flex:0 0 auto}
 .railtoggle:hover{background:var(--sunken)}
+.railtoggle .rt-collapse,.railtoggle .rt-label{display:none}
+.railtoggle .rt-label{font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap}
+body.rail-open .railtoggle{width:100%;justify-content:flex-start}
+body.rail-open .railtoggle .rt-expand{display:none}
+body.rail-open .railtoggle .rt-collapse{display:block}
+body.rail-open .railtoggle .rt-label{display:inline}
 .railitem{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;height:42px;padding:0 9px;border-radius:var(--r-md);
           color:var(--navy-700);position:relative;white-space:nowrap}
 .railitem:hover{background:var(--sunken)}
@@ -92,7 +99,7 @@ body.rail-open .railgroup-label{opacity:1}
 .railfallback{font-size:11px;color:var(--text-3);padding:6px 9px;white-space:normal}
 
 /* ---------- main + hero ---------- */
-main{padding:28px 32px 96px;max-width:1180px;width:100%}
+main{padding:28px 32px 96px;max-width:1180px;width:100%;margin:0 auto}
 .panel[hidden]{display:none}
 .hero{text-align:center;padding:34px 0 26px}
 .hero img{height:72px;width:auto}
@@ -115,6 +122,13 @@ h3{font-size:13px;margin:20px 0 8px;color:var(--text-2);text-transform:uppercase
 .actionbox textarea{min-height:92px;font-size:15px;line-height:1.5;border-color:transparent;background:var(--sunken);padding:12px 14px}
 .actionbox textarea:focus{background:var(--surface)}
 .actionrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.runbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+        width:40px;height:40px;border-radius:50%;background:var(--navy-900);color:#fff;margin-left:auto;
+        box-shadow:var(--sh-1);transition:background .12s ease,transform .12s ease,box-shadow .12s ease}
+.runbtn:hover{background:var(--navy-700);transform:translateY(-1px);box-shadow:var(--sh-2)}
+.runbtn:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+.runbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.runbtn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
 .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
 .chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);
       padding:7px 14px;font-size:13px;color:var(--navy-700);cursor:pointer;box-shadow:var(--sh-1)}
@@ -261,6 +275,7 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
   .hero h1{font-size:26px}
   .hero img{height:56px}
   .actionrow{flex-direction:column;align-items:stretch}
+  .runbtn{align-self:flex-end;margin-left:0}
   .drawer{width:100%}
 }
 
@@ -291,8 +306,10 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
 
 <div class="shell">
   <nav class="rail" id="rail" aria-label="Primary">
-    <button class="railtoggle" id="railtoggle" type="button" aria-expanded="false" aria-controls="rail" title="Expand navigation">
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <button class="railtoggle" id="railtoggle" type="button" aria-expanded="false" aria-controls="rail" aria-label="Expand navigation" title="Expand navigation">
+      <svg class="rt-expand" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="rt-collapse" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+      <span class="rt-label">Collapse</span>
     </button>
 
     <a class="railitem" href="#/home" data-panel="home" style="--i:var(--navy-900)" title="Home: the case shelf, the chat and a new analysis">
@@ -300,7 +317,48 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
       <span class="railtext">Home</span><span class="railtip">Home: the case shelf and a new analysis</span>
     </a>
     <div class="railgroup-label" aria-hidden="true">Subjects</div>
-    <div class="railsubjects" id="railsubjects" aria-label="Subjects"></div>
+    <div class="railsubjects" id="railsubjects" aria-label="Subjects">
+      <a class="railitem" href="#/subject/accounting" data-panel="subject" data-subject="accounting" style="--i:var(--navy-700)" title="Accounting">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11a3 3 0 0 1 3 3v15H8a3 3 0 0 1-3-3z"/><path d="M8 7h7M8 11h7M8 15h4"/></svg></span>
+        <span class="railtext">Accounting</span>
+      </a>
+      <a class="railitem" href="#/subject/finance" data-panel="subject" data-subject="finance" style="--i:var(--green-600)" title="Finance">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg></span>
+        <span class="railtext">Finance</span>
+      </a>
+      <a class="railitem" href="#/subject/economics" data-panel="subject" data-subject="economics" style="--i:var(--teal)" title="Economics">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14"/><path d="M5 7l-2 6a3 3 0 0 0 6 0z"/><path d="M19 7l-2 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/></svg></span>
+        <span class="railtext">Economics</span>
+      </a>
+      <a class="railitem" href="#/subject/management" data-panel="subject" data-subject="management" style="--i:var(--violet)" title="Management &amp; strategy">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></span>
+        <span class="railtext">Management</span>
+      </a>
+      <a class="railitem" href="#/subject/entrepreneurship" data-panel="subject" data-subject="entrepreneurship" style="--i:var(--ochre)" title="Entrepreneurship">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 2 5 5 5 9l-3 3H10l-3-3c0-4 2-7 5-9z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 4 3-1M15 16l2 4-3-1"/></svg></span>
+        <span class="railtext">Entrepreneurship</span>
+      </a>
+      <a class="railitem" href="#/subject/operations" data-panel="subject" data-subject="operations" style="--i:var(--indigo)" title="Operations management">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span>
+        <span class="railtext">Operations</span>
+      </a>
+      <a class="railitem" href="#/subject/supply-chain" data-panel="subject" data-subject="supply-chain" style="--i:var(--forest)" title="Supply chain &amp; logistics">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+        <span class="railtext">Supply chain</span>
+      </a>
+      <a class="railitem" href="#/subject/marketing" data-panel="subject" data-subject="marketing" style="--i:var(--moss)" title="Marketing &amp; customers">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4l12 5V5L3 10z"/><path d="M15 9a3 3 0 0 1 0 6"/><path d="M7 15v5h3v-4"/></svg></span>
+        <span class="railtext">Marketing</span>
+      </a>
+      <a class="railitem" href="#/subject/people" data-panel="subject" data-subject="people" style="--i:var(--slate)" title="People &amp; organisation">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M18 20a5 5 0 0 0-3-4.6"/></svg></span>
+        <span class="railtext">People</span>
+      </a>
+      <a class="railitem" href="#/subject/research" data-panel="subject" data-subject="research" style="--i:var(--navy-500)" title="Research &amp; statistics">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg></span>
+        <span class="railtext">Research</span>
+      </a>
+    </div>
 
     <div class="railfoot">
       <div class="railsep"></div>
@@ -323,10 +381,13 @@ figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
         <label class="visually-hidden" for="objective">What would you like to work on?</label>
         <textarea id="objective" placeholder="What would you like to work on..."></textarea>
         <div class="actionrow">
-          <button class="btn primary" id="run" type="button">Start the analysis</button>
           <label class="visually-hidden" for="preset">Preset</label><select id="preset"><option value="">No preset</option></select>
           <label class="visually-hidden" for="method">Method</label><select id="method"><option value="">Method</option></select>
           <label class="visually-hidden" for="currency">Currency</label><select id="currency"><option value="">Currency</option></select>
+          <span class="muted actionhint">Enter to start &middot; Shift+Enter for a new line</span>
+          <button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+          </button>
         </div>
       </div>
       <div class="chips"></div>
@@ -652,7 +713,6 @@ RENDERERS.home = function () {
       '<label class="visually-hidden" for="objective">What would you like to work on?</label>' +
       '<textarea id="objective" placeholder="What would you like to work on..."></textarea>' +
       '<div class="actionrow">' +
-        '<button class="btn primary" id="run">Start the analysis</button>' +
         '<label class="visually-hidden" for="preset">Preset</label><select id="preset"><option value="">No preset</option>' +
           chips.map((id) => "<option value=\"" + esc(id) + "\">" + esc(id) + "</option>").join("") +
         "</select>" +
@@ -662,8 +722,10 @@ RENDERERS.home = function () {
         '<label class="visually-hidden" for="currency">Currency</label><select id="currency"><option value="">Currency</option>' +
           state.currencies.map((c) => "<option value=\"" + esc(c.code) + "\">" + esc(c.code) + " - " + esc(c.name) + "</option>").join("") +
         "</select>" +
-        '<span class="grow"></span>' +
-        '<span class="muted">Type the figures on the tool screen; the method is the server\'s.</span>' +
+        '<span class="muted actionhint">Enter to start &middot; Shift+Enter for a new line</span>' +
+        '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
+        "</button>" +
       "</div>" +
       '<p class="muted" style="margin:10px 2px 0">Two ways in: ask here in your own words, or pick a subject in the rail. ' +
         "A subject opens only the tools it actually supports, so you do not have to know the method name first.</p>" +
@@ -689,6 +751,10 @@ RENDERERS.home = function () {
       '<button class="btn sm" id="allsubjects">All subjects</button></div><div id="homesubjects" style="margin-top:10px">' +
       loading("Reading the subject index") + "</div></div>";
   $("#run").onclick = startFromHome;
+  $("#objective").addEventListener("keydown", (e) => {
+    // Enter starts the analysis (the up-arrow button); Shift+Enter keeps a new line.
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); startFromHome(); }
+  });
   $("#preset").onchange = () => {
     const id = $("#preset").value; const pr = state.presets[id];
     if (pr) { $("#method").value = pr.method || ""; if (pr.currency) $("#currency").value = pr.currency; }
@@ -761,10 +827,11 @@ function loadRailSubjects() {
     renderRailSubjects();
     return state.subjects;
   }).catch((e) => {
+    // Keep the static subject list (rendered in the page) when the API is unavailable.
     const box = $("#railsubjects");
-    if (box) box.innerHTML = '<a class="railitem" href="#/subjects" data-panel="subjects" style="--i:var(--green-600)">' +
-      '<span class="ic">' + iconSvg("subjects") + "</span><span class=\"railtext\">Subjects</span>" +
-      '<span class="railtip">The subject index did not load: ' + esc(e.message) + "</span></a>";
+    if (box && !box.querySelector(".railfallback")) {
+      box.insertAdjacentHTML("beforeend", '<span class="railfallback">Live counts unavailable: ' + esc(e.message) + "</span>");
+    }
   });
 }
 
@@ -1775,12 +1842,22 @@ function openModal(title, bodyHtml, confirmLabel, onConfirm) {
 
 /* ---------- boot ---------- */
 async function boot() {
+  const setRailOpen = (open) => {
+    document.body.classList.toggle("rail-open", open);
+    const toggle = $("#railtoggle");
+    if (!toggle) return;
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Collapse navigation" : "Expand navigation");
+    toggle.title = open ? "Collapse navigation" : "Expand navigation";
+  };
   $("#railtoggle").onclick = () => {
-    const open = document.body.classList.toggle("rail-open");
-    $("#railtoggle").setAttribute("aria-expanded", String(open));
+    const open = !document.body.classList.contains("rail-open");
+    setRailOpen(open);
     try { localStorage.setItem("bp-rail", open ? "open" : "closed"); } catch (e) {}
   };
-  try { if (localStorage.getItem("bp-rail") === "open") { document.body.classList.add("rail-open"); $("#railtoggle").setAttribute("aria-expanded", "true"); } } catch (e) {}
+  let railWasOpen = false;
+  try { railWasOpen = localStorage.getItem("bp-rail") === "open"; } catch (e) {}
+  setRailOpen(railWasOpen);
   const pricing = $("#pricingpill"); if (pricing) pricing.onclick = () => openModal("Pricing (illustrative, not yet available in v1)",
     "<p>Three tiers, as supplied by the owner. Not wired to a payment system.</p>" +
     '<table><thead><tr><th>Tier</th><th>Price</th></tr></thead><tbody>' +
