@@ -1,5 +1,45 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Current/non-current balance sheet: presentation only, and it is declared
+
+**Ask.** Phase 2, second increment: the balance sheet was flat - assets, liabilities, equity, with no
+current/non-current split, so it did not look like a balance sheet a student is asked to prepare.
+
+**Did.** Accounts may declare `section` (`current`, `non_current`, or empty). `ledger.balance_sheet_groups`
+groups the signed contributions into current and non-current assets and liabilities, an explicit
+`unclassified` group for accounts that declare nothing, and equity. `report.balance_sheet` presents the
+sections with subtotals when anything is classified and falls back to the **previous flat layout,
+unchanged**, when nothing is - so no existing specification changes its output.
+
+**The classification is declared, never inferred.** Whether a receivable is current is a fact about the
+item and the entity; the engine does not guess it from a balance. An account with no declared section is
+reported as unclassified rather than being quietly forced into one.
+
+**The safety property is that grouping moves nothing.** The subtotals derive from the same signed
+contributions the flat statement uses, so reclassifying an account can only move a line between sections.
+The trap test reclassifies receivables from current to non-current and asserts current assets fall from
+7,500 to 5,500 and non-current rise from 1,500 to 3,500 **while the sum - total assets - is unchanged**.
+
+**A difference the grouped layout introduces, and it is deliberate.** The flat renderer labels rows with
+the account name; the grouped renderer labels them with the statement `line`, so several accounts behind
+one line aggregate there. A test asserted the account name and failed, correctly: the output was right
+and the test was wrong. Recorded because a reader comparing the two layouts will see this.
+
+**Verified.** 866 tests OK, including 8 new ones: the sections and subtotals appearing; each subtotal
+equal to its stated figure; total assets, total liabilities and closing equity identical to the flat
+statement; the balance sheet still balancing; an unclassified account landing in its own group and still
+counting toward total assets (9,400 with a 400 deposit); the flat layout preserved for an unclassified
+chart with `classified` false; and the reclassification trap.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched. The
+new `section` field is optional, so the specification schema is backward compatible.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Remaining in Phase 2:** the other-comprehensive-income route, then revaluation on top of it (IAS 16
+settles the accounting; only the statement model was missing).
+
 ## 2026-10-27 — [computation] Statement of changes in equity: opening + movements = closing, and it ties to the balance sheet
 
 **Ask.** Phase 2, first increment, in the systematic order agreed: present the books, not just keep them.

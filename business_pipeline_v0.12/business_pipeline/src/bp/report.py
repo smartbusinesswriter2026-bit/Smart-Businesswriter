@@ -103,6 +103,45 @@ def income_statement(pre, j, places=2):
     return "\n".join(out)
 
 def balance_sheet(j, st, places=2):
+    """The balance sheet. When the chart declares current/non-current sections it is presented in those
+    sections with subtotals; otherwise the flat layout is kept, so a specification that has not adopted
+    the split produces exactly the statement it produced before."""
+    bs = ledger.balance_sheet_groups(j)
+    if not bs["classified"]:
+        return _balance_sheet_flat(j, st, places)
+    out = ["BALANCE SHEET", f"As at {j.end}   {j.currency}"]
+    t = bs["totals"]
+    for key, title, total_label in (
+            ("current_assets", "Current assets", "Total current assets"),
+            ("non_current_assets", "Non-current assets", "Total non-current assets"),
+            ("unclassified_assets", "Assets (no section declared)", "Total unclassified assets")):
+        group = bs["groups"][key]
+        if not group: continue
+        out.append(title)
+        for label, v in group.items():
+            out.append(_row(f"  {label}", v, places))
+        out.append(_row(total_label, t[key], places))
+    out.append(_row("Total assets", t["current_assets"] + t["non_current_assets"] + t["unclassified_assets"], places))
+    for key, title, total_label in (
+            ("current_liabilities", "Current liabilities", "Total current liabilities"),
+            ("non_current_liabilities", "Non-current liabilities", "Total non-current liabilities"),
+            ("unclassified_liabilities", "Liabilities (no section declared)", "Total unclassified liabilities")):
+        group = bs["groups"][key]
+        if not group: continue
+        out.append(title)
+        for label, v in group.items():
+            out.append(_row(f"  {label}", v, places))
+        out.append(_row(total_label, t[key], places))
+    out.append(_row("Total liabilities",
+                    t["current_liabilities"] + t["non_current_liabilities"] + t["unclassified_liabilities"], places))
+    out.append("Equity")
+    for label, v in bs["groups"]["equity"].items():
+        out.append(_row(f"  {label}", v, places))
+    out.append(_row("Total equity", t["equity"], places))
+    out.append(_row("Total liabilities and equity", st["total_liabilities"] + st["equity_with_current_earnings"], places))
+    return "\n".join(out)
+
+def _balance_sheet_flat(j, st, places=2):
     out = ["BALANCE SHEET", f"As at {j.end}   {j.currency}"]
     for sect, title in (("asset", "Assets"), ("liability", "Liabilities"), ("equity", "Equity")):
         out.append(title); total = D(0)

@@ -21,10 +21,12 @@ class Account:
     code: str; name: str; type: str; line: str; contra: bool = False
     role: str = ""                 # "retained_earnings" | "capital" | "dividends" | "cash" | ""
     activity: str = ""             # "operating" | "investing" | "financing" | "" (cash-flow classification override; empty falls back to the type default)
+    section: str = ""              # "current" | "non_current" | "" (balance-sheet classification; empty = unclassified)
     def __post_init__(self):
         if self.type not in NORMAL: raise ChartError(f"{self.code}: type must be one of {sorted(NORMAL)}")
         if not re.fullmatch(r"[A-Za-z0-9_.\-]{1,20}", self.code): raise ChartError(f"bad account code {self.code!r}")
         if self.activity not in ("", "operating", "investing", "financing"): raise ChartError(f"{self.code}: activity must be operating, investing or financing (or empty)")
+        if self.section not in ("", "current", "non_current"): raise ChartError(f"{self.code}: section must be current, non_current or empty")
         if self.role == "dividends" and self.type == "equity" and not self.contra: object.__setattr__(self, "contra", True)    # dividends normally carry a debit balance and reduce equity
     @property
     def normal(self): return ({"D": "C", "C": "D"}[NORMAL[self.type]]) if self.contra else NORMAL[self.type]
@@ -378,6 +380,39 @@ def changes_in_equity(j):
         totals["opening"] += opening; totals["closing"] += closing
     return {"accounts": rows, "by_kind": by_kind, "total_opening": totals["opening"],
             "total_closing": totals["closing"], "total_movement": totals["closing"] - totals["opening"]}
+
+
+def balance_sheet_groups(j):
+    """The balance sheet grouped into current and non-current sections, when the chart says which.
+
+    The classification is **declared per account** (`section`), never inferred: whether a receivable is
+    current is a fact about the item and the entity, not something deducible from a balance. An account
+    with no declared section is reported in an `unclassified` group rather than being forced into one,
+    and `classified` is False when nothing is declared, so the renderer can keep the flat layout for
+    specifications that have not adopted the split.
+
+    The subtotals are derived from the same signed contributions the flat statement uses, so grouping can
+    only move a line between sections - it cannot change total assets or total liabilities.
+    """
+    groups = {"current_assets": {}, "non_current_assets": {}, "unclassified_assets": {},
+              "current_liabilities": {}, "non_current_liabilities": {}, "unclassified_liabilities": {},
+              "equity": {}}
+    for code, (d, c) in j.balances().items():
+        a = j.chart.get(code); v = _signed(j.chart, code, d, c)
+        if v == 0: continue
+        if a.type == "equity":
+            key = "equity"
+        elif a.type == "asset":
+            key = {"current": "current_assets", "non_current": "non_current_assets"}.get(a.section, "unclassified_assets")
+        elif a.type == "liability":
+            key = {"current": "current_liabilities", "non_current": "non_current_liabilities"}.get(a.section, "unclassified_liabilities")
+        else:
+            continue
+        groups[key][a.line] = groups[key].get(a.line, D(0)) + v
+    totals = {k: sum(v.values(), D(0)) for k, v in groups.items()}
+    classified = any(a.section in ("current", "non_current")
+                     for a in j.chart.accounts.values() if a.type in ("asset", "liability"))
+    return {"groups": groups, "totals": totals, "classified": classified}
 
 
 def check_invariants(j, st, prior_closing=None):
