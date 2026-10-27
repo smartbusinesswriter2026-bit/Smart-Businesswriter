@@ -1537,6 +1537,32 @@ async function backupCases() {
   } catch (e) { $("#panel-cases").insertAdjacentHTML("afterbegin", errorBanner(e)); }
 }
 
+function accountingBlocks(acc) {
+  if (!acc || typeof acc !== "object") return "";
+  let html = "";
+  const st = acc.statements_export || {};
+  const order = ["trial_balance", "income_statement", "balance_sheet", "cash_flow", "reconciliation", "notes"];
+  const parts = order.filter((k) => typeof st[k] === "string" && st[k].trim());
+  if (parts.length) {
+    html += "<h3>The statements</h3>" + parts.map((k) =>
+      "<h4>" + esc(k.replace(/_/g, " ")) + "</h4>" + '<pre class="json">' + esc(st[k]) + "</pre>").join("");
+  }
+  const checks = acc.checks || [];
+  if (checks.length) {
+    html += "<h3>The checks</h3><ul>" + checks.map((c) =>
+      "<li><strong>" + (c[1] ? "PASS" : "FAIL") + "</strong> &mdash; " + esc(c[0]) +
+      (c[2] ? " <span class=\"muted\">" + esc(c[2]) + "</span>" : "") + "</li>").join("") + "</ul>";
+  }
+  const t = acc.t_accounts_export || {};
+  const codes = Object.keys(t).sort();
+  if (codes.length) {
+    html += "<h3>The T-accounts</h3>" + codes.map((c) => '<pre class="json">' + esc(t[c]) + "</pre>").join("");
+  }
+  if (typeof acc.journal_export === "string" && acc.journal_export.trim()) {
+    html += "<h3>The journal</h3>" + '<pre class="json">' + esc(acc.journal_export) + "</pre>";
+  }
+  return html;
+}
 RENDERERS.case = function () { openCase(state.caseId); };
 async function openCase(id) {
   if (!id) return;
@@ -1571,6 +1597,7 @@ function renderCase() {
     "</div>";
   html += '<div class="tabpanel" data-panel="report"' + (state.tab === "report" ? "" : " hidden") + ">" +
     '<div class="report">' + esc(d.report) + "</div>" +
+    (ap.accounts ? accountingBlocks(ap.accounts) : "") +
     '<div class="row" style="margin:12px 0"><button class="btn" id="dlword" type="button">Download the submission (Word)</button>' +
     '<button class="btn" id="dlhtml" type="button">Download it as HTML (prints to PDF)</button>' +
     '<span class="muted" id="dlmsg"></span></div>' +
