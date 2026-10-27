@@ -1,5 +1,29 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] The server told browsers to cache a page it recomputes every time
+
+**Found while verifying the catalogue fix.** After correcting the catalogue and restarting
+the server, the browser still rendered the old statuses. The API was already right on the wire;
+the browser had reused its cached copy. `src/bp/server.py` sent no caching header at all —
+no `Cache-Control`, no `Pragma` — although CHANGELOG 0.69 states *"The page now declares
+`Cache-Control: no-store` / `Pragma: no-cache`"*. That sentence was never true in the code.
+
+**Why it matters beyond one stale row.** The build pill is the only "which page am I looking at"
+signal, and it is useless until the page has actually reloaded. A cached page with an old pill
+and old data is indistinguishable from a current one. This is the same failure mode as the
+wrong-folder-on-8021 confusion: the owner sees something that is not what the code says.
+
+**Did.** `_send` — the single exit point for every response — now adds `Cache-Control: no-store`
+and `Pragma: no-cache` alongside the existing `X-Content-Type-Options`. Added
+`tests/test_cache_headers.py` (2 tests) which starts the real `ThreadingHTTPServer` and asserts
+both headers on the workbench document and on `/api/health`. The test fails on the old code:
+the headers were observably absent from the live server before this change.
+
+**Verified.** 761 tests OK. Live server confirmed sending `no-store` on both routes.
+
+**Still no build number, for the same reason as the entry below:** no served markup changed and
+the pill is pinned at `v0.73` by `tests/test_product_subjects.py`.
+
 ## 2026-10-27 — [computation] The catalogue told students that built accounting methods did not exist
 
 **Ask.** Phase 0 of the accounting build: "correct those that are erroneous" before adding

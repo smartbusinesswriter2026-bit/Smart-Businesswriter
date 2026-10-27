@@ -106,7 +106,13 @@ class H(BaseHTTPRequestHandler):
     def _send(self, code, body, ctype="application/json"):
         b = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
-        self.send_header("X-Content-Type-Options", "nosniff"); self.end_headers(); self.wfile.write(b)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        # Every response is computed fresh from the checkout on disk. A cached copy is
+        # therefore always wrong after a change, and worse, it looks current. The build
+        # pill only helps once the page has actually reloaded, so refuse to cache at all.
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Pragma", "no-cache")
+        self.end_headers(); self.wfile.write(b)
         started = getattr(self, "_started", None)
         if started is not None:
             product_ops.log_request(self.command, self.path, code,
