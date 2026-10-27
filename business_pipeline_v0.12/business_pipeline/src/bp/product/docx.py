@@ -51,41 +51,52 @@ def _para(text, bold=False, mono=False, size=None):
     return ('<w:p><w:r>%s<w:t xml:space="preserve">%s</w:t></w:r></w:p>' % (rpr, body))
 
 
-def document_xml(title, report_text, artifacts):
-    """The `word/document.xml` body: a title, the stored report, then the stored artifacts."""
+def document_xml(title, sections):
+    """The `word/document.xml` body: a title, then each (heading, lines) section."""
     parts = [_para(title, bold=True, size=32)]
-    for line in (report_text or "").splitlines():
-        parts.append(_para(line, mono=True, size=17))
-    if artifacts:
+    for heading, lines in sections:
         parts.append(_para(""))
-        parts.append(_para("Artifacts as recorded", bold=True, size=24))
-        for row in artifacts:
-            value = row.get("value")
-            unit = row.get("unit") or ""
-            line = "%s  %s%s  [%s]" % (row.get("id"), "" if value is None else value,
-                                       (" " + unit) if unit else "", row.get("derivation") or "")
+        parts.append(_para(heading, bold=True, size=24))
+        for line in lines:
             parts.append(_para(line, mono=True, size=17))
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
             "<w:body>" + "".join(parts) + "</w:body></w:document>")
 
 
+def render_bytes(title, sections):
+    """The whole .docx as bytes, deterministic for the same input."""
+    body = document_xml(title, sections)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, text in (("[Content_Types].xml", CONTENT_TYPES),
+                           ("_rels/.rels", RELS),
+                           ("word/document.xml", body)):
+            # a fixed timestamp keeps two exports of the same content byte-identical
+            z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
+    return buf.getvalue()
+
+
+def render_file(title, sections, path):
+    data = render_bytes(title, sections)
+    os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
+    with open(path, "wb") as fh:
+        fh.write(data)
+    return {"path": path, "sha256": sha256(data).hexdigest(), "bytes": len(data)}
+
+
 def to_bytes(bundle):
-    """The whole .docx as bytes, deterministic for the same bundle."""
+    """Back-compatible entry point: the stored report and artifacts, as one document."""
     title = case_export._title(bundle)
     report = case_export._report_text(bundle)
     rows = case_export.artifact_rows(bundle)
-    body = document_xml(title, report, rows)
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        # a fixed timestamp keeps two exports of the same bundle byte-identical
-        info = zipfile.ZipInfo("[Content_Types].xml", date_time=(1980, 1, 1, 0, 0, 0))
-        z.writestr(info, CONTENT_TYPES)
-        info = zipfile.ZipInfo("_rels/.rels", date_time=(1980, 1, 1, 0, 0, 0))
-        z.writestr(info, RELS)
-        info = zipfile.ZipInfo("word/document.xml", date_time=(1980, 1, 1, 0, 0, 0))
-        z.writestr(info, body)
-    return buf.getvalue()
+    sections = [("Report", (report or "").splitlines())]
+    if rows:
+        sections.append(("Artifacts as recorded",
+                         ["%s  %s%s  [%s]" % (r.get("id"), "" if r.get("value") is None else r.get("value"),
+                                              (" " + r["unit"]) if r.get("unit") else "",
+                                              r.get("derivation") or "") for r in rows]))
+    return render_bytes(title, sections)
 
 
 def export_docx(bundle, path):

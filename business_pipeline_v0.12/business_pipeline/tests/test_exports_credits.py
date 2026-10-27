@@ -14,6 +14,7 @@ than an edit.
 """
 
 import io
+import json
 import os
 import shutil
 import sys
@@ -52,47 +53,49 @@ class WalletTest(unittest.TestCase):
         self.assertEqual(credits.balance(), 3)
         self.assertEqual(credits.balance(), sum(e["amount"] for e in credits.entries()))
 
-    def test_the_first_export_of_a_report_is_free(self):
-        q = credits.quote("case-a", "docx")
+    def test_the_first_export_of_an_artefact_is_free(self):
+        q = credits.quote("case-a", "submission", "docx")
         self.assertEqual(q["cost"], 0)
         self.assertTrue(q["free"])
-        result = credits.charge("case-a", "docx")
+        result = credits.charge("case-a", "submission", "docx")
         self.assertFalse(result["charged"])
         self.assertEqual(result["balance"], 3)
 
-    def test_a_second_export_of_the_same_report_is_charged(self):
-        credits.charge("case-a", "docx")                 # free
-        result = credits.charge("case-a", "docx")
+    def test_a_second_export_of_the_same_artefact_is_charged(self):
+        credits.charge("case-a", "submission", "docx")            # free
+        q = credits.quote("case-a", "submission", "docx")
+        self.assertFalse(q["free"], "the artefact has been produced once already")
+        self.assertEqual(q["cost"], 1)
+        result = credits.charge("case-a", "submission", "docx")
         self.assertTrue(result["charged"])
         self.assertEqual(result["balance"], 2)
 
-    def test_a_different_report_starts_free_again(self):
-        credits.charge("case-a", "docx")
-        self.assertEqual(credits.quote("case-b", "docx")["cost"], 0)
+    def test_a_different_artefact_starts_free_again(self):
+        credits.charge("case-a", "submission", "docx")
+        self.assertEqual(credits.quote("case-a", "workpapers", "spreadsheetml")["cost"], 0)
 
     def test_a_retry_is_reused_and_not_charged_twice(self):
-        credits.charge("case-a", "docx")                 # free
-        first = credits.charge("case-a", "docx", idem="attempt-1")
-        again = credits.charge("case-a", "docx", idem="attempt-1")
+        credits.charge("case-a", "submission", "docx")                    # free
+        first = credits.charge("case-a", "submission", "docx", idem="attempt-1")
+        again = credits.charge("case-a", "submission", "docx", idem="attempt-1")
         self.assertTrue(first["charged"])
         self.assertTrue(again["reused"], "the same retry key must not charge twice")
         self.assertEqual(again["balance"], first["balance"])
 
     def test_an_unaffordable_export_is_refused(self):
-        credits.charge("case-a", "docx")                 # free, so the report is now used
-        credits.charge("case-a", "docx")                 # 1
-        credits.charge("case-a", "docx")                 # 2
-        credits.charge("case-a", "docx")                 # 3, balance now 0
+        credits.charge("case-a", "submission", "docx")      # free, artefact used
+        for _ in range(3):
+            credits.charge("case-a", "submission", "docx")  # 1 each
         self.assertEqual(credits.balance(), 0)
         with self.assertRaises(credits.InsufficientCredits) as ctx:
-            credits.charge("case-a", "docx")
+            credits.charge("case-a", "submission", "docx")
         self.assertIn("costs 1 credit", str(ctx.exception))
 
     def test_a_refund_is_appended_and_restores_the_balance(self):
-        credits.charge("case-a", "docx")
-        paid = credits.charge("case-a", "docx")
+        credits.charge("case-a", "submission", "docx")
+        paid = credits.charge("case-a", "submission", "docx")
         self.assertEqual(paid["balance"], 2)
-        r = credits.refund("case-a", "docx")
+        r = credits.refund("case-a", "submission", "docx")
         self.assertTrue(r["refunded"])
         self.assertEqual(credits.balance(), 3)
         self.assertEqual(credits.entries()[-1]["kind"], "refund",
@@ -100,11 +103,11 @@ class WalletTest(unittest.TestCase):
 
     def test_an_unknown_kind_is_refused(self):
         with self.assertRaises(credits.CreditError):
-            credits.quote("case-a", "pdf-ish")
+            credits.quote("case-a", "submission", "pdf-ish")
 
-    def test_a_free_export_still_uses_up_the_report(self):
-        credits.charge("case-a", "html")                 # html costs 0 anyway
-        self.assertIn("case-a", credits.exported_reports())
+    def test_a_free_export_still_uses_up_the_artefact(self):
+        credits.charge("case-a", "submission", "docx")
+        self.assertIn(("case-a", "submission"), credits.exported_artefacts())
 
 
 class DocxTest(unittest.TestCase):
@@ -143,6 +146,75 @@ class DocxTest(unittest.TestCase):
         self.assertTrue(outputs, "the fixture should record outputs")
         for value in list(outputs.values())[:3]:
             self.assertIn(str(value), body)
+
+
+class DeliverableProfileTest(unittest.TestCase):
+    """The artefact is primary; the format menu follows from it."""
+
+    def setUp(self):
+        from bp.product import deliverables
+        self.d = deliverables
+        self.root = tempfile.mkdtemp(prefix="bp-deliverables-")
+        self.bundle = product_fixtures.make_bundle()
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_the_catalogue_offers_formats_per_artefact_not_a_free_menu(self):
+        catalogue = {entry["id"]: entry for entry in self.d.catalogue()}
+        self.assertEqual(catalogue["submission"]["formats"], ["docx", "html"])
+        self.assertEqual(catalogue["workpapers"]["formats"], ["spreadsheetml", "csv"])
+        self.assertNotIn("docx", catalogue["workpapers"]["formats"])
+
+    def test_a_presentation_is_declared_but_not_offered(self):
+        catalogue = {entry["id"]: entry for entry in self.d.catalogue()}
+        self.assertFalse(catalogue["presentation"]["available"])
+        self.assertIn("PowerPoint", catalogue["presentation"]["reason"])
+        with self.assertRaises(self.d.DeliverableError):
+            self.d.profile("presentation")
+
+    def test_an_impossible_pair_is_refused_and_names_what_works(self):
+        with self.assertRaises(self.d.DeliverableError) as ctx:
+            self.d.check_pair("workpapers", "docx")
+        message = str(ctx.exception)
+        self.assertIn("Working papers cannot be produced as docx", message)
+        self.assertIn("spreadsheetml", message)
+
+    def accounting_bundle(self):
+        """The fixture is an NPV case; blocks about statements need an accounting appendix."""
+        bundle = json.loads(json.dumps(self.bundle))
+        appendix = bundle["delivery"].setdefault("appendix", {})
+        appendix["accounts"] = {
+            "statements_export": "BALANCE SHEET\n  Cash 100.00",
+            "t_accounts_export": {"1000": "ACCOUNT 1000 Cash"},
+            "journal_export": "JOURNAL 2026-01-01 to 2026-03-31",
+            "checks": [["trial_balance_debits_equal_credits", True, "ok"]],
+        }
+        return bundle
+
+    def test_the_blocks_come_from_the_stored_bundle(self):
+        sections = dict(self.d.sections(self.accounting_bundle(), "submission"))
+        self.assertIn("Statements", sections)
+        self.assertIn("BALANCE SHEET", sections["Statements"][0])
+        self.assertIn("Workings", sections)
+        self.assertIn("Verification checks", sections)
+        self.assertIn("PASS  trial_balance_debits_equal_credits", sections["Verification checks"])
+
+    def test_working_papers_carry_the_recorded_values_not_the_narrative(self):
+        names = [name for name, _ in self.d.sections(self.accounting_bundle(), "workpapers")]
+        self.assertIn("Recorded values", names)
+        self.assertNotIn("Workings", names)
+
+    def test_each_offered_format_produces_a_file(self):
+        for profile, fmt, suffix in (("submission", "docx", "docx"),
+                                     ("submission", "html", "html"),
+                                     ("workpapers", "csv", "csv"),
+                                     ("workpapers", "spreadsheetml", "xml")):
+            with self.subTest(profile=profile, fmt=fmt):
+                destination = os.path.join(self.root, "%s.%s" % (profile, suffix))
+                result = self.d.write_export(self.bundle, profile, fmt, destination)
+                self.assertTrue(os.path.isfile(destination))
+                self.assertEqual(result["deliverable"], profile)
 
 
 class ExportRouteTest(unittest.TestCase):
@@ -193,7 +265,7 @@ class ExportRouteTest(unittest.TestCase):
         status, payload = api.handle("POST", "/api/cases/%s/export" % self.case_id,
                                      {"kind": "pdf", "destination": os.path.join(self.root, "x.pdf")})
         self.assertEqual(status, 422)
-        self.assertIn("unknown export kind", payload["error"])
+        self.assertIn("no deliverable offers", payload["error"])
 
     def test_an_unaffordable_export_is_refused_before_the_file_is_written(self):
         os.environ["BP_CREDITS_GRANT"] = "0"

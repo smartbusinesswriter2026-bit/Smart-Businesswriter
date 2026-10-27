@@ -96,54 +96,57 @@ def balance(account="local"):
     return sum(int(e["amount"]) for e in entries(account))
 
 
-def exported_reports(account="local"):
-    return {e["report"] for e in entries(account) if e.get("kind") == "deduct" and e.get("report")}
+def exported_artefacts(account="local"):
+    """The (report, deliverable) pairs already produced - the unit the free-first rule applies to."""
+    return {(e["report"], e.get("deliverable")) for e in entries(account)
+            if e.get("kind") == "deduct" and e.get("report")}
 
 
-def idem_key(account, report, kind):
-    return sha256(f"{account}|{report}|{kind}".encode()).hexdigest()[:32]
+def quote(report, deliverable, kind, account="local"):
+    """What one export of this artefact would cost, and why.
 
-
-def quote(report, kind, account="local"):
-    """What one export would cost, and why. Never raises for affordability - only for an unknown kind."""
+    The **first export of an artefact is free whatever its format**, and a second format of the same
+    artefact is charged. That is the honest rule: a student needs one copy to hand in, and choosing PDF
+    rather than Word should not cost them.
+    """
     if kind not in PRICE_TABLE:
         raise CreditError(f"unknown export kind {kind!r}; known: {sorted(PRICE_TABLE)}")
-    already = exported_reports(account)
-    free = INCLUDED_FIRST and report not in already
+    already = exported_artefacts(account)
+    free = INCLUDED_FIRST and (report, deliverable) not in already
     cost = 0 if free else int(PRICE_TABLE[kind])
-    return {"report": report, "kind": kind, "cost": cost, "free": free,
+    return {"report": report, "deliverable": deliverable, "kind": kind, "cost": cost, "free": free,
             "price": int(PRICE_TABLE[kind]), "balance": balance(account)}
 
 
-def charge(report, kind, account="local", idem=None):
+def charge(report, deliverable, kind, account="local", idem=None):
     """Append a deduction for a completed export.
 
     Deduplication happens only when the caller supplies an `idem` key, which is what a retry carries. Without
-    one, each call is a genuine new export and is charged: keying on report and format alone would make every
-    second export of the same file look like a retry and silently free.
+    one, each call is a genuine new export and is charged.
     """
     with LOCK:
         if idem:
             for e in entries(account):
                 if e.get("idem") == idem and e.get("kind") == "deduct":
                     return {"charged": False, "reused": True, "entry": e, "balance": balance(account)}
-        q = quote(report, kind, account)
+        q = quote(report, deliverable, kind, account)
         if q["cost"] > q["balance"]:
             raise InsufficientCredits(q["cost"], q["balance"], kind)
         entry = {"id": uuid.uuid4().hex[:12], "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                  "account": account, "kind": "deduct", "amount": -q["cost"], "reason": "export",
-                 "report": report, "format": kind, "idem": idem,
+                 "report": report, "deliverable": deliverable, "format": kind, "idem": idem,
                  "balance_after": q["balance"] - q["cost"]}
         _append(entry)
         return {"charged": q["cost"] > 0, "reused": False, "entry": entry,
                 "balance": q["balance"] - q["cost"], "free": q["free"]}
 
 
-def refund(report, kind, account="local", reason="export failed"):
-    """Give back the most recent charge for that report and format. Appended, never edited."""
+def refund(report, deliverable, kind, account="local", reason="export failed"):
+    """Give back the most recent charge for that artefact and format. Appended, never edited."""
     with LOCK:
         prior = [e for e in entries(account)
-                 if e.get("kind") == "deduct" and e.get("report") == report and e.get("format") == kind]
+                 if e.get("kind") == "deduct" and e.get("report") == report
+                 and e.get("deliverable") == deliverable and e.get("format") == kind]
         if not prior:
             return {"refunded": False, "reason": "nothing was charged for that export"}
         amount = -int(prior[-1]["amount"])
@@ -151,8 +154,8 @@ def refund(report, kind, account="local", reason="export failed"):
             return {"refunded": False, "reason": "that export was free"}
         entry = {"id": uuid.uuid4().hex[:12], "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                  "account": account, "kind": "refund", "amount": amount, "reason": reason,
-                 "report": report, "format": kind, "idem": prior[-1].get("idem"),
-                 "balance_after": balance(account) + amount}
+                 "report": report, "deliverable": deliverable, "format": kind,
+                 "idem": prior[-1].get("idem"), "balance_after": balance(account) + amount}
         _append(entry)
         return {"refunded": True, "amount": amount, "entry": entry, "balance": balance(account)}
 

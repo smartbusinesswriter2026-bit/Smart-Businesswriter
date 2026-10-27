@@ -25,12 +25,20 @@ class ProductRouteTest(unittest.TestCase):
         self.root = tempfile.mkdtemp(prefix="bp-product-routes-")
         self.previous = os.environ.get("BP_CASES_DIR")
         os.environ["BP_CASES_DIR"] = self.root
+        # the export route charges credits, so the wallet must be isolated too - a shared ledger makes
+        # the suite drain the repo's balance and then fail once it is empty
+        self.previous_state = os.environ.get("BP_STATE_DIR")
+        os.environ["BP_STATE_DIR"] = os.path.join(self.root, "state")
 
     def tearDown(self):
         if self.previous is None:
             os.environ.pop("BP_CASES_DIR", None)
         else:
             os.environ["BP_CASES_DIR"] = self.previous
+        if self.previous_state is None:
+            os.environ.pop("BP_STATE_DIR", None)
+        else:
+            os.environ["BP_STATE_DIR"] = self.previous_state
         shutil.rmtree(self.root, ignore_errors=True)
 
     def make_case(self):
