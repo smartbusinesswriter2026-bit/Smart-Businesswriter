@@ -1,5 +1,56 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Bad-debt allowance: the engine computes the movement, never the estimate
+
+**Ask.** Phase 1, final increment: the last adjusting entry. An allowance for doubtful debts could be
+created only by hand, and the write-off had nowhere to go.
+
+**Did.** New schedule kind `bad_debt`, two operations, either or both:
+
+- **`charge`** - books a declared expense: Dr bad-debt expense / Cr allowance.
+- **`target`** - books the movement needed to reach a wanted closing balance, which needs the ledger.
+  A target **below** the existing balance is a reversal: Dr allowance / Cr expense. Reducing an
+  over-provided allowance is a normal adjustment, so it is posted rather than refused.
+- **`write_off`** - removes a specific debt against the allowance: Dr allowance / Cr receivables.
+
+**The estimate is the owner's.** Nothing here decides what the allowance should be; the engine only
+turns a declared charge, or a declared closing balance, into the movement that achieves it.
+
+**Ordering is deliberate and load-bearing.** The write-off is posted first, so a `target` is measured
+against the allowance **after** the write-off. Measured before, the allowance closes at
+`target - write_off` and every entry still balances - the kind of mistake that survives review because
+everything foots. The closing balance is the only thing that catches it, so there is a test that pins
+exactly that.
+
+**A refusal I had to add after the engine taught me something.** Writing off more than the allowance
+holds was originally allowed, and the engagement then failed later at period close with
+*"closing with abnormal balances needs a human decision: 1110"*. That is correct doctrine but a poor
+message, so the schedule now catches it first: *"the write-off of 300 is more than the allowance held
+(200) and nothing restores it; raise the allowance first, or write the debt off to expense instead"*.
+The check is not absolute - a declared `target` that replenishes the allowance makes a large write-off
+legitimate, and that case is allowed and tested.
+
+**Verified.** 848 tests OK, including 16 new ones: the charge method; the target method reaching the
+wanted closing balance; a target below the existing balance reversing the allowance; a target equal to
+the balance posting nothing; a write-off clearing the receivable; the write-off-beyond-allowance refusal
+and its message; a large write-off made acceptable by a restoring target; a write-off larger than the
+receivables refused; both target-and-charge and neither refused; negative amounts and a bad date
+refused; the statement balancing with an allowance; net receivables reduced by both the write-off and
+the allowance; and the ordering trap above.
+
+**KNOWN_LIMITATIONS.md** listed bad-debt allowances as not covered; that became false here, so the
+paragraph now names the allowance among what the schedule layer does and keeps revaluation among what
+it does not.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Phase 1 of the accounting build is now complete.** The next increment is Phase 2, which changes the
+statement model (statement of changes in equity, current/non-current split, and the
+other-comprehensive-income route revaluation waits on) and therefore stops here for the owner.
+
 ## 2026-10-27 — [computation] Prepayments and deferred income: the two deferrals, and they must clear
 
 **Ask.** Phase 1, sixth increment: adjusting entries beyond depreciation. A prepayment paid in advance

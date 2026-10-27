@@ -33,7 +33,8 @@ EXAMPLE_SPEC = {
         {"date": "2026-03-31", "description": "bank charge", "amount": "25", "direction": "out"}]}},
 }
 
-_KINDS = ("depreciation", "amortization", "accrual", "disposal", "prepayment", "deferred_income")
+_KINDS = ("depreciation", "amortization", "accrual", "disposal", "prepayment", "deferred_income", "bad_debt")
+_JOURNAL_KINDS = ("disposal", "bad_debt")     # schedules whose result depends on what the books already hold
 _POLICY_KINDS = ("useful_life_revision", "residual_value_revision", "disclosure")
 
 def _at_period(start, date):
@@ -247,9 +248,9 @@ def build(spec):
     for i, s in enumerate(spec.get("schedules", [])):
         s2 = dict(s); kind = s2.pop("kind"); s2["changes"] = by_sched.get(i, [])
         fn = getattr(schedules, kind)
-        # a disposal must see what the books actually hold, so it is the one kind given the journal
+        # disposal and bad debt depend on what the books already hold, so they are given the journal
         try:
-            expanded = fn(s2, journal=j) if kind == "disposal" else fn(s2)
+            expanded = fn(s2, journal=j) if kind in _JOURNAL_KINDS else fn(s2)
         except schedules.ScheduleError as e:
             raise EngagementError(f"schedules[{i}]: {e}")
         for e in expanded:

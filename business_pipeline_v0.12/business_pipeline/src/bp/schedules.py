@@ -313,6 +313,73 @@ def deferred_income(spec):
         recognised += amount
     return out
 
+def bad_debt(spec, journal=None):
+    """Allowance for doubtful debts, and an optional write-off against it.
+
+    Two operations, either or both:
+
+    - **write-off** - a specific debt is removed: Dr allowance / Cr receivables. The allowance must
+      already exist; this does not create a provision out of nothing.
+    - **the charge** - declared either as `charge` (the expense to book) or as `target` (the closing
+      allowance balance wanted). A `target` needs the ledger, because the movement is
+      `target - the balance already there`, and a target below the existing balance is a **reversal**:
+      Dr allowance / Cr expense. Reducing an over-provided allowance is a normal adjustment, not an
+      error, so it is posted rather than refused.
+
+    Order matters and is deliberate: the write-off is posted first, so a `target` is measured against
+    the allowance **after** the write-off. Measuring it before would double-count the debt that was
+    just removed and over-provide by exactly the write-off amount.
+
+    The estimate itself is the owner's judgement. Nothing here computes what the allowance *should* be.
+    """
+    places = _places(spec.get("places", 2)); date = spec.get("date")
+    if not DAY.fullmatch(date or ""): raise ScheduleError("date must be YYYY-MM-DD")
+    _codes(spec, ("receivable_account", "allowance_account", "expense_account"))
+    target, charge = spec.get("target"), spec.get("charge")
+    if (target is None) == (charge is None):
+        raise ScheduleError("declare exactly one of target (the closing allowance wanted) or charge (the expense to book)")
+    write_off = _dec(spec.get("write_off", 0), "write_off"); _check_places(write_off, places, "write_off")
+    if write_off < 0: raise ScheduleError("write_off must not be negative")
+    if target is not None:
+        target = _dec(target, "target"); _check_places(target, places, "target")
+        if target < 0: raise ScheduleError("target must not be negative")
+    if charge is not None:
+        charge = _dec(charge, "charge"); _check_places(charge, places, "charge")
+        if charge < 0: raise ScheduleError("charge must not be negative")
+    label = spec.get("description")
+    out = []
+    held = _book_balance(journal, spec["allowance_account"]) if journal is not None else None
+    if write_off > 0:
+        if journal is not None:
+            book_recv = _book_balance(journal, spec["receivable_account"])
+            if write_off > book_recv:
+                raise ScheduleError(f"the ledger holds {book_recv} of receivables on {spec['receivable_account']}, but the write-off is {write_off}")
+            final = target if target is not None else (held - write_off + (charge or D(0)))
+            if final < 0:
+                raise ScheduleError(
+                    f"the write-off of {write_off} is more than the allowance held ({held}) and nothing restores it; "
+                    "raise the allowance first, or write the debt off to expense instead")
+        out.append({"date": date, "description": label or "bad debt written off",
+                    "lines": [{"account": spec["allowance_account"], "debit": str(write_off)},
+                              {"account": spec["receivable_account"], "credit": str(write_off)}]})
+    if target is not None:
+        if journal is None:
+            return out                                  # the movement needs the ledger; checked when it builds
+        movement = target - (held - write_off)
+        if movement > 0:
+            out.append({"date": date, "description": label or "allowance for doubtful debts",
+                        "lines": [{"account": spec["expense_account"], "debit": str(movement)},
+                                  {"account": spec["allowance_account"], "credit": str(movement)}]})
+        elif movement < 0:
+            out.append({"date": date, "description": label or "allowance reduced",
+                        "lines": [{"account": spec["allowance_account"], "debit": str(-movement)},
+                                  {"account": spec["expense_account"], "credit": str(-movement)}]})
+    elif charge > 0:
+        out.append({"date": date, "description": label or "allowance for doubtful debts",
+                    "lines": [{"account": spec["expense_account"], "debit": str(charge)},
+                              {"account": spec["allowance_account"], "credit": str(charge)}]})
+    return out
+
 def amortization(spec):
     """Loan amortization: one Dr interest / Dr loan / Cr cash entry per period; the final payment absorbs the balance."""
     principal = _dec(spec.get("principal"), "principal"); rate = _dec(spec.get("rate"), "rate"); term = spec.get("term")
