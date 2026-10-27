@@ -18,6 +18,7 @@ Sub-modules:
 
 * `cases` - the local durable case store (one JSON bundle per case);
 * `api` - additive route dispatch for the case store (no server edit);
+* `intake` - the attached-file store (bytes + SHA-256 + one record per file; it reads nothing);
 * `subjects` - the subject index and the Calculator's launcher groups;
 * `disclosure` - the AI-use disclosure rendered from the recorded metadata;
 * `export` - a self-contained HTML export of a stored bundle.

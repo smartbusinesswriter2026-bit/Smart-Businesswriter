@@ -1,5 +1,76 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 - [product] Home accepts attached files: intake store, routes and the Home controls
+
+**Ask.** The owner: *"just provide intake capability to the pipeline. ill instruct you the rest. you may want to
+add appropriate buttons there for uploading the needed files."*
+
+**Did.**
+
+1. `src/bp/product/intake.py` - a new product-layer store. Each attached file is written under `BP_INTAKE_DIR`
+   (default `intake/`) as immutable bytes plus one JSON record (`bp-intake/1`): id, filename, extension, size,
+   SHA-256, UTC upload time, kind (`structured` | `reference`), status (`stored` | `ingested` | `reference_only`),
+   note, error and the typed table when one was read. It imports no frozen module and computes nothing.
+2. `src/bp/server.py` - additive routes, wired beside the existing `/api/cases` prefix: `POST/GET /api/intake`,
+   `GET/DELETE /api/intake/{id}`, `POST /api/intake/{id}/ingest`. The server, not the store, calls the frozen
+   `bp.ingest`; a structured file is read on upload and can be re-read with `sheet`/`merged`. A file that cannot
+   be read keeps its bytes and carries the refusal reason. All pre-existing routes are untouched.
+3. `web/index.html` - **Attach files** beside the run control, drag-and-drop on the action box, and an attachments
+   strip: name, size, status, and `Ingest` / `Remove`. The status is literal - `Ingested` with rows x columns,
+   `Stored, not read`, `Reference only` - and any other file type is stored and labelled not read. The Data
+   panel picker no longer offers legacy `.xls`, which the ingestion module refuses (`.xlsm` replaces it).
+4. Tests: `tests/test_product_intake.py` (16) covers the store, the refusals, the corrupt-record visibility and
+   the HTTP round trip. Build **0.75** moves the pill, its pin and the documentation counts together.
+
+**Files:** `src/bp/product/intake.py` (new), `src/bp/product/__init__.py`, `src/bp/server.py`,
+`web/index.html`, `tests/test_product_intake.py` (new), `tests/test_product_subjects.py` (the pill pin only),
+`README.md`, `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`, `docs/WORKLOG.md`.
+
+**Verified.** 987 tests OK, including the product-boundary guard (the new module imports the standard library
+only and no frozen core module) and the frozen-route guard (all twelve documented routes still present).
+
+**Where this could be wrong.** The intake store deliberately has no PDF/DOCX text extraction, no
+classification and no routing into a spec, a reference list or evidence items - those were excluded until the
+owner directs them. `.txt` is treated as a delimited table (the ingestion module already does that), which may
+surprise a user attaching prose. The 5 MB / 1,000-row / 50-column caps are inherited from ingestion and are
+refusals, not truncation.
+
+## 2026-10-28 - [ui] The left rail becomes the A1 strip: a full aqua-green bar, white labels, real coloured icons
+
+**Ask.** The owner: another agent was changing the strip in the left rail; use A1 as the reference, but the
+colour is the aqua green of the logo, only the long line behind the icons is coloured and the texts keep a white
+background, and the icons must be real icons with colour, not lines. Then, on the first pass: *"not just a line
+... it should be a full bar"*.
+
+**Did.**
+
+1. `web/index.html` - the strip behind the icons is now one full-height bar in the logo green (`#02A15E`, sampled
+   from the logo PNG - the same `--green-600` the wordmark uses). The label column beside it stays white, so the
+   expanded rail reads as the reference does: coloured icons on a coloured strip, and a white text panel.
+2. The twelve rail icons (Home, the ten subjects, Calculator) are now solid, filled glyphs on white tiles, each
+   in its subject's own colour - the Font Awesome Free 6.5.2 solid set (CC BY 4.0), not line drawings. The
+   catalogue cards keep the existing line set, so `ICONS` is untouched and the rail reads from a new
+   `RAIL_ICONS` map; the static rail markup carries the same glyphs, so the strip is right before the subject API
+   answers.
+3. Fixed a real bug carried in from the start: `all:unset` on `.railitem` and `.railtoggle` reset `box-sizing`
+   to `content-box`, so the toggle's `width:100%` plus its own padding overflowed the rail and the collapse
+   chevron stopped short of the right edge of the expanded panel. Both now carry `box-sizing:border-box`.
+4. Build **0.74**: served markup changed, so the page pill, the pill pin in `tests/test_product_subjects.py`,
+   `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md` and the README build line move together - the
+   docs-state guard requires the documents and the page to agree.
+
+**Files:** `web/index.html`, `tests/test_product_subjects.py` (the pill pin only), `docs/CHANGELOG.md`,
+`docs/HOME.md`, `docs/HANDOFF.md`, `README.md`, `docs/WORKLOG.md`.
+
+**Verified.** The full suite is green, including the 19 served-UI presence guards; the rail was checked in the
+browser in both states - collapsed strip, and expanded strip with the white label column, the mint active label
+and the chevron on the right edge.
+
+**Open/next:** the bar is the brand green; if the owner wants the strip in the A1 navy instead, it is one token
+(`--green-600`) in one rule. Not committed.
+
+---
+
 ## 2026-10-28 — [product] Exports and credits: a real .docx, and a wallet that cannot double-charge
 
 **Ask.** Increment B: let a student export what they have, with the first export of a report free and extra

@@ -1,7 +1,7 @@
 # business_pipeline (Stage 5 first increment)
 
 > **Serving a page? Read [`SERVING.md`](../../SERVING.md) first.**
-> **http://127.0.0.1:8021/ is the owner's default working page** — branch `design/v0.73-rail`, build v0.73, always up. Do not serve another folder on port 8021; use a different port and say which.
+> **http://127.0.0.1:8021/ is the owner's default working page** — branch `design/v0.73-rail`, build v0.75, always up. Do not serve another folder on port 8021; use a different port and say which.
 
 Tests: `python3 -m unittest discover -s tests -v` (run from this folder; Python 3.10+, stdlib only)
 Run the workbench: `python scripts/serve.py` (or `PYTHONPATH=src python3 -m bp.server 8000`) then open http://127.0.0.1:8000
@@ -26,6 +26,8 @@ Model assistance (optional, off by default; providers: `deepseek`, `openai`, `an
 Currencies: `GET /api/currencies` lists the ISO 4217 registry with minor units; there is no FX price service, so a conversion needs a declared rate (B-069).
 
 Ingestion: `POST /api/ingest` {filename, content_base64, sheet?, merged?} reads a CSV/TSV or XLSX file into a typed table with a provenance pointer (file, SHA-256, row/column, sheet). For XLSX, `sheet` selects a sheet by exact name or 1-based number (default: the first) and `merged` is the merged-cell policy: `refuse` (default) or `top_left`, which repeats the anchor value across each merged range under a declared convention and records what was expanded. API returns `sheets` and `sheet_index`; the workbench has a Data ingestion card and `python -m bp.ingest <file> [--sheet NAME|N] [--merged refuse|top_left]` prints the same summary. PDF, scans and SPSS are refused: no OCR or PDF text extraction is implemented.
+
+Attachments (build 0.75, product layer): `POST /api/intake` {filename, content_base64} stores a file under `BP_INTAKE_DIR` (default `intake/`) with its SHA-256 and one JSON record. A structured file (CSV/TSV/TXT/XLSX/XLSM) is read immediately by the same ingestion module; `POST /api/intake/{id}/ingest` re-reads one with the `sheet`/`merged` options, `GET /api/intake` lists, `GET`/`DELETE /api/intake/{id}` reads and removes. Every other file is stored as `reference_only` — no reader is implemented and the record says so. The Home page has the Attach files button, drag-and-drop and per-file Ingest/Remove controls.
 
 Cases (product layer, B-080/B-081/B-086): `GET /api/cases` lists stored case bundles, `POST /api/cases` stores one, `GET /api/cases/{id}` returns it verbatim and `DELETE /api/cases/{id}` removes it. Bundles live under `BP_CASES_DIR` (default `cases/`) as opaque JSON; the product layer computes nothing, and `bp.product.export.export_html(bundle, path)` writes a self-contained HTML copy of the delivered report and its stored artifacts. A case can also be **versioned** (`GET/POST /api/cases/{id}/versions`, `GET /api/cases/{id}/versions/{n}`, stored as `cases/<id>/v001.json`, immutable), **compared** across versions (`GET /api/cases/{id}/compare`: same method only, stored values verbatim, a missing metric is reported as "not computed for this version") and **signed off** by a reviewer (`POST/GET /api/cases/{id}/signoff`: append-only records carrying the owner-approved wording and the signed version hashes).
 

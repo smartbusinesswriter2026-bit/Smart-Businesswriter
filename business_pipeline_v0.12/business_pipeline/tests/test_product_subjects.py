@@ -103,7 +103,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.73", self.html)
+        self.assertIn("v0.75", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
 

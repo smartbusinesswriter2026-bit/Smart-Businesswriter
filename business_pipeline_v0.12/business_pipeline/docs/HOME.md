@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.73**, **965 tests**, 2026-10-27. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" — map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.75**, **987 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -26,7 +26,7 @@
 | Change retrieval/citation | `RESEARCH_EVIDENCE_WORKFLOW.md` §9, B-040/B-054 | `src/bp/literature.py` + both literature test files |
 | Change the accounting engine | `CONTRIBUTORS.md` §4/§5, B-032/B-044–B-051 | `src/bp/ledger.py`, `schedules.py`, `accounts.py`, `reconcile.py`, `report.py` |
 | Add a framework template | `DECISIONS.md` B-028 (owner decision first!) | `src/bp/templates.py`, registry, `tests/test_templates.py` |
-| Ingest a data file | `KNOWN_LIMITATIONS.md` (B-065/B-076) | `src/bp/ingest.py`, `POST /api/ingest`, `python -m bp.ingest` |
+| Ingest a data file | `KNOWN_LIMITATIONS.md` (B-065/B-076) | `src/bp/ingest.py`, `POST /api/ingest`, `python -m bp.ingest`; attachments on Home: `src/bp/product/intake.py`, `/api/intake` |
 | Add a catalogue record / regenerate registry | `docs/STAGE6_REPORT.md` | `src/bp/catalogue_import.py`, `src/bp/data/registry_v0_2.json` |
 | Compute ratios from a balance sheet / income statement | `KNOWN_LIMITATIONS.md` (B-056) | `src/bp/methods.py` (`ratio_analysis`), preset `ratios` |
 | Review what a deliverable claims | `src/bp/claims.py` | claim ceiling per method in `LIBRARY` |
@@ -64,6 +64,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`server.py`](../src/bp/server.py) | Stdlib HTTP API, `PRESETS` | `test_session_api`, `test_literature_api` | B-002 |
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | — |
 | [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch, and the subject index + Calculator launcher (`subjects.py`). Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088, B-090 |
+| [`product/intake.py`](../src/bp/product/intake.py) | Attached-file intake store: immutable bytes under `BP_INTAKE_DIR`, SHA-256, one record per file. It reads nothing; structured files are read by `bp.ingest` through the server and every other file stays `reference_only` | `test_product_intake` | B-080 |
 
 ## 3. By capability and status
 

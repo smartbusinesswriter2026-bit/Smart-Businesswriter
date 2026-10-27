@@ -1,12 +1,12 @@
 """Minimal JSON API + static shell (stdlib only; FastAPI can replace this later behind the same routes)."""
-import json, os, re, sys, time
+import base64, json, os, re, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops
+from .product import api as product_api, ops as product_ops, intake as product_intake
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -146,6 +146,13 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/": 
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/api/presets": return self._send(200, PRESETS)
+            if self.path == "/api/intake" or self.path.startswith("/api/intake?"):
+                return self._send(200, {"files": product_intake.list_files()})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})", self.path)
+            if im:
+                try: return self._send(200, product_intake.load(im[1]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("GET", self.path))
             u = urlparse(self.path); qs = parse_qs(u.query)
             if u.path == "/api/frameworks":
@@ -200,6 +207,9 @@ class H(BaseHTTPRequestHandler):
                 return self._send(*product_api.handle("POST", self.path, json.loads(self.rfile.read(n) or b"{}")))
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             if self.path == "/api/assist": return self._assist(self._body())
+            if self.path == "/api/intake": return self._intake_upload(self._body(INGEST_MAXBODY))
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/ingest", self.path)
+            if im: return self._intake_ingest(im[1], self._body())
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)
@@ -213,6 +223,12 @@ class H(BaseHTTPRequestHandler):
     def do_DELETE(self):
         self._started = time.monotonic()
         try:
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})", self.path)
+            if im:
+                try:
+                    product_intake.delete(im[1]); return self._send(200, {"deleted": im[1]})
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("DELETE", self.path))
             self._send(404, {"error": "not found"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
@@ -273,6 +289,46 @@ class H(BaseHTTPRequestHandler):
                 body["mapped_request"] = ingest.to_method_inputs(table, mp["method"], mp["columns"])
         except ingest.IngestError as e: return self._send(422, {"error": str(e)})
         return self._send(200, body)
+
+    def _intake_upload(self, b):
+        """Store one attached file; read it only when the frozen ingest module can."""
+        if not isinstance(b, dict): raise ValueError("body must be an object")
+        encoded = b.get("content_base64")
+        if not isinstance(encoded, str) or not encoded.strip(): raise ValueError("content_base64 is required")
+        try: raw = base64.b64decode(encoded, validate=True)
+        except (ValueError, TypeError): raise ValueError("content_base64 is not valid base64")
+        merged = b.get("merged", "refuse")
+        if merged not in ingest.MERGED_POLICIES:
+            return self._send(422, {"error": "merged must be one of: " + ", ".join(ingest.MERGED_POLICIES)})
+        record = product_intake.save(b.get("filename"), raw, b.get("content_type"))
+        if record["kind"] != "structured": return self._send(201, record)
+        try:
+            table = ingest.read_table(record["filename"], raw, sheet=b.get("sheet"), merged=merged)
+        except ingest.IngestError as e:
+            return self._send(201, product_intake.fail(record["id"], str(e)))
+        return self._send(201, product_intake.attach_table(record["id"], table))
+
+    def _intake_ingest(self, file_id, b):
+        """Read a stored structured file again, with sheet/merged options."""
+        if not isinstance(b, dict): raise ValueError("body must be an object")
+        merged = b.get("merged", "refuse")
+        if merged not in ingest.MERGED_POLICIES:
+            return self._send(422, {"error": "merged must be one of: " + ", ".join(ingest.MERGED_POLICIES)})
+        try:
+            record = product_intake.load(file_id)
+            filename, raw = product_intake.payload(file_id)
+        except product_intake.IntakeNotFound as e:
+            return self._send(404, {"error": str(e)})
+        except product_intake.IntakeError as e:
+            return self._send(422, {"error": str(e)})
+        if record["kind"] != "structured":
+            return self._send(422, {"error": "no reader is implemented for this file type; it is stored only"})
+        try:
+            table = ingest.read_table(filename, raw, sheet=b.get("sheet"), merged=merged)
+        except ingest.IngestError as e:
+            product_intake.fail(file_id, str(e))
+            return self._send(422, {"error": str(e)})
+        return self._send(200, product_intake.attach_table(file_id, table))
 
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS, SANDBOX_ENABLED
