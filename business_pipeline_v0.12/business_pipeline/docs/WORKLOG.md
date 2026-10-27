@@ -1,5 +1,58 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Revaluation, built on the OCI route and anchored to IAS 16
+
+**Ask.** The increment the IAS 16 research unblocked: an asset could be depreciated but never revalued.
+
+**Authority, and its limit.** The accounting is not a judgement call, so it was researched rather than
+reasoned. The IFRS Foundation's own record of the 2013 *Annual Improvements* amendment states that the
+determination of accumulated depreciation does not depend on the valuation technique and that **accumulated
+depreciation is the difference between the gross and the net carrying amounts**. IAS 16.35 permits two
+presentations; IAS 16.39 sends an increase to other comprehensive income and accumulates it in equity as a
+revaluation surplus; IAS 16.40 sends a decrease to profit or loss except to the extent it reverses a prior
+surplus. The standard's full text is licensed and was **not** read - the decision relies on the IFRS
+Foundation's project summary for the amendment, and the paragraph references are cited, not paraphrased.
+
+**Did.** New schedule kind `revaluation`:
+
+- **`method: proportionate`** (default) - gross and accumulated are restated by the same factor so that
+  gross less accumulated equals the revalued amount.
+- **`method: elimination`** - accumulated is written off and gross is set to the revalued amount.
+- Both satisfy the identity the amendment pins (accumulated = gross - net) and produce the **same** net
+  carrying amount and the **same** surplus; only the gross and accumulated figures differ.
+- An increase credits the `oci` account and closes to the `oci_reserve` equity account. A decrease is
+  expensed. A declared `reverses_surplus` amount is charged against the reserve first.
+
+**Where the engine refuses to guess.** IAS 16.40 requires the reversal of a prior surplus *on the same
+asset*, and this engine keeps one pooled reserve. It therefore does not decide how much of that reserve
+belongs to this asset: the owner declares `reverses_surplus`, which is validated against the decline. The
+limitation is recorded in `KNOWN_LIMITATIONS.md` together with the second one: depreciation after a
+revaluation is not automatically restated onto the revalued carrying amount.
+
+**Verified.** 892 tests OK, including 14 new ones: both presentations restating gross and accumulated while
+agreeing on the net and on the 400 surplus; the statement balancing either way; an increase reaching the
+reserve and leaving retained earnings alone; a decrease expensed; a declared reversal splitting 150 to the
+reserve and 250 to profit; and refusals for an unknown method, a negative amount, a revaluation to the
+existing carrying amount ("changes nothing"), a fully depreciated asset, and a gain pointed at a non-OCI
+account. The trap asserts retained earnings stays at 850 and the reserve at 400, and explicitly that
+retained earnings is not 1,250 - the figure a credit-to-profit implementation would show with every entry
+still balancing.
+
+**A test of mine that was wrong twice, and why it is worth recording.** The first version asserted retained
+earnings of 1,650 while the specification I had built quietly booked 800 of depreciation, so profit was
+850; the second looked up the depreciation entry by list index and hit one of the preset's own entries
+instead of the one it had appended. Both were faults in the test, not the engine - but they are exactly the
+kind of arithmetic slip that a "the numbers look plausible" review waves through, which is why every
+expectation here was replaced with one printed from the engine first.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**The core accounting build is now complete for both phases.** What remains is the UI: none of this is
+visible on the page yet.
+
 ## 2026-10-27 — [computation] Other comprehensive income: a separate route, closing to a reserve
 
 **Ask.** Phase 2, final increment: the route revaluation waits on. The statement model had income,

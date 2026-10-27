@@ -380,6 +380,76 @@ def bad_debt(spec, journal=None):
                               {"account": spec["allowance_account"], "credit": str(charge)}]})
     return out
 
+def revaluation(spec, journal=None):
+    """Revalue an asset to a declared fair value (IAS 16.35), with the surplus to other comprehensive income.
+
+    Two presentations are permitted and both are offered as declared data:
+
+    - **proportionate** (default) - gross cost and accumulated depreciation are restated by the same
+      factor, so that gross less accumulated equals the revalued amount. This is what keeps the
+      accumulated-depreciation history meaningful.
+    - **elimination** - accumulated depreciation is written off against the gross amount, which is then
+      set to the revalued amount.
+
+    Either way the identity the 2013 amendment pins holds: accumulated depreciation = gross - net.
+
+    An **increase** goes to other comprehensive income and accumulates in the revaluation reserve
+    (IAS 16.39). A **decrease** goes to profit or loss (IAS 16.40), except that a declared
+    `reverses_surplus` amount is charged against the reserve first - that part of IAS 16.40 needs
+    per-asset surplus tracking, which this engine does not keep, so the owner declares the reversal
+    instead of the engine guessing how much of a pooled reserve belongs to this asset.
+
+    Nothing here decides the valuation: `revalued_amount` is declared.
+    """
+    places = _places(spec.get("places", 2)); date = spec.get("date")
+    if not DAY.fullmatch(date or ""): raise ScheduleError("date must be YYYY-MM-DD")
+    _codes(spec, ("asset_account", "accum_account", "oci_account", "loss_account"))
+    amount = _dec(spec.get("revalued_amount"), "revalued_amount"); _check_places(amount, places, "revalued_amount")
+    if amount < 0: raise ScheduleError("revalued_amount must not be negative")
+    method = spec.get("method", "proportionate")
+    if method not in ("proportionate", "elimination"):
+        raise ScheduleError("revaluation method must be proportionate or elimination")
+    reverses = _dec(spec.get("reverses_surplus", 0), "reverses_surplus"); _check_places(reverses, places, "reverses_surplus")
+    if reverses < 0: raise ScheduleError("reverses_surplus must not be negative")
+    if journal is None:
+        return []                                    # a revaluation is measured against the carrying amount
+
+    gross = _book_balance(journal, spec["asset_account"]); accum = _book_balance(journal, spec["accum_account"])
+    if gross <= 0: raise ScheduleError(f"the ledger holds no positive cost on {spec['asset_account']}")
+    if accum < 0 or accum > gross:
+        raise ScheduleError(f"the ledger holds {accum} of accumulated depreciation against a cost of {gross}")
+    net = gross - accum
+    if net <= 0: raise ScheduleError("the asset has no carrying amount left to revalue")
+    q = D(1).scaleb(-places)
+    if method == "elimination":
+        new_gross, new_accum = amount, D(0)
+    else:
+        new_gross = (gross * (amount / net)).quantize(q, rounding=ROUND_HALF_EVEN)
+        new_accum = new_gross - amount
+        if new_accum < 0: new_gross, new_accum = amount, D(0)
+    d_gross, d_accum = new_gross - gross, new_accum - accum
+    surplus = amount - net
+    remainder = -surplus                                  # debit-positive amount still to be placed
+    chart = journal.chart
+    if remainder < 0 and chart.get(spec["oci_account"]).type != "oci":
+        raise ScheduleError(f"{spec['oci_account']} must be an other-comprehensive-income account for a revaluation gain")
+    if remainder > 0 and chart.get(spec["loss_account"]).type != "expense":
+        raise ScheduleError(f"{spec['loss_account']} must be an expense account for a revaluation loss")
+    lines = []
+    if d_gross > 0: lines.append({"account": spec["asset_account"], "debit": str(d_gross)})
+    elif d_gross < 0: lines.append({"account": spec["asset_account"], "credit": str(-d_gross)})
+    if d_accum > 0: lines.append({"account": spec["accum_account"], "credit": str(d_accum)})
+    elif d_accum < 0: lines.append({"account": spec["accum_account"], "debit": str(-d_accum)})
+    if remainder < 0:
+        lines.append({"account": spec["oci_account"], "credit": str(-remainder)})
+    elif remainder > 0:
+        to_reserve = min(reverses, remainder)
+        if to_reserve > 0: lines.append({"account": spec["oci_account"], "debit": str(to_reserve)})
+        if remainder - to_reserve > 0:
+            lines.append({"account": spec["loss_account"], "debit": str(remainder - to_reserve)})
+    if len(lines) < 2: raise ScheduleError("the revaluation changes nothing; the declared amount equals the carrying amount")
+    return [{"date": date, "description": spec.get("description", "revaluation"), "lines": lines}]
+
 def amortization(spec):
     """Loan amortization: one Dr interest / Dr loan / Cr cash entry per period; the final payment absorbs the balance."""
     principal = _dec(spec.get("principal"), "principal"); rate = _dec(spec.get("rate"), "rate"); term = spec.get("term")

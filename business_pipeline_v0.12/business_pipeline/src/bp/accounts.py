@@ -33,8 +33,8 @@ EXAMPLE_SPEC = {
         {"date": "2026-03-31", "description": "bank charge", "amount": "25", "direction": "out"}]}},
 }
 
-_KINDS = ("depreciation", "amortization", "accrual", "disposal", "prepayment", "deferred_income", "bad_debt")
-_JOURNAL_KINDS = ("disposal", "bad_debt")     # schedules whose result depends on what the books already hold
+_KINDS = ("depreciation", "amortization", "accrual", "disposal", "prepayment", "deferred_income", "bad_debt", "revaluation")
+_JOURNAL_KINDS = ("disposal", "bad_debt", "revaluation")     # schedules whose result depends on what the books already hold
 _POLICY_KINDS = ("useful_life_revision", "residual_value_revision", "disclosure")
 
 def _at_period(start, date):
