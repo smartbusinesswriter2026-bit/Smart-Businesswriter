@@ -100,8 +100,9 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('aria-label="Expand navigation"', self.html)
         self.assertIn('class="rt-label">Collapse', self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.71", self.html)
+        self.assertIn("v0.72", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
+        self.assertIn("font-size:16.8px", self.html)
 
     def test_the_home_chat_uses_an_up_arrow_and_enter(self):
         self.assertIn('id="run"', self.html)
