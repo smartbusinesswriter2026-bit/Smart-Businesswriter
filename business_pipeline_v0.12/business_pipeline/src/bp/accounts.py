@@ -33,7 +33,7 @@ EXAMPLE_SPEC = {
         {"date": "2026-03-31", "description": "bank charge", "amount": "25", "direction": "out"}]}},
 }
 
-_KINDS = ("depreciation", "amortization", "accrual")
+_KINDS = ("depreciation", "amortization", "accrual", "disposal")
 _POLICY_KINDS = ("useful_life_revision", "residual_value_revision", "disclosure")
 
 def _at_period(start, date):
@@ -246,7 +246,13 @@ def build(spec):
     by_sched = _schedule_changes(spec)
     for i, s in enumerate(spec.get("schedules", [])):
         s2 = dict(s); kind = s2.pop("kind"); s2["changes"] = by_sched.get(i, [])
-        for e in getattr(schedules, kind)(s2):
+        fn = getattr(schedules, kind)
+        # a disposal must see what the books actually hold, so it is the one kind given the journal
+        try:
+            expanded = fn(s2, journal=j) if kind == "disposal" else fn(s2)
+        except schedules.ScheduleError as e:
+            raise EngagementError(f"schedules[{i}]: {e}")
+        for e in expanded:
             j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
     pre = ledger.statements(j)
     for e in ledger.closing_entries(j, pre):

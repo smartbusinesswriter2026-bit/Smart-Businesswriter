@@ -14,6 +14,7 @@ from decimal import Decimal as D, ROUND_HALF_EVEN, ROUND_CEILING
 class ScheduleError(ValueError): pass
 
 MONTH = re.compile(r"\d{4}-\d{2}")
+DAY = re.compile(r"\d{4}-\d{2}-\d{2}")
 ACCT = re.compile(r"[A-Za-z0-9_.\-]{1,20}")
 
 def _dec(x, what="amount"):
@@ -184,6 +185,62 @@ def _depreciation_straight_line(spec):
                         "lines": [{"account": spec["dep_account"], "debit": str(amount)}, {"account": spec["accum_account"], "credit": str(amount)}]})
             charged += amount
     return out
+
+def _book_balance(journal, code):
+    """The signed balance of one account on its normal side, as the journal currently stands."""
+    d = c = D(0)
+    for e in journal.entries:
+        for l in e.lines:
+            if l.account != code: continue
+            if l.side == "D": d += l.amount
+            else: c += l.amount
+    a = journal.chart.get(code)
+    return (d - c) if a.normal == "D" else (c - d)
+
+def disposal(spec, journal=None):
+    """Derecognise an asset and recognise the gain or loss on disposal.
+
+    One compound entry: Dr proceeds, Dr accumulated depreciation, Cr the asset at cost, and the
+    difference to a gain (credit) or a loss (debit). Net book value is cost less accumulated
+    depreciation, and the gain or loss is proceeds less net book value - the two facts the entry
+    encodes.
+
+    `cost` and `accumulated` are declared **and cross-checked against the ledger** whenever the journal
+    is available. A disposal that cleared more or less than the books actually hold would leave a
+    residue on the asset or on its accumulated depreciation and quietly break A = L + E, so a mismatch
+    is refused rather than corrected: the owner must say which figure is wrong.
+
+    `proceeds` may be zero for a scrapped asset. Revaluation is deliberately not part of this: it needs
+    a declared policy for where the surplus goes, which is an owner decision.
+    """
+    cost = _dec(spec.get("cost"), "cost"); accumulated = _dec(spec.get("accumulated"), "accumulated")
+    proceeds = _dec(spec.get("proceeds", 0), "proceeds")
+    places = _places(spec.get("places", 2))
+    date = spec.get("date")
+    if not DAY.fullmatch(date or ""): raise ScheduleError("disposal date must be YYYY-MM-DD")
+    if cost <= 0: raise ScheduleError("cost must be positive")
+    if accumulated < 0 or accumulated > cost: raise ScheduleError("accumulated must be between zero and the cost")
+    if proceeds < 0: raise ScheduleError("proceeds must not be negative")
+    for name, v in (("cost", cost), ("accumulated", accumulated), ("proceeds", proceeds)):
+        _check_places(v, places, name)
+    _codes(spec, ("asset_account", "accum_account", "proceeds_account", "gain_account", "loss_account"))
+    if journal is not None:
+        book_cost = _book_balance(journal, spec["asset_account"])
+        book_accum = _book_balance(journal, spec["accum_account"])
+        if book_cost != cost:
+            raise ScheduleError(f"the ledger holds {book_cost} on {spec['asset_account']}, but the disposal declares a cost of {cost}")
+        if book_accum != accumulated:
+            raise ScheduleError(f"the ledger holds {book_accum} of accumulated depreciation on {spec['accum_account']}, but the disposal declares {accumulated}")
+    gain = proceeds - (cost - accumulated)
+    # a zero-amount line is not posted: the ledger refuses it, and a line for nothing is noise
+    lines = []
+    if proceeds > 0: lines.append({"account": spec["proceeds_account"], "debit": str(proceeds)})
+    if accumulated > 0: lines.append({"account": spec["accum_account"], "debit": str(accumulated)})
+    lines.append({"account": spec["asset_account"], "credit": str(cost)})
+    if gain > 0: lines.append({"account": spec["gain_account"], "credit": str(gain)})
+    elif gain < 0: lines.append({"account": spec["loss_account"], "debit": str(-gain)})
+    return [{"date": date, "description": spec.get("description", "disposal"),
+             "lines": lines}]
 
 def amortization(spec):
     """Loan amortization: one Dr interest / Dr loan / Cr cash entry per period; the final payment absorbs the balance."""

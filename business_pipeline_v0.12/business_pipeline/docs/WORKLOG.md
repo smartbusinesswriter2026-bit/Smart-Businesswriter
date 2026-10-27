@@ -1,5 +1,48 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Asset disposal: the one schedule that must read the books
+
+**Ask.** Phase 1, fifth increment: an asset could be depreciated but never derecognised, so a disposal
+had to be hand-written as a multi-line entry - exactly where the gain or loss gets invented.
+
+**Did.** New schedule kind `disposal`. It produces one compound entry: Dr proceeds, Dr accumulated
+depreciation, Cr the asset at cost, and the difference to a gain (credit) or a loss (debit), with net
+book value = cost - accumulated and gain = proceeds - net book value. Zero-amount lines are omitted
+because the ledger refuses them, and a line for nothing is noise. A scrapped asset (zero proceeds)
+therefore posts only the accumulated-depreciation and loss lines.
+
+**It is the only schedule given the journal.** `accounts.build` passes `journal=j` to this one kind, and
+the declared `cost` and `accumulated` are **cross-checked against the ledger**; a mismatch is refused
+("the ledger holds 3000 on 1200, but the disposal declares a cost of 3500"). A disposal that cleared
+more or less than the books actually hold would leave a residue on the asset or on its accumulated
+depreciation and quietly break A = L + E. The check is a refusal, never a correction: the owner must
+say which figure is wrong.
+
+**Two bugs I wrote and caught.** The first version emitted a zero-amount proceeds line for a scrap, which
+the ledger refuses; and the schedule raised `ScheduleError` straight out of `build`, so callers saw an
+inconsistent exception type - it is now wrapped as `EngagementError`, matching the rest of the account
+layer.
+
+**Revaluation is deliberately NOT included.** It needs a declared policy - whether accumulated
+depreciation is restated proportionally or eliminated against the gross carrying amount, and where the
+surplus goes (revaluation surplus in equity, or through profit or loss). Two standard treatments exist
+and the choice changes the statements, so it is an owner decision rather than something to invent. It is
+queued, not forgotten.
+
+**Verified.** 819 tests OK, including 13 new ones: the gain entry (proceeds 2,500 on NBV 2,200 gives a
+300 credit), the loss entry, the break-even case with no gain or loss line, a scrapped asset taking the
+full net book value as a loss, the statement still balancing after a disposal, both ledger cross-checks
+refused, four input refusals, and a trap showing that clearing the wrong accumulated figure leaves a
+residue of exactly 300 while the schedule path refuses that same input.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Next in order:** the remaining adjusting-entry types (prepayment and its release, deferred income,
+bad-debt allowance), then the statements block.
+
 ## 2026-10-27 — [computation] Depreciation beyond straight-line: reducing balance and units of production
 
 **Ask.** Phase 1, fourth increment: `schedules.py` could only do straight-line, so any case with an
