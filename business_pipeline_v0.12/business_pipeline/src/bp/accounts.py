@@ -166,6 +166,9 @@ def validate_spec(spec):
             codes.add(acc.code)
         if not any(isinstance(a, dict) and a.get("type") == "equity" and a.get("role") == "retained_earnings" for a in chart):
             errs.append("the chart needs a retained earnings account (equity with role 'retained_earnings')")
+        if (any(isinstance(a, dict) and a.get("type") == "oci" for a in chart)
+                and not any(isinstance(a, dict) and a.get("type") == "equity" and a.get("role") == "oci_reserve" for a in chart)):
+            errs.append("the chart has other comprehensive income accounts, so it needs an equity account with role 'oci_reserve'")
     pc = spec.get("prior_closing")
     if not isinstance(pc, dict): errs.append("prior_closing must be an object of account code -> natural closing balance ({} for a first period)")
     for tag, lst in (("opening", spec.get("opening")), ("entries", spec.get("entries")), ("schedules", spec.get("schedules"))):
@@ -283,6 +286,9 @@ def build(spec):
              "journal_export": report.journal(j, places),
              "equity_statement": _s(ledger.changes_in_equity(j)),
              "equity_statement_export": report.statement_of_equity(ledger.changes_in_equity(j), places),
+             "comprehensive_income": _s({"profit_for_period": pre["net_income"], "oci": pre["oci"],
+                                         "total_oci": pre["total_oci"],
+                                         "total_comprehensive_income": pre["total_comprehensive_income"]}),
              "statements_export": report.financial_statements(j, pre, cf, spec["framework"], policy_changes=policies, rec_report=rec_raw, places=places)}
     if rec_raw is not None: extra["reconciliation"] = _s(rec_raw)
     notes = [{"date": c["date"], "kind": c["kind"], "description": c["description"], "treatment": c["treatment"],

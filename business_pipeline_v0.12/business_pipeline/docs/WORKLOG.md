@@ -1,5 +1,46 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Other comprehensive income: a separate route, closing to a reserve
+
+**Ask.** Phase 2, final increment: the route revaluation waits on. The statement model had income,
+expenses, assets, liabilities and equity - nowhere for a gain that is real but is not profit.
+
+**Did.** A new account type `oci` (credit-normal). `statements()` now carries `oci`, `total_oci`,
+`profit_for_period` and `total_comprehensive_income`; `report.income_statement` presents other
+comprehensive income **after** net income and adds total comprehensive income; `closing_entries` moves
+the OCI balance to an equity account with role `oci_reserve` and leaves the OCI account at zero;
+`changes_in_equity` classifies that movement as "other comprehensive income". A chart with an OCI account
+and no reserve account is refused by `validate_spec` and again by the closing step, because there would be
+nowhere for the balance to go.
+
+**A post-closing subtlety that caught a bad test.** The appendix statement set is *post-closing*, so
+`total_oci` there is zero - the OCI has already moved to the reserve. My first test asserted 1,000 against
+that set and failed; the output was right and the test was wrong. The figures a reader wants are the
+pre-closing ones, so `accounts.build` now also exposes a `comprehensive_income` block
+(`profit_for_period`, `oci`, `total_oci`, `total_comprehensive_income`) as **data**, not only as rendered
+prose - the UI cannot read a text statement.
+
+**The property that matters, and its trap.** A revaluation must not inflate profit. Closing OCI to
+retained earnings is the plausible wrong implementation: every entry still balances, but profit reads
+2,650 instead of 1,650 and the reserve stays empty. The trap asserts retained earnings is 1,650, the
+reserve is 1,000, and explicitly that retained earnings is *not* 2,650.
+
+**Verified.** 878 tests OK, including 12 new ones: the comprehensive-income block carrying the right
+figures; post-closing OCI equal to zero with equity at 7,650; OCI presented after net income with total
+comprehensive income of 2,650; no OCI section when there are no OCI accounts; the OCI account closing to
+zero; the reserve carrying 1,000; the balance sheet still balancing; the equity statement classifying it;
+both refusals for a missing reserve; an unknown account type still refused; and the profit-inflation trap.
+
+**No unfreeze.** `management_accounts` keeps its eleven `test_names`; the frozen fixture is untouched.
+
+**No build number** — no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Phase 2 complete.** Revaluation can now be built on this route: IAS 16.35 allows proportionate
+restatement or elimination of accumulated depreciation, the 2013 amendment pins accumulated depreciation
+to gross minus net, IAS 16.39 sends an increase to OCI and IAS 16.40 sends a decrease to profit or loss
+except to the extent it reverses a prior surplus. The accounting is settled; only the schedule remains.
+
 ## 2026-10-27 — [computation] Current/non-current balance sheet: presentation only, and it is declared
 
 **Ask.** Phase 2, second increment: the balance sheet was flat - assets, liabilities, equity, with no

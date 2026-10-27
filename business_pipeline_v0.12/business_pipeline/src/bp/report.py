@@ -100,6 +100,12 @@ def income_statement(pre, j, places=2):
     out += [_row("  " + k, exp[k], places) for k in sorted(exp)]
     out.append(_row("Total expenses", sum(exp.values(), D(0)), places))
     out.append(_row("Net income", pre["net_income"], places))
+    oci = pre.get("oci") or {}
+    if oci:
+        out.append("Other comprehensive income")
+        out += [_row("  " + k, oci[k], places) for k in sorted(oci)]
+        out.append(_row("Total other comprehensive income", pre["total_oci"], places))
+        out.append(_row("Total comprehensive income", pre["total_comprehensive_income"], places))
     return "\n".join(out)
 
 def balance_sheet(j, st, places=2):

@@ -12,7 +12,7 @@ class UnknownAccount(LedgerError): pass
 class OutOfPeriod(LedgerError): pass
 class ChartError(LedgerError): pass
 
-NORMAL = {"asset": "D", "expense": "D", "liability": "C", "equity": "C", "income": "C"}
+NORMAL = {"asset": "D", "expense": "D", "liability": "C", "equity": "C", "income": "C", "oci": "C"}
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 FRAMEWORKS = ("IFRS", "US_GAAP", "local")        # required input, never a default (D-010)
 
@@ -198,12 +198,14 @@ def _signed(chart, code, d, c):
     a = chart.get(code); n = natural(chart, code, d, c); return -n if a.contra else n
 
 def statements(j):
-    ch = j.chart; sect = {"income": {}, "expense": {}, "asset": {}, "liability": {}, "equity": {}}
+    ch = j.chart; sect = {"income": {}, "expense": {}, "asset": {}, "liability": {}, "equity": {}, "oci": {}}
     for code, (d, c) in j.balances().items():
         if _signed(ch, code, d, c) == 0: continue                      # zero net contribution (includes closed accounts)
         a = ch.get(code); sect[a.type][a.line] = sect[a.type].get(a.line, D(0)) + _signed(ch, code, d, c)
     tot = lambda k: sum(sect[k].values(), D(0)); ni = tot("income") - tot("expense")
+    oci = tot("oci")
     return {"income": sect["income"], "expenses": sect["expense"], "net_income": ni, "assets": sect["asset"], "liabilities": sect["liability"], "equity": sect["equity"],
+            "oci": sect["oci"], "total_oci": oci, "profit_for_period": ni, "total_comprehensive_income": ni + oci,
             "total_assets": tot("asset"), "total_liabilities": tot("liability"), "total_equity": tot("equity"), "equity_with_current_earnings": tot("equity") + ni}
 
 def _sum_type(j, types, include_opening=True, role=None, only_opening=False):
@@ -261,16 +263,30 @@ def closing_entries(j, st=None):
     re_codes = [c for c, a in j.chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings"]
     if not re_codes: raise LedgerError("closing needs a retained earnings account (role 'retained_earnings')")
     re_code = re_codes[0]
-    inc, exp, divs, bad = [], [], [], []
+    oci_res_codes = [c for c, a in j.chart.accounts.items() if a.type == "equity" and a.role == "oci_reserve"]
+    inc, exp, divs, oci, bad = [], [], [], [], []
     for code, (d, c) in j.balances().items():
         a = j.chart.get(code); n = natural(j.chart, code, d, c)
         if n == 0: continue
+        if a.type == "oci":
+            oci.append({"account": code, "natural": n}); continue     # OCI may legitimately be a loss, so it is not screened as abnormal
         if n < 0: bad.append(f"{code} ({a.name})")
         if a.type == "income": inc.append({"account": code, "debit": str(n)})
         elif a.type == "expense": exp.append({"account": code, "credit": str(n)})
         elif a.role == "dividends": divs.append({"account": code, "credit": str(n)})   # dividends carry a debit balance and reduce equity
     if bad: raise LedgerError("closing with abnormal balances needs a human decision (flags(j) reports them): " + ", ".join(bad))
+    if oci and not oci_res_codes:
+        raise LedgerError("closing other comprehensive income needs an equity account with role 'oci_reserve'")
     out = []
+    if oci:
+        reserve = oci_res_codes[0]; lines = []; total = D(0)
+        for item in oci:
+            n = item["natural"]; total += n
+            if n > 0: lines.append({"account": item["account"], "debit": str(n)})
+            else: lines.append({"account": item["account"], "credit": str(-n)})
+        if total > 0: lines.append({"account": reserve, "credit": str(total)})
+        elif total < 0: lines.append({"account": reserve, "debit": str(-total)})
+        if lines: out.append({"date": j.end, "description": "closing: other comprehensive income to reserve", "closing": True, "lines": lines})
     if inc: out.append({"date": j.end, "description": "closing: income to retained earnings", "closing": True,
                         "lines": inc + [{"account": re_code, "credit": str(sum((D(l["debit"]) for l in inc), D(0)))}]})
     if exp: out.append({"date": j.end, "description": "closing: expenses to retained earnings", "closing": True,
@@ -337,6 +353,7 @@ def _equity_kind(j, account, code, e):
     if e.closing:
         others = [j.chart.get(l.account) for l in e.lines if l.account != code]
         if any(o.type in ("income", "expense") for o in others): return "profit for the period"
+        if any(o.type == "oci" for o in others): return "other comprehensive income"
         if any(o.role == "dividends" for o in others): return "dividends"
     return "other"
 
