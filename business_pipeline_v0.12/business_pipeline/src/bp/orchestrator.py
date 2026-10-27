@@ -270,7 +270,10 @@ class Pipeline:
         flip_s = str(flip) if flip is not None else None
         appendix["reperform"] = {"format": "bp-reperform/1", "method": {"id": m.name, "version": m.version}, "inputs": inp, "sensitivity": spec.sensitivity,
                                  "outputs": {k: str(v) for k, v in outputs.items()}, "flip": flip_s, "env_hash": env, "fingerprint": fp, "spec_hash": spec.hash,
-                                 "outputs_hash": sha({k: str(v) for k, v in outputs.items()})}
+                                 "outputs_hash": sha({k: str(v) for k, v in outputs.items()}),
+                                 # the rendered appendix is what a reader actually sees; hashing it makes
+                                 # "re-runnable" mean the document, not only the scalar set
+                                 "statements_hash": sha(extra) if extra is not None else None}
         self.log("delivery", "delivered")
         return Delivery("delivered", tier, rendered, appendix=appendix)
 

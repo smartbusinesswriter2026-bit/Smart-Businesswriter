@@ -34,8 +34,23 @@ def reperform(bundle: dict, sandbox=None) -> dict:
         st = _cmp(bundle["flip"], str(f)) if f is not None else "mismatch"; status["flip"] = st
         if st == "mismatch": diffs.append(f"flip: delivered {bundle['flip']}, re-run {f}")
     env_diff = sorted(k for k in set(bundle["fingerprint"]) | set(meta["fingerprint"]) if bundle["fingerprint"].get(k) != meta["fingerprint"].get(k))
+    # The rendered appendix (statements, T-accounts, journal) is what the reader sees, so it is verified
+    # too when the bundle carries its hash. A mismatch here means the document changed while the scalars did
+    # not - exactly the drift a scalar-only check cannot see.
+    statements = None
+    if bundle.get("statements_hash") is not None:
+        from .artifacts import sha
+        rerun_extra = meta.get("appendix_extra")
+        if rerun_extra is None:
+            statements = "missing"
+            diffs.append("statements: the re-run produced no appendix to compare")
+        elif sha(rerun_extra) != bundle["statements_hash"]:
+            statements = "mismatch"
+            diffs.append("statements: the re-run appendix differs from the delivered one")
+        else:
+            statements = "exact"
     return {"verified": not diffs, "outputs": status, "all_exact": all(v == "exact" for v in status.values()), "environment_match": meta["env_hash"] == bundle["env_hash"],
-            "environment_differences": env_diff, "differences": diffs}
+            "statements": statements, "environment_differences": env_diff, "differences": diffs}
 
 if __name__ == "__main__":
     b = json.load(open(sys.argv[1], encoding="utf-8")); b = b.get("reperform", b)

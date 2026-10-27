@@ -1,5 +1,37 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Re-performance now covers the document, not only the scalars
+
+**Ask.** The owner asked what re-performance meant before accepting it as solid. Answering it honestly
+changed the assessment: re-performance was **not** broken - a bundle using every new accounting feature
+verified exactly - but it compared only the delivered scalars. A student submits a *document*; a change to
+how the statements render would have left every scalar identical while the document drifted, and
+re-performance would still have said `verified`.
+
+**Did.** The delivery bundle now carries `statements_hash`, a hash of the rendered appendix (statements,
+T-accounts, journal, equity statement, reconciliation), and `reperform` recomputes it from the re-run and
+compares. A mismatch is reported as `statements: mismatch` and fails verification. Templates and methods
+with no rendered appendix carry `None` and are unaffected, and a bundle written before the field existed
+still verifies on its scalars - both are tested, because a verifier that rejects its own older bundles is
+worse than one that says what it checked.
+
+**Why the appendix and not the report text.** The appendix is the structured document the workbench renders
+from, and it is what the sandbox already returns as `appendix_extra` - so the comparison uses the artefact
+that exists rather than a re-rendered string that could differ for cosmetic reasons.
+
+**Verified.** 926 tests OK, including 6 new ones: the bundle carries the hash; an untouched bundle verifies
+with `statements: exact`; a tampered `statements_hash` is detected and named; a tampered scalar is still
+detected; a bundle without the field still verifies and reports `statements: None`; and an ordinary method
+with no appendix (NPV) carries no hash and verifies unchanged.
+
+**What re-performance still does not do, stated plainly.** `environment_match: false` is *reported* but does
+not fail verification. A bundle re-run after tonight's code changes will show the environment difference and
+still verify on the numbers and the statements. That is deliberate: the figures should reproduce across a
+code change, and the environment difference is how a reader learns the code moved.
+
+**No unfreeze.** The frozen contract is untouched - `statements_hash` is bundle metadata, not a method
+output. No build number. Nothing pushed.
+
 ## 2026-10-27 — [computation] Chaining two periods: nothing may reset at the boundary
 
 **Why.** The verification pass named this as the most likely place for a real accounting error to hide: a
