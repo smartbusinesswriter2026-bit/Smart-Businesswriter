@@ -34,6 +34,8 @@ from . import export as case_export
 from . import ops
 from . import signoff as signoff_store
 from . import spreadsheets
+from . import docx as docx_export
+from . import credits
 from . import subjects as subject_index
 from . import versions as version_store
 
@@ -265,14 +267,31 @@ def handle(method, path, body=None):
         try:
             kind = body["kind"]
             destination = body["destination"]
+            if kind not in ("csv", "spreadsheetml", "html", "docx"):
+                return 422, {"error": "unknown export kind %r (csv, spreadsheetml, html, docx)" % kind}
+            # price it first: the UI shows this before the student commits, and nothing renders when the
+            # wallet cannot pay
+            quote = credits.quote(case_id, kind)
+            if body.get("quote_only"):
+                return 200, {"kind": kind, "quote": quote}
+            if quote["cost"] > quote["balance"]:
+                return 402, {"error": "%s costs %d credit(s); the balance is %d"
+                                      % (kind, quote["cost"], quote["balance"]), "quote": quote}
             if kind == "csv":
-                return 200, {"kind": kind, "path": spreadsheets.export_csv(bundle, destination)}
-            if kind == "spreadsheetml":
-                return 200, {"kind": kind, **spreadsheets.export_spreadsheetml(bundle, destination, sha=True)}
-            if kind == "html":
-                return 200, {"kind": kind, "path": case_export.export_html(
+                result = {"kind": kind, "path": spreadsheets.export_csv(bundle, destination)}
+            elif kind == "spreadsheetml":
+                result = dict(kind=kind, **spreadsheets.export_spreadsheetml(bundle, destination, sha=True))
+            elif kind == "docx":
+                result = dict(kind=kind, **docx_export.export_docx(bundle, destination))
+            else:
+                result = {"kind": kind, "path": case_export.export_html(
                     bundle, destination, charts=body.get("charts"), diagrams=body.get("diagrams"))}
-            return 422, {"error": "unknown export kind %r (csv, spreadsheetml, html)" % kind}
+            # charge only after the file exists: a failed export costs nothing. An idempotency key
+            # supplied by the caller makes a retry free; without one, each export is a new export.
+            result["credits"] = credits.charge(case_id, kind, idem=body.get("idempotency_key"))
+            return 200, result
+        except credits.InsufficientCredits as error:
+            return 402, {"error": str(error)}
         except (OSError, ValueError, chart_renderer.ChartError, diagram_renderer.DiagramError) as error:
             return _error(error)
 

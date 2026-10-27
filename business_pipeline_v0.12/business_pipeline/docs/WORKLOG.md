@@ -1,5 +1,54 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [product] Exports and credits: a real .docx, and a wallet that cannot double-charge
+
+**Ask.** Increment B: let a student export what they have, with the first export of a report free and extra
+formats charged - the price table to be supplied later, the mechanism built now.
+
+**What already existed.** More than I assumed: the product layer had a self-contained HTML export, CSV and
+SpreadsheetML 2003 XML (which opens in Excel), and a `POST /api/cases/{id}/export` route with the three
+kinds. So this increment extended the surface rather than rebuilding it.
+
+**Did.**
+
+1. **`src/bp/product/docx.py`** - a hand-rolled Word writer: `[Content_Types].xml`, `_rels/.rels` and
+   `word/document.xml` in a zip. Standard library only. The stored report is set in a monospaced face,
+   because the statements are fixed-width columns and a proportional font would destroy their alignment - the
+   presentation *is* the meaning here. XML is escaped explicitly, and the zip timestamps are fixed so two
+   exports of the same bundle are byte-identical.
+2. **`src/bp/product/credits.py`** - an append-only JSONL ledger with a **derived** balance (never a stored
+   one), prices in `PRICE_TABLE` as configuration, a free-tier grant on first use, and quotes that show the
+   price before anything renders.
+3. **The export route** now prices first, refuses with 402 when the wallet cannot pay, renders, and charges
+   **only after the file exists**; `quote_only` returns the price without rendering, for the UI's
+   confirm step.
+
+**A design flaw the tests caught, not me.** My first idempotency key was `account|report|format`, which made
+*every* repeat export of the same file look like a retry - so nothing was ever charged and a student could
+export forever. Corrected: deduplication happens only when the caller supplies an idempotency key, which is
+what a retry carries; without one, a repeat export is a new export and is charged. The route accepts the key
+from the request body.
+
+**A boundary test that was too blunt.** `test_no_third_party_dependency...` rejected the bare substring
+"docx" anywhere in the product layer - which banned the word outright, including a docstring explaining that
+the writer is hand-rolled. It now reads *import statements*, still refuses a real `from docx import ...`, and
+carries a self-check proving the detector still bites.
+
+**Verified.** 965 tests OK, including 19 new ones: the wallet opening at its grant and the balance equalling
+the ledger; the first export of a report free and a second charged; a different report free again; a retry
+with the same key reused; insufficient credits refused; a refund appended rather than edited; an unknown kind
+refused; the .docx being a valid three-part zip carrying the stored report and artifact values with the XML
+escaped and well-formed; two exports byte-identical; the quote returning a price without rendering; an export
+writing the file and charging; a second format charged; and an unaffordable export refused **before** a file
+is written.
+
+**What is deliberately not here yet.** PowerPoint (.pptx) is not built - it needs theme and layout parts and
+carries the highest "opens but the layout is wrong" risk. True PDF is not built either: the HTML export
+prints to PDF from the browser, which is exact and dependency-free. Excel remains SpreadsheetML 2003 rather
+than .xlsx for the same dependency reason. All three are queued, in that order of value.
+
+**No core change.** No method, preset, route family or frozen fixture moved. Nothing pushed.
+
 ## 2026-10-28 — [computation] The trial-balance check: the first feature built for the student's own homework
 
 **Ask.** The owner's priority is a tool a student can use on their own assignment, not only on a supplied

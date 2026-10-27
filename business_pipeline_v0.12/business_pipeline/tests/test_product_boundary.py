@@ -82,10 +82,26 @@ class ProductBoundaryTest(unittest.TestCase):
                              "%s would shadow a frozen core module" % name)
 
     def test_no_third_party_dependency_is_declared_for_the_product_layer(self):
+        """The guard is on *imports*, not on words.
+
+        It used to reject the bare substring, which banned the word "docx" outright - including in a
+        docstring explaining that the .docx writer is hand-rolled. What matters is that no product module
+        imports a third-party package, so the check reads import statements. A relative import of this
+        package's own writer is not a dependency.
+        """
         third_party = ("docx", "openpyxl", "jinja2", "numpy", "pandas", "xlsxwriter", "lxml", "bs4")
+        pattern = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_]\w*)", re.M)
+
+        def imported(source):
+            return {m.group(1) for m in pattern.finditer(source)}
+
+        # the detector still bites
+        self.assertIn("openpyxl", imported("import openpyxl\n"))
+        self.assertIn("docx", imported("from docx import Document\n"))
+
         for name, source in _product_sources():
-            for package in third_party:
-                self.assertNotIn(package, source, "%s references %s" % (name, package))
+            bad = imported(source) & set(third_party)
+            self.assertEqual(bad, set(), "%s imports %s" % (name, sorted(bad)))
 
     def test_the_product_layer_computes_no_number(self):
         """Every number the product layer shows was already recorded.
