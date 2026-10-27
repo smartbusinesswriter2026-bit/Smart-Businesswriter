@@ -45,6 +45,7 @@ class Chart:
 @dataclass(frozen=True)
 class Line:
     account: str; side: str; amount: D
+    activity: str = ""             # optional per-line cash-flow hint, set by the schedule that generated the line
 
 def _amount(x, places):
     if isinstance(x, (float, bool)): raise BadAmount("amounts must be strings, integers or Decimals, never binary floats")
@@ -64,12 +65,12 @@ class Entry:
         if dr != cr: raise UnbalancedEntry(f"entry '{self.description}' on {self.date} does not balance: debits {dr}, credits {cr}")
     @staticmethod
     def make(date, description, lines, places=2, opening=False, closing=False):
-        """lines: [{"account": code, "debit": x} or {"credit": x}]"""
+        """lines: [{"account": code, "debit": x} or {"credit": x}, optionally "activity"]"""
         out = []
         for l in lines:
             if ("debit" in l) == ("credit" in l): raise UnbalancedEntry("each line needs exactly one of debit or credit")
             side, x = ("D", l["debit"]) if "debit" in l else ("C", l["credit"])
-            out.append(Line(l["account"], side, _amount(x, places)))
+            out.append(Line(l["account"], side, _amount(x, places), l.get("activity", "")))
         return Entry(date, description, tuple(out), opening, closing)
 
 def _canon(e): return json.dumps([e.date, e.description, e.opening, e.closing, [[l.account, l.side, str(l.amount)] for l in e.lines]])
@@ -223,6 +224,20 @@ def _sum_type(j, types, include_opening=True, role=None, only_opening=False):
 TYPE_ACTIVITY = {"income": "operating", "expense": "operating", "asset": "investing", "liability": "financing", "equity": "financing"}
 PRIORITY = ("operating", "investing", "financing")
 
+def account_activity(a):
+    """The cash-flow activity of one account.
+
+    An explicit `activity` tag always wins. Otherwise the declared balance-sheet section decides,
+    because that is the same fact the balance sheet already states: a *current* asset or liability is
+    working capital and its movement is operating (a customer receipt against receivables is not an
+    investment); a non-current asset is investing and a non-current liability is financing. Only when
+    the owner has declared neither is the account type used as the documented fallback.
+    """
+    if a.activity: return a.activity
+    if a.section == "current": return "operating"
+    if a.section == "non_current": return "investing" if a.type == "asset" else "financing"
+    return TYPE_ACTIVITY[a.type]
+
 def cash_flow(j, st=None):
     """Two independent computations of the period's cash movement, which must agree:
     route A (direct) classifies each entry's cash delta by its non-cash counterpart activity; route B (indirect) derives
@@ -239,10 +254,24 @@ def cash_flow(j, st=None):
         dr = sum((l.amount for l in e.lines if l.side == "D" and is_cash(l)), D(0))
         cr = sum((l.amount for l in e.lines if l.side == "C" and is_cash(l)), D(0))
         if dr == 0 and cr == 0: continue
-        acts = {j.chart.get(l.account).activity or TYPE_ACTIVITY[j.chart.get(l.account).type] for l in e.lines if not is_cash(l)}
+        others = [l for l in e.lines if not is_cash(l)]
+        net = dr - cr
+        hinted = [l for l in others if l.activity]
+        if others and len(hinted) == len(others):
+            # The schedule that produced the entry declared how each leg is classified (a loan
+            # payment is interest operating + principal financing). Allocate the cash delta by leg.
+            for l in hinted:
+                share = -l.amount if l.side == "D" else l.amount
+                if l.activity == "operating": op += share
+                elif l.activity == "investing": inv += share
+                else: fin += share
+                if share != 0:
+                    detail.append({"date": e.date, "description": e.description,
+                                   "activity": l.activity, "amount": share})
+            continue
+        acts = {account_activity(j.chart.get(l.account)) for l in e.lines if not is_cash(l)}
         if len(acts) > 1: fl.append({"kind": "mixed_classification", "entry": e.description, "detail": f"counterpart activities {sorted(acts)}; classified by the operating-first priority rule"})
         if not acts: fl.append({"kind": "cash_to_cash_transfer", "entry": e.description, "detail": "cash moved between cash accounts; no activity recorded"})
-        net = dr - cr
         if "operating" in acts: kind, op = "operating", op + net
         elif "investing" in acts: kind, inv = "investing", inv + net
         else: kind, fin = "financing", fin + net

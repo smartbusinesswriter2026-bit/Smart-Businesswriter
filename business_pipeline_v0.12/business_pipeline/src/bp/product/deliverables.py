@@ -41,8 +41,8 @@ PROFILES = {
         "label": "Working papers",
         "audience": "An examiner auditing the figures cell by cell.",
         "blocks": ["statements", "artifact_table", "citation"],
-        "formats": ["spreadsheetml", "csv"],
-        "default": "spreadsheetml",
+        "formats": ["xlsx", "spreadsheetml", "csv"],
+        "default": "xlsx",
         "available": True,
     },
     "presentation": {
@@ -208,6 +208,9 @@ def write_export(bundle, profile_name, fmt, destination):
     elif fmt == "csv":
         from . import spreadsheets
         result = {"path": spreadsheets.export_csv(bundle, destination)}
+    elif fmt == "xlsx":
+        from . import spreadsheets
+        result = dict(spreadsheets.export_xlsx(bundle, destination))
     elif fmt == "spreadsheetml":
         from . import spreadsheets
         result = dict(spreadsheets.export_spreadsheetml(bundle, destination, sha=True))

@@ -1,5 +1,146 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — Finance gets a student front door: groups, notes, period badges and a percent guard
+
+**Ask.** "okay do p0-3" after the Finance coverage audit: group the 32 tiles, put the study material on the page
+rather than only in a file, and stop the classic percent-versus-decimal mistake.
+
+**Did.** (1) Six ordered groups on the Finance page — Foundations, Corporate finance, Valuation, Investments,
+Risk & derivatives, International — replacing one flat grid; Economics keeps its intro/intermediate/advanced
+grouping. (2) Study notes for 27 Finance tools (formula, steps, common mistakes, related tools) rendered as
+expandable notes, plus a 20-term glossary on the page. (3) A period badge on every Finance tile (`annual`,
+`per period`, `per observation`, `spot rate`, `point in time`), so a per-period return cannot be read as annual.
+(4) A delivery note whenever an output typed as a rate exceeds 100%, telling the student that rates are decimals
+(6% is 0.06, not 6). The note warns; it does not refuse, because a genuine rate above 100% can exist.
+
+**Why presentation, not computation.** The grouping and notes are presentation metadata in
+`bp.product.subjects`; the numbers still come only from the frozen methods. No method, input schema, check,
+preset or fixture entry changed. The one core-side line is the appended rate note in `orchestrator.py`, recorded
+as B-099.
+
+**Verified.** 1057 tests passed at this point (1063 after the economics completion), including two new ones: every Finance tool must carry a group, period, formula,
+steps and mistakes in the declared group order (with no leakage onto Economics), and `rate = 6` must warn while
+`rate = 0.06` must not. The live page was restarted and checked: six group headings, 32 cards, 32 study notes,
+12 `per period` badges and the glossary table render with no console error. A screenshot was not possible because
+the desktop window was not visible; the DOM checks stand in for it and are recorded here rather than claimed as
+a visual pass.
+
+
+## 2026-10-28 — Economics completed: welfare, international, development, behavioural and games
+
+**Ask.** "Finish them all" after the macro core: the remaining economics fields, automated into the shelf.
+
+**Did.** Added 21 T1 methods across welfare/public (`externality_pigouvian`, `public_good`, `social_welfare`,
+`gini_coefficient`, `poverty_measures`, `tax_progressivity`, `optimal_pollution`, `output_gap_okun`),
+international/development/behavioural (`comparative_advantage`, `tariff_welfare`, `exchange_rate_ppp`,
+`interest_rate_parity`, `balance_of_payments`, `hdi`, `expected_utility`, `prospect_theory`, `labour_market`) and
+electives (`price_discrimination`, `cournot_duopoly`, `difference_in_differences`, `nash_equilibrium`). Each has a
+float second route, five frozen checks, declared inputs and a formula-level report. Added 21 PHP presets, student
+notes for all of them, a 25-term glossary and a 51-tile Economics page (21 intro, 21 intermediate, 9 advanced).
+Regenerated the frozen fixture (87 methods, 89 presets) under B-099. Six table-driven tests cover arithmetic, frozen
+checks, headline values, refusals, preset delivery and page coverage.
+
+**Verified.** The remaining-methods tests pass; the full suite passes at 1063 tests. Headline values: Pigouvian
+social quantity 56 with DWL 8; Gini 0.25; headcount 50% and gap 20%; optimal emissions 18 and tax 46; output gap 5%
+with a -2.5 point unemployment change; tariff DWL 50; PPP 50 and real rate 1.1; HDI 0.649; certainty equivalent 75;
+Cournot price 43.33; DiD 15; one Nash equilibrium in the prisoner's dilemma.
+
+**Open/next.** Advanced econometrics (panel, IV, RDD, probit, VAR, cointegration) remains the parked frontier lane.
+The economics catalogue section and the diagram renderer are still the next product-layer increment. The student
+guide is not yet teacher-reviewed.
+
+---
+
+## 2026-10-28 — Economics gets the macro core: ten methods and the firm
+
+**Ask.** "GO" on the Phase 2 macro plan after the micro audit: national income, growth, inflation, unemployment,
+money and fiscal multipliers, debt, plus cost curves, profit maximisation and market power.
+
+**Did.** Added ten T1 methods — `cost_curves`, `profit_maximization`, `market_power`, `national_income`,
+`growth_rate`, `inflation_cpi`, `unemployment_rate`, `money_multiplier`, `fiscal_multiplier` and `budget_debt` —
+each with a float second route, five frozen checks, declared inputs, assumptions and a formula-level report. Added
+ten PHP presets. The Economics subject grows from 20 to 30 tiles (20 intro, 5 intermediate, 5 advanced); every new
+tool carries student notes, and the glossary gains GDP, GNP/NNP, CPI, CAGR, LFPR, MPC and debt-to-GDP. Extended
+`docs/ECONOMICS_STUDENT_GUIDE.md` with macro conventions, worked examples and a macro practice set. Regenerated the
+frozen fixture (66 methods, 68 presets) under B-098. 30 new tests.
+
+**Verified.** The macro tests pass for arithmetic, refusals, frozen checks and pipeline delivery. The worked
+examples reproduce the textbook figures: costs AC 70 / AVC 20 / MC 30; profit maximum Q 18 at P 64 with profit 710
+and Lerner 0.5625; GDP 900, GNP 920, NNP 870; CAGR 7.18% with a 10.03-period doubling time; inflation 5% and real
+interest 2.86%; unemployment 8%, LFPR 66.67%; money multipliers 10 and 7; fiscal multipliers 2.5, -2 and 0.5; debt
+ratio 50% with a zero debt-ratio change.
+
+**Open/next.** Welfare/public (externalities, public goods, social welfare, Gini, poverty), then
+international/development, behavioural and advanced econometrics. The economics catalogue section and the diagram
+renderer remain the next product-layer increment. The student guide is not yet teacher-reviewed.
+
+---
+
+## 2026-10-28 — Economics gets a micro core: five methods, student notes and an honest gap list
+
+**Ask.** The owner asked whether Economics covers everything a student needs and said it looked very thin. The audit
+found five tiles, three of them impact evaluation, no worksheets, six borrowed catalogue rows and no microeconomics.
+
+**Did.** Added five T1 methods — `demand_supply_equilibrium`, `elasticity`, `tax_incidence`, `price_control` and
+`market_concentration` — with a float second route, five frozen checks each, declared inputs and a formula-level
+report. Added five PHP presets. The Economics subject now has twenty tiles, grouped into intro, intermediate and
+advanced; every Economics tool carries a student note (level, formula, steps, common mistakes, related tools), and the
+page renders the notes and a glossary. Added `docs/ECONOMICS_STUDENT_GUIDE.md` with conventions, worked examples and a
+practice set with an answer key. Regenerated the frozen fixture (56 methods, 58 presets) under B-097. 17 new tests.
+
+**Verified.** Targeted economics and product tests pass; the frozen-contract and subject guards pass; the full suite
+passes. The five worked examples reproduce the textbook figures: equilibrium 20/60 with surplus 900/900; elasticity
+-1.5 with revenue 1,000 to 1,120; tax 23/17 on 54 with revenue 324 and DWL 18; ceiling shortage 20 with DWL 50;
+HHI 2,650 and CR4 90.
+
+**Open/next.** Macro (national income, inflation, unemployment, money and fiscal multipliers, debt, growth), then
+welfare/public, international/development, behavioural and advanced econometrics. The economics catalogue section and
+the approved diagram renderer are the next product-layer increment. The student guide is not yet teacher-reviewed.
+
+---
+
+## 2026-10-28 — Finance is a student shelf now: fourteen methods, one approved unfreeze
+
+**The owner's question was an audit, and the audit said no.** "Check the Finance under subjects" was answered by
+reading the product catalogue rather than the marketing copy: Finance held eleven tiles (NPV, IRR, discounted
+payback, WACC, DCF twice, equity bridge, unit economics, forecast, option comparison, currency) and eleven
+catalogue rows, most marked "not implemented". That is the corporate-finance/valuation core, not a finance
+degree: there were no bonds, no portfolio, no CAPM, no options, no VaR, no working capital, no DuPont, no
+international parity, no capital-structure analysis. Two further faults were visible: ratio analysis, break-even
+and the OLS/Pearson tools needed for beta were not on the Finance page at all, and nine risk records
+(`RSK-01..RSK-09`) belonged to **no subject**, because "risk and decision analysis" is a discipline with no shelf.
+
+**What was built.** Fourteen additive methods, each with its own independent second route, five to seven frozen
+checks, a declared-input boundary and a template that names the formula: `time_value`, `loan_amortization`,
+`bond_analysis`, `capm`, `dupont_analysis`, `multiples_valuation`, `working_capital`, `portfolio_analysis`,
+`project_metrics`, `option_pricing`, `risk_metrics`, `fx_parity`, `leverage_analysis`, `scenario_analysis`.
+The Finance page now carries 32 tiles and 23 catalogue rows; it also surfaces the accounting-adjacent tools a
+finance student needs (`ratio_analysis`, `breakeven`, `multi_product_breakeven`) and the beta tools
+(`descriptive_stats`, `pearson`, `ols`, `ols_robust`), and it absorbs `RSK-01..09` so risk management is no
+longer orphaned. Fourteen presets give each method a worked starting point.
+
+**"Appropriate for students" was treated as a testable requirement, not a tone.** Every input has a plain-language
+description; every method states its intended use, an explicit unsupported use, its limitations and its caveats;
+every report names the formula in words and shows intermediate values (periodic rate and periods, PV of the
+explicit flows, the three DuPont components, the five Altman terms, the two Black-Scholes intermediate terms,
+the three working-capital period lengths) rather than a bare answer. Nothing is prescriptive: every new method's
+claim ceiling is `descriptive`, so the system cannot tell a student what to decide. Two methods are T2 because
+their assumptions are genuinely contestable (peer comparability; Black-Scholes and European exercise), and the
+catalogue notes say what is still missing (multi-year trend series, Monte Carlo, real options,
+American exercise, more than two financing plans, credit and liquidity risk).
+
+**The freeze was respected, not bypassed.** B-079 requires owner approval, a B-decision, code + tests + fixture in
+one change. The owner's instruction is recorded as B-090; `tests/fixtures/frozen_contract.json` was regenerated
+from the library and presets; the frozen-contract guard passes; and `BACKEND_CONTRACT`/`CONTRIBUTORS` state the new
+counts (51 methods and 53 presets at this point; 56 and 58 after the economics increment).
+
+**Verified.** 1023 tests passed at this point (1025 after the economics increment). Nineteen new finance tests plus a preset-delivery test were added, and the two
+long-standing loops that must know every method (`test_session_api`'s declared-test-names check and
+`test_sandbox`'s sandbox-parity cases) were extended. The first run of the new suite caught three real defects
+before delivery: a MIRR/parity Decimal conversion bug, a multiples linearity check that ignored the net-debt
+bridge, and a scenario flat-case that kept a declared forward rate. The draft audit also caught a raw digit in
+the option template ("d1"/"d2"), which is exactly the guard working.
+
 ## 2026-10-28 — [product] The artefact decides the format, and the first look at a submission found a bug
 
 **The owner's correction, and it was right.** A free menu of Word, PDF, Excel and PowerPoint for everything is

@@ -52,20 +52,21 @@ def tokens(text):
 # Maps catalogue Q bullets to implemented, tested methods in bp.methods. Coverage is always stated; most items stay uncovered.
 METHOD_LINK_RULES = [
     (r"^Capital budgeting:",
-     ["npv", "irr", "discounted_payback"],
-     "NPV, IRR and discounted payback are implemented; profitability index is not implemented"),
+     ["npv", "irr", "discounted_payback", "project_metrics"],
+     "NPV, IRR, discounted payback, the profitability index, MIRR, simple payback and the equivalent annual annuity "
+     "are implemented; unequal-life ranking rules and real options are not implemented"),
     (r"^Cost and profitability:",
      ["breakeven", "multi_product_breakeven"],
      "single-product and multi-product break-even are implemented; operating-leverage, relevant-cost and "
      "make-or-buy analysis are not implemented"),
     (r"^Financial performance:",
-     ["ratio_analysis"],
-     "15 declared financial-statement ratios are implemented; common-size, trend, DuPont and cash-conversion-cycle "
-     "analysis are not implemented"),
+     ["ratio_analysis", "dupont_analysis", "working_capital"],
+     "15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, "
+     "one-period growth and the cash conversion cycle are implemented; multi-year trend series are not implemented"),
     (r"^Valuation and financing:",
-     ["wacc", "dcf_valuation", "equity_bridge"],
-     "WACC, discounted cash flow valuation and the enterprise-to-equity bridge are implemented; CAPM, debt-capacity "
-     "and scenario valuation are not implemented"),
+     ["wacc", "capm", "dcf_valuation", "equity_bridge", "multiples_valuation", "bond_analysis"],
+     "WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond "
+     "pricing with duration are implemented; debt-capacity and real-option valuation are not implemented"),
     (r"^Management accounting:",
      ["management_accounts"],
      "a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial "
@@ -85,7 +86,9 @@ METHOD_LINK_RULES = [
      ["pearson", "spearman", "ols", "ols_robust", "logistic_regression"],
      "Pearson and Spearman correlation, OLS and robust OLS, and binary logistic regression are implemented; "
      "categorical predictors, interactions and non-linear terms are not implemented"),
-    (r"^Sensitivity analysis, scenario analysis", ["npv"], "decision-flip on the NPV discount rate only"),
+    (r"^Sensitivity analysis, scenario analysis", ["npv", "scenario_analysis"],
+     "decision-flip on the NPV discount rate and a declared low/high rate scenario are implemented; multi-input "
+     "scenario analysis, Monte Carlo and expected-value decision trees are not implemented"),
 ]
 
 TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces"}

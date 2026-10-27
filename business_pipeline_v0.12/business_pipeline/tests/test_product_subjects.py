@@ -76,6 +76,30 @@ class SubjectCatalogueTest(unittest.TestCase):
         self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]], ["template_swot"])
         self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
+    def test_every_economics_tool_carries_student_notes_and_a_level(self):
+        page = subjects.detail("economics")
+        self.assertGreaterEqual(len(page["tools"]), 20)
+        self.assertTrue(page["glossary"], "the Economics page has no glossary")
+        levels = {tool["level"] for tool in page["tools"]}
+        self.assertTrue({"intro", "intermediate", "advanced"}.issubset(levels),
+                        "the Economics page does not separate intro, intermediate and advanced tools")
+        for tool in page["tools"]:
+            self.assertIn(tool["level"], ("intro", "intermediate", "advanced"), tool["key"])
+            self.assertTrue(tool["formula"], "%s has no formula" % tool["key"])
+            self.assertTrue(tool["steps"], "%s has no worked steps" % tool["key"])
+            self.assertTrue(tool["common_mistakes"], "%s has no common mistakes" % tool["key"])
+            self.assertIn("diagram", tool, tool["key"])
+            for related in tool["related"]:
+                self.assertIn(related, subjects.TOOL_INFO,
+                              "%s points to unknown related tool %r" % (tool["key"], related))
+
+    def test_the_five_new_micro_tools_have_diagrams(self):
+        page = subjects.detail("economics")
+        by_key = {tool["key"]: tool for tool in page["tools"]}
+        for key in ("equilibrium", "elasticity", "taxincidence", "pricecontrol", "concentration"):
+            self.assertIn(key, by_key, key)
+            self.assertTrue(by_key[key]["diagram"], "%s has no diagram key" % key)
+
 
 class ServedUiContractTest(unittest.TestCase):
     """The served page must carry the subject rail and the Enter affordance.
@@ -103,7 +127,10 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.75", self.html)
+        self.assertIn("v0.80", self.html)
+        self.assertIn("levelhead", self.html)
+        self.assertIn("studynote", self.html)
+        self.assertIn("capcard .lvl", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
 

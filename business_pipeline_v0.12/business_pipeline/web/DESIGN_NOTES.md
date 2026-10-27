@@ -18,31 +18,58 @@ The workbench front end is a single self-contained `web/index.html` (no build st
   beneath, a floating circular chat button bottom-right). Its text, claims, pricing and social-proof block were not
   copied, and the screenshot is not shipped.
 
-## 2. Rail (left, 64 px collapsed, 232 px expanded)
+## 2. Rail (left, 49 px collapsed, 272 px expanded)
 
-Nine items, each with a distinct colour and an inline SVG glyph (stroke 1.6, 20×20, `currentColor`).
-Shape carries the meaning; colour is secondary (greyscale-safe).
+Twelve items: Home, the ten subjects, Calculator. Each carries a filled glyph from the Font Awesome
+Free 6.5.2 solid set (CC BY 4.0) in its own colour, drawn straight on the aqua-green strip - no
+tile, no outline. Shape carries the meaning; colour is secondary (greyscale-safe).
 
 | # | Label | Icon | Colour |
 |---|---|---|---|
-| 1 | Home / New analysis | house with a spark | navy `#02284C` |
-| 2 | Cases | stacked folders | green `#02A15E` |
-| 3 | Data | table with an arrow | teal `#0E8C8C` |
-| 4 | References | open book | indigo `#3A5BA0` |
-| 5 | Deliverables | document with a down-arrow | forest `#147A4E` |
-| 6 | Accounts | ledger book | ochre `#9A6A16` |
-| 7 | Frameworks & templates | 2×2 grid | violet `#6B4E9B` |
-| 8 | Assistant & method info | chat bubble | slate `#4A5A6A` |
-| 9 | Status | pulse line | moss `#4E7A2E` |
+| 1 | Home | house | white `#FFFFFF` |
+| 2 | Accounting | book | `#4D9BFF` |
+| 3 | Finance | chart line | `#3DDC84` |
+| 4 | Economics | scales | `#2BD9D9` |
+| 5 | Management & strategy | target | `#B388FF` |
+| 6 | Entrepreneurship | rocket | `#FFC542` |
+| 7 | Operations management | gear | `#7AA7FF` |
+| 8 | Supply chain & logistics | truck | `#38E0C8` |
+| 9 | Marketing & customers | megaphone | `#FF7A6B` |
+| 10 | People & organisation | people | `#C3CEDA` |
+| 11 | Research & statistics | flask | `#8E9BFF` |
+| 12 | Calculator | calculator | `#DDD6FE` |
 
-Behaviour: collapsed by default (icon only + tooltip), expand/collapse via the top toggle, the choice persists in
-`localStorage`. Active item: tinted background, navy left bar, `aria-current="page"`. All items are real `<a>` with
-`href="#/…"` so they work without JavaScript and are keyboard reachable.
+Behaviour: collapsed by default (icon only + tooltip), expand/collapse via the top toggle (a
+hamburger when collapsed, a chevron when open), the choice persists in `localStorage`. Active item:
+tinted background, `aria-current="page"`. All items are real `<a>` with `href="#/…"` so they work
+without JavaScript and are keyboard reachable. The subject names are the product's own subject
+names, so the rail and the subject pages say the same thing.
 
-## 3. Copy options (hero sub-line — owner to choose; until then the UI shows "To be supplied")
+Geometry the CSS is built from (keep these three in step or the rail breaks again):
 
-Each option is a short, factual line. None is live copy until the owner picks one and I edit the markup.
-None contains invented counts, testimonials or social proof.
+- `--rail-w:49px` is the green strip. The icon column is centred inside it (`--rail-ic-pad`), so
+  narrowing the strip moves the icons with it.
+- `--rail-gap:18px` is the white space between the strip and the label column, so every label
+  starts at the same x (`--rail-text-x`, 67 px) and never crowds the green.
+- The "Subjects" heading uses the same offset, so it sits on the label column instead of under the
+  strip.
+- The rail tooltip is one shared box placed over the page (`position:fixed`). The strip is narrow
+  and the subject list scrolls, so a tip living inside an item was clipped to 1 px and never seen.
+
+
+## 3. Copy options (hero sub-line) — **the owner has chosen**
+
+**Live copy (owner's own words, verbatim):** "Your reliable business writing assistant. Real
+computation. Real research. Verifiable." It sits under the `BUSINESS | ACCOUNTING | ECONOMICS | FINANCE`
+tagline, in the hero, in both the static markup and the `RENDERERS.home` rebuild, so the first paint
+and the re-render say the same thing. The line breaks after the first sentence (a `<br>`), so the
+hero reads as a claim and then three short proofs, and never leaves a one-word orphan.
+(The owner first gave "trusted" and changed it to "reliable"; the word in the page is the owner's
+current wording.)
+
+The options below were the short list offered for that slot. They are kept as the record of what was
+proposed; none of them is live copy any more. Each is a short, factual line; none contains invented
+counts, testimonials or social proof.
 
 1. Verified business analysis, computed on your machine.
 2. Numbers you can trace from input to report.
@@ -173,3 +200,43 @@ Input: problem B2 (NPV) — initial outlay 100,000, 40,000 per year for 4 years,
 ## 7. Files in this increment
 - `web/index.html` (rebuilt), `web/preview.html` (design reference), `web/assets/logo.png` (committed verbatim, 576,836 bytes), `web/assets/mark.png` (168×139 derived mark, 38,359 bytes), `web/DESIGN_NOTES.md` (this file).
 - No `src/bp/**`, `tests/**`, fixture, or factual-doc edit. The frozen-contract and docs-state guards pass (733 tests OK).
+
+## 8. Rail repair (landed on top of build v0.80)
+Owner instruction: delete the small button that links to "check my trial balance"; the hamburger that
+makes the rail visible got collapsed; "Subjects" is no longer visible; suggest how to improve the
+texts beside the icons - the icons are okay.
+
+What was wrong, measured in the served page (Chrome, 1400x900):
+- `--icon-col` had been dropped from `:root`, but `.railitem` and `.railgroup-label` still used it.
+  `padding:0 12px 0 calc(var(--icon-col) - 23px)` is invalid at computed-value time, so every rail
+  item lost its padding: the icons sat flush against the strip and the heading had no offset.
+- The toggle kept `padding:0 10px` inside a 29 px content box, so its 20 px hamburger was squeezed
+  to 8 px wide - it read as a speck, not a button.
+- The "Subjects" heading was therefore drawn under the 49 px green strip and clipped to "CTS".
+- The tooltip was `position:absolute` inside the item, so the strip's `overflow:hidden` (and the
+  scrolling subject list) clipped it to 1 px. It never appeared at all.
+- The toggle was `width:100%`, so in the open rail it stretched to the full 251 px and its hover
+  background painted a grey band across the whole top of the rail - and because the pointer stays
+  where the hamburger was, that band appeared the moment the button was clicked ("the hamburger
+  greys out when clicked"). The open-state toggle now hugs its chevron (`width:auto;margin-left:auto`),
+  so the hover is a small pill around the chevron, like every other rail item.
+
+What changed (presentation only - no behaviour, no number, no claim wording):
+- The rail geometry is driven by `--rail-pad`, `--rail-ic-w`, `--rail-ic-pad`, `--rail-text-x`,
+  `--rail-text-off` and `--rail-text-gap`; `--icon-col` is gone.
+- The hamburger is 20 px again and centred on the strip; the icon column is centred in the strip.
+- Every label and the "Subjects" heading start at the same x (67 px), 18 px clear of the green.
+- One shared tooltip box, placed over the page next to the icon that was pointed at.
+- The rail's `Check` item - the "Check my trial balance" button - is deleted. The Check screen itself
+  and its `#/check` route are untouched; the screen simply has no rail entry.
+- The static subject links now carry the product's own subject names, so the rail reads the same
+  whether or not `/api/cases/subjects` answered.
+
+Verification: the served page was measured and screenshotted in both rail states (collapsed 49 px,
+expanded 272 px) and at 760 px wide; the full suite passes (1063 tests OK). No `src/bp/**`,
+`tests/**`, fixture or factual-doc edit.
+
+Request: a `[design]` CHANGELOG/WORKLOG line for this repair, and a build marker if the owner wants
+the served page to show it. The build pill is left at v0.80 - the build the computation owner last
+published - because `tests/test_product_subjects.py` pins that string and the test file belongs to
+the computation owner.

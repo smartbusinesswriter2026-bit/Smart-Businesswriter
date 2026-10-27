@@ -14,7 +14,75 @@
 
 ---
 
-## 2026-10-27 — [product] Home reduced to the logo, the unchanged slogan and the chat box
+## 2026-10-28 - [economics] The remaining fields are built: welfare, international, development, behavioural and games
+
+**What was asked.** "Finish them all" after the macro core, and automate the shelf.
+
+**What changed.** Twenty-one T1 methods across welfare/public, international/development/behavioural and electives,
+with 21 PHP presets, student notes for every tool and a 51-tile Economics page (21 intro, 21 intermediate, 9
+advanced). The glossary now has 25 terms. The frozen fixture is regenerated under B-099 (87 methods, 89 presets),
+and six table-driven tests cover arithmetic, checks, headline values, refusals and preset delivery.
+
+**What is still missing.** Advanced econometrics (panel, IV, RDD, probit, VAR, cointegration), the economics
+catalogue section and the diagram renderer. The shelf is now a broad first- and second-year quantitative core, not
+a full degree and not a substitute for theory, data or essay work.
+
+**Where this could be wrong.** Several methods are deliberately simple versions: the Gini and poverty measures use
+declared income only, the tax-progressivity gap is not a Kakwani index, the public-good model has two people, the
+DiD has no covariates, and the Nash solver is 2x2 pure strategies. A student could mistake a clean textbook identity
+for an empirical result. The notes are not teacher-reviewed, and the catalogue table is still borrowed from finance
+and evaluation.
+
+---
+
+## 2026-10-28 - [economics] The macro core is built: ten methods, the firm and the economy
+
+**What was asked.** After the micro audit, the owner said "GO" on Phase 2: national income, growth, inflation,
+unemployment, money and fiscal multipliers, debt, plus cost curves, profit maximisation and market power.
+
+**What changed.** Ten T1 methods with five frozen checks each, ten PHP presets, and a 30-tile Economics page
+(20 intro, 5 intermediate, 5 advanced). Every new tool carries a student note; the glossary gained GDP, GNP/NNP,
+CPI, CAGR, LFPR, MPC and debt-to-GDP. The student guide now has macro conventions, worked examples and a macro
+practice set. The frozen fixture is regenerated under B-098.
+
+**What is still missing.** Welfare/public, international/development, behavioural economics, advanced econometrics,
+the economics catalogue section and the diagram renderer. The shelf is now credible at first-year level but it is
+not a full economics degree.
+
+**Where this could be wrong.** The macro methods are declared-input identities, not estimated models: the fiscal
+multiplier has no crowding out, the money multiplier has no excess reserves, and the debt path holds growth and
+interest constant. A student could mistake a clean identity for a policy prediction. The student notes are not
+teacher-reviewed, and the catalogue table is still borrowed from finance and evaluation.
+
+---
+
+## 2026-10-28 - [economics] The shelf was five tools, three of them appraisal; the micro core is now built
+
+**What was asked.** The owner asked whether Economics covers everything a student needs, and said it looked very
+thin. The audit confirmed it: five tiles (`cost_benefit`, `cost_effectiveness`, `sroi`, `trend_forecast`,
+`currency_convert`), no worksheets, six catalogue-only rows, and no microeconomics at all. Three of the five tiles
+were impact evaluation, not economics. The source catalogue has no economics section, so there was nothing to
+populate the shelf from.
+
+**What changed.** Five T1 methods: `demand_supply_equilibrium`, `elasticity`, `tax_incidence`, `price_control` and
+`market_concentration`, each with five frozen checks and a worked PHP example. The Economics page now has twenty
+tiles, grouped into intro, intermediate and advanced; every Economics tool carries a student note (level, formula,
+steps, common mistakes, related tools); the page has a glossary. `docs/ECONOMICS_STUDENT_GUIDE.md` records the
+conventions, worked examples and a practice set with an answer key. The frozen fixture is regenerated under B-097.
+
+**What is still missing.** Macro, welfare/public, international/development, behavioural, advanced econometrics and
+the economics catalogue section. The approved economics diagram renderer is deferred to the next increment; the
+diagram key is recorded, but the SVG is not yet on the page. This is a deliberate sequencing choice, not a claim
+that the shelf is complete.
+
+**Where this could be wrong.** Five methods at intro level do not make an economics shelf. The student notes are a
+product-layer text, not a textbook, and no teacher has reviewed them yet. The linear-curve and partial-equilibrium
+assumptions are strong, and the HHI has no market-definition step. The biggest risk is that the page now looks more
+complete than it is: the catalogue table is still borrowed from finance and evaluation, and macro is absent.
+
+---
+
+## 2026-10-27 - [product] Home reduced to the logo, the unchanged slogan and the chat box
 
 **What was asked.** After seeing build 0.69 the owner said the version had regressed and added "a lot of shit"; Home should be clean and contain only the chat box and its logo, the side rail is already fine, the slogan must not be changed, and nothing may be done without permission. In the confirmation question the owner chose: remove the preset/method/currency dropdowns too; the chat box is only the text area and up arrow.
 
@@ -102,7 +170,7 @@
 
 - **The brief's Increment 1 also implied a case-first container; the repository cannot do that yet.** The implemented Home is a *case shelf plus a new-analysis box*. A case still cannot exist before a run (`bp-case/1` requires `session`, `delivery`, `report`, `appendix`, `reperform`). The page says so explicitly instead of pretending. Making the case the container is C1 (Increment 2), not this increment.
 - **"Replace the second icon" was read as both readings in section B.** The rail's second item is now Subjects, and the work-plan *screen* is no longer a destination: the tool screen keeps inputs, ambiguities and one primary button. The frozen string test is preserved honestly by keeping "Draft work plan" as the heading of the recorded-metadata card, not as a button.
-- **The Calculator is narrower than "all financial and business calculations".** It is every calculation the 36 frozen methods / 38 presets actually support, plus a visible catalogue-only section. Free-form typed arithmetic is not built: it would be a second arithmetic path and would need a computation-owner method, a second route, tests and an unfreeze. The panel says this rather than leaving the gap silent.
+- **The Calculator is narrower than "all financial and business calculations".** It is every calculation the 87 frozen methods / 89 presets actually support, plus a visible catalogue-only section. Free-form typed arithmetic is not built: it would be a second arithmetic path and would need a computation-owner method, a second route, tests and an unfreeze. The panel says this rather than leaving the gap silent.
 - **The subject taxonomy is still a judgement.** Table H was followed for the nine shelves, but several records are assigned by *curated* choices rather than by a raw discipline tag (FIN-02/FIN-05 to Accounting; FIN-01/03/04/06 and the decision-analysis records to Finance; FIN-07 and the evaluation records to Economics; operations records to both Operations and Supply chain). The owner can overrule any mapping in `SUBJECT_DEFS`; the guard will catch a bad id, not a bad editorial judgement.
 
 **Where this could be wrong — read before building Increment 2.**
@@ -161,7 +229,7 @@ The reference image carries **two axes**: an action axis (*Featured, Extract + A
 
 | Constraint | Evidence | Consequence |
 |---|---|---|
-| Core frozen: 36 methods, 38 presets, 12 route families, delivery shape | `docs/BACKEND_CONTRACT.md` section 2; `tests/fixtures/frozen_contract.json` | Every subject tool must launch an existing id. No new arithmetic, no new delivery shape. |
+| Core frozen: 87 methods, 89 presets, 12 route families, delivery shape | `docs/BACKEND_CONTRACT.md` section 2; `tests/fixtures/frozen_contract.json` | Every subject tool must launch an existing id. No new arithmetic, no new delivery shape. |
 | New product routes must live under `/api/cases` to need no core edit | `docs/BACKEND_CONTRACT.md:92`; `src/bp/product/api.py:94-141` | A subject catalogue endpoint is `/api/cases/subjects...`, or it is an unfreeze request. |
 | The product package may not import the frozen core | `tests/test_product_boundary.py:66-77` | The subject -> tool mapping is **static product data** guarded by a drift test, never a call into `methods`/`registry`. |
 | A case needs a completed run to exist | F6 | The target flow (case first, then tools) requires a product-layer schema change. |
@@ -349,7 +417,7 @@ Expected: `140 3 6`; no workspace/suggestions hits in the UI; the frozen-contrac
 Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
 ```
 
-**What it must be.** An **index and launcher over the frozen method library**, not a new arithmetic engine. "All financial and business calculations" can only honestly mean **every calculation the product can actually perform today**: the 36 frozen methods and 38 presets, grouped by business function (capital budgeting, valuation, cost-volume-profit, financial statement ratios, appraisal, unit economics, accounting, forecasting, statistics), plus the three T4 templates (structure only, no computed answer). It must also show what it cannot do.
+**What it must be.** An **index and launcher over the frozen method library**, not a new arithmetic engine. "All financial and business calculations" can only honestly mean **every calculation the product can actually perform today**: the 87 frozen methods and 89 presets, grouped by business function (capital budgeting, valuation, cost-volume-profit, financial statement ratios, appraisal, unit economics, accounting, forecasting, statistics), plus the three T4 templates (structure only, no computed answer). It must also show what it cannot do.
 
 **Hard rules (non-negotiable; they follow from BACKEND_CONTRACT sections 1-4).**
 - Every number displayed comes from a frozen method through the normal pipeline (`POST /api/sessions` -> `POST /api/sessions/{id}/confirm`) and is stored verbatim as a delivery; or it is a declared preset input the student typed.
@@ -368,7 +436,7 @@ Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
 
 **Owner decisions.** (a) Is free-form arithmetic in scope, and if so, is the unfreeze worth it? (b) Should a Calculator run with no open case create a scratch case automatically (recommended: yes - it keeps every number auditable) or be blocked until a case exists? (c) Should the Calculator include calculations that today exist only inside the accounting engagement spec (depreciation, amortisation, closing schedules)? If yes, that is a request for new methods/input adapters, not a UI change.
 
-**Where this could be wrong.** "Calculator" may mean free-form arithmetic to the owner; if so, this instruction delivers something narrower than expected and should say so on the panel ("calculations the engine supports"), with the free-form decision surfaced rather than silently absent. A calculator is also the feature most likely to drift into a second arithmetic path: every future contributor must keep it a launcher, and the guard test should be treated as the enforcement, not the documentation. Finally, a Calculator makes the product's coverage visible at a glance - 36 methods against an unbounded expectation of "all business calculations" - which is honest but may read as limited; the panel must present the catalogue-only items as a roadmap, not as broken tools.
+**Where this could be wrong.** "Calculator" may mean free-form arithmetic to the owner; if so, this instruction delivers something narrower than expected and should say so on the panel ("calculations the engine supports"), with the free-form decision surfaced rather than silently absent. A calculator is also the feature most likely to drift into a second arithmetic path: every future contributor must keep it a launcher, and the guard test should be treated as the enforcement, not the documentation. Finally, a Calculator makes the product's coverage visible at a glance - 87 methods against an unbounded expectation of "all business calculations" - which is honest but may read as limited; the panel must present the catalogue-only items as a roadmap, not as broken tools.
 
 ---
 
@@ -395,7 +463,7 @@ Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
 | F6 | The charts were not merely separated — they were **broken**. The delivery appendix names the artifact (`"result"`) while the re-perform bundle keys the same number by the metric (`"npv"`), so the lookup returned `None` and every chart rendered "not recorded". | `src/bp/product/export.py` (fixed here); `src/bp/product/charts.py:45` |
 | F7 | The left rail is a map of the **pipeline's subsystems**, not of a student's tasks: Cases is a JSON store of saved analyses, Accounts is the ledger engine, Frames is a catalogue browser, Status is a health endpoint. | `src/bp/product/cases.py`; `web/index.html:251-283` |
 | F8 | The hero sub-line still read **"To be supplied"** — 100 copy options were written down and none was ever chosen. | `web/DESIGN_NOTES.md` §3; `web/index.html:583` |
-| F9 | The engine itself is genuinely strong: 36 methods, an independent second route per number, `Decimal` arithmetic, frozen checks, hashed specs, re-performable deliveries, a double-entry ledger with 11 invariants. | `docs/BACKEND_CONTRACT.md` §2, §5 |
+| F9 | The engine itself is genuinely strong: 87 methods, an independent second route per number, `Decimal` arithmetic, frozen checks, hashed specs, re-performable deliveries, a double-entry ledger with 11 invariants. | `docs/BACKEND_CONTRACT.md` §2, §5 |
 
 **Assessment against the owner's four concerns.**
 

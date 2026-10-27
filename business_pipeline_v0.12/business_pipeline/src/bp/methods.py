@@ -1,6 +1,6 @@
 """T1 method library with an explicit method contract (Stage 5 brief s6; manual 5.3, 5.5, 9B).
 Discovery (describe/list) never executes a method. Inputs are schema-validated before anything runs."""
-import statistics, re
+import statistics, re, math
 from . import currency
 from dataclasses import dataclass, field
 from decimal import Decimal as D, InvalidOperation
@@ -3430,6 +3430,4351 @@ def tbcheck_template(out, P, th):
             f"{tok('difference_net')} and {tok('n_findings')} finding(s). A balanced trial balance is not proof of "
             f"correct entries.")
 
+# ---------- Finance additions (B-090): time value, debt, cost of capital, statements ----------
+# Every method here is arithmetic on inputs the owner declares.  None of them forecasts, retrieves a
+# market price, or chooses an assumption: the same boundary the earlier finance methods (B-068, B-072,
+# B-077, B-078) set.  Checks are a second route plus identities that must hold for any valid input.
+
+def _optnum(inp, key):
+    """An optional numeric input: absent, None or blank means 'not declared'."""
+    v = inp.get(key)
+    if v is None or (isinstance(v, str) and not v.strip()): return None
+    return D(str(v))
+
+def _sqrtd(x):
+    x = D(x)
+    if x < 0: raise DataError("cannot take the square root of a negative number")
+    return _fd(math.sqrt(float(x)))
+
+def _npv_list(cfs, r):
+    return sum((c / (1 + r) ** t for t, c in enumerate(cfs)), D(0))
+
+def _int_periods(total, what="periods"):
+    n = D(total)
+    if n != n.to_integral_value(): raise DataError(f"{what} must be a whole number")
+    n = int(n)
+    if n < 1: raise DataError(f"{what} must be at least one")
+    return n
+
+# ----- time value of money -----
+def tv_impl(inp):
+    pv, pmt = D(str(inp["present_value"])), D(str(inp.get("payment", "0") or "0"))
+    rate, years = D(str(inp["rate"])), D(str(inp["periods"]))
+    m = {"annual": 1, "semiannual": 2, "quarterly": 4, "monthly": 12}[inp.get("compounding", "annual")]
+    timing = inp.get("timing", "end")
+    if timing not in ("end", "begin"): raise DataError("timing must be 'end' or 'begin'")
+    if rate <= -1: raise DataError("the rate must be greater than -100%")
+    n = _int_periods(years * m, "periods x compounding")
+    r = rate / m
+    g = (1 + r) ** n
+    if r == 0:
+        fv_ann = pmt * n; pv_ann = pmt * n
+    else:
+        fv_ann = pmt * (g - 1) / r; pv_ann = pmt * (1 - (1 + r) ** -n) / r
+    if timing == "begin":
+        fv_ann *= (1 + r); pv_ann *= (1 + r)
+    return {"future_value": pv * g + fv_ann, "present_value_input": pv,
+            "present_value_payments": pv_ann, "future_value_payments": fv_ann,
+            "total_payments": pmt * n, "periodic_rate": r, "effective_annual_rate": (1 + r) ** m - 1,
+            "n_periods": D(n), "annuity_factor": (pv_ann / pmt) if pmt != 0 else D(0)}
+
+def _tv_ref(inp):
+    pv, pmt = float(D(str(inp["present_value"]))), float(D(str(inp.get("payment", "0") or "0")))
+    rate, years = float(D(str(inp["rate"]))), float(D(str(inp["periods"])))
+    m = {"annual": 1, "semiannual": 2, "quarterly": 4, "monthly": 12}[inp.get("compounding", "annual")]
+    n = int(round(years * m)); r = rate / m; g = (1 + r) ** n
+    fva = pmt * ((g - 1) / r if r else n); pva = fva / g
+    if inp.get("timing", "end") == "begin": fva *= (1 + r); pva *= (1 + r)
+    return {"future_value": pv * g + fva, "present_value_payments": pva,
+            "total_payments": pmt * n, "periodic_rate": r, "effective_annual_rate": (1 + r) ** m - 1}
+
+def _tv_tests(inp, impl):
+    base, ref = impl(inp), _tv_ref(inp)
+    pv, pmt = D(str(inp["present_value"])), D(str(inp.get("payment", "0") or "0"))
+    rate = D(str(inp["rate"])); m = {"annual": 1, "semiannual": 2, "quarterly": 4, "monthly": 12}[inp.get("compounding", "annual")]
+    n = int(D(str(inp["periods"])) * m); r = rate / m; g = (1 + r) ** n
+    zero = impl({**inp, "rate": "0"})
+    grown = impl({**inp, "present_value": str(pv + 1000)})
+    due = impl({**inp, "timing": "begin"})
+    pv_growth = pv * g
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("zero_rate_is_simple_addition", _close(zero["future_value"], pv + pmt * n), "at a zero rate the future value is the sum of the amounts"),
+        ("present_value_scales_one_for_one", _close(grown["future_value"] - base["future_value"], D(1000) * g), "one more unit of present value grows to one unit compounded"),
+        ("annuity_due_is_one_period_ahead", _close(due["future_value"] - pv_growth, (base["future_value"] - pv_growth) * (1 + r)), "beginning-of-period payments earn one extra period"),
+        ("effective_annual_rate_follows_compounding", _close(base["effective_annual_rate"], (1 + r) ** m - 1), "the effective annual rate is the periodic rate compounded m times"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _tv_profile(inp):
+    try:
+        rate, years = D(str(inp["rate"])), D(str(inp["periods"]))
+        m = {"annual": 1, "semiannual": 2, "quarterly": 4, "monthly": 12}.get(inp.get("compounding", "annual"))
+        errs = []
+        if m is None: errs.append("compounding must be annual, semiannual, quarterly or monthly")
+        if rate <= -1: errs.append("the rate must be greater than -100%")
+        if years <= 0: errs.append("periods must be positive")
+        elif m and years * m != (years * m).to_integral_value(): errs.append("periods x compounding must be a whole number of periods")
+        if inp.get("timing", "end") not in ("end", "begin"): errs.append("timing must be 'end' or 'begin'")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["time-value inputs are malformed: present_value, rate and periods are required numbers"]
+
+def _tv_typing(metric):
+    if metric in ("n_periods",): return ("count", 0)
+    if metric in ("periodic_rate", "effective_annual_rate"): return ("rate", 4)
+    if metric == "annuity_factor": return ("ratio", 4)
+    return ("currency", 2)
+
+def _tv_caveats(out, th):
+    return ["The rate is a declared nominal annual rate and is converted to the periodic rate by dividing by the compounding frequency; it is not estimated or verified.",
+            "Payments are assumed equal and made at the end of each period unless the 'begin' timing was declared; no tax, fees or inflation are modelled.",
+            "The effective annual rate is a convention (periodic rate compounded m times), not an APR disclosure standard."]
+
+def _tv_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At the declared rate and compounding, the future value is " + tok("future_value") + ". The payments alone are worth " +
+            tok("present_value_payments") + " today and " + tok("future_value_payments") + " at the horizon, and the effective annual rate is " +
+            tok("effective_annual_rate") + ". Every figure is arithmetic on the amount, payment, rate and periods you declared.")
+
+# ----- loan amortization -----
+def loan_impl(inp):
+    P, rate = D(str(inp["principal"])), D(str(inp["annual_rate"]))
+    ppy = _int_periods(D(str(inp.get("payments_per_year", "12"))), "payments per year")
+    n = _int_periods(D(str(inp["years"])) * ppy, "years x payments per year")
+    if P <= 0: raise DataError("the principal must be positive")
+    if rate < 0: raise DataError("the annual rate must be non-negative")
+    r = rate / ppy
+    pmt = P / n if r == 0 else P * r / (1 - (1 + r) ** -n)
+    total = pmt * n
+    return {"payment": pmt, "total_paid": total, "total_interest": total - P, "principal": P,
+            "periodic_rate": r, "effective_annual_rate": (1 + r) ** ppy - 1, "n_payments": D(n),
+            "first_interest": P * r, "first_principal": pmt - P * r}
+
+def _loan_ref(inp):
+    P = float(D(str(inp["principal"]))); rate = float(D(str(inp["annual_rate"])))
+    ppy = int(D(str(inp.get("payments_per_year", "12")))); n = int(round(float(D(str(inp["years"]))) * ppy)); r = rate / ppy
+    pmt = P / n if r == 0 else P * r / (1 - (1 + r) ** -n)
+    return {"payment": pmt, "total_paid": pmt * n, "total_interest": pmt * n - P, "periodic_rate": r,
+            "effective_annual_rate": (1 + r) ** ppy - 1}
+
+def _loan_tests(inp, impl):
+    base, ref = impl(inp), _loan_ref(inp)
+    P = D(str(inp["principal"])); ppy = int(D(str(inp.get("payments_per_year", "12")))); n = int(D(str(inp["years"])) * ppy)
+    scaled = impl({**inp, "principal": str(P * 2)})
+    zero = impl({**inp, "annual_rate": "0"})
+    r = D(str(base["periodic_rate"])); bal = P
+    for _ in range(n):
+        interest = bal * r; principal = min(base["payment"] - interest, bal); bal -= principal
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("zero_rate_payment_is_principal_over_periods", _close(zero["payment"], P / n) and zero["total_interest"] == 0, "a zero-rate loan repays the principal in equal parts"),
+        ("doubling_the_principal_doubles_the_payment", _close(scaled["payment"], base["payment"] * 2), "a level payment is linear in the principal"),
+        ("total_interest_is_payments_minus_principal", _close(base["total_interest"], base["total_paid"] - P), "interest is what is paid beyond the principal"),
+        ("the_final_balance_is_repaid", abs(bal) <= max(D("0.01"), P * D("1e-9")), "the amortization clears the balance at the final payment"),
+        ("effective_annual_rate_follows_the_payment_frequency", _close(base["effective_annual_rate"], (1 + r) ** ppy - 1), "the effective rate compounds at the payment frequency"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _loan_profile(inp):
+    try:
+        P, rate = D(str(inp["principal"])), D(str(inp["annual_rate"]))
+        ppy = D(str(inp.get("payments_per_year", "12"))); years = D(str(inp["years"]))
+        errs = []
+        if P <= 0: errs.append("the principal must be positive")
+        if rate < 0: errs.append("the annual rate must be non-negative")
+        if ppy != ppy.to_integral_value() or ppy < 1: errs.append("payments per year must be a whole number of at least one")
+        elif years * ppy != (years * ppy).to_integral_value() or years * ppy < 1: errs.append("years x payments per year must be a whole number of payments")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["loan inputs are malformed: principal, annual_rate and years are required numbers"]
+
+def _loan_typing(metric):
+    if metric == "n_payments": return ("count", 0)
+    if metric in ("periodic_rate", "effective_annual_rate"): return ("rate", 4)
+    return ("currency", 2)
+
+def _loan_caveats(out, th):
+    return ["The payment is a level amount computed from the declared principal, rate and term; no fees, insurance, taxes or grace periods are included.",
+            "The rate is a nominal annual rate divided by the payment frequency; the effective annual rate is stated separately.",
+            "A quoted bank payment can differ through rounding, day-count conventions or fees, none of which are modelled here."]
+
+def _loan_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The level payment is " + tok("payment") + " over " + tok("n_payments") + " payments, so the total paid is " + tok("total_paid") +
+            " and the total interest is " + tok("total_interest") + ". The first payment contains " + tok("first_interest") +
+            " of interest and " + tok("first_principal") + " of principal. The effective annual rate is " + tok("effective_annual_rate") + ".")
+
+# ----- bond pricing, yield and duration -----
+def _bond_price(face, cpn, n, y):
+    if y == 0: return cpn * n + face
+    return cpn * (1 - (1 + y) ** -n) / y + face * (1 + y) ** -n
+
+def _bond_solve_y(face, cpn, n, target):
+    lo, hi = -0.9999, 5.0
+    flo, fhi = float(_bond_price(face, cpn, n, D(str(lo))) - target), float(_bond_price(face, cpn, n, D(str(hi))) - target)
+    if flo * fhi > 0: raise DataError("the price is outside the range the solver searches (-99.99% to 500% per period), so no yield can be reported")
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        fm = float(_bond_price(face, cpn, n, D(str(mid))) - target)
+        if flo * fm <= 0: hi = mid
+        else: lo, flo = mid, fm
+    return (lo + hi) / 2
+
+def bond_impl(inp):
+    face, cr = D(str(inp["face_value"])), D(str(inp["coupon_rate"]))
+    ppy = _int_periods(D(str(inp.get("payments_per_year", "2"))), "payments per year")
+    n = _int_periods(D(str(inp["years_to_maturity"])) * ppy, "years x payments per year")
+    if face <= 0: raise DataError("the face value must be positive")
+    if cr < 0: raise DataError("the coupon rate must be non-negative")
+    cpn = face * cr / ppy
+    ytm_in, price_in = _optnum(inp, "yield_to_maturity"), _optnum(inp, "price")
+    if ytm_in is None and price_in is None:
+        raise DataError("declare either yield_to_maturity (to price the bond) or price (to solve the yield)")
+    if price_in is not None and price_in <= 0: raise DataError("the price must be positive")
+    if ytm_in is not None:
+        y = ytm_in / ppy
+        if y <= -1: raise DataError("the yield must be greater than -100% per period")
+        price = _bond_price(face, cpn, n, y)
+        y_annual = ytm_in
+    else:
+        y_annual = _fd(_bond_solve_y(face, cpn, n, price_in)) * ppy
+        y = y_annual / ppy
+        price = price_in
+    pv_c, pv_f = D(0), D(0); wsum = D(0); csum = D(0)
+    for t in range(1, n + 1):
+        disc = (1 + y) ** t
+        cflow = cpn / disc
+        pv_c += cflow; wsum += t * cflow; csum += t * (t + 1) * cflow
+    pv_f = face / (1 + y) ** n
+    wsum += n * pv_f; csum += n * (n + 1) * pv_f
+    mac = (wsum / price) / ppy if price != 0 else D(0)
+    mod = mac / (1 + y) if price != 0 else D(0)
+    conv = (csum / (price * (1 + y) ** 2)) / (ppy ** 2) if price != 0 else D(0)
+    return {"price": price, "yield_to_maturity": y_annual, "macaulay_duration": mac,
+            "modified_duration": mod, "convexity": conv, "dv01": mod * price * D("0.0001"),
+            "current_yield": (cpn * ppy / price) if price != 0 else D(0),
+            "coupon_payment": cpn, "n_payments": D(n), "face_value": face}
+
+def _bond_ref(inp):
+    face = float(D(str(inp["face_value"]))); cr = float(D(str(inp["coupon_rate"])))
+    ppy = int(D(str(inp.get("payments_per_year", "2")))); n = int(round(float(D(str(inp["years_to_maturity"]))) * ppy))
+    cpn = face * cr / ppy
+    ytm = inp.get("yield_to_maturity")
+    if ytm is not None and str(ytm).strip():
+        y = float(D(str(ytm))) / ppy
+        price = cpn * n + face if y == 0 else cpn * (1 - (1 + y) ** -n) / y + face * (1 + y) ** -n
+    else:
+        # independent root route: bisection on the periodic yield, then annualise
+        target = float(D(str(inp["price"]))); lo, hi = -0.9999, 5.0
+        f = lambda yy: (cpn * n + face if yy == 0 else cpn * (1 - (1 + yy) ** -n) / yy + face * (1 + yy) ** -n) - target
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if f(lo) * f(mid) <= 0: hi = mid
+            else: lo = mid
+        y = (lo + hi) / 2; price = target
+    disc = [(1 + y) ** t for t in range(1, n + 1)]
+    wsum = sum(t * cpn / disc[t - 1] for t in range(1, n + 1)) + n * face / (1 + y) ** n
+    mac = (wsum / price) / ppy; mod = mac / (1 + y)
+    conv = (sum(t * (t + 1) * cpn / disc[t - 1] for t in range(1, n + 1)) + n * (n + 1) * face / (1 + y) ** n) / (price * (1 + y) ** 2) / ppy ** 2
+    return {"price": price, "macaulay_duration": mac, "modified_duration": mod, "convexity": conv}
+
+def _bond_tests(inp, impl):
+    base, ref = impl(inp), _bond_ref(inp)
+    face = D(str(inp["face_value"])); cr = D(str(inp["coupon_rate"])); ppy = int(D(str(inp.get("payments_per_year", "2"))))
+    n = int(D(str(inp["years_to_maturity"])) * ppy)
+    par = impl({**inp, "yield_to_maturity": str(cr), "price": ""})
+    higher = impl({**inp, "yield_to_maturity": str(D(str(base["yield_to_maturity"])) + D("0.01"))})
+    solved = impl({**inp, "yield_to_maturity": "", "price": str(base["price"])})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("a_par_bond_prices_at_face_value", _close(par["price"], face), "when the coupon equals the yield the price is the face value"),
+        ("a_higher_yield_lowers_the_price", higher["price"] < base["price"], "discounting more heavily reduces a bond's price"),
+        ("modified_duration_is_macaulay_over_one_plus_the_periodic_yield", _close(base["modified_duration"], base["macaulay_duration"] / (1 + D(str(base["yield_to_maturity"])) / ppy)), "the modified duration identity holds"),
+        ("duration_is_below_the_maturity_in_years", base["macaulay_duration"] < D(str(inp["years_to_maturity"])), "a coupon bond has a shorter duration than its maturity"),
+        ("convexity_is_positive", base["convexity"] > 0, "price-yield curvature is positive for a plain bond"),
+        ("the_solved_yield_reproduces_the_price", _close(solved["yield_to_maturity"], base["yield_to_maturity"]), "solving from the computed price returns the declared yield"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _bond_profile(inp):
+    try:
+        face, cr = D(str(inp["face_value"])), D(str(inp["coupon_rate"]))
+        ppy = D(str(inp.get("payments_per_year", "2"))); years = D(str(inp["years_to_maturity"]))
+        errs = []
+        if face <= 0: errs.append("the face value must be positive")
+        if cr < 0: errs.append("the coupon rate must be non-negative")
+        if ppy != ppy.to_integral_value() or ppy < 1: errs.append("payments per year must be a whole number of at least one")
+        elif years * ppy != (years * ppy).to_integral_value() or years * ppy < 1: errs.append("years x payments per year must be a whole number of payments")
+        ytm, price = _optnum(inp, "yield_to_maturity"), _optnum(inp, "price")
+        if ytm is None and price is None: errs.append("declare either yield_to_maturity or price")
+        if ytm is not None and ytm <= -1: errs.append("the yield must be greater than -100%")
+        if price is not None and price <= 0: errs.append("the price must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["bond inputs are malformed: face_value, coupon_rate and years_to_maturity are required numbers"]
+
+def _bond_typing(metric):
+    if metric == "n_payments": return ("count", 0)
+    if metric in ("yield_to_maturity", "current_yield"): return ("rate", 4)
+    if metric in ("macaulay_duration", "modified_duration"): return ("years", 4)
+    if metric == "convexity": return ("ratio", 4)
+    return ("currency", 2)
+
+def _bond_caveats(out, th):
+    return ["The bond is a plain fixed-coupon bond priced between coupon dates with no accrued interest; settlement, day-count and ex-coupon conventions are not modelled.",
+            "The yield is a single declared or solved yield to maturity, not a spot curve; a credit spread, liquidity premium or tax treatment is not added.",
+            "Duration and convexity are local price sensitivities under a parallel shift in yield; they are not a forecast of the price."]
+
+def _bond_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("At the declared yield the bond price is " + tok("price") + ", with a current yield of " + tok("current_yield") +
+         ". The Macaulay duration is " + tok("macaulay_duration") + " years and the modified duration is " + tok("modified_duration") +
+         ", so a one-basis-point parallel rise in yield moves the price by about " + tok("dv01") + ".")
+    return s + " The price is arithmetic on the declared coupon, maturity and yield; it is not a traded quote."
+
+# ----- CAPM, beta and Hamada relevering -----
+def _paired_series(a, b):
+    xs, ys = [], []
+    for x, y in zip(a, b):
+        if x is None or (isinstance(x, str) and not x.strip()): continue
+        if y is None or (isinstance(y, str) and not y.strip()): continue
+        xs.append(D(str(x))); ys.append(D(str(y)))
+    if len(xs) < 3: raise DataError("at least three complete paired observations are required to estimate a beta")
+    return xs, ys
+
+def _mean_d(v): return sum(v, D(0)) / len(v)
+
+def _beta_series(asset, market):
+    if len(asset) != len(market): raise DataError("the asset and market series must be the same length")
+    xs, ys = _paired_series(asset, market)
+    mx, my = _mean_d(xs), _mean_d(ys)
+    cov = sum(((x - mx) * (y - my) for x, y in zip(xs, ys)), D(0)) / (len(xs) - 1)
+    var = sum(((y - my) ** 2 for y in ys), D(0)) / (len(ys) - 1)
+    if var == 0: raise DataError("the market series has no variance, so a beta cannot be estimated")
+    return cov / var, cov, var, len(xs)
+
+def capm_impl(inp):
+    rf, rm = D(str(inp["risk_free_rate"])), D(str(inp["market_return"]))
+    if rf < 0 or rm < 0: raise DataError("the risk-free rate and market return must be non-negative")
+    beta_in = _optnum(inp, "beta")
+    if beta_in is not None:
+        beta = beta_in
+    else:
+        a, m = inp.get("returns_asset"), inp.get("returns_market")
+        if not a or not m: raise DataError("declare beta, or both a returns series for the asset and for the market")
+        beta = _beta_series(a, m)[0]
+    premium = rm - rf
+    cost = rf + beta * premium
+    out = {"beta": beta, "cost_of_equity": cost, "market_risk_premium": premium,
+           "risk_free_rate": rf, "market_return": rm}
+    de, tax = _optnum(inp, "debt_to_equity"), _optnum(inp, "tax_rate")
+    if de is not None:
+        if de < 0: raise DataError("debt to equity must be non-negative")
+        t = tax if tax is not None else D(0)
+        if not (0 <= t <= 1): raise DataError("the tax rate must be between 0 and 1")
+        out["unlevered_beta"] = beta / (1 + (1 - t) * de)
+        out["relevered_beta"] = out["unlevered_beta"] * (1 + (1 - t) * de)
+        out["debt_to_equity"] = de
+        out["tax_rate"] = t
+    return out
+
+def _capm_ref(inp):
+    rf, rm = float(D(str(inp["risk_free_rate"]))), float(D(str(inp["market_return"])))
+    b = inp.get("beta")
+    if b is not None and str(b).strip(): beta = float(D(str(b)))
+    else:
+        a = [float(D(str(x))) for x in inp["returns_asset"]]; m = [float(D(str(x))) for x in inp["returns_market"]]
+        n = len(a); ma, mm = sum(a) / n, sum(m) / n
+        cov = sum((x - ma) * (y - mm) for x, y in zip(a, m)) / (n - 1); var = sum((y - mm) ** 2 for y in m) / (n - 1)
+        beta = cov / var
+    return {"beta": beta, "cost_of_equity": rf + beta * (rm - rf), "market_risk_premium": rm - rf}
+
+def _capm_tests(inp, impl):
+    base, ref = impl(inp), _capm_ref(inp)
+    rf, rm = D(str(inp["risk_free_rate"])), D(str(inp["market_return"]))
+    zero = impl({**{k: v for k, v in inp.items() if k not in ("returns_asset", "returns_market")}, "beta": "0"})
+    up = impl({**{k: v for k, v in inp.items() if k not in ("returns_asset", "returns_market")}, "beta": str(D(str(base["beta"])) + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("a_zero_beta_earns_the_risk_free_rate", _close(zero["cost_of_equity"], rf), "CAPM at beta zero is the risk-free rate"),
+        ("the_cost_of_equity_rises_with_beta", up["cost_of_equity"] > base["cost_of_equity"] if rm > rf else up["cost_of_equity"] <= base["cost_of_equity"], "a higher beta moves the cost of equity in the direction of the premium"),
+        ("capm_is_the_risk_free_rate_plus_beta_times_the_premium", _close(base["cost_of_equity"], rf + D(str(base["beta"])) * (rm - rf)), "the CAPM identity is recomputed from the inputs"),
+    ]
+    if "unlevered_beta" in base:
+        de = D(str(base["debt_to_equity"])); t = D(str(base["tax_rate"]))
+        hamada_ok = _close(base["relevered_beta"], base["beta"]) and _close(base["unlevered_beta"] * (1 + (1 - t) * de), base["beta"])
+        hamada_detail = "unlevering and relevering at the declared structure returns the beta"
+    else:
+        hamada_ok, hamada_detail = True, "no debt-to-equity ratio was declared, so no relevering was requested"
+    checks.append(("hamada_relevering_round_trips", hamada_ok, hamada_detail))
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _capm_profile(inp):
+    try:
+        rf, rm = D(str(inp["risk_free_rate"])), D(str(inp["market_return"]))
+        errs = []
+        if rf < 0 or rm < 0: errs.append("the risk-free rate and market return must be non-negative")
+        beta = _optnum(inp, "beta")
+        if beta is None:
+            a, m = inp.get("returns_asset"), inp.get("returns_market")
+            if not a or not m: errs.append("declare beta, or both returns_asset and returns_market")
+            else:
+                try: _beta_series(a, m)
+                except DataError as e: errs.append(str(e))
+        de, tax = _optnum(inp, "debt_to_equity"), _optnum(inp, "tax_rate")
+        if de is not None and de < 0: errs.append("debt to equity must be non-negative")
+        if tax is not None and not (0 <= tax <= 1): errs.append("the tax rate must be between 0 and 1")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["CAPM inputs are malformed: risk_free_rate and market_return are required numbers"]
+
+def _capm_typing(metric):
+    if metric in ("beta", "unlevered_beta", "relevered_beta", "debt_to_equity", "tax_rate"): return ("ratio", 4)
+    return ("rate", 4)
+
+def _capm_caveats(out, th):
+    return ["Beta is either declared or estimated by ordinary least squares from the two return series you supplied; the system does not choose a market index, a return interval or a risk-free proxy.",
+            "CAPM is a model, not a measurement: its single-factor assumption and the stability of beta are not tested here.",
+            "Hamada relevering uses the declared tax rate and debt-to-equity ratio; it is arithmetic on those declarations, not evidence about the firm's true cost of capital."]
+
+def _capm_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("With a beta of " + tok("beta") + " and a market risk premium of " + tok("market_risk_premium") +
+         ", the CAPM cost of equity is " + tok("cost_of_equity") + ".")
+    if "unlevered_beta" in out:
+        s += " At the declared debt-to-equity ratio and tax rate, the unlevered beta is " + tok("unlevered_beta") + "."
+    return s + " The beta and the premium are declared inputs or an estimate from your return series, not a market observation made here."
+
+# ----- DuPont analysis -----
+def dupont_impl(inp):
+    rev, ni = D(str(inp["revenue"])), D(str(inp["net_income"]))
+    ta, eq = D(str(inp["total_assets"])), D(str(inp["equity"]))
+    if rev <= 0: raise DataError("revenue must be positive")
+    if ta <= 0 or eq <= 0: raise DataError("total assets and equity must be positive")
+    nm, at, em = ni / rev, rev / ta, ta / eq
+    out = {"net_margin": nm, "asset_turnover": at, "equity_multiplier": em,
+           "return_on_assets": ni / ta, "return_on_equity": ni / eq,
+           "roe_three_step": nm * at * em, "revenue": rev, "net_income": ni,
+           "equity_to_assets": eq / ta}
+    cogs = _optnum(inp, "cost_of_sales")
+    if cogs is not None:
+        if cogs < 0: raise DataError("cost of sales must be non-negative")
+        out["gross_margin"] = (rev - cogs) / rev
+        out["cost_to_revenue"] = cogs / rev
+    priors = {k: _optnum(inp, k) for k in ("prior_revenue", "prior_net_income", "prior_total_assets", "prior_equity")}
+    if any(v is not None for v in priors.values()):
+        if any(v is None for v in priors.values()):
+            raise DataError("a comparison period needs prior_revenue, prior_net_income, prior_total_assets and prior_equity together")
+        pr, pni, pta, peq = (priors[k] for k in ("prior_revenue", "prior_net_income", "prior_total_assets", "prior_equity"))
+        if min(pr, pta, peq) <= 0: raise DataError("prior revenue, assets and equity must be positive")
+        prior_roe = pni / peq
+        out.update({"revenue_growth": rev / pr - 1, "net_income_growth": ni / pni - 1 if pni != 0 else D(0),
+                    "asset_growth": ta / pta - 1, "equity_growth": eq / peq - 1,
+                    "return_on_equity_prior": prior_roe, "roe_change": ni / eq - prior_roe})
+    ebit, pretax, tax = _optnum(inp, "ebit"), _optnum(inp, "pretax_income"), _optnum(inp, "tax_expense")
+    if ebit is not None and pretax is not None and tax is not None:
+        if pretax == 0: raise DataError("pre-tax income is zero, so the five-step tax burden is undefined")
+        tb, ib, om = ni / pretax, pretax / ebit, ebit / rev
+        out.update({"tax_burden": tb, "interest_burden": ib, "operating_margin": om,
+                    "roe_five_step": tb * ib * om * at * em})
+    return out
+
+def _dupont_ref(inp):
+    rev, ni = float(D(str(inp["revenue"]))), float(D(str(inp["net_income"])))
+    ta, eq = float(D(str(inp["total_assets"]))), float(D(str(inp["equity"])))
+    nm, at, em = ni / rev, rev / ta, ta / eq
+    return {"net_margin": nm, "asset_turnover": at, "equity_multiplier": em,
+            "return_on_assets": ni / ta, "return_on_equity": ni / eq, "roe_three_step": nm * at * em}
+
+def _dupont_tests(inp, impl):
+    base, ref = impl(inp), _dupont_ref(inp)
+    rev, ni = D(str(inp["revenue"])), D(str(inp["net_income"]))
+    better = impl({**inp, "net_income": str(ni + rev * D("0.01"))})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("return_on_equity_is_net_income_over_equity", _close(base["return_on_equity"], ni / D(str(inp["equity"]))), "the ROE identity is recomputed from the inputs"),
+        ("the_three_step_product_reproduces_roe", _close(base["roe_three_step"], base["return_on_equity"]), "margin x turnover x multiplier equals ROE"),
+        ("return_on_assets_is_margin_times_turnover", _close(base["return_on_assets"], base["net_margin"] * base["asset_turnover"]), "ROA decomposes into margin and turnover"),
+        ("a_higher_net_margin_raises_roe", better["return_on_equity"] > base["return_on_equity"], "holding revenue and capital fixed, more profit raises the return"),
+    ]
+    if "roe_five_step" in base:
+        five_ok = _close(base["roe_five_step"], base["return_on_equity"])
+        five_detail = "the five-step decomposition equals ROE"
+    else:
+        five_ok, five_detail = True, "EBIT, pre-tax income and tax were not all declared, so the five-step form was not requested"
+    checks.append(("the_five_step_product_reproduces_roe", five_ok, five_detail))
+    if "revenue_growth" in base:
+        pr = D(str(inp["prior_revenue"])); pni = D(str(inp["prior_net_income"])); peq = D(str(inp["prior_equity"]))
+        prior_ok = (_close(base["revenue_growth"], rev / pr - 1)
+                    and _close(base["net_income_growth"], (ni / pni - 1) if pni != 0 else D(0))
+                    and _close(base["return_on_equity_prior"], pni / peq)
+                    and _close(base["roe_change"], base["return_on_equity"] - pni / peq))
+        prior_detail = "the prior-period growth rates and prior ROE are recomputed from the declared comparison figures"
+    else:
+        prior_ok, prior_detail = True, "no comparison period was declared, so no trend was requested"
+    checks.append(("prior_period_growth_rates_are_relative_changes", prior_ok, prior_detail))
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _dupont_profile(inp):
+    try:
+        rev, ta, eq = D(str(inp["revenue"])), D(str(inp["total_assets"])), D(str(inp["equity"]))
+        errs = []
+        if rev <= 0: errs.append("revenue must be positive")
+        if ta <= 0 or eq <= 0: errs.append("total assets and equity must be positive")
+        ebit, pretax, tax = _optnum(inp, "ebit"), _optnum(inp, "pretax_income"), _optnum(inp, "tax_expense")
+        if (ebit is None) != (pretax is None) or (pretax is None) != (tax is None):
+            errs.append("the five-step decomposition needs ebit, pretax_income and tax_expense together, or none of them")
+        elif pretax is not None and pretax == 0: errs.append("pre-tax income is zero, so the five-step tax burden is undefined")
+        priors = {k: _optnum(inp, k) for k in ("prior_revenue", "prior_net_income", "prior_total_assets", "prior_equity")}
+        if any(v is not None for v in priors.values()) and any(v is None for v in priors.values()):
+            errs.append("a comparison period needs prior_revenue, prior_net_income, prior_total_assets and prior_equity together")
+        elif all(v is not None for v in priors.values()):
+            if min(priors["prior_revenue"], priors["prior_total_assets"], priors["prior_equity"]) <= 0:
+                errs.append("prior revenue, assets and equity must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["DuPont inputs are malformed: revenue, net_income, total_assets and equity are required numbers"]
+
+def _dupont_typing(metric):
+    if metric in ("revenue", "net_income"): return ("currency", 2)
+    if metric in ("revenue_growth", "net_income_growth", "asset_growth", "equity_growth",
+                  "return_on_equity_prior", "roe_change"): return ("rate", 4)
+    return ("ratio", 4)
+
+def _dupont_caveats(out, th):
+    return ["DuPont analysis is arithmetic on one period's reported figures; average balances and adjustments are not applied, and a comparison period is used exactly as declared.",
+            "The equity multiplier reflects the reported capital structure at the period end, not a target or market-value structure.",
+            "The five-step decomposition is computed only when EBIT, pre-tax income and tax expense are all declared; nothing is inferred.",
+            "Growth is a simple relative change against one declared prior period, not a compound growth rate or a trend line."]
+
+def _dupont_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("The net margin is " + tok("net_margin") + ", asset turnover is " + tok("asset_turnover") + " and the equity multiplier is " +
+         tok("equity_multiplier") + ", giving a three-step return on equity of " + tok("roe_three_step") + ".")
+    if "roe_five_step" in out:
+        s += " The five-step decomposition, including the tax and interest burdens, gives " + tok("roe_five_step") + "."
+    if "revenue_growth" in out:
+        s += (" Against the declared comparison period, revenue changed by " + tok("revenue_growth") +
+              " and net income by " + tok("net_income_growth") + ", while return on equity moved by " + tok("roe_change") + ".")
+    return s
+
+# ---------- Finance additions (B-090): multiples, working capital, portfolio, project metrics ----------
+
+# ----- multiples valuation -----
+_MULT_METRIC = {"earnings": "equity", "book_value": "equity", "ebitda": "enterprise", "sales": "enterprise"}
+
+def multiples_impl(inp):
+    metric = inp["metric"]
+    if metric not in _MULT_METRIC: raise DataError("metric must be earnings, ebitda, sales or book_value")
+    subject = D(str(inp["subject_value"]))
+    if subject <= 0: raise DataError("the subject metric must be positive")
+    peers = []
+    for row in inp.get("comparables") or []:
+        m = D(str(row["multiple"]))
+        if m <= 0: raise DataError("every comparable multiple must be positive")
+        peers.append(m)
+    pm = _optnum(inp, "peer_multiple")
+    if pm is not None:
+        if pm <= 0: raise DataError("the peer multiple must be positive")
+        peers.append(pm)
+    if not peers: raise DataError("supply at least one comparable multiple or a peer_multiple")
+    ordered = sorted(peers)
+    mean = sum(ordered, D(0)) / len(ordered)
+    median = statistics.median(ordered)
+    net_debt = _optnum(inp, "net_debt") or D(0)
+    if _MULT_METRIC[metric] == "enterprise":
+        ev = subject * mean; equity = ev - net_debt
+    else:
+        equity = subject * mean; ev = equity + net_debt
+    out = {"mean_multiple": mean, "median_multiple": median, "min_multiple": ordered[0],
+           "max_multiple": ordered[-1], "n_comparables": D(len(ordered)),
+           "implied_enterprise_value": ev, "implied_equity_value": equity, "net_debt": net_debt}
+    shares = _optnum(inp, "shares_outstanding")
+    if shares is not None:
+        if shares <= 0: raise DataError("shares outstanding must be positive")
+        out["per_share_value"] = equity / shares
+    return out
+
+def _mult_ref(inp):
+    subject = float(D(str(inp["subject_value"])))
+    peers = [float(D(str(r["multiple"]))) for r in inp.get("comparables") or []]
+    if inp.get("peer_multiple") not in (None, ""): peers.append(float(D(str(inp["peer_multiple"]))))
+    ordered = sorted(peers); n = len(ordered); mean = sum(ordered) / n
+    median = ordered[n // 2] if n % 2 else (ordered[n // 2 - 1] + ordered[n // 2]) / 2
+    net = float(D(str(inp.get("net_debt", "0") or "0")))
+    if _MULT_METRIC[inp["metric"]] == "enterprise": ev = subject * mean; eq = ev - net
+    else: eq = subject * mean; ev = eq + net
+    return {"mean_multiple": mean, "median_multiple": median, "implied_enterprise_value": ev,
+            "implied_equity_value": eq}
+
+def _mult_tests(inp, impl):
+    base, ref = impl(inp), _mult_ref(inp)
+    doubled = impl({**inp, "subject_value": str(D(str(inp["subject_value"])) * 2)})
+    higher = impl({k: v for k, v in {**inp, "peer_multiple": str(D(str(base["mean_multiple"])) + 1)}.items() if k != "comparables"})
+    scaled_ok = (_close(doubled["implied_enterprise_value"], base["implied_enterprise_value"] * 2)
+                 if _MULT_METRIC[inp["metric"]] == "enterprise"
+                 else _close(doubled["implied_equity_value"], base["implied_equity_value"] * 2))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_median_is_the_ordered_middle", _close(base["median_multiple"], _fd(ref["median_multiple"])), "the median is the middle of the ordered multiples"),
+        ("the_implied_value_scales_with_the_subject_metric", scaled_ok, "twice the earnings, EBITDA or sales implies twice the value before the net-debt bridge"),
+        ("enterprise_value_equals_equity_value_plus_net_debt", _close(base["implied_enterprise_value"], base["implied_equity_value"] + base["net_debt"]), "the bridge identity holds whichever multiple was used"),
+        ("a_higher_multiple_raises_the_implied_value", higher["implied_equity_value"] > base["implied_equity_value"], "a richer peer multiple implies a richer value"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _mult_profile(inp):
+    try:
+        metric = inp.get("metric"); errs = []
+        if metric not in _MULT_METRIC: errs.append("metric must be earnings, ebitda, sales or book_value")
+        if D(str(inp["subject_value"])) <= 0: errs.append("the subject metric must be positive")
+        peers = list(inp.get("comparables") or [])
+        pm = _optnum(inp, "peer_multiple")
+        if not peers and pm is None: errs.append("supply at least one comparable multiple or a peer_multiple")
+        for row in peers:
+            if D(str(row.get("multiple"))) <= 0: errs.append("every comparable multiple must be positive")
+        if pm is not None and pm <= 0: errs.append("the peer multiple must be positive")
+        shares = _optnum(inp, "shares_outstanding")
+        if shares is not None and shares <= 0: errs.append("shares outstanding must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["multiples inputs are malformed: metric, subject_value and at least one multiple are required"]
+
+def _mult_typing(metric):
+    if metric == "n_comparables": return ("count", 0)
+    if metric in ("mean_multiple", "median_multiple", "min_multiple", "max_multiple"): return ("ratio", 4)
+    return ("currency", 2)
+
+def _mult_caveats(out, th):
+    return ["The multiples are declared comparables, not retrieved market data: the system does not verify that the peer set, the metric definition or the period is comparable.",
+            "A mean multiple is applied to the subject metric as supplied; seasonality, one-off items, growth differences and accounting-policy differences are not adjusted.",
+            "The result is an implied value under one convention, not a price, a fairness opinion or a valuation range with a supported low and high."]
+
+def _mult_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("Across the declared comparables the mean multiple is " + tok("mean_multiple") + " (median " + tok("median_multiple") +
+         "), which implies an enterprise value of " + tok("implied_enterprise_value") + " and an equity value of " + tok("implied_equity_value") + ".")
+    if "per_share_value" in out: s += " With the declared share count the implied value per share is " + tok("per_share_value") + "."
+    return s + " The comparables and their multiples are your declarations, not retrieved market prices."
+
+# ----- working capital and inventory -----
+def wc_impl(inp):
+    rev, cogs = D(str(inp["revenue"])), D(str(inp["cost_of_sales"]))
+    inv, rec, pay = D(str(inp["inventory"])), D(str(inp["receivables"])), D(str(inp["payables"]))
+    days = D(str(inp.get("days", "365")))
+    if rev <= 0 or cogs <= 0: raise DataError("revenue and cost of sales must be positive")
+    if min(inv, rec, pay) < 0: raise DataError("inventory, receivables and payables must be non-negative")
+    if days <= 0: raise DataError("days must be positive")
+    dso, dio, dpo = rec / rev * days, inv / cogs * days, pay / cogs * days
+    demand, order_cost, hold = D(str(inp["annual_demand"])), D(str(inp["order_cost"])), D(str(inp["holding_cost_per_unit"]))
+    if demand <= 0 or order_cost <= 0 or hold <= 0: raise DataError("annual demand, order cost and holding cost per unit must be positive")
+    eoq = _sqrtd(2 * demand * order_cost / hold)
+    daily = _optnum(inp, "daily_demand")
+    if daily is None: daily = demand / days
+    lead = _optnum(inp, "lead_time_days") or D(0)
+    safety = _optnum(inp, "safety_stock") or D(0)
+    if daily < 0 or lead < 0 or safety < 0: raise DataError("daily demand, lead time and safety stock must be non-negative")
+    disc, terms, disc_days = D(str(inp["discount_percent"])), D(str(inp["credit_terms_days"])), D(str(inp["discount_days"]))
+    if not (0 <= disc < 1): raise DataError("the discount percent must be in [0, 1)")
+    if terms <= disc_days or disc_days < 0: raise DataError("credit terms must be longer than the discount period")
+    cost_credit = (disc / (1 - disc)) * (days / (terms - disc_days)) if disc > 0 else D(0)
+    return {"dso": dso, "dio": dio, "dpo": dpo, "cash_conversion_cycle": dso + dio - dpo,
+            "net_working_capital": inv + rec - pay, "eoq": eoq, "reorder_point": daily * lead + safety,
+            "cost_of_trade_credit": cost_credit, "daily_demand": daily, "n_orders_per_year": demand / eoq}
+
+def _wc_ref(inp):
+    rev, cogs = float(D(str(inp["revenue"]))), float(D(str(inp["cost_of_sales"])))
+    inv, rec, pay = float(D(str(inp["inventory"]))), float(D(str(inp["receivables"]))), float(D(str(inp["payables"])))
+    days = float(D(str(inp.get("days", "365"))))
+    dso, dio, dpo = rec / rev * days, inv / cogs * days, pay / cogs * days
+    demand, order_cost, hold = float(D(str(inp["annual_demand"]))), float(D(str(inp["order_cost"]))), float(D(str(inp["holding_cost_per_unit"])))
+    eoq = (2 * demand * order_cost / hold) ** 0.5
+    daily = inp.get("daily_demand")
+    daily = float(D(str(daily))) if daily not in (None, "") else demand / days
+    lead = float(D(str(inp.get("lead_time_days", "0") or "0"))); safety = float(D(str(inp.get("safety_stock", "0") or "0")))
+    return {"dso": dso, "dio": dio, "dpo": dpo, "cash_conversion_cycle": dso + dio - dpo, "eoq": eoq,
+            "reorder_point": daily * lead + safety}
+
+def _wc_tests(inp, impl):
+    base, ref = impl(inp), _wc_ref(inp)
+    demand, order_cost, hold = D(str(inp["annual_demand"])), D(str(inp["order_cost"])), D(str(inp["holding_cost_per_unit"]))
+    eoq = base["eoq"]
+    def total_cost(q): return float(demand / q * order_cost + q / 2 * hold)
+    disc = D(str(inp["discount_percent"]))
+    richer = impl({**inp, "discount_percent": str(min(D("0.5"), disc + D("0.02")))})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_cash_conversion_cycle_is_the_three_periods", _close(base["cash_conversion_cycle"], base["dso"] + base["dio"] - base["dpo"]), "DSO + DIO - DPO is the cycle"),
+        ("the_eoq_minimises_order_and_holding_cost", total_cost(eoq) <= total_cost(eoq / 2) + 1e-9 and total_cost(eoq) <= total_cost(eoq * 2) + 1e-9, "ordering at the EOQ costs no more than half or twice that quantity"),
+        ("the_reorder_point_is_lead_time_demand_plus_safety_stock", _close(base["reorder_point"], base["daily_demand"] * (D(str(inp.get("lead_time_days", "0") or "0"))) + (D(str(inp.get("safety_stock", "0") or "0")))), "demand over the lead time plus the declared buffer"),
+        ("a_larger_discount_raises_the_cost_of_trade_credit", richer["cost_of_trade_credit"] >= base["cost_of_trade_credit"], "forgiving a bigger discount for earlier payment costs more"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _wc_profile(inp):
+    try:
+        errs = []
+        if D(str(inp["revenue"])) <= 0 or D(str(inp["cost_of_sales"])) <= 0: errs.append("revenue and cost of sales must be positive")
+        if D(str(inp.get("days", "365"))) <= 0: errs.append("days must be positive")
+        for k in ("annual_demand", "order_cost", "holding_cost_per_unit"):
+            if D(str(inp[k])) <= 0: errs.append(f"{k} must be positive")
+        disc, terms, dd = D(str(inp["discount_percent"])), D(str(inp["credit_terms_days"])), D(str(inp["discount_days"]))
+        if not (0 <= disc < 1): errs.append("the discount percent must be in [0, 1)")
+        if terms <= dd: errs.append("credit terms must be longer than the discount period")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["working-capital inputs are malformed: revenue, cost_of_sales, inventory, receivables, payables and the inventory figures are required numbers"]
+
+def _wc_typing(metric):
+    if metric in ("dso", "dio", "dpo", "cash_conversion_cycle"): return ("days", 1)
+    if metric in ("eoq", "reorder_point", "daily_demand", "n_orders_per_year"): return ("units", 2)
+    if metric == "cost_of_trade_credit": return ("rate", 4)
+    return ("currency", 2)
+
+def _wc_caveats(out, th):
+    return ["The turnover ratios use period-end balances and a declared day count; average balances would give different numbers.",
+            "EOQ assumes constant demand, a fixed order cost and a fixed holding cost per unit; quantity discounts, step costs and stock-outs are not modelled.",
+            "The cost of trade credit is the annualised cost of not taking a declared discount; it is arithmetic on the terms you supplied, not a recommendation to borrow or pay late."]
+
+def _wc_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The cash conversion cycle is " + tok("cash_conversion_cycle") + " days (" + tok("dso") + " receivable days, " + tok("dio") +
+            " inventory days and " + tok("dpo") + " payable days). Net working capital is " + tok("net_working_capital") +
+            ", the economic order quantity is " + tok("eoq") + " units and the reorder point is " + tok("reorder_point") +
+            " units. Forgoing the declared discount costs " + tok("cost_of_trade_credit") + " a year.")
+
+# ----- portfolio return, risk and performance -----
+def portfolio_impl(inp):
+    ra, rb = inp["returns_a"], inp["returns_b"]
+    xa, xb = _paired_series(ra, rb)
+    n = len(xa); ma, mb = _mean_d(xa), _mean_d(xb)
+    sa = _sqrtd(sum(((x - ma) ** 2 for x in xa), D(0)) / (n - 1))
+    sb = _sqrtd(sum(((x - mb) ** 2 for x in xb), D(0)) / (n - 1))
+    cov = sum(((x - ma) * (y - mb) for x, y in zip(xa, xb)), D(0)) / (n - 1)
+    if sa == 0 or sb == 0: raise DataError("a returns series with no variance cannot be analysed")
+    corr = cov / (sa * sb)
+    w = D(str(inp["weight_a"]))
+    if not (0 <= w <= 1): raise DataError("the weight on the first asset must be between 0 and 1")
+    rf = D(str(inp["risk_free_rate"]))
+    pr = w * ma + (1 - w) * mb
+    pv = w * w * sa * sa + (1 - w) ** 2 * sb * sb + 2 * w * (1 - w) * cov
+    ps = _sqrtd(pv)
+    beta, _, _, _ = _beta_series(ra, inp["returns_market"])
+    mm = _mean_d(_paired_series(ra, inp["returns_market"])[1])
+    out = {"mean_a": ma, "mean_b": mb, "sd_a": sa, "sd_b": sb, "covariance": cov, "correlation": corr,
+           "portfolio_return": pr, "portfolio_sd": ps, "sharpe_ratio": (pr - rf) / ps if ps != 0 else D(0),
+           "beta": beta, "market_return": mm, "jensen_alpha": pr - (rf + beta * (mm - rf)), "n_periods": D(n)}
+    if beta != 0: out["treynor_ratio"] = (pr - rf) / beta
+    return out
+
+def _portfolio_ref(inp):
+    a = [float(D(str(x))) for x in inp["returns_a"]]; b = [float(D(str(x))) for x in inp["returns_b"]]
+    n = len(a); ma, mb = sum(a) / n, sum(b) / n
+    sa = (sum((x - ma) ** 2 for x in a) / (n - 1)) ** 0.5; sb = (sum((x - mb) ** 2 for x in b) / (n - 1)) ** 0.5
+    cov = sum((x - ma) * (y - mb) for x, y in zip(a, b)) / (n - 1)
+    w = float(D(str(inp["weight_a"]))); pr = w * ma + (1 - w) * mb
+    ps = (w * w * sa * sa + (1 - w) ** 2 * sb * sb + 2 * w * (1 - w) * cov) ** 0.5
+    return {"mean_a": ma, "mean_b": mb, "sd_a": sa, "sd_b": sb, "covariance": cov,
+            "correlation": cov / (sa * sb), "portfolio_return": pr, "portfolio_sd": ps}
+
+def _portfolio_tests(inp, impl):
+    base, ref = impl(inp), _portfolio_ref(inp)
+    w = D(str(inp["weight_a"]))
+    full = impl({**inp, "weight_a": "1"})
+    up = [str(D(str(x)) + D("0.01")) for x in inp["returns_a"]]; upb = [str(D(str(x)) + D("0.01")) for x in inp["returns_b"]]
+    richer = impl({**inp, "returns_a": up, "returns_b": upb})
+    pv_identity = w * w * base["sd_a"] ** 2 + (1 - w) ** 2 * base["sd_b"] ** 2 + 2 * w * (1 - w) * base["covariance"]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_correlation_lies_between_minus_one_and_one", -1 <= base["correlation"] <= 1, "a correlation coefficient is bounded"),
+        ("a_full_weight_reproduces_the_first_asset", _close(full["portfolio_return"], base["mean_a"]) and _close(full["portfolio_sd"], base["sd_a"]), "the portfolio is the asset when its weight is one"),
+        ("the_portfolio_variance_identity_holds", _close(base["portfolio_sd"] ** 2, pv_identity), "the two-asset variance formula is recomputed"),
+        ("beta_is_the_covariance_over_the_market_variance", _close(base["beta"], _beta_series(inp["returns_a"], inp["returns_market"])[0]), "the beta identity is recomputed"),
+        ("a_higher_return_raises_the_sharpe_ratio", richer["sharpe_ratio"] > base["sharpe_ratio"], "adding the same amount to every return raises the reward per unit of risk"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _portfolio_profile(inp):
+    try:
+        a, b = inp["returns_a"], inp["returns_b"]
+        errs = []
+        if len(a) != len(b): errs.append("the two return series must be the same length")
+        if len(a) < 3: errs.append("at least three paired returns are required")
+        w = D(str(inp["weight_a"]))
+        if not (0 <= w <= 1): errs.append("the weight on the first asset must be between 0 and 1")
+        if len(inp["returns_market"]) != len(a): errs.append("the market series must be the same length as the asset series")
+        if len(set(str(D(str(x))) for x in a)) < 2 or len(set(str(D(str(x))) for x in b)) < 2: errs.append("a returns series with no variance cannot be analysed")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["portfolio inputs are malformed: two return series, weight_a, risk_free_rate and returns_market are required"]
+
+def _portfolio_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric in ("mean_a", "mean_b", "sd_a", "sd_b", "portfolio_return", "portfolio_sd", "market_return", "jensen_alpha"): return ("rate", 4)
+    return ("ratio", 4)
+
+def _portfolio_caveats(out, th):
+    return ["Returns are supplied as decimal rates and are treated as a single period; the mean and standard deviation are the sample's, not forecasts.",
+            "The portfolio is two assets with declared weights; covariance is the sample covariance of the paired observations, and no risk-free lending or borrowing portfolio is constructed.",
+            "Sharpe, Treynor and Jensen use the declared risk-free rate and the declared market series; the system does not choose a benchmark or verify that it is appropriate."]
+
+def _portfolio_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("The portfolio's expected return is " + tok("portfolio_return") + " with a standard deviation of " + tok("portfolio_sd") +
+         ", and the two assets' correlation is " + tok("correlation") + ". The Sharpe ratio is " + tok("sharpe_ratio") +
+         ", the beta against the declared market series is " + tok("beta") + " and Jensen's alpha is " + tok("jensen_alpha") + ".")
+    return s + " Every figure is computed from your return series and declared weights."
+
+# ----- project metrics: PI, MIRR, payback and EAA -----
+def project_impl(inp):
+    cfs = [D(str(x)) for x in inp["cashflows"]]
+    r = D(str(inp["rate"]))
+    if len(cfs) < 2: raise DataError("at least two cash flows are required")
+    if r <= -1: raise DataError("the discount rate must be greater than -100%")
+    fr = _optnum(inp, "finance_rate")
+    fr = r if fr is None else fr
+    if fr <= -1: raise DataError("the finance rate must be greater than -100%")
+    if cfs[0] >= 0: raise DataError("the first cash flow must be a negative outlay so that a profitability index is defined")
+    pv_in = sum((c / (1 + r) ** t for t, c in enumerate(cfs) if c > 0), D(0))
+    pv_out = sum((c / (1 + r) ** t for t, c in enumerate(cfs) if c < 0), D(0))
+    npv = pv_in + pv_out
+    pi = pv_in / (-pv_out)
+    n = len(cfs) - 1
+    fv_pos = sum((c * (1 + fr) ** (n - t) for t, c in enumerate(cfs) if c > 0), D(0))
+    mirr = (fv_pos / (-pv_out)) ** (D(1) / n) - 1
+    eaa = npv * r / (1 - (1 + r) ** -n) if r != 0 else npv / n
+    cum, payback = D(0), None
+    for t, c in enumerate(cfs):
+        prev = cum; cum += c
+        if t > 0 and prev < 0 <= cum:
+            payback = D(t - 1) + (-prev / c); break
+    out = {"npv": npv, "profitability_index": pi, "mirr": mirr, "equivalent_annual_annuity": eaa,
+           "pv_inflows": pv_in, "pv_outflows": pv_out, "n_periods": D(n)}
+    if payback is not None: out["payback_period"] = payback
+    roots = _irr_scan([float(c) for c in cfs])
+    if len(roots) == 1: out["irr"] = _fd(roots[0])
+    return out
+
+def _project_ref(inp):
+    cfs = [float(D(str(x))) for x in inp["cashflows"]]; r = float(D(str(inp["rate"])))
+    fr = inp.get("finance_rate"); fr = float(D(str(fr))) if fr not in (None, "") else r
+    n = len(cfs) - 1
+    pv_in = sum(c / (1 + r) ** t for t, c in enumerate(cfs) if c > 0)
+    pv_out = sum(c / (1 + r) ** t for t, c in enumerate(cfs) if c < 0)
+    fv_pos = sum(c * (1 + fr) ** (n - t) for t, c in enumerate(cfs) if c > 0)
+    return {"npv": pv_in + pv_out, "profitability_index": pv_in / -pv_out,
+            "mirr": (fv_pos / -pv_out) ** (1 / n) - 1,
+            "equivalent_annual_annuity": (pv_in + pv_out) * r / (1 - (1 + r) ** -n) if r else (pv_in + pv_out) / n}
+
+def _project_tests(inp, impl):
+    base, ref = impl(inp), _project_ref(inp)
+    r = D(str(inp["rate"])); fr = _optnum(inp, "finance_rate"); fr = r if fr is None else fr
+    npv = base["npv"]; mirr = base["mirr"]
+    manual_pb, cum = None, D(0)
+    for t, c in enumerate([D(str(x)) for x in inp["cashflows"]]):
+        prev = cum; cum += c
+        if t > 0 and prev < 0 <= cum: manual_pb = D(t - 1) + (-prev / c); break
+    pb_ok = (manual_pb is None and "payback_period" not in base) or ("payback_period" in base and _close(base["payback_period"], manual_pb))
+    irr_ok = ("irr" not in base) or abs(float(_npv_list([D(str(x)) for x in inp["cashflows"]], D(str(base["irr"]))))) < 1e-6
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_profitability_index_agrees_with_the_npv_sign", (base["profitability_index"] > 1) == (npv > 0) and _close(base["profitability_index"], _fd(ref["profitability_index"])), "an index above one is the same decision as a positive NPV"),
+        ("the_mirr_exceeds_the_cost_of_capital_only_when_npv_is_positive", (mirr > r) == (npv > 0) if npv != 0 else _close(mirr, r), "MIRR and NPV rank a conventional project the same way"),
+        ("the_equivalent_annual_annuity_is_the_npv_spread_over_the_life", _close(base["equivalent_annual_annuity"], _fd(ref["equivalent_annual_annuity"])), "the annuity identity is recomputed"),
+        ("the_payback_period_is_the_interpolated_recovery", pb_ok, "payback is computed from the same cash flows"),
+        ("the_irr_sets_the_npv_to_zero", irr_ok, "when one IRR exists it is a root of the NPV function"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _project_profile(inp):
+    try:
+        cfs = [D(str(x)) for x in inp["cashflows"]]; r = D(str(inp["rate"]))
+        errs = []
+        if len(cfs) < 2: errs.append("at least two cash flows are required")
+        if r <= -1: errs.append("the discount rate must be greater than -100%")
+        if cfs and cfs[0] >= 0: errs.append("the first cash flow must be a negative outlay")
+        fr = _optnum(inp, "finance_rate")
+        if fr is not None and fr <= -1: errs.append("the finance rate must be greater than -100%")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["project inputs are malformed: cashflows and rate are required"]
+
+def _project_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric in ("irr", "rate"): return ("rate", 4)
+    if metric == "payback_period": return ("years", 2)
+    if metric == "profitability_index": return ("ratio", 4)
+    return ("currency", 2)
+
+def _project_caveats(out, th):
+    return ["The cash flows are the owner's declared, after-tax cash flows; no tax, depreciation shield, working-capital release or financing flow is computed.",
+            "MIRR assumes positive flows are reinvested at the declared finance rate and negative flows are financed at the discount rate; both are conventions, not observations.",
+            "The profitability index and equivalent annual annuity rank projects only under their stated assumptions; unequal risk, timing or strategic options are not modelled."]
+
+def _project_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("The project's net present value is " + tok("npv") + " and its profitability index is " + tok("profitability_index") +
+         ", with a modified internal rate of return of " + tok("mirr") + " and an equivalent annual annuity of " + tok("equivalent_annual_annuity") + ".")
+    if "payback_period" in out: s += " The payback period is " + tok("payback_period") + " periods."
+    if "irr" in out: s += " The internal rate of return is " + tok("irr") + "."
+    return s + " All of these use the same declared cash flows and rates."
+
+# ---------- Finance additions (B-090): derivatives, risk, international finance, leverage, scenarios ----------
+
+# ----- option pricing (Black-Scholes and a binomial cross-check) -----
+def _ncdf(x): return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+def _npdf(x): return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
+
+def _bs(S, K, r, q, sigma, T, kind):
+    sq = sigma * math.sqrt(T)
+    d1 = (math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / sq
+    d2 = d1 - sq
+    if kind == "call":
+        price = S * math.exp(-q * T) * _ncdf(d1) - K * math.exp(-r * T) * _ncdf(d2)
+    else:
+        price = K * math.exp(-r * T) * _ncdf(-d2) - S * math.exp(-q * T) * _ncdf(-d1)
+    return price, d1, d2, sq
+
+def _binomial(S, K, r, q, sigma, T, n, kind):
+    dt = T / n; u = math.exp(sigma * math.sqrt(dt)); d = 1.0 / u
+    p = (math.exp((r - q) * dt) - d) / (u - d)
+    if not (0.0 <= p <= 1.0): raise DataError("the binomial parameters imply a negative or above-one risk-neutral probability; shorten the step size or check the inputs")
+    disc = math.exp(-r * dt)
+    vals = [max(0.0, (S * u ** (n - j) * d ** j - K) if kind == "call" else (K - S * u ** (n - j) * d ** j)) for j in range(n + 1)]
+    for step in range(n - 1, -1, -1):
+        vals = [disc * (p * vals[j] + (1 - p) * vals[j + 1]) for j in range(step + 1)]
+    return vals[0]
+
+def option_impl(inp):
+    S, K = D(str(inp["spot_price"])), D(str(inp["strike_price"]))
+    sigma, r = D(str(inp["volatility"])), D(str(inp["risk_free_rate"]))
+    T = D(str(inp["time_to_maturity"])); q = _optnum(inp, "dividend_yield") or D(0)
+    kind = inp["option_type"]
+    steps = _int_periods(D(str(inp.get("steps", "200"))), "steps")
+    if steps > 2000: raise DataError("steps must be at most 2000")
+    if S <= 0 or K <= 0: raise DataError("the spot price and strike price must be positive")
+    if sigma <= 0: raise DataError("the volatility must be positive")
+    if T <= 0: raise DataError("time to maturity must be positive")
+    if r < -1 or q < 0: raise DataError("the risk-free rate must be above -100% and the dividend yield non-negative")
+    fs, fk, fr, fq, fv, ft = float(S), float(K), float(r), float(q), float(sigma), float(T)
+    call, d1, d2, sq = _bs(fs, fk, fr, fq, fv, ft, "call")
+    put, _, _, _ = _bs(fs, fk, fr, fq, fv, ft, "put")
+    price = call if kind == "call" else put
+    parity_gap = call - put - (fs * math.exp(-fq * ft) - fk * math.exp(-fr * ft))
+    disc_q = math.exp(-fq * ft)
+    gamma = disc_q * _npdf(d1) / (fs * fv * math.sqrt(ft))
+    vega = fs * disc_q * _npdf(d1) * math.sqrt(ft)
+    if kind == "call":
+        delta = disc_q * _ncdf(d1)
+        theta = (-fs * disc_q * _npdf(d1) * fv / (2 * math.sqrt(ft)) - fr * fk * math.exp(-fr * ft) * _ncdf(d2) + fq * fs * disc_q * _ncdf(d1))
+        rho = fk * ft * math.exp(-fr * ft) * _ncdf(d2)
+        intrinsic = max(0.0, fs - fk)
+    else:
+        delta = -disc_q * _ncdf(-d1)
+        theta = (-fs * disc_q * _npdf(d1) * fv / (2 * math.sqrt(ft)) + fr * fk * math.exp(-fr * ft) * _ncdf(-d2) - fq * fs * disc_q * _ncdf(-d1))
+        rho = -fk * ft * math.exp(-fr * ft) * _ncdf(-d2)
+        intrinsic = max(0.0, fk - fs)
+    return {"option_price": _fd(price), "binomial_price": _fd(_binomial(fs, fk, fr, fq, fv, ft, steps, kind)),
+            "delta": _fd(delta), "gamma": _fd(gamma), "vega": _fd(vega), "theta": _fd(theta), "rho": _fd(rho),
+            "intrinsic_value": _fd(intrinsic), "time_value": _fd(price - intrinsic),
+            "put_call_parity_gap": _fd(parity_gap), "d1": _fd(d1), "d2": _fd(d2),
+            "spot_price": S, "strike_price": K, "volatility": sigma, "time_to_maturity": T}
+
+def _option_ref(inp):
+    S, K = float(D(str(inp["spot_price"]))), float(D(str(inp["strike_price"])))
+    r, q = float(D(str(inp["risk_free_rate"]))), float(D(str(inp.get("dividend_yield", "0") or "0")))
+    sigma, T = float(D(str(inp["volatility"]))), float(D(str(inp["time_to_maturity"])))
+    kind = inp["option_type"]
+    sq = sigma * math.sqrt(T); d1 = (math.log(S / K) + (r - q + sigma * sigma / 2) * T) / sq; d2 = d1 - sq
+    if kind == "call": price = S * math.exp(-q * T) * _ncdf(d1) - K * math.exp(-r * T) * _ncdf(d2)
+    else: price = K * math.exp(-r * T) * _ncdf(-d2) - S * math.exp(-q * T) * _ncdf(-d1)
+    return {"option_price": price, "delta": (math.exp(-q * T) * _ncdf(d1)) if kind == "call" else (-math.exp(-q * T) * _ncdf(-d1))}
+
+def _option_tests(inp, impl):
+    base, ref = impl(inp), _option_ref(inp)
+    kind = inp["option_type"]
+    spot = D(str(inp["spot_price"])); K = D(str(inp["strike_price"]))
+    vol_up = impl({**inp, "volatility": str(D(str(inp["volatility"])) + D("0.05"))})
+    many = impl({**inp, "steps": "500"})
+    intrinsic = max(D(0), spot - K) if kind == "call" else max(D(0), K - spot)
+    delta_ok = (0 <= base["delta"] <= 1) if kind == "call" else (-1 <= base["delta"] <= 0)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "the continuous-time route agrees with the independent formula"),
+        ("put_call_parity_holds", abs(base["put_call_parity_gap"]) <= max(D("0.000001"), spot * D("1e-9")), "call minus put equals the discounted spot minus the discounted strike"),
+        ("the_price_is_at_least_the_intrinsic_value", base["option_price"] >= intrinsic - D("1e-9"), "an option is never worth less than exercising it now"),
+        ("a_higher_volatility_raises_the_price", vol_up["option_price"] > base["option_price"], "more uncertainty raises an option's time value"),
+        ("delta_lies_in_the_option_direction", delta_ok, "a call delta is in [0, 1] and a put delta in [-1, 0]"),
+        ("the_binomial_tree_converges_towards_the_continuous_price", abs(many["binomial_price"] - base["option_price"]) <= max(D("0.01"), spot * D("0.005")), "the tree approaches Black-Scholes as the steps increase"),
+        ("gamma_and_vega_are_positive", base["gamma"] > 0 and base["vega"] > 0, "both sensitivities are positive for a plain option"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _option_profile(inp):
+    try:
+        errs = []
+        if inp.get("option_type") not in ("call", "put"): errs.append("option_type must be call or put")
+        if D(str(inp["spot_price"])) <= 0 or D(str(inp["strike_price"])) <= 0: errs.append("the spot and strike prices must be positive")
+        if D(str(inp["volatility"])) <= 0: errs.append("the volatility must be positive")
+        if D(str(inp["time_to_maturity"])) <= 0: errs.append("time to maturity must be positive")
+        if D(str(inp["risk_free_rate"])) <= -1: errs.append("the risk-free rate must be above -100%")
+        if D(str(inp.get("steps", "200"))) > 2000: errs.append("steps must be at most 2000")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["option inputs are malformed: spot_price, strike_price, volatility, risk_free_rate, time_to_maturity and option_type are required"]
+
+def _option_typing(metric):
+    if metric in ("delta", "gamma", "d1", "d2", "volatility"): return ("ratio", 4)
+    if metric == "time_to_maturity": return ("years", 4)
+    return ("currency", 4)
+
+def _option_caveats(out, th):
+    return ["Black-Scholes assumes a constant volatility, a constant risk-free rate, no jumps and continuous hedging; the binomial tree is a discrete cross-check of the same model, not independent evidence.",
+            "The volatility is declared. Implied volatility, a volatility surface and calibration to market prices are not computed, and the system does not retrieve an option price.",
+            "The Greeks are local sensitivities under the model's assumptions; they are not a prediction of the option's future price."]
+
+def _option_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Under the declared volatility and rates the option is worth " + tok("option_price") + ", of which " + tok("intrinsic_value") +
+            " is intrinsic value and " + tok("time_value") + " is time value. The two Black-Scholes intermediate terms are " + tok("d1") + " and " + tok("d2") +
+            "; delta is " + tok("delta") + ", gamma is " + tok("gamma") + " and vega is " + tok("vega") +
+            ". The binomial cross-check at the declared steps gives " + tok("binomial_price") + ", and the put-call parity gap is " + tok("put_call_parity_gap") + ".")
+
+# ----- value at risk and expected shortfall -----
+def _sd_d(v):
+    m = _mean_d(v)
+    return _sqrtd(sum(((x - m) ** 2 for x in v), D(0)) / (len(v) - 1))
+
+def _quantile_d(ordered, p):
+    n = len(ordered)
+    if n == 1: return ordered[0]
+    pos = float(p) * (n - 1)
+    lo = int(math.floor(pos)); hi = min(lo + 1, n - 1)
+    frac = D(str(pos - lo))
+    return ordered[lo] + frac * (ordered[hi] - ordered[lo])
+
+def risk_impl(inp):
+    rets = [D(str(x)) for x in inp["returns"]]
+    if len(rets) < 3: raise DataError("at least three returns are required")
+    conf = D(str(inp.get("confidence", "0.95")))
+    if not (0 < conf < 1): raise DataError("the confidence level must be between 0 and 1")
+    pv = D(str(inp.get("portfolio_value", "1")))
+    if pv <= 0: raise DataError("the portfolio value must be positive")
+    h = D(str(inp.get("horizon_days", "1")))
+    if h <= 0: raise DataError("the horizon must be positive")
+    mu, sd = _mean_d(rets), _sd_d(rets)
+    z = D(str(statistics.NormalDist().inv_cdf(float(conf))))
+    scale = _sqrtd(h)
+    pvar = max(D(0), -(mu + z * sd) * scale)
+    pcvar = max(D(0), -(mu - sd * D(str(_npdf(float(z)) / (1 - float(conf)))) ) * scale)
+    ordered = sorted(rets); q = _quantile_d(ordered, 1 - float(conf))
+    hvar = max(D(0), -q)
+    tail = [x for x in ordered if x <= q]
+    hcvar = max(D(0), -(_mean_d(tail) if tail else ordered[0]))
+    out = {"mean_return": mu, "sd_return": sd, "z_score": z, "parametric_var": pvar, "historical_var": hvar,
+           "parametric_cvar": pcvar, "historical_cvar": hcvar, "var_amount": pvar * pv, "cvar_amount": pcvar * pv,
+           "confidence": conf, "horizon_days": h, "portfolio_value": pv, "n_observations": D(len(rets))}
+    stress = _optnum(inp, "stress_return")
+    if stress is not None: out["stress_loss"] = max(D(0), -stress) * pv
+    return out
+
+def _risk_ref(inp):
+    r = [float(D(str(x))) for x in inp["returns"]]; n = len(r); mu = sum(r) / n
+    sd = (sum((x - mu) ** 2 for x in r) / (n - 1)) ** 0.5
+    conf = float(D(str(inp.get("confidence", "0.95")))); z = statistics.NormalDist().inv_cdf(conf)
+    h = float(D(str(inp.get("horizon_days", "1")))); pv = float(D(str(inp.get("portfolio_value", "1"))))
+    return {"parametric_var": max(0.0, -(mu + z * sd) * h ** 0.5) * pv,
+            "parametric_cvar": max(0.0, -(mu - sd * _npdf(z) / (1 - conf)) * h ** 0.5) * pv}
+
+def _risk_tests(inp, impl):
+    base, ref = impl(inp), _risk_ref(inp)
+    conf = D(str(inp.get("confidence", "0.95")))
+    higher_conf = impl({**inp, "confidence": "0.99"}) if conf < D("0.99") else impl({**inp, "confidence": "0.90"})
+    scaled = impl({**inp, "portfolio_value": str(D(str(inp.get("portfolio_value", "1"))) * 10)})
+    flat = impl({**inp, "returns": ["0.01", "0.01", "0.01"]})
+    ordered = sorted(D(str(x)) for x in inp["returns"]); q = _quantile_d(ordered, 1 - float(conf))
+    checks = [
+        ("second_implementation_agrees", _close(base["var_amount"], _fd(ref["parametric_var"])) and _close(base["parametric_cvar"] * base["portfolio_value"], _fd(ref["parametric_cvar"])), "float route agrees with the Decimal route"),
+        ("expected_shortfall_is_at_least_value_at_risk", base["historical_cvar"] >= base["historical_var"] - D("1e-12") and base["parametric_cvar"] >= base["parametric_var"] - D("1e-12"), "the average tail loss is never smaller than the tail threshold"),
+        ("a_higher_confidence_raises_value_at_risk", higher_conf["historical_var"] >= base["historical_var"], "a more remote quantile is at least as severe"),
+        ("value_at_risk_scales_with_the_portfolio_value", _close(scaled["var_amount"], base["var_amount"] * 10), "a ten-times portfolio has ten-times the loss"),
+        ("the_historical_var_is_the_declared_tail_quantile", _close(base["historical_var"], max(D(0), -q)), "the historical route is an order statistic, not a model"),
+        ("a_constant_return_series_has_only_the_mean_loss", _close(flat["sd_return"], D(0)) and _close(flat["parametric_var"], max(D(0), -D("0.01"))), "with no dispersion the parametric loss is the mean"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _risk_profile(inp):
+    try:
+        errs = []
+        if len(inp["returns"]) < 3: errs.append("at least three returns are required")
+        conf = D(str(inp.get("confidence", "0.95")))
+        if not (0 < conf < 1): errs.append("the confidence level must be between 0 and 1")
+        if D(str(inp.get("portfolio_value", "1"))) <= 0: errs.append("the portfolio value must be positive")
+        if D(str(inp.get("horizon_days", "1"))) <= 0: errs.append("the horizon must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["risk inputs are malformed: returns is required and the confidence, portfolio value and horizon must be numbers"]
+
+def _risk_typing(metric):
+    if metric in ("n_observations",): return ("count", 0)
+    if metric in ("mean_return", "sd_return", "confidence", "parametric_var", "historical_var", "parametric_cvar", "historical_cvar"): return ("rate", 4)
+    if metric == "horizon_days": return ("days", 0)
+    if metric == "z_score": return ("ratio", 4)
+    return ("currency", 2)
+
+def _risk_caveats(out, th):
+    return ["The parametric route assumes returns are normally distributed; the historical route assumes the observed sample is representative. Neither assumption is tested here.",
+            "Value at risk is a quantile, not a maximum loss: losses beyond it are exactly what the expected shortfall reports, and both are silent about the shape of the tail beyond the sample.",
+            "No volatility scaling by square-root-of-time is validated; the horizon scaling is the declared convention, and liquidity, correlation changes and non-linear positions are not modelled."]
+
+def _risk_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("At the declared confidence the parametric value at risk is " + tok("parametric_var") + " and the historical value at risk is " +
+         tok("historical_var") + ", or " + tok("var_amount") + " on the declared portfolio. The expected shortfall is " +
+         tok("parametric_cvar") + " (parametric) and " + tok("historical_cvar") + " (historical).")
+    if "stress_loss" in out: s += " The declared stress return implies a loss of " + tok("stress_loss") + "."
+    return s + " These are quantiles of the return series and the normal approximation, not guarantees."
+
+# ----- international parity -----
+def fx_impl(inp):
+    S = D(str(inp["spot_rate"])); rd, rf = D(str(inp["domestic_rate"])), D(str(inp["foreign_rate"]))
+    pid, pif = D(str(inp["domestic_inflation"])), D(str(inp["foreign_inflation"]))
+    T = D(str(inp["time_to_maturity"]))
+    if S <= 0: raise DataError("the spot rate must be positive")
+    if T <= 0: raise DataError("time to maturity must be positive")
+    if min(rd, rf, pid, pif) <= -1: raise DataError("rates and inflation must be above -100%")
+    ppp = S * (1 + pid) ** T / (1 + pif) ** T
+    irp = S * (1 + rd) ** T / (1 + rf) ** T
+    fwd = _optnum(inp, "forward_rate")
+    if fwd is not None and fwd <= 0: raise DataError("the forward rate must be positive")
+    F = fwd if fwd is not None else irp
+    premium = (F / S) ** (D(1) / T) - 1
+    real_d = (1 + rd) / (1 + pid) - 1; real_f = (1 + rf) / (1 + pif) - 1
+    out = {"ppp_expected_spot": ppp, "interest_rate_parity_forward": irp, "forward_rate": F,
+           "forward_premium": premium, "real_rate_domestic": real_d, "real_rate_foreign": real_f,
+           "spot_rate": S, "time_to_maturity": T}
+    exposure, hedge_rate, expected_spot = (_optnum(inp, "exposure_amount"), _optnum(inp, "hedge_forward"),
+                                           _optnum(inp, "expected_spot"))
+    if exposure is not None:
+        if hedge_rate is None: raise DataError("an exposure needs the forward rate you would hedge at")
+        expected = expected_spot if expected_spot is not None else ppp
+        out.update({"exposure_amount": exposure, "hedge_forward": hedge_rate, "expected_spot": expected,
+                    "unhedged_domestic": exposure * expected, "hedged_domestic": exposure * hedge_rate,
+                    "hedge_gain_loss": exposure * (hedge_rate - expected)})
+    return out
+
+def _fx_ref(inp):
+    S = float(D(str(inp["spot_rate"]))); rd, rf = float(D(str(inp["domestic_rate"]))), float(D(str(inp["foreign_rate"])))
+    pid, pif = float(D(str(inp["domestic_inflation"]))), float(D(str(inp["foreign_inflation"])))
+    T = float(D(str(inp["time_to_maturity"])))
+    ppp = S * (1 + pid) ** T / (1 + pif) ** T; irp = S * (1 + rd) ** T / (1 + rf) ** T
+    fwd = inp.get("forward_rate"); F = float(D(str(fwd))) if fwd not in (None, "") else irp
+    return {"ppp_expected_spot": ppp, "interest_rate_parity_forward": irp,
+            "forward_premium": (F / S) ** (1 / T) - 1,
+            "real_rate_domestic": (1 + rd) / (1 + pid) - 1, "real_rate_foreign": (1 + rf) / (1 + pif) - 1}
+
+def _fx_tests(inp, impl):
+    base, ref = impl(inp), _fx_ref(inp)
+    flat = impl({**{k: v for k, v in inp.items() if k != "forward_rate"}, "domestic_rate": "0", "foreign_rate": "0", "domestic_inflation": "0", "foreign_inflation": "0"})
+    S = D(str(inp["spot_rate"])); T = D(str(inp["time_to_maturity"]))
+    if "hedged_domestic" in base:
+        exp = D(str(inp["exposure_amount"])); hf = D(str(inp["hedge_forward"]))
+        hedge_ok = (_close(base["hedged_domestic"], exp * hf)
+                    and _close(base["hedge_gain_loss"], base["hedged_domestic"] - base["unhedged_domestic"]))
+        hedge_detail = "the hedged amount and the hedge result are recomputed from the exposure and forward rate"
+    else:
+        hedge_ok, hedge_detail = True, "no foreign-currency exposure was declared, so no hedge was requested"
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("interest_rate_parity_reproduces_the_forward", _close(base["interest_rate_parity_forward"], S * (1 + D(str(inp["domestic_rate"]))) ** T / (1 + D(str(inp["foreign_rate"]))) ** T), "the covered-parity identity is recomputed"),
+        ("purchasing_power_parity_reproduces_the_expected_spot", _close(base["ppp_expected_spot"], S * (1 + D(str(inp["domestic_inflation"]))) ** T / (1 + D(str(inp["foreign_inflation"]))) ** T), "the relative-PPP identity is recomputed"),
+        ("the_forward_premium_is_the_annualised_forward_change", _close(base["forward_premium"], (base["forward_rate"] / S) ** (D(1) / T) - 1), "the premium is the annualised difference between forward and spot"),
+        ("zero_differentials_leave_the_spot_rate_unchanged", _close(flat["ppp_expected_spot"], S) and _close(flat["interest_rate_parity_forward"], S) and _close(flat["forward_premium"], D(0)), "without rate or inflation differences nothing moves"),
+        ("the_fisher_relation_links_nominal_and_real_rates", _close(base["real_rate_domestic"], (1 + D(str(inp["domestic_rate"]))) / (1 + D(str(inp["domestic_inflation"]))) - 1), "the real rate identity is recomputed"),
+        ("the_hedged_outcome_is_exposure_times_the_forward", hedge_ok, hedge_detail),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _fx_profile(inp):
+    try:
+        errs = []
+        if D(str(inp["spot_rate"])) <= 0: errs.append("the spot rate must be positive")
+        if D(str(inp["time_to_maturity"])) <= 0: errs.append("time to maturity must be positive")
+        for k in ("domestic_rate", "foreign_rate", "domestic_inflation", "foreign_inflation"):
+            if D(str(inp[k])) <= -1: errs.append(f"{k} must be above -100%")
+        fwd = _optnum(inp, "forward_rate")
+        if fwd is not None and fwd <= 0: errs.append("the forward rate must be positive")
+        exp, hr, es = _optnum(inp, "exposure_amount"), _optnum(inp, "hedge_forward"), _optnum(inp, "expected_spot")
+        if exp is not None and hr is None: errs.append("an exposure needs the forward rate you would hedge at")
+        if exp is not None and exp < 0: errs.append("the exposure amount must be non-negative")
+        if hr is not None and hr <= 0: errs.append("the hedge forward rate must be positive")
+        if es is not None and es <= 0: errs.append("the expected spot rate must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["parity inputs are malformed: spot_rate, domestic_rate, foreign_rate, the two inflation rates and time_to_maturity are required"]
+
+def _fx_typing(metric):
+    if metric == "time_to_maturity": return ("years", 2)
+    if metric in ("forward_premium", "real_rate_domestic", "real_rate_foreign"): return ("rate", 4)
+    if metric in ("exposure_amount", "unhedged_domestic", "hedged_domestic", "hedge_gain_loss"): return ("currency", 2)
+    return ("value", 4)
+
+def _fx_caveats(out, th):
+    return ["The spot rate is quoted as domestic currency per unit of foreign currency; every other figure follows that convention.",
+            "Covered interest parity and relative purchasing power parity are identities under their assumptions, not forecasts; real-world capital controls, transaction costs and risk premia are not modelled.",
+            "No exchange rate, inflation rate or forward quote is retrieved or verified; all of them are declared inputs.",
+            "The hedge comparison uses one declared forward and one expected spot; it is not a hedging programme, and it ignores margin, credit lines, taxes and hedge accounting."]
+
+def _fx_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("Under relative purchasing power parity the expected spot rate is " + tok("ppp_expected_spot") +
+         ", while covered interest parity implies a forward rate of " + tok("interest_rate_parity_forward") +
+         ". The declared forward is " + tok("forward_rate") + ", an annualised forward premium of " + tok("forward_premium") +
+         ". The implied real rates are " + tok("real_rate_domestic") + " at home and " + tok("real_rate_foreign") + " abroad.")
+    if "hedged_domestic" in out:
+        s += (" A foreign-currency exposure of " + tok("exposure_amount") + " hedged at " + tok("hedge_forward") +
+              " is worth " + tok("hedged_domestic") + " against " + tok("unhedged_domestic") +
+              " unhedged, a hedge result of " + tok("hedge_gain_loss") + ".")
+    return s
+
+# ----- leverage, EPS and Altman Z -----
+def leverage_impl(inp):
+    ebit, interest = D(str(inp["ebit"])), D(str(inp["interest_expense"]))
+    tax, debt, eq = D(str(inp["tax_rate"])), D(str(inp["debt"])), D(str(inp["equity"]))
+    shares = D(str(inp["shares_outstanding"]))
+    if not (0 <= tax < 1): raise DataError("the tax rate must be between 0 and 1")
+    if shares <= 0: raise DataError("shares outstanding must be positive")
+    if interest < 0 or debt < 0 or eq < 0: raise DataError("interest, debt and equity must be non-negative")
+    ebt = ebit - interest
+    eps = ebt * (1 - tax) / shares
+    dfl = (ebit / ebt) if ebt != 0 else None
+    cover = (ebit / interest) if interest != 0 else None
+    out = {"eps": eps, "earnings_before_tax": ebt, "interest_tax_shield": interest * tax,
+           "debt_to_equity": (debt / eq) if eq != 0 else None,
+           "ebit": ebit, "interest_expense": interest, "tax_rate": tax, "shares_outstanding": shares}
+    if dfl is not None: out["degree_of_financial_leverage"] = dfl
+    if cover is not None: out["interest_cover"] = cover
+    fields = ("working_capital", "retained_earnings", "total_assets", "total_liabilities", "sales", "market_value_equity")
+    vals = {k: _optnum(inp, k) for k in fields}
+    if any(v is not None for v in vals.values()):
+        if any(v is None for v in vals.values()):
+            raise DataError("the Altman Z-score needs all six figures: working_capital, retained_earnings, total_assets, total_liabilities, sales and market_value_equity")
+        ta, tl = vals["total_assets"], vals["total_liabilities"]
+        if ta <= 0 or tl <= 0: raise DataError("total assets and total liabilities must be positive for the Z-score")
+        z = (D("1.2") * vals["working_capital"] / ta + D("1.4") * vals["retained_earnings"] / ta +
+             D("3.3") * ebit / ta + D("0.6") * vals["market_value_equity"] / tl + vals["sales"] / ta)
+        out.update({"altman_z": z, "altman_term_working_capital": D("1.2") * vals["working_capital"] / ta,
+                    "altman_term_retained_earnings": D("1.4") * vals["retained_earnings"] / ta,
+                    "altman_term_ebit": D("3.3") * ebit / ta,
+                    "altman_term_market_equity": D("0.6") * vals["market_value_equity"] / tl,
+                    "altman_term_sales": vals["sales"] / ta})
+    alt_interest, alt_shares = _optnum(inp, "alternative_interest_expense"), _optnum(inp, "alternative_shares_outstanding")
+    if (alt_interest is None) != (alt_shares is None):
+        raise DataError("an alternative financing plan needs both its interest expense and its share count")
+    if alt_interest is not None:
+        if alt_interest < 0 or alt_shares <= 0: raise DataError("the alternative plan's interest must be non-negative and its shares positive")
+        if alt_shares == shares: raise DataError("the two plans have the same share count, so their EPS lines are parallel and never cross")
+        e_star = (interest * alt_shares - alt_interest * shares) / (alt_shares - shares)
+        out.update({"indifference_ebit": e_star,
+                    "eps_at_indifference": (e_star - interest) * (1 - tax) / shares,
+                    "alternative_eps": (ebit - alt_interest) * (1 - tax) / alt_shares})
+    return out
+
+def _leverage_ref(inp):
+    ebit, interest = float(D(str(inp["ebit"]))), float(D(str(inp["interest_expense"])))
+    tax, shares = float(D(str(inp["tax_rate"]))), float(D(str(inp["shares_outstanding"])))
+    ebt = ebit - interest
+    return {"eps": ebt * (1 - tax) / shares, "earnings_before_tax": ebt, "interest_tax_shield": interest * tax}
+
+def _leverage_tests(inp, impl):
+    base, ref = impl(inp), _leverage_ref(inp)
+    ebit, interest = D(str(inp["ebit"])), D(str(inp["interest_expense"]))
+    more = impl({**inp, "interest_expense": str(interest + 1000)})
+    if "indifference_ebit" in base:
+        e = base["indifference_ebit"]; s1 = D(str(inp["shares_outstanding"])); s2 = D(str(inp["alternative_shares_outstanding"]))
+        i2 = D(str(inp["alternative_interest_expense"])); t = D(str(inp["tax_rate"]))
+        eps1 = (e - interest) * (1 - t) / s1; eps2 = (e - i2) * (1 - t) / s2
+        indiff_ok = _close(eps1, eps2) and _close(eps1, base["eps_at_indifference"])
+        indiff_detail = "both financing plans report the same EPS at the computed indifference EBIT"
+    else:
+        indiff_ok, indiff_detail = True, "no alternative financing plan was declared, so no indifference point was requested"
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("eps_is_earnings_after_tax_over_the_shares", _close(base["eps"], base["earnings_before_tax"] * (1 - D(str(inp["tax_rate"]))) / D(str(inp["shares_outstanding"]))), "the EPS identity is recomputed"),
+        ("more_interest_lowers_eps", more["eps"] < base["eps"], "additional interest reduces the earnings available to shareholders"),
+        ("the_interest_tax_shield_is_interest_times_the_tax_rate", _close(base["interest_tax_shield"], interest * D(str(inp["tax_rate"]))), "the shield identity is recomputed"),
+        ("the_degree_of_financial_leverage_matches_the_identity", ("degree_of_financial_leverage" not in base) or _close(base["degree_of_financial_leverage"], ebit / (ebit - interest)), "DFL is EBIT over pre-tax earnings"),
+        ("the_altman_terms_sum_to_the_z_score", ("altman_z" not in base) or _close(base["altman_z"], base["altman_term_working_capital"] + base["altman_term_retained_earnings"] + base["altman_term_ebit"] + base["altman_term_market_equity"] + base["altman_term_sales"]), "the Z-score is the sum of its five declared terms"),
+        ("the_indifference_ebit_equalises_eps_across_the_plans", indiff_ok, indiff_detail),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _leverage_profile(inp):
+    try:
+        errs = []
+        tax = D(str(inp["tax_rate"]))
+        if not (0 <= tax < 1): errs.append("the tax rate must be between 0 and 1")
+        if D(str(inp["shares_outstanding"])) <= 0: errs.append("shares outstanding must be positive")
+        if D(str(inp["interest_expense"])) < 0 or D(str(inp["debt"])) < 0 or D(str(inp["equity"])) < 0: errs.append("interest, debt and equity must be non-negative")
+        fields = ("working_capital", "retained_earnings", "total_assets", "total_liabilities", "sales", "market_value_equity")
+        vals = [(_optnum(inp, k)) for k in fields]
+        if any(v is not None for v in vals) and any(v is None for v in vals): errs.append("the Altman Z-score needs all six figures or none of them")
+        ai, ash = _optnum(inp, "alternative_interest_expense"), _optnum(inp, "alternative_shares_outstanding")
+        if (ai is None) != (ash is None): errs.append("an alternative financing plan needs both its interest expense and its share count")
+        elif ai is not None and ash == D(str(inp["shares_outstanding"])): errs.append("the two plans have the same share count, so their EPS lines never cross")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["leverage inputs are malformed: ebit, interest_expense, tax_rate, debt, equity and shares_outstanding are required"]
+
+def _leverage_typing(metric):
+    if metric in ("degree_of_financial_leverage", "interest_cover", "debt_to_equity", "altman_z"): return ("ratio", 4)
+    if metric in ("tax_rate",): return ("ratio", 4)
+    if metric == "shares_outstanding": return ("count", 0)
+    return ("currency", 2)
+
+def _leverage_caveats(out, th):
+    return ["EPS and the degree of financial leverage are single-period arithmetic on the declared EBIT, interest, tax and share count; no dilution, buyback or preference dividend is modelled.",
+            "The interest tax shield is interest times the tax rate and assumes the interest is deductible and the firm is profitable enough to use it.",
+            "The Altman Z-score is the classic five-term formula computed from your declared figures; no zone cut-off is applied, because the thresholds are sample-specific and not verified here.",
+            "The indifference EBIT is where the two declared plans happen to report the same EPS. It is not a recommendation to borrow or to issue shares, and it ignores risk, covenants and issue costs."]
+
+def _leverage_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("Earnings per share are " + tok("eps") + " on declared EBIT of " + tok("ebit") + " and interest of " + tok("interest_expense") +
+         ", with an interest tax shield of " + tok("interest_tax_shield") + ".")
+    if "degree_of_financial_leverage" in out: s += " The degree of financial leverage is " + tok("degree_of_financial_leverage") + "."
+    if "interest_cover" in out: s += " Interest cover is " + tok("interest_cover") + " times."
+    if "altman_z" in out: s += " The Altman Z-score is " + tok("altman_z") + ", with its five terms shown above."
+    if "indifference_ebit" in out:
+        s += (" The two declared financing plans report the same earnings per share at an EBIT of " + tok("indifference_ebit") +
+              ", where both report " + tok("eps_at_indifference") + ".")
+    return s
+
+# ----- scenario and sensitivity analysis -----
+def scenario_impl(inp):
+    cfs = [D(str(x)) for x in inp["cashflows"]]
+    base_r, lo_r, hi_r = D(str(inp["discount_rate"])), D(str(inp["rate_low"])), D(str(inp["rate_high"]))
+    if len(cfs) < 2: raise DataError("at least two cash flows are required")
+    if min(base_r, lo_r, hi_r) <= -1: raise DataError("every discount rate must be greater than -100%")
+    if lo_r >= hi_r: raise DataError("rate_low must be below rate_high")
+    nb, nl, nh = _npv_list(cfs, base_r), _npv_list(cfs, lo_r), _npv_list(cfs, hi_r)
+    out = {"npv_base": nb, "npv_at_low_rate": nl, "npv_at_high_rate": nh, "swing": nl - nh,
+           "discount_rate": base_r, "rate_low": lo_r, "rate_high": hi_r}
+    roots = _irr_scan([float(c) for c in cfs])
+    if len(roots) == 1: out["breakeven_rate"] = _fd(roots[0])
+    return out
+
+def _scenario_ref(inp):
+    cfs = [float(D(str(x))) for x in inp["cashflows"]]
+    f = lambda r: sum(cf / (1 + r) ** t for t, cf in enumerate(cfs))
+    b, lo, hi = float(D(str(inp["discount_rate"]))), float(D(str(inp["rate_low"]))), float(D(str(inp["rate_high"])))
+    return {"npv_base": f(b), "npv_at_low_rate": f(lo), "npv_at_high_rate": f(hi)}
+
+def _scenario_tests(inp, impl):
+    base, ref = impl(inp), _scenario_ref(inp)
+    cfs = [D(str(x)) for x in inp["cashflows"]]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_base_case_matches_the_npv_function", _close(base["npv_base"], _npv_list(cfs, D(str(inp["discount_rate"])))), "the base case is the same NPV the npv method reports"),
+        ("a_higher_discount_rate_lowers_the_value", base["npv_at_high_rate"] <= base["npv_at_low_rate"], "discounting more heavily never raises a conventional present value"),
+        ("the_swing_is_the_difference_between_the_scenarios", _close(base["swing"], base["npv_at_low_rate"] - base["npv_at_high_rate"]), "the range is the difference between the two rate scenarios"),
+        ("the_breakeven_rate_sets_the_npv_to_zero", ("breakeven_rate" not in base) or abs(float(_npv_list(cfs, D(str(base["breakeven_rate"]))))) <= max(D("1e-6"), sum(abs(c) for c in cfs) * D("1e-9")), "when a single break-even rate exists it is a root of the NPV function"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _scenario_profile(inp):
+    try:
+        cfs = [D(str(x)) for x in inp["cashflows"]]
+        errs = []
+        if len(cfs) < 2: errs.append("at least two cash flows are required")
+        b, lo, hi = D(str(inp["discount_rate"])), D(str(inp["rate_low"])), D(str(inp["rate_high"]))
+        if min(b, lo, hi) <= -1: errs.append("every discount rate must be greater than -100%")
+        if lo >= hi: errs.append("rate_low must be below rate_high")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["scenario inputs are malformed: cashflows, discount_rate, rate_low and rate_high are required"]
+
+def _scenario_typing(metric):
+    if metric in ("discount_rate", "rate_low", "rate_high", "breakeven_rate"): return ("rate", 4)
+    return ("currency", 2)
+
+def _scenario_caveats(out, th):
+    return ["The two scenarios change only the discount rate; the cash flows are held fixed, so this is not a full scenario analysis of revenue, cost and timing.",
+            "The break-even rate is the single internal rate of return of the declared cash flows; when the flows change sign more than once no single break-even rate is reported.",
+            "A range around one input says nothing about the joint effect of several inputs changing together; a simulation or a full scenario model is a different method."]
+
+def _scenario_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("The base-case net present value is " + tok("npv_base") + ". Across the declared rate range it is " + tok("npv_at_low_rate") +
+         " at the low rate and " + tok("npv_at_high_rate") + " at the high rate, a swing of " + tok("swing") + ".")
+    if "breakeven_rate" in out: s += " The decision flips at a discount rate of " + tok("breakeven_rate") + "."
+    return s + " Only the discount rate changes between the scenarios."
+
+
+# ---------- Microeconomics core (B-097) ----------
+# Deterministic arithmetic over declared linear demand and supply curves
+# (Qd = a - bP, Qs = c + dP) and declared firm revenues.  No estimation,
+# no econometric identification and no welfare weights.
+
+def _linear_market(inp):
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c, d = D(str(inp["supply_intercept"])), D(str(inp["supply_slope"]))
+    if b <= 0:
+        raise DataError("demand_slope must be positive (quantity demanded falls as price rises): Qd = a - bP")
+    if d <= 0:
+        raise DataError("supply_slope must be positive (quantity supplied rises with price): Qs = c + dP")
+    p = (a - c) / (b + d)
+    q = a - b * p
+    if p <= 0:
+        raise DataError("the equilibrium price is not positive for these curves; check the intercepts and slopes")
+    if q <= 0:
+        raise DataError("the equilibrium quantity is not positive for these curves; check the intercepts and slopes")
+    return a, b, c, d, p, q
+
+
+def demand_supply_equilibrium_impl(inp):
+    a, b, c, d, p, q = _linear_market(inp)
+    choke = a / b
+    floor = -c / d
+    cs = (choke - p) * q / 2
+    ps = (p - floor) * q / 2
+    return {"equilibrium_price": p, "equilibrium_quantity": q,
+            "demand_choke_price": choke, "supply_floor_price": floor,
+            "consumer_surplus": cs, "producer_surplus": ps,
+            "total_surplus": cs + ps}
+
+
+def _equilibrium_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c, d = float(D(str(inp["supply_intercept"]))), float(D(str(inp["supply_slope"])))
+    p = (a - c) / (b + d)
+    return {"equilibrium_price": p, "equilibrium_quantity": a - b * p}
+
+
+def demand_supply_equilibrium_tests(inp, impl):
+    base, ref = impl(inp), _equilibrium_ref(inp)
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c, d = D(str(inp["supply_intercept"])), D(str(inp["supply_slope"]))
+    p, q = base["equilibrium_price"], base["equilibrium_quantity"]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("quantity_demanded_equals_quantity_supplied", _close(a - b * p, c + d * p), "both curves give the same quantity at the equilibrium price"),
+        ("consumer_surplus_is_the_triangle", _close(base["consumer_surplus"], (a / b - p) * q / 2), "consumer surplus is the area below demand and above price"),
+        ("producer_surplus_is_the_triangle", _close(base["producer_surplus"], (p + c / d) * q / 2), "producer surplus is the area above supply and below price"),
+        ("total_surplus_is_consumer_plus_producer", _close(base["total_surplus"], base["consumer_surplus"] + base["producer_surplus"]), "the two surpluses add up"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def demand_supply_equilibrium_profile(inp):
+    try:
+        _linear_market(inp)
+        return []
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["equilibrium inputs are malformed: demand_intercept, demand_slope, supply_intercept and supply_slope must be numbers"]
+
+
+def _equilibrium_typing(metric):
+    if metric == "equilibrium_quantity":
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def equilibrium_caveats(out, th):
+    return ["The result is arithmetic on the two linear curves you declared (Qd = a - bP, Qs = c + dP); it is only as good as those curves.",
+            "Consumer and producer surplus are geometric areas under the declared curves, not measured welfare; taxes, externalities and market power are absent.",
+            "No dynamics, expectations, inventory or trade are modelled."]
+
+
+def equilibrium_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared demand and supply curves meet at a price of " + tok("equilibrium_price") +
+            " and a quantity of " + tok("equilibrium_quantity") + ". Consumer surplus is " +
+            tok("consumer_surplus") + " and producer surplus is " + tok("producer_surplus") +
+            ", a total surplus of " + tok("total_surplus") + ".")
+
+
+def elasticity_impl(inp):
+    q1, p1 = D(str(inp["quantity_1"])), D(str(inp["price_1"]))
+    q2, p2 = D(str(inp["quantity_2"])), D(str(inp["price_2"]))
+    if q1 < 0 or q2 < 0:
+        raise DataError("quantities must be non-negative")
+    if p1 < 0 or p2 < 0:
+        raise DataError("prices must be non-negative")
+    if q1 + q2 == 0:
+        raise DataError("at least one of the two quantities must be positive")
+    if p1 + p2 == 0:
+        raise DataError("at least one of the two prices must be positive")
+    if p1 == p2:
+        raise DataError("the two prices must differ, otherwise the percentage change in price is zero and elasticity is undefined")
+    dq = (q2 - q1) / ((q1 + q2) / 2)
+    dp = (p2 - p1) / ((p1 + p2) / 2)
+    e = dq / dp
+    tr1, tr2 = p1 * q1, p2 * q2
+    mag = abs(e)
+    return {"price_elasticity": e, "absolute_elasticity": mag,
+            "pct_change_quantity": dq, "pct_change_price": dp,
+            "total_revenue_1": tr1, "total_revenue_2": tr2,
+            "revenue_change": tr2 - tr1,
+            "elastic": D(1) if mag > 1 else D(0),
+            "unit_elastic": D(1) if mag == 1 else D(0)}
+
+
+def _elasticity_ref(inp):
+    q1, p1 = float(D(str(inp["quantity_1"]))), float(D(str(inp["price_1"])))
+    q2, p2 = float(D(str(inp["quantity_2"]))), float(D(str(inp["price_2"])))
+    dq = (q2 - q1) / ((q1 + q2) / 2)
+    dp = (p2 - p1) / ((p1 + p2) / 2)
+    return {"price_elasticity": dq / dp}
+
+
+def elasticity_tests(inp, impl):
+    base, ref = impl(inp), _elasticity_ref(inp)
+    swapped = impl({"quantity_1": inp["quantity_2"], "price_1": inp["price_2"],
+                    "quantity_2": inp["quantity_1"], "price_2": inp["price_1"]})
+    mag = abs(base["price_elasticity"])
+    checks = [
+        ("second_implementation_agrees", _close(base["price_elasticity"], ref["price_elasticity"]), "float route agrees with the Decimal route"),
+        ("arc_elasticity_equals_percentage_changes", _close(base["price_elasticity"], base["pct_change_quantity"] / base["pct_change_price"]), "the arc formula is the ratio of the two percentage changes"),
+        ("swapping_the_observations_leaves_the_arc_elasticity_unchanged", _close(swapped["price_elasticity"], base["price_elasticity"]), "the midpoint formula is symmetric"),
+        ("revenue_change_equals_new_revenue_minus_old", _close(base["revenue_change"], base["total_revenue_2"] - base["total_revenue_1"]), "revenue change is the new revenue minus the old"),
+        ("elastic_flag_matches_the_magnitude", bool(base["elastic"]) == (mag > 1) and bool(base["unit_elastic"]) == (mag == 1), "the classification follows the absolute elasticity"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def elasticity_profile(inp):
+    try:
+        q1, p1 = D(str(inp["quantity_1"])), D(str(inp["price_1"]))
+        q2, p2 = D(str(inp["quantity_2"])), D(str(inp["price_2"]))
+        errs = []
+        if q1 < 0 or q2 < 0:
+            errs.append("quantities must be non-negative")
+        if p1 < 0 or p2 < 0:
+            errs.append("prices must be non-negative")
+        if q1 + q2 == 0:
+            errs.append("at least one of the two quantities must be positive")
+        if p1 + p2 == 0:
+            errs.append("at least one of the two prices must be positive")
+        if p1 == p2:
+            errs.append("the two prices must differ, otherwise the percentage change in price is zero and elasticity is undefined")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["elasticity inputs are malformed: quantity_1, price_1, quantity_2 and price_2 must be numbers"]
+
+
+def _elasticity_typing(metric):
+    if metric in ("price_elasticity", "absolute_elasticity"):
+        return ("ratio", 4)
+    if metric in ("pct_change_quantity", "pct_change_price"):
+        return ("rate", 4)
+    if metric in ("total_revenue_1", "total_revenue_2", "revenue_change"):
+        return ("currency", 2)
+    return ("count", 0)
+
+
+def elasticity_caveats(out, th):
+    return ["The elasticity is the arc (midpoint) elasticity between the two observations you declared; a point elasticity at one price needs a demand function.",
+            "The sign is negative for an ordinary demand curve; the absolute value is the one usually compared with one.",
+            "No income, cross-price or supply elasticity is computed here."]
+
+
+def elasticity_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Between the two declared observations the arc price elasticity of demand is " +
+         tok("price_elasticity") + ", with an absolute value of " + tok("absolute_elasticity") +
+         ". Total revenue moves from " + tok("total_revenue_1") + " to " + tok("total_revenue_2") +
+         ", a change of " + tok("revenue_change") + ".")
+    if out.get("elastic"):
+        t += " Demand is elastic over this range."
+    elif out.get("unit_elastic"):
+        t += " Demand is unit-elastic over this range."
+    else:
+        t += " Demand is inelastic over this range."
+    return t
+
+
+def tax_incidence_impl(inp):
+    a, b, c, d, p0, q0 = _linear_market(inp)
+    t = D(str(inp["tax_per_unit"]))
+    if t < 0:
+        raise DataError("tax_per_unit must be non-negative")
+    pc = (a - c + d * t) / (b + d)
+    ps = pc - t
+    qt = a - b * pc
+    if qt < 0:
+        raise DataError("the tax is so large that the quantity traded would be negative; reduce the tax")
+    if ps <= 0:
+        raise DataError("the tax is so large that the producer price would be zero or negative; reduce the tax")
+    consumer_inc = pc - p0
+    producer_inc = p0 - ps
+    return {"equilibrium_price_no_tax": p0, "equilibrium_quantity_no_tax": q0,
+            "tax_per_unit": t, "consumer_price": pc, "producer_price": ps,
+            "quantity_traded": qt, "consumer_incidence": consumer_inc,
+            "producer_incidence": producer_inc, "consumer_share": d / (b + d),
+            "producer_share": b / (b + d), "tax_revenue": t * qt,
+            "deadweight_loss": (q0 - qt) * t / 2}
+
+
+def _tax_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c, d = float(D(str(inp["supply_intercept"]))), float(D(str(inp["supply_slope"])))
+    t = float(D(str(inp["tax_per_unit"])))
+    p0 = (a - c) / (b + d)
+    q0 = a - b * p0
+    pc = (a - c + d * t) / (b + d)
+    qt = a - b * pc
+    return {"consumer_incidence": pc - p0, "quantity_traded": qt,
+            "tax_revenue": t * qt, "deadweight_loss": (q0 - qt) * t / 2}
+
+
+def tax_incidence_tests(inp, impl):
+    base, ref = impl(inp), _tax_ref(inp)
+    t = D(str(inp["tax_per_unit"]))
+    b, d = D(str(inp["demand_slope"])), D(str(inp["supply_slope"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("consumer_and_producer_incidence_sum_to_the_tax", _close(base["consumer_incidence"] + base["producer_incidence"], t), "the two burdens add up to the per-unit tax"),
+        ("consumer_share_equals_d_over_b_plus_d", _close(base["consumer_share"], d / (b + d)), "the consumer share follows the supply slope over the sum of slopes"),
+        ("tax_revenue_equals_tax_times_quantity_traded", _close(base["tax_revenue"], t * base["quantity_traded"]), "revenue is the tax times the quantity traded"),
+        ("deadweight_loss_is_the_triangle", _close(base["deadweight_loss"], (base["equilibrium_quantity_no_tax"] - base["quantity_traded"]) * t / 2), "the loss is the triangle over the fall in quantity"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def tax_incidence_profile(inp):
+    try:
+        a, b, c, d, p0, q0 = _linear_market(inp)
+        t = D(str(inp["tax_per_unit"]))
+        if t < 0:
+            return ["tax_per_unit must be non-negative"]
+        pc = (a - c + d * t) / (b + d)
+        qt = a - b * pc
+        if qt < 0:
+            return ["the tax is so large that the quantity traded would be negative; reduce the tax"]
+        if pc - t <= 0:
+            return ["the tax is so large that the producer price would be zero or negative; reduce the tax"]
+        return []
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["tax-incidence inputs are malformed: four curve numbers and tax_per_unit are required"]
+
+
+def _tax_typing(metric):
+    if metric in ("equilibrium_quantity_no_tax", "quantity_traded"):
+        return ("units", 2)
+    if metric in ("consumer_share", "producer_share"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def tax_incidence_caveats(out, th):
+    return ["The tax is a declared per-unit tax on sellers in partial equilibrium; a tax on buyers at the same rate gives the same economic incidence.",
+            "Consumer price is what buyers pay, producer price is what sellers keep, and the difference is the tax.",
+            "The deadweight loss is the triangle between the declared linear curves; no other market or income effect is modelled."]
+
+
+def tax_incidence_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With a per-unit tax of " + tok("tax_per_unit") + ", buyers pay " + tok("consumer_price") +
+            " and sellers keep " + tok("producer_price") + ". The burden is " + tok("consumer_incidence") +
+            " on buyers and " + tok("producer_incidence") + " on sellers; tax revenue is " +
+            tok("tax_revenue") + " and the deadweight loss is " + tok("deadweight_loss") + ".")
+
+
+def price_control_impl(inp):
+    a, b, c, d, p0, q0 = _linear_market(inp)
+    control = D(str(inp["control_price"]))
+    kind = str(inp["control_type"]).strip().lower()
+    if control <= 0:
+        raise DataError("control_price must be positive")
+    if kind not in ("ceiling", "floor"):
+        raise DataError("control_type must be 'ceiling' or 'floor'")
+    qd_raw = a - b * control
+    qs_raw = c + d * control
+    binding = (control < p0) if kind == "ceiling" else (control > p0)
+    if binding:
+        if qd_raw < 0:
+            raise DataError("the control price is above the demand choke price, so quantity demanded is negative")
+        if qs_raw < 0:
+            raise DataError("the control price is below the supply floor price, so quantity supplied is negative")
+        traded = min(qd_raw, qs_raw)
+        gap = qd_raw - qs_raw
+        p_d = (a - traded) / b
+        p_s = (traded - c) / d
+        dwl = (q0 - traded) * (p_d - p_s) / 2
+    else:
+        traded, gap, dwl = q0, D(0), D(0)
+    qd, qs = max(qd_raw, D(0)), max(qs_raw, D(0))
+    return {"equilibrium_price": p0, "equilibrium_quantity": q0,
+            "control_price": control, "binding": D(1) if binding else D(0),
+            "quantity_demanded_at_control": qd, "quantity_supplied_at_control": qs,
+            "quantity_traded": traded, "quantity_gap": gap,
+            "shortage": max(gap, D(0)), "surplus": max(-gap, D(0)),
+            "deadweight_loss": dwl}
+
+
+def _price_control_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c, d = float(D(str(inp["supply_intercept"]))), float(D(str(inp["supply_slope"])))
+    p0 = (a - c) / (b + d)
+    q0 = a - b * p0
+    control = float(D(str(inp["control_price"])))
+    kind = str(inp["control_type"]).strip().lower()
+    qd, qs = a - b * control, c + d * control
+    binding = (control < p0) if kind == "ceiling" else (control > p0)
+    if not binding:
+        return {"quantity_traded": q0, "quantity_gap": 0.0, "deadweight_loss": 0.0}
+    traded = min(qd, qs)
+    p_d, p_s = (a - traded) / b, (traded - c) / d
+    return {"quantity_traded": traded, "quantity_gap": qd - qs,
+            "deadweight_loss": (q0 - traded) * (p_d - p_s) / 2}
+
+
+def price_control_tests(inp, impl):
+    base, ref = impl(inp), _price_control_ref(inp)
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c, d = D(str(inp["supply_intercept"])), D(str(inp["supply_slope"]))
+    p0, q0 = base["equilibrium_price"], base["equilibrium_quantity"]
+    floor, choke = -c / d, a / b
+    nonbinding = impl({**inp, "control_type": "ceiling", "control_price": str(p0 * 2)})
+    ceiling = impl({**inp, "control_type": "ceiling", "control_price": str((p0 + floor) / 2)})
+    floor_case = impl({**inp, "control_type": "floor", "control_price": str((p0 + choke) / 2)})
+    if base["binding"]:
+        p_d, p_s = (a - base["quantity_traded"]) / b, (base["quantity_traded"] - c) / d
+        expected_dwl = (q0 - base["quantity_traded"]) * (p_d - p_s) / 2
+    else:
+        expected_dwl = D(0)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("a_non_binding_control_leaves_the_market_unchanged", int(nonbinding["binding"]) == 0 and _close(nonbinding["quantity_traded"], q0) and _close(nonbinding["deadweight_loss"], 0), "a ceiling above equilibrium does not bind"),
+        ("a_binding_ceiling_creates_a_shortage", int(ceiling["binding"]) == 1 and ceiling["quantity_gap"] > 0 and ceiling["shortage"] > 0 and ceiling["quantity_traded"] < q0, "a ceiling below equilibrium leaves excess demand"),
+        ("a_binding_floor_creates_a_surplus", int(floor_case["binding"]) == 1 and floor_case["quantity_gap"] < 0 and floor_case["surplus"] > 0 and floor_case["quantity_traded"] < q0, "a floor above equilibrium leaves excess supply"),
+        ("deadweight_loss_is_the_triangle", _close(base["deadweight_loss"], expected_dwl), "the loss is the triangle over the fall in quantity"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def price_control_profile(inp):
+    try:
+        a, b, c, d, p0, q0 = _linear_market(inp)
+        control = D(str(inp["control_price"]))
+        kind = str(inp.get("control_type", "")).strip().lower()
+        errs = []
+        if control <= 0:
+            errs.append("control_price must be positive")
+        if kind not in ("ceiling", "floor"):
+            errs.append("control_type must be 'ceiling' or 'floor'")
+        if not errs:
+            binding = (control < p0) if kind == "ceiling" else (control > p0)
+            if binding:
+                if a - b * control < 0:
+                    errs.append("the control price is above the demand choke price, so quantity demanded is negative")
+                if c + d * control < 0:
+                    errs.append("the control price is below the supply floor price, so quantity supplied is negative")
+        return errs
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["price-control inputs are malformed: four curve numbers, control_price and control_type are required"]
+
+
+def _price_control_typing(metric):
+    if metric in ("equilibrium_price", "control_price", "deadweight_loss"):
+        return ("currency", 2)
+    if metric == "binding":
+        return ("count", 0)
+    return ("units", 2)
+
+
+def price_control_caveats(out, th):
+    return ["The control is a single fixed price that is enforced; a ceiling binds only below equilibrium and a floor only above it.",
+            "The short side of the market determines quantity traded; the long side's notional quantity is reported but not traded.",
+            "No rationing, queues, black markets, quality changes or general-equilibrium effects are modelled."]
+
+
+def price_control_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    if out.get("binding"):
+        return ("The declared control price of " + tok("control_price") + " binds. Quantity traded is " +
+                tok("quantity_traded") + ", with a shortage of " + tok("shortage") + " and a surplus of " +
+                tok("surplus") + "; the deadweight loss is " + tok("deadweight_loss") + ".")
+    return ("The declared control price of " + tok("control_price") + " does not bind. The market stays at the equilibrium quantity of " +
+            tok("quantity_traded") + ", with no shortage, surplus or deadweight loss.")
+
+
+def market_concentration_impl(inp):
+    revs = [D(str(x)) for x in inp["firm_revenues"]]
+    if len(revs) < 2:
+        raise DataError("at least two firms are required")
+    if any(r < 0 for r in revs):
+        raise DataError("firm revenues must be non-negative")
+    total = sum(revs, D(0))
+    if total <= 0:
+        raise DataError("total revenue must be positive")
+    shares = [r / total * 100 for r in revs]
+    ordered = sorted(shares, reverse=True)
+    hhi = sum((s * s for s in shares), D(0))
+    return {"n_firms": D(len(revs)), "total_revenue": total, "hhi": hhi,
+            "cr1": ordered[0], "cr4": sum(ordered[:4], D(0)),
+            "effective_n": D(10000) / hhi}
+
+
+def _concentration_ref(inp):
+    revs = [float(D(str(x))) for x in inp["firm_revenues"]]
+    total = sum(revs)
+    shares = [r / total * 100 for r in revs]
+    return {"hhi": sum(s * s for s in shares), "cr4": sum(sorted(shares, reverse=True)[:4])}
+
+
+def market_concentration_tests(inp, impl):
+    base, ref = impl(inp), _concentration_ref(inp)
+    revs = [D(str(x)) for x in inp["firm_revenues"]]
+    total = sum(revs, D(0))
+    shares = [r / total * 100 for r in revs]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("hhi_equals_the_sum_of_squared_shares", _close(base["hhi"], sum((s * s for s in shares), D(0))), "the HHI is the sum of squared percentage shares"),
+        ("cr4_is_the_sum_of_the_four_largest_shares", _close(base["cr4"], sum(sorted(shares, reverse=True)[:4], D(0))), "CR4 adds the four largest shares"),
+        ("shares_sum_to_one_hundred", _close(sum(shares, D(0)), D(100)), "the revenue shares add up to one hundred percent"),
+        ("effective_n_times_hhi_equals_ten_thousand", _close(base["effective_n"] * base["hhi"], D(10000)), "the equivalent number of firms is the inverse of the HHI"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def market_concentration_profile(inp):
+    try:
+        revs = [D(str(x)) for x in inp["firm_revenues"]]
+        errs = []
+        if len(revs) < 2:
+            errs.append("at least two firms are required")
+        if any(r < 0 for r in revs):
+            errs.append("firm revenues must be non-negative")
+        if sum(revs, D(0)) <= 0:
+            errs.append("total revenue must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["market-concentration inputs are malformed: firm_revenues must be a list of at least two numbers"]
+
+
+def _concentration_typing(metric):
+    if metric == "n_firms":
+        return ("count", 0)
+    if metric == "total_revenue":
+        return ("currency", 2)
+    if metric == "hhi":
+        return ("ratio", 0)
+    return ("ratio", 2)
+
+
+def concentration_caveats(out, th):
+    return ["The firms and revenues you declared are treated as the market; the tool does not define the market for you.",
+            "HHI uses percentage shares, so it runs from zero to ten thousand; fractions would give a different scale.",
+            "No import competition, geographic segmentation, merger simulation or legal threshold is applied."]
+
+
+def concentration_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("n_firms") + " declared firms the HHI is " + tok("hhi") +
+            " and the four-firm concentration ratio is " + tok("cr4") +
+            ". The equivalent number of equal-sized firms is " + tok("effective_n") + ".")
+
+
+# ---------- Macroeconomics and the firm (B-098) ----------
+# Deterministic arithmetic over declared costs, national-account components,
+# index numbers, labour-force counts, reserve ratios, multipliers and budget
+# aggregates.  No estimation, no retrieved data and no forecasting.
+
+def _cost_curves_values(inp):
+    f, b, c = D(str(inp["fixed_cost"])), D(str(inp["linear_cost"])), D(str(inp["quadratic_cost"]))
+    q = D(str(inp["quantity"]))
+    if f < 0:
+        raise DataError("fixed_cost must be non-negative")
+    if b < 0:
+        raise DataError("linear_cost must be non-negative")
+    if c < 0:
+        raise DataError("quadratic_cost must be non-negative")
+    if q <= 0:
+        raise DataError("quantity must be positive")
+    return f, b, c, q, f + b * q + c * q * q, b * q + c * q * q
+
+
+def cost_curves_impl(inp):
+    f, b, c, q, tc, vc = _cost_curves_values(inp)
+    out = {"total_cost": tc, "fixed_cost": f, "variable_cost": vc,
+           "average_cost": tc / q, "average_variable_cost": vc / q,
+           "average_fixed_cost": f / q, "marginal_cost": b + 2 * c * q,
+           "quantity": q}
+    if inp.get("price") is not None:
+        p = D(str(inp["price"]))
+        if p < 0:
+            raise DataError("price must be non-negative")
+        out.update({"price": p, "total_revenue": p * q, "profit": p * q - tc,
+                    "shutdown": D(1) if p < b else D(0)})
+    return out
+
+
+def _cost_curves_ref(inp):
+    f, b, c = float(D(str(inp["fixed_cost"]))), float(D(str(inp["linear_cost"]))), float(D(str(inp["quadratic_cost"])))
+    q = float(D(str(inp["quantity"])))
+    return {"total_cost": f + b * q + c * q * q,
+            "average_cost": (f + b * q + c * q * q) / q,
+            "marginal_cost": b + 2 * c * q}
+
+
+def cost_curves_tests(inp, impl):
+    base, ref = impl(inp), _cost_curves_ref(inp)
+    f, b, c, q, tc, vc = _cost_curves_values(inp)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("marginal_cost_is_the_derivative_of_total_cost", _close(base["marginal_cost"], b + 2 * c * q), "MC is the derivative of the declared quadratic cost function"),
+        ("average_cost_equals_total_cost_over_quantity", _close(base["average_cost"], tc / q), "AC is total cost divided by quantity"),
+        ("average_cost_equals_average_fixed_plus_average_variable", _close(base["average_cost"], base["average_fixed_cost"] + base["average_variable_cost"]), "AC splits into AFC and AVC"),
+        ("average_variable_cost_excludes_fixed_cost", _close(base["average_variable_cost"], b + c * q), "AVC contains no fixed cost"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def cost_curves_profile(inp):
+    try:
+        _cost_curves_values(inp)
+        if inp.get("price") is not None and D(str(inp["price"])) < 0:
+            return ["price must be non-negative"]
+        return []
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cost-curve inputs are malformed: fixed_cost, linear_cost, quadratic_cost and quantity are required numbers"]
+
+
+def _cost_curves_typing(metric):
+    if metric == "quantity":
+        return ("units", 2)
+    if metric == "shutdown":
+        return ("count", 0)
+    return ("currency", 2)
+
+
+def cost_curves_caveats(out, th):
+    return ["The cost function is the declared quadratic TC = fixed + linear x Q + quadratic x Q squared; the result is only as good as that function.",
+            "Average and marginal cost are arithmetic at the quantity you declared, not a claim about the whole range.",
+            "The shutdown price is the minimum average variable cost, which is the linear cost when the quadratic term is non-negative."]
+
+
+def cost_curves_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At a quantity of " + tok("quantity") + ", average cost is " + tok("average_cost") +
+         ", average variable cost is " + tok("average_variable_cost") + " and marginal cost is " +
+         tok("marginal_cost") + ".")
+    if "profit" in out:
+        t += " Total revenue is " + tok("total_revenue") + " and profit is " + tok("profit") + "."
+    return t
+
+
+def _profit_max_values(inp):
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    f, c, d = D(str(inp["fixed_cost"])), D(str(inp["linear_cost"])), D(str(inp["quadratic_cost"]))
+    if b <= 0:
+        raise DataError("demand_slope must be positive: P = a - bQ")
+    if f < 0:
+        raise DataError("fixed_cost must be non-negative")
+    if c < 0:
+        raise DataError("linear_cost must be non-negative")
+    if d < 0:
+        raise DataError("quadratic_cost must be non-negative")
+    if a <= c:
+        raise DataError("demand_intercept must exceed linear_cost for a positive profit-maximising quantity")
+    q = (a - c) / (2 * (b + d))
+    p = a - b * q
+    if q <= 0 or p <= 0:
+        raise DataError("the profit-maximising price or quantity is not positive for these curves")
+    return a, b, f, c, d, q, p
+
+
+def profit_maximization_impl(inp):
+    a, b, f, c, d, q, p = _profit_max_values(inp)
+    tr = p * q
+    tc = f + c * q + d * q * q
+    mc = c + 2 * d * q
+    return {"profit_maximizing_quantity": q, "profit_maximizing_price": p,
+            "total_revenue": tr, "total_cost": tc, "profit": tr - tc,
+            "marginal_cost_at_optimum": mc, "markup": p - mc,
+            "lerner_index": (p - mc) / p}
+
+
+def _profit_max_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    f, c, d = float(D(str(inp["fixed_cost"]))), float(D(str(inp["linear_cost"]))), float(D(str(inp["quadratic_cost"])))
+    q = (a - c) / (2 * (b + d))
+    p = a - b * q
+    return {"profit_maximizing_quantity": q, "profit_maximizing_price": p,
+            "profit": p * q - (f + c * q + d * q * q)}
+
+
+def profit_maximization_tests(inp, impl):
+    base, ref = impl(inp), _profit_max_ref(inp)
+    a, b, f, c, d, q, p = _profit_max_values(inp)
+    profit_at = lambda x: (a - b * x) * x - (f + c * x + d * x * x)
+    delta = q / 10
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-6) for k in ref), "float route agrees with the Decimal route"),
+        ("marginal_revenue_equals_marginal_cost", _close(a - 2 * b * q, c + 2 * d * q), "MR = MC at the optimum"),
+        ("profit_equals_revenue_minus_cost", _close(base["profit"], base["total_revenue"] - base["total_cost"]), "profit is revenue minus cost"),
+        ("lerner_index_equals_markup_over_price", _close(base["lerner_index"], base["markup"] / base["profit_maximizing_price"]), "the Lerner index is markup over price"),
+        ("profit_falls_away_from_the_optimum", profit_at(q - delta) < base["profit"] and profit_at(q + delta) < base["profit"], "profit is lower on both sides of the optimum"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def profit_maximization_profile(inp):
+    try:
+        _profit_max_values(inp)
+        return []
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["profit-maximisation inputs are malformed: demand_intercept, demand_slope, fixed_cost, linear_cost and quadratic_cost are required numbers"]
+
+
+def _profit_max_typing(metric):
+    if metric == "profit_maximizing_quantity":
+        return ("units", 2)
+    if metric == "lerner_index":
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def profit_maximization_caveats(out, th):
+    return ["The firm faces the declared linear inverse demand P = a - bQ and the declared quadratic cost TC = fixed + linear x Q + quadratic x Q squared.",
+            "The result is a single-period monopoly or monopoly-like optimum; it is not a competitive market outcome.",
+            "No tax, subsidy, multi-product interaction, entry or dynamic pricing is modelled."]
+
+
+def profit_maximization_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The profit-maximising quantity is " + tok("profit_maximizing_quantity") + " at a price of " +
+            tok("profit_maximizing_price") + ". Revenue is " + tok("total_revenue") + ", cost is " +
+            tok("total_cost") + " and profit is " + tok("profit") + "; the Lerner index is " +
+            tok("lerner_index") + ".")
+
+
+def market_power_impl(inp):
+    p, mc = D(str(inp["price"])), D(str(inp["marginal_cost"]))
+    if p <= 0:
+        raise DataError("price must be positive")
+    if mc < 0:
+        raise DataError("marginal_cost must be non-negative")
+    if mc > p:
+        raise DataError("marginal_cost must not exceed price; a price below marginal cost is not a market-power case")
+    markup = p - mc
+    lerner = markup / p
+    out = {"price": p, "marginal_cost": mc, "markup": markup, "lerner_index": lerner}
+    if lerner > 0:
+        out["implied_demand_elasticity"] = 1 / lerner
+    return out
+
+
+def _market_power_ref(inp):
+    p, mc = float(D(str(inp["price"]))), float(D(str(inp["marginal_cost"])))
+    return {"markup": p - mc, "lerner_index": (p - mc) / p}
+
+
+def market_power_tests(inp, impl):
+    base, ref = impl(inp), _market_power_ref(inp)
+    p, mc = D(str(inp["price"])), D(str(inp["marginal_cost"]))
+    competitive = impl({**inp, "marginal_cost": inp["price"]})
+    higher = impl({**inp, "price": str(p + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("lerner_index_equals_markup_over_price", _close(base["lerner_index"], base["markup"] / p), "the Lerner index is markup over price"),
+        ("markup_equals_price_minus_marginal_cost", _close(base["markup"], p - mc), "markup is price minus marginal cost"),
+        ("price_equals_marginal_cost_gives_zero_lerner", _close(competitive["lerner_index"], 0), "a price-taking firm has no Lerner markup"),
+        ("a_higher_price_raises_the_lerner_index", higher["lerner_index"] > base["lerner_index"], "holding marginal cost fixed, a higher price raises market power"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def market_power_profile(inp):
+    try:
+        p, mc = D(str(inp["price"])), D(str(inp["marginal_cost"]))
+        errs = []
+        if p <= 0:
+            errs.append("price must be positive")
+        if mc < 0:
+            errs.append("marginal_cost must be non-negative")
+        if mc > p:
+            errs.append("marginal_cost must not exceed price")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["market-power inputs are malformed: price and marginal_cost are required numbers"]
+
+
+def _market_power_typing(metric):
+    if metric in ("lerner_index", "implied_demand_elasticity"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def market_power_caveats(out, th):
+    return ["The Lerner index is (price - marginal cost) / price, computed from the two figures you declared.",
+            "It is a static markup measure, not proof of market power or of harm to consumers.",
+            "The implied elasticity is the inverse of the Lerner index only under the declared single-price monopoly model."]
+
+
+def market_power_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At a price of " + tok("price") + " and a marginal cost of " + tok("marginal_cost") +
+         ", the markup is " + tok("markup") + " and the Lerner index is " + tok("lerner_index") + ".")
+    if "implied_demand_elasticity" in out:
+        t += " The implied demand elasticity is " + tok("implied_demand_elasticity") + "."
+    return t
+
+
+def national_income_impl(inp):
+    c = D(str(inp["consumption"])); i = D(str(inp["investment"])); g = D(str(inp["government_spending"]))
+    x = D(str(inp["exports"])); m = D(str(inp["imports"]))
+    nfia = D(str(inp.get("net_factor_income", "0")))
+    dep = D(str(inp.get("depreciation", "0")))
+    for name, value in (("consumption", c), ("investment", i), ("government_spending", g),
+                        ("exports", x), ("imports", m)):
+        if value < 0:
+            raise DataError(name + " must be non-negative")
+    if dep < 0:
+        raise DataError("depreciation must be non-negative")
+    gdp = c + i + g + x - m
+    gnp = gdp + nfia
+    nnp = gnp - dep
+    out = {"gdp": gdp, "gnp": gnp, "nnp": nnp, "net_exports": x - m,
+           "consumption": c, "investment": i, "government_spending": g,
+           "exports": x, "imports": m, "net_factor_income": nfia, "depreciation": dep}
+    if inp.get("population") is not None:
+        pop = D(str(inp["population"]))
+        if pop <= 0:
+            raise DataError("population must be positive")
+        out["population"] = pop
+        out["gdp_per_capita"] = gdp / pop
+    if inp.get("gdp_deflator") is not None:
+        deflator = D(str(inp["gdp_deflator"]))
+        if deflator <= 0:
+            raise DataError("gdp_deflator must be positive (an index, not a percentage)")
+        out["gdp_deflator"] = deflator
+        out["real_gdp"] = gdp / (deflator / 100)
+    return out
+
+
+def _national_income_ref(inp):
+    c, i, g = (float(D(str(inp[k]))) for k in ("consumption", "investment", "government_spending"))
+    x, m = float(D(str(inp["exports"]))), float(D(str(inp["imports"])))
+    nfia = float(D(str(inp.get("net_factor_income", "0"))))
+    dep = float(D(str(inp.get("depreciation", "0"))))
+    gdp = c + i + g + x - m
+    return {"gdp": gdp, "gnp": gdp + nfia, "nnp": gdp + nfia - dep}
+
+
+def national_income_tests(inp, impl):
+    base, ref = impl(inp), _national_income_ref(inp)
+    c = D(str(inp["consumption"])); i = D(str(inp["investment"])); g = D(str(inp["government_spending"]))
+    x = D(str(inp["exports"])); m = D(str(inp["imports"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("gdp_equals_expenditure_components", _close(base["gdp"], c + i + g + x - m), "GDP is consumption plus investment plus government spending plus net exports"),
+        ("gnp_equals_gdp_plus_net_factor_income", _close(base["gnp"], base["gdp"] + base["net_factor_income"]), "GNP adds net factor income from abroad"),
+        ("nnp_equals_gnp_minus_depreciation", _close(base["nnp"], base["gnp"] - base["depreciation"]), "NNP subtracts depreciation"),
+        ("net_exports_equals_exports_minus_imports", _close(base["net_exports"], x - m), "net exports are exports minus imports"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def national_income_profile(inp):
+    try:
+        for key in ("consumption", "investment", "government_spending", "exports", "imports"):
+            if D(str(inp[key])) < 0:
+                return [key + " must be non-negative"]
+        if D(str(inp.get("depreciation", "0"))) < 0:
+            return ["depreciation must be non-negative"]
+        if inp.get("population") is not None and D(str(inp["population"])) <= 0:
+            return ["population must be positive"]
+        if inp.get("gdp_deflator") is not None and D(str(inp["gdp_deflator"])) <= 0:
+            return ["gdp_deflator must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["national-income inputs are malformed: consumption, investment, government_spending, exports and imports are required numbers"]
+
+
+def _national_typing(metric):
+    if metric in ("population",):
+        return ("count", 0)
+    if metric in ("gdp_deflator",):
+        return ("ratio", 2)
+    return ("currency", 2)
+
+
+def national_income_caveats(out, th):
+    return ["GDP is the expenditure approach from the components you declared: C + I + G + X - M. It is not an income-approach estimate and no double-counting check is possible from these aggregates.",
+            "Net factor income and depreciation are declared amounts; GNP and NNP are arithmetic on them.",
+            "Real GDP uses the declared deflator as an index with a base of 100. No base-year conversion or chain-linking is performed."]
+
+
+def national_income_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("GDP is " + tok("gdp") + ", GNP is " + tok("gnp") + " and NNP is " + tok("nnp") +
+         "; net exports are " + tok("net_exports") + ".")
+    if "real_gdp" in out:
+        t += " At the declared deflator, real GDP is " + tok("real_gdp") + "."
+    if "gdp_per_capita" in out:
+        t += " GDP per person is " + tok("gdp_per_capita") + "."
+    return t
+
+
+def growth_rate_impl(inp):
+    start, end = D(str(inp["start_value"])), D(str(inp["end_value"]))
+    n = D(str(inp["periods"]))
+    if start <= 0:
+        raise DataError("start_value must be positive")
+    if end <= 0:
+        raise DataError("end_value must be positive")
+    if n <= 0:
+        raise DataError("periods must be positive")
+    cagr = ((end / start).ln() / n).exp() - 1
+    out = {"start_value": start, "end_value": end, "periods": n,
+           "total_growth": (end - start) / start, "cagr": cagr}
+    if cagr > 0:
+        out["doubling_time_years"] = D(72) / (cagr * 100)
+    if inp.get("population_start") is not None and inp.get("population_end") is not None:
+        ps, pe = D(str(inp["population_start"])), D(str(inp["population_end"]))
+        if ps <= 0 or pe <= 0:
+            raise DataError("population figures must be positive")
+        ratio = (end / pe) / (start / ps)
+        out["per_capita_cagr"] = ((ratio.ln() / n).exp()) - 1
+    return out
+
+
+def _growth_ref(inp):
+    start, end = float(D(str(inp["start_value"]))), float(D(str(inp["end_value"])))
+    n = float(D(str(inp["periods"])))
+    return {"cagr": (end / start) ** (1 / n) - 1}
+
+
+def growth_rate_tests(inp, impl):
+    base, ref = impl(inp), _growth_ref(inp)
+    start, end, n = D(str(inp["start_value"])), D(str(inp["end_value"])), D(str(inp["periods"]))
+    higher = impl({**inp, "end_value": str(end * 2)})
+    checks = [
+        ("second_implementation_agrees", _close(base["cagr"], ref["cagr"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("cagr_compounds_to_the_end_value", _close(float(start) * (1 + float(base["cagr"])) ** float(n), float(end), rel=1e-6), "compounding the start value at the CAGR reaches the end value"),
+        ("total_growth_is_end_over_start_minus_one", _close(base["total_growth"], (end - start) / start), "total growth is the proportional change"),
+        ("doubling_time_times_cagr_is_approximately_72_percent", base["cagr"] <= 0 or _close(float(base["doubling_time_years"]) * float(base["cagr"]) * 100, 72, rel=1e-6), "the rule of 72 is the declared approximation"),
+        ("a_higher_end_value_raises_cagr", higher["cagr"] > base["cagr"], "a larger end value raises the compound growth rate"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+
+def growth_rate_profile(inp):
+    try:
+        if D(str(inp["start_value"])) <= 0:
+            return ["start_value must be positive"]
+        if D(str(inp["end_value"])) <= 0:
+            return ["end_value must be positive"]
+        if D(str(inp["periods"])) <= 0:
+            return ["periods must be positive"]
+        for key in ("population_start", "population_end"):
+            if inp.get(key) is not None and D(str(inp[key])) <= 0:
+                return [key + " must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["growth inputs are malformed: start_value, end_value and periods are required numbers"]
+
+
+def _growth_typing(metric):
+    if metric == "doubling_time_years":
+        return ("periods", 2)
+    if metric in ("start_value", "end_value"):
+        return ("currency", 2)
+    if metric == "periods":
+        return ("count", 0)
+    return ("rate", 4)
+
+
+def growth_rate_caveats(out, th):
+    return ["The CAGR is the constant rate that compounds the start value to the end value over the declared number of periods; it is not a forecast.",
+            "The rule of 72 is an approximation; the exact doubling time is ln(2)/ln(1 + CAGR).",
+            "No inflation adjustment is made unless the values you supplied are already real."]
+
+
+def growth_rate_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The compound annual growth rate from " + tok("start_value") + " to " + tok("end_value") +
+         " over " + tok("periods") + " periods is " + tok("cagr") + ".")
+    if "doubling_time_years" in out:
+        t += " At that rate the value doubles in about " + tok("doubling_time_years") + " periods."
+    return t
+
+
+def inflation_cpi_impl(inp):
+    c0, c1 = D(str(inp["cpi_start"])), D(str(inp["cpi_end"]))
+    if c0 <= 0 or c1 <= 0:
+        raise DataError("CPI values must be positive")
+    infl = (c1 - c0) / c0
+    out = {"cpi_start": c0, "cpi_end": c1, "inflation_rate": infl}
+    nominal = D(str(inp.get("nominal_interest_rate", "0")))
+    if nominal <= -1:
+        raise DataError("nominal_interest_rate must be greater than -100%")
+    out["nominal_interest_rate"] = nominal
+    out["real_interest_rate"] = (1 + nominal) / (1 + infl) - 1
+    out["real_interest_approximation"] = nominal - infl
+    if inp.get("wage_start") is not None and inp.get("wage_end") is not None:
+        w0, w1 = D(str(inp["wage_start"])), D(str(inp["wage_end"]))
+        if w0 <= 0 or w1 <= 0:
+            raise DataError("wage figures must be positive")
+        out["nominal_wage_growth"] = w1 / w0 - 1
+        out["real_wage_growth"] = (w1 / w0) / (c1 / c0) - 1
+    return out
+
+
+def _inflation_ref(inp):
+    c0, c1 = float(D(str(inp["cpi_start"]))), float(D(str(inp["cpi_end"])))
+    infl = (c1 - c0) / c0
+    nominal = float(D(str(inp.get("nominal_interest_rate", "0"))))
+    return {"inflation_rate": infl, "real_interest_rate": (1 + nominal) / (1 + infl) - 1}
+
+
+def inflation_cpi_tests(inp, impl):
+    base, ref = impl(inp), _inflation_ref(inp)
+    c0, c1 = D(str(inp["cpi_start"])), D(str(inp["cpi_end"]))
+    nominal = D(str(inp.get("nominal_interest_rate", "0")))
+    higher = impl({**inp, "cpi_end": str(c1 + 1)})
+    approx_gap = (nominal - base["inflation_rate"]) * base["inflation_rate"] / (1 + base["inflation_rate"])
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("inflation_is_the_cpi_percentage_change", _close(base["inflation_rate"], (c1 - c0) / c0), "inflation is the proportional change in the CPI"),
+        ("fisher_identity_holds", _close(1 + nominal, (1 + base["real_interest_rate"]) * (1 + base["inflation_rate"])), "the exact Fisher relation holds"),
+        ("approximation_gap_is_the_declared_identity", _close(base["real_interest_approximation"] - base["real_interest_rate"], approx_gap), "the nominal-minus-inflation approximation has the expected gap"),
+        ("a_higher_cpi_end_raises_inflation", higher["inflation_rate"] > base["inflation_rate"], "a higher end CPI raises the inflation rate"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def inflation_cpi_profile(inp):
+    try:
+        if D(str(inp["cpi_start"])) <= 0 or D(str(inp["cpi_end"])) <= 0:
+            return ["CPI values must be positive"]
+        if D(str(inp.get("nominal_interest_rate", "0"))) <= -1:
+            return ["nominal_interest_rate must be greater than -100%"]
+        for key in ("wage_start", "wage_end"):
+            if inp.get(key) is not None and D(str(inp[key])) <= 0:
+                return [key + " must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["inflation inputs are malformed: cpi_start and cpi_end are required numbers"]
+
+
+def _inflation_typing(metric):
+    if metric in ("cpi_start", "cpi_end"):
+        return ("ratio", 2)
+    if metric in ("wage_start", "wage_end"):
+        return ("currency", 2)
+    return ("rate", 4)
+
+
+def inflation_cpi_caveats(out, th):
+    return ["Inflation is the percentage change in the CPI you declared; the basket and the base period are the owner's choice.",
+            "The exact real interest rate uses the Fisher relation; the nominal-minus-inflation figure is only an approximation.",
+            "Real wage growth compares the wage index with the CPI index; it is not a household-specific cost-of-living measure."]
+
+
+def inflation_cpi_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The CPI moves from " + tok("cpi_start") + " to " + tok("cpi_end") + ", an inflation rate of " +
+         tok("inflation_rate") + ". At a nominal rate of " + tok("nominal_interest_rate") +
+         ", the exact real interest rate is " + tok("real_interest_rate") + ".")
+    if "real_wage_growth" in out:
+        t += " Real wage growth is " + tok("real_wage_growth") + "."
+    return t
+
+
+def unemployment_rate_impl(inp):
+    lf, emp = D(str(inp["labour_force"])), D(str(inp["employed"]))
+    wap = D(str(inp["working_age_population"]))
+    if lf <= 0:
+        raise DataError("labour_force must be positive")
+    if emp < 0:
+        raise DataError("employed must be non-negative")
+    if emp > lf:
+        raise DataError("employed cannot exceed the labour force")
+    if wap <= 0:
+        raise DataError("working_age_population must be positive")
+    if lf > wap:
+        raise DataError("the labour force cannot exceed the working-age population")
+    unemployed = lf - emp
+    return {"labour_force": lf, "employed": emp, "unemployed": unemployed,
+            "unemployment_rate": unemployed / lf,
+            "labour_force_participation_rate": lf / wap,
+            "employment_population_ratio": emp / wap}
+
+
+def _unemployment_ref(inp):
+    lf, emp = float(D(str(inp["labour_force"]))), float(D(str(inp["employed"])))
+    wap = float(D(str(inp["working_age_population"])))
+    return {"unemployment_rate": (lf - emp) / lf, "labour_force_participation_rate": lf / wap}
+
+
+def unemployment_rate_tests(inp, impl):
+    base, ref = impl(inp), _unemployment_ref(inp)
+    lf, emp, wap = D(str(inp["labour_force"])), D(str(inp["employed"])), D(str(inp["working_age_population"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("unemployed_equals_labour_force_minus_employed", _close(base["unemployed"], lf - emp), "the unemployed are the labour force minus the employed"),
+        ("unemployment_rate_equals_unemployed_over_labour_force", _close(base["unemployment_rate"], (lf - emp) / lf), "the unemployment rate divides by the labour force"),
+        ("participation_rate_equals_labour_force_over_working_age_population", _close(base["labour_force_participation_rate"], lf / wap), "the participation rate uses the working-age population"),
+        ("employment_population_ratio_equals_employed_over_working_age_population", _close(base["employment_population_ratio"], emp / wap), "the employment ratio uses the working-age population"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def unemployment_rate_profile(inp):
+    try:
+        lf, emp, wap = D(str(inp["labour_force"])), D(str(inp["employed"])), D(str(inp["working_age_population"]))
+        errs = []
+        if lf <= 0:
+            errs.append("labour_force must be positive")
+        if emp < 0:
+            errs.append("employed must be non-negative")
+        if emp > lf:
+            errs.append("employed cannot exceed the labour force")
+        if wap <= 0:
+            errs.append("working_age_population must be positive")
+        if lf > wap:
+            errs.append("the labour force cannot exceed the working-age population")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["unemployment inputs are malformed: labour_force, employed and working_age_population are required numbers"]
+
+
+def _unemployment_typing(metric):
+    if metric in ("labour_force", "employed", "unemployed"):
+        return ("count", 0)
+    return ("rate", 4)
+
+
+def unemployment_rate_caveats(out, th):
+    return ["The unemployment rate uses the labour-force definition implied by the counts you declared; discouraged workers outside the labour force are not counted.",
+            "The participation rate and employment ratio use the working-age population you supplied, not a demographic estimate.",
+            "No seasonal adjustment, underemployment or informal-sector adjustment is applied."]
+
+
+def unemployment_rate_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With a labour force of " + tok("labour_force") + " and " + tok("employed") +
+            " employed, the unemployment rate is " + tok("unemployment_rate") +
+            ". The participation rate is " + tok("labour_force_participation_rate") +
+            " and the employment-population ratio is " + tok("employment_population_ratio") + ".")
+
+
+def money_multiplier_impl(inp):
+    base = D(str(inp["monetary_base"]))
+    rr = D(str(inp["reserve_ratio"]))
+    cd = D(str(inp.get("currency_drain_ratio", "0")))
+    if base <= 0:
+        raise DataError("monetary_base must be positive")
+    if rr <= 0 or rr > 1:
+        raise DataError("reserve_ratio must be greater than zero and at most one")
+    if cd < 0 or cd >= 1:
+        raise DataError("currency_drain_ratio must be at least zero and below one")
+    simple = 1 / rr
+    extended = (1 + cd) / (rr + cd)
+    return {"monetary_base": base, "reserve_ratio": rr, "currency_drain_ratio": cd,
+            "simple_money_multiplier": simple, "extended_money_multiplier": extended,
+            "money_supply_simple": base * simple, "money_supply_extended": base * extended}
+
+
+def _money_ref(inp):
+    base, rr = float(D(str(inp["monetary_base"]))), float(D(str(inp["reserve_ratio"])))
+    cd = float(D(str(inp.get("currency_drain_ratio", "0"))))
+    return {"simple_money_multiplier": 1 / rr, "extended_money_multiplier": (1 + cd) / (rr + cd)}
+
+
+def money_multiplier_tests(inp, impl):
+    base, ref = impl(inp), _money_ref(inp)
+    rr = D(str(inp["reserve_ratio"]))
+    higher = impl({**inp, "reserve_ratio": str(min(rr + D("0.05"), D("0.99")))})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("simple_multiplier_is_one_over_the_reserve_ratio", _close(base["simple_money_multiplier"], 1 / rr), "the simple multiplier is the inverse of the reserve ratio"),
+        ("extended_multiplier_is_the_currency_adjusted_formula", _close(base["extended_money_multiplier"], (1 + base["currency_drain_ratio"]) / (rr + base["currency_drain_ratio"])), "the extended multiplier includes the currency drain"),
+        ("money_supply_is_the_base_times_the_multiplier", _close(base["money_supply_simple"], base["monetary_base"] * base["simple_money_multiplier"]) and _close(base["money_supply_extended"], base["monetary_base"] * base["extended_money_multiplier"]), "money supply is the base times the multiplier"),
+        ("a_higher_reserve_ratio_lowers_the_simple_multiplier", higher["simple_money_multiplier"] < base["simple_money_multiplier"], "a higher reserve ratio lowers the simple multiplier"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def money_multiplier_profile(inp):
+    try:
+        base, rr = D(str(inp["monetary_base"])), D(str(inp["reserve_ratio"]))
+        cd = D(str(inp.get("currency_drain_ratio", "0")))
+        errs = []
+        if base <= 0:
+            errs.append("monetary_base must be positive")
+        if rr <= 0 or rr > 1:
+            errs.append("reserve_ratio must be greater than zero and at most one")
+        if cd < 0 or cd >= 1:
+            errs.append("currency_drain_ratio must be at least zero and below one")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["money-multiplier inputs are malformed: monetary_base and reserve_ratio are required numbers"]
+
+
+def _money_typing(metric):
+    if metric in ("monetary_base", "money_supply_simple", "money_supply_extended"):
+        return ("currency", 2)
+    return ("ratio", 4)
+
+
+def money_multiplier_caveats(out, th):
+    return ["The money multiplier is a declared reserve-ratio identity, not a forecast of the money supply.",
+            "The simple multiplier assumes no currency drain and no excess reserves; the extended multiplier adds a declared currency drain but still assumes no excess reserves.",
+            "Banks are assumed to lend to the reserve requirement; the model does not include capital, liquidity or demand constraints."]
+
+
+def money_multiplier_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With a monetary base of " + tok("monetary_base") + " and a reserve ratio of " +
+            tok("reserve_ratio") + ", the simple money multiplier is " + tok("simple_money_multiplier") +
+            " and the currency-adjusted multiplier is " + tok("extended_money_multiplier") +
+            ". The implied money supply is " + tok("money_supply_extended") + ".")
+
+
+def fiscal_multiplier_impl(inp):
+    mpc = D(str(inp["mpc"]))
+    tax_rate = D(str(inp.get("tax_rate", "0")))
+    dg = D(str(inp.get("government_spending_change", "0")))
+    dt = D(str(inp.get("tax_change", "0")))
+    if not (0 < mpc < 1):
+        raise DataError("mpc must be greater than zero and below one")
+    if not (0 <= tax_rate < 1):
+        raise DataError("tax_rate must be at least zero and below one")
+    denom = 1 - mpc * (1 - tax_rate)
+    gov = 1 / denom
+    tax = -mpc / denom
+    balanced = (1 - mpc) / denom
+    return {"mpc": mpc, "tax_rate": tax_rate,
+            "government_spending_multiplier": gov, "tax_multiplier": tax,
+            "balanced_budget_multiplier": balanced,
+            "government_spending_change": dg, "tax_change": dt,
+            "output_change": gov * dg + tax * dt}
+
+
+def _fiscal_ref(inp):
+    mpc, t = float(D(str(inp["mpc"]))), float(D(str(inp.get("tax_rate", "0"))))
+    denom = 1 - mpc * (1 - t)
+    return {"government_spending_multiplier": 1 / denom, "tax_multiplier": -mpc / denom}
+
+
+def fiscal_multiplier_tests(inp, impl):
+    base, ref = impl(inp), _fiscal_ref(inp)
+    mpc, t = D(str(inp["mpc"])), D(str(inp.get("tax_rate", "0")))
+    higher = impl({**inp, "mpc": str((mpc + 1) / 2)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("government_multiplier_is_one_over_one_minus_mpc_times_one_minus_tax", _close(base["government_spending_multiplier"], 1 / (1 - mpc * (1 - t))), "the government-spending multiplier follows the declared formula"),
+        ("tax_multiplier_is_negative_mpc_times_the_government_multiplier", _close(base["tax_multiplier"], -mpc * base["government_spending_multiplier"]), "the tax multiplier is negative mpc times the government multiplier"),
+        ("balanced_budget_multiplier_is_one_minus_mpc_times_the_government_multiplier", _close(base["balanced_budget_multiplier"], (1 - mpc) * base["government_spending_multiplier"]), "the balanced-budget multiplier follows the same identity"),
+        ("a_higher_mpc_raises_the_government_multiplier", higher["government_spending_multiplier"] > base["government_spending_multiplier"], "a higher marginal propensity to consume raises the multiplier"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def fiscal_multiplier_profile(inp):
+    try:
+        mpc = D(str(inp["mpc"]))
+        t = D(str(inp.get("tax_rate", "0")))
+        errs = []
+        if not (0 < mpc < 1):
+            errs.append("mpc must be greater than zero and below one")
+        if not (0 <= t < 1):
+            errs.append("tax_rate must be at least zero and below one")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["fiscal-multiplier inputs are malformed: mpc is required and tax_rate is optional"]
+
+
+def _fiscal_typing(metric):
+    if metric in ("government_spending_change", "tax_change", "output_change"):
+        return ("currency", 2)
+    return ("ratio", 4)
+
+
+def fiscal_multiplier_caveats(out, th):
+    return ["The multiplier is a closed-economy Keynesian arithmetic identity on the declared mpc and tax rate; it is not an estimated fiscal effect.",
+            "A proportional income tax is included when tax_rate is declared; a lump-sum tax change uses the same multiplier on the declared tax change.",
+            "Crowding out, confidence, supply-side effects, lags and open-economy leakages are not modelled."]
+
+
+def fiscal_multiplier_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With an mpc of " + tok("mpc") + " and a tax rate of " + tok("tax_rate") +
+            ", the government-spending multiplier is " + tok("government_spending_multiplier") +
+            ", the tax multiplier is " + tok("tax_multiplier") + " and the balanced-budget multiplier is " +
+            tok("balanced_budget_multiplier") + ". The declared changes imply an output change of " +
+            tok("output_change") + ".")
+
+
+def budget_debt_impl(inp):
+    rev, spend = D(str(inp["government_revenue"])), D(str(inp["government_spending"]))
+    interest, debt = D(str(inp["interest_payments"])), D(str(inp["debt_stock"]))
+    gdp, growth = D(str(inp["nominal_gdp"])), D(str(inp["nominal_growth_rate"]))
+    inflation = D(str(inp.get("inflation_rate", "0")))
+    if rev < 0 or spend < 0 or interest < 0 or debt < 0:
+        raise DataError("revenue, spending, interest and debt must be non-negative")
+    if gdp <= 0:
+        raise DataError("nominal_gdp must be positive")
+    if growth <= -1:
+        raise DataError("nominal_growth_rate must be greater than -100%")
+    if inflation <= -1:
+        raise DataError("inflation_rate must be greater than -100%")
+    if debt == 0 and interest > 0:
+        raise DataError("interest payments require a positive debt stock")
+    total_spend = spend + interest
+    overall = rev - total_spend
+    primary = rev - spend
+    debt_ratio = debt / gdp
+    interest_rate = interest / debt if debt > 0 else D(0)
+    primary_ratio = primary / gdp
+    out = {"government_revenue": rev, "primary_spending": spend,
+           "interest_payments": interest, "total_spending": total_spend,
+           "overall_balance": overall, "primary_balance": primary,
+           "debt_stock": debt, "nominal_gdp": gdp, "debt_to_gdp": debt_ratio,
+           "interest_rate": interest_rate, "primary_balance_to_gdp": primary_ratio,
+           "debt_ratio_change": (interest_rate - growth) * debt_ratio - primary_ratio}
+    if inflation != 0:
+        out["real_interest_rate"] = (1 + interest_rate) / (1 + inflation) - 1
+    return out
+
+
+def _budget_ref(inp):
+    rev, spend = float(D(str(inp["government_revenue"]))), float(D(str(inp["government_spending"])))
+    interest = float(D(str(inp["interest_payments"])))
+    debt, gdp = float(D(str(inp["debt_stock"]))), float(D(str(inp["nominal_gdp"])))
+    growth = float(D(str(inp["nominal_growth_rate"])))
+    overall = rev - spend - interest
+    primary = rev - spend
+    ratio = debt / gdp
+    rate = interest / debt if debt > 0 else 0.0
+    return {"overall_balance": overall, "primary_balance": primary,
+            "debt_to_gdp": ratio,
+            "debt_ratio_change": (rate - growth) * ratio - primary / gdp}
+
+
+def budget_debt_tests(inp, impl):
+    base, ref = impl(inp), _budget_ref(inp)
+    rev, spend = D(str(inp["government_revenue"])), D(str(inp["government_spending"]))
+    interest, debt = D(str(inp["interest_payments"])), D(str(inp["debt_stock"]))
+    gdp, growth = D(str(inp["nominal_gdp"])), D(str(inp["nominal_growth_rate"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("overall_balance_equals_revenue_minus_total_spending", _close(base["overall_balance"], rev - (spend + interest)), "the overall balance subtracts primary spending and interest"),
+        ("primary_balance_equals_overall_balance_plus_interest", _close(base["primary_balance"], base["overall_balance"] + interest), "the primary balance adds interest back"),
+        ("debt_ratio_equals_debt_over_gdp", _close(base["debt_to_gdp"], debt / gdp), "the debt ratio is debt over GDP"),
+        ("debt_ratio_change_follows_the_interest_growth_primary_identity", _close(base["debt_ratio_change"], (base["interest_rate"] - growth) * base["debt_to_gdp"] - base["primary_balance_to_gdp"]), "the debt-ratio change follows the declared identity"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def budget_debt_profile(inp):
+    try:
+        for key in ("government_revenue", "government_spending", "interest_payments", "debt_stock"):
+            if D(str(inp[key])) < 0:
+                return [key + " must be non-negative"]
+        if D(str(inp["nominal_gdp"])) <= 0:
+            return ["nominal_gdp must be positive"]
+        if D(str(inp["nominal_growth_rate"])) <= -1:
+            return ["nominal_growth_rate must be greater than -100%"]
+        if D(str(inp.get("inflation_rate", "0"))) <= -1:
+            return ["inflation_rate must be greater than -100%"]
+        if D(str(inp["debt_stock"])) == 0 and D(str(inp["interest_payments"])) > 0:
+            return ["interest payments require a positive debt stock"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["budget inputs are malformed: revenue, spending, interest, debt, GDP and growth are required numbers"]
+
+
+def _budget_typing(metric):
+    if metric in ("government_revenue", "primary_spending", "interest_payments", "total_spending",
+                  "overall_balance", "primary_balance", "debt_stock", "nominal_gdp"):
+        return ("currency", 2)
+    return ("rate", 4)
+
+
+def budget_debt_caveats(out, th):
+    return ["The balances are arithmetic on the declared revenue, primary spending and interest; the government_spending input excludes interest.",
+            "The debt-ratio change is the standard interest-growth-primary identity, not a forecast; it holds the declared growth and interest rates constant.",
+            "No contingent liabilities, off-budget items, currency composition or debt maturity structure is modelled."]
+
+
+def budget_debt_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Revenue is " + tok("government_revenue") + " against total spending of " + tok("total_spending") +
+         ", an overall balance of " + tok("overall_balance") + " and a primary balance of " +
+         tok("primary_balance") + ". Debt is " + tok("debt_to_gdp") + " of GDP.")
+    if "real_interest_rate" in out:
+        t += " The real interest rate is " + tok("real_interest_rate") + "."
+    return t
+
+
+# ---------- Welfare, public economics and policy (B-099) ----------
+# Declared curves, incomes and policy parameters only.  No estimation, no
+# valuation of non-monetary effects and no policy recommendation.
+
+def externality_pigouvian_impl(inp):
+    a, b, c, d, p0, q0 = _linear_market(inp)
+    e = D(str(inp["marginal_external_cost"]))
+    if e < 0:
+        raise DataError("marginal_external_cost must be non-negative")
+    pc = (a - c + d * e) / (b + d)
+    qs = a - b * pc
+    ps = pc - e
+    if qs <= 0:
+        raise DataError("the external cost is so large that the social quantity is not positive")
+    return {"market_price": p0, "market_quantity": q0, "social_consumer_price": pc,
+            "social_producer_price": ps, "social_quantity": qs,
+            "external_cost": e, "pigouvian_tax": e,
+            "deadweight_loss": e * (q0 - qs) / 2}
+
+
+def _externality_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c, d = float(D(str(inp["supply_intercept"]))), float(D(str(inp["supply_slope"])))
+    e = float(D(str(inp["marginal_external_cost"])))
+    p0 = (a - c) / (b + d); q0 = a - b * p0
+    pc = (a - c + d * e) / (b + d); qs = a - b * pc
+    return {"social_quantity": qs, "deadweight_loss": e * (q0 - qs) / 2}
+
+
+def externality_pigouvian_tests(inp, impl):
+    base, ref = impl(inp), _externality_ref(inp)
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c, d = D(str(inp["supply_intercept"])), D(str(inp["supply_slope"]))
+    e = D(str(inp["marginal_external_cost"]))
+    qs = base["social_quantity"]
+    higher = impl({**inp, "marginal_external_cost": str(e + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("market_quantity_uses_the_private_curves", _close(a - b * base["market_price"], c + d * base["market_price"]), "the market equilibrium is where private demand meets private supply"),
+        ("social_quantity_equates_demand_to_private_supply_plus_external_cost", _close(a - b * base["social_consumer_price"], c + d * base["social_producer_price"]), "the social optimum adds the external cost to private supply"),
+        ("pigouvian_tax_equals_the_marginal_external_cost", _close(base["pigouvian_tax"], e), "the declared tax is the external cost per unit"),
+        ("a_higher_external_cost_lowers_the_social_quantity", higher["social_quantity"] < qs, "a larger external cost moves the social optimum down"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def externality_pigouvian_profile(inp):
+    try:
+        _linear_market(inp)
+        e = D(str(inp["marginal_external_cost"]))
+        if e < 0:
+            return ["marginal_external_cost must be non-negative"]
+        a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+        c, d = D(str(inp["supply_intercept"])), D(str(inp["supply_slope"]))
+        qs = a - b * ((a - c + d * e) / (b + d))
+        return [] if qs > 0 else ["the external cost is so large that the social quantity is not positive"]
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["externality inputs are malformed: four curve numbers and marginal_external_cost are required"]
+
+
+def _externality_typing(metric):
+    if metric in ("market_quantity", "social_quantity"):
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def externality_pigouvian_caveats(out, th):
+    return ["The external cost is a declared per-unit value; the method does not estimate damages or value non-monetary effects.",
+            "The Pigouvian tax equals the marginal external cost at the social optimum in this linear partial-equilibrium model.",
+            "No abatement technology, monitoring cost, tax interaction or general-equilibrium effect is modelled."]
+
+
+def externality_pigouvian_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The private market produces " + tok("market_quantity") + " at a price of " + tok("market_price") +
+            "; the social optimum is " + tok("social_quantity") + ". The Pigouvian tax is " +
+            tok("pigouvian_tax") + " per unit and the deadweight loss is " + tok("deadweight_loss") + ".")
+
+
+def public_good_impl(inp):
+    a1, b1 = D(str(inp["mb1_intercept"])), D(str(inp["mb1_slope"]))
+    a2, b2 = D(str(inp["mb2_intercept"])), D(str(inp["mb2_slope"]))
+    c, d = D(str(inp["mc_intercept"])), D(str(inp["mc_slope"]))
+    if b1 <= 0 or b2 <= 0 or d <= 0:
+        raise DataError("the marginal-benefit and marginal-cost slopes must be positive")
+    A, B = a1 + a2, b1 + b2
+    q = (A - c) / (B + d)
+    if q <= 0:
+        raise DataError("the declared marginal benefits do not cover marginal cost at a positive quantity")
+    smb, mc = A - B * q, c + d * q
+    total_benefit = A * q - B * q * q / 2
+    total_cost = c * q + d * q * q / 2
+    return {"efficient_quantity": q, "social_marginal_benefit": smb, "marginal_cost": mc,
+            "total_benefit": total_benefit, "total_cost": total_cost,
+            "net_benefit": total_benefit - total_cost}
+
+
+def _public_good_ref(inp):
+    a1, b1 = float(D(str(inp["mb1_intercept"]))), float(D(str(inp["mb1_slope"])))
+    a2, b2 = float(D(str(inp["mb2_intercept"]))), float(D(str(inp["mb2_slope"])))
+    c, d = float(D(str(inp["mc_intercept"]))), float(D(str(inp["mc_slope"])))
+    q = (a1 + a2 - c) / (b1 + b2 + d)
+    return {"efficient_quantity": q, "net_benefit": (a1 + a2) * q - (b1 + b2) * q * q / 2 - (c * q + d * q * q / 2)}
+
+
+def public_good_tests(inp, impl):
+    base, ref = impl(inp), _public_good_ref(inp)
+    a1, b1 = D(str(inp["mb1_intercept"])), D(str(inp["mb1_slope"]))
+    a2, b2 = D(str(inp["mb2_intercept"])), D(str(inp["mb2_slope"]))
+    c, d = D(str(inp["mc_intercept"])), D(str(inp["mc_slope"]))
+    q = base["efficient_quantity"]
+    higher = impl({**inp, "mc_intercept": str(c + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("samuelson_condition_holds", _close(base["social_marginal_benefit"], base["marginal_cost"]), "the sum of marginal benefits equals marginal cost at the optimum"),
+        ("total_benefit_is_the_area_under_social_marginal_benefit", _close(base["total_benefit"], (a1 + a2) * q - (b1 + b2) * q * q / 2), "total benefit is the integral of social marginal benefit"),
+        ("total_cost_is_the_area_under_marginal_cost", _close(base["total_cost"], c * q + d * q * q / 2), "total cost is the integral of marginal cost"),
+        ("a_higher_marginal_cost_lowers_the_efficient_quantity", higher["efficient_quantity"] < q, "a higher marginal cost reduces optimal provision"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def public_good_profile(inp):
+    try:
+        for key in ("mb1_slope", "mb2_slope", "mc_slope"):
+            if D(str(inp[key])) <= 0:
+                return [key + " must be positive"]
+        a1, b1 = D(str(inp["mb1_intercept"])), D(str(inp["mb1_slope"]))
+        a2, b2 = D(str(inp["mb2_intercept"])), D(str(inp["mb2_slope"]))
+        c, d = D(str(inp["mc_intercept"])), D(str(inp["mc_slope"]))
+        return [] if (a1 + a2 - c) / (b1 + b2 + d) > 0 else ["the declared marginal benefits do not cover marginal cost at a positive quantity"]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["public-good inputs are malformed: two benefit schedules and one cost schedule are required"]
+
+
+def _public_good_typing(metric):
+    if metric == "efficient_quantity":
+        return ("units", 2)
+    if metric in ("social_marginal_benefit", "marginal_cost"):
+        return ("currency", 2)
+    return ("currency", 2)
+
+
+def public_good_caveats(out, th):
+    return ["The two individual marginal-benefit schedules are declared linear functions; the social marginal benefit is their vertical sum.",
+            "The method computes the Samuelson condition only; it does not model free riding, contribution games or government provision.",
+            "No distributional weights, crowding out or administrative cost is included."]
+
+
+def public_good_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The efficient quantity of the public good is " + tok("efficient_quantity") +
+            ", where the summed marginal benefit equals marginal cost. Total benefit is " +
+            tok("total_benefit") + ", total cost is " + tok("total_cost") + " and net benefit is " +
+            tok("net_benefit") + ".")
+
+
+def social_welfare_impl(inp):
+    vals = [D(str(x)) for x in inp["incomes"]]
+    if len(vals) < 2:
+        raise DataError("at least two incomes are required")
+    if any(x <= 0 for x in vals):
+        raise DataError("incomes must be positive for the geometric-mean welfare measure")
+    n = D(len(vals))
+    total = sum(vals, D(0))
+    mean = total / n
+    utilitarian = total
+    rawlsian = min(vals)
+    nash = (sum((x.ln() for x in vals), D(0)) / n).exp()
+    function = str(inp["welfare_function"])
+    if function not in ("utilitarian", "rawlsian", "nash"):
+        raise DataError("welfare_function must be utilitarian, rawlsian or nash")
+    selected = {"utilitarian": utilitarian, "rawlsian": rawlsian, "nash": nash}[function]
+    return {"n": n, "mean_income": mean, "min_income": rawlsian, "max_income": max(vals),
+            "utilitarian_welfare": utilitarian, "rawlsian_welfare": rawlsian,
+            "nash_welfare": nash, "social_welfare": selected}
+
+
+def social_welfare_tests(inp, impl):
+    base = impl(inp)
+    vals = [D(str(x)) for x in inp["incomes"]]
+    n = D(len(vals))
+    total = sum(vals, D(0))
+    richest, poorest = max(vals), min(vals)
+    transfer = base
+    if richest > poorest + 2:
+        moved = list(vals)
+        moved[moved.index(richest)] = richest - 1
+        moved[moved.index(poorest)] = poorest + 1
+        transfer = impl({**inp, "incomes": [str(x) for x in moved]})
+    checks = [
+        ("welfare_measures_agree_with_their_definitions", _close(base["utilitarian_welfare"], total) and _close(base["rawlsian_welfare"], poorest), "the simple welfare measures agree"),
+        ("utilitarian_is_the_sum_of_incomes", _close(base["utilitarian_welfare"], total), "utilitarian welfare adds the incomes"),
+        ("rawlsian_is_the_minimum_income", _close(base["rawlsian_welfare"], poorest), "Rawlsian welfare is the worst-off income"),
+        ("nash_is_the_geometric_mean", _close(base["nash_welfare"], (sum((x.ln() for x in vals), D(0)) / n).exp()), "Nash welfare is the geometric mean"),
+        ("a_transfer_from_the_richest_to_the_poorest_does_not_lower_nash_welfare", transfer["nash_welfare"] >= base["nash_welfare"], "a progressive transfer does not lower the geometric mean"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+
+def social_welfare_profile(inp):
+    try:
+        vals = [D(str(x)) for x in inp["incomes"]]
+        errs = []
+        if len(vals) < 2:
+            errs.append("at least two incomes are required")
+        if any(x <= 0 for x in vals):
+            errs.append("incomes must be positive")
+        if str(inp.get("welfare_function", "utilitarian")) not in ("utilitarian", "rawlsian", "nash"):
+            errs.append("welfare_function must be utilitarian, rawlsian or nash")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["social-welfare inputs are malformed: incomes must be a list of positive numbers"]
+
+
+def _social_typing(metric):
+    if metric == "n":
+        return ("count", 0)
+    return ("currency", 2)
+
+
+def social_welfare_caveats(out, th):
+    return ["The welfare functions use declared incomes as the utility argument; they do not estimate individual utility.",
+            "Utilitarian, Rawlsian and Nash welfare are different ethical criteria; the selected one is a choice, not a fact.",
+            "No equivalence scales, household composition or non-income dimensions are included."]
+
+
+def social_welfare_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("n") + " incomes the mean is " + tok("mean_income") +
+            "; utilitarian welfare is " + tok("utilitarian_welfare") + ", Rawlsian welfare is " +
+            tok("rawlsian_welfare") + " and Nash welfare is " + tok("nash_welfare") +
+            ". The selected social-welfare value is " + tok("social_welfare") + ".")
+
+
+def gini_coefficient_impl(inp):
+    vals = sorted(D(str(x)) for x in inp["incomes"])
+    if len(vals) < 2:
+        raise DataError("at least two incomes are required")
+    if any(x < 0 for x in vals):
+        raise DataError("incomes must be non-negative")
+    total = sum(vals, D(0))
+    if total <= 0:
+        raise DataError("total income must be positive")
+    n = D(len(vals))
+    g = (2 * sum((D(i + 1) * x for i, x in enumerate(vals)), D(0)) - (n + 1) * total) / (n * total)
+    return {"n": n, "mean_income": total / n, "min_income": vals[0], "max_income": vals[-1],
+            "gini": g, "poorest_share": vals[0] / total, "richest_share": vals[-1] / total}
+
+
+def _gini_ref(inp):
+    vals = sorted(float(D(str(x))) for x in inp["incomes"])
+    n = len(vals); total = sum(vals)
+    return {"gini": (2 * sum((i + 1) * x for i, x in enumerate(vals)) - (n + 1) * total) / (n * total)}
+
+
+def gini_coefficient_tests(inp, impl):
+    base, ref = impl(inp), _gini_ref(inp)
+    vals = [D(str(x)) for x in inp["incomes"]]
+    equal = impl({"incomes": [str(sum(vals, D(0)) / len(vals))] * len(vals)})
+    scaled = impl({"incomes": [str(x * 3) for x in vals]})
+    shuffled = impl({"incomes": [str(x) for x in reversed(vals)]})
+    checks = [
+        ("second_implementation_agrees", _close(base["gini"], ref["gini"]), "float route agrees with the Decimal route"),
+        ("equal_incomes_give_zero_gini", _close(equal["gini"], 0), "a perfectly equal distribution has a zero Gini"),
+        ("gini_is_bounded_between_zero_and_one", 0 <= base["gini"] <= 1, "the Gini coefficient lies between zero and one"),
+        ("scaling_all_incomes_leaves_gini_unchanged", _close(scaled["gini"], base["gini"]), "the Gini is scale-free"),
+        ("reordering_the_incomes_leaves_gini_unchanged", _close(shuffled["gini"], base["gini"]), "the Gini is order-invariant"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def gini_coefficient_profile(inp):
+    try:
+        vals = [D(str(x)) for x in inp["incomes"]]
+        if len(vals) < 2:
+            return ["at least two incomes are required"]
+        if any(x < 0 for x in vals):
+            return ["incomes must be non-negative"]
+        if sum(vals, D(0)) <= 0:
+            return ["total income must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["Gini inputs are malformed: incomes must be a list of at least two non-negative numbers"]
+
+
+def _gini_typing(metric):
+    if metric == "n":
+        return ("count", 0)
+    if metric in ("gini", "poorest_share", "richest_share"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def gini_coefficient_caveats(out, th):
+    return ["The Gini coefficient is computed from the declared incomes; the income definition, unit and population coverage are the owner's choice.",
+            "It is a single summary of inequality and does not show where in the distribution the differences lie.",
+            "No equivalence scales, taxes, transfers or in-kind income are included."]
+
+
+def gini_coefficient_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("n") + " incomes the Gini coefficient is " + tok("gini") +
+            ". The poorest income is " + tok("min_income") + " and the richest is " + tok("max_income") + ".")
+
+
+def poverty_measures_impl(inp):
+    vals = [D(str(x)) for x in inp["incomes"]]
+    line = D(str(inp["poverty_line"]))
+    if len(vals) < 1:
+        raise DataError("at least one income is required")
+    if any(x < 0 for x in vals):
+        raise DataError("incomes must be non-negative")
+    if line <= 0:
+        raise DataError("poverty_line must be positive")
+    n = D(len(vals))
+    poor = [x for x in vals if x < line]
+    headcount = D(len(poor)) / n
+    gap = sum(((line - x) / line for x in poor), D(0)) / n
+    squared = sum((((line - x) / line) ** 2 for x in poor), D(0)) / n
+    total_gap = sum((line - x for x in poor), D(0))
+    return {"n": n, "poor_count": D(len(poor)), "headcount_ratio": headcount,
+            "poverty_gap": gap, "squared_gap": squared, "total_gap": total_gap}
+
+
+def _poverty_ref(inp):
+    vals = [float(D(str(x))) for x in inp["incomes"]]
+    line = float(D(str(inp["poverty_line"])))
+    poor = [x for x in vals if x < line]
+    return {"headcount_ratio": len(poor) / len(vals), "poverty_gap": sum((line - x) / line for x in poor) / len(vals)}
+
+
+def poverty_measures_tests(inp, impl):
+    base, ref = impl(inp), _poverty_ref(inp)
+    line = D(str(inp["poverty_line"]))
+    vals = [D(str(x)) for x in inp["incomes"]]
+    higher = impl({**inp, "poverty_line": str(line + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("headcount_is_the_share_below_the_line", _close(base["headcount_ratio"], D(sum(1 for x in vals if x < line)) / D(len(vals))), "the headcount is the share of incomes below the line"),
+        ("poverty_gap_is_the_average_normalised_shortfall", _close(base["poverty_gap"], sum(((line - x) / line for x in vals if x < line), D(0)) / D(len(vals))), "the gap averages the normalised shortfall over the population"),
+        ("squared_gap_is_the_average_squared_shortfall", _close(base["squared_gap"], sum((((line - x) / line) ** 2 for x in vals if x < line), D(0)) / D(len(vals))), "the squared gap averages the squared normalised shortfall"),
+        ("a_higher_poverty_line_raises_the_headcount", higher["headcount_ratio"] >= base["headcount_ratio"], "a higher line cannot reduce the headcount"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def poverty_measures_profile(inp):
+    try:
+        vals = [D(str(x)) for x in inp["incomes"]]
+        line = D(str(inp["poverty_line"]))
+        errs = []
+        if not vals:
+            errs.append("at least one income is required")
+        if any(x < 0 for x in vals):
+            errs.append("incomes must be non-negative")
+        if line <= 0:
+            errs.append("poverty_line must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["poverty inputs are malformed: incomes must be a list and poverty_line a positive number"]
+
+
+def _poverty_typing(metric):
+    if metric in ("n", "poor_count"):
+        return ("count", 0)
+    if metric == "total_gap":
+        return ("currency", 2)
+    return ("rate", 4)
+
+
+def poverty_measures_caveats(out, th):
+    return ["The poverty line is the owner's declared value; the headcount, gap and squared gap are sensitive to it.",
+            "The measures count incomes below the line and do not identify who is poor or for how long.",
+            "No equivalence scales, taxes, transfers or non-monetary deprivation are included."]
+
+
+def poverty_measures_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With a declared poverty line, " + tok("poor_count") + " of " + tok("n") +
+            " incomes are below it. The headcount ratio is " + tok("headcount_ratio") +
+            ", the poverty gap is " + tok("poverty_gap") + " and the squared gap is " +
+            tok("squared_gap") + ".")
+
+
+def tax_progressivity_impl(inp):
+    incomes = [D(str(x)) for x in inp["incomes"]]
+    taxes = [D(str(x)) for x in inp["taxes"]]
+    if len(incomes) != len(taxes):
+        raise DataError("incomes and taxes must have the same length")
+    if len(incomes) < 2:
+        raise DataError("at least two observations are required")
+    if any(x <= 0 for x in incomes):
+        raise DataError("incomes must be positive")
+    if any(t < 0 for t in taxes):
+        raise DataError("taxes must be non-negative")
+    total_income = sum(incomes, D(0)); total_tax = sum(taxes, D(0))
+    if total_tax <= 0:
+        raise DataError("total tax must be positive")
+    k = max(1, (len(incomes) + 3) // 4)
+    top = sorted(zip(incomes, taxes), key=lambda pair: pair[0], reverse=True)[:k]
+    top_income = sum((pair[0] for pair in top), D(0))
+    top_tax = sum((pair[1] for pair in top), D(0))
+    income_share = top_income / total_income
+    tax_share = top_tax / total_tax
+    return {"average_tax_rate": total_tax / total_income,
+            "top_income_share": income_share, "top_tax_share": tax_share,
+            "progressivity_gap": tax_share - income_share,
+            "n": D(len(incomes))}
+
+
+def _tax_prog_ref(inp):
+    incomes = [float(D(str(x))) for x in inp["incomes"]]
+    taxes = [float(D(str(x))) for x in inp["taxes"]]
+    k = max(1, (len(incomes) + 3) // 4)
+    top = sorted(zip(incomes, taxes), key=lambda pair: pair[0], reverse=True)[:k]
+    return {"average_tax_rate": sum(taxes) / sum(incomes),
+            "progressivity_gap": sum(t for _, t in top) / sum(taxes) - sum(i for i, _ in top) / sum(incomes)}
+
+
+def tax_progressivity_tests(inp, impl):
+    base, ref = impl(inp), _tax_prog_ref(inp)
+    incomes = [D(str(x)) for x in inp["incomes"]]
+    taxes = [D(str(x)) for x in inp["taxes"]]
+    proportional = impl({"incomes": [str(x) for x in incomes], "taxes": [str(x * D("0.2")) for x in incomes]})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("average_tax_rate_equals_total_tax_over_total_income", _close(base["average_tax_rate"], sum(taxes, D(0)) / sum(incomes, D(0))), "the average rate is total tax over total income"),
+        ("top_income_share_equals_top_income_over_total_income", _close(base["top_income_share"], sum((x for x in sorted(incomes, reverse=True)[:max(1, (len(incomes) + 3) // 4)]), D(0)) / sum(incomes, D(0))), "the top-income share uses the top quartile"),
+        ("top_tax_share_equals_top_tax_over_total_tax", _close(base["top_tax_share"], sum((t for _, t in sorted(zip(incomes, taxes), key=lambda pair: pair[0], reverse=True)[:max(1, (len(incomes) + 3) // 4)]), D(0)) / sum(taxes, D(0))), "the top-tax share uses the same top quartile"),
+        ("a_proportional_tax_gives_zero_progressivity_gap", _close(proportional["progressivity_gap"], 0), "a proportional tax has equal income and tax shares at the top"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def tax_progressivity_profile(inp):
+    try:
+        incomes = [D(str(x)) for x in inp["incomes"]]
+        taxes = [D(str(x)) for x in inp["taxes"]]
+        errs = []
+        if len(incomes) != len(taxes):
+            errs.append("incomes and taxes must have the same length")
+        if len(incomes) < 2:
+            errs.append("at least two observations are required")
+        if any(x <= 0 for x in incomes):
+            errs.append("incomes must be positive")
+        if any(t < 0 for t in taxes):
+            errs.append("taxes must be non-negative")
+        if sum(taxes, D(0)) <= 0:
+            errs.append("total tax must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["tax-progressivity inputs are malformed: incomes and taxes must be lists of the same length"]
+
+
+def _tax_prog_typing(metric):
+    if metric == "n":
+        return ("count", 0)
+    return ("rate", 4)
+
+
+def tax_progressivity_caveats(out, th):
+    return ["The top-quartile shares are a simple summary; they are not a Kakwani or Reynolds-Smolensky index.",
+            "The method uses declared incomes and taxes as observed; it does not model deductions, exemptions or behavioural responses.",
+            "A positive gap means the top quartile pays a larger share of tax than it earns of income; it is not a full progressivity measure."]
+
+
+def tax_progressivity_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The average tax rate is " + tok("average_tax_rate") + ". The top quartile earns " +
+            tok("top_income_share") + " of income and pays " + tok("top_tax_share") +
+            " of tax, a progressivity gap of " + tok("progressivity_gap") + ".")
+
+
+def optimal_pollution_impl(inp):
+    a, b = D(str(inp["marginal_damage_intercept"])), D(str(inp["marginal_damage_slope"]))
+    c, d = D(str(inp["marginal_abatement_intercept"])), D(str(inp["marginal_abatement_slope"]))
+    if b <= 0 or d <= 0:
+        raise DataError("the marginal-damage and marginal-abatement slopes must be positive")
+    e = (c - a) / (b + d)
+    if e <= 0:
+        raise DataError("the declared curves do not give a positive optimal emission level")
+    md, mac = a + b * e, c - d * e
+    return {"optimal_emissions": e, "marginal_damage": md, "marginal_abatement_cost": mac,
+            "pollution_tax": md, "total_damage": a * e + b * e * e / 2,
+            "total_abatement_cost": c * e - d * e * e / 2}
+
+
+def _pollution_ref(inp):
+    a, b = float(D(str(inp["marginal_damage_intercept"]))), float(D(str(inp["marginal_damage_slope"])))
+    c, d = float(D(str(inp["marginal_abatement_intercept"]))), float(D(str(inp["marginal_abatement_slope"])))
+    e = (c - a) / (b + d)
+    return {"optimal_emissions": e, "marginal_damage": a + b * e}
+
+
+def optimal_pollution_tests(inp, impl):
+    base, ref = impl(inp), _pollution_ref(inp)
+    a, b = D(str(inp["marginal_damage_intercept"])), D(str(inp["marginal_damage_slope"]))
+    c, d = D(str(inp["marginal_abatement_intercept"])), D(str(inp["marginal_abatement_slope"]))
+    higher = impl({**inp, "marginal_damage_intercept": str(a + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("marginal_damage_equals_marginal_abatement_cost", _close(base["marginal_damage"], base["marginal_abatement_cost"]), "the optimum equates marginal damage and marginal abatement cost"),
+        ("pollution_tax_equals_marginal_damage", _close(base["pollution_tax"], base["marginal_damage"]), "the optimal tax equals marginal damage at the optimum"),
+        ("total_damage_is_the_area_under_marginal_damage", _close(base["total_damage"], a * base["optimal_emissions"] + b * base["optimal_emissions"] ** 2 / 2), "total damage is the integral of marginal damage"),
+        ("a_higher_damage_intercept_lowers_optimal_emissions", higher["optimal_emissions"] < base["optimal_emissions"], "higher marginal damage reduces the optimal emission level"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def optimal_pollution_profile(inp):
+    try:
+        b, d = D(str(inp["marginal_damage_slope"])), D(str(inp["marginal_abatement_slope"]))
+        errs = []
+        if b <= 0:
+            errs.append("marginal_damage_slope must be positive")
+        if d <= 0:
+            errs.append("marginal_abatement_slope must be positive")
+        a, c = D(str(inp["marginal_damage_intercept"])), D(str(inp["marginal_abatement_intercept"]))
+        if not errs and (c - a) / (b + d) <= 0:
+            errs.append("the declared curves do not give a positive optimal emission level")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["optimal-pollution inputs are malformed: two intercepts and two positive slopes are required"]
+
+
+def _pollution_typing(metric):
+    if metric in ("optimal_emissions",):
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def optimal_pollution_caveats(out, th):
+    return ["The marginal-damage and marginal-abatement functions are declared linear curves; the result is only as good as those curves.",
+            "The optimal tax is the marginal damage at the optimum, not a market price or an observed tax.",
+            "No monitoring, enforcement, technological change or distributional effect is modelled."]
+
+
+def optimal_pollution_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The optimal emission level is " + tok("optimal_emissions") + ", where marginal damage equals marginal abatement cost. The pollution tax is " +
+            tok("pollution_tax") + " and total damage is " + tok("total_damage") + ".")
+
+
+def output_gap_okun_impl(inp):
+    actual, potential = D(str(inp["actual_gdp"])), D(str(inp["potential_gdp"]))
+    if actual <= 0 or potential <= 0:
+        raise DataError("actual and potential GDP must be positive")
+    okun = D(str(inp.get("okun_coefficient", "0.5")))
+    if okun < 0:
+        raise DataError("okun_coefficient must be non-negative")
+    current = D(str(inp.get("current_unemployment_rate", "0")))
+    if current < 0 or current > 1:
+        raise DataError("current_unemployment_rate must be a fraction between zero and one")
+    gap = (actual - potential) / potential
+    change_pp = -okun * gap * 100
+    return {"output_gap": gap, "predicted_unemployment_change_pp": change_pp,
+            "predicted_unemployment_rate": current + change_pp / 100,
+            "okun_coefficient": okun}
+
+
+def _okun_ref(inp):
+    actual, potential = float(D(str(inp["actual_gdp"]))), float(D(str(inp["potential_gdp"])))
+    okun = float(D(str(inp.get("okun_coefficient", "0.5"))))
+    gap = (actual - potential) / potential
+    return {"output_gap": gap, "predicted_unemployment_change_pp": -okun * gap * 100}
+
+
+def output_gap_okun_tests(inp, impl):
+    base, ref = impl(inp), _okun_ref(inp)
+    actual, potential = D(str(inp["actual_gdp"])), D(str(inp["potential_gdp"]))
+    zero = impl({**inp, "actual_gdp": str(potential)})
+    higher = impl({**inp, "okun_coefficient": str(D(str(inp.get("okun_coefficient", "0.5"))) + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("output_gap_is_actual_over_potential_minus_one", _close(base["output_gap"], (actual - potential) / potential), "the output gap is the proportional deviation from potential"),
+        ("zero_gap_gives_zero_unemployment_change", _close(zero["predicted_unemployment_change_pp"], 0), "at potential output the predicted change is zero"),
+        ("a_positive_gap_lowers_the_predicted_unemployment_rate", base["predicted_unemployment_change_pp"] < 0 if actual > potential else base["predicted_unemployment_change_pp"] >= 0, "Okun's law predicts lower unemployment in a boom"),
+        ("a_higher_okun_coefficient_raises_the_magnitude", abs(higher["predicted_unemployment_change_pp"]) >= abs(base["predicted_unemployment_change_pp"]), "a larger coefficient amplifies the predicted change"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def output_gap_okun_profile(inp):
+    try:
+        actual, potential = D(str(inp["actual_gdp"])), D(str(inp["potential_gdp"]))
+        errs = []
+        if actual <= 0 or potential <= 0:
+            errs.append("actual and potential GDP must be positive")
+        if D(str(inp.get("okun_coefficient", "0.5"))) < 0:
+            errs.append("okun_coefficient must be non-negative")
+        current = D(str(inp.get("current_unemployment_rate", "0")))
+        if current < 0 or current > 1:
+            errs.append("current_unemployment_rate must be a fraction between zero and one")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["Okun inputs are malformed: actual_gdp and potential_gdp are required numbers"]
+
+
+def _okun_typing(metric):
+    if metric == "okun_coefficient":
+        return ("ratio", 4)
+    return ("rate", 4)
+
+
+def output_gap_okun_caveats(out, th):
+    return ["The output gap is arithmetic on the two GDP figures you declared; it is not a statistical estimate of potential output.",
+            "Okun's law is applied with the coefficient you declare; the coefficient is not estimated here.",
+            "The predicted unemployment change is a rule-of-thumb illustration, not a forecast."]
+
+
+def output_gap_okun_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The output gap is " + tok("output_gap") + ". At the declared Okun coefficient, the predicted unemployment change is " +
+            tok("predicted_unemployment_change_pp") + " percentage points, giving a predicted unemployment rate of " +
+            tok("predicted_unemployment_rate") + ".")
+
+
+# ---------- International, development, behavioural and labour economics (B-099) ----------
+# Declared unit labour requirements, prices, rates, incomes and probabilities.
+# No retrieved data, no estimated models and no policy recommendation.
+
+def _dpow(x, e):
+    if x == 0:
+        return D(0)
+    if x < 0:
+        raise DataError("a negative base cannot be raised to a fractional power here")
+    return (x.ln() * e).exp()
+
+
+def _clamp01(x):
+    return D(0) if x < 0 else D(1) if x > 1 else x
+
+
+def comparative_advantage_impl(inp):
+    rows = inp["countries"]
+    if len(rows) != 2:
+        raise DataError("exactly two countries are required")
+    parsed = []
+    for i, row in enumerate(rows):
+        name = str(row["name"]).strip() or "country_%d" % (i + 1)
+        h1, h2 = D(str(row["good_1_hours"])), D(str(row["good_2_hours"]))
+        if h1 <= 0 or h2 <= 0:
+            raise DataError("unit labour requirements must be positive")
+        parsed.append({"name": name, "h1": h1, "h2": h2,
+                       "oc1": h1 / h2, "oc2": h2 / h1})
+    a, b = parsed
+    a_adv1 = a["oc1"] < b["oc1"]
+    return {"oc_a_good1": a["oc1"], "oc_a_good2": a["oc2"],
+            "oc_b_good1": b["oc1"], "oc_b_good2": b["oc2"],
+            "a_has_advantage_good1": D(1) if a_adv1 else D(0),
+            "b_has_advantage_good1": D(0) if a_adv1 else D(1),
+            "a_has_advantage_good2": D(0) if a_adv1 else D(1),
+            "b_has_advantage_good2": D(1) if a_adv1 else D(0)}
+
+
+def _comparative_ref(inp):
+    rows = inp["countries"]
+    a, b = rows
+    ha1, ha2 = float(D(str(a["good_1_hours"]))), float(D(str(a["good_2_hours"])))
+    hb1, hb2 = float(D(str(b["good_1_hours"]))), float(D(str(b["good_2_hours"])))
+    return {"oc_a_good1": ha1 / ha2, "oc_b_good1": hb1 / hb2}
+
+
+def comparative_advantage_tests(inp, impl):
+    base, ref = impl(inp), _comparative_ref(inp)
+    a, b = inp["countries"]
+    ha1, ha2 = D(str(a["good_1_hours"])), D(str(a["good_2_hours"]))
+    hb1, hb2 = D(str(b["good_1_hours"])), D(str(b["good_2_hours"]))
+    scaled = impl({"countries": [{"name": a["name"], "good_1_hours": str(ha1 * 2), "good_2_hours": str(ha2 * 2)}, b]})
+    counter = impl({"countries": [{"name": "A", "good_1_hours": "2", "good_2_hours": "1"},
+                                  {"name": "B", "good_1_hours": "5", "good_2_hours": "3"}]})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("opportunity_costs_are_reciprocals", _close(base["oc_a_good1"] * base["oc_a_good2"], 1) and _close(base["oc_b_good1"] * base["oc_b_good2"], 1), "the two opportunity costs multiply to one"),
+        ("exactly_one_country_has_advantage_in_each_good", base["a_has_advantage_good1"] != base["a_has_advantage_good2"], "comparative advantage cannot run the same way in both goods"),
+        ("scaling_a_countrys_hours_leaves_its_opportunity_cost_unchanged", _close(scaled["oc_a_good1"], base["oc_a_good1"]), "opportunity cost is a ratio and is scale-free"),
+        ("absolute_advantage_does_not_determine_comparative_advantage", counter["a_has_advantage_good1"] == 0 and counter["a_has_advantage_good2"] == 1, "a country can be absolutely better at both goods and still have comparative advantage in only one"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def comparative_advantage_profile(inp):
+    try:
+        rows = inp["countries"]
+        errs = []
+        if len(rows) != 2:
+            errs.append("exactly two countries are required")
+        for i, row in enumerate(rows):
+            if D(str(row["good_1_hours"])) <= 0 or D(str(row["good_2_hours"])) <= 0:
+                errs.append("country %d: unit labour requirements must be positive" % (i + 1))
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["comparative-advantage inputs are malformed: two countries with name, good_1_hours and good_2_hours are required"]
+
+
+def _comparative_typing(metric):
+    if metric.startswith("oc_"):
+        return ("ratio", 4)
+    return ("count", 0)
+
+
+def comparative_advantage_caveats(out, th):
+    return ["The model uses two countries, two goods and constant unit labour requirements; it is the Ricardian textbook case.",
+            "Opportunity costs are ratios of labour requirements; absolute advantage does not determine the pattern of trade.",
+            "No transport cost, tariffs, demand differences or increasing returns are included."]
+
+
+def comparative_advantage_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Country A's opportunity cost of good one is " + tok("oc_a_good1") + " units of good two; country B's is " +
+            tok("oc_b_good1") + ". The lower opportunity cost indicates comparative advantage in good one.")
+
+
+def tariff_welfare_impl(inp):
+    a, b, c, d, p0, q0 = _linear_market(inp)
+    world, tariff = D(str(inp["world_price"])), D(str(inp["tariff_per_unit"]))
+    if world <= 0:
+        raise DataError("world_price must be positive")
+    if tariff < 0:
+        raise DataError("tariff_per_unit must be non-negative")
+    pdom = world + tariff
+    qd_f, qs_f = a - b * world, c + d * world
+    qd_t, qs_t = a - b * pdom, c + d * pdom
+    if qs_f < 0 or qd_f < 0:
+        raise DataError("the world price is outside the range of the declared curves")
+    imports_f = qd_f - qs_f
+    if imports_f <= 0:
+        raise DataError("the country would not import at the declared world price")
+    if qd_t < 0 or qs_t < 0:
+        raise DataError("the tariff pushes the domestic price outside the range of the declared curves")
+    imports_t = qd_t - qs_t
+    if imports_t < 0:
+        raise DataError("the tariff is prohibitive: imports would be negative")
+    return {"domestic_price": pdom, "quantity_demanded": qd_t, "quantity_supplied": qs_t,
+            "imports": imports_t, "imports_free_trade": imports_f,
+            "tariff_revenue": tariff * imports_t,
+            "production_dwloss": tariff * (qs_t - qs_f) / 2,
+            "consumption_dwloss": tariff * (qd_f - qd_t) / 2,
+            "total_dwloss": tariff * ((qs_t - qs_f) + (qd_f - qd_t)) / 2}
+
+
+def _tariff_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c, d = float(D(str(inp["supply_intercept"]))), float(D(str(inp["supply_slope"])))
+    world, tariff = float(D(str(inp["world_price"]))), float(D(str(inp["tariff_per_unit"])))
+    pdom = world + tariff
+    qd_f, qs_f = a - b * world, c + d * world
+    qd_t, qs_t = a - b * pdom, c + d * pdom
+    return {"imports": qd_t - qs_t, "tariff_revenue": tariff * (qd_t - qs_t),
+            "total_dwloss": tariff * ((qs_t - qs_f) + (qd_f - qd_t)) / 2}
+
+
+def tariff_welfare_tests(inp, impl):
+    base, ref = impl(inp), _tariff_ref(inp)
+    world, tariff = D(str(inp["world_price"])), D(str(inp["tariff_per_unit"]))
+    higher = impl({**inp, "tariff_per_unit": str(tariff + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("domestic_price_is_world_price_plus_tariff", _close(base["domestic_price"], world + tariff), "the small-country tariff is fully passed into the domestic price"),
+        ("imports_equal_domestic_demand_minus_supply", _close(base["imports"], base["quantity_demanded"] - base["quantity_supplied"]), "imports are the excess of domestic demand over supply"),
+        ("tariff_revenue_equals_tariff_times_imports", _close(base["tariff_revenue"], tariff * base["imports"]), "revenue is the tariff times the post-tariff import volume"),
+        ("a_higher_tariff_lowers_imports", higher["imports"] < base["imports"], "a higher tariff reduces the import volume"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def tariff_welfare_profile(inp):
+    try:
+        a, b, c, d, p0, q0 = _linear_market(inp)
+        world, tariff = D(str(inp["world_price"])), D(str(inp["tariff_per_unit"]))
+        errs = []
+        if world <= 0:
+            errs.append("world_price must be positive")
+        if tariff < 0:
+            errs.append("tariff_per_unit must be non-negative")
+        if not errs:
+            pdom = world + tariff
+            qd_f, qs_f = a - b * world, c + d * world
+            qd_t, qs_t = a - b * pdom, c + d * pdom
+            if qd_f < 0 or qs_f < 0:
+                errs.append("the world price is outside the range of the declared curves")
+            elif qd_f - qs_f <= 0:
+                errs.append("the country would not import at the declared world price")
+            elif qd_t < 0 or qs_t < 0:
+                errs.append("the tariff pushes the domestic price outside the range of the declared curves")
+            elif qd_t - qs_t < 0:
+                errs.append("the tariff is prohibitive: imports would be negative")
+        return errs
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["tariff inputs are malformed: four curve numbers, world_price and tariff_per_unit are required"]
+
+
+def _tariff_typing(metric):
+    if metric in ("quantity_demanded", "quantity_supplied", "imports", "imports_free_trade"):
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def tariff_welfare_caveats(out, th):
+    return ["The country is a small price-taker in world markets; the tariff is fully passed into the domestic price.",
+            "The deadweight loss is the textbook production and consumption triangles for a linear partial-equilibrium model.",
+            "No retaliation, terms-of-trade effect, quota, transport cost or general-equilibrium effect is modelled."]
+
+
+def tariff_welfare_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The tariff raises the domestic price to " + tok("domestic_price") + ", with imports of " +
+            tok("imports") + " and tariff revenue of " + tok("tariff_revenue") +
+            ". The total deadweight loss is " + tok("total_dwloss") + ".")
+
+
+def exchange_rate_ppp_impl(inp):
+    pd, pf = D(str(inp["price_domestic"])), D(str(inp["price_foreign"]))
+    nominal = D(str(inp["nominal_rate"]))
+    if pd <= 0 or pf <= 0 or nominal <= 0:
+        raise DataError("prices and the nominal rate must be positive")
+    ppp = pd / pf
+    real = nominal * pf / pd
+    out = {"ppp_rate": ppp, "real_exchange_rate": real,
+           "misalignment": nominal / ppp - 1}
+    if inp.get("domestic_inflation") is not None and inp.get("foreign_inflation") is not None:
+        id_ = D(str(inp["domestic_inflation"])); if_ = D(str(inp["foreign_inflation"]))
+        if id_ <= -1 or if_ <= -1:
+            raise DataError("inflation rates must be greater than -100%")
+        expected = nominal * (1 + id_) / (1 + if_)
+        out["expected_nominal_rate"] = expected
+        out["expected_depreciation"] = expected / nominal - 1
+    return out
+
+
+def _ppp_ref(inp):
+    pd, pf = float(D(str(inp["price_domestic"]))), float(D(str(inp["price_foreign"])))
+    nominal = float(D(str(inp["nominal_rate"])))
+    return {"ppp_rate": pd / pf, "real_exchange_rate": nominal * pf / pd}
+
+
+def exchange_rate_ppp_tests(inp, impl):
+    base, ref = impl(inp), _ppp_ref(inp)
+    nominal = D(str(inp["nominal_rate"]))
+    zero = impl({**inp, "nominal_rate": str(base["ppp_rate"])})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("ppp_rate_is_the_domestic_price_over_the_foreign_price", _close(base["ppp_rate"], D(str(inp["price_domestic"])) / D(str(inp["price_foreign"]))), "the PPP rate is the price ratio"),
+        ("real_exchange_rate_is_nominal_over_ppp", _close(base["real_exchange_rate"], nominal / base["ppp_rate"]), "the real rate is the nominal rate divided by the PPP rate"),
+        ("nominal_rate_equal_to_ppp_gives_zero_misalignment", _close(zero["misalignment"], 0), "at PPP the misalignment is zero"),
+        ("a_higher_domestic_price_raises_the_ppp_rate", impl({**inp, "price_domestic": str(D(str(inp["price_domestic"])) + 1)})["ppp_rate"] > base["ppp_rate"], "a higher domestic price level raises the PPP rate"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def exchange_rate_ppp_profile(inp):
+    try:
+        if D(str(inp["price_domestic"])) <= 0 or D(str(inp["price_foreign"])) <= 0 or D(str(inp["nominal_rate"])) <= 0:
+            return ["prices and the nominal rate must be positive"]
+        for key in ("domestic_inflation", "foreign_inflation"):
+            if inp.get(key) is not None and D(str(inp[key])) <= -1:
+                return [key + " must be greater than -100%"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["PPP inputs are malformed: price_domestic, price_foreign and nominal_rate are required numbers"]
+
+
+def _ppp_typing(metric):
+    if metric in ("misalignment", "expected_depreciation"):
+        return ("rate", 4)
+    return ("ratio", 4)
+
+
+def exchange_rate_ppp_caveats(out, th):
+    return ["Absolute PPP compares declared price levels; it is not a test of whether PPP holds in practice.",
+            "The real exchange rate is 1 at PPP; values above 1 mean the foreign currency looks expensive on this basket.",
+            "Relative PPP uses the declared inflation rates and a one-period horizon; no transport costs, tariffs or non-tradables are included."]
+
+
+def exchange_rate_ppp_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The PPP rate is " + tok("ppp_rate") + " and the real exchange rate is " + tok("real_exchange_rate") +
+         ", a misalignment of " + tok("misalignment") + ".")
+    if "expected_depreciation" in out:
+        t += " Relative PPP implies an expected depreciation of " + tok("expected_depreciation") + "."
+    return t
+
+
+def interest_rate_parity_impl(inp):
+    spot, rd, rf = D(str(inp["spot_rate"])), D(str(inp["domestic_rate"])), D(str(inp["foreign_rate"]))
+    t = D(str(inp["time_to_maturity"]))
+    if spot <= 0 or t <= 0:
+        raise DataError("spot_rate and time_to_maturity must be positive")
+    if rd <= -1 or rf <= -1:
+        raise DataError("interest rates must be greater than -100%")
+    implied = spot * _dpow((1 + rd) / (1 + rf), t)
+    out = {"implied_forward": implied, "forward_premium": implied / spot - 1}
+    if inp.get("forward_rate") is not None:
+        forward = D(str(inp["forward_rate"]))
+        if forward <= 0:
+            raise DataError("forward_rate must be positive")
+        out["forward_rate"] = forward
+        out["cip_gap"] = forward / implied - 1
+    if inp.get("domestic_inflation") is not None and inp.get("foreign_inflation") is not None:
+        id_ = D(str(inp["domestic_inflation"])); if_ = D(str(inp["foreign_inflation"]))
+        if id_ <= -1 or if_ <= -1:
+            raise DataError("inflation rates must be greater than -100%")
+        out["real_domestic_rate"] = (1 + rd) / (1 + id_) - 1
+        out["real_foreign_rate"] = (1 + rf) / (1 + if_) - 1
+    return out
+
+
+def _irp_ref(inp):
+    spot = float(D(str(inp["spot_rate"])))
+    rd, rf = float(D(str(inp["domestic_rate"]))), float(D(str(inp["foreign_rate"])))
+    t = float(D(str(inp["time_to_maturity"])))
+    return {"implied_forward": spot * ((1 + rd) / (1 + rf)) ** t}
+
+
+def interest_rate_parity_tests(inp, impl):
+    base, ref = impl(inp), _irp_ref(inp)
+    spot = D(str(inp["spot_rate"]))
+    rd, rf = D(str(inp["domestic_rate"])), D(str(inp["foreign_rate"]))
+    t = D(str(inp["time_to_maturity"]))
+    higher_d = impl({**inp, "domestic_rate": str(rd + D("0.01"))})
+    higher_f = impl({**inp, "foreign_rate": str(rf + D("0.01"))})
+    checks = [
+        ("second_implementation_agrees", _close(base["implied_forward"], ref["implied_forward"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("covered_interest_parity_holds", _close(base["implied_forward"], spot * _dpow((1 + rd) / (1 + rf), t)), "the forward rate satisfies covered interest parity"),
+        ("forward_premium_is_the_interest_differential", _close(base["forward_premium"], _dpow((1 + rd) / (1 + rf), t) - 1), "the forward premium reflects the interest differential"),
+        ("a_higher_domestic_rate_raises_the_implied_forward", higher_d["implied_forward"] > base["implied_forward"], "a higher domestic rate raises the forward rate"),
+        ("a_higher_foreign_rate_lowers_the_implied_forward", higher_f["implied_forward"] < base["implied_forward"], "a higher foreign rate lowers the forward rate"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def interest_rate_parity_profile(inp):
+    try:
+        if D(str(inp["spot_rate"])) <= 0 or D(str(inp["time_to_maturity"])) <= 0:
+            return ["spot_rate and time_to_maturity must be positive"]
+        for key in ("domestic_rate", "foreign_rate"):
+            if D(str(inp[key])) <= -1:
+                return [key + " must be greater than -100%"]
+        if inp.get("forward_rate") is not None and D(str(inp["forward_rate"])) <= 0:
+            return ["forward_rate must be positive"]
+        for key in ("domestic_inflation", "foreign_inflation"):
+            if inp.get(key) is not None and D(str(inp[key])) <= -1:
+                return [key + " must be greater than -100%"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["parity inputs are malformed: spot_rate, domestic_rate, foreign_rate and time_to_maturity are required numbers"]
+
+
+def _irp_typing(metric):
+    if metric in ("implied_forward", "forward_rate"):
+        return ("currency", 4)
+    return ("rate", 4)
+
+
+def interest_rate_parity_caveats(out, th):
+    return ["Covered interest parity is an arbitrage condition on declared rates and a declared horizon; it is not a forecast of the spot rate.",
+            "The forward rate is implied by the declared rates, not observed; a declared forward is compared with it.",
+            "No transaction costs, capital controls, credit risk or basis risk are included."]
+
+
+def interest_rate_parity_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Covered interest parity implies a forward rate of " + tok("implied_forward") +
+         ", a forward premium of " + tok("forward_premium") + ".")
+    if "cip_gap" in out:
+        t += " The declared forward rate differs from the implied rate by " + tok("cip_gap") + "."
+    return t
+
+
+def balance_of_payments_impl(inp):
+    ca, cap = D(str(inp["current_account"])), D(str(inp["capital_account"]))
+    fin = D(str(inp["financial_account"]))
+    err = D(str(inp.get("errors_and_omissions", "0")))
+    net = ca + cap + fin + err
+    out = {"current_account": ca, "capital_account": cap, "financial_account": fin,
+           "errors_and_omissions": err, "net_balance": net,
+           "balanced": D(1) if net == 0 else D(0)}
+    if inp.get("gdp") is not None:
+        gdp = D(str(inp["gdp"]))
+        if gdp <= 0:
+            raise DataError("gdp must be positive")
+        out["current_account_to_gdp"] = ca / gdp
+    return out
+
+
+def _bop_ref(inp):
+    return {"net_balance": sum(float(D(str(inp[k]))) for k in ("current_account", "capital_account", "financial_account")) + float(D(str(inp.get("errors_and_omissions", "0"))))}
+
+
+def balance_of_payments_tests(inp, impl):
+    base, ref = impl(inp), _bop_ref(inp)
+    ca = D(str(inp["current_account"]))
+    cap = D(str(inp["capital_account"]))
+    fin = D(str(inp["financial_account"]))
+    err = D(str(inp.get("errors_and_omissions", "0")))
+    balanced = impl({**inp, "financial_account": str(-(ca + cap + err))})
+    checks = [
+        ("second_implementation_agrees", _close(base["net_balance"], ref["net_balance"]), "float route agrees with the Decimal route"),
+        ("net_balance_is_the_sum_of_the_accounts", _close(base["net_balance"], ca + cap + fin + err), "the accounts add to the net balance"),
+        ("a_balanced_position_is_flagged", int(balanced["balanced"]) == 1 and _close(balanced["net_balance"], 0), "an offsetting financial account closes the identity and is flagged"),
+        ("a_current_account_deficit_needs_an_offsetting_surplus", _close(balanced["current_account"] + balanced["capital_account"] + balanced["financial_account"] + balanced["errors_and_omissions"], 0), "the other accounts must offset the current account"),
+        ("the_current_account_ratio_uses_gdp", "current_account_to_gdp" not in base or _close(base["current_account_to_gdp"], ca / D(str(inp["gdp"]))), "the ratio divides the current account by GDP"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def balance_of_payments_profile(inp):
+    try:
+        for key in ("current_account", "capital_account", "financial_account"):
+            D(str(inp[key]))
+        if inp.get("errors_and_omissions") is not None:
+            D(str(inp["errors_and_omissions"]))
+        if inp.get("gdp") is not None and D(str(inp["gdp"])) <= 0:
+            return ["gdp must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["balance-of-payments inputs are malformed: the three account balances are required numbers"]
+
+
+def _bop_typing(metric):
+    if metric == "balanced":
+        return ("count", 0)
+    if metric == "current_account_to_gdp":
+        return ("rate", 4)
+    return ("currency", 2)
+
+
+def balance_of_payments_caveats(out, th):
+    return ["The three account balances are declared on one sign convention; the method checks that they add up, not that the data are right.",
+            "A zero net balance is the accounting identity, not evidence of external sustainability.",
+            "No valuation effects, reserve changes or debt-service analysis is included."]
+
+
+def balance_of_payments_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The current account is " + tok("current_account") + ", the capital account is " +
+            tok("capital_account") + " and the financial account is " + tok("financial_account") +
+            ", giving a net balance of " + tok("net_balance") + ".")
+
+
+def hdi_impl(inp):
+    le, eys, mys = D(str(inp["life_expectancy"])), D(str(inp["expected_years_schooling"])), D(str(inp["mean_years_schooling"]))
+    gni = D(str(inp["gni_per_capita"]))
+    if le <= 0 or eys < 0 or mys < 0 or gni <= 0:
+        raise DataError("life expectancy and GNI must be positive; schooling years must be non-negative")
+    life = _clamp01((le - 20) / 65)
+    edu = _clamp01(((eys / 18) + (mys / 15)) / 2)
+    income = _clamp01((gni.ln() - D(100).ln()) / (D(75000).ln() - D(100).ln()))
+    hdi = _dpow(life * edu * income, D(1) / 3)
+    return {"life_index": life, "education_index": edu, "income_index": income, "hdi": hdi}
+
+
+def _hdi_ref(inp):
+    le, eys, mys = float(D(str(inp["life_expectancy"]))), float(D(str(inp["expected_years_schooling"]))), float(D(str(inp["mean_years_schooling"])))
+    gni = float(D(str(inp["gni_per_capita"])))
+    import math
+    life = min(1, max(0, (le - 20) / 65)); edu = min(1, max(0, ((eys / 18) + (mys / 15)) / 2))
+    income = min(1, max(0, (math.log(gni) - math.log(100)) / (math.log(75000) - math.log(100))))
+    return {"hdi": (life * edu * income) ** (1 / 3)}
+
+
+def hdi_tests(inp, impl):
+    base, ref = impl(inp), _hdi_ref(inp)
+    le = D(str(inp["life_expectancy"]))
+    top = impl({"life_expectancy": "85", "expected_years_schooling": "18", "mean_years_schooling": "15", "gni_per_capita": "75000"})
+    checks = [
+        ("second_implementation_agrees", _close(base["hdi"], ref["hdi"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("dimension_indices_are_bounded", all(0 <= base[k] <= 1 for k in ("life_index", "education_index", "income_index")), "each dimension index lies between zero and one"),
+        ("hdi_is_the_geometric_mean_of_the_indices", _close(base["hdi"], _dpow(base["life_index"] * base["education_index"] * base["income_index"], D(1) / 3), rel=1e-6), "the HDI is the geometric mean of the three indices"),
+        ("a_higher_life_expectancy_raises_the_life_index", impl({**inp, "life_expectancy": str(le + 1)})["life_index"] >= base["life_index"], "a longer life raises the life index"),
+        ("the_goalposts_give_an_hdi_of_one", _close(top["hdi"], 1, rel=1e-6), "the UNDP goalposts give an HDI of one"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def hdi_profile(inp):
+    try:
+        if D(str(inp["life_expectancy"])) <= 0:
+            return ["life_expectancy must be positive"]
+        if D(str(inp["expected_years_schooling"])) < 0 or D(str(inp["mean_years_schooling"])) < 0:
+            return ["schooling years must be non-negative"]
+        if D(str(inp["gni_per_capita"])) <= 0:
+            return ["gni_per_capita must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["HDI inputs are malformed: life expectancy, schooling years and GNI per capita are required numbers"]
+
+
+def _hdi_typing(metric):
+    return ("ratio", 4)
+
+
+def hdi_caveats(out, th):
+    return ["The HDI uses the UNDP goalposts declared in the method: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000.",
+            "The index is a summary of three dimensions and does not show inequality within them.",
+            "The GNI figure and the schooling years are the owner's declared values; no data are retrieved."]
+
+
+def hdi_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The life index is " + tok("life_index") + ", the education index is " + tok("education_index") +
+            " and the income index is " + tok("income_index") + ", giving an HDI of " + tok("hdi") + ".")
+
+
+def expected_utility_impl(inp):
+    outcomes = [D(str(x)) for x in inp["outcomes"]]
+    probs = [D(str(x)) for x in inp["probabilities"]]
+    if len(outcomes) != len(probs) or not outcomes:
+        raise DataError("outcomes and probabilities must be non-empty and the same length")
+    if any(x <= 0 for x in outcomes):
+        raise DataError("outcomes must be positive final wealth levels")
+    if any(p < 0 for p in probs) or not _close(sum(probs, D(0)), 1):
+        raise DataError("probabilities must be non-negative and sum to one")
+    function = str(inp.get("utility_function", "crra"))
+    gamma = D(str(inp.get("risk_aversion", "1")))
+    if function not in ("risk_neutral", "crra"):
+        raise DataError("utility_function must be risk_neutral or crra")
+    if gamma < 0:
+        raise DataError("risk_aversion must be non-negative")
+    ev = sum((p * x for p, x in zip(probs, outcomes)), D(0))
+    if function == "risk_neutral":
+        eu = ev
+        ce = ev
+    else:
+        if gamma == 1:
+            eu = sum((p * x.ln() for p, x in zip(probs, outcomes)), D(0))
+            ce = eu.exp()
+        else:
+            eu = sum((p * _dpow(x, 1 - gamma) / (1 - gamma) for p, x in zip(probs, outcomes)), D(0))
+            ce = _dpow((1 - gamma) * eu, D(1) / (1 - gamma))
+    return {"expected_value": ev, "expected_utility": eu, "certainty_equivalent": ce,
+            "risk_premium": ev - ce, "risk_aversion": gamma}
+
+
+def _eu_ref(inp):
+    outcomes = [float(D(str(x))) for x in inp["outcomes"]]
+    probs = [float(D(str(x))) for x in inp["probabilities"]]
+    return {"expected_value": sum(p * x for p, x in zip(probs, outcomes))}
+
+
+def expected_utility_tests(inp, impl):
+    base, ref = impl(inp), _eu_ref(inp)
+    outcomes = [D(str(x)) for x in inp["outcomes"]]
+    probs = [D(str(x)) for x in inp["probabilities"]]
+    gamble = impl({"outcomes": ["50", "150"], "probabilities": ["0.5", "0.5"], "utility_function": "crra", "risk_aversion": "2"})
+    higher = impl({"outcomes": ["50", "150"], "probabilities": ["0.5", "0.5"], "utility_function": "crra", "risk_aversion": "5"})
+    checks = [
+        ("second_implementation_agrees", _close(base["expected_value"], ref["expected_value"]), "float route agrees with the Decimal route"),
+        ("expected_value_is_the_probability_weighted_outcome", _close(base["expected_value"], sum((p * x for p, x in zip(probs, outcomes)), D(0))), "expected value uses the declared probabilities"),
+        ("risk_neutral_certainty_equivalent_equals_expected_value", _close(impl({**inp, "utility_function": "risk_neutral"})["certainty_equivalent"], base["expected_value"]), "a risk-neutral person values the gamble at its expected value"),
+        ("a_risky_gamble_has_a_positive_risk_premium_under_crra", gamble["risk_premium"] > 0, "concave utility makes the certainty equivalent lower than the expected value"),
+        ("a_higher_risk_aversion_lowers_the_certainty_equivalent", higher["certainty_equivalent"] < gamble["certainty_equivalent"], "more risk aversion lowers the certainty equivalent"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def expected_utility_profile(inp):
+    try:
+        outcomes = [D(str(x)) for x in inp["outcomes"]]
+        probs = [D(str(x)) for x in inp["probabilities"]]
+        errs = []
+        if len(outcomes) != len(probs) or not outcomes:
+            errs.append("outcomes and probabilities must be non-empty and the same length")
+        if any(x <= 0 for x in outcomes):
+            errs.append("outcomes must be positive")
+        if any(p < 0 for p in probs) or not _close(sum(probs, D(0)), 1):
+            errs.append("probabilities must be non-negative and sum to one")
+        if str(inp.get("utility_function", "crra")) not in ("risk_neutral", "crra"):
+            errs.append("utility_function must be risk_neutral or crra")
+        if D(str(inp.get("risk_aversion", "1"))) < 0:
+            errs.append("risk_aversion must be non-negative")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["expected-utility inputs are malformed: outcomes and probabilities must be lists of the same length"]
+
+
+def _eu_typing(metric):
+    if metric == "risk_aversion":
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def expected_utility_caveats(out, th):
+    return ["The utility function and risk-aversion parameter are declared, not estimated; the result is conditional on them.",
+            "CRRA utility is defined only for positive outcomes; zero or negative wealth blocks.",
+            "The certainty equivalent and risk premium are model-based, not market prices."]
+
+
+def expected_utility_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The expected value is " + tok("expected_value") + ", the expected utility is " +
+            tok("expected_utility") + " and the certainty equivalent is " + tok("certainty_equivalent") +
+            ". The risk premium is " + tok("risk_premium") + ".")
+
+
+def prospect_theory_impl(inp):
+    ref = D(str(inp["reference_point"]))
+    outcomes = [D(str(x)) for x in inp["outcomes"]]
+    probs = [D(str(x)) for x in inp["probabilities"]]
+    if len(outcomes) != len(probs) or not outcomes:
+        raise DataError("outcomes and probabilities must be non-empty and the same length")
+    if any(p < 0 for p in probs) or not _close(sum(probs, D(0)), 1):
+        raise DataError("probabilities must be non-negative and sum to one")
+    lam = D(str(inp.get("loss_aversion", "2.25")))
+    alpha = D(str(inp.get("gain_curvature", "0.88")))
+    beta = D(str(inp.get("loss_curvature", "0.88")))
+    gamma = D(str(inp.get("probability_weighting", "0.61")))
+    if lam <= 0 or alpha <= 0 or beta <= 0 or gamma <= 0:
+        raise DataError("the prospect-theory parameters must be positive")
+    weights = []
+    for p in probs:
+        if p == 0:
+            weights.append(D(0))
+        elif p == 1:
+            weights.append(D(1))
+        else:
+            weights.append(_dpow(p, gamma) / _dpow(_dpow(p, gamma) + _dpow(1 - p, gamma), D(1) / gamma))
+    total_w = sum(weights, D(0))
+    if total_w <= 0:
+        raise DataError("the probability weights sum to zero")
+    weights = [w / total_w for w in weights]
+    value, expected = D(0), D(0)
+    for x, p, w in zip(outcomes, probs, weights):
+        delta = x - ref
+        expected += p * delta
+        value += w * (_dpow(delta, alpha) if delta >= 0 else -lam * _dpow(-delta, beta))
+    return {"prospect_value": value, "expected_value": expected,
+            "loss_aversion": lam, "gain_curvature": alpha,
+            "loss_curvature": beta, "probability_weighting": gamma}
+
+
+def _prospect_ref(inp):
+    ref = float(D(str(inp["reference_point"])))
+    outcomes = [float(D(str(x))) for x in inp["outcomes"]]
+    probs = [float(D(str(x))) for x in inp["probabilities"]]
+    return {"expected_value": sum(p * (x - ref) for p, x in zip(probs, outcomes))}
+
+
+def prospect_theory_tests(inp, impl):
+    base, ref = impl(inp), _prospect_ref(inp)
+    lam = D(str(inp.get("loss_aversion", "2.25")))
+    alpha = D(str(inp.get("gain_curvature", "0.88")))
+    mixed = {"reference_point": "100", "outcomes": ["150", "50"], "probabilities": ["0.5", "0.5"],
+             "loss_aversion": str(lam), "gain_curvature": str(alpha), "loss_curvature": str(alpha), "probability_weighting": "1"}
+    base_mixed = impl(mixed)
+    higher = impl({**mixed, "loss_aversion": str(lam + 1)})
+    sure = impl({"reference_point": "100", "outcomes": ["100"], "probabilities": ["1"], "loss_aversion": str(lam),
+                 "gain_curvature": str(alpha), "loss_curvature": str(alpha), "probability_weighting": "1"})
+    checks = [
+        ("second_implementation_agrees", _close(base["expected_value"], ref["expected_value"]), "float route agrees with the Decimal route"),
+        ("a_reference_outcome_has_zero_prospect_value", _close(sure["prospect_value"], 0), "an outcome at the reference point has no gain or loss"),
+        ("a_loss_hurts_more_than_an_equal_gain", impl({"reference_point": "100", "outcomes": ["150", "50"], "probabilities": ["0.5", "0.5"], "loss_aversion": "2.25", "gain_curvature": "1", "loss_curvature": "1", "probability_weighting": "1"})["prospect_value"] < 0, "loss aversion makes a symmetric gamble unattractive"),
+        ("a_higher_loss_aversion_lowers_a_mixed_prospect", higher["prospect_value"] < base_mixed["prospect_value"], "more loss aversion lowers the prospect value"),
+        ("gains_and_losses_are_curved_separately", _close(base["gain_curvature"], D(str(inp.get("gain_curvature", "0.88")))) and _close(base["loss_curvature"], D(str(inp.get("loss_curvature", "0.88")))), "the declared curvature parameters are reported"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def prospect_theory_profile(inp):
+    try:
+        outcomes = [D(str(x)) for x in inp["outcomes"]]
+        probs = [D(str(x)) for x in inp["probabilities"]]
+        errs = []
+        if len(outcomes) != len(probs) or not outcomes:
+            errs.append("outcomes and probabilities must be non-empty and the same length")
+        if any(p < 0 for p in probs) or not _close(sum(probs, D(0)), 1):
+            errs.append("probabilities must be non-negative and sum to one")
+        for key, default in (("loss_aversion", "2.25"), ("gain_curvature", "0.88"),
+                             ("loss_curvature", "0.88"), ("probability_weighting", "0.61")):
+            if D(str(inp.get(key, default))) <= 0:
+                errs.append(key + " must be positive")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["prospect-theory inputs are malformed: outcomes and probabilities must be lists of the same length"]
+
+
+def _prospect_typing(metric):
+    if metric in ("loss_aversion", "gain_curvature", "loss_curvature", "probability_weighting"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def prospect_theory_caveats(out, th):
+    return ["The value function and probability weighting are the declared Kahneman-Tversky-style parameterisation, not estimates from data.",
+            "The probability weights are normalised to sum to one; different weighting functions would change the result.",
+            "Prospect theory is descriptive; the result is not a recommendation or a normative utility."]
+
+
+def prospect_theory_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The prospect value is " + tok("prospect_value") + " against an expected value of " +
+            tok("expected_value") + ". The declared loss aversion is " + tok("loss_aversion") +
+            " and the probability-weighting parameter is " + tok("probability_weighting") + ".")
+
+
+def labour_market_impl(inp):
+    wage, cpi = D(str(inp["nominal_wage"])), D(str(inp["cpi"]))
+    productivity = D(str(inp["labour_productivity"]))
+    if wage < 0 or cpi <= 0 or productivity <= 0:
+        raise DataError("nominal_wage must be non-negative; cpi and labour_productivity must be positive")
+    real = wage / (cpi / 100)
+    out = {"nominal_wage": wage, "cpi": cpi, "labour_productivity": productivity,
+           "real_wage": real, "wage_share_of_productivity": real / productivity}
+    if inp.get("vacancies") is not None and inp.get("unemployment_rate") is not None:
+        vacancies, unemployment = D(str(inp["vacancies"])), D(str(inp["unemployment_rate"]))
+        if vacancies < 0 or unemployment <= 0:
+            raise DataError("vacancies must be non-negative and unemployment_rate must be positive")
+        out["vacancies"] = vacancies
+        out["unemployment_rate"] = unemployment
+        out["labour_market_tightness"] = vacancies / unemployment
+    return out
+
+
+def _labour_ref(inp):
+    wage, cpi = float(D(str(inp["nominal_wage"]))), float(D(str(inp["cpi"])))
+    productivity = float(D(str(inp["labour_productivity"])))
+    return {"real_wage": wage / (cpi / 100), "wage_share_of_productivity": (wage / (cpi / 100)) / productivity}
+
+
+def labour_market_tests(inp, impl):
+    base, ref = impl(inp), _labour_ref(inp)
+    wage, cpi = D(str(inp["nominal_wage"])), D(str(inp["cpi"]))
+    prod = D(str(inp["labour_productivity"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("real_wage_is_nominal_wage_over_the_price_index", _close(base["real_wage"], wage / (cpi / 100)), "the real wage deflates the nominal wage by the CPI"),
+        ("wage_share_is_real_wage_over_productivity", _close(base["wage_share_of_productivity"], base["real_wage"] / prod), "the wage share compares the real wage with productivity"),
+        ("a_higher_cpi_lowers_the_real_wage", impl({**inp, "cpi": str(cpi + 1)})["real_wage"] < base["real_wage"], "a higher price level lowers the real wage"),
+        ("a_higher_productivity_lowers_the_wage_share", impl({**inp, "labour_productivity": str(prod + 1)})["wage_share_of_productivity"] < base["wage_share_of_productivity"], "higher productivity lowers the wage share for a fixed real wage"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def labour_market_profile(inp):
+    try:
+        if D(str(inp["nominal_wage"])) < 0:
+            return ["nominal_wage must be non-negative"]
+        if D(str(inp["cpi"])) <= 0:
+            return ["cpi must be positive"]
+        if D(str(inp["labour_productivity"])) <= 0:
+            return ["labour_productivity must be positive"]
+        if inp.get("vacancies") is not None and D(str(inp["vacancies"])) < 0:
+            return ["vacancies must be non-negative"]
+        if inp.get("unemployment_rate") is not None and D(str(inp["unemployment_rate"])) <= 0:
+            return ["unemployment_rate must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["labour-market inputs are malformed: nominal_wage, cpi and labour_productivity are required numbers"]
+
+
+def _labour_typing(metric):
+    if metric in ("cpi", "labour_productivity"):
+        return ("ratio", 2)
+    if metric in ("unemployment_rate",):
+        return ("rate", 4)
+    return ("currency", 2)
+
+
+def labour_market_caveats(out, th):
+    return ["The real wage deflates the declared nominal wage by the declared CPI; the CPI and productivity figures are the owner's.",
+            "The wage share is a simple comparison with labour productivity, not a full labour-share decomposition.",
+            "No taxes, benefits, hours, composition or bargaining model is included."]
+
+
+def labour_market_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The real wage is " + tok("real_wage") + " and the wage share of productivity is " +
+            tok("wage_share_of_productivity") + ".")
+
+
+# ---------- Electives: price discrimination, oligopoly, impact evaluation and games (B-099) ----------
+
+def price_discrimination_impl(inp):
+    a1, b1 = D(str(inp["demand_intercept_1"])), D(str(inp["demand_slope_1"]))
+    a2, b2 = D(str(inp["demand_intercept_2"])), D(str(inp["demand_slope_2"]))
+    c = D(str(inp["marginal_cost"]))
+    if b1 <= 0 or b2 <= 0:
+        raise DataError("both demand slopes must be positive")
+    if c < 0:
+        raise DataError("marginal_cost must be non-negative")
+    if a1 <= c or a2 <= c:
+        raise DataError("each demand intercept must exceed marginal cost for a positive quantity")
+    q1, q2 = (a1 - c) / (2 * b1), (a2 - c) / (2 * b2)
+    p1, p2 = a1 - b1 * q1, a2 - b2 * q2
+    return {"quantity_1": q1, "price_1": p1, "quantity_2": q2, "price_2": p2,
+            "revenue_1": p1 * q1, "revenue_2": p2 * q2,
+            "total_revenue": p1 * q1 + p2 * q2,
+            "total_profit": (p1 - c) * q1 + (p2 - c) * q2}
+
+
+def _pd_ref(inp):
+    a1, b1 = float(D(str(inp["demand_intercept_1"]))), float(D(str(inp["demand_slope_1"])))
+    a2, b2 = float(D(str(inp["demand_intercept_2"]))), float(D(str(inp["demand_slope_2"])))
+    c = float(D(str(inp["marginal_cost"])))
+    q1, q2 = (a1 - c) / (2 * b1), (a2 - c) / (2 * b2)
+    return {"quantity_1": q1, "quantity_2": q2, "total_profit": (a1 - b1 * q1 - c) * q1 + (a2 - b2 * q2 - c) * q2}
+
+
+def price_discrimination_tests(inp, impl):
+    base, ref = impl(inp), _pd_ref(inp)
+    a1, b1 = D(str(inp["demand_intercept_1"])), D(str(inp["demand_slope_1"]))
+    a2, b2 = D(str(inp["demand_intercept_2"])), D(str(inp["demand_slope_2"]))
+    c = D(str(inp["marginal_cost"]))
+    higher = impl({**inp, "marginal_cost": str(c + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("marginal_revenue_equals_marginal_cost_in_market_one", _close(a1 - 2 * b1 * base["quantity_1"], c), "MR = MC in the first market"),
+        ("marginal_revenue_equals_marginal_cost_in_market_two", _close(a2 - 2 * b2 * base["quantity_2"], c), "MR = MC in the second market"),
+        ("total_revenue_is_the_sum_of_market_revenues", _close(base["total_revenue"], base["revenue_1"] + base["revenue_2"]), "total revenue adds the two markets"),
+        ("a_higher_marginal_cost_lowers_both_quantities", higher["quantity_1"] < base["quantity_1"] and higher["quantity_2"] < base["quantity_2"], "a higher marginal cost reduces both quantities"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def price_discrimination_profile(inp):
+    try:
+        a1, b1 = D(str(inp["demand_intercept_1"])), D(str(inp["demand_slope_1"]))
+        a2, b2 = D(str(inp["demand_intercept_2"])), D(str(inp["demand_slope_2"]))
+        c = D(str(inp["marginal_cost"]))
+        errs = []
+        if b1 <= 0 or b2 <= 0:
+            errs.append("both demand slopes must be positive")
+        if c < 0:
+            errs.append("marginal_cost must be non-negative")
+        if a1 <= c or a2 <= c:
+            errs.append("each demand intercept must exceed marginal cost")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["price-discrimination inputs are malformed: two demand schedules and a marginal cost are required"]
+
+
+def _pd_typing(metric):
+    if metric in ("quantity_1", "quantity_2"):
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def price_discrimination_caveats(out, th):
+    return ["Third-degree price discrimination with two separated linear markets and constant marginal cost.",
+            "The markets must be separable and resale must be impossible; arbitrage would undermine the prices.",
+            "No fixed cost, capacity constraint, menu cost or welfare comparison with a single price is computed."]
+
+
+def price_discrimination_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The first market sells " + tok("quantity_1") + " at " + tok("price_1") +
+            " and the second sells " + tok("quantity_2") + " at " + tok("price_2") +
+            ". Total profit is " + tok("total_profit") + ".")
+
+
+def cournot_duopoly_impl(inp):
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c1, c2 = D(str(inp["marginal_cost_1"])), D(str(inp["marginal_cost_2"]))
+    if b <= 0:
+        raise DataError("demand_slope must be positive")
+    if c1 < 0 or c2 < 0:
+        raise DataError("marginal costs must be non-negative")
+    q1, q2 = (a - 2 * c1 + c2) / (3 * b), (a - 2 * c2 + c1) / (3 * b)
+    if q1 <= 0 or q2 <= 0:
+        raise DataError("one firm would be priced out of the market; the declared costs do not give an interior Cournot equilibrium")
+    p = a - b * (q1 + q2)
+    return {"quantity_1": q1, "quantity_2": q2, "total_output": q1 + q2, "price": p,
+            "profit_1": (p - c1) * q1, "profit_2": (p - c2) * q2,
+            "total_profit": (p - c1) * q1 + (p - c2) * q2}
+
+
+def _cournot_ref(inp):
+    a, b = float(D(str(inp["demand_intercept"]))), float(D(str(inp["demand_slope"])))
+    c1, c2 = float(D(str(inp["marginal_cost_1"]))), float(D(str(inp["marginal_cost_2"])))
+    q1, q2 = (a - 2 * c1 + c2) / (3 * b), (a - 2 * c2 + c1) / (3 * b)
+    return {"quantity_1": q1, "quantity_2": q2, "price": a - b * (q1 + q2)}
+
+
+def cournot_duopoly_tests(inp, impl):
+    base, ref = impl(inp), _cournot_ref(inp)
+    a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+    c1, c2 = D(str(inp["marginal_cost_1"])), D(str(inp["marginal_cost_2"]))
+    symmetric = impl({**inp, "marginal_cost_2": inp["marginal_cost_1"]})
+    higher = impl({**inp, "marginal_cost_1": str(c1 + 1)})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("firm_one_is_on_its_best_response", _close(base["quantity_1"], (a - c1 - b * base["quantity_2"]) / (2 * b)), "firm one's quantity is its best response"),
+        ("firm_two_is_on_its_best_response", _close(base["quantity_2"], (a - c2 - b * base["quantity_1"]) / (2 * b)), "firm two's quantity is its best response"),
+        ("symmetric_costs_give_equal_quantities", _close(symmetric["quantity_1"], symmetric["quantity_2"]), "equal costs give equal Cournot quantities"),
+        ("a_higher_own_cost_lowers_own_quantity", higher["quantity_1"] < base["quantity_1"], "a higher own cost reduces the firm's quantity"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def cournot_duopoly_profile(inp):
+    try:
+        a, b = D(str(inp["demand_intercept"])), D(str(inp["demand_slope"]))
+        c1, c2 = D(str(inp["marginal_cost_1"])), D(str(inp["marginal_cost_2"]))
+        errs = []
+        if b <= 0:
+            errs.append("demand_slope must be positive")
+        if c1 < 0 or c2 < 0:
+            errs.append("marginal costs must be non-negative")
+        if not errs and ((a - 2 * c1 + c2) / (3 * b) <= 0 or (a - 2 * c2 + c1) / (3 * b) <= 0):
+            errs.append("one firm would be priced out of the market; the declared costs do not give an interior equilibrium")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["Cournot inputs are malformed: demand intercept and slope, and two marginal costs, are required"]
+
+
+def _cournot_typing(metric):
+    if metric in ("quantity_1", "quantity_2", "total_output"):
+        return ("units", 2)
+    return ("currency", 2)
+
+
+def cournot_duopoly_caveats(out, th):
+    return ["A two-firm, one-shot Cournot game with linear demand and constant marginal costs.",
+            "The equilibrium is interior; a firm priced out of the market is refused rather than clamped to zero.",
+            "No entry, capacity, product differentiation, repeated interaction or collusion is modelled."]
+
+
+def cournot_duopoly_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The Cournot quantities are " + tok("quantity_1") + " and " + tok("quantity_2") +
+            " at a price of " + tok("price") + ". Total profit is " + tok("total_profit") + ".")
+
+
+def difference_in_differences_impl(inp):
+    tp, tq = D(str(inp["treated_pre"])), D(str(inp["treated_post"]))
+    cp, cq = D(str(inp["control_pre"])), D(str(inp["control_post"]))
+    treated_change, control_change = tq - tp, cq - cp
+    return {"treated_change": treated_change, "control_change": control_change,
+            "did_estimate": treated_change - control_change}
+
+
+def _did_ref(inp):
+    tp, tq = float(D(str(inp["treated_pre"]))), float(D(str(inp["treated_post"])))
+    cp, cq = float(D(str(inp["control_pre"]))), float(D(str(inp["control_post"])))
+    return {"did_estimate": (tq - tp) - (cq - cp)}
+
+
+def difference_in_differences_tests(inp, impl):
+    base, ref = impl(inp), _did_ref(inp)
+    tp, tq = D(str(inp["treated_pre"])), D(str(inp["treated_post"]))
+    cp, cq = D(str(inp["control_pre"])), D(str(inp["control_post"]))
+    parallel = impl({**inp, "control_post": str(cp + (tq - tp))})
+    checks = [
+        ("second_implementation_agrees", _close(base["did_estimate"], ref["did_estimate"]), "float route agrees with the Decimal route"),
+        ("treated_change_is_post_minus_pre", _close(base["treated_change"], tq - tp), "the treated change is post minus pre"),
+        ("control_change_is_post_minus_pre", _close(base["control_change"], cq - cp), "the control change is post minus pre"),
+        ("did_is_the_difference_of_the_two_changes", _close(base["did_estimate"], base["treated_change"] - base["control_change"]), "the estimate is the treated change minus the control change"),
+        ("parallel_trends_give_a_zero_estimate", _close(parallel["did_estimate"], 0), "if the control moved like the treated group would have, the estimate is zero"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def difference_in_differences_profile(inp):
+    try:
+        for key in ("treated_pre", "treated_post", "control_pre", "control_post"):
+            D(str(inp[key]))
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["difference-in-differences inputs are malformed: four declared means are required"]
+
+
+def _did_typing(metric):
+    return ("currency", 2)
+
+
+def difference_in_differences_caveats(out, th):
+    return ["A two-group, two-period difference-in-differences on four declared means.",
+            "The estimate is causal only if the parallel-trends assumption holds; the method cannot test that assumption.",
+            "No covariates, clustering, weights, repeated cross-sections or staggered adoption is modelled."]
+
+
+def difference_in_differences_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The treated group changed by " + tok("treated_change") + " and the control group by " +
+            tok("control_change") + ", giving a difference-in-differences estimate of " +
+            tok("did_estimate") + ".")
+
+
+def nash_equilibrium_impl(inp):
+    rp = [D(str(x)) for x in inp["row_payoffs"]]
+    cp = [D(str(x)) for x in inp["column_payoffs"]]
+    if len(rp) != 4 or len(cp) != 4:
+        raise DataError("each player's payoff list must contain exactly four numbers (row one column one, row one column two, row two column one, row two column two)")
+    flags = []
+    for i in (0, 1):
+        for j in (0, 1):
+            idx, alt_row, alt_col = i * 2 + j, (1 - i) * 2 + j, i * 2 + (1 - j)
+            flags.append(D(1) if rp[idx] >= rp[alt_row] and cp[idx] >= cp[alt_col] else D(0))
+    return {"nash_11": flags[0], "nash_12": flags[1], "nash_21": flags[2], "nash_22": flags[3],
+            "nash_count": sum(flags, D(0))}
+
+
+def _nash_ref(inp):
+    rp = [float(D(str(x))) for x in inp["row_payoffs"]]
+    cp = [float(D(str(x))) for x in inp["column_payoffs"]]
+    count = 0
+    for i in (0, 1):
+        for j in (0, 1):
+            idx, alt_row, alt_col = i * 2 + j, (1 - i) * 2 + j, i * 2 + (1 - j)
+            if rp[idx] >= rp[alt_row] and cp[idx] >= cp[alt_col]:
+                count += 1
+    return {"nash_count": count}
+
+
+def nash_equilibrium_tests(inp, impl):
+    base, ref = impl(inp), _nash_ref(inp)
+    pd = impl({"row_payoffs": ["3", "0", "5", "1"], "column_payoffs": ["3", "5", "0", "1"]})
+    coord = impl({"row_payoffs": ["2", "0", "0", "1"], "column_payoffs": ["2", "0", "0", "1"]})
+    pennies = impl({"row_payoffs": ["1", "-1", "-1", "1"], "column_payoffs": ["-1", "1", "1", "-1"]})
+    flags = [base["nash_11"], base["nash_12"], base["nash_21"], base["nash_22"]]
+    checks = [
+        ("second_implementation_agrees", _close(base["nash_count"], ref["nash_count"]), "float route agrees with the Decimal route"),
+        ("nash_count_equals_the_number_of_flags", _close(base["nash_count"], sum(flags, D(0))), "the count is the sum of the four cell flags"),
+        ("prisoners_dilemma_has_one_nash", int(pd["nash_count"]) == 1 and int(pd["nash_22"]) == 1, "the dominant-strategy cell is the unique Nash equilibrium"),
+        ("coordination_game_has_two_nash", int(coord["nash_count"]) == 2, "both coordinated cells are Nash equilibria"),
+        ("matching_pennies_has_no_pure_nash", int(pennies["nash_count"]) == 0, "matching pennies has no pure-strategy equilibrium"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def nash_equilibrium_profile(inp):
+    try:
+        if len(inp["row_payoffs"]) != 4 or len(inp["column_payoffs"]) != 4:
+            return ["each player's payoff list must contain exactly four numbers"]
+        for key in ("row_payoffs", "column_payoffs"):
+            for x in inp[key]:
+                D(str(x))
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["game inputs are malformed: row_payoffs and column_payoffs must each be four numbers"]
+
+
+def _nash_typing(metric):
+    return ("count", 0)
+
+
+def nash_equilibrium_caveats(out, th):
+    return ["A one-shot 2x2 game in pure strategies with ordinal or cardinal payoffs as declared.",
+            "A tie counts as a weak Nash equilibrium; the method does not select among multiple equilibria.",
+            "Mixed strategies, repeated games, sequential moves and coalitional games are not modelled."]
+
+
+def nash_equilibrium_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared two-by-two game has " + tok("nash_count") + " pure-strategy Nash equilibrium or equilibria. The cell flags are in the appendix.")
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -3866,6 +8211,959 @@ LIBRARY = {
                                     "n_missing_submitted": 0, "n_missing_rebuilt": 0, "n_findings": 0,
                                     "total_absolute_difference": 2, "difference_net": 2, "submitted_balance_difference": 2},
                   typing=tbcheck_typing),
+
+    # ----- Finance additions (B-090).  Every label is written for a student: what the input means,
+    # what convention is assumed, and what the method will not do.
+    "time_value": Method("time_value", "T1", tv_impl, _tv_tests, _tv_profile, "future_value", "currency", None,
+                  ("second_implementation_agrees", "zero_rate_is_simple_addition", "present_value_scales_one_for_one",
+                   "annuity_due_is_one_period_ahead", "effective_annual_rate_follows_compounding"),
+                  category="time value of money",
+                  intended_use="Find the future value of a lump sum plus a level payment, the present value of those payments, and the effective annual rate, showing the periodic rate and number of periods used.",
+                  unsupported_use="Solving for the rate or the number of periods; uneven payments; growing annuities; taxes, fees or inflation.",
+                  input_schema={"present_value": {"type": "decimal", "desc": "amount you have today (the lump sum)"},
+                                "payment": {"type": "decimal", "required": False, "desc": "equal amount paid or received each period; leave blank for a lump sum only"},
+                                "rate": {"type": "decimal", "desc": "nominal ANNUAL rate as a decimal, e.g. 0.06 for 6%"},
+                                "periods": {"type": "decimal", "desc": "number of YEARS the money is invested or borrowed"},
+                                "compounding": {"type": "enum", "values": ["annual", "semiannual", "quarterly", "monthly"], "required": False, "desc": "how often interest is added; default annual"},
+                                "timing": {"type": "enum", "values": ["end", "begin"], "required": False, "desc": "'end' for an ordinary annuity (default), 'begin' for an annuity due"}},
+                  defaults=({"question": "When do the payments occur?", "default_chosen": "At the end of each period (an ordinary annuity). Choose 'begin' for payments at the start of each period.", "impact": "Beginning-of-period payments earn one extra period of interest."},
+                            {"question": "Is the rate annual?", "default_chosen": "The rate is nominal annual and is divided by the compounding frequency; the effective annual rate is reported separately.", "impact": "Entering a periodic rate as if it were annual would overstate the result."}),
+                  assumptions=("The rate, payment and term are the owner's declared inputs.", "Every payment is the same amount and occurs on schedule.", "Interest compounds at the declared frequency."),
+                  limitations=("No rate or term solver: the rate and number of periods must be declared.", "No growing payments, uneven cash flows or inflation.", "No tax, fees or risk adjustment."),
+                  default_period="annual", caveats=_tv_caveats, template=_tv_template, claim_ceiling="descriptive", typing=_tv_typing),
+    "loan_amortization": Method("loan_amortization", "T1", loan_impl, _loan_tests, _loan_profile, "payment", "currency", None,
+                  ("second_implementation_agrees", "zero_rate_payment_is_principal_over_periods", "doubling_the_principal_doubles_the_payment",
+                   "total_interest_is_payments_minus_principal", "the_final_balance_is_repaid", "effective_annual_rate_follows_the_payment_frequency"),
+                  category="debt",
+                  intended_use="Compute the level payment on an amortizing loan, the total interest over its life, the first payment's interest and principal split, and the effective annual rate.",
+                  unsupported_use="Variable or teaser rates; interest-only or balloon structures; fees, insurance or prepayment penalties; a full period-by-period schedule export.",
+                  input_schema={"principal": {"type": "decimal", "desc": "amount borrowed"},
+                                "annual_rate": {"type": "decimal", "desc": "nominal ANNUAL interest rate as a decimal, e.g. 0.09 for 9%"},
+                                "years": {"type": "decimal", "desc": "loan term in YEARS"},
+                                "payments_per_year": {"type": "decimal", "required": False, "desc": "number of payments a year; default 12 (monthly)"}},
+                  defaults=({"question": "Payment frequency", "default_chosen": "Monthly payments (12 a year); every other frequency can be declared.", "impact": "More frequent payments reduce the interest paid over the life."},
+                            {"question": "Rate convention", "default_chosen": "The annual rate is divided by the number of payments a year; the effective annual rate is reported separately.", "impact": "A quoted monthly rate entered as annual would be wrong by a factor of twelve."}),
+                  assumptions=("The rate is fixed for the whole term.", "Payments are level and made on time.", "The loan is fully amortized with no balloon."),
+                  limitations=("No variable, capped or teaser rates.", "No fees, insurance, taxes or penalties.", "No period-by-period schedule; only the first split and the totals are reported."),
+                  default_period="annual", caveats=_loan_caveats, template=_loan_template, claim_ceiling="descriptive", typing=_loan_typing),
+    "bond_analysis": Method("bond_analysis", "T1", bond_impl, _bond_tests, _bond_profile, "price", "currency", None,
+                  ("second_implementation_agrees", "a_par_bond_prices_at_face_value", "a_higher_yield_lowers_the_price",
+                   "modified_duration_is_macaulay_over_one_plus_the_periodic_yield", "duration_is_below_the_maturity_in_years",
+                   "convexity_is_positive", "the_solved_yield_reproduces_the_price"),
+                  category="fixed income",
+                  intended_use="Price a plain fixed-coupon bond from its yield, or solve its yield from a declared price, and report Macaulay and modified duration, convexity, DV01 and current yield.",
+                  unsupported_use="Accrued interest between coupon dates; day-count conventions; callable, convertible, floating or amortizing bonds; a spot/forward curve; credit spreads; a traded quote.",
+                  input_schema={"face_value": {"type": "decimal", "desc": "amount repaid at maturity, e.g. 1000"},
+                                "coupon_rate": {"type": "decimal", "desc": "ANNUAL coupon rate as a decimal, e.g. 0.08 for 8%"},
+                                "years_to_maturity": {"type": "decimal", "desc": "years until the bond matures"},
+                                "yield_to_maturity": {"type": "decimal", "required": False, "desc": "annual yield as a decimal, to price the bond; leave blank if you supply a price instead"},
+                                "price": {"type": "decimal", "required": False, "desc": "market price to solve the yield from; leave blank if you supply the yield"},
+                                "payments_per_year": {"type": "decimal", "required": False, "desc": "coupon payments a year; default 2 (semiannual)"}},
+                  defaults=({"question": "Which way is the bond calculated?", "default_chosen": "Declare a yield to get a price, or declare a price to get a yield. Supplying both prices from the yield and reports the declared yield.", "impact": "A price and a yield that disagree mean one of them is stale; the method does not choose between them."},
+                            {"question": "Coupon timing", "default_chosen": "Coupons are paid at the declared frequency and the bond is priced on a coupon date with no accrued interest.", "impact": "Between coupon dates the clean price and the cash price differ."}),
+                  assumptions=("The bond is plain-vanilla: fixed coupon, fixed maturity, no embedded options.", "One yield to maturity discounts every cash flow.", "The price is on a coupon date."),
+                  limitations=("No accrued interest or day-count convention.", "No credit, liquidity or tax adjustment.", "Duration and convexity are local parallel-shift sensitivities, not forecasts."),
+                  default_period="annual", caveats=_bond_caveats, template=_bond_template, claim_ceiling="descriptive", typing=_bond_typing),
+    "capm": Method("capm", "T1", capm_impl, _capm_tests, _capm_profile, "cost_of_equity", "rate", None,
+                  ("second_implementation_agrees", "a_zero_beta_earns_the_risk_free_rate", "the_cost_of_equity_rises_with_beta",
+                   "capm_is_the_risk_free_rate_plus_beta_times_the_premium", "hamada_relevering_round_trips"),
+                  category="cost of capital",
+                  intended_use="Compute the CAPM cost of equity from a declared risk-free rate, market return and beta, estimating beta from two return series when it is not declared, and relever or unlever it with Hamada when a debt-to-equity ratio is supplied.",
+                  unsupported_use="Choosing the market index, the risk-free proxy or the return interval; multi-factor models; testing whether beta is stable; a market risk premium that is retrieved rather than declared.",
+                  input_schema={"risk_free_rate": {"type": "decimal", "desc": "annual risk-free rate as a decimal, e.g. 0.04"},
+                                "market_return": {"type": "decimal", "desc": "expected annual market return as a decimal, e.g. 0.10"},
+                                "beta": {"type": "decimal", "required": False, "desc": "beta of the asset or firm; leave blank to estimate it from the two return series"},
+                                "returns_asset": {"type": "value_list", "required": False, "min_items": 3, "desc": "the asset's periodic returns, one per period, used only when beta is not declared"},
+                                "returns_market": {"type": "value_list", "required": False, "min_items": 3, "desc": "the market's returns for the same periods, used only when beta is not declared"},
+                                "debt_to_equity": {"type": "decimal", "required": False, "desc": "debt divided by equity at market values, for Hamada relevering; leave blank if not needed"},
+                                "tax_rate": {"type": "decimal", "required": False, "desc": "corporate tax rate as a decimal, used only with debt_to_equity"}},
+                  defaults=({"question": "Where does beta come from?", "default_chosen": "A declared beta is used as given; otherwise beta is the OLS slope of the asset's returns on the market's returns, with no risk-free subtraction.", "impact": "A different index or interval would give a different beta."},
+                            {"question": "Hamada relevering", "default_chosen": "Only applied when debt_to_equity is declared; the tax rate defaults to zero when omitted.", "impact": "A missing tax rate understates the relevered beta."}),
+                  assumptions=("The risk-free rate, market return and beta are the owner's declarations or an estimate from the supplied series.", "CAPM's single-factor relation holds.", "The debt-to-equity ratio is at market values."),
+                  limitations=("Beta is estimated, not validated; its stability and the choice of market index are not tested.", "No multi-factor, conditional or downside beta.", "The tax rate is a declared input, not computed."),
+                  default_period="annual", caveats=_capm_caveats, template=_capm_template, claim_ceiling="descriptive", typing=_capm_typing),
+    "dupont_analysis": Method("dupont_analysis", "T1", dupont_impl, _dupont_tests, _dupont_profile, "return_on_equity", "ratio", None,
+                  ("second_implementation_agrees", "return_on_equity_is_net_income_over_equity", "the_three_step_product_reproduces_roe",
+                   "return_on_assets_is_margin_times_turnover", "a_higher_net_margin_raises_roe", "the_five_step_product_reproduces_roe",
+                   "prior_period_growth_rates_are_relative_changes"),
+                  category="financial statement analysis",
+                  intended_use="Decompose return on equity into net margin, asset turnover and the equity multiplier (and, when EBIT, pre-tax income and tax are declared, the five-step tax- and interest-burden form), with common-size ratios and growth against one declared comparison period.",
+                  unsupported_use="Average balances; more than one comparison period; index or trend series; industry benchmarks or verdicts; restating or adjusting the reported figures.",
+                  input_schema={"revenue": {"type": "decimal", "desc": "revenue for the period"},
+                                "net_income": {"type": "decimal", "desc": "net income for the period"},
+                                "total_assets": {"type": "decimal", "desc": "total assets at the period end"},
+                                "equity": {"type": "decimal", "desc": "total equity at the period end"},
+                                "cost_of_sales": {"type": "decimal", "required": False, "desc": "cost of sales, to add the gross margin and the cost-to-revenue common-size ratio"},
+                                "ebit": {"type": "decimal", "required": False, "desc": "operating profit (EBIT), for the five-step form"},
+                                "pretax_income": {"type": "decimal", "required": False, "desc": "pre-tax income, for the five-step form"},
+                                "tax_expense": {"type": "decimal", "required": False, "desc": "tax expense, for the five-step form"},
+                                "prior_revenue": {"type": "decimal", "required": False, "desc": "last period's revenue, for growth and the prior ROE"},
+                                "prior_net_income": {"type": "decimal", "required": False, "desc": "last period's net income"},
+                                "prior_total_assets": {"type": "decimal", "required": False, "desc": "last period's total assets"},
+                                "prior_equity": {"type": "decimal", "required": False, "desc": "last period's total equity"}},
+                  defaults=({"question": "How many steps?", "default_chosen": "The three-step form is always reported; the five-step form is added only when EBIT, pre-tax income and tax expense are all declared.", "impact": "The five-step form separates the tax and interest burdens from operating performance."},
+                            {"question": "Which balances?", "default_chosen": "Period-end balances as supplied; no averaging.", "impact": "Average balances would give different turnover and multiplier figures."},
+                            {"question": "Comparison period", "default_chosen": "Growth and the prior ROE are added only when all four prior figures are declared; one comparison period, not a trend series.", "impact": "A partial comparison would compare unlike periods."}),
+                  assumptions=("The figures are one period on one accounting basis and in one currency.", "Equity is positive, so the return is interpretable.", "The comparison figures cover the same length of period as the current figures."),
+                  limitations=("Descriptive arithmetic only; no benchmark, threshold or verdict.", "No average balances; one declared comparison period only, not a multi-year trend.", "A negative equity makes ROE uninterpretable and is refused."),
+                  default_period="annual", caveats=_dupont_caveats, template=_dupont_template, claim_ceiling="descriptive", typing=_dupont_typing),
+    "multiples_valuation": Method("multiples_valuation", "T2", multiples_impl, _mult_tests, _mult_profile, "implied_equity_value", "currency", None,
+                  ("second_implementation_agrees", "the_median_is_the_ordered_middle", "the_implied_value_scales_with_the_subject_metric",
+                   "enterprise_value_equals_equity_value_plus_net_debt", "a_higher_multiple_raises_the_implied_value"),
+                  category="valuation",
+                  intended_use="Apply the mean (or median) of declared comparable multiples to the subject's own earnings, EBITDA, sales or book value, and bridge the result to an equity value and a per-share value.",
+                  unsupported_use="Retrieving peer multiples or market prices; selecting or screening the peer set; adjusting for growth, risk, one-off items or accounting differences; a fairness opinion.",
+                  input_schema={"metric": {"type": "enum", "values": ["earnings", "ebitda", "sales", "book_value"], "desc": "which multiple you are applying: P/E and P/B are equity multiples, EV/EBITDA and EV/Sales are enterprise multiples"},
+                                "subject_value": {"type": "decimal", "desc": "the subject company's earnings, EBITDA, sales or book value, matching the metric"},
+                                "comparables": {"type": "records", "required": False, "min_items": 1, "fields": {"name": "text", "multiple": "decimal"}, "desc": "peer rows with a name and its multiple, e.g. name 'Peer A' with multiple 12.5"},
+                                "peer_multiple": {"type": "decimal", "required": False, "desc": "a single peer or sector multiple, used if you have no peer rows"},
+                                "net_debt": {"type": "decimal", "required": False, "desc": "debt minus cash; used to bridge enterprise value to equity value (default zero)"},
+                                "shares_outstanding": {"type": "decimal", "required": False, "desc": "shares outstanding, to add a value per share"}},
+                  defaults=({"question": "Which average?", "default_chosen": "The mean multiple is applied; the median, minimum and maximum are also reported so an outlier is visible.", "impact": "The median is less sensitive to one extreme peer; the mean is not."},
+                            {"question": "Enterprise or equity?", "default_chosen": "The metric decides: earnings and book value are equity multiples, EBITDA and sales are enterprise multiples bridged through net debt.", "impact": "Mixing the two conventions double-counts or ignores net debt."}),
+                  assumptions=("The peer multiples and the subject metric are the owner's declared figures.", "The peers are comparable in risk, growth and accounting basis.", "Net debt is debt minus cash at the same date."),
+                  limitations=("No retrieved market data and no peer screening.", "No control premium, liquidity discount, synergy or growth adjustment.", "One convention gives one implied value, not a supported valuation range."),
+                  default_period="annual", caveats=_mult_caveats, template=_mult_template, claim_ceiling="descriptive", typing=_mult_typing),
+    "working_capital": Method("working_capital", "T1", wc_impl, _wc_tests, _wc_profile, "cash_conversion_cycle", "days", None,
+                  ("second_implementation_agrees", "the_cash_conversion_cycle_is_the_three_periods", "the_eoq_minimises_order_and_holding_cost",
+                   "the_reorder_point_is_lead_time_demand_plus_safety_stock", "a_larger_discount_raises_the_cost_of_trade_credit"),
+                  category="working capital",
+                  intended_use="Measure the cash conversion cycle from receivable, inventory and payable days, and compute the economic order quantity, reorder point and the annualised cost of forgoing a trade discount.",
+                  unsupported_use="Forecasting working capital; seasonal or step demand; quantity discounts; bad-debt and credit-scoring models; a full cash budget.",
+                  input_schema={"revenue": {"type": "decimal", "desc": "revenue for the period"},
+                                "cost_of_sales": {"type": "decimal", "desc": "cost of sales for the period"},
+                                "inventory": {"type": "decimal", "desc": "inventory at the period end"},
+                                "receivables": {"type": "decimal", "desc": "trade receivables at the period end"},
+                                "payables": {"type": "decimal", "desc": "trade payables at the period end"},
+                                "annual_demand": {"type": "decimal", "desc": "units demanded in a year, for the order quantity"},
+                                "order_cost": {"type": "decimal", "desc": "cost of placing one order"},
+                                "holding_cost_per_unit": {"type": "decimal", "desc": "cost of holding one unit for a year"},
+                                "discount_percent": {"type": "decimal", "desc": "early-payment discount as a decimal, e.g. 0.02 for 2%; use 0 if there is none"},
+                                "credit_terms_days": {"type": "decimal", "desc": "full credit period in days, e.g. 30"},
+                                "discount_days": {"type": "decimal", "desc": "days within which the discount must be taken, e.g. 10"},
+                                "days": {"type": "decimal", "required": False, "desc": "days in the period; default 365"},
+                                "daily_demand": {"type": "decimal", "required": False, "desc": "units sold per day; default annual demand divided by days"},
+                                "lead_time_days": {"type": "decimal", "required": False, "desc": "supplier lead time in days; default 0"},
+                                "safety_stock": {"type": "decimal", "required": False, "desc": "buffer units held; default 0"}},
+                  defaults=({"question": "Which balances?", "default_chosen": "Period-end balances and a 365-day year; average balances would give different days.", "impact": "A seasonal business can look very different at a peak or trough date."},
+                            {"question": "Inventory model", "default_chosen": "A constant-demand EOQ with a fixed order cost and holding cost per unit.", "impact": "Quantity discounts and step costs change the optimal order size."}),
+                  assumptions=("The period-end balances and the annual demand are the owner's figures.", "Demand, order cost and holding cost are constant over the year.", "The credit terms are as declared."),
+                  limitations=("No seasonality, quantity discounts or stock-out cost.", "No cash budget or forecast.", "The trade-credit cost is an annualised convention, not a financing recommendation."),
+                  default_period="annual", caveats=_wc_caveats, template=_wc_template, claim_ceiling="descriptive", typing=_wc_typing),
+    "portfolio_analysis": Method("portfolio_analysis", "T1", portfolio_impl, _portfolio_tests, _portfolio_profile, "portfolio_return", "rate", None,
+                  ("second_implementation_agrees", "the_correlation_lies_between_minus_one_and_one", "a_full_weight_reproduces_the_first_asset",
+                   "the_portfolio_variance_identity_holds", "beta_is_the_covariance_over_the_market_variance",
+                   "a_higher_return_raises_the_sharpe_ratio"),
+                  category="investments",
+                  intended_use="Combine two assets at a declared weight and report each asset's mean and standard deviation, their covariance and correlation, the portfolio's return and risk, and the Sharpe, beta, Treynor and Jensen performance measures.",
+                  unsupported_use="Choosing the assets, the weights or the benchmark; multi-asset optimisation; the efficient frontier; risk-free lending and borrowing; forecasting returns.",
+                  input_schema={"returns_a": {"type": "value_list", "min_items": 3, "desc": "periodic returns of the first asset, one per period, as decimals"},
+                                "returns_b": {"type": "value_list", "min_items": 3, "desc": "periodic returns of the second asset for the same periods"},
+                                "weight_a": {"type": "decimal", "desc": "share of the portfolio in the first asset, between 0 and 1; the rest is in the second"},
+                                "risk_free_rate": {"type": "decimal", "desc": "risk-free rate for the same period, as a decimal"},
+                                "returns_market": {"type": "value_list", "min_items": 3, "desc": "market returns for the same periods, used for beta and Jensen's alpha"}},
+                  defaults=({"question": "What is a period?", "default_chosen": "Whatever interval your return series uses; the mean, standard deviation and ratios are per that period, not annualised.", "impact": "Annualising or mixing intervals would change every figure."},
+                            {"question": "Which performance measure?", "default_chosen": "Sharpe (total risk), Treynor (market risk) and Jensen's alpha (excess over CAPM) are all reported, each with its declared benchmark series.", "impact": "The three measures answer different questions and can disagree."}),
+                  assumptions=("The two return series are aligned by position and cover the same periods.", "Weights sum to one and are held constant (no rebalancing is modelled).", "The market series is the appropriate benchmark."),
+                  limitations=("Two assets only; no multi-asset optimisation or efficient frontier.", "Sample statistics, not forecasts; no normality or stability test.", "No transaction costs, taxes or short selling."),
+                  default_period="period", caveats=_portfolio_caveats, template=_portfolio_template, claim_ceiling="descriptive", typing=_portfolio_typing),
+    "project_metrics": Method("project_metrics", "T1", project_impl, _project_tests, _project_profile, "npv", "currency", None,
+                  ("second_implementation_agrees", "the_profitability_index_agrees_with_the_npv_sign", "the_mirr_exceeds_the_cost_of_capital_only_when_npv_is_positive",
+                   "the_equivalent_annual_annuity_is_the_npv_spread_over_the_life", "the_payback_period_is_the_interpolated_recovery", "the_irr_sets_the_npv_to_zero"),
+                  category="capital budgeting",
+                  intended_use="Report the profitability index, modified internal rate of return, simple payback and equivalent annual annuity of one declared project alongside its NPV and IRR, so the ranking measures can be compared.",
+                  unsupported_use="Choosing the cash flows, the discount rate or the reinvestment rate; unequal-risk projects; capital rationing; real options; tax and depreciation shields; mid-year timing.",
+                  input_schema={"cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0 (normally the negative outlay), then one per period"},
+                                "rate": {"type": "decimal", "desc": "discount rate (cost of capital) per period, e.g. 0.10"},
+                                "finance_rate": {"type": "decimal", "required": False, "desc": "rate at which positive flows are reinvested for MIRR; default is the discount rate"}},
+                  defaults=({"question": "Reinvestment convention", "default_chosen": "MIRR reinvests positive flows at the declared finance rate (default: the discount rate) and finances negative flows at the discount rate.", "impact": "A different reinvestment rate changes MIRR but not NPV."},
+                            {"question": "Timing", "default_chosen": "End-of-period flows with the first at t=0, matching the npv and irr methods.", "impact": "Mid-year flows would raise the present value."}),
+                  assumptions=("The cash flows are after tax and after any financing the owner intends to include.", "The discount rate is the right hurdle for this project's risk.", "The first flow is the outlay."),
+                  limitations=("No tax, depreciation shield or working-capital release.", "Payback ignores everything after recovery; EAA assumes a repeatable project.", "The IRR is reported only when a single root exists."),
+                  default_period="annual", caveats=_project_caveats, template=_project_template, claim_ceiling="descriptive", typing=_project_typing),
+    "option_pricing": Method("option_pricing", "T2", option_impl, _option_tests, _option_profile, "option_price", "currency", None,
+                  ("second_implementation_agrees", "put_call_parity_holds", "the_price_is_at_least_the_intrinsic_value",
+                   "a_higher_volatility_raises_the_price", "delta_lies_in_the_option_direction",
+                   "the_binomial_tree_converges_towards_the_continuous_price", "gamma_and_vega_are_positive"),
+                  category="derivatives",
+                  intended_use="Price a European call or put with Black-Scholes, cross-check it with a binomial tree, and report delta, gamma, vega, theta, rho, intrinsic and time value.",
+                  unsupported_use="American early exercise (beyond the tree's European cross-check); implied volatility; a volatility surface; jumps, stochastic volatility or credit risk; retrieving a market option price.",
+                  input_schema={"option_type": {"type": "enum", "values": ["call", "put"], "desc": "call (right to buy) or put (right to sell)"},
+                                "spot_price": {"type": "decimal", "desc": "current price of the underlying asset"},
+                                "strike_price": {"type": "decimal", "desc": "price at which the option can be exercised"},
+                                "volatility": {"type": "decimal", "desc": "annual volatility as a decimal, e.g. 0.25 for 25%"},
+                                "risk_free_rate": {"type": "decimal", "desc": "annual continuously compounded risk-free rate as a decimal"},
+                                "time_to_maturity": {"type": "decimal", "desc": "years until expiry, e.g. 0.5 for six months"},
+                                "dividend_yield": {"type": "decimal", "required": False, "desc": "continuous dividend yield as a decimal; default 0"},
+                                "steps": {"type": "decimal", "required": False, "desc": "binomial steps for the cross-check; default 200, maximum 2000"}},
+                  defaults=({"question": "European or American?", "default_chosen": "European exercise only: the option can be exercised at expiry. The binomial tree is a numerical cross-check of the same European value.", "impact": "An American put can be worth more through early exercise, which this method does not price."},
+                            {"question": "Which volatility?", "default_chosen": "The volatility is declared by the owner; it is not implied from a market price.", "impact": "A wrong volatility flows straight into the price and the Greeks."}),
+                  assumptions=("The underlying follows geometric Brownian motion with constant volatility and rate.", "No dividends beyond the declared continuous yield.", "Markets allow continuous hedging with no transaction costs."),
+                  limitations=("Model prices, not market quotes; implied volatility is not computed.", "No American exercise, jumps or stochastic volatility.", "The Greeks are local sensitivities under the model."),
+                  default_period="annual", caveats=_option_caveats, template=_option_template, claim_ceiling="descriptive", typing=_option_typing),
+    "risk_metrics": Method("risk_metrics", "T1", risk_impl, _risk_tests, _risk_profile, "historical_var", "rate", None,
+                  ("second_implementation_agrees", "expected_shortfall_is_at_least_value_at_risk", "a_higher_confidence_raises_value_at_risk",
+                   "value_at_risk_scales_with_the_portfolio_value", "the_historical_var_is_the_declared_tail_quantile",
+                   "a_constant_return_series_has_only_the_mean_loss"),
+                  category="risk management",
+                  intended_use="Report parametric and historical value at risk and expected shortfall from a declared return series, with the loss in currency on a declared portfolio value and an optional stress loss.",
+                  unsupported_use="Forecasting volatility; a full Monte Carlo simulation; credit, liquidity or operational risk; backtesting; regulatory capital.",
+                  input_schema={"returns": {"type": "value_list", "min_items": 3, "desc": "periodic returns as decimals, one per period"},
+                                "confidence": {"type": "decimal", "required": False, "desc": "confidence level between 0 and 1; default 0.95"},
+                                "portfolio_value": {"type": "decimal", "required": False, "desc": "value the loss is measured on; default 1"},
+                                "horizon_days": {"type": "decimal", "required": False, "desc": "holding period in days, scaled by the square root of time; default 1"},
+                                "stress_return": {"type": "decimal", "required": False, "desc": "a declared adverse return, to report its loss alongside VaR"}},
+                  defaults=({"question": "Which VaR route?", "default_chosen": "Both are reported: the parametric normal route and the historical order-statistic route.", "impact": "They disagree when returns are fat-tailed, which is exactly when the difference matters."},
+                            {"question": "Horizon scaling", "default_chosen": "The square root of the declared horizon; this assumes independent and identically distributed returns.", "impact": "Volatility clustering makes the scaled loss understated."}),
+                  assumptions=("The return series is representative of the risk being measured.", "The parametric route assumes normality; the historical route assumes the sample covers the tail.", "Returns are independent over the scaling horizon."),
+                  limitations=("VaR is a quantile, not a maximum loss; the tail beyond it is only summarised by expected shortfall.", "No volatility model, simulation or backtest.", "No credit, liquidity or non-linear position risk."),
+                  default_period="period", caveats=_risk_caveats, template=_risk_template, claim_ceiling="descriptive", typing=_risk_typing),
+    "fx_parity": Method("fx_parity", "T1", fx_impl, _fx_tests, _fx_profile, "ppp_expected_spot", "value", None,
+                  ("second_implementation_agrees", "interest_rate_parity_reproduces_the_forward", "purchasing_power_parity_reproduces_the_expected_spot",
+                   "the_forward_premium_is_the_annualised_forward_change", "zero_differentials_leave_the_spot_rate_unchanged",
+                   "the_fisher_relation_links_nominal_and_real_rates", "the_hedged_outcome_is_exposure_times_the_forward"),
+                  category="international finance",
+                  intended_use="Apply covered interest parity and relative purchasing power parity to declared spot, interest and inflation rates, report the implied forward, forward premium and real rates, and compare a declared foreign-currency exposure hedged with one forward against the unhedged outcome.",
+                  unsupported_use="Retrieving exchange rates, inflation or forward quotes; forecasting the spot rate; transaction costs, capital controls, risk premia or carry trades; options, swaps or a rolling hedge programme.",
+                  input_schema={"spot_rate": {"type": "decimal", "desc": "spot exchange rate quoted as domestic currency per one unit of foreign currency"},
+                                "domestic_rate": {"type": "decimal", "desc": "domestic nominal annual interest rate as a decimal"},
+                                "foreign_rate": {"type": "decimal", "desc": "foreign nominal annual interest rate as a decimal"},
+                                "domestic_inflation": {"type": "decimal", "desc": "domestic annual inflation as a decimal"},
+                                "foreign_inflation": {"type": "decimal", "desc": "foreign annual inflation as a decimal"},
+                                "time_to_maturity": {"type": "decimal", "desc": "horizon in years"},
+                                "forward_rate": {"type": "decimal", "required": False, "desc": "a quoted forward rate, to compare with the parity forward and compute its premium"},
+                                "exposure_amount": {"type": "decimal", "required": False, "desc": "foreign-currency amount receivable or payable, to compare hedged and unhedged"},
+                                "hedge_forward": {"type": "decimal", "required": False, "desc": "forward rate at which the exposure would be hedged"},
+                                "expected_spot": {"type": "decimal", "required": False, "desc": "spot rate you expect at settlement; defaults to the PPP expected spot"}},
+                  defaults=({"question": "Quoting convention", "default_chosen": "Domestic currency per unit of foreign currency, the usual direct quote for a domestic reader.", "impact": "The inverse convention inverts every result."},
+                            {"question": "Which parity?", "default_chosen": "Both covered interest parity and relative PPP are reported; neither is asserted to hold in reality.", "impact": "With capital controls or risk premia the market forward can differ from the parity value."},
+                            {"question": "Unhedged benchmark", "default_chosen": "The unhedged outcome uses the expected spot you declare, or the PPP expected spot when you do not.", "impact": "A different expectation changes the hedge result, not the hedged amount."}),
+                  assumptions=("The declared rates and inflation are annual and compound over the horizon.", "Capital moves freely and the two countries' assets are comparable.", "The spot quote is domestic per foreign and the exposure is in foreign currency."),
+                  limitations=("Identities under assumptions, not forecasts.", "No retrieved data and no transaction costs or risk premium.", "One forward hedge, not an option, swap or rolling programme; no hedge accounting."),
+                  default_period="annual", caveats=_fx_caveats, template=_fx_template, claim_ceiling="descriptive", typing=_fx_typing),
+    "leverage_analysis": Method("leverage_analysis", "T1", leverage_impl, _leverage_tests, _leverage_profile, "eps", "currency", None,
+                  ("second_implementation_agrees", "eps_is_earnings_after_tax_over_the_shares", "more_interest_lowers_eps",
+                   "the_interest_tax_shield_is_interest_times_the_tax_rate", "the_degree_of_financial_leverage_matches_the_identity",
+                   "the_altman_terms_sum_to_the_z_score", "the_indifference_ebit_equalises_eps_across_the_plans"),
+                  category="capital structure",
+                  intended_use="Report earnings per share, the degree of financial leverage, interest cover and the interest tax shield from declared EBIT, interest, tax and shares, add the five-term Altman Z-score when its six figures are declared, and find the EBIT-EPS indifference point against one alternative financing plan.",
+                  unsupported_use="Choosing the capital structure; evaluating more than two financing plans; predicting default; applying Altman zone cut-offs; dilution, buybacks or preference dividends.",
+                  input_schema={"ebit": {"type": "decimal", "desc": "earnings before interest and tax"},
+                                "interest_expense": {"type": "decimal", "desc": "interest expense for the period, as a positive amount"},
+                                "tax_rate": {"type": "decimal", "desc": "corporate tax rate as a decimal, e.g. 0.30"},
+                                "debt": {"type": "decimal", "desc": "interest-bearing debt"},
+                                "equity": {"type": "decimal", "desc": "book equity"},
+                                "shares_outstanding": {"type": "decimal", "desc": "number of ordinary shares outstanding"},
+                                "working_capital": {"type": "decimal", "required": False, "desc": "current assets minus current liabilities, for Altman"},
+                                "retained_earnings": {"type": "decimal", "required": False, "desc": "retained earnings, for Altman"},
+                                "total_assets": {"type": "decimal", "required": False, "desc": "total assets, for Altman"},
+                                "total_liabilities": {"type": "decimal", "required": False, "desc": "total liabilities, for Altman"},
+                                "sales": {"type": "decimal", "required": False, "desc": "sales, for Altman"},
+                                "market_value_equity": {"type": "decimal", "required": False, "desc": "market value of equity, for Altman"},
+                                "alternative_interest_expense": {"type": "decimal", "required": False, "desc": "interest the alternative financing plan would carry, for EBIT-EPS indifference"},
+                                "alternative_shares_outstanding": {"type": "decimal", "required": False, "desc": "shares under the alternative plan, which must differ from the current count"}},
+                  defaults=({"question": "Book or market leverage?", "default_chosen": "Debt-to-equity uses the book values you declare; the Altman term uses the market value of equity when you supply it.", "impact": "Book and market leverage can tell different stories."},
+                            {"question": "Altman cut-offs", "default_chosen": "The Z-score is computed, but no safe/grey/distress zone is assigned, because the thresholds are sample-specific.", "impact": "A Z-score without a validated cut-off is a number, not a verdict."},
+                            {"question": "Financing plans", "default_chosen": "Two plans only: the current interest and share count, and the alternative you declare. The indifference EBIT is where their EPS lines cross.", "impact": "With three or more plans a chart is needed, which this method does not draw."}),
+                  assumptions=("EBIT, interest, tax and the share count are one period's declared figures.", "Interest is tax-deductible and the firm has taxable profit.", "The Altman inputs are all from the same date when used.", "The alternative plan's interest and share count are the only things that change."),
+                  limitations=("No choice between the plans: the indifference point is arithmetic, not a recommendation.", "No dilution, buyback or preference dividend.", "The Altman Z-score is a model, not a probability of default; no zone cut-off is applied."),
+                  default_period="annual", caveats=_leverage_caveats, template=_leverage_template, claim_ceiling="descriptive", typing=_leverage_typing),
+    "scenario_analysis": Method("scenario_analysis", "T1", scenario_impl, _scenario_tests, _scenario_profile, "npv_base", "currency", None,
+                  ("second_implementation_agrees", "the_base_case_matches_the_npv_function", "a_higher_discount_rate_lowers_the_value",
+                   "the_swing_is_the_difference_between_the_scenarios", "the_breakeven_rate_sets_the_npv_to_zero"),
+                  category="decision analysis",
+                  intended_use="Recompute a project's NPV at a low and a high discount rate, report the swing, and find the single discount rate at which the decision flips.",
+                  unsupported_use="Changing several inputs at once; probability-weighted scenarios; Monte Carlo simulation; a full sensitivity table across every input.",
+                  input_schema={"cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0, then one per period"},
+                                "discount_rate": {"type": "decimal", "desc": "base-case discount rate per period"},
+                                "rate_low": {"type": "decimal", "desc": "the optimistic (lower) discount rate for the range"},
+                                "rate_high": {"type": "decimal", "desc": "the pessimistic (higher) discount rate for the range"}},
+                  defaults=({"question": "What changes between scenarios?", "default_chosen": "Only the discount rate; the cash flows are held fixed.", "impact": "Revenue, cost and timing changes are a different, larger analysis."},
+                            {"question": "How is the break-even found?", "default_chosen": "The single internal rate of return of the same cash flows; several sign changes mean no single break-even rate is reported.", "impact": "Non-conventional flows can have several break-even rates."}),
+                  assumptions=("The cash flows are the same in every scenario.", "The low rate is below the high rate.", "A single discount rate applies to every flow."),
+                  limitations=("One-input sensitivity only, not a joint scenario.", "No probabilities, simulation or correlation between inputs.", "No tax, financing or mid-year timing."),
+                  default_period="annual", caveats=_scenario_caveats, template=_scenario_template, claim_ceiling="descriptive", typing=_scenario_typing),
+    "demand_supply_equilibrium": Method("demand_supply_equilibrium", "T1", demand_supply_equilibrium_impl,
+                  demand_supply_equilibrium_tests, demand_supply_equilibrium_profile, "equilibrium_price", "currency", None,
+                  ("second_implementation_agrees", "quantity_demanded_equals_quantity_supplied",
+                   "consumer_surplus_is_the_triangle", "producer_surplus_is_the_triangle",
+                   "total_surplus_is_consumer_plus_producer"),
+                  category="microeconomics",
+                  intended_use="Equilibrium price and quantity for declared linear demand and supply curves (Qd = a - bP, Qs = c + dP), with consumer and producer surplus.",
+                  unsupported_use="Estimating the curves from data; non-linear demand or supply; shifts, dynamics or expectations; taxes, externalities or market power; causal claims.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in Qd = a - bP"},
+                                "demand_slope": {"type": "decimal", "desc": "b in Qd = a - bP, must be positive"},
+                                "supply_intercept": {"type": "decimal", "desc": "c in Qs = c + dP"},
+                                "supply_slope": {"type": "decimal", "desc": "d in Qs = c + dP, must be positive"}},
+                  defaults=({"question": "Curve form", "default_chosen": "Quantity-dependent linear curves: Qd = a - bP and Qs = c + dP. If you have P = a - bQ, rearrange it first.", "impact": "Using the inverse form without rearranging swaps the slope and gives the wrong equilibrium."},
+                            {"question": "Welfare measure", "default_chosen": "Consumer and producer surplus are the geometric areas under the declared linear curves.", "impact": "With non-linear curves or externalities these triangles are not the welfare change."}),
+                  assumptions=("Demand slopes down and supply slopes up, both linearly.", "All else equal: no shifts, taxes, externalities or market power.", "The curves are the owner's declared functions, not estimated from data."),
+                  limitations=("Linear curves only; no dynamics, expectations or general equilibrium.", "Surplus is geometric area, not a measured welfare change.", "No tax, subsidy, price control or externality is included."),
+                  default_period="annual", caveats=equilibrium_caveats, template=equilibrium_template,
+                  claim_ceiling="descriptive", typing=_equilibrium_typing),
+    "elasticity": Method("elasticity", "T1", elasticity_impl, elasticity_tests, elasticity_profile,
+                  "price_elasticity", "ratio", None,
+                  ("second_implementation_agrees", "arc_elasticity_equals_percentage_changes",
+                   "swapping_the_observations_leaves_the_arc_elasticity_unchanged",
+                   "revenue_change_equals_new_revenue_minus_old", "elastic_flag_matches_the_magnitude"),
+                  category="microeconomics",
+                  intended_use="Arc (midpoint) price elasticity of demand between two declared price-quantity observations, with the revenue change and an elastic/inelastic classification.",
+                  unsupported_use="Point elasticity at a single price without a demand function; income or cross-price elasticity; estimating elasticity from a regression; causal claims.",
+                  input_schema={"quantity_1": {"type": "decimal", "desc": "quantity at the first observation"},
+                                "price_1": {"type": "decimal", "desc": "price at the first observation"},
+                                "quantity_2": {"type": "decimal", "desc": "quantity at the second observation"},
+                                "price_2": {"type": "decimal", "desc": "price at the second observation"}},
+                  defaults=({"question": "Elasticity formula", "default_chosen": "Arc (midpoint): the percentage change in quantity divided by the percentage change in price, using the average of the two values in each denominator.", "impact": "The point formula at one end of the range gives a different number."},
+                            {"question": "Sign", "default_chosen": "The signed elasticity is reported; the absolute value is used for the elastic/inelastic classification.", "impact": "Reporting a negative number as inelastic is a common error."}),
+                  assumptions=("The two observations lie on the same demand curve.", "All else equal: no income, substitute price or taste change between the observations.", "The arc formula is the agreed convention for a discrete change."),
+                  limitations=("Arc elasticity only; no point elasticity without a demand function.", "No income, cross-price or supply elasticity.", "Two observations cannot identify a demand curve or prove causality."),
+                  default_period="cross_section", caveats=elasticity_caveats, template=elasticity_template,
+                  claim_ceiling="descriptive", typing=_elasticity_typing),
+    "tax_incidence": Method("tax_incidence", "T1", tax_incidence_impl, tax_incidence_tests,
+                  tax_incidence_profile, "consumer_incidence", "currency", None,
+                  ("second_implementation_agrees", "consumer_and_producer_incidence_sum_to_the_tax",
+                   "consumer_share_equals_d_over_b_plus_d", "tax_revenue_equals_tax_times_quantity_traded",
+                   "deadweight_loss_is_the_triangle"),
+                  category="microeconomics",
+                  intended_use="Economic incidence of a declared per-unit tax in a linear partial-equilibrium market: consumer and producer prices, the burden split, tax revenue and deadweight loss.",
+                  unsupported_use="Estimating the curves; ad valorem taxes; a tax in a non-linear or general-equilibrium model; the statutory incidence; distributional or dynamic effects.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in Qd = a - bP"},
+                                "demand_slope": {"type": "decimal", "desc": "b in Qd = a - bP, must be positive"},
+                                "supply_intercept": {"type": "decimal", "desc": "c in Qs = c + dP"},
+                                "supply_slope": {"type": "decimal", "desc": "d in Qs = c + dP, must be positive"},
+                                "tax_per_unit": {"type": "decimal", "desc": "per-unit tax on sellers"}},
+                  defaults=({"question": "Who the tax is levied on", "default_chosen": "A per-unit tax on sellers. With the same rate, a tax on buyers gives the same economic incidence.", "impact": "The statutory side does not determine who bears the burden."},
+                            {"question": "Welfare loss", "default_chosen": "Deadweight loss is the triangle between the declared linear demand and supply curves over the fall in quantity.", "impact": "Non-linear curves or other market effects change the loss."}),
+                  assumptions=("Linear demand and supply, all else equal.", "The tax is a fixed amount per unit, not a percentage of price.", "The market is competitive and partial equilibrium."),
+                  limitations=("Per-unit tax only; no ad valorem tax.", "No income effects, other markets, evasion or administration costs.", "The incidence split depends on the declared slopes, not on who hands the tax to the government."),
+                  default_period="annual", caveats=tax_incidence_caveats, template=tax_incidence_template,
+                  claim_ceiling="descriptive", typing=_tax_typing),
+    "price_control": Method("price_control", "T1", price_control_impl, price_control_tests,
+                  price_control_profile, "quantity_traded", "units", None,
+                  ("second_implementation_agrees", "a_non_binding_control_leaves_the_market_unchanged",
+                   "a_binding_ceiling_creates_a_shortage", "a_binding_floor_creates_a_surplus",
+                   "deadweight_loss_is_the_triangle"),
+                  category="microeconomics",
+                  intended_use="The effect of a declared price ceiling or floor on a linear competitive market: quantity traded, shortage or surplus, and deadweight loss.",
+                  unsupported_use="Estimating the curves; rationing, queues or black markets; quality changes; dynamic or general-equilibrium effects; a control that is not a single fixed price.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in Qd = a - bP"},
+                                "demand_slope": {"type": "decimal", "desc": "b in Qd = a - bP, must be positive"},
+                                "supply_intercept": {"type": "decimal", "desc": "c in Qs = c + dP"},
+                                "supply_slope": {"type": "decimal", "desc": "d in Qs = c + dP, must be positive"},
+                                "control_price": {"type": "decimal", "desc": "the ceiling or floor price"},
+                                "control_type": {"type": "enum", "values": ["ceiling", "floor"], "desc": "ceiling (maximum price) or floor (minimum price)"}},
+                  defaults=({"question": "Binding test", "default_chosen": "A ceiling binds only below the equilibrium price; a floor binds only above it.", "impact": "A non-binding control leaves the market at equilibrium."},
+                            {"question": "Quantity traded", "default_chosen": "The short side of the market determines quantity traded.", "impact": "The long side's notional quantity is reported but not traded."}),
+                  assumptions=("Linear demand and supply, all else equal.", "The control is a single fixed price that is enforced.", "The market is competitive and partial equilibrium."),
+                  limitations=("No rationing, queues, black markets or quality adjustment.", "No dynamics or general-equilibrium effects.", "Deadweight loss is the triangle between the declared linear curves."),
+                  default_period="annual", caveats=price_control_caveats, template=price_control_template,
+                  claim_ceiling="descriptive", typing=_price_control_typing),
+    "market_concentration": Method("market_concentration", "T1", market_concentration_impl,
+                  market_concentration_tests, market_concentration_profile, "hhi", "ratio", None,
+                  ("second_implementation_agrees", "hhi_equals_the_sum_of_squared_shares",
+                   "cr4_is_the_sum_of_the_four_largest_shares", "shares_sum_to_one_hundred",
+                   "effective_n_times_hhi_equals_ten_thousand"),
+                  category="microeconomics",
+                  intended_use="Market concentration from declared firm revenues: Herfindahl-Hirschman index (0-10,000), CR1, CR4 and the equivalent number of equal-sized firms.",
+                  unsupported_use="Defining the market; estimating revenues; import competition or geographic markets; merger simulation; applying a threshold as a legal conclusion.",
+                  input_schema={"firm_revenues": {"type": "decimal_list", "min_items": 2, "desc": "revenue for each firm; shares are derived from the total"}},
+                  defaults=({"question": "Share scale", "default_chosen": "Shares are percentages of total revenue, so the HHI runs from 0 to 10,000.", "impact": "Fractions instead of percentages give an HHI from 0 to 1."},
+                            {"question": "Market definition", "default_chosen": "The firms and revenues you declare are the market; the tool does not define it for you.", "impact": "A different market boundary changes every concentration measure."}),
+                  assumptions=("The declared revenues cover the relevant market.", "Each firm's revenue is its market sales, not total corporate revenue across other markets.", "The market boundary is the owner's judgement."),
+                  limitations=("No market definition, import competition or geographic segmentation.", "No merger simulation, entry or dynamic effects.", "No legal threshold is applied; any threshold is a convention the user supplies."),
+                  default_period="annual", caveats=concentration_caveats, template=concentration_template,
+                  claim_ceiling="descriptive", typing=_concentration_typing),
+    "cost_curves": Method("cost_curves", "T1", cost_curves_impl, cost_curves_tests, cost_curves_profile,
+                  "average_cost", "currency", None,
+                  ("second_implementation_agrees", "marginal_cost_is_the_derivative_of_total_cost",
+                   "average_cost_equals_total_cost_over_quantity",
+                   "average_cost_equals_average_fixed_plus_average_variable",
+                   "average_variable_cost_excludes_fixed_cost"),
+                  category="microeconomics",
+                  intended_use="Average cost, average variable cost, average fixed cost and marginal cost at a declared quantity for the quadratic cost function TC = fixed + linear x Q + quadratic x Q squared, with optional price, revenue, profit and a shutdown flag.",
+                  unsupported_use="Estimating the cost function; step costs, learning curves or capacity limits; economies of scope; a full cost-curve schedule.",
+                  input_schema={"fixed_cost": {"type": "decimal", "desc": "total fixed cost"},
+                                "linear_cost": {"type": "decimal", "desc": "linear variable cost per unit"},
+                                "quadratic_cost": {"type": "decimal", "desc": "quadratic variable cost per unit squared"},
+                                "quantity": {"type": "decimal", "desc": "the quantity at which costs are evaluated"},
+                                "price": {"type": "decimal", "required": False, "desc": "optional price for revenue and profit"}},
+                  defaults=({"question": "Cost function", "default_chosen": "TC = fixed + linear x Q + quadratic x Q squared, with non-negative coefficients.", "impact": "A different functional form gives different average and marginal costs."},
+                            {"question": "Shutdown test", "default_chosen": "The firm shuts down when price is below the linear cost, which is the minimum average variable cost when the quadratic term is non-negative.", "impact": "With a negative quadratic term the minimum is not at zero and the test would not apply."}),
+                  assumptions=("The declared quadratic cost function describes the relevant range.", "Fixed cost does not change with quantity.", "The quantity is positive."),
+                  limitations=("One quantity only; no cost schedule across quantities.", "No step costs, capacity limits, learning or economies of scope.", "The shutdown test assumes the quadratic term is non-negative."),
+                  default_period="annual", caveats=cost_curves_caveats, template=cost_curves_template,
+                  claim_ceiling="descriptive", typing=_cost_curves_typing),
+    "profit_maximization": Method("profit_maximization", "T1", profit_maximization_impl,
+                  profit_maximization_tests, profit_maximization_profile, "profit", "currency", None,
+                  ("second_implementation_agrees", "marginal_revenue_equals_marginal_cost",
+                   "profit_equals_revenue_minus_cost", "lerner_index_equals_markup_over_price",
+                   "profit_falls_away_from_the_optimum"),
+                  category="microeconomics",
+                  intended_use="Profit-maximising quantity and price for a firm facing linear demand P = a - bQ and quadratic cost TC = fixed + linear x Q + quadratic x Q squared, with revenue, cost, profit, markup and the Lerner index.",
+                  unsupported_use="Estimating demand or cost; multi-product firms; price discrimination; entry, dynamics or strategic interaction; a competitive market price taken as given.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in P = a - bQ"},
+                                "demand_slope": {"type": "decimal", "desc": "b in P = a - bQ, must be positive"},
+                                "fixed_cost": {"type": "decimal", "desc": "total fixed cost"},
+                                "linear_cost": {"type": "decimal", "desc": "linear marginal cost"},
+                                "quadratic_cost": {"type": "decimal", "desc": "quadratic cost term"}},
+                  defaults=({"question": "Market structure", "default_chosen": "A single-price firm facing the declared downward-sloping demand curve; MR = MC.", "impact": "A price-taking firm sets price equal to marginal cost instead."},
+                            {"question": "Cost function", "default_chosen": "TC = fixed + linear x Q + quadratic x Q squared, with non-negative coefficients.", "impact": "A different cost function changes the optimum."}),
+                  assumptions=("The firm faces the declared linear demand curve.", "The cost function is quadratic and non-decreasing.", "The firm is a single-price monopolist or monopoly-like seller."),
+                  limitations=("Single product and single period.", "No price discrimination, strategic interaction or entry.", "The result is arithmetic on the declared curves, not evidence about a real market."),
+                  default_period="annual", caveats=profit_maximization_caveats, template=profit_maximization_template,
+                  claim_ceiling="descriptive", typing=_profit_max_typing),
+    "market_power": Method("market_power", "T1", market_power_impl, market_power_tests,
+                  market_power_profile, "lerner_index", "ratio", None,
+                  ("second_implementation_agrees", "lerner_index_equals_markup_over_price",
+                   "markup_equals_price_minus_marginal_cost", "price_equals_marginal_cost_gives_zero_lerner",
+                   "a_higher_price_raises_the_lerner_index"),
+                  category="microeconomics",
+                  intended_use="Markup and Lerner index from a declared price and marginal cost, with the implied demand elasticity under the single-price monopoly model.",
+                  unsupported_use="Estimating marginal cost; proving market power or consumer harm; a dynamic or strategic game; a multi-product firm; a regulated price.",
+                  input_schema={"price": {"type": "decimal", "desc": "the observed or declared price"},
+                                "marginal_cost": {"type": "decimal", "desc": "marginal cost at the relevant quantity"}},
+                  defaults=({"question": "What the index means", "default_chosen": "The Lerner index is (price - marginal cost) / price; it is a static markup measure.", "impact": "A high markup is not by itself evidence of harm or of a legal violation."},
+                            {"question": "Implied elasticity", "default_chosen": "Reported only when the Lerner index is positive, as its inverse under the single-price monopoly model.", "impact": "With price equal to marginal cost the implied elasticity is undefined."}),
+                  assumptions=("The declared marginal cost is the relevant marginal cost.", "The firm sets a single price.", "The price and cost are from the same period and product."),
+                  limitations=("Two declared numbers only; no cost estimation.", "No legal threshold or competitive assessment is applied.", "The implied elasticity is model-conditional."),
+                  default_period="annual", caveats=market_power_caveats, template=market_power_template,
+                  claim_ceiling="descriptive", typing=_market_power_typing),
+    "national_income": Method("national_income", "T1", national_income_impl, national_income_tests,
+                  national_income_profile, "gdp", "currency", None,
+                  ("second_implementation_agrees", "gdp_equals_expenditure_components",
+                   "gnp_equals_gdp_plus_net_factor_income", "nnp_equals_gnp_minus_depreciation",
+                   "net_exports_equals_exports_minus_imports"),
+                  category="macroeconomics",
+                  intended_use="GDP by the expenditure approach, plus GNP, NNP, net exports, optional GDP per capita and optional real GDP from a declared deflator.",
+                  unsupported_use="Retrieving national-accounts data; the income or production approach; double-counting checks; chain-linked or base-year rebasing; informal or underground activity.",
+                  input_schema={"consumption": {"type": "decimal", "desc": "household consumption"},
+                                "investment": {"type": "decimal", "desc": "gross investment"},
+                                "government_spending": {"type": "decimal", "desc": "government consumption and investment"},
+                                "exports": {"type": "decimal", "desc": "exports of goods and services"},
+                                "imports": {"type": "decimal", "desc": "imports of goods and services"},
+                                "net_factor_income": {"type": "decimal", "required": False, "desc": "net factor income from abroad, default 0"},
+                                "depreciation": {"type": "decimal", "required": False, "desc": "capital consumption, default 0"},
+                                "population": {"type": "decimal", "required": False, "desc": "optional population for GDP per capita"},
+                                "gdp_deflator": {"type": "decimal", "required": False, "desc": "optional GDP deflator index (base 100) for real GDP"}},
+                  defaults=({"question": "GDP approach", "default_chosen": "Expenditure approach: C + I + G + X - M from the declared components.", "impact": "The income and production approaches would need different data and can differ in practice."},
+                            {"question": "Real GDP", "default_chosen": "Real GDP is nominal GDP divided by the declared deflator index divided by one hundred.", "impact": "A different base year or chain-linking convention gives a different real series."}),
+                  assumptions=("The components are one period's declared values in one currency.", "Imports are already included in the other components and are subtracted once.", "The deflator, if used, is an index with a base of 100."),
+                  limitations=("No income-approach or production-approach cross-check.", "No base-year conversion, chain-linking or seasonal adjustment.", "No informal-sector, underground or home-production adjustment."),
+                  default_period="annual", caveats=national_income_caveats, template=national_income_template,
+                  claim_ceiling="descriptive", typing=_national_typing),
+    "growth_rate": Method("growth_rate", "T1", growth_rate_impl, growth_rate_tests, growth_rate_profile,
+                  "cagr", "rate", None,
+                  ("second_implementation_agrees", "cagr_compounds_to_the_end_value",
+                   "total_growth_is_end_over_start_minus_one",
+                   "doubling_time_times_cagr_is_approximately_72_percent",
+                   "a_higher_end_value_raises_cagr"),
+                  category="macroeconomics",
+                  intended_use="Total growth, compound annual growth rate and the rule-of-72 doubling time between two declared values, with optional per-capita growth.",
+                  unsupported_use="Forecasting future growth; fitting a trend; inflation adjustment; a growth-accounting decomposition into capital, labour and productivity.",
+                  input_schema={"start_value": {"type": "decimal", "desc": "the value at the start"},
+                                "end_value": {"type": "decimal", "desc": "the value at the end"},
+                                "periods": {"type": "decimal", "desc": "the number of periods between the two values"},
+                                "population_start": {"type": "decimal", "required": False, "desc": "optional starting population for per-capita growth"},
+                                "population_end": {"type": "decimal", "required": False, "desc": "optional ending population for per-capita growth"}},
+                  defaults=({"question": "Growth convention", "default_chosen": "CAGR is the constant rate that compounds the start value to the end value over the declared periods.", "impact": "A simple average of yearly growth rates gives a different number."},
+                            {"question": "Doubling time", "default_chosen": "The rule of 72 is an approximation; the exact time is ln(2)/ln(1 + CAGR).", "impact": "The approximation is close only for moderate rates."}),
+                  assumptions=("The two values are measured on the same basis and currency.", "The periods are equal in length.", "No inflation adjustment is made unless the values are already real."),
+                  limitations=("Two observations only; no trend or volatility.", "The rule of 72 is approximate.", "No growth-accounting decomposition."),
+                  default_period="annual", caveats=growth_rate_caveats, template=growth_rate_template,
+                  claim_ceiling="descriptive", typing=_growth_typing),
+    "inflation_cpi": Method("inflation_cpi", "T1", inflation_cpi_impl, inflation_cpi_tests,
+                  inflation_cpi_profile, "inflation_rate", "rate", None,
+                  ("second_implementation_agrees", "inflation_is_the_cpi_percentage_change",
+                   "fisher_identity_holds", "approximation_gap_is_the_declared_identity",
+                   "a_higher_cpi_end_raises_inflation"),
+                  category="macroeconomics",
+                  intended_use="Inflation from two CPI values, the exact and approximate real interest rate, and optional real wage growth.",
+                  unsupported_use="Retrieving CPI data; choosing or rebasing the basket; core versus headline inflation; expectations; a household-specific cost-of-living index.",
+                  input_schema={"cpi_start": {"type": "decimal", "desc": "the CPI at the start"},
+                                "cpi_end": {"type": "decimal", "desc": "the CPI at the end"},
+                                "nominal_interest_rate": {"type": "decimal", "required": False, "desc": "nominal interest rate, default 0"},
+                                "wage_start": {"type": "decimal", "required": False, "desc": "optional nominal wage at the start"},
+                                "wage_end": {"type": "decimal", "required": False, "desc": "optional nominal wage at the end"}},
+                  defaults=({"question": "Inflation measure", "default_chosen": "The percentage change in the declared CPI between the two periods.", "impact": "A different basket, base period or core measure gives a different rate."},
+                            {"question": "Real interest", "default_chosen": "Exact Fisher relation; the nominal-minus-inflation figure is reported only as an approximation.", "impact": "At high inflation the approximation can be far from the exact rate."}),
+                  assumptions=("The two CPI values use the same basket and base.", "The nominal rate and the CPI cover the same period.", "Wages, if used, are nominal values for the same period."),
+                  limitations=("Two CPI values only; no index construction or rebasing.", "No expectations, core measure or household-specific basket.", "Real wage growth is an index comparison, not a full cost-of-living measure."),
+                  default_period="annual", caveats=inflation_cpi_caveats, template=inflation_cpi_template,
+                  claim_ceiling="descriptive", typing=_inflation_typing),
+    "unemployment_rate": Method("unemployment_rate", "T1", unemployment_rate_impl,
+                  unemployment_rate_tests, unemployment_rate_profile, "unemployment_rate", "rate", None,
+                  ("second_implementation_agrees", "unemployed_equals_labour_force_minus_employed",
+                   "unemployment_rate_equals_unemployed_over_labour_force",
+                   "participation_rate_equals_labour_force_over_working_age_population",
+                   "employment_population_ratio_equals_employed_over_working_age_population"),
+                  category="macroeconomics",
+                  intended_use="Unemployment rate, labour-force participation rate and employment-population ratio from declared labour-force, employment and working-age population counts.",
+                  unsupported_use="Retrieving labour-market data; defining who is in the labour force; underemployment, discouragement or informal work; seasonal adjustment.",
+                  input_schema={"labour_force": {"type": "decimal", "desc": "the labour force: employed plus unemployed"},
+                                "employed": {"type": "decimal", "desc": "the number employed"},
+                                "working_age_population": {"type": "decimal", "desc": "the working-age population"}},
+                  defaults=({"question": "Labour-force definition", "default_chosen": "The labour force is exactly the count you declare; discouraged workers outside it are not counted.", "impact": "A broader definition that includes discouraged workers would raise the unemployment rate."},
+                            {"question": "Denominators", "default_chosen": "The unemployment rate uses the labour force; participation and employment ratios use the working-age population.", "impact": "Mixing the denominators gives a different and usually misleading rate."}),
+                  assumptions=("The three counts cover the same population and period.", "The labour force does not exceed the working-age population.", "The employed are a subset of the labour force."),
+                  limitations=("Counts only; no underemployment or informal-sector adjustment.", "No seasonal adjustment or demographic standardisation.", "The labour-force definition is the owner's."),
+                  default_period="annual", caveats=unemployment_rate_caveats, template=unemployment_rate_template,
+                  claim_ceiling="descriptive", typing=_unemployment_typing),
+    "money_multiplier": Method("money_multiplier", "T1", money_multiplier_impl, money_multiplier_tests,
+                  money_multiplier_profile, "simple_money_multiplier", "ratio", None,
+                  ("second_implementation_agrees", "simple_multiplier_is_one_over_the_reserve_ratio",
+                   "extended_multiplier_is_the_currency_adjusted_formula",
+                   "money_supply_is_the_base_times_the_multiplier",
+                   "a_higher_reserve_ratio_lowers_the_simple_multiplier"),
+                  category="macroeconomics",
+                  intended_use="Simple and currency-adjusted money multipliers from the monetary base, reserve ratio and optional currency drain, with the implied money supply.",
+                  unsupported_use="Retrieving monetary aggregates; excess reserves, bank capital or liquidity constraints; central-bank reaction functions; a full money-market model.",
+                  input_schema={"monetary_base": {"type": "decimal", "desc": "the monetary base"},
+                                "reserve_ratio": {"type": "decimal", "desc": "the reserve requirement as a fraction, greater than zero and at most one"},
+                                "currency_drain_ratio": {"type": "decimal", "required": False, "desc": "currency held outside banks as a fraction of deposits, default 0"}},
+                  defaults=({"question": "Reserve behaviour", "default_chosen": "Banks hold exactly the declared reserve ratio and no excess reserves.", "impact": "Excess reserves lower the realised multiplier."},
+                            {"question": "Currency drain", "default_chosen": "The simple multiplier assumes no currency drain; the extended multiplier adds the declared drain.", "impact": "A positive drain lowers the multiplier."}),
+                  assumptions=("The reserve ratio is binding and constant.", "Banks lend all available funds above reserves.", "The currency drain is a constant fraction of deposits."),
+                  limitations=("No excess reserves, capital or liquidity constraints.", "No central-bank policy reaction or interest rate.", "The multiplier is an identity, not a forecast."),
+                  default_period="annual", caveats=money_multiplier_caveats, template=money_multiplier_template,
+                  claim_ceiling="descriptive", typing=_money_typing),
+    "fiscal_multiplier": Method("fiscal_multiplier", "T1", fiscal_multiplier_impl,
+                  fiscal_multiplier_tests, fiscal_multiplier_profile, "government_spending_multiplier", "ratio", None,
+                  ("second_implementation_agrees", "government_multiplier_is_one_over_one_minus_mpc_times_one_minus_tax",
+                   "tax_multiplier_is_negative_mpc_times_the_government_multiplier",
+                   "balanced_budget_multiplier_is_one_minus_mpc_times_the_government_multiplier",
+                   "a_higher_mpc_raises_the_government_multiplier"),
+                  category="macroeconomics",
+                  intended_use="Government-spending, tax and balanced-budget multipliers from a declared marginal propensity to consume and proportional tax rate, with the output change from declared fiscal changes.",
+                  unsupported_use="Estimating the mpc or tax rate; crowding out, confidence, supply-side effects, lags, open-economy leakages or a full macro model.",
+                  input_schema={"mpc": {"type": "decimal", "desc": "marginal propensity to consume, between zero and one"},
+                                "tax_rate": {"type": "decimal", "required": False, "desc": "proportional income tax rate, default 0"},
+                                "government_spending_change": {"type": "decimal", "required": False, "desc": "change in government spending, default 0"},
+                                "tax_change": {"type": "decimal", "required": False, "desc": "change in lump-sum tax, default 0"}},
+                  defaults=({"question": "Model", "default_chosen": "Closed-economy Keynesian multiplier with a proportional income tax.", "impact": "An open economy or a price-level response gives a smaller multiplier."},
+                            {"question": "Tax change", "default_chosen": "A lump-sum tax change uses the same tax multiplier on the declared change.", "impact": "A proportional tax change is already in the denominator and is a different experiment."}),
+                  assumptions=("The mpc and tax rate are constant over the relevant range.", "Prices and interest rates do not respond.", "There is spare capacity."),
+                  limitations=("No crowding out, confidence, supply-side or open-economy effects.", "No lags or expectations.", "The multipliers are arithmetic identities, not estimated policy effects."),
+                  default_period="annual", caveats=fiscal_multiplier_caveats, template=fiscal_multiplier_template,
+                  claim_ceiling="descriptive", typing=_fiscal_typing),
+    "budget_debt": Method("budget_debt", "T1", budget_debt_impl, budget_debt_tests, budget_debt_profile,
+                  "debt_to_gdp", "rate", None,
+                  ("second_implementation_agrees", "overall_balance_equals_revenue_minus_total_spending",
+                   "primary_balance_equals_overall_balance_plus_interest",
+                   "debt_ratio_equals_debt_over_gdp",
+                   "debt_ratio_change_follows_the_interest_growth_primary_identity"),
+                  category="macroeconomics",
+                  intended_use="Overall and primary budget balances, the debt-to-GDP ratio, the interest rate and the standard debt-ratio change from declared budget aggregates.",
+                  unsupported_use="Forecasting debt; contingent liabilities, off-budget items, currency composition or maturity structure; a full debt-sustainability model; choosing a fiscal rule.",
+                  input_schema={"government_revenue": {"type": "decimal", "desc": "total government revenue"},
+                                "government_spending": {"type": "decimal", "desc": "primary spending, excluding interest"},
+                                "interest_payments": {"type": "decimal", "desc": "interest paid on the debt"},
+                                "debt_stock": {"type": "decimal", "desc": "the debt stock at the start of the period"},
+                                "nominal_gdp": {"type": "decimal", "desc": "nominal GDP"},
+                                "nominal_growth_rate": {"type": "decimal", "desc": "nominal GDP growth rate"},
+                                "inflation_rate": {"type": "decimal", "required": False, "desc": "optional inflation rate for the real interest rate"}},
+                  defaults=({"question": "What spending includes", "default_chosen": "government_spending is primary spending and excludes interest; total spending adds interest.", "impact": "Including interest in spending would double-count it in the overall balance."},
+                            {"question": "Debt dynamics", "default_chosen": "The debt-ratio change is (interest rate - nominal growth) x debt ratio - primary balance ratio, with the declared rates held constant.", "impact": "A different growth or interest assumption changes the path."}),
+                  assumptions=("The aggregates are one period's declared values in one currency.", "The debt stock is at the start of the period.", "The interest rate is interest paid divided by the debt stock."),
+                  limitations=("No contingent liabilities, off-budget items or debt composition.", "No forecast path or stochastic stress test.", "The debt-ratio change is an identity, not a sustainability verdict."),
+                  default_period="annual", caveats=budget_debt_caveats, template=budget_debt_template,
+                  claim_ceiling="descriptive", typing=_budget_typing),
+    "externality_pigouvian": Method("externality_pigouvian", "T1", externality_pigouvian_impl,
+                  externality_pigouvian_tests, externality_pigouvian_profile, "deadweight_loss", "currency", None,
+                  ("second_implementation_agrees", "market_quantity_uses_the_private_curves",
+                   "social_quantity_equates_demand_to_private_supply_plus_external_cost",
+                   "pigouvian_tax_equals_the_marginal_external_cost",
+                   "a_higher_external_cost_lowers_the_social_quantity"),
+                  category="welfare economics",
+                  intended_use="Market and social optimum under a declared per-unit external cost, with the Pigouvian tax and deadweight loss.",
+                  unsupported_use="Estimating external damages; valuing non-monetary effects; abatement technology; tax interaction; general-equilibrium or distributional effects.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in Qd = a - bP"},
+                                "demand_slope": {"type": "decimal", "desc": "b in Qd = a - bP, positive"},
+                                "supply_intercept": {"type": "decimal", "desc": "c in Qs = c + dP"},
+                                "supply_slope": {"type": "decimal", "desc": "d in Qs = c + dP, positive"},
+                                "marginal_external_cost": {"type": "decimal", "desc": "external cost per unit produced"}},
+                  defaults=({"question": "External cost", "default_chosen": "A constant per-unit external cost added to private supply at the social optimum.", "impact": "A non-linear or production-dependent damage function gives a different tax."},
+                            {"question": "Policy", "default_chosen": "The Pigouvian tax equals the marginal external cost at the optimum.", "impact": "A second-best tax in a distorted economy would differ."}),
+                  assumptions=("Linear private demand and supply; a constant per-unit external cost.", "The external cost is known and additively separable.", "Partial equilibrium with no other distortions."),
+                  limitations=("No damage estimation, non-monetary valuation or abatement technology.", "No tax interaction, enforcement cost or distributional analysis.", "The tax is a declared Pigouvian benchmark, not an observed policy."),
+                  default_period="annual", caveats=externality_pigouvian_caveats, template=externality_pigouvian_template,
+                  claim_ceiling="descriptive", typing=_externality_typing),
+    "public_good": Method("public_good", "T1", public_good_impl, public_good_tests, public_good_profile,
+                  "efficient_quantity", "units", None,
+                  ("second_implementation_agrees", "samuelson_condition_holds",
+                   "total_benefit_is_the_area_under_social_marginal_benefit",
+                   "total_cost_is_the_area_under_marginal_cost",
+                   "a_higher_marginal_cost_lowers_the_efficient_quantity"),
+                  category="welfare economics",
+                  intended_use="Efficient provision of a public good from two declared linear marginal-benefit schedules and one marginal-cost schedule, with total and net benefit.",
+                  unsupported_use="Estimating benefits; free-riding games; contribution mechanisms; crowding out; distributional weights; more than two individuals.",
+                  input_schema={"mb1_intercept": {"type": "decimal", "desc": "intercept of the first marginal-benefit schedule"},
+                                "mb1_slope": {"type": "decimal", "desc": "positive slope of the first marginal-benefit schedule"},
+                                "mb2_intercept": {"type": "decimal", "desc": "intercept of the second marginal-benefit schedule"},
+                                "mb2_slope": {"type": "decimal", "desc": "positive slope of the second marginal-benefit schedule"},
+                                "mc_intercept": {"type": "decimal", "desc": "intercept of marginal cost"},
+                                "mc_slope": {"type": "decimal", "desc": "positive slope of marginal cost"}},
+                  defaults=({"question": "Aggregation", "default_chosen": "Vertical summation of the two marginal-benefit schedules (the Samuelson condition).", "impact": "Horizontal summation would be the private-good case, not the public-good case."},
+                            {"question": "Provision", "default_chosen": "The efficient quantity is where summed marginal benefit equals marginal cost.", "impact": "A voluntary-contribution equilibrium would generally underprovide."}),
+                  assumptions=("Two individuals with declared linear marginal benefits.", "The good is non-rival and non-excludable.", "Marginal cost is linear and positive."),
+                  limitations=("Two individuals only; no free-riding or contribution game.", "No distributional weights, crowding out or administrative cost.", "The benefit schedules are declared, not estimated."),
+                  default_period="annual", caveats=public_good_caveats, template=public_good_template,
+                  claim_ceiling="descriptive", typing=_public_good_typing),
+    "social_welfare": Method("social_welfare", "T1", social_welfare_impl, social_welfare_tests,
+                  social_welfare_profile, "social_welfare", "currency", None,
+                  ("welfare_measures_agree_with_their_definitions", "utilitarian_is_the_sum_of_incomes",
+                   "rawlsian_is_the_minimum_income", "nash_is_the_geometric_mean",
+                   "a_transfer_from_the_richest_to_the_poorest_does_not_lower_nash_welfare"),
+                  category="welfare economics",
+                  intended_use="Utilitarian, Rawlsian and Nash social welfare from declared incomes, with the selected welfare function.",
+                  unsupported_use="Estimating individual utility; interpersonal comparisons beyond income; equivalence scales; non-income dimensions; a policy recommendation.",
+                  input_schema={"incomes": {"type": "value_list", "min_items": 2, "desc": "declared incomes, all positive"},
+                                "welfare_function": {"type": "enum", "values": ["utilitarian", "rawlsian", "nash"], "desc": "which welfare function to report"}},
+                  defaults=({"question": "Utility", "default_chosen": "Income is used as the utility argument; no separate utility function is estimated.", "impact": "A concave utility function would change the utilitarian ranking."},
+                            {"question": "Welfare function", "default_chosen": "The selected function is reported alongside all three; the choice is ethical, not empirical.", "impact": "Utilitarian, Rawlsian and Nash can rank the same distribution differently."}),
+                  assumptions=("Incomes are positive and comparable across the people listed.", "Income is a sufficient proxy for the welfare argument.", "The selected function is the intended ethical criterion."),
+                  limitations=("No equivalence scales, household composition or non-income dimensions.", "No interpersonal utility comparison beyond the declared incomes.", "The welfare function is a normative choice."),
+                  default_period="annual", caveats=social_welfare_caveats, template=social_welfare_template,
+                  claim_ceiling="descriptive", typing=_social_typing),
+    "gini_coefficient": Method("gini_coefficient", "T1", gini_coefficient_impl, gini_coefficient_tests,
+                  gini_coefficient_profile, "gini", "ratio", None,
+                  ("second_implementation_agrees", "equal_incomes_give_zero_gini",
+                   "gini_is_bounded_between_zero_and_one",
+                   "scaling_all_incomes_leaves_gini_unchanged",
+                   "reordering_the_incomes_leaves_gini_unchanged"),
+                  category="welfare economics",
+                  intended_use="Gini coefficient, mean, minimum and maximum from declared incomes, with the poorest and richest shares.",
+                  unsupported_use="Estimating incomes; equivalence scales; taxes and transfers; in-kind income; decomposing inequality by source or group; a policy verdict.",
+                  input_schema={"incomes": {"type": "value_list", "min_items": 2, "desc": "declared incomes, non-negative"}},
+                  defaults=({"question": "Income definition", "default_chosen": "The declared incomes are used as given; the unit and coverage are the owner's choice.", "impact": "Pre-tax, post-tax or consumption measures give different Ginis."},
+                            {"question": "Scale", "default_chosen": "The Gini is reported between zero and one, not multiplied by one hundred.", "impact": "A 0-100 presentation is a scale choice, not a different index."}),
+                  assumptions=("Incomes are non-negative and cover the intended population.", "Each income belongs to one person or household.", "No equivalence scale is applied."),
+                  limitations=("One summary measure; it hides where in the distribution inequality lies.", "No taxes, transfers, in-kind income or equivalence scales.", "No decomposition by group or source."),
+                  default_period="annual", caveats=gini_coefficient_caveats, template=gini_coefficient_template,
+                  claim_ceiling="descriptive", typing=_gini_typing),
+    "poverty_measures": Method("poverty_measures", "T1", poverty_measures_impl, poverty_measures_tests,
+                  poverty_measures_profile, "headcount_ratio", "rate", None,
+                  ("second_implementation_agrees", "headcount_is_the_share_below_the_line",
+                   "poverty_gap_is_the_average_normalised_shortfall",
+                   "squared_gap_is_the_average_squared_shortfall",
+                   "a_higher_poverty_line_raises_the_headcount"),
+                  category="welfare economics",
+                  intended_use="Headcount ratio, poverty gap, squared gap and total shortfall from declared incomes and a declared poverty line.",
+                  unsupported_use="Choosing a poverty line; estimating incomes; multidimensional poverty; transient versus chronic poverty; equivalence scales; a policy verdict.",
+                  input_schema={"incomes": {"type": "value_list", "min_items": 1, "desc": "declared incomes, non-negative"},
+                                "poverty_line": {"type": "decimal", "desc": "the declared poverty line"}},
+                  defaults=({"question": "Poverty line", "default_chosen": "The line is the owner's declared value; the method does not choose or verify it.", "impact": "A higher line raises the headcount and gap."},
+                            {"question": "Gap", "default_chosen": "The gap is averaged over the whole population, with a zero shortfall for the non-poor.", "impact": "Averaging only over the poor gives a larger number."}),
+                  assumptions=("Incomes are non-negative and cover the intended population.", "The poverty line is fixed and comparable across the observations.", "No equivalence scale is applied."),
+                  limitations=("No multidimensional or transient poverty analysis.", "No taxes, transfers, in-kind income or equivalence scales.", "The line is a declared choice."),
+                  default_period="annual", caveats=poverty_measures_caveats, template=poverty_measures_template,
+                  claim_ceiling="descriptive", typing=_poverty_typing),
+    "tax_progressivity": Method("tax_progressivity", "T1", tax_progressivity_impl,
+                  tax_progressivity_tests, tax_progressivity_profile, "progressivity_gap", "ratio", None,
+                  ("second_implementation_agrees", "average_tax_rate_equals_total_tax_over_total_income",
+                   "top_income_share_equals_top_income_over_total_income",
+                   "top_tax_share_equals_top_tax_over_total_tax",
+                   "a_proportional_tax_gives_zero_progressivity_gap"),
+                  category="public economics",
+                  intended_use="Average tax rate and a simple top-quartile progressivity gap from declared incomes and taxes.",
+                  unsupported_use="Estimating taxes; a full Kakwani or Reynolds-Smolensky index; deductions, exemptions or behavioural responses; a policy verdict.",
+                  input_schema={"incomes": {"type": "value_list", "min_items": 2, "desc": "pre-tax incomes, positive"},
+                                "taxes": {"type": "value_list", "min_items": 2, "desc": "tax paid, one per income and same length"}},
+                  defaults=({"question": "Progressivity measure", "default_chosen": "The gap is the top quartile's tax share minus its income share; positive means the top pays proportionally more.", "impact": "A full Kakwani index uses concentration curves and can rank differently."},
+                            {"question": "Top group", "default_chosen": "The top quartile by income, with at least one observation.", "impact": "A different top group changes the gap."}),
+                  assumptions=("Incomes are positive and taxes are non-negative.", "The two lists cover the same people and period.", "The top quartile is the intended comparison group."),
+                  limitations=("A simple top-quartile gap, not a full progressivity index.", "No deductions, exemptions, incidence or behavioural responses.", "No equivalence scale."),
+                  default_period="annual", caveats=tax_progressivity_caveats, template=tax_progressivity_template,
+                  claim_ceiling="descriptive", typing=_tax_prog_typing),
+    "optimal_pollution": Method("optimal_pollution", "T1", optimal_pollution_impl,
+                  optimal_pollution_tests, optimal_pollution_profile, "optimal_emissions", "units", None,
+                  ("second_implementation_agrees", "marginal_damage_equals_marginal_abatement_cost",
+                   "pollution_tax_equals_marginal_damage",
+                   "total_damage_is_the_area_under_marginal_damage",
+                   "a_higher_damage_intercept_lowers_optimal_emissions"),
+                  category="environmental economics",
+                  intended_use="Optimal emissions and pollution tax where declared linear marginal damage equals declared linear marginal abatement cost.",
+                  unsupported_use="Estimating damage or abatement costs; non-linear or threshold damage; multiple pollutants; technological change; a policy verdict.",
+                  input_schema={"marginal_damage_intercept": {"type": "decimal", "desc": "intercept of the marginal-damage curve"},
+                                "marginal_damage_slope": {"type": "decimal", "desc": "positive slope of marginal damage"},
+                                "marginal_abatement_intercept": {"type": "decimal", "desc": "intercept of the marginal-abatement-cost curve"},
+                                "marginal_abatement_slope": {"type": "decimal", "desc": "positive slope of marginal abatement cost"}},
+                  defaults=({"question": "Curve form", "default_chosen": "Marginal damage rises with emissions and marginal abatement cost falls with emissions, both linearly.", "impact": "A non-linear damage function gives a different optimum."},
+                            {"question": "Policy", "default_chosen": "The pollution tax equals marginal damage at the optimum.", "impact": "A cap-and-trade quantity instrument would need a different model."}),
+                  assumptions=("Linear marginal damage and marginal abatement cost.", "One pollutant and one period.", "The curves are the owner's declared functions."),
+                  limitations=("No damage or abatement estimation.", "No multiple pollutants, thresholds or technological change.", "No distributional or enforcement analysis."),
+                  default_period="annual", caveats=optimal_pollution_caveats, template=optimal_pollution_template,
+                  claim_ceiling="descriptive", typing=_pollution_typing),
+    "output_gap_okun": Method("output_gap_okun", "T1", output_gap_okun_impl,
+                  output_gap_okun_tests, output_gap_okun_profile, "output_gap", "rate", None,
+                  ("second_implementation_agrees", "output_gap_is_actual_over_potential_minus_one",
+                   "zero_gap_gives_zero_unemployment_change",
+                   "a_positive_gap_lowers_the_predicted_unemployment_rate",
+                   "a_higher_okun_coefficient_raises_the_magnitude"),
+                  category="macroeconomics",
+                  intended_use="Output gap from actual and potential GDP, with the predicted unemployment change from a declared Okun coefficient.",
+                  unsupported_use="Estimating potential output; estimating the Okun coefficient; a structural model of the labour market; a forecast.",
+                  input_schema={"actual_gdp": {"type": "decimal", "desc": "actual nominal or real GDP"},
+                                "potential_gdp": {"type": "decimal", "desc": "potential GDP on the same basis"},
+                                "current_unemployment_rate": {"type": "decimal", "required": False, "desc": "current unemployment rate as a fraction, default 0"},
+                                "okun_coefficient": {"type": "decimal", "required": False, "desc": "percentage-point unemployment change per one percent output gap, default 0.5"}},
+                  defaults=({"question": "Potential output", "default_chosen": "Potential GDP is the value you declare; it is not estimated.", "impact": "A different potential-output estimate changes the gap."},
+                            {"question": "Okun coefficient", "default_chosen": "The coefficient is the owner's declared value, default 0.5 percentage points per one percent gap.", "impact": "Different countries and periods have different coefficients."}),
+                  assumptions=("Actual and potential GDP are on the same price and currency basis.", "The Okun relation is linear over the relevant range.", "The coefficient is the owner's declared value."),
+                  limitations=("Potential output is declared, not estimated.", "The Okun coefficient is not estimated here.", "The predicted change is an illustration, not a forecast."),
+                  default_period="annual", caveats=output_gap_okun_caveats, template=output_gap_okun_template,
+                  claim_ceiling="descriptive", typing=_okun_typing),
+    "comparative_advantage": Method("comparative_advantage", "T1", comparative_advantage_impl,
+                  comparative_advantage_tests, comparative_advantage_profile, "oc_a_good1", "ratio", None,
+                  ("second_implementation_agrees", "opportunity_costs_are_reciprocals",
+                   "exactly_one_country_has_advantage_in_each_good",
+                   "scaling_a_countrys_hours_leaves_its_opportunity_cost_unchanged",
+                   "absolute_advantage_does_not_determine_comparative_advantage"),
+                  category="international economics",
+                  intended_use="Ricardian comparative advantage from two countries' declared unit labour requirements in two goods, with opportunity costs and specialisation flags.",
+                  unsupported_use="Estimating productivity; more than two countries or goods; transport costs, tariffs, demand differences, increasing returns or strategic trade policy.",
+                  input_schema={"countries": {"type": "records", "min_items": 2,
+                                               "fields": {"name": "text", "good_1_hours": "decimal", "good_2_hours": "decimal"},
+                                               "desc": "exactly two countries with their unit labour requirements"}},
+                  defaults=({"question": "Trade model", "default_chosen": "Two countries, two goods and constant unit labour requirements; the Ricardian textbook case.", "impact": "A Heckscher-Ohlin or increasing-returns model gives a different pattern."},
+                            {"question": "Advantage", "default_chosen": "Comparative advantage follows the lower opportunity cost, not the lower absolute hours.", "impact": "Absolute advantage alone does not determine who should specialise in what."}),
+                  assumptions=("Unit labour requirements are constant and the only input.", "Two countries and two goods.", "Labour is mobile within a country and immobile between countries."),
+                  limitations=("No transport costs, tariffs, demand or increasing returns.", "Two countries and two goods only.", "No distributional analysis of the gains from trade."),
+                  default_period="annual", caveats=comparative_advantage_caveats, template=comparative_advantage_template,
+                  claim_ceiling="descriptive", typing=_comparative_typing),
+    "tariff_welfare": Method("tariff_welfare", "T1", tariff_welfare_impl, tariff_welfare_tests,
+                  tariff_welfare_profile, "total_dwloss", "currency", None,
+                  ("second_implementation_agrees", "domestic_price_is_world_price_plus_tariff",
+                   "imports_equal_domestic_demand_minus_supply",
+                   "tariff_revenue_equals_tariff_times_imports",
+                   "a_higher_tariff_lowers_imports"),
+                  category="international economics",
+                  intended_use="Small-country tariff on a linear market: domestic price, imports, tariff revenue and the production and consumption deadweight losses.",
+                  unsupported_use="Large-country terms-of-trade effects; retaliation; quotas; transport costs; general-equilibrium or dynamic effects.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in Qd = a - bP"},
+                                "demand_slope": {"type": "decimal", "desc": "b in Qd = a - bP, positive"},
+                                "supply_intercept": {"type": "decimal", "desc": "c in Qs = c + dP"},
+                                "supply_slope": {"type": "decimal", "desc": "d in Qs = c + dP, positive"},
+                                "world_price": {"type": "decimal", "desc": "the world price before the tariff"},
+                                "tariff_per_unit": {"type": "decimal", "desc": "the per-unit tariff"}},
+                  defaults=({"question": "Country size", "default_chosen": "Small open economy: the world price is taken as given and the tariff is fully passed into the domestic price.", "impact": "A large country can shift the world price and gain terms-of-trade."},
+                            {"question": "Welfare", "default_chosen": "Production and consumption deadweight-loss triangles plus tariff revenue.", "impact": "A quota or a non-linear model gives a different welfare split."}),
+                  assumptions=("Linear domestic demand and supply.", "The country is a price-taker in world markets.", "The tariff is a per-unit amount and is fully enforced."),
+                  limitations=("Small-country, partial-equilibrium model only.", "No retaliation, quota, transport cost or dynamic effect.", "No distributional analysis of producers and consumers."),
+                  default_period="annual", caveats=tariff_welfare_caveats, template=tariff_welfare_template,
+                  claim_ceiling="descriptive", typing=_tariff_typing),
+    "exchange_rate_ppp": Method("exchange_rate_ppp", "T1", exchange_rate_ppp_impl,
+                  exchange_rate_ppp_tests, exchange_rate_ppp_profile, "real_exchange_rate", "ratio", None,
+                  ("second_implementation_agrees", "ppp_rate_is_the_domestic_price_over_the_foreign_price",
+                   "real_exchange_rate_is_nominal_over_ppp",
+                   "nominal_rate_equal_to_ppp_gives_zero_misalignment",
+                   "a_higher_domestic_price_raises_the_ppp_rate"),
+                  category="international economics",
+                  intended_use="Absolute and relative purchasing-power parity from declared price levels and a nominal exchange rate, with the real rate, misalignment and expected depreciation.",
+                  unsupported_use="Retrieving price levels or exchange rates; choosing a basket; non-tradables, transport costs, tariffs or a full equilibrium model.",
+                  input_schema={"price_domestic": {"type": "decimal", "desc": "domestic price level or basket cost"},
+                                "price_foreign": {"type": "decimal", "desc": "foreign price level in foreign currency"},
+                                "nominal_rate": {"type": "decimal", "desc": "domestic currency per one unit of foreign currency"},
+                                "domestic_inflation": {"type": "decimal", "required": False, "desc": "optional domestic inflation for relative PPP"},
+                                "foreign_inflation": {"type": "decimal", "required": False, "desc": "optional foreign inflation for relative PPP"}},
+                  defaults=({"question": "PPP basis", "default_chosen": "Absolute PPP on the declared price levels; relative PPP uses the declared inflation rates for one period.", "impact": "A different basket or base period gives a different PPP rate."},
+                            {"question": "Real rate", "default_chosen": "Real exchange rate = nominal x foreign price / domestic price; 1 means PPP.", "impact": "A different quotation convention inverts the real rate."}),
+                  assumptions=("The two price levels cover comparable baskets.", "The nominal rate is domestic per foreign.", "Relative PPP uses one period and the declared inflation rates."),
+                  limitations=("No transport costs, tariffs, non-tradables or Balassa-Samuelson effect.", "The price levels are declared, not retrieved.", "PPP is a long-run benchmark, not a forecast."),
+                  default_period="annual", caveats=exchange_rate_ppp_caveats, template=exchange_rate_ppp_template,
+                  claim_ceiling="descriptive", typing=_ppp_typing),
+    "interest_rate_parity": Method("interest_rate_parity", "T1", interest_rate_parity_impl,
+                  interest_rate_parity_tests, interest_rate_parity_profile, "implied_forward", "currency", None,
+                  ("second_implementation_agrees", "covered_interest_parity_holds",
+                   "forward_premium_is_the_interest_differential",
+                   "a_higher_domestic_rate_raises_the_implied_forward",
+                   "a_higher_foreign_rate_lowers_the_implied_forward"),
+                  category="international economics",
+                  intended_use="Covered interest parity: the implied forward rate and forward premium from a spot rate, two interest rates and a declared horizon, with an optional declared forward and real rates.",
+                  unsupported_use="Retrieving rates; uncovered parity as a forecast; transaction costs, capital controls, credit or basis risk; a full exchange-rate model.",
+                  input_schema={"spot_rate": {"type": "decimal", "desc": "spot domestic currency per foreign currency"},
+                                "domestic_rate": {"type": "decimal", "desc": "domestic interest rate for the horizon"},
+                                "foreign_rate": {"type": "decimal", "desc": "foreign interest rate for the horizon"},
+                                "time_to_maturity": {"type": "decimal", "desc": "horizon in years"},
+                                "forward_rate": {"type": "decimal", "required": False, "desc": "optional declared forward rate to compare with parity"},
+                                "domestic_inflation": {"type": "decimal", "required": False, "desc": "optional domestic inflation for the real rate"},
+                                "foreign_inflation": {"type": "decimal", "required": False, "desc": "optional foreign inflation for the real rate"}},
+                  defaults=({"question": "Parity", "default_chosen": "Covered interest parity with compounding over the declared horizon.", "impact": "Simple-interest or continuous compounding gives a slightly different forward."},
+                            {"question": "Forward", "default_chosen": "The implied forward is computed; a declared forward is compared with it and the gap is reported.", "impact": "A gap can reflect transaction costs, controls or a data mismatch."}),
+                  assumptions=("The spot rate is domestic per foreign.", "The two interest rates apply to the same horizon.", "Capital is mobile and there are no controls or transaction costs."),
+                  limitations=("No transaction costs, capital controls, credit or basis risk.", "Uncovered parity is not a forecast and is not computed.", "The forward is implied, not observed, unless declared."),
+                  default_period="annual", caveats=interest_rate_parity_caveats, template=interest_rate_parity_template,
+                  claim_ceiling="descriptive", typing=_irp_typing),
+    "balance_of_payments": Method("balance_of_payments", "T1", balance_of_payments_impl,
+                  balance_of_payments_tests, balance_of_payments_profile, "net_balance", "currency", None,
+                  ("second_implementation_agrees", "net_balance_is_the_sum_of_the_accounts",
+                   "a_balanced_position_is_flagged",
+                   "a_current_account_deficit_needs_an_offsetting_surplus",
+                   "the_current_account_ratio_uses_gdp"),
+                  category="international economics",
+                  intended_use="Balance-of-payments identity from declared current, capital and financial account balances, with an optional errors term and current-account-to-GDP ratio.",
+                  unsupported_use="Retrieving balance-of-payments data; choosing a sign convention; reserve valuation effects; debt-service or sustainability analysis.",
+                  input_schema={"current_account": {"type": "decimal", "desc": "current-account balance"},
+                                "capital_account": {"type": "decimal", "desc": "capital-account balance"},
+                                "financial_account": {"type": "decimal", "desc": "financial-account balance"},
+                                "errors_and_omissions": {"type": "decimal", "required": False, "desc": "net errors and omissions, default 0"},
+                                "gdp": {"type": "decimal", "required": False, "desc": "optional nominal GDP for the current-account ratio"}},
+                  defaults=({"question": "Sign convention", "default_chosen": "All balances use the same declared sign convention and are added; the method checks the identity, not the convention.", "impact": "Mixing conventions can make a balanced position look unbalanced."},
+                            {"question": "Interpretation", "default_chosen": "A zero net balance is an accounting identity, not a sustainability verdict.", "impact": "A balanced position can still hide risky composition."}),
+                  assumptions=("The three account balances use one sign convention and one period.", "Errors and omissions are declared or zero.", "GDP, if used, is on the same basis."),
+                  limitations=("No reserve valuation, debt-service or sustainability analysis.", "No decomposition into trade, income and transfers.", "The identity does not validate the underlying data."),
+                  default_period="annual", caveats=balance_of_payments_caveats, template=balance_of_payments_template,
+                  claim_ceiling="descriptive", typing=_bop_typing),
+    "hdi": Method("hdi", "T1", hdi_impl, hdi_tests, hdi_profile, "hdi", "ratio", None,
+                  ("second_implementation_agrees", "dimension_indices_are_bounded",
+                   "hdi_is_the_geometric_mean_of_the_indices",
+                   "a_higher_life_expectancy_raises_the_life_index",
+                   "the_goalposts_give_an_hdi_of_one"),
+                  category="development economics",
+                  intended_use="Human Development Index from declared life expectancy, expected and mean years of schooling and GNI per capita, using the UNDP goalposts.",
+                  unsupported_use="Retrieving HDI data; choosing goalposts; inequality-adjusted HDI; multidimensional poverty; a policy verdict.",
+                  input_schema={"life_expectancy": {"type": "decimal", "desc": "life expectancy at birth in years"},
+                                "expected_years_schooling": {"type": "decimal", "desc": "expected years of schooling"},
+                                "mean_years_schooling": {"type": "decimal", "desc": "mean years of schooling"},
+                                "gni_per_capita": {"type": "decimal", "desc": "GNI per capita in purchasing-power terms"}},
+                  defaults=({"question": "Goalposts", "default_chosen": "UNDP goalposts: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000.", "impact": "A different goalpost set gives a different HDI."},
+                            {"question": "Aggregation", "default_chosen": "Geometric mean of the three dimension indices.", "impact": "An arithmetic mean would be more substitutable across dimensions."}),
+                  assumptions=("The four inputs are on the UNDP definitions and comparable basis.", "The goalposts are the declared UNDP values.", "GNI per capita is in purchasing-power terms."),
+                  limitations=("No inequality adjustment or multidimensional poverty.", "The index hides distribution within each dimension.", "The data are declared, not retrieved."),
+                  default_period="annual", caveats=hdi_caveats, template=hdi_template,
+                  claim_ceiling="descriptive", typing=_hdi_typing),
+    "expected_utility": Method("expected_utility", "T1", expected_utility_impl, expected_utility_tests,
+                  expected_utility_profile, "certainty_equivalent", "currency", None,
+                  ("second_implementation_agrees", "expected_value_is_the_probability_weighted_outcome",
+                   "risk_neutral_certainty_equivalent_equals_expected_value",
+                   "a_risky_gamble_has_a_positive_risk_premium_under_crra",
+                   "a_higher_risk_aversion_lowers_the_certainty_equivalent"),
+                  category="behavioural economics",
+                  intended_use="Expected value, expected utility, certainty equivalent and risk premium for a declared gamble under risk neutrality or CRRA utility.",
+                  unsupported_use="Estimating utilities or risk aversion; non-expected-utility models; ambiguity; reference dependence (use prospect_theory); a normative recommendation.",
+                  input_schema={"outcomes": {"type": "value_list", "min_items": 1, "desc": "positive final wealth outcomes"},
+                                "probabilities": {"type": "value_list", "min_items": 1, "desc": "probabilities, same length, summing to one"},
+                                "utility_function": {"type": "enum", "values": ["risk_neutral", "crra"], "required": False, "desc": "default crra"},
+                                "risk_aversion": {"type": "decimal", "required": False, "desc": "CRRA coefficient, default 1"}},
+                  defaults=({"question": "Utility", "default_chosen": "CRRA with the declared risk-aversion coefficient; risk-neutral utility is available as a declared alternative.", "impact": "A different utility function changes the certainty equivalent and risk premium."},
+                            {"question": "Outcomes", "default_chosen": "Outcomes are final wealth levels and must be positive.", "impact": "Gains and losses relative to a reference point belong to prospect_theory, not this method."}),
+                  assumptions=("Probabilities are known and sum to one.", "Outcomes are positive final wealth levels.", "The utility function and risk aversion are the owner's declared values."),
+                  limitations=("No probability weighting, ambiguity or reference dependence.", "CRRA is defined only for positive outcomes.", "The utility parameters are not estimated."),
+                  default_period="annual", caveats=expected_utility_caveats, template=expected_utility_template,
+                  claim_ceiling="descriptive", typing=_eu_typing),
+    "prospect_theory": Method("prospect_theory", "T1", prospect_theory_impl, prospect_theory_tests,
+                  prospect_theory_profile, "prospect_value", "currency", None,
+                  ("second_implementation_agrees", "a_reference_outcome_has_zero_prospect_value",
+                   "a_loss_hurts_more_than_an_equal_gain",
+                   "a_higher_loss_aversion_lowers_a_mixed_prospect",
+                   "gains_and_losses_are_curved_separately"),
+                  category="behavioural economics",
+                  intended_use="Kahneman-Tversky-style prospect value from declared outcomes, probabilities and a reference point, with loss aversion, curvature and probability weighting.",
+                  unsupported_use="Estimating the parameters; a normative recommendation; ambiguity, framing or reference-point selection; cumulative prospect theory with rank dependence.",
+                  input_schema={"reference_point": {"type": "decimal", "desc": "the reference outcome"},
+                                "outcomes": {"type": "value_list", "min_items": 1, "desc": "outcomes to be evaluated relative to the reference"},
+                                "probabilities": {"type": "value_list", "min_items": 1, "desc": "probabilities, same length, summing to one"},
+                                "loss_aversion": {"type": "decimal", "required": False, "desc": "loss-aversion coefficient, default 2.25"},
+                                "gain_curvature": {"type": "decimal", "required": False, "desc": "gain curvature, default 0.88"},
+                                "loss_curvature": {"type": "decimal", "required": False, "desc": "loss curvature, default 0.88"},
+                                "probability_weighting": {"type": "decimal", "required": False, "desc": "probability-weighting parameter, default 0.61"}},
+                  defaults=({"question": "Value function", "default_chosen": "Gains are curved with the gain parameter; losses with the loss parameter and multiplied by loss aversion.", "impact": "Different parameters change the prospect value and the ranking of gambles."},
+                            {"question": "Probability weights", "default_chosen": "Tversky-Kahneman-style weights, normalised to sum to one.", "impact": "Cumulative rank-dependent weighting is not implemented."}),
+                  assumptions=("Outcomes are evaluated relative to the declared reference point.", "Probabilities are known and sum to one.", "The parameters are the owner's declared values."),
+                  limitations=("A declared parameterisation, not an estimate.", "No cumulative rank-dependent weighting, ambiguity or framing.", "Descriptive, not normative."),
+                  default_period="annual", caveats=prospect_theory_caveats, template=prospect_theory_template,
+                  claim_ceiling="descriptive", typing=_prospect_typing),
+    "labour_market": Method("labour_market", "T1", labour_market_impl, labour_market_tests,
+                  labour_market_profile, "real_wage", "currency", None,
+                  ("second_implementation_agrees", "real_wage_is_nominal_wage_over_the_price_index",
+                   "wage_share_is_real_wage_over_productivity",
+                   "a_higher_cpi_lowers_the_real_wage",
+                   "a_higher_productivity_lowers_the_wage_share"),
+                  category="labour economics",
+                  intended_use="Real wage, wage share of productivity and optional labour-market tightness from declared nominal wage, CPI, productivity and vacancy/unemployment figures.",
+                  unsupported_use="Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; a full labour-market model.",
+                  input_schema={"nominal_wage": {"type": "decimal", "desc": "nominal wage"},
+                                "cpi": {"type": "decimal", "desc": "consumer price index, base 100"},
+                                "labour_productivity": {"type": "decimal", "desc": "output per worker"},
+                                "vacancies": {"type": "decimal", "required": False, "desc": "optional vacancy count"},
+                                "unemployment_rate": {"type": "decimal", "required": False, "desc": "optional unemployment rate as a fraction for tightness"}},
+                  defaults=({"question": "Real wage", "default_chosen": "Nominal wage divided by the CPI divided by one hundred.", "impact": "A different price index or base year changes the real wage."},
+                            {"question": "Wage share", "default_chosen": "Real wage divided by labour productivity, a simple comparison rather than a full labour-share decomposition.", "impact": "A full decomposition would need compensation and value-added data."}),
+                  assumptions=("The nominal wage, CPI and productivity cover the same period and population.", "The CPI is an index with a base of 100.", "Productivity is output per worker."),
+                  limitations=("No hours, composition, taxes, benefits or bargaining.", "The wage share is a simple ratio, not a full decomposition.", "No regional or sectoral breakdown."),
+                  default_period="annual", caveats=labour_market_caveats, template=labour_market_template,
+                  claim_ceiling="descriptive", typing=_labour_typing),
+    "price_discrimination": Method("price_discrimination", "T1", price_discrimination_impl,
+                  price_discrimination_tests, price_discrimination_profile, "total_profit", "currency", None,
+                  ("second_implementation_agrees", "marginal_revenue_equals_marginal_cost_in_market_one",
+                   "marginal_revenue_equals_marginal_cost_in_market_two",
+                   "total_revenue_is_the_sum_of_market_revenues",
+                   "a_higher_marginal_cost_lowers_both_quantities"),
+                  category="industrial organization",
+                  intended_use="Third-degree price discrimination across two separated linear markets with constant marginal cost: quantities, prices and profit.",
+                  unsupported_use="Estimating demand; arbitrage or market separation; first- or second-degree discrimination; menu costs, capacity or welfare comparison with a single price.",
+                  input_schema={"demand_intercept_1": {"type": "decimal", "desc": "intercept of demand in market one"},
+                                "demand_slope_1": {"type": "decimal", "desc": "positive slope of demand in market one"},
+                                "demand_intercept_2": {"type": "decimal", "desc": "intercept of demand in market two"},
+                                "demand_slope_2": {"type": "decimal", "desc": "positive slope of demand in market two"},
+                                "marginal_cost": {"type": "decimal", "desc": "constant marginal cost"}},
+                  defaults=({"question": "Discrimination", "default_chosen": "Third degree: a separate linear price in each market, with no resale.", "impact": "If resale is possible the two prices collapse toward one."},
+                            {"question": "Cost", "default_chosen": "Constant marginal cost across both markets.", "impact": "Different costs or capacity constraints change both prices."}),
+                  assumptions=("The two markets are separable and resale is impossible.", "Demand is linear and marginal cost is constant.", "The firm can set a different price in each market."),
+                  limitations=("No arbitrage, capacity, menu cost or fixed cost.", "No welfare comparison with a single price.", "Two markets only."),
+                  default_period="annual", caveats=price_discrimination_caveats, template=price_discrimination_template,
+                  claim_ceiling="descriptive", typing=_pd_typing),
+    "cournot_duopoly": Method("cournot_duopoly", "T1", cournot_duopoly_impl,
+                  cournot_duopoly_tests, cournot_duopoly_profile, "price", "currency", None,
+                  ("second_implementation_agrees", "firm_one_is_on_its_best_response",
+                   "firm_two_is_on_its_best_response", "symmetric_costs_give_equal_quantities",
+                   "a_higher_own_cost_lowers_own_quantity"),
+                  category="industrial organization",
+                  intended_use="Two-firm Cournot equilibrium with linear demand and constant marginal costs: quantities, price and profits.",
+                  unsupported_use="Estimating demand or costs; more than two firms; capacity, product differentiation, repeated interaction or collusion; a firm priced out of the market.",
+                  input_schema={"demand_intercept": {"type": "decimal", "desc": "a in P = a - bQ"},
+                                "demand_slope": {"type": "decimal", "desc": "b in P = a - bQ, positive"},
+                                "marginal_cost_1": {"type": "decimal", "desc": "constant marginal cost of firm one"},
+                                "marginal_cost_2": {"type": "decimal", "desc": "constant marginal cost of firm two"}},
+                  defaults=({"question": "Competition", "default_chosen": "One-shot quantity competition with simultaneous choices.", "impact": "Bertrand price competition or Stackelberg leadership gives a different outcome."},
+                            {"question": "Equilibrium", "default_chosen": "Interior Cournot equilibrium; a firm priced out of the market is refused.", "impact": "A corner solution would need a different model."}),
+                  assumptions=("Two firms, homogeneous products and linear demand.", "Constant marginal costs.", "Simultaneous quantity choice and no collusion."),
+                  limitations=("Two firms only; no entry, capacity or differentiation.", "One-shot game; no repeated interaction or collusion.", "A corner solution is refused."),
+                  default_period="annual", caveats=cournot_duopoly_caveats, template=cournot_duopoly_template,
+                  claim_ceiling="descriptive", typing=_cournot_typing),
+    "difference_in_differences": Method("difference_in_differences", "T1", difference_in_differences_impl,
+                  difference_in_differences_tests, difference_in_differences_profile, "did_estimate", "currency", None,
+                  ("second_implementation_agrees", "treated_change_is_post_minus_pre",
+                   "control_change_is_post_minus_pre", "did_is_the_difference_of_the_two_changes",
+                   "parallel_trends_give_a_zero_estimate"),
+                  category="impact evaluation",
+                  intended_use="Two-group, two-period difference-in-differences from four declared means.",
+                  unsupported_use="Testing parallel trends; covariates, clustering, weights, repeated cross-sections, staggered adoption or a causal claim without the design.",
+                  input_schema={"treated_pre": {"type": "decimal", "desc": "treated group mean before"},
+                                "treated_post": {"type": "decimal", "desc": "treated group mean after"},
+                                "control_pre": {"type": "decimal", "desc": "control group mean before"},
+                                "control_post": {"type": "decimal", "desc": "control group mean after"}},
+                  defaults=({"question": "Design", "default_chosen": "Two groups and two periods with declared means.", "impact": "A regression with covariates or staggered adoption is a different design."},
+                            {"question": "Identification", "default_chosen": "The estimate is causal only under parallel trends, which this method cannot test.", "impact": "If trends differ, the estimate is biased."}),
+                  assumptions=("The four means are comparable and measured the same way.", "The control group would have followed the treated group's trend absent treatment.", "No confounding shocks differ between the groups."),
+                  limitations=("Parallel trends cannot be tested here.", "No covariates, clustering, weights or repeated cross-sections.", "A two-period, two-group design only."),
+                  default_period="annual", caveats=difference_in_differences_caveats, template=difference_in_differences_template,
+                  claim_ceiling="associational", typing=_did_typing),
+    "nash_equilibrium": Method("nash_equilibrium", "T1", nash_equilibrium_impl,
+                  nash_equilibrium_tests, nash_equilibrium_profile, "nash_count", "count", None,
+                  ("second_implementation_agrees", "nash_count_equals_the_number_of_flags",
+                   "prisoners_dilemma_has_one_nash", "coordination_game_has_two_nash",
+                   "matching_pennies_has_no_pure_nash"),
+                  category="game theory",
+                  intended_use="Pure-strategy Nash equilibria of a declared 2x2 game, with a flag for each cell and the number of equilibria.",
+                  unsupported_use="Mixed strategies; games larger than 2x2; sequential or repeated games; coalitional games; selecting among multiple equilibria.",
+                  input_schema={"row_payoffs": {"type": "value_list", "min_items": 4, "desc": "row player's payoffs in the order (row one, column one), (row one, column two), (row two, column one), (row two, column two)"},
+                                "column_payoffs": {"type": "value_list", "min_items": 4, "desc": "column player's payoffs in the same cell order"}},
+                  defaults=({"question": "Strategies", "default_chosen": "Two players, two pure strategies each, simultaneous moves.", "impact": "Mixed or sequential strategies are a different solution concept."},
+                            {"question": "Ties", "default_chosen": "A cell where neither player can gain by a unilateral switch is counted as a weak Nash equilibrium.", "impact": "A strict-equilibrium-only rule could report fewer cells."}),
+                  assumptions=("The payoffs are the players' utilities and are comparable only within each player.", "The game is one-shot and simultaneous.", "Each player knows the payoff matrix."),
+                  limitations=("Pure strategies only; mixed equilibria are not computed.", "2x2 games only.", "Multiple equilibria are reported, not ranked."),
+                  default_period="cross_section", caveats=nash_equilibrium_caveats, template=nash_equilibrium_template,
+                  claim_ceiling="descriptive", typing=_nash_typing),
 }
 
 # ---------- discovery (never executes a method) ----------

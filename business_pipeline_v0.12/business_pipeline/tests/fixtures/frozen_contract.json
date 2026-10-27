@@ -22,6 +22,51 @@
         "missing_codes"
       ]
     },
+    "balance_of_payments": {
+      "tier": "T1",
+      "metric": "net_balance",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "net_balance_is_the_sum_of_the_accounts",
+        "a_balanced_position_is_flagged",
+        "a_current_account_deficit_needs_an_offsetting_surplus",
+        "the_current_account_ratio_uses_gdp"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international economics",
+      "inputs": [
+        "capital_account",
+        "current_account",
+        "errors_and_omissions",
+        "financial_account",
+        "gdp"
+      ]
+    },
+    "bond_analysis": {
+      "tier": "T1",
+      "metric": "price",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "a_par_bond_prices_at_face_value",
+        "a_higher_yield_lowers_the_price",
+        "modified_duration_is_macaulay_over_one_plus_the_periodic_yield",
+        "duration_is_below_the_maturity_in_years",
+        "convexity_is_positive",
+        "the_solved_yield_reproduces_the_price"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "fixed income",
+      "inputs": [
+        "coupon_rate",
+        "face_value",
+        "payments_per_year",
+        "price",
+        "years_to_maturity",
+        "yield_to_maturity"
+      ]
+    },
     "breakeven": {
       "tier": "T1",
       "metric": "breakeven_units",
@@ -37,6 +82,52 @@
         "fixed",
         "price",
         "variable"
+      ]
+    },
+    "budget_debt": {
+      "tier": "T1",
+      "metric": "debt_to_gdp",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "overall_balance_equals_revenue_minus_total_spending",
+        "primary_balance_equals_overall_balance_plus_interest",
+        "debt_ratio_equals_debt_over_gdp",
+        "debt_ratio_change_follows_the_interest_growth_primary_identity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "debt_stock",
+        "government_revenue",
+        "government_spending",
+        "inflation_rate",
+        "interest_payments",
+        "nominal_gdp",
+        "nominal_growth_rate"
+      ]
+    },
+    "capm": {
+      "tier": "T1",
+      "metric": "cost_of_equity",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "a_zero_beta_earns_the_risk_free_rate",
+        "the_cost_of_equity_rises_with_beta",
+        "capm_is_the_risk_free_rate_plus_beta_times_the_premium",
+        "hamada_relevering_round_trips"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "cost of capital",
+      "inputs": [
+        "beta",
+        "debt_to_equity",
+        "market_return",
+        "returns_asset",
+        "returns_market",
+        "risk_free_rate",
+        "tax_rate"
       ]
     },
     "chi_square": {
@@ -58,6 +149,23 @@
         "table"
       ]
     },
+    "comparative_advantage": {
+      "tier": "T1",
+      "metric": "oc_a_good1",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "opportunity_costs_are_reciprocals",
+        "exactly_one_country_has_advantage_in_each_good",
+        "scaling_a_countrys_hours_leaves_its_opportunity_cost_unchanged",
+        "absolute_advantage_does_not_determine_comparative_advantage"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international economics",
+      "inputs": [
+        "countries"
+      ]
+    },
     "cost_benefit": {
       "tier": "T2",
       "metric": "net_present_value",
@@ -77,6 +185,27 @@
         "discount_rate"
       ]
     },
+    "cost_curves": {
+      "tier": "T1",
+      "metric": "average_cost",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "marginal_cost_is_the_derivative_of_total_cost",
+        "average_cost_equals_total_cost_over_quantity",
+        "average_cost_equals_average_fixed_plus_average_variable",
+        "average_variable_cost_excludes_fixed_cost"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "fixed_cost",
+        "linear_cost",
+        "price",
+        "quadratic_cost",
+        "quantity"
+      ]
+    },
     "cost_effectiveness": {
       "tier": "T2",
       "metric": "n_options",
@@ -92,6 +221,26 @@
       "category": "appraisal",
       "inputs": [
         "options"
+      ]
+    },
+    "cournot_duopoly": {
+      "tier": "T1",
+      "metric": "price",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "firm_one_is_on_its_best_response",
+        "firm_two_is_on_its_best_response",
+        "symmetric_costs_give_equal_quantities",
+        "a_higher_own_cost_lowers_own_quantity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "industrial organization",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "marginal_cost_1",
+        "marginal_cost_2"
       ]
     },
     "currency_convert": {
@@ -138,6 +287,26 @@
         "timing"
       ]
     },
+    "demand_supply_equilibrium": {
+      "tier": "T1",
+      "metric": "equilibrium_price",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "quantity_demanded_equals_quantity_supplied",
+        "consumer_surplus_is_the_triangle",
+        "producer_surplus_is_the_triangle",
+        "total_surplus_is_consumer_plus_producer"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "supply_intercept",
+        "supply_slope"
+      ]
+    },
     "descriptive_stats": {
       "tier": "T1",
       "metric": "mean",
@@ -157,6 +326,26 @@
         "values"
       ]
     },
+    "difference_in_differences": {
+      "tier": "T1",
+      "metric": "did_estimate",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "treated_change_is_post_minus_pre",
+        "control_change_is_post_minus_pre",
+        "did_is_the_difference_of_the_two_changes",
+        "parallel_trends_give_a_zero_estimate"
+      ],
+      "claim_ceiling": "associational",
+      "category": "impact evaluation",
+      "inputs": [
+        "control_post",
+        "control_pre",
+        "treated_post",
+        "treated_pre"
+      ]
+    },
     "discounted_payback": {
       "tier": "T1",
       "metric": "discounted_payback",
@@ -173,6 +362,56 @@
       "inputs": [
         "cashflows",
         "rate"
+      ]
+    },
+    "dupont_analysis": {
+      "tier": "T1",
+      "metric": "return_on_equity",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "return_on_equity_is_net_income_over_equity",
+        "the_three_step_product_reproduces_roe",
+        "return_on_assets_is_margin_times_turnover",
+        "a_higher_net_margin_raises_roe",
+        "the_five_step_product_reproduces_roe",
+        "prior_period_growth_rates_are_relative_changes"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "financial statement analysis",
+      "inputs": [
+        "cost_of_sales",
+        "ebit",
+        "equity",
+        "net_income",
+        "pretax_income",
+        "prior_equity",
+        "prior_net_income",
+        "prior_revenue",
+        "prior_total_assets",
+        "revenue",
+        "tax_expense",
+        "total_assets"
+      ]
+    },
+    "elasticity": {
+      "tier": "T1",
+      "metric": "price_elasticity",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "arc_elasticity_equals_percentage_changes",
+        "swapping_the_observations_leaves_the_arc_elasticity_unchanged",
+        "revenue_change_equals_new_revenue_minus_old",
+        "elastic_flag_matches_the_magnitude"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "price_1",
+        "price_2",
+        "quantity_1",
+        "quantity_2"
       ]
     },
     "equity_bridge": {
@@ -195,6 +434,218 @@
         "minority_interest",
         "preferred_equity",
         "shares_outstanding"
+      ]
+    },
+    "exchange_rate_ppp": {
+      "tier": "T1",
+      "metric": "real_exchange_rate",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "ppp_rate_is_the_domestic_price_over_the_foreign_price",
+        "real_exchange_rate_is_nominal_over_ppp",
+        "nominal_rate_equal_to_ppp_gives_zero_misalignment",
+        "a_higher_domestic_price_raises_the_ppp_rate"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international economics",
+      "inputs": [
+        "domestic_inflation",
+        "foreign_inflation",
+        "nominal_rate",
+        "price_domestic",
+        "price_foreign"
+      ]
+    },
+    "expected_utility": {
+      "tier": "T1",
+      "metric": "certainty_equivalent",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "expected_value_is_the_probability_weighted_outcome",
+        "risk_neutral_certainty_equivalent_equals_expected_value",
+        "a_risky_gamble_has_a_positive_risk_premium_under_crra",
+        "a_higher_risk_aversion_lowers_the_certainty_equivalent"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "behavioural economics",
+      "inputs": [
+        "outcomes",
+        "probabilities",
+        "risk_aversion",
+        "utility_function"
+      ]
+    },
+    "externality_pigouvian": {
+      "tier": "T1",
+      "metric": "deadweight_loss",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "market_quantity_uses_the_private_curves",
+        "social_quantity_equates_demand_to_private_supply_plus_external_cost",
+        "pigouvian_tax_equals_the_marginal_external_cost",
+        "a_higher_external_cost_lowers_the_social_quantity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "welfare economics",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "marginal_external_cost",
+        "supply_intercept",
+        "supply_slope"
+      ]
+    },
+    "fiscal_multiplier": {
+      "tier": "T1",
+      "metric": "government_spending_multiplier",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "government_multiplier_is_one_over_one_minus_mpc_times_one_minus_tax",
+        "tax_multiplier_is_negative_mpc_times_the_government_multiplier",
+        "balanced_budget_multiplier_is_one_minus_mpc_times_the_government_multiplier",
+        "a_higher_mpc_raises_the_government_multiplier"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "government_spending_change",
+        "mpc",
+        "tax_change",
+        "tax_rate"
+      ]
+    },
+    "fx_parity": {
+      "tier": "T1",
+      "metric": "ppp_expected_spot",
+      "unit": "value",
+      "test_names": [
+        "second_implementation_agrees",
+        "interest_rate_parity_reproduces_the_forward",
+        "purchasing_power_parity_reproduces_the_expected_spot",
+        "the_forward_premium_is_the_annualised_forward_change",
+        "zero_differentials_leave_the_spot_rate_unchanged",
+        "the_fisher_relation_links_nominal_and_real_rates",
+        "the_hedged_outcome_is_exposure_times_the_forward"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international finance",
+      "inputs": [
+        "domestic_inflation",
+        "domestic_rate",
+        "expected_spot",
+        "exposure_amount",
+        "foreign_inflation",
+        "foreign_rate",
+        "forward_rate",
+        "hedge_forward",
+        "spot_rate",
+        "time_to_maturity"
+      ]
+    },
+    "gini_coefficient": {
+      "tier": "T1",
+      "metric": "gini",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "equal_incomes_give_zero_gini",
+        "gini_is_bounded_between_zero_and_one",
+        "scaling_all_incomes_leaves_gini_unchanged",
+        "reordering_the_incomes_leaves_gini_unchanged"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "welfare economics",
+      "inputs": [
+        "incomes"
+      ]
+    },
+    "growth_rate": {
+      "tier": "T1",
+      "metric": "cagr",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "cagr_compounds_to_the_end_value",
+        "total_growth_is_end_over_start_minus_one",
+        "doubling_time_times_cagr_is_approximately_72_percent",
+        "a_higher_end_value_raises_cagr"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "end_value",
+        "periods",
+        "population_end",
+        "population_start",
+        "start_value"
+      ]
+    },
+    "hdi": {
+      "tier": "T1",
+      "metric": "hdi",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "dimension_indices_are_bounded",
+        "hdi_is_the_geometric_mean_of_the_indices",
+        "a_higher_life_expectancy_raises_the_life_index",
+        "the_goalposts_give_an_hdi_of_one"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "development economics",
+      "inputs": [
+        "expected_years_schooling",
+        "gni_per_capita",
+        "life_expectancy",
+        "mean_years_schooling"
+      ]
+    },
+    "inflation_cpi": {
+      "tier": "T1",
+      "metric": "inflation_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "inflation_is_the_cpi_percentage_change",
+        "fisher_identity_holds",
+        "approximation_gap_is_the_declared_identity",
+        "a_higher_cpi_end_raises_inflation"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "cpi_end",
+        "cpi_start",
+        "nominal_interest_rate",
+        "wage_end",
+        "wage_start"
+      ]
+    },
+    "interest_rate_parity": {
+      "tier": "T1",
+      "metric": "implied_forward",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "covered_interest_parity_holds",
+        "forward_premium_is_the_interest_differential",
+        "a_higher_domestic_rate_raises_the_implied_forward",
+        "a_higher_foreign_rate_lowers_the_implied_forward"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international economics",
+      "inputs": [
+        "domestic_inflation",
+        "domestic_rate",
+        "foreign_inflation",
+        "foreign_rate",
+        "forward_rate",
+        "spot_rate",
+        "time_to_maturity"
       ]
     },
     "irr": {
@@ -233,6 +684,80 @@
         "alpha",
         "groups",
         "missing_codes"
+      ]
+    },
+    "labour_market": {
+      "tier": "T1",
+      "metric": "real_wage",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "real_wage_is_nominal_wage_over_the_price_index",
+        "wage_share_is_real_wage_over_productivity",
+        "a_higher_cpi_lowers_the_real_wage",
+        "a_higher_productivity_lowers_the_wage_share"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "labour economics",
+      "inputs": [
+        "cpi",
+        "labour_productivity",
+        "nominal_wage",
+        "unemployment_rate",
+        "vacancies"
+      ]
+    },
+    "leverage_analysis": {
+      "tier": "T1",
+      "metric": "eps",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "eps_is_earnings_after_tax_over_the_shares",
+        "more_interest_lowers_eps",
+        "the_interest_tax_shield_is_interest_times_the_tax_rate",
+        "the_degree_of_financial_leverage_matches_the_identity",
+        "the_altman_terms_sum_to_the_z_score",
+        "the_indifference_ebit_equalises_eps_across_the_plans"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital structure",
+      "inputs": [
+        "alternative_interest_expense",
+        "alternative_shares_outstanding",
+        "debt",
+        "ebit",
+        "equity",
+        "interest_expense",
+        "market_value_equity",
+        "retained_earnings",
+        "sales",
+        "shares_outstanding",
+        "tax_rate",
+        "total_assets",
+        "total_liabilities",
+        "working_capital"
+      ]
+    },
+    "loan_amortization": {
+      "tier": "T1",
+      "metric": "payment",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "zero_rate_payment_is_principal_over_periods",
+        "doubling_the_principal_doubles_the_payment",
+        "total_interest_is_payments_minus_principal",
+        "the_final_balance_is_repaid",
+        "effective_annual_rate_follows_the_payment_frequency"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "debt",
+      "inputs": [
+        "annual_rate",
+        "payments_per_year",
+        "principal",
+        "years"
       ]
     },
     "logistic_regression": {
@@ -301,6 +826,41 @@
         "missing_codes"
       ]
     },
+    "market_concentration": {
+      "tier": "T1",
+      "metric": "hhi",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "hhi_equals_the_sum_of_squared_shares",
+        "cr4_is_the_sum_of_the_four_largest_shares",
+        "shares_sum_to_one_hundred",
+        "effective_n_times_hhi_equals_ten_thousand"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "firm_revenues"
+      ]
+    },
+    "market_power": {
+      "tier": "T1",
+      "metric": "lerner_index",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "lerner_index_equals_markup_over_price",
+        "markup_equals_price_minus_marginal_cost",
+        "price_equals_marginal_cost_gives_zero_lerner",
+        "a_higher_price_raises_the_lerner_index"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "marginal_cost",
+        "price"
+      ]
+    },
     "missing_data_bounds": {
       "tier": "T1",
       "metric": "pct_missing",
@@ -318,6 +878,25 @@
         "mechanism",
         "missing_codes",
         "values"
+      ]
+    },
+    "money_multiplier": {
+      "tier": "T1",
+      "metric": "simple_money_multiplier",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "simple_multiplier_is_one_over_the_reserve_ratio",
+        "extended_multiplier_is_the_currency_adjusted_formula",
+        "money_supply_is_the_base_times_the_multiplier",
+        "a_higher_reserve_ratio_lowers_the_simple_multiplier"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "currency_drain_ratio",
+        "monetary_base",
+        "reserve_ratio"
       ]
     },
     "multi_product_breakeven": {
@@ -355,6 +934,71 @@
         "alpha",
         "method",
         "p_values"
+      ]
+    },
+    "multiples_valuation": {
+      "tier": "T2",
+      "metric": "implied_equity_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_median_is_the_ordered_middle",
+        "the_implied_value_scales_with_the_subject_metric",
+        "enterprise_value_equals_equity_value_plus_net_debt",
+        "a_higher_multiple_raises_the_implied_value"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "valuation",
+      "inputs": [
+        "comparables",
+        "metric",
+        "net_debt",
+        "peer_multiple",
+        "shares_outstanding",
+        "subject_value"
+      ]
+    },
+    "nash_equilibrium": {
+      "tier": "T1",
+      "metric": "nash_count",
+      "unit": "count",
+      "test_names": [
+        "second_implementation_agrees",
+        "nash_count_equals_the_number_of_flags",
+        "prisoners_dilemma_has_one_nash",
+        "coordination_game_has_two_nash",
+        "matching_pennies_has_no_pure_nash"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "game theory",
+      "inputs": [
+        "column_payoffs",
+        "row_payoffs"
+      ]
+    },
+    "national_income": {
+      "tier": "T1",
+      "metric": "gdp",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "gdp_equals_expenditure_components",
+        "gnp_equals_gdp_plus_net_factor_income",
+        "nnp_equals_gnp_minus_depreciation",
+        "net_exports_equals_exports_minus_imports"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "consumption",
+        "depreciation",
+        "exports",
+        "gdp_deflator",
+        "government_spending",
+        "imports",
+        "investment",
+        "net_factor_income",
+        "population"
       ]
     },
     "npv": {
@@ -439,6 +1083,72 @@
         "values"
       ]
     },
+    "optimal_pollution": {
+      "tier": "T1",
+      "metric": "optimal_emissions",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "marginal_damage_equals_marginal_abatement_cost",
+        "pollution_tax_equals_marginal_damage",
+        "total_damage_is_the_area_under_marginal_damage",
+        "a_higher_damage_intercept_lowers_optimal_emissions"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "environmental economics",
+      "inputs": [
+        "marginal_abatement_intercept",
+        "marginal_abatement_slope",
+        "marginal_damage_intercept",
+        "marginal_damage_slope"
+      ]
+    },
+    "option_pricing": {
+      "tier": "T2",
+      "metric": "option_price",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "put_call_parity_holds",
+        "the_price_is_at_least_the_intrinsic_value",
+        "a_higher_volatility_raises_the_price",
+        "delta_lies_in_the_option_direction",
+        "the_binomial_tree_converges_towards_the_continuous_price",
+        "gamma_and_vega_are_positive"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "derivatives",
+      "inputs": [
+        "dividend_yield",
+        "option_type",
+        "risk_free_rate",
+        "spot_price",
+        "steps",
+        "strike_price",
+        "time_to_maturity",
+        "volatility"
+      ]
+    },
+    "output_gap_okun": {
+      "tier": "T1",
+      "metric": "output_gap",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "output_gap_is_actual_over_potential_minus_one",
+        "zero_gap_gives_zero_unemployment_change",
+        "a_positive_gap_lowers_the_predicted_unemployment_rate",
+        "a_higher_okun_coefficient_raises_the_magnitude"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "actual_gdp",
+        "current_unemployment_rate",
+        "okun_coefficient",
+        "potential_gdp"
+      ]
+    },
     "paired_t": {
       "tier": "T1",
       "metric": "mean_diff",
@@ -480,6 +1190,28 @@
         "y"
       ]
     },
+    "portfolio_analysis": {
+      "tier": "T1",
+      "metric": "portfolio_return",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_correlation_lies_between_minus_one_and_one",
+        "a_full_weight_reproduces_the_first_asset",
+        "the_portfolio_variance_identity_holds",
+        "beta_is_the_covariance_over_the_market_variance",
+        "a_higher_return_raises_the_sharpe_ratio"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "investments",
+      "inputs": [
+        "returns_a",
+        "returns_b",
+        "returns_market",
+        "risk_free_rate",
+        "weight_a"
+      ]
+    },
     "posthoc_pairwise": {
       "tier": "T1",
       "metric": "n_rejected",
@@ -498,6 +1230,24 @@
         "alpha",
         "groups",
         "missing_codes"
+      ]
+    },
+    "poverty_measures": {
+      "tier": "T1",
+      "metric": "headcount_ratio",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "headcount_is_the_share_below_the_line",
+        "poverty_gap_is_the_average_normalised_shortfall",
+        "squared_gap_is_the_average_squared_shortfall",
+        "a_higher_poverty_line_raises_the_headcount"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "welfare economics",
+      "inputs": [
+        "incomes",
+        "poverty_line"
       ]
     },
     "power_analysis": {
@@ -523,6 +1273,135 @@
         "sd2",
         "tails",
         "target_power"
+      ]
+    },
+    "price_control": {
+      "tier": "T1",
+      "metric": "quantity_traded",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "a_non_binding_control_leaves_the_market_unchanged",
+        "a_binding_ceiling_creates_a_shortage",
+        "a_binding_floor_creates_a_surplus",
+        "deadweight_loss_is_the_triangle"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "control_price",
+        "control_type",
+        "demand_intercept",
+        "demand_slope",
+        "supply_intercept",
+        "supply_slope"
+      ]
+    },
+    "price_discrimination": {
+      "tier": "T1",
+      "metric": "total_profit",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "marginal_revenue_equals_marginal_cost_in_market_one",
+        "marginal_revenue_equals_marginal_cost_in_market_two",
+        "total_revenue_is_the_sum_of_market_revenues",
+        "a_higher_marginal_cost_lowers_both_quantities"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "industrial organization",
+      "inputs": [
+        "demand_intercept_1",
+        "demand_intercept_2",
+        "demand_slope_1",
+        "demand_slope_2",
+        "marginal_cost"
+      ]
+    },
+    "profit_maximization": {
+      "tier": "T1",
+      "metric": "profit",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "marginal_revenue_equals_marginal_cost",
+        "profit_equals_revenue_minus_cost",
+        "lerner_index_equals_markup_over_price",
+        "profit_falls_away_from_the_optimum"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "fixed_cost",
+        "linear_cost",
+        "quadratic_cost"
+      ]
+    },
+    "project_metrics": {
+      "tier": "T1",
+      "metric": "npv",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_profitability_index_agrees_with_the_npv_sign",
+        "the_mirr_exceeds_the_cost_of_capital_only_when_npv_is_positive",
+        "the_equivalent_annual_annuity_is_the_npv_spread_over_the_life",
+        "the_payback_period_is_the_interpolated_recovery",
+        "the_irr_sets_the_npv_to_zero"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "cashflows",
+        "finance_rate",
+        "rate"
+      ]
+    },
+    "prospect_theory": {
+      "tier": "T1",
+      "metric": "prospect_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "a_reference_outcome_has_zero_prospect_value",
+        "a_loss_hurts_more_than_an_equal_gain",
+        "a_higher_loss_aversion_lowers_a_mixed_prospect",
+        "gains_and_losses_are_curved_separately"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "behavioural economics",
+      "inputs": [
+        "gain_curvature",
+        "loss_aversion",
+        "loss_curvature",
+        "outcomes",
+        "probabilities",
+        "probability_weighting",
+        "reference_point"
+      ]
+    },
+    "public_good": {
+      "tier": "T1",
+      "metric": "efficient_quantity",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "samuelson_condition_holds",
+        "total_benefit_is_the_area_under_social_marginal_benefit",
+        "total_cost_is_the_area_under_marginal_cost",
+        "a_higher_marginal_cost_lowers_the_efficient_quantity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "welfare economics",
+      "inputs": [
+        "mb1_intercept",
+        "mb1_slope",
+        "mb2_intercept",
+        "mb2_slope",
+        "mc_intercept",
+        "mc_slope"
       ]
     },
     "ratio_analysis": {
@@ -573,6 +1452,66 @@
         "items"
       ]
     },
+    "risk_metrics": {
+      "tier": "T1",
+      "metric": "historical_var",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "expected_shortfall_is_at_least_value_at_risk",
+        "a_higher_confidence_raises_value_at_risk",
+        "value_at_risk_scales_with_the_portfolio_value",
+        "the_historical_var_is_the_declared_tail_quantile",
+        "a_constant_return_series_has_only_the_mean_loss"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "risk management",
+      "inputs": [
+        "confidence",
+        "horizon_days",
+        "portfolio_value",
+        "returns",
+        "stress_return"
+      ]
+    },
+    "scenario_analysis": {
+      "tier": "T1",
+      "metric": "npv_base",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_base_case_matches_the_npv_function",
+        "a_higher_discount_rate_lowers_the_value",
+        "the_swing_is_the_difference_between_the_scenarios",
+        "the_breakeven_rate_sets_the_npv_to_zero"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "decision analysis",
+      "inputs": [
+        "cashflows",
+        "discount_rate",
+        "rate_high",
+        "rate_low"
+      ]
+    },
+    "social_welfare": {
+      "tier": "T1",
+      "metric": "social_welfare",
+      "unit": "currency",
+      "test_names": [
+        "welfare_measures_agree_with_their_definitions",
+        "utilitarian_is_the_sum_of_incomes",
+        "rawlsian_is_the_minimum_income",
+        "nash_is_the_geometric_mean",
+        "a_transfer_from_the_richest_to_the_poorest_does_not_lower_nash_welfare"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "welfare economics",
+      "inputs": [
+        "incomes",
+        "welfare_function"
+      ]
+    },
     "spearman": {
       "tier": "T1",
       "metric": "rho",
@@ -614,6 +1553,89 @@
         "investment"
       ]
     },
+    "tariff_welfare": {
+      "tier": "T1",
+      "metric": "total_dwloss",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "domestic_price_is_world_price_plus_tariff",
+        "imports_equal_domestic_demand_minus_supply",
+        "tariff_revenue_equals_tariff_times_imports",
+        "a_higher_tariff_lowers_imports"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "international economics",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "supply_intercept",
+        "supply_slope",
+        "tariff_per_unit",
+        "world_price"
+      ]
+    },
+    "tax_incidence": {
+      "tier": "T1",
+      "metric": "consumer_incidence",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "consumer_and_producer_incidence_sum_to_the_tax",
+        "consumer_share_equals_d_over_b_plus_d",
+        "tax_revenue_equals_tax_times_quantity_traded",
+        "deadweight_loss_is_the_triangle"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "microeconomics",
+      "inputs": [
+        "demand_intercept",
+        "demand_slope",
+        "supply_intercept",
+        "supply_slope",
+        "tax_per_unit"
+      ]
+    },
+    "tax_progressivity": {
+      "tier": "T1",
+      "metric": "progressivity_gap",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "average_tax_rate_equals_total_tax_over_total_income",
+        "top_income_share_equals_top_income_over_total_income",
+        "top_tax_share_equals_top_tax_over_total_tax",
+        "a_proportional_tax_gives_zero_progressivity_gap"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "public economics",
+      "inputs": [
+        "incomes",
+        "taxes"
+      ]
+    },
+    "time_value": {
+      "tier": "T1",
+      "metric": "future_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "zero_rate_is_simple_addition",
+        "present_value_scales_one_for_one",
+        "annuity_due_is_one_period_ahead",
+        "effective_annual_rate_follows_compounding"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "time value of money",
+      "inputs": [
+        "compounding",
+        "payment",
+        "periods",
+        "present_value",
+        "rate",
+        "timing"
+      ]
+    },
     "trend_forecast": {
       "tier": "T1",
       "metric": "forecast_1",
@@ -634,6 +1656,25 @@
         "values"
       ]
     },
+    "trial_balance_check": {
+      "tier": "T2",
+      "metric": "n_differing",
+      "unit": "count",
+      "test_names": [
+        "every_row_is_matched_or_explained",
+        "second_route_agrees",
+        "net_difference_agrees_with_lines",
+        "submitted_balance_difference_agrees",
+        "divisibility_rule_is_reported_not_concluded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "accounting",
+      "inputs": [
+        "journal",
+        "places",
+        "trial_balance"
+      ]
+    },
     "two_way_anova": {
       "tier": "T1",
       "metric": "f_ab",
@@ -649,6 +1690,25 @@
       "category": "group comparison",
       "inputs": [
         "data"
+      ]
+    },
+    "unemployment_rate": {
+      "tier": "T1",
+      "metric": "unemployment_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "unemployed_equals_labour_force_minus_employed",
+        "unemployment_rate_equals_unemployed_over_labour_force",
+        "participation_rate_equals_labour_force_over_working_age_population",
+        "employment_population_ratio_equals_employed_over_working_age_population"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "macroeconomics",
+      "inputs": [
+        "employed",
+        "labour_force",
+        "working_age_population"
       ]
     },
     "unit_economics": {
@@ -733,23 +1793,35 @@
         "missing_codes"
       ]
     },
-    "trial_balance_check": {
-      "tier": "T2",
-      "metric": "n_differing",
-      "unit": "count",
+    "working_capital": {
+      "tier": "T1",
+      "metric": "cash_conversion_cycle",
+      "unit": "days",
       "test_names": [
-        "every_row_is_matched_or_explained",
-        "second_route_agrees",
-        "net_difference_agrees_with_lines",
-        "submitted_balance_difference_agrees",
-        "divisibility_rule_is_reported_not_concluded"
+        "second_implementation_agrees",
+        "the_cash_conversion_cycle_is_the_three_periods",
+        "the_eoq_minimises_order_and_holding_cost",
+        "the_reorder_point_is_lead_time_demand_plus_safety_stock",
+        "a_larger_discount_raises_the_cost_of_trade_credit"
       ],
       "claim_ceiling": "descriptive",
-      "category": "accounting",
+      "category": "working capital",
       "inputs": [
-        "journal",
-        "places",
-        "trial_balance"
+        "annual_demand",
+        "cost_of_sales",
+        "credit_terms_days",
+        "daily_demand",
+        "days",
+        "discount_days",
+        "discount_percent",
+        "holding_cost_per_unit",
+        "inventory",
+        "lead_time_days",
+        "order_cost",
+        "payables",
+        "receivables",
+        "revenue",
+        "safety_stock"
       ]
     }
   },
@@ -757,42 +1829,92 @@
     "accounts",
     "alpha",
     "anova",
+    "bond",
+    "bop",
     "breakeven",
+    "budgetdebt",
+    "capm",
     "case",
     "case_decision",
     "cba",
     "cea",
     "chi_square",
+    "comparative",
+    "concentration",
+    "costcurves",
+    "cournot",
     "currency",
     "dcf",
     "dcfmid",
     "descriptive",
+    "did",
     "dpayback",
+    "dupont",
+    "elasticity",
+    "equilibrium",
     "equitybridge",
+    "expectedutility",
+    "externality",
     "factorial",
+    "fiscal",
     "five_forces",
     "forecast",
+    "fx",
+    "gini",
+    "growth",
+    "hdi",
+    "inflation",
+    "irp",
     "irr",
+    "labour",
+    "leverage",
+    "loan",
     "logit",
+    "marketpower",
     "missing",
+    "moneymultiplier",
     "multibreakeven",
     "multicomp",
+    "multiples",
+    "nash",
+    "nationalincome",
     "npv",
+    "okun",
     "ols",
     "onesample",
+    "optimalpollution",
+    "options",
     "paired",
     "pearson",
+    "portfolio",
     "posthoc",
+    "poverty",
     "power",
+    "ppp",
+    "pricecontrol",
+    "pricediscrimination",
+    "profitmax",
+    "projectmetrics",
+    "prospect",
+    "publicgood",
     "ratios",
+    "risk",
+    "scenario",
+    "socialwelfare",
     "sroi",
     "swot",
+    "tariff",
+    "taxincidence",
+    "taxprogressivity",
     "tbcheck",
+    "tvm",
+    "unemployment",
     "unitecon",
     "unsupported",
     "wacc",
     "weighted",
-    "welch"
+    "welch",
+    "workingcapital"
   ],
   "routes": [
     "/api/presets",

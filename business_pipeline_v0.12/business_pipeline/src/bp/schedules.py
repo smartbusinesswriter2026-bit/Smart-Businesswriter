@@ -235,10 +235,10 @@ def disposal(spec, journal=None):
     # a zero-amount line is not posted: the ledger refuses it, and a line for nothing is noise
     lines = []
     if proceeds > 0: lines.append({"account": spec["proceeds_account"], "debit": str(proceeds)})
-    if accumulated > 0: lines.append({"account": spec["accum_account"], "debit": str(accumulated)})
-    lines.append({"account": spec["asset_account"], "credit": str(cost)})
-    if gain > 0: lines.append({"account": spec["gain_account"], "credit": str(gain)})
-    elif gain < 0: lines.append({"account": spec["loss_account"], "debit": str(-gain)})
+    if accumulated > 0: lines.append({"account": spec["accum_account"], "debit": str(accumulated), "activity": "investing"})
+    lines.append({"account": spec["asset_account"], "credit": str(cost), "activity": "investing"})
+    if gain > 0: lines.append({"account": spec["gain_account"], "credit": str(gain), "activity": "investing"})
+    elif gain < 0: lines.append({"account": spec["loss_account"], "debit": str(-gain), "activity": "investing"})
     return [{"date": date, "description": spec.get("description", "disposal"),
              "lines": lines}]
 
@@ -268,7 +268,7 @@ def prepayment(spec):
     if per == 0 and periods > 1: raise ScheduleError("the release per period rounds to zero; the amount is too small for the declared places")
     label = spec.get("description", "prepayment")
     out = [{"date": date, "description": label,
-            "lines": [{"account": spec["prepaid_account"], "debit": str(total)},
+            "lines": [{"account": spec["prepaid_account"], "debit": str(total), "activity": "operating"},
                       {"account": spec["cash_account"], "credit": str(total)}]}]
     released = D(0)
     for i in range(periods):
@@ -303,7 +303,7 @@ def deferred_income(spec):
     label = spec.get("description", "deferred income")
     out = [{"date": date, "description": label,
             "lines": [{"account": spec["cash_account"], "debit": str(total)},
-                      {"account": spec["deferred_account"], "credit": str(total)}]}]
+                      {"account": spec["deferred_account"], "credit": str(total), "activity": "operating"}]}]
     recognised = D(0)
     for i in range(periods):
         amount = (total - recognised) if i == periods - 1 else per
@@ -474,7 +474,9 @@ def amortization(spec):
         principal_i = pay - interest_i
         if principal_i <= 0 and bal > 0: raise ScheduleError("the payment does not reduce the principal")
         out.append({"date": _month_end(start, i), "description": spec.get("description", "loan payment"),
-                    "lines": [{"account": spec["interest_account"], "debit": str(interest_i)}, {"account": spec["loan_account"], "debit": str(principal_i)}, {"account": spec["cash_account"], "credit": str(pay)}]})
+                    "lines": [{"account": spec["interest_account"], "debit": str(interest_i), "activity": "operating"},
+                              {"account": spec["loan_account"], "debit": str(principal_i), "activity": "financing"},
+                              {"account": spec["cash_account"], "credit": str(pay)}]})
         bal -= principal_i
         if bal == 0: break
     if bal != 0: raise ScheduleError(f"the loan is not fully repaid after {term} periods (remaining {bal}); increase the payment")

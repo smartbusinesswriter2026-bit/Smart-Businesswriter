@@ -180,6 +180,7 @@ def validate_spec(spec):
     for i, s in enumerate(spec.get("schedules") or []):
         if not isinstance(s, dict) or s.get("kind") not in _KINDS: errs.append(f"schedules[{i}] needs a kind in {list(_KINDS)}"); continue
         s2 = dict(s); kind = s2.pop("kind")
+        s2.setdefault("places", places)          # a schedule inherits the engagement's precision
         try: s2["changes"] = _schedule_changes(spec).get(i, [])
         except (KeyError, IndexError, TypeError, ValueError): s2["changes"] = []
         try: es = getattr(schedules, kind)(s2)
@@ -248,23 +249,38 @@ def build(spec):
     for e in resolve_reversals(spec):
         j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
     by_sched = _schedule_changes(spec)
+    schedule_flags = []
     for i, s in enumerate(spec.get("schedules", [])):
         s2 = dict(s); kind = s2.pop("kind"); s2["changes"] = by_sched.get(i, [])
+        s2.setdefault("places", places)          # a schedule inherits the engagement's precision
         fn = getattr(schedules, kind)
         # disposal and bad debt depend on what the books already hold, so they are given the journal
         try:
             expanded = fn(s2, journal=j) if kind in _JOURNAL_KINDS else fn(s2)
         except schedules.ScheduleError as e:
             raise EngagementError(f"schedules[{i}]: {e}")
+        posted_here = 0
         for e in expanded:
+            # A schedule may run longer than the engagement (a machine is depreciated for years,
+            # the accounts cover a quarter). Only the entries dated inside the period are posted;
+            # earlier ones are represented by the declared opening balances, later ones belong to
+            # the next engagement. The clipping is reported, never silent.
+            if not (p["start"] <= e["date"] <= p["end"]):
+                continue
             j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
+            posted_here += 1
+        if len(expanded) != posted_here:
+            schedule_flags.append({"kind": "schedule_clipped_to_period", "entry": f"schedules[{i}] ({kind})",
+                                   "detail": f"{len(expanded) - posted_here} of {len(expanded)} schedule entries fall outside "
+                                             f"{p['start']} to {p['end']} and were not posted; declare their effect in "
+                                             f"prior_closing/opening if they belong to earlier periods"})
     pre = ledger.statements(j)
     for e in ledger.closing_entries(j, pre):
         j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places, closing=e["closing"])); n_posted += 1
     st = ledger.statements(j); cf = ledger.cash_flow(j, st)
     checks = ledger.check_invariants(j, st, spec.get("prior_closing")) + cf["checks"] + ledger.retained_earnings_rollforward(j, pre)
     re_code = next(c for c, a in chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings")
-    flags = ledger.flags(j) + cf["flags"]
+    flags = ledger.flags(j) + cf["flags"] + schedule_flags
     rec = spec.get("reconciliation"); rec_raw = None
     if rec:
         r = reconcile.reconcile(j, rec["account"], rec["statement"])

@@ -8,6 +8,25 @@
 - Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
 - Server is for local development, not production.
 
+## Added with the student finance shelf (B-090)
+- Every added finance method is **arithmetic on declared inputs**. No exchange rate, bond price, option price, peer multiple, inflation rate or market return is retrieved or verified; a stale or wrong declaration flows straight through.
+- `time_value` and `loan_amortization` need the rate and term to be declared; there is no rate, term or payment solver. No fees, insurance, taxes, grace periods or variable rates.
+- `bond_analysis` prices a plain fixed-coupon bond **on a coupon date** with no accrued interest, day-count convention, embedded option, credit spread or spot curve. Duration and convexity are local parallel-shift sensitivities.
+- `capm` uses a declared risk-free rate, market return and beta, or estimates beta by OLS from the supplied series; it does not choose an index, test beta stability or model multiple factors. Hamada relevering is arithmetic on the declared debt-to-equity ratio and tax rate.
+- `dupont_analysis` uses period-end balances and one period; no averages, benchmarks or adjustments. The five-step form appears only when EBIT, pre-tax income and tax are all declared, and a zero or negative equity blocks. Comparison is **one declared prior period** (simple relative growth), not a multi-year trend or index series.
+- `multiples_valuation` is **T2**: the peers are declared, not screened. No growth, risk, one-off-item or accounting-basis adjustment; no control premium, liquidity discount or fairness opinion.
+- `working_capital` assumes constant demand and constant order/holding costs; no seasonality, quantity discounts, stock-outs or cash budget. The trade-credit cost is an annualised convention.
+- `portfolio_analysis` is two assets with fixed weights; no multi-asset optimisation, efficient frontier, short selling, transaction costs or forecasting. Sharpe, Treynor and Jensen depend on the declared risk-free rate and benchmark series.
+- `project_metrics` uses declared after-tax cash flows; no tax computation, depreciation shield, working-capital release, unequal-life ranking rule or real options. IRR is reported only when a single root exists.
+- `option_pricing` is **T2**: European exercise only, constant volatility and rate, no jumps, stochastic volatility or credit risk. The binomial tree is a numerical cross-check of the same model, not independent evidence. Implied volatility is not computed.
+- `risk_metrics` reports a quantile and a tail average: VaR is not a maximum loss, the parametric route assumes normality, and the square-root-of-time scaling assumes independent returns. No volatility model, simulation, backtest or credit/liquidity risk.
+- `fx_parity` states the parity identities under their assumptions; it is not a forecast, and it ignores capital controls, transaction costs and risk premia. The quote convention is domestic currency per unit of foreign currency. The hedge comparison is **one declared forward against one expected spot**; no option, swap, rolling programme or hedge accounting.
+- `leverage_analysis` is single-period and assumes the interest is deductible and the firm is profitable enough to use the shield. The Altman Z-score is computed but **no safe/grey/distress cut-off is applied**, because the thresholds are sample-specific and unverified here. EBIT-EPS indifference compares **two** plans only; it does not choose between them, and it ignores risk, covenants and issue costs.
+- `scenario_analysis` changes only the discount rate; it is not a joint scenario, probability-weighted scenario or Monte Carlo simulation.
+- The methods show the formula and the intermediate values a student needs, but they are **not a textbook**: they do not derive the formulas, teach the theory, or mark a student's working. A result is only as good as the declared inputs.
+- The in-app topic groups, study notes, glossary and period badges are **presentation metadata**. They describe the method and its conventions; they do not validate the inputs, choose the right tool, or turn a per-period figure into an annual one.
+- A rate above 100% in any output triggers a **warning note** that rates are decimals, but it does not refuse the run: a declared rate above 100% can be genuine, and refusing it would be a false block.
+
 ## Added at Stage 5
 - Statistics: descriptive only, one variable. No inference, intervals, effect sizes, groups, weights, quartiles, .sav input.
 - Golden fixtures are hand-verified; NIST and SPSS reference outputs have not been generated. Provenance of the NumAcc1-style case is [UNVERIFIED].
@@ -256,6 +275,42 @@
 - Period-end balances and a 365-day year are declared conventions; average balances or a 360-day year would give different efficiency ratios.
 - A ratio with a missing figure or a zero denominator is reported as not computed with its reason and never estimated; a negative denominator (for example negative equity) is computed and flagged, not hidden or reinterpreted.
 - The supplied figures are not validated against a trial balance here, and no tax computation is performed (net income is used exactly as supplied). Multi-period comparatives, segment and multi-currency analysis are not supported; use `management_accounts` for the bookkeeping-level check.
+
+## Added with the economics micro core (B-097)
+- The five micro methods use **linear** demand and supply curves and a **partial-equilibrium** market. They do not estimate the curves from data, model shifts, expectations, inventories, trade, general equilibrium or dynamics.
+- `elasticity` reports the **arc (midpoint)** elasticity between two declared observations only. It is not a point elasticity, an income elasticity or a cross-price elasticity, and two observations cannot identify a demand curve or prove causality.
+- `tax_incidence` models a **per-unit** tax on sellers. An ad valorem tax, a tax on buyers at a different rate, evasion, administration costs and other markets are not modelled. The economic incidence is determined by the declared slopes, not by the statutory side.
+- `price_control` models a single enforced fixed price. Rationing, queues, black markets, quality changes and dynamic effects are not modelled; the short side determines quantity traded.
+- `market_concentration` treats the declared firms and revenues as the market. It does not define the market, handle import competition or geography, simulate a merger, or apply a legal threshold; HHI uses percentage shares (0-10,000).
+- The student notes and glossary are product-layer guidance, not a reviewed textbook. No teacher or student review has been recorded yet; the release is labelled accordingly until one is.
+- Macro, welfare/public, international/development, behavioural and advanced econometrics are not implemented yet, and the economics diagram renderer is deferred to the next increment.
+
+## Added with the economics macro and firm core (B-098)
+- `cost_curves` describes one declared quadratic cost function at one quantity. It does not estimate costs, model step costs, learning, capacity limits or economies of scope, and the shutdown test assumes a non-negative quadratic term.
+- `profit_maximization` is a single-product, single-period, single-price monopoly or monopoly-like optimum. It does not model price discrimination, strategic interaction, entry or a price-taking firm.
+- `market_power` uses two declared numbers and is not evidence of harm or of a legal violation; the implied elasticity is model-conditional.
+- `national_income` is the expenditure approach only. It cannot cross-check the income or production approach, does not rebase or chain-link, and does not adjust for informal or underground activity.
+- `growth_rate` uses two observations and does not forecast, fit a trend or decompose growth into capital, labour and productivity. The rule of 72 is an approximation.
+- `inflation_cpi` uses two CPI values; it does not construct or rebase the index, adjust for core versus headline inflation, or model expectations. Real wage growth is an index comparison, not a household cost-of-living measure.
+- `unemployment_rate` uses the labour-force definition implied by the declared counts; it does not adjust for discouraged workers, underemployment, informal work or seasonality.
+- `money_multiplier` assumes no excess reserves and a constant reserve ratio and currency drain; it is an identity, not a forecast of the money supply.
+- `fiscal_multiplier` is a closed-economy Keynesian identity with no crowding out, confidence, supply-side effects, lags or open-economy leakages.
+- `budget_debt` uses declared aggregates and holds growth and interest rates constant; it does not model contingent liabilities, off-budget items, debt composition or a sustainability path.
+
+## Added with welfare, international, development, behavioural and game theory (B-099)
+- `externality_pigouvian` and `optimal_pollution` use declared linear marginal-damage/abatement or external-cost curves; they do not estimate damages or value non-monetary effects.
+- `public_good` uses two declared individual benefit schedules and the Samuelson condition; it does not model free riding, contribution games or provision mechanisms.
+- `social_welfare`, `gini_coefficient`, `poverty_measures` and `tax_progressivity` use declared incomes and taxes; no equivalence scales, taxes/transfers, in-kind income, multidimensional poverty or full progressivity index is included.
+- `comparative_advantage` is the two-country, two-good Ricardian model; no transport costs, tariffs, demand differences or increasing returns.
+- `tariff_welfare` is a small-country, partial-equilibrium model; no retaliation, terms-of-trade effect, quota or general-equilibrium effect.
+- `exchange_rate_ppp` and `interest_rate_parity` use declared price levels and rates; PPP is a long-run benchmark, covered parity is an arbitrage condition, and neither is a forecast.
+- `balance_of_payments` checks the declared identity; it does not validate the underlying data or assess sustainability.
+- `hdi` uses the declared UNDP goalposts and does not adjust for inequality or multidimensional poverty.
+- `expected_utility` and `prospect_theory` use declared utility or prospect-theory parameters; they are not estimated and prospect theory is descriptive, not normative.
+- `labour_market` is a simple real-wage and wage-share comparison; no hours, composition, taxes, benefits, bargaining or full labour-share decomposition.
+- `price_discrimination` and `cournot_duopoly` are two-market or two-firm one-shot models; no entry, capacity, differentiation, repeated interaction or collusion.
+- `difference_in_differences` is a two-group, two-period estimate; it cannot test parallel trends and has no covariates, clustering or staggered adoption.
+- `nash_equilibrium` covers pure strategies of a 2x2 game only; mixed strategies, larger games, sequential play and equilibrium selection are not implemented.
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

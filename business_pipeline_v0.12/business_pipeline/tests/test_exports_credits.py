@@ -163,7 +163,7 @@ class DeliverableProfileTest(unittest.TestCase):
     def test_the_catalogue_offers_formats_per_artefact_not_a_free_menu(self):
         catalogue = {entry["id"]: entry for entry in self.d.catalogue()}
         self.assertEqual(catalogue["submission"]["formats"], ["docx", "html"])
-        self.assertEqual(catalogue["workpapers"]["formats"], ["spreadsheetml", "csv"])
+        self.assertEqual(catalogue["workpapers"]["formats"], ["xlsx", "spreadsheetml", "csv"])
         self.assertNotIn("docx", catalogue["workpapers"]["formats"])
 
     def test_a_presentation_is_declared_but_not_offered(self):

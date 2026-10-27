@@ -26,7 +26,7 @@ from hashlib import sha256
 LOCK = threading.Lock()
 
 #: Credits per export kind. Replace with the owner's numbers; nothing here is a computed fact.
-PRICE_TABLE = {"html": 0, "csv": 0, "docx": 1, "spreadsheetml": 1, "pptx": 3}
+PRICE_TABLE = {"html": 0, "csv": 0, "docx": 1, "spreadsheetml": 1, "xlsx": 1, "pptx": 3}
 
 #: A brand-new wallet is granted this many credits (free tier). Set BP_CREDITS_GRANT to change it.
 DEFAULT_GRANT = 100

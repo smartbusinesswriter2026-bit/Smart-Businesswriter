@@ -251,6 +251,14 @@ class Pipeline:
             probs = license_check(s, "prescriptive" if re.search(r"\bshould\b|\brecommend", s, re.I) else m.claim_ceiling)
             if probs: return self._block("draft_audit", f"claim licensing: {probs}", tier)
         notes = list(m.caveats(outputs, spec.thresholds)) if m.caveats else []
+        rate_hint = None
+        for metric, val in outputs.items():
+            mu = m.typing(metric)[0] if m.typing else m.output_units.get(metric, base_unit)
+            if mu == "rate" and isinstance(val, D) and val > 1:
+                rate_hint = ("A rate above 100% was produced for '" + metric.replace("_", " ") +
+                             "'. Rates are entered as decimals: 6% is 0.06, not 6. Check the inputs before relying on this result.")
+                break
+        if rate_hint: notes.insert(0, rate_hint)
         honesty, honesty_notes = _honesty(m, inp)
         notes.extend(honesty_notes)
         if any(v.get("provenance") == "synthetic" for v in spec.inputs.values()): notes.append(SYNTHETIC_NOTE)
