@@ -11,7 +11,7 @@ The pipeline grew **method-by-method** (provider → statistics → forecasting 
 - **Model assistance** (DeepSeek/OpenAI-compatible boundary; facts/alternatives/critique under code validation), literature DOI verification, held-out evaluation scaffold.
 - **Statistics**: descriptive, Pearson/Spearman, OLS + HC3 (diagnostics), Welch t-test + Mann-Whitney, one-way ANOVA + Kruskal-Wallis, chi-square; effect sizes + intervals throughout.
 - **Forecasting**: linear trend with prediction intervals and an out-of-sample holdout (linear only).
-- **Accounting (Stage 8)**: declarative engagement → ledger kernel → schedules (depreciation/amortization/accruals) → cash flow (two routes) → closing + retained-earnings rollforward → reconciliation → statement exports, with the account-mapping checkpoint.
+- **Accounting (Stage 8)**: declarative engagement → ledger kernel → **T-accounts and a journal view** → schedules (straight-line, reducing-balance and units-of-production depreciation; amortization; accruals; **disposal; prepayments; deferred income; bad-debt allowance; revaluation**) → cash flow (two routes) → closing + retained-earnings rollforward → reconciliation → **statement of changes in equity, current/non-current balance sheet, and an other-comprehensive-income route** → statement exports, with the account-mapping checkpoint.
 - **Ratio analysis**: `ratio_analysis` (T1, B-056) computes 15 declared liquidity, profitability, solvency and efficiency ratios from supplied statement figures, with a not-computed reason for anything uncomputable and no invented benchmarks.
 - **Templates**: SWOT, Five Forces, and `case_decision` (2–5 alternatives compared by NPV).
 

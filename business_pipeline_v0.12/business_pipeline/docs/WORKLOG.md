@@ -1,5 +1,48 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Verification pass over the accounting pipeline
+
+**Why.** Every increment tonight was proven in isolation, and the suite that guards them was written
+*before* these features existed - so it cannot catch interactions between them. Two concrete reasons this
+was not optional: an edit deleted `check_invariants` outright while `py_compile` and the import both
+passed, and several of my own test expectations were wrong until checked against printed engine figures.
+
+**What was checked, and the result.**
+
+| Check | Result |
+|---|---|
+| Everything compiles (`compileall` over `src` and `tests`) | clean |
+| Every public function added tonight still exists | present: `account_ledger(s)`, `journal_view`, `changes_in_equity`, `balance_sheet_groups`, all eight schedule kinds, every report renderer |
+| Frozen contract untouched since the session began | **no diff** in `tests/fixtures/frozen_contract.json` |
+| Full suite | 902 tests OK |
+| **One engagement using every feature at once** (reversal + three-method depreciation + prepayment + deferred income + allowance and write-off + disposal + revaluation + dividends, IFRS framework) | all eleven pipeline checks pass; balance sheet balances; both cash-flow routes agree; every T-account rolls forward; every journal entry balances; the equity statement ties to the balance sheet; OCI is separate and the reserve holds it; the deferrals and the allowance clear exactly |
+| Sandbox parity for that same engagement | 11 checks pass inside the subprocess, **no scalar mismatches** against in-process |
+| Determinism | identical journal, statements, equity statement and ledgers across two builds |
+
+**Two findings, both documentation, neither arithmetic.**
+
+1. **Pooled accumulated depreciation cannot support a per-asset disposal or revaluation.** The combined
+   scenario first failed with *"the ledger holds 6000.00 of accumulated depreciation on 1210, but the
+   disposal declares 0"* - because my scenario pooled two assets' depreciation into one account. The engine
+   was right to refuse; it cannot know which asset a pooled balance belongs to. The consequence is recorded
+   in `KNOWN_LIMITATIONS.md`: give each asset its own accumulated-depreciation account.
+2. **`PRODUCT_GAP_MAP.md` still described schedules as "(depreciation/amortization/accruals)"** - the same
+   class of stale claim corrected this morning in the subject catalogue. Rewritten to state what exists now,
+   including T-accounts, the journal, the three depreciation methods, the five new schedule kinds, the
+   statement of changes in equity, the sectioned balance sheet and the OCI route.
+
+**One thing confirmed rather than assumed.** The indirect cash-flow route sums *all* equity movements, and
+OCI now closes into equity, so a revaluation looked like it could corrupt the cash flow. It does not: the
+revaluation adds +400 to equity and +400 to non-current assets, and the route adds the first and subtracts
+the second, so the two cancel. Verified by both routes agreeing at -1,350, and by the check that already
+guards it.
+
+**Not found:** no arithmetic defect, no contract drift, no non-determinism, no sandbox divergence. The
+flags the combined engagement raised are both legitimate - retained earnings in debit because the period
+made a loss, and a disposal entry whose counterparts mix investing with an operating loss.
+
+**No build number, nothing pushed.** 902 tests OK.
+
 ## 2026-10-27 — [computation] Revaluation, built on the OCI route and anchored to IAS 16
 
 **Ask.** The increment the IAS 16 research unblocked: an asset could be depreciated but never revalued.
