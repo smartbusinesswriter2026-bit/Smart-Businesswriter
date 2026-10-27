@@ -70,6 +70,8 @@ def _entry_errs(tag, e, places, codes, default_date=None):
     if not isinstance(e, dict): return [f"{tag} must be an object with date, description and lines"]
     errs = []; date = e.get("date") or default_date
     if not ledger.DATE.fullmatch(str(date or "")): errs.append(f"{tag} date must be YYYY-MM-DD")
+    if e.get("reverses") is not None:
+        return errs                                    # lines are the mirror of the target; _reversal_errs checks the link
     lines = e.get("lines")
     if not isinstance(lines, list) or not lines: errs.append(f"{tag} needs at least two lines")
     else:
@@ -77,6 +79,65 @@ def _entry_errs(tag, e, places, codes, default_date=None):
         try: ledger.Entry.make(str(date or "2026-01-01"), str(e.get("description", "")), lines, places)
         except ledger.LedgerError as ex: errs.append(f"{tag}: {ex}")
     return errs
+
+def _reversal_errs(spec):
+    """`ref` names an entry so another can reverse it; `reverses` posts its mirror image.
+
+    Checked before anything is posted: a reversal must name an entry declared *earlier* (so the
+    chain can always be resolved in one pass and can never depend on itself), a ref must be unique,
+    and an entry must not carry both `lines` and `reverses` - the second would make it ambiguous
+    which one the ledger received.
+    """
+    errs = []
+    entries = spec.get("entries")
+    if not isinstance(entries, list): return errs
+    refs = {}
+    for i, e in enumerate(entries):
+        if not isinstance(e, dict): continue
+        ref = e.get("ref")
+        if ref is None: continue
+        if not isinstance(ref, str) or not ref.strip(): errs.append(f"entries[{i}]: ref must be a non-empty string")
+        elif ref in refs: errs.append(f"entries[{i}]: duplicate ref {ref!r}, already used by entries[{refs[ref]}]")
+        else: refs[ref] = i
+    for i, e in enumerate(entries):
+        if not isinstance(e, dict): continue
+        target = e.get("reverses")
+        if target is None: continue
+        if "lines" in e: errs.append(f"entries[{i}]: an entry that reverses another must not also declare lines")
+        if not isinstance(target, str) or target not in refs:
+            errs.append(f"entries[{i}]: reverses must name a declared ref, got {target!r}")
+        elif refs[target] >= i:
+            errs.append(f"entries[{i}]: reverses must name an entry declared before it")
+        if e.get("ref") is not None and e.get("ref") == target:
+            errs.append(f"entries[{i}]: an entry cannot reverse itself")
+    return errs
+
+def resolve_reversals(spec):
+    """Expand every `reverses` entry into the exact mirror of its target, keeping declaration order.
+
+    The kernel therefore receives two ordinary balanced entries: the original and its reversal. That
+    is the point - a reversal is visible in the journal and in the T-accounts, rather than being a
+    silent adjustment to a stored balance.
+    """
+    entries = spec.get("entries") or []
+    resolved, out = {}, []
+    for i, e in enumerate(entries):
+        if not isinstance(e, dict): continue
+        target = e.get("reverses")
+        if target is None:
+            concrete = {"date": e.get("date"), "description": e.get("description", ""), "lines": e.get("lines")}
+        else:
+            src = resolved[target]
+            lines = []
+            for l in src["lines"]:
+                if "debit" in l: lines.append({"account": l["account"], "credit": l["debit"]})
+                else: lines.append({"account": l["account"], "debit": l["credit"]})
+            concrete = {"date": e.get("date"),
+                        "description": e.get("description") or ("reversal of " + str(target)),
+                        "lines": lines, "reversal_of": target}
+        out.append(concrete)
+        if e.get("ref"): resolved[e["ref"]] = concrete
+    return out
 
 def validate_spec(spec):
     """Return a list of actionable errors; empty means the spec can build. """
@@ -111,6 +172,7 @@ def validate_spec(spec):
     start = (p or {}).get("start") if isinstance(p, dict) else None
     for i, e in enumerate(spec.get("opening") or []): errs += _entry_errs(f"opening[{i}]", e, places, codes, default_date=start)
     for i, e in enumerate(spec.get("entries") or []): errs += _entry_errs(f"entries[{i}]", e, places, codes)
+    errs += _reversal_errs(spec)
     for i, s in enumerate(spec.get("schedules") or []):
         if not isinstance(s, dict) or s.get("kind") not in _KINDS: errs.append(f"schedules[{i}] needs a kind in {list(_KINDS)}"); continue
         s2 = dict(s); kind = s2.pop("kind")
@@ -179,7 +241,7 @@ def build(spec):
     j = ledger.Journal(chart, p["start"], p["end"], cur); n_posted = 0
     for e in spec.get("opening", []):
         j.post(ledger.Entry.make(p["start"], e.get("description", "opening"), e["lines"], places, opening=True)); n_posted += 1
-    for e in spec.get("entries", []):
+    for e in resolve_reversals(spec):
         j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places)); n_posted += 1
     by_sched = _schedule_changes(spec)
     for i, s in enumerate(spec.get("schedules", [])):

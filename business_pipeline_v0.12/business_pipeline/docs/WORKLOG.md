@@ -1,5 +1,39 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Reversing entries: a correction you can see, not a balance you adjust
+
+**Ask.** Phase 1, third increment: bookkeeping corrections were only possible by hand-writing the
+mirror of an earlier entry, which is exactly where a sign error hides.
+
+**Did.** An entry may now carry `ref` (a unique name) and another entry may declare `reverses: <ref>`
+instead of `lines`. `accounts.resolve_reversals` expands the reversal into the **exact mirror** of its
+target - same accounts, debits and credits swapped - on the declared date, with
+`reversal of <ref>` as the default description. The kernel therefore receives two ordinary balanced
+entries, and both are visible in the journal and in every T-account they touch.
+
+**Refused before anything is posted** (`_reversal_errs`): an entry that declares both `lines` and
+`reverses` (which one did the ledger receive?), a duplicate `ref`, an unknown target, a **forward**
+reference, and a self-reference. Forward references are refused deliberately: resolving only backwards
+means the expansion always completes in one pass and can never depend on itself.
+
+**A correction, in the accounting sense,** is a reversal plus a new entry. Both primitives now exist;
+no separate `corrects` keyword was invented for it.
+
+**Verified.** 787 tests OK, including 11 new ones: the mirror keeps the same accounts and swaps every
+debit for a credit; it moves the closing cash balance by exactly the negated amount; it uses the
+declared date and generates the description; it is visible in the affected T-account; all five invalid
+links are refused by `validate_spec` and a refused link never reaches the ledger; and a trap test
+confirms the reversal actually changes the balances, so the mirror test is not testing nothing.
+
+**No unfreeze.** Spec-level input, not a method contract change: `management_accounts` keeps its
+eleven `test_names` and the frozen fixture is untouched.
+
+**No build number** - no served markup changed and the pill is pinned at `v0.73` by a test.
+**Not pushed** to GitHub.
+
+**Next in order:** depreciation beyond straight-line (reducing balance, units of production) and
+asset disposal, then the remaining adjusting-entry types.
+
 ## 2026-10-27 — [computation] The journal itself: the audit trail behind every balance
 
 **Ask.** Phase 1, second increment, in the order agreed: the ledger engine should let a reader see
