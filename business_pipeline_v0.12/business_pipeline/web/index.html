@@ -1232,8 +1232,22 @@ async function startFromHome() {
   await createSession(body);
 }
 
+function ensurePanel(id) {
+  let p = document.getElementById("panel-" + id);
+  if (!p) {
+    // the panel was removed from the markup by a layout change; recreate it rather than fail
+    p = document.createElement("section");
+    p.className = "panel";
+    p.id = "panel-" + id;
+    p.hidden = true;
+    (document.getElementById("main") || document.body).appendChild(p);
+    if (PANELS.indexOf(id) === -1) PANELS.push(id);
+  }
+  return p;
+}
+
 async function createSession(body) {
-  const p = $("#panel-new");
+  const p = ensurePanel("new");
   p.innerHTML = "<div class=\"card\">" + loading("Creating the session") + "</div>";
   show("new");
   try {
@@ -1557,6 +1571,9 @@ function renderCase() {
     "</div>";
   html += '<div class="tabpanel" data-panel="report"' + (state.tab === "report" ? "" : " hidden") + ">" +
     '<div class="report">' + esc(d.report) + "</div>" +
+    '<div class="row" style="margin:12px 0"><button class="btn" id="dlword" type="button">Download the submission (Word)</button>' +
+    '<button class="btn" id="dlhtml" type="button">Download it as HTML (prints to PDF)</button>' +
+    '<span class="muted" id="dlmsg"></span></div>' +
     (honestyKeys.length ? banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
       "<li>" + esc(k) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : JSON.stringify(honesty[k])) + "</li>").join("") + "</ul>") : "") +
     ((ap.limitations || []).length ? banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>") : "") +
@@ -1589,6 +1606,23 @@ function renderCase() {
   $("#panel-case").innerHTML = html;
   $$("[data-tab]").forEach((t) => { t.onclick = () => { state.tab = t.dataset.tab; renderCase(); }; });
   const del = $("#delcase"); if (del) del.onclick = () => confirmDelete(b.id);
+  const download = (kind) => async () => {
+    const msg = $("#dlmsg"); if (msg) msg.textContent = "Preparing the file...";
+    try {
+      const r = await post("/api/cases/" + encodeURIComponent(b.id) + "/export",
+                           { kind: kind, deliverable: "submission", download: true });
+      const bin = atob(r.data), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+      const a = document.createElement("a"); a.href = url; a.download = r.filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      if (msg) msg.textContent = "Saved " + r.filename + (r.credits && r.credits.charged ? " (1 credit)" : " (free)");
+    } catch (e) { if (msg) msg.textContent = e.message; }
+  };
+  const w = $("#dlword"), h = $("#dlhtml");
+  if (w) w.onclick = download("docx");
+  if (h) h.onclick = download("html");
   const nv = $("#newver"); if (nv) nv.onclick = newVersion;
   const cm = $("#cmp"); if (cm) cm.onclick = compareVersions;
   const sv = $("#sgnsave"); if (sv) sv.onclick = recordSignoff;

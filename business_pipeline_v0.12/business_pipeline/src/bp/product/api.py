@@ -26,6 +26,9 @@ Routes:
     GET    /api/cases/{id}/signoff?version=n     -> 200 {"signoffs": [...]}
 """
 
+import base64
+import os
+
 from . import cases as case_store
 from . import charts as chart_renderer
 from . import compare as comparator
@@ -41,6 +44,12 @@ from . import subjects as subject_index
 from . import versions as version_store
 
 CASE_ROUTE = "/api/cases"
+
+#: file extension and MIME type per export kind, for the download path
+_SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml"}
+_MIME = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+         "html": "text/html; charset=utf-8", "csv": "text/csv; charset=utf-8",
+         "spreadsheetml": "application/xml; charset=utf-8"}
 
 
 def _clean_path(path):
@@ -267,7 +276,6 @@ def handle(method, path, body=None):
             return _error(error)
         try:
             kind = body["kind"]
-            destination = body["destination"]
             deliverable = body.get("deliverable") or deliverables.infer(kind)
             deliverables.check_pair(deliverable, kind)          # refuses a pair that cannot carry the artefact
             if body.get("quote_only"):
@@ -277,6 +285,20 @@ def handle(method, path, body=None):
             if quote["cost"] > quote["balance"]:
                 return 402, {"error": "%s as %s costs %d credit(s); the balance is %d"
                                       % (deliverable, kind, quote["cost"], quote["balance"]), "quote": quote}
+            if body.get("download"):
+                # the browser has no way to fetch a server-side path, so the bytes come back with the
+                # response and the page turns them into a file. The destination is chosen here.
+                destination = os.path.join(str(ops.state_dir()), "exports",
+                                           "%s-%s.%s" % (case_id, deliverable, _SUFFIX[kind]))
+                result = deliverables.write_export(bundle, deliverable, kind, destination)
+                with open(destination, "rb") as fh:
+                    payload = fh.read()
+                result.pop("path", None)
+                result.update({"filename": os.path.basename(destination), "mime": _MIME[kind],
+                               "data": base64.b64encode(payload).decode("ascii")})
+                result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"))
+                return 200, result
+            destination = body["destination"]
             result = deliverables.write_export(bundle, deliverable, kind, destination)
             # charge only after the file exists: a failed export costs nothing. An idempotency key
             # supplied by the caller makes a retry free; without one, each export is a new export.
