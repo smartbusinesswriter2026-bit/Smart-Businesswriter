@@ -1,5 +1,42 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-27 — [computation] Chaining two periods: nothing may reset at the boundary
+
+**Why.** The verification pass named this as the most likely place for a real accounting error to hide: a
+single period can be wrong in ways only a second period exposes, and period-boundary bugs show up as small
+misstatements rather than failures. Every statement still balances when a reserve silently restarts.
+
+**Did.** `accounts.build` now exposes `opening_lines_next` - the entry a case carries into its next period -
+next to the `closing_balances` it already produced. That makes the handover the engine actually offers
+usable, instead of leaving a student to reconstruct it. `tests/test_period_chaining.py` then chains two
+quarters the way a student would: period two's `prior_closing` is period one's `closing_balances`, and its
+opening entry is period one's `opening_lines_next`.
+
+**What the second period proves.** The revaluation reserve carries forward unchanged at 600; retained
+earnings goes 700 to 400, moving only by the second period's 300 loss; total equity moves 11,300 to 11,000,
+which is exactly the period result and nothing else; the equipment, revalued to a gross of 7,200 with 3,600
+accumulated, is depreciated against the *revalued* carrying amount to a net of 1,800; both balance sheets
+balance; both periods pass all eleven checks; and a tampered prior-closing figure fails
+`opening_balances_equal_prior_closing`.
+
+**Two things this exposed, both now recorded rather than assumed.**
+
+1. **A deferral cannot span a period boundary.** Schedule releases are confined to the engagement period, so
+   a twelve-month prepayment cannot be modelled across two quarters in one schedule - the carrying balance
+   must be brought in as an opening balance. That is a real constraint for students and belongs in the
+   limitations.
+2. **Depreciation after a revaluation must be declared by the owner.** The second period's schedule is
+   written against the revalued 3,600, not the original 6,000, because the engine does not restate a
+   depreciation schedule automatically. The test declares it explicitly, which is what a student must do.
+
+**Two of my own test assumptions were wrong again, and the engine was right both times.** `closing_balances`
+keeps an account whose debits and credits both exist but net to zero (dividends cleared by the close), so a
+"same keys either side" assertion was false; and `build` *reports* a failed check rather than raising, with
+the pipeline doing the blocking - so the tampered prior-closing test had to assert the check, not an
+exception.
+
+**Verified.** 920 tests OK. No unfreeze. No build number. Nothing pushed.
+
 ## 2026-10-27 — [computation] Close the two gaps the verification pass found
 
 **Why.** The pass proved the invariants hold, and said plainly what it did not prove: there was no golden
