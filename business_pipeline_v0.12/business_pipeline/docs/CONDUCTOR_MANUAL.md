@@ -622,6 +622,32 @@ process needs in order to trust the paper. `tests/test_plan_replay.py` drives th
 command itself, including the tampered figure, the changed brief and the draft
 overclaim.
 
+### 7.9 Chained computations (`NEEDS_FROM`)
+
+Two frozen methods may feed one another: a discount rate is the WACC result, a
+firm's sales are the sales method's target revenue. The chain is **registered** in
+`capabilities.NEEDS_FROM` (`capability -> {input: (source capability, output
+field, why)}`), and nothing outside that registry is ever offered, so the product
+cannot invent that one method's output is another's input.
+
+- `capabilities.dependencies(selection, computations)` reports, per selected
+  capability and input, the source, its label, whether the source is in this
+  paper, whether it has a recorded successful result and the value (canonicalised:
+  `0.09`, not fifty trailing digits).
+- `chat.apply_dependencies` offers those values to the capability that needs them;
+  the plan card pre-fills the input and says where it came from. A figure the
+  student declared still wins.
+- `chat.run_capability` records `from: {input: source}` on the computation when
+  the declared value is the offered one, and the paper's **Declared inputs** line
+  then reads `rate 0.09 (from the cost of capital result)`. A typed value is not
+  marked as chained.
+- `confirm_plan` stores the same source map in the frozen record, so replay shows
+  which figures were chained, and the recompute guard re-runs both methods.
+
+Adding a chain is a catalogue change, not a product change: register the pair in
+`NEEDS_FROM`, confirm the units agree, and add a row to
+`tests/test_plan_dependencies.py`.
+
 ## 8. Coherence and export gate
 
 `bp.product.paper.check` must pass before a `.docx` is produced. It rejects:

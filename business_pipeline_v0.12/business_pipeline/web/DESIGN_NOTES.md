@@ -689,6 +689,13 @@ brief, re-runs every recorded figure from its declared inputs and re-reads the
 draft's claims. It exits `0` only when all four hold, and names any drift on
 stderr. Replay reports; it never repairs.
 
+Wave 20 lets one frozen method feed another through a registered chain
+(`capabilities.NEEDS_FROM`): a WACC result becomes a discount rate, a sales
+result becomes firm sales. The plan card pre-fills the input, the paper's
+declared inputs say `rate 0.09 (from the cost of capital result)`, and the frozen
+plan records the source. A chain outside the registry is never offered and a
+figure the student typed is never relabelled.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

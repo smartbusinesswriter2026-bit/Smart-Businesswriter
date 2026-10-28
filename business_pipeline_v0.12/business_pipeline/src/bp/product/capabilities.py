@@ -22,6 +22,7 @@ Rules this module keeps:
 import hashlib
 import json
 import re
+from decimal import Decimal, InvalidOperation
 
 FORMAT = "bp-capabilities/1"
 
@@ -40,6 +41,19 @@ _EMBEDDED = {"breakeven": "breakeven", "five_forces_breakeven": "breakeven"}
 #: Every framework that retrieves evidence can carry a declared computation.
 _EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_forces_breakeven",
                         "value_chain", "ansoff")
+
+#: Inputs that a frozen method can supply from another frozen method's result.
+#: Each entry is capability -> {input: (source capability, source output field, why)}.
+#: Only a chain where both sides are in the catalogue and the units agree belongs
+#: here: the point is to stop a student retyping a number the core already
+#: computed, never to invent a method-to-method assumption.
+NEEDS_FROM = {
+    "npv": {"rate": ("wacc", "wacc", "the cost of capital the WACC method computes")},
+    "dcf_valuation": {"discount_rate": ("wacc", "wacc",
+                                        "the cost of capital the WACC method computes")},
+    "market_share": {"firm_sales": ("sales_from_market", "target_revenue",
+                                    "the target revenue the sales method computes")},
+}
 
 
 def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
@@ -752,6 +766,41 @@ def set_enabled(selection, framework, key, enabled, reason=""):
 
 def carries(selection, key):
     return any(row["key"] == key for row in (selection or {}).get("selected") or [])
+
+
+def _canonical(value):
+    """A method's output as an input a person could read: 0.09, not 0.0900000000."""
+    try:
+        number = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return str(value)
+    return format(number.normalize(), "f")
+
+
+def dependencies(selection, computations=None):
+    """The inputs that a selected capability can take from another one.
+
+    Returns one row per (capability, input) pair: where the figure can come from,
+    whether that source capability is in this paper, and the value the source has
+    actually produced (only from a recorded, successful run).  An offer, not a
+    substitution: the caller may use the value or declare its own.
+    """
+    computations = computations or {}
+    selected = [row["key"] for row in (selection or {}).get("selected") or []]
+    rows = []
+    for key in selected:
+        for name, (source, output, why) in sorted((NEEDS_FROM.get(key) or {}).items()):
+            data = computations.get(source) or {}
+            value = (data.get("result") or {}).get(output) if data.get("ok") else None
+            try:
+                source_label = ENTRIES[source]["label"]
+            except KeyError:
+                source_label = source.replace("_", " ")
+            rows.append({"key": key, "input": name, "from": source, "output": output,
+                         "from_label": source_label, "why": why, "selected": source in selected,
+                         "recorded": value is not None,
+                         "value": None if value is None else _canonical(value)})
+    return rows
 
 
 ENTRY_INTENT = {key: row["intent"] for key, row in ENTRIES.items()}

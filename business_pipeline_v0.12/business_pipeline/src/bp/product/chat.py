@@ -497,6 +497,7 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     # Figures the brief already declares are offered as declared inputs; nothing
     # is run until the student asks the core to accept them.
     apply_figures(state)
+    apply_dependencies(state)
     state["council"] = ({"format": council.FORMAT,
                          "approved": council_result.get("approved") if council_result else [],
                          "rejected": council_result.get("rejected") if council_result else [],
@@ -601,6 +602,35 @@ def apply_figures(state):
     return applied
 
 
+def _chained_sources(state, key):
+    """Which of a capability's inputs the plan took from another frozen result."""
+    offered = (state.get("dependency_inputs") or {}).get(key) or {}
+    rule = capabilities.NEEDS_FROM.get(key) or {}
+    return {name: rule[name][0] for name in offered if name in rule}
+
+
+def apply_dependencies(state):
+    """Offer each selected capability the figures another one has computed.
+
+    The chain is registered in `capabilities.NEEDS_FROM` — a discount rate from
+    WACC, a firm's sales from the sales method — so no method-to-method
+    assumption is invented here.  A value is offered only when the source
+    capability is in this paper and has a recorded, successful result.  Nothing is
+    run and nothing is overwritten: `run_capability` records which declared inputs
+    came from which frozen result, and the recompute guard re-runs both.
+    """
+    rows = capabilities.dependencies(state.get("selection") or {}, state.get("computations") or {})
+    offered = {}
+    for row in rows:
+        if row["selected"] and row["recorded"]:
+            offered.setdefault(row["key"], {})[row["input"]] = row["value"]
+    state["dependency_inputs"] = offered
+    state["dependency_graph"] = rows
+    if state.get("plan"):
+        state["plan"] = _plan(state)
+    return offered
+
+
 def _fill_capability_inputs(selection):
     """Name the frozen inputs each selected capability needs, and quote the method
     library's own licence and limitation.  Nothing is restated by hand here."""
@@ -660,6 +690,7 @@ def answer(state, question_id, value):
                                                            question_id, value)
             _fill_capability_inputs(state["selection"])
             apply_figures(state)
+            apply_dependencies(state)
     elif question["type"] == "items":
         items = _items(value)
         if not items and not question.get("allow_skip"):
@@ -797,6 +828,9 @@ def _plan(state):
                                             for figure in state.get("plan_figures") or []
                                             if isinstance(figure, dict)
                                             and str(figure.get("input") or "") in (row.get("inputs") or {})},
+                          "chained": (state.get("dependency_inputs") or {}).get(row["key"]) or {},
+                          "needs_from": [dict(item) for item in state.get("dependency_graph") or []
+                                         if item.get("key") == row["key"]],
                           "status": _capability_status(state, row)} for row in selected],
         "available": [{"key": row["key"], "label": row["label"], "because": row.get("because"),
                        "slot": row.get("slot")}
@@ -852,7 +886,8 @@ def _freeze_plan(state):
         "brief_hash": verify.brief_hash(state.get("brief")),
         "catalogue_version": selection.get("catalogue_version"),
         "frameworks": list(selection.get("frameworks") or []),
-        "capabilities": [{"key": row["key"], "because": row.get("because")}
+        "capabilities": [{"key": row["key"], "because": row.get("because"),
+                          "from": _chained_sources(state, row["key"])}
                          for row in selection.get("selected") or []],
         "figures": list(state.get("plan_figures") or []),
         "models": list(state.get("plan_models") or []),
@@ -962,9 +997,16 @@ def run_capability(state, key, values):
     else:
         # some methods return a bare value; the catalogue names the key
         recorded = {entry_row.get("output") or "value": str(output)}
+    # Which declared inputs came from another frozen result, so the paper can say so.
+    chained = {}
+    for name, value in ((state.get("dependency_inputs") or {}).get(entry_row["key"]) or {}).items():
+        if str(inputs.get(name)) == str(value):
+            chained[name] = capabilities.NEEDS_FROM[entry_row["key"]][name][0]
     store[entry_row["key"]] = {"ok": True, "method": entry_row["method"], "inputs": inputs,
-                               "result": recorded}
+                               "result": recorded, "from": chained}
     state["computation"] = {"key": entry_row["key"], "inputs": inputs}
+    # A result may now be able to supply another selected capability's input.
+    apply_dependencies(state)
     if state.get("draft"):
         # The paper changed; the old draft would report the previous figures.
         state["draft"] = None
@@ -1277,6 +1319,7 @@ def set_capability(state, key, enabled=True, reason=""):
     if capabilities.carries(selection, key):
         # A capability added later still gets the figures the brief declared.
         apply_figures(state)
+        apply_dependencies(state)
     if not capabilities.carries(selection, key):
         state.setdefault("computations", {}).pop(key, None)
         if (state.get("computation") or {}).get("key") == key:
@@ -3507,18 +3550,29 @@ def _capability_lines(row, recorded):
 
 
 def _declared_inputs_line(recorded):
-    """The declared inputs of one computation, as the paper states them."""
+    """The declared inputs of one computation, as the paper states them.
+
+    An input that came from another frozen result says so, so a chained figure is
+    never mistaken for one the student typed or the paper invented.
+    """
     inputs = (recorded or {}).get("inputs") or {}
     if not inputs:
         return ""
+    sources = (recorded or {}).get("from") or {}
     pieces = []
     for name, value in inputs.items():
+        source = ""
+        if name in sources:
+            try:
+                source = " (from the " + capabilities.entry(sources[name])["label"].lower() + " result)"
+            except KeyError:
+                source = " (from a frozen result)"
         if isinstance(value, list):
-            pieces.append(name.replace("_", " ") + " " + "; ".join(str(item) for item in value))
+            pieces.append(name.replace("_", " ") + " " + "; ".join(str(item) for item in value) + source)
         elif isinstance(value, dict):
-            pieces.append(name.replace("_", " ") + " (" + ", ".join(str(k) for k in value) + ")")
+            pieces.append(name.replace("_", " ") + " (" + ", ".join(str(k) for k in value) + ")" + source)
         else:
-            pieces.append(name.replace("_", " ") + " " + _fmt_exact(value))
+            pieces.append(name.replace("_", " ") + " " + _fmt_exact(value) + source)
     return "Declared inputs: " + "; ".join(pieces) + "."
 
 
