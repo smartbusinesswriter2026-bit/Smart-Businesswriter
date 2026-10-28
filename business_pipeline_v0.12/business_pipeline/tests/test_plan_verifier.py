@@ -75,6 +75,12 @@ class NormaliserTest(unittest.TestCase):
         self.assertEqual(verify.input_kind("price", schema["price"]), "amount")
         wacc = methods.describe("wacc")["input_schema"]
         self.assertEqual(verify.input_kind("cost_of_equity", wacc["cost_of_equity"]), "rate")
+        self.assertEqual(verify.input_kind("cost_of_debt_after_tax", wacc["cost_of_debt_after_tax"]), "rate")
+        # "interest-bearing debt" is a quantity of money, not a rate.
+        self.assertEqual(verify.input_kind("debt_value", wacc["debt_value"]), "amount")
+        self.assertEqual(verify.input_kind("equity_value", wacc["equity_value"]), "amount")
+        leverage = methods.describe("leverage_analysis")["input_schema"]
+        self.assertEqual(verify.input_kind("interest_expense", leverage["interest_expense"]), "amount")
 
 
 class ReadingTest(unittest.TestCase):
@@ -165,6 +171,19 @@ class PlanRecordTest(unittest.TestCase):
         self.assertIn("no longer reproduces", " ".join(state["draft"]["missing"]))
         with self.assertRaises(paper.ExportBlocked):
             chat.docx_bytes(state)
+
+    def test_a_computation_section_opens_with_its_declared_inputs(self):
+        state = self._confirmed()
+        state = chat.attach_computation(state, "breakeven",
+                                        {"fixed": "40000", "price": "25", "variable": "12"})
+        state["stage"] = "evidence"
+        state["evidence"] = []
+        state["gaps"] = []
+        state = chat.draft(state, accepted_ids=[], implications="The branch must reach its volume.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Break-even Analysis"][0]
+        self.assertEqual(section["lines"][0],
+                         "Declared inputs: fixed 40,000; price 25; variable 12.")
 
 
 if __name__ == "__main__":

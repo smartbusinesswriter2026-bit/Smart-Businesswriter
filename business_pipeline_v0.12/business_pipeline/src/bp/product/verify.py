@@ -54,13 +54,29 @@ class VerifyError(ValueError):
     """A reading was refused, with a reason a person can act on."""
 
 
+#: Suffixes that name a quantity of money, whatever the description mentions.
+AMOUNT_SUFFIX = ("_value", "_cost", "_expense", "_amount", "_revenue", "_income",
+                 "_price", "_sales", "_spend", "_debt", "_equity", "_principal",
+                 "_balance", "_cash", "_profit", "_assets", "_liabilities",
+                 "_receivables", "_payables", "_inventory", "_investment", "_benefits",
+                 "_costs", "_flows", "_cashflows", "_capex")
+
+
 def input_kind(name, spec):
-    """Classify a declared input as amount, rate or count from its own schema."""
-    text = ((spec or {}).get("desc") or name or "").lower()
+    """Classify a declared input as amount, rate or count from its own schema.
+
+    The description decides first — a schema that says "as a decimal" or gives an
+    example below one is describing a rate.  Then the field name: a money suffix
+    wins over a word like "interest" that also appears in rates, and a rate word
+    wins over everything else.
+    """
+    text = ((spec or {}).get("desc") or "").lower()
     name_text = str(name or "").lower()
-    both = name_text + " " + text
-    if any(word in both for word in RATE_WORDS) or "as a decimal" in text \
-            or re.search(r"e\.g\.\s*0\.", text):
+    if "as a decimal" in text or "as a fraction" in text or re.search(r"e\.g\.\s*0\.", text):
+        return "rate"
+    if name_text.endswith(AMOUNT_SUFFIX):
+        return "amount"
+    if any(word in name_text for word in RATE_WORDS):
         return "rate"
     if any(word in name_text for word in COUNT_WORDS):
         return "count"
