@@ -247,6 +247,34 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .calcbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
 .calcbar input[type=search]{flex:1;min-width:220px}
 
+/* ---------- business calculator shell (display + keypad) ---------- */
+.calcgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start;margin-top:6px}
+@media (max-width:980px){.calcgrid{grid-template-columns:1fr}}
+.calcdisplay{border:1px solid var(--navy-300);background:linear-gradient(180deg,#FBFDFF,#F3F7FB);border-radius:var(--r-md);
+             padding:12px 14px;position:sticky;top:70px}
+.calcdisplay .line{font-family:var(--mono);font-size:15.6px;line-height:1.6;white-space:pre-wrap;min-height:66px}
+.calcdisplay .line .dim{color:var(--text-3)}
+.calcdisplay .line .live{background:#FFF3C4;border-radius:3px;padding:0 2px;font-weight:600}
+.calcdisplay .unit{margin-top:6px;font-size:14.4px;color:var(--text-2)}
+.calcdisplay .said{margin-top:6px;border-top:1px dashed var(--border);padding-top:8px;font-size:14.4px;color:var(--text-2)}
+.calcpad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.calcpad button{height:48px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);
+                font-size:19.2px;font-weight:600;cursor:pointer;color:var(--navy-900);box-shadow:var(--sh-1)}
+.calcpad button:hover{background:var(--sunken)}
+.calcpad button.op{color:var(--teal);font-weight:700}
+.calcpad button:disabled{opacity:.35;cursor:not-allowed}
+.calcpadnote{font-size:13.2px;color:var(--text-3);margin:8px 0 0;min-height:2.6em}
+.fitbadge{flex:0 0 20px;height:20px;border-radius:4px;font-size:12.0px;font-weight:700;display:grid;place-items:center;
+          background:var(--green-100);color:#076B41;border:1px solid #BFE3D2;margin-top:2px}
+.fitbadge.b{background:#EDF1FA;color:#2E4A85;border-color:#C9D5EE}
+.fitbadge.c{background:#F3EEF9;color:#5B3F8A;border-color:#DCCFEE}
+.calctool{background:none;border:none;text-align:left;padding:0;cursor:pointer;flex:1;color:inherit}
+.calctool:hover strong{color:var(--navy-500)}
+.calcrow.on{border-color:var(--navy-300);background:var(--navy-100);border-radius:var(--r-sm);padding:10px}
+.field.active input{border-color:var(--navy-900);box-shadow:0 0 0 3px rgba(2,40,76,.08)}
+.field.active label.field{color:var(--navy-900);font-weight:600}
+.field.active label.field::after{content:"  \2190 typing here";font-weight:400;color:var(--text-3)}
+
 .kv{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 14px;font-size:15.6px}
 .kv dt{color:var(--text-3)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums;word-break:break-word}
@@ -293,7 +321,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: the rail launcher is renamed Business Calculator">v0.74</span>
+  <span class="pill" id="buildpill" title="Served build: the Business Calculator is a keypad over the frozen methods">v0.75</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -414,6 +442,30 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
           <input type="search" id="calcq" placeholder="Search a calculation (NPV, WACC, break-even, t-test, ...)">
         </div>
         <div class="chips" id="calcgroups" style="justify-content:flex-start;margin-top:0"></div>
+        <div class="calcgrid" id="calcgrid" hidden>
+          <div>
+            <div class="calcdisplay">
+              <div class="line" id="calcline" aria-live="polite"></div>
+              <div class="unit" id="calcunit"></div>
+              <div class="said" id="calcsaid"></div>
+            </div>
+            <div class="calcpad" id="calcpad" role="group" aria-label="Calculator keypad"></div>
+            <p class="calcpadnote" id="calcpadnote"></p>
+          </div>
+          <div>
+            <div class="row" style="justify-content:space-between;align-items:flex-start">
+              <div><h3 id="calcname" style="margin:0"></h3><p class="muted" id="calcwhat" style="margin:4px 0 0"></p></div>
+              <span class="badge" id="calctier"></span>
+            </div>
+            <div class="grid2" id="calcinputs" style="margin-top:12px"></div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn primary" id="calceq" type="button">= Calculate and record</button>
+              <button class="btn" id="calcreset" type="button">Clear</button>
+              <button class="btn" id="calcback" type="button">Back to the list</button>
+            </div>
+            <div id="calcresult"></div>
+          </div>
+        </div>
         <div id="calcout"></div>
       </div>
     </section>
@@ -610,7 +662,8 @@ const state = {
   presets: {}, methods: [], currencies: [], session: null, delivery: null,
   cases: [], caseId: null, caseBundle: null, ingest: null, ref: null,
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
-  subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null
+  subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
+  calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null
 };
 const PANELS = ["home", "subjects", "subject", "calculator", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 
@@ -955,33 +1008,264 @@ RENDERERS.calculator = function () {
     note.innerHTML = banner("honesty", "What this Business Calculator is", "<div>" + esc(d.note) + "</div>");
     $("#calcgroups").innerHTML = d.groups.map((g) =>
       '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
-    $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; renderCalculator(); }; });
-    $("#calcq").oninput = renderCalculator;
+    $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
+    $("#calcq").oninput = () => renderCalculator();
+    buildCalcPad();
+    $("#calceq").onclick = calcRun;
+    $("#calcreset").onclick = () => {
+      state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null;
+      renderCalcShell();
+    };
+    $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
     renderCalculator();
   }).catch((e) => { note.innerHTML = errorBanner(e); });
 };
 
+/* ---------- the Business Calculator shell -------------------------------
+   The keypad types into a method's declared inputs; it performs no
+   arithmetic. "=" posts the normal session + confirm pair, so every
+   number on screen comes from a delivery. See
+   docs/proposals/BUSINESS_CALCULATOR_DESIGN.md.
+   ------------------------------------------------------------------------ */
+function calcMethodInfo(tool) {
+  return state.methods.find((m) => m.method_id === tool.method) || null;
+}
+function calcSchema(tool) {
+  const m = calcMethodInfo(tool);
+  return (m && m.input_schema) || {};
+}
+function calcFitOf(tool) {
+  if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";
+  const schema = calcSchema(tool);
+  const keys = Object.keys(schema);
+  if (!keys.length) return "A";
+  const listy = keys.some((k) => {
+    const t = (schema[k] || {}).type;
+    return t === "decimal_list" || t === "object" || t === "array";
+  });
+  if (listy || keys.length > 6) return "B";
+  return "A";
+}
+function calcTools(group) {
+  const q = ($("#calcq").value || "").trim().toLowerCase();
+  return group.tools.filter((t) => !q || (t.label + " " + t.method + " " + t.what).toLowerCase().includes(q));
+}
+
 function renderCalculator() {
   const d = state.calculator; if (!d) return;
   const group = d.groups.find((g) => g.id === state.calcGroup) || d.groups[0];
-  const q = ($("#calcq").value || "").trim().toLowerCase();
   $$("[data-calcgroup]").forEach((b) => {
     const on = b.dataset.calcgroup === group.id;
     b.style.borderColor = on ? "var(--navy-300)" : "";
     b.style.background = on ? "var(--navy-100)" : "";
   });
-  const tools = group.tools.filter((t) =>
-    !q || (t.label + " " + t.method + " " + t.what).toLowerCase().includes(q));
+  const tools = calcTools(group);
   $("#calcout").innerHTML = tools.length
     ? "<h3>" + esc(group.label) + " - " + esc(group.tools.length) + " calculations</h3>" +
-      tools.map((t) => '<div class="toolrow"><div class="tooltext"><strong>' + esc(t.label) + "</strong>" +
-        "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></div>" +
-        '<button class="btn sm" data-calctool="' + esc(t.key) + '">Use this calculation</button></div>').join("")
+      tools.map((t) => {
+        const fit = calcFitOf(t);
+        const on = state.calcTool && state.calcTool.key === t.key;
+        const fitTitle = fit === "A" ? "Keypad" : (fit === "B" ? "Takes a list" : "Opens a worksheet");
+        return '<div class="toolrow calcrow' + (on ? " on" : "") + '">' +
+          '<span class="fitbadge ' + fit.toLowerCase() + '" title="' + fitTitle + '">' + fit + "</span>" +
+          '<button class="calctool" type="button" data-calctool="' + esc(t.key) + '"><strong>' + esc(t.label) + "</strong>" +
+          "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></button>" +
+          "</div>";
+      }).join("")
     : '<p class="muted">No calculation in this group matches that search.</p>';
   $$("[data-calctool]").forEach((b) => {
-    const tool = group.tools.find((t) => t.key === b.dataset.calctool);
-    b.onclick = () => { if (tool) openTool(tool); };
+    b.onclick = () => {
+      const tool = tools.find((t) => t.key === b.dataset.calctool);
+      if (tool) selectCalcTool(tool);
+    };
   });
+  const grid = $("#calcgrid");
+  if (state.calcTool) { grid.hidden = false; renderCalcShell(); } else { grid.hidden = true; }
+}
+
+/* Preset values become the strings the fields show, so one code path
+   (readInputs) parses them back for the request. No arithmetic here. */
+function calcValueText(value) {
+  if (value === null || value === undefined) return "";
+  if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
+  if (typeof value === "object") return JSON.stringify(value, null, 1);
+  return String(value);
+}
+
+function calcField(name, spec) {
+  const type = (spec && spec.type) || "text";
+  const desc = (spec && spec.desc) || "";
+  const value = state.calcValues[name] === undefined ? "" : state.calcValues[name];
+  const label = '<label class="field" for="in-' + esc(name) + '">' + esc(name) +
+    ' <span class="muted">' + esc(desc) + "</span></label>";
+  if (type === "decimal_list") {
+    return '<div class="stack" style="gap:4px">' + label +
+      '<input type="text" id="in-' + esc(name) + '" data-type="decimal_list" value="' + esc(value) +
+      '" placeholder="comma separated"></div>';
+  }
+  if (type === "object" || type === "array") {
+    return '<div class="stack" style="gap:4px">' + label +
+      '<textarea id="in-' + esc(name) + '" data-type="object" rows="3" placeholder="{}">' + esc(value) + "</textarea></div>";
+  }
+  if (type === "boolean") {
+    return '<div class="row"><input type="checkbox" id="in-' + esc(name) + '" data-type="boolean"' +
+      (value ? " checked" : "") + '><label class="field" for="in-' + esc(name) + '">' + esc(name) +
+      ' <span class="muted">' + esc(desc) + "</span></label></div>";
+  }
+  return '<div class="stack" style="gap:4px">' + label +
+    '<input type="text" id="in-' + esc(name) + '" data-type="decimal" value="' + esc(value) + '"></div>';
+}
+
+function selectCalcTool(tool) {
+  const preset = tool.preset ? state.presets[tool.preset] : null;
+  const inputs = (preset && preset.inputs) || {};
+  state.calcTool = tool;
+  state.calcValues = {};
+  Object.keys(inputs).forEach((k) => { state.calcValues[k] = calcValueText(inputs[k]); });
+  state.calcFocus = 0;
+  state.calcDelivery = null;
+  state.calcRan = null;
+  renderCalculator();
+  const first = $("#calcinputs input[data-type='decimal']");
+  if (first) first.focus();
+}
+
+function renderCalcShell() {
+  const tool = state.calcTool; if (!tool) return;
+  const m = calcMethodInfo(tool);
+  const schema = calcSchema(tool);
+  const fit = calcFitOf(tool);
+  $("#calcname").textContent = tool.label;
+  $("#calcwhat").textContent = tool.what || (m && m.intended_use) || "";
+  $("#calctier").textContent = (m ? m.tier : "T4") + (m ? " / v" + m.version : "");
+  $("#calcinputs").innerHTML = Object.keys(schema).length
+    ? Object.keys(schema).map((n) => calcField(n, schema[n])).join("")
+    : '<p class="muted">This method declares no inputs.</p>';
+  $$("#calcinputs input, #calcinputs textarea").forEach((el) => {
+    el.onfocus = () => {
+      const scalar = $$("#calcinputs input[data-type='decimal']");
+      state.calcFocus = Math.max(0, scalar.indexOf(el));
+      markCalcFocus();
+    };
+    el.oninput = () => { state.calcValues[el.id.replace(/^in-/, "")] = el.value; renderCalcLine(); };
+  });
+  $$("#calcpad button").forEach((b) => { b.disabled = fit !== "A"; });
+  $("#calceq").disabled = fit === "C";
+  $("#calcinputs").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcRun(); } };
+  $("#calcpadnote").textContent = fit === "A"
+    ? "Digits type into the highlighted field. The operator keys move between fields: they do not do the arithmetic."
+    : (fit === "B"
+      ? "This one takes a list or a table, so the keypad is off - fill the fields on the right instead."
+      : "This one runs as a worksheet, so there is no keypad: open it and work through it there.");
+  markCalcFocus();
+  renderCalcLine();
+  renderCalcResult();
+}
+
+function renderCalcLine() {
+  const tool = state.calcTool; if (!tool) return;
+  const schema = calcSchema(tool);
+  const keys = Object.keys(schema);
+  const fit = calcFitOf(tool);
+  if (fit === "C") {
+    $("#calcline").innerHTML = esc(tool.label) + "\n  " + '<span class="dim">runs as a worksheet - no figures are typed here</span>';
+    $("#calcunit").textContent = "";
+    $("#calcsaid").textContent = "Open the worksheet to work through it. Nothing is calculated on this page.";
+    return;
+  }
+  const head = keys.length ? keys.join("  \u00b7  ") : "no declared inputs";
+  const vals = keys.map((k) => (state.calcValues[k] || "").trim() || "\u2014");
+  const body = tool.label + "\n  " + head + "\n  " + vals.join("   ");
+  $("#calcline").innerHTML = esc(body).replace(/\u2014/g, '<span class="dim">\u2014</span>');
+  $("#calcunit").textContent = tool.method ? "method " + tool.method : "";
+  const empty = fit === "A" && keys.some((k) => !(state.calcValues[k] || "").trim());
+  $("#calcsaid").textContent = empty
+    ? "Fill the figures, then press = . Nothing is calculated until the engine answers."
+    : "Ready. Press = to run this as a recorded calculation.";
+}
+
+function markCalcFocus() {
+  const fields = $$("#calcinputs input[data-type='decimal']");
+  $$("#calcinputs .stack").forEach((s) => s.classList.remove("field", "active"));
+  fields.forEach((el, i) => {
+    const box = el.closest(".stack");
+    if (box) { box.classList.add("field"); if (i === state.calcFocus) box.classList.add("active"); }
+  });
+}
+
+const CALC_PAD = ["7", "8", "9", "\u00f7", "4", "5", "6", "\u00d7", "1", "2", "3", "\u2212", "0", ".", "\u232b", "+"];
+function buildCalcPad() {
+  $("#calcpad").innerHTML = CALC_PAD.map((k) => {
+    const op = "\u00f7\u00d7\u2212+".includes(k);
+    const name = { "\u00f7": "divide", "\u00d7": "multiply", "\u2212": "subtract", "+": "add", "\u232b": "delete" }[k] || k;
+    return '<button type="button" class="' + (op ? "op" : "") + '" data-key="' + esc(k) +
+      '" aria-label="' + esc(name) + '">' + esc(k) + "</button>";
+  }).join("");
+  $$("#calcpad button").forEach((b) => { b.onclick = () => calcKey(b.dataset.key); });
+}
+
+function calcKey(k) {
+  const tool = state.calcTool; if (!tool || calcFitOf(tool) !== "A") return;
+  const fields = $$("#calcinputs input[data-type='decimal']");
+  if (!fields.length) return;
+  if ("\u00f7\u00d7\u2212+".includes(k)) {
+    state.calcFocus = (state.calcFocus + 1) % fields.length;
+    markCalcFocus();
+    fields[state.calcFocus].focus();
+    $("#calcsaid").textContent = "Focus moved to " + fields[state.calcFocus].id.replace(/^in-/, "") +
+      ". The operator keys order the fields; the method does the arithmetic.";
+    return;
+  }
+  const el = fields[state.calcFocus] || fields[0];
+  el.value = k === "\u232b" ? el.value.slice(0, -1) : el.value + k;
+  state.calcValues[el.id.replace(/^in-/, "")] = el.value;
+  renderCalcLine();
+}
+
+async function calcRun() {
+  const tool = state.calcTool; if (!tool) return;
+  const schema = calcSchema(tool);
+  const inputs = readInputs(schema);
+  if (inputs === null) return;
+  const preset = tool.preset ? state.presets[tool.preset] : null;
+  const body = { objective: (preset && preset.objective) || tool.label, method: tool.method, inputs: inputs };
+  if (preset && preset.currency) body.currency = preset.currency;
+  if (preset && preset.period) body.period = preset.period;
+  $("#calceq").disabled = true;
+  $("#calcresult").innerHTML = loading("Running the frozen method");
+  try {
+    let current = await post("/api/sessions", body);
+    if (current.status === "awaiting_confirmation") current = await post("/api/sessions/" + current.id + "/confirm", {});
+    state.session = current;
+    state.delivery = current.delivery || null;
+    if (current.delivery && current.delivery.status === "delivered") {
+      const recorded = await recordCalcCase(current);
+      state.calcDelivery = current.delivery;
+      state.calcRan = recorded;
+    }
+    renderCalcResult();
+  } catch (e) {
+    $("#calcresult").innerHTML = errorBanner(e);
+  } finally {
+    $("#calceq").disabled = calcFitOf(tool) === "C";
+  }
+}
+
+function renderCalcResult() {
+  const box = $("#calcresult"); if (!box) return;
+  const d = state.calcDelivery;
+  if (!d) { box.innerHTML = ""; return; }
+  if (d.status === "blocked") {
+    box.innerHTML = '<div class="card" style="margin-top:14px">' +
+      banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
+    return;
+  }
+  box.innerHTML = (state.calcRan ? '<p class="muted">Recorded as case ' + esc(state.calcRan) + " - every number here is inside the audit trail.</p>" : "") +
+    resultBodyHtml(d, false) +
+    '<div class="row" style="margin-top:12px"><button class="btn primary" id="calcsaveresult">Save as case</button>' +
+    '<button class="btn" id="calcopenresult">Open the full Result page</button></div>';
+  const save = $("#calcsaveresult"); if (save) save.onclick = () => saveCase();
+  const open = $("#calcopenresult"); if (open) open.onclick = () => { show("results"); renderResults(); };
 }
 
 
@@ -1133,12 +1417,9 @@ function renderNew() {
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
 }
 
-function collectInputs(session) {
-  const s = session || state.session; if (!s) return null;
-  const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
-  const schema = (method && method.input_schema) || {};
+function readInputs(schema) {
   const inputs = {};
-  for (const name of Object.keys(schema)) {
+  for (const name of Object.keys(schema || {})) {
     const el = document.getElementById("in-" + name); if (!el) continue;
     const type = el.dataset.type;
     if (type === "boolean") { inputs[name] = el.checked; continue; }
@@ -1148,6 +1429,12 @@ function collectInputs(session) {
     else inputs[name] = raw;
   }
   return inputs;
+}
+
+function collectInputs(session) {
+  const s = session || state.session; if (!s) return null;
+  const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
+  return readInputs((method && method.input_schema) || {});
 }
 
 async function applyAndRun() {
@@ -1184,19 +1471,14 @@ async function confirmSession(reject) {
 }
 
 RENDERERS.results = function () { renderResults(); };
-function renderResults() {
-  const s = state.session; const d = s && s.delivery;
-  const p = $("#panel-results");
-  if (!d) { p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>'; return; }
-  if (d.status === "blocked") {
-    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
-    return;
-  }
+/* One builder for the delivered result, used by the Result page and by the
+   Business Calculator, so the two can never show a delivery differently. */
+function resultBodyHtml(d, withActions) {
   const ap = d.appendix || {};
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
-    '<div class="row" style="justify-content:space-between"><h2>Result</h2><span class="badge">' + esc(ap.tier || "") + "</span></div>" +
+    (withActions ? '<div class="row" style="justify-content:space-between"><h2>Result</h2><span class="badge">' + esc(ap.tier || "") + "</span></div>" : '<div class="row" style="justify-content:space-between"><h3 style="margin:0">Result</h3><span class="badge">' + esc(ap.tier || "") + "</span></div>") +
     '<div class="report">' + esc(d.report) + "</div>";
   if (honestyKeys.length) {
     html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
@@ -1208,11 +1490,16 @@ function renderResults() {
   if ((ap.assumptions || []).length) {
     html += banner("limit", "Assumptions (as recorded)", "<ul>" + ap.assumptions.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
   }
-  html += '<div class="row" style="margin-top:14px">' +
-    '<button class="btn primary" id="savecase">Save as case</button>' +
-    '<button class="btn" id="tocharts">Charts and exports</button>' +
-    '<button class="btn" id="tostats">Download financial statements</button>' +
-    '<span class="grow"></span><span class="muted">Spec hash ' + esc(ap.spec_hash) + "</span></div></div>";
+  if (withActions) {
+    html += '<div class="row" style="margin-top:14px">' +
+      '<button class="btn primary" id="savecase">Save as case</button>' +
+      '<button class="btn" id="tocharts">Charts and exports</button>' +
+      '<button class="btn" id="tostats">Download financial statements</button>' +
+      '<span class="grow"></span><span class="muted">Spec hash ' + esc(ap.spec_hash) + "</span></div>";
+  } else {
+    html += '<div class="row" style="margin-top:10px"><span class="muted">Spec hash ' + esc(ap.spec_hash) + "</span></div>";
+  }
+  html += "</div>";
   html += '<div class="card"><h3>Artifacts</h3>' + artifactTable(ap) + "</div>";
   html += '<div class="card"><h3>Recorded metadata</h3>' + kv([
     ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
@@ -1220,7 +1507,47 @@ function renderResults() {
     ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id],
     ["Sandbox", ap.sandbox && ap.sandbox.isolation ? ap.sandbox.isolation : ap.sandbox],
     ["Checks", (ap.tests || []).join(", ")]]) + "</div>";
-  p.innerHTML = html;
+  return html;
+}
+
+/* D3: every calculator run is recorded, so no number exists outside the
+   audit trail. A failure to record is reported, never swallowed. */
+async function recordCalcCase(session) {
+  if (!session || !session.delivery) return null;
+  try {
+    const stored = await post("/api/cases", caseBundle(session));
+    state.caseId = stored.id; state.savedCaseId = stored.id;
+    return stored.id;
+  } catch (e) {
+    toast("The calculation ran but could not be recorded as a case: " + (e.message || e));
+    return null;
+  }
+}
+
+function caseBundle(s) {
+  const ap = (s.delivery && s.delivery.appendix) || {};
+  return {
+    title: (s.work_plan || {}).objective || "Untitled case",
+    method: (s.work_plan || {}).method || (ap.method && ap.method.id) || "",
+    tier: ap.tier || "",
+    spec_hash: ap.spec_hash || "",
+    outputs_hash: (ap.reperform && ap.reperform.outputs_hash) || "",
+    session: s,
+    delivery: { report: s.delivery.report, appendix: ap },
+    reperform: ap.reperform || {}
+  };
+}
+
+function renderResults() {
+  const s = state.session; const d = s && s.delivery;
+  const p = $("#panel-results");
+  if (!d) { p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>'; return; }
+  if (d.status === "blocked") {
+    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
+    return;
+  }
+  const ap = d.appendix || {};
+  p.innerHTML = resultBodyHtml(d, true);
   $("#savecase").onclick = saveCase;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   $("#tostats").onclick = () => { show("accounts"); };
@@ -1245,19 +1572,8 @@ function artifactTable(ap) {
 
 async function saveCase() {
   const s = state.session; if (!s || !s.delivery) return;
-  const ap = s.delivery.appendix || {};
-  const bundle = {
-    title: (s.work_plan || {}).objective || "Untitled case",
-    method: (s.work_plan || {}).method || (ap.method && ap.method.id) || "",
-    tier: ap.tier || "",
-    spec_hash: ap.spec_hash || "",
-    outputs_hash: (ap.reperform && ap.reperform.outputs_hash) || "",
-    session: s,
-    delivery: { report: s.delivery.report, appendix: ap },
-    reperform: ap.reperform || {}
-  };
   try {
-    const stored = await post("/api/cases", bundle);
+    const stored = await post("/api/cases", caseBundle(s));
     state.caseId = stored.id; state.savedCaseId = stored.id;
     toast("Case " + stored.id + " saved.");
     show("cases");

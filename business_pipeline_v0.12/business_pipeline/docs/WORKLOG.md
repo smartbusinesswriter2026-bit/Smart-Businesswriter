@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [product/design] Business Calculator P1: display, keypad, "=" and auto-recording (build 0.75)
+
+**Ask:** "go" — build the design in `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md` (Phase P1), i.e. the calculator-shaped panel over the frozen methods, with free-form arithmetic left as decision D1.
+
+**Did:** rewrote the Business Calculator panel in `web/index.html`. Selecting a tool now renders it in place instead of opening the subject-page screen: a display (`#calcline`, `aria-live="polite"`) naming the method and its declared inputs with your figures; a 16-key keypad (`#calcpad`); the declared input fields (`#calcinputs`); one primary "= Calculate and record"; Clear; Back to the list. Digits, `.` and `⌫` edit the focused field, the operator keys only move focus, and `=` runs `POST /api/sessions` then `POST /api/sessions/{id}/confirm`, rendering the delivery through `resultBodyHtml`. Every delivered run is recorded as a case (`recordCalcCase`, D3) and the case id is shown. Tools carry a fit badge: **A** keypad, **B** list/table (keypad off), **C** engagement (keypad and "=" off). Refactors with no behaviour change: `readInputs` (now shared by `collectInputs`), `caseBundle` (now shared by `saveCase`), `resultBodyHtml` (shared by the Result page and the calculator).
+
+**Files:** `web/index.html`, `tests/test_product_subjects.py`, docs: `CHANGELOG.md` (0.75), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, this entry.
+
+**Verified:** 758 tests OK (four new guards: the shell exists; the page contains no `eval`/`new Function`/`parseFloat`/`parseInt` and "=" is wired to the two-call sequence; runs are recorded as cases; the keypad is gated by fit). `node --check` on the page script. Live smoke test against a real server: `POST /api/sessions` → `/confirm` → `delivered` (T1, npv, spec hash present, 1 artifact) → `POST /api/cases` stored the bundle. No method, route, fixture or business number changed.
+
+**Open/next:** no browser here, so the visual result (focus ring, sticky display, disabled pad) is reasoned, not observed - it needs one human look. Free-form arithmetic (D1) is still refused by design. P2 (deterministic router + chat) is not started; when it is, the router goes in `src/bp/product/` so the suite can fail it.
+
 ## 2026-10-28 — [design] Business Calculator UI + chat scope: proposal and clickable mockup (no build change)
 
 **Ask:** "I want this feature to be the easy business calculator which uses all the calculation capabilities of the pipeline. First, think of a UI similar to a typical calculator where users [can] calculate whatever business computation they want. I'm also thinking of a chat feature where users can ask it to calculate using chat. But you have to scope it as user may ask it to do computation not related to business."

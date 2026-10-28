@@ -103,7 +103,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.74", self.html)
+        self.assertIn("v0.75", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
 
@@ -140,6 +140,43 @@ class ServedUiContractTest(unittest.TestCase):
         # the contract surface is unchanged by the rename
         self.assertIn('href="#/calculator"', self.html)
         self.assertIn('id="panel-calculator"', self.html)
+
+    def test_the_business_calculator_shell_has_a_display_and_a_keypad(self):
+        """P1 of docs/proposals/BUSINESS_CALCULATOR_DESIGN.md: the calculator shell.
+
+        The panel has to look like a calculator (display, keypad, "=") while the
+        engine still does every sum. These are presence guards: the Python suite
+        cannot run the page, so it asserts the parts exist and are wired to the
+        session route rather than to any local arithmetic.
+        """
+        for present in ('id="calcgrid"', 'id="calcline"', 'aria-live="polite"',
+                        'id="calcpad"', 'id="calceq"', 'id="calcinputs"',
+                        'id="calcreset"', 'id="calcback"'):
+            self.assertIn(present, self.html)
+        for builder in ("function buildCalcPad()", "function calcKey(", "function calcRun(",
+                        "function renderCalcLine()", "function selectCalcTool(",
+                        "function calcFitOf("):
+            self.assertIn(builder, self.html)
+
+    def test_the_calculator_never_computes_in_the_browser(self):
+        for forbidden in ("eval(", "new Function", "parseFloat(", "parseInt("):
+            self.assertNotIn(forbidden, self.html, "the page must not evaluate expressions")
+        # "=" runs the normal two-call sequence; nothing is rendered before a delivery
+        self.assertIn('post("/api/sessions", body)', self.html)
+        self.assertIn('post("/api/sessions/" + current.id + "/confirm", {})', self.html)
+        # the keypad only ever writes text into a field
+        self.assertIn('state.calcValues[el.id.replace(/^in-/, "")] = el.value;', self.html)
+
+    def test_every_calculator_run_is_recorded_as_a_case(self):
+        self.assertIn("function recordCalcCase(session)", self.html)
+        self.assertIn('post("/api/cases", caseBundle(session))', self.html)
+        self.assertIn("await recordCalcCase(current)", self.html)
+
+    def test_the_keypad_is_off_for_list_and_worksheet_tools(self):
+        self.assertIn('if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";', self.html)
+        self.assertIn('b.disabled = fit !== "A";', self.html)
+        self.assertIn('$("#calceq").disabled = fit === "C";', self.html)
+        self.assertIn('class="fitbadge ', self.html)
 
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only
