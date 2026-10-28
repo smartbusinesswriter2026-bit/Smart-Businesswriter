@@ -531,6 +531,17 @@ ENTRIES = dict([
          priority=15,
          row_fields={"cashflows": ["name", "period", "distribution", "value", "low", "mode", "high"],
                      "variables": ["name", "distribution", "value", "low", "mode", "high"]}),
+    _row("decision_tree", "decision_tree", "Decision tree", "decision_tree",
+         [r"decision tree", r"expected value of the (?:options|alternatives)", r"chance node"],
+         ("Delivery Status", "Decision Tree"),
+         needs_any=[r"decision|alternatives?|chance|probabilit"], priority=15,
+         row_fields={"tree": ["name", "value", "branches"]}),
+    _row("multi_project_schedule", "multi_project_schedule", "Multi-project schedule", "multi_project",
+         [r"multi[- ]project", r"several projects", r"shared resources across projects"],
+         ("Delivery Status", "Multi-Project Schedule"),
+         needs_any=[r"projects?|resources?|capacit"], priority=15,
+         row_fields={"projects": ["name", "priority", "activities"],
+                     "resources": ["name", "capacity"]}),
 ])
 
 

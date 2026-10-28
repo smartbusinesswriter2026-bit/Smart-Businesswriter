@@ -87,8 +87,13 @@ class ComposeTest(unittest.TestCase):
         self.assertTrue(first.startswith(b"PK"))
         with zipfile.ZipFile(io.BytesIO(first)) as archive:
             self.assertIn("word/document.xml", archive.namelist())
-            self.assertIn("word/footer1.xml", archive.namelist())
+            # APA 7 puts the page number top-right, so the running head is a header part,
+            # not a footer; the field inside it must still be the PAGE field.
+            self.assertIn("word/header1.xml", archive.namelist())
+            header = archive.read("word/header1.xml").decode("utf-8")
             document = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("PAGE", header)
+        self.assertIn("headerReference", document)
         self.assertIn("Research report", document)
         self.assertIn("Competition in grocery retail", document)
         self.assertIn("Times New Roman", document)

@@ -117,6 +117,13 @@ CASES = {
                                     "value": "1000"},
                                    {"name": "cost", "period": "0", "distribution": "fixed",
                                     "value": "800"}]}, "pestel"),
+    "decision_tree": ({"tree": [
+        {"name": "launch", "branches": "strong, 0.6, 200\nweak, 0.4, -50"},
+        {"name": "wait", "value": "80"}]}, "pestel"),
+    "multi_project_schedule": ({"projects": [
+        {"name": "phase1", "priority": "1", "activities": "a, 2, dev, 1"},
+        {"name": "phase2", "priority": "2", "activities": "b, 3, dev, 1"}],
+        "resources": [{"name": "dev", "capacity": "1"}]}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "

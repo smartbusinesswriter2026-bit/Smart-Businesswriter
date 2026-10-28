@@ -639,6 +639,14 @@ distributions. Two remain, both needing a nested editor rather than a column lis
 `decision_tree` (alternatives, chance nodes, terminal values) and
 `multi_project_schedule` (projects that contain their own activities).
 
+Wave 14 closes project management. The two nested methods are expressed as rows
+whose `branches` / `activities` column is a multi-line list — one `branch,
+probability, value` line per chance branch, one `id, duration, resource, demand`
+line per activity — which the server expands into the nested object the method
+expects, refusing a set of branch probabilities that does not sum to one. With
+them, every method the five shelves can launch is a paper capability except the
+`case_decision` template.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

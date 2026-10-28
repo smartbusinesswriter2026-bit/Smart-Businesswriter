@@ -469,3 +469,10 @@ If an assignment needs one of these, say so in the limitations and show the meth
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.
+
+## Added with the computation explainer (B-153)
+- **The explainer formats, it does not derive.** It quotes the recorded inputs and outputs, the committed method contract and the catalogue's formula/steps notes. It never performs arithmetic, re-rounds a figure or asks a model to write the explanation.
+- **Ten statistics tools have no catalogue formula/steps note** - factorial, Kruskal-Wallis, logistic regression, Mann-Whitney, multiple comparison, one-sample t, paired t, post-hoc, Spearman and weighted summary. Their companion names the gap and shows the contract and recorded results; it does not improvise the derivation. Writing the notes removes a tool from explain.NOTES_GAPS.
+- **A companion is produced only when the paper carries a delivered computation.** A framework-only paper keeps the plain single-file download. A selected but refused or incomplete computation is blocked by the export gate, so no partial ZIP exists.
+- **PDF is print-to-PDF, not a server renderer.** The companion is .docx by default and print-ready .html when the paper is HTML; the browser prints the HTML to PDF. There is no stdlib PDF writer.
+- **The companion is not the assignment.** It is a study and defence aid; the paper remains the submitted record. It carries no new source, citation, recommendation or number.

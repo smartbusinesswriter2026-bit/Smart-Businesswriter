@@ -23,6 +23,21 @@ def web(query, region="Global", limit=10, category=None, fast=False):
     return {"results": [], "notice": "No web result.", "sites": []}
 
 
+def _paper_data():
+    """A valid full-paper payload, long enough for the draft assembler."""
+    return {
+        "introduction": ["This paper examines the industry. " * 8, "The thesis follows. " * 8],
+        "context": ["The case sets out the decision and the industry. " * 8],
+        "lead": "Porter's Five Forces assesses the attractiveness of an industry. " * 2,
+        "forces": {key: ["The evidence shows the force. " * 10, "The implication follows. " * 10]
+                   for key in completion.FORCE_KEYS},
+        "discussion": ["Read together the forces interact. " * 10],
+        "implications": ["The decision depends on the forces. " * 10],
+        "limitations": ["The analysis is limited to the items. " * 8],
+        "conclusion": ["The thesis is answered by the evidence. " * 10],
+    }
+
+
 class CompletionTest(unittest.TestCase):
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
@@ -82,10 +97,7 @@ class CompletionTest(unittest.TestCase):
 
     @mock.patch("bp.product.completion._model_sections")
     def test_the_full_version_uses_model_prose_and_keeps_citations(self, model):
-        model.return_value = (
-            {"introduction": "This paper examines the industry.", "forces": {"rivalry": "Competition is intense."},
-             "discussion": "The force shapes the entry context.", "conclusion": "The analysis is limited."},
-            "text", {"rivalry": ["(Lovelace, 2024)"]})
+        model.return_value = (_paper_data(), {"rivalry": ["(Lovelace, 2024)"]})
         result = {"instruction": "A case in Saudi Arabia.",
                   "blocks": [{"key": "rivalry", "label": "Industry rivalry",
                               "items": [{"text": "Competition is intense.", "provenance": "sourced",
@@ -95,6 +107,44 @@ class CompletionTest(unittest.TestCase):
         self.assertTrue(report["model_used"])
         rivalry = next(section for section in report["sections"] if section["heading"] == "Industry rivalry")
         self.assertIn("(Lovelace, 2024)", rivalry["lines"][0])
+
+    @mock.patch("bp.product.completion._model_sections")
+    def test_a_failed_full_paper_is_refused_not_downloaded(self, model):
+        model.return_value = None
+        result = {"instruction": "A case in Saudi Arabia.",
+                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                              "items": [{"text": "Competition is intense.", "provenance": "user"}]}]}
+        with self.assertRaises(ValueError):
+            completion.draft(result, "apa", "full")
+
+    def test_the_title_drops_the_trailing_period(self):
+        result = {"instruction": "Apple is considering market entry in Iran.",
+                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                              "items": [{"text": "Competition is intense.", "provenance": "user"}]}]}
+        report = completion.draft(result, "apa", "draft")
+        self.assertFalse(report["title"].endswith("."))
+        self.assertTrue(report["title"].startswith("Porter's Five Forces: "))
+
+    def test_the_draft_carries_the_student_byline_to_the_title_page(self):
+        result = {"instruction": "A grocery chain in Saudi Arabia.",
+                  "byline": ["A Student", "Example University"],
+                  "blocks": [{"key": "buyers", "label": "Buyer power",
+                              "items": [{"text": "Buyers negotiate on price.", "provenance": "user"}]}]}
+        report = completion.draft(result, "apa", "draft")
+        self.assertEqual(report["byline"], ["A Student", "Example University"])
+
+    def test_the_paper_has_the_full_outline_and_is_not_a_stub(self):
+        result = {"instruction": "A grocery chain in Saudi Arabia.",
+                  "blocks": [{"key": key, "label": label, "items": [
+                      {"text": "Evidence for " + label + ".", "provenance": "user"}]}
+                      for key, label, _ in completion.FORCES]}
+        report = completion.draft(result, "apa", "draft")
+        headings = [section["heading"] for section in report["sections"]]
+        for required in ("Introduction", "Case and industry context", "Five Forces", "Discussion",
+                         "What the evidence shows", "Implications for the decision", "Limitations",
+                         "Conclusion", "References"):
+            self.assertIn(required, headings)
+        self.assertGreaterEqual(report["words"], 700)
 
     def test_student_items_stay_student_evidence_not_assumptions(self):
         result = {"instruction": "A grocery chain considers a cold-chain acquisition in Saudi Arabia.",

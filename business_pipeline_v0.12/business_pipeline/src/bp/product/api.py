@@ -17,6 +17,7 @@ Routes:
     GET    /api/cases/calculator                 -> 200 Calculator tool groups
     POST   /api/cases/calculator/plan            -> 200 draft plan for one sentence
     POST   /api/cases/match                      -> 200 worksheet suggestions for a case description
+    GET    /api/cases/credits                     -> 200 the local export wallet (balance, prices, ledger)
     GET    /api/cases/sources/databases          -> 200 the business database registry
     GET    /api/cases/sources/sites?region=<r>   -> 200 the curated official-site registry
     POST   /api/cases/sources/search             -> 200 merged academic results (with per-database errors)
@@ -32,10 +33,12 @@ Routes:
     POST   /api/cases/chat/{id}/draft            -> 200 the drafted paper
     POST   /api/cases/chat/{id}/polish          -> 200 a prose proposal for confirmation
     POST   /api/cases/chat/{id}/apply-prose      -> 200 the paper with the accepted prose
-    POST   /api/cases/chat/{id}/export           -> 200 the drafted section as Word bytes
+    POST   /api/cases/chat/{id}/export           -> 200 the paper, or a ZIP with the paper and its explainer
+    POST   /api/cases/chat/{id}/explanation      -> 200 the paper's explainer as Word bytes
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
     DELETE /api/cases/{id}                       -> 200 {"deleted": id}
+    POST   /api/cases/{id}/explanation           -> 200 the case's computation explainer as Word or HTML bytes
     GET    /api/cases/{id}/versions              -> 200 {"versions": [summary, ...]}
     POST   /api/cases/{id}/versions              -> 201 version metadata
     GET    /api/cases/{id}/versions/{n}          -> 200 version document
@@ -66,7 +69,9 @@ from . import docx as docx_export
 from . import credits
 from . import deliverables
 from . import documents
+from . import paper_store
 from . import drafting
+from . import explain
 from . import sources as source_finder
 from . import subjects as subject_index
 from . import versions as version_store
@@ -90,7 +95,8 @@ _SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml",
 _MIME = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
          "html": "text/html; charset=utf-8", "csv": "text/csv; charset=utf-8",
          "spreadsheetml": "application/xml; charset=utf-8",
-         "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+         "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+         "zip": "application/zip"}
 
 
 def _clean_path(path):
@@ -337,17 +343,57 @@ def handle(method, path, body=None):
                 if not draft:
                     return _error("draft the section before exporting it")
                 data_bytes = chat_conductor.docx_bytes(state)
-                return 200, {"filename": writing.filename({"title": draft.get("title")}),
+                paper_name = writing.filename({"title": draft.get("title")})
+                if explain.has_chat_computation(state):
+                    # The paper carries a recorded computation: ship the companion
+                    # with it, from the same state and in the same download action.
+                    document = explain.paper_document(state)
+                    explainer = explain.docx_bytes(document)
+                    payload, contents, zip_name = explain.zip_pair(
+                        draft.get("title"), data_bytes, "docx", explainer, "docx")
+                    return 200, {"filename": zip_name, "mime": explain.ZIP_MIME,
+                                 "data": base64.b64encode(payload).decode("ascii"),
+                                 "sha256": hashlib.sha256(payload).hexdigest(),
+                                 "contents": contents,
+                                 "explainer": {"format": explain.FORMAT,
+                                               "title": document["title"],
+                                               "kind": document["kind"],
+                                               "figures": len(document.get("figures") or [])}}
+                return 200, {"filename": paper_name,
                              "mime": _MIME["docx"], "data": base64.b64encode(data_bytes).decode("ascii"),
                              "sha256": hashlib.sha256(data_bytes).hexdigest()}
+            elif action == "explanation":
+                document = explain.paper_document(state)
+                data_bytes = explain.docx_bytes(document)
+                return 200, {"format": explain.FORMAT, "explanation": document,
+                             "document": {"filename": explain.filename(
+                                 (state.get("draft") or {}).get("title"), "docx"),
+                                          "mime": explain.DOCX_MIME,
+                                          "data": base64.b64encode(data_bytes).decode("ascii"),
+                                          "sha256": hashlib.sha256(data_bytes).hexdigest()}}
             else:
                 return 404, {"error": "unknown chat action %r" % action}
         except chat_conductor.ExportBlocked as error:
             return 409, {"error": str(error), "missing": error.missing}
+        except explain.ExplainError as error:
+            return 422, {"error": str(error)}
         except chat_conductor.ChatError as error:
             return _error(error)
         state = chat_store.save(state)
         return 200, state
+
+    if segments[:1] == ["documents"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on documents" % verb}
+        if len(segments) == 1:
+            return 200, paper_store.listing()
+        if len(segments) == 2:
+            try:
+                record, payload = paper_store.read(segments[1])
+            except paper_store.NotFound:
+                return 404, {"error": "no such document"}
+            return 200, payload, paper_store.MIME
+        return 404, {"error": "no such document"}
 
     if segments == ["frameworks", "complete"]:
         if verb != "POST":
@@ -372,9 +418,13 @@ def handle(method, path, body=None):
         try:
             report = framework_completion.draft(body["completion"], body.get("style"), version)
             data = framework_completion.draft_bytes(body["completion"], body.get("style"), report=report)
+            document = paper_store.save(data, writing.filename(report), report.get("title"),
+                                            "Five Forces",
+                                            "Full paper" if version == "full" else "Draft",
+                                            report.get("words"))
         except ValueError as error:
             return _error(error)
-        return 200, {"report": report, "docx": {
+        return 200, {"report": report, "document": document, "docx": {
             "filename": writing.filename(report), "mime": _MIME["docx"],
             "data": base64.b64encode(data).decode("ascii"),
             "sha256": hashlib.sha256(data).hexdigest()}}
@@ -410,6 +460,15 @@ def handle(method, path, body=None):
 
     case_id = segments[0]
     tail = segments[1:]
+
+    # -- the local export wallet (read-only) ---------------------------------
+    # The balance, the price table and the ledger are the credit module's own
+    # view of a local ledger file. Nothing is computed here, and the route
+    # cannot change the balance: only an export can do that.
+    if not tail and segments[0] == "credits":
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on credits" % verb}
+        return 200, credits.receipt()
 
     # -- maintenance surface (backup / restore / list backups) ---------------
     if not tail and segments[0] in ("backup", "restore", "backups"):
@@ -516,6 +575,32 @@ def handle(method, path, body=None):
                 return 404, {"error": str(error)}
         return 405, {"error": "method %s is not allowed on signoff" % verb}
 
+    # -- the computation explainer (product layer) ---------------------------
+    if tail == ["explanation"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on an explanation" % verb}
+        try:
+            document = (version_store.latest(case_id) if version_store._existing_versions(case_id)
+                        else {"bundle": case_store.load(case_id)})
+            bundle = document["bundle"]
+        except (case_store.CaseNotFound, version_store.VersionError) as error:
+            return 404, {"error": str(error)}
+        except ValueError as error:
+            return _error(error)
+        if not explain.has_computation(bundle):
+            return 422, {"error": "this case records no computation to explain"}
+        fmt = (body or {}).get("format", "docx") if isinstance(body, dict) else "docx"
+        try:
+            explanation = explain.case_document(bundle)
+            data, mime, extension = explain.document_bytes(explanation, fmt)
+        except explain.ExplainError as error:
+            return 422, {"error": str(error)}
+        return 200, {"format": explain.FORMAT, "explanation": explanation,
+                     "document": {"filename": explain.filename(bundle.get("title"), extension),
+                                  "mime": mime,
+                                  "data": base64.b64encode(data).decode("ascii"),
+                                  "sha256": hashlib.sha256(data).hexdigest()}}
+
     # -- rendering and exports (Phase 2c) ------------------------------------
     if tail == ["render"]:
         if verb != "POST":
@@ -573,8 +658,25 @@ def handle(method, path, body=None):
                 with open(destination, "rb") as fh:
                     payload = fh.read()
                 result.pop("path", None)
-                result.update({"filename": os.path.basename(destination), "mime": _MIME[kind],
-                               "data": base64.b64encode(payload).decode("ascii")})
+                if (deliverable in ("submission", "worksheet") and kind in ("docx", "html")
+                        and explain.has_computation(bundle)):
+                    # A final paper that carries a computation ships with its
+                    # teachable companion, from the same stored case, in one ZIP.
+                    explanation = explain.case_document(bundle)
+                    explainer, _mime, extension = explain.document_bytes(explanation, kind)
+                    zip_bytes, contents, zip_name = explain.zip_pair(
+                        bundle.get("title") or case_id, payload, _SUFFIX[kind], explainer, extension)
+                    result.update({"filename": zip_name, "mime": explain.ZIP_MIME,
+                                   "data": base64.b64encode(zip_bytes).decode("ascii"),
+                                   "sha256": hashlib.sha256(zip_bytes).hexdigest(),
+                                   "contents": contents,
+                                   "explainer": {"format": explain.FORMAT,
+                                                 "title": explanation["title"],
+                                                 "kind": explanation["kind"],
+                                                 "figures": len(explanation.get("figures") or [])}})
+                else:
+                    result.update({"filename": os.path.basename(destination), "mime": _MIME[kind],
+                                   "data": base64.b64encode(payload).decode("ascii")})
                 result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"))
                 return 200, result
             destination = body["destination"]

@@ -500,14 +500,34 @@ class H(BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length") or 0)
         if n > (maxb or MAXBODY): raise ValueError("body too large")
         return json.loads(self.rfile.read(n) or b"{}", parse_float=Decimal)
+    def _asset(self, name):
+        """Serve one file from `web/assets` (the logo and the tab icons).
+
+        The name is resolved and checked to stay inside `web/assets`, so a
+        traversal attempt cannot read anything else on this machine.
+        """
+        root = os.path.realpath(os.path.join(WEB, "assets"))
+        target = os.path.realpath(os.path.join(root, name))
+        if target != root and not target.startswith(root + os.sep):
+            return self._send(404, {"error": "no such asset"})
+        kinds = {"png": "image/png", "svg": "image/svg+xml", "ico": "image/x-icon"}
+        kind = kinds.get(target.rsplit(".", 1)[-1].lower(), "application/octet-stream")
+        try:
+            with open(target, "rb") as f: return self._send(200, f.read(), kind)
+        except OSError:
+            return self._send(404, {"error": "no such asset"})
     def do_GET(self):
         self._started = time.monotonic()
         try:
             if self.path == "/api/health":
                 return self._send(200, product_ops.health({"sandbox": "on" if SANDBOX_ENABLED else "off (development)",
                                                           "model_assistance": bool(MODELS)}))
-            if self.path == "/": 
+            if self.path == "/":
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
+            if self.path == "/account.html":
+                with open(os.path.join(WEB, "account.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
+            if self.path.startswith("/assets/"):
+                return self._asset(self.path[len("/assets/"):].split("?")[0])
             if self.path == "/api/presets": return self._send(200, PRESETS)
             if self.path == "/api/intake" or self.path.startswith("/api/intake?"):
                 return self._send(200, {"files": product_intake.list_files()})

@@ -409,6 +409,30 @@ class RunnerTest(unittest.TestCase):
                 "scale_max": "10"})
         self.assertIn("one score for each", str(caught.exception))
 
+    def test_a_decision_tree_reports_the_best_expected_value(self):
+        brief = ("The grocery chain is entering the Saudi market and the board needs a decision tree over the "
+                 "declared options.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "decision_tree", {"tree": [
+            {"name": "launch", "branches": "strong, 0.6, 200\nweak, 0.4, -50"},
+            {"name": "wait", "value": "80"}]})
+        state = chat.draft(state, accepted_ids=[], implications="The launch leads on expected value.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Decision Tree"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("best expected value is 100", text)
+        self.assertIn("chance of a loss 40%", text)
+
+    def test_decision_tree_branches_must_sum_to_one(self):
+        brief = ("The grocery chain is entering the Saudi market and the board needs a decision tree over the "
+                 "declared options.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.attach_computation(state, "decision_tree", {"tree": [
+                {"name": "launch", "branches": "strong, 0.6, 200\nweak, 0.2, -50"},
+                {"name": "wait", "value": "80"}]})
+        self.assertIn("must sum to one", str(caught.exception))
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")

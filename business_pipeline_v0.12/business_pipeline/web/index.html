@@ -1124,7 +1124,8 @@ RENDERERS.home = function () {
       "</div>" +
       '<div id="attachments" class="attachments" aria-live="polite"></div>' +
     "</div>" +
-    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>';
+    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>' +
+    '<div class="card" id="homedocs" style="margin-top:16px"></div>';
   $("#run").onclick = startChat;
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
@@ -1134,7 +1135,39 @@ RENDERERS.home = function () {
   bindAttachments(p);
   loadAttachments();
   renderChat();
+  loadHomeDocuments();
 };
+
+/* ---------- the student's papers, listed on Home ---------- */
+async function loadHomeDocuments() {
+  const box = document.getElementById("homedocs");
+  if (!box) return;
+  box.innerHTML = '<h3 style="margin-top:0">Documents</h3><p class="muted" style="margin-bottom:0">Loading...</p>';
+  try {
+    const data = await api("/api/cases/documents");
+    const rows = (data && data.documents) || [];
+    if (!rows.length) {
+      box.innerHTML = '<h3 style="margin-top:0">Documents</h3>' +
+        '<p class="muted" style="margin-bottom:0">No papers yet. Generate one from a worksheet and it appears here.</p>';
+      return;
+    }
+    box.innerHTML = '<h3 style="margin-top:0">Documents</h3>' +
+      '<p class="muted">Your generated papers and the sample papers. Download opens the Word file.</p>' +
+      '<div class="stack" style="gap:10px">' + rows.map((row) => {
+        const meta = [row.framework, row.version, row.words ? row.words + " words" : "",
+                      Math.max(1, Math.round((row.size || 0) / 1024)) + " KB",
+                      row.sample ? "sample" : "", fmtDate(row.created)].filter(Boolean).map(esc).join(" \u00b7 ");
+        return '<div class="row" style="align-items:center;gap:12px;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:240px"><strong>' + esc(row.title) + '</strong><br>' +
+          '<span class="muted">' + meta + '</span></div>' +
+          '<a class="btn" href="' + esc(row.download) + '" download="' + esc(row.filename) + '">Download</a>' +
+          '</div>';
+      }).join("") + '</div>';
+  } catch (error) {
+    box.innerHTML = '<h3 style="margin-top:0">Documents</h3><p class="muted" style="margin-bottom:0">' +
+      esc(error && error.message ? error.message : String(error)) + '</p>';
+  }
+}
 
 /* ---------- the deterministic conductor, rendered on the Home page ---------- */
 /* There is no Chat panel any more: the composer is the Home box (`#objective`)
@@ -1382,18 +1415,26 @@ function capabilityPanel(c, plan) {
         const spec = cap.inputs[name] || {};
         const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
-        if (spec.type === "records" || spec.type === "rows") {
+        if (spec.type === "records" || spec.type === "rows" || spec.type === "object") {
           const declaredRows = (cap.row_fields || {})[name] || [];
-          const cols = spec.type === "rows"
+          const cols = spec.type === "rows" || spec.type === "object"
             ? (declaredRows.length ? declaredRows : ["name", "time", "predecessors"])
             : Object.keys(spec.fields || {});
           const rows = Array.isArray(raw) && raw.length ? raw : [{}];
           return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
             '<div data-caprows="' + esc(cap.key + ":" + name) + '">' + rows.map((row, index) =>
-              '<div class="row" data-caprow="' + index + '" style="margin:2px 0">' + cols.map((col) =>
-                '<input style="flex:1;min-width:90px" placeholder="' + esc(col.replace(/_/g, " ")) +
-                '" data-capfield="' + esc(cap.key + ":" + name + ":" + index + ":" + col) +
-                '" value="' + esc((row || {})[col] || "") + '">').join("") + "</div>").join("") +
+              '<div class="row" data-caprow="' + index + '" style="margin:2px 0;align-items:flex-start">' +
+              cols.map((col) => {
+                const field = 'data-capfield="' + esc(cap.key + ":" + name + ":" + index + ":" + col) + '"';
+                if (col === "branches" || col === "activities") {
+                  return '<textarea rows="2" style="flex:1;min-width:180px" placeholder="' +
+                    esc(col === "branches" ? "branch, probability, value - one per line"
+                        : "id, duration, resource, demand - one per line") + '" ' + field + ">" +
+                    esc((row || {})[col] || "") + "</textarea>";
+                }
+                return '<input style="flex:1;min-width:90px" placeholder="' + esc(col.replace(/_/g, " ")) +
+                  '" ' + field + ' value="' + esc((row || {})[col] || "") + '">';
+              }).join("") + "</div>").join("") +
             '<button class="btn sm" type="button" data-capaddrow="' + esc(cap.key + ":" + name) +
             '">Add row</button></div>';
         }
@@ -1485,10 +1526,17 @@ function bindCapabilityControls(root) {
       row.style.margin = "2px 0";
       const columns = $$("[data-capfield]", holder)
         .filter((box) => box.dataset.capfield.split(":")[2] === "0")
-        .map((box) => box.dataset.capfield.split(":")[3]);
-      row.innerHTML = columns.map((col) =>
-        '<input style="flex:1;min-width:90px" placeholder="' + esc(col.replace(/_/g, " ")) +
-        '" data-capfield="' + esc(parts[0] + ":" + parts[1] + ":" + index + ":" + col) + '" value="">').join("");
+        .map((box) => ({ name: box.dataset.capfield.split(":")[3], multiline: box.tagName === "TEXTAREA" }));
+      row.innerHTML = columns.map((col) => {
+        const field = 'data-capfield="' + esc(parts[0] + ":" + parts[1] + ":" + index + ":" + col.name) + '"';
+        if (col.multiline) {
+          return '<textarea rows="2" style="flex:1;min-width:180px" placeholder="' +
+            esc(col.name === "branches" ? "branch, probability, value - one per line"
+                : "id, duration, resource, demand - one per line") + '" ' + field + "></textarea>";
+        }
+        return '<input style="flex:1;min-width:90px" placeholder="' + esc(col.name.replace(/_/g, " ")) +
+          '" ' + field + ' value="">';
+      }).join("");
       holder.insertBefore(row, button);
     };
   });
@@ -4173,6 +4221,13 @@ function fiveForcesForm(t) {
     '<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="field" for="ffindustry" style="margin:0">Industry or market</label>' +
     '<input id="ffindustry" type="text" placeholder="e.g. smartphones, grocery retail, banking" style="flex:1;min-width:220px">' +
     '<span class="muted">Required: Five Forces analyses an industry, not a company.</span></div>' +
+    '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
+      '<input id="ffname" placeholder="Your name" style="flex:1;min-width:150px">' +
+      '<input id="ffinstitution" placeholder="Institution" style="flex:1;min-width:150px">' +
+      '<input id="ffcourse" placeholder="Course code and name" style="flex:1;min-width:150px">' +
+      '<input id="ffinstructor" placeholder="Instructor" style="flex:1;min-width:150px">' +
+    '</div>' +
+    '<p class="muted" style="margin:4px 0 0">These four lines appear on the title page. Leave them blank and it carries the title and date only.</p>' +
     '<div class="row" style="margin-top:8px;flex-wrap:wrap"><input type="file" id="fffile" accept=".txt,.md">' +
     '<button class="btn primary" id="ffcomplete">Complete the five forces</button><span class="muted" id="ffcompletenote"></span></div>' +
     '<div id="ffreview"></div></div>' +
@@ -4289,6 +4344,16 @@ function bindFiveForcesCompletion() {
   const button = document.getElementById("ffcomplete");
   if (!button) return;
   const instruction = document.getElementById("ffinstruction");
+  try { state.byline = JSON.parse(localStorage.getItem("sbw.byline") || "{}") || {}; } catch (e) { state.byline = {}; }
+  ["ffname", "ffinstitution", "ffcourse", "ffinstructor"].forEach((id) => {
+    const field = document.getElementById(id);
+    if (!field) return;
+    field.value = state.byline[id] || "";
+    field.addEventListener("input", () => {
+      state.byline[id] = field.value;
+      try { localStorage.setItem("sbw.byline", JSON.stringify(state.byline)); } catch (e) {}
+    });
+  });
   const seed = state.completionSeed || (state.tool && state.tool.objective) || "";
   if (instruction && !instruction.value && seed && !/^Work through the /.test(seed)) instruction.value = seed;
   const bottom = document.getElementById("ffbottomgenerate");
@@ -4411,11 +4476,14 @@ async function downloadFiveForcesDraft() {
   if (review) Array.from(review.querySelectorAll("p.ffnote")).forEach((old) => old.remove());
   const note = document.createElement("p");
   note.className = "muted ffnote";
-  note.textContent = version === "full" ? "Writing the full paper. This runs the model and can take up to half a minute." : "Generating the draft...";
-  if (version === "full") toast("Writing the full paper. This runs the model, so it takes a little while.");
+  note.textContent = version === "full" ? "Writing the full paper. This runs the model and can take up to a minute." : "Generating the draft...";
+  if (version === "full") toast("Writing the full paper. This runs the model, so it takes up to a minute.");
   if (review) review.appendChild(note);
   try {
-    const result = await post("/api/cases/frameworks/report", { completion: selected, style: "apa", version });
+    const byline = ["ffname", "ffinstitution", "ffcourse", "ffinstructor"]
+      .map((id) => ((document.getElementById(id) || {}).value || "").trim()).filter(Boolean);
+    const result = await post("/api/cases/frameworks/report",
+      { completion: Object.assign({}, selected, { byline: byline }), style: "apa", version });
     if (version === "full" && !result.report.model_used) {
       note.textContent = "The model did not return a valid full paper, so nothing was downloaded. Choose Draft (evidence-led) to use the deterministic version.";
       toast("Full paper failed validation; no file was downloaded.");
@@ -4428,7 +4496,7 @@ async function downloadFiveForcesDraft() {
     link.href = url; link.download = result.docx.filename;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    note.textContent = "Generated " + result.docx.filename;
+    note.textContent = "Generated " + result.docx.filename + " (" + result.report.words + " words). It is saved under Documents on Home.";
     toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") + result.docx.filename);
   } catch (error) {
     note.textContent = "";

@@ -824,7 +824,7 @@ def _capability_inputs(entry_row, values):
                 return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
             inputs[name] = parsed_rows
             continue
-        if kind == "rows":
+        if kind == "rows" or kind == "object":
             rows = raw if isinstance(raw, list) else []
             if not rows and not required:
                 continue
@@ -837,6 +837,14 @@ def _capability_inputs(entry_row, values):
                 fields = declared or list(row.keys())
                 for position, field in enumerate(fields):
                     value = row.get(field)
+                    if field in ("branches", "activities"):
+                        text = str(value if value is not None else "").strip()
+                        if text:
+                            parsed[field] = text
+                        elif declared and position == 0:
+                            return inputs, ("Row " + str(index) + " of the " + desc + " needs a "
+                                            + field.replace("_", " ") + ".")
+                        continue
                     text = _clean(str(value if value is not None else ""), 200)
                     if not text:
                         if declared and position == 0:
@@ -993,6 +1001,68 @@ def _capability_inputs(entry_row, values):
                     return inputs, ("Alternative " + str(index) + ": every score must be a number.")
             coupled.append({"name": alternative.get("name"), "scores": scores})
         inputs["alternatives"] = coupled
+    if entry_row["key"] == "decision_tree":
+        rows = inputs.get("tree")
+        if not isinstance(rows, list) or len(rows) < 1:
+            return inputs, "Declare at least one alternative for the decision tree."
+        alternatives = []
+        for index, row in enumerate(rows, start=1):
+            name = str(row.get("name") or ("Alternative " + str(index)))
+            branches = [part for part in re.split(r"[\n;]+", str(row.get("branches") or ""))
+                        if part.strip()]
+            value = str(row.get("value") or "").strip()
+            if branches:
+                chance = []
+                for branch in branches:
+                    fields = [part.strip() for part in branch.split(",")]
+                    if len(fields) < 3:
+                        return inputs, ("Alternative " + str(index) + ": every branch needs a name, "
+                                        "a probability and a value, comma-separated.")
+                    try:
+                        probability = Decimal(fields[1])
+                        outcome = Decimal(fields[2])
+                    except (InvalidOperation, ValueError):
+                        return inputs, ("Alternative " + str(index) + ": the branch probability and "
+                                        "value must be numbers.")
+                    chance.append({"probability": str(probability),
+                                   "node": {"type": "terminal", "value": str(outcome)}})
+                total = sum(Decimal(branch["probability"]) for branch in chance)
+                if total != 1:
+                    return inputs, ("The branch probabilities of alternative " + str(index)
+                                    + " must sum to one (found " + str(total) + ").")
+                node = {"type": "chance", "branches": chance}
+            elif value:
+                try:
+                    node = {"type": "terminal", "value": str(Decimal(value))}
+                except (InvalidOperation, ValueError):
+                    return inputs, "Alternative " + str(index) + ": the value must be a number."
+            else:
+                return inputs, ("Alternative " + str(index) + " needs a value or at least one branch.")
+            alternatives.append({"name": name, "node": node})
+        inputs = {"tree": {"type": "decision", "alternatives": alternatives}}
+    if entry_row["key"] == "multi_project_schedule":
+        projects = inputs.get("projects") or []
+        expanded = []
+        for index, project in enumerate(projects, start=1):
+            lines = [line for line in re.split(r"[\n;]+", str(project.get("activities") or ""))
+                     if line.strip()]
+            if not lines:
+                return inputs, ("Project " + str(index) + " needs at least one activity, one per line: "
+                                "id, duration, resource, demand (and optional predecessors).")
+            activities = []
+            for line in lines:
+                fields = [part.strip() for part in line.split(",")]
+                if len(fields) < 4:
+                    return inputs, ("Project " + str(index) + ": every activity needs id, duration, "
+                                    "resource and demand, comma-separated.")
+                activity = {"id": fields[0], "duration": fields[1], "resource": fields[2],
+                            "demand": fields[3]}
+                if len(fields) > 4 and fields[4]:
+                    activity["predecessors"] = fields[4]
+                activities.append(activity)
+            expanded.append({"name": project.get("name"), "priority": project.get("priority") or "1",
+                             "activities": activities})
+        inputs["projects"] = expanded
     return inputs, None
 
 
@@ -3035,6 +3105,45 @@ def _monte_carlo_lines(row, inputs, result):
     return lines
 
 
+def _decision_tree_lines(row, inputs, result):
+    alternatives = (inputs.get("tree") or {}).get("alternatives") or []
+    parts = []
+    for index in range(1, int(Decimal(str(result.get("alternative_count") or "0"))) + 1):
+        value = result.get("ev_%d" % index)
+        if value in (None, ""):
+            continue
+        name = ""
+        if index - 1 < len(alternatives):
+            name = str(alternatives[index - 1].get("name") or "")
+        probability = result.get("loss_probability_%d" % index)
+        parts.append(name + " " + _money(value)
+                     + (" (chance of a loss " + _pct(probability) + "%"
+                        if probability not in (None, "") else "") + ")")
+    lines = ["On the declared tree, " + "; ".join(parts) + "; the best expected value is "
+             + _money(result.get("expected_value")) + " on alternative "
+             + _fmt_exact(result.get("best_index")) + "."]
+    lines.append("The values and the branch probabilities are the student's declaration; the tree does not "
+                 "choose for them.")
+    return lines
+
+
+def _multi_project_lines(row, inputs, result):
+    projects = inputs.get("projects") or []
+    parts = []
+    for project in projects:
+        name = str(project.get("name") or "")
+        finish = result.get("finish_" + name)
+        if finish in (None, ""):
+            continue
+        parts.append(name + " finishes at " + _money(finish) + " (delay "
+                     + _money(result.get("delay_" + name)) + " periods)")
+    lines = ["Scheduling the declared projects against the declared shared capacity gives an overall duration of "
+             + _money(result.get("overall_duration")) + " periods across "
+             + _fmt_exact(result.get("project_count")) + " project(s): " + "; ".join(parts) + "."]
+    lines.append("The order follows the declared priorities; the method reports the delays that order causes.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -3139,6 +3248,8 @@ CAPABILITY_LINES.update({
     "calendar_schedule": _calendar_lines,
     "multi_criteria": _matrix_lines,
     "monte_carlo": _monte_carlo_lines,
+    "decision_tree": _decision_tree_lines,
+    "multi_project_schedule": _multi_project_lines,
 })
 
 

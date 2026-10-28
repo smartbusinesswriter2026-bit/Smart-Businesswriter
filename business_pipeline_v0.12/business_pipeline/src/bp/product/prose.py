@@ -35,11 +35,11 @@ def model_id():
     return os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", DEFAULT_MODEL)
 
 
-def _call(messages, timeout=60):
+def _call(messages, timeout=60, max_tokens=4000):
     key = os.environ.get("BP_OPENGO_API_KEY")
     if not key:
         raise ProseError("Model-assisted prose is not configured: no OpenCode Go key.")
-    payload = {"model": model_id(), "messages": messages, "temperature": 0.2, "max_tokens": 4000}
+    payload = {"model": model_id(), "messages": messages, "temperature": 0.2, "max_tokens": max_tokens}
     request = urllib.request.Request(
         ENDPOINT, data=json.dumps(payload).encode("utf-8"),
         headers={"Authorization": "Bearer " + key, "Content-Type": "application/json",

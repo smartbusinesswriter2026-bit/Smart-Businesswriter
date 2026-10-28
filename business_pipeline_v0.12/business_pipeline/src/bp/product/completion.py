@@ -257,6 +257,63 @@ def _kind(item):
 
 LAST_REJECT = None
 
+FORCE_KEYS = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"]
+
+ANALYSIS = {
+    "rivalry": (
+        "Rivalry of this kind shapes returns through price and non-price competition. Where manufacturers "
+        "compete on both price and features, an entrant's margin depends on differentiating the offer rather "
+        "than matching rivals on cost alone. The relevant question for the decision is whether the planned "
+        "position can be defended against competitors that already compete on the same dimensions. The "
+        "assessment would be strengthened by evidence on the number and size of rivals in the market, which "
+        "the case does not supply."),
+    "entrants": (
+        "Entry conditions determine how quickly new capacity reaches the market. Where entrants must secure "
+        "distribution and build a brand, incumbents gain time to respond, but the same requirement applies to "
+        "the entrant under consideration. The relevant question for the decision is whether entry can meet "
+        "those requirements at a cost the plan can carry. Evidence on the cost and time needed to secure "
+        "distribution and recognition would sharpen the assessment, and the case does not provide it."),
+    "substitutes": (
+        "Substitutes place a ceiling on what buyers will pay for the product itself. When alternatives cover "
+        "part of the need, demand shifts at the margin rather than disappearing, so pricing power is bounded by "
+        "the next best option. The relevant question for the decision is how much of the need the offer must "
+        "serve to keep buyers from switching. The assessment would be strengthened by evidence on how often "
+        "buyers actually choose those alternatives, which the case does not supply."),
+    "buyers": (
+        "Buyer power determines how far cost increases can be passed on. Where buyers compare specifications "
+        "and prices before switching, the offer must compete on visible value rather than on habit or lock-in. "
+        "The relevant question for the decision is whether the planned offer gives buyers a reason to choose it "
+        "on the terms they already use to compare. Evidence on how concentrated buyers are and how easily they "
+        "can switch would sharpen the assessment, and the case does not provide it."),
+    "suppliers": (
+        "Supplier power determines the cost and reliability of critical inputs. Where capacity in key inputs is "
+        "scarce, input terms can absorb the margin an entrant expects to earn. The relevant question for the "
+        "decision is whether supply can be secured on terms that keep the plan viable. Evidence on the number of "
+        "alternative suppliers and on the duration of contracts would sharpen the assessment, and the case does "
+        "not provide it."),
+}
+
+
+def _words(text):
+    return len(re.findall(r"[A-Za-z0-9'\u2019%-]+", str(text or "")))
+
+
+def _as_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return [part.strip() for part in str(value).split("\n") if part.strip()]
+
+
+def _facts(blocks):
+    facts = []
+    for block in blocks:
+        facts.append({"key": block.get("key"), "label": block.get("label"),
+                      "items": [{"text": _clean(item.get("text"), 600), "kind": _kind(item)}
+                                for item in block.get("items") or []]})
+    return facts
+
 
 def _reject(reason):
     global LAST_REJECT
@@ -271,80 +328,181 @@ def _reject(reason):
     return None
 
 
+LEAD = ("Porter's Five Forces assesses the attractiveness of an industry through five sources of competitive "
+        "pressure. Each force is treated in turn, first through the evidence accepted for the case and then through "
+        "what that evidence implies for the decision.")
+
+HEAD_SYSTEM = (
+    "You are writing the opening of a Porter's Five Forces paper for a business student. "
+    "Use only the case instruction and the force items. Write an introduction of 190 to 230 words in two "
+    "paragraphs: the first introduces the case and the industry, the second states the approach and ends with a "
+    "single-sentence thesis saying what the evidence implies about the strength of the forces (do not claim that "
+    "the framework is useful). Write a case context of 130 to 170 words in one paragraph that sets out the "
+    "decision and the industry. Do not restate every force item. Do not add facts, numbers, names, sources or "
+    "citations beyond the items. Do not recommend a decision. Return only JSON: "
+    "{\"introduction\":[\"...\",\"...\"], \"thesis\":\"...\", \"context\":[\"...\"]}.")
+
+FORCE_SYSTEM = (
+    "You are writing one section of a Porter's Five Forces paper for a business student. The force is {label}. "
+    "Use only the case instruction, the thesis and the force items. Write two paragraphs of 190 to 220 words in total: the "
+    "first says what the evidence shows, the second says what it implies for the decision. "
+    "Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a decision. "
+    "Return only JSON: {\"paragraphs\":[\"...\",\"...\"]}.")
+
+MID_SYSTEM = (
+    "You are writing the discussion of a Porter's Five Forces paper for a business student. "
+    "Use only the case instruction, the thesis and the force items. Write the discussion (170 to 200 words in two "
+    "paragraphs) reading the forces together, then the implications (190 to 220 words in two paragraphs) stating what the "
+    "combined reading means for the decision without making the decision. "
+    "Do not add facts, numbers, names, sources or citations beyond the items. "
+    "Return only JSON: {\"discussion\":[\"...\",\"...\"], \"implications\":[\"...\",\"...\"]}.")
+
+TAIL_SYSTEM = (
+    "You are closing a Porter's Five Forces paper for a business student. "
+    "Use only the case instruction, the thesis and the force items. Write the limitations (100 to 140 words in one "
+    "paragraph) and the conclusion (140 to 170 words in two paragraphs) that answers the stated thesis and names the "
+    "strongest and the weakest evidenced force. Do not add facts, numbers, names, sources or citations beyond the items. "
+    "Do not recommend a decision. Return only JSON: {\"limitations\":[\"...\"], \"conclusion\":[\"...\",\"...\"]}.")
+
+
+def _ask(system, payload, timeout=180):
+    raw = prose._call([{"role": "system", "content": system},
+                       {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
+                      timeout=timeout, max_tokens=6000)
+    if not str(raw or "").strip():
+        raise ValueError("empty response")
+    return prose._parse(raw)
+
+
+def _ask_force(label, payload, timeout=180):
+    return _ask(FORCE_SYSTEM.replace("{label}", str(label)), payload, timeout)
+
+
+def _shape(raw):
+    raw = raw if isinstance(raw, dict) else {}
+    forces = raw.get("forces") if isinstance(raw.get("forces"), dict) else {}
+    return {
+        "introduction": _as_list(raw.get("introduction")),
+        "context": _as_list(raw.get("context")),
+        "lead": str(raw.get("lead") or "").strip(),
+        "forces": {key: _as_list(forces.get(key)) for key in FORCE_KEYS},
+        "discussion": _as_list(raw.get("discussion")),
+        "implications": _as_list(raw.get("implications")),
+        "limitations": _as_list(raw.get("limitations")),
+        "conclusion": _as_list(raw.get("conclusion")),
+    }
+
+
 def _model_sections(result, style="apa", attempt=0):
-    """Ask the model for coherent prose; citations are appended deterministically."""
+    """A thesis call, then seven small calls in parallel; thin or invented prose is refused."""
     global LAST_REJECT
     if not attempt:
         LAST_REJECT = None
     try:
-        from . import prose as editor
-        if not editor.available():
+        if not prose.available():
             return _reject("model unavailable")
     except Exception:
         return _reject("model import")
     blocks = result.get("blocks") or []
-    citations_by_key, forces = {}, []
-    for block in blocks:
-        citations = []
-        for item in block.get("items") or []:
-            if item.get("provenance") == "sourced" and item.get("citation"):
-                if item["citation"] not in citations:
-                    citations.append(item["citation"])
-        citations_by_key[block.get("key")] = citations
-        forces.append({"key": block.get("key"), "label": block.get("label"),
-                       "items": [{"text": _clean(item.get("text"), 600), "kind": _kind(item)}
-                                 for item in block.get("items") or []]})
-    if not forces:
+    facts = _facts(blocks)
+    if not facts:
         return _reject("no items")
-    system = ("You are an academic analyst writing a concise Porter's Five Forces paper for a business student. "
-              "Use only the instruction and force items. Write in third person, as a finished paper, not as a "
-              "commentary on your sources. Never mention supplied items, provided material, the draft, the model, "
-              "the system, this paragraph, the available evidence or the drafting process. Synthesise the items into "
-              "an argument about the industry. An item marked student is the student's own case evidence: present it as "
-              "evidence for this case without attributing it to a published source. An item marked assumption is a case "
-              "assumption: distinguish it by wording, not by meta-commentary. Introduce no new market condition, "
-              "mechanism, cost, actor, technology, country, company or example beyond the items; an inference must be "
-              "phrased as an inference for this case (this suggests, this implies, this points to), never as a new "
-              "finding. Do not recommend a decision. Do NOT write any citation, parenthetical reference, marker, "
-              "source name, URL, number or percentage; the system adds citations afterwards. Return ONLY JSON with "
-              'this shape: {"introduction":"...", "forces":{"rivalry":"...", "...":"..."}, "discussion":"...", '
-              '"conclusion":"..."}. One paragraph per force. No headings, markdown or bullets.')
-    user = json.dumps({"instruction": result.get("instruction"), "forces": forces}, ensure_ascii=False)
+    instruction = _clean(result.get("instruction"), 500)
+    base = {"instruction": instruction, "forces": facts}
     try:
-        raw = editor._call([{"role": "system", "content": system}, {"role": "user", "content": user}],
-                           timeout=90)
-        data = editor._parse(raw)
+        head = _ask(HEAD_SYSTEM, base)
     except Exception as error:
-        return _retry(result, style, attempt, "call: " + str(error)[:120])
-    if not isinstance(data, dict) or not data.get("introduction") or not data.get("conclusion") \
-            or not isinstance(data.get("forces"), dict):
-        return _retry(result, style, attempt, "shape")
-    text = " ".join([str(data.get("introduction", "")),
-                     " ".join(str(value) for value in (data.get("forces") or {}).values()),
-                     str(data.get("discussion", "")), str(data.get("conclusion", ""))])
-    data["introduction"] = CITATION.sub("", str(data.get("introduction", "")))
-    data["discussion"] = CITATION.sub("", str(data.get("discussion", "")))
-    data["conclusion"] = CITATION.sub("", str(data.get("conclusion", "")))
-    data["forces"] = {key: CITATION.sub("", str(value)) for key, value in (data.get("forces") or {}).items()}
-    text = CITATION.sub("", text)
+        return _retry(result, style, attempt, "head: " + str(error)[:140])
+    thesis = str((head or {}).get("thesis") or "").strip()
+    if not thesis:
+        return _retry(result, style, attempt, "no thesis")
+    payload = dict(base, thesis=thesis)
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    jobs = {"mid": lambda: _ask(MID_SYSTEM, payload),
+            "tail": lambda: _ask(TAIL_SYSTEM, payload)}
+    for block in blocks:
+        label = block.get("label") or block.get("key")
+        items = [{"text": _clean(item.get("text"), 600), "kind": _kind(item)}
+                 for item in block.get("items") or []]
+        force_payload = {"instruction": instruction, "thesis": thesis, "force": label, "items": items}
+        jobs[block.get("key")] = (lambda label=label, fp=force_payload: _ask_force(label, fp))
+    answers = {}
+    try:
+        with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
+            running = {pool.submit(job): name for name, job in jobs.items()}
+            for future in as_completed(running):
+                answers[running[future]] = future.result()
+    except Exception as error:
+        return _retry(result, style, attempt, "call: " + str(error)[:140])
+    merged = {"introduction": (head or {}).get("introduction") or [],
+              "thesis": thesis,
+              "context": (head or {}).get("context") or [],
+              "lead": LEAD,
+              "forces": {block.get("key"): (answers.get(block.get("key")) or {}).get("paragraphs") or []
+                         for block in blocks},
+              "discussion": (answers.get("mid") or {}).get("discussion") or [],
+              "implications": (answers.get("mid") or {}).get("implications") or [],
+              "limitations": (answers.get("tail") or {}).get("limitations") or [],
+              "conclusion": (answers.get("tail") or {}).get("conclusion") or []}
+    data = _shape(merged)
+    for name in ("introduction", "context", "discussion", "implications", "limitations", "conclusion"):
+        data[name] = [CITATION.sub("", part) for part in data[name]]
+    data["lead"] = CITATION.sub("", data["lead"])
+    data["forces"] = {key: [CITATION.sub("", part) for part in parts]
+                      for key, parts in data["forces"].items()}
+    citations_by_key = {}
+    for block in blocks:
+        cites = [item.get("citation") for item in block.get("items") or []
+                 if item.get("provenance") == "sourced" and item.get("citation")]
+        citations_by_key[block.get("key")] = list(dict.fromkeys(cite for cite in cites if cite))
+    problems = _problems(data, facts, instruction)
+    if problems:
+        return _retry(result, style, attempt, "; ".join(problems[:3]))
+    return (data, citations_by_key)
+
+
+def _problems(data, facts, instruction=""):
+    problems = []
+    floors = [("introduction", 150), ("context", 110), ("discussion", 130),
+              ("implications", 150), ("limitations", 70), ("conclusion", 110)]
+    for name, floor in floors:
+        if _words(" ".join(data[name])) < floor:
+            problems.append("%s short (%d)" % (name, _words(" ".join(data[name]))))
+    if len(data["introduction"]) < 2:
+        problems.append("introduction is one paragraph")
+    if _words(data["lead"]) < 25:
+        problems.append("lead short")
+    for key in FORCE_KEYS:
+        parts = data["forces"].get(key) or []
+        if len(parts) < 2:
+            problems.append("%s is one paragraph" % key)
+        if _words(" ".join(parts)) < 140:
+            problems.append("%s short (%d)" % (key, _words(" ".join(parts))))
+    total = sum(_words(" ".join(data[name])) for name in
+                ("introduction", "context", "discussion", "implications", "limitations", "conclusion"))
+    total += _words(data["lead"]) + sum(_words(" ".join(parts)) for parts in data["forces"].values())
+    if total < 1400:
+        problems.append("paper short (%d words)" % total)
+    text = " ".join([data["lead"]] + [part for name in
+                    ("introduction", "context", "discussion", "implications", "limitations", "conclusion")
+                    for part in data[name]] +
+                    [part for parts in data["forces"].values() for part in parts])
     if URL.search(text):
-        return _retry(result, style, attempt, "url")
-    supplied_items = " ".join(_clean(item.get("text"), 600) for block in blocks
-                              for item in block.get("items") or [])
-    allowed_numbers = set(NUMBER.findall(supplied_items))
-    extra = set(NUMBER.findall(text)) - allowed_numbers
+        problems.append("link")
+    supplied_items = " ".join(item["text"] for force in facts for item in force["items"])
+    extra = set(NUMBER.findall(text)) - set(NUMBER.findall(supplied_items))
     if extra:
-        return _retry(result, style, attempt, "numbers: " + ",".join(sorted(extra)))
-    supplied = (str(result.get("instruction") or "") + " " + supplied_items).lower()
+        problems.append("number " + ",".join(sorted(extra)))
+    supplied = (str(instruction or "") + " " + supplied_items).lower()
     supplied_words = set(re.findall(r"[a-z]{4,}", supplied))
     for name in set(PROPER.findall(text)):
         low = name.lower()
-        if low in supplied or low in FRAMEWORK_WORDS:
+        if low in supplied_words or low in FRAMEWORK_WORDS:
             continue
         if any(low.startswith(word) or word.startswith(low) for word in supplied_words):
             continue
-        return _retry(result, style, attempt, "name: " + name)
-    return (data, text, citations_by_key)
+        problems.append("name " + name)
+    return problems
 
 
 def _retry(result, style, attempt, reason):
@@ -352,81 +510,175 @@ def _retry(result, style, attempt, reason):
         return _model_sections(result, style, 1)
     return _reject(reason)
 
-def draft(result, style="apa", version="draft"):
-    """A Word-ready draft from a completion result; no new facts or ratings."""
-    style = "harvard" if str(style or "").lower().startswith("harv") else "apa"
-    instruction = _clean(result.get("instruction"), 500)
+
+def _title(instruction):
+    text = _clean(instruction, 160).strip()
+    text = text.rstrip(" .,;:!?")
+    if len(text) > 110:
+        text = text[:110].rsplit(" ", 1)[0].rstrip(" .,;:")
+    if text and text[0].islower():
+        text = text[0].upper() + text[1:]
+    return "Porter's Five Forces: " + text
+
+
+def _draft_data(result):
+    instruction = _clean(result.get("instruction"), 500).strip().rstrip(" .,;:")
     blocks = result.get("blocks") or []
-    generated = _model_sections(result, style) if version == "full" else None
-    model = generated[0] if generated else None
-    sections = [paper.section("Introduction", 1, [
-        (model.get("introduction") if model and model.get("introduction") else
-         "This paper analyses the following case with Porter's Five Forces: " + instruction.rstrip(".") + ". Each force is set out "
-         "from the evidence held for the case. Sourced items carry a citation, the student's own items are presented as "
-         "case evidence, and a force without evidence is named as a gap. The paper does not assign ratings or recommend "
-         "a decision.")
-    ]), paper.section("Five Forces", 1)]
-    sourced, student_items, assumptions, gaps = 0, 0, 0, 0
-    references, seen = [], set()
+    labels, counts = [], []
+    sourced = student = assumptions = gaps = 0
     for block in blocks:
+        items = block.get("items") or []
+        if not items:
+            gaps += 1
+            continue
+        labels.append(block.get("label") or block.get("key"))
+        counts.append(len(items))
+        for item in items:
+            kind = _kind(item)
+            if kind == "sourced":
+                sourced += 1
+            elif kind == "student":
+                student += 1
+            else:
+                assumptions += 1
+    listed = ", ".join("%s (%d)" % (label, count) for label, count in zip(labels, counts)) or "no force"
+    strongest = labels[counts.index(max(counts))] if counts else "none of the forces"
+    weakest = labels[counts.index(min(counts))] if counts else "none of the forces"
+    data = {
+        "introduction": [
+            "This paper examines the competitive structure of the industry identified in the case using Porter's "
+            "Five Forces. The decision under examination is whether to proceed with the course of action set out "
+            "in the brief. The analysis is confined to the evidence accepted for the case, and it treats the "
+            "industry, rather than the firm in isolation, as the unit of assessment.",
+            "The paper first sets out the case and the industry that frames it. It then assesses each of the five "
+            "forces in turn: rivalry among existing competitors, the threat of new entrants, the threat of "
+            "substitutes, buyer power and supplier power. Each force is presented through the evidence accepted "
+            "for it and through the implications of that evidence for the decision.",
+            "The argument developed below is that the forces that carry evidence in this case determine how much "
+            "room an entrant has to earn a return, and that a force recorded as a gap cannot be read as "
+            "favourable. The conclusion returns to this argument and states how far the evidence supports it."],
+        "context": [
+            "The case concerns the following decision: " + instruction + ". The industry is the market in which "
+            "the product or service competes, and the analysis treats that market as the relevant arena because "
+            "the five forces describe industry structure rather than the record of a single company.",
+            "The evidence base is limited to the items accepted for the case. A force with no accepted item is "
+            "recorded as a gap rather than filled by assumption, and an item supplied as a case assumption is "
+            "identified as an assumption rather than as evidence. The paper does not rate the forces, compute an "
+            "attractiveness score or recommend a decision."],
+        "lead": ("Porter's Five Forces assesses the attractiveness of an industry through five sources of "
+                 "competitive pressure. Each force is treated in turn, first through the evidence accepted for "
+                 "the case and then through what that evidence implies for the decision."),
+        "forces": {},
+        "discussion": [
+            "The case supplies " + str(sourced + student + assumptions) + " accepted items across the five "
+            "forces: " + str(sourced) + " sourced items, " + str(student) + " items of the student's own evidence "
+            "and " + str(assumptions) + " case assumptions. The forces that carry evidence are " + listed +
+            ", while " + str(gaps) + " force(s) are recorded as gaps.",
+            "Read together, the forces that carry evidence describe a setting in which the pressures supported by "
+            "items interact rather than operate separately. A force with no item places no weight on the "
+            "assessment, because a gap is not a finding and cannot be treated as either a strength or a "
+            "weakness. The reading that follows is therefore a judgement about the accepted evidence, not a "
+            "verdict on the decision."],
+        "implications": [
+            "The combined reading carries consequences for the decision. The pressures that the evidence supports "
+            "have to be answered in the plan itself: a competitive offer, a route to buyers and access to the "
+            "inputs the operation needs. A force that appears weak in the evidence is not thereby a force that "
+            "can be ignored; it is a force the case has not documented.",
+            "The practical implication is that the case for proceeding cannot rest on the forces that are thin in "
+            "evidence, because those forces are unmeasured rather than benign. It must be argued from the "
+            "pressures that are documented, and the plan must show how each of them would be met. The decision "
+            "itself, and the justification offered for it, remain the student's."],
+        "limitations": [
+            "The analysis does not rate the forces, compute an overall attractiveness score or recommend a "
+            "decision, because the accepted items do not support a quantitative comparison across forces. A case "
+            "assumption is not a source, and a gap is not a finding. Several forces rest on a single item, so the "
+            "weight given to them is limited by what that item supports. The student must verify every item "
+            "before submission."],
+        "conclusion": [
+            "The paper set out to assess the industry through the five forces and to state what the accepted "
+            "evidence implies for the decision. The forces with evidence are " + listed + ", and " + strongest +
+            " carries the most weight in the reading offered here, while " + weakest + " carries the least.",
+            "On that basis the industry presents a competitive setting that the decision must answer force by "
+            "force, and the argument stated in the introduction is supported only as far as the items reach. The "
+            "paper does not make the decision; it sets out the pressures that the decision has to justify."],
+    }
+    for block in blocks:
+        key = block.get("key")
         lines = []
         for item in block.get("items") or []:
-            kind = _kind(item)
             text = _clean(item.get("text"), 600)
+            kind = _kind(item)
             if kind == "sourced":
                 cite = item.get("citation") or ""
                 lines.append(text + (" " + cite if cite else ""))
-                sourced += 1
-                ref = item.get("source")
-                if ref and ref not in seen:
-                    seen.add(ref)
-                    references.append(ref)
             elif kind == "student":
                 lines.append(text)
-                student_items += 1
             elif str(item.get("provenance") or "").lower() == "synthetic":
                 lines.append("Illustrative: " + text)
-                assumptions += 1
             else:
-                if not text.lower().startswith("case assumption"):
-                    text = "Case assumption: " + text
-                lines.append(text)
-                assumptions += 1
-        if not lines:
-            lines = [block.get("gap") or "No evidence was found for this force."]
-            gaps += 1
-        model_text = ((model.get("forces") or {}).get(block.get("key")) if model else None)
-        if model_text:
-            cites = generated[2].get(block.get("key")) or []
-            if cites:
-                model_text = model_text.rstrip() + " " + " ".join(cites)
-        sections.append(paper.section(block.get("label") or block.get("key"), 2,
-                                      [model_text if model_text else " ".join(lines)]))
+                lines.append("Case assumption: " + text
+                             if not text.lower().startswith("case assumption") else text)
+        first = (" ".join(lines) if lines else
+                 (block.get("gap") or "No evidence was found for this force, so the force is recorded as a gap."))
+        data["forces"][key] = [first, ANALYSIS.get(key, "")]
+    return data
+
+
+def _sections(data, blocks, style, citations, result):
+    references, seen = [], set()
+    for block in blocks:
+        for item in block.get("items") or []:
+            if _kind(item) == "sourced" and item.get("source"):
+                if item["source"] not in seen:
+                    seen.add(item["source"])
+                    references.append(item["source"])
+    sections = [paper.section("Introduction", 1, list(data["introduction"])),
+                paper.section("Case and industry context", 2, list(data["context"])),
+                paper.section("Five Forces", 1, [data["lead"]])]
+    for block in blocks:
+        key = block.get("key")
+        paragraphs = list(data["forces"].get(key) or [])
+        if not paragraphs:
+            paragraphs = [block.get("gap") or "No evidence was found for this force."]
+        cites = citations.get(key) or []
+        if cites and paragraphs:
+            paragraphs[0] = paragraphs[0].rstrip() + " " + " ".join(cites)
+        sections.append(paper.section(block.get("label") or key, 2, paragraphs))
     sections += [
         paper.section("Discussion", 1),
-        paper.section("What the evidence shows", 2, [
-            (model.get("discussion") if model and model.get("discussion") else
-             "The five forces returned " + str(sourced + student_items + assumptions) + " item(s): " + str(sourced) +
-             " sourced item(s), " + str(student_items) + " item(s) from the student's own case evidence, " +
-             str(assumptions) + " case assumption(s) and " + str(gaps) + " named gap(s). The sourced items carry a "
-             "citation; a case assumption is a starting point for the student's own case, not evidence.")
-        ]),
-        paper.section("Limitations", 2, [
-            "The paper does not rate the forces, compute an overall attractiveness score or recommend a decision. "
-            "A case assumption is not a source, and a gap is not a finding. The student must verify every assumption "
-            "and add the judgment before submission."
-        ]),
-        paper.section("Conclusion", 1, [
-            (model.get("conclusion") if model and model.get("conclusion") else
-             "The paper sets out the five forces; the decision and its justification remain the student's.")
-        ]),
-        paper.section("References" if style == "apa" else "Bibliography", 1, references or ["No sources were used."]),
+        paper.section("What the evidence shows", 2, list(data["discussion"])),
+        paper.section("Implications for the decision", 2, list(data["implications"])),
+        paper.section("Limitations", 2, list(data["limitations"])),
+        paper.section("Conclusion", 1, list(data["conclusion"])),
+        paper.section("References" if style == "apa" else "Bibliography", 1,
+                      references or ["No sources were used."]),
     ]
-    title = "Porter's Five Forces: " + _clean(instruction, 120)
-    return {"title": title, "sections": sections, "style": style, "version": version,
-            "model_used": bool(model)}
+    return sections
+
+
+def draft(result, style="apa", version="draft"):
+    """A full paper from a completion result; no new facts, ratings or citations."""
+    style = "harvard" if str(style or "").lower().startswith("harv") else "apa"
+    blocks = result.get("blocks") or []
+    model_used = False
+    citations = {}
+    if version == "full":
+        generated = _model_sections(result, style)
+        if not generated:
+            raise ValueError("The model did not return a valid paper. Nothing was downloaded; choose Draft "
+                             "(evidence-led) or try again.")
+        data, citations = generated
+        model_used = True
+    else:
+        data = _draft_data(result)
+    sections = _sections(data, blocks, style, citations, result)
+    words = sum(_words(" ".join(section.get("lines") or [])) for section in sections)
+    return {"title": _title(result.get("instruction")), "sections": sections, "style": style,
+            "version": version, "model_used": model_used, "words": words,
+            "byline": [str(line).strip() for line in (result.get("byline") or []) if str(line or "").strip()]}
 
 
 def draft_bytes(result, style="apa", report=None, version="draft"):
     report = report or draft(result, style, version)
-    return docx.render_academic(report["title"], report["sections"], report["style"])
+    return docx.render_academic(report["title"], report["sections"], report["style"],
+                                byline=report.get("byline") or ())

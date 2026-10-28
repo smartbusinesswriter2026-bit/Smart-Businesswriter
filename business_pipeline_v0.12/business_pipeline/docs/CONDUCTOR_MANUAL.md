@@ -376,6 +376,8 @@ answer selects or excludes the capability with a stated reason.
 | `calendar_schedule` | the finish in working periods, not calendar days | Delivery Status / Calendar Schedule |
 | `multi_criteria` | the weighted ranking of the declared alternatives | Delivery Status / Weighted Decision Matrix |
 | `monte_carlo` | the simulated range and the share of draws above zero | Delivery Status / Monte Carlo Range |
+| `decision_tree` | the expected value and loss chance of each alternative | Delivery Status / Decision Tree |
+| `multi_project_schedule` | the overall duration and each project's delay | Delivery Status / Multi-Project Schedule |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -423,7 +425,12 @@ input:
 - `row_fields` — the columns of a `rows` input, which the schema does not declare
   (`cpm_schedule` takes `id`, `duration`, `predecessors`; `resource_leveling`
   takes two row sets). The panel renders exactly these columns and the parser
-  coerces each value; a missing column is refused by row and column name.
+  coerces each value; a missing column is refused by row and column name. A
+  column named `branches` or `activities` is a multi-line list, written one item
+  per line and expanded into the nested shape the method expects: the decision
+  tree turns `branch, probability, value` lines into chance nodes, and the
+  multi-project schedule turns `id, duration, resource, demand` lines into a
+  project's activities. `object` inputs are rendered and parsed the same way.
 
 Methods not registered yet are simply not curated: each needs its cue pair, its
 slot and a formatter. Every input shape the catalogue supports now exists
