@@ -292,6 +292,18 @@ answer selects or excludes the capability with a stated reason.
 | `anova` | whether the declared group means differ | Data Analysis / Group Comparison (ANOVA) |
 | `chi_square` | the association between two declared classifications | Data Analysis / Association Between Categories |
 | `ols` | the regression of a declared series on declared predictors | Data Analysis / Multiple Regression |
+| `queue_analysis` | utilisation and waiting from declared arrival and service rates | Operations / Queue Performance |
+| `capacity_analysis` | maximum output and the bottleneck against declared demand | Operations / Capacity and Bottleneck |
+| `oee_analysis` | availability, performance, quality and OEE | Operations / Equipment Effectiveness |
+| `process_control` | the control limits and signals of a declared sample | Operations / Process Control |
+| `demand_curve` | the fitted demand curve and its revenue-maximising point | Market Response / Demand Curve |
+| `rfm_scoring` | RFM segments from declared customers | Customer Evidence / RFM Segments |
+| `sales_funnel` | stage conversion, drop-off and cost per acquisition | Marketing Performance / Sales Funnel |
+| `ab_test_two_proportion` | the lift and the two-proportion test | Marketing Performance / A/B Test |
+| `social_engagement` | engagement rate, frequency, CPM and follower growth | Marketing Performance / Social Engagement |
+| `reliability_alpha` | Cronbach's alpha for a declared survey | Data Analysis / Survey Reliability |
+| `weighted_summary` | the weighted mean and effective sample size | Data Analysis / Weighted Summary |
+| `power_analysis` | the power and minimum detectable effect of a design | Data Analysis / Statistical Power |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from

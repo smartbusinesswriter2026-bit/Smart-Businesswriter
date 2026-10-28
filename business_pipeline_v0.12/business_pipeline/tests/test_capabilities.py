@@ -264,6 +264,34 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("does not establish", text)
         self.assertNotIn("causes", text.replace("one causes the other", ""))
 
+    def test_an_operations_paper_names_the_bottleneck(self):
+        brief = ("The grocery chain is entering the Saudi market and the packing line capacity is the bottleneck "
+                 "against declared demand.")
+        state = draftable(answer_all(chat.start(brief, "management")))
+        chat.attach_computation(state, "capacity_analysis", {
+            "demand": "500",
+            "resources": [{"name": "line A", "available_hours": "8", "minutes_per_unit": "2"},
+                          {"name": "line B", "available_hours": "8", "minutes_per_unit": "1"}]})
+        state = chat.draft(state, accepted_ids=[], implications="The line constrains the entry plan.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Capacity and Bottleneck"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("line A", text)
+        self.assertIn("short of the declared demand", text)
+
+    def test_a_survey_reliability_paper_takes_named_columns(self):
+        brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
+                 "(Cronbach) read on declared items.")
+        state = draftable(answer_all(chat.start(brief, "management")))
+        chat.attach_computation(state, "reliability_alpha", {"items": {
+            "quality": ["4", "5", "3", "4"], "speed": ["5", "5", "4", "4"], "care": ["3", "4", "3", "5"]}})
+        state = chat.draft(state, accepted_ids=[], implications="The scale is not yet dependable.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Survey Reliability"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("Cronbach's alpha", text)
+        self.assertIn("0.51", text)
+
     def test_a_dcf_paper_reports_the_core_value(self):
         brief = ("The grocery chain is entering the Saudi market and needs a dcf on its declared free cash "
                  "flows at a declared discount rate.")

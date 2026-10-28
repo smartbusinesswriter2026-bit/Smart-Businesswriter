@@ -1382,6 +1382,7 @@ function capabilityPanel(c, plan) {
         const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
         if (spec.type === "records") {
+          const cols = Object.keys(spec.fields || {});
           const rows = Array.isArray(raw) && raw.length ? raw : [{}];
           return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
             '<div data-caprows="' + esc(cap.key + ":" + name) + '">' + rows.map((row, index) =>
@@ -6364,7 +6365,8 @@ async function boot() {
     '<tr><td>Starter</td><td>$14.99</td></tr><tr><td>Pro</td><td>$29.99</td></tr><tr><td>Studio</td><td>$49.99</td></tr></tbody></table>',
     "Close", async () => {});
   const account = $("#accountpill"); if (account) account.onclick = () => openModal("My account",
-    "<p>This product runs as a single local user on this machine. No account, login or password is required or stored.</p>", "Close", async () => {});
+    "<p>This product runs as a single local user on this machine. No account, login or password is required or stored.</p>" +
+    "<p><a href=\"/account.html\">Open the full account page</a> — this machine, your work, the export wallet.</p>", "Close", async () => {});
   const signup = $("#signuppill"); if (signup) signup.onclick = () => openModal("Sign up",
     "<p>Sign up is coming soon. v1 is local single-user, so there is nothing to sign up for yet.</p>", "Close", async () => {});
   $("#chatbtn").onclick = () => { const d = $("#drawer"); if (d.hidden) openDrawer(); else d.hidden = true; };

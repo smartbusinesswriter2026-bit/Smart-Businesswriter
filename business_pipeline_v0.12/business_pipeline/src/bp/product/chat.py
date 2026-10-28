@@ -1979,6 +1979,170 @@ def _ols_lines(row, inputs, result):
     return lines
 
 
+def _queue_lines(row, inputs, result):
+    lines = ["At a declared arrival rate of " + _fmt_number(inputs.get("arrival_rate")) + " and a declared service "
+             "rate of " + _fmt_number(inputs.get("service_rate")) + " per period, utilisation is "
+             + _pct(result.get("utilisation")) + "%, with " + _money(result.get("average_in_queue"))
+             + " waiting on average, " + _money(result.get("average_wait_in_queue"))
+             + " periods in the queue, and a " + _pct(result.get("probability_waiting"))
+             + "% chance that an arrival waits."]
+    lines.append("The figures assume the declared rates stay constant and arrivals are random; they are not a "
+                 "forecast of a real queue.")
+    return lines
+
+
+def _capacity_lines(row, inputs, result):
+    resources = inputs.get("resources") or []
+    index = result.get("bottleneck_index")
+    bottleneck = ""
+    try:
+        position = int(Decimal(str(index))) - 1
+        if 0 <= position < len(resources):
+            bottleneck = str(resources[position].get("name") or "")
+    except (InvalidOperation, ValueError):
+        bottleneck = ""
+    gap = Decimal(str(result.get("capacity_gap") or "0"))
+    if gap < 0:
+        against = ("the declared capacity is " + _money(abs(gap)) + " units short of the declared demand of "
+                   + _money(inputs.get("demand")) + ".")
+    else:
+        against = ("the declared capacity leaves " + _money(gap) + " units of headroom over the declared "
+                   "demand of " + _money(inputs.get("demand")) + ".")
+    lines = ["With the declared resources, the maximum output is " + _money(result.get("max_output"))
+             + " units per period" + (" and the bottleneck is " + bottleneck if bottleneck else "")
+             + "; " + against]
+    lines.append("The bottleneck's utilisation is " + _pct(result.get("bottleneck_utilisation"))
+                 + "% of its declared hours; the method does not improve the plan, it measures it.")
+    return lines
+
+
+def _oee_lines(row, inputs, result):
+    lines = ["On a declared planned production time of " + _money(inputs.get("planned_production_time"))
+             + " minutes and " + _money(inputs.get("downtime")) + " minutes of downtime, availability is "
+             + _pct(result.get("availability")) + "%, performance " + _pct(result.get("performance"))
+             + "% and quality " + _pct(result.get("quality")) + "%, giving an overall equipment effectiveness of "
+             + _pct(result.get("oee")) + "%."]
+    lines.append("The measure composes the declared time, output and quality figures; it does not say what "
+                 "caused the losses.")
+    return lines
+
+
+def _process_control_lines(row, inputs, result):
+    lines = ["From the declared sample of " + _fmt_exact(result.get("n")) + " measurement(s), the mean is "
+             + _money(result.get("mean")) + " with an estimated sigma of " + _money(result.get("sigma_estimate"))
+             + ", giving control limits of " + _money(result.get("lower_control_limit")) + " to "
+             + _money(result.get("upper_control_limit")) + "."]
+    if str(result.get("out_of_control") or "0") != "0":
+        lines.append(str(result.get("out_of_control")) + " declared point(s) fall outside those limits, so the "
+                     "method reports the process as out of control.")
+    else:
+        lines.append("No declared point falls outside those limits; the method reports no out-of-control signal.")
+    lines.append("The limits describe the declared sample; the method does not identify a cause for any signal.")
+    return lines
+
+
+def _demand_curve_lines(row, inputs, result):
+    lines = ["Fitting the declared price and quantity points gives a demand curve with an intercept of "
+             + _money(result.get("intercept")) + " and a slope of " + _money(result.get("slope"))
+             + " (r squared " + _money(result.get("r_squared")) + "); elasticity at the mean point is "
+             + _money(result.get("elasticity_at_mean")) + "."]
+    if result.get("revenue_max_price") not in (None, ""):
+        lines.append("The revenue-maximising point of that fitted curve is a price of "
+                     + _money(result.get("revenue_max_price")) + " at "
+                     + _money(result.get("revenue_max_quantity")) + " units, for revenue of "
+                     + _money(result.get("revenue_max_revenue")) + ".")
+    lines.append("The curve describes the declared points only; it is not a market forecast and the declared "
+                 "prices need not cover costs.")
+    return lines
+
+
+_RFM_LABELS = (("champions", "champions"), ("loyal", "loyal customers"),
+               ("potential_loyalist", "potential loyalists"), ("new", "new customers"),
+               ("promising", "promising"), ("need_attention", "need attention"),
+               ("at_risk", "at risk"), ("about_to_sleep", "about to sleep"),
+               ("hibernating", "hibernating"), ("cannot_lose", "cannot lose"),
+               ("lost", "lost"))
+
+
+def _rfm_lines(row, inputs, result):
+    parts = []
+    for key, label in _RFM_LABELS:
+        value = result.get("count_" + key)
+        if value in (None, "") or str(value) == "0":
+            continue
+        parts.append(str(value) + " " + label)
+    lines = ["Across " + _fmt_exact(result.get("total_customers")) + " declared customers, the RFM scores place: "
+             + ("; ".join(parts) if parts else "no customer in a named segment") + "."]
+    lines.append("The segments come from the declared recency, frequency and monetary values; the method does "
+                 "not target, contact or value a customer beyond that scoring.")
+    return lines
+
+
+def _funnel_lines(row, inputs, result):
+    lines = ["On the declared funnel, the last declared stage holds " + _fmt_exact(result.get("customers"))
+             + " customer(s), a conversion of " + _pct(result.get("overall_conversion"))
+             + "% from the first declared stage, with " + _money(result.get("drop_off"))
+             + " people not carried through."]
+    if result.get("cac") not in (None, ""):
+        lines.append("At the declared spend, the cost per acquired customer is " + _money(result.get("cac")) + ".")
+    lines.append("The rates are arithmetic on the declared stage counts; the method does not explain the "
+                 "drop-off.")
+    return lines
+
+
+def _abtest_lines(row, inputs, result):
+    lines = ["Variant A converted " + _pct(result.get("rate_a")) + "% of "
+             + _fmt_exact(inputs.get("visitors_a")) + " declared visitors and variant B converted "
+             + _pct(result.get("rate_b")) + "%; the absolute lift is " + _pct(result.get("absolute_lift"))
+             + " points, the relative lift " + _pct(result.get("relative_lift"))
+             + "%, and the two-proportion test gives z = "
+             + _money(result.get("z")) + " with p = " + _p_text(result.get("p_value")) + "."]
+    lines.append("The test compares the two declared proportions; it does not show that the change caused the "
+                 "difference or that the result would repeat.")
+    return lines
+
+
+def _social_lines(row, inputs, result):
+    lines = ["On " + _money(inputs.get("impressions")) + " declared impressions and "
+             + _money(inputs.get("reach")) + " people reached, the engagement rate is "
+             + _pct(result.get("engagement_rate")) + "%, at a frequency of " + _money(result.get("frequency"))
+             + " and a CPM of " + _money(result.get("cpm")) + "."]
+    lines.append("The cost per engagement is " + _money(result.get("cost_per_engagement"))
+                 + " and follower growth over the period is " + _pct(result.get("follower_growth"))
+                 + "%. The figures are arithmetic on the declared platform numbers; no platform is connected.")
+    return lines
+
+
+def _alpha_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("k_items")) + " declared item(s) and "
+             + _fmt_exact(result.get("n")) + " respondent(s), reliability (Cronbach's alpha) is "
+             + _money(result.get("alpha")) + "."]
+    lines.append("Alpha describes the internal consistency of the declared responses; the method does not "
+                 "establish that the items measure the intended construct.")
+    return lines
+
+
+def _weighted_lines(row, inputs, result):
+    lines = ["With the declared weights (total " + _money(result.get("sum_weights")) + "), the weighted mean is "
+             + _money(result.get("weighted_mean")) + " with a weighted standard deviation of "
+             + _money(result.get("weighted_sd")) + "; the effective sample size is "
+             + _money(result.get("n_eff")) + " and the design effect "
+             + _money(result.get("design_effect")) + "."]
+    lines.append("The means follow from the declared values and weights; the method does not infer a population "
+                 "from them.")
+    return lines
+
+
+def _power_lines(row, inputs, result):
+    lines = ["At a declared effect of " + _money(inputs.get("effect")) + ", " + _fmt_exact(inputs.get("n1"))
+             + " observation(s) per group and a declared alpha of " + _pct(result.get("alpha"))
+             + "%, the statistical power is " + _pct(result.get("power"))
+             + "% and the minimum detectable effect is " + _money(result.get("mde")) + "."]
+    lines.append("The figure depends entirely on the declared effect, spread and sample; it is a design "
+                 "calculation, not evidence about the case.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2005,6 +2169,18 @@ CAPABILITY_LINES.update({
     "anova": _anova_lines,
     "chi_square": _chi_square_lines,
     "ols": _ols_lines,
+    "queue_analysis": _queue_lines,
+    "capacity_analysis": _capacity_lines,
+    "oee_analysis": _oee_lines,
+    "process_control": _process_control_lines,
+    "demand_curve": _demand_curve_lines,
+    "rfm_scoring": _rfm_lines,
+    "sales_funnel": _funnel_lines,
+    "ab_test_two_proportion": _abtest_lines,
+    "social_engagement": _social_lines,
+    "reliability_alpha": _alpha_lines,
+    "weighted_summary": _weighted_lines,
+    "power_analysis": _power_lines,
 })
 
 
