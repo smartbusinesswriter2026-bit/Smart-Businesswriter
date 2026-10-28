@@ -146,5 +146,103 @@ class FullReportTest(unittest.TestCase):
         self.assertEqual(state.get("recompute_problems"), [])
 
 
+class PlanLengthControlTest(unittest.TestCase):
+    """The word-count box on the plan card sets the same length the draft reads."""
+
+    def _planned(self):
+        state = chat.start(BRIEF, "management", "pestel")
+        answers = {"decision": "Should the retailer open a device store in Tehran?",
+                   "geography": "Middle East", "period": "5", "style": "apa"}
+        while chat.current_question(state):
+            question = chat.current_question(state)
+            state = chat.answer(state, question["id"], answers.get(question["id"], ""))
+        return state
+
+    def test_the_plan_carries_the_length_it_will_write_to(self):
+        state = self._planned()
+        self.assertEqual(state["plan"]["target_words"], chat.SHORT_WORDS)
+        self.assertFalse(state["plan"]["full_report"])
+        self.assertEqual(state["plan"]["min_words"], chat.MIN_WORDS)
+
+    def test_setting_a_length_updates_the_plan_and_the_draft(self):
+        state = chat.set_length(self._planned(), "2500")
+        self.assertEqual(state["answers"]["length"], "2500")
+        self.assertEqual(state["plan"]["target_words"], 2500)
+        self.assertTrue(state["plan"]["full_report"])
+        state = chat.confirm_plan(state)
+        state = chat.run_capability(state, "breakeven",
+                                    {"fixed": "2000000", "price": "40000", "variable": "28000"})
+        state = _seed(state)
+        state = chat.draft(state, implications="The declared volume is below break-even.")
+        self.assertIn("Scope and Method", [item["heading"] for item in state["draft"]["outline"]])
+        # This fixture's evidence is thin, so the draft reports the shortfall rather
+        # than padding to the number, and the shortfall does not block the export.
+        self.assertFalse(state["draft"]["met_target"])
+        self.assertLess(state["draft"]["words"], 2500)
+        self.assertEqual(state["draft"]["missing"], [])
+
+    def test_a_length_below_the_floor_is_refused_at_the_plan(self):
+        state = self._planned()
+        with self.assertRaises(chat.ChatError) as raised:
+            chat.set_length(state, "900")
+        self.assertIn(str(chat.MIN_WORDS), str(raised.exception))
+        self.assertEqual(state["answers"].get("length"), None)
+
+    def test_clearing_the_box_returns_to_the_short_version(self):
+        state = chat.set_length(self._planned(), "2500")
+        state = chat.set_length(state, "")
+        self.assertEqual(state["answers"]["length"], "")
+        self.assertEqual(state["plan"]["target_words"], chat.SHORT_WORDS)
+        self.assertFalse(state["plan"]["full_report"])
+
+    def test_the_length_is_only_set_while_the_plan_is_open(self):
+        with self.assertRaises(chat.ChatError):
+            chat.set_length(chat.start(BRIEF, "management", "pestel"), "2500")
+
+
+class LengthRouteTest(unittest.TestCase):
+    def setUp(self):
+        import os
+        import tempfile
+        from bp.product import api
+        self.api = api
+        self.root = tempfile.mkdtemp(prefix="bp-length-")
+        self.previous = os.environ.get("BP_CASES_DIR")
+        os.environ["BP_CASES_DIR"] = self.root
+
+    def tearDown(self):
+        import os
+        import shutil
+        if self.previous is None:
+            os.environ.pop("BP_CASES_DIR", None)
+        else:
+            os.environ["BP_CASES_DIR"] = self.previous
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def _case(self):
+        status, state = self.api.handle("POST", "/api/cases/chat", {"brief": BRIEF, "framework": "pestel"})
+        self.assertEqual(status, 201)
+        answers = {"decision": "Should the retailer open a device store in Tehran?",
+                   "geography": "Middle East", "period": "5", "style": "apa"}
+        while chat.current_question(state):
+            question = chat.current_question(state)
+            status, state = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/answer",
+                                            {"question_id": question["id"],
+                                             "value": answers.get(question["id"], "")})
+            self.assertEqual(status, 200)
+        return state
+
+    def test_the_route_sets_a_length_and_refuses_below_the_floor(self):
+        state = self._case()
+        status, state = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/length",
+                                        {"words": "2500"})
+        self.assertEqual(status, 200)
+        self.assertEqual(state["plan"]["target_words"], 2500)
+        status, payload = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/length",
+                                          {"words": "900"})
+        self.assertEqual(status, 422)
+        self.assertIn(str(chat.MIN_WORDS), payload["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

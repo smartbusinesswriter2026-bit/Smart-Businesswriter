@@ -650,11 +650,14 @@ Adding a chain is a catalogue change, not a product change: register the pair in
 
 ### 7.10 Report length (`write about 2500 words`)
 
-A report is planned in words, and the length is asked for **in the brief**, so the
-Home page stays one composer and nothing else:
+A report is planned in words. The length is asked for in two places that share
+one validation: a count in the brief (`2500 words`, `2,500 words`), or the
+**Report length** box on the plan card, which posts to
+`/api/cases/chat/{id}/length` and re-renders the plan. The box shows the floor and
+the length currently planned; clearing it returns to the short version.
 
-- `parse_word_target` reads a count from the brief (`2500 words`, `2,500 words`);
-  a brief without one is the short version (about 900 words).
+- `parse_word_target` reads a count from the brief; a brief without one is the
+  short version (about 900 words) until the box says otherwise.
 - `check_word_target` enforces the floor: below **1,500 words** the request is
   refused, because the framework, the evidence and the computation cannot be
   written properly in less, and the system does not pad. Above 10,000 words it is

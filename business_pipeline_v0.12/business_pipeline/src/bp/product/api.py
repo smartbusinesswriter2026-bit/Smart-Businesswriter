@@ -313,6 +313,8 @@ def handle(method, path, body=None):
                 state = chat_conductor.answer(state, data.get("question_id"), data.get("value"))
             elif action == "plan":
                 state = chat_conductor.confirm_plan(state)
+            elif action == "length":
+                state = chat_conductor.set_length(state, data.get("words"))
             elif action == "computation":
                 state = chat_conductor.attach_computation(state, data.get("key") or "breakeven", data)
             elif action == "capabilities":

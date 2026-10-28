@@ -1511,6 +1511,7 @@ function renderChat() {
       (plan.internal ? '<p class="muted">Strengths and weaknesses are supplied by you; the source finder retrieves only the external evidence.</p>' : "") +
       (plan.framework_id === "pestel_swot" ? '<p class="muted">The six PESTEL dimensions are researched; opportunities and threats are mapped from the accepted evidence by keyword.</p>' : "") +
       '<p class="muted">' + esc(plan.output) + "</p>" +
+      reportLengthRow(plan) +
       capabilityPanel(c, plan);
     if (c.stage === "plan") {
       html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatconfirm">Confirm plan</button></div>';
@@ -1526,6 +1527,12 @@ function renderChat() {
     if (confirm) confirm.onclick = confirmChatPlan;
     const search = $("#chatresearch");
     if (search) search.onclick = researchChat;
+    const words = $("#chatwordset");
+    if (words) words.onclick = setReportLength;
+    const wordBox = $("#chatwords");
+    if (wordBox) wordBox.onkeydown = (event) => {
+      if (event.key === "Enter") { event.preventDefault(); setReportLength(); }
+    };
     return;
   }
   if (c.stage === "evidence") {
@@ -1640,6 +1647,40 @@ async function startChat() {
 }
 
 /* ---- capabilities: what the paper carries, and the figures for it ---- */
+/* ---- report length: a word count with a floor, or blank for the short report ---- */
+function reportLengthRow(plan) {
+  const min = plan.min_words || 1500;
+  const full = !!plan.full_report;
+  const current = full ? esc(String(plan.target_words)) + " words" : "Short report (about 900 words)";
+  return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+    '<h4 class="levelhead" style="margin-top:0">Report length</h4>' +
+    '<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap">' +
+    '<label class="field" for="chatwords" style="margin:0;max-width:240px">Words for the full report ' +
+    '<span class="muted">(minimum ' + esc(String(min)) + ')</span>' +
+    '<input id="chatwords" type="number" min="' + esc(String(min)) + '" max="10000" step="100" ' +
+    'placeholder="' + esc(String(min)) + '" value="' + (full ? esc(String(plan.target_words)) : "") + '"></label>' +
+    '<button class="btn" type="button" id="chatwordset">Set length</button>' +
+    '<span class="muted">Now: ' + current + "</span></div>" +
+    '<p class="muted" style="margin:6px 0 0">Leave the box empty and set it to ask for the short version ' +
+    "(about 900 words). A full report needs at least " + esc(String(min)) + " words: below that the framework, " +
+    "the evidence and the computation cannot be written properly, and the system will not pad.</p></div>";
+}
+
+async function setReportLength() {
+  const box = $("#chatwords");
+  const value = box ? box.value.trim() : "";
+  const out = $("#chatout");
+  if (out) out.innerHTML = loading("Setting the report length");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/length", { words: value });
+    renderChat();
+  } catch (error) {
+    renderChat();
+    const again = $("#chatout");
+    if (again) again.insertAdjacentHTML("afterbegin", errorBanner(error));
+  }
+}
+
 function capabilityPanel(c, plan) {
   plan = plan || {};
   const caps = plan.capabilities || [];

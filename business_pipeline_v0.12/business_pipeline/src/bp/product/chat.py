@@ -256,8 +256,8 @@ def check_word_target(value):
     words = int(match.group(0))
     if words < MIN_WORDS:
         raise ChatError("A full report needs at least %d words: below that the framework, the evidence and "
-                        "the computation cannot be written properly. Ask for the short version by leaving the "
-                        "word count out of the brief." % MIN_WORDS)
+                        "the computation cannot be written properly. Clear the box for the short version."
+                        % MIN_WORDS)
     if words > MAX_WORDS:
         raise ChatError("A report longer than %d words is more than one case can support; ask for %d or fewer."
                         % (MAX_WORDS, MAX_WORDS))
@@ -900,6 +900,10 @@ def _plan(state):
                             if item.get("refused") or item.get("unused")],
         "selection_hash": selection.get("hash"),
         "catalogue_version": selection.get("catalogue_version"),
+        # The report length is part of the plan, so the card and the draft agree.
+        "target_words": target_words(state) or SHORT_WORDS,
+        "full_report": target_words(state) >= MIN_WORDS,
+        "min_words": MIN_WORDS,
         "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"]
         if config.get("evidence", True) else ["Confirm this plan", "Review your inputs", "Review the drafted section"],
     }
@@ -925,6 +929,24 @@ def _source_note(category):
         "social": "official social data and survey research",
         None: "academic and official sources",
     }[category]
+
+
+def set_length(state, value):
+    """Set the report length while the plan is open; 0 means the short version.
+
+    The floor is enforced here as well as in the brief, so the plan card, the
+    brief and the draft can never disagree about the length.
+    """
+    if state.get("stage") not in ("plan", "research_ready"):
+        raise ChatError("Set the report length while the plan is open.")
+    words = check_word_target(value)
+    state["answers"]["length"] = str(words) if words else ""
+    if state.get("plan"):
+        state["plan"] = _plan(state)
+    if state.get("draft"):
+        state["draft"] = None
+    state["updated_at"] = _now()
+    return state
 
 
 def confirm_plan(state):
