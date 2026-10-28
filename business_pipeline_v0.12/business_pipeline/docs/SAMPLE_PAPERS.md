@@ -27,24 +27,23 @@ The script runs `chat.start`, answers the question bank, confirms the plan, draf
 `chat.docx_bytes`, which enforces the export gate and renders `bp.product.docx.render_academic`. If the
 conductor or the formatter changes, rebuilding the samples shows the change — they cannot silently drift.
 
-## The Home-page worked example: short paper and full report
+## The Home-page worked example: short, mid and long
 
-The Home page lists four Word files under **Documents**, all built from the same recorded case:
+The Home page lists three papers built from the same recorded case, one per length
+option, each with its explainer:
 
-| File | Shows |
-|---|---|
-| `pestel-and-break-even-tehran-device-store.docx` | the short paper: one framework, one computation (784 words) |
-| `pestel-and-break-even-tehran-device-store-explainer.docx` | how that paper was solved |
-| `pestel-and-break-even-tehran-device-store-full.docx` | the full report, planned at 2,500 words (2,542) |
-| `pestel-and-break-even-tehran-device-store-full-explainer.docx` | how the full report was solved |
+| File | Length | Words |
+|---|---|---|
+| `...-short.docx` | Short (600-1,200) | 784 |
+| `...-mid.docx` | Mid (1,200-2,500) | 1,672 |
+| `...-long.docx` | Long (2,500-5,000) | 2,542 |
 
-- both papers carry the six PESTEL dimensions with a frozen source in each, one recorded break-even
+- every version carries the six PESTEL dimensions with a frozen source in each, one recorded break-even
   (fixed 2,000,000; price 40,000; variable 28,000) and a declared-inputs line the gate checks;
-- the full report adds scope and method, a reading per dimension, an evidence base, the discussion of
-  what the evidence shows together, the method's assumptions, what would change the answer, a
+- mid adds Scope and Method, the Evidence Base and the discussion of what the evidence shows together;
+- long adds the reading of each dimension, the method's assumptions, what would change the answer, a
   recommendation and the appendix that shows how the figures were checked;
-- the explainers are `explain.paper_document` over each recorded case: the question, why the method,
-  the declared formula, the figures, the result, the limits and the likely questions.
+- each explainer is `explain.paper_document` over its recorded case.
 
 They are Word files rather than a ZIP so a student double-clicks the sample and Word opens it; the export
 route still ships a paper and its explainer as a ZIP for a real submission.

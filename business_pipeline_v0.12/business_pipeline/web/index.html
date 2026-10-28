@@ -81,6 +81,11 @@ select,input[type=text],input[type=search],textarea{border:1px solid var(--borde
 select:focus,input:focus,textarea:focus{border-color:var(--navy-300);outline:2px solid var(--navy-900);outline-offset:1px}
 textarea{resize:vertical;width:100%;font-family:inherit}
 label.field{display:block;font-size:14.4px;color:var(--text-2);margin:0 0 4px}
+.fieldgroup{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fieldgroup > label.field{margin:0}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.grid2.pf-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:720px){.grid2.pf-form{grid-template-columns:1fr}}
 /* Worksheet editor: solid labels and prompts, generous line height, white fields. */
 .wsheet{display:flex;flex-direction:column}
 .wsheet .wintro{font-size:15.4px;line-height:1.55;color:var(--text-2);margin:0 0 16px;max-width:80ch}
@@ -515,7 +520,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes, clear checks, provider fallbacks, local keys">v1.42</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes, clear checks, provider fallbacks, local keys">v1.43</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -611,6 +616,16 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
       <div class="actionbox">
         <label class="visually-hidden" for="objective">What would you like to work on?</label>
         <textarea id="objective" placeholder="What would you like to work on..."></textarea>
+        <div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <label class="field" for="homelength" style="margin:0;max-width:320px">Report length
+            <select id="homelength">
+              <option value="">Short (600-1,200 words)</option>
+              <option value="mid">Mid (1,200-2,500 words)</option>
+              <option value="long">Long (2,500-5,000 words)</option>
+            </select>
+          </label>
+          <span class="muted" style="padding-bottom:6px">Short is enough for many cases; mid adds the evidence base and discussion, long adds the full analysis.</span>
+        </div>
         <div class="actionrow">
           <button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>
           <input type="file" id="attachfile" multiple hidden>
@@ -1169,12 +1184,13 @@ function renderPortfolioLanding(rows) {
       '<button class="decision" type="button" id="pfnewfund"><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span></button>' +
     "</div></div>";
   html += '<div class="card"><h3>Create a portfolio</h3>' +
-    '<div class="grid2"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks">' +
-    '<label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3">' +
-    '<label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500">' +
-    '<label class="field" for="pfmode">Mode</label><select id="pfmode"><option value="paper">Paper portfolio (one valuation)</option><option value="fund">Mock fund (weekly journal)</option></select>' +
-    '<label class="field" for="pfobjective">Objective (optional)</label><input type="text" id="pfobjective" placeholder="e.g. Learn long-only equity selection this term">' +
-    '<label class="field" for="pfroster">Team (optional)</label><input type="text" id="pfroster" placeholder="e.g. A. Cruz, B. Santos">' +
+    '<div class="grid2 pf-form">' +
+    '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfmode">Mode</label><select id="pfmode"><option value="paper">Paper portfolio (one valuation)</option><option value="fund">Mock fund (weekly journal)</option></select></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfobjective">Objective (optional)</label><input type="text" id="pfobjective" placeholder="e.g. Learn long-only equity selection this term"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfroster">Team (optional)</label><input type="text" id="pfroster" placeholder="e.g. A. Cruz, B. Santos"></div>' +
     "</div><div class=\"row\" style=\"margin-top:12px\"><button class=\"btn primary\" id=\"pfcreate\" type=\"button\">Create portfolio</button>" +
     '<span class="muted">A paper portfolio starts with one valuation date; a fund adds a weekly journal and a return.</span></div><div id="pfmsg"></div></div>';
   html += '<div class="card"><h3>Your portfolios</h3>';
@@ -1307,9 +1323,10 @@ function pfHoldings(holdings) {
   } else {
     html += '<p class="muted">No holdings yet. Add one to begin.</p>';
   }
-  html += '<div class="grid3" style="margin-top:12px"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL">' +
-    '<label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10">' +
-    '<label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0">' +
+  html += '<div class="grid3" style="margin-top:12px">' +
+    '<div class="fieldgroup"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0"></div>' +
     '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div></div>' +
     '<div class="card" style="margin-top:14px"><h3>Paste or import holdings</h3>' +
     '<p class="muted">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine.</p>' +
@@ -1324,8 +1341,9 @@ function pfData(holdings, latest, snapshot) {
   const today = new Date().toISOString().slice(0, 10);
   let html = '<div class="card" style="margin-top:14px"><h3>Prices and snapshot</h3>' +
     '<p class="muted">Enter one price per holding for the snapshot date. Every price is stored with its date and source; a missing price blocks the snapshot.</p>' +
-    '<div class="grid2"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(today) + '">' +
-    '<label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div>' +
+    '<div class="grid2">' +
+    '<div class="fieldgroup"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(today) + '"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pffetch">Fetch prices (Alpha Vantage)</button>' +
     '<span class="muted" id="pffetchhint"></span></div>' +
     '<div class="tablewrap" style="margin-top:12px"><table><caption>Declared prices</caption><thead><tr><th>Symbol</th><th>Price</th></tr></thead><tbody>';
@@ -1396,9 +1414,9 @@ function pfJournal(bundle, snapshot) {
   }
   const today = snapshot ? snapshot.date : new Date().toISOString().slice(0, 10);
   html += '<div class="grid3" style="margin-top:12px">' +
-    '<label class="field" for="pfjdate">Period ends</label><input type="date" id="pfjdate" value="' + esc(today) + '">' +
-    '<label class="field" for="pfjflow">Flow</label><input type="text" id="pfjflow" placeholder="0">' +
-    '<label class="field" for="pfjbench">Benchmark level</label><input type="text" id="pfjbench" placeholder="optional">' +
+    '<div class="fieldgroup"><label class="field" for="pfjdate">Period ends</label><input type="date" id="pfjdate" value="' + esc(today) + '"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfjflow">Flow</label><input type="text" id="pfjflow" placeholder="0"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfjbench">Benchmark level</label><input type="text" id="pfjbench" placeholder="optional"></div>' +
     '</div><label class="field" for="pfjnote" style="margin-top:8px">Your note</label>' +
     '<textarea id="pfjnote" rows="3" style="width:100%" placeholder="What changed, why, and what you will check next"></textarea>' +
     '<div class="row" style="margin-top:8px"><button class="btn primary" type="button" id="pfsavejournal">Save the entry</button></div></div>';
@@ -1562,6 +1580,15 @@ RENDERERS.home = function () {
     '<div class="actionbox">' +
       '<label class="visually-hidden" for="objective">What would you like to work on?</label>' +
       '<textarea id="objective" placeholder="What would you like to work on..."></textarea>' +
+      '<div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">' +
+        '<label class="field" for="homelength" style="margin:0;max-width:320px">Report length' +
+          '<select id="homelength">' +
+            '<option value="">Short (600-1,200 words)</option>' +
+            '<option value="mid">Mid (1,200-2,500 words)</option>' +
+            '<option value="long">Long (2,500-5,000 words)</option>' +
+          "</select></label>" +
+        '<span class="muted" style="padding-bottom:6px">Short is enough for many cases; mid adds the evidence base and discussion, long adds the full analysis.</span>' +
+      "</div>" +
       '<div class="actionrow">' +
         '<button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>' +
         '<input type="file" id="attachfile" multiple hidden>' +
@@ -1612,7 +1639,7 @@ async function loadHomeDocuments() {
     box.innerHTML = '<h3 style="margin-top:0">Documents</h3>' +
       '<p class="muted">Your generated papers and the sample papers. Download opens the Word file.</p>' +
       '<div class="stack" style="gap:10px">' + rows.map((row) => {
-        const meta = [row.framework, row.version, row.words ? row.words + " words" : "",
+        const meta = [row.framework, row.version, row.length || "", row.words ? row.words + " words" : "",
                       Math.max(1, Math.round((row.size || 0) / 1024)) + " KB",
                       row.sample ? "sample" : "", fmtDate(row.created)].filter(Boolean).map(esc).join(" \u00b7 ");
         return '<div class="row" style="align-items:center;gap:12px;flex-wrap:wrap">' +
@@ -1830,6 +1857,9 @@ async function startChat() {
   const out = $("#chatout");
   if (out) out.innerHTML = loading("Starting the analysis");
   const body = { brief: brief, subject: "management" };
+  const lengthBox = $("#homelength");
+  const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
+  if (lengthChoice) body.words = lengthChoice;
   if (picked) body.framework = picked;
   try {
     state.chat = await post("/api/cases/chat", body);
@@ -1843,23 +1873,31 @@ async function startChat() {
 }
 
 /* ---- capabilities: what the paper carries, and the figures for it ---- */
-/* ---- report length: a word count with a floor, or blank for the short report ---- */
+/* ---- report length: three options with ranges, one vocabulary ---- */
 function reportLengthRow(plan) {
-  const min = plan.min_words || 1500;
-  const full = !!plan.full_report;
-  const current = full ? esc(String(plan.target_words)) + " words" : "Short report (about 900 words)";
+  const options = plan.length_options || [];
+  const band = plan.length_band || "short";
+  const current = options.find((option) => option.key === band) || {};
+  const choices = options.length ? options : [
+    { key: "short", label: "Short", low: 600, high: 1200 },
+    { key: "mid", label: "Mid", low: 1200, high: 2500 },
+    { key: "long", label: "Long", low: 2500, high: 5000 },
+  ];
   return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
     '<h4 class="levelhead" style="margin-top:0">Report length</h4>' +
     '<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap">' +
-    '<label class="field" for="chatwords" style="margin:0;max-width:240px">Words for the full report ' +
-    '<span class="muted">(minimum ' + esc(String(min)) + ')</span>' +
-    '<input id="chatwords" type="number" min="' + esc(String(min)) + '" max="10000" step="100" ' +
-    'placeholder="' + esc(String(min)) + '" value="' + (full ? esc(String(plan.target_words)) : "") + '"></label>' +
+    '<label class="field" for="chatwords" style="margin:0;max-width:320px">Length' +
+    '<select id="chatwords">' + choices.map((option) =>
+      '<option value="' + esc(option.key) + '"' + (option.key === band ? " selected" : "") + ">" +
+      esc(option.label) + " (" + esc(String(option.low)) + "-" + esc(String(option.high)) + " words)</option>").join("") +
+    "</select></label>" +
     '<button class="btn" type="button" id="chatwordset">Set length</button>' +
-    '<span class="muted">Now: ' + current + "</span></div>" +
-    '<p class="muted" style="margin:6px 0 0">Leave the box empty and set it to ask for the short version ' +
-    "(about 900 words). A full report needs at least " + esc(String(min)) + " words: below that the framework, " +
-    "the evidence and the computation cannot be written properly, and the system will not pad.</p></div>";
+    '<span class="muted">Now: ' + esc(current.label || band) + ", writing to about " +
+    esc(String(plan.target_words)) + " words</span></div>" +
+    '<p class="muted" style="margin:6px 0 0">Short is enough for many cases: a framework, its evidence and one ' +
+    "computation. Mid adds the evidence base and the integrated discussion. Long adds the reading of each " +
+    "dimension, the method's assumptions, a recommendation and the appendix. The system writes to the length " +
+    "you choose and never pads to reach it.</p></div>";
 }
 
 async function setReportLength() {
@@ -4776,6 +4814,9 @@ function fiveForcesForm(t) {
     '<div id="ffbottom" class="row" style="display:none;margin-top:12px;align-items:center">' +
       '<select id="ffversion"><option value="draft">Draft (evidence-led)</option>' +
       '<option value="full" selected>Full paper (model-assisted)</option></select>' +
+      '<select id="fflength"><option value="short">Short (900-1,200 words)</option>' +
+      '<option value="mid" selected>Mid (1,400-1,800 words)</option>' +
+      '<option value="long">Long (2,000-2,400 words)</option></select>' +
       '<button class="btn primary" id="ffbottomgenerate">Generate paper (Word)</button>' +
       '<span class="muted">All five forces have content. Generate the paper from these entries.</span></div>';
 }
@@ -5004,20 +5045,27 @@ async function downloadFiveForcesDraft() {
   const picker = document.getElementById("ffresultversion") || document.getElementById("ffversion");
   const version = picker ? picker.value : (state.ffVersion || "full");
   state.ffVersion = version;
+  const lengthPicker = document.getElementById("ffresultlength") || document.getElementById("fflength");
+  const length = lengthPicker ? lengthPicker.value : (state.ffLength || "mid");
+  state.ffLength = length;
+  const lengthLabel = { short: "Short (900-1,200 words)", mid: "Mid (1,400-1,800 words)",
+                        long: "Long (2,000-2,400 words)" }[length] || "Mid";
   const review = document.getElementById("ffreview");
   const trigger = document.getElementById("ffbottomgenerate") || document.getElementById("ffresultdraft");
   if (trigger) { trigger.disabled = true; trigger.dataset.old = trigger.textContent; trigger.textContent = "Writing..."; }
   if (review) Array.from(review.querySelectorAll("p.ffnote")).forEach((old) => old.remove());
   const note = document.createElement("p");
   note.className = "muted ffnote";
-  note.textContent = version === "full" ? "Writing the full paper. This runs the model and can take up to a minute." : "Generating the draft...";
+  note.textContent = version === "full"
+    ? "Writing the full paper (" + lengthLabel + "). This runs the model and can take up to a minute."
+    : "Generating the draft from your items...";
   if (version === "full") toast("Writing the full paper. This runs the model, so it takes up to a minute.");
   if (review) review.appendChild(note);
   try {
     const byline = ["ffname", "ffinstitution", "ffcourse", "ffinstructor"]
       .map((id) => ((document.getElementById(id) || {}).value || "").trim()).filter(Boolean);
     const result = await post("/api/cases/frameworks/report",
-      { completion: Object.assign({}, selected, { byline: byline }), style: "apa", version });
+      { completion: Object.assign({}, selected, { byline: byline }), style: "apa", version, length });
     if (version === "full" && !result.report.model_used) {
       note.textContent = "The model did not return a valid full paper, so nothing was downloaded. Choose Draft (evidence-led) to use the deterministic version.";
       toast("Full paper failed validation; no file was downloaded.");
@@ -5030,7 +5078,8 @@ async function downloadFiveForcesDraft() {
     link.href = url; link.download = result.docx.filename;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    note.textContent = "Generated " + result.docx.filename + " (" + result.report.words + " words). It is saved under Documents on Home.";
+    note.textContent = "Generated " + result.docx.filename + " (" + result.report.words + " words, " +
+      (result.report.length_label || "Mid") + "). It is saved under Documents on Home.";
     toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") + result.docx.filename);
   } catch (error) {
     note.textContent = "";
@@ -6037,7 +6086,7 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts">Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
-      (state.worksheet && state.worksheet.form_kind === "five_forces" ? '<select id="ffresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
+      (state.worksheet && state.worksheet.form_kind === "five_forces" ? '<select id="ffresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><select id="ffresultlength"><option value="short">Short</option><option value="mid" selected>Mid</option><option value="long">Long</option></select><button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
   const highlights = resultHighlights(ap);
