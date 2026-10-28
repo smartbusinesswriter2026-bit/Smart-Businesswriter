@@ -42,6 +42,7 @@ and the mistakes that most often cost marks. The glossary at the foot of the pag
 | Explain the material, labour and overhead variances | `standard_cost_variances` | actual output, standards, actual quantities, hours and prices |
 | What does each product really cost? | `abc_costing` | activity pools, driver quantities and product units |
 | Why did revenue move against the budget? | `sales_variances` | budget and actual units and prices for two or more products |
+| What is the tax charge on the declared income? | `tax_declared` | taxable income, the income tax rate, and optionally VAT and a deferred tax difference |
 | Break-even for one product or a mix | `breakeven`, `multi_product_breakeven` | fixed cost, prices and variable costs |
 | Cash conversion cycle and order quantity | `working_capital` | revenue, cost of sales, inventory, receivables, payables |
 | Monthly payment and total interest on a loan | `loan_amortization` | principal, rate, term |
@@ -109,6 +110,19 @@ Budget: 100 X at 10 and 100 Y at 20. Actual: 120 X at 11 and 80 Y at 18.
 **Common mistake:** calling the whole revenue fall a price effect. Most of it here is the mix moving
 towards the cheaper product.
 
+### 6. Tax on declared rates — `tax_declared`
+
+Taxable income 1,000,000 at 25%; output VAT 144,000 and input VAT 84,000; temporary difference 100,000
+at 25%.
+
+- Income tax = **250,000**; after-tax income **750,000**
+- VAT payable = 144,000 - 84,000 = **60,000**
+- Deferred tax = 100,000 x 0.25 = **25,000**
+- Total tax charge = **275,000**
+
+**Common mistake:** treating this as a tax return. The method applies the rates you declare; it knows
+nothing about credits, thresholds, NOLCO or filing rules.
+
 ## Practice set
 
 1. Output 1,000 units. Standard 2 kg at 10 a kg and 1 hour at 20 an hour. Actual 2,100 kg at 11, 950
@@ -130,9 +144,12 @@ towards the cheaper product.
 
 ## What is not built
 
-- **No tax, deferred tax, VAT or filing.** Tax balances can be held as declared entries; nothing is
-  computed or filed.
-- **No audit, consolidation, translation of foreign statements or segment reporting.**
+- **No jurisdiction tax rules.** `tax_declared` applies the rates and taxable income you declare; it does
+  not implement credits, exemptions, thresholds, NOLCO, withholding or filing. A taxation course needs
+  the statute and your instructor's format.
+- **No audit opinion or audit sampling, and no group consolidation.** Those need judgment or a declared
+  group-accounting policy (goodwill and non-controlling interest), so they are named gaps rather than
+  approximated.
 - **No target or life-cycle costing, and no budget, planning or idle-capacity variances.** Activity-based
   costing and sales price/mix/yield variances are built; target costing and budget variances are not.
 - **No standards setting.** The standard quantities and prices are yours; the method cannot say whether

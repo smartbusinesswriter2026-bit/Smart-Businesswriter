@@ -1040,6 +1040,25 @@
         "working_capital"
       ]
     },
+    "line_balancing": {
+      "tier": "T1",
+      "metric": "stations",
+      "unit": "count",
+      "test_names": [
+        "second_implementation_agrees",
+        "every_task_is_assigned_once",
+        "no_station_exceeds_the_cycle_time",
+        "precedence_is_respected",
+        "stations_are_at_least_the_lower_bound"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and scheduling",
+      "inputs": [
+        "cycle_time",
+        "rule",
+        "tasks"
+      ]
+    },
     "loan_amortization": {
       "tier": "T1",
       "metric": "payment",
@@ -1180,6 +1199,24 @@
         "obtainable_share",
         "serviceable_share",
         "target_population"
+      ]
+    },
+    "media_plan": {
+      "tier": "T1",
+      "metric": "total_grp",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "grp_is_reach_share_times_frequency",
+        "impressions_are_reach_times_frequency",
+        "total_grp_is_the_sum_of_the_vehicle_grp",
+        "net_reach_lies_between_the_largest_vehicle_and_the_sum"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "marketing and customers",
+      "inputs": [
+        "population",
+        "vehicles"
       ]
     },
     "missing_data_bounds": {
@@ -1954,6 +1991,23 @@
         "years"
       ]
     },
+    "rfm_scoring": {
+      "tier": "T1",
+      "metric": "mean_rfm_score",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "every_customer_has_exactly_one_segment",
+        "scores_lie_between_one_and_five",
+        "recency_is_scored_in_reverse",
+        "combined_score_is_the_sum_of_the_three"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "marketing and customers",
+      "inputs": [
+        "customers"
+      ]
+    },
     "risk_metrics": {
       "tier": "T1",
       "metric": "historical_var",
@@ -2206,6 +2260,28 @@
         "supply_slope",
         "tariff_per_unit",
         "world_price"
+      ]
+    },
+    "tax_declared": {
+      "tier": "T1",
+      "metric": "total_tax_charge",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "income_tax_is_the_rate_on_positive_income",
+        "vat_payable_is_output_minus_input",
+        "deferred_tax_is_the_rate_on_the_temporary_difference",
+        "total_charge_is_income_tax_plus_deferred_tax"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "taxation",
+      "inputs": [
+        "deferred_tax_rate",
+        "income_tax_rate",
+        "taxable_income",
+        "temporary_difference",
+        "vat_input_tax",
+        "vat_output_tax"
       ]
     },
     "tax_incidence": {
@@ -2560,10 +2636,12 @@
     "iv",
     "labour",
     "leverage",
+    "linebalance",
     "loan",
     "logit",
     "marketpower",
     "marketsize",
+    "mediaplan",
     "missing",
     "moneymultiplier",
     "multibreakeven",
@@ -2598,6 +2676,7 @@
     "queue",
     "ratios",
     "rdd",
+    "rfm",
     "risk",
     "roi",
     "salesprojection",
@@ -2611,6 +2690,7 @@
     "startupcapital",
     "swot",
     "tariff",
+    "tax",
     "taxincidence",
     "taxprogressivity",
     "tbcheck",

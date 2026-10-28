@@ -10200,6 +10200,361 @@ def web_analytics_template(out, P, th):
     return t
 
 
+# ---------- Segmentation and media planning (B-119) ----------
+
+#: The eleven named segments of a five-by-five RFM grid, in the order the rules are
+#: tried.  First match wins, so every customer falls in exactly one segment.
+RFM_SEGMENTS = ("cannot_lose", "champions", "loyal", "potential_loyalist", "new",
+                "promising", "need_attention", "at_risk", "about_to_sleep",
+                "hibernating", "lost")
+
+RFM_LABELS = {"cannot_lose": "Cannot lose them", "champions": "Champions", "loyal": "Loyal customers",
+              "potential_loyalist": "Potential loyalists", "new": "New customers",
+              "promising": "Promising", "need_attention": "Need attention", "at_risk": "At risk",
+              "about_to_sleep": "About to sleep", "hibernating": "Hibernating", "lost": "Lost"}
+
+def _rfm_segment(r, f, m):
+    """The declared first-match rules of the five-by-five grid."""
+    if r <= 2 and f >= 4 and m >= 4: return "cannot_lose"
+    if r >= 4 and f >= 4 and m >= 4: return "champions"
+    if r >= 3 and f >= 4: return "loyal"
+    if r >= 4 and 2 <= f <= 3: return "potential_loyalist"
+    if r >= 4 and f == 1: return "new"
+    if r == 3 and f == 1: return "promising"
+    if r == 3 and 2 <= f <= 3: return "need_attention"
+    if r <= 2 and f >= 3: return "at_risk"
+    if r == 2 and f <= 2: return "about_to_sleep"
+    if r == 1 and f <= 2 and m <= 2: return "hibernating"
+    return "lost"
+
+def _rfm_positions(values, higher_is_better):
+    """Competition rank per customer: one plus the number of strictly better values."""
+    n = len(values)
+    key = (lambda v: v) if higher_is_better else (lambda v: -v)
+    order = sorted(range(n), key=lambda i: key(values[i]), reverse=True)
+    pos = [0] * n
+    last_key, last_pos = None, 0
+    for place, i in enumerate(order, 1):
+        k = key(values[i])
+        if last_key is not None and k == last_key:
+            pos[i] = last_pos
+        else:
+            pos[i] = place; last_key = k; last_pos = place
+    return pos
+
+def _rfm_bands(values, higher_is_better, k=5):
+    """The 1..k band for each customer, best band k; ties share the better band."""
+    n = len(values)
+    return [k - ((p - 1) * k) // n for p in _rfm_positions(values, higher_is_better)]
+
+def _rfm_bands_integer(values, higher_is_better, k=5):
+    """Independent route: band boundaries built by integer ceilings, then looked up by rank."""
+    n = len(values)
+    keys = values if higher_is_better else [-v for v in values]
+    pos = [1 + sum(1 for j in range(n) if keys[j] > keys[i]) for i in range(n)]
+    band = [0] * (n + 1)
+    for j in range(k):
+        lo = (j * n + k - 1) // k
+        hi = ((j + 1) * n + k - 1) // k
+        for p in range(lo + 1, min(hi, n) + 1):
+            band[p] = k - j
+    return [band[p] for p in pos]
+
+def rfm_scoring_impl(inp):
+    rows = inp["customers"]
+    if len(rows) < 5:
+        raise DataError("at least five customers are required to form quintile scores")
+    if len(rows) > 1000:
+        raise DataError("at most a thousand customers are supported")
+    names, recency, frequency, monetary = [], [], [], []
+    seen = set()
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip() if isinstance(row.get("name"), str) else ""
+        if not name or len(name) > 60:
+            raise DataError("customer %d needs a name of at most 60 characters" % i)
+        if name in seen:
+            raise DataError("customer name %r appears more than once; every row needs a unique name" % name)
+        seen.add(name)
+        try:
+            r = D(str(row["recency_days"])); f = D(str(row["frequency"])); m = D(str(row["monetary"]))
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError("customer %d needs numeric recency_days, frequency and monetary" % i)
+        if r < 0:
+            raise DataError("customer %d has a negative recency_days" % i)
+        if f < 1:
+            raise DataError("customer %d needs a frequency of at least one" % i)
+        if m < 0:
+            raise DataError("customer %d has a negative monetary value" % i)
+        names.append(name); recency.append(r); frequency.append(f); monetary.append(m)
+    r_score = _rfm_bands(recency, higher_is_better=False)
+    f_score = _rfm_bands(frequency, higher_is_better=True)
+    m_score = _rfm_bands(monetary, higher_is_better=True)
+    n = len(rows)
+    counts = {key: 0 for key in RFM_SEGMENTS}
+    detail = []
+    for i in range(n):
+        segment = _rfm_segment(r_score[i], f_score[i], m_score[i])
+        counts[segment] += 1
+        detail.append({"name": names[i], "recency_days": str(recency[i]), "frequency": str(frequency[i]),
+                       "monetary": str(monetary[i]), "r_score": r_score[i], "f_score": f_score[i],
+                       "m_score": m_score[i], "rfm_score": r_score[i] + f_score[i] + m_score[i],
+                       "segment": segment})
+    total_rfm = sum((D(row["rfm_score"]) for row in detail), D(0))
+    out = {"total_customers": D(n)}
+    for key in RFM_SEGMENTS:
+        out["count_" + key] = D(counts[key])
+    out["mean_r_score"] = sum((D(x) for x in r_score), D(0)) / n
+    out["mean_f_score"] = sum((D(x) for x in f_score), D(0)) / n
+    out["mean_m_score"] = sum((D(x) for x in m_score), D(0)) / n
+    out["mean_rfm_score"] = total_rfm / n
+    out["_appendix"] = {"customers": detail, "segment_order": list(RFM_SEGMENTS),
+                        "segment_labels": dict(RFM_LABELS),
+                        "scoring_rule": ("Competition ranks split into five equal-count bands; recency is "
+                                         "scored in reverse, so the most recent customer scores highest. Ties "
+                                         "share the better band, so band sizes can differ."),
+                        "segment_rules": ("Tried in the order cannot lose, champions, loyal, potential "
+                                          "loyalist, new, promising, need attention, at risk, about to sleep, "
+                                          "hibernating, lost; first match wins.")}
+    return out
+
+def _rfm_ref(inp):
+    recency = [D(str(r["recency_days"])) for r in inp["customers"]]
+    frequency = [D(str(r["frequency"])) for r in inp["customers"]]
+    monetary = [D(str(r["monetary"])) for r in inp["customers"]]
+    r_score = _rfm_bands_integer(recency, higher_is_better=False)
+    f_score = _rfm_bands_integer(frequency, higher_is_better=True)
+    m_score = _rfm_bands_integer(monetary, higher_is_better=True)
+    counts = {key: 0 for key in RFM_SEGMENTS}
+    for i in range(len(recency)):
+        counts[_rfm_segment(r_score[i], f_score[i], m_score[i])] += 1
+    return {"total_customers": len(recency), "counts": counts,
+            "mean_r_score": sum(r_score) / len(recency), "mean_f_score": sum(f_score) / len(recency),
+            "mean_m_score": sum(m_score) / len(recency),
+            "mean_rfm_score": (sum(r_score) + sum(f_score) + sum(m_score)) / len(recency)}
+
+def rfm_scoring_tests(inp, impl):
+    base = impl(inp)
+    ref = _rfm_ref(inp)
+    detail = base["_appendix"]["customers"]
+    scores = [(row["r_score"], row["f_score"], row["m_score"]) for row in detail]
+    counts = {key: base["count_" + key] for key in RFM_SEGMENTS}
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(base[k], ref[k]) for k in ("total_customers", "mean_r_score", "mean_f_score", "mean_m_score", "mean_rfm_score"))
+         and all(int(counts[k]) == ref["counts"][k] for k in RFM_SEGMENTS),
+         "integer route agrees with the Decimal route on the bands, the sizes and the means"),
+        ("every_customer_has_exactly_one_segment",
+         sum((base["count_" + key] for key in RFM_SEGMENTS), D(0)) == base["total_customers"] == D(len(detail)),
+         "the segment sizes add up to the customer count"),
+        ("scores_lie_between_one_and_five",
+         all(1 <= s <= 5 for triple in scores for s in triple),
+         "every recency, frequency and monetary score is a whole band from one to five"),
+        ("recency_is_scored_in_reverse",
+         (lambda ordered: all(ordered[k] >= ordered[k + 1] for k in range(len(ordered) - 1)))(
+             [scores[i][0] for i in sorted(range(len(detail)), key=lambda i: D(detail[i]["recency_days"]))]),
+         "no customer with a longer time since purchase scores above one with a shorter time"),
+        ("combined_score_is_the_sum_of_the_three",
+         _close(base["mean_rfm_score"], base["mean_r_score"] + base["mean_f_score"] + base["mean_m_score"]),
+         "the mean combined score is the sum of the three mean scores"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def rfm_scoring_profile(inp):
+    try:
+        rows = inp.get("customers")
+        if not isinstance(rows, list) or len(rows) < 5:
+            return ["at least five customers are required to form quintile scores"]
+        if len(rows) > 1000:
+            return ["at most a thousand customers are supported"]
+        seen = set()
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["customer %d needs a name" % i]
+            if row["name"] in seen:
+                return ["customer name %r appears more than once" % row["name"]]
+            seen.add(row["name"])
+            r = D(str(row.get("recency_days"))); f = D(str(row.get("frequency"))); m = D(str(row.get("monetary")))
+            if r < 0: return ["customer %d has a negative recency_days" % i]
+            if f < 1: return ["customer %d needs a frequency of at least one" % i]
+            if m < 0: return ["customer %d has a negative monetary value" % i]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["customer inputs are malformed: each customer needs a name, recency_days, frequency and monetary"]
+
+def _rfm_typing(metric):
+    if metric.startswith("count_") or metric == "total_customers":
+        return ("count", 0)
+    return ("ratio", 2)
+
+def rfm_scoring_caveats(out, th):
+    return ["The scores come from the ranks inside this file, not from an external benchmark: the same customer can score differently in another dataset.",
+            "Ties share the better band, so the five bands need not hold equal numbers of customers.",
+            "The segment names come from the declared first-match rules; a different rule set gives different names for the same scores.",
+            "Nothing here tests whether a segment is stable over time or differs by more than chance; it describes one snapshot."]
+
+def rfm_scoring_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Across " + tok("total_customers") + " customers the quintile scores put " + tok("count_champions") +
+         " in Champions, " + tok("count_loyal") + " in Loyal customers, " + tok("count_at_risk") + " At risk and " +
+         tok("count_lost") + " in Lost.")
+    t += (" The mean recency score is " + tok("mean_r_score") + ", the mean frequency score " +
+          tok("mean_f_score") + " and the mean monetary score " + tok("mean_m_score") +
+          "; the combined score averages " + tok("mean_rfm_score") + " out of fifteen.")
+    return t
+
+
+def media_plan_impl(inp):
+    population = D(str(inp["population"]))
+    rows = inp["vehicles"]
+    if population <= 0:
+        raise DataError("population must be positive")
+    if not isinstance(rows, list) or not rows:
+        raise DataError("at least one vehicle is required")
+    if len(rows) > 12:
+        raise DataError("at most twelve vehicles are supported")
+    parsed, seen = [], set()
+    total_impressions = D(0); total_cost = D(0); total_grp = D(0); no_reach = D(1)
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip() if isinstance(row.get("name"), str) else ""
+        if not name or len(name) > 60:
+            raise DataError("vehicle %d needs a name of at most 60 characters" % i)
+        if name in seen:
+            raise DataError("vehicle name %r appears more than once" % name)
+        seen.add(name)
+        try:
+            reach = D(str(row["reach"])); insertions = D(str(row["insertions"])); cost = D(str(row["cost"]))
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError("vehicle %d needs numeric reach, insertions and cost" % i)
+        if reach <= 0 or reach > population:
+            raise DataError("vehicle %d reach must be positive and cannot exceed the population" % i)
+        if insertions <= 0:
+            raise DataError("vehicle %d insertions must be positive" % i)
+        if cost < 0:
+            raise DataError("vehicle %d cost must be non-negative" % i)
+        parsed.append((name, reach, insertions, cost))
+    vehicles = D(len(parsed))
+    out = {}
+    for i, (name, reach, insertions, cost) in enumerate(parsed, 1):
+        share = reach / population
+        impressions = reach * insertions
+        grp = share * insertions * D(100)
+        out["reach_%d" % i] = reach
+        out["reach_pct_%d" % i] = share
+        out["impressions_%d" % i] = impressions
+        out["grp_%d" % i] = grp
+        out["cpm_%d" % i] = cost / impressions * D(1000)
+        out["cpp_%d" % i] = cost / grp
+        total_impressions += impressions; total_cost += cost; total_grp += grp
+        no_reach *= (D(1) - share)
+    net_reach = population * (D(1) - no_reach)
+    out.update({"vehicles": vehicles, "population": population, "total_impressions": total_impressions,
+                "total_grp": total_grp, "total_cost": total_cost,
+                "blended_cpm": total_cost / total_impressions * D(1000),
+                "net_reach": net_reach,
+                "average_frequency": total_impressions / net_reach})
+    return out
+
+def _media_ref(inp):
+    population = float(D(str(inp["population"])))
+    rows = inp["vehicles"]
+    no_reach = 1.0
+    impressions = cost = grp = 0.0
+    first = None
+    for i, row in enumerate(rows, 1):
+        reach = float(D(str(row["reach"]))); ins = float(D(str(row["insertions"]))); c = float(D(str(row["cost"])))
+        share = reach / population
+        imp = reach * ins
+        g = share * ins * 100.0
+        if first is None: first = (reach, share, imp, g, c / imp * 1000.0, c / g)
+        impressions += imp; cost += c; grp += g; no_reach *= (1.0 - share)
+    net = population * (1.0 - no_reach)
+    return {"vehicles": len(rows), "total_impressions": impressions, "total_grp": grp, "total_cost": cost,
+            "blended_cpm": cost / impressions * 1000.0, "net_reach": net,
+            "average_frequency": impressions / net, "first": first}
+
+def media_plan_tests(inp, impl):
+    base, ref = impl(inp), _media_ref(inp)
+    population = D(str(inp["population"]))
+    rows = inp["vehicles"]
+    reaches = [D(str(r["reach"])) for r in rows]
+    insertions = [D(str(r["insertions"])) for r in rows]
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(base[k], ref[k]) for k in ("vehicles", "total_impressions", "total_grp", "total_cost",
+                                               "blended_cpm", "net_reach", "average_frequency")),
+         "float route agrees with the Decimal route"),
+        ("grp_is_reach_share_times_frequency",
+         all(_close(base["grp_%d" % i], reaches[i - 1] / population * insertions[i - 1] * D(100))
+             for i in range(1, len(rows) + 1)),
+         "rating points are the reach share times the average frequency times one hundred"),
+        ("impressions_are_reach_times_frequency",
+         all(_close(base["impressions_%d" % i], reaches[i - 1] * insertions[i - 1])
+             for i in range(1, len(rows) + 1)),
+         "gross impressions are the reach times the average frequency"),
+        ("total_grp_is_the_sum_of_the_vehicle_grp",
+         _close(base["total_grp"], sum((base["grp_%d" % i] for i in range(1, len(rows) + 1)), D(0))),
+         "the plan's rating points are the sum of its vehicles'"),
+        ("net_reach_lies_between_the_largest_vehicle_and_the_sum",
+         max(reaches) <= base["net_reach"] <= sum(reaches, D(0)),
+         "under random duplication the combined reach cannot beat the sum or fall below the largest vehicle"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def media_plan_profile(inp):
+    try:
+        population = D(str(inp.get("population")))
+        rows = inp.get("vehicles")
+        if population <= 0:
+            return ["population must be positive"]
+        if not isinstance(rows, list) or not rows:
+            return ["at least one vehicle is required"]
+        if len(rows) > 12:
+            return ["at most twelve vehicles are supported"]
+        seen = set()
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["vehicle %d needs a name" % i]
+            if row["name"] in seen:
+                return ["vehicle name %r appears more than once" % row["name"]]
+            seen.add(row["name"])
+            reach = D(str(row.get("reach"))); ins = D(str(row.get("insertions"))); cost = D(str(row.get("cost")))
+            if reach <= 0 or reach > population:
+                return ["vehicle %d reach must be positive and cannot exceed the population" % i]
+            if ins <= 0:
+                return ["vehicle %d insertions must be positive" % i]
+            if cost < 0:
+                return ["vehicle %d cost must be non-negative" % i]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["media inputs are malformed: population and each vehicle's name, reach, insertions and cost are required"]
+
+def _media_typing(metric):
+    if metric.startswith("reach_pct_"):
+        return ("rate", 4)
+    if metric in ("vehicles", "population", "net_reach") or metric.startswith("reach_") or metric.startswith("impressions_"):
+        return ("count", 0)
+    if metric == "average_frequency":
+        return ("ratio", 2)
+    if metric == "total_grp" or metric.startswith("grp_"):
+        return ("ratio", 1)
+    return ("currency", 2)
+
+def media_plan_caveats(out, th):
+    return ["Reach, average frequency and cost are the figures you declare for each vehicle; the method does not read a media owner's or platform's data.",
+            "The combined net reach uses the random-duplication formula, which assumes the audiences of different vehicles overlap only by chance; real overlap is usually higher, so the estimate is an upper bound.",
+            "Rating points add up across vehicles but reach does not: a plan can double its points without doubling its audience.",
+            "No seasonality, wear-out, scheduling, negotiation or response curve is modelled, and the method does not say which plan to buy."]
+
+def media_plan_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The plan buys " + tok("total_grp") + " gross rating points for " + tok("total_cost") +
+         ", a blended cost of " + tok("blended_cpm") + " per thousand impressions, on the first vehicle at " +
+         tok("cpp_1") + " per rating point.")
+    t += (" Under random duplication the vehicles together reach " + tok("net_reach") + " people, an average frequency of " +
+          tok("average_frequency") + ".")
+    return t
+
+
 # ---------- Accounting and operations shelf (B-110) ----------
 
 def standard_cost_variances_impl(inp):
@@ -11353,6 +11708,250 @@ def sales_variances_template(out, P, th):
     return ("Revenue moved by " + tok("total_sales_variance") + " against budget: a price variance of " +
             tok("price_variance") + ", a mix variance of " + tok("mix_variance") + " and a yield variance of " +
             tok("yield_variance") + ".")
+
+
+def line_balancing_impl(inp):
+    tasks = inp["tasks"]
+    cycle = D(str(inp["cycle_time"]))
+    rule = str(inp.get("rule", "longest_time"))
+    if cycle <= 0:
+        raise DataError("cycle_time must be positive")
+    if rule not in ("longest_time", "ranked_positional"):
+        raise DataError("rule must be longest_time or ranked_positional")
+    if not tasks:
+        raise DataError("at least one task is required")
+    node, order = {}, []
+    for t in tasks:
+        name = str(t.get("id") or t.get("name") or "").strip()
+        if not name or name in node:
+            raise DataError("task ids must be unique and non-empty")
+        dur = D(str(t["time"]))
+        if dur <= 0:
+            raise DataError("task " + name + " time must be positive")
+        if dur > cycle:
+            raise DataError("task " + name + " takes longer than the cycle time, so it cannot be balanced")
+        preds = [p.strip() for p in str(t.get("predecessors") or "").split(",") if p.strip()]
+        node[name] = {"time": dur, "preds": preds}
+        order.append(name)
+    for name, n in node.items():
+        for p in n["preds"]:
+            if p not in node:
+                raise DataError("task " + name + " cites unknown predecessor " + p)
+    succ = {name: [] for name in node}
+    indeg = {name: len(n["preds"]) for name, n in node.items()}
+    for name, n in node.items():
+        for p in n["preds"]:
+            succ[p].append(name)
+    queue = [name for name in order if indeg[name] == 0]
+    topo = []
+    while queue:
+        name = queue.pop(0)
+        topo.append(name)
+        for s in succ[name]:
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                queue.append(s)
+    if len(topo) != len(node):
+        raise DataError("the precedence graph contains a cycle")
+    rpw = {}
+    for name in reversed(topo):
+        rpw[name] = node[name]["time"] + sum((rpw[s] for s in succ[name]), D(0))
+    remaining = set(order)
+    station_of, loads = {}, []
+    while remaining:
+        index = len(loads) + 1
+        load = D(0)
+        while True:
+            ready = [t for t in order if t in remaining and all(p in station_of for p in node[t]["preds"])]
+            fits = [t for t in ready if load + node[t]["time"] <= cycle]
+            if not fits:
+                break
+            pick = max(fits, key=lambda t: (rpw[t] if rule == "ranked_positional" else node[t]["time"], -order.index(t)))
+            station_of[pick] = index
+            load += node[pick]["time"]
+            remaining.discard(pick)
+        loads.append(load)
+    total = sum((node[t]["time"] for t in order), D(0))
+    lower = (total / cycle).to_integral_value(rounding="ROUND_CEILING")
+    out = {"total_time": total, "cycle_time": cycle, "task_count": D(len(order)),
+           "stations": D(len(loads)), "lower_bound_stations": lower,
+           "idle_time": D(len(loads)) * cycle - total,
+           "efficiency": total / (D(len(loads)) * cycle)}
+    for i, load in enumerate(loads, 1):
+        out["load_%d" % i] = load
+    for t in order:
+        out["station_" + t] = D(station_of[t])
+    return out
+
+def _balance_ref(inp):
+    cycle = float(D(str(inp["cycle_time"])))
+    total = sum(float(D(str(t["time"]))) for t in inp["tasks"])
+    import math as _m
+    return {"stations_lower": _m.ceil(total / cycle), "total_time": total}
+
+def line_balancing_tests(inp, impl):
+    base, ref = impl(inp), _balance_ref(inp)
+    tasks = inp["tasks"]
+    names = [str(t.get("id") or t.get("name") or "").strip() for t in tasks]
+    preds = {str(t.get("id") or t.get("name") or "").strip(): [p.strip() for p in str(t.get("predecessors") or "").split(",") if p.strip()] for t in tasks}
+    loads = [base["load_%d" % i] for i in range(1, int(base["stations"]) + 1)]
+    checks = [
+        ("second_implementation_agrees", base["lower_bound_stations"] == D(ref["stations_lower"]), "the lower bound is the ceiling of total time over the cycle time"),
+        ("every_task_is_assigned_once",
+         sorted(int(base["station_" + t]) for t in names) == sorted(int(base["station_" + t]) for t in names)
+         and all(1 <= int(base["station_" + t]) <= int(base["stations"]) for t in names), "each task sits in exactly one station"),
+        ("no_station_exceeds_the_cycle_time", all(load <= base["cycle_time"] for load in loads), "every station fits inside the cycle time"),
+        ("precedence_is_respected",
+         all(int(base["station_" + p]) <= int(base["station_" + t]) for t in names for p in preds[t]), "a task never precedes one of its predecessors"),
+        ("stations_are_at_least_the_lower_bound", base["stations"] >= base["lower_bound_stations"], "no packing can beat the theoretical minimum"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def line_balancing_profile(inp):
+    try:
+        cycle = D(str(inp["cycle_time"]))
+        if cycle <= 0:
+            return ["cycle_time must be positive"]
+        tasks = inp.get("tasks") or []
+        if not tasks:
+            return ["at least one task is required"]
+        if str(inp.get("rule", "longest_time")) not in ("longest_time", "ranked_positional"):
+            return ["rule must be longest_time or ranked_positional"]
+        names = []
+        for i, t in enumerate(tasks, 1):
+            name = str(t.get("id") or t.get("name") or "").strip()
+            if not name or name in names:
+                return ["task %d needs a unique id" % i]
+            names.append(name)
+            dur = D(str(t["time"]))
+            if dur <= 0:
+                return ["task " + name + " time must be positive"]
+            if dur > cycle:
+                return ["task " + name + " takes longer than the cycle time, so it cannot be balanced"]
+        for t in tasks:
+            for p in str(t.get("predecessors") or "").split(","):
+                p = p.strip()
+                if p and p not in names:
+                    return ["task " + str(t.get("id") or t.get("name")).strip() + " cites unknown predecessor " + p]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["line-balancing inputs are malformed: tasks need a time and a cycle_time is required"]
+
+def _balance_typing(metric):
+    if metric in ("stations", "lower_bound_stations", "task_count") or metric.startswith("station_"):
+        return ("count", 0)
+    if metric.startswith("load_") or metric in ("total_time", "cycle_time", "idle_time"):
+        return ("periods", 2)
+    return ("ratio", 4)
+
+def line_balancing_caveats(out, th):
+    return ["The assignment uses the declared heuristic (longest task time or ranked positional weight); it is a good packing, not a proven optimum.",
+            "Task times, precedence and the cycle time are yours; no learning curve, fatigue, parallel stations or mixed-model line is modelled.",
+            "The lower bound is total work over the cycle time rounded up; idle time and efficiency are measured against the stations the heuristic used."]
+
+def line_balancing_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared tasks total " + tok("total_time") + " against a cycle time of " + tok("cycle_time") +
+            ", so at least " + tok("lower_bound_stations") + " stations are needed; the heuristic uses " +
+            tok("stations") + ", with " + tok("idle_time") + " idle time and an efficiency of " + tok("efficiency") + ".")
+
+
+def tax_declared_impl(inp):
+    income = D(str(inp["taxable_income"]))
+    rate = D(str(inp["income_tax_rate"]))
+    if rate < 0 or rate > 1:
+        raise DataError("income_tax_rate must be between zero and one")
+    if income < 0:
+        income_tax = D(0)
+    else:
+        income_tax = income * rate
+    out = {"taxable_income": income, "income_tax_rate": rate, "income_tax": income_tax,
+           "net_income_after_tax": income - income_tax}
+    vat_out = _optional_decimal(inp, "vat_output_tax")
+    vat_in = _optional_decimal(inp, "vat_input_tax")
+    if vat_out is not None or vat_in is not None:
+        if vat_out is None or vat_in is None:
+            raise DataError("declare both vat_output_tax and vat_input_tax, or neither")
+        if vat_out < 0 or vat_in < 0:
+            raise DataError("VAT figures must be non-negative")
+        out["vat_output_tax"] = vat_out
+        out["vat_input_tax"] = vat_in
+        out["vat_payable"] = vat_out - vat_in
+    diff = _optional_decimal(inp, "temporary_difference")
+    d_rate = _optional_decimal(inp, "deferred_tax_rate")
+    if diff is not None or d_rate is not None:
+        if diff is None or d_rate is None:
+            raise DataError("declare both temporary_difference and deferred_tax_rate, or neither")
+        if d_rate < 0 or d_rate > 1:
+            raise DataError("deferred_tax_rate must be between zero and one")
+        out["temporary_difference"] = diff
+        out["deferred_tax_rate"] = d_rate
+        out["deferred_tax"] = diff * d_rate
+    out["total_tax_charge"] = out["income_tax"] + out.get("deferred_tax", D(0))
+    return out
+
+def _tax_declared_ref(inp):
+    income = float(D(str(inp["taxable_income"])))
+    rate = float(D(str(inp["income_tax_rate"])))
+    tax = max(0.0, income) * rate
+    diff = inp.get("temporary_difference")
+    deferred = float(D(str(diff))) * float(D(str(inp.get("deferred_tax_rate", "0")))) if diff not in (None, "") else 0.0
+    return {"income_tax": tax, "total_tax_charge": tax + deferred}
+
+def tax_declared_tests(inp, impl):
+    base, ref = impl(inp), _tax_declared_ref(inp)
+    income = D(str(inp["taxable_income"]))
+    rate = D(str(inp["income_tax_rate"]))
+    checks = [
+        ("second_implementation_agrees", _close(base["income_tax"], ref["income_tax"], rel=1e-9)
+         and _close(base["total_tax_charge"], ref["total_tax_charge"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("income_tax_is_the_rate_on_positive_income", _close(base["income_tax"], max(D(0), income) * rate), "a loss carries no positive income tax in this declared calculation"),
+        ("vat_payable_is_output_minus_input", "vat_payable" not in base or _close(base["vat_payable"], base["vat_output_tax"] - base["vat_input_tax"]), "VAT payable is output tax less input tax"),
+        ("deferred_tax_is_the_rate_on_the_temporary_difference", "deferred_tax" not in base or _close(base["deferred_tax"], base["temporary_difference"] * base["deferred_tax_rate"]), "deferred tax applies the declared rate to the declared difference"),
+        ("total_charge_is_income_tax_plus_deferred_tax", _close(base["total_tax_charge"], base["income_tax"] + base.get("deferred_tax", D(0))), "the total is the sum of the current and deferred charge"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def tax_declared_profile(inp):
+    try:
+        rate = D(str(inp["income_tax_rate"]))
+        if rate < 0 or rate > 1:
+            return ["income_tax_rate must be between zero and one"]
+        D(str(inp["taxable_income"]))
+        vat_out = _optional_decimal(inp, "vat_output_tax"); vat_in = _optional_decimal(inp, "vat_input_tax")
+        if (vat_out is None) != (vat_in is None):
+            return ["declare both vat_output_tax and vat_input_tax, or neither"]
+        if vat_out is not None and (vat_out < 0 or vat_in < 0):
+            return ["VAT figures must be non-negative"]
+        diff = _optional_decimal(inp, "temporary_difference"); d_rate = _optional_decimal(inp, "deferred_tax_rate")
+        if (diff is None) != (d_rate is None):
+            return ["declare both temporary_difference and deferred_tax_rate, or neither"]
+        if d_rate is not None and (d_rate < 0 or d_rate > 1):
+            return ["deferred_tax_rate must be between zero and one"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["tax inputs are malformed: taxable_income and income_tax_rate are required numbers"]
+
+def _tax_typing(metric):
+    if metric in ("income_tax_rate", "deferred_tax_rate"):
+        return ("rate", 4)
+    return ("currency", 2)
+
+def tax_declared_caveats(out, th):
+    return ["Every rate is declared by you. The method applies no jurisdiction's tax law, credits, exemptions, thresholds, NOLCO or filing rules.",
+            "Taxable income is the declared figure, not an accounting profit recomputed from the statements; the deferred tax is the declared temporary difference times the declared rate.",
+            "VAT payable is output tax less input tax, with no timing, classification or refund rules; a negative figure is a credit, not a refund claim."]
+
+def tax_declared_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("On taxable income of " + tok("taxable_income") + " at a declared rate of " + tok("income_tax_rate") +
+         ", the income tax is " + tok("income_tax") + " and the after-tax income is " + tok("net_income_after_tax") + ".")
+    if "vat_payable" in out:
+        t += " VAT payable is " + tok("vat_payable") + "."
+    if "deferred_tax" in out:
+        t += " The deferred tax is " + tok("deferred_tax") + "."
+    t += " The total tax charge is " + tok("total_tax_charge") + "."
+    return t
 
 
 LIBRARY = {
@@ -13181,6 +13780,41 @@ LIBRARY = {
                   limitations=("Declared-count arithmetic; no platform read, attribution window or bot filter.", "Channel definitions and consent rules may not be comparable.", "No cross-device identity resolution or incrementality."),
                   default_period="per period", caveats=web_analytics_caveats, template=web_analytics_template,
                   claim_ceiling="descriptive", typing=_web_typing),
+    "rfm_scoring": Method("rfm_scoring", "T1", rfm_scoring_impl, rfm_scoring_tests, rfm_scoring_profile,
+                  "mean_rfm_score", "ratio", None,
+                  ("second_implementation_agrees", "every_customer_has_exactly_one_segment",
+                   "scores_lie_between_one_and_five", "recency_is_scored_in_reverse",
+                   "combined_score_is_the_sum_of_the_three"),
+                  category="marketing and customers",
+                  intended_use="Quintile recency, frequency and monetary scores and the eleven named RFM segments from a declared customer list, with each segment's size and the mean scores.",
+                  unsupported_use="External benchmarks or industry quintiles; clustering, latent-class or k-means segmentation; testing whether segments differ by more than chance; tracking segment migration over time; predicting next-period value.",
+                  input_schema={"customers": {"type": "records", "min_items": 5, "max_items": 1000,
+                                             "fields": {"name": "text", "recency_days": "decimal", "frequency": "decimal", "monetary": "decimal"},
+                                             "desc": "five to a thousand customers, each with a unique name, days since the last purchase, the number of purchases and the total monetary value"}},
+                  defaults=({"question": "Scoring rule", "default_chosen": "Competition ranks split into five equal-count bands; recency is scored in reverse and ties share the better band.", "impact": "Fixed cut points or a different number of bands give different scores and segment sizes."},
+                            {"question": "Segment names", "default_chosen": "Eleven names from a declared first-match rule set over the five-by-five grid.", "impact": "Another consultant's grid uses different names for the same scores."}),
+                  assumptions=("Every customer's recency, frequency and monetary value covers the same period and the same definition of a purchase.", "The customer list is the population you want to describe, not a sample with a design."),
+                  limitations=("Ranks inside the file only; no external or industry benchmark.", "Ties share a band, so bands need not be equal-sized.", "One snapshot: no stability test, no migration and no prediction.", "Segment names follow the declared rules and are not natural kinds."),
+                  default_period="point in time", caveats=rfm_scoring_caveats, template=rfm_scoring_template,
+                  claim_ceiling="descriptive", typing=_rfm_typing),
+    "media_plan": Method("media_plan", "T1", media_plan_impl, media_plan_tests, media_plan_profile,
+                  "total_grp", "ratio", None,
+                  ("second_implementation_agrees", "grp_is_reach_share_times_frequency",
+                   "impressions_are_reach_times_frequency", "total_grp_is_the_sum_of_the_vehicle_grp",
+                   "net_reach_lies_between_the_largest_vehicle_and_the_sum"),
+                  category="marketing and customers",
+                  intended_use="Reach, reach share, gross impressions, gross rating points, cost per rating point and cost per thousand impressions for each declared vehicle, with the plan total and a combined net reach under random duplication.",
+                  unsupported_use="Reading a media owner's or platform's audience data; real audience overlap; effective frequency and wear-out; scheduling and daypart optimisation; negotiation; response curves; recommending a media buy.",
+                  input_schema={"population": {"type": "decimal", "desc": "people in the target population the reach is measured against"},
+                                "vehicles": {"type": "records", "min_items": 1, "max_items": 12,
+                                             "fields": {"name": "text", "reach": "decimal", "insertions": "decimal", "cost": "decimal"},
+                                             "desc": "one to twelve vehicles, each with a unique name, the people reached at least once, the average number of insertions per reached person and the cost"}},
+                  defaults=({"question": "Combined reach", "default_chosen": "The random-duplication formula, which assumes different vehicles' audiences overlap only by chance.", "impact": "Real overlap is usually higher, so the combined reach is an upper bound."},
+                            {"question": "Frequency", "default_chosen": "The declared insertions per reached person are the average frequency for that vehicle; the plan average uses the combined reach.", "impact": "Using the sum of vehicle reaches as the denominator understates the plan's average frequency."}),
+                  assumptions=("Reach, insertions and cost are declared for the same population, period and currency.", "Each vehicle's reach counts a person once, however many insertions they saw."),
+                  limitations=("Declared figures only; no media-owner data and no measured overlap.", "Random duplication overstates combined reach when audiences concentrate.", "No effective-frequency, wear-out, seasonality or response model, and no recommendation."),
+                  default_period="per period", caveats=media_plan_caveats, template=media_plan_template,
+                  claim_ceiling="descriptive", typing=_media_typing),
     "standard_cost_variances": Method("standard_cost_variances", "T1", standard_cost_variances_impl,
                   standard_cost_variances_tests, standard_cost_variances_profile, "total_variance", "currency", None,
                   ("second_implementation_agrees", "material_price_and_usage_sum_to_the_material_variance",
@@ -13377,6 +14011,43 @@ LIBRARY = {
                   limitations=("No market-size or share variance; no explanation of the movements.", "The split depends on the declared convention.", "One currency and one period."),
                   default_period="annual", caveats=sales_variances_caveats, template=sales_variances_template,
                   claim_ceiling="descriptive", typing=_sales_typing),
+    "line_balancing": Method("line_balancing", "T1", line_balancing_impl, line_balancing_tests, line_balancing_profile,
+                  "stations", "count", None,
+                  ("second_implementation_agrees", "every_task_is_assigned_once",
+                   "no_station_exceeds_the_cycle_time", "precedence_is_respected",
+                   "stations_are_at_least_the_lower_bound"),
+                  category="operations and scheduling",
+                  intended_use="Assign declared tasks to stations at a declared cycle time using a declared heuristic (longest task time or ranked positional weight), with the theoretical lower bound, idle time and line efficiency.",
+                  unsupported_use="Proving an optimal assignment; mixed-model lines; parallel stations; task times that vary; ergonomics, learning or fatigue; rebalancing during a shift.",
+                  input_schema={"tasks": {"type": "rows", "min_items": 1, "desc": "one row per task: id (or name), time, and optional predecessors as a comma-separated list of task ids"},
+                                "cycle_time": {"type": "decimal", "desc": "the time available at each station for one unit"},
+                                "rule": {"type": "enum", "values": ["longest_time", "ranked_positional"], "required": False, "desc": "the heuristic: longest task time (default) or ranked positional weight"}},
+                  defaults=({"question": "Heuristic", "default_chosen": "Longest task time that fits, with ties broken by the declared order; ranked positional weight is the alternative.", "impact": "A different rule can use more or fewer stations; neither is proven optimal."},
+                            {"question": "What is fixed", "default_chosen": "Task times and precedence are fixed and one unit flows through the line; no parallel stations.", "impact": "Parallel stations or a mixed model is a different problem."}),
+                  assumptions=("Task times are deterministic and the precedence graph is acyclic.", "One unit is processed at a time and every station is available for the full cycle time."),
+                  limitations=("A heuristic packing, not an optimal solution.", "No parallel stations, mixed-model lines, variability or ergonomics.", "Efficiency is measured against the stations the heuristic used."),
+                  default_period="per period", caveats=line_balancing_caveats, template=line_balancing_template,
+                  claim_ceiling="descriptive", typing=_balance_typing),
+    "tax_declared": Method("tax_declared", "T1", tax_declared_impl, tax_declared_tests, tax_declared_profile,
+                  "total_tax_charge", "currency", None,
+                  ("second_implementation_agrees", "income_tax_is_the_rate_on_positive_income",
+                   "vat_payable_is_output_minus_input", "deferred_tax_is_the_rate_on_the_temporary_difference",
+                   "total_charge_is_income_tax_plus_deferred_tax"),
+                  category="taxation",
+                  intended_use="Income tax, VAT payable and deferred tax from the rates and figures you declare, with the after-tax income and the total tax charge.",
+                  unsupported_use="Any jurisdiction's tax law: credits, exemptions, thresholds, progressive bands, NOLCO, withholding, filing, penalties or refunds. It does not derive taxable income from the accounts.",
+                  input_schema={"taxable_income": {"type": "decimal", "desc": "the taxable income you declare; a loss can be entered as a negative figure"},
+                                "income_tax_rate": {"type": "decimal", "desc": "the income tax rate as a decimal, e.g. 0.25 for 25%"},
+                                "vat_output_tax": {"type": "decimal", "required": False, "desc": "optional output VAT on sales"},
+                                "vat_input_tax": {"type": "decimal", "required": False, "desc": "optional input VAT on purchases, declared with the output VAT"},
+                                "temporary_difference": {"type": "decimal", "required": False, "desc": "optional temporary difference for deferred tax"},
+                                "deferred_tax_rate": {"type": "decimal", "required": False, "desc": "the deferred tax rate, declared with the temporary difference"}},
+                  defaults=({"question": "Jurisdiction", "default_chosen": "None. The rates and the taxable income are yours; the method applies no national or local tax law.", "impact": "A real filing needs the jurisdiction's rules and a tax adviser."},
+                            {"question": "Taxable income", "default_chosen": "The declared figure is used as given; a loss carries no positive income tax and no loss carry-forward.", "impact": "A carry-forward or minimum tax needs the jurisdiction's rules."}),
+                  assumptions=("The declared taxable income and rates are the ones that apply to the period.", "VAT output and input are for the same period and the same registration."),
+                  limitations=("No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.", "No link to the accounting profit or the statements.", "Deferred tax is one declared difference times one declared rate."),
+                  default_period="annual", caveats=tax_declared_caveats, template=tax_declared_template,
+                  claim_ceiling="descriptive", typing=_tax_typing),
 
 }
 

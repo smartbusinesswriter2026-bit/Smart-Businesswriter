@@ -1,5 +1,31 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — Line balancing and declared-rate tax; the rest named in the limitations
+
+**Ask.** "Go. Those that are needed and will only bring issues, put it in limitation."
+
+**Did.** Two T1 methods. `line_balancing`: tasks, precedence and a declared cycle time, packed with a
+declared heuristic (longest task time or ranked positional weight), reporting station loads, the
+theoretical lower bound, idle time and efficiency; a task longer than the cycle, an unknown predecessor
+or a cycle is refused. `tax_declared`: income tax on positive taxable income at a declared rate, VAT
+payable as output less input, deferred tax as a declared difference times a declared rate, the total
+charge and after-tax income; it applies no jurisdiction's law. Operations gains line balancing under
+"Process and capacity"; Accounting gets a "Tax and reporting" group; Entrepreneurship gets the tax tool
+for projections. Guides, notes, glossary and the curriculum map updated; presets `linebalance` and `tax`.
+
+**What went to the limitations instead.** A jurisdiction tax engine, audit opinion/sampling, group
+consolidation, multi-echelon inventory and a shared session store. `KNOWN_LIMITATIONS.md` now has a
+section that says, for each, why it is absent and what a student should do when an assignment needs it.
+The distinction is deliberate: the first list is arithmetic on declared figures; the second needs a
+declared legal/accounting policy or is infrastructure, and approximating it would produce a confident
+wrong answer.
+
+**Contract impact.** An approved unfreeze under B-079, recorded as B-119: 120 methods became 124 and
+the preset surface 126; the fixture was regenerated. The limitations policy is B-120 and moves no number.
+
+**Verified.** Eleven new tests (arithmetic, refusals, presets, shelf and glossary wiring); the suite and
+`scripts/ci.py` remain the gate; the guides' worked examples were re-run through the methods.
+
 ## 2026-10-28 — Closing the deterministic gaps: schedule, EVM, OEE, SPC, ABC, sales variances, M/M/c
 
 **Ask.** "These are in the limitations? ... they are not that hard. Can you close them without breaking

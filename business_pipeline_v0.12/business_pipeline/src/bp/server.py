@@ -87,6 +87,24 @@ PRESETS = {
                                     {"name": "paid search", "sessions": "24000", "conversions": "960", "revenue": "430000"},
                                     {"name": "email", "sessions": "9000", "conversions": "540", "revenue": "260000"}],
                        "organic_impressions": "600000", "organic_clicks": "24000"}},
+    "rfm": {"objective": "Which customer segments do we have, and how big is each?", "method": "rfm_scoring", "period": "point in time",
+            "inputs": {"customers": [{"name": "C01", "recency_days": "3", "frequency": "9", "monetary": "15000"},
+                                     {"name": "C02", "recency_days": "8", "frequency": "7", "monetary": "12000"},
+                                     {"name": "C03", "recency_days": "15", "frequency": "6", "monetary": "9000"},
+                                     {"name": "C04", "recency_days": "25", "frequency": "5", "monetary": "7000"},
+                                     {"name": "C05", "recency_days": "40", "frequency": "4", "monetary": "5000"},
+                                     {"name": "C06", "recency_days": "55", "frequency": "3", "monetary": "3500"},
+                                     {"name": "C07", "recency_days": "70", "frequency": "2", "monetary": "2000"},
+                                     {"name": "C08", "recency_days": "90", "frequency": "1", "monetary": "900"},
+                                     {"name": "C09", "recency_days": "120", "frequency": "1", "monetary": "400"},
+                                     {"name": "C10", "recency_days": "160", "frequency": "1", "monetary": "100"},
+                                     {"name": "C11", "recency_days": "12", "frequency": "5", "monetary": "8000"},
+                                     {"name": "C12", "recency_days": "200", "frequency": "2", "monetary": "1500"}]}},
+    "mediaplan": {"objective": "What does this media plan buy in reach, frequency and rating points?", "method": "media_plan", "currency": "PHP", "period": "monthly",
+                  "inputs": {"population": "1000000",
+                             "vehicles": [{"name": "TV prime time", "reach": "450000", "insertions": "8", "cost": "1200000"},
+                                          {"name": "Radio drive time", "reach": "300000", "insertions": "12", "cost": "450000"},
+                                          {"name": "Print weekly", "reach": "120000", "insertions": "4", "cost": "180000"}]}},
     "scv": {"objective": "Compute the material, labour and overhead variances for the period", "method": "standard_cost_variances", "currency": "PHP", "period": "annual",
             "inputs": {"actual_units": "4800", "standard_material_per_unit": "2", "standard_material_price": "15",
                        "actual_material_quantity": "9800", "actual_material_price": "15.5",
@@ -128,6 +146,18 @@ PRESETS = {
                  "inputs": {"products": [
                      {"name": "X", "budget_units": "100", "budget_price": "10", "actual_units": "120", "actual_price": "11"},
                      {"name": "Y", "budget_units": "100", "budget_price": "20", "actual_units": "80", "actual_price": "18"}]}},
+    "linebalance": {"objective": "How many stations does the line need at this cycle time?", "method": "line_balancing", "currency": "PHP", "period": "per period",
+                    "inputs": {"cycle_time": "10", "rule": "longest_time", "tasks": [
+                        {"id": "A", "time": "5", "predecessors": ""},
+                        {"id": "B", "time": "3", "predecessors": "A"},
+                        {"id": "C", "time": "4", "predecessors": "A"},
+                        {"id": "D", "time": "2", "predecessors": "B"},
+                        {"id": "E", "time": "3", "predecessors": "C"},
+                        {"id": "F", "time": "4", "predecessors": "D,E"}]}},
+    "tax": {"objective": "What is the tax charge on the declared income?", "method": "tax_declared", "currency": "PHP", "period": "annual",
+            "inputs": {"taxable_income": "1000000", "income_tax_rate": "0.25",
+                       "vat_output_tax": "144000", "vat_input_tax": "84000",
+                       "temporary_difference": "100000", "deferred_tax_rate": "0.25"}},
     "descriptive": {"objective": "Describe the exam scores", "method": "descriptive_stats", "unit": "points",
                     "inputs": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"]}},
     "pearson": {"objective": "Is study time associated with exam score?", "method": "pearson",
@@ -409,7 +439,7 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_marketdata.equity_quote((qs.get("symbol") or [""])[0]))
                 except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
             if u.path == "/api/market/fundamentals":
-                try: return self._send(200, product_marketdata.equity_fundamentals((qs.get("symbol") or [""])[0]))
+                try: return self._send(200, product_marketdata.sec_fundamentals((qs.get("symbol") or [""])[0]))
                 except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
             if u.path == "/api/market/filings":
                 try:

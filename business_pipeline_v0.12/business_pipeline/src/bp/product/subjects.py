@@ -283,6 +283,10 @@ TOOL_INFO = {
             "what": "Activity rates, each product's allocation and its unit cost from the drivers it consumes."},
     "salesvar": {"preset": "salesvar", "method": "sales_variances", "label": "Sales price, mix and yield variances",
                  "what": "Reconcile the revenue change into price, mix and yield, per product and in total."},
+    "linebalance": {"preset": "linebalance", "method": "line_balancing", "label": "Line balancing",
+                    "what": "Assign tasks to stations at a declared cycle time, with the lower bound, idle time and efficiency."},
+    "tax": {"preset": "tax", "method": "tax_declared", "label": "Tax on declared rates",
+            "what": "Income tax, VAT payable and deferred tax from the rates you declare, with the total charge."},
     "campaign": {"preset": "campaign", "method": "campaign_efficiency", "label": "Campaign efficiency",
                  "what": "Enter impressions, clicks, conversions, spend and revenue and read the click-through, cost per click and per thousand impressions, cost per acquisition, return on ad spend and the break-even return."},
     "abtest": {"preset": "abtest", "method": "ab_test_two_proportion", "label": "A/B test result",
@@ -297,6 +301,10 @@ TOOL_INFO = {
                "what": "Read engagement rate, frequency, cost per thousand impressions, cost per engagement and follower growth from the platform counts you declare."},
     "web": {"preset": "web", "method": "web_analytics", "label": "Web traffic and conversion by channel",
             "what": "Compare sessions, conversions, conversion rate and revenue per session across your acquisition channels, with organic-search click-through when you declare it."},
+    "rfm": {"preset": "rfm", "method": "rfm_scoring", "label": "RFM segmentation",
+            "what": "Score every customer on recency, frequency and monetary value, then see how many fall in each named segment and what the average scores are."},
+    "mediaplan": {"preset": "mediaplan", "method": "media_plan", "label": "Reach, frequency and rating points",
+                  "what": "Enter the population and each vehicle's reach, insertions and cost and read rating points, cost per point, cost per thousand impressions and the combined reach under random duplication."},
 
 }
 
@@ -1769,6 +1777,34 @@ ACCOUNTING_OPERATIONS_NOTES = {
         "diagram": None,
         "related": ["scv", "abc", "pricing"],
     },
+    "linebalance": {
+        "level": "intermediate",
+        "formula": "Lower bound = ceil(total task time / cycle time); efficiency = total time / (stations x cycle time).",
+        "steps": ["List each task with its time and its immediate predecessors.",
+                  "Declare the cycle time the line must meet.",
+                  "Choose the heuristic: longest task time, or ranked positional weight.",
+                  "Read the stations used, each station's load, the idle time and the efficiency; compare with the lower bound."],
+        "common_mistakes": ["Using the cycle time as the sum of task times.",
+                            "Ignoring precedence to fill a station.",
+                            "Calling the heuristic result the optimal balance.",
+                            "Forgetting that a task longer than the cycle time cannot be balanced."],
+        "diagram": "process",
+        "related": ["capacity", "cpm", "oee"],
+    },
+    "tax": {
+        "level": "intro",
+        "formula": "Income tax = positive taxable income x declared rate; VAT payable = output tax - input tax; deferred tax = temporary difference x declared rate; total charge = income tax + deferred tax.",
+        "steps": ["Enter the taxable income you are declaring and the income tax rate as a decimal.",
+                  "If the assignment includes VAT, enter the output and input tax.",
+                  "If it includes deferred tax, enter the temporary difference and the rate.",
+                  "Read the current tax, the VAT payable, the deferred tax and the total charge."],
+        "common_mistakes": ["Applying a national rate you have not declared or verified.",
+                            "Treating a VAT credit (negative payable) as a refund.",
+                            "Using accounting profit as taxable income without the adjustments.",
+                            "Adding deferred tax to the cash tax paid."],
+        "diagram": None,
+        "related": ["accounts", "scv", "salesprojection"],
+    },
 }
 STUDENT_NOTES.update(ACCOUNTING_OPERATIONS_NOTES)
 
@@ -1817,6 +1853,7 @@ ENTREPRENEURSHIP_GROUPS = {
     "costcurves": "Costs, pricing and break-even", "marketpower": "Costs, pricing and break-even",
     "salesprojection": "Financial plan and return", "startupcapital": "Financial plan and return",
     "cashrunway": "Financial plan and return", "roi": "Financial plan and return",
+    "tax": "Financial plan and return",
     "npv": "Financial plan and return", "irr": "Financial plan and return",
     "dpayback": "Financial plan and return", "projectmetrics": "Financial plan and return",
     "scenario": "Financial plan and return", "trendanalysis": "Financial plan and return",
@@ -1837,7 +1874,7 @@ ENTREPRENEURSHIP_PERIODS = {
     "pricing": "per period", "breakeven": "per period", "multibreakeven": "per period",
     "unitecon": "per period", "costcurves": "per period", "marketpower": "per period",
     "salesprojection": "per period", "startupcapital": "point in time", "cashrunway": "monthly",
-    "roi": "per period", "npv": "per period", "irr": "per period", "dpayback": "per period",
+    "roi": "per period", "tax": "annual", "npv": "per period", "irr": "per period", "dpayback": "per period",
     "projectmetrics": "per period", "scenario": "per period", "trendanalysis": "annual",
     "workingcapital": "annual", "captable": "point in time", "loan": "annual", "dcf": "annual",
     "multiples": "annual", "equitybridge": "point in time", "currency": "spot rate",
@@ -1854,13 +1891,14 @@ MARKETING_GROUPS = {
     "elasticity": "Market size and demand", "purchaseintent": "Market size and demand",
     "forecast": "Market size and demand",
     "unitecon": "Customer economics and retention", "multibreakeven": "Customer economics and retention",
-    "cohort": "Customer economics and retention",
+    "cohort": "Customer economics and retention", "rfm": "Customer economics and retention",
     "campaign": "Campaigns, channels and web analytics",
     "attribution": "Campaigns, channels and web analytics",
     "channelecon": "Campaigns, channels and web analytics",
     "email": "Campaigns, channels and web analytics",
     "social": "Campaigns, channels and web analytics",
     "web": "Campaigns, channels and web analytics",
+    "mediaplan": "Campaigns, channels and web analytics",
     "funnel": "Funnel, surveys and testing", "abtest": "Funnel, surveys and testing",
     "alpha": "Funnel, surveys and testing", "chi_square": "Funnel, surveys and testing",
     "power": "Funnel, surveys and testing",
@@ -1872,8 +1910,9 @@ MARKETING_PERIODS = {
     "marketsize": "annual", "demandcurve": "per observation", "elasticity": "per observation",
     "purchaseintent": "per observation", "forecast": "per period",
     "unitecon": "per period", "multibreakeven": "per period", "cohort": "per period",
+    "rfm": "point in time",
     "campaign": "per period", "attribution": "per period", "channelecon": "per period",
-    "email": "per period", "social": "per period", "web": "per period",
+    "email": "per period", "social": "per period", "web": "per period", "mediaplan": "per period",
     "funnel": "per period", "abtest": "per observation",
     "alpha": "per observation", "chi_square": "per observation", "power": "per observation",
 }
@@ -1993,6 +2032,34 @@ MARKETING_NOTES = {
                             "Reading a channel's conversion rate without its volume."],
         "related": ["funnel", "campaign", "attribution", "social"],
     },
+    "rfm": {
+        "level": "intermediate",
+        "formula": ("Rank customers inside the file, split the ranks into five equal-count bands, and score recency in "
+                    "reverse; the segment comes from the declared first-match rules on the three scores."),
+        "steps": ["Decide what counts as a purchase and over what window, then take recency, frequency and monetary value from the same records.",
+                  "Give every customer a unique name so the rows can be checked back.",
+                  "Read the segment sizes before the averages: a small Champions group and a large At-risk group call for different actions.",
+                  "Say in your write-up that the bands are relative to this list, not an industry benchmark."],
+        "common_mistakes": ["Mixing a lifetime monetary value with a last-year frequency.",
+                            "Treating the segment names as facts about customers rather than labels from a rule.",
+                            "Forgetting that ties share a band, so the groups need not be equal.",
+                            "Claiming the segments differ in behaviour without a test."],
+        "related": ["cohort", "unitecon", "channelecon", "email"],
+    },
+    "mediaplan": {
+        "level": "intro",
+        "formula": ("Rating points = reach share x average frequency x 100; gross impressions = reach x frequency; "
+                    "cost per point = cost / rating points; combined reach = 1 - the product of (1 - each reach share)."),
+        "steps": ["Fix the target population and the period, then take each vehicle's reach, insertions and cost from the same plan.",
+                  "Enter one row per vehicle and keep the names distinct.",
+                  "Read the plan total in rating points, then the combined reach: points add up, reach does not.",
+                  "Treat the combined reach as an upper bound, because real audiences overlap more than chance."],
+        "common_mistakes": ["Dividing cost by gross impressions when the question was cost per rating point.",
+                            "Adding the vehicles' reach counts together and calling it the plan's reach.",
+                            "Forgetting the population, so reach share cannot be computed.",
+                            "Reading a rating point as a person rather than as one percent of the population seeing one insertion."],
+        "related": ["campaign", "social", "channelecon", "marketsize"],
+    },
 }
 
 STUDENT_NOTES.update(MARKETING_NOTES)
@@ -2006,19 +2073,21 @@ ACCOUNTING_GROUPS = {
     "abc": "Cost and variance analysis", "salesvar": "Cost and variance analysis",
     "workingcapital": "Working capital and financing", "loan": "Working capital and financing",
     "trendanalysis": "Working capital and financing",
+    "tax": "Tax and reporting",
 }
 ACCOUNTING_PERIODS = {
     "accounts": "annual", "tbcheck": "annual", "ratios": "annual", "scv": "annual",
     "breakeven": "per period", "multibreakeven": "per period",
     "abc": "annual", "salesvar": "annual",
     "workingcapital": "annual", "loan": "annual", "trendanalysis": "annual",
+    "tax": "annual",
 }
 
 #: Operations groups: the process, the inventory feeding it, and the evidence on quality.
 OPERATIONS_GROUPS = {
     "capacity": "Process and capacity", "queue": "Process and capacity",
     "breakeven": "Process and capacity", "multibreakeven": "Process and capacity",
-    "unitecon": "Process and capacity",
+    "unitecon": "Process and capacity", "linebalance": "Process and capacity",
     "inventory": "Inventory and planning", "forecast": "Inventory and planning",
     "missing": "Inventory and planning", "descriptive": "Inventory and planning",
     "chi_square": "Quality and evidence", "power": "Quality and evidence",
@@ -2029,7 +2098,7 @@ OPERATIONS_PERIODS = {
     "multibreakeven": "per period", "unitecon": "per period",
     "inventory": "annual", "forecast": "per period", "missing": "per observation",
     "descriptive": "per observation", "chi_square": "per observation", "power": "per observation",
-    "oee": "per period", "spc": "per observation",
+    "oee": "per period", "spc": "per observation", "linebalance": "per period",
 }
 
 #: Supply-chain groups: the inventory and capacity decisions, then demand and cost.
@@ -2182,6 +2251,15 @@ MARKETING_GLOSSARY = [
     {"term": "RFM", "definition": "Recency, frequency and monetary value: three transaction-based measures used to group customers by buying behaviour."},
     {"term": "Kano model", "definition": "Classifies product attributes by how their presence or absence affects satisfaction, from must-be to attractive."},
     {"term": "SERVQUAL", "definition": "A service-quality instrument that compares customer expectations with perceptions across declared dimensions."},
+    {"term": "Quintile score", "definition": "A one-to-five band given by ranking the customers in your own file into five equal-count groups; the top band is five, and recency is ranked in reverse."},
+    {"term": "RFM segment", "definition": "A label taken from a declared grid of recency, frequency and monetary scores, such as Champions or At risk; the label describes buying behaviour in one snapshot."},
+    {"term": "Reach", "definition": "The number of people who see a vehicle at least once in the period, counted once each however many times they see it."},
+    {"term": "Reach share", "definition": "Reach divided by the declared target population, expressed as a decimal (45% is 0.45)."},
+    {"term": "Average frequency", "definition": "The average number of times a reached person sees the message; for a plan it is gross impressions divided by combined reach."},
+    {"term": "Gross impressions", "definition": "Reach multiplied by average frequency: a count of exposures, not of people."},
+    {"term": "GRP", "definition": "Gross rating points: reach share times average frequency times one hundred. Points add up across vehicles; people do not."},
+    {"term": "CPP", "definition": "Cost per rating point: cost divided by gross rating points, the price of one percent of the population seeing one insertion."},
+    {"term": "Net reach", "definition": "The combined number of different people a set of vehicles reaches; estimated here by the random-duplication formula, so it is an upper bound."},
 ]
 
 GLOSSARIES["marketing"] = MARKETING_GLOSSARY
@@ -2204,6 +2282,9 @@ ACCOUNTING_GLOSSARY = [
     {"term": "Variance", "definition": "Actual cost less the standard cost of the output achieved; positive is unfavourable."},
     {"term": "Favourable / unfavourable", "definition": "Whether actual cost came in below or above the declared standard."},
     {"term": "Standard cost", "definition": "The declared quantity and price (or hours and rate) allowed per unit of output."},
+    {"term": "Taxable income", "definition": "The income the tax rate is applied to, after the adjustments the jurisdiction requires; here it is the figure you declare."},
+    {"term": "VAT", "definition": "Value-added tax: output tax on sales less input tax on purchases, remitted by the registered business."},
+    {"term": "Deferred tax", "definition": "Tax attributed to a temporary difference between accounting and taxable amounts, at the declared rate."},
 ]
 
 #: Terms a student meets on the Operations and Supply chain pages.
@@ -2226,6 +2307,8 @@ OPERATIONS_GLOSSARY = [
     {"term": "Little's law", "definition": "Average customers in a system equal the arrival rate times the average time in it."},
     {"term": "M/M/1", "definition": "One server, random arrivals and random service times with constant averages."},
     {"term": "Changeover", "definition": "The time to switch a resource from one product to another; it is not in a steady-state capacity figure."},
+    {"term": "Line balancing", "definition": "Assigning tasks to workstations so each station fits inside the cycle time while respecting precedence."},
+    {"term": "Ranked positional weight", "definition": "A task's own time plus the time of every task that must follow it; used to rank tasks when balancing."},
 ]
 
 GLOSSARIES["accounting"] = ACCOUNTING_GLOSSARY
@@ -2328,7 +2411,7 @@ SUBJECT_DEFS = [
         "disciplines": ["finance, accounting and managerial economics"],
         "cross_cutting": False,
         "tools": ["accounts", "tbcheck", "ratios", "scv", "abc", "salesvar",
-                  "breakeven", "multibreakeven", "workingcapital", "loan", "trendanalysis"],
+                  "breakeven", "multibreakeven", "workingcapital", "loan", "trendanalysis", "tax"],
         "worksheets": [],
         "catalogue_ids": ["QNT-FIN-02", "QNT-FIN-03", "QNT-FIN-05"],
     },
@@ -2441,7 +2524,7 @@ SUBJECT_DEFS = [
         "tools": ["marketsize", "forecast", "demandcurve", "purchaseintent", "funnel", "cohort",
                   "elasticity", "descriptive", "chi_square", "power",
                   "pricing", "breakeven", "multibreakeven", "unitecon", "costcurves", "marketpower",
-                  "salesprojection", "startupcapital", "cashrunway", "roi", "npv", "irr", "dpayback", "projectmetrics",
+                  "salesprojection", "startupcapital", "cashrunway", "roi", "tax", "npv", "irr", "dpayback", "projectmetrics",
                   "scenario", "trendanalysis", "workingcapital",
                   "captable", "loan", "dcf", "multiples", "equitybridge", "currency",
                   "sroi", "cba", "case_decision"],
@@ -2458,7 +2541,7 @@ SUBJECT_DEFS = [
         "disciplines": ["operations and supply chain", "operations, logistics and optimization"],
         "cross_cutting": False,
         "tools": ["breakeven", "multibreakeven", "unitecon", "forecast",
-                  "inventory", "queue", "capacity", "oee", "spc",
+                  "inventory", "queue", "capacity", "linebalance", "oee", "spc",
                   "chi_square", "power", "missing", "descriptive"],
         "worksheets": [],
         "catalogue_ids": None,  # filled from the two discipline tags by the generator
@@ -2489,8 +2572,8 @@ SUBJECT_DEFS = [
         "disciplines": ["marketing and customers", "market and customer analytics", "digital marketing"],
         "cross_cutting": False,
         "tools": ["marketsize", "demandcurve", "elasticity", "purchaseintent", "forecast",
-                  "unitecon", "multibreakeven", "cohort",
-                  "campaign", "attribution", "channelecon", "email", "social", "web",
+                  "unitecon", "multibreakeven", "cohort", "rfm",
+                  "campaign", "attribution", "channelecon", "email", "social", "web", "mediaplan",
                   "funnel", "abtest", "alpha", "chi_square", "power"],
         "worksheets": ["MKT-02"],
         "catalogue_ids": None,
@@ -2532,7 +2615,7 @@ CALCULATOR_GROUPS = [
                "dupont", "trendanalysis", "workingcapital", "ratios", "breakeven", "multibreakeven", "scenario",
                "unitecon", "forecast", "case_decision", "currency"]},
     {"id": "accounting", "label": "Accounting",
-     "tools": ["accounts", "ratios", "breakeven", "multibreakeven", "tbcheck", "scv", "abc", "salesvar",
+     "tools": ["accounts", "ratios", "breakeven", "multibreakeven", "tbcheck", "scv", "abc", "salesvar", "tax",
                "workingcapital", "loan", "trendanalysis"]},
     {"id": "statistics", "label": "Statistics",
      "tools": ["descriptive", "pearson", "spearman", "ols", "ols_robust", "welch",
@@ -2557,12 +2640,12 @@ CALCULATOR_GROUPS = [
                "forecast", "case_decision"]},
     {"id": "operations", "label": "Operations",
      "tools": ["breakeven", "multibreakeven", "unitecon", "forecast",
-               "inventory", "queue", "capacity", "oee", "spc", "cpm", "evm",
+               "inventory", "queue", "capacity", "linebalance", "oee", "spc", "cpm", "evm",
                "chi_square", "power", "missing", "descriptive"]},
     {"id": "marketing", "label": "Marketing",
      "tools": ["unitecon", "multibreakeven", "forecast", "funnel", "cohort", "demandcurve", "purchaseintent",
                "campaign", "abtest", "attribution", "channelecon", "email", "social", "web",
-               "alpha", "chi_square", "power"]},
+               "rfm", "mediaplan", "alpha", "chi_square", "power"]},
     {"id": "people", "label": "People",
      "tools": ["alpha", "weighted", "descriptive", "chi_square", "power", "pearson", "ols"]},
 ]
@@ -3116,13 +3199,18 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'M'},
  'MKT-08': {'disciplines': ['marketing and customers', 'market and customer analytics'],
             'evidence_needs': 'Transaction data, window definitions, scoring method and checks for biased segments',
-            'form': 'read_only',
+            'form': 'computed',
             'id': 'MKT-08',
-            'implementation_status': 'not implemented',
-            'linked_methods': [],
+            'implementation_status': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are '
+                                     "computed from a declared customer list, with each segment's size and the mean scores; "
+                                     'external benchmarks, clustering, segment stability over time and next-period value are not '
+                                     'implemented',
+            'linked_methods': [{'coverage': 'partial', 'method_id': 'rfm_scoring'}],
             'name': 'RFM Segmentation',
-            'status_note': 'not implemented',
-            'status_short': 'Method not built',
+            'status_note': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are computed '
+                           "from a declared customer list, with each segment's size and the mean scores; external benchmarks, "
+                           'clustering, segment stability over time and next-period value are not implemented',
+            'status_short': 'Computed',
             'summary': 'Customer groups based on recency, frequency and monetary value',
             'template': None,
             'type': 'Q'},
@@ -4170,6 +4258,26 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'status_short': 'Computed',
                 'summary': 'Web traffic and conversion by channel: sessions, conversions and revenue by acquisition channel, with '
                            'channel share, conversion rate, revenue per session and organic-search click-through.',
+                'template': None,
+                'type': 'Q'},
+ 'QNT-MKT-15': {'disciplines': ['market and customer analytics'],
+                'evidence_needs': '',
+                'form': 'computed',
+                'id': 'QNT-MKT-15',
+                'implementation_status': 'partial: reach, average frequency, gross impressions, gross rating points, cost per '
+                                         'rating point, cost per thousand impressions and a combined reach under random '
+                                         'duplication are computed from declared vehicles; measured audience overlap, effective '
+                                         'frequency, scheduling and a recommended buy are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'media_plan'}],
+                'name': 'Media planning',
+                'status_note': 'partial: reach, average frequency, gross impressions, gross rating points, cost per rating point, '
+                               'cost per thousand impressions and a combined reach under random duplication are computed from '
+                               'declared vehicles; measured audience overlap, effective frequency, scheduling and a recommended '
+                               'buy are not implemented',
+                'status_short': 'Computed',
+                'summary': 'Media planning: reach, average frequency, gross impressions, gross rating points, cost per rating '
+                           'point and a net-reach estimate under random duplication; declare the target population and each '
+                           "vehicle's reach, insertions and cost.",
                 'template': None,
                 'type': 'Q'},
  'QNT-OPS-01': {'disciplines': ['operations, logistics and optimization'],

@@ -30,11 +30,11 @@ class Import(unittest.TestCase):
         for i in ids: self.assertEqual(R.get(i)["id"] in ids or i in R.get(i)["also_listed_as"], True, i)
     def test_counts_and_types(self):
         recs = R.load()["records"]; from collections import Counter; c = Counter(r["type"] for r in recs)
-        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (155, 66, 24, 58, 7))
+        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (156, 66, 24, 59, 7))
     def test_duplicates_merged_with_both_ids_kept(self):
         self.assertEqual(R.get("IMP-01")["id"], "CHG-07"); self.assertEqual(R.get("IMP-02")["id"], "CHG-08"); self.assertIn("IMP-01", R.get("CHG-07")["also_listed_as"])
         self.assertEqual(R.get("QNT-MKT-04")["id"], "MKT-08"); self.assertIn("QNT-MKT-04", R.get("MKT-08")["also_listed_as"])
-        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 155)
+        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 156)
     def test_names_are_complete_and_not_truncated(self):
         """A name ending in ' and', ' or', ',' or '(' is a cut, not a name (B-113)."""
         for r in R.load()["records"]:
@@ -62,7 +62,7 @@ class Import(unittest.TestCase):
         self.assertTrue(R.get("QNT-STA-03")["implementation_status"].startswith("partial")); self.assertTrue(R.get("QNT-OPS-01")["implementation_status"].startswith("partial"))
         self.assertEqual(R.get("QNT-OPS-03")["implementation_status"], "not implemented")
     def test_registry_is_versioned_and_hashed(self):
-        reg = R.load(); self.assertEqual(reg["registry_version"], "0.1.0"); self.assertEqual(reg["source"]["catalogue_version"], "0.3"); self.assertEqual(len(reg["hash"]), 64); self.assertEqual(reg["hash"], R.load()["hash"])
+        reg = R.load(); self.assertEqual(reg["registry_version"], "0.1.0"); self.assertEqual(reg["source"]["catalogue_version"], "0.4"); self.assertEqual(len(reg["hash"]), 64); self.assertEqual(reg["hash"], R.load()["hash"])
 
 class Search(unittest.TestCase):
     def test_name_alias_and_type_filter(self):

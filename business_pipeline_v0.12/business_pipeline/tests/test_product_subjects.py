@@ -285,6 +285,15 @@ class ServedUiContractTest(unittest.TestCase):
                      "Your cases", "Or choose a subject", "Enter to start"):
             self.assertNotIn(gone, self.html)
 
+    def test_worksheets_never_show_raw_json_to_the_user(self):
+        """A student fills a guided form; the page never exposes the input object."""
+        self.assertNotIn("Worksheet inputs (JSON)", self.html)
+        self.assertNotIn('id="ws-json"', self.html)
+        for function in ("fiveForcesForm", "swotForm", "matrixForm", "vrioForm", "bindWorksheetForm"):
+            self.assertIn("function " + function, self.html)
+        self.assertIn("Build the grid", self.html)
+        self.assertIn("Add another resource", self.html)
+
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
             self.assertNotIn(gone, self.html)
@@ -416,7 +425,7 @@ class SubjectRouteTest(unittest.TestCase):
                          {"management_accounts", "ratio_analysis",
                           "breakeven", "multi_product_breakeven", "trial_balance_check",
                           "standard_cost_variances", "abc_costing", "sales_variances",
-                          "working_capital", "loan_amortization",
+                          "working_capital", "loan_amortization", "tax_declared",
                           "trend_analysis"})
 
     def test_a_stored_case_is_filtered_by_the_methods_of_a_subject(self):

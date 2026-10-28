@@ -1,7 +1,7 @@
 # Smart Researcher
 ## Curated Business Frameworks and Quantitative Methods Catalogue
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Date:** October 28, 2026  
 **Status:** Living catalogue — candidate inventory, not an implementation commitment  
 **Scope:** Business and related disciplines, including the quantitative methods needed to apply frameworks rigorously
@@ -241,6 +241,7 @@ These methods are deliberately included even though they are not all frameworks.
 - **Email list health and lifecycle performance:** list growth, unsubscribe and bounce rates, open and click rates, engaged-list size and revenue per subscriber.
 - **Social engagement and audience growth:** reach, frequency, engagement rate, cost per engagement and follower growth from declared platform counts.
 - **Web traffic and conversion by channel:** sessions, conversions and revenue by acquisition channel, with channel share, conversion rate, revenue per session and organic-search click-through.
+- **Media planning:** reach, average frequency, gross impressions, gross rating points, cost per rating point and a net-reach estimate under random duplication; declare the target population and each vehicle's reach, insertions and cost.
 
 ### 11.3 Statistics and empirical research
 

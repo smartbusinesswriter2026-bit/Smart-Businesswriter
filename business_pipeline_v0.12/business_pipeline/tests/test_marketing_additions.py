@@ -20,7 +20,7 @@ from bp.orchestrator import Pipeline  # noqa: E402
 from bp.product import subjects  # noqa: E402
 
 NEW = ["campaign_efficiency", "ab_test_two_proportion", "attribution_split", "channel_economics",
-       "email_list_health", "social_engagement", "web_analytics"]
+       "email_list_health", "social_engagement", "web_analytics", "rfm_scoring", "media_plan"]
 
 INPUTS = {
     "campaign_efficiency": {"impressions": "250000", "clicks": "6000", "conversions": "220",
@@ -47,9 +47,24 @@ INPUTS = {
                                    {"name": "paid search", "sessions": "24000", "conversions": "960", "revenue": "430000"},
                                    {"name": "email", "sessions": "9000", "conversions": "540", "revenue": "260000"}],
                       "organic_impressions": "600000", "organic_clicks": "24000"},
+    "rfm_scoring": {"customers": [
+        {"name": "C1", "recency_days": "3", "frequency": "10", "monetary": "20000"},
+        {"name": "C2", "recency_days": "8", "frequency": "9", "monetary": "18000"},
+        {"name": "C3", "recency_days": "15", "frequency": "8", "monetary": "16000"},
+        {"name": "C4", "recency_days": "25", "frequency": "7", "monetary": "14000"},
+        {"name": "C5", "recency_days": "40", "frequency": "6", "monetary": "12000"},
+        {"name": "C6", "recency_days": "55", "frequency": "5", "monetary": "10000"},
+        {"name": "C7", "recency_days": "70", "frequency": "4", "monetary": "8000"},
+        {"name": "C8", "recency_days": "90", "frequency": "3", "monetary": "6000"},
+        {"name": "C9", "recency_days": "120", "frequency": "2", "monetary": "4000"},
+        {"name": "C10", "recency_days": "160", "frequency": "1", "monetary": "2000"}]},
+    "media_plan": {"population": "1000000", "vehicles": [
+        {"name": "TV prime time", "reach": "450000", "insertions": "8", "cost": "1200000"},
+        {"name": "Radio drive time", "reach": "300000", "insertions": "12", "cost": "450000"},
+        {"name": "Print weekly", "reach": "120000", "insertions": "4", "cost": "180000"}]},
 }
 
-PRESETS = ["campaign", "abtest", "attribution", "channelecon", "email", "social", "web"]
+PRESETS = ["campaign", "abtest", "attribution", "channelecon", "email", "social", "web", "rfm", "mediaplan"]
 
 
 class DigitalGoldens(unittest.TestCase):
@@ -149,6 +164,53 @@ class DigitalGoldens(unittest.TestCase):
         out = LIBRARY["web_analytics"].impl({"channels": INPUTS["web_analytics"]["channels"]})
         self.assertNotIn("organic_ctr", out)
 
+    def test_rfm_scores_are_bands_of_the_rank_in_this_file(self):
+        out = LIBRARY["rfm_scoring"].impl(INPUTS["rfm_scoring"])
+        rows = out["_appendix"]["customers"]
+        self.assertEqual([r["r_score"] for r in rows], [5, 5, 4, 4, 3, 3, 2, 2, 1, 1])
+        self.assertEqual([r["f_score"] for r in rows], [5, 5, 4, 4, 3, 3, 2, 2, 1, 1])
+        self.assertEqual([r["m_score"] for r in rows], [5, 5, 4, 4, 3, 3, 2, 2, 1, 1])
+        self.assertEqual([r["rfm_score"] for r in rows], [15, 15, 12, 12, 9, 9, 6, 6, 3, 3])
+
+    def test_rfm_segments_are_counted_and_sum_to_the_customer_count(self):
+        out = LIBRARY["rfm_scoring"].impl(INPUTS["rfm_scoring"])
+        self.assertEqual(out["total_customers"], D(10))
+        self.assertEqual(out["count_champions"], D(4))
+        self.assertEqual(out["count_need_attention"], D(2))
+        self.assertEqual(out["count_about_to_sleep"], D(2))
+        self.assertEqual(out["count_hibernating"], D(2))
+        for key in ("cannot_lose", "loyal", "potential_loyalist", "new", "promising", "at_risk", "lost"):
+            self.assertEqual(out["count_" + key], D(0), key)
+        self.assertEqual(sum((out["count_" + key] for key in methods.RFM_SEGMENTS), D(0)), D(10))
+        self.near(out["mean_r_score"], 3, 12)
+        self.near(out["mean_f_score"], 3, 12)
+        self.near(out["mean_m_score"], 3, 12)
+        self.near(out["mean_rfm_score"], 9, 12)
+
+    def test_every_declared_rfm_segment_rule_can_fire(self):
+        cases = {"cannot_lose": (1, 4, 4), "champions": (5, 5, 5), "loyal": (3, 4, 1),
+                 "potential_loyalist": (4, 2, 1), "new": (5, 1, 1), "promising": (3, 1, 1),
+                 "need_attention": (3, 2, 1), "at_risk": (2, 3, 1), "about_to_sleep": (2, 2, 1),
+                 "hibernating": (1, 2, 1), "lost": (1, 1, 5)}
+        for segment, (r, f, m) in cases.items():
+            self.assertEqual(methods._rfm_segment(r, f, m), segment, (r, f, m))
+            self.assertIn(segment, methods.RFM_SEGMENTS)
+
+    def test_media_plan_reach_frequency_and_rating_points(self):
+        out = LIBRARY["media_plan"].impl(INPUTS["media_plan"])
+        self.near(out["reach_pct_1"], 0.45, 12)
+        self.near(out["grp_1"], 360, 9)
+        self.near(out["grp_2"], 360, 9)
+        self.near(out["grp_3"], 48, 9)
+        self.near(out["total_grp"], 768, 9)
+        self.assertEqual(out["total_impressions"], D(7680000))
+        self.assertEqual(out["total_cost"], D(1830000))
+        self.near(out["cpm_1"], 1200000 / 3600000 * 1000, 8)
+        self.near(out["cpp_1"], 1200000 / 360, 8)
+        self.near(out["blended_cpm"], 1830000 / 7680000 * 1000, 8)
+        self.near(out["net_reach"], 1000000 * (1 - 0.55 * 0.70 * 0.88), 6)
+        self.near(out["average_frequency"], 7680000 / (1000000 * (1 - 0.55 * 0.70 * 0.88)), 6)
+
 
 class DigitalRefusals(unittest.TestCase):
     """A student's impossible count must block with a reason, not produce a plausible figure."""
@@ -172,6 +234,17 @@ class DigitalRefusals(unittest.TestCase):
         self.refuses("social_engagement", {"reach": "200000"})
         self.refuses("web_analytics", {"channels": [{"name": "organic", "sessions": "10", "conversions": "20", "revenue": "1"},
                                                     {"name": "paid", "sessions": "10", "conversions": "1", "revenue": "1"}]})
+        self.refuses("rfm_scoring", {"customers": INPUTS["rfm_scoring"]["customers"][:4]})
+        self.refuses("rfm_scoring", {"customers": [dict(INPUTS["rfm_scoring"]["customers"][0], name="C2")]
+                                     + INPUTS["rfm_scoring"]["customers"][1:]})
+        self.refuses("rfm_scoring", {"customers": [dict(INPUTS["rfm_scoring"]["customers"][0], recency_days="-1")]
+                                     + INPUTS["rfm_scoring"]["customers"][1:]})
+        self.refuses("rfm_scoring", {"customers": [dict(INPUTS["rfm_scoring"]["customers"][0], frequency="0")]
+                                     + INPUTS["rfm_scoring"]["customers"][1:]})
+        self.refuses("media_plan", {"vehicles": [dict(INPUTS["media_plan"]["vehicles"][0], reach="2000000")]})
+        self.refuses("media_plan", {"vehicles": [dict(INPUTS["media_plan"]["vehicles"][0], insertions="0")]})
+        self.refuses("media_plan", {"vehicles": [dict(INPUTS["media_plan"]["vehicles"][0], cost="-1")]})
+        self.refuses("media_plan", {"population": "0"})
 
     def test_profile_reports_the_reason_before_execution(self):
         issues = LIBRARY["campaign_efficiency"].profile({**INPUTS["campaign_efficiency"], "clicks": "300000"})
@@ -239,7 +312,7 @@ class MarketingShelf(unittest.TestCase):
         labels = [row["discipline_label"] for row in page["records"]]
         self.assertEqual(labels.count("Digital marketing"), 16)
         self.assertEqual(labels.count("Marketing frameworks"), 11)
-        self.assertEqual(labels.count("Customer and market analytics"), 6)
+        self.assertEqual(labels.count("Customer and market analytics"), 7)
 
     def test_the_digital_frameworks_and_methods_are_in_the_catalogue(self):
         rows = {row["id"]: row for row in subjects.detail("marketing")["catalogue"]}
@@ -248,7 +321,7 @@ class MarketingShelf(unittest.TestCase):
             self.assertIn("digital", " ".join(row["disciplines"]))
         from bp import registry
         linked = {i: [m["method_id"] for m in registry.get("QNT-MKT-%02d" % i)["linked_methods"]]
-                  for i in range(8, 15)}
+                  for i in range(8, 16)}
         self.assertEqual(linked[8], ["campaign_efficiency"])
         self.assertEqual(linked[9], ["channel_economics", "unit_economics"])
         self.assertEqual(linked[10], ["attribution_split"])
@@ -256,16 +329,27 @@ class MarketingShelf(unittest.TestCase):
         self.assertEqual(linked[12], ["email_list_health"])
         self.assertEqual(linked[13], ["social_engagement"])
         self.assertEqual(linked[14], ["web_analytics"])
+        self.assertEqual(linked[15], ["media_plan"])
 
-    def test_rfm_is_one_record_with_both_ids(self):
+    def test_rfm_is_one_record_with_both_ids_and_a_computed_status(self):
         from bp import registry
         record = registry.get("MKT-08")
         self.assertEqual(record["name"], "RFM Segmentation")
         self.assertIn("QNT-MKT-04", record["also_listed_as"])
+        self.assertEqual([m["method_id"] for m in record["linked_methods"]], ["rfm_scoring"])
+        self.assertEqual(record["form"], "computed")
+
+    def test_media_planning_is_catalogued_and_linked(self):
+        from bp import registry
+        record = registry.get("QNT-MKT-15")
+        self.assertEqual(record["name"], "Media planning")
+        self.assertEqual([m["method_id"] for m in record["linked_methods"]], ["media_plan"])
+        self.assertEqual(record["form"], "computed")
 
     def test_the_page_carries_the_digital_vocabulary(self):
         terms = {item["term"] for item in subjects.detail("marketing")["glossary"]}
-        for term in ("ROAS", "CPA", "CPC", "CTR", "Attribution", "A/B test", "CAC", "LTV", "UTM"):
+        for term in ("ROAS", "CPA", "CPC", "CTR", "Attribution", "A/B test", "CAC", "LTV", "UTM",
+                     "GRP", "CPP", "Net reach", "Quintile score"):
             self.assertIn(term, terms)
 
     def test_the_page_grouping_and_period_badges_cover_the_new_tiles(self):

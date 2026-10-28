@@ -135,6 +135,16 @@ METHOD_LINK_RULES = [
      "sessions, conversions, conversion rate, revenue per session and channel share are implemented, with organic "
      "click-through when impressions and clicks are declared; analytics-platform reads, cross-device identity and "
      "attribution windows are not implemented"),
+    (r"^Customer groups based on recency, frequency and monetary value",
+     ["rfm_scoring"],
+     "quintile recency, frequency and monetary scores and the eleven named segments are computed from a declared "
+     "customer list, with each segment's size and the mean scores; external benchmarks, clustering, segment "
+     "stability over time and next-period value are not implemented"),
+    (r"^Media planning",
+     ["media_plan"],
+     "reach, average frequency, gross impressions, gross rating points, cost per rating point, cost per thousand "
+     "impressions and a combined reach under random duplication are computed from declared vehicles; measured "
+     "audience overlap, effective frequency, scheduling and a recommended buy are not implemented"),
     (r"^Data profiling, descriptive statistics", ["descriptive_stats"], "descriptive statistics for one variable only; cross-tabulation and visualization are not implemented"),
     (r"^Chi-square tests, t-tests, ANOVA",
      ["welch_t", "mann_whitney", "chi_square", "anova", "kruskal_wallis", "two_way_anova", "posthoc_pairwise",
@@ -214,7 +224,9 @@ def load(path=DATA):
     raw = json.load(open(path, encoding="utf-8")); recs = raw["records"]
     for r in recs:
         r["linked_methods"] = []
-        if r["type"] == "Q" and r["id"].startswith("QNT-"):
+        # A quantitative record may sit in a framework section (RFM is MKT-08), so the
+        # link rules are tried for every record the catalogue types as Q, not only QNT ids.
+        if r["type"] == "Q":
             for pat, methods, note in METHOD_LINK_RULES:
                 if re.search(pat, r["summary"]): r["linked_methods"] = [{"method_id": m, "coverage": "partial", "note": note} for m in methods]
         r["template"] = TEMPLATE_LINKS.get(r["id"])

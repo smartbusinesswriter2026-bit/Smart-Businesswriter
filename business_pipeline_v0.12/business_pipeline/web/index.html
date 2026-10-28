@@ -184,9 +184,14 @@ body.rail-open .railitem[aria-current=page] .ic svg{fill:var(--navy-900);filter:
 .railsubjects::-webkit-scrollbar{width:6px}
 .railsubjects::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .railsubjects .railitem{flex:0 0 auto}
-.railgroup-label{font-size:12.0px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);
-                 padding:8px 12px 2px var(--rail-text-off);opacity:0;transition:opacity .2s ease;white-space:nowrap}
+.railgroup-label{font-size:13px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--navy-700);
+                 padding:14px 12px 5px var(--rail-text-off);opacity:0;transition:opacity .2s ease;white-space:nowrap;
+                 position:relative}
 body.rail-open .railgroup-label{opacity:1}
+/* the hairline under the heading binds it to the list it names: everything
+   below the rule is a subject */
+.railgroup-label::after{content:"";position:absolute;left:var(--rail-text-off);right:12px;bottom:0;
+                 height:1px;background:var(--border)}
 .railfoot{margin-top:auto;padding-top:6px;flex:0 0 auto;background:var(--surface)}
 .railfallback{font-size:13.2px;color:var(--text-3);padding:6px 9px;white-space:normal}
 
@@ -444,7 +449,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v0.93</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v0.94</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1419,9 +1424,9 @@ function renderSubject() {
   html += "</div>";
   if (computedRecords.length) {
     html += '<details class="studynote"><summary>Catalogue coverage for the computed methods (' + computedRecords.length + ')</summary>' +
-      '<div class="tablewrap"><table><caption>What each computed catalogue record covers</caption><thead><tr>' +
-      "<th>Id</th><th>Name</th><th>Coverage</th></tr></thead><tbody>" +
-      computedRecords.map((row) => "<tr><td>" + esc(row.id) + "</td><td>" + esc(txt(row.name)) + "</td><td>" +
+      '<div class="tablewrap"><table><caption>What each computed method area covers</caption><thead><tr>' +
+      "<th>Method area</th><th>Coverage</th></tr></thead><tbody>" +
+      computedRecords.map((row) => "<tr><td>" + esc(txt(row.name)) + "</td><td>" +
         esc((row.linked_methods || []).join(", ") || row.status_note) + "</td></tr>").join("") +
       "</tbody></table></div></details>";
   }
@@ -1502,7 +1507,7 @@ function marketPanel() {
     '<div class="marketrow">' +
       '<label>Equity symbol <input id="eqsym" value="AAPL" maxlength="12" size="7" aria-label="Equity symbol"></label>' +
       '<button class="btn sm" id="eqquote" type="button">Quote</button>' +
-      '<button class="btn sm" id="eqfund" type="button">Fundamentals</button>' +
+      '<button class="btn sm" id="eqfund" type="button">Fundamentals (SEC)</button>' +
       '<span id="eqstatus" class="muted"></span>' +
     '</div>' +
     '<div class="marketrow">' +
@@ -1521,8 +1526,9 @@ function marketPanel() {
       '</select></label>' +
       '<button class="btn sm" id="wblookup" type="button">World Bank</button>' +
     '</div>' +
-    '<p class="muted">Equity lookups need a free key in <code>BP_ALPHAVANTAGE_KEY</code> (25 requests/day, unlimited for verified educational projects). ' +
-    'SEC EDGAR and World Bank need none. PSE and private companies are not covered by these sources: enter those figures manually.</p>' +
+    '<p class="muted">Equity quotes use your own free Alpha Vantage key (25 requests/day; fundamentals are premium there, so this app reads SEC XBRL instead). ' +
+    'SEC EDGAR filings, SEC fundamentals and World Bank need no key. Every result shows its source, date and response hash; nothing is auto-filled. ' +
+    'PSE and private companies are not covered: enter those figures manually.</p>' +
     '<div id="marketout" aria-live="polite"></div></div>';
 }
 
@@ -2435,13 +2441,135 @@ function guideCard() {
     "</details>";
 }
 
+function provOptions() {
+  return '<option value="user">my evidence</option><option value="sourced">sourced</option>' +
+         '<option value="assumption">assumption</option><option value="synthetic">illustrative</option>';
+}
+
+function materialityOptions() {
+  return '<option value="">materiality (optional)</option><option value="high">high</option>' +
+         '<option value="medium">medium</option><option value="low">low</option>';
+}
+
+function linesOf(id) {
+  const el = document.getElementById(id);
+  return String(el ? el.value : "").split("\n").map((x) => x.trim()).filter((x) => x.length);
+}
+
+function worksheetTextBlock(id, label, prompt, meta) {
+  return '<div class="wblock"><label class="field" for="' + id + '"><strong class="wtitle">' + esc(label) + '</strong>' +
+    '<span class="wprompt">' + esc(prompt) + '</span></label>' +
+    '<textarea class="wtext" id="' + id + '" rows="3" placeholder="One item per line"></textarea>' +
+    '<div class="wmeta">' + meta + '</div></div>';
+}
+
+function fiveForcesForm(t) {
+  const forces = [["rivalry", "Industry rivalry"], ["entrants", "Threat of new entrants"],
+                  ["substitutes", "Threat of substitutes"], ["buyers", "Buyer power"],
+                  ["suppliers", "Supplier power"]];
+  return '<div class="wsheet"><p class="wintro">Write one item per line for each force. A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score.</p>' +
+    forces.map((pair) => worksheetTextBlock("ff-" + pair[0], pair[1], "What evidence shows this force?",
+      '<select id="ffp-' + pair[0] + '">' + provOptions() + "</select>" +
+      '<input type="text" id="ffs-' + pair[0] + '" placeholder="source (needed when sourced)" style="flex:1;min-width:170px">' +
+      '<select id="ffr-' + pair[0] + '"><option value="">no rating</option><option value="low">low</option>' +
+      '<option value="moderate">moderate</option><option value="high">high</option></select>' +
+      '<input type="text" id="ffw-' + pair[0] + '" placeholder="why (needed for a rating)" style="flex:1;min-width:170px">'
+    )).join("") + "</div>";
+}
+
+function swotForm(t) {
+  const quads = [["S", "Strengths", "internal"], ["W", "Weaknesses", "internal"],
+                 ["O", "Opportunities", "external"], ["T", "Threats", "external"]];
+  return '<div class="wsheet"><p class="wintro">Write one item per line in each quadrant. Strengths and weaknesses are internal; opportunities and threats are external. A quadrant you leave empty is reported as a gap.</p>' +
+    quads.map((quad) => worksheetTextBlock("sw-" + quad[0], quad[1], quad[2] + " evidence",
+      '<select id="swp-' + quad[0] + '">' + provOptions() + "</select>" +
+      '<input type="text" id="sws-' + quad[0] + '" placeholder="source (needed when sourced)" style="flex:1;min-width:170px">' +
+      '<select id="swm-' + quad[0] + '">' + materialityOptions() + "</select>"
+    )).join("") + "</div>";
+}
+
+function matrixForm(t) {
+  const grouped = t.id === "template_strategic_group_map";
+  return '<div class="wsheet"><p class="wintro">' +
+    (grouped ? "List the competitors you have evidence for, the group you assign to each, and the two axes with a reason for each. Placing a competitor is your judgment."
+             : "List the scenarios and the drivers that distinguish them. The grid is built from your lists; you then state what you assume in each cell.") + "</p>" +
+    '<div class="wblock"><label class="field" for="mx-rows"><strong class="wtitle">' +
+      (grouped ? "Competitors" : "Scenarios") + '</strong><span class="wprompt">One per line</span></label>' +
+      '<textarea class="wtext" id="mx-rows" rows="3" placeholder="One per line"></textarea>' +
+      (grouped ? '<div class="wmeta"><input type="text" id="mx-groups" placeholder="group for each competitor, in the same order" style="flex:1"></div>' : "") +
+    "</div>" +
+    '<div class="wblock"><label class="field" for="mx-cols"><strong class="wtitle">' +
+      (grouped ? "Two axes" : "Drivers") + '</strong><span class="wprompt">' +
+      (grouped ? "Exactly two, one per line" : "Two to six, one per line") + "</span></label>" +
+      '<textarea class="wtext" id="mx-cols" rows="3" placeholder="One per line"></textarea>' +
+      (grouped ? '<div class="wmeta"><input type="text" id="mx-rationale" placeholder="why each axis, in the same order" style="flex:1"></div>' : "") +
+    "</div>" +
+    '<div class="row"><button class="btn sm" type="button" id="mx-build">Build the grid</button></div>' +
+    '<div id="mx-grid"></div></div>';
+}
+
+function buildMatrixGrid() {
+  const rows = linesOf("mx-rows"), columns = linesOf("mx-cols");
+  const grid = document.getElementById("mx-grid");
+  if (!rows.length || !columns.length) {
+    grid.innerHTML = '<p class="muted">Add the rows and columns first.</p>';
+    return;
+  }
+  let html = '<div class="tablewrap"><table><caption>What you assume in each cell</caption><thead><tr><th></th>' +
+    columns.map((column) => "<th>" + esc(column) + "</th>").join("") + "</tr></thead><tbody>";
+  rows.forEach((row, r) => {
+    html += "<tr><th>" + esc(row) + "</th>" + columns.map((column, c) =>
+      '<td><input type="text" id="mx-cell-' + r + "-" + c + '" placeholder="assumption"></td>').join("") + "</tr>";
+  });
+  grid.innerHTML = html + "</tbody></table></div>";
+}
+
+function vrioResourceCard(n) {
+  const questions = [["valuable", "V - Valuable"], ["rare", "R - Rare"],
+                     ["costly_to_imitate", "I - Costly to imitate"], ["organized", "O - Organized to capture value"]];
+  return '<div class="wblock" data-vrio-resource="' + n + '">' +
+    '<div class="wmeta"><input type="text" id="vr-name-' + n + '" placeholder="Resource or capability" style="flex:1">' +
+      '<select id="vr-prov-' + n + '">' + provOptions() + "</select>" +
+      '<input type="text" id="vr-src-' + n + '" placeholder="source (needed when sourced)" style="flex:1"></div>' +
+    questions.map((pair) =>
+      '<div class="wmeta" style="margin-top:8px"><strong style="min-width:190px">' + esc(pair[1]) + "</strong>" +
+        '<select id="vr-' + pair[0] + "-" + n + '"><option value="yes">yes</option><option value="no">no</option>' +
+        '<option value="unsure">unsure</option></select>' +
+        '<input type="text" id="vr-ev-' + pair[0] + "-" + n + '" placeholder="evidence for this answer" style="flex:1"></div>'
+    ).join("") +
+    '<div class="wmeta" style="margin-top:8px"><input type="text" id="vr-conc-' + n +
+      '" placeholder="your conclusion (optional)" style="flex:1"></div></div>';
+}
+
+function vrioForm(t) {
+  return '<div class="wsheet"><p class="wintro">For each resource, answer the four questions with your own judgment, add the evidence behind each answer, and state your conclusion. The worksheet derives no verdict.</p>' +
+    '<div id="vrio-resources"></div>' +
+    '<div class="row"><button class="btn sm" type="button" id="vrio-add">Add another resource</button></div></div>';
+}
+
+function bindWorksheetForm(t) {
+  if (!t) return;
+  if (t.form_kind === "matrix") {
+    const build = document.getElementById("mx-build");
+    if (build) build.onclick = buildMatrixGrid;
+  }
+  if (t.form_kind === "vrio") {
+    const box = document.getElementById("vrio-resources");
+    const add = document.getElementById("vrio-add");
+    let count = 0;
+    const append = () => { if (box) box.insertAdjacentHTML("beforeend", vrioResourceCard(count++)); };
+    append();
+    if (add) add.onclick = append;
+  }
+}
+
 function worksheetForm(t) {
+  if (t.form_kind === "swot") return swotForm(t);
+  if (t.form_kind === "five_forces") return fiveForcesForm(t);
+  if (t.form_kind === "matrix") return matrixForm(t);
+  if (t.form_kind === "vrio") return vrioForm(t);
   if (!t.blocks || !t.blocks.length) {
-    const example = (t.example_request && t.example_request.inputs) || {};
-    return '<p class="sub">This worksheet takes a structured input. Edit the example object below: replace every item with your own evidence, keep the field names, and delete what you do not have. Anything you leave out is reported as a gap.</p>' +
-      '<div class="stack" style="gap:4px"><label class="field" for="ws-json">Worksheet inputs (JSON) <span class="muted">one object; the shape is the example</span></label>' +
-      '<textarea id="ws-json" data-type="object" rows="18" spellcheck="false" class="jsoninput" style="width:100%">' +
-      esc(JSON.stringify(example, null, 1)) + "</textarea></div>";
+    return '<p class="muted">This worksheet has no guided form yet. Nothing is shown as raw code; ask for the guided form to be added.</p>';
   }
   return '<div class="wsheet">' +
     '<p class="wintro">Write one item per line in each block. Every line is your evidence; say whether it is yours, sourced or an assumption, and give the source when it is sourced. A block you leave empty stays empty and is reported as a gap; nothing is filled in for you.</p>' +
@@ -2462,13 +2590,124 @@ function worksheetForm(t) {
     '<textarea class="wtext" id="wlinks" rows="2" spellcheck="false" placeholder="B1_1 -> B2_1"></textarea></div></div>';
 }
 
+function collectFiveForcesInputs() {
+  const forces = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"];
+  const evidence = [], ratings = {};
+  for (const key of forces) {
+    const provenance = document.getElementById("ffp-" + key).value;
+    const source = document.getElementById("ffs-" + key).value.trim();
+    const items = linesOf("ff-" + key);
+    if (items.length && provenance === "sourced" && !source) {
+      toast("Add the source for " + key + ".");
+      return null;
+    }
+    items.forEach((text) => {
+      const item = { text: text, force: key, provenance: provenance };
+      if (provenance === "sourced") item.source = source;
+      evidence.push(item);
+    });
+    const rating = document.getElementById("ffr-" + key).value;
+    const rationale = document.getElementById("ffw-" + key).value.trim();
+    if (rating) {
+      if (!rationale) { toast("Add a one-line reason for the " + key + " rating."); return null; }
+      ratings[key] = { rating: rating, rationale: rationale };
+    }
+  }
+  if (!evidence.length) { toast("Add at least one evidence item."); return null; }
+  return { evidence: evidence, ratings: ratings };
+}
+
+function collectSwotInputs() {
+  const quadrants = [["S", "strengths"], ["W", "weaknesses"], ["O", "opportunities"], ["T", "threats"]];
+  const evidence = [];
+  for (const pair of quadrants) {
+    const provenance = document.getElementById("swp-" + pair[0]).value;
+    const source = document.getElementById("sws-" + pair[0]).value.trim();
+    const materiality = document.getElementById("swm-" + pair[0]).value;
+    const items = linesOf("sw-" + pair[0]);
+    if (items.length && provenance === "sourced" && !source) {
+      toast("Add the source for " + pair[1] + ".");
+      return null;
+    }
+    items.forEach((text) => {
+      const item = { text: text, dimension: pair[0], provenance: provenance };
+      if (provenance === "sourced") item.source = source;
+      if (materiality) item.materiality = materiality;
+      evidence.push(item);
+    });
+  }
+  if (!evidence.length) { toast("Add at least one evidence item."); return null; }
+  return { evidence: evidence };
+}
+
+function collectMatrixInputs(t) {
+  const grouped = t.id === "template_strategic_group_map";
+  const rows = linesOf("mx-rows"), columns = linesOf("mx-cols");
+  if (!rows.length || !columns.length) { toast("Add the rows and columns first."); return null; }
+  const groups = grouped ? linesOf("mx-groups") : [];
+  const rationales = grouped ? linesOf("mx-rationale") : [];
+  if (grouped && (groups.length !== rows.length || rationales.length !== columns.length)) {
+    toast("Add one group per competitor and one reason per axis.");
+    return null;
+  }
+  const cells = [];
+  rows.forEach((row, r) => columns.forEach((column, c) => {
+    const el = document.getElementById("mx-cell-" + r + "-" + c);
+    const text = el ? el.value.trim() : "";
+    if (text) cells.push({ row: "R" + (r + 1), column: "C" + (c + 1), text: text, provenance: "user" });
+  }));
+  if (!cells.length) { toast("Build the grid and fill at least one cell."); return null; }
+  return {
+    rows: rows.map((text, i) => {
+      const row = { id: "R" + (i + 1), text: text, provenance: "user" };
+      if (grouped) row.group = groups[i];
+      return row;
+    }),
+    columns: columns.map((text, i) => {
+      const column = { id: "C" + (i + 1), text: text, provenance: "user" };
+      if (grouped) column.rationale = rationales[i];
+      return column;
+    }),
+    cells: cells
+  };
+}
+
+function collectVrioInputs() {
+  const resources = [];
+  for (const card of document.querySelectorAll("[data-vrio-resource]")) {
+    const n = card.dataset.vrioResource;
+    const name = document.getElementById("vr-name-" + n).value.trim();
+    if (!name) continue;
+    const provenance = document.getElementById("vr-prov-" + n).value;
+    const source = document.getElementById("vr-src-" + n).value.trim();
+    if (provenance === "sourced" && !source) { toast("Add the source for " + name + "."); return null; }
+    const answers = {}, evidence = [];
+    ["valuable", "rare", "costly_to_imitate", "organized"].forEach((question) => {
+      answers[question] = document.getElementById("vr-" + question + "-" + n).value;
+      const text = document.getElementById("vr-ev-" + question + "-" + n).value.trim();
+      if (text) {
+        const item = { text: text, question: question, provenance: provenance };
+        if (provenance === "sourced") item.source = source;
+        evidence.push(item);
+      }
+    });
+    const resource = { text: name, provenance: provenance, answers: answers, evidence: evidence };
+    if (provenance === "sourced") resource.source = source;
+    const conclusion = document.getElementById("vr-conc-" + n).value.trim();
+    if (conclusion) resource.conclusion = conclusion;
+    resources.push(resource);
+  }
+  if (!resources.length) { toast("Add at least one resource."); return null; }
+  return { resources: resources };
+}
+
 function collectWorksheetInputs() {
   const t = state.worksheet; if (!t) return null;
-  if (!t.blocks || !t.blocks.length) {
-    const el = document.getElementById("ws-json");
-    if (!el) return (state.tool && state.tool.inputs) || null;
-    try { return JSON.parse(el.value); } catch (e) { toast("The worksheet inputs are not valid JSON."); return null; }
-  }
+  if (t.form_kind === "five_forces") return collectFiveForcesInputs();
+  if (t.form_kind === "swot") return collectSwotInputs();
+  if (t.form_kind === "matrix") return collectMatrixInputs(t);
+  if (t.form_kind === "vrio") return collectVrioInputs();
+  if (!t.blocks || !t.blocks.length) return null;
   const probe = document.getElementById("wb-" + t.blocks[0].key);
   if (!probe) return (state.tool && state.tool.inputs) || null;
   const blocks = {}, links = [];
@@ -2552,6 +2791,7 @@ function renderNew() {
       '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
       '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button></div>' +
       worksheetForm(t) + "</div>";
+    bindWorksheetForm(t);
     const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
     const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
     const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
@@ -2693,6 +2933,11 @@ async function confirmSession(reject) {
 }
 
 RENDERERS.results = function () { renderResults(); };
+function tierLabel(tier) {
+  return ({ T1: "Verified calculation", T2: "Custom analysis", T3: "Framework with calculation",
+            T4: "Framework worksheet" })[tier] || "Result";
+}
+
 function renderResults() {
   const s = state.session; const d = s && s.delivery;
   const p = $("#panel-results");
@@ -2705,15 +2950,14 @@ function renderResults() {
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
-    '<div class="row" style="justify-content:space-between"><h2>Result</h2><span class="badge">' + esc(ap.tier || "") + "</span></div>" +
+    '<div class="row" style="justify-content:space-between"><h2>Result</h2><span class="badge">' + esc(tierLabel(ap.tier)) + "</span></div>" +
     '<div class="row" style="margin:0 0 12px">' +
       '<button class="btn primary" id="savecase">Save as case</button>' +
-      '<button class="btn" id="tocharts">Charts and exports</button>' +
-      '<span class="grow"></span><span class="muted">Spec hash ' + esc(ap.spec_hash) + "</span></div>" +
+      '<button class="btn" id="tocharts">Charts and exports</button></div>' +
     '<div class="report">' + esc(d.report) + "</div>";
   if (honestyKeys.length) {
     html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
-      "<li>" + esc(k) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : JSON.stringify(honesty[k])) + "</li>").join("") + "</ul>");
+      "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>");
   }
   if ((ap.limitations || []).length) {
     html += banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
@@ -2722,13 +2966,15 @@ function renderResults() {
     html += banner("limit", "Assumptions (as recorded)", "<ul>" + ap.assumptions.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
   }
   html += "</div>";
-  html += '<div class="card"><h3>Artifacts</h3>' + artifactTable(ap) + "</div>";
-  html += '<div class="card"><h3>Recorded metadata</h3>' + kv([
-    ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
-    ["Category", ap.method && ap.method.category], ["Tier", ap.tier], ["Spec hash", ap.spec_hash],
-    ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id],
-    ["Sandbox", ap.sandbox && ap.sandbox.isolation ? ap.sandbox.isolation : ap.sandbox],
-    ["Checks", (ap.tests || []).join(", ")]]) + "</div>";
+  html += '<details class="studynote"><summary>Technical record (hashes, checks and artifacts)</summary>' +
+    '<p class="muted">Every value above can be reproduced from this record. It is kept for audit, not for reading.</p>' +
+    "<h3>Artifacts</h3>" + artifactTable(ap) +
+    "<h3>Recorded metadata</h3>" + kv([
+      ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
+      ["Category", ap.method && ap.method.category], ["Tier", tierLabel(ap.tier)], ["Spec hash", ap.spec_hash],
+      ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id],
+      ["Sandbox", ap.sandbox && ap.sandbox.isolation ? ap.sandbox.isolation : ap.sandbox],
+      ["Checks", (ap.tests || []).join(", ")]]) + "</details>";
   p.innerHTML = html;
   $("#savecase").onclick = saveCase;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
@@ -2860,7 +3106,7 @@ function renderCase() {
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
     '<div class="row" style="justify-content:space-between"><h2>' + esc(txt(b.title)) + "</h2>" +
-    '<span class="badge">' + esc(txt(b.tier)) + "</span></div>" +
+    '<span class="badge">' + esc(tierLabel(b.tier)) + "</span></div>" +
     '<div class="row"><span class="muted">Case ' + esc(b.id) + " - " + esc(txt(b.created_at)) + " - " + esc(txt(b.method)) + "</span>" +
     '<span class="grow"></span><button class="btn sm danger" id="delcase">Delete case</button></div>' +
     '<div class="tabs" role="tablist">' +
@@ -2876,12 +3122,14 @@ function renderCase() {
     '<div class="report">' + esc(d.report) + "</div>" +
     (ap.accounts ? accountingBlocks(ap.accounts) : "") +
     (honestyKeys.length ? banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
-      "<li>" + esc(k) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : JSON.stringify(honesty[k])) + "</li>").join("") + "</ul>") : "") +
+      "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>") : "") +
     ((ap.limitations || []).length ? banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>") : "") +
-    "<h3>Artifacts</h3>" + artifactTable(ap) +
-    '<h3>Recorded metadata</h3>' + kv([["Spec hash", ap.spec_hash], ["Outputs hash", b.outputs_hash],
-      ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
-      ["Tier", ap.tier], ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id]]) +
+    '<details class="studynote"><summary>Technical record (hashes, checks and artifacts)</summary>' +
+      "<h3>Artifacts</h3>" + artifactTable(ap) +
+      '<h3>Recorded metadata</h3>' + kv([["Spec hash", ap.spec_hash], ["Outputs hash", b.outputs_hash],
+        ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
+        ["Tier", tierLabel(ap.tier)], ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id]]) +
+    "</details>" +
     "</div>";
   html += '<div class="tabpanel" data-panel="versions"' + (state.tab === "versions" ? "" : " hidden") + ">" +
     '<div class="row"><button class="btn" id="newver">Save the current session as a new version</button></div>' +

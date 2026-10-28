@@ -16,8 +16,10 @@ FORCES = {"rivalry": "Industry rivalry", "entrants": "Threat of new entrants", "
 PERIOD = "cross_section"
 
 def _label(it):
+    """A plain-language label for the student; never a field name or code."""
     p = it["provenance"]
-    return {"user": "user-supplied", "sourced": f"sourced: {it.get('source')}", "assumption": "assumption (unsupported)", "synthetic": "synthetic (illustrative only)"}[p]
+    return {"user": "your evidence", "sourced": f"source: {it.get('source')}",
+            "assumption": "assumption (not yet supported)", "synthetic": "illustrative only"}[p]
 
 def _items(inp, key, dim_key, allowed, errs, id_prefix="E"):
     raw = inp.get(key)
@@ -115,7 +117,7 @@ def build_five_forces(inp):
     counts = {"n_items": len(its), "n_rated": st["rated"], "n_evidence_only": st["evidence_only"], "n_no_evidence": st["no_evidence"], "n_unsupported": len(audit["unsupported_items"])}
     return {"kind": "template_five_forces", "registry_ids": ["STR-01"], "forces": f, "audit": audit, "counts": counts}
 
-def _line(it): return f"  [{it['id']}] {it['text']} — {_label(it)}" + (f"; materiality: {it['materiality']} (your rating)" if it.get("materiality") else "")
+def _line(it): return f"  • {it['text']} — {_label(it)}" + (f"; materiality: {it['materiality']} (your rating)" if it.get("materiality") else "")
 def _names(keys, names): return ", ".join(names[k].lower() for k in keys)
 
 def render_swot(a):
@@ -134,7 +136,10 @@ def render_swot(a):
         lines += [_line(i) for i in qd["items"]] or ["  No evidence supplied."]
     if a["options"]:
         lines.append("Strategic options you supplied (pairing derived from the dimensions of the items cited)")
-        lines += [f"  [{o['id']}] {o['tows']}: {o['text']} — follows from {', '.join(o['supports'])}" for o in a["options"]]
+        by_id = {i["id"]: i["text"] for d in QUAD for i in a["quadrants"][d]["items"]}
+        for o in a["options"]:
+            follows = "; ".join(by_id[s] for s in o["supports"])
+            lines.append(f"  • {o['tows']}: {o['text']} — follows from: {follows}")
     return t, "\n".join(lines)
 
 def render_five_forces(a):
@@ -163,9 +168,9 @@ def _common(kind, inp, a, narrative, listing, dim_key):
     if kind == "template_swot": texts_out |= {o["text"] for o in a["options"]}
     allowed = {t for _, t, _, _ in raw} | ({o["text"].strip() for o in inp.get("options", [])} if kind == "template_swot" else set()) | ({r["rationale"].strip() for r in inp.get("ratings", {}).values()} if kind == "template_five_forces" else set())
     out_texts = set(texts_out) | ({v["rationale"] for v in a["forces"].values() if v["rationale"]} if kind == "template_five_forces" else set())
-    ok_line = all(f"[{i}] {t} — " in listing for i, t, _, _ in raw)
+    ok_line = all(f"• {t} — " in listing for i, t, _, _ in raw)
     return [("each_item_placed_exactly_once", sorted(placed) == sorted(i for i, _, _, _ in raw) and len(set(placed)) == n),
-            ("listing_reproduces_every_input_text_verbatim", ok_line and listing.count("\n  [") + (1 if listing.startswith("  [") else 0) >= n),
+            ("listing_reproduces_every_input_text_verbatim", ok_line and listing.count("\n  •") + (1 if listing.startswith("  •") else 0) >= n),
             ("analysis_contains_only_supplied_text", out_texts <= allowed and {t for _, t, _, _ in raw} <= out_texts),
             ("assumptions_and_synthetic_flagged", set(a["audit"]["unsupported_items"]) == {i for i, _, _, p in raw if p == "assumption"} and set(a["audit"]["synthetic_items"]) == {i for i, _, _, p in raw if p == "synthetic"}),
             ("rendering_is_deterministic", (render_swot if kind == "template_swot" else render_five_forces)(a) == (narrative, listing))]
@@ -533,7 +538,7 @@ def tests_canvas(kind, inp, a, narrative, listing):
          and c["n_links"] == len(declared) and c["n_blocks"] == len(spec),
          "the counts are recomputed from the raw input"),
         ("listing_reproduces_every_input_text_verbatim",
-         all(f"[{i}] {t} — " in listing for i, t, _ in raw),
+         all(f"• {t} — " in listing for i, t, _ in raw),
          "each item's text is reproduced exactly"),
         ("analysis_contains_only_supplied_text",
          texts_out == texts_in,
@@ -714,7 +719,7 @@ def render_matrix(a):
         lines.append(f"The {a['column_label']}s you declared, and why")
         lines += [f"  {c['text']} — {c['rationale']}" for c in a["columns"]]
     for row in a["rows"]:
-        head = f"{row['text']} [{row['id']}]"
+        head = row['text']
         if row.get("group"):
             head += f" — group: {row['group']}"
         lines.append(head)
@@ -750,7 +755,7 @@ def tests_matrix(kind, inp, a, narrative, listing):
          a["counts"]["n_rows"] == len(raw_rows) and a["counts"]["n_columns"] == len(raw_columns)
          and a["counts"]["n_cells"] == len(set(declared)), "the counts are recomputed from the raw input"),
         ("listing_reproduces_every_input_text_verbatim",
-         all(f"{r['text']} [" in listing for r in a["rows"])
+         all(r["text"] in listing for r in a["rows"])
          and all(f"  {c['text']}: " in listing for c in a["columns"])
          and all((not cell) or f"{cell['text']} — " in listing for r in a["rows"] for cell in r["cells"].values()),
          "each row, column and cell text is reproduced exactly"),
@@ -894,7 +899,7 @@ def render_vrio(a):
           "ranking from the answers, and it adds no facts of its own.")
     lines = []
     for resource in a["resources"]:
-        lines.append(f"{resource['text']} [{resource['id']}] — {_label(resource)}")
+        lines.append(f"{resource['text']} — {_label(resource)}")
         for question, (label, _prompt) in VRIO_QUESTIONS.items():
             lines.append(f"  {label}: {resource['answers'][question]} (your answer)")
             evidence = resource["evidence_by_question"][question]
@@ -1081,8 +1086,13 @@ def describe(kind):
         blocks = [{"key": key, "label": CANVAS_BLOCKS[kind][key][0], "prompt": CANVAS_BLOCKS[kind][key][1],
                    "prefix": prefixes.get(key) or ("B%d_" % (i + 1))}
                   for i, key in enumerate(CANVAS_BLOCKS[kind])]
+    form_kind = ("canvas" if kind in CANVAS_BLOCKS else
+                 "swot" if kind == "template_swot" else
+                 "five_forces" if kind == "template_five_forces" else
+                 "matrix" if kind in MATRIX_META else
+                 "vrio" if kind == "template_vrio" else "none")
     return {"id": t["id"], "version": t["version"], "name": t["name"], "registry_ids": t["registry_ids"], "tier": t.get("tier", "T4"), "intended_use": t["intended_use"], "unsupported_use": t["unsupported_use"],
-            "input_help": t["input_help"], "blocks": blocks, "defaults": list(t["defaults"]), "limitations": list(t["limitations"]), "planned_checks": list(t["test_names"]), "example_request": EXAMPLES.get(kind)}
+            "input_help": t["input_help"], "blocks": blocks, "form_kind": form_kind, "defaults": list(t["defaults"]), "limitations": list(t["limitations"]), "planned_checks": list(t["test_names"]), "example_request": EXAMPLES.get(kind)}
 
 BAKERY = "Illustrative bakery case (synthetic)"
 EXAMPLES = {

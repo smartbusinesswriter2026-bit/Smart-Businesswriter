@@ -248,7 +248,9 @@ class ShelfWiring(unittest.TestCase):
         keys = {tool["key"] for tool in page["tools"]}
         self.assertTrue({"cpm", "evm"} <= keys)
         groups = list(dict.fromkeys(tool["group"] for tool in page["tools"]))
-        self.assertEqual(groups[0], "Schedule and control")
+        self.assertEqual(groups, ["Appraise the business case", "Compare the options",
+                                  "Project cost and benefit", "Schedule and control"],
+                         "the PM page must follow the assignment lifecycle, business case first")
 
     def test_accounting_and_operations_carry_the_new_tools(self):
         accounting = {t["key"] for t in subjects.detail("accounting")["tools"]}

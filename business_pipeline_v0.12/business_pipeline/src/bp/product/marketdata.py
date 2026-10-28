@@ -48,7 +48,7 @@ WORLDBANK = ("https://api.worldbank.org/v2/country/{country}/indicator/{indicato
              "?format=json&per_page={count}")
 
 ALLOWED_HOSTS = {"api.frankfurter.dev", "home.treasury.gov", "www.alphavantage.co",
-                 "www.sec.gov", "api.worldbank.org"}
+                 "www.sec.gov", "data.sec.gov", "api.worldbank.org"}
 MAX_BYTES = 1_000_000
 TIMEOUT = 20
 CACHE_SECONDS = 300
@@ -73,6 +73,16 @@ WB_INDICATORS = {
 
 #: EDGAR form filters offered by the panel; an empty string means any form.
 SEC_FORMS = ("10-K", "10-Q", "8-K", "20-F", "6-K", "DEF 14A", "")
+
+#: XBRL concepts for a compact fundamentals snapshot, with fallbacks where companies differ.
+SEC_CONCEPTS = {
+    "Revenue": ("RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"),
+    "Net income": ("NetIncomeLoss",),
+    "Total assets": ("Assets",),
+    "Total liabilities": ("Liabilities",),
+    "Shareholders' equity": ("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"),
+    "Diluted EPS": ("EarningsPerShareDiluted", "EarningsPerShareBasic"),
+}
 
 _CACHE = {}
 
@@ -255,10 +265,12 @@ def status():
     """
     key = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
     return {"format": FORMAT,
-            "sources": {"fx": True, "riskfree": True, "equity": key, "filings": True, "macro": True},
+            "sources": {"fx": True, "riskfree": True, "equity": key, "fundamentals": True,
+                        "filings": True, "macro": True},
             "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
-            "note": ("Equity quote and fundamentals use your own free Alpha Vantage key; every other lookup "
-                     "needs no key. Uncovered markets (PSE, private companies) are manual entries.")}
+            "note": ("Equity quotes use your own free Alpha Vantage key; fundamentals come from SEC EDGAR's "
+                     "XBRL facts (US registrants) and need no key. Uncovered markets (PSE, private companies) "
+                     "are manual entries.")}
 
 
 def _alpha_key():
@@ -312,31 +324,68 @@ def equity_quote(symbol):
     return payload
 
 
-def equity_fundamentals(symbol):
-    """A small fundamentals snapshot for one symbol from Alpha Vantage OVERVIEW."""
-    symbol = _symbol(symbol)
-    key = _alpha_key()
-    cache_key = ("fundamentals", symbol)
+def _sec_concept(cik, tags):
+    """The latest annual (10-K/FY) fact for the first available XBRL concept."""
+    last_error = None
+    for tag in tags:
+        url = ("https://data.sec.gov/api/xbrl/companyconcept/CIK" + cik +
+               "/us-gaap/" + tag + ".json")
+        try:
+            raw, final = _fetch(url)
+        except MarketDataError as exc:
+            last_error = exc
+            continue
+        try:
+            data = json.loads(raw.decode("utf-8"))
+            units = data.get("units") or {}
+            unit = ("USD/shares" if "USD/shares" in units else
+                    ("USD" if "USD" in units else next(iter(units), None)))
+            facts = [f for f in units.get(unit, []) if isinstance(f, dict) and f.get("val") is not None]
+        except (ValueError, UnicodeDecodeError, AttributeError):
+            last_error = MarketDataError("an SEC concept could not be read")
+            continue
+        annual = [f for f in facts if f.get("form") == "10-K" and f.get("fp") == "FY"]
+        pool = annual or facts
+        if not pool:
+            continue
+        pool.sort(key=lambda f: (str(f.get("end") or ""), str(f.get("filed") or "")))
+        fact = pool[-1]
+        try:
+            value = Decimal(str(fact["val"]))
+        except (InvalidOperation, KeyError, TypeError):
+            continue
+        return value, str(fact.get("end") or ""), raw, final, str(data.get("tag") or tag)
+    raise last_error or MarketDataError("SEC EDGAR has no usable concept for this company")
+
+
+def sec_fundamentals(ticker):
+    """A compact US-company fundamentals snapshot from SEC XBRL company facts (no key)."""
+    ticker = _symbol(ticker)
+    cache_key = ("sec_fundamentals", ticker)
     cached = _cache_get(cache_key)
     if cached: return cached
-    data, raw, final = _alpha_json("OVERVIEW", symbol, key)
-    if not data.get("Symbol"):
-        raise MarketDataError("the equity source returned no fundamentals for " + symbol)
-    fields = {
-        "Name": "Name", "MarketCapitalization": "Market capitalisation", "PERatio": "P/E",
-        "PEGRatio": "PEG", "PriceToBookRatio": "Price / book", "EVToEBITDA": "EV / EBITDA",
-        "ProfitMargin": "Profit margin", "ReturnOnEquity": "Return on equity",
-        "RevenueTTM": "Revenue (TTM)", "EBITDA": "EBITDA", "QuarterlyEarningsGrowthYOY": "Earnings growth (YoY)",
-    }
-    values = {label: str(data.get(key, "") or "").strip() for key, label in fields.items()}
-    market_cap = data.get("MarketCapitalization")
-    try:
-        value = Decimal(str(market_cap)) if market_cap not in (None, "", "None", "-") else Decimal(0)
-    except (InvalidOperation, ValueError):
-        value = Decimal(0)
-    payload = _payload("fundamentals", value, str(data.get("LatestQuarter") or ""),
-                       "Alpha Vantage (free tier), company overview", _public_url(final), raw,
-                       {"symbol": symbol, "values": values, "currency": str(data.get("Currency") or "").strip()})
+    filings = sec_filings(ticker, "", 1)
+    cik = str(filings.get("cik") or "").strip()
+    if not cik:
+        raise MarketDataError("SEC EDGAR returned no CIK for " + ticker + "; this source covers US registrants only")
+    cik = cik.zfill(10)
+    values, ends, chunks, last_url = {}, [], [], ""
+    for label, tags in SEC_CONCEPTS.items():
+        try:
+            value, end, raw, final, _tag = _sec_concept(cik, tags)
+        except MarketDataError:
+            continue
+        values[label] = str(value)
+        if end: ends.append(end)
+        chunks.append(raw)
+        last_url = final
+    if not values:
+        raise MarketDataError("SEC EDGAR has no XBRL fundamentals for " + ticker)
+    market_value = values.get("Total assets") or values.get("Revenue") or "0"
+    payload = _payload("fundamentals", Decimal(market_value), max(ends) if ends else "",
+                       "U.S. SEC EDGAR XBRL company facts", last_url, b"".join(chunks),
+                       {"symbol": ticker, "company": filings.get("company") or "", "cik": cik,
+                        "values": values, "currency": "USD"})
     _cache_put(cache_key, payload, DAY_SECONDS)
     return payload
 

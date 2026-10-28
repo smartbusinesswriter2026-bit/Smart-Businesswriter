@@ -39,6 +39,7 @@ cost-and-mix groups, because a distribution problem is an inventory and capacity
 | What the assignment asks for | Tool | What you supply |
 |---|---|---|
 | Where is the bottleneck, and what is the capacity? | `capacity_analysis` | each resource's name, available hours and minutes per unit |
+| How many stations does the line need? | `line_balancing` | each task's time and predecessors, and the cycle time |
 | How long do customers wait? | `queue_analysis` | the average arrival rate and the single server's rate |
 | How much should we order, and when? | `inventory_policy` | annual demand, order cost, holding cost, lead time and, optionally, variability and a service level |
 | How much stock and cash does working capital tie up? | `working_capital` | revenue, cost of sales, inventory, receivables, payables |
@@ -111,6 +112,17 @@ Eight observations: 10, 11, 9, 10, 12, 9, 10, 11. Mean 10.25; average moving ran
 **Common mistake:** reading control limits as specification limits. A process can be in control and
 still incapable.
 
+### 6. Line balancing — `line_balancing`
+
+Tasks A5, B3 after A, C4 after A, D2 after B, E3 after C, F4 after D and E; cycle time 10.
+
+- Total work 21; theoretical lower bound ceil(21/10) = **3 stations**
+- Longest-task-time packing: station 1 A + C = **9**, station 2 B + D + E = **8**, station 3 F = **4**
+- Idle time 30 - 21 = **9**; efficiency 21/30 = **70%**
+
+**Common mistake:** calling the heuristic result the optimal balance. It is a good packing; the lower
+bound is the only proof of how few stations could ever be needed.
+
 ## Practice set
 
 1. Annual demand 8,000, order cost 250, holding cost 20, lead time 5 days, no variability. Find the EOQ,
@@ -134,8 +146,8 @@ still incapable.
 
 - **No multi-echelon inventory** (two or more stocking points): the method sizes one item at one
   location. Distribution networks need a declared multi-echelon model.
-- **No scheduling, sequencing, line balancing or theory-of-constraints buffers.** CPM/PERT lives on the
-  Project management shelf; this shelf does not schedule work.
+- **No mixed-model or optimal line balancing.** `line_balancing` packs with a declared heuristic and
+  reports the lower bound; it does not prove an optimum or handle parallel stations.
 - **No subgroup control charts (X-bar/R, p, c, u), EWMA, CUSUM or measurement-system analysis.** The
   control chart is individuals with moving ranges.
 - **No six-big-losses split, TEEP or multi-machine OEE.**

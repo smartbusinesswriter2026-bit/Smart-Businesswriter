@@ -411,5 +411,16 @@
 - `abc_costing` allocates every pool in full over the declared drivers; no idle/unused-capacity adjustment, activity hierarchy or time-driven ABC.
 - `sales_variances` values mix and yield at budgeted prices with the budget mix as the standard. No market-size or market-share variance, and no explanation of why the movements occurred.
 
+## Needed by some students but deliberately not built (B-120)
+These are not oversights and they are not approximations waiting to be shipped. Each would need a convention the app does not have the right to invent, or is infrastructure rather than a calculation.
+
+- **A jurisdiction tax engine.** `tax_declared` applies the rates and taxable income you declare. It does not implement any country's credits, exemptions, thresholds, progressive bands, NOLCO, withholding, filing or penalties. A student in a taxation course must use the statute and their instructor's worked format.
+- **Audit opinion and audit sampling.** An opinion is judgment. The only arithmetic part is sampling and materiality, which needs a declared confidence, reliability factor and evaluation convention; a generic version would teach a defensible-looking wrong answer. Not built.
+- **Group consolidation.** A consolidated statement needs a declared policy: full goodwill versus proportionate goodwill, NCI at fair value versus proportionate share, and the treatment of intra-group balances and fair-value adjustments. Not built until that policy is declared.
+- **Multi-echelon inventory.** Sizing safety stock across two or more stocking points needs a declared model (guaranteed-service or Clark–Scarf). The single-location EOQ must not be applied to a network as if it were the answer.
+- **A shared session store for multi-instance serving.** Sessions are in memory by design. A durable shared store is feasible, but it is a serving decision with confirmation semantics to preserve, not a computation a student runs.
+
+If an assignment needs one of these, say so in the limitations and show the method you used by hand. That is the same rule the shelf applies to itself.
+
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

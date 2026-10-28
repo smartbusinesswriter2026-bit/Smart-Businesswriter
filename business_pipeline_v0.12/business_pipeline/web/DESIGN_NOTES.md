@@ -269,10 +269,10 @@ What changed (presentation only - no behaviour, no number, no claim wording, no 
   `--rail-text-gap` are untouched, so the 33 px gap, the 67 px label column and the "Subjects" heading
   are exactly where they were.
 - The type pass, which was offered separately and applied on the owner's word: the label is 15 px (was
-  15.6 px), weight 500 (was 400), navy-900 at 88 % (was navy-700), tracking -.005em. The active word
-  steps up to weight 600 and full navy-900 - a weight step, not a size step, so the state survives
-  greyscale. The size change moves the cap centre by well under a pixel, so the glyph and the word stay
-  centred on each other.
+  15.6 px), weight 500 (was 400), navy-900 (was navy-700), tracking -.005em. The active word steps up
+  to weight 600 and full navy-900 - a weight step, not a size step, so the state survives greyscale.
+  The size change moves the cap centre by well under a pixel, so the glyph and the word stay centred
+  on each other.
 - The collapsed rail is unchanged: it keeps the lighter green hover band and the glowing white active
   glyph. Every new rule is scoped to `body.rail-open`.
 
@@ -280,6 +280,74 @@ Verification: the served page was measured and screenshotted in both rail states
 at 1280x720; the full suite passes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit, and the
 build pill is left alone.
 
-Not done, on purpose: the three geometry options (close the gap to 17.5 px, tile the icons, drop the
-green spine) were offered separately and were not part of Option 1. The gap is still 33 px - Option 1
-makes the pair read as one item, it does not bring the word closer to its icon.
+Not done at this stage: the three geometry options (close the gap to 17.5 px, tile the icons, drop the
+green spine). Option 1 made the pair read as one item; it did not bring the word closer to its icon.
+The owner then took Option 3 - see section 10.
+
+## 10. Rail geometry: the label column comes to the icons (landed on top of build v0.93)
+Owner instruction: take Option 3 - close the gap and tile the icons. This is the increment that moves
+the label column; sections 9 and 10 together are the whole of the rail work.
+
+What was wrong, measured in the served page (Chrome, 1280x900, device pixel ratio 1):
+- The gap the eye had to cross was 33 px: the icon glyph ended at 34 px and the word started at 67 px.
+  It could not be closed by the gutter alone, because the distance is *gutter + the green left to the
+  right of the glyph*. The icon column was centred in a 49 px strip, so 15 px of empty green always
+  sat between the glyph and the word. Either the word moves left, or the icons lean towards the word.
+- A pre-existing defect, found while measuring: in the **collapsed** rail the icons were clipped. The
+  row is only as wide as the strip (44 px), and the row's own 12 px right padding left the flex
+  content box 12 px wide, so the 19 px glyph was cut about 6 px off its right edge. The measured ink of
+  the Accounting glyph was 13 px wide, not 19 px. It was in the shipped rail before this work.
+
+What changed:
+- The geometry is driven by the same six variables as before, and `--rail-ic-pad` now means
+  "right-packed inside the strip" instead of "centred in it":
+  `--rail-ic-pad: calc(var(--rail-w) - var(--rail-ic-w) - var(--rail-pad) - 4px)`. Because it is a
+  formula and not a number, the narrow layout's own `--rail-w`/`--rail-pad`/`--rail-ic-w` recompute it
+  correctly, and `--rail-text-x`, `--rail-text-off` and `--rail-text-gap` follow it, so the labels and
+  the "Subjects" heading stay on the same x in both layouts.
+- `--rail-w` 49 px -> 45 px, `--rail-gap` 18 px -> 10 px, `--rail-pad` 10 px -> 4 px. The strip is
+  narrower, the gutter is narrower, and the icon column leans towards the labels.
+- In the open rail every glyph sits in a 26 px tile (radius 8) of translucent white on the green, so
+  the word reads as the tile's caption. The active tile carries the subject's own colour and the glyph
+  stays deep navy on it, which holds for the pale tones too (Home, People, Calculator) - a white glyph
+  on those tiles would not have carried. The collapsed rail keeps bare glyphs, so the strip stays clean.
+- The collapsed rail gives its 12 px right padding back to the icon
+  (`body:not(.rail-open) .railitem{padding-right:0}`), which is what stops the glyph being clipped.
+- Collapsed, the toggle's chevron is moved over the icon column, because the column now leans right:
+  `translateX(calc((var(--rail-pad) + var(--rail-ic-pad) + var(--rail-ic-w) / 2) - var(--rail-w) / 2))`.
+
+Measured after the change (Chrome, device pixel ratio 1, read back off a screenshot):
+- Wide layout (1280x900): strip 0 -> 45 px, icon glyph 19 -> 37 px, word column starts at 55 px.
+  **Glyph to word 17.5 px, tile edge to word 14 px** - against 33 px before. The glyph is 19 px wide
+  and complete in both rail states.
+- Narrow layout (760x900): strip 0 -> 44 px, glyph 19 -> 36 px, word column starts at 54 px.
+- The collapsed strip's glyph ink is the full 19 px in both layouts, and the toggle's chevron sits over
+  the icon column.
+
+Verification: the served page was captured and measured in both rail states at 1280x900 and 760x900;
+the full suite passes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit, and the build pill is
+left alone.
+
+Not done, on purpose: Option 4 - dropping the green spine in the open state for one white column with
+tinted tiles - was offered and not taken. The green strip stays.
+
+## 11. The "Subjects" heading (landed on top of build v0.93)
+Owner instruction: make "Subjects" more obvious as a heading, and show that it heads Accounting,
+Finance and the rest.
+
+What was wrong: the heading was 12.0 px, weight 700, tracked .12em, uppercase, in `--text-3`
+(#7A8894) - the faintest grey in the palette - with 8 px above it and 2 px below. At that size and
+tone it read as a caption rather than a heading, and nothing joined it to the list underneath.
+
+What changed:
+- 13 px, weight 700, tracked .13em, uppercase, in `--navy-700` (#0C243E) - the same ink the rail's
+  labels use, so the heading is unmistakably part of the rail and unmistakably not an item.
+- A 1 px hairline in `--border` under it, running from the heading's x to the column's right edge.
+  Everything below the rule is a subject; that is what the rule is for.
+- More air above it (8 px -> 14 px) so the heading separates from "Home", and a little below it.
+- The collapsed rail is unchanged: the heading fades with the labels, rule and all.
+
+Verification: measured on the served page (Chrome, device pixel ratio 1) the rule runs from x = 55 to
+x = 254, and "SUBJECTS" and every subject name under it start at the same x = 55 - the heading, the
+rule and the list are one column. The full suite passes. No `src/bp/**`, `tests/**`, fixture or
+factual-doc edit, and the build pill is left alone.

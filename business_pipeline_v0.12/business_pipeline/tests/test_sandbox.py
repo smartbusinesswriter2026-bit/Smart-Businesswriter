@@ -82,6 +82,8 @@ CASES = {"npv": NPV["inputs"], "irr": {"cashflows": ["-1000", "400", "400", "400
          "process_control": {"values": ["10", "11", "9", "10", "12", "9", "10", "11"]},
          "abc_costing": {"activities": [{"name": "setup", "pool_cost": "1000"}], "products": [{"name": "x", "units": "100"}, {"name": "y", "units": "50"}], "allocations": [{"activity": "setup", "product": "x", "driver_quantity": "2"}, {"activity": "setup", "product": "y", "driver_quantity": "3"}]},
          "sales_variances": {"products": [{"name": "x", "budget_units": "10", "budget_price": "5", "actual_units": "12", "actual_price": "6"}, {"name": "y", "budget_units": "10", "budget_price": "8", "actual_units": "8", "actual_price": "7"}]},
+         "line_balancing": {"cycle_time": "10", "tasks": [{"id": "a", "time": "4", "predecessors": ""}, {"id": "b", "time": "5", "predecessors": "a"}]},
+         "tax_declared": {"taxable_income": "1000", "income_tax_rate": "0.25", "vat_output_tax": "120", "vat_input_tax": "70"},
          "management_accounts": {"spec": {"period": {"start": "2026-01-01", "end": "2026-03-31"}, "currency": "USD", "framework": "local", "places": 2,
                                            "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"}, {"code": "3000", "name": "Owner capital", "type": "equity", "line": "Capital", "role": "capital"},
                                                      {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"}, {"code": "4000", "name": "Sales", "type": "income", "line": "Revenue"}],

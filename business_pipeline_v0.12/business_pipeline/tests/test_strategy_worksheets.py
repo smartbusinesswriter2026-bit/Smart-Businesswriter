@@ -47,6 +47,24 @@ class RegistrationTest(unittest.TestCase):
             self.assertEqual(R.get(rid)["template"], kind, rid)
             self.assertEqual(R.get(rid)["form"], "worksheet", rid)
 
+    def test_every_offered_worksheet_has_a_guided_form_not_a_code_editor(self):
+        from bp.product import subjects
+
+        for worksheet in subjects.WORKSHEETS.values():
+            form_kind = T.describe(worksheet["template"])["form_kind"]
+            self.assertNotIn(form_kind, (None, "none"), worksheet["template"])
+
+    def test_every_worksheet_declares_the_form_the_page_should_render(self):
+        expected = {
+            "template_pestel": "canvas", "template_value_chain": "canvas",
+            "template_ansoff": "canvas", "template_blue_ocean_errc": "canvas",
+            "template_activity_system_fit": "canvas", "template_scenario_planning": "matrix",
+            "template_strategic_group_map": "matrix", "template_vrio": "vrio",
+            "template_swot": "swot", "template_five_forces": "five_forces",
+        }
+        for kind, form_kind in expected.items():
+            self.assertEqual(T.describe(kind)["form_kind"], form_kind, kind)
+
     def test_every_new_worksheet_describes_its_limits_and_unsupported_use(self):
         for kind in NEW:
             described = T.describe(kind)

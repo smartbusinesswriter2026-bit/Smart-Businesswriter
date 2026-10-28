@@ -55,16 +55,16 @@ class Structure(unittest.TestCase):
 class EndToEnd(unittest.TestCase):
     def test_swot_delivery(self):
         p, d = run(swot()); self.assertEqual((d.status, d.tier), ("delivered", "T4")); head, listing = d.report.split("\n\n", 1)
-        for t in ("Loyal weekday customers", "Small baking capacity", "New office park nearby", "A supermarket chain opened a bakery counter"): self.assertIn(f"] {t} — synthetic (illustrative only)", listing)
+        for t in ("Loyal weekday customers", "Small baking capacity", "New office park nearby", "A supermarket chain opened a bakery counter"): self.assertIn(f"• {t} — illustrative only", listing)
         for frag in ("organizes 4 evidence items", "1 strengths, 1 weaknesses, 1 opportunities and 1 threats", "2 items have no resulting option", "synthetic and illustrative only", "adds no facts of its own", "does not rank or weight"): self.assertIn(frag, head)
-        self.assertIn("[O1] SO: Offer office catering — follows from E1, E3", listing); self.assertNotRegex(head.lower(), r"\bcauses?\b|\bshould\b|\brecommend")
+        self.assertIn("• SO: Offer office catering — follows from: Loyal weekday customers; New office park nearby", listing); self.assertNotRegex(head.lower(), r"\bcauses?\b|\bshould\b|\brecommend")
         self.assertTrue(set(re.findall(r"\d+", head)) <= {str(v) for v in d.appendix["analysis"]["counts"].values()}); self.assertEqual(d.appendix["template"]["registry_ids"], ["STR-07", "STR-18"])
         self.assertTrue(all(v == "passed" for k, v in __import__("bp.session", fromlist=["x"]).stage_states(p.events, True).items() if k != "sensitivity"))
     def test_gaps_assumptions_and_materiality_are_reported_not_filled(self):
         _, d = run(swot(ev=[E("Strong brand", "S", provenance="user"), E("Maybe a recession", "T", provenance="assumption")], opts=[]))
-        head, listing = d.report.split("\n\n", 1); self.assertIn("No evidence was supplied for: weaknesses, opportunities", head); self.assertIn("1 items rest on assumptions", head); self.assertIn("assumption (unsupported)", listing); self.assertIn("  No evidence supplied.", listing)
+        head, listing = d.report.split("\n\n", 1); self.assertIn("No evidence was supplied for: weaknesses, opportunities", head); self.assertIn("1 items rest on assumptions", head); self.assertIn("assumption (not yet supported)", listing); self.assertIn("  No evidence supplied.", listing)
     def test_sourced_items_show_their_source(self):
-        _, d = run(swot(ev=[E("Market grew", "O", provenance="sourced", source="Trade report, p. 4")], opts=[])); self.assertIn("sourced: Trade report, p. 4", d.report)
+        _, d = run(swot(ev=[E("Market grew", "O", provenance="sourced", source="Trade report, p. 4")], opts=[])); self.assertIn("source: Trade report, p. 4", d.report)
     def test_user_numbers_and_token_lookalikes_are_reproduced_but_never_executed(self):
         evil = "Sales fell 12% in 2025 {{ref:n_items:n_items:cross_section}} and {{ref:zzz:zzz:x}}"
         _, d = run(swot(ev=[E(evil, "W", provenance="user")], opts=[])); self.assertEqual(d.status, "delivered"); self.assertIn(evil, d.report.split("\n\n", 1)[1]); self.assertIn("organizes 1 evidence items", d.report)
