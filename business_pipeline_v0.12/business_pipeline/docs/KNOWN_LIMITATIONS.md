@@ -480,9 +480,12 @@ If an assignment needs one of these, say so in the limitations and show the meth
 ## Added with the Portfolio Lab (B-154)
 - **Paper mode only in this build.** A portfolio has one valuation date and one snapshot; the weekly
   mock-fund journal (cadence, reviews, team roster) is deferred to the second increment.
-- **Prices are declared, never fetched.** Manual entry and paste/CSV are the default; the optional free
-  US weekly feed is not wired yet, and the core has no network access. A missing price blocks the
+- **Prices are declared, never fetched.** Manual entry and paste/CSV import are the default; the optional
+  free US weekly feed is not wired yet, and the core has no network access. A missing price blocks the
   snapshot rather than being estimated.
+- **Import is all-or-nothing.** A pasted table is validated row by row before it is written; one bad row
+  refuses the whole paste and names its line. A header row is recognised by its label (Symbol, Ticker,
+  Shares, Price, ...), so a data row with a mistaken value is refused rather than skipped.
 - **One base currency, no FX.** Every price and the cash balance must already be in the portfolio's base
   currency; the valuation does not convert. A holding quoted elsewhere is entered after conversion, and
   the snapshot records that convention.

@@ -503,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab">v1.36</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import">v1.37</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1212,7 +1212,7 @@ function renderPortfolioWorkspace() {
       ["overview", "holdings", "data"].map((key) =>
         '<button class="tab" type="button" data-pftab="' + key + '" aria-selected="' + (tab === key) + '">' +
         ({ overview: "Overview", holdings: "Holdings", data: "Prices and snapshot" })[key] + "</button>").join("") +
-    "</div>";
+    "</div><div id=\"pfmsg\"></div>";
   if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot);
   if (tab === "holdings") html += pfHoldings(holdings);
   if (tab === "data") html += pfData(holdings, latest, snapshot);
@@ -1223,6 +1223,8 @@ function renderPortfolioWorkspace() {
   const exportButton2 = $("#pfexport2"); if (exportButton2) exportButton2.onclick = exportPortfolio;
   $$("[data-pftab]").forEach((button) => { button.onclick = () => { state.portfolioTab = button.dataset.pftab; renderPortfolioWorkspace(); }; });
   const add = $("#pfaddholding"); if (add) add.onclick = addHolding;
+  const holdingsImport = $("#pfhimportbtn"); if (holdingsImport) holdingsImport.onclick = importHoldings;
+  const pricesImport = $("#pfpimportbtn"); if (pricesImport) pricesImport.onclick = importPrices;
   const snap = $("#pfsnapshot"); if (snap) snap.onclick = createSnapshot;
   $$("[data-pfremove]", out).forEach((button) => { button.onclick = () => removeHolding(button.dataset.pfremove); });
 }
@@ -1260,7 +1262,12 @@ function pfHoldings(holdings) {
   html += '<div class="grid3" style="margin-top:12px"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL">' +
     '<label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10">' +
     '<label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0">' +
-    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div><div id="pfmsg"></div></div>';
+    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div></div>' +
+    '<div class="card" style="margin-top:14px"><h3>Paste or import holdings</h3>' +
+    '<p class="muted">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine.</p>' +
+    '<textarea id="pfhimport" rows="4" style="width:100%" placeholder="AAPL,10,150&#10;MSFT,5,350"></textarea>' +
+    '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfhimportbtn">Import holdings</button>' +
+    '<span class="muted">Nothing is fetched; these are your declared rows.</span></div></div>';
   return html;
 }
 
@@ -1276,7 +1283,12 @@ function pfData(holdings, latest, snapshot) {
     html += "<tr><td>" + esc(row.symbol) + '</td><td><input type="text" data-pfprice="' + esc(row.symbol) + '" placeholder="price"></td></tr>';
   });
   html += "</tbody></table></div>" +
-    '<div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="pfsnapshot"' + (holdings.length ? "" : " disabled") + ">Create the snapshot</button></div><div id=\"pfmsg\"></div></div>";
+    '<div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="pfsnapshot"' + (holdings.length ? "" : " disabled") + ">Create the snapshot</button></div></div>" +
+    '<div class="card" style="margin-top:14px"><h3>Paste or import prices</h3>' +
+    '<p class="muted">One row per holding: SYMBOL,PRICE, and an optional source. The date above is the price date; a snapshot already saved for that date cannot be changed.</p>' +
+    '<textarea id="pfpimport" rows="4" style="width:100%" placeholder="AAPL,200&#10;MSFT,400"></textarea>' +
+    '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfpimportbtn">Import prices</button>' +
+    '<span class="muted">Prices stay in the portfolio base currency.</span></div></div>';
   if (snapshot) {
     html += '<div class="card"><h3>Snapshot ' + esc(snapshot.date) + "</h3>" +
       '<div class="tablewrap"><table><caption>Valuation</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Price</th><th>Value</th><th>Weight of NAV</th></tr></thead><tbody>' +
@@ -1299,6 +1311,36 @@ async function addHolding() {
   try {
     await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings", { symbol: symbol, shares: shares, cost_basis: ($("#pfhcost").value || "0").trim() });
     await loadPortfolioPage();
+  } catch (error) { message.innerHTML = errorBanner(error); }
+}
+
+async function importHoldings() {
+  const message = $("#pfmsg");
+  const text = ($("#pfhimport").value || "");
+  if (!text.trim()) { message.innerHTML = banner("blocked", "Nothing to import", "Paste one row per holding first."); return; }
+  message.innerHTML = loading("Importing the holdings");
+  try {
+    const result = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings/import", { text: text });
+    state.portfolioTab = "holdings";
+    await loadPortfolioPage();
+    const fresh = $("#pfmsg");
+    if (fresh) fresh.innerHTML = banner("ok", "Holdings imported", "<p>" + esc(String((result.holdings || []).length)) + " holdings are now stored. Add a price for each before the snapshot.</p>");
+  } catch (error) { message.innerHTML = errorBanner(error); }
+}
+
+async function importPrices() {
+  const message = $("#pfmsg");
+  const text = ($("#pfpimport").value || "");
+  const date = ($("#pfdate").value || "").trim();
+  if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the price date above."); return; }
+  if (!text.trim()) { message.innerHTML = banner("blocked", "Nothing to import", "Paste one row per holding first."); return; }
+  message.innerHTML = loading("Importing the prices");
+  try {
+    const result = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/prices/import", { date: date, text: text, source: "user" });
+    state.portfolioTab = "data";
+    await loadPortfolioPage();
+    const fresh = $("#pfmsg");
+    if (fresh) fresh.innerHTML = banner("ok", "Prices imported", "<p>" + esc(String(Object.keys((result && result.prices) || {}).length)) + " prices are stored for " + esc(date) + ".</p>");
   } catch (error) { message.innerHTML = errorBanner(error); }
 }
 
@@ -1650,6 +1692,14 @@ function capabilityPanel(c, plan) {
     } else if (recorded.error) {
       html += '<p class="muted" style="margin:6px 0 0">Refused: ' + esc(recorded.error) + " No figure is reported.</p>";
     }
+    const fromBrief = Object.keys(cap.figures || {});
+    if (fromBrief.length) {
+      const quotes = cap.figure_quotes || {};
+      html += '<p class="muted" style="margin:6px 0 0">From the brief: ' + fromBrief.map((name) =>
+        esc(String(name).replace(/_/g, " ")) + " " + esc(String(cap.figures[name])) +
+        (quotes[name] ? ' ("' + esc(quotes[name]) + '")' : "")).join("; ") +
+        ". Check it, then validate and attach.</p>";
+    }
     const groups = cap.one_of || [];
     if (groups.length) {
       html += '<p class="muted" style="margin:6px 0 0">Declare ' +
@@ -1663,7 +1713,11 @@ function capabilityPanel(c, plan) {
     if (fields.length) {
       html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
         const spec = cap.inputs[name] || {};
-        const raw = (recorded.inputs || {})[name];
+        const declared = (recorded.inputs || {})[name];
+        const fromBrief = (cap.figures || {})[name];
+        /* The brief's own figure is offered first; anything the student already
+           declared wins, so a re-run never silently swaps their number out. */
+        const raw = declared !== undefined ? declared : fromBrief;
         const id = "cap_" + cap.key + "_" + name;
         if (spec.type === "records" || spec.type === "rows" || spec.type === "object") {
           const declaredRows = (cap.row_fields || {})[name] || [];
@@ -1735,6 +1789,12 @@ function capabilityPanel(c, plan) {
   if (excluded.length) {
     html += '<p class="muted">Not included: ' + excluded.map((row) =>
       esc(row.label) + " (" + esc(row.reason) + ")").join("; ") + ".</p>";
+  }
+  const problems = plan.figure_problems || [];
+  if (problems.length) {
+    html += '<p class="muted">Not taken from the brief: ' + problems.map((row) =>
+      esc(row.quote || row.written || "a figure") + " (" +
+      esc(row.refused || row.unused || "not usable") + ")").join("; ") + ".</p>";
   }
   if (available.length) {
     const sections = [];

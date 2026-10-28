@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - The Portfolio Lab takes a pasted book and a pasted price list
+
+**Ask.** Continue the Portfolio Lab with the import path students actually use: a spreadsheet or a paste, not forty rows by hand.
+
+**Did.** `parse_holdings` and `parse_prices` in `bp.product.portfolios` read comma, tab or semicolon tables with an optional labelled header, cost basis and price source; a duplicate symbol in one paste is refused. `import_holdings` upserts in one write; `import_prices` writes one date in one write, refuses a symbol that is not a holding and refuses a date that already has a snapshot. Validation runs over every row before anything is stored, so one bad row refuses the whole paste with its row number. Two routes (`POST .../holdings/import`, `POST .../prices/import`) and a paste area in the Holdings and Prices tabs; the browser sends text and does no arithmetic.
+
+**Verified.** `tests/test_product_portfolios.py` grows to 10 tests: header and tabbed pastes, the comma/tab paths, all-or-nothing refusal, duplicate refusal, unknown-symbol and saved-date refusal, the two routes feeding a snapshot, and the 422 on a bad paste. Focused suite 64 tests green.
+
+**Files.** `src/bp/product/portfolios.py`, `src/bp/server.py`, `web/index.html`, `tests/test_product_portfolios.py`.
+
 ## 2026-10-29 - A Portfolio Lab values a dated portfolio and exports the report
 
 **Ask.** "start with the build. we will do the manual later when its done" - a portfolio workspace, paper mode first, global by default, aligned to what students actually do.

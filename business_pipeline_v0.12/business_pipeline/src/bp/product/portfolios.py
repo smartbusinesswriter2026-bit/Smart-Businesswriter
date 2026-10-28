@@ -16,7 +16,9 @@ written once and refused on a second write.
 """
 
 import datetime
+import csv
 import hashlib
+import io
 import json
 import os
 import re
@@ -277,6 +279,125 @@ def prices(portfolio_id, date):
     path = _path(portfolio_id, "prices", _date(date) + ".json")
     if not path.exists(): raise PortfolioNotFound("no prices are stored for %s" % date)
     return _read(path, ("prices",))
+
+
+# --- paste / CSV import -----------------------------------------------------
+# Import parses text the student pasted; it does no arithmetic, fetches nothing
+# and writes once.  Every row is validated before anything is stored, so a bad
+# row refuses the whole paste rather than importing part of it.
+
+def _delimiter(text):
+    for line in str(text or "").splitlines():
+        if not line.strip():
+            continue
+        if "\t" in line:
+            return "\t"
+        if ";" in line and "," not in line:
+            return ";"
+        return ","
+    return ","
+
+
+def _table(text, what):
+    if not str(text or "").strip():
+        raise ValueError("paste at least one %s row first" % what)
+    try:
+        rows = list(csv.reader(io.StringIO(str(text)), delimiter=_delimiter(text)))
+    except csv.Error as error:
+        raise ValueError("the pasted %s table cannot be read: %s" % (what, error))
+    return [[cell.strip() for cell in row] for row in rows if any(cell.strip() for cell in row)]
+
+
+#: A first row is a header only when its label is one of these, so a data row
+#: with a bad value is refused by name and line rather than skipped as a header.
+_HEADER_WORDS = {"symbol", "ticker", "stock", "security", "code", "name", "holding",
+                 "asset", "instrument", "shares", "quantity", "qty", "units", "cost",
+                 "cost basis", "price", "quote", "close", "source"}
+
+
+def _is_header(cells):
+    first = str(cells[0] if cells else "").strip().lower().replace("_", " ")
+    return first in _HEADER_WORDS
+
+
+def parse_holdings(text):
+    """Parse pasted holding rows: symbol, shares, optional cost basis."""
+    parsed, seen = [], set()
+    for number, cells in enumerate(_table(text, "holding"), 1):
+        if number == 1 and _is_header(cells):
+            continue  # a labelled header row is accepted and skipped
+        if len(cells) < 2:
+            raise ValueError("holding row %d needs a symbol and shares" % number)
+        symbol = _symbol(cells[0])
+        if symbol in seen:
+            raise ValueError("holding row %d repeats %s; keep one row per symbol" % (number, symbol))
+        seen.add(symbol)
+        shares = _decimal(cells[1], "shares on row %d" % number, positive=True)
+        cost = _decimal(cells[2] if len(cells) > 2 and cells[2] else 0,
+                        "cost basis on row %d" % number, non_negative=True)
+        parsed.append({"symbol": symbol, "shares": str(shares), "cost_basis": str(cost)})
+    if not parsed:
+        raise ValueError("the paste has a header but no holding rows")
+    return parsed
+
+
+def import_holdings(portfolio_id, text):
+    """Upsert every pasted holding in one write."""
+    rows = parse_holdings(text)
+    _portfolio(portfolio_id)
+    document = _holdings_document(portfolio_id)
+    merged = {str(row["symbol"]).upper(): row for row in document["holdings"]}
+    for row in rows:
+        merged[row["symbol"]] = row
+    document["holdings"] = sorted(merged.values(), key=lambda row: row["symbol"])
+    _write(_path(portfolio_id, "holdings.json"), document)
+    return document["holdings"]
+
+
+def parse_prices(text):
+    """Parse pasted price rows: symbol, price, optional source."""
+    parsed, seen = [], set()
+    for number, cells in enumerate(_table(text, "price"), 1):
+        if number == 1 and _is_header(cells):
+            continue  # a labelled header row is accepted and skipped
+        if len(cells) < 2:
+            raise ValueError("price row %d needs a symbol and a price" % number)
+        symbol = _symbol(cells[0])
+        if symbol in seen:
+            raise ValueError("price row %d repeats %s; keep one price per symbol" % (number, symbol))
+        seen.add(symbol)
+        value = _decimal(cells[1], "price on row %d" % number, positive=True)
+        parsed.append({"symbol": symbol, "price": str(value),
+                       "source": (cells[2] if len(cells) > 2 and cells[2] else "")})
+    if not parsed:
+        raise ValueError("the paste has a header but no price rows")
+    return parsed
+
+
+def import_prices(portfolio_id, text, date, source="user"):
+    """Store every pasted price for one date in one write.
+
+    The date must not already carry a snapshot, and every symbol must already
+    be a holding; a wrong symbol refuses the whole paste.
+    """
+    day = _date(date)
+    rows = parse_prices(text)
+    _portfolio(portfolio_id)
+    if _path(portfolio_id, "snapshots", day + ".json").exists():
+        raise PortfolioError("the snapshot for %s is already saved; its prices are immutable" % day)
+    held = {str(row["symbol"]).upper() for row in _holdings_document(portfolio_id)["holdings"]}
+    unknown = [row["symbol"] for row in rows if row["symbol"] not in held]
+    if unknown:
+        raise ValueError("add these symbols as holdings first: " + ", ".join(unknown))
+    path = _path(portfolio_id, "prices", day + ".json")
+    document = _read(path) if path.exists() else {"format": FORMAT, "date": day, "prices": {}}
+    for row in rows:
+        document["prices"][row["symbol"]] = {
+            "price": row["price"], "source": str(row["source"] or source or "user")[:40],
+            "as_of": day, "retrieved_at": _now()}
+    document["updated_at"] = _now()
+    _write(path, document)
+    return document
 
 
 def save_snapshot(portfolio_id, snapshot):

@@ -78,6 +78,42 @@ class StoreTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             portfolios.set_price(portfolio["id"], "AAPL", "2026-10-30", "200")
 
+    def test_pasted_rows_import_in_one_write(self):
+        portfolio = portfolios.create("Imported")
+        rows = portfolios.import_holdings(
+            portfolio["id"], "Symbol,Shares,Cost basis\nAAPL,10,150\nMSFT,5,350")
+        self.assertEqual([row["symbol"] for row in rows], ["AAPL", "MSFT"])
+        document = portfolios.import_prices(
+            portfolio["id"], "Symbol,Price,Source\nAAPL,200,user\nMSFT,400,user", "2026-10-30")
+        self.assertEqual(document["prices"]["AAPL"]["price"], "200")
+        self.assertEqual(document["prices"]["MSFT"]["source"], "user")
+
+    def test_tabbed_rows_without_a_header_import(self):
+        portfolio = portfolios.create("Tabbed")
+        rows = portfolios.import_holdings(portfolio["id"], "AAPL\t10\nMSFT\t5")
+        self.assertEqual(len(rows), 2)
+        document = portfolios.import_prices(portfolio["id"], "AAPL\t200\nMSFT\t400", "2026-10-30")
+        self.assertEqual(set(document["prices"]), {"AAPL", "MSFT"})
+
+    def test_one_bad_row_refuses_the_whole_paste(self):
+        portfolio = portfolios.create("Bad paste")
+        with self.assertRaises(ValueError):
+            portfolios.import_holdings(portfolio["id"], "AAPL,10\nMSFT,oops")
+        self.assertEqual(portfolios.load(portfolio["id"])["holdings"], [])
+        with self.assertRaises(ValueError):
+            portfolios.import_holdings(portfolio["id"], "AAPL,10\nAAPL,5")
+        self.assertEqual(portfolios.load(portfolio["id"])["holdings"], [])
+
+    def test_price_import_refuses_an_unknown_symbol_and_a_saved_date(self):
+        portfolio = portfolios.create("Price rules")
+        portfolios.import_holdings(portfolio["id"], "AAPL,10")
+        with self.assertRaises(ValueError):
+            portfolios.import_prices(portfolio["id"], "MSFT,400", "2026-10-30")
+        portfolios.import_prices(portfolio["id"], "AAPL,200", "2026-10-30")
+        portfolios.save_snapshot(portfolio["id"], {"date": "2026-10-30", "outputs": {}})
+        with self.assertRaises(portfolios.PortfolioError):
+            portfolios.import_prices(portfolio["id"], "AAPL,201", "2026-10-30")
+
 
 class RoutesTest(unittest.TestCase):
     @classmethod
@@ -127,6 +163,31 @@ class RoutesTest(unittest.TestCase):
         self.assertEqual(caught.exception.code, 422)
         body = json.loads(caught.exception.read())
         self.assertIn("missing prices", body["error"])
+
+    def test_paste_import_routes_feed_the_snapshot(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Imported route"})
+        pid = portfolio["id"]
+        status, rows = _post(self.base, "/api/portfolios/%s/holdings/import" % pid,
+                             {"text": "Symbol,Shares\nAAPL,10\nMSFT,5"})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(rows["holdings"]), 2)
+        status, prices = _post(self.base, "/api/portfolios/%s/prices/import" % pid,
+                               {"date": "2026-10-31", "text": "AAPL,200\nMSFT,400"})
+        self.assertEqual(status, 200)
+        self.assertEqual(set(prices["prices"]), {"AAPL", "MSFT"})
+        status, snapshot = _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+                                 {"date": "2026-10-31", "cash": "0"})
+        self.assertEqual(status, 201)
+        self.assertEqual(snapshot["outputs"]["nav"], "4000")
+
+    def test_a_bad_paste_is_refused_with_422(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Bad paste route"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/holdings/import" % portfolio["id"],
+                  {"text": "AAPL,nope"})
+        self.assertEqual(caught.exception.code, 422)
+        body = json.loads(caught.exception.read())
+        self.assertIn("row 1", body["error"])
 
 
 if __name__ == "__main__":

@@ -683,6 +683,15 @@ class H(BaseHTTPRequestHandler):
                     product_portfolios.delete(portfolio_id)
                     return self._send(200, {"deleted": portfolio_id})
             action = parts[3]
+            if action == "holdings" and verb == "POST" and len(parts) == 5 and parts[4] == "import":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                rows = product_portfolios.import_holdings(portfolio_id, body.get("text"))
+                return self._send(200, {"holdings": rows})
+            if action == "prices" and verb == "POST" and len(parts) == 5 and parts[4] == "import":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                document = product_portfolios.import_prices(portfolio_id, body.get("text"),
+                                                             body.get("date"), body.get("source", "user"))
+                return self._send(200, document)
             if action == "holdings" and verb == "POST":
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 rows = product_portfolios.add_holding(portfolio_id, body.get("symbol"), body.get("shares"),
