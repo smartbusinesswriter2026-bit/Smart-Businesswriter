@@ -2328,6 +2328,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "portfolio_performance": {
+   "inputs": {
+    "benchmark_end": {
+     "desc": "the matching end level for each period",
+     "required": false,
+     "type": "value_list"
+    },
+    "benchmark_start": {
+     "desc": "one benchmark level per period, in the same order; give both lists or neither",
+     "required": false,
+     "type": "value_list"
+    },
+    "periods": {
+     "desc": "one row per period: label, start and end NAV, and the external flow (enter 0 when there is none)",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "portfolio_valuation": {
    "inputs": {
     "cash": {

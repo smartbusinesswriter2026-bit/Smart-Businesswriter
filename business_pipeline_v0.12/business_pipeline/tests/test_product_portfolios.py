@@ -1,6 +1,7 @@
 """Portfolio store, snapshot integration and the Portfolio Lab routes."""
 
 import base64
+import io
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ import threading
 import unittest
 import urllib.request
 import urllib.error
+import zipfile
 from http.server import ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -115,6 +117,21 @@ class StoreTest(unittest.TestCase):
             portfolios.import_prices(portfolio["id"], "AAPL,201", "2026-10-30")
 
 
+    def test_the_journal_keeps_the_students_words_and_flow(self):
+        portfolio = portfolios.create("Fund journal", mode="fund", objective="Learn", roster="A, B")
+        entry = portfolios.save_journal(portfolio["id"], "2026-10-31", note="Added cash",
+                                        flow="500", benchmark="4300")
+        self.assertEqual(entry["flow"], "500")
+        self.assertEqual(entry["benchmark"], "4300")
+        self.assertEqual(portfolios.load(portfolio["id"])["journal"][0]["note"], "Added cash")
+        portfolios.save_journal(portfolio["id"], "2026-10-31", note="Revised", flow="0", benchmark="")
+        self.assertEqual(portfolios.journal(portfolio["id"])[0]["note"], "Revised")
+        portfolios.remove_journal(portfolio["id"], "2026-10-31")
+        self.assertEqual(portfolios.journal(portfolio["id"]), [])
+        with self.assertRaises(ValueError):
+            portfolios.save_journal(portfolio["id"], "2026-10-31", benchmark="-1")
+
+
 class RoutesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -189,6 +206,60 @@ class RoutesTest(unittest.TestCase):
         body = json.loads(caught.exception.read())
         self.assertIn("row 1", body["error"])
 
+
+    def test_fund_performance_and_journal_routes(self):
+        _, portfolio = _post(self.base, "/api/portfolios",
+                             {"name": "Fund route", "mode": "fund", "objective": "Learn"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "220"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/journal" % pid,
+              {"date": "2026-10-24", "note": "Start", "flow": "0", "benchmark": "100"})
+        _post(self.base, "/api/portfolios/%s/journal" % pid,
+              {"date": "2026-10-31", "note": "Held", "flow": "0", "benchmark": "102"})
+        status, performance = _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(status, 200)
+        self.assertEqual(performance["outputs"]["twr"], "0.1")
+        self.assertTrue(performance["benchmark_used"])
+        self.assertEqual(performance["outputs"]["benchmark_return"], "0.02")
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("Time-weighted return", xml)
+        self.assertIn("Journal of decisions", xml)
+        self.assertIn("Held", xml)
+
+    def test_a_missing_benchmark_is_named_not_filled(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No benchmark", "mode": "fund"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "220"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        status, performance = _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(status, 200)
+        self.assertFalse(performance["benchmark_used"])
+        self.assertNotIn("benchmark_return", performance["outputs"])
+
+    def test_performance_needs_two_snapshots(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "One snapshot", "mode": "fund"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(caught.exception.code, 422)
 
 if __name__ == "__main__":
     unittest.main()

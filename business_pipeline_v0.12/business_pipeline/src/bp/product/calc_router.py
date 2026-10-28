@@ -116,6 +116,8 @@ SYNONYMS = {
                   "two asset portfolio"],
     "portfolioval": ["portfolio valuation", "value my portfolio", "portfolio value",
                      "net asset value", "nav", "value holdings"],
+    "portfolioperf": ["time weighted return", "time-weighted return", "portfolio return",
+                      "period return", "twr", "benchmark return"],
     "projectmetrics": ["project ranking", "mirr", "profitability index",
                        "modified internal rate"],
     "options": ["option pricing", "black scholes", "call option", "put option"],

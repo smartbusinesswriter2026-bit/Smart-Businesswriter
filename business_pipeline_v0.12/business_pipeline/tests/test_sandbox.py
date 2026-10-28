@@ -63,6 +63,7 @@ CASES = {"npv": NPV["inputs"], "irr": {"cashflows": ["-1000", "400", "400", "400
          "trend_analysis": {"years": ["2022", "2023", "2024", "2025"], "revenue": ["1000", "1100", "1210", "1331"], "cost_of_sales": ["600", "650", "710", "760"], "operating_expenses": ["200", "220", "240", "260"], "net_income": ["120", "140", "160", "190"], "total_assets": ["2000", "2100", "2250", "2400"], "equity": ["900", "980", "1080", "1200"]},
          "portfolio_valuation": {"holdings": [{"symbol": "AAPL", "shares": "10", "price": "200"},
                                   {"symbol": "MSFT", "shares": "5", "price": "400"}], "cash": "1000"},
+         "portfolio_performance": {"periods": [{"label": "week 1", "start_nav": "10000", "end_nav": "10250", "flow": "0"}, {"label": "week 2", "start_nav": "10250", "end_nav": "10100", "flow": "0"}]},
          "market_sizing": {"target_population": "100000", "annual_spend_per_customer": "500", "serviceable_share": "0.4", "obtainable_share": "0.1"},
          "startup_capital": {"start_up_costs": "500000", "working_capital": "100000", "contingency_rate": "0.1", "owner_equity": "300000", "loan_amount": "200000"},
          "cash_runway": {"opening_cash": "500000", "monthly_net_cash_flow": "-50000", "monthly_growth": "0", "target_months": "12"},

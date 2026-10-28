@@ -153,7 +153,8 @@ def _decimal(value, what, positive=False, non_negative=False):
     return number
 
 
-def create(name, base_currency="USD", benchmark="", mode="paper", constraints=None):
+def create(name, base_currency="USD", benchmark="", mode="paper", constraints=None,
+           objective="", roster=""):
     name = str(name or "").strip()
     if not name: raise ValueError("a portfolio name is required")
     if len(name) > 120: raise ValueError("the portfolio name must be at most 120 characters")
@@ -163,12 +164,14 @@ def create(name, base_currency="USD", benchmark="", mode="paper", constraints=No
     if mode not in MODES: raise ValueError("mode must be paper or fund")
     portfolio_id = uuid.uuid4().hex[:12]
     root = _root(portfolio_id)
-    for part in ("prices", "snapshots", "exports"):
+    for part in ("prices", "snapshots", "journal", "exports"):
         (root / part).mkdir(parents=True, exist_ok=True)
     now = _now()
     document = {
         "format": FORMAT, "id": portfolio_id, "name": name, "mode": mode,
         "base_currency": currency, "benchmark": str(benchmark or "").strip(),
+        "objective": str(objective or "").strip()[:2000],
+        "roster": str(roster or "").strip()[:2000],
         "start_date": datetime.date.today().isoformat(), "status": "draft",
         "cadence": "weekly" if mode == "fund" else "end",
         "constraints": constraints or {"max_position": "0.10", "min_cash": "0.05", "long_only": True},
@@ -195,7 +198,8 @@ def load(portfolio_id):
     holdings = _holdings_document(portfolio_id)["holdings"]
     snapshots = [snapshot_summary(portfolio_id, path.stem) for path in sorted(_path(portfolio_id, "snapshots").glob("*.json"))]
     price_dates = [path.stem for path in sorted(_path(portfolio_id, "prices").glob("*.json"))]
-    return {"portfolio": portfolio, "holdings": holdings, "snapshots": snapshots, "price_dates": price_dates}
+    return {"portfolio": portfolio, "holdings": holdings, "snapshots": snapshots,
+            "price_dates": price_dates, "journal": journal(portfolio_id)}
 
 
 def summaries():
@@ -222,27 +226,31 @@ def summaries():
 
 def update(portfolio_id, fields):
     portfolio = _portfolio(portfolio_id)
-    allowed = {"name", "benchmark", "status", "cadence"}
+    allowed = {"name", "benchmark", "status", "cadence", "objective", "roster"}
     for key, value in (fields or {}).items():
         if key not in allowed: raise ValueError("field %r cannot be changed" % key)
         if key == "status" and value not in STATUSES: raise ValueError("status must be draft, active or closed")
+        if key == "cadence" and value not in ("weekly", "end"): raise ValueError("cadence must be weekly or end")
         if key == "name":
             value = str(value).strip()
             if not value: raise ValueError("the portfolio name cannot be blank")
+        if key in ("objective", "roster"):
+            value = str(value or "").strip()[:2000]
         portfolio[key] = value
     portfolio["updated_at"] = _now()
     _write(_path(portfolio_id, "portfolio.json"), portfolio)
     return portfolio
 
 
-def add_holding(portfolio_id, symbol, shares, cost_basis="0"):
+def add_holding(portfolio_id, symbol, shares, cost_basis="0", rationale=""):
     _portfolio(portfolio_id)
     symbol = _symbol(symbol)
     shares = _decimal(shares, "shares", positive=True)
     cost = _decimal(cost_basis or 0, "cost basis", non_negative=True)
+    why = str(rationale or "").strip()[:2000]
     document = _holdings_document(portfolio_id)
     rows = [row for row in document["holdings"] if str(row.get("symbol", "")).upper() != symbol]
-    rows.append({"symbol": symbol, "shares": str(shares), "cost_basis": str(cost)})
+    rows.append({"symbol": symbol, "shares": str(shares), "cost_basis": str(cost), "rationale": why})
     document["holdings"] = sorted(rows, key=lambda row: row["symbol"])
     _write(_path(portfolio_id, "holdings.json"), document)
     return document["holdings"]
@@ -398,6 +406,47 @@ def import_prices(portfolio_id, text, date, source="user"):
     document["updated_at"] = _now()
     _write(path, document)
     return document
+
+
+# --- the fund journal -------------------------------------------------------
+# One entry per period-ending date: the student's note, that period's external
+# flow and, if they use one, the benchmark level at that date.  The store keeps
+# the words; it computes nothing.
+
+def journal(portfolio_id):
+    rows = []
+    for path in sorted(_path(portfolio_id, "journal").glob("*.json")):
+        rows.append(_read(path, ("date",)))
+    return rows
+
+
+def journal_entry(portfolio_id, date):
+    return _read(_path(portfolio_id, "journal", _date(date) + ".json"), ("date",))
+
+
+def save_journal(portfolio_id, date, note="", flow="0", benchmark=""):
+    _portfolio(portfolio_id)
+    day = _date(date)
+    flow_value = _decimal(flow if flow not in (None, "") else 0, "flow")
+    level = "" if benchmark in (None, "") else str(_decimal(benchmark, "benchmark level", positive=True))
+    text = str(note or "").strip()
+    if len(text) > 4000: raise ValueError("the note must be at most 4000 characters")
+    path = _path(portfolio_id, "journal", day + ".json")
+    now = _now()
+    created = _read(path).get("created_at", now) if path.exists() else now
+    document = {"format": FORMAT, "id": portfolio_id, "date": day, "note": text,
+                "flow": str(flow_value), "benchmark": level,
+                "created_at": created, "updated_at": now}
+    _write(path, document)
+    return document
+
+
+def remove_journal(portfolio_id, date):
+    _portfolio(portfolio_id)
+    path = _path(portfolio_id, "journal", _date(date) + ".json")
+    if not path.exists(): raise PortfolioNotFound("no journal entry for %s" % date)
+    path.unlink()
+    return True
 
 
 def save_snapshot(portfolio_id, snapshot):

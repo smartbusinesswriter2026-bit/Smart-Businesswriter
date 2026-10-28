@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - The Portfolio Lab becomes a mock fund
+
+**Ask.** Complete the Portfolio Lab: the semester mock-fund journal, a return the student can defend, and a report shaped like the assignment.
+
+**Did.** (1) `portfolio_performance` joins the frozen core (T1, category `portfolio`): one row per period with label, start NAV, end NAV and flow, optional benchmark levels; it returns the time-weighted return, total flow, start and final NAV, best and worst period and, when complete, the benchmark and active return. The flow is declared at the start of its period. Six checks; the independent route chains `end / (start + flow)`. (2) `bp.product.portfolios` gains the journal (`journal`, `save_journal`, `remove_journal`) and records an objective, roster and per-holding rationale. (3) Routes `GET .../performance`, `GET/POST .../journal`, `DELETE .../journal/{date}`; the performance payload names a missing benchmark and refuses fewer than two snapshots. (4) Fund creation is enabled; the workspace adds a **Journal and return** tab, and both paste boxes take a CSV/TSV file. (5) The Word report is rubric-shaped: objective, summary, holdings and rationale, performance and conventions, journal, provenance, checks, limits. (6) Preset `portfolioperf`, the finance shelf, calculator group, study notes, synonyms and both slices are updated; the fixture is regenerated at 142 methods and 144 presets.
+
+**Verified.** `tests/test_portfolio_performance.py` (7) covers chaining, flows, benchmark, a loss, the six checks and the refusals. `tests/test_product_portfolios.py` grows to 14, including the journal store, the performance route, a named missing benchmark, the two-snapshot refusal and the fund DOCX content. `tests/test_product_subjects.py` guards the fund UI. Full suite 1705 tests green.
+
+**Files.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/product/portfolios.py`, `src/bp/product/portfolio_docx.py`, `src/bp/product/subjects.py`, `src/bp/product/calc_router.py`, `src/bp/product/data/*.json`, `web/index.html`, `tests/test_portfolio_performance.py`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`, `tests/fixtures/frozen_contract.json`.
+
 ## 2026-10-29 - The Portfolio Lab takes a pasted book and a pasted price list
 
 **Ask.** Continue the Portfolio Lab with the import path students actually use: a spreadsheet or a paste, not forty rows by hand.

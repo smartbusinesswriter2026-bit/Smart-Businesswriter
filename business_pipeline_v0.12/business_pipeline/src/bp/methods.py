@@ -14603,6 +14603,215 @@ def _pv_template(out, P, th):
             ", and the cash share is " + tok("cash_pct") + ". The values are computed from the declared prices and cash.")
 
 
+# ---------- Portfolio performance (B-156): time-weighted return over snapshots ----------
+# The student declares one row per period: the NAV at each end, the external flow and, if they
+# use one, the benchmark level.  The convention is declared, not inferred: the flow is treated
+# as occurring at the START of its period, so that period's return is
+#     (end_nav - start_nav - flow) / (start_nav + flow)  ==  end_nav / (start_nav + flow) - 1.
+# Nothing is fetched and nothing is forecast.
+
+def _pp_number(value, what):
+    try:
+        number = D(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        raise DataError(what + " must be a number")
+    if not number.is_finite():
+        raise DataError(what + " must be finite")
+    return number
+
+def _pp_rows(inp):
+    periods = inp.get("periods") or []
+    if not periods:
+        raise DataError("at least one period is required")
+    rows, seen = [], set()
+    for row in periods:
+        label = str(row.get("label") or "").strip()
+        if not label:
+            raise DataError("every period needs a label")
+        if label in seen:
+            raise DataError("period labels must be unique: " + label)
+        seen.add(label)
+        try:
+            start = _pp_number(row["start_nav"], "start_nav for " + label)
+            end = _pp_number(row["end_nav"], "end_nav for " + label)
+        except KeyError:
+            raise DataError("period " + label + " needs start_nav and end_nav")
+        flow = D(0) if row.get("flow") in (None, "") else _pp_number(row["flow"], "flow for " + label)
+        if start <= 0:
+            raise DataError("start_nav must be positive for " + label)
+        if end < 0:
+            raise DataError("end_nav cannot be negative for " + label)
+        base = start + flow
+        if base <= 0:
+            raise DataError("the flow leaves no positive capital base for " + label)
+        period_return = (end - start - flow) / base
+        rows.append({"label": label, "start_nav": start, "end_nav": end, "flow": flow,
+                     "period_return": period_return, "benchmark": None})
+    b_starts, b_ends = inp.get("benchmark_start"), inp.get("benchmark_end")
+    given_start = b_starts not in (None, [], "")
+    given_end = b_ends not in (None, [], "")
+    if given_start != given_end:
+        raise DataError("give both benchmark lists or neither")
+    if given_start:
+        if (not isinstance(b_starts, list) or not isinstance(b_ends, list)
+                or len(b_starts) != len(rows) or len(b_ends) != len(rows)):
+            raise DataError("the benchmark lists must carry one level per period")
+        for index, row in enumerate(rows):
+            b_start = _pp_number(b_starts[index], "benchmark_start for " + row["label"])
+            b_end = _pp_number(b_ends[index], "benchmark_end for " + row["label"])
+            if b_start <= 0:
+                raise DataError("benchmark_start must be positive for " + row["label"])
+            row["benchmark"] = b_end / b_start - 1
+    return rows
+
+def _pp_chained(rows, key):
+    product = D(1)
+    for row in rows:
+        product *= (1 + row[key])
+    return product - 1
+
+def portfolio_performance_impl(inp):
+    rows = _pp_rows(inp)
+    twr = _pp_chained(rows, "period_return")
+    total_flow = sum((row["flow"] for row in rows), D(0))
+    final_nav = rows[-1]["end_nav"]
+    ordered = sorted(row["period_return"] for row in rows)
+    best, worst = ordered[-1], ordered[0]
+    out = {"n_periods": D(len(rows)), "twr": twr, "total_flow": total_flow,
+           "start_nav": rows[0]["start_nav"], "final_nav": final_nav,
+           "best_period": best, "worst_period": worst}
+    if rows[0]["benchmark"] is not None:
+        benchmark = _pp_chained(rows, "benchmark")
+        out["benchmark_return"] = benchmark
+        out["active_return"] = twr - benchmark
+    appendix = {
+        "periods": [{"label": row["label"], "start_nav": str(row["start_nav"]),
+                     "end_nav": str(row["end_nav"]), "flow": str(row["flow"]),
+                     "period_return": str(row["period_return"]),
+                     "benchmark_return": "" if row["benchmark"] is None else str(row["benchmark"])}
+                    for row in rows],
+        "conventions": ("The external flow is treated as occurring at the start of its period, so the "
+                        "period return is (end_nav - start_nav - flow) / (start_nav + flow). The "
+                        "time-weighted return chains (1 + period return) across the declared periods. "
+                        "A benchmark is chained the same way. No fees, tax or dividends are applied and "
+                        "no future return is forecast."),
+        "inputs": {"periods": [{"label": row["label"], "start_nav": str(row["start_nav"]),
+                                "end_nav": str(row["end_nav"]), "flow": str(row["flow"])}
+                               for row in rows]},
+    }
+    checks = [
+        ("second_implementation_agrees", _pp_second_agrees(inp, twr), "float route agrees with the Decimal route"),
+        ("twr_equals_the_product_of_end_over_base", _close(twr, _pp_end_over_base(rows), 1e-15),
+         "chaining end_nav / (start_nav + flow) gives the same time-weighted return"),
+        ("a_period_with_no_flow_returns_the_nav_ratio", _pp_no_flow_ratio_ok(inp), "with no flow, the period return is end_nav / start_nav - 1"),
+        ("geometric_mean_lies_between_best_and_worst", _pp_between(inp), "the geometric mean period return sits between the best and the worst period"),
+        ("benchmark_chains_the_same_way", _pp_benchmark_agrees(inp, out.get("benchmark_return")),
+         "a float route agrees with the chained benchmark return"),
+        ("final_nav_matches_the_last_period", _close(final_nav, _pp_number(inp["periods"][-1]["end_nav"], "end_nav"), 1e-15),
+         "the reported final NAV is the last declared end_nav"),
+    ]
+    return {**out, "_appendix": appendix, "_checks": checks}
+
+def _pp_end_over_base(rows):
+    """Independent Decimal route: each factor is end_nav / (start_nav + flow)."""
+    product = D(1)
+    for row in rows:
+        product *= row["end_nav"] / (row["start_nav"] + row["flow"])
+    return product - 1
+
+def _pp_second_agrees(inp, twr):
+    try:
+        product = 1.0
+        for row in inp["periods"]:
+            start = float(_pp_number(row["start_nav"], "start_nav"))
+            end = float(_pp_number(row["end_nav"], "end_nav"))
+            flow = float(D(0) if row.get("flow") in (None, "") else _pp_number(row["flow"], "flow"))
+            product *= end / (start + flow)
+        return abs(float(twr) - (product - 1)) <= 1e-8 * max(1.0, abs(product - 1))
+    except (DataError, KeyError, ValueError, TypeError, ZeroDivisionError):
+        return False
+
+def _pp_no_flow_ratio_ok(inp):
+    try:
+        rows = _pp_rows(inp)
+    except DataError:
+        return False
+    for row in rows:
+        if row["flow"] == 0:
+            expected = row["end_nav"] / row["start_nav"] - 1
+            if not _close(row["period_return"], expected, 1e-15):
+                return False
+    return True
+
+def _pp_between(inp):
+    try:
+        rows = _pp_rows(inp)
+    except DataError:
+        return False
+    returns = [float(row["period_return"]) for row in rows]
+    twr = float(_pp_chained(rows, "period_return"))
+    growth = 1 + twr
+    if growth <= 0:
+        return False
+    geometric_mean = growth ** (1 / len(rows)) - 1
+    return min(returns) - 1e-12 <= geometric_mean <= max(returns) + 1e-12
+
+def _pp_benchmark_agrees(inp, benchmark):
+    try:
+        rows = _pp_rows(inp)
+    except DataError:
+        return False
+    if benchmark is None:
+        return True
+    product = 1.0
+    for row in rows:
+        product *= 1 + float(row["benchmark"])
+    return abs(float(benchmark) - (product - 1)) <= 1e-8 * max(1.0, abs(product - 1))
+
+def _pp_tests(inp, impl):
+    return [(name, ok) for name, ok, _detail in impl(inp)["_checks"]]
+
+def _pp_profile(inp):
+    try:
+        periods = inp.get("periods") or []
+        if not periods:
+            return ["at least one period is required"]
+        errors, seen = [], set()
+        for row in periods:
+            label = str(row.get("label") or "").strip()
+            if not label:
+                errors.append("a period has no label")
+                continue
+            if label in seen:
+                errors.append("duplicate period label: " + label)
+            seen.add(label)
+            if row.get("start_nav") in (None, "") or row.get("end_nav") in (None, ""):
+                errors.append("period " + label + " needs start_nav and end_nav")
+        return errors
+    except (AttributeError, TypeError):
+        return ["periods must be a list of objects"]
+
+def _pp_typing(metric):
+    if metric == "n_periods":
+        return ("count", 0)
+    if metric in ("start_nav", "final_nav", "total_flow"):
+        return ("currency", 2)
+    return ("ratio", 4)
+
+def _pp_caveats(out, th):
+    return ["The external flow is treated as occurring at the start of its period; a flow at another time is not modelled.",
+            "No fees, tax, dividends or corporate actions are applied; the return is the declared NAV change net of flows.",
+            "A benchmark is the level the student declares; the benchmark return is descriptive, not a promise.",
+            "Past performance is not a forecast, and the time-weighted return is a record, not advice."]
+
+def _pp_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("n_periods") + " periods the portfolio's time-weighted return is " + tok("twr") +
+            ", from a starting NAV of " + tok("start_nav") + " to a final NAV of " + tok("final_nav") +
+            ". The best period was " + tok("best_period") + " and the worst " + tok("worst_period") +
+            ", with " + tok("total_flow") + " of external flow. The return chains the declared period returns.")
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -17027,6 +17236,30 @@ LIBRARY = {
                   limitations=("No FX conversion, fees, tax, dividends or corporate actions.", "No forecast or recommendation; a snapshot is a valuation, not a sale price.", "Short positions, margin and derivatives are not represented."),
                   default_period="point in time", caveats=_pv_caveats, template=_pv_template,
                   claim_ceiling="descriptive", typing=_pv_typing),
+
+    "portfolio_performance": Method("portfolio_performance", "T1", portfolio_performance_impl, _pp_tests, _pp_profile,
+                  "twr", "ratio", None,
+                  ("second_implementation_agrees", "twr_equals_the_product_of_end_over_base",
+                   "a_period_with_no_flow_returns_the_nav_ratio", "geometric_mean_lies_between_best_and_worst",
+                   "benchmark_chains_the_same_way", "final_nav_matches_the_last_period"),
+                  category="portfolio",
+                  intended_use="Measure the time-weighted return of a portfolio across dated periods from each period's start and end NAV, its external flow and, optionally, a declared benchmark level.",
+                  unsupported_use="Fetching NAVs, prices or benchmark levels; fees, tax, dividends or corporate actions; money-weighted return (IRR); forecasting; short positions or derivatives; a recommendation.",
+                  input_schema={
+                      "periods": {"type": "records", "min_items": 1,
+                                  "fields": {"label": "text", "start_nav": "decimal", "end_nav": "decimal",
+                                             "flow": "decimal"},
+                                  "desc": "one row per period: label, start and end NAV, and the external flow (enter 0 when there is none)"},
+                      "benchmark_start": {"type": "value_list", "required": False,
+                                          "desc": "one benchmark level per period, in the same order; give both lists or neither"},
+                      "benchmark_end": {"type": "value_list", "required": False,
+                                        "desc": "the matching end level for each period"}},
+                  defaults=({"question": "When does the external flow occur?", "default_chosen": "At the start of its period, so the period return is (end_nav - start_nav - flow) / (start_nav + flow).", "impact": "A flow at the end or spread through the period would produce a different return; the report states the convention."},
+                            {"question": "What does the return measure?", "default_chosen": "Time-weighted return, chaining each period's return so deposits and withdrawals do not flatter it.", "impact": "A money-weighted return would answer a different question: the student's own experience rather than the portfolio's."}),
+                  assumptions=("Each period's start NAV is the previous period's end NAV unless the student declares otherwise.", "The flow is the only external cash movement in the period.", "Any benchmark level is declared by the student for the same dates."),
+                  limitations=("No fees, tax, dividends or corporate actions.", "No money-weighted return, forecast or recommendation.", "A flow is modelled at the start of its period only; intra-period timing is not represented."),
+                  default_period="period", caveats=_pp_caveats, template=_pp_template,
+                  claim_ceiling="descriptive", typing=_pp_typing),
 
 }
 
