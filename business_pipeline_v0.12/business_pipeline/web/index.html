@@ -223,6 +223,10 @@ th{background:var(--green-100);font-weight:650;color:var(--green-700);font-size:
 .checklist{margin:4px 0 0;padding-left:18px;columns:2;column-gap:26px;font-size:14.4px;color:var(--text-2)}
 .checklist li{margin:0 0 3px;break-inside:avoid}
 details > summary{cursor:pointer;color:var(--navy-500);font-weight:650;font-size:14.4px;margin-top:8px}
+.guide{padding:16px 20px}
+.guide summary{font-size:16.2px;color:var(--navy-900);margin-top:0}
+.guidesteps{margin:8px 0 6px 18px;color:var(--text-2);font-size:15px;line-height:1.5}
+.guidesteps li{margin:0 0 4px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tablewrap{overflow:auto;border-radius:var(--r-md);border:1px solid var(--border)}
 
@@ -388,7 +392,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: Economics complete, Finance trend analysis, and a hardened backend release gate">v0.83</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, free market-data lookups and PDF text reading">v0.85</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1243,8 +1247,8 @@ function renderSubject() {
     html += '<p class="muted">Worksheets are structure and evidence audit only: they score and rank nothing, and the output says so.</p>';
   }
   html += '<h3>Stored cases in this subject</h3><div id="subjectcases">' + loading("Reading the case store") + "</div>";
-  html += '<h3>Catalogue only - no worksheet or method yet</h3>' +
-    '<p class="muted">These records are readable structures. The implementation status is the registry\'s own wording, copied verbatim; nothing here is presented as an analysis the system performed.</p>' +
+  html += '<h3>Catalogue records and their status</h3>' +
+    '<p class="muted">These records are readable structures. The implementation status is the registry\'s own wording, copied verbatim; a record stays "not implemented" until a method or worksheet actually runs, and nothing here is presented as an analysis the system performed.</p>' +
     (s.catalogue.length
       ? '<div class="tablewrap"><table><caption>Catalogue records assigned to ' + esc(s.label) + "</caption><thead><tr>" +
         "<th>Id</th><th>Name</th><th>Implementation status</th><th>Linked methods</th></tr></thead><tbody>" +
@@ -1294,39 +1298,93 @@ function renderSubject() {
 
 function marketPanel() {
   return '<div class="marketpanel"><h3 style="margin-top:0">Market data (retrieved, not verified)</h3>' +
-    '<p class="muted">Look up a reference FX rate or a Treasury par yield. The source, date and response hash are shown; ' +
-    'the app never fills a tool silently, so confirm the value and type it into the tool.</p>' +
+    '<p class="muted">FX and Treasury yields need no key; equity quotes and fundamentals use your own free Alpha Vantage key. ' +
+    'Every result shows its source, date and response hash. The app never fills a tool silently: read the value, confirm it, and type it in.</p>' +
     '<div class="marketrow">' +
       '<label>FX base <input id="fxbase" value="USD" maxlength="3" size="4" aria-label="FX base currency"></label>' +
       '<label>quote <input id="fxquote" value="PHP" maxlength="3" size="4" aria-label="FX quote currency"></label>' +
       '<label>date <input id="fxdate" type="date" aria-label="FX date (optional)"></label>' +
       '<button class="btn sm" id="fxlookup" type="button">Look up FX</button>' +
-    '</div>' +
-    '<div class="marketrow">' +
-      '<label>Risk-free <select id="rfmat" aria-label="Treasury maturity">' +
+      '<button class="btn sm" id="rflookup" type="button">Treasury yield</button>' +
+      '<select id="rfmat" aria-label="Treasury maturity">' +
         ["1M","2M","3M","4M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"].map((m) =>
           '<option value="' + m + '"' + (m === "10Y" ? " selected" : "") + ">" + m + "</option>").join("") +
-      '</select></label>' +
-      '<button class="btn sm" id="rflookup" type="button">Look up yield</button>' +
+      '</select>' +
     '</div>' +
+    '<div class="marketrow">' +
+      '<label>Equity symbol <input id="eqsym" value="AAPL" maxlength="12" size="7" aria-label="Equity symbol"></label>' +
+      '<button class="btn sm" id="eqquote" type="button">Quote</button>' +
+      '<button class="btn sm" id="eqfund" type="button">Fundamentals</button>' +
+    '</div>' +
+    '<div class="marketrow">' +
+      '<label>SEC ticker <input id="secsym" value="AAPL" maxlength="12" size="7" aria-label="SEC ticker"></label>' +
+      '<label>form <select id="secform" aria-label="SEC form type">' +
+        ["10-K","10-Q","8-K","20-F","6-K","DEF 14A","any"].map((f) =>
+          '<option value="' + (f === "any" ? "" : f) + '">' + f + "</option>").join("") +
+      '</select></label>' +
+      '<button class="btn sm" id="seclookup" type="button">Latest filings</button>' +
+    '</div>' +
+    '<div class="marketrow">' +
+      '<label>Country <input id="wbc" value="PH" maxlength="3" size="4" aria-label="World Bank country code"></label>' +
+      '<label>indicator <select id="wbind" aria-label="World Bank indicator">' +
+        ["gdp_growth","inflation","unemployment","gdp_per_capita","population","gov_debt"].map((i) =>
+          '<option value="' + i + '">' + i.replace(/_/g, " ") + "</option>").join("") +
+      '</select></label>' +
+      '<button class="btn sm" id="wblookup" type="button">World Bank</button>' +
+    '</div>' +
+    '<p class="muted">Equity lookups need a free key in <code>BP_ALPHAVANTAGE_KEY</code> (25 requests/day, unlimited for verified educational projects). ' +
+    'SEC EDGAR and World Bank need none. PSE and private companies are not covered by these sources: enter those figures manually.</p>' +
     '<div id="marketout" aria-live="polite"></div></div>';
 }
 
 function bindMarketPanel() {
-  const fx = $("#fxlookup"), rf = $("#rflookup");
-  if (fx) fx.onclick = lookupFx;
-  if (rf) rf.onclick = lookupRiskfree;
+  const on = (id, fn) => { const el = $("#" + id); if (el) el.onclick = fn; };
+  on("fxlookup", lookupFx);
+  on("rflookup", lookupRiskfree);
+  on("eqquote", () => lookupEquity("quote"));
+  on("eqfund", () => lookupEquity("fundamentals"));
+  on("seclookup", lookupSec);
+  on("wblookup", lookupMacro);
+}
+
+function marketFoot(data) {
+  return '<div class="muted">' + esc(data.source) + " - " +
+      '<a href="' + esc(data.source_url) + '" target="_blank" rel="noopener">open the source</a></div>' +
+    '<div class="muted">Response SHA-256 ' + esc(String(data.response_sha256 || "").slice(0, 16)) + "...</div>" +
+    '<div class="muted">' + esc(data.verification) + ". " + esc(data.note) + "</div>";
 }
 
 function marketResult(data) {
-  const isRate = data.kind === "riskfree";
-  const value = isRate ? (Number(data.value) * 100).toFixed(3) + "%" : Number(data.value).toFixed(4);
-  return '<div class="marketcard"><strong>' + esc(value) + "</strong> " +
-    '<span class="muted">as of ' + esc(data.as_of) + "</span>" +
-    '<div class="muted">' + esc(data.source) + " - " +
-      '<a href="' + esc(data.source_url) + '" target="_blank" rel="noopener">open the source</a></div>' +
-    '<div class="muted">Response SHA-256 ' + esc(String(data.response_sha256 || "").slice(0, 16)) + "...</div>" +
-    '<div class="muted">' + esc(data.verification) + ". " + esc(data.note) + "</div></div>";
+  let head = "";
+  if (data.kind === "fundamentals") {
+    const rows = Object.entries(data.values || {}).filter((pair) => pair[1]);
+    head = "<strong>" + esc(data.symbol || "") + "</strong> " +
+      '<span class="muted">' + esc(data.currency || "") + " - as of " + esc(data.as_of) + "</span>" +
+      '<div class="tablewrap"><table><caption>Company overview</caption><tbody>' +
+      rows.map((pair) => "<tr><td>" + esc(pair[0]) + "</td><td>" + esc(pair[1]) + "</td></tr>").join("") +
+      "</tbody></table></div>";
+  } else if (data.kind === "filings") {
+    head = "<strong>" + esc(data.company || data.ticker) + "</strong> " +
+      '<span class="muted">CIK ' + esc(data.cik || "") + " - " + esc(data.form) + "</span>" +
+      '<div class="tablewrap"><table><caption>Recent filings</caption><thead><tr><th>Form</th><th>Date</th><th>Description</th><th></th></tr></thead><tbody>' +
+      (data.filings || []).map((f) => "<tr><td>" + esc(f.form) + "</td><td>" + esc(f.date) + "</td><td>" +
+        esc(f.name) + '</td><td><a href="' + esc(f.url) + '" target="_blank" rel="noopener">open</a></td></tr>').join("") +
+      "</tbody></table></div>";
+  } else if (data.kind === "macro") {
+    head = "<strong>" + esc(Number(data.value).toFixed(2)) + " " + esc(data.unit || "") + "</strong> " +
+      '<span class="muted">' + esc(data.as_of) + "</span>" +
+      '<div class="muted">' + esc(data.indicator) + " - " + esc(data.country) + "</div>";
+  } else if (data.kind === "quote") {
+    head = "<strong>" + esc(Number(data.value).toFixed(2)) + "</strong> " +
+      '<span class="muted">' + esc(data.symbol) + " as of " + esc(data.as_of) + "</span>" +
+      '<div class="muted">Change ' + esc(data.change_percent || "not reported") + ", volume " +
+      esc(data.volume || "not reported") + "</div>";
+  } else {
+    const isRate = data.kind === "riskfree";
+    const value = isRate ? (Number(data.value) * 100).toFixed(3) + "%" : Number(data.value).toFixed(4);
+    head = "<strong>" + esc(value) + "</strong> " + '<span class="muted">as of ' + esc(data.as_of) + "</span>";
+  }
+  return '<div class="marketcard">' + head + marketFoot(data) + "</div>";
 }
 
 async function lookupFx() {
@@ -1350,6 +1408,43 @@ async function lookupRiskfree() {
   out.innerHTML = loading("Reading the Treasury par yield");
   try {
     out.innerHTML = marketResult(await api("/api/market/riskfree?maturity=" + encodeURIComponent(maturity)));
+  } catch (error) {
+    out.innerHTML = errorBanner(error);
+  }
+}
+
+async function lookupEquity(kind) {
+  const out = $("#marketout"); if (!out) return;
+  const symbol = ($("#eqsym").value || "").trim().toUpperCase();
+  out.innerHTML = loading(kind === "quote" ? "Reading the quote" : "Reading the fundamentals");
+  try {
+    out.innerHTML = marketResult(await api("/api/market/" + kind + "?symbol=" + encodeURIComponent(symbol)));
+  } catch (error) {
+    out.innerHTML = errorBanner(error);
+  }
+}
+
+async function lookupSec() {
+  const out = $("#marketout"); if (!out) return;
+  const ticker = ($("#secsym").value || "").trim().toUpperCase();
+  const form = $("#secform").value || "";
+  out.innerHTML = loading("Reading the filing list");
+  try {
+    out.innerHTML = marketResult(await api("/api/market/filings?ticker=" + encodeURIComponent(ticker) +
+      "&form=" + encodeURIComponent(form) + "&count=5"));
+  } catch (error) {
+    out.innerHTML = errorBanner(error);
+  }
+}
+
+async function lookupMacro() {
+  const out = $("#marketout"); if (!out) return;
+  const country = ($("#wbc").value || "").trim().toUpperCase();
+  const indicator = $("#wbind").value || "gdp_growth";
+  out.innerHTML = loading("Reading the World Bank series");
+  try {
+    out.innerHTML = marketResult(await api("/api/market/macro?country=" + encodeURIComponent(country) +
+      "&indicator=" + encodeURIComponent(indicator)));
   } catch (error) {
     out.innerHTML = errorBanner(error);
   }
@@ -2117,6 +2212,29 @@ function bindRecords(name) {
   sync();
 }
 
+/* What the page is for and how to work it, in the page itself rather than in a manual. */
+function guideCard() {
+  return '<details class="card guide" open><summary>How this page works</summary>' +
+    '<p class="sub">It builds a set of management accounts from what you declare: the accounts you keep, the ' +
+    "balances you start with, the entries you post, and - if you have one - the bank statement to reconcile. The " +
+    "engine posts every entry, closes the period, and produces a trial balance, the statements, the reconciliation " +
+    "and the checks that prove they tie.</p>" +
+    '<ol class="guidesteps">' +
+    "<li><strong>Set the period and the currency.</strong> They bound every entry.</li>" +
+    "<li><strong>Check the accounts and the opening balances.</strong> The opening entry is built from the balances, " +
+    "so the two cannot disagree.</li>" +
+    "<li><strong>Add each journal entry.</strong> The tick on the entry turns red with the amount it is out by; fix " +
+    "it before running.</li>" +
+    "<li><strong>Add the bank statement</strong> if you have one. The engine reconciles it and reports what is in " +
+    "transit or unrecorded.</li>" +
+    "<li><strong>Run it, confirm the account mapping, then save the case.</strong> The statements and the workings " +
+    "are on the case page, and the download button gives you the file to hand in.</li>" +
+    "</ol>" +
+    '<p class="muted" style="margin-bottom:0">Management accounts only: not GAAP or IFRS statements and not ' +
+    "assurance. This is custom analysis (T2), expert review pending.</p>" +
+    "</details>";
+}
+
 function inputField(name, spec, plan) {
   const type = (spec && spec.type) || "text";
   const desc = type === "engagement_spec"
@@ -2176,6 +2294,7 @@ function renderNew() {
       '<button class="btn sm" id="toolcalc">Calculator</button></div>' +
     "</div>";
 
+  if (!delivered && !mapping && (plan.method || "") === "management_accounts") html += guideCard();
   if (!delivered) {
     html += '<div class="card" id="figures">' +
       (blocked ? banner("blocked", "The engine refused these figures", "<div>" + esc(s.delivery.blocked_reason) +
@@ -2228,21 +2347,6 @@ function renderNew() {
       kv(Object.keys(s.stage_states || {}).map((k) => [k, s.stage_states[k]])) +
       '<details><summary>The run events, verbatim</summary><pre class="json">' +
       esc(JSON.stringify(s.events, null, 1)) + "</pre></details></div>";
-  }
-  const suggested = (plan.framework_suggestions || {});
-  const suggestionRows = []
-    .concat((suggested.frameworks || []).map((x) => ["Framework", x.name || x.id, x.why]))
-    .concat((suggested.quantitative || []).map((x) => ["Quantitative", x.name || x.id, x.why]))
-    .concat((suggested.theories || []).map((x) => ["Theory", x.name || x.id, x.why]))
-    .concat((suggested.named || []).map((x) => ["Named by you", x.name || x.id, x.why]));
-  if (suggestionRows.length) {
-    html += '<div class="card"><h2>Suggested frameworks (informational)</h2>' +
-      '<p class="muted">Computed from your objective by the catalogue. Nothing is applied unless you confirm it in the frozen spec.</p>' +
-      suggestionRows.map(([kind, name, why]) => '<div class="toolrow"><div class="tooltext"><strong>' + esc(txt(name)) +
-        " <span class=\"badge mute\">" + esc(kind) + "</span></strong><span>" + esc(txt(why)) + "</span></div></div>").join("") +
-      (suggested.none_reason ? '<p class="muted">' + esc(suggested.none_reason) + "</p>" : "") + "</div>";
-  } else if (suggested.none_reason) {
-    html += '<div class="card"><h2>Suggested frameworks (informational)</h2><p class="muted">' + esc(suggested.none_reason) + "</p></div>";
   }
   $("#panel-new").innerHTML = html;
   if (document.getElementById("eng")) engBind();

@@ -1,26 +1,28 @@
 """Intake store for files a user attaches on Home (product layer, standard library only).
 
-The store does one job: keep the bytes exactly as they arrived, hash them, and
-record what kind of file it is.  It does **not** read, parse or summarise
-anything:
+The store keeps the bytes exactly as they arrived, hashes them, and records what kind of
+file it is:
 
 * a structured file (CSV/TSV/TXT/XLSX/XLSM) is stored with status `stored`
   and is read by the frozen `bp.ingest` module through `POST /api/intake`;
-* every other file is stored with status `reference_only` and is never read -
-  PDF, DOCX, scans, images and legacy `.xls` have no reader on this server,
-  and pretending otherwise would be invention.
+* a PDF or image is stored with status `stored` and can be read only by an explicit
+  `POST /api/intake/{id}/extract`; the result is `extracted` (text layer or OCR) or
+  `ocr_required` when no reader is available.  The extracted text is unverified and is
+  never used by a method without the user confirming it;
+* every other file is stored with status `reference_only` and is never read.
 
 One JSON record per file under `BP_INTAKE_DIR` (default `<repo>/intake/`):
 
     {"format": "bp-intake/1", "id": "<12 lowercase hex>", "filename": str,
      "ext": str, "bytes": int, "sha256": str, "uploaded_at": "<ISO-8601 UTC>",
-     "kind": "structured" | "reference", "status": "stored" | "ingested" |
-     "reference_only", "note": str, "error": str | null, "table": object | null}
+     "kind": "structured" | "document" | "reference", "status": "stored" |
+     "ingested" | "extracted" | "ocr_required" | "reference_only", "note": str,
+     "error": str | null, "table": object | null, "extraction": object | null}
 
-The payload bytes live beside it as `<id><ext>` and are never rewritten.  A
-corrupt record refuses to load; it is listed as corrupt instead of being
-silently skipped.  Nothing here computes a business number and nothing here
-imports the frozen core.
+The payload bytes live beside it as `<id><ext>` and are never rewritten.  Extracted text
+is written beside them as `<id>.txt`.  A corrupt record refuses to load; it is listed as
+corrupt instead of being silently skipped.  Nothing here computes a business number and
+nothing here imports the frozen core.
 """
 
 import datetime
@@ -32,6 +34,8 @@ import tempfile
 import uuid
 from pathlib import Path
 
+from . import documents
+
 FORMAT = "bp-intake/1"
 
 #: A file id is exactly twelve lowercase hex characters.
@@ -40,14 +44,18 @@ ID_RE = re.compile(r"[0-9a-f]{12}")
 #: Extensions the frozen ingest module can read into a typed table.
 STRUCTURED_EXT = (".csv", ".tsv", ".txt", ".xlsx", ".xlsm")
 
+#: Extensions stored as documents that can be read only on an explicit extract request.
+DOCUMENT_EXT = (".pdf", ".png", ".jpg", ".jpeg")
+
 #: Extensions accepted for storage but never read (explicit notes below).
 LEGACY_NOTE = "Legacy .xls is not read; save the workbook as .xlsx to ingest it."
 REFERENCE_NOTE = "No reader is implemented for this file type on this server; it is stored only."
+DOCUMENT_NOTE = "Stored as a document; choose Extract text to read its text (the result is unverified)."
 
 #: The same 5 MB limit the ingestion route applies (decode_request).
 MAX_BYTES = 5_000_000
 
-STATUSES = ("stored", "ingested", "reference_only")
+STATUSES = ("stored", "ingested", "extracted", "ocr_required", "reference_only")
 
 
 class IntakeError(Exception):
@@ -114,7 +122,9 @@ def _clean_ext(name):
 
 
 def _kind(ext):
-    return "structured" if ext in STRUCTURED_EXT else "reference"
+    if ext in STRUCTURED_EXT: return "structured"
+    if ext in DOCUMENT_EXT: return "document"
+    return "reference"
 
 
 def _payload_suffix(ext):
@@ -125,6 +135,8 @@ def _payload_suffix(ext):
 def _note(ext, kind):
     if kind == "structured":
         return "Read into a typed table by the frozen ingestion module; nothing is imputed or retyped."
+    if kind == "document":
+        return DOCUMENT_NOTE
     if ext == ".xls":
         return LEGACY_NOTE
     return REFERENCE_NOTE
@@ -193,10 +205,11 @@ def save(filename, raw, content_type=None):
         "sha256": hashlib.sha256(raw).hexdigest(),
         "uploaded_at": _now_iso(),
         "kind": kind,
-        "status": "stored" if kind == "structured" else "reference_only",
+        "status": "stored" if kind in ("structured", "document") else "reference_only",
         "note": _note(ext, kind),
         "error": None,
         "table": None,
+        "extraction": None,
     }
     if isinstance(content_type, str) and content_type.strip():
         record["content_type"] = content_type.strip()[:120]
@@ -276,6 +289,73 @@ def fail(file_id, message):
     return record
 
 
+def _text_path(file_id):
+    return _path(file_id, ".txt")
+
+
+def extract(file_id):
+    """Read a PDF text layer (or OCR an image when Tesseract is installed).
+
+    Returns the updated record.  A scanned PDF or an image without an OCR engine becomes
+    ``ocr_required``; a reader failure raises ``IntakeError`` and leaves the file stored.
+    The extracted text is unverified and is written beside the payload, never into the
+    frozen method inputs.
+    """
+    record = load(file_id)
+    if record.get("kind") != "document":
+        raise IntakeError("only a PDF or image attachment can be read this way")
+    _, raw = payload(file_id)
+    ext = record.get("ext") or ""
+    try:
+        result = documents.extract_pdf(raw) if ext == ".pdf" else documents.extract_image(raw, ext)
+    except documents.DocumentError as error:
+        record["status"] = "reference_only"
+        record["error"] = str(error)
+        record["extraction"] = None
+        _write_json(_path(file_id), record)
+        raise IntakeError(str(error))
+    if result["status"] == "extracted":
+        text = result["text"]
+        encoded = text.encode("utf-8")
+        _write_bytes(_text_path(file_id), encoded)
+        record["status"] = "extracted"
+        record["error"] = None
+        record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", len(text)),
+                                "method": result.get("method"), "text_sha256": hashlib.sha256(encoded).hexdigest()}
+        record["note"] = ("Text extracted from the document and stored as unverified text; check it against the "
+                          "source before using it.")
+    else:
+        record["status"] = "ocr_required"
+        record["error"] = None
+        record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", 0),
+                                "method": None, "text_sha256": None}
+        record["note"] = result.get("reason") or "No text could be read from this document."
+        try:
+            _text_path(file_id).unlink()
+        except FileNotFoundError:
+            pass
+    _write_json(_path(file_id), record)
+    return record
+
+
+def extracted_text(file_id, limit=4000):
+    """A bounded preview of the extracted text, with the full length and a truncation flag."""
+    record = load(file_id)
+    path = _text_path(file_id)
+    if not path.exists():
+        raise IntakeNotFound("no extracted text is stored for intake %s" % file_id)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        raise IntakeCorrupt("the extracted text of intake %s cannot be read: %s" % (file_id, error))
+    try:
+        limit = max(1, min(int(limit), documents.MAX_CHARS))
+    except (TypeError, ValueError):
+        limit = 4000
+    return {"id": record["id"], "filename": record["filename"], "chars": len(text),
+            "truncated": len(text) > limit, "text": text[:limit], "extraction": record.get("extraction")}
+
+
 def _summary(record):
     table = record.get("table") or {}
     return {
@@ -292,6 +372,8 @@ def _summary(record):
         "n_rows": table.get("n_rows"),
         "n_cols": table.get("n_cols"),
         "columns": [c.get("name") for c in table.get("columns", []) if isinstance(c, dict)],
+        "extraction": record.get("extraction"),
+        "text_chars": (record.get("extraction") or {}).get("chars"),
     }
 
 
@@ -326,6 +408,10 @@ def delete(file_id):
     path.unlink()
     try:
         _path(file_id, _payload_suffix(record.get("ext") or "")).unlink()
+    except FileNotFoundError:
+        pass
+    try:
+        _text_path(file_id).unlink()
     except FileNotFoundError:
         pass
     return True

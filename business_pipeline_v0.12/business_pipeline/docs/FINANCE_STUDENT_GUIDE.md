@@ -21,6 +21,18 @@ If an answer produces a rate above 100%, the report adds a warning: rates are en
 so 6% is `0.06`, not `6`. The warning does not block the run, because a declared rate above 100%
 can be genuine.
 
+## Market data in the app
+
+The Finance page has a **Market data (retrieved, not verified)** panel:
+
+- **FX:** a pair such as USD/PHP, optional date, from Frankfurter (official reference rates).
+- **Risk-free:** a U.S. Treasury par-yield maturity from 1M to 30Y.
+
+The panel shows the value, its as-of date, the source link and a SHA-256 of the response. It never
+fills a tool for you: read the value, confirm it, and type it into `fx_parity` or wherever it
+belongs. There is no equity, fundamental or PSE feed yet, so a company's share price and the
+Philippine policy rate remain your declared inputs.
+
 ## Conventions used throughout
 
 - **Rates are decimals**, not percentages: enter `0.06` for 6%, not `6`.

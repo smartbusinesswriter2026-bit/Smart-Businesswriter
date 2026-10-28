@@ -54,7 +54,7 @@ class Statements(unittest.TestCase):
         j, _ = closed()
         st = {"opening_balance": "5000", "closing_balance": "5100", "lines": [{"description": "interest", "amount": "100", "direction": "in"}]}
         rec = RC.reconcile(j, "1000", st)["report"]; t = R.reconciliation_statement(rec)
-        for frag in ("RECONCILIATION (account 1000)", "Balance per statement", "5,100.00", "Adjusted statement balance", "Adjusted ledger balance", "Difference", "0.00"): self.assertIn(frag, t)
+        for frag in ("RECONCILIATION (Cash)", "Balance per statement", "5,100.00", "Adjusted statement balance", "Adjusted ledger balance", "Difference", "0.00"): self.assertIn(frag, t)
     def test_combined_document_has_every_section_in_order(self):
         j, pre = closed(); se = R.financial_statements(j, pre, L.cash_flow(j), "local")
         self.assertEqual(set(se), {"trial_balance", "income_statement", "balance_sheet", "cash_flow", "notes", "combined"})

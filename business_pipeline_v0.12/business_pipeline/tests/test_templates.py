@@ -133,7 +133,10 @@ class RegistryAndApi(unittest.TestCase):
         old = server.M; server.M = SessionManager()
         try:
             get = lambda p: json.load(urllib.request.urlopen(base + p))
-            self.assertEqual([t["id"] for t in get("/api/templates")], ["template_swot", "template_five_forces", "case_decision"]); self.assertEqual(get("/api/templates/template_swot")["tier"], "T4"); self.assertEqual(get("/api/templates/case_decision")["tier"], "T2")
+            self.assertEqual({t["id"] for t in get("/api/templates")},
+                         {"template_swot", "template_five_forces", "template_business_model_canvas",
+                          "template_lean_canvas", "template_value_proposition_canvas",
+                          "template_marketing_plan", "case_decision"}); self.assertEqual(get("/api/templates/template_swot")["tier"], "T4"); self.assertEqual(get("/api/templates/case_decision")["tier"], "T2")
             with self.assertRaises(urllib.error.HTTPError) as c: get("/api/templates/nope")
             self.assertEqual(c.exception.code, 404)
             pre = get("/api/presets"); self.assertIn("swot", pre); self.assertIn("five_forces", pre)

@@ -73,14 +73,18 @@
       "unit": "units",
       "test_names": [
         "profit_at_breakeven_is_zero",
-        "monotone_in_fixed_cost",
-        "positive_quantity"
+        "contribution_margin_is_price_minus_variable",
+        "breakeven_revenue_is_units_times_price",
+        "margin_of_safety_is_expected_units_minus_breakeven",
+        "target_profit_raises_the_required_units"
       ],
       "claim_ceiling": "descriptive",
       "category": "cost-volume-profit",
       "inputs": [
+        "expected_units",
         "fixed",
         "price",
+        "target_profit",
         "variable"
       ]
     },
@@ -107,6 +111,26 @@
         "nominal_growth_rate"
       ]
     },
+    "cap_table_round": {
+      "tier": "T1",
+      "metric": "investor_pct",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "post_money_is_pre_money_plus_investment",
+        "price_per_share_is_pre_money_over_existing_shares",
+        "investor_percentage_is_new_shares_over_total_shares",
+        "ownership_percentages_sum_to_one"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "venture finance",
+      "inputs": [
+        "founders_shares",
+        "investment",
+        "option_pool_pct",
+        "pre_money_valuation"
+      ]
+    },
     "capm": {
       "tier": "T1",
       "metric": "cost_of_equity",
@@ -130,6 +154,26 @@
         "tax_rate"
       ]
     },
+    "cash_runway": {
+      "tier": "T1",
+      "metric": "runway_months",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_runway_reaches_a_zero_cash_balance",
+        "zero_growth_runway_is_opening_cash_over_the_burn",
+        "a_higher_burn_shortens_the_runway",
+        "funding_gap_covers_the_lowest_cash_balance"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "venture finance",
+      "inputs": [
+        "monthly_growth",
+        "monthly_net_cash_flow",
+        "opening_cash",
+        "target_months"
+      ]
+    },
     "chi_square": {
       "tier": "T1",
       "metric": "cramers_v",
@@ -147,6 +191,24 @@
       "inputs": [
         "alpha",
         "table"
+      ]
+    },
+    "cohort_retention": {
+      "tier": "T1",
+      "metric": "average_retention",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "first_period_retention_is_total_retained_over_total_start",
+        "retention_rates_are_bounded",
+        "average_lifetime_is_the_sum_of_retention_rates",
+        "period_retention_is_weighted_by_cohort_size"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "market analysis",
+      "inputs": [
+        "cohort_sizes",
+        "retained"
       ]
     },
     "comparative_advantage": {
@@ -285,6 +347,24 @@
         "discount_rate",
         "terminal_growth",
         "timing"
+      ]
+    },
+    "demand_curve": {
+      "tier": "T1",
+      "metric": "slope",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "slope_is_the_covariance_over_the_variance",
+        "fitted_line_passes_through_the_means",
+        "r_squared_is_bounded_and_matches_the_residuals",
+        "revenue_maximising_price_sets_marginal_revenue_to_zero"
+      ],
+      "claim_ceiling": "associational",
+      "category": "demand analysis",
+      "inputs": [
+        "prices",
+        "quantities"
       ]
     },
     "demand_supply_equilibrium": {
@@ -880,6 +960,26 @@
         "price"
       ]
     },
+    "market_sizing": {
+      "tier": "T1",
+      "metric": "serviceable_obtainable_market",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "tam_is_population_times_annual_spend",
+        "sam_is_the_declared_share_of_tam",
+        "som_is_the_declared_share_of_sam",
+        "a_higher_serviceable_share_raises_the_serviceable_market"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "market analysis",
+      "inputs": [
+        "annual_spend_per_customer",
+        "obtainable_share",
+        "serviceable_share",
+        "target_population"
+      ]
+    },
     "missing_data_bounds": {
       "tier": "T1",
       "metric": "pct_missing",
@@ -1354,6 +1454,28 @@
         "marginal_cost"
       ]
     },
+    "pricing_decision": {
+      "tier": "T1",
+      "metric": "cost_plus_price",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "cost_plus_price_is_unit_cost_times_one_plus_markup",
+        "break_even_price_covers_the_total_cost",
+        "margin_price_recovers_the_declared_margin",
+        "target_return_price_covers_cost_and_declared_profit"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "pricing",
+      "inputs": [
+        "expected_units",
+        "fixed_cost",
+        "markup_rate",
+        "target_margin_rate",
+        "target_profit",
+        "unit_cost"
+      ]
+    },
     "probit": {
       "tier": "T1",
       "metric": "slope",
@@ -1458,6 +1580,32 @@
         "mc_slope"
       ]
     },
+    "purchase_intent": {
+      "tier": "T1",
+      "metric": "intent_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "intent_rate_is_the_weighted_share",
+        "all_definitely_respondents_give_the_definitely_weight",
+        "projected_buyers_is_the_rate_times_the_population",
+        "zero_weights_give_a_zero_intent_rate"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "market analysis",
+      "inputs": [
+        "definitely",
+        "definitely_weight",
+        "maybe",
+        "maybe_weight",
+        "never",
+        "never_weight",
+        "price",
+        "probably",
+        "probably_weight",
+        "target_population"
+      ]
+    },
     "ratio_analysis": {
       "tier": "T1",
       "metric": "n_computed",
@@ -1525,6 +1673,25 @@
         "items"
       ]
     },
+    "return_on_investment": {
+      "tier": "T1",
+      "metric": "roi",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "roi_is_net_gain_over_total_investment",
+        "doubling_the_net_gain_doubles_the_roi",
+        "annualised_roi_compounds_to_the_total_return",
+        "a_loss_gives_a_negative_roi"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "venture finance",
+      "inputs": [
+        "net_gain",
+        "total_investment",
+        "years"
+      ]
+    },
     "risk_metrics": {
       "tier": "T1",
       "metric": "historical_var",
@@ -1545,6 +1712,46 @@
         "portfolio_value",
         "returns",
         "stress_return"
+      ]
+    },
+    "sales_funnel": {
+      "tier": "T1",
+      "metric": "overall_conversion",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "overall_conversion_is_the_last_count_over_the_first",
+        "each_stage_conversion_is_the_next_count_over_the_current",
+        "overall_conversion_is_the_product_of_stage_conversions",
+        "cac_is_spend_over_customers"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "market analysis",
+      "inputs": [
+        "spend",
+        "stages"
+      ]
+    },
+    "sales_projection": {
+      "tier": "T1",
+      "metric": "total_profit",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "first_period_revenue_is_start_units_times_price",
+        "units_grow_at_the_declared_rate",
+        "profit_is_revenue_minus_variable_and_fixed_cost",
+        "total_profit_is_the_sum_of_period_profits"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "venture planning",
+      "inputs": [
+        "fixed_cost_per_period",
+        "growth_rate",
+        "periods",
+        "price",
+        "start_units",
+        "unit_variable_cost"
       ]
     },
     "scenario_analysis": {
@@ -1624,6 +1831,27 @@
         "benefits",
         "discount_rate",
         "investment"
+      ]
+    },
+    "startup_capital": {
+      "tier": "T1",
+      "metric": "amount_to_raise",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "funding_requirement_is_costs_plus_working_capital_plus_contingency",
+        "amount_to_raise_is_the_unfunded_part_of_the_requirement",
+        "a_higher_contingency_rate_raises_the_requirement",
+        "more_declared_funding_reduces_the_amount_to_raise"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "venture finance",
+      "inputs": [
+        "contingency_rate",
+        "loan_amount",
+        "owner_equity",
+        "start_up_costs",
+        "working_capital"
       ]
     },
     "tariff_welfare": {
@@ -1931,11 +2159,14 @@
     "breakeven",
     "budgetdebt",
     "capm",
+    "captable",
     "case",
     "case_decision",
+    "cashrunway",
     "cba",
     "cea",
     "chi_square",
+    "cohort",
     "comparative",
     "concentration",
     "costcurves",
@@ -1943,6 +2174,7 @@
     "currency",
     "dcf",
     "dcfmid",
+    "demandcurve",
     "descriptive",
     "did",
     "dpayback",
@@ -1956,6 +2188,7 @@
     "fiscal",
     "five_forces",
     "forecast",
+    "funnel",
     "fx",
     "gini",
     "growth",
@@ -1969,6 +2202,7 @@
     "loan",
     "logit",
     "marketpower",
+    "marketsize",
     "missing",
     "moneymultiplier",
     "multibreakeven",
@@ -1992,17 +2226,22 @@
     "ppp",
     "pricecontrol",
     "pricediscrimination",
+    "pricing",
     "probit",
     "profitmax",
     "projectmetrics",
     "prospect",
     "publicgood",
+    "purchaseintent",
     "ratios",
     "rdd",
     "risk",
+    "roi",
+    "salesprojection",
     "scenario",
     "socialwelfare",
     "sroi",
+    "startupcapital",
     "swot",
     "tariff",
     "taxincidence",

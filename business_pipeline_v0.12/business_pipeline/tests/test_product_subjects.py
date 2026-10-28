@@ -73,7 +73,9 @@ class SubjectCatalogueTest(unittest.TestCase):
         self.assertEqual(page["label"], "Entrepreneurship")
         self.assertTrue({"breakeven", "multi_product_breakeven", "unit_economics", "npv", "irr",
                          "discounted_payback"}.issubset({tool["method"] for tool in page["tools"]}))
-        self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]], ["template_swot"])
+        self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]],
+                         ["template_business_model_canvas", "template_lean_canvas",
+                          "template_value_proposition_canvas", "template_swot", "template_marketing_plan"])
         self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
     def test_every_economics_tool_carries_student_notes_and_a_level(self):
@@ -127,7 +129,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.83", self.html)
+        self.assertIn("v0.85", self.html)
         self.assertIn("levelhead", self.html)
         self.assertIn("studynote", self.html)
         self.assertIn("capcard .lvl", self.html)

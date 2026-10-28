@@ -6,7 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops, intake as product_intake
+from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -35,6 +35,33 @@ PRESETS = {
                  "inputs": {"cashflows": ["-1000", "400", "400", "400", "400"], "rate": "0.10"}},
     "breakeven": {"objective": "How many units must we sell to break even?", "method": "breakeven", "period": "annual",
                   "inputs": {"fixed": "1000", "price": "20", "variable": "10"}},
+    "marketsize": {"objective": "How big is the market we can actually serve and win?", "method": "market_sizing", "currency": "PHP", "period": "annual",
+                   "inputs": {"target_population": "20000", "annual_spend_per_customer": "3000", "serviceable_share": "0.25", "obtainable_share": "0.20"}},
+    "startupcapital": {"objective": "How much capital must we raise to open the business?", "method": "startup_capital", "currency": "PHP", "period": "annual",
+                       "inputs": {"start_up_costs": "350000", "working_capital": "120000", "contingency_rate": "0.10",
+                                  "owner_equity": "150000", "loan_amount": "200000"}},
+    "cashrunway": {"objective": "How many months of cash do we have, and how much must we raise?", "method": "cash_runway", "currency": "PHP", "period": "monthly",
+                   "inputs": {"opening_cash": "300000", "monthly_net_cash_flow": "-40000", "monthly_growth": "0", "target_months": "9"}},
+    "pricing": {"objective": "What price should we set under each pricing rule?", "method": "pricing_decision", "currency": "PHP", "period": "annual",
+                "inputs": {"unit_cost": "15", "fixed_cost": "45000", "expected_units": "6000", "markup_rate": "0.60",
+                           "target_margin_rate": "0.375", "target_profit": "20000"}},
+    "roi": {"objective": "What is the return on the money we invested?", "method": "return_on_investment", "currency": "PHP", "period": "annual",
+            "inputs": {"total_investment": "500000", "net_gain": "125000", "years": "3"}},
+    "salesprojection": {"objective": "Project our sales, costs and profit for the next twelve months", "method": "sales_projection", "currency": "PHP", "period": "monthly",
+                        "inputs": {"start_units": "300", "price": "120", "unit_variable_cost": "55", "fixed_cost_per_period": "12000",
+                                   "growth_rate": "0.05", "periods": "12"}},
+    "captable": {"objective": "What share does the investor get in this round?", "method": "cap_table_round", "currency": "PHP", "period": "point in time",
+                 "inputs": {"pre_money_valuation": "4000000", "investment": "1000000", "founders_shares": "1000000", "option_pool_pct": "0.10"}},
+    "funnel": {"objective": "Where do we lose customers between the first contact and the sale?", "method": "sales_funnel", "currency": "PHP", "period": "monthly",
+               "inputs": {"stages": [{"name": "store visits", "count": "10000"}, {"name": "inquiries", "count": "2500"}, {"name": "purchases", "count": "500"}],
+                          "spend": "25000"}},
+    "cohort": {"objective": "How well do we keep the customers we win each month?", "method": "cohort_retention", "currency": "PHP", "period": "monthly",
+               "inputs": {"cohort_sizes": ["200", "180", "150"],
+                          "retained": [["200", "140", "110", "90"], ["180", "130", "100", "60"], ["150", "120", "95", "70"]]}},
+    "demandcurve": {"objective": "What do our price and quantity observations imply about demand?", "method": "demand_curve", "currency": "PHP", "period": "per observation",
+                    "inputs": {"prices": ["20", "25", "30", "35", "40"], "quantities": ["400", "340", "280", "220", "160"]}},
+    "purchaseintent": {"objective": "What share of the market intends to buy, and how many buyers is that?", "method": "purchase_intent", "currency": "PHP", "period": "cross_section",
+                       "inputs": {"definitely": "120", "probably": "80", "maybe": "150", "never": "50", "target_population": "20000", "price": "250"}},
     "descriptive": {"objective": "Describe the exam scores", "method": "descriptive_stats", "unit": "points",
                     "inputs": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"]}},
     "pearson": {"objective": "Is study time associated with exam score?", "method": "pearson",
@@ -290,6 +317,13 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/presets": return self._send(200, PRESETS)
             if self.path == "/api/intake" or self.path.startswith("/api/intake?"):
                 return self._send(200, {"files": product_intake.list_files()})
+            text_url = urlparse(self.path)
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/text", text_url.path)
+            if im:
+                qs = parse_qs(text_url.query)
+                try: return self._send(200, product_intake.extracted_text(im[1], (qs.get("limit") or [4000])[0]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             im = re.fullmatch(r"/api/intake/([0-9a-f]{12})", self.path)
             if im:
                 try: return self._send(200, product_intake.load(im[1]))
@@ -297,6 +331,30 @@ class H(BaseHTTPRequestHandler):
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("GET", self.path))
             u = urlparse(self.path); qs = parse_qs(u.query)
+            if u.path == "/api/market/fx":
+                try: return self._send(200, product_marketdata.fx_rate((qs.get("base") or [""])[0], (qs.get("quote") or [""])[0], (qs.get("date") or [None])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
+            if u.path == "/api/market/riskfree":
+                try: return self._send(200, product_marketdata.riskfree_rate((qs.get("maturity") or ["10Y"])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
+            if u.path == "/api/market/quote":
+                try: return self._send(200, product_marketdata.equity_quote((qs.get("symbol") or [""])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
+            if u.path == "/api/market/fundamentals":
+                try: return self._send(200, product_marketdata.equity_fundamentals((qs.get("symbol") or [""])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
+            if u.path == "/api/market/filings":
+                try:
+                    return self._send(200, product_marketdata.sec_filings(
+                        (qs.get("ticker") or [""])[0], (qs.get("form") or ["10-K"])[0],
+                        (qs.get("count") or ["5"])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
+            if u.path == "/api/market/macro":
+                try:
+                    return self._send(200, product_marketdata.worldbank_indicator(
+                        (qs.get("country") or [""])[0], (qs.get("indicator") or ["gdp_growth"])[0],
+                        (qs.get("years") or ["5"])[0]))
+                except product_marketdata.MarketDataError as e: return self._send(422, {"error": str(e)})
             if u.path == "/api/frameworks":
                 q = (qs.get("q") or [""])[0]; ty = (qs.get("type") or [None])[0]
                 if ty and ty not in registry.TYPE_LABEL: return self._send(400, {"error": "type must be F, M, Q or T"})
@@ -352,6 +410,12 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/intake": return self._intake_upload(self._body(INGEST_MAXBODY))
             im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/ingest", self.path)
             if im: return self._intake_ingest(im[1], self._body())
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/extract", self.path)
+            if im:
+                self._body()
+                try: return self._send(200, product_intake.extract(im[1]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)

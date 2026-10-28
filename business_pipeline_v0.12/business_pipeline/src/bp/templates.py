@@ -190,6 +190,297 @@ def tests_five_forces(inp, a, narrative, listing):
             ("gaps_reported_not_filled", a["audit"]["forces_without_evidence"] == [f for f in FORCES if cnt[f] == 0] and all(a["forces"][f]["evidence"] == [] and a["forces"][f]["rating"] is None for f in a["audit"]["forces_without_evidence"])),
             ("no_aggregate_score_present", not any(k in a for k in ("score", "overall", "total_score")) and not any(k in a["counts"] for k in ("score", "overall"))), r[3], r[4]]
 
+# ---------- Canvas and plan templates (B-108) ----------
+# Structure and an evidence audit only: the student supplies every item, the
+# system places it, reproduces it verbatim and reports what is missing.  It
+# adds no fact, score, ranking or recommendation.
+CANVAS_BLOCKS = {
+    "template_business_model_canvas": {
+        "key_partners": ("Key partners", "Who you depend on, and for what"),
+        "key_activities": ("Key activities", "What the business must do well"),
+        "key_resources": ("Key resources", "What it needs to do those activities"),
+        "value_propositions": ("Value propositions", "The value you promise each segment"),
+        "customer_relationships": ("Customer relationships", "How you win, keep and grow customers"),
+        "channels": ("Channels", "How the value reaches the customer"),
+        "customer_segments": ("Customer segments", "Who you serve"),
+        "cost_structure": ("Cost structure", "The main costs the model creates"),
+        "revenue_streams": ("Revenue streams", "How the business earns"),
+    },
+    "template_lean_canvas": {
+        "problem": ("Problem", "The top problems you are solving"),
+        "customer_segments": ("Customer segments", "Who has those problems"),
+        "unique_value_proposition": ("Unique value proposition", "Why you are different and worth attention"),
+        "solution": ("Solution", "The smallest thing that solves the problem"),
+        "channels": ("Channels", "The route to customers"),
+        "revenue_streams": ("Revenue streams", "How you earn"),
+        "cost_structure": ("Cost structure", "The main costs"),
+        "key_metrics": ("Key metrics", "The few numbers that show it is working"),
+        "unfair_advantage": ("Unfair advantage", "What cannot easily be copied"),
+    },
+    "template_value_proposition_canvas": {
+        "customer_jobs": ("Customer jobs", "What the customer is trying to get done"),
+        "customer_pains": ("Pains", "What is costly, risky or annoying"),
+        "customer_gains": ("Gains", "What the customer wants to gain"),
+        "products_services": ("Products and services", "What you offer"),
+        "pain_relievers": ("Pain relievers", "How you remove a stated pain"),
+        "gain_creators": ("Gain creators", "How you create a stated gain"),
+    },
+    "template_marketing_plan": {
+        "segmentation": ("Segmentation", "How the market is divided"),
+        "targeting": ("Targeting", "Which segments you choose and why"),
+        "positioning": ("Positioning", "The place you want to occupy in the customer's mind"),
+        "product": ("Product", "What you sell, including features and quality"),
+        "price": ("Price", "The price and the pricing rule"),
+        "place": ("Place", "How the product reaches the customer"),
+        "promotion": ("Promotion", "How you communicate and persuade"),
+        "people": ("People", "The staff and service behaviour that carry the promise"),
+        "process": ("Process", "The service process the customer experiences"),
+        "physical_evidence": ("Physical evidence", "What the customer can see or touch"),
+    },
+}
+
+CANVAS_META = {
+    "template_business_model_canvas": {
+        "name": "Business Model Canvas with an evidence audit", "short": "business model canvas", "registry_ids": ["STR-15"],
+        "intended_use": "Lay your own evidence into the nine business-model blocks, link items that depend on each other, and audit which blocks are still empty or rest on assumptions.",
+        "unsupported_use": "Inventing customers, partners, costs, revenue or value propositions; scoring or ranking business models; deciding whether the model will work.",
+        "extra_help": "links: optional list of {from, to} item ids; a link records a declared dependency between two items and derives no direction, weight or score.",
+    },
+    "template_lean_canvas": {
+        "name": "Lean Canvas with an evidence audit", "short": "lean canvas", "registry_ids": ["STR-16"],
+        "intended_use": "Lay your own evidence into the nine lean-canvas blocks, state the problem and the unfair advantage, link related items and audit what is still missing.",
+        "unsupported_use": "Inventing a problem, solution, metric or advantage; scoring or ranking; deciding product-market fit.",
+        "extra_help": "links: optional list of {from, to} item ids; a link records a declared dependency between two items and derives no direction, weight or score.",
+    },
+    "template_value_proposition_canvas": {
+        "name": "Value Proposition Canvas with an evidence audit", "short": "value proposition canvas", "registry_ids": ["STR-17"],
+        "intended_use": "Lay your customer jobs, pains and gains beside your products, pain relievers and gain creators, link each relief to the pain it addresses, and audit the fit you have evidence for.",
+        "unsupported_use": "Inventing customer jobs, pains or gains; claiming fit without evidence; scoring fit or ranking propositions.",
+        "extra_help": "links: optional list of {from, to} item ids (for example a pain reliever to the pain it addresses); a link is a declared claim, not a tested fit.",
+    },
+    "template_marketing_plan": {
+        "name": "Marketing plan: segmentation, targeting, positioning and the marketing mix with an evidence audit",
+        "short": "marketing plan", "registry_ids": ["MKT-02"],
+        "intended_use": "Structure your segmentation, targeting and positioning and the marketing mix, mark the evidence behind each item and audit the sections that are still empty.",
+        "unsupported_use": "Choosing a segment or a price for you; inventing customers, competitors or promotions; scoring the plan; replacing market research.",
+        "extra_help": "Product, price, place and promotion are the core mix; people, process and physical evidence are the service extension and may stay empty for a goods business.",
+    },
+}
+CANVAS_MAX_ITEMS_PER_BLOCK = 20
+
+
+def _canvas_item(it, where, errs, used, n):
+    if not isinstance(it, dict):
+        errs.append(f"{where} must be an object")
+        return None
+    text = it.get("text")
+    if not isinstance(text, str) or not text.strip():
+        errs.append(f"{where}: 'text' is required")
+        return None
+    text = text.strip()
+    if len(text) > MAX_TEXT or CTRL.search(text):
+        errs.append(f"{where}: text must be one line of at most {MAX_TEXT} characters")
+        return None
+    prov = it.get("provenance", "user")
+    if prov not in PROV:
+        errs.append(f"{where}: provenance must be one of {list(PROV)}")
+        return None
+    src = it.get("source")
+    if prov == "sourced" and (not isinstance(src, str) or not src.strip() or CTRL.search(src)):
+        errs.append(f"{where}: sourced evidence needs a 'source' (one line)")
+        return None
+    mat = it.get("materiality")
+    if mat is not None and mat not in MATERIALITY:
+        errs.append(f"{where}: materiality must be one of {list(MATERIALITY)}")
+        return None
+    iid = it.get("id", f"E{n}")
+    if not isinstance(iid, str) or not ID_RE.fullmatch(iid):
+        errs.append(f"{where}: id must be 1-20 letters, digits, - or _")
+        return None
+    if iid in used:
+        errs.append(f"{where}: duplicate id {iid}")
+        return None
+    used.add(iid)
+    return {"id": iid, "text": text, "provenance": prov,
+            "source": src.strip() if isinstance(src, str) else None, "materiality": mat}
+
+
+def normalize_canvas(kind, inp):
+    errs = []
+    if not isinstance(inp, dict):
+        return None, ["inputs must be an object"]
+    spec = CANVAS_BLOCKS[kind]
+    extra = set(inp) - {"blocks", "links"}
+    if extra:
+        errs.append(f"unknown input {sorted(extra)}; allowed: ['blocks', 'links']")
+    raw = inp.get("blocks")
+    if not isinstance(raw, dict) or not raw:
+        return None, ["'blocks' must be an object of block name -> list of evidence items"]
+    unknown = [k for k in raw if k not in spec]
+    if unknown:
+        errs.append(f"unknown block(s) {sorted(unknown)}; allowed: {sorted(spec)}")
+    blocks, used, n = {}, set(), 0
+    total = 0
+    for key in spec:
+        if key not in raw:
+            blocks[key] = []
+            continue
+        items = raw[key]
+        if not isinstance(items, list):
+            errs.append(f"blocks.{key} must be a list of evidence items")
+            blocks[key] = []
+            continue
+        if len(items) > CANVAS_MAX_ITEMS_PER_BLOCK:
+            errs.append(f"blocks.{key} allows at most {CANVAS_MAX_ITEMS_PER_BLOCK} items")
+            items = []
+        clean = []
+        for i, it in enumerate(items, 1):
+            n += 1
+            item = _canvas_item(it, f"blocks.{key}[{i - 1}]", errs, used, n)
+            if item:
+                clean.append(item)
+        blocks[key] = clean
+        total += len(clean)
+    if total == 0:
+        errs.append("at least one block must carry an evidence item")
+    raw_links = inp.get("links", [])
+    links = []
+    if not isinstance(raw_links, list) or len(raw_links) > 100:
+        errs.append("'links' must be a list of at most 100 links")
+        raw_links = []
+    seen = set()
+    for i, link in enumerate(raw_links, 1):
+        if not isinstance(link, dict) or set(link) - {"from", "to"} or not {"from", "to"} <= set(link):
+            errs.append(f"links[{i - 1}]: must be an object with 'from' and 'to' item ids")
+            continue
+        a, b = link["from"], link["to"]
+        if a not in used or b not in used:
+            errs.append(f"links[{i - 1}]: cites unknown item ids {[x for x in (a, b) if x not in used]}")
+            continue
+        if a == b:
+            errs.append(f"links[{i - 1}]: an item cannot link to itself")
+            continue
+        if (a, b) in seen:
+            continue
+        seen.add((a, b))
+        links.append({"from": a, "to": b})
+    return ({"blocks": blocks, "links": links} if not errs else None), errs
+
+
+def build_canvas(kind, inp):
+    n, errs = normalize_canvas(kind, inp)
+    if errs:
+        raise DataError("; ".join(errs))
+    spec = CANVAS_BLOCKS[kind]
+    blocks = {k: {"label": spec[k][0], "prompt": spec[k][1], "items": n["blocks"][k]} for k in spec}
+    items = [i for k in spec for i in blocks[k]["items"]]
+    linked = {x for l in n["links"] for x in (l["from"], l["to"])}
+    audit = {"empty_blocks": [k for k in spec if not blocks[k]["items"]],
+             "unsupported_items": [i["id"] for i in items if i["provenance"] == "assumption"],
+             "synthetic_items": [i["id"] for i in items if i["provenance"] == "synthetic"],
+             "items_without_links": [i["id"] for i in items if i["id"] not in linked] if n["links"] else []}
+    counts = {"n_items": len(items), "n_blocks": len(spec),
+              "n_blocks_filled": sum(1 for k in spec if blocks[k]["items"]),
+              "n_blocks_empty": len(audit["empty_blocks"]), "n_links": len(n["links"]),
+              "n_unlinked": len(audit["items_without_links"]),
+              "n_unsupported": len(audit["unsupported_items"])}
+    return {"kind": kind, "registry_ids": CANVAS_META[kind]["registry_ids"], "name": CANVAS_META[kind]["name"],
+            "short": CANVAS_META[kind]["short"],
+            "blocks": blocks, "links": n["links"], "audit": audit, "counts": counts}
+
+
+def render_canvas(a):
+    P = PERIOD
+    tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P)
+    spec = CANVAS_BLOCKS[a["kind"]]
+    a_ = a["audit"]
+    t = (f"This {a['short']} organizes {tok('n_items')} evidence items "
+         f"across {tok('n_blocks_filled')} of {tok('n_blocks')} blocks. ")
+    if a_["empty_blocks"]:
+        t += ("No evidence was supplied for: " + ", ".join(spec[k][0].lower() for k in a_["empty_blocks"]) +
+              ". Those blocks are left empty and are not filled in by the system. ")
+    if a["counts"]["n_unsupported"]:
+        t += f"{tok('n_unsupported')} items rest on assumptions rather than user-supplied or sourced evidence. "
+    if a_["synthetic_items"]:
+        t += "Some items are synthetic and illustrative only; they are not observations. "
+    if a["counts"]["n_links"]:
+        t += (f"You declared {tok('n_links')} links between items, and {tok('n_unlinked')} items have no link. "
+              "A link is your claim about how the items relate; it is not a test of fit. ")
+    t += ("This worksheet organizes evidence only. It does not score, rank or choose between blocks or items, "
+          "and it adds no facts of its own.")
+    lines = []
+    for k in spec:
+        b = a["blocks"][k]
+        lines.append(f"{b['label']} — {b['prompt']}")
+        lines += [_line(i) for i in b["items"]] or ["  No evidence supplied."]
+    if a["links"]:
+        lines.append("Links you declared between items")
+        which = {i["id"]: i["text"] for k in spec for i in a["blocks"][k]["items"]}
+        lines += [f"  {l['from']} -> {l['to']}" for l in a["links"]]
+    return t, "\n".join(lines)
+
+
+def tests_canvas(kind, inp, a, narrative, listing):
+    spec = CANVAS_BLOCKS[kind]
+    raw, n = [], 0
+    for key in spec:
+        for it in (inp.get("blocks") or {}).get(key, []) or []:
+            n += 1
+            raw.append((it.get("id", f"E{n}"), it["text"].strip(), key))
+    placed = [(i["id"], i["text"], key) for key in spec for i in a["blocks"][key]["items"]]
+    c = a["counts"]
+    texts_in = {t for _, t, _ in raw}
+    texts_out = {i["text"] for key in spec for i in a["blocks"][key]["items"]}
+    raw_links = [(l.get("from"), l.get("to")) for l in (inp.get("links") or [])]
+    ids = {i for i, _, _ in raw}
+    declared = {(f, t) for f, t in raw_links if f in ids and t in ids and f != t}
+    placed_pairs = {(l["from"], l["to"]) for l in a["links"]}
+    provs = {}
+    n = 0
+    for key in spec:
+        for it in (inp.get("blocks") or {}).get(key, []) or []:
+            n += 1
+            provs[it.get("id", f"E{n}")] = it.get("provenance", "user")
+    checks = [
+        ("each_item_placed_exactly_once",
+         sorted(i for i, _, _ in placed) == sorted(i for i, _, _ in raw) and len({i for i, _, _ in placed}) == len(raw),
+         "every supplied item appears once, in its own block"),
+        ("counts_agree_with_independent_recount",
+         c["n_items"] == len(raw) and c["n_blocks_filled"] == sum(1 for k in spec if (inp.get("blocks") or {}).get(k))
+         and c["n_links"] == len(declared) and c["n_blocks"] == len(spec),
+         "the counts are recomputed from the raw input"),
+        ("listing_reproduces_every_input_text_verbatim",
+         all(f"[{i}] {t} — " in listing for i, t, _ in raw),
+         "each item's text is reproduced exactly"),
+        ("analysis_contains_only_supplied_text",
+         texts_out == texts_in,
+         "the analysis holds only the texts supplied"),
+        ("empty_blocks_reported_not_filled",
+         a["audit"]["empty_blocks"] == [k for k in spec if not (inp.get("blocks") or {}).get(k)]
+         and all(a["blocks"][k]["items"] == [] for k in a["audit"]["empty_blocks"]),
+         "a block with no evidence stays empty and is named"),
+        ("links_resolve_to_supplied_items_and_are_kept_verbatim",
+         placed_pairs == declared and all(l["from"] in ids and l["to"] in ids for l in a["links"]),
+         "every kept link cites two supplied items, and nothing is added"),
+        ("assumptions_and_synthetic_flagged",
+         set(a["audit"]["unsupported_items"]) == {i for i, p in provs.items() if p == "assumption"}
+         and set(a["audit"]["synthetic_items"]) == {i for i, p in provs.items() if p == "synthetic"},
+         "assumption and synthetic items are listed as such"),
+        ("no_score_or_ranking_present",
+         not any(k in a for k in ("score", "overall", "ranking", "total_score"))
+         and not any(k in c for k in ("score", "overall", "ranking")),
+         "no score, ranking or overall judgement is produced"),
+        ("rendering_is_deterministic", render_canvas(a) == (narrative, listing), "the same input renders the same text"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def canvas_validate(kind):
+    def validate(inp):
+        return normalize_canvas(kind, inp)[1]
+    return validate
+
+
 TEMPLATES = {
     "template_swot": {"id": "template_swot", "version": "0.1.0", "name": "SWOT with evidence-to-action audit", "registry_ids": ["STR-07", "STR-18"], "build": build_swot, "render": render_swot, "tests": tests_swot,
         "test_names": ("each_item_placed_exactly_once", "counts_agree_with_independent_recount", "listing_reproduces_every_input_text_verbatim", "analysis_contains_only_supplied_text", "scopes_match_framework_definition",
@@ -213,6 +504,40 @@ TEMPLATES = {
                      {"question": "Overall assessment", "default_chosen": "None. No score or overall industry attractiveness is produced.", "impact": "Aggregating forces needs weights that you own."}),
         "limitations": ("The system adds no evidence or ratings.", "Mostly qualitative unless data are available (catalogue).", "Five forces describe an industry, not a single firm's position.")},
 }
+
+# The canvas and plan templates share one builder, renderer and check set.
+_CANVAS_TEST_NAMES = ("each_item_placed_exactly_once", "counts_agree_with_independent_recount",
+                      "listing_reproduces_every_input_text_verbatim", "analysis_contains_only_supplied_text",
+                      "empty_blocks_reported_not_filled", "links_resolve_to_supplied_items_and_are_kept_verbatim",
+                      "assumptions_and_synthetic_flagged", "no_score_or_ranking_present", "rendering_is_deterministic")
+for _kind, _meta in CANVAS_META.items():
+    TEMPLATES[_kind] = {
+        "id": _kind, "version": "0.1.0", "tier": "T4", "name": _meta["name"],
+        "registry_ids": _meta["registry_ids"],
+        "build": (lambda inp, _k=_kind: build_canvas(_k, inp)),
+        "render": render_canvas,
+        "tests": (lambda inp, a, narrative, listing, _k=_kind: tests_canvas(_k, inp, a, narrative, listing)),
+        "validate": canvas_validate(_kind),
+        "test_names": _CANVAS_TEST_NAMES,
+        "intended_use": _meta["intended_use"],
+        "unsupported_use": _meta["unsupported_use"],
+        "input_help": {
+            "blocks": "object of block name -> list of {text, provenance user|sourced|assumption|synthetic, source (required if sourced), materiality high|medium|low (optional, your rating), id (optional)}; block names: "
+                      + ", ".join(CANVAS_BLOCKS[_kind]),
+            "links": _meta["extra_help"],
+        },
+        "defaults": (
+            {"question": "Block set", "default_chosen": "The blocks of the named framework, in their conventional order.", "impact": "A different block set is a different framework."},
+            {"question": "Evidence and gaps", "default_chosen": "Every item is yours; a block with no evidence stays empty and is named in the audit.", "impact": "The worksheet never fills a gap to look complete."},
+            {"question": "Links", "default_chosen": "A link is a declared dependency between two of your items; no direction, weight or score is derived.", "impact": "A link is a claim about your evidence, not a tested relationship."},
+        ),
+        "limitations": (
+            "The system adds no evidence, judgment or recommendation; quality depends on what you supply.",
+            "No check that an item is true, that a customer segment exists, or that a claimed link holds in reality.",
+            "No scoring, ranking or overall verdict on the canvas.",
+        ),
+    }
+
 
 def run_template(kind, inp):
     t = TEMPLATES[kind]; a = t["build"](inp); narrative, listing = t["render"](a)
@@ -238,6 +563,40 @@ EXAMPLES = {
                      {"text": "Little capital needed to open a small bakery", "force": "entrants", "provenance": "synthetic"},
                      {"text": "Flour comes from one regional mill", "force": "suppliers", "provenance": "synthetic"}],
         "ratings": {"rivalry": {"rating": "high", "rationale": "Several close competitors"}}}},
+    "template_business_model_canvas": {"objective": "Lay out the evidence for our campus meal business model", "method": "template_business_model_canvas", "inputs": {
+        "blocks": {
+            "customer_segments": [{"text": "Students living within walking distance of the campus", "provenance": "synthetic", "id": "CS1", "materiality": "high"}],
+            "value_propositions": [{"text": "A hot rice meal under eighty pesos in under ten minutes", "provenance": "synthetic", "id": "VP1"}],
+            "channels": [{"text": "A counter beside the main gate and a phone order line", "provenance": "synthetic"}],
+            "cost_structure": [{"text": "Rent, ingredients and two part-time staff", "provenance": "synthetic"}],
+            "revenue_streams": [{"text": "Walk-in meals and prepaid meal cards", "provenance": "synthetic"}]},
+        "links": [{"from": "VP1", "to": "CS1"}]}},
+    "template_lean_canvas": {"objective": "Test the assumptions behind the campus meal idea", "method": "template_lean_canvas", "inputs": {
+        "blocks": {
+            "problem": [{"text": "Students skip lunch when the queue is long", "provenance": "synthetic"}],
+            "customer_segments": [{"text": "Students with a short break between classes", "provenance": "synthetic"}],
+            "solution": [{"text": "Pre-ordered meals collected from a counter", "provenance": "synthetic"}],
+            "unique_value_proposition": [{"text": "Ready in ten minutes at a student price", "provenance": "synthetic"}],
+            "key_metrics": [{"text": "Meals collected per day and average wait", "provenance": "synthetic"}],
+            "unfair_advantage": [{"text": "A lease beside the gate that a competitor cannot copy quickly", "provenance": "synthetic"}]}}},
+    "template_value_proposition_canvas": {"objective": "Map the value proposition for the campus meal service", "method": "template_value_proposition_canvas", "inputs": {
+        "blocks": {
+            "customer_jobs": [{"text": "Eat a proper lunch between classes", "provenance": "synthetic"}],
+            "customer_pains": [{"text": "Long queues leave no time to eat", "provenance": "synthetic", "id": "P1"}],
+            "customer_gains": [{"text": "A predictable, affordable meal", "provenance": "synthetic", "id": "G1"}],
+            "products_services": [{"text": "Pre-ordered rice meals", "provenance": "synthetic"}],
+            "pain_relievers": [{"text": "Order ahead and collect without queuing", "provenance": "synthetic", "id": "PR1"}],
+            "gain_creators": [{"text": "A fixed student price with a meal card", "provenance": "synthetic", "id": "GC1"}]},
+        "links": [{"from": "PR1", "to": "P1"}, {"from": "GC1", "to": "G1"}]}},
+    "template_marketing_plan": {"objective": "Structure the marketing plan for the campus meal service", "method": "template_marketing_plan", "inputs": {
+        "blocks": {
+            "segmentation": [{"text": "Students by year level and length of break", "provenance": "synthetic"}],
+            "targeting": [{"text": "First- and second-year students with a short midday break", "provenance": "synthetic"}],
+            "positioning": [{"text": "The fastest student-priced hot meal beside the gate", "provenance": "synthetic"}],
+            "product": [{"text": "Three rice meals and two drinks", "provenance": "synthetic"}],
+            "price": [{"text": "Seventy-five pesos a meal, cost-plus pricing", "provenance": "synthetic"}],
+            "place": [{"text": "Counter beside the main gate", "provenance": "synthetic"}],
+            "promotion": [{"text": "Class-group chats and a first-week meal-card discount", "provenance": "synthetic"}]}}},
 }
 
 

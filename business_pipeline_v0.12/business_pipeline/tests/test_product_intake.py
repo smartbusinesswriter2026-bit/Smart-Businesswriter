@@ -1,8 +1,9 @@
-"""Intake store and its routes (product layer, B-080).
+"""Intake store and its routes (product layer, B-080, B-105).
 
-The store accepts a file, hashes it and records what kind of file it is. It
-does not read anything: structured files are read by the frozen ingest module
-through the server, and every other file is stored as `reference_only`.
+The store accepts a file, hashes it and records what kind of file it is. Structured
+files are read by the frozen ingest module through the server; PDFs and images are
+stored and read only on an explicit extract request; every other file is stored as
+`reference_only`.
 """
 
 import base64
@@ -51,11 +52,14 @@ class IntakeStoreTest(unittest.TestCase):
         self.assertEqual(intake.payload(record["id"]), ("sales.csv", CSV))
         self.assertEqual(intake.load(record["id"])["filename"], "sales.csv")
 
-    def test_a_document_is_stored_as_reference_only(self):
+    def test_a_document_is_stored_and_read_only_on_request(self):
         record = intake.save("brief.pdf", b"%PDF-1.4 not really a pdf")
-        self.assertEqual(record["kind"], "reference")
-        self.assertEqual(record["status"], "reference_only")
-        self.assertIn("stored only", record["note"])
+        self.assertEqual(record["kind"], "document")
+        self.assertEqual(record["status"], "stored")
+        self.assertIn("Extract text", record["note"])
+        with self.assertRaises(intake.IntakeError):
+            intake.extract(record["id"])
+        self.assertEqual(intake.load(record["id"])["status"], "reference_only")
 
     def test_a_legacy_xls_is_not_claimed_as_readable(self):
         record = intake.save("old.xls", XLS_LEGACY)
@@ -169,14 +173,23 @@ class IntakeRoutesTest(unittest.TestCase):
         self.assertEqual((record["table"]["n_rows"], record["table"]["n_cols"]), (2, 2))
         self.assertEqual([c["name"] for c in record["table"]["columns"]], ["region", "sales"])
 
-    def test_a_pdf_is_accepted_but_not_read(self):
-        status, record = self.upload("brief.pdf", b"%PDF-1.4 brief")
+    def test_a_pdf_is_stored_and_extracted_on_request(self):
+        with open(os.path.join(HERE, "fixtures", "hello_finance.pdf"), "rb") as stream:
+            raw = stream.read()
+        status, record = self.upload("brief.pdf", raw)
         self.assertEqual(status, 201)
-        self.assertEqual(record["status"], "reference_only")
+        self.assertEqual(record["kind"], "document")
+        self.assertEqual(record["status"], "stored")
         self.assertIsNone(record["table"])
         status, refused = self.call("POST", "/api/intake/%s/ingest" % record["id"], {})
         self.assertEqual(status, 422)
         self.assertIn("no reader", refused["error"])
+        status, extracted = self.call("POST", "/api/intake/%s/extract" % record["id"], {})
+        self.assertEqual(status, 200)
+        self.assertEqual(extracted["status"], "extracted")
+        status, text = self.call("GET", "/api/intake/%s/text?limit=200" % record["id"])
+        self.assertEqual(status, 200)
+        self.assertIn("Hello finance student", text["text"])
 
     def test_the_list_get_and_delete_routes_round_trip(self):
         status, record = self.upload("sales.csv", CSV)

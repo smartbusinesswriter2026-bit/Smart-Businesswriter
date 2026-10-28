@@ -32,6 +32,11 @@ FROZEN_MODULES = ("methods", "orchestrator", "session", "server", "spec", "sandb
                   "catalogue_import", "reperform", "envpin")
 
 
+#: Optional document readers (B-105).  They are imported lazily inside functions and only in
+#: `documents.py`; they read a file's text, never compute a business number.
+OPTIONAL_DOCUMENT_READERS = {"pypdf", "pypdfium2", "pytesseract", "PIL"}
+
+
 def _product_sources():
     for name in sorted(os.listdir(PRODUCT_DIR)):
         if name.endswith(".py"):
@@ -49,18 +54,21 @@ class ProductBoundaryTest(unittest.TestCase):
 
     def test_the_product_package_imports_only_the_standard_library(self):
         for name, source in _product_sources():
+            allowed = set(sys.stdlib_module_names)
+            if name == "documents.py":
+                allowed |= OPTIONAL_DOCUMENT_READERS
             tree = ast.parse(source, filename=name)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
                         root = alias.name.split(".")[0]
-                        self.assertIn(root, sys.stdlib_module_names,
+                        self.assertIn(root, allowed,
                                       "%s imports %s, which is not standard library" % (name, alias.name))
                 elif isinstance(node, ast.ImportFrom):
                     if node.level:
                         continue  # a relative import inside the product package
                     root = (node.module or "").split(".")[0]
-                    self.assertIn(root, sys.stdlib_module_names,
+                    self.assertIn(root, allowed,
                                   "%s imports %s, which is not standard library" % (name, node.module))
 
     def test_the_product_package_never_imports_the_frozen_core(self):

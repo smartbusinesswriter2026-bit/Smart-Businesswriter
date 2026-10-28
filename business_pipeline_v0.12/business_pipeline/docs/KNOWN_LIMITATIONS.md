@@ -8,8 +8,28 @@
 - Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
 - Server is for local development, not production.
 
+## Added with free market-data lookups (B-106, B-109)
+- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes and fundamentals (the user's own free key), **SEC EDGAR** for US filings, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
+- Alpha Vantage needs `BP_ALPHAVANTAGE_KEY`. On the free tier it allows 25 requests a day; results are cached for 24 hours. Without a key the lookup refuses and says where to register.
+- A retrieved value is **published by the source, not independently verified here**. There is no cross-source check, no correction and no guarantee that the source's terms will stay the same.
+- The value is **never written into a method input automatically**. The panel shows the value, as-of date, source and response SHA-256; the student confirms and types it into the tool.
+- A lookup needs network access. On failure it returns a reason and no value; it does not fall back to a remembered or invented rate. Caches are in memory only and clear on restart.
+- FX is quoted as one unit of the base currency in the quote currency, on the source's latest business day unless a date is given. A Treasury par yield is a **US** rate, not any country's policy or lending rate.
+- **PSE prices, private-company figures and anything the five sources do not cover are manual entries.** The panel says so rather than scraping a site.
+- One observation (or one filing list) is returned at a time; there is no stored price history, chart or portfolio tracker.
+
+## Added with document reading (B-107, B-110)
+- PDF reading uses the **text layer** when there is one; a scanned PDF is rendered with `pypdfium2` and OCR'd with a local **Tesseract**. If either optional reader is absent, the file is stored and reported `ocr_required`.
+- Image OCR runs only when **Tesseract**, `pytesseract` and Pillow are installed locally. The Windows build resolves the engine from `BP_TESSERACT_CMD`, PATH or the usual install folders.
+- `pypdf`, `pypdfium2` and `pytesseract` are **optional product-layer dependencies**. If one is absent, the corresponding extraction is refused with a hint; structured CSV/XLSX ingestion is unaffected.
+- Extracted text is **unverified**: columns, tables, headers and footers can be reordered or garbled, and ligatures, handwriting or unusual fonts may be lost. Check it against the document before using it.
+- Limits are refused, not truncated: 5 MB upload, 50 PDF pages (20 for OCR), 200,000 characters, and encrypted PDFs. DOCX, legacy `.xls`, handwriting and forms are not read.
+- OCR is CPU-bound: a page takes a moment, so a long scan is refused rather than holding the request open.
+- Extracted text is stored beside the payload as `<id>.txt` and is **not** placed into a method input automatically; the user reads, confirms and types what is needed.
+
+
 ## Added with the student finance shelf (B-090)
-- Every added finance method is **arithmetic on declared inputs**. No exchange rate, bond price, option price, peer multiple, inflation rate or market return is retrieved or verified; a stale or wrong declaration flows straight through.
+- Every added finance method is **arithmetic on declared inputs**. Methods still retrieve nothing: the market panel can look up a labelled reference value (B-106), but the student confirms and types it, so a stale or wrong declaration still flows straight through.
 - `time_value` and `loan_amortization` need the rate and term to be declared; there is no rate, term or payment solver. No fees, insurance, taxes, grace periods or variable rates.
 - `bond_analysis` prices a plain fixed-coupon bond **on a coupon date** with no accrued interest, day-count convention, embedded option, credit spread or spot curve. Duration and convexity are local parallel-shift sensitivities.
 - `capm` uses a declared risk-free rate, market return and beta, or estimates beta by OLS from the supplied series; it does not choose an index, test beta stability or model multiple factors. Hamada relevering is arithmetic on the declared debt-to-equity ratio and tax rate.
@@ -319,6 +339,25 @@
 - `regression_discontinuity` is a sharp design with a declared bandwidth and a separate local linear fit on each side; it cannot test manipulation, choose an optimal bandwidth or handle a fuzzy design.
 - `probit` uses one predictor and maximum likelihood with Newton-Raphson; separation is refused, and no robust, clustered or bootstrapped standard errors are computed.
 - VAR, cointegration and the remaining time-series estimators are still parked.
+
+## Added with the entrepreneurship shelf (B-104, B-105)
+- `market_sizing` is **top-down arithmetic** on the customers, annual spend and two shares you declare. It does not estimate demand, retrieve census or industry data, test the shares, or grow the market. SOM is not a sales forecast.
+- `startup_capital` adds the declared set-up costs and working capital plus a declared contingency, then subtracts owner equity and one loan. It does not price the equipment, build a costed bill of materials, time the spend, cost the loan, or model equity dilution, grants or supplier credit. A negative amount to raise is reported as a surplus.
+- `cash_runway` uses **one declared net monthly flow**, optionally growing at a constant rate. There is no month-by-month budget, seasonality, one-off purchase, tax timing or financing inflow, and growth is applied to the net flow rather than separately to revenue and costs. A flow that never burns cash **blocks** instead of reporting an infinite runway.
+- `pricing_decision` implements four declared pricing rules. It does not research willingness to pay or competitor prices, estimate a demand response, apply psychological pricing, discounts or tax. The markup-on-cost and margin-on-price conventions give different prices and both are shown.
+- `return_on_investment` uses the **total** net gain over the holding period, not an annual cash flow, and ignores the timing of the flows inside that period. The annualised return is a constant compound rate; a loss of 100% or more has no real annualised rate and is refused when a holding period is declared.
+- The `breakeven` extension reports the margin of safety against **your declared expected volume**, not against a budget or forecast the method verifies. The target profit is pre-tax.
+- **Not built on this shelf:** cohort retention curves, funnel/conversion analysis, market share and penetration measures, multi-input sensitivity and Monte Carlo, pre-money/post-money, dilution and cap tables, and the Business Model Canvas, Lean Canvas and Value Proposition Canvas worksheets (the three catalogue records still read "not implemented"). The only structured worksheet on the shelf is the SWOT evidence review (`STR-18`).
+- The shelf's tool groups, period badges, study notes, glossary and the student guide are **presentation and teaching material**. They do not choose the tool for you, validate a declared share or volume, or turn an assumption into evidence.
+
+## Added with the venture-planning lane (B-108, B-109)
+- The **canvas and marketing-plan worksheets are T4**: they place the evidence you supply, reproduce it verbatim and report the empty blocks. They do not check that a customer segment exists, that a value proposition is attractive, that a claimed link holds, or that the plan will work. No score, ranking or recommendation is produced.
+- `sales_projection` holds price, unit variable cost and period fixed cost **constant** and grows only the volume at one declared rate. It is a projection from your assumptions, not a fitted forecast; no seasonality, step cost, capacity limit, multi-product mix, tax or financing is modelled.
+- `cap_table_round` models **one priced round** with ordinary shares. It does not model convertible notes, SAFEs, bridges, multiple rounds, liquidation preferences, anti-dilution, vesting, pro-rata rights, board seats or any other negotiated clause. The option pool is post-money; the pre-money pool shuffle is a different convention and is not applied. The valuation is an input.
+- `sales_funnel` is arithmetic on the stage counts you declare. It does not choose the stages, estimate conversion, split by channel or cohort, attribute a sale, or test significance. A count that rises blocks rather than being smoothed.
+- `cohort_retention` pools cohorts and weights each by its starting size. Every cohort must be observed for the same number of periods; a period not yet reached must be omitted, not zero-filled. No survival model, reactivation, seasonality, revenue weighting or significance test.
+- `demand_curve` fits a straight line to your price-quantity pairs. It is an **association**, not an identified demand curve: omitted variables, simultaneity and measurement error are not addressed, and the revenue-maximising price exists only when the fitted slope is negative and only within the observed range.
+- `purchase_intent` applies **declared weights** to stated intent. The weights are conventions, not estimates; stated intent overstates purchase; sampling error, non-response and representativeness are not modelled.
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

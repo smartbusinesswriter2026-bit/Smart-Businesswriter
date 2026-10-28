@@ -1,5 +1,152 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — Local OCR and global free data: finish the P2 retrieval/ingestion slice
+
+**Ask.** Install a PDF renderer and Tesseract; add the free global sources the owner named (SEC
+EDGAR, Alpha Vantage educational, World Bank) and require manual entry where none exists. Do not
+assume a Philippine-only context.
+
+**Installed.** `pypdfium2` 5.14 and Tesseract 5.4.0 (UB Mannheim) plus `pytesseract`. `documents.py`
+resolves the binary from `BP_TESSERACT_CMD`, PATH or the usual Windows paths; a scanned PDF is
+rendered at 144 dpi and OCR'd page by page, an image is OCR'd directly. New limits: 20 OCR pages,
+200k characters, encrypted refused; the text remains unverified. Without the packages the file is
+stored and reported `ocr_required`, as before.
+
+**Global sources.** Added Alpha Vantage quote/fundamentals (user key in `BP_ALPHAVANTAGE_KEY`),
+SEC EDGAR filings (no key) and World Bank macro (no key, CC BY 4.0), all through the same
+provenance wrapper: source, as-of date, URL, response SHA-256, cache, and no automatic input.
+Keys are redacted from returned URLs. The Finance panel exposes Quote, Fundamentals, Filings and
+World Bank next to FX and the Treasury yield; PSE/private companies are explicitly manual.
+
+**Why not Yahoo/PSE.** No public licence and terms that forbid scraping; the quotes are
+exchange-licensed. The free usable paths are the ones above; Alpha Vantage's educational tier is
+free with a key and attribution.
+
+**Verified.** 26 market-data tests (injected fetch, no network; key redaction, rate-limit refusal,
+EDGAR parsing, World Bank parsing) and 11 document tests (text layer, scanned PDF OCR, image OCR,
+encrypted, limits, intake round trip). Live checks on a scratch server: SEC Apple 10-K list,
+World Bank PH GDP growth 4.40% (2025), missing Alpha key refusal, and the panel rendering both
+cards with provenance. Full suite 1160 tests.
+
+
+## 2026-10-28 — The planning lane: canvases, projections, dilution, funnel, retention, demand and intent
+
+**Ask.** "Do your recommendations" with the context that the product intends to serve hundreds of
+thousands and then millions of students, so coverage must be as extensive as possible without
+sacrificing correctness.
+
+**Did — worksheets.** Four T4 templates on one shared builder, renderer and nine-check set: Business
+Model Canvas (nine blocks), Lean Canvas (nine), Value Proposition Canvas (six, with declared links from
+pain relievers and gain creators to the pains and gains they address) and a marketing plan (STP plus
+the product/price/place/promotion mix, with the service extension optional). Every item is the
+student's; empty blocks are named and left empty; links survive only when both ends exist; no score,
+ranking or recommendation is produced. Registered to `STR-15`, `STR-16`, `STR-17` and `MKT-02` and
+offered as worksheets on Entrepreneurship, Management and Marketing.
+
+**Did — computation.** Six T1 methods: `sales_projection`, `cap_table_round`, `sales_funnel`,
+`cohort_retention`, `demand_curve` and `purchase_intent`, each with a second float route, five frozen
+checks, refusals, assumptions, limitations and a token-only report. A new `value_matrix` input type
+validates the cohort rows. PHP presets for all six.
+
+**The defect the new methods exposed.** A delivered report still contained raw `{{ref:...}}` tokens
+whenever the declared period had a space in it (`point in time`, `per observation`). The draft
+renderer's token pattern only accepted `\w+` in the period field. The pattern now accepts the declared
+period text; this also repairs the latent case for any future method that declares such a period.
+
+**What was deliberately not built.** Term sheets and negotiated clauses, liquidation preferences,
+anti-dilution, vesting, multiple rounds, conjoint analysis, survival models, Monte Carlo valuation and
+market-data retrieval. Each is legal, contractual or probabilistic rather than declared-input
+arithmetic, and each is named in the guide and in `KNOWN_LIMITATIONS.md`.
+
+**Contract impact.** An approved unfreeze under B-079, recorded as B-109: 97 methods became 103 and
+the preset surface became 105; the fixture was regenerated. The templates are B-108 and touch no
+number.
+
+**Verified.** 1151 tests OK (35 new: hand-checked arithmetic and refusals for the six methods, preset
+delivery, every canvas check, verbatim listing, gap reporting, link validation, determinism, no raw
+digits in a narrative, and the shelf wiring). `scripts/econ_shelf.py --check` in sync; the canvas and
+marketing-plan examples deliver end to end.
+
+## 2026-10-28 — Free market data and PDF reading, both fail-closed
+
+**Ask.** After the P2 list: recommend free market data, and provide the document-upload reading
+mechanism; the multi-analysis case container was dropped (B-103).
+
+**Market data.** New `bp.product.marketdata`: Frankfurter for FX (no key, no quota) and the U.S.
+Treasury par yield curve (no key). Fixed HTTPS allowlist, 20 s timeout, 1 MB cap, redirect check,
+300 s cache, and a SHA-256 of the response. The Finance page has a lookup panel; the value is shown
+with source, date and hash and is **never auto-filled** into a tool. Routes `/api/market/fx` and
+`/api/market/riskfree`. No equities/fundamentals/PSE yet: those need a source and licensing choice.
+
+**Documents.** New `bp.product.documents`: PDF text layer via optional `pypdf`; image OCR only when
+Tesseract and `pytesseract` exist. Scanned PDFs return `ocr_required`; encrypted, >50 pages or
+>200k characters are refused. Intake gains the `document` kind, `extracted`/`ocr_required`
+statuses, `/extract` and `/text` routes, and the attachments strip gains Extract/Show text. The
+text is written beside the payload and labelled unverified; it never enters a method input.
+
+**Boundary.** The readers are optional and imported lazily only in `documents.py`; the product
+boundary test allows exactly `pypdf`, `pytesseract` and `PIL` there. The computation core and its
+fingerprint stay standard-library only; without the readers the file is stored and refused with a
+reason.
+
+**Verified.** 16 new tests (9 market-data with an injected fetch and no network, 7 document/intake
+tests including the text-layer fixture, blank/scanned and encrypted PDFs). The live app was checked
+on a scratch port: FX 63.986 USD/PHP, 10Y Treasury 4.99%, PDF upload -> extract -> text preview,
+and the Finance panel rendered its lookup card with source, date and hash. Full suite: 1116 tests.
+
+
+## 2026-10-28 — The Entrepreneurship shelf becomes a business plan a student can actually submit
+
+**Ask.** "Check the entrepreneurship if all the computation needed by the subject is in the pipeline,
+and ensure that this is oriented towards a student using it for their assignment." Then "go per your
+preference" on the plan: wire what exists, add the missing computations, leave the canvases labelled.
+
+**What the audit found.** The shelf had eight generic tools, one SWOT worksheet and five catalogue rows
+that all read "not implemented". A feasibility study asks for market size, a price, break-even in pesos,
+the capital to raise, the runway and a return; **none of those six computations existed**. `breakeven`
+returned units only, so the peso break-even, the margin of safety and the target-profit volume could not
+be produced. The page had no glossary, no student guide, no business-plan grouping, and five of its
+twelve rows were canvases with no worksheet. The registry already said it plainly: QNT-MKT-01..03 and
+QNT-FIN-07 were "not implemented".
+
+**Did — computation.** Five T1 methods, each with a float second route, five frozen checks, declared
+inputs, refusals, assumptions, limitations, caveats and a token-only template: `market_sizing` (TAM/SAM/
+SOM), `startup_capital` (requirement less declared sources, with a surplus instead of a negative raise),
+`cash_runway` (months to zero, lowest balance and funding gap; a non-burning flow blocks), `pricing_decision`
+(cost-plus, target-margin, break-even and target-return prices) and `return_on_investment` (ROI and
+annualised ROI). `breakeven` was **extended additively**: the quantity is unchanged, the contribution
+margin and break-even revenue always appear, and the margin of safety and target-profit volume appear
+only when `expected_units` or `target_profit` is declared. Five PHP presets carry worked examples.
+
+**Did — presentation.** Thirty tiles in five business-plan groups, a period badge on every tile, a
+20-term glossary, a guidance paragraph on the subject and a generalised `_tool()` that reads
+`SUBJECT_GROUPS`/`SUBJECT_PERIODS` instead of hard-coding Finance. The tools that were already built but
+unwired (project metrics, scenario, loan, working capital, DCF, multiples, equity bridge, SROI, CBA,
+elasticity, cost curves, markup/Lerner, trend analysis and the survey statistics) are now on the shelf.
+The catalogue links were updated so the page states partial coverage honestly (market sizing, growth,
+unit economics, pricing) and still shows the canvases as "not implemented". New
+`docs/ENTREPRENEURSHIP_STUDENT_GUIDE.md`: assignment requirement → tool table, conventions, six worked
+examples, a practice set with an answer key, and the stated gaps.
+
+**Two mistakes worth recording.** (1) The first draft gave the shelf four extra tool keys so that the
+break-even, unit-economics, multi-product and NPV tiles could carry PHP presets. That duplicated every
+one of those tiles in the Calculator and broke the union guard; the keys were removed and the shared
+presets are used. (2) A PowerShell `Set-Content` round-trip on `subjects.py`, `CHANGELOG.md` and
+`BACKEND_CONTRACT.md` double-encoded every non-ASCII character (en dashes, arrows, middle dots). The
+catalogue guard caught it immediately; the files were repaired by inverting the encoding and the guard
+now passes with zero missing characters. Do not use PowerShell text round-trips on this repository's
+UTF-8 files.
+
+**Contract impact.** An approved unfreeze under B-079, recorded as B-104: 92 methods became 97 and the
+preset surface became 99; `tests/fixtures/frozen_contract.json` was regenerated. `breakeven`'s existing
+output and checks are unchanged. The presentation work is B-105 and touches no number.
+
+**Verified.** 1116 tests OK, including 29 new ones (hand-checked arithmetic, checks and refusals for all
+five methods and the extension, every new preset delivering without a raw token, tile grouping and
+order, notes/period/level coverage, glossary terms, catalogue partial statuses, and no Finance grouping
+leak onto Economics). `scripts/econ_shelf.py --check` audits both shelves and reports the fixture in
+sync. The student guide's numbers were re-run through the methods, not copied by hand.
+
 ## 2026-10-28 — Multi-year trend analysis, the last core Finance gap
 
 **Ask.** "go" after the P0-3 presentation work: close the one remaining core assignment, multi-year

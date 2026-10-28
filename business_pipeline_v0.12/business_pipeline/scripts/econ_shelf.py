@@ -45,7 +45,6 @@ def _contract_methods():
 
 
 def check():
-    page = subjects.detail("economics")
     with open(FIXTURE, encoding="utf-8") as stream:
         on_disk = json.load(stream)
     drift = []
@@ -55,16 +54,22 @@ def check():
         drift.append("presets")
     print("methods: %d" % len(LIBRARY))
     print("presets: %d" % len(server.PRESETS))
-    print("economics tools: %d" % len(page["tools"]))
-    for level in ("intro", "intermediate", "advanced"):
-        keys = [tool["key"] for tool in page["tools"] if tool["level"] == level]
-        print("  %-12s %d" % (level, len(keys)))
-    missing = [tool["key"] for tool in page["tools"]
-               if not (tool["formula"] and tool["steps"] and tool["common_mistakes"])]
-    print("missing student notes: %s" % (", ".join(missing) if missing else "none"))
-    print("glossary terms: %d" % len(page["glossary"]))
+    failed = False
+    for subject_id in ("economics", "entrepreneurship"):
+        page = subjects.detail(subject_id)
+        print("%s tools: %d" % (subject_id, len(page["tools"])))
+        for level in ("intro", "intermediate", "advanced"):
+            keys = [tool["key"] for tool in page["tools"] if tool["level"] == level]
+            print("  %-12s %d" % (level, len(keys)))
+        missing = [tool["key"] for tool in page["tools"]
+                   if not (tool["formula"] and tool["steps"] and tool["common_mistakes"])]
+        missing += [tool["key"] for tool in page["tools"] if tool.get("group") is None
+                    and subject_id == "entrepreneurship"]
+        print("missing student notes or group: %s" % (", ".join(missing) if missing else "none"))
+        print("glossary terms: %d" % len(page["glossary"]))
+        failed = failed or bool(missing)
     print("frozen fixture: %s" % ("in sync" if not drift else "DRIFT in " + ", ".join(drift)))
-    return 1 if missing or drift else 0
+    return 1 if failed or drift else 0
 
 
 def fixture():

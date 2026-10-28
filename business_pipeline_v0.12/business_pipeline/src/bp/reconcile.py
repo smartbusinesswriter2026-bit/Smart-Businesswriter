@@ -68,7 +68,8 @@ def reconcile(j, account, statement):
     adj_stmt = sc + b_d - b_c; adj_ledger = ledger_balance + s_d - s_c
     checks = [("statement_internally_consistent", sc == so + stmt_sum, f"closing {sc}, opening plus lines {so + stmt_sum}"),
               ("opening_balances_agree", ob == so, f"ledger opening {ob}, statement opening {so}")]
-    report = {"account": account, "ledger_opening": ob, "ledger_balance": ledger_balance, "statement_opening": so, "statement_closing": sc,
+    report = {"account": account, "account_name": j.chart.get(account).name,
+              "ledger_opening": ob, "ledger_balance": ledger_balance, "statement_opening": so, "statement_closing": sc,
               "receipts_in_transit": b_d, "payments_outstanding": b_c, "unrecorded_receipts": s_d, "unrecorded_payments": s_c,
               "adjusted_statement": adj_stmt, "adjusted_ledger": adj_ledger, "difference": adj_stmt - adj_ledger,
               "matched": matched, "books_only": books_only, "statement_only": stmt_only}

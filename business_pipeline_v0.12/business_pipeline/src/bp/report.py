@@ -21,8 +21,8 @@ def t_account(lg, places=2):
     recalculated here. A closing entry is marked, because a reader who sees the income and
     expense accounts go to zero deserves to know why.
     """
-    out = [f"ACCOUNT {lg['code']} {lg['name']}", f"  {lg['type']}, normal side {'debit' if lg['normal'] == 'D' else 'credit'}"
-                                                 + (", contra" if lg.get("contra") else "")]
+    out = [f"ACCOUNT {lg['name']}", f"  {lg['type']}, normal side {'debit' if lg['normal'] == 'D' else 'credit'}"
+                                     + (", contra" if lg.get("contra") else "")]
     out.append(_row("  Opening balance", lg["opening_balance"], places))
     if not lg["movements"]:
         out.append("  no movement in the period")
@@ -47,7 +47,7 @@ def statement_of_equity(eq, places=2):
     """
     out = ["STATEMENT OF CHANGES IN EQUITY"]
     for row in eq["accounts"]:
-        out.append(f"{row['code']} {row['name']}")
+        out.append(row["name"])
         out.append(_row("  Opening balance", row["opening"], places))
         if not row["movements"]:
             out.append("  no movement in the period")
@@ -74,8 +74,8 @@ def journal(j, places=2):
         for l in row["lines"]:
             side = "Dr" if l["side"] == "D" else "Cr"
             amount = l["debit"] if l["side"] == "D" else l["credit"]
-            out.append(f"    {l['account']:<8} {l['name'][:34]:<34} {side} {_num(amount, places):>16}")
-        out.append(f"    {'':<8} {'entry totals':<34} Dr {_num(row['debits'], places):>13}"
+            out.append(f"    {l['name'][:42]:<42} {side} {_num(amount, places):>16}")
+        out.append(f"    {'entry totals':<42} Dr {_num(row['debits'], places):>13}"
                    f"  Cr {_num(row['credits'], places):>13}")
     return "\n".join(out)
 
@@ -85,9 +85,9 @@ def _money(v, currency, places=2):
 
 def trial_balance(j, places=2):
     tb = ledger.trial_balance(j)
-    out = ["TRIAL BALANCE", f"{j.start} to {j.end}   {j.currency}", f"{'Code':<6}{'Account':<40}{'Debit':>20}{'Credit':>20}"]
+    out = ["TRIAL BALANCE", f"{j.start} to {j.end}   {j.currency}", f"{'Account':<46}{'Debit':>20}{'Credit':>20}"]
     for code, name, d, c in tb["rows"]:
-        out.append(f"{code:<6}{name[:40]:<40}{_num(d, places) if d else '':>20}{_num(c, places) if c else '':>20}")
+        out.append(f"{name[:46]:<46}{_num(d, places) if d else '':>20}{_num(c, places) if c else '':>20}")
     out.append(f"{'':<46}{_num(tb['total_debits'], places):>20}{_num(tb['total_credits'], places):>20}")
     return "\n".join(out)
 
@@ -182,7 +182,8 @@ def cash_flow_statement(j, cf, places=2):
 
 def reconciliation_statement(rec_report, places=2):
     r = rec_report
-    out = [f"RECONCILIATION (account {r['account']})", "Balance per statement"]
+    who = r.get("account_name") or "the cash account"
+    out = [f"RECONCILIATION ({who})", "Balance per statement"]
     out += [_row("Balance per statement", r["statement_closing"], places),
             _row("Add: receipts in transit", r["receipts_in_transit"], places),
             _row("Less: outstanding payments", -r["payments_outstanding"], places),
@@ -206,7 +207,7 @@ def notes(j, framework, pre, policy_changes=(), rec_report=None, places=2):
     else:
         out.append("Declared policy changes: none")
     if rec_report is not None:
-        out.append(f"Reconciliation of account {rec_report['account']}: adjusted statement {_num(rec_report['adjusted_statement'], places)}, "
+        out.append(f"Reconciliation of {rec_report.get('account_name') or 'the cash account'}: adjusted statement {_num(rec_report['adjusted_statement'], places)}, "
                    f"adjusted ledger {_num(rec_report['adjusted_ledger'], places)}, difference {_num(rec_report['difference'], places)}")
     return "\n".join(out)
 

@@ -77,6 +77,22 @@ METHOD_LINK_RULES = [
      ["unit_economics"],
      "contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics "
      "are not implemented"),
+    (r"^Pricing and demand:",
+     ["pricing_decision", "elasticity"],
+     "cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price "
+     "elasticity between two observations; estimating a demand curve or willingness to pay is not implemented"),
+    (r"^Market sizing \(TAM/SAM/SOM\)",
+     ["market_sizing"],
+     "top-down TAM, SAM and SOM from a declared population, spend and two shares are implemented; bottom-up "
+     "segmentation, retrieved market data and a demand estimate are not implemented"),
+    (r"^Market share, growth rates",
+     ["growth_rate"],
+     "compound and period growth rates are implemented; market share, penetration, conversion and funnel leakage "
+     "are not implemented as methods"),
+    (r"^Cohort retention",
+     ["unit_economics"],
+     "a single declared churn rate and its period-value LTV are implemented; cohort retention curves and "
+     "repeat-purchase analysis are not implemented"),
     (r"^Data profiling, descriptive statistics", ["descriptive_stats"], "descriptive statistics for one variable only; cross-tabulation and visualization are not implemented"),
     (r"^Chi-square tests, t-tests, ANOVA",
      ["welch_t", "mann_whitney", "chi_square", "anova", "kruskal_wallis", "two_way_anova", "posthoc_pairwise",
@@ -92,7 +108,9 @@ METHOD_LINK_RULES = [
      "scenario analysis, Monte Carlo and expected-value decision trees are not implemented"),
 ]
 
-TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces"}
+TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces",
+                  "STR-15": "template_business_model_canvas", "STR-16": "template_lean_canvas",
+                  "STR-17": "template_value_proposition_canvas", "MKT-02": "template_marketing_plan"}
 
 class RegistryError(ValueError): pass
 _CACHE = {}

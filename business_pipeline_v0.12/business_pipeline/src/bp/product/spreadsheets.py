@@ -206,21 +206,21 @@ def _accounting_rows(accounts):
             sheets.append(("Statements", rows))
     trial = accounts.get("trial_balance")
     if isinstance(trial, dict) and isinstance(trial.get("rows"), list):
-        rows = [[("Code", True), ("Account", True), ("Debit", True), ("Credit", True)]]
+        rows = [[("Account", True), ("Debit", True), ("Credit", True)]]
         for row in trial["rows"]:
             if isinstance(row, dict):
-                rows.append([row.get("code"), row.get("name"), row.get("debit"), row.get("credit")])
+                rows.append([row.get("name"), row.get("debit"), row.get("credit")])
             else:
-                rows.append(list(row)[:4])
-        rows.append([("", True), ("Total", True), trial.get("total_debits"), trial.get("total_credits")])
+                rows.append(list(row)[1:4])
+        rows.append([("Total", True), trial.get("total_debits"), trial.get("total_credits")])
         sheets.append(("Trial balance", rows))
     journal = accounts.get("journal")
     if isinstance(journal, list) and journal:
-        rows = [[("Date", True), ("Description", True), ("Account", True), ("Name", True),
+        rows = [[("Date", True), ("Description", True), ("Account", True),
                  ("Debit", True), ("Credit", True), ("Entry hash", True)]]
         for entry in journal:
             for line in entry.get("lines") or []:
-                rows.append([entry.get("date"), entry.get("description"), line.get("account"), line.get("name"),
+                rows.append([entry.get("date"), entry.get("description"), line.get("name"),
                              line.get("debit"), line.get("credit"), entry.get("hash")])
         sheets.append(("Journal", rows))
     checks = accounts.get("checks")

@@ -13,7 +13,7 @@ from .claims import license_check
 STAGES = ["intake", "formalization", "method_selection", "test_planning", "execution",
           "verification", "sensitivity", "drafting", "draft_audit", "delivery"]
 YEAR = re.compile(r"\b(19|20)\d{2}\b")
-TOKEN = re.compile(r"\{\{ref:(\w+):(\w+):(\w+)\}\}")
+TOKEN = re.compile(r"\{\{ref:(\w+):(\w+):([^}]+)\}\}")
 TXT = re.compile(r"\{\{txt:([A-Za-z0-9_]{1,20})\}\}")
 SYNTHETIC_NOTE = "Note: these results are computed from synthetic data and must not be read as observations."
 

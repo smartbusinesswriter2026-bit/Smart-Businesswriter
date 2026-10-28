@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.83**, **1071 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.87**, **1160 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -106,6 +106,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
 | [`CHANGELOG.md`](CHANGELOG.md) | Append-only build log | Newest first; one entry per increment |
 | [`ECONOMICS_STUDENT_GUIDE.md`](ECONOMICS_STUDENT_GUIDE.md) | Living student guide | Update when the Economics shelf, its conventions or its worked examples change |
+| [`ENTREPRENEURSHIP_STUDENT_GUIDE.md`](ENTREPRENEURSHIP_STUDENT_GUIDE.md) | Living student guide | Update when the Entrepreneurship shelf, its conventions or its worked examples change |
 | [`FINANCE_STUDENT_GUIDE.md`](FINANCE_STUDENT_GUIDE.md) | Living student guide | Update when the Finance shelf, its conventions or its worked examples change |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |
 | [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) | Living backlog | Status changes only with verification + commit |

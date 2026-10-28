@@ -133,6 +133,18 @@ def _check(key, v, spec):
                 if t == "value_list" and (x is None or (isinstance(x, str) and not x.strip())): continue
                 try: _num(x)
                 except (InvalidOperation, ValueError, TypeError) as e: errs.append(f"'{key}'[{i}] = {x!r}: {str(e) if isinstance(e, ValueError) else 'not a number'}")
+        elif t == "value_matrix":
+            # a rectangular table of rows (cohorts) by columns (periods), read by the method itself
+            if not isinstance(v, list) or not v: return [f"'{key}' must be a non-empty list of rows"]
+            if len(v) > spec.get("max_rows", 24): errs.append(f"'{key}' allows at most {spec.get('max_rows', 24)} rows")
+            widths = {len(row) for row in v if isinstance(row, list)}
+            for i, row in enumerate(v):
+                if not isinstance(row, list) or not row:
+                    errs.append(f"'{key}'[{i}] must be a non-empty list of numbers"); continue
+                if len(widths) > 1: errs.append(f"'{key}' rows must all be the same length")
+                for j, x in enumerate(row):
+                    try: _num(x)
+                    except (InvalidOperation, ValueError, TypeError): errs.append(f"'{key}'[{i}][{j}] = {x!r}: not a number")
     except (InvalidOperation, ValueError, TypeError) as e:
         errs.append(f"'{key}' = {v!r}: {str(e) if isinstance(e, ValueError) else 'not a valid number'}")
     return errs
@@ -396,17 +408,103 @@ def _dpb_template(out, P, th):
             " periods (during period " + tok("recovered_in_period") + "), and the net present value over the whole horizon is " +
             tok("net_present_value") + ". Discounted payback is a liquidity measure: it ignores every cash flow after the recovery point.")
 
-# ---------- Break-even ----------
+# ---------- Break-even (cost-volume-profit) ----------
+# B-104: the quantity is still the primary metric; the revenue, contribution-margin,
+# margin-of-safety and target-profit figures are additive and only appear when the
+# optional inputs are declared.  No delivered number moved.
+def _optional_decimal(inp, key):
+    """A declared optional decimal, or None when it is absent or blank."""
+    raw = inp.get(key)
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        return None
+    return D(str(raw))
+
 def breakeven(inp):
-    return D(str(inp["fixed"])) / (D(str(inp["price"])) - D(str(inp["variable"])))
+    f, p, v = D(str(inp["fixed"])), D(str(inp["price"])), D(str(inp["variable"]))
+    cm = p - v
+    if cm <= 0:
+        raise DataError("price must exceed variable cost, otherwise there is no break-even quantity")
+    if f < 0:
+        raise DataError("fixed cost must be non-negative")
+    q = f / cm
+    out = {"breakeven_units": q, "contribution_margin": cm,
+           "contribution_margin_ratio": cm / p, "breakeven_revenue": q * p}
+    expected = _optional_decimal(inp, "expected_units")
+    if expected is not None:
+        if expected < 0:
+            raise DataError("expected_units must be non-negative")
+        out["expected_units"] = expected
+        out["expected_revenue"] = expected * p
+        out["margin_of_safety_units"] = expected - q
+        if expected > 0:
+            out["margin_of_safety_ratio"] = (expected - q) / expected
+    target = _optional_decimal(inp, "target_profit")
+    if target is not None:
+        out["target_profit"] = target
+        out["target_profit_units"] = (f + target) / cm
+    return out
 
 def breakeven_tests(inp, impl):
     f, p, v = (D(str(inp[k])) for k in ("fixed", "price", "variable"))
-    q = impl(inp); profit = q * (p - v) - f; higher = impl({**inp, "fixed": f + 1})
-    return [("profit_at_breakeven_is_zero", abs(profit) <= TOL), ("monotone_in_fixed_cost", higher > q), ("positive_quantity", q > 0)]
+    base = impl(inp)
+    q, cm = base["breakeven_units"], base["contribution_margin"]
+    expected = _optional_decimal(inp, "expected_units")
+    mos_ok = True
+    if expected is not None and expected > 0:
+        mos_ok = (_close(base.get("margin_of_safety_units", expected - q), expected - q) and
+                  _close(base.get("margin_of_safety_ratio", (expected - q) / expected), (expected - q) / expected))
+    probe = impl({**inp, "target_profit": str(cm)})
+    checks = [
+        ("profit_at_breakeven_is_zero", abs(q * cm - f) <= TOL, "the contribution at the break-even quantity covers exactly the fixed cost"),
+        ("contribution_margin_is_price_minus_variable", _close(cm, p - v), "the unit contribution is the price minus the variable cost"),
+        ("breakeven_revenue_is_units_times_price", _close(base["breakeven_revenue"], q * p), "break-even revenue is the break-even quantity at the declared price"),
+        ("margin_of_safety_is_expected_units_minus_breakeven", mos_ok, "the margin of safety is the declared volume above break-even"),
+        ("target_profit_raises_the_required_units", _close(probe["target_profit_units"], q + 1), "a target profit equal to one contribution margin needs one more unit"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
 
 def breakeven_profile(inp):
-    return ["price <= variable cost: no break-even"] if D(str(inp["price"])) <= D(str(inp["variable"])) else []
+    try:
+        f, p, v = (D(str(inp[k])) for k in ("fixed", "price", "variable"))
+        if f < 0:
+            return ["fixed cost must be non-negative"]
+        if p <= 0:
+            return ["price must be positive"]
+        if v < 0:
+            return ["variable cost must be non-negative"]
+        if p <= v:
+            return ["price <= variable cost: no break-even quantity exists"]
+        expected = _optional_decimal(inp, "expected_units")
+        if expected is not None and expected < 0:
+            return ["expected_units must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["break-even inputs are malformed: fixed, price and variable are required numbers"]
+
+def _breakeven_typing(metric):
+    if metric in ("contribution_margin", "breakeven_revenue", "expected_revenue", "target_profit"):
+        return ("currency", 2)
+    if metric in ("contribution_margin_ratio", "margin_of_safety_ratio"):
+        return ("ratio", 4)
+    return ("units", 2)
+
+def breakeven_caveats(out, th):
+    return ["Break-even assumes constant unit price, constant variable cost and constant fixed cost over the relevant range.",
+            "The margin of safety is measured against the expected volume you declared, not against a forecast the method verifies.",
+            "A target profit is a pre-tax profit target in the same currency as the costs; tax is not computed."]
+
+def breakeven_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At a contribution margin of " + tok("contribution_margin") + " per unit, the business breaks even at " +
+         tok("breakeven_units") + " units, or " + tok("breakeven_revenue") + " of sales.")
+    if "margin_of_safety_units" in out:
+        t += " At the declared expected volume the margin of safety is " + tok("margin_of_safety_units") + " units"
+        if "margin_of_safety_ratio" in out:
+            t += ", which is " + tok("margin_of_safety_ratio") + " of expected sales"
+        t += "."
+    if "target_profit_units" in out:
+        t += " To earn the declared target profit, sales must reach " + tok("target_profit_units") + " units."
+    return t
 
 # ---------- Paired and one-sample t-tests (manual 9B.2; B-067) ----------
 # Paired: within-pair differences on matched observations, dropping a pair if either side is missing.
@@ -8327,6 +8425,1097 @@ def _trend_template(out, P, th):
     return s
 
 
+# ---------- Entrepreneurship shelf (B-104) ----------
+# Declared-input arithmetic for a venture's market, capital, cash, price and return.
+# None of these methods estimates a market, a demand curve or a probability.
+
+def market_sizing_impl(inp):
+    pop = D(str(inp["target_population"]))
+    spend = D(str(inp["annual_spend_per_customer"]))
+    ss = D(str(inp["serviceable_share"]))
+    obtain = D(str(inp["obtainable_share"]))
+    if pop <= 0:
+        raise DataError("target_population must be positive")
+    if spend <= 0:
+        raise DataError("annual_spend_per_customer must be positive")
+    if not (0 < ss <= 1):
+        raise DataError("serviceable_share must be greater than zero and at most one")
+    if not (0 < obtain <= 1):
+        raise DataError("obtainable_share must be greater than zero and at most one")
+    tam = pop * spend
+    sam = tam * ss
+    som = sam * obtain
+    return {"target_population": pop, "annual_spend_per_customer": spend,
+            "serviceable_share": ss, "obtainable_share": obtain,
+            "total_addressable_market": tam, "serviceable_available_market": sam,
+            "serviceable_obtainable_market": som,
+            "customers_in_som": pop * ss * obtain,
+            "share_of_tam_obtained": ss * obtain}
+
+def _market_ref(inp):
+    pop = float(D(str(inp["target_population"])))
+    spend = float(D(str(inp["annual_spend_per_customer"])))
+    ss = float(D(str(inp["serviceable_share"])))
+    obtain = float(D(str(inp["obtainable_share"])))
+    tam = pop * spend
+    return {"total_addressable_market": tam,
+            "serviceable_obtainable_market": tam * ss * obtain}
+
+def market_sizing_tests(inp, impl):
+    base, ref = impl(inp), _market_ref(inp)
+    pop, spend = D(str(inp["target_population"])), D(str(inp["annual_spend_per_customer"]))
+    ss, obtain = D(str(inp["serviceable_share"])), D(str(inp["obtainable_share"]))
+    wider = impl({**inp, "serviceable_share": str(min(D(1), ss + D("0.1")))})
+    checks = [
+        ("second_implementation_agrees", _close(base["total_addressable_market"], ref["total_addressable_market"], rel=1e-6)
+         and _close(base["serviceable_obtainable_market"], ref["serviceable_obtainable_market"], rel=1e-6),
+         "float route agrees with the Decimal route"),
+        ("tam_is_population_times_annual_spend", _close(base["total_addressable_market"], pop * spend), "the total market is the declared customers times their annual spend"),
+        ("sam_is_the_declared_share_of_tam", _close(base["serviceable_available_market"], base["total_addressable_market"] * ss), "the serviceable market is the declared share of the total"),
+        ("som_is_the_declared_share_of_sam", _close(base["serviceable_obtainable_market"], base["serviceable_available_market"] * obtain), "the obtainable market is the declared share of the serviceable market"),
+        ("a_higher_serviceable_share_raises_the_serviceable_market", wider["serviceable_available_market"] >= base["serviceable_available_market"], "a larger serviceable share cannot lower the serviceable market"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def market_sizing_profile(inp):
+    try:
+        pop = D(str(inp["target_population"]))
+        spend = D(str(inp["annual_spend_per_customer"]))
+        ss = D(str(inp["serviceable_share"]))
+        obtain = D(str(inp["obtainable_share"]))
+        if pop <= 0:
+            return ["target_population must be positive"]
+        if spend <= 0:
+            return ["annual_spend_per_customer must be positive"]
+        if not (0 < ss <= 1):
+            return ["serviceable_share must be greater than zero and at most one"]
+        if not (0 < obtain <= 1):
+            return ["obtainable_share must be greater than zero and at most one"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["market-sizing inputs are malformed: target_population, annual_spend_per_customer, serviceable_share and obtainable_share are required numbers"]
+
+def _market_typing(metric):
+    if metric in ("target_population", "customers_in_som"):
+        return ("count", 0)
+    if metric in ("serviceable_share", "obtainable_share", "share_of_tam_obtained"):
+        return ("rate", 4)
+    return ("currency", 2)
+
+def market_sizing_caveats(out, th):
+    return ["Market size is built top-down from the population, spend and shares you declared; it is not a market study and the shares are not verified.",
+            "TAM here is one year of spend by the declared population. A multi-year or per-period figure needs its own declared inputs.",
+            "No demand curve, growth rate, competitor data or retrieved market report is used; a bottom-up count of customers can be entered as target_population instead."]
+
+def market_sizing_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared market is " + tok("target_population") + " customers spending " + tok("annual_spend_per_customer") +
+            " a year, a total addressable market of " + tok("total_addressable_market") +
+            ". The serviceable share gives " + tok("serviceable_available_market") +
+            ", and the obtainable share gives a serviceable obtainable market of " + tok("serviceable_obtainable_market") +
+            " from " + tok("customers_in_som") + " customers.")
+
+
+def startup_capital_impl(inp):
+    start = D(str(inp["start_up_costs"]))
+    wc = D(str(inp["working_capital"]))
+    cont = D(str(inp.get("contingency_rate", "0")))
+    equity = D(str(inp.get("owner_equity", "0")))
+    loan = D(str(inp.get("loan_amount", "0")))
+    if start < 0:
+        raise DataError("start_up_costs must be non-negative")
+    if wc < 0:
+        raise DataError("working_capital must be non-negative")
+    if not (0 <= cont < 1):
+        raise DataError("contingency_rate must be at least zero and below one")
+    if equity < 0:
+        raise DataError("owner_equity must be non-negative")
+    if loan < 0:
+        raise DataError("loan_amount must be non-negative")
+    base = start + wc
+    if base <= 0:
+        raise DataError("start-up costs and working capital cannot both be zero")
+    reserve = base * cont
+    required = base + reserve
+    sources = equity + loan
+    raise_now = required - sources
+    return {"start_up_costs": start, "working_capital": wc, "contingency_rate": cont,
+            "contingency_reserve": reserve, "total_funding_required": required,
+            "owner_equity": equity, "loan_amount": loan, "declared_sources": sources,
+            "amount_to_raise": raise_now if raise_now > 0 else D(0),
+            "funding_surplus": -raise_now if raise_now < 0 else D(0),
+            "funded_share": sources / required}
+
+def _capital_ref(inp):
+    start = float(D(str(inp["start_up_costs"])))
+    wc = float(D(str(inp["working_capital"])))
+    cont = float(D(str(inp.get("contingency_rate", "0"))))
+    sources = float(D(str(inp.get("owner_equity", "0")))) + float(D(str(inp.get("loan_amount", "0"))))
+    required = (start + wc) * (1 + cont)
+    return {"total_funding_required": required, "amount_to_raise": max(0.0, required - sources)}
+
+def startup_capital_tests(inp, impl):
+    base, ref = impl(inp), _capital_ref(inp)
+    start, wc = D(str(inp["start_up_costs"])), D(str(inp["working_capital"]))
+    cont = D(str(inp.get("contingency_rate", "0")))
+    sources = D(str(inp.get("owner_equity", "0"))) + D(str(inp.get("loan_amount", "0")))
+    more = impl({**inp, "loan_amount": str(D(str(inp.get("loan_amount", "0"))) + D(1000))})
+    checks = [
+        ("second_implementation_agrees", _close(base["total_funding_required"], ref["total_funding_required"], rel=1e-6)
+         and _close(base["amount_to_raise"], ref["amount_to_raise"], rel=1e-6),
+         "float route agrees with the Decimal route"),
+        ("funding_requirement_is_costs_plus_working_capital_plus_contingency",
+         _close(base["total_funding_required"], (start + wc) * (1 + cont)), "the requirement covers the set-up costs, the working capital and the declared contingency"),
+        ("amount_to_raise_is_the_unfunded_part_of_the_requirement",
+         _close(base["amount_to_raise"], max(D(0), base["total_funding_required"] - sources)), "the amount to raise is the shortfall after the declared sources"),
+        ("a_higher_contingency_rate_raises_the_requirement",
+         (impl({**inp, "contingency_rate": str(min(D("0.99"), cont + D("0.1")))})["total_funding_required"] >= base["total_funding_required"]),
+         "a larger contingency cannot lower the funding requirement"),
+        ("more_declared_funding_reduces_the_amount_to_raise", more["amount_to_raise"] <= base["amount_to_raise"], "extra declared funding cannot increase the shortfall"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def startup_capital_profile(inp):
+    try:
+        start = D(str(inp["start_up_costs"]))
+        wc = D(str(inp["working_capital"]))
+        cont = D(str(inp.get("contingency_rate", "0")))
+        equity = D(str(inp.get("owner_equity", "0")))
+        loan = D(str(inp.get("loan_amount", "0")))
+        if start < 0:
+            return ["start_up_costs must be non-negative"]
+        if wc < 0:
+            return ["working_capital must be non-negative"]
+        if start + wc <= 0:
+            return ["start-up costs and working capital cannot both be zero"]
+        if not (0 <= cont < 1):
+            return ["contingency_rate must be at least zero and below one"]
+        if equity < 0:
+            return ["owner_equity must be non-negative"]
+        if loan < 0:
+            return ["loan_amount must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["capital inputs are malformed: start_up_costs and working_capital are required numbers"]
+
+def _capital_typing(metric):
+    if metric == "contingency_rate":
+        return ("rate", 4)
+    if metric == "funded_share":
+        return ("ratio", 4)
+    return ("currency", 2)
+
+def startup_capital_caveats(out, th):
+    return ["The start-up costs and working capital are the figures you declared; the method does not price equipment, rent or inventory.",
+            "The contingency is a declared percentage of the set-up costs plus working capital, not a risk assessment.",
+            "When the declared sources exceed the requirement the surplus is reported separately; the amount to raise is never shown as negative."]
+
+def startup_capital_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The set-up costs of " + tok("start_up_costs") + " plus working capital of " + tok("working_capital") +
+         " give a contingency reserve of " + tok("contingency_reserve") + " and a total funding requirement of " +
+         tok("total_funding_required") + ". Against declared sources of " + tok("declared_sources") +
+         ", the amount to raise is " + tok("amount_to_raise") + ".")
+    if "funding_surplus" in out and out["funding_surplus"] > 0:
+        t += " The declared sources exceed the requirement by " + tok("funding_surplus") + "."
+    return t
+
+
+def cash_runway_impl(inp):
+    opening = D(str(inp["opening_cash"]))
+    flow = D(str(inp["monthly_net_cash_flow"]))
+    g = D(str(inp.get("monthly_growth", "0")))
+    target = int(D(str(inp.get("target_months", "12"))))
+    if opening < 0:
+        raise DataError("opening_cash must be non-negative")
+    if g <= -1:
+        raise DataError("monthly_growth must be greater than -100%")
+    if target < 1:
+        raise DataError("target_months must be at least one")
+    if target > 120:
+        raise DataError("target_months must be at most 120")
+    if flow >= 0:
+        raise DataError("the declared monthly net cash flow does not burn cash, so there is no finite runway")
+    if g == 0:
+        runway = opening / (-flow)
+    else:
+        one_plus = D(1) + g
+        inner = D(1) - (opening * g) / flow
+        if inner <= 0:
+            raise DataError("under the declared growth the cash balance never reaches zero, so there is no finite runway")
+        runway = inner.ln() / one_plus.ln()
+    if runway <= 0:
+        raise DataError("the declared cash balance is already exhausted, so the runway is not positive")
+    cash, lowest = opening, opening
+    for month in range(1, target + 1):
+        cash += flow * ((D(1) + g) ** (month - 1))
+        if cash < lowest:
+            lowest = cash
+    return {"opening_cash": opening, "monthly_net_cash_flow": flow, "monthly_growth": g,
+            "target_months": D(target), "runway_months": runway,
+            "lowest_cash_balance": lowest, "cash_at_target_month": cash,
+            "funding_gap": -lowest if lowest < 0 else D(0)}
+
+def _runway_ref(inp):
+    opening = float(D(str(inp["opening_cash"])))
+    flow = float(D(str(inp["monthly_net_cash_flow"])))
+    g = float(D(str(inp.get("monthly_growth", "0"))))
+    if g == 0:
+        return {"runway_months": opening / (-flow)}
+    return {"runway_months": math.log(1 - (opening * g) / flow) / math.log(1 + g)}
+
+def cash_runway_tests(inp, impl):
+    base, ref = impl(inp), _runway_ref(inp)
+    opening = D(str(inp["opening_cash"]))
+    flow = D(str(inp["monthly_net_cash_flow"]))
+    g = D(str(inp.get("monthly_growth", "0")))
+    flat = impl({**inp, "monthly_growth": "0"})
+    faster = impl({**inp, "monthly_net_cash_flow": str(flow * 2)})
+    replay = opening + flow * ((D(1) + g) ** base["runway_months"] - 1) / g if g != 0 else opening + flow * base["runway_months"]
+    checks = [
+        ("second_implementation_agrees", _close(base["runway_months"], ref["runway_months"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("the_runway_reaches_a_zero_cash_balance", _close(replay, D(0), rel=1e-6), "the cash balance is zero at the reported runway"),
+        ("zero_growth_runway_is_opening_cash_over_the_burn", _close(flat["runway_months"], opening / (-flow)), "with no growth the runway is the opening cash divided by the monthly burn"),
+        ("a_higher_burn_shortens_the_runway", faster["runway_months"] <= base["runway_months"], "a larger monthly burn cannot lengthen the runway"),
+        ("funding_gap_covers_the_lowest_cash_balance", _close(base["funding_gap"], max(D(0), -base["lowest_cash_balance"])), "the funding gap is the cash needed to keep the balance at zero"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def cash_runway_profile(inp):
+    try:
+        opening = D(str(inp["opening_cash"]))
+        flow = D(str(inp["monthly_net_cash_flow"]))
+        g = D(str(inp.get("monthly_growth", "0")))
+        target = D(str(inp.get("target_months", "12")))
+        if opening < 0:
+            return ["opening_cash must be non-negative"]
+        if flow >= 0:
+            return ["the monthly net cash flow must be negative: a positive flow never exhausts the cash"]
+        if g <= -1:
+            return ["monthly_growth must be greater than -100%"]
+        if target < 1 or target > 120 or target != int(target):
+            return ["target_months must be a whole number from one to 120"]
+        if g != 0 and D(1) - (opening * g) / flow <= 0:
+            return ["under the declared growth the cash balance never reaches zero, so there is no finite runway"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["runway inputs are malformed: opening_cash and monthly_net_cash_flow are required numbers"]
+
+def _runway_typing(metric):
+    if metric in ("runway_months",):
+        return ("units", 2)
+    if metric == "monthly_growth":
+        return ("rate", 4)
+    if metric == "target_months":
+        return ("count", 0)
+    return ("currency", 2)
+
+def cash_runway_caveats(out, th):
+    return ["Runway is arithmetic on the opening cash and the monthly net flow you declared; it is not a forecast of sales or costs.",
+            "Growth is applied to the declared net flow, so revenue and costs are assumed to move together; a different cost path needs its own run.",
+            "The funding gap is the cash needed to keep the running balance at zero through the declared target month; it ignores financing costs."]
+
+def cash_runway_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("With " + tok("opening_cash") + " of opening cash and a monthly net cash flow of " +
+         tok("monthly_net_cash_flow") + ", the runway is " + tok("runway_months") + " months.")
+    t += (" The lowest balance within " + tok("target_months") + " months is " + tok("lowest_cash_balance") +
+          " and the funding gap over that horizon is " + tok("funding_gap") + ".")
+    return t
+
+
+def pricing_decision_impl(inp):
+    unit = D(str(inp["unit_cost"]))
+    fixed = D(str(inp.get("fixed_cost", "0")))
+    units = D(str(inp["expected_units"]))
+    markup = D(str(inp["markup_rate"]))
+    margin = _optional_decimal(inp, "target_margin_rate")
+    target = _optional_decimal(inp, "target_profit")
+    if unit <= 0:
+        raise DataError("unit_cost must be positive")
+    if fixed < 0:
+        raise DataError("fixed_cost must be non-negative")
+    if units <= 0:
+        raise DataError("expected_units must be positive")
+    if markup < 0:
+        raise DataError("markup_rate must be non-negative")
+    if margin is not None and not (0 < margin < 1):
+        raise DataError("target_margin_rate must be greater than zero and below one")
+    cost_plus = unit * (1 + markup)
+    total_cost = unit * units + fixed
+    out = {"unit_cost": unit, "fixed_cost": fixed, "expected_units": units,
+           "markup_rate": markup, "total_cost": total_cost,
+           "cost_plus_price": cost_plus,
+           "gross_margin_at_cost_plus": (cost_plus - unit) / cost_plus,
+           "break_even_price": total_cost / units}
+    if margin is not None:
+        out["target_margin_rate"] = margin
+        out["margin_price"] = unit / (1 - margin)
+    if target is not None:
+        out["target_profit"] = target
+        out["target_return_price"] = (total_cost + target) / units
+    return out
+
+def _pricing_ref(inp):
+    unit = float(D(str(inp["unit_cost"])))
+    fixed = float(D(str(inp.get("fixed_cost", "0"))))
+    units = float(D(str(inp["expected_units"])))
+    markup = float(D(str(inp["markup_rate"])))
+    return {"cost_plus_price": unit * (1 + markup), "break_even_price": (unit * units + fixed) / units}
+
+def pricing_decision_tests(inp, impl):
+    base, ref = impl(inp), _pricing_ref(inp)
+    unit = D(str(inp["unit_cost"]))
+    units = D(str(inp["expected_units"]))
+    markup = D(str(inp["markup_rate"]))
+    margin_probe = impl({**inp, "target_margin_rate": "0.40"})
+    target_probe = impl({**inp, "target_profit": str(units)})
+    checks = [
+        ("second_implementation_agrees", _close(base["cost_plus_price"], ref["cost_plus_price"], rel=1e-6)
+         and _close(base["break_even_price"], ref["break_even_price"], rel=1e-6),
+         "float route agrees with the Decimal route"),
+        ("cost_plus_price_is_unit_cost_times_one_plus_markup", _close(base["cost_plus_price"], unit * (1 + markup)), "the cost-plus price applies the declared markup to the unit cost"),
+        ("break_even_price_covers_the_total_cost", _close(base["break_even_price"] * units, base["total_cost"]), "at the break-even price the declared volume covers the total cost"),
+        ("margin_price_recovers_the_declared_margin", _close(margin_probe["margin_price"] * (1 - D("0.40")), unit), "the margin price leaves the declared margin on the price"),
+        ("target_return_price_covers_cost_and_declared_profit",
+         _close(target_probe["target_return_price"] * units - target_probe["total_cost"], units), "the target-return price covers cost plus the declared profit"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def pricing_decision_profile(inp):
+    try:
+        unit = D(str(inp["unit_cost"]))
+        fixed = D(str(inp.get("fixed_cost", "0")))
+        units = D(str(inp["expected_units"]))
+        markup = D(str(inp["markup_rate"]))
+        margin = _optional_decimal(inp, "target_margin_rate")
+        if unit <= 0:
+            return ["unit_cost must be positive"]
+        if fixed < 0:
+            return ["fixed_cost must be non-negative"]
+        if units <= 0:
+            return ["expected_units must be positive"]
+        if markup < 0:
+            return ["markup_rate must be non-negative"]
+        if margin is not None and not (0 < margin < 1):
+            return ["target_margin_rate must be greater than zero and below one"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["pricing inputs are malformed: unit_cost, expected_units and markup_rate are required numbers"]
+
+def _pricing_typing(metric):
+    if metric in ("markup_rate", "target_margin_rate"):
+        return ("rate", 4)
+    if metric == "gross_margin_at_cost_plus":
+        return ("ratio", 4)
+    if metric == "expected_units":
+        return ("units", 2)
+    return ("currency", 2)
+
+def pricing_decision_caveats(out, th):
+    return ["Every price is arithmetic on the declared unit cost, fixed cost, volume and rate; the method does not research what customers will pay.",
+            "Cost-plus marks up the cost; the target-margin price divides by one minus the margin on price. The two rules give different prices and the report shows both.",
+            "No competitor price, willingness-to-pay estimate or demand response is used; price elasticity is a separate method."]
+
+def pricing_decision_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At a unit cost of " + tok("unit_cost") + " and a declared markup of " + tok("markup_rate") +
+         ", the cost-plus price is " + tok("cost_plus_price") + ". At the declared volume the break-even price is " +
+         tok("break_even_price") + ".")
+    if "margin_price" in out:
+        t += " A target margin of " + tok("target_margin_rate") + " on the price gives " + tok("margin_price") + "."
+    if "target_return_price" in out:
+        t += " To earn the declared target profit, the price must be " + tok("target_return_price") + "."
+    return t
+
+
+def return_on_investment_impl(inp):
+    inv = D(str(inp["total_investment"]))
+    gain = D(str(inp["net_gain"]))
+    years = _optional_decimal(inp, "years")
+    if inv <= 0:
+        raise DataError("total_investment must be positive")
+    if years is not None and years <= 0:
+        raise DataError("years must be positive")
+    roi = gain / inv
+    out = {"total_investment": inv, "net_gain": gain, "roi": roi}
+    if years is not None:
+        if 1 + roi <= 0:
+            raise DataError("a loss of 100% or more has no real annualised rate")
+        out["years"] = years
+        out["annualised_roi"] = ((1 + roi).ln() / years).exp() - 1
+    return out
+
+def _roi_ref(inp):
+    inv = float(D(str(inp["total_investment"])))
+    gain = float(D(str(inp["net_gain"])))
+    years = inp.get("years")
+    roi = gain / inv
+    out = {"roi": roi}
+    if years is not None and str(years).strip():
+        out["annualised_roi"] = (1 + roi) ** (1 / float(D(str(years)))) - 1
+    return out
+
+def return_on_investment_tests(inp, impl):
+    base, ref = impl(inp), _roi_ref(inp)
+    inv, gain = D(str(inp["total_investment"])), D(str(inp["net_gain"]))
+    doubled = impl({**inp, "net_gain": str(gain * 2)})
+    loss = impl({**inp, "net_gain": str(-inv / 2)})
+    years = _optional_decimal(inp, "years")
+    checks = [
+        ("second_implementation_agrees", _close(base["roi"], ref["roi"], rel=1e-9)
+         and (years is None or _close(base["annualised_roi"], ref["annualised_roi"], rel=1e-6)),
+         "float route agrees with the Decimal route"),
+        ("roi_is_net_gain_over_total_investment", _close(base["roi"], gain / inv), "the return is the net gain divided by the investment"),
+        ("doubling_the_net_gain_doubles_the_roi", _close(doubled["roi"], base["roi"] * 2), "a doubled gain doubles the return at the same investment"),
+        ("annualised_roi_compounds_to_the_total_return",
+         years is None or _close((1 + base["annualised_roi"]) ** years, 1 + base["roi"], rel=1e-6),
+         "compounding the annualised return over the declared years reaches the total return"),
+        ("a_loss_gives_a_negative_roi", loss["roi"] < 0, "a negative net gain gives a negative return"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def return_on_investment_profile(inp):
+    try:
+        inv = D(str(inp["total_investment"]))
+        years = _optional_decimal(inp, "years")
+        if inv <= 0:
+            return ["total_investment must be positive"]
+        if years is not None and years <= 0:
+            return ["years must be positive"]
+        if years is not None and 1 + D(str(inp["net_gain"])) / inv <= 0:
+            return ["a loss of 100% or more has no real annualised rate"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["return inputs are malformed: total_investment and net_gain are required numbers"]
+
+def _roi_typing(metric):
+    if metric == "years":
+        return ("count", 0)
+    if metric in ("total_investment", "net_gain"):
+        return ("currency", 2)
+    return ("rate", 4)
+
+def return_on_investment_caveats(out, th):
+    return ["The net gain is the total gain you declared over the whole holding period, net of the investment; it is not an annual cash flow.",
+            "The annualised return is the constant yearly rate that compounds to the total return; it is not a forecast and it ignores the timing of the flows.",
+            "The method does not compute tax, depreciation or the cost of capital; use the appraisal tools for a discounted decision."]
+
+def return_on_investment_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("A net gain of " + tok("net_gain") + " on an investment of " + tok("total_investment") +
+         " gives a return on investment of " + tok("roi") + ".")
+    if "annualised_roi" in out:
+        t += (" Compounded over " + tok("years") + " years, the annualised return is " + tok("annualised_roi") + ".")
+    return t
+
+
+# ---------- Venture planning shelf (B-109) ----------
+
+def sales_projection_impl(inp):
+    units = D(str(inp["start_units"]))
+    price = D(str(inp["price"]))
+    vc = D(str(inp["unit_variable_cost"]))
+    fixed = D(str(inp["fixed_cost_per_period"]))
+    g = D(str(inp.get("growth_rate", "0")))
+    periods = int(D(str(inp.get("periods", "12"))))
+    if units < 0:
+        raise DataError("start_units must be non-negative")
+    if price <= 0:
+        raise DataError("price must be positive")
+    if vc < 0:
+        raise DataError("unit_variable_cost must be non-negative")
+    if fixed < 0:
+        raise DataError("fixed_cost_per_period must be non-negative")
+    if g <= -1:
+        raise DataError("growth_rate must be greater than -100%")
+    if periods < 1 or periods > 24:
+        raise DataError("periods must be a whole number from 1 to 24")
+    out = {"start_units": units, "price": price, "unit_variable_cost": vc,
+           "fixed_cost_per_period": fixed, "growth_rate": g, "periods": D(periods)}
+    total_units = total_revenue = total_variable = D(0)
+    for p in range(1, periods + 1):
+        u = units * ((D(1) + g) ** (p - 1))
+        revenue = u * price
+        variable = u * vc
+        profit = revenue - variable - fixed
+        out["units_%d" % p] = u
+        out["revenue_%d" % p] = revenue
+        out["profit_%d" % p] = profit
+        total_units += u
+        total_revenue += revenue
+        total_variable += variable
+    out.update({"total_units": total_units, "total_revenue": total_revenue,
+                "total_variable_cost": total_variable, "total_fixed_cost": fixed * periods,
+                "total_profit": total_revenue - total_variable - fixed * periods})
+    return out
+
+def _projection_ref(inp):
+    units = float(D(str(inp["start_units"])))
+    price = float(D(str(inp["price"])))
+    vc = float(D(str(inp["unit_variable_cost"])))
+    fixed = float(D(str(inp["fixed_cost_per_period"])))
+    g = float(D(str(inp.get("growth_rate", "0"))))
+    periods = int(D(str(inp.get("periods", "12"))))
+    total = sum(units * (1 + g) ** (p - 1) for p in range(1, periods + 1))
+    return {"total_revenue": total * price, "total_profit": total * (price - vc) - fixed * periods}
+
+def sales_projection_tests(inp, impl):
+    base, ref = impl(inp), _projection_ref(inp)
+    units, price = D(str(inp["start_units"])), D(str(inp["price"]))
+    vc = D(str(inp["unit_variable_cost"]))
+    fixed = D(str(inp["fixed_cost_per_period"]))
+    g = D(str(inp.get("growth_rate", "0")))
+    periods = int(D(str(inp.get("periods", "12"))))
+    profit_sum = sum((base["profit_%d" % p] for p in range(1, periods + 1)), D(0))
+    checks = [
+        ("second_implementation_agrees", _close(base["total_revenue"], ref["total_revenue"], rel=1e-6)
+         and _close(base["total_profit"], ref["total_profit"], rel=1e-6),
+         "float route agrees with the Decimal route"),
+        ("first_period_revenue_is_start_units_times_price", _close(base["revenue_1"], units * price), "period one revenue is the declared start volume at the declared price"),
+        ("units_grow_at_the_declared_rate", _close(base["units_2"] if periods > 1 else base["units_1"], units * (1 + g)), "period two carries the declared growth on period one"),
+        ("profit_is_revenue_minus_variable_and_fixed_cost",
+         _close(base["profit_1"], base["revenue_1"] - units * vc - fixed), "period one profit nets the variable and fixed cost"),
+        ("total_profit_is_the_sum_of_period_profits", _close(base["total_profit"], profit_sum), "the total is the running sum of the period profits"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def sales_projection_profile(inp):
+    try:
+        units, price = D(str(inp["start_units"])), D(str(inp["price"]))
+        vc, fixed = D(str(inp["unit_variable_cost"])), D(str(inp["fixed_cost_per_period"]))
+        g = D(str(inp.get("growth_rate", "0")))
+        periods = D(str(inp.get("periods", "12")))
+        if units < 0:
+            return ["start_units must be non-negative"]
+        if price <= 0:
+            return ["price must be positive"]
+        if vc < 0:
+            return ["unit_variable_cost must be non-negative"]
+        if fixed < 0:
+            return ["fixed_cost_per_period must be non-negative"]
+        if g <= -1:
+            return ["growth_rate must be greater than -100%"]
+        if periods != int(periods) or periods < 1 or periods > 24:
+            return ["periods must be a whole number from 1 to 24"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["projection inputs are malformed: start_units, price, unit_variable_cost and fixed_cost_per_period are required numbers"]
+
+def _projection_typing(metric):
+    if metric == "growth_rate":
+        return ("rate", 4)
+    if metric == "periods":
+        return ("count", 0)
+    if metric in ("start_units", "total_units") or metric.startswith("units_"):
+        return ("units", 2)
+    return ("currency", 2)
+
+def sales_projection_caveats(out, th):
+    return ["Every period uses the declared price, unit variable cost and period fixed cost; only the volume grows, at the declared rate.",
+            "Revenue is units times price. It is a projection from your assumptions, not a forecast the method fits or validates.",
+            "No tax, financing, working-capital timing or seasonality is modelled; a month-by-month budget with different flows needs its own schedule."]
+
+def sales_projection_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Starting from " + tok("start_units") + " units at " + tok("price") + " and growing at " + tok("growth_rate") +
+            " a period, the projection covers " + tok("periods") + " periods, with total revenue of " + tok("total_revenue") +
+            " and total profit of " + tok("total_profit") + ".")
+
+
+def cap_table_round_impl(inp):
+    pre = D(str(inp["pre_money_valuation"]))
+    inv = D(str(inp["investment"]))
+    founders = D(str(inp["founders_shares"]))
+    pool = D(str(inp.get("option_pool_pct", "0")))
+    if pre <= 0:
+        raise DataError("pre_money_valuation must be positive")
+    if inv <= 0:
+        raise DataError("investment must be positive")
+    if founders <= 0:
+        raise DataError("founders_shares must be positive")
+    if pool < 0 or pool >= 1:
+        raise DataError("option_pool_pct must be at least zero and below one")
+    post = pre + inv
+    price = pre / founders
+    new_shares = inv / price
+    if pool > 0:
+        pool_shares = pool * (founders + new_shares) / (1 - pool)
+    else:
+        pool_shares = D(0)
+    total = founders + new_shares + pool_shares
+    return {"pre_money_valuation": pre, "investment": inv, "founders_shares": founders,
+            "post_money_valuation": post, "price_per_share": price, "new_shares": new_shares,
+            "option_pool_pct": pool, "option_pool_shares": pool_shares, "total_shares": total,
+            "founder_pct": founders / total, "investor_pct": new_shares / total,
+            "pool_pct_actual": pool_shares / total, "founder_dilution": 1 - founders / total}
+
+def _cap_ref(inp):
+    pre, inv = float(D(str(inp["pre_money_valuation"]))), float(D(str(inp["investment"])))
+    founders = float(D(str(inp["founders_shares"])))
+    pool = float(D(str(inp.get("option_pool_pct", "0"))))
+    price = pre / founders
+    new = inv / price
+    pool_shares = pool * (founders + new) / (1 - pool) if pool > 0 else 0.0
+    total = founders + new + pool_shares
+    return {"post_money_valuation": pre + inv, "investor_pct": new / total}
+
+def cap_table_round_tests(inp, impl):
+    base, ref = impl(inp), _cap_ref(inp)
+    pre, inv = D(str(inp["pre_money_valuation"])), D(str(inp["investment"]))
+    founders = D(str(inp["founders_shares"]))
+    checks = [
+        ("second_implementation_agrees", _close(base["post_money_valuation"], ref["post_money_valuation"], rel=1e-9)
+         and _close(base["investor_pct"], ref["investor_pct"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("post_money_is_pre_money_plus_investment", _close(base["post_money_valuation"], pre + inv), "the post-money value is the pre-money value plus the new money"),
+        ("price_per_share_is_pre_money_over_existing_shares", _close(base["price_per_share"], pre / founders), "the pre-money price per share divides the pre-money value by the existing shares"),
+        ("investor_percentage_is_new_shares_over_total_shares", _close(base["investor_pct"], base["new_shares"] / base["total_shares"]), "the investor owns the new shares over the fully diluted total"),
+        ("ownership_percentages_sum_to_one", _close(base["founder_pct"] + base["investor_pct"] + base["pool_pct_actual"], D(1)), "founders, investor and option pool together own the whole company"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def cap_table_round_profile(inp):
+    try:
+        pre, inv = D(str(inp["pre_money_valuation"])), D(str(inp["investment"]))
+        founders = D(str(inp["founders_shares"]))
+        pool = D(str(inp.get("option_pool_pct", "0")))
+        if pre <= 0:
+            return ["pre_money_valuation must be positive"]
+        if inv <= 0:
+            return ["investment must be positive"]
+        if founders <= 0:
+            return ["founders_shares must be positive"]
+        if pool < 0 or pool >= 1:
+            return ["option_pool_pct must be at least zero and below one"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cap-table inputs are malformed: pre_money_valuation, investment and founders_shares are required numbers"]
+
+def _cap_typing(metric):
+    if metric in ("option_pool_pct", "founder_pct", "investor_pct", "pool_pct_actual", "founder_dilution"):
+        return ("rate", 4)
+    if metric in ("founders_shares", "new_shares", "option_pool_shares", "total_shares"):
+        return ("units", 2)
+    return ("currency", 2)
+
+def cap_table_round_caveats(out, th):
+    return ["One round only: the pre-money value, the investment and the founders' shares are declared, and no earlier round, convertible note or SAFE is modelled.",
+            "The option pool is a declared share of the fully diluted post-money company; a pool created before the money (a pool shuffle that lowers the price) is a different convention and is not applied.",
+            "No liquidation preference, anti-dilution, vesting, pro-rata right, board seat or term-sheet clause is modelled; those are negotiated terms, not arithmetic."]
+
+def cap_table_round_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At a pre-money valuation of " + tok("pre_money_valuation") + " and an investment of " + tok("investment") +
+         ", the post-money valuation is " + tok("post_money_valuation") + " at " + tok("price_per_share") + " a share. " +
+         "The investor receives " + tok("new_shares") + " shares, or " + tok("investor_pct") + " of the company, and the founders keep " +
+         tok("founder_pct") + ".")
+    if "option_pool_pct" in out and out["option_pool_pct"] > 0:
+        t += " The declared option pool takes " + tok("pool_pct_actual") + " of the fully diluted company."
+    return t
+
+
+def sales_funnel_impl(inp):
+    stages = inp["stages"]
+    if len(stages) < 2:
+        raise DataError("at least two stages are required")
+    counts = []
+    for i, st in enumerate(stages, 1):
+        name = st["name"].strip()
+        if not name or len(name) > 60:
+            raise DataError("stage %d needs a name of at most 60 characters" % i)
+        count = D(str(st["count"]))
+        if count < 0:
+            raise DataError("stage %d count must be non-negative" % i)
+        counts.append(count)
+    if counts[0] <= 0:
+        raise DataError("the first stage count must be positive")
+    for i in range(1, len(counts)):
+        if counts[i] > counts[i - 1]:
+            raise DataError("stage %d count exceeds the previous stage: conversions cannot exceed one" % (i + 1))
+    out = {"customers": counts[-1], "drop_off": counts[0] - counts[-1],
+           "overall_conversion": counts[-1] / counts[0]}
+    for i, c in enumerate(counts, 1):
+        out["count_%d" % i] = c
+        if i < len(counts):
+            out["conversion_%d" % i] = counts[i] / c
+    spend = _optional_decimal(inp, "spend")
+    if spend is not None:
+        if spend < 0:
+            raise DataError("spend must be non-negative")
+        out["spend"] = spend
+        out["cac"] = spend / counts[-1] if counts[-1] > 0 else None
+        if out["cac"] is None:
+            out.pop("cac")
+    return out
+
+def _funnel_ref(inp):
+    counts = [float(D(str(st["count"]))) for st in inp["stages"]]
+    return {"overall_conversion": counts[-1] / counts[0]}
+
+def sales_funnel_tests(inp, impl):
+    base, ref = impl(inp), _funnel_ref(inp)
+    counts = [D(str(st["count"])) for st in inp["stages"]]
+    product = D(1)
+    for i in range(len(counts) - 1):
+        product *= base["conversion_%d" % (i + 1)]
+    checks = [
+        ("second_implementation_agrees", _close(base["overall_conversion"], ref["overall_conversion"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("overall_conversion_is_the_last_count_over_the_first", _close(base["overall_conversion"], counts[-1] / counts[0]), "the overall conversion is the final stage over the first"),
+        ("each_stage_conversion_is_the_next_count_over_the_current", all(_close(base["conversion_%d" % (i + 1)], counts[i + 1] / counts[i]) for i in range(len(counts) - 1)), "every stage conversion is its own adjacent pair"),
+        ("overall_conversion_is_the_product_of_stage_conversions", _close(base["overall_conversion"], product), "the overall conversion is the product of the adjacent conversions"),
+        ("cac_is_spend_over_customers", ("cac" not in base) or _close(base["cac"], base["spend"] / counts[-1]), "the acquisition cost is the declared spend over the customers won"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def sales_funnel_profile(inp):
+    try:
+        stages = inp.get("stages")
+        if not isinstance(stages, list) or len(stages) < 2:
+            return ["at least two stages are required"]
+        if len(stages) > 8:
+            return ["at most eight stages are supported"]
+        prev = None
+        for i, st in enumerate(stages, 1):
+            if not isinstance(st, dict) or not isinstance(st.get("name"), str) or not st["name"].strip():
+                return ["stage %d needs a name" % i]
+            count = D(str(st["count"]))
+            if count < 0:
+                return ["stage %d count must be non-negative" % i]
+            if prev is not None and count > prev:
+                return ["stage %d count exceeds the previous stage: conversions cannot exceed one" % i]
+            prev = count
+        if prev is None or D(str(stages[0]["count"])) <= 0:
+            return ["the first stage count must be positive"]
+        spend = _optional_decimal(inp, "spend")
+        if spend is not None and spend < 0:
+            return ["spend must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["funnel inputs are malformed: stages must be records with a name and a count"]
+
+def _funnel_typing(metric):
+    if metric.startswith("conversion_"):
+        return ("rate", 4)
+    if metric == "overall_conversion":
+        return ("rate", 4)
+    if metric in ("customers", "drop_off") or metric.startswith("count_"):
+        return ("count", 0)
+    return ("currency", 2)
+
+def sales_funnel_caveats(out, th):
+    return ["The stages are the ones you declare, in the order you declare; the method does not decide the funnel or the conversion points.",
+            "Counts must not increase from one stage to the next; a rise means the stage order or the counting is wrong.",
+            "No cohort, time period, attribution or channel split is modelled; a conversion rate is arithmetic on the two counts you supply."]
+
+def sales_funnel_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("From " + tok("count_1") + " at the first stage to " + tok("customers") + " customers at the last, the overall conversion is " +
+         tok("overall_conversion") + ", with " + tok("drop_off") + " leaving the funnel along the way.")
+    if "cac" in out:
+        t += " At the declared spend, the acquisition cost is " + tok("cac") + " per customer."
+    return t
+
+
+def cohort_retention_impl(inp):
+    sizes = [D(str(x)) for x in inp["cohort_sizes"]]
+    rows = [[D(str(x)) for x in row] for row in inp["retained"]]
+    if len(rows) != len(sizes):
+        raise DataError("retained must have one row per cohort")
+    if not sizes:
+        raise DataError("at least one cohort is required")
+    width = len(rows[0])
+    if any(len(row) != width for row in rows):
+        raise DataError("every cohort row must have the same number of periods")
+    if any(s <= 0 for s in sizes):
+        raise DataError("every cohort size must be positive")
+    for i, row in enumerate(rows, 1):
+        if any(r < 0 for r in row):
+            raise DataError("cohort %d has a negative retained count" % i)
+        if any(r > sizes[i - 1] for r in row):
+            raise DataError("cohort %d retains more customers than it started with" % i)
+    out = {}
+    for p in range(width):
+        total_retained = sum((rows[i][p] for i in range(len(sizes))), D(0))
+        total_start = sum(sizes, D(0))
+        out["retention_%d" % (p + 1)] = total_retained / total_start
+        out["churn_%d" % (p + 1)] = 1 - total_retained / total_start
+    out["average_retention"] = sum((out["retention_%d" % (p + 1)] for p in range(width)), D(0)) / width
+    out["average_lifetime"] = sum((out["retention_%d" % (p + 1)] for p in range(width)), D(0))
+    out["total_start"] = sum(sizes, D(0))
+    out["total_retained_1"] = sum((rows[i][0] for i in range(len(sizes))), D(0))
+    return out
+
+def _cohort_ref(inp):
+    sizes = [float(D(str(x))) for x in inp["cohort_sizes"]]
+    rows = [[float(D(str(x))) for x in row] for row in inp["retained"]]
+    width = len(rows[0])
+    out = {}
+    for p in range(width):
+        out["retention_%d" % (p + 1)] = sum(r[p] for r in rows) / sum(sizes)
+    out["average_lifetime"] = sum(out["retention_%d" % (p + 1)] for p in range(width))
+    return out
+
+def cohort_retention_tests(inp, impl):
+    base, ref = impl(inp), _cohort_ref(inp)
+    sizes = [D(str(x)) for x in inp["cohort_sizes"]]
+    rows = [[D(str(x)) for x in row] for row in inp["retained"]]
+    width = len(rows[0])
+    checks = [
+        ("second_implementation_agrees", all(_close(base["retention_%d" % (p + 1)], ref["retention_%d" % (p + 1)], rel=1e-9) for p in range(width)), "float route agrees with the Decimal route"),
+        ("first_period_retention_is_total_retained_over_total_start", _close(base["retention_1"], base["total_retained_1"] / base["total_start"]), "period one retention pools every cohort over every starting customer"),
+        ("retention_rates_are_bounded", all(D(0) <= base["retention_%d" % (p + 1)] <= D(1) for p in range(width)), "a retention rate lies between zero and one"),
+        ("average_lifetime_is_the_sum_of_retention_rates", _close(base["average_lifetime"], sum((base["retention_%d" % (p + 1)] for p in range(width)), D(0))), "the average lifetime is the area under the retention curve"),
+        ("period_retention_is_weighted_by_cohort_size", _close(base["retention_1"], sum((rows[i][0] for i in range(len(sizes))), D(0)) / sum(sizes, D(0))), "the pooled rate weights each cohort by its starting size"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def cohort_retention_profile(inp):
+    try:
+        sizes = [D(str(x)) for x in inp.get("cohort_sizes") or []]
+        rows = [[D(str(x)) for x in row] for row in inp.get("retained") or []]
+        if not sizes:
+            return ["at least one cohort size is required"]
+        if len(sizes) > 24:
+            return ["at most 24 cohorts are supported"]
+        if len(rows) != len(sizes):
+            return ["retained must have one row per cohort"]
+        if not rows or not rows[0]:
+            return ["each cohort needs at least one retention period"]
+        width = len(rows[0])
+        if width > 24:
+            return ["at most 24 periods are supported"]
+        if any(len(row) != width for row in rows):
+            return ["every cohort row must have the same number of periods"]
+        if any(s <= 0 for s in sizes):
+            return ["every cohort size must be positive"]
+        for i, row in enumerate(rows, 1):
+            if any(r < 0 for r in row):
+                return ["cohort %d has a negative retained count" % i]
+            if any(r > sizes[i - 1] for r in row):
+                return ["cohort %d retains more customers than it started with" % i]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cohort inputs are malformed: cohort_sizes and retained are required"]
+
+def _cohort_typing(metric):
+    if metric in ("average_retention",) or metric.startswith("retention_") or metric.startswith("churn_"):
+        return ("rate", 4)
+    if metric == "average_lifetime":
+        return ("periods", 2)
+    return ("count", 0)
+
+def cohort_retention_caveats(out, th):
+    return ["Retention is pooled across the cohorts you declare; each period is the count you supply over the cohort's starting size.",
+            "Cohorts must be observed for the same number of periods; a period a cohort has not reached should be left out rather than entered as zero.",
+            "No survival model, seasonality, reactivation or revenue weighting is applied; the average lifetime is the area under the declared retention curve."]
+
+def cohort_retention_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across the declared cohorts, first-period retention is " + tok("retention_1") + " and the average retention over the curve is " +
+            tok("average_retention") + ", giving an average lifetime of " + tok("average_lifetime") + " periods.")
+
+
+def demand_curve_impl(inp):
+    prices = [D(str(x)) for x in inp["prices"]]
+    quantities = [D(str(x)) for x in inp["quantities"]]
+    if len(prices) != len(quantities):
+        raise DataError("prices and quantities must have the same length")
+    n = len(prices)
+    if n < 3:
+        raise DataError("at least three price-quantity observations are required")
+    mp = sum(prices, D(0)) / n
+    mq = sum(quantities, D(0)) / n
+    sxx = sum(((p - mp) ** 2 for p in prices), D(0))
+    sxy = sum(((p - mp) * (q - mq) for p, q in zip(prices, quantities)), D(0))
+    if sxx == 0:
+        raise DataError("the prices are constant, so a slope cannot be estimated")
+    slope = sxy / sxx
+    intercept = mq - slope * mp
+    fitted = [intercept + slope * p for p in prices]
+    ss_res = sum(((q - f) ** 2 for q, f in zip(quantities, fitted)), D(0))
+    ss_tot = sum(((q - mq) ** 2 for q in quantities), D(0))
+    if ss_tot == 0:
+        raise DataError("the quantities are constant, so the fit is not informative")
+    out = {"intercept": intercept, "slope": slope, "r_squared": 1 - ss_res / ss_tot,
+           "mean_price": mp, "mean_quantity": mq,
+           "elasticity_at_mean": slope * (mp / mq)}
+    if slope < 0:
+        out["revenue_max_price"] = -intercept / (2 * slope)
+        out["revenue_max_quantity"] = intercept + slope * out["revenue_max_price"]
+        out["revenue_max_revenue"] = out["revenue_max_price"] * out["revenue_max_quantity"]
+    return out
+
+def _demand_ref(inp):
+    prices = [float(D(str(x))) for x in inp["prices"]]
+    quantities = [float(D(str(x))) for x in inp["quantities"]]
+    n = len(prices)
+    mp, mq = sum(prices) / n, sum(quantities) / n
+    sxx = sum((p - mp) ** 2 for p in prices)
+    sxy = sum((p - mp) * (q - mq) for p, q in zip(prices, quantities))
+    return {"slope": sxy / sxx}
+
+def demand_curve_tests(inp, impl):
+    base, ref = impl(inp), _demand_ref(inp)
+    prices = [D(str(x)) for x in inp["prices"]]
+    quantities = [D(str(x)) for x in inp["quantities"]]
+    n = len(prices)
+    mp = sum(prices, D(0)) / n
+    mq = sum(quantities, D(0)) / n
+    sxx = sum(((p - mp) ** 2 for p in prices), D(0))
+    sxy = sum(((p - mp) * (q - mq) for p, q in zip(prices, quantities)), D(0))
+    fitted = [base["intercept"] + base["slope"] * p for p in prices]
+    ss_res = sum(((q - f) ** 2 for q, f in zip(quantities, fitted)), D(0))
+    ss_tot = sum(((q - mq) ** 2 for q in quantities), D(0))
+    rm_ok = ("revenue_max_price" not in base) or _close((base["revenue_max_quantity"] - base["intercept"]) / base["slope"], base["revenue_max_price"])
+    checks = [
+        ("second_implementation_agrees", _close(base["slope"], ref["slope"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("slope_is_the_covariance_over_the_variance", _close(base["slope"], sxy / sxx), "the slope is the covariance of price and quantity over the variance of price"),
+        ("fitted_line_passes_through_the_means", _close(base["intercept"] + base["slope"] * mp, mq), "the fitted line passes through the mean price and mean quantity"),
+        ("r_squared_is_bounded_and_matches_the_residuals", D(0) <= base["r_squared"] <= D(1) and _close(base["r_squared"], 1 - ss_res / ss_tot), "the fit lies between zero and one and equals one minus the residual share"),
+        ("revenue_maximising_price_sets_marginal_revenue_to_zero", rm_ok, "when the fitted slope is negative, the revenue-maximising price is where marginal revenue is zero"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def demand_curve_profile(inp):
+    try:
+        prices = [D(str(x)) for x in inp.get("prices") or []]
+        quantities = [D(str(x)) for x in inp.get("quantities") or []]
+        if len(prices) != len(quantities):
+            return ["prices and quantities must have the same length"]
+        if len(prices) < 3:
+            return ["at least three price-quantity observations are required"]
+        if len(set(prices)) == 1:
+            return ["the prices are constant, so a slope cannot be estimated"]
+        if len(set(quantities)) == 1:
+            return ["the quantities are constant, so the fit is not informative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["demand inputs are malformed: prices and quantities are required lists of numbers"]
+
+def _demand_typing(metric):
+    if metric in ("r_squared", "elasticity_at_mean"):
+        return ("ratio", 4)
+    if metric in ("mean_price", "revenue_max_price"):
+        return ("currency", 2)
+    if metric in ("mean_quantity", "revenue_max_quantity"):
+        return ("units", 2)
+    if metric == "revenue_max_revenue":
+        return ("currency", 2)
+    return ("ratio", 4)
+
+def demand_curve_caveats(out, th):
+    return ["The fit is an association between the prices and quantities you observed, not an identified demand curve; omitted variables, simultaneity and measurement error are not addressed.",
+            "A line is imposed on the data; a non-linear or kinked demand pattern will not be captured.",
+            "The revenue-maximising price exists only when the fitted slope is negative, and it is arithmetic on the fit, not a pricing recommendation."]
+
+def demand_curve_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Fitting quantity on price gives a slope of " + tok("slope") + " with an R-squared of " + tok("r_squared") +
+         ", so at the mean price of " + tok("mean_price") + " the elasticity is " + tok("elasticity_at_mean") + ".")
+    if "revenue_max_price" in out:
+        t += " Within the fitted line, revenue is highest at a price of " + tok("revenue_max_price") + "."
+    return t
+
+
+def purchase_intent_impl(inp):
+    d, p, m, nv = (D(str(inp[k])) for k in ("definitely", "probably", "maybe", "never"))
+    total = d + p + m + nv
+    if any(c < 0 for c in (d, p, m, nv)):
+        raise DataError("intent counts must be non-negative")
+    if total <= 0:
+        raise DataError("the intent counts sum to zero")
+    weights = {}
+    for key, default in (("definitely_weight", "0.8"), ("probably_weight", "0.3"),
+                         ("maybe_weight", "0.1"), ("never_weight", "0")):
+        w = D(str(inp.get(key, default)))
+        if w < 0 or w > 1:
+            raise DataError(key + " must be between zero and one")
+        weights[key] = w
+    weighted = (d * weights["definitely_weight"] + p * weights["probably_weight"] +
+                m * weights["maybe_weight"] + nv * weights["never_weight"])
+    out = {"respondents": total, "definitely": d, "probably": p, "maybe": m, "never": nv,
+           "intent_rate": weighted / total, "weighted_intenders": weighted}
+    pop = _optional_decimal(inp, "target_population")
+    if pop is not None:
+        if pop <= 0:
+            raise DataError("target_population must be positive")
+        out["target_population"] = pop
+        out["projected_buyers"] = pop * out["intent_rate"]
+    price = _optional_decimal(inp, "price")
+    if price is not None:
+        if price < 0:
+            raise DataError("price must be non-negative")
+        out["price"] = price
+        if "projected_buyers" in out:
+            out["projected_revenue"] = out["projected_buyers"] * price
+    return out
+
+def _intent_ref(inp):
+    d, p, m, nv = (float(D(str(inp[k]))) for k in ("definitely", "probably", "maybe", "never"))
+    total = d + p + m + nv
+    w = [float(D(str(inp.get(k, v)))) for k, v in (("definitely_weight", "0.8"), ("probably_weight", "0.3"),
+                                                   ("maybe_weight", "0.1"), ("never_weight", "0"))]
+    return {"intent_rate": (d * w[0] + p * w[1] + m * w[2] + nv * w[3]) / total}
+
+def purchase_intent_tests(inp, impl):
+    base, ref = impl(inp), _intent_ref(inp)
+    total = base["respondents"]
+    all_def = impl({**inp, "definitely": str(total), "probably": "0", "maybe": "0", "never": "0"})
+    zero = impl({**inp, "definitely_weight": "0", "probably_weight": "0", "maybe_weight": "0", "never_weight": "0"})
+    checks = [
+        ("second_implementation_agrees", _close(base["intent_rate"], ref["intent_rate"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("intent_rate_is_the_weighted_share", _close(base["intent_rate"], base["weighted_intenders"] / total), "the intent rate is the weighted count over the respondents"),
+        ("all_definitely_respondents_give_the_definitely_weight", _close(all_def["intent_rate"], D(str(inp.get("definitely_weight", "0.8")))), "if everyone says definitely, the rate is the declared definitely weight"),
+        ("projected_buyers_is_the_rate_times_the_population",
+         "projected_buyers" not in base or _close(base["projected_buyers"], base["intent_rate"] * base["target_population"]), "the projected buyers scale the declared population by the intent rate"),
+        ("zero_weights_give_a_zero_intent_rate", zero["intent_rate"] == 0, "with every weight at zero the intent rate is zero"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def purchase_intent_profile(inp):
+    try:
+        counts = [D(str(inp[k])) for k in ("definitely", "probably", "maybe", "never")]
+        if any(c < 0 for c in counts):
+            return ["intent counts must be non-negative"]
+        if sum(counts, D(0)) <= 0:
+            return ["the intent counts sum to zero"]
+        for key in ("definitely_weight", "probably_weight", "maybe_weight", "never_weight"):
+            w = D(str(inp.get(key, "0.8" if key == "definitely_weight" else "0.3" if key == "probably_weight" else "0.1" if key == "maybe_weight" else "0")))
+            if w < 0 or w > 1:
+                return [key + " must be between zero and one"]
+        pop = _optional_decimal(inp, "target_population")
+        if pop is not None and pop <= 0:
+            return ["target_population must be positive"]
+        price = _optional_decimal(inp, "price")
+        if price is not None and price < 0:
+            return ["price must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["intent inputs are malformed: definitely, probably, maybe and never are required counts"]
+
+def _intent_typing(metric):
+    if metric in ("intent_rate",):
+        return ("rate", 4)
+    if metric in ("respondents", "definitely", "probably", "maybe", "never", "target_population", "projected_buyers"):
+        return ("count", 0)
+    return ("currency", 2)
+
+def purchase_intent_caveats(out, th):
+    return ["The conversion weights are declared conventions, not estimates; a different set of weights gives a different intent rate.",
+            "Stated intent is not a purchase. The projection assumes the respondents are representative of the population you declared.",
+            "No survey design, sampling error, non-response or seasonality is modelled; the counts and the population are yours."]
+
+def purchase_intent_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Across " + tok("respondents") + " respondents, the declared weights give an intent rate of " + tok("intent_rate") + ".")
+    if "projected_buyers" in out:
+        t += (" Applied to the declared population, that is " + tok("projected_buyers") + " projected buyers")
+        if "projected_revenue" in out:
+            t += " and " + tok("projected_revenue") + " of projected revenue"
+        t += "."
+    return t
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -8361,12 +9550,23 @@ LIBRARY = {
                   limitations=("Ignores every cash flow after the payback point, so it measures liquidity, not value.", "Within-period interpolation is a declared convention, not a data fact.", "A higher rate can push recovery beyond the horizon, which blocks instead of reporting 'never within the horizon' as a number."),
                   default_period="annual", typing=_dpb_typing, template=_dpb_template, claim_ceiling="descriptive"),
     "breakeven": Method("breakeven", "T1", breakeven, breakeven_tests, breakeven_profile, "breakeven_units", "units", None,
-                  ("profit_at_breakeven_is_zero", "monotone_in_fixed_cost", "positive_quantity"),
-                  category="cost-volume-profit", intended_use="Units needed to cover fixed cost at a constant unit contribution.",
-                  unsupported_use="Multi-product mix; step-fixed costs; non-linear price or cost.",
-                  input_schema={k: {"type": "decimal", "desc": d} for k, d in (("fixed", "total fixed cost"), ("price", "price per unit"), ("variable", "variable cost per unit"))},
-                  defaults=({"question": "Cost behavior", "default_chosen": "Fixed cost is constant and unit price and variable cost are constant.", "impact": "Break-even moves if costs are stepped or prices change with volume."},),
-                  assumptions=("Linear cost and revenue.",), limitations=("Single product.",)),
+                  ("profit_at_breakeven_is_zero", "contribution_margin_is_price_minus_variable",
+                   "breakeven_revenue_is_units_times_price", "margin_of_safety_is_expected_units_minus_breakeven",
+                   "target_profit_raises_the_required_units"),
+                  category="cost-volume-profit",
+                  intended_use="Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.",
+                  unsupported_use="Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.",
+                  input_schema={"fixed": {"type": "decimal", "desc": "total fixed cost"},
+                                "price": {"type": "decimal", "desc": "price per unit"},
+                                "variable": {"type": "decimal", "desc": "variable cost per unit"},
+                                "expected_units": {"type": "decimal", "required": False, "desc": "optional expected sales volume, for the margin of safety"},
+                                "target_profit": {"type": "decimal", "required": False, "desc": "optional pre-tax profit target, for the required volume"}},
+                  defaults=({"question": "Cost behavior", "default_chosen": "Fixed cost is constant and unit price and variable cost are constant.", "impact": "Break-even moves if costs are stepped or prices change with volume."},
+                            {"question": "Margin of safety and target profit", "default_chosen": "Both are reported only when expected_units or target_profit is declared; neither is assumed.", "impact": "A different expected volume changes the margin of safety but not the break-even point."}),
+                  assumptions=("Linear cost and revenue.", "The expected volume is the owner's declared input, not a forecast."),
+                  limitations=("Single product; a mix needs multi_product_breakeven.", "No tax, financing or working-capital effects.", "The margin of safety is relative to the declared expected volume only."),
+                  default_period="annual", caveats=breakeven_caveats, template=breakeven_template,
+                  claim_ceiling="descriptive", typing=_breakeven_typing),
     "pearson": Method("pearson", "T1", pearson_impl, pearson_tests, corr_profile, "r", "correlation", None,
                   ("second_implementation_agrees", "invariant_to_positive_linear_transform", "negating_y_flips_sign_keeps_p", "symmetric_in_x_and_y", "bounded_and_consistent", "missing_pairs_excluded_not_valued"),
                   category="correlation", intended_use="Linear association between two numeric variables in a sample, with interval, p-value and effect size.",
@@ -9808,6 +11008,213 @@ LIBRARY = {
                   assumptions=("Revenue is positive in every period, because it is the common-size base.", "The periods are consecutive and in increasing order.", "The figures are as reported, on one accounting basis and in one currency."),
                   limitations=("Historical arithmetic only; no adjustment, restatement or forecast.", "CAGR uses only the endpoints and ignores the path.", "A net-income CAGR is omitted when the base period's net income is not positive."),
                   default_period="annual", caveats=_trend_caveats, template=_trend_template, claim_ceiling="descriptive", typing=_trend_typing),
+    "market_sizing": Method("market_sizing", "T1", market_sizing_impl, market_sizing_tests, market_sizing_profile,
+                  "serviceable_obtainable_market", "currency", None,
+                  ("second_implementation_agrees", "tam_is_population_times_annual_spend",
+                   "sam_is_the_declared_share_of_tam", "som_is_the_declared_share_of_sam",
+                   "a_higher_serviceable_share_raises_the_serviceable_market"),
+                  category="market analysis",
+                  intended_use="Top-down TAM, SAM and SOM from a declared population, annual spend and two declared shares, with the customer count implied by the obtainable share.",
+                  unsupported_use="Estimating a market, demand curve or growth rate; retrieving population, spend or competitor data; bottom-up unit economics beyond entering a customer count; validating the declared shares.",
+                  input_schema={"target_population": {"type": "decimal", "desc": "the number of potential customers in the declared market"},
+                                "annual_spend_per_customer": {"type": "decimal", "desc": "average annual spend per customer, in your currency"},
+                                "serviceable_share": {"type": "decimal", "desc": "the fraction of the market you can realistically serve, greater than zero and at most one"},
+                                "obtainable_share": {"type": "decimal", "desc": "the fraction of the serviceable market you can win, greater than zero and at most one"}},
+                  defaults=({"question": "Market definition", "default_chosen": "TAM is one year of spend by the declared population; SAM and SOM apply the declared shares in sequence.", "impact": "A multi-year TAM or a different nesting order changes every figure."},
+                            {"question": "Share evidence", "default_chosen": "The shares are your declared assumptions and are recorded, not verified.", "impact": "The method cannot tell a researched share from a guess."}),
+                  assumptions=("The population and spend are a constant annual basis.", "The shares nest: SOM is inside SAM and SAM is inside TAM."),
+                  limitations=("Top-down only; no bottom-up build-up beyond a declared customer count.", "No growth, seasonality, competitor or price response.", "The shares are not validated against any source."),
+                  default_period="annual", caveats=market_sizing_caveats, template=market_sizing_template,
+                  claim_ceiling="descriptive", typing=_market_typing),
+    "startup_capital": Method("startup_capital", "T1", startup_capital_impl, startup_capital_tests, startup_capital_profile,
+                  "amount_to_raise", "currency", None,
+                  ("second_implementation_agrees", "funding_requirement_is_costs_plus_working_capital_plus_contingency",
+                   "amount_to_raise_is_the_unfunded_part_of_the_requirement",
+                   "a_higher_contingency_rate_raises_the_requirement",
+                   "more_declared_funding_reduces_the_amount_to_raise"),
+                  category="venture finance",
+                  intended_use="The start-up funding requirement: declared set-up costs plus working capital plus a declared contingency, less the owner equity and loan already committed, with the amount still to raise.",
+                  unsupported_use="Pricing the start-up costs; cash-flow timing; cost of capital; loan amortisation; equity dilution; a funding plan across several rounds.",
+                  input_schema={"start_up_costs": {"type": "decimal", "desc": "one-off costs to open: equipment, fit-out, permits, deposits"},
+                                "working_capital": {"type": "decimal", "desc": "cash needed to operate before receipts cover costs"},
+                                "contingency_rate": {"type": "decimal", "required": False, "desc": "contingency as a fraction of set-up costs plus working capital, default 0"},
+                                "owner_equity": {"type": "decimal", "required": False, "desc": "cash the owner will put in, default 0"},
+                                "loan_amount": {"type": "decimal", "required": False, "desc": "loan already committed, default 0"}},
+                  defaults=({"question": "What the requirement covers", "default_chosen": "Set-up costs plus working capital, plus the declared contingency on that base.", "impact": "A working-capital estimate built from months of costs must be entered as its own figure."},
+                            {"question": "Funding sources", "default_chosen": "Only owner equity and one loan are declared; any other source is entered as part of them or omitted.", "impact": "Omitting a committed source overstates the amount to raise."}),
+                  assumptions=("The cost and source figures are the owner's declared inputs.", "The contingency is a constant fraction of the requirement."),
+                  limitations=("No timing, seasonality or financing cost.", "No dilution, grant or supplier-credit modelling.", "A negative amount to raise is reported as a surplus, not as a refund."),
+                  default_period="annual", caveats=startup_capital_caveats, template=startup_capital_template,
+                  claim_ceiling="descriptive", typing=_capital_typing),
+    "cash_runway": Method("cash_runway", "T1", cash_runway_impl, cash_runway_tests, cash_runway_profile,
+                  "runway_months", "periods", None,
+                  ("second_implementation_agrees", "the_runway_reaches_a_zero_cash_balance",
+                   "zero_growth_runway_is_opening_cash_over_the_burn",
+                   "a_higher_burn_shortens_the_runway", "funding_gap_covers_the_lowest_cash_balance"),
+                  category="venture finance",
+                  intended_use="Months of cash left from a declared opening balance and monthly net cash flow, with optional monthly growth, the lowest balance and the funding gap over a declared horizon.",
+                  unsupported_use="Forecasting revenue or costs; a cash-flow statement with receipts and payments; seasonality; financing inflows; tax and working-capital timing.",
+                  input_schema={"opening_cash": {"type": "decimal", "desc": "cash on hand at the start"},
+                                "monthly_net_cash_flow": {"type": "decimal", "desc": "cash received minus cash paid in a month; must be negative for a runway"},
+                                "monthly_growth": {"type": "decimal", "required": False, "desc": "monthly growth applied to the net flow, default 0"},
+                                "target_months": {"type": "decimal", "required": False, "desc": "horizon for the lowest balance and funding gap, default 12 (a whole number from 1 to 120)"}},
+                  defaults=({"question": "What burns the cash", "default_chosen": "One declared net monthly flow, optionally growing at a constant monthly rate.", "impact": "A month-by-month budget with different flows needs its own run or a spreadsheet."},
+                            {"question": "No finite runway", "default_chosen": "If the declared flow does not burn cash, the method blocks instead of reporting an infinite or capped number.", "impact": "A positive flow is a viability finding, not a runway."}),
+                  assumptions=("The net flow is the same every month except for the declared growth.", "Month-end receipts and payments; no financing inflow."),
+                  limitations=("No seasonality, one-off purchases or tax timing.", "Growth is applied to the net flow, not separately to revenue and costs.", "The funding gap ignores the cost of raising the money."),
+                  default_period="monthly", caveats=cash_runway_caveats, template=cash_runway_template,
+                  claim_ceiling="descriptive", typing=_runway_typing),
+    "pricing_decision": Method("pricing_decision", "T1", pricing_decision_impl, pricing_decision_tests, pricing_decision_profile,
+                  "cost_plus_price", "currency", None,
+                  ("second_implementation_agrees", "cost_plus_price_is_unit_cost_times_one_plus_markup",
+                   "break_even_price_covers_the_total_cost", "margin_price_recovers_the_declared_margin",
+                   "target_return_price_covers_cost_and_declared_profit"),
+                  category="pricing",
+                  intended_use="Cost-plus, target-margin, break-even and target-return prices from declared unit cost, fixed cost, volume and rate inputs.",
+                  unsupported_use="Researching willingness to pay or competitor prices; estimating a demand response; psychological pricing; discounts and promotions; tax.",
+                  input_schema={"unit_cost": {"type": "decimal", "desc": "variable cost per unit"},
+                                "fixed_cost": {"type": "decimal", "required": False, "desc": "total fixed cost for the period, default 0"},
+                                "expected_units": {"type": "decimal", "desc": "units expected to be sold in the period"},
+                                "markup_rate": {"type": "decimal", "desc": "markup on cost as a decimal, e.g. 0.60 for 60%"},
+                                "target_margin_rate": {"type": "decimal", "required": False, "desc": "optional margin on the price, greater than zero and below one"},
+                                "target_profit": {"type": "decimal", "required": False, "desc": "optional profit target for the period"}},
+                  defaults=({"question": "Markup versus margin", "default_chosen": "The cost-plus price marks up the cost; the margin price divides the cost by one minus the declared margin. Both are shown separately.", "impact": "Treating a margin as a markup understates the price."},
+                            {"question": "Volume", "default_chosen": "The declared expected units are used for the break-even and target-return prices.", "impact": "A different volume changes both prices."}),
+                  assumptions=("Unit cost and fixed cost are constant over the declared range.", "The expected volume is the owner's declared figure."),
+                  limitations=("No demand response, competitor price or price elasticity.", "No discounts, VAT or other taxes.", "A target-return price is arithmetic, not a recommendation."),
+                  default_period="annual", caveats=pricing_decision_caveats, template=pricing_decision_template,
+                  claim_ceiling="descriptive", typing=_pricing_typing),
+    "return_on_investment": Method("return_on_investment", "T1", return_on_investment_impl, return_on_investment_tests,
+                  return_on_investment_profile, "roi", "rate", None,
+                  ("second_implementation_agrees", "roi_is_net_gain_over_total_investment",
+                   "doubling_the_net_gain_doubles_the_roi",
+                   "annualised_roi_compounds_to_the_total_return", "a_loss_gives_a_negative_roi"),
+                  category="venture finance",
+                  intended_use="Return on investment from a declared total investment and net gain, with an annualised return when the holding period is declared.",
+                  unsupported_use="Forecasting the gain; timing within the period; tax and depreciation; a discounted decision (use NPV or IRR); comparing projects of different scale without the appraisal tools.",
+                  input_schema={"total_investment": {"type": "decimal", "desc": "the total amount invested"},
+                                "net_gain": {"type": "decimal", "desc": "the total gain net of the investment, over the whole holding period; may be negative"},
+                                "years": {"type": "decimal", "required": False, "desc": "optional holding period in years, for the annualised return"}},
+                  defaults=({"question": "What the gain is", "default_chosen": "The net gain is the total over the holding period, not an annual cash flow.", "impact": "Entering an annual gain as the total understates the return."},
+                            {"question": "Annualising", "default_chosen": "The annualised return is the constant rate that compounds to the total return; it is omitted without a declared holding period.", "impact": "Timing of intermediate flows is ignored."}),
+                  assumptions=("The net gain and investment are the owner's declared figures.", "The holding period is a constant number of years."),
+                  limitations=("No discounting, tax or depreciation.", "Ignores the timing of the flows inside the period.", "A loss of 100% or more has no real annualised rate and is refused when years is declared."),
+                  default_period="annual", caveats=return_on_investment_caveats, template=return_on_investment_template,
+                  claim_ceiling="descriptive", typing=_roi_typing),
+    "sales_projection": Method("sales_projection", "T1", sales_projection_impl, sales_projection_tests,
+                  sales_projection_profile, "total_profit", "currency", None,
+                  ("second_implementation_agrees", "first_period_revenue_is_start_units_times_price",
+                   "units_grow_at_the_declared_rate", "profit_is_revenue_minus_variable_and_fixed_cost",
+                   "total_profit_is_the_sum_of_period_profits"),
+                  category="venture planning",
+                  intended_use="A period-by-period revenue, cost and profit projection from a declared starting volume, price, unit cost, fixed cost and growth rate.",
+                  unsupported_use="Forecasting demand; fitting a trend; seasonality; tax, financing or depreciation; a cash-flow statement (use cash_runway); a multi-product mix (run one projection per product or use multi_product_breakeven).",
+                  input_schema={"start_units": {"type": "decimal", "desc": "units sold in the first period, in whole or fractional units"},
+                                "price": {"type": "decimal", "desc": "price per unit, constant across periods"},
+                                "unit_variable_cost": {"type": "decimal", "desc": "variable cost per unit, constant across periods"},
+                                "fixed_cost_per_period": {"type": "decimal", "desc": "fixed cost in every period"},
+                                "growth_rate": {"type": "decimal", "required": False, "desc": "period-on-period volume growth as a decimal, default 0"},
+                                "periods": {"type": "decimal", "required": False, "desc": "number of periods, default 12 (a whole number from 1 to 24)"}},
+                  defaults=({"question": "What grows", "default_chosen": "Only the volume grows, at the declared rate; price, unit cost and fixed cost stay constant in every period.", "impact": "Changing costs or prices needs a separate run per assumption."},
+                            {"question": "Horizon", "default_chosen": "Twelve periods unless declared, up to twenty-four; the period length is the one you declare (monthly, quarterly or annual).", "impact": "A five-year annual plan needs periods set to five and a period of annual."}),
+                  assumptions=("Price, unit variable cost and fixed cost are constant over the horizon.", "The declared growth applies to volume and nothing else."),
+                  limitations=("A projection from your assumptions, not a fitted forecast.", "No seasonality, step costs, capacity limit or multi-product mix.", "No tax, financing or cash timing."),
+                  default_period="annual", caveats=sales_projection_caveats, template=sales_projection_template,
+                  claim_ceiling="descriptive", typing=_projection_typing),
+    "cap_table_round": Method("cap_table_round", "T1", cap_table_round_impl, cap_table_round_tests,
+                  cap_table_round_profile, "investor_pct", "rate", None,
+                  ("second_implementation_agrees", "post_money_is_pre_money_plus_investment",
+                   "price_per_share_is_pre_money_over_existing_shares",
+                   "investor_percentage_is_new_shares_over_total_shares",
+                   "ownership_percentages_sum_to_one"),
+                  category="venture finance",
+                  intended_use="One priced equity round: post-money value, price per share, new shares, the investor and founder percentages and the dilution, with an optional post-money option pool.",
+                  unsupported_use="Convertible notes, SAFEs, bridges, multiple rounds, liquidation preferences, anti-dilution, vesting, pro-rata rights, board seats or any other term-sheet clause; choosing a valuation.",
+                  input_schema={"pre_money_valuation": {"type": "decimal", "desc": "the agreed value of the company before the new money"},
+                                "investment": {"type": "decimal", "desc": "the new money invested in this round"},
+                                "founders_shares": {"type": "decimal", "desc": "shares outstanding before the round (founders and any existing holders)"},
+                                "option_pool_pct": {"type": "decimal", "required": False, "desc": "optional post-money option pool as a fraction of the fully diluted company, default 0"}},
+                  defaults=({"question": "Option pool timing", "default_chosen": "The pool is a declared share of the fully diluted post-money company and dilutes founders and investor together.", "impact": "A pool created before the money (the pool shuffle) lowers the price per share and is a different convention."},
+                            {"question": "Round structure", "default_chosen": "One priced round with ordinary shares; every other instrument and clause is out of scope.", "impact": "A note or SAFE converts on different terms and is not modelled."}),
+                  assumptions=("The pre-money value and the investment are agreed and declared.", "All existing shares are counted in founders_shares.", "The option pool, if any, is post-money."),
+                  limitations=("No liquidation preference, anti-dilution, vesting, pro-rata, board or other negotiated term.", "One round only; no note, SAFE or bridge.", "The valuation is an input, not a recommendation."),
+                  default_period="point in time", caveats=cap_table_round_caveats, template=cap_table_round_template,
+                  claim_ceiling="descriptive", typing=_cap_typing),
+    "sales_funnel": Method("sales_funnel", "T1", sales_funnel_impl, sales_funnel_tests, sales_funnel_profile,
+                  "overall_conversion", "rate", None,
+                  ("second_implementation_agrees", "overall_conversion_is_the_last_count_over_the_first",
+                   "each_stage_conversion_is_the_next_count_over_the_current",
+                   "overall_conversion_is_the_product_of_stage_conversions",
+                   "cac_is_spend_over_customers"),
+                  category="market analysis",
+                  intended_use="Stage-by-stage conversion and drop-off from the counts you declare, with the overall conversion and, when spend is declared, the acquisition cost per customer.",
+                  unsupported_use="Deciding the funnel stages; estimating conversion; cohort, channel or time splits; attribution; statistical significance.",
+                  input_schema={"stages": {"type": "records", "min_items": 2, "fields": {"name": "text", "count": "decimal"},
+                                           "desc": "two to eight stages in order, each with a name and the count reaching it; counts must not increase"},
+                                "spend": {"type": "decimal", "required": False, "desc": "optional acquisition spend for the period, to report the cost per customer"}},
+                  defaults=({"question": "Stage order and counts", "default_chosen": "The stages are exactly the ones you declare, in order; a count that rises is refused as a counting or ordering error.", "impact": "Merging or reordering stages changes every conversion."},
+                            {"question": "Cost per customer", "default_chosen": "Reported only when spend is declared, as spend over the customers at the last stage.", "impact": "Spend covering several periods or channels would overstate the cost."}),
+                  assumptions=("Every customer at a later stage was counted at every earlier stage.", "The stages cover one period and one population."),
+                  limitations=("Arithmetic on declared counts; no estimation, attribution or significance.", "No cohort, channel or time split.", "A rising count blocks rather than being smoothed."),
+                  default_period="per period", caveats=sales_funnel_caveats, template=sales_funnel_template,
+                  claim_ceiling="descriptive", typing=_funnel_typing),
+    "cohort_retention": Method("cohort_retention", "T1", cohort_retention_impl, cohort_retention_tests,
+                  cohort_retention_profile, "average_retention", "rate", None,
+                  ("second_implementation_agrees", "first_period_retention_is_total_retained_over_total_start",
+                   "retention_rates_are_bounded", "average_lifetime_is_the_sum_of_retention_rates",
+                   "period_retention_is_weighted_by_cohort_size"),
+                  category="market analysis",
+                  intended_use="Pooled retention and churn by period from declared cohort sizes and retained counts, with the average retention and the average lifetime under the declared curve.",
+                  unsupported_use="Estimating retention; survival models; seasonality; reactivation; revenue-weighted retention; cohorts observed for different numbers of periods.",
+                  input_schema={"cohort_sizes": {"type": "value_list", "min_items": 1, "desc": "starting customers in each cohort, one per row of retained"},
+                                "retained": {"type": "value_matrix", "max_rows": 24, "desc": "one row per cohort, one column per period, holding the customers still retained"}},
+                  defaults=({"question": "Pooling", "default_chosen": "Period retention pools every cohort and weights it by the cohort's starting size.", "impact": "A simple average across cohorts gives a different rate when cohort sizes differ."},
+                            {"question": "Average lifetime", "default_chosen": "The sum of the pooled retention rates (the area under the declared curve).", "impact": "A different period length changes what a lifetime means."}),
+                  assumptions=("Every cohort is observed for the same number of periods.", "The counts are of customers, not revenue."),
+                  limitations=("Pooled arithmetic only; no survival model or significance test.", "Cohorts must share a period count; a period not yet reached must be omitted, not zero-filled.", "No reactivation, seasonality or revenue weighting."),
+                  default_period="per period", caveats=cohort_retention_caveats, template=cohort_retention_template,
+                  claim_ceiling="descriptive", typing=_cohort_typing),
+    "demand_curve": Method("demand_curve", "T1", demand_curve_impl, demand_curve_tests, demand_curve_profile,
+                  "slope", "ratio", None,
+                  ("second_implementation_agrees", "slope_is_the_covariance_over_the_variance",
+                   "fitted_line_passes_through_the_means", "r_squared_is_bounded_and_matches_the_residuals",
+                   "revenue_maximising_price_sets_marginal_revenue_to_zero"),
+                  category="demand analysis",
+                  intended_use="A straight line fitted to declared price-quantity observations, with the slope, R-squared, elasticity at the mean price and, when the slope is negative, the revenue-maximising price on the fitted line.",
+                  unsupported_use="Identifying demand; causal claims; omitting variables, simultaneity or measurement error; non-linear demand; market data retrieval; pricing recommendations.",
+                  input_schema={"prices": {"type": "value_list", "min_items": 3, "desc": "observed or declared prices, one per observation"},
+                                "quantities": {"type": "value_list", "min_items": 3, "desc": "quantity demanded at each price, paired by position"}},
+                  defaults=({"question": "Functional form", "default_chosen": "A straight line, quantity on price, fitted by least squares.", "impact": "A log or kinked form would give a different slope and elasticity."},
+                            {"question": "Interpretation", "default_chosen": "An association between the observed pairs; the fit is not an identified demand curve.", "impact": "A price set from the fit may not hold when supply or income shifts."}),
+                  assumptions=("The pairs are comparable observations of the same market in the same period basis.", "The relationship is approximately linear within the observed range."),
+                  limitations=("No identification, omitted-variable or endogeneity correction.", "Constant price or constant quantity blocks the fit.", "The revenue-maximising price exists only for a negative fitted slope and only within the fitted line."),
+                  default_period="per observation", caveats=demand_curve_caveats, template=demand_curve_template,
+                  claim_ceiling="associational", typing=_demand_typing),
+    "purchase_intent": Method("purchase_intent", "T1", purchase_intent_impl, purchase_intent_tests,
+                  purchase_intent_profile, "intent_rate", "rate", None,
+                  ("second_implementation_agrees", "intent_rate_is_the_weighted_share",
+                   "all_definitely_respondents_give_the_definitely_weight",
+                   "projected_buyers_is_the_rate_times_the_population",
+                   "zero_weights_give_a_zero_intent_rate"),
+                  category="market analysis",
+                  intended_use="A weighted purchase-intent rate from declared survey counts, with a projected buyer count and revenue when a population and a price are declared.",
+                  unsupported_use="Choosing the conversion weights for you; sampling, non-response or representativeness; turning stated intent into a forecast; statistical inference.",
+                  input_schema={"definitely": {"type": "decimal", "desc": "respondents who said they would definitely buy"},
+                                "probably": {"type": "decimal", "desc": "respondents who said they would probably buy"},
+                                "maybe": {"type": "decimal", "desc": "respondents who were unsure"},
+                                "never": {"type": "decimal", "desc": "respondents who said they would not buy"},
+                                "definitely_weight": {"type": "decimal", "required": False, "desc": "declared weight for definitely, default 0.8"},
+                                "probably_weight": {"type": "decimal", "required": False, "desc": "declared weight for probably, default 0.3"},
+                                "maybe_weight": {"type": "decimal", "required": False, "desc": "declared weight for maybe, default 0.1"},
+                                "never_weight": {"type": "decimal", "required": False, "desc": "declared weight for never, default 0"},
+                                "target_population": {"type": "decimal", "required": False, "desc": "optional population to project buyers onto"},
+                                "price": {"type": "decimal", "required": False, "desc": "optional price to convert projected buyers into revenue"}},
+                  defaults=({"question": "Conversion weights", "default_chosen": "Definitely 0.8, probably 0.3, maybe 0.1 and never 0; every weight is declared and shown.", "impact": "A different weight set changes the intent rate and the projection."},
+                            {"question": "Representativeness", "default_chosen": "The respondents are assumed representative of the declared population; the method cannot test it.", "impact": "A biased sample scales a biased rate."}),
+                  assumptions=("The intent counts are from one declared sample.", "The weights are the owner's declared convention.", "The population is the market the sample is meant to represent."),
+                  limitations=("Stated intent overstates purchase; no calibration against actual sales.", "No sampling error, non-response, seasonality or price response.", "The weights are conventions, not estimates."),
+                  default_period="cross_section", caveats=purchase_intent_caveats, template=purchase_intent_template,
+                  claim_ceiling="descriptive", typing=_intent_typing),
 
 }
 
