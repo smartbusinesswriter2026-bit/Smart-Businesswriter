@@ -1,5 +1,21 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [design] The rail keeps the subject marked while you work inside it
+
+**Ask.** "continue your unfinished fix in the left rails" — the left rail lost its green highlight the moment a student opened a subsection of a subject, and the previous run ran out of credit before that fix was verified, recorded or committed.
+
+**Did — the defect.** The rail marked the panel it was on (`a.dataset.panel === id`), and a subject's workspace is not a panel: no rail item carries `data-panel="new"`, `"results"` or `"deliver"`. Opening a worksheet, a tool, the run it produced or the deliverable therefore cleared `aria-current` from every item, so the subject the student was working in went out of the rail entirely - no green word, and nothing to click their way back to.
+
+**Did — the fix.** `state.railSubject` remembers the subject the rail is holding: set when a subject page is opened, kept while the panel is one of that subject's own workspaces (`SUBJECT_WORKSPACE = ["new", "results", "deliver"]`), released by every other panel. The marking moved into one shared `markCurrentRailItem()`, called by `activate()` and by `renderRailSubjects()` after the subject list is rebuilt from the API - a mark applied before that redraw was lost with the old elements. The mark is an attribute on a link, so no behaviour, wording, number, endpoint or test changed.
+
+**Verified.** On the served page (127.0.0.1:8765, Chromium), with a temporary log inside `markCurrentRailItem` recording the active panel, the held subject and the number of marked rail items, every transition was read back: the subject page marks the subject (1 of 14 items); a worksheet opened from it keeps the subject marked (1 of 14, with `aria-current="page"` on that link in the DOM); the Business Calculator releases it and marks the Calculator; returning to the subject marks the subject again; Home releases it and marks Home. The instrumentation was removed afterwards, and `scripts/ui_smoke.py` now carries the rail markers so the fix cannot be dropped silently.
+
+**Suite state.** 1484 pass, 3 fail - all three from the concurrent slice and none from this change: the calculator router knows 136 methods against 140 in the catalogue, the Entrepreneurship shelf text, and the test count documented in `HOME.md`. This entry touches `web/index.html` only.
+
+**Files.** `web/index.html`, `web/DESIGN_NOTES.md` (section 12), `scripts/ui_smoke.py`, `docs/WORKLOG.md`.
+
+**Open/next.** No `docs/CHANGELOG.md` entry was written: the build number is in flight in the concurrent lane (the pill is already at v1.24 with no matching entry), and the newest build in the changelog is tied by a test to the build string in `HOME.md` and `HANDOFF.md`, so writing it here would either collide with that increment or edit its lines. The changelog line for this increment belongs with the next build that carries it.
+
 ## 2026-10-28 — The marketing shelf finishes its assignments
 
 **Ask.** After the RFM and media-planning increment, the owner asked what was still open for a marketing

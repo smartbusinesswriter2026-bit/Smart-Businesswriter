@@ -351,3 +351,49 @@ Verification: measured on the served page (Chrome, device pixel ratio 1) the rul
 x = 254, and "SUBJECTS" and every subject name under it start at the same x = 55 - the heading, the
 rule and the list are one column. The full suite passes. No `src/bp/**`, `tests/**`, fixture or
 factual-doc edit, and the build pill is left alone.
+
+## 12. The rail keeps the subject marked while you work inside it
+
+What was wrong: the rail marked the panel it was on, and a subject's workspace is not a panel.
+Opening a worksheet, a tool, the run it produced, or the deliverable that came out of it - a
+subsection of the subject - left no rail item with a matching `data-panel`, so every item lost
+`aria-current` and the green highlight on the subject's name disappeared. The rail went blank at
+exactly the moment the student was working inside a subject: the subject they were in had no
+anchor, and the only way back was to scroll the rail and find it by eye.
+
+What changed:
+- `state.railSubject` remembers the subject the rail is holding. It is set when a subject page is
+  opened, and it is kept while the panel is one of that subject's own workspaces.
+- `SUBJECT_WORKSPACE = ["new", "results", "deliver"]` names those panels: the tool or worksheet
+  being filled, the run it produced, and the deliverable that came out of it. They are the whole
+  chain that can be reached from a subject - `check` and `refs` are in the panel list but nothing
+  routes to them.
+- One shared `markCurrentRailItem()` owns the marking, so the rail and the subject list cannot
+  drift apart: `activate()` calls it when the panel changes, and `renderRailSubjects()` calls it
+  after the subject list has been rebuilt. The list is redrawn from the API, so a mark applied
+  before the redraw would have been lost with the old elements.
+- Every other panel - home, chat, the calculator, a saved case - takes the mark back, as before.
+
+The mark is an attribute on a link (`aria-current="page"`), which the CSS already styles: the
+active word steps up in weight and colour. No behaviour, wording, number, endpoint or test
+changed.
+
+Verification: on the served page (`127.0.0.1:8765`, Chromium in the app panel), with a temporary
+log inside `markCurrentRailItem` recording the active panel, the subject the rail was holding and
+how many rail items carried the mark, each transition was read back:
+- subject page (Marketing) - the subject is marked; 1 of 14 rail items
+- worksheet opened from that subject (`#/new`) - **the subject is still marked**; 1 of 14, and
+  `aria-current="page"` is on that subject's own link in the DOM
+- Business Calculator - the subject's mark is released and the Calculator is marked; 1 of 14
+- back to the subject - the subject is marked again
+- Home - the subject's mark is released and Home is marked; 1 of 14
+
+The instrumentation was removed after the run, and `scripts/ui_smoke.py` now carries the rail's
+markers so the fix cannot be silently dropped. The suite is red for reasons outside this change:
+the concurrent method slice has added methods the calculator router does not know about (136
+against 140), and the Entrepreneurship shelf text and the documented test count in `HOME.md` have
+not caught up. This change touches `web/index.html` only.
+
+Not done, on purpose: the mark is not carried into a saved case. A case is the student's own
+object, not the subject's workspace, and letting a subject stay lit inside someone else's case
+would be the wrong anchor.

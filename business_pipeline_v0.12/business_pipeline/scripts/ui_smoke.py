@@ -17,6 +17,7 @@ import urllib.request
 MARKERS = ("worksheetForm", "matrixForm", "bp-ws-draft-", "Download the worksheet (Word)",
            "not teacher-approved")
 ABSENT = ("Reviewer name", "Sign-off", "Review status", "pending_named_reviewer")
+RAIL_MARKERS = ("markCurrentRailItem", "SUBJECT_WORKSPACE", "railSubject")
 SUBJECTS = ("accounting", "finance", "economics", "management", "project-management",
             "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research")
 FORMS = {"template_business_model_canvas": "canvas", "template_pestel": "canvas",
@@ -52,6 +53,8 @@ def main():
         page = _get(base, "/").decode("utf-8", "replace")
         check("served page carries the worksheet and draft markers", all(m in page for m in MARKERS))
         check("no reviewer surface in the page", not any(m in page for m in ABSENT))
+        check("the rail keeps the subject marked while its workspace is open",
+              all(m in page for m in RAIL_MARKERS))
         check("page has a title", "<title>" in page)
 
         subjects = json.loads(_get(base, "/api/cases/subjects").decode())
