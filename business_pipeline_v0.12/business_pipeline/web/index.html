@@ -37,6 +37,13 @@
      of the strip edge and still clears the subject list's overflow clip. */
   --rail-pad:4px;
   --rail-ic-w:26px;
+  /* The collapsed rail is the strip plus a column for the subject list's
+     scrollbar. The list scrolls inside the strip, and a scrollbar eats the
+     scrollport's right edge: with the strip alone, the scrollbar landed on the
+     icon column and cut every glyph. The column is added to the strip, so the
+     green and the icons keep the width they had. */
+  --rail-sb:16px;
+  --rail-w-collapsed:calc(var(--rail-w) + var(--rail-sb));
   --rail-ic-pad:calc(var(--rail-w) - var(--rail-ic-w) - var(--rail-pad) - 4px);
   --rail-text-x:calc(var(--rail-w) + var(--rail-gap));
   --rail-text-off:calc(var(--rail-text-x) - var(--rail-pad));
@@ -96,6 +103,8 @@ label.field{display:block;font-size:14.4px;color:var(--text-2);margin:0 0 4px}
       width:var(--rail-w);flex:0 0 auto;padding:12px var(--rail-pad);display:flex;flex-direction:column;gap:6px;overflow:visible;
       transition:width .34s cubic-bezier(.32,.72,0,1),padding .34s cubic-bezier(.32,.72,0,1);z-index:20}
 body.rail-open .rail{width:var(--rail-w-open)}
+/* collapsed, the rail carries the scrollbar's column beside the strip */
+body:not(.rail-open) .rail{width:var(--rail-w-collapsed)}
 /* the strip itself: a full aqua-green bar behind the icons - the logo green at the
    depth that lets the coloured icons read on it. The label column beside it stays
    white, as in the A1 reference. */
@@ -105,8 +114,11 @@ body.rail-open .rail{width:var(--rail-w-open)}
             border-radius:var(--r-sm);color:#FFFFFF;flex:0 0 auto;position:relative;z-index:2}
 .railtoggle svg{flex:0 0 auto}
 /* collapsed, the toggle sits over the icon column, which leans towards the
-   labels, so the two read as one column */
-body:not(.rail-open) .railtoggle{transform:translateX(calc((var(--rail-pad) + var(--rail-ic-pad) + var(--rail-ic-w) / 2) - var(--rail-w) / 2))}
+   labels, so the two read as one column. It hugs the strip rather than the
+   whole rail - the rail now carries the scrollbar's column - and the chevron
+   is walked back onto the icon column by hand. */
+body:not(.rail-open) .railtoggle{width:calc(var(--rail-w) - var(--rail-pad));
+          transform:translateX(calc(var(--rail-ic-pad) + var(--rail-ic-w) / 2 - (var(--rail-w) - var(--rail-pad)) / 2))}
 .railtoggle:hover{background:rgba(255,255,255,.16)}
 .railtoggle .rt-collapse{display:none}
 body.rail-open .railtoggle{justify-content:flex-end}
@@ -1650,6 +1662,28 @@ function capabilityPanel(c, plan) {
     } else if (recorded.error) {
       html += '<p class="muted" style="margin:6px 0 0">Refused: ' + esc(recorded.error) + " No figure is reported.</p>";
     }
+    const fromBrief = Object.keys(cap.figures || {});
+    if (fromBrief.length) {
+      const quotes = cap.figure_quotes || {};
+      html += '<p class="muted" style="margin:6px 0 0">From the brief: ' + fromBrief.map((name) =>
+        esc(String(name).replace(/_/g, " ")) + " " + esc(String(cap.figures[name])) +
+        (quotes[name] ? ' ("' + esc(quotes[name]) + '")' : "")).join("; ") +
+        ". Check it, then validate and attach.</p>";
+    }
+    const needs = cap.needs_from || [];
+    const ready = needs.filter((row) => row.selected && row.recorded);
+    const waiting = needs.filter((row) => !row.selected);
+    if (ready.length) {
+      html += '<p class="muted" style="margin:6px 0 0">From the ' + ready.map((row) =>
+        esc(row.from_label) + " result: " + esc(String(row.input).replace(/_/g, " ")) + " " +
+        esc(String(row.value)) + " (" + esc(row.why) + ")").join("; ") + ".</p>";
+    }
+    if (waiting.length) {
+      html += '<p class="muted" style="margin:6px 0 0">' + waiting.map((row) =>
+        "The " + esc(String(row.input).replace(/_/g, " ")) + " can come from the " +
+        esc(row.from_label) + " result: add that computation in the plan, or declare the figure yourself.")
+        .join(" ") + "</p>";
+    }
     const groups = cap.one_of || [];
     if (groups.length) {
       html += '<p class="muted" style="margin:6px 0 0">Declare ' +
@@ -1663,7 +1697,14 @@ function capabilityPanel(c, plan) {
     if (fields.length) {
       html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
         const spec = cap.inputs[name] || {};
-        const raw = (recorded.inputs || {})[name];
+        const declared = (recorded.inputs || {})[name];
+        const briefFigure = (cap.figures || {})[name];
+        const resultFigure = (cap.chained || {})[name];
+        /* The brief's own figure is offered first, then a figure another frozen
+           result already computed; anything the student declared wins, so a
+           re-run never silently swaps their number out. */
+        const raw = declared !== undefined ? declared
+          : (briefFigure !== undefined ? briefFigure : resultFigure);
         const id = "cap_" + cap.key + "_" + name;
         if (spec.type === "records" || spec.type === "rows" || spec.type === "object") {
           const declaredRows = (cap.row_fields || {})[name] || [];
@@ -1735,6 +1776,12 @@ function capabilityPanel(c, plan) {
   if (excluded.length) {
     html += '<p class="muted">Not included: ' + excluded.map((row) =>
       esc(row.label) + " (" + esc(row.reason) + ")").join("; ") + ".</p>";
+  }
+  const problems = plan.figure_problems || [];
+  if (problems.length) {
+    html += '<p class="muted">Not taken from the brief: ' + problems.map((row) =>
+      esc(row.quote || row.written || "a figure") + " (" +
+      esc(row.refused || row.unused || "not usable") + ")").join("; ") + ".</p>";
   }
   if (available.length) {
     const sections = [];
