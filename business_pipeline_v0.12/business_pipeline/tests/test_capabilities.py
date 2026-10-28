@@ -186,6 +186,41 @@ class RunnerTest(unittest.TestCase):
                          {"name": "B", "price": "40", "variable_cost": "28", "mix_units": "1"}]})
         self.assertTrue(state["computations"]["multi_product_breakeven"]["ok"])
 
+    def test_an_either_or_input_is_enforced(self):
+        brief = ("The grocery chain is assessing the Saudi market and the cost of equity for the branch, "
+                 "with capm on a declared risk-free rate and market return.")
+        state = self._ready(brief)
+        self.assertIn("capm", [row["key"] for row in state["selection"]["selected"]])
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.run_capability(state, "capm", {"risk_free_rate": "0.04", "market_return": "0.10"})
+        self.assertIn("beta", str(caught.exception))
+        chat.run_capability(state, "capm", {"risk_free_rate": "0.04", "market_return": "0.10",
+                                            "beta": "1.2"})
+        self.assertTrue(state["computations"]["capm"]["ok"])
+
+    def test_a_bond_takes_a_price_or_a_yield_but_not_neither(self):
+        brief = ("The grocery chain is entering the Saudi market and financing the expansion with a bond: price "
+                 "and yield on the declared face value, coupon and maturity.")
+        state = self._ready(brief)
+        self.assertIn("bond_analysis", [row["key"] for row in state["selection"]["selected"]])
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.run_capability(state, "bond_analysis",
+                                {"face_value": "1000", "coupon_rate": "0.08", "years_to_maturity": "5"})
+        self.assertIn("yield to maturity", str(caught.exception))
+        chat.run_capability(state, "bond_analysis",
+                            {"face_value": "1000", "coupon_rate": "0.08", "years_to_maturity": "5",
+                             "yield_to_maturity": "0.06"})
+        self.assertTrue(state["computations"]["bond_analysis"]["ok"])
+
+    def test_a_minimum_number_of_figures_is_required(self):
+        brief = ("The grocery chain is assessing the Saudi market and needs a ratio analysis of the branch's "
+                 "declared statement figures.")
+        state = self._ready(brief)
+        self.assertIn("ratio_analysis", [row["key"] for row in state["selection"]["selected"]])
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.run_capability(state, "ratio_analysis", {"current_assets": "200000"})
+        self.assertIn("at least 2", str(caught.exception))
+
 
 class PaperTest(unittest.TestCase):
     def test_a_framework_only_paper_has_no_computation_section_and_no_figure_gate(self):

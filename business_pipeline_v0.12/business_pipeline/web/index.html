@@ -1366,6 +1366,15 @@ function capabilityPanel(c, plan) {
     } else if (recorded.error) {
       html += '<p class="muted" style="margin:6px 0 0">Refused: ' + esc(recorded.error) + " No figure is reported.</p>";
     }
+    const groups = cap.one_of || [];
+    if (groups.length) {
+      html += '<p class="muted" style="margin:6px 0 0">Declare ' +
+        groups.map((group) => group.map((name) => esc(String(name).replace(/_/g, " "))).join(" + "))
+          .join(", or ") + ".</p>";
+    } else if (cap.min_inputs) {
+      html += '<p class="muted" style="margin:6px 0 0">Declare at least ' + esc(String(cap.min_inputs)) +
+        " of the figures below.</p>";
+    }
     const fields = Object.keys(cap.inputs || {});
     if (fields.length) {
       html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
@@ -1481,9 +1490,29 @@ async function runCapability(key) {
     renderChat();
   } catch (error) {
     renderChat();
+    restoreCapabilityValues(key, values);
     const again = $("#chatout");
     if (again) again.insertAdjacentHTML("afterbegin", errorBanner(error));
   }
+}
+
+/* A refusal must not cost the student the figures they typed: put them back. */
+function restoreCapabilityValues(key, values) {
+  Object.keys(values || {}).forEach((name) => {
+    const value = values[name];
+    const box = document.querySelector('[data-capinput="' + key + ":" + name + '"]');
+    if (box) { box.value = Array.isArray(value) ? value.join("\n") : value; return; }
+    const holder = document.querySelector('[data-caprows="' + key + ":" + name + '"]');
+    if (!holder || !Array.isArray(value)) return;
+    const add = holder.querySelector("[data-capaddrow]");
+    while (holder.querySelectorAll(".row[data-caprow]").length < value.length && add) add.click();
+    value.forEach((row, index) => {
+      Object.keys(row || {}).forEach((column) => {
+        const cell = holder.querySelector('[data-capfield="' + key + ":" + name + ":" + index + ":" + column + '"]');
+        if (cell) cell.value = row[column];
+      });
+    });
+  });
 }
 
 async function answerChat(questionId, value) {

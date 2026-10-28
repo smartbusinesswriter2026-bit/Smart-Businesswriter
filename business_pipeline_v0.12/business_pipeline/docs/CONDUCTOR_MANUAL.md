@@ -278,6 +278,9 @@ answer selects or excludes the capability with a stated reason.
 | `tax_declared` | income tax at a declared rate | Financial Feasibility / Declared Income Tax |
 | `equity_bridge` | equity value from a declared enterprise value | Financial Feasibility / Equity Bridge |
 | `multi_product_breakeven` | break-even for two or more declared products | Financial Feasibility / Multi-product Break-even |
+| `capm` | the cost of equity from a declared beta or two return series | Financial Feasibility / Cost of Equity (CAPM) |
+| `bond_analysis` | the bond price from a declared yield, or the yield from a price | Financial Feasibility / Bond Price and Yield |
+| `ratio_analysis` | the ratios the declared statement figures support | Financial Analysis / Ratio Analysis |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -299,11 +302,22 @@ schema:
 | `decimal_list`, `value_list` | one number per line, period 0 first | "Every value of the cash flows ... must be a number." |
 | `records` | one typed row per item, with the schema's own columns and an *Add row* button | "Row 2 of the products needs a price." / "Declare at least 2 rows ..." |
 
-Methods whose schema needs an **either/or pair or an auxiliary series** stay
-unregistered until that input path is designed: `capm` (a beta, or two return
-series), `bond_analysis` (a price or a yield, not both), `ratio_analysis` (a
-statement object). Registering them behind one text box would break the
-"no invented input" rule.
+Two more declaration rules live in the catalogue, so no capability invents an
+input:
+
+- `one_of` — the method needs one of several declarations: `capm` takes a `beta`
+  or both return series, `bond_analysis` takes a `yield_to_maturity` or a
+  `price`. If no group is declared the request is refused, naming the options;
+  if both are declared the method decides (the frozen implementation says so).
+- `min_inputs` — for a method whose inputs are all optional (`ratio_analysis`),
+  at least N figures must be declared, otherwise the request is refused.
+
+Methods not registered yet are simply not curated: each needs its cue pair, its
+slot and a formatter. Every input shape the catalogue supports now exists
+(scalar, list, rows, either/or, minimum), so adding one is the §7 checklist and
+a matrix row — not new mechanism. The statistics family is deliberately last:
+its claim is a different kind of sentence and its cue words ("test", "compare",
+"sample") collide with everyday language.
 
 Formatting: `CAPABILITY_LINES` holds a bespoke formatter per capability where the
 prose matters (break-even today). Everything else uses `_generic_lines`, which

@@ -500,6 +500,12 @@ def _fill_capability_inputs(selection):
                 info = {}
             row["licenses"] = str(info.get("intended_use") or row.get("licenses") or "").strip()
             row["not"] = str(info.get("unsupported_use") or row.get("not") or "").strip()
+        try:
+            entry = capabilities.entry(row["key"])
+        except KeyError:
+            entry = {}
+        row["one_of"] = [list(group) for group in entry.get("one_of") or []]
+        row["min_inputs"] = entry.get("min_inputs")
     return selection
 
 
@@ -654,6 +660,7 @@ def _plan(state):
         "capabilities": [{"key": row["key"], "label": row["label"], "slot": row.get("slot"),
                           "because": row.get("because"), "inputs_required": row.get("inputs_required") or [],
                           "inputs": row.get("inputs") or {},
+                          "one_of": row.get("one_of") or [], "min_inputs": row.get("min_inputs"),
                           "licenses": row.get("licenses"), "not": row.get("not"),
                           "status": _capability_status(state, row)} for row in selected],
         "available": [{"key": row["key"], "label": row["label"], "because": row.get("because"),
@@ -732,9 +739,13 @@ def run_capability(state, key, values):
     if isinstance(values.get("values"), dict):
         values = values["values"]
     inputs, problem = _capability_inputs(entry_row, values)
-    if problem:
-        raise ChatError(problem)
     store = state.setdefault("computations", {})
+    if problem:
+        # Keep what was declared: a refusal must not cost the student the typing,
+        # and the paper can name exactly what the core was asked for.
+        store[entry_row["key"]] = {"ok": False, "method": entry_row["method"],
+                                   "inputs": inputs, "error": problem}
+        raise ChatError(problem)
     if METHOD_RUN is None:
         store[entry_row["key"]] = {"ok": False, "method": entry_row["method"], "inputs": inputs,
                                    "error": "the frozen core is not attached"}
@@ -782,23 +793,23 @@ def _capability_inputs(entry_row, values):
             parsed_rows = []
             for index, row in enumerate(rows, start=1):
                 if not isinstance(row, dict):
-                    return {}, "Row " + str(index) + " of the " + desc + " must be a set of values."
+                    return inputs, "Row " + str(index) + " of the " + desc + " must be a set of values."
                 parsed_row = {}
                 for field, field_type in fields.items():
                     value = _clean(str(row.get(field, "")), 80)
                     if not value:
-                        return {}, ("Row " + str(index) + " of the " + desc + " needs a " + field
+                        return inputs, ("Row " + str(index) + " of the " + desc + " needs a " + field
                                     + ".")
                     if field_type == "decimal":
                         try:
                             value = str(Decimal(value))
                         except (InvalidOperation, ValueError):
-                            return {}, ("Row " + str(index) + ": the " + field + " must be a number.")
+                            return inputs, ("Row " + str(index) + ": the " + field + " must be a number.")
                     parsed_row[field] = value
                 parsed_rows.append(parsed_row)
             minimum = int(spec.get("min_items") or 1)
             if len(parsed_rows) < minimum:
-                return {}, "Declare at least " + str(minimum) + " rows for the " + desc + "."
+                return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
             inputs[name] = parsed_rows
             continue
         if kind.endswith("_list"):
@@ -806,14 +817,14 @@ def _capability_inputs(entry_row, values):
             cleaned = [_clean(str(item), 40) for item in items if str(item).strip()]
             if not cleaned:
                 if required:
-                    return {}, "Declare the " + desc + "."
+                    return inputs, "Declare the " + desc + "."
                 continue
             parsed = []
             for item in cleaned:
                 try:
                     parsed.append(str(Decimal(item)))
                 except (InvalidOperation, ValueError):
-                    return {}, "Every value of the " + desc + " must be a number."
+                    return inputs, "Every value of the " + desc + " must be a number."
             inputs[name] = parsed
             continue
         if isinstance(raw, (int, float)) and not isinstance(raw, bool):
@@ -821,17 +832,25 @@ def _capability_inputs(entry_row, values):
         text = _clean(str(raw), 40) if raw is not None else ""
         if not text:
             if required:
-                return {}, "Declare the " + desc + "."
+                return inputs, "Declare the " + desc + "."
             continue
         try:
             number = Decimal(text)
         except (InvalidOperation, ValueError):
-            return {}, "The " + desc + " must be a number."
+            return inputs, "The " + desc + " must be a number."
         inputs[name] = str(number)
     if entry_row.get("domain") == "breakeven":
         for name in ("fixed", "price", "variable"):
             if name in inputs and Decimal(inputs[name]) < 0:
-                return {}, "A price or cost cannot be negative."
+                return inputs, "A price or cost cannot be negative."
+    groups = entry_row.get("one_of") or []
+    if groups and not any(all(name in inputs for name in group) for group in groups):
+        options = " or ".join(" + ".join(name.replace("_", " ") for name in group) for group in groups)
+        return inputs, "Declare " + options + "."
+    minimum = entry_row.get("min_inputs")
+    if minimum and len(inputs) < int(minimum):
+        return inputs, ("Declare at least " + str(minimum) + " of the declared figures for the "
+                        + entry_row["label"].lower() + ".")
     return inputs, None
 
 
@@ -1668,6 +1687,64 @@ def _multi_breakeven_lines(row, inputs, result):
     return lines
 
 
+def _capm_lines(row, inputs, result):
+    lines = ["At a declared risk-free rate of " + _pct(inputs.get("risk_free_rate")) + "% and an expected market "
+             "return of " + _pct(inputs.get("market_return")) + "%, with a declared beta of "
+             + _fmt_exact(result.get("beta")) + ", the cost of equity is "
+             + _pct(result.get("cost_of_equity")) + "% (market risk premium "
+             + _pct(result.get("market_risk_premium")) + "%)."]
+    lines.append("The rate follows from the declared inputs; neither the beta nor the market return is "
+                 "estimated by the paper.")
+    return lines
+
+
+def _bond_lines(row, inputs, result):
+    coupon = _pct(inputs.get("coupon_rate"))
+    if str(inputs.get("yield_to_maturity") or "").strip():
+        head = ("With a declared face value of " + _money(inputs.get("face_value")) + ", a " + coupon
+                + "% annual coupon and " + _fmt_exact(inputs.get("years_to_maturity"))
+                + " years to maturity, a declared yield of " + _pct(inputs.get("yield_to_maturity"))
+                + "% prices the bond at " + _money(result.get("price")) + ".")
+    else:
+        head = ("With a declared face value of " + _money(inputs.get("face_value")) + ", a " + coupon
+                + "% annual coupon and " + _fmt_exact(inputs.get("years_to_maturity"))
+                + " years to maturity, the declared price of " + _money(inputs.get("price"))
+                + " solves to a yield of " + _pct(result.get("yield_to_maturity")) + "%.")
+    lines = [head, "The Macaulay duration is " + _fmt_exact(result.get("macaulay_duration"))
+             + " years, the modified duration is " + _fmt_exact(result.get("modified_duration"))
+             + ", the convexity is " + _fmt_exact(result.get("convexity"))
+             + " and the DV01 is " + _money(result.get("dv01")) + "."]
+    lines.append("Every figure is computed from the declared bond terms; nothing is retrieved from a market.")
+    return lines
+
+
+_RATIO_LABELS = (("current_ratio", "current ratio", "x"), ("quick_ratio", "quick ratio", "x"),
+                 ("gross_margin", "gross margin", "%"), ("net_margin", "net margin", "%"),
+                 ("return_on_assets", "return on assets", "%"), ("return_on_equity", "return on equity", "%"),
+                 ("equity_multiplier", "equity multiplier", "x"), ("asset_turnover", "asset turnover", "x"),
+                 ("inventory_days", "inventory days", "days"))
+
+
+def _ratio_lines(row, inputs, result):
+    parts = []
+    for key, label, kind in _RATIO_LABELS:
+        value = result.get(key)
+        if value in (None, ""):
+            continue
+        if kind == "%":
+            parts.append(label + " " + _pct(value) + "%")
+        elif kind == "days":
+            parts.append(label + " " + _fmt_number(value))
+        else:
+            parts.append(label + " " + _fmt_exact(value))
+    count = result.get("n_computed")
+    lines = ["From the declared figures, the method computes " + str(count or len(parts)) + " ratio(s)"
+             + (": " + "; ".join(parts) if parts else "") + "."]
+    lines.append("Each ratio is arithmetic on the declared statement figures; a ratio with a missing "
+                 "declared input is not reported.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -1680,6 +1757,9 @@ CAPABILITY_LINES.update({
     "clv_model": _clv_lines,
     "earned_value": _earned_value_lines,
     "multi_product_breakeven": _multi_breakeven_lines,
+    "capm": _capm_lines,
+    "bond_analysis": _bond_lines,
+    "ratio_analysis": _ratio_lines,
 })
 
 
@@ -1705,7 +1785,8 @@ def _generic_lines(row, inputs, result):
     """
     declared = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
                          for name, value in (inputs or {}).items())
-    computed = {name: value for name, value in (result or {}).items() if name not in (inputs or {})}
+    computed = {name: value for name, value in (result or {}).items()
+                if name not in (inputs or {}) and not str(name).startswith("_")}
     produced = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
                          for name, value in computed.items())
     head = ("From the declared inputs (" + declared + "), ") if declared else ""

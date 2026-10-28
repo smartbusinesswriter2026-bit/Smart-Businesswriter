@@ -559,6 +559,12 @@ per product, with the schema's own columns, an *Add row* button, and row-numbere
 refusals. `tests/test_capabilities.py` (new) carries the five-row matrix for the
 model itself.
 
+Wave 4 adds the two either/or capabilities and the minimum-input one: `capm`
+(a beta **or** two return series), `bond_analysis` (a yield **or** a price) and
+`ratio_analysis` (at least two declared figures), each with a one-line rule in
+the panel ("Declare beta, or returns asset + returns market") and three bespoke
+formatters.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

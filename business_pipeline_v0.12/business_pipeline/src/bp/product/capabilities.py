@@ -43,7 +43,7 @@ _EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_fo
 
 
 def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
-         domain=None, integration=None, output=None):
+         domain=None, integration=None, output=None, one_of=None, min_inputs=None):
     """One catalogue entry.  The licence and the limitation are read from the
     method's own description at resolve time, never restated here."""
     return key, {
@@ -55,6 +55,11 @@ def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, ap
         # some frozen methods return a bare value instead of a mapping; the
         # catalogue names the key it is recorded under
         "output": output,
+        # a method that needs one of several declarations (a beta or two series;
+        # a price or a yield) states the groups here, so no capability invents one
+        "one_of": [list(group) for group in (one_of or [])],
+        # a method whose inputs are all optional needs a minimum to be meaningful
+        "min_inputs": min_inputs,
     }
 
 
@@ -166,6 +171,18 @@ ENTRIES = dict([
          [r"multi-?product (?:break[\s-]?even|cost)", r"product mix", r"break[\s-]?even.*\bmix\b"],
          ("Financial Feasibility", "Multi-product Break-even"),
          needs_any=[r"products?", r"\bmix\b"], priority=25),
+    _row("capm", "capm", "Cost of equity (CAPM)", "required_return",
+         [r"\bcapm\b", r"capital asset pricing", r"required return", r"cost of equity", r"\bbeta\b"],
+         ("Financial Feasibility", "Cost of Equity (CAPM)"), priority=15,
+         one_of=[["beta"], ["returns_asset", "returns_market"]]),
+    _row("bond_analysis", "bond_analysis", "Bond price and yield", "bond",
+         [r"\bbond\b", r"coupon rate", r"yield to maturity"],
+         ("Financial Feasibility", "Bond Price and Yield"), priority=12,
+         one_of=[["yield_to_maturity"], ["price"]]),
+    _row("ratio_analysis", "ratio_analysis", "Ratio analysis", "ratios",
+         [r"ratio analysis", r"financial ratios", r"current ratio", r"liquidity ratio",
+          r"profitability ratio"],
+         ("Financial Analysis", "Ratio Analysis"), priority=12, min_inputs=2),
 ])
 
 
