@@ -62,6 +62,23 @@ CASES = {
                    "time_to_maturity": "1"}, "pestel"),
     "ols_robust": ({"y": ["10", "12", "13", "15", "16", "18"],
                     "predictors": {"advertising": ["1", "2", "3", "4", "5", "6"]}}, "pestel"),
+    "market_concentration": ({"firm_revenues": ["500", "300", "200"]}, "pestel"),
+    "cost_curves": ({"fixed_cost": "1000", "linear_cost": "10", "quadratic_cost": "0.5",
+                     "quantity": "40", "price": "30"}, "pestel"),
+    "market_power": ({"price": "30", "marginal_cost": "18"}, "pestel"),
+    "proforma_statements": ({"revenue": ["500000", "550000"], "gross_margin_rate": "0.4",
+                             "operating_costs": ["120000", "130000"],
+                             "depreciation": ["20000", "20000"], "interest": ["0", "0"],
+                             "principal_repayment": ["0", "0"]}, "pestel"),
+    "sensitivity_table": ({"base_price": "25", "base_units": "5000", "base_variable_cost": "12",
+                           "base_fixed_cost": "40000", "price_changes": ["-0.1", "0", "0.1"],
+                           "volume_changes": ["-0.1", "0", "0.1"]}, "pestel"),
+    "sroi": ({"investment": "100000", "benefits": ["40000", "50000", "60000"],
+              "discount_rate": "0.05"}, "pestel"),
+    "cost_benefit": ({"costs": ["100000", "20000", "20000"],
+                      "benefits": ["0", "80000", "90000"], "discount_rate": "0.08"}, "pestel"),
+    "cost_effectiveness": ({"options": [{"name": "a", "cost": "100000", "effect": "40"},
+                                        {"name": "b", "cost": "150000", "effect": "55"}]}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "

@@ -333,6 +333,18 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("cash conversion cycle of 50.19 days", text)
         self.assertIn("1,095.45", text)
 
+    def test_market_power_does_not_drag_cost_curves_or_pricing(self):
+        brief = ("The grocery chain is entering the Saudi market and the markup and market power need reading "
+                 "from the declared price and marginal cost.")
+        selection = capabilities.resolve(brief, "pestel")
+        self.assertEqual([row["key"] for row in selection["selected"]], ["market_power"])
+
+    def test_social_return_is_not_plain_roi(self):
+        brief = ("The grocery chain is entering the Saudi market and the donor needs the social return on "
+                 "investment for the declared investment and benefits.")
+        selection = capabilities.resolve(brief, "pestel")
+        self.assertEqual([row["key"] for row in selection["selected"]], ["sroi"])
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")

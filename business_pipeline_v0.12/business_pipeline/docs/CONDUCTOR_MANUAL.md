@@ -328,6 +328,14 @@ answer selects or excludes the capability with a stated reason.
 | `fx_parity` | the forward implied by parity, and the PPP rate | Financial Feasibility / FX Parity |
 | `currency_convert` | a declared amount converted at a declared rate | Financial Feasibility / Currency Conversion |
 | `ols_robust` | a regression with robust standard errors | Data Analysis / Regression with Robust Errors |
+| `market_concentration` | the HHI, CR4 and effective number of firms | Market Structure / Market Concentration |
+| `cost_curves` | total, average and marginal cost, and profit | Market Structure / Cost Curves |
+| `market_power` | the markup and the Lerner index | Market Structure / Market Power |
+| `proforma_statements` | projected revenue, profit and the balance check | Financial Feasibility / Pro-forma Statements |
+| `sensitivity_table` | profit across declared price and volume changes | Financial Feasibility / Sensitivity Table |
+| `sroi` | the social return on a declared investment | Impact / Social Return on Investment |
+| `cost_benefit` | present values, net value and the benefit-cost ratio | Impact / Cost-Benefit Analysis |
+| `cost_effectiveness` | the incremental cost per unit of effect | Impact / Cost-Effectiveness Analysis |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -367,6 +375,11 @@ input:
   says so).
 - `min_inputs` — for a method whose inputs are all optional (`ratio_analysis`),
   at least N figures must be declared, otherwise the request is refused.
+- `require_inputs` — inputs the frozen core needs but its own schema marks
+  optional (`proforma_statements` crashes without `interest` and
+  `principal_repayment`). The catalogue names them, so the panel asks for them and
+  the refusal is a sentence, not an exception. When the core's schema is corrected,
+  delete the list.
 
 Methods not registered yet are simply not curated: each needs its cue pair, its
 slot and a formatter. Every input shape the catalogue supports now exists

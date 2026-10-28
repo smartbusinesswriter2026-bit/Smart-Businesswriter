@@ -608,6 +608,15 @@ Wave 10 closes the finance gap: `dupont_analysis`, `trend_analysis`,
 inputs (a currency code is upper-cased, a source or date stays text).
 `case_decision` is a template, not a frozen method, so it is not a capability.
 
+Wave 11 closes the entrepreneurship gap: `market_concentration`, `cost_curves`,
+`market_power`, `proforma_statements`, `sensitivity_table`, `sroi`,
+`cost_benefit` and `cost_effectiveness`, with a new `require_inputs` rule for a
+method whose schema under-declares what the core needs (`proforma_statements`
+crashes without `interest` and `principal_repayment`). Three collisions were
+fixed: "marginal cost" no longer drags cost curves into a market-power paper,
+"markup" no longer drags pricing in, and "social return on investment" is SROI,
+not plain ROI.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

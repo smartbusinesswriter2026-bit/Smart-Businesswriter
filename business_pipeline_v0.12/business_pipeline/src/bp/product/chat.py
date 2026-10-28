@@ -505,6 +505,12 @@ def _fill_capability_inputs(selection):
             entry = capabilities.entry(row["key"])
         except KeyError:
             entry = {}
+        forced = set(entry.get("require_inputs") or [])
+        for name in forced:
+            if name in row["inputs"]:
+                row["inputs"][name]["required"] = True
+        row["inputs_required"] = list(dict.fromkeys(
+            list(row.get("inputs_required") or []) + sorted(forced)))
         row["one_of"] = [list(group) for group in entry.get("one_of") or []]
         row["min_inputs"] = entry.get("min_inputs")
     return selection
@@ -783,8 +789,9 @@ def _capability_inputs(entry_row, values):
         return {}, ("The declared inputs for " + entry_row["label"].lower()
                     + " are not available; the frozen core is not attached.")
     inputs = {}
+    forced = set(entry_row.get("require_inputs") or [])
     for name, spec in schema.items():
-        required = spec.get("required", True)
+        required = spec.get("required", True) or name in forced
         desc = spec.get("desc") or name
         raw = values.get(name, "")
         kind = str(spec.get("type") or "")
@@ -2446,6 +2453,105 @@ def _convert_lines(row, inputs, result):
     return lines
 
 
+def _concentration_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("n_firms")) + " declared firm(s) with total revenue of "
+             + _money(result.get("total_revenue")) + ", the Herfindahl-Hirschman index is "
+             + _money(result.get("hhi")) + " on the 0-10,000 scale, the four-firm ratio is "
+             + _fmt_exact(result.get("cr4")) + "% and the effective number of firms is "
+             + _money(result.get("effective_n")) + "."]
+    lines.append("The index follows from the declared revenues; the method does not define the market or "
+                 "retrieve shares.")
+    return lines
+
+
+def _cost_curve_lines(row, inputs, result):
+    lines = ["At a declared quantity of " + _money(result.get("quantity")) + ", total cost is "
+             + _money(result.get("total_cost")) + " (fixed " + _money(result.get("fixed_cost"))
+             + ", variable " + _money(result.get("variable_cost")) + "), so average cost is "
+             + _money(result.get("average_cost")) + " and marginal cost is "
+             + _money(result.get("marginal_cost")) + "."]
+    lines.append("At the declared price of " + _money(result.get("price")) + ", revenue is "
+                 + _money(result.get("total_revenue")) + " and profit is " + _money(result.get("profit"))
+                 + "; the method reports the shutdown position on the declared figures.")
+    return lines
+
+
+def _market_power_lines(row, inputs, result):
+    lines = ["At a declared price of " + _money(result.get("price")) + " and marginal cost of "
+             + _money(result.get("marginal_cost")) + ", the markup is " + _money(result.get("markup"))
+             + " and the Lerner index is " + _pct(result.get("lerner_index"))
+             + "%, implying a demand elasticity of " + _money(result.get("implied_demand_elasticity"))
+             + " at that point."]
+    lines.append("The index is arithmetic on the declared price and cost; it says nothing about why the "
+                 "power exists.")
+    return lines
+
+
+def _proforma_lines(row, inputs, result):
+    periods = len(inputs.get("revenue") or [])
+    lines = ["Over " + str(periods) + " declared period(s), revenue totals "
+             + _money(result.get("total_revenue")) + " and net income totals "
+             + _money(result.get("total_net_income")) + "; in period 1, revenue is "
+             + _money(result.get("revenue_1")) + " and operating profit "
+             + _money(result.get("operating_profit_1")) + "."]
+    lines.append("The projected statements use the declared revenue, margin, operating costs, depreciation, "
+                 "interest and loan repayment; the method checks that the balance sheet balances.")
+    return lines
+
+
+def _sensitivity_lines(row, inputs, result):
+    prices = inputs.get("price_changes") or []
+    volumes = inputs.get("volume_changes") or []
+    cells = [(name, Decimal(str(value))) for name, value in (result or {}).items()
+             if str(name).startswith("profit_")]
+    lines = ["At the declared base case, profit is " + _money(result.get("base_profit")) + "."]
+    if cells:
+        low, high = min(cells, key=lambda pair: pair[1]), max(cells, key=lambda pair: pair[1])
+        low_i, low_j = (int(part) - 1 for part in low[0].split("_")[1:])
+        high_i, high_j = (int(part) - 1 for part in high[0].split("_")[1:])
+        lines.append("Across the declared changes, profit ranges from " + _money(low[1])
+                     + " at a price change of " + _pct(prices[low_i]) + "% and a volume change of "
+                     + _pct(volumes[low_j]) + "%, to " + _money(high[1])
+                     + " at a price change of " + _pct(prices[high_i]) + "% and a volume change of "
+                     + _pct(volumes[high_j]) + "%.")
+    lines.append("Each cell applies the declared change to the base price and volume and holds every other "
+                 "input at the base case.")
+    return lines
+
+
+def _sroi_lines(row, inputs, result):
+    lines = ["A declared investment of " + _money(result.get("investment")) + " against benefits with a "
+             "present value of " + _money(result.get("pv_benefits")) + " gives a social return on "
+             "investment of " + _money(result.get("sroi_ratio")) + " to 1, a net value of "
+             + _money(result.get("net_value")) + " over " + _fmt_exact(result.get("n_periods"))
+             + " period(s)."]
+    lines.append("The ratio depends entirely on the declared benefits and the declared discount rate; the "
+                 "method does not value an outcome.")
+    return lines
+
+
+def _cba_lines(row, inputs, result):
+    lines = ["With declared costs and benefits, the present value of costs is "
+             + _money(result.get("pv_costs")) + " and of benefits " + _money(result.get("pv_benefits"))
+             + ", giving a net present value of " + _money(result.get("net_present_value"))
+             + " and a benefit-cost ratio of " + _money(result.get("benefit_cost_ratio")) + "."]
+    lines.append("Both streams are the student's declaration, discounted at the declared rate; the method does "
+                 "not decide whether the benefits should count.")
+    return lines
+
+
+def _cea_lines(row, inputs, result):
+    lines = ["Against the declared comparator (cost " + _money(result.get("comparator_cost")) + ", effect "
+             + _money(result.get("comparator_effect")) + "), the incremental cost per unit of effect is "
+             + _money(result.get("icer_b")) + "."]
+    dominant = result.get("dominant_b")
+    if str(dominant or "").lower() in ("true", "yes", "1"):
+        lines.append("The option is dominant on the declared figures: it costs less and delivers more.")
+    lines.append("The comparison uses the declared costs and effects; the method does not choose between the "
+                 "options.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2502,6 +2608,14 @@ CAPABILITY_LINES.update({
     "fx_parity": _fx_lines,
     "currency_convert": _convert_lines,
     "ols_robust": _ols_lines,
+    "market_concentration": _concentration_lines,
+    "cost_curves": _cost_curve_lines,
+    "market_power": _market_power_lines,
+    "proforma_statements": _proforma_lines,
+    "sensitivity_table": _sensitivity_lines,
+    "sroi": _sroi_lines,
+    "cost_benefit": _cba_lines,
+    "cost_effectiveness": _cea_lines,
 })
 
 

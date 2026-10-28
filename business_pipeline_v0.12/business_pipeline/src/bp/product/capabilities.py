@@ -43,7 +43,8 @@ _EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_fo
 
 
 def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
-         domain=None, integration=None, output=None, one_of=None, min_inputs=None):
+         domain=None, integration=None, output=None, one_of=None, min_inputs=None,
+         require_inputs=None):
     """One catalogue entry.  The licence and the limitation are read from the
     method's own description at resolve time, never restated here."""
     return key, {
@@ -60,6 +61,9 @@ def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, ap
         "one_of": [list(group) for group in (one_of or [])],
         # a method whose inputs are all optional needs a minimum to be meaningful
         "min_inputs": min_inputs,
+        # inputs the frozen core requires but its own schema marks optional;
+        # named here so the form asks for them and the refusal is not a crash
+        "require_inputs": list(require_inputs or []),
     }
 
 
@@ -94,7 +98,7 @@ ENTRIES = dict([
          [r"\bwacc\b", r"cost of capital", r"weighted average cost"],
          ("Financial Feasibility", "Cost of Capital"), priority=15),
     _row("return_on_investment", "return_on_investment", "Return on investment", "return",
-         [r"return on (?:the )?investment", r"\broi\b"],
+         [r"(?<!social )return on (?:the )?investment", r"\broi\b"],
          ("Financial Feasibility", "Return on Investment"), priority=12),
     _row("market_sizing", "market_sizing", "Market size", "market_size",
          [r"market siz(?:e|ing)", r"how big is the market", r"addressable market"],
@@ -131,7 +135,7 @@ ENTRIES = dict([
          [r"tax incidence", r"who bears the tax", r"burden of the tax"],
          ("Policy Impact", "Tax Incidence"), priority=12),
     _row("pricing_decision", "pricing_decision", "Pricing decision", "pricing",
-         [r"what price", r"pricing (?:decision|strategy)", r"\bmarkup\b"],
+         [r"what price", r"pricing (?:decision|strategy)", r"price (?:the|our) (?:product|line)"],
          ("Pricing", "Pricing Decision"), priority=12),
     _row("cap_table_round", "cap_table_round", "Cap table", "ownership",
          [r"cap table", r"equity split", r"dilution"],
@@ -345,6 +349,39 @@ ENTRIES = dict([
          [r"robust (?:standard errors?|errors|regression)", r"heteroske"],
          ("Data Analysis", "Regression with Robust Errors"),
          needs_any=[r"observations?|sample|data|predictors?"], priority=25),
+    _row("market_concentration", "market_concentration", "Market concentration", "market_structure",
+         [r"market concentration", r"\bhhi\b", r"herfindahl", r"four[- ]firm"],
+         ("Market Structure", "Market Concentration"),
+         needs_any=[r"revenues?|shares?|firms?"], priority=14),
+    _row("cost_curves", "cost_curves", "Cost curves", "cost_structure",
+         [r"cost curve", r"average cost", r"shut ?down"],
+         ("Market Structure", "Cost Curves"),
+         needs_any=[r"costs?|quantity|output"], priority=12),
+    _row("market_power", "market_power", "Market power", "market_power",
+         [r"market power", r"lerner"],
+         ("Market Structure", "Market Power"),
+         needs_any=[r"price|marginal cost"], priority=12),
+    _row("proforma_statements", "proforma_statements", "Pro-forma statements", "projection",
+         [r"pro-?forma", r"project(?:ed)? (?:financial )?statements", r"projected balance sheet"],
+         ("Financial Feasibility", "Pro-forma Statements"),
+         needs_any=[r"revenue|margin|costs?"], priority=14,
+         require_inputs=["interest", "principal_repayment"]),
+    _row("sensitivity_table", "sensitivity_table", "Sensitivity table", "sensitivity",
+         [r"sensitivity (?:table|analysis)", r"what if (?:the )?(?:price|volume)"],
+         ("Financial Feasibility", "Sensitivity Table"),
+         needs_any=[r"price|units|profit"], priority=14),
+    _row("sroi", "sroi", "Social return on investment", "social_value",
+         [r"social return on investment", r"\bsroi\b"],
+         ("Impact", "Social Return on Investment"),
+         needs_any=[r"investment|benefits"], priority=14),
+    _row("cost_benefit", "cost_benefit", "Cost-benefit analysis", "social_appraisal",
+         [r"cost[- ]benefit analysis", r"\bcba\b"],
+         ("Impact", "Cost-Benefit Analysis"),
+         needs_any=[r"costs?|benefits?"], priority=20),
+    _row("cost_effectiveness", "cost_effectiveness", "Cost-effectiveness analysis", "social_appraisal",
+         [r"cost[- ]effectiveness", r"\bicer\b"],
+         ("Impact", "Cost-Effectiveness Analysis"),
+         needs_any=[r"costs?|effects?|options?"], priority=15),
 ])
 
 
