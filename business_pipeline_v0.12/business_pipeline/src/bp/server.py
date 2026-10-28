@@ -705,6 +705,9 @@ class H(BaseHTTPRequestHandler):
             if action == "holdings" and verb == "DELETE" and len(parts) == 5:
                 rows = product_portfolios.remove_holding(portfolio_id, parts[4])
                 return self._send(200, {"holdings": rows})
+            if action == "prices" and verb == "POST" and len(parts) == 5 and parts[4] == "fetch":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                return self._portfolio_price_fetch(portfolio_id, body)
             if action == "prices" and verb == "POST":
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 document = product_portfolios.set_price(portfolio_id, body.get("symbol"), body.get("date"),
@@ -782,6 +785,42 @@ class H(BaseHTTPRequestHandler):
                 "benchmark_used": "benchmark_return" in outputs,
                 "benchmark_complete": benchmark_complete,
                 "checks": [{"name": name, "ok": bool(ok)} for name, ok in results]}
+
+    def _portfolio_price_fetch(self, portfolio_id, body):
+        """Fetch a quote per holding from the configured free equity source.
+
+        The key lives in the server's environment, never in the page. Every quote
+        is stored with its source and its real trading day; a symbol that fails is
+        named rather than filled, and a date with a saved snapshot is refused before
+        anything is fetched.
+        """
+        bundle = product_portfolios.load(portfolio_id)
+        holdings = bundle["holdings"]
+        if not holdings:
+            raise ValueError("add at least one holding before fetching prices")
+        day = str(body.get("date") or "").strip()
+        if not day:
+            raise ValueError("a price date is required (YYYY-MM-DD)")
+        if day in {row.get("date") for row in bundle["snapshots"]}:
+            raise ValueError("the snapshot for %s is already saved; its prices are immutable" % day)
+        status = product_marketdata.status()
+        if not status["sources"].get("equity"):
+            raise ValueError("equity quotes need an Alpha Vantage key: set BP_ALPHAVANTAGE_KEY and restart the server")
+        stored, failed = {}, []
+        for row in holdings:
+            symbol = row["symbol"]
+            try:
+                quote = product_marketdata.equity_quote(symbol)
+                product_portfolios.set_price(portfolio_id, symbol, day, quote["value"],
+                                             source=quote.get("source", "Alpha Vantage"),
+                                             as_of=quote.get("as_of", ""))
+                stored[symbol] = {"price": str(quote["value"]), "as_of": quote.get("as_of", ""),
+                                  "source": quote.get("source", "")}
+            except (product_marketdata.MarketDataError, ValueError, TypeError) as error:
+                failed.append({"symbol": symbol, "error": str(error)})
+        if not stored and failed:
+            raise ValueError("; ".join("%s: %s" % (row["symbol"], row["error"]) for row in failed))
+        return self._send(200, {"prices": stored, "failed": failed, "date": day})
 
     def _portfolio_snapshot(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)

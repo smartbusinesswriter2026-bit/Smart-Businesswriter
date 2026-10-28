@@ -265,10 +265,11 @@ def remove_holding(portfolio_id, symbol):
     return document["holdings"]
 
 
-def set_price(portfolio_id, symbol, date, price, source="user"):
+def set_price(portfolio_id, symbol, date, price, source="user", as_of=""):
     _portfolio(portfolio_id)
     symbol = _symbol(symbol)
     day = _date(date)
+    quoted = _date(as_of) if as_of not in (None, "") else day
     value = _decimal(price, "price", positive=True)
     held = {str(row["symbol"]).upper() for row in _holdings_document(portfolio_id)["holdings"]}
     if symbol not in held: raise ValueError("add %s as a holding before setting its price" % symbol)
@@ -276,7 +277,7 @@ def set_price(portfolio_id, symbol, date, price, source="user"):
         raise PortfolioError("the snapshot for %s is already saved; its prices are immutable" % day)
     path = _path(portfolio_id, "prices", day + ".json")
     document = _read(path) if path.exists() else {"format": FORMAT, "date": day, "prices": {}}
-    document["prices"][symbol] = {"price": str(value), "source": str(source or "user")[:40], "as_of": day,
+    document["prices"][symbol] = {"price": str(value), "source": str(source or "user")[:40], "as_of": quoted,
                                   "retrieved_at": _now()}
     document["updated_at"] = _now()
     _write(path, document)

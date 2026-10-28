@@ -503,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund">v1.38</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes">v1.39</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1114,6 +1114,9 @@ async function loadPortfolioPage() {
   const out = $("#portfolioout"); if (!out) return;
   out.innerHTML = '<div class="card">' + loading("Reading the portfolio store") + "</div>";
   try {
+    if (!state.marketStatus) {
+      try { state.marketStatus = await api("/api/market/status"); } catch (error) { state.marketStatus = null; }
+    }
     if (state.portfolioId) {
       const bundle = await api("/api/portfolios/" + encodeURIComponent(state.portfolioId));
       state.portfolioBundle = bundle;
@@ -1243,6 +1246,14 @@ function renderPortfolioWorkspace() {
   const add = $("#pfaddholding"); if (add) add.onclick = addHolding;
   const holdingsImport = $("#pfhimportbtn"); if (holdingsImport) holdingsImport.onclick = importHoldings;
   const pricesImport = $("#pfpimportbtn"); if (pricesImport) pricesImport.onclick = importPrices;
+  const fetchButton = $("#pffetch");
+  if (fetchButton) {
+    const equityReady = state.marketStatus && state.marketStatus.sources && state.marketStatus.sources.equity;
+    fetchButton.disabled = !equityReady;
+    const hint = $("#pffetchhint");
+    if (hint) hint.textContent = equityReady ? "Uses the server's Alpha Vantage key; still check each price." : "Set BP_ALPHAVANTAGE_KEY and restart the server to enable.";
+    fetchButton.onclick = fetchPrices;
+  }
   const saveEntry = $("#pfsavejournal"); if (saveEntry) saveEntry.onclick = saveJournalEntry;
   const compute = $("#pfperform"); if (compute) compute.onclick = loadPerformance;
   $$("[data-pfjournalremove]", out).forEach((button) => { button.onclick = () => removeJournalEntry(button.dataset.pfjournalremove); });
@@ -1303,6 +1314,8 @@ function pfData(holdings, latest, snapshot) {
     '<p class="muted">Enter one price per holding for the snapshot date. Every price is stored with its date and source; a missing price blocks the snapshot.</p>' +
     '<div class="grid2"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(today) + '">' +
     '<label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div>' +
+    '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pffetch">Fetch prices (Alpha Vantage)</button>' +
+    '<span class="muted" id="pffetchhint"></span></div>' +
     '<div class="tablewrap" style="margin-top:12px"><table><caption>Declared prices</caption><thead><tr><th>Symbol</th><th>Price</th></tr></thead><tbody>';
   if (!holdings.length) html += '<tr><td colspan="2">Add a holding first.</td></tr>';
   holdings.forEach((row) => {
@@ -1428,6 +1441,25 @@ function readFileInto(input, target) {
   reader.onload = () => { const el = $(target); if (el) el.value = String(reader.result || ""); };
   reader.onerror = () => toast("That file could not be read.");
   reader.readAsText(file);
+}
+
+async function fetchPrices() {
+  const message = $("#pfmsg");
+  const date = ($("#pfdate").value || "").trim();
+  if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the price date first."); return; }
+  message.innerHTML = loading("Fetching quotes from Alpha Vantage");
+  try {
+    const result = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/prices/fetch", { date: date });
+    await loadPortfolioPage();
+    const failed = result.failed || [];
+    const fresh = $("#pfmsg");
+    if (fresh) {
+      fresh.innerHTML = banner(failed.length ? "honesty" : "ok",
+        failed.length ? "Some prices were not fetched" : "Prices fetched",
+        "<p>" + esc(String(Object.keys(result.prices || {}).length)) + " stored for " + esc(date) + ".</p>" +
+        (failed.length ? '<ul>' + failed.map((row) => "<li>" + esc(row.symbol) + ": " + esc(row.error) + "</li>").join("") + "</ul>" : ""));
+    }
+  } catch (error) { message.innerHTML = errorBanner(error); }
 }
 
 async function importHoldings() {

@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - Optional quotes for the Portfolio Lab
+
+**Ask.** The owner supplied an Alpha Vantage key and expected the lab to use it.
+
+**Did.** `POST /api/portfolios/{id}/prices/fetch` reads `BP_ALPHAVANTAGE_KEY` from the server, calls the existing `marketdata.equity_quote` once per holding and stores each price with its real `as_of` and source. A failed symbol is returned in a `failed` list; a date with a snapshot is refused before any call; a missing key is refused with the variable name. `set_price` gained an `as_of` so a Friday close used for a weekend snapshot is not relabelled. The Prices tab gains a fetch button gated on `/api/market/status`, disabled until the key is configured.
+
+**Verified.** `tests/test_product_portfolios.py` grows to 17: a fake source stores AAPL and names MSFT's failure, a missing key is refused, and a saved date is refused before fetching. UI guards assert the button and the status call. Full suite 1708 tests green.
+
+**Files.** `src/bp/server.py`, `src/bp/product/portfolios.py`, `web/index.html`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`.
+
 ## 2026-10-29 - The Portfolio Lab becomes a mock fund
 
 **Ask.** Complete the Portfolio Lab: the semester mock-fund journal, a return the student can defend, and a report shaped like the assignment.

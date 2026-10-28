@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.38 (see docs/CHANGELOG.md)
-Tests        : 1705 tests, all passing
+Build        : 1.39 (see docs/CHANGELOG.md)
+Tests        : 1708 tests, all passing
 ```
 
 ```powershell
@@ -59,7 +59,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 
 Do not invent answers to these. If the owner says "go", build only what is listed below as unblocked.
 
-**Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 1705 tests).
+**Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 1708 tests).
 
 ## 5. The work left, in priority order, with acceptance criteria
 

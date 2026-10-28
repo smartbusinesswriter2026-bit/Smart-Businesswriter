@@ -298,6 +298,9 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Journal and return", self.html)
         self.assertIn('id="pfhfile"', self.html)
         self.assertIn("function pfJournal", self.html)
+        self.assertIn('id="pffetch"', self.html)
+        self.assertIn("function fetchPrices", self.html)
+        self.assertIn("/api/market/status", self.html)
 
     def test_no_reviewer_surface_remains_in_the_served_page(self):
         for gone in ('data-tab="signoff"', "Reviewer name", "Sign-off", "Review status", "pending_named_reviewer"):

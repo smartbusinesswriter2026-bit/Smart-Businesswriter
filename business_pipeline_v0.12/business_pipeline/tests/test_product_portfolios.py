@@ -261,5 +261,59 @@ class RoutesTest(unittest.TestCase):
             _get(self.base, "/api/portfolios/%s/performance" % pid)
         self.assertEqual(caught.exception.code, 422)
 
+    def test_fetch_prices_uses_the_configured_source_and_names_failures(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Fetch route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "MSFT", "shares": "5"})
+        previous = (marketdata.status, marketdata.equity_quote)
+        marketdata.status = lambda: {"sources": {"equity": True}, "alpha_key_env": "BP_ALPHAVANTAGE_KEY"}
+
+        def fake_quote(symbol):
+            if symbol == "MSFT":
+                raise marketdata.MarketDataError("quota exhausted")
+            return {"value": "210", "as_of": "2026-10-30", "source": "Alpha Vantage (free tier)"}
+
+        marketdata.equity_quote = fake_quote
+        try:
+            status, result = _post(self.base, "/api/portfolios/%s/prices/fetch" % pid,
+                                   {"date": "2026-10-31"})
+        finally:
+            marketdata.status, marketdata.equity_quote = previous
+        self.assertEqual(status, 200)
+        self.assertEqual(result["prices"]["AAPL"]["price"], "210")
+        self.assertEqual(result["prices"]["AAPL"]["as_of"], "2026-10-30")
+        self.assertEqual(result["failed"][0]["symbol"], "MSFT")
+        stored = portfolios.prices(pid, "2026-10-31")
+        self.assertEqual(stored["prices"]["AAPL"]["as_of"], "2026-10-30")
+        self.assertEqual(stored["prices"]["AAPL"]["source"], "Alpha Vantage (free tier)")
+
+    def test_fetch_prices_without_a_key_is_refused(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No key"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        previous = marketdata.status
+        marketdata.status = lambda: {"sources": {"equity": False}}
+        try:
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        finally:
+            marketdata.status = previous
+        self.assertEqual(caught.exception.code, 422)
+        self.assertIn("BP_ALPHAVANTAGE_KEY", json.loads(caught.exception.read())["error"])
+
+    def test_fetch_prices_refuses_a_date_with_a_saved_snapshot(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Saved date"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        self.assertEqual(caught.exception.code, 422)
+
 if __name__ == "__main__":
     unittest.main()

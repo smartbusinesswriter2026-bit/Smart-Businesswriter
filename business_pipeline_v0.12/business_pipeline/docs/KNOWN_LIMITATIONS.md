@@ -486,9 +486,11 @@ If an assignment needs one of these, say so in the limitations and show the meth
   (start NAV + flow); a contribution spread through the week or made at its end is not represented.
 - **A benchmark is reported only when every period declares both levels.** A partial benchmark is a
   named gap, not a filled number.
-- **Prices are declared, never fetched.** Manual entry and paste/CSV import are the default; the optional
-  free US weekly feed is not wired yet, and the core has no network access. A missing price blocks the
-  snapshot rather than being estimated.
+- **Prices are declared; fetching is optional and explicit.** Manual entry and paste/CSV import remain the
+  default. The **Fetch prices** button uses the server's `BP_ALPHAVANTAGE_KEY` and the free tier's
+  25 requests/day; it is never called on its own, and every fetched price is shown for the student to
+  check. A symbol that fails is named, and the price is still missing until the student supplies it.
+  The frozen core has no network access: it values the stored prices only.
 - **Import is all-or-nothing.** A pasted table is validated row by row before it is written; one bad row
   refuses the whole paste and names its line. A header row is recognised by its label (Symbol, Ticker,
   Shares, Price, ...), so a data row with a mistaken value is refused rather than skipped.
