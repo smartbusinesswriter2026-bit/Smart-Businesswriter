@@ -36,7 +36,7 @@ SUBJECT_HINTS = {
 }
 
 COMPUTATION = {"journal entry", "ledger", "trial balance", "balance sheet", "income statement", "npv",
-               "irr", "depreciation", "variance", "amortization", "amortisation", "regression",
+               "irr", "depreciation", "variance", "amortization", "amortisation",
                "calculate", "compute", "reconcile", "debit", "credit"}
 
 INDUSTRIES = {

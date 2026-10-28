@@ -350,7 +350,7 @@ EXTERNAL_HINTS = {
 }
 COMPUTATION_HINTS = {
     "journal entry", "ledger", "trial balance", "balance sheet", "income statement", "npv",
-    "irr", "depreciation", "variance", "amortization", "amortisation", "regression", "calculate",
+    "irr", "depreciation", "amortization", "amortisation",
     "compute", "reconcile", "debit", "credit",
 }
 
@@ -811,6 +811,63 @@ def _capability_inputs(entry_row, values):
                     parsed_row[field] = value
                 parsed_rows.append(parsed_row)
             minimum = int(spec.get("min_items") or 1)
+            if len(parsed_rows) < minimum:
+                return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
+            inputs[name] = parsed_rows
+            continue
+        if kind == "column_map":
+            columns = raw if isinstance(raw, dict) else {}
+            if not columns:
+                if required:
+                    return inputs, "Declare the " + desc + "."
+                continue
+            parsed_columns = {}
+            for column, series in columns.items():
+                label = _clean(str(column), 40)
+                if not label:
+                    return inputs, "Every column of the " + desc + " needs a name."
+                items = series if isinstance(series, list) else re.split(r"[\n,;]+", str(series or ""))
+                cleaned = [_clean(str(item), 40) for item in items if str(item).strip()]
+                if not cleaned:
+                    return inputs, "The " + label + " column has no values."
+                parsed_values = []
+                for item in cleaned:
+                    try:
+                        parsed_values.append(str(Decimal(item)))
+                    except (InvalidOperation, ValueError):
+                        return inputs, ("Every value in the " + label + " column of the " + desc
+                                        + " must be a number.")
+                parsed_columns[label] = parsed_values
+            inputs[name] = parsed_columns
+            continue
+        if kind == "count_table":
+            if isinstance(raw, list):
+                rows = raw
+            else:
+                rows = [line for line in str(raw or "").splitlines() if line.strip()]
+            if not rows or not any(str(row).strip() for row in rows):
+                if required:
+                    return inputs, "Declare the " + desc + "."
+                continue
+            parsed_rows = []
+            for index, row in enumerate(rows, start=1):
+                cells = row if isinstance(row, list) else re.split(r"[,\s]+", str(row or ""))
+                row_values = []
+                for cell in cells:
+                    text = _clean(str(cell), 20)
+                    if not text:
+                        continue
+                    try:
+                        number = Decimal(text)
+                    except (InvalidOperation, ValueError):
+                        return inputs, "Row " + str(index) + " of the " + desc + " must be whole numbers."
+                    if number != number.to_integral() or number < 0:
+                        return inputs, ("Row " + str(index) + " of the " + desc
+                                        + " must be non-negative whole numbers.")
+                    row_values.append(str(int(number)))
+                if row_values:
+                    parsed_rows.append(row_values)
+            minimum = int(spec.get("min_rows") or 1)
             if len(parsed_rows) < minimum:
                 return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
             inputs[name] = parsed_rows
@@ -1835,6 +1892,93 @@ def _portfolio_lines(row, inputs, result):
     return lines
 
 
+def _p_text(value):
+    """A p-value as the paper states it: three decimals, or 'below 0.001'."""
+    try:
+        number = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return str(value)
+    if number < Decimal("0.001"):
+        return "below 0.001"
+    return "{:.3f}".format(number)
+
+
+def _descriptive_lines(row, inputs, result):
+    excluded = result.get("n_missing")
+    lines = ["From the declared sample of " + _fmt_exact(result.get("n")) + " observation(s)"
+             + (", with " + _fmt_exact(excluded) + " excluded as missing" if str(excluded or "0") != "0" else "")
+             + ", the mean is " + _money(result.get("mean")) + ", the median is "
+             + _money(result.get("median")) + " and the standard deviation is "
+             + _money(result.get("sd")) + ", over a declared range of " + _money(result.get("minimum"))
+             + " to " + _money(result.get("maximum")) + "."]
+    lines.append("The summary describes the declared values only; it says nothing about a wider population.")
+    return lines
+
+
+def _pearson_lines(row, inputs, result):
+    level = Decimal(str(result.get("confidence_level") or "0.95"))
+    lines = ["Across " + _fmt_exact(result.get("n_pairs")) + " declared pair(s), the correlation between the "
+             "two series is r = " + _money(result.get("r")) + " (r squared " + _money(result.get("r_squared"))
+             + "), with a " + _fmt_number(level * 100) + "% confidence interval of "
+             + _money(result.get("ci_lower")) + " to " + _money(result.get("ci_upper"))
+             + " and p = " + _p_text(result.get("p_value")) + "."]
+    lines.append("A correlation measures association between the declared series; it does not show that one "
+                 "series causes the other.")
+    return lines
+
+
+def _welch_lines(row, inputs, result):
+    lines = ["The declared control group (n = " + _fmt_exact(result.get("n_control")) + ", mean "
+             + _money(result.get("mean_control")) + ", sd " + _money(result.get("sd_control"))
+             + ") and the declared treatment group (n = " + _fmt_exact(result.get("n_treated")) + ", mean "
+             + _money(result.get("mean_treated")) + ", sd " + _money(result.get("sd_treated"))
+             + ") differ by " + _money(result.get("diff")) + " (Welch t = " + _money(result.get("t_stat"))
+             + ", df " + _money(result.get("df")) + ", p = " + _p_text(result.get("p_value")) + ")."]
+    lines.append("Hedges' g for the difference is " + _money(result.get("hedges_g"))
+                 + ". The test compares the two declared means; it does not establish what caused the gap.")
+    return lines
+
+
+def _anova_lines(row, inputs, result):
+    lines = ["The declared " + _fmt_exact(result.get("n_groups")) + " group(s), " + _fmt_exact(result.get("n_total"))
+             + " observations in all, give F = " + _money(result.get("f_stat")) + " (df "
+             + _fmt_exact(result.get("df_between")) + ", " + _fmt_exact(result.get("df_within"))
+             + ") with p = " + _p_text(result.get("p_value")) + "; eta squared is "
+             + _money(result.get("eta_squared")) + "."]
+    lines.append("The test compares the declared group means; it does not say which groups differ in practice "
+                 "or why.")
+    return lines
+
+
+def _chi_square_lines(row, inputs, result):
+    lines = ["Across the declared " + _fmt_exact(result.get("n_total")) + " counts, chi-square is "
+             + _money(result.get("chi_squared")) + " (df " + _fmt_exact(result.get("df")) + ") with p = "
+             + _p_text(result.get("p_value")) + "; Cramer's V is " + _money(result.get("cramers_v")) + "."]
+    lines.append("The test measures the association between the two declared classifications; it does not "
+                 "establish that one causes the other.")
+    return lines
+
+
+def _ols_lines(row, inputs, result):
+    lines = ["On " + _fmt_exact(result.get("n")) + " declared observation(s) and "
+             + _fmt_exact(result.get("k")) + " predictor(s), the regression has R squared "
+             + _money(result.get("r_squared")) + " (adjusted " + _money(result.get("adj_r_squared"))
+             + "), F = " + _money(result.get("f_stat")) + " with p = " + _p_text(result.get("p_f"))
+             + " and a residual standard error of " + _money(result.get("residual_se")) + "."]
+    pieces = []
+    for name in (inputs.get("predictors") or {}):
+        coefficient = result.get("coef_" + str(name))
+        if coefficient in (None, ""):
+            continue
+        pieces.append(str(name) + " " + _money(coefficient) + " (se " + _money(result.get("se_" + str(name)))
+                      + ", p " + _p_text(result.get("p_" + str(name))) + ")")
+    if pieces:
+        lines.append("The declared coefficients are: " + "; ".join(pieces) + ".")
+    lines.append("A coefficient is an association measured in the declared sample; it is not a causal effect "
+                 "and it does not predict outside the declared values.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -1855,6 +1999,12 @@ CAPABILITY_LINES.update({
     "option_pricing": _option_lines,
     "real_option": _real_option_lines,
     "portfolio_analysis": _portfolio_lines,
+    "descriptive_stats": _descriptive_lines,
+    "pearson": _pearson_lines,
+    "welch_t": _welch_lines,
+    "anova": _anova_lines,
+    "chi_square": _chi_square_lines,
+    "ols": _ols_lines,
 })
 
 

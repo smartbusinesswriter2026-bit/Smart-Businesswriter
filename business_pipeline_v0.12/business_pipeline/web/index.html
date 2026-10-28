@@ -1382,7 +1382,6 @@ function capabilityPanel(c, plan) {
         const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
         if (spec.type === "records") {
-          const cols = Object.keys(spec.fields || {});
           const rows = Array.isArray(raw) && raw.length ? raw : [{}];
           return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
             '<div data-caprows="' + esc(cap.key + ":" + name) + '">' + rows.map((row, index) =>
@@ -1392,6 +1391,29 @@ function capabilityPanel(c, plan) {
                 '" value="' + esc((row || {})[col] || "") + '">').join("") + "</div>").join("") +
             '<button class="btn sm" type="button" data-capaddrow="' + esc(cap.key + ":" + name) +
             '">Add row</button></div>';
+        }
+        if (spec.type === "column_map") {
+          const columns = raw && typeof raw === "object" && !Array.isArray(raw) ? Object.keys(raw) : [];
+          const names = columns.length ? columns : [""];
+          return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
+            '<div data-capcols="' + esc(cap.key + ":" + name) + '">' + names.map((column, index) =>
+              '<div class="row" style="margin:2px 0;align-items:flex-start">' +
+              '<input style="max-width:170px" placeholder="column name" data-capcolumnname="' +
+              esc(cap.key + ":" + name + ":" + index) + '" value="' + esc(column) + '">' +
+              '<textarea rows="3" style="flex:1" placeholder="One number per line" data-capcolumn="' +
+              esc(cap.key + ":" + name + ":" + index) + '">' +
+              esc(raw && Array.isArray(raw[column]) ? raw[column].join("\n") : "") + "</textarea></div>").join("") +
+            '<button class="btn sm" type="button" data-capaddcolumn="' + esc(cap.key + ":" + name) +
+            '">Add column</button></div>';
+        }
+        if (spec.type === "count_table") {
+          const text = Array.isArray(raw)
+            ? raw.map((line) => (Array.isArray(line) ? line.join(", ") : line)).join("\n")
+            : "";
+          return '<label class="field" for="' + esc(id) + '" style="grid-column:1 / -1">' + esc(spec.desc || name) +
+            '<textarea id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) +
+            '" data-captable="1" rows="4" placeholder="One row per line, comma-separated counts">' +
+            esc(text) + "</textarea></label>";
         }
         const isList = /_list$/.test(spec.type || "");
         const shown = isList ? (Array.isArray(raw) ? raw.join("\n") : "") : (raw || "");
@@ -1456,6 +1478,25 @@ function bindCapabilityControls(root) {
       holder.insertBefore(row, button);
     };
   });
+  $$("[data-capaddcolumn]", root).forEach((button) => {
+    button.onclick = () => {
+      const holder = root.querySelector('[data-capcols="' + button.dataset.capaddcolumn + '"]');
+      if (!holder) return;
+      const first = holder.querySelector("[data-capcolumnname]");
+      if (!first) return;
+      const parts = first.dataset.capcolumnname.split(":");
+      const index = holder.querySelectorAll("[data-capcolumnname]").length;
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.margin = "2px 0";
+      row.style.alignItems = "flex-start";
+      row.innerHTML = '<input style="max-width:170px" placeholder="column name" data-capcolumnname="' +
+        esc(parts[0] + ":" + parts[1] + ":" + index) + '" value="">' +
+        '<textarea rows="3" style="flex:1" placeholder="One number per line" data-capcolumn="' +
+        esc(parts[0] + ":" + parts[1] + ":" + index) + '"></textarea>';
+      holder.insertBefore(row, button);
+    };
+  });
   const add = $("#capaddgo", root);
   if (add) add.onclick = () => { const pick = $("#capadd", root); if (pick) setCapability(pick.value, true); };
 }
@@ -1475,9 +1516,11 @@ async function runCapability(key) {
   $$("[data-capinput]").forEach((box) => {
     const parts = String(box.dataset.capinput || "").split(":");
     if (parts[0] !== key) return;
-    values[parts[1]] = box.dataset.caplist
-      ? box.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
-      : box.value;
+    values[parts[1]] = box.dataset.captable
+      ? box.value.split("\n").map((line) => line.split(/[,\s]+/).filter(Boolean)).filter((line) => line.length)
+      : (box.dataset.caplist
+        ? box.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
+        : box.value);
   });
   const rows = {};
   $$("[data-capfield]").forEach((box) => {
@@ -1489,6 +1532,20 @@ async function runCapability(key) {
     rows[name][index][column] = box.value;
   });
   Object.keys(rows).forEach((name) => { values[name] = Object.values(rows[name]); });
+  const columnNames = {};
+  $$("[data-capcolumnname]").forEach((box) => {
+    const parts = String(box.dataset.capcolumnname || "").split(":");
+    if (parts[0] === key) columnNames[parts[2]] = box.value.trim();
+  });
+  $$("[data-capcolumn]").forEach((box) => {
+    const parts = String(box.dataset.capcolumn || "").split(":");
+    if (parts[0] !== key) return;
+    const column = columnNames[parts[2]];
+    if (!column) return;
+    const map = values[parts[1]] || {};
+    map[column] = box.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean);
+    values[parts[1]] = map;
+  });
   const out = $("#chatout");
   out.innerHTML = loading("Validating the declared figures");
   try {
@@ -1508,7 +1565,27 @@ function restoreCapabilityValues(key, values) {
   Object.keys(values || {}).forEach((name) => {
     const value = values[name];
     const box = document.querySelector('[data-capinput="' + key + ":" + name + '"]');
-    if (box) { box.value = Array.isArray(value) ? value.join("\n") : value; return; }
+    if (box) {
+      if (box.dataset.captable && Array.isArray(value)) {
+        box.value = value.map((line) => (Array.isArray(line) ? line.join(", ") : line)).join("\n");
+      } else {
+        box.value = Array.isArray(value) ? value.join("\n") : value;
+      }
+      return;
+    }
+    const columnHolder = document.querySelector('[data-capcols="' + key + ":" + name + '"]');
+    if (columnHolder && value && typeof value === "object") {
+      const names = Object.keys(value);
+      const addColumn = columnHolder.querySelector("[data-capaddcolumn]");
+      while (columnHolder.querySelectorAll("[data-capcolumnname]").length < names.length && addColumn) addColumn.click();
+      const nameBoxes = $$("[data-capcolumnname]", columnHolder);
+      const textareas = $$("[data-capcolumn]", columnHolder);
+      names.forEach((column, index) => {
+        if (nameBoxes[index]) nameBoxes[index].value = column;
+        if (textareas[index]) textareas[index].value = (value[column] || []).join("\n");
+      });
+      return;
+    }
     const holder = document.querySelector('[data-caprows="' + key + ":" + name + '"]');
     if (!holder || !Array.isArray(value)) return;
     const add = holder.querySelector("[data-capaddrow]");

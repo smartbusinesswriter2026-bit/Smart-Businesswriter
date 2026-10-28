@@ -286,6 +286,12 @@ answer selects or excludes the capability with a stated reason.
 | `option_pricing` | the option price for the declared terms | Financial Feasibility / Option Price |
 | `real_option` | the value of a declared real option to wait or invest | Financial Feasibility / Real Option Value |
 | `portfolio_analysis` | portfolio return, risk, beta and Sharpe ratio | Financial Feasibility / Portfolio Return and Risk |
+| `descriptive_stats` | the summary of one declared sample | Data Analysis / Descriptive Statistics |
+| `pearson` | the correlation between two declared series | Data Analysis / Correlation Analysis |
+| `welch_t` | the difference between two declared group means | Data Analysis / Difference Between Two Means |
+| `anova` | whether the declared group means differ | Data Analysis / Group Comparison (ANOVA) |
+| `chi_square` | the association between two declared classifications | Data Analysis / Association Between Categories |
+| `ols` | the regression of a declared series on declared predictors | Data Analysis / Multiple Regression |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -307,6 +313,8 @@ schema:
 | `decimal_list`, `value_list` | one number per line, period 0 first | "Every value of the cash flows ... must be a number." |
 | `records` | one typed row per item, with the schema's own columns and an *Add row* button | "Row 2 of the products needs a price." / "Declare at least 2 rows ..." |
 | `enum` | a select of exactly the values the schema declares | "The which multiple you are applying ... must be one of: earnings, ebitda, ..." |
+| `column_map` | one named column per group or predictor, each with its own values | "Every value in the control column ... must be a number." |
+| `count_table` | one row per line of comma-separated whole-number counts | "Row 2 ... must be non-negative whole numbers." |
 
 Two more declaration rules live in the catalogue, so no capability invents an
 input:
@@ -322,10 +330,16 @@ input:
 
 Methods not registered yet are simply not curated: each needs its cue pair, its
 slot and a formatter. Every input shape the catalogue supports now exists
-(scalar, list, rows, either/or, minimum), so adding one is the §7 checklist and
-a matrix row — not new mechanism. The statistics family is deliberately last:
-its claim is a different kind of sentence and its cue words ("test", "compare",
-"sample") collide with everyday language.
+(scalar, list, rows, enum, column map, count table, either/or, minimum), so
+adding one is the §7 checklist and a matrix row — not new mechanism.
+
+The statistics family is held to a tighter rule than the rest: its cue pair must
+name the analysis *and* the data ("correlation between" + "observations"), and its
+formatter states n, the statistic and the p-value and then says, in the paper
+itself, that an association is not a cause and a coefficient is not a causal
+effect. `guard.COMPUTATION` no longer lists "regression": a regression over
+declared observations is a legitimate strategic paper now, and the capability
+catalogue decides whether the paper carries one.
 
 Formatting: `CAPABILITY_LINES` holds a bespoke formatter per capability where the
 prose matters (break-even today). Everything else uses `_generic_lines`, which

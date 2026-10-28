@@ -571,6 +571,13 @@ and the `enum` input: a `select` built from the schema's own `values` (a metric,
 an option type, an exercise style), validated server-side against the same list.
 `multiples_valuation` also states `one_of`: peer rows or one peer multiple.
 
+Wave 6 adds the statistics family — `descriptive_stats`, `pearson`, `welch_t`,
+`anova`, `chi_square`, `ols` — and the two remaining input shapes: `column_map`
+(named columns, each with its own values, one *Add column* button) and
+`count_table` (one row per line of comma-separated counts). Every statistical
+paragraph states n, the statistic and the p-value, then says in the paper that an
+association is not a cause; `p` is printed as three decimals or "below 0.001".
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

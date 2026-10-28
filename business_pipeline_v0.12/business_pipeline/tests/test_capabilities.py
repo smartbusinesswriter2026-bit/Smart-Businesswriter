@@ -234,6 +234,36 @@ class RunnerTest(unittest.TestCase):
                             {"metric": "ebitda", "subject_value": "500000", "peer_multiple": "8"})
         self.assertTrue(state["computations"]["multiples_valuation"]["ok"])
 
+    def test_a_group_comparison_takes_named_columns(self):
+        brief = ("The grocery chain is entering the Saudi market and the pilot compares the means of a control "
+                 "and a treated group of observations.")
+        state = self._ready(brief)
+        self.assertIn("welch_t", [row["key"] for row in state["selection"]["selected"]])
+        chat.run_capability(state, "welch_t",
+                            {"groups": {"control": ["10", "11", "12", "13", "14"],
+                                        "treated": ["14", "15", "16", "17", "18"]}})
+        self.assertTrue(state["computations"]["welch_t"]["ok"])
+
+    def test_a_regression_brief_is_not_refused_as_an_accounting_computation(self):
+        brief = ("The grocery chain is entering the Saudi market and a regression on the declared observations "
+                 "of sales against advertising.")
+        state = chat.start(brief, "management")
+        self.assertEqual(state["stage"], "clarify")
+        self.assertIn("ols", [row["key"] for row in state["selection"]["selected"]])
+
+    def test_a_statistical_paper_states_the_result_without_causation(self):
+        brief = ("The grocery chain is entering the Saudi market and needs a chi-square association between two "
+                 "categories of declared counts.")
+        state = draftable(answer_all(chat.start(brief, "management")))
+        chat.attach_computation(state, "chi_square", {"table": [[10, 20], [30, 15]]})
+        state = chat.draft(state, accepted_ids=[], implications="The counts suggest an association.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Association Between Categories"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("chi-square", text)
+        self.assertIn("does not establish", text)
+        self.assertNotIn("causes", text.replace("one causes the other", ""))
+
     def test_a_dcf_paper_reports_the_core_value(self):
         brief = ("The grocery chain is entering the Saudi market and needs a dcf on its declared free cash "
                  "flows at a declared discount rate.")
