@@ -15,6 +15,7 @@ Routes:
     GET    /api/cases/subjects                   -> 200 subject gallery
     GET    /api/cases/subjects/{id}              -> 200 subject page
     GET    /api/cases/calculator                 -> 200 Calculator tool groups
+    POST   /api/cases/match                      -> 200 worksheet suggestions for a case description
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
     DELETE /api/cases/{id}                       -> 200 {"deleted": id}
@@ -130,6 +131,13 @@ def handle(method, path, body=None):
         if verb != "GET":
             return 405, {"error": "method %s is not allowed on the calculator" % verb}
         return 200, subject_index.calculator_groups()
+    if segments == ["match"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on the matcher" % verb}
+        text = body.get("text") if isinstance(body, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            return _error("a case description is required")
+        return 200, subject_index.match_frameworks(text)
 
     case_id = segments[0]
     tail = segments[1:]

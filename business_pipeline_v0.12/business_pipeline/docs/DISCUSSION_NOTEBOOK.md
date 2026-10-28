@@ -14,6 +14,37 @@
 
 ---
 
+## 2026-10-28 - [subjects] Project management is the eleventh shelf, and text is solid
+
+**What was asked.** "i think you forgot project management to add as one of the business subjects." The owner
+then chose the smallest honest version: the subject plus the existing appraisal tools, all 14 PM records, and
+the rail slot after Management & strategy. Two presentation instructions came with it: orient the page to
+business students, and make all text solid rather than grey.
+
+**What changed.** `project-management` is now a subject with a Gantt icon, seven existing frozen tools (NPV,
+IRR, discounted payback, project ranking metrics, scenario, business-case decision, forecast), the whole
+`PM-01..PM-14` block and no worksheet. Management & strategy no longer claims those records or the projects
+discipline tag; it shows 14 worksheets, 18 read-only records and 7 theory lenses. The PM page has a guidance
+paragraph written for an assignment, three ordered groups, project-life/period badges and a 23-term glossary
+that says plainly which named methods the engine does not compute. The subject header uses a humanised
+discipline label instead of the internal tag. `--text-2` and `--text-3` now resolve to the primary ink
+`#0C243E`, so secondary text is solid site-wide; grey remains only in rules and fills.
+
+**What is still missing.** No project charter, WBS, RACI or risk-register worksheet, and no earned-value,
+PERT or critical-path method. Those are named on the page as not built. The PM records themselves stay
+read-only, as the catalogue marks them.
+
+**Where this could be wrong.** Borrowing Finance's appraisal tools makes PM look more computational than it
+is: a student who opens the page expecting a schedule or a Gantt will not find one, and the tile count (7)
+is not a claim that PM is complete. The glossary defines critical path and earned value because students meet
+them in assessments, but defining a term is not computing it; a reader who skims may still over-read the
+page. Splitting PM out of Management also removes Balanced Scorecard and OKRs from the management shelf,
+where some courses teach them; the catalogue's own section 8 grouping was followed, not a course map. Making
+secondary text solid reduces visual hierarchy to size and weight alone, which may make dense tables harder
+to scan; the border and fill greys were deliberately kept so structure still reads.
+
+---
+
 ## 2026-10-28 - [economics] Advanced econometrics: panel, IV, RDD and probit
 
 **What was asked.** "Go finish" after the welfare/international/behavioural release.
@@ -264,7 +295,7 @@ This is the part that decides how many subject pages are real and how many are c
 | **Accounting** | `management_accounts` (ledger, statements, two-route cash flow, closing; preset `accounts`), `ratio_analysis` (preset `ratios`), `currency_convert`, descriptive/weighted summaries | none | management accounting: variances, ABC, target costing (QNT-FIN-05); cost & profitability beyond break-even |
 | **Finance** | `npv`, `irr`, `discounted_payback`, `wacc`, `dcf_valuation`, `equity_bridge`, `case_decision` (alternatives + crossover rate), `unit_economics`, `multi_product_breakeven`, `breakeven`, `ratio_analysis`, `trend_forecast`, `ols`/`pearson` for betas | `case_decision` (T2 workflow) | no bonds, options, portfolio, CAPM derivation, FX retrieval or tax |
 | **Economics** | `cost_benefit`, `cost_effectiveness`, `sroi`, `trend_forecast`, `currency_convert`, correlation/regression | none | pricing & demand/elasticity (QNT-FIN-07); decision analysis (QNT-DEC); impact evaluation (QNT-EVL) |
-| **Management & strategy** | `case_decision` for option comparison; the statistics methods as evidence | **`swot`, `five_forces`** (the only two T4 worksheets) | 18 strategy, 14 change/org, 14 performance/projects frameworks, 7 theories - **worksheets gated by B-028** |
+| **Management & strategy** | `case_decision` for option comparison; the statistics methods as evidence | **14 T4 worksheets**: SWOT, Five Forces, PESTEL, Value Chain, VRIO, Ansoff, ERRC, scenario planning, strategic groups, activity-system fit, BMC, Lean, VPC, marketing plan | 32 read-only records (4 strategy, 14 change/org, 14 performance/projects) and 7 theory lenses - **B-113** |
 | **Operations management** | `breakeven`, `multi_product_breakeven`, `unit_economics`, `trend_forecast`, `chi_square`, `power_analysis`, `missing_data_bounds`, descriptive | none | EOQ, reorder point, queueing, capacity, CPM/PERT, OEE, SPC (QNT-OPS-01..08); SCOR, SIPOC, VSM, 5S, A3, TOC, 5 Whys, FMEA |
 | **Supply chain & logistics** | as Operations | none | QNT-OPS-01/02/03/08, SCOR - **no inventory, lead-time or network calculation at all** |
 | **Marketing & customers** | `unit_economics` (margin, CAC payback, LTV), `multi_product_breakeven`, `trend_forecast`, `reliability_alpha`, `chi_square`, `power_analysis` | none | TAM/SAM/SOM, market share, cohorts/retention, RFM, A/B analysis (QNT-MKT-01..07); STP, 4Ps, AIDA, Kano, SERVQUAL |
@@ -347,10 +378,10 @@ Rules: each run is the existing frozen session + delivery **stored verbatim and 
 - Finance second: a cash-flow/DCF sheet feeding `npv`/`irr`/`wacc`/`dcf_valuation`/`equity_bridge`, with the crossover (`case_decision`) as a headline rather than an appendix line.
 
 **Increment 4 - the remaining subjects, honestly labelled.**
-- Strategy/Management: worksheet UIs for the two existing T4 templates (evidence items with dimensions/forces, provenance, materiality; nothing scored), plus catalogue reading for the rest.
+- Strategy/Management: fourteen T4 worksheets (B-113: SWOT, Five Forces, PESTEL, Value Chain, VRIO, Ansoff, ERRC, scenario planning, strategic groups, activity-system fit and the three canvases plus the marketing plan), plus catalogue reading for the 32 records with no worksheet.
 - Research & statistics: the natural home of the 20+ statistical methods currently buried in a method dropdown.
-- Marketing/Economics/Operations/Supply chain/People: "combination" pages with computed tools where they exist and an explicit catalogue-only section. Request **B-028** (more worksheets: PESTEL, VRIO, Value Chain, Business Model Canvas, MCDA) if the owner wants those pages to be actionable; request **B-032** (ledger T1), **B-052** (tax) only through the owner's decision process.
-- **Do not invent a worksheet** for a catalogue record: T4 structure-only template creation is gated by B-028, and a fake "worksheet" would be a claim the engine cannot support.
+- Marketing/Economics/Operations/Supply chain/People: "combination" pages with computed tools where they exist and an explicit catalogue-only section. **B-028 is answered for the strategy core by B-113** (PESTEL, Value Chain, VRIO, Ansoff, ERRC, scenario planning, strategic groups, activity-system fit); MCDA and the remaining templates are still open; request **B-032** (ledger T1), **B-052** (tax) only through the owner's decision process.
+- **Do not invent a worksheet** for a catalogue record: T4 template creation is an owner decision (B-028, answered in part by B-113), and a fake "worksheet" would be a claim the engine cannot support.
 
 **G.1 Removing the "Draft work plan" step without breaking the contract.** The step is load-bearing (F4): inputs reach a session only by re-posting `/api/sessions`, and `confirm` takes frameworks only. The replacement must preserve the mandatory pre-run checkpoint (it is a product invariant, not a UI preference). Recommended mechanics: the tool screen collects the figures and keeps the declared assumptions/ambiguities visible; its **one primary button** performs the same two calls the UI performs today (`POST /api/sessions` with the edited inputs, then `POST /api/sessions/{id}/confirm`), then renders the delivery. Nothing is computed client-side and no core route is needed. Keep a sentence containing "**Draft work plan**" in the recorded-metadata disclosure so `tests/test_session_api.py:98` stays green (the string test is frozen; if the owner prefers it gone, that is a coordinated change with the computation owner, never an edit to the test).
 
@@ -506,7 +537,7 @@ Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
 - G3. **Column-to-parameter mapping is still manual.** The gap map says unattended mapping is *"deliberately not built"*, which is right for a *verified* number and wrong for student UX. The right resolution is propose → validate against the method's declared schema → student confirms; the code for that is not written.
 - G4. **The delivery's prose is unpinned.** The hashes pin the numbers, not the narrative.
 - G5. **No model-version pinning or drift gate.** With a live provider, a silent model swap changes the output without changing the spec hash.
-- G6. **T2 → T1 promotion is still blocked on B-005** (named expert reviewers). This is why every method still says "expert review pending" internally, and why no method may call itself "verified".
+- G6. **Reviewer naming is not planned (B-112, 2026-10-28).** Every method still says "expert review pending" internally as an honest disclosure; no reviewer name is printed on a student's work.
 - G7. The student's **calculations are still not shown inline** in the narrative; the derivation strings live in the artifacts table.
 - G8. No **held-out evaluation on a real case** (the scaffold is synthetic-only), so no claim about "handles messy real student data" is evidenced.
 
@@ -533,7 +564,7 @@ Home | Subjects | Calculator | Case | Catalogue | Assistant | Status
 **Open questions for the owner (2026-10-27).**
 
 1. The model path: confirmed **DeepSeek/Claude now, training later**. The benefit of training is deferred to a later discussion; the short version is that training buys *latent* reasoning (the HybridAgent thesis: think in latent space, act through tools) and removes the per-call cost and the provider dependency, at the price of a training run and a model to maintain.
-2. **Who are the named expert reviewers (B-005)?** Until a person is named, no method can be promoted to T1, and the internal "expert review pending" status is accurate. The owner asked what "reviewer" is: it is a **human domain expert**, not a model and not a log.
+2. ~~Who are the named expert reviewers (B-005)?~~ **Resolved by B-112:** no reviewer is required; methods keep the not-reviewed label and no T2→T1 promotion happens on review grounds status is accurate. The owner asked what "reviewer" is: it is a **human domain expert**, not a model and not a log.
 3. Is the shift from **run** to **case** accepted as the organising idea? It is the spine of this increment.
 
 ---

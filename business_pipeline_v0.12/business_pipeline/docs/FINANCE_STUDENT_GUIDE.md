@@ -30,8 +30,17 @@ The Finance page has a **Market data (retrieved, not verified)** panel:
 
 The panel shows the value, its as-of date, the source link and a SHA-256 of the response. It never
 fills a tool for you: read the value, confirm it, and type it into `fx_parity` or wherever it
-belongs. There is no equity, fundamental or PSE feed yet, so a company's share price and the
-Philippine policy rate remain your declared inputs.
+belongs. It also offers:
+
+- **Equity quote and fundamentals** — Alpha Vantage, using your own free key in
+  `BP_ALPHAVANTAGE_KEY` (25 requests a day; register at alphavantage.co).
+- **Recent filings** — U.S. SEC EDGAR, no key.
+- **Macro indicators** — World Bank (GDP growth, inflation, unemployment, GDP per capita,
+  population, government debt), no key.
+
+**PSE prices and private-company figures are not covered**: enter those manually. Nothing here
+is written into a method input automatically, and every lookup is labelled not independently
+verified.
 
 ## Conventions used throughout
 

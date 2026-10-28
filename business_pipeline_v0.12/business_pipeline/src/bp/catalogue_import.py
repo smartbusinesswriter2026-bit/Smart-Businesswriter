@@ -7,6 +7,22 @@ SECTION_DISCIPLINE = {3: "strategy", 4: "change and organization", 5: "marketing
                       8: "performance, projects and technology governance", 9: "people and learning", 10: "public, nonprofit and impact evaluation"}
 Q_SUB = {"11.1": ("FIN", "finance, accounting and managerial economics"), "11.2": ("MKT", "market and customer analytics"), "11.3": ("STA", "statistics and empirical research"),
          "11.4": ("OPS", "operations, logistics and optimization"), "11.5": ("DEC", "decision analysis and risk quantification"), "11.6": ("EVL", "program and impact evaluation")}
+
+#: The catalogue has no per-row discipline column, so the digital-marketing
+#: records are declared here.  A new digital row or bullet must be added to one
+#: of these lists, otherwise it is filed under the section's classical
+#: discipline.  This keeps the product's "Digital marketing" group honest.
+DIGITAL_DISCIPLINE = "digital marketing"
+DIGITAL_IDS = {"MKT-13", "MKT-14", "MKT-15", "MKT-16", "MKT-17", "MKT-18", "MKT-19", "MKT-20", "MKT-21"}
+DIGITAL_Q_PREFIXES = (
+    "campaign performance and media efficiency",
+    "channel cac, ltv and payback",
+    "attribution credit across touchpoints",
+    "two-proportion a/b test",
+    "email list health and lifecycle performance",
+    "social engagement and audience growth",
+    "web traffic and conversion by channel",
+)
 # Entries whose edition, trademark or permissions the catalogue itself says must be verified before use (section 16 and the type column).
 VERIFY_NAMES = re.compile(r"ISO 31000|SCOR|PMBOK|COBIT|ITIL", re.I)
 TYPES = ("F", "M", "Q", "T")
@@ -19,9 +35,29 @@ def _split_type(raw):
     if not types: raise ValueError(f"unrecognised type {raw!r}")
     return types[0], types[1:], note
 
-def _first_clause(text, limit=90):
+def _first_clause(text, limit=None):
+    """The first clause of a catalogue bullet, complete unless a limit is given.
+
+    Names are the canonical label a student reads, so the importer no longer cuts
+    them at a character count: a truncated name ("... equity theory and") is not a
+    name.  Callers that still want a short form can pass a limit explicitly.
+    """
     m = re.split(r";|\. | with | where | when | only | — ", text, maxsplit=1)[0].strip().rstrip(".:")
-    return (m if len(m) <= limit else m[:limit].rsplit(" ", 1)[0]).strip()
+    if limit is None or len(m) <= limit:
+        return m
+    return m[:limit].rsplit(" ", 1)[0].strip()
+
+
+def _name_clause(text):
+    """A complete first sentence for a quantitative-method name.
+
+    Unlike `_first_clause`, this does not split on "with": a name such as
+    "Correlation and regression (linear, logistic and related models), with
+    diagnostics" is one item, not two.  It still stops at a sentence boundary, so
+    "RFM Segmentation. Explain the scoring boundaries ..." keeps the name
+    "RFM Segmentation" and leaves the explanation to the summary.
+    """
+    return re.split(r";|\. ", text, maxsplit=1)[0].strip().rstrip(".:")
 
 def import_catalogue(path):
     raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
@@ -45,18 +81,33 @@ def import_catalogue(path):
         if isinstance(sec, tuple) and sec[0] == "Q":
             key, disc = Q_SUB[sec[1]]; qn[sec[1]] += 1; text = c.replace("**", "")
             label = re.match(r"\*\*([^*]+?):\*\*", c)
-            name = label.group(1) if label else _first_clause(text)
-            records.append({"id": f"QNT-{key}-{qn[sec[1]]:02d}", "name": name, "type": "Q", "secondary_types": [], "type_note": "group: one catalogue bullet, which may name several methods",
+            name = label.group(1) if label else _name_clause(text)
+            if text.lower().startswith(DIGITAL_Q_PREFIXES): disc = DIGITAL_DISCIPLINE
+            qid = f"QNT-{key}-{qn[sec[1]]:02d}"
+            k = _norm(name)
+            if k in byname:   # the same item is already a framework row: one record, both ids kept
+                r = byname[k]; r["also_listed_as"].append(qid)
+                if disc not in r["disciplines"]: r["disciplines"].append(disc)
+                if text != r["structures"]: r.setdefault("structures_alt", []).append({"from": qid, "text": text})
+                warnings.append(f"{qid} duplicates {r['id']} ({name}); merged")
+                continue
+            records.append({"id": qid, "name": name, "type": "Q", "secondary_types": [], "type_note": "group: one catalogue bullet, which may name several methods",
                             "disciplines": [disc], "aliases": [], "also_listed_as": [], "structures": "", "evidence_needs": "", "summary": text, "members": [],
                             "source_ref": f"catalogue section {sec[1]}, bullet {qn[sec[1]]}", "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs"})
         elif isinstance(sec, tuple) and sec[0] == "T":
-            tn += 1; text = c.replace("**", ""); body = re.sub(r"\([^)]*\)", "", text).rstrip(".")
+            tn += 1; text = c.replace("**", ""); body = re.sub(r"\([^)]*\)", "", text).strip().rstrip(".")
             members = [m.strip() for m in re.split(r",| and ", re.sub(r"\b(theories|theory|and other.*|when relevant.*)$", "", body, flags=re.I)) if m.strip()]
-            records.append({"id": f"THE-{tn:02d}", "name": _first_clause(text, 70), "type": "T", "secondary_types": [], "type_note": "group: one catalogue bullet naming several theories",
+            # A complete label: drop the parenthetical aside, the "and other..." tail and
+            # a trailing plural "theories".  Never truncate mid-list.
+            name = re.sub(r",?\s+and other\b.*$", "", body, flags=re.I)
+            name = re.sub(r",?\s+when relevant\b.*$", "", name, flags=re.I)
+            name = re.sub(r"\s+theories$", "", name, flags=re.I).strip()
+            records.append({"id": f"THE-{tn:02d}", "name": name, "type": "T", "secondary_types": [], "type_note": "group: one catalogue bullet naming several theories",
                             "disciplines": ["supporting theory"], "aliases": [], "also_listed_as": [], "structures": "", "evidence_needs": "", "summary": text, "members": members,
                             "source_ref": f"catalogue section 12, bullet {tn}", "id_basis": "importer-assigned by bullet position", "members_note": "split heuristically from prose; verify before relying on the list"})
         else:
-            rid, name, traw, struct, ev = c; ptype, sec_types, note = _split_type(traw); disc = SECTION_DISCIPLINE[sec]
+            rid, name, traw, struct, ev = c; ptype, sec_types, note = _split_type(traw)
+            disc = DIGITAL_DISCIPLINE if rid in DIGITAL_IDS else SECTION_DISCIPLINE[sec]
             k = _norm(name)
             if k in byname:   # same item listed in two catalogue sections: one canonical record, both IDs kept
                 r = byname[k]; r["also_listed_as"].append(rid)

@@ -3,12 +3,13 @@
  "registry_version": "0.1.0",
  "source": {
   "file": "Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md",
-  "catalogue_version": "0.2",
-  "sha256": "138c8c931b5a32c59d3c2c8c93575d603a3436d838c4dad4fa96e667f416112b"
+  "catalogue_version": "0.3",
+  "sha256": "d77091e7775e7a932216090b3f4402d44c31c053f6ed6cf19c7f0c7d4592e489"
  },
  "import_warnings": [
   "IMP-01 duplicates CHG-07 (Theory of Change); merged",
-  "IMP-02 duplicates CHG-08 (Logic Model); merged"
+  "IMP-02 duplicates CHG-08 (Logic Model); merged",
+  "QNT-MKT-04 duplicates MKT-08 (RFM Segmentation); merged"
  ],
  "records": [
   {
@@ -36,7 +37,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -62,7 +63,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -88,7 +89,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -117,7 +118,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -143,7 +144,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -171,7 +172,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -200,7 +201,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -228,7 +229,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -254,7 +255,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -282,7 +283,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -308,7 +309,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -334,7 +335,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -363,7 +364,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -389,7 +390,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -415,7 +416,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -441,7 +442,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -467,7 +468,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -495,7 +496,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -521,7 +522,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -549,7 +550,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -575,7 +576,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -601,7 +602,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -627,7 +628,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -653,7 +654,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -694,7 +695,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -735,7 +736,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -763,7 +764,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -791,7 +792,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -820,7 +821,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -846,7 +847,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -872,7 +873,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -900,7 +901,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -928,7 +929,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -957,7 +958,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -985,7 +986,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1011,7 +1012,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1040,7 +1041,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1066,7 +1067,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1092,7 +1093,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1104,25 +1105,34 @@
    ],
    "type_note": "",
    "disciplines": [
-    "marketing and customers"
+    "marketing and customers",
+    "market and customer analytics"
    ],
    "aliases": [
     "RFM"
    ],
-   "also_listed_as": [],
+   "also_listed_as": [
+    "QNT-MKT-04"
+   ],
    "structures": "Customer groups based on recency, frequency and monetary value",
    "evidence_needs": "Transaction data, window definitions, scoring method and checks for biased segments",
    "summary": "Customer groups based on recency, frequency and monetary value",
    "members": [],
    "source_ref": "catalogue section 5, row MKT-08",
    "verify_edition_and_permissions": false,
+   "structures_alt": [
+    {
+     "from": "QNT-MKT-04",
+     "text": "RFM Segmentation. Explain the scoring boundaries and the stability of the segments."
+    }
+   ],
    "evidence_status": "unreviewed",
    "pipeline_status": "catalogued",
    "limitations": [],
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1150,7 +1160,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1178,7 +1188,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1204,7 +1214,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1230,7 +1240,253 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-13",
+   "name": "Digital marketing mix: owned, earned and paid channels",
+   "type": "F",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "The channels you control, the channels others create and the channels you pay for, with the role and budget of each",
+   "evidence_needs": "Channel inventory, audience and reach evidence, cost data and a declared objective for each channel",
+   "summary": "The channels you control, the channels others create and the channels you pay for, with the role and budget of each",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-13",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-14",
+   "name": "SEO and content marketing plan",
+   "type": "F",
+   "secondary_types": [
+    "M"
+   ],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [
+    "SEO"
+   ],
+   "also_listed_as": [],
+   "structures": "The content that answers a search or customer question, the keywords it targets and the page that carries it",
+   "evidence_needs": "Keyword and search-demand evidence, page inventory, content calendar, ranking and traffic data",
+   "summary": "The content that answers a search or customer question, the keywords it targets and the page that carries it",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-14",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-15",
+   "name": "Paid media plan: search, social and display",
+   "type": "F",
+   "secondary_types": [
+    "M"
+   ],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "Campaign objective, audience, placement, budget and bid, by paid channel",
+   "evidence_needs": "Platform cost data, audience definitions, creative variants and a declared conversion definition",
+   "summary": "Campaign objective, audience, placement, budget and bid, by paid channel",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-15",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-16",
+   "name": "Email, CRM and lifecycle marketing",
+   "type": "M",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "List growth, segmentation, journey stages and the message sent at each stage",
+   "evidence_needs": "List and consent records, send/open/click counts, unsubscribe and bounce counts, revenue by journey",
+   "summary": "List growth, segmentation, journey stages and the message sent at each stage",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-16",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-17",
+   "name": "Social media and influencer marketing",
+   "type": "M",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "Owned posts, community activity and creator partnerships, with the metric each is judged on",
+   "evidence_needs": "Reach, engagement and follower data; creator terms, fees and disclosure requirements",
+   "summary": "Owned posts, community activity and creator partnerships, with the metric each is judged on",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-17",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-18",
+   "name": "Web and app analytics measurement plan",
+   "type": "F",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "The events, metrics and dimensions that make a journey measurable, and the question each answers",
+   "evidence_needs": "A defined event taxonomy, tool access, consent and data-quality checks",
+   "summary": "The events, metrics and dimensions that make a journey measurable, and the question each answers",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-18",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-19",
+   "name": "Attribution and campaign measurement",
+   "type": "Q",
+   "secondary_types": [
+    "M"
+   ],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "Which touchpoints receive credit, under which rule, and what the campaign changed",
+   "evidence_needs": "UTM discipline, touchpoint logs, conversion definitions, a declared attribution model and, for causality, a holdout or experiment",
+   "summary": "Which touchpoints receive credit, under which rule, and what the campaign changed",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-19",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-20",
+   "name": "Conversion-rate optimisation and landing-page testing",
+   "type": "Q",
+   "secondary_types": [
+    "M"
+   ],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "The page or step to change, the hypothesis and the test that decides it",
+   "evidence_needs": "Baseline conversion counts, traffic split, test duration and a declared minimum detectable effect",
+   "summary": "The page or step to change, the hypothesis and the test that decides it",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-20",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "MKT-21",
+   "name": "Marketing automation and lead scoring",
+   "type": "F",
+   "secondary_types": [
+    "M"
+   ],
+   "type_note": "",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "The rules that move a lead between stages and the score that qualifies it",
+   "evidence_needs": "Lead-source and behaviour data, stage definitions (MQL/SQL), sales feedback and score validation",
+   "summary": "The rules that move a lead between stages and the score that qualifies it",
+   "members": [],
+   "source_ref": "catalogue section 5, row MKT-21",
+   "verify_edition_and_permissions": true,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1260,7 +1516,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1288,7 +1544,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1314,7 +1570,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1340,7 +1596,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1369,7 +1625,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1395,7 +1651,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1424,7 +1680,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1452,7 +1708,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1482,7 +1738,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1508,7 +1764,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1536,7 +1792,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1565,7 +1821,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1593,7 +1849,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1621,7 +1877,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1649,7 +1905,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1677,7 +1933,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1706,7 +1962,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1734,7 +1990,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1763,7 +2019,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1792,7 +2048,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1822,7 +2078,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1848,7 +2104,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1874,7 +2130,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1904,7 +2160,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1932,7 +2188,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1958,7 +2214,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -1987,7 +2243,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2013,7 +2269,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2039,7 +2295,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2067,7 +2323,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2096,7 +2352,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2124,7 +2380,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2152,7 +2408,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2178,7 +2434,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2206,7 +2462,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2236,7 +2492,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2262,7 +2518,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2288,7 +2544,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2314,7 +2570,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2340,7 +2596,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2366,7 +2622,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2392,7 +2648,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2420,7 +2676,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2448,7 +2704,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2476,7 +2732,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2502,7 +2758,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2528,7 +2784,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2554,7 +2810,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2580,7 +2836,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2606,7 +2862,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2632,7 +2888,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2658,12 +2914,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-MKT-01",
-   "name": "Market sizing (TAM/SAM/SOM)",
+   "name": "Market sizing (TAM/SAM/SOM) with source-backed inputs and clearly labeled assumptions",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -2684,7 +2940,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2710,7 +2966,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2736,33 +2992,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
-   "version": "0.1"
-  },
-  {
-   "id": "QNT-MKT-04",
-   "name": "RFM scoring and clustering/segmentation",
-   "type": "Q",
-   "secondary_types": [],
-   "type_note": "group: one catalogue bullet, which may name several methods",
-   "disciplines": [
-    "market and customer analytics"
-   ],
-   "aliases": [],
-   "also_listed_as": [],
-   "structures": "",
-   "evidence_needs": "",
-   "summary": "RFM scoring and clustering/segmentation; explain scoring boundaries and stability.",
-   "members": [],
-   "source_ref": "catalogue section 11.2, bullet 4",
-   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
-   "evidence_status": "unreviewed",
-   "pipeline_status": "catalogued",
-   "limitations": [],
-   "when_not_to_use": [],
-   "related": [],
-   "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2788,7 +3018,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2814,7 +3044,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2840,7 +3070,189 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-08",
+   "name": "Campaign performance and media efficiency",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Campaign performance and media efficiency: spend, impressions, clicks, conversions and revenue by campaign, with click-through rate, cost per click, cost per thousand impressions, cost per acquisition, return on ad spend, advertising cost of sales and break-even return on ad spend; declare the attribution rule.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 8",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-09",
+   "name": "Channel CAC, LTV and payback",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Channel CAC, LTV and payback: acquisition cost, contribution margin and churn by channel, with blended CAC and the LTV/CAC ratio; cross-channel incrementality is not implied.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 9",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-10",
+   "name": "Attribution credit across touchpoints",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Attribution credit across touchpoints: first-click, last-click, linear and position-based credit from declared touchpoint logs; credit allocation is not causation.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 10",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-11",
+   "name": "Two-proportion A/B test",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Two-proportion A/B test: conversion counts for two arms, absolute and relative lift, a pooled test, an interval and the sample needed for a declared effect; one test at a time.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 11",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-12",
+   "name": "Email list health and lifecycle performance",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Email list health and lifecycle performance: list growth, unsubscribe and bounce rates, open and click rates, engaged-list size and revenue per subscriber.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 12",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-13",
+   "name": "Social engagement and audience growth",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Social engagement and audience growth: reach, frequency, engagement rate, cost per engagement and follower growth from declared platform counts.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 13",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
+   "version": "0.1"
+  },
+  {
+   "id": "QNT-MKT-14",
+   "name": "Web traffic and conversion by channel",
+   "type": "Q",
+   "secondary_types": [],
+   "type_note": "group: one catalogue bullet, which may name several methods",
+   "disciplines": [
+    "digital marketing"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "",
+   "evidence_needs": "",
+   "summary": "Web traffic and conversion by channel: sessions, conversions and revenue by acquisition channel, with channel share, conversion rate, revenue per session and organic-search click-through.",
+   "members": [],
+   "source_ref": "catalogue section 11.2, bullet 14",
+   "id_basis": "importer-assigned by bullet position; the catalogue gives Q items no IDs",
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2866,12 +3278,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-02",
-   "name": "Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision",
+   "name": "Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision analysis",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -2892,7 +3304,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2918,12 +3330,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-04",
-   "name": "Correlation and regression (linear, logistic and related models),",
+   "name": "Correlation and regression (linear, logistic and related models), with diagnostics",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -2944,12 +3356,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-05",
-   "name": "Reliability assessment and factor analysis for instruments",
+   "name": "Reliability assessment and factor analysis for instruments when the data and sample support them",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -2970,7 +3382,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -2996,12 +3408,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-07",
-   "name": "Time-series forecasting, backtesting, forecast intervals, drift and structural-break",
+   "name": "Time-series forecasting, backtesting, forecast intervals, drift and structural-break checks",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3022,12 +3434,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-08",
-   "name": "Clustering, classification and segmentation",
+   "name": "Clustering, classification and segmentation with suitable validation",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3048,12 +3460,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-09",
-   "name": "Causal-inference designs: randomized experiments, difference-in-differences, regression",
+   "name": "Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3074,12 +3486,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-STA-10",
-   "name": "Mediation/moderation and structural equation modeling",
+   "name": "Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3100,7 +3512,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3126,7 +3538,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3152,7 +3564,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3178,7 +3590,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3204,7 +3616,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3230,7 +3642,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3256,12 +3668,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-OPS-07",
-   "name": "SPC and measurement-system checks",
+   "name": "SPC and measurement-system checks where data assumptions are satisfied",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3282,7 +3694,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3308,7 +3720,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3334,7 +3746,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3360,12 +3772,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-DEC-03",
-   "name": "Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods",
+   "name": "Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3386,12 +3798,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-DEC-04",
-   "name": "Monte Carlo simulation",
+   "name": "Monte Carlo simulation with documented distributions, dependence assumptions and model validation",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3412,7 +3824,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3438,12 +3850,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-DEC-06",
-   "name": "Fault-tree probability calculations",
+   "name": "Fault-tree probability calculations when component probabilities and logical relationships are defensible",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3464,7 +3876,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3490,7 +3902,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3516,7 +3928,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3542,12 +3954,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-EVL-03",
-   "name": "Difference-in-differences and other impact-estimation methods",
+   "name": "Difference-in-differences and other impact-estimation methods when assumptions and data support them",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3568,7 +3980,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3594,12 +4006,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "QNT-EVL-05",
-   "name": "SROI-type estimates",
+   "name": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions",
    "type": "Q",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet, which may name several methods",
@@ -3620,7 +4032,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
@@ -3652,12 +4064,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-02",
-   "name": "Maslow, Herzberg, McClelland, expectancy theory, equity theory and",
+   "name": "Maslow, Herzberg, McClelland, expectancy theory, equity theory and self-determination theory",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3686,12 +4098,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-03",
-   "name": "Resource-Based View and Dynamic Capabilities Theory (with VRIO and",
+   "name": "Resource-Based View and Dynamic Capabilities Theory",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3716,12 +4128,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-04",
-   "name": "Agency Theory, Stewardship Theory, Stakeholder Theory, Resource",
+   "name": "Agency Theory, Stewardship Theory, Stakeholder Theory, Resource Dependence Theory and Transaction Cost Economics",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3749,12 +4161,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-05",
-   "name": "Institutional Theory, Organizational Ecology, Social Identity Theory,",
+   "name": "Institutional Theory, Organizational Ecology, Social Identity Theory, Social Exchange Theory and Psychological Contract Theory",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3782,12 +4194,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-06",
-   "name": "Diffusion of Innovations Theory, Disruptive Innovation Theory and",
+   "name": "Diffusion of Innovations Theory, Disruptive Innovation Theory",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3812,12 +4224,12 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   },
   {
    "id": "THE-07",
-   "name": "Prospect Theory and other behavioral-economics theories,",
+   "name": "Prospect Theory",
    "type": "T",
    "secondary_types": [],
    "type_note": "group: one catalogue bullet naming several theories",
@@ -3841,7 +4253,7 @@
    "when_not_to_use": [],
    "related": [],
    "licensing_review": "not_reviewed",
-   "catalogue_version": "0.2",
+   "catalogue_version": "0.3",
    "version": "0.1"
   }
  ]

@@ -20,7 +20,7 @@ The workbench front end is a single self-contained `web/index.html` (no build st
 
 ## 2. Rail (left, 49 px collapsed, 272 px expanded)
 
-Twelve items: Home, the ten subjects, Calculator. Each carries a filled glyph from the Font Awesome
+Thirteen items: Home, the eleven subjects, Calculator. Each carries a filled glyph from the Font Awesome
 Free 6.5.2 solid set (CC BY 4.0) in its own colour, drawn straight on the aqua-green strip - no
 tile, no outline. Shape carries the meaning; colour is secondary (greyscale-safe).
 
@@ -240,3 +240,46 @@ Request: a `[design]` CHANGELOG/WORKLOG line for this repair, and a build marker
 the served page to show it. The build pill is left at v0.80 - the build the computation owner last
 published - because `tests/test_product_subjects.py` pins that string and the test file belongs to
 the computation owner.
+
+## 9. Rail states (landed on top of build v0.87)
+Owner instruction: the texts beside the rail icons are a little off when paired with the icons - suggest
+how to improve them. Four options were put on a review board (`miniapps/rail-label-options/`, outside
+this package) and the owner picked Option 1: fix the states, move nothing.
+
+What was wrong, measured in the served page (Chrome, 1280x720):
+- The label column starts at 67 px and the icon glyph ends at about 34 px, so the gap the eye has to
+  cross is 33 px. The word reads as a second column rather than as the name of the icon beside it.
+- The active row's mint pill is drawn on `.railtext` only (67 px -> 123 px). The active icon is not marked
+  at all - it only gets a white `drop-shadow` glow. Two different languages for one row.
+- `.railitem:hover` painted `var(--sunken)` across the whole item, and the item's box starts at 10 px, so
+  the hover printed a near-white rounded band over the green behind the hovered glyph.
+- Vertical alignment was already right: the icon box centre and the cap centre are within about a pixel.
+  This was a horizontal problem, not a misalignment.
+
+What changed (presentation only - no behaviour, no number, no claim wording, no geometry):
+- The open rail's row highlight is ONE bar that crosses the seam between the green strip and the white
+  label column: a translucent white band over the strip (10 px -> 49 px) and `--sunken` from 49 px to the
+  end of the row, meeting exactly at the strip edge. The glyph stays on green.
+- The active icon gets a white plate (26 px, radius 8) with its glyph flipped to `--green-900`, and the
+  strip half of the active row is lit, so the icon and the word are marked in the same language.
+- The white glow on the active icon is dropped in the open rail only.
+- `.railitem .ic` is positioned with `z-index:1`, and every label in the open rail is positioned too, so
+  the highlight bar paints behind the glyph and the word and never over them.
+- Nothing moves. `--rail-w`, `--rail-gap`, `--rail-ic-pad`, `--rail-text-x`, `--rail-text-off` and
+  `--rail-text-gap` are untouched, so the 33 px gap, the 67 px label column and the "Subjects" heading
+  are exactly where they were.
+- The type pass, which was offered separately and applied on the owner's word: the label is 15 px (was
+  15.6 px), weight 500 (was 400), navy-900 at 88 % (was navy-700), tracking -.005em. The active word
+  steps up to weight 600 and full navy-900 - a weight step, not a size step, so the state survives
+  greyscale. The size change moves the cap centre by well under a pixel, so the glyph and the word stay
+  centred on each other.
+- The collapsed rail is unchanged: it keeps the lighter green hover band and the glowing white active
+  glyph. Every new rule is scoped to `body.rail-open`.
+
+Verification: the served page was measured and screenshotted in both rail states and with a row hovered,
+at 1280x720; the full suite passes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit, and the
+build pill is left alone.
+
+Not done, on purpose: the three geometry options (close the gap to 17.5 px, tile the icons, drop the
+green spine) were offered separately and were not part of Option 1. The gap is still 33 px - Option 1
+makes the pair read as one item, it does not bring the word closer to its icon.

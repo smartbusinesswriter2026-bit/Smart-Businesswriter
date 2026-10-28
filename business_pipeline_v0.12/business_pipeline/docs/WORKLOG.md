@@ -1,5 +1,175 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — Closing the deterministic gaps: schedule, EVM, OEE, SPC, ABC, sales variances, M/M/c
+
+**Ask.** "These are in the limitations? ... they are not that hard. Can you close them without breaking
+the pipeline?" The owner named scheduling, CPM/PERT, earned value, line balancing, SPC/OEE, tax, audit,
+consolidation, ABC/target/life-cycle and budget/mix variances, multi-server queues, multi-echelon
+inventory and the multi-instance store.
+
+**Did.** Six T1 methods and one additive extension. `cpm_schedule` (forward/backward pass, float,
+critical path, PERT expected time and critical-path variance), `earned_value` (SV/CV/SPI/CPI, two
+declared EAC conventions, ETC, VAC, TCPI), `oee_analysis` (availability, performance, quality, OEE),
+`process_control` (I-MR limits, out-of-control points, runs, Cp/Cpk), `abc_costing` (rates, allocations,
+unit costs, every pool allocated) and `sales_variances` (price/mix/yield per product and in total).
+`queue_analysis` now takes an optional `servers` and uses Erlang C; the one-server outputs are unchanged
+and a limiting-case check pins them to the old formula. Project management, Accounting and Operations
+pages, notes, guides, catalogue links and the curriculum map were updated.
+
+**Why some were not done in this pass.** Tax needs a declared regime before any rate is applied;
+audit is judgment plus a sampling convention, not a formula; consolidation needs a declared
+group-accounting method (full goodwill versus proportionate, NCI at fair value); multi-echelon
+inventory needs a model, not an identity; and the session store is infrastructure, not arithmetic.
+Each is named in `KNOWN_LIMITATIONS.md` and the curriculum map, and each has a concrete convention I
+would implement on request. Nothing was approximated to make the page look complete.
+
+**Contract impact.** An approved unfreeze under B-079, recorded as B-118: 114 methods became 120 and
+the preset surface 122; the queue method's test names changed to the general Erlang C identity plus a
+single-server limiting case. Fixture regenerated. The docs and guide updates move no number.
+
+**Verified.** 27 new tests (hand-checked arithmetic, refusals, presets, shelf wiring, M/M/c versus
+M/M/1); the full suite and `scripts/ci.py` are the gate. The guides' worked examples were re-run
+through the methods.
+
+## 2026-10-28 — Marketing & customers gets the digital lane
+
+**Ask.** "go to marketing and customers, check if everything about marketing is there. looks like it does not
+include digital marketing such as analytics and related things to it." Then: "texts should also be solid to be
+more readable."
+
+**Did — catalogue.** The catalogue source moved to v0.3: nine framework rows `MKT-13..MKT-21` (channel mix,
+SEO/content, paid media, email and lifecycle, social and influencer, measurement plan, attribution, CRO and
+landing-page testing, automation and lead scoring) and seven quantitative bullets in section 11.2
+(`QNT-MKT-08..14`). RFM was listed twice — a framework row and a bullet — so the bullet now reads
+"RFM Segmentation." and the importer merges it into `MKT-08` with `also_listed_as: ["QNT-MKT-04"]`; the
+record count stays honest at 155. The importer gained `DIGITAL_IDS`, `DIGITAL_Q_PREFIXES` and a `Q`-branch
+merge, so a digital row or bullet is tagged `digital marketing` rather than the section's classical
+discipline.
+
+**Did — computations.** Seven additive T1 methods in `src/bp/methods.py`, each with a float second route,
+exactly five frozen checks, refusals for impossible counts (clicks above impressions, conversions above
+clicks, reach above impressions, a zero churn, enumerator sums that do not close) and a token-only report:
+`campaign_efficiency`, `ab_test_two_proportion`, `attribution_split`, `channel_economics`,
+`email_list_health`, `social_engagement`, `web_analytics`. `ab_test_two_proportion` is the only one whose
+claim ceiling is `associational`; it also takes an optional declared minimum effect and reports the visitors
+each arm would need. Two presentation bugs the smoke tests exposed were fixed at the source: a failed
+identity check (`CPC x conversion rate` is *not* CPA — CPA x conversion rate is CPC), and a payback figure
+that was formatted as currency rather than a period count.
+
+**Did — page.** `subjects.py` gains `MARKETING_GROUPS`, `MARKETING_PERIODS`, `MARKETING_NOTES` (the seven new
+tools plus the alpha note that was missing), a 33-term `MARKETING_GLOSSARY`, a `DISCIPLINE_LABELS` map and
+`discipline_label` on every catalogue row, so the records table reads "Marketing frameworks", "Customer and
+market analytics" and "Digital marketing" instead of internal tags. The shelf is 19 tiles in four ordered
+groups with period badges and study notes; `web/index.html` retitles the section and rewrites the legend to
+explain what each status actually means.
+
+**Did — wiring and truth.** Presets `campaign`, `abtest`, `attribution`, `channelecon`, `email`, `social`,
+`web`; `METHOD_LINK_RULES` links `QNT-MKT-08..14` with partial-coverage notes and extends
+`QNT-MKT-02/03/05/06` so they no longer deny methods that now exist; the advisory power note in
+`orchestrator._honesty` no longer tells a student that no sample-size calculation was reported when the
+delivery reports one. Registry and the committed subject slice were regenerated; the frozen fixture was
+regenerated under the approved unfreeze B-117 (114 methods, 116 presets).
+
+**Tests.** `tests/test_marketing_additions.py` (23 tests): textbook goldens computed independently of the
+float route, refusals and profile reasons, the five named checks on every preset, a delivered report with no
+unresolved token, shelf grouping and glossary guards, the `QNT-MKT-08..14` links and the single RFM record.
+`tests/test_session_api.py` gains sample inputs so the declared test names are still proved against real
+code. Full suite: 1234 tests pass.
+
+**Deliberately not done.** No ad-platform or analytics connector, no automated bidding, no incrementality or
+holdout estimation, no multi-touch causal attribution, no sequential tests, no budget recommendation. The
+method and preset contract is otherwise untouched.
+
+## 2026-10-28 — Project management joins the rail; text goes solid
+
+**Ask.** "i think you forgot project management to add as one of the business subjects ... ensure that the
+orientation is for business students ... all texts will be in solid not grayed ones." The owner chose the
+subject plus borrowed tools (no new methods), all 14 PM records, and the rail slot after Management &
+strategy.
+
+**Did — product data.** `SUBJECT_DEFS` gains `project-management` with seven existing frozen tools
+(`npv`, `irr`, `dpayback`, `projectmetrics`, `scenario`, `case_decision`, `forecast`), the whole
+`PM-01..PM-14` block and no worksheets. Management & strategy loses those ids and the projects discipline
+tag, so it now shows 14 worksheets, 18 read-only records and 7 theory lenses. Three presentation groups
+(Appraise the business case · Compare the options · Project cost and benefit), project-life/period
+badges and a 23-term glossary orient the page to an assignment; the glossary marks critical path, Gantt,
+earned value and CPI/SPI as not computed yet. `DISCIPLINE_LABELS` humanises the projects tag, and both the
+gallery and detail payloads carry `discipline_labels`.
+
+**Did — presentation.** The rail gains the eleventh item with a Gantt-style icon and its own tones;
+`--text-2` and `--text-3` both resolve to `#0C243E`, so secondary and tertiary text is solid on every page,
+and the health dot keeps a green accent. Build pill v0.91.
+
+**Verified.** `tests/test_product_subjects.py` now pins the eleven-subject order, the PM composition and
+the solid-text tokens; `tests/test_product_server.py` expects eleven. The suite passes. No method, preset,
+input, check or frozen fixture changed; the Calculator union is unchanged because every borrowed tool was
+already grouped.
+
+**Did — teaching material.** New `docs/PROJECT_MANAGEMENT_STUDENT_GUIDE.md` (conventions, a verified PHP
+worked example, a practice set with answers, and the gaps), a new limitations section and rows in
+`PRODUCT_GAP_MAP.md` and `CURRICULUM_MAP.md`. The guide is linked from the HOME documentation spine.
+
+**Gaps named on the page.** No PM worksheet (charter, WBS, RACI, risk register), no earned-value, PERT or
+critical-path method. Those are the next real increment, not a hidden claim.
+
+## 2026-10-28 — Accounting and Operations shelves, a syllabus map, and the delivery gate
+
+**Ask.** "Do 1-5", with one correction: a named reviewer is not wanted — putting a third party's name on
+a student's paper is wrong. The curriculum item was therefore reduced to a coverage map that names no
+one.
+
+**Did — computation.** Four T1 methods: `standard_cost_variances` (material price/usage, labour
+rate/efficiency, optional variable and fixed overhead; positive is unfavourable), `inventory_policy`
+(EOQ, orders per year, safety stock, reorder point, annual ordering and holding cost),
+`queue_analysis` (single-server M/M/1) and `capacity_analysis` (capacity per resource, bottleneck,
+utilisation, gap). Each has a float second route, five frozen checks, refusals, assumptions,
+limitations and a token-only report. PHP presets `scv`, `inventory`, `queue`, `capacity`.
+
+**Did — shelves.** Accounting is now three groups and nine tools, including working capital, loan
+amortization and trend analysis that were built but not surfaced, with notes, a 16-term glossary and a
+student guide. Operations and Supply chain get the process, inventory and evidence groups, an 18-term
+glossary and a joint guide. The catalogue now states partial coverage for QNT-FIN-05 and QNT-OPS-01,
+-02, -04 and -08, and leaves QNT-OPS-03/-05/-06/-07 as "not implemented".
+
+**Did — assurance and delivery.** `docs/CURRICULUM_MAP.md` maps each shelf to typical SHS ABM and college
+courses, marks itself provisional and credits no reviewer. `scripts/ci.py` runs the suite, the shelf and
+frozen-contract audit and the page syntax check behind one exit code. `scripts/bench.py` probes a running
+instance on read-only endpoints. `deploy/` has a Dockerfile, an nginx example, a systemd unit and a README
+that says plainly what the current server is (one process, sessions in memory) and what a multi-instance
+fleet still needs.
+
+**On the reviewer.** The correction is right: a reviewer's name on a submission is a credential the
+student did not earn and the reviewer did not sign for that paper. The guides still say the material is
+not teacher-approved, because that is a limitation of the tool, not a name. No document now proposes,
+assigns or displays a third-party reviewer for student work.
+
+**Contract impact.** An approved unfreeze under B-079, recorded as B-114: 109 methods became 114 (the
+sixth to tenth parallel marketing additions landed in the same window) and the preset surface became
+116; the fixture was regenerated. The presentation, map and delivery work is B-115 and moves no number.
+
+**Verified.** Full suite with the four new test classes (arithmetic, checks, refusals, presets, page
+groups, catalogue statuses); `scripts/econ_shelf.py --check` in sync; `scripts/ci.py` reports each step;
+`node --check` on the page script; `scripts/bench.py --help` and a probe against a local instance.
+
+## 2026-10-28 - Management & strategy: the eight worksheets and the catalogue status
+
+**Ask.** "Check management and strategy ... they are all valid frameworks and need to be
+implemented. I just don't understand the catalogue records and their status."
+
+**Found.** The page showed 36 catalogue rows, 33 of them "not implemented", including seven
+theories that the catalogue says must never become templates; three canvases appeared both as a
+worksheet and as a "not implemented" row; and the 14 performance/project records the page's own
+discipline tag claimed appeared on no page at all. All 140 registry records carried the same
+`pipeline_status=catalogued` and `evidence_status=unreviewed`, so the status column carried no
+information.
+
+**Changed.** Eight T4 worksheets: PESTEL, Value Chain, Ansoff, Blue Ocean/ERRC, activity-system
+fit (shared canvas builder); scenario planning and strategic group mapping (new declared-matrix
+builder); VRIO (new resource-verdict builder, no derived verdict). The registry now derives a
+`form` and a form-specific status; no framework says "not implemented". The Management page shows
+14 worksheets, 32 read-only records grouped by discipline and 7 theory lenses, and `PM-01..14`
+finally appear. `IMP-03..07` move to Economics. No computation changed.
+
 ## 2026-10-28 — Local OCR and global free data: finish the P2 retrieval/ingestion slice
 
 **Ask.** Install a PDF renderer and Tesseract; add the free global sources the owner named (SEC
@@ -62,7 +232,7 @@ arithmetic, and each is named in the guide and in `KNOWN_LIMITATIONS.md`.
 the preset surface became 105; the fixture was regenerated. The templates are B-108 and touch no
 number.
 
-**Verified.** 1151 tests OK (35 new: hand-checked arithmetic and refusals for the six methods, preset
+**Verified.** The full suite passed with 35 new tests (hand-checked arithmetic and refusals for the six methods, preset
 delivery, every canvas check, verbatim listing, gap reporting, link validation, determinism, no raw
 digits in a narrative, and the shelf wiring). `scripts/econ_shelf.py --check` in sync; the canvas and
 marketing-plan examples deliver end to end.

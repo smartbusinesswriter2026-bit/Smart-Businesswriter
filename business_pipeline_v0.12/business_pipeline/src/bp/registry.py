@@ -56,9 +56,9 @@ METHOD_LINK_RULES = [
      "NPV, IRR, discounted payback, the profitability index, MIRR, simple payback and the equivalent annual annuity "
      "are implemented; unequal-life ranking rules and real options are not implemented"),
     (r"^Cost and profitability:",
-     ["breakeven", "multi_product_breakeven"],
-     "single-product and multi-product break-even are implemented; operating-leverage, relevant-cost and "
-     "make-or-buy analysis are not implemented"),
+     ["breakeven", "multi_product_breakeven", "abc_costing", "sales_variances"],
+     "single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are "
+     "implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented"),
     (r"^Financial performance:",
      ["ratio_analysis", "dupont_analysis", "working_capital"],
      "15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, "
@@ -69,10 +69,11 @@ METHOD_LINK_RULES = [
      "WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond "
      "pricing with duration are implemented; debt-capacity and real-option valuation are not implemented"),
     (r"^Management accounting:",
-     ["management_accounts"],
+     ["management_accounts", "standard_cost_variances", "abc_costing"],
      "a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial "
-     "balance, statements, two-route cash flow, closing and bank reconciliation); the standard-costing, "
-     "activity-based, target, life-cycle and budget-variance topics named here are not implemented"),
+     "balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, "
+     "labour and overhead standard-cost variances and activity-based costing; target, life-cycle and "
+     "budget-variance topics named here are not implemented"),
     (r"^Unit economics:",
      ["unit_economics"],
      "contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics "
@@ -86,13 +87,54 @@ METHOD_LINK_RULES = [
      "top-down TAM, SAM and SOM from a declared population, spend and two shares are implemented; bottom-up "
      "segmentation, retrieved market data and a demand estimate are not implemented"),
     (r"^Market share, growth rates",
-     ["growth_rate"],
-     "compound and period growth rates are implemented; market share, penetration, conversion and funnel leakage "
-     "are not implemented as methods"),
+     ["growth_rate", "sales_funnel"],
+     "compound and period growth rates and stage-by-stage funnel conversion are implemented; market share, "
+     "penetration and funnel leakage across channels are not implemented as methods"),
     (r"^Cohort retention",
-     ["unit_economics"],
-     "a single declared churn rate and its period-value LTV are implemented; cohort retention curves and "
-     "repeat-purchase analysis are not implemented"),
+     ["cohort_retention", "unit_economics"],
+     "pooled cohort retention, churn, average lifetime and a single-rate LTV are implemented; repeat-purchase "
+     "analysis and segment-level retention are not implemented"),
+    (r"^Demand forecasting",
+     ["trend_forecast"],
+     "a linear trend fit, forecast periods and a prediction interval are implemented; forecast-error measures, "
+     "seasonality and backtesting are not implemented"),
+    (r"^A/B test design",
+     ["power_analysis", "ab_test_two_proportion"],
+     "sample-size and power calculations, and a two-proportion comparison of two observed arms with its interval, "
+     "are implemented; sequential or peeking-adjusted tests and more than two arms are not implemented"),
+    (r"^Campaign performance and media efficiency",
+     ["campaign_efficiency"],
+     "click-through, cost per click and per thousand impressions, cost per acquisition, return on ad spend, "
+     "advertising cost of sales and break-even return on ad spend are implemented from declared counts; platform "
+     "reads, automated bidding, view-through and incrementality are not implemented"),
+    (r"^Channel CAC, LTV and payback",
+     ["channel_economics", "unit_economics"],
+     "acquisition cost, payback, lifetime value and its ratio to acquisition cost by declared channel, with the "
+     "blended acquisition cost and each channel's spend share, are implemented; shared-spend allocation, saturation "
+     "and cross-channel incrementality are not implemented"),
+    (r"^Attribution credit across touchpoints",
+     ["attribution_split"],
+     "first-click, last-click and linear shares are compared from declared credit counts, with the spread per "
+     "channel; touchpoint logs, time-decay, position-based and data-driven models, and causal incrementality, are "
+     "not implemented"),
+    (r"^Two-proportion A/B test",
+     ["ab_test_two_proportion", "power_analysis"],
+     "the two-proportion comparison, its interval and the visitors each arm needs for a declared effect are "
+     "implemented; sequential tests, more than two arms and causal claims are not implemented"),
+    (r"^Email list health",
+     ["email_list_health"],
+     "list growth, unsubscribe and bounce rates, open and click rates, click-to-open and revenue per subscriber are "
+     "implemented from declared counts; platform reads, deduplication, deliverability and consent are not implemented"),
+    (r"^Social engagement and audience growth",
+     ["social_engagement"],
+     "engagement rate, frequency, cost per thousand impressions, cost per engagement, engagement per post and "
+     "follower growth are implemented from declared counts; sentiment, bot filtering and sales attribution are not "
+     "implemented"),
+    (r"^Web traffic and conversion by channel",
+     ["web_analytics"],
+     "sessions, conversions, conversion rate, revenue per session and channel share are implemented, with organic "
+     "click-through when impressions and clicks are declared; analytics-platform reads, cross-device identity and "
+     "attribution windows are not implemented"),
     (r"^Data profiling, descriptive statistics", ["descriptive_stats"], "descriptive statistics for one variable only; cross-tabulation and visualization are not implemented"),
     (r"^Chi-square tests, t-tests, ANOVA",
      ["welch_t", "mann_whitney", "chi_square", "anova", "kruskal_wallis", "two_way_anova", "posthoc_pairwise",
@@ -106,11 +148,63 @@ METHOD_LINK_RULES = [
     (r"^Sensitivity analysis, scenario analysis", ["npv", "scenario_analysis"],
      "decision-flip on the NPV discount rate and a declared low/high rate scenario are implemented; multi-input "
      "scenario analysis, Monte Carlo and expected-value decision trees are not implemented"),
+    (r"^EOQ, reorder point, safety stock", ["inventory_policy"],
+     "the economic order quantity, safety stock, reorder point and the annual ordering and holding cost are "
+     "implemented; quantity discounts, variable lead times and multi-item constraints are not implemented"),
+    (r"^Demand/lead-time forecasts", ["trend_forecast"],
+     "a declared linear trend with an interval and an out-of-sample check is implemented; seasonal, causal and "
+     "driver-based forecasts are not implemented"),
+    (r"^Queueing models", ["queue_analysis", "capacity_analysis"],
+     "a single-server M/M/1 queue and steady-state resource capacity with its bottleneck are implemented; "
+     "multi-server queues, priorities, scheduling and simulation are not implemented"),
+    (r"^Throughput and constraint analysis", ["capacity_analysis", "queue_analysis"],
+     "the bottleneck resource, its utilisation and the capacity gap are implemented; drum-buffer-rope scheduling "
+     "and buffer management are not implemented"),
+    (r"^Critical Path Method \(CPM\)", ["cpm_schedule"],
+     "critical-path dates, total float, the critical path and a PERT expected duration with its variance are "
+     "implemented; resource levelling, calendars and simulation are not implemented"),
+    (r"^Overall Equipment Effectiveness \(OEE\)", ["oee_analysis", "process_control"],
+     "OEE from declared time and counts, an I-MR control chart and Cp/Cpk capability are implemented; the six big "
+     "losses, subgroup charts, EWMA/CUSUM and measurement-system analysis are not implemented"),
 ]
 
 TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces",
                   "STR-15": "template_business_model_canvas", "STR-16": "template_lean_canvas",
-                  "STR-17": "template_value_proposition_canvas", "MKT-02": "template_marketing_plan"}
+                  "STR-17": "template_value_proposition_canvas", "MKT-02": "template_marketing_plan",
+                  "STR-06": "template_pestel", "STR-03": "template_value_chain", "STR-09": "template_ansoff",
+                  "STR-13": "template_blue_ocean_errc", "STR-04": "template_activity_system_fit",
+                  "STR-14": "template_scenario_planning", "STR-12": "template_strategic_group_map",
+                  "STR-08": "template_vrio"}
+
+#: What the product can do with a record today.  Kept separate from the
+#: catalogue's evidence vocabulary (all 140 records are still `unreviewed`):
+#: this is a product fact, not a claim about the quality of the framework.
+FORM_LABEL = {"computed": "computed method", "worksheet": "worksheet",
+              "read_only": "read-only record", "theory": "supporting theory"}
+
+
+def form(r):
+    """The delivery form of a loaded record, derived from what actually exists."""
+    if r["type"] == "T":
+        return "theory"
+    if r.get("template"):
+        return "worksheet"
+    if r.get("linked_methods"):
+        return "computed"
+    return "read_only"
+
+
+def _implementation_status(r):
+    """One honest sentence: what the product can do with this record today."""
+    if r["type"] == "T":
+        return "supporting theory: an interpretive lens, not a worksheet by design"
+    if r.get("linked_methods"):
+        return "partial: " + r["linked_methods"][0]["note"]
+    if r.get("template"):
+        return "worksheet available: structure and evidence audit only; the evidence is yours"
+    if r["type"] == "Q":
+        return "not implemented"
+    return "read-only record: no worksheet yet"
 
 class RegistryError(ValueError): pass
 _CACHE = {}
@@ -124,7 +218,8 @@ def load(path=DATA):
             for pat, methods, note in METHOD_LINK_RULES:
                 if re.search(pat, r["summary"]): r["linked_methods"] = [{"method_id": m, "coverage": "partial", "note": note} for m in methods]
         r["template"] = TEMPLATE_LINKS.get(r["id"])
-        r["implementation_status"] = ("partial: " + r["linked_methods"][0]["note"]) if r["linked_methods"] else ("template available: structure and evidence audit only; the evidence is yours" if r["template"] else "not implemented")
+        r["form"] = form(r)
+        r["implementation_status"] = _implementation_status(r)
     reg = {"schema_version": raw["schema_version"], "registry_version": raw["registry_version"], "source": raw["source"], "import_warnings": raw["import_warnings"], "records": recs,
            "policy": POLICY, "by_id": {}}
     for r in recs:
@@ -159,6 +254,8 @@ def validate(reg=None):
             from .templates import TEMPLATES
             if r["template"] not in TEMPLATES or r["id"] not in TEMPLATES[r["template"]]["registry_ids"]: errs.append(f"{r['id']}: template link {r['template']} is not consistent with the template's registry ids")
         if r["type"] == "T" and r["linked_methods"]: errs.append(f"{r['id']}: a theory cannot link to runnable methods")
+        if r["type"] == "T" and r.get("template"): errs.append(f"{r['id']}: a theory cannot carry a worksheet template")
+        if r.get("form") not in FORM_LABEL: errs.append(f"{r['id']}: bad form {r.get('form')}")
         if r["linked_methods"]:
             from .methods import LIBRARY
             for l in r["linked_methods"]:
@@ -173,6 +270,7 @@ def get(rid):
 def brief(r, **extra):
     return {"id": r["id"], "name": r["name"], "type": r["type"], "type_label": TYPE_LABEL[r["type"]], "secondary_types": r["secondary_types"], "disciplines": r["disciplines"],
             "structures": r["summary"], "evidence_needs": r["evidence_needs"], "evidence_status": r["evidence_status"], "pipeline_status": r["pipeline_status"],
+            "form": r["form"], "form_label": FORM_LABEL[r["form"]],
             "implementation_status": r["implementation_status"], "template": r.get("template"), "linked_methods": r["linked_methods"], "also_listed_as": r["also_listed_as"],
             "verify_edition_and_permissions": r.get("verify_edition_and_permissions", False), "limitations": r["limitations"], **extra}
 

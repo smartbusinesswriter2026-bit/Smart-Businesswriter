@@ -26,14 +26,20 @@ class Import(unittest.TestCase):
     def test_every_catalogue_row_is_present_and_nothing_is_dropped(self):
         import re
         ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]
-        self.assertEqual(len(ids), 91)
+        self.assertEqual(len(ids), 100)
         for i in ids: self.assertEqual(R.get(i)["id"] in ids or i in R.get(i)["also_listed_as"], True, i)
     def test_counts_and_types(self):
         recs = R.load()["records"]; from collections import Counter; c = Counter(r["type"] for r in recs)
-        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (140, 61, 22, 50, 7))
+        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (155, 66, 24, 58, 7))
     def test_duplicates_merged_with_both_ids_kept(self):
         self.assertEqual(R.get("IMP-01")["id"], "CHG-07"); self.assertEqual(R.get("IMP-02")["id"], "CHG-08"); self.assertIn("IMP-01", R.get("CHG-07")["also_listed_as"])
-        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 140)
+        self.assertEqual(R.get("QNT-MKT-04")["id"], "MKT-08"); self.assertIn("QNT-MKT-04", R.get("MKT-08")["also_listed_as"])
+        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 155)
+    def test_names_are_complete_and_not_truncated(self):
+        """A name ending in ' and', ' or', ',' or '(' is a cut, not a name (B-113)."""
+        for r in R.load()["records"]:
+            self.assertFalse(r["name"].rstrip().endswith((" and", " or", ",", "(", " with")), (r["id"], r["name"]))
+            self.assertNotIn("...", r["name"], r["id"])
     def test_composite_types_split_into_primary_and_secondary(self):
         self.assertEqual((R.get("RSK-09")["type"], R.get("RSK-09")["secondary_types"]), ("F", ["Q"])); self.assertEqual((R.get("MKT-08")["type"], R.get("MKT-08")["secondary_types"]), ("Q", ["M"]))
         self.assertIn("reference", R.get("PM-11")["type_note"])
@@ -53,9 +59,10 @@ class Import(unittest.TestCase):
         linked = [r for r in R.load()["records"] if r["linked_methods"]]; self.assertGreaterEqual(len(linked), 5)
         for r in linked:
             for l in r["linked_methods"]: self.assertIn(l["method_id"], LIBRARY); self.assertEqual(l["coverage"], "partial"); self.assertTrue(l["note"])
-        self.assertTrue(R.get("QNT-STA-03")["implementation_status"].startswith("partial")); self.assertEqual(R.get("QNT-OPS-01")["implementation_status"], "not implemented")
+        self.assertTrue(R.get("QNT-STA-03")["implementation_status"].startswith("partial")); self.assertTrue(R.get("QNT-OPS-01")["implementation_status"].startswith("partial"))
+        self.assertEqual(R.get("QNT-OPS-03")["implementation_status"], "not implemented")
     def test_registry_is_versioned_and_hashed(self):
-        reg = R.load(); self.assertEqual(reg["registry_version"], "0.1.0"); self.assertEqual(reg["source"]["catalogue_version"], "0.2"); self.assertEqual(len(reg["hash"]), 64); self.assertEqual(reg["hash"], R.load()["hash"])
+        reg = R.load(); self.assertEqual(reg["registry_version"], "0.1.0"); self.assertEqual(reg["source"]["catalogue_version"], "0.3"); self.assertEqual(len(reg["hash"]), 64); self.assertEqual(reg["hash"], R.load()["hash"])
 
 class Search(unittest.TestCase):
     def test_name_alias_and_type_filter(self):

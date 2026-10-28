@@ -1,0 +1,23 @@
+[Unit]
+Description=Smart BusinessWriter workbench
+After=network.target
+
+[Service]
+Type=simple
+User=bp
+WorkingDirectory=/opt/smart-businesswriter
+Environment=PYTHONPATH=/opt/smart-businesswriter/src
+Environment=BP_CASES_DIR=/var/lib/bp/cases
+Environment=BP_STATE_DIR=/var/lib/bp/state
+Environment=BP_INTAKE_DIR=/var/lib/bp/intake
+Environment=BP_REQUEST_LOG=/var/log/bp/request.log
+ExecStart=/usr/bin/python3 scripts/serve.py --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/bp /var/log/bp
+
+[Install]
+WantedBy=multi-user.target

@@ -81,7 +81,7 @@ class ProductRoutes(unittest.TestCase):
 
     def test_subject_and_calculator_routes_are_reachable_over_http(self):
         status, gallery = self.call("GET", "/api/cases/subjects")
-        self.assertEqual(status, 200); self.assertEqual(len(gallery["subjects"]), 10)
+        self.assertEqual(status, 200); self.assertEqual(len(gallery["subjects"]), 11)
         status, page = self.call("GET", "/api/cases/subjects/finance")
         self.assertEqual(status, 200); self.assertIn("npv", {tool["method"] for tool in page["tools"]})
         status, calculator = self.call("GET", "/api/cases/calculator")

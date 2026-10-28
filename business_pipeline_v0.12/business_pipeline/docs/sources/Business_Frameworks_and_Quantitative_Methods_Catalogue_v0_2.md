@@ -1,8 +1,8 @@
 # Smart Researcher
 ## Curated Business Frameworks and Quantitative Methods Catalogue
 
-**Version:** 0.2  
-**Date:** October 20, 2026  
+**Version:** 0.3  
+**Date:** October 28, 2026  
 **Status:** Living catalogue — candidate inventory, not an implementation commitment  
 **Scope:** Business and related disciplines, including the quantitative methods needed to apply frameworks rigorously
 
@@ -109,6 +109,15 @@ A theory can inform a framework without becoming a separate operational template
 | MKT-10 | UTAUT | M | Structured constructs associated with technology acceptance and use | Validated measurement scales and research design; not a generic checklist for all adoption problems |
 | MKT-11 | Brand Equity Assessment | M | Selected dimensions of brand knowledge, associations, perceived quality and loyalty | Customer research and clearly defined measurement; choose a specified model rather than mixing variants |
 | MKT-12 | STP-to-positioning evidence check | F | Check that target choice, customer evidence and positioning claim align | Research on target segments and competitive alternatives |
+| MKT-13 | Digital marketing mix: owned, earned and paid channels | F | The channels you control, the channels others create and the channels you pay for, with the role and budget of each | Channel inventory, audience and reach evidence, cost data and a declared objective for each channel |
+| MKT-14 | SEO and content marketing plan | F/M | The content that answers a search or customer question, the keywords it targets and the page that carries it | Keyword and search-demand evidence, page inventory, content calendar, ranking and traffic data |
+| MKT-15 | Paid media plan: search, social and display | F/M | Campaign objective, audience, placement, budget and bid, by paid channel | Platform cost data, audience definitions, creative variants and a declared conversion definition |
+| MKT-16 | Email, CRM and lifecycle marketing | M | List growth, segmentation, journey stages and the message sent at each stage | List and consent records, send/open/click counts, unsubscribe and bounce counts, revenue by journey |
+| MKT-17 | Social media and influencer marketing | M | Owned posts, community activity and creator partnerships, with the metric each is judged on | Reach, engagement and follower data; creator terms, fees and disclosure requirements |
+| MKT-18 | Web and app analytics measurement plan | F | The events, metrics and dimensions that make a journey measurable, and the question each answers | A defined event taxonomy, tool access, consent and data-quality checks |
+| MKT-19 | Attribution and campaign measurement | Q/M | Which touchpoints receive credit, under which rule, and what the campaign changed | UTM discipline, touchpoint logs, conversion definitions, a declared attribution model and, for causality, a holdout or experiment |
+| MKT-20 | Conversion-rate optimisation and landing-page testing | Q/M | The page or step to change, the hypothesis and the test that decides it | Baseline conversion counts, traffic split, test duration and a declared minimum detectable effect |
+| MKT-21 | Marketing automation and lead scoring | F/M | The rules that move a lead between stages and the score that qualifies it | Lead-source and behaviour data, stage definitions (MQL/SQL), sales feedback and score validation |
 
 **Supporting theories not core by default:** Diffusion of Innovations, consumer choice theory, and Jobs-to-Be-Done theory can inform market analysis. A structured JTBD interview protocol or adoption assessment may be catalogued as a method, but the explanatory theory alone does not automatically require a pipeline template.
 
@@ -221,10 +230,17 @@ These methods are deliberately included even though they are not all frameworks.
 - Market sizing (TAM/SAM/SOM) with source-backed inputs and clearly labeled assumptions.
 - Market share, growth rates, penetration, conversion rates and funnel leakage.
 - Cohort retention, churn, repeat-purchase rate and customer lifetime analysis.
-- RFM scoring and clustering/segmentation; explain scoring boundaries and stability.
+- RFM Segmentation. Explain the scoring boundaries and the stability of the segments.
 - Demand forecasting and forecast error measures; compare with a naive baseline.
 - A/B test design, sample-size/power calculations, confidence intervals and effect sizes.
 - Customer profitability and contribution analysis by segment, product, channel or cohort.
+- **Campaign performance and media efficiency:** spend, impressions, clicks, conversions and revenue by campaign, with click-through rate, cost per click, cost per thousand impressions, cost per acquisition, return on ad spend, advertising cost of sales and break-even return on ad spend; declare the attribution rule.
+- **Channel CAC, LTV and payback:** acquisition cost, contribution margin and churn by channel, with blended CAC and the LTV/CAC ratio; cross-channel incrementality is not implied.
+- **Attribution credit across touchpoints:** first-click, last-click, linear and position-based credit from declared touchpoint logs; credit allocation is not causation.
+- **Two-proportion A/B test:** conversion counts for two arms, absolute and relative lift, a pooled test, an interval and the sample needed for a declared effect; one test at a time.
+- **Email list health and lifecycle performance:** list growth, unsubscribe and bounce rates, open and click rates, engaged-list size and revenue per subscriber.
+- **Social engagement and audience growth:** reach, frequency, engagement rate, cost per engagement and follower growth from declared platform counts.
+- **Web traffic and conversion by channel:** sessions, conversions and revenue by acquisition channel, with channel share, conversion rate, revenue per session and organic-search click-through.
 
 ### 11.3 Statistics and empirical research
 

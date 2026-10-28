@@ -294,12 +294,12 @@ class EntrepreneurshipPage(unittest.TestCase):
             self.assertIn(term, terms)
 
     def test_the_catalogue_rows_state_what_is_partial_and_what_is_not_built(self):
-        rows = {row["id"]: row["implementation_status"] for row in self.page["catalogue"]}
+        rows = {row["id"]: row for row in self.page["catalogue"]}
         for rid in ("QNT-MKT-01", "QNT-FIN-07"):
-            self.assertTrue(rows[rid].startswith("partial:"), rid)
+            self.assertTrue(rows[rid]["implementation_status"].startswith("partial:"), rid)
         for rid in ("STR-15", "STR-16", "STR-17"):
-            self.assertTrue(rows[rid].startswith("template available:"), rid)
-        self.assertEqual(rows["THE-06"], "not implemented")
+            self.assertTrue(rows[rid]["implementation_status"].startswith(("worksheet available", "template available")), rid)
+        self.assertIsNone(rows["THE-06"]["template"])
 
     def test_the_finance_grouping_did_not_leak(self):
         finance = subjects.detail("finance")

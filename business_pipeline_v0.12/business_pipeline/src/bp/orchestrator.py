@@ -42,8 +42,11 @@ def _honesty(m, inp):
         multiple = "One hypothesis is tested, so no multiple-comparison correction is applied."
     else:
         multiple = None
-    power = ("No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved."
-             if inferential else None)
+    if inferential and m.name == "ab_test_two_proportion" and inp.get("minimum_effect") not in (None, "", 0, "0"):
+        power = ("The visitors-per-arm figure is the design requirement for the declared minimum effect and power; it is not a post-hoc power claim about the result actually observed.")
+    else:
+        power = ("No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved."
+                 if inferential else None)
     weights = ("Weights are applied to the summary only; no standard error, interval or test is computed because that needs a declared complex design (stratification, clustering, replicate weights)."
                if m.name == "weighted_summary" else
                ("Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent."

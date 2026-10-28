@@ -49,10 +49,10 @@ def registry_records():
 
 
 class SubjectCatalogueTest(unittest.TestCase):
-    def test_the_gallery_declares_ten_subjects_and_a_cross_cutting_shelf(self):
+    def test_the_gallery_declares_eleven_subjects_and_a_cross_cutting_shelf(self):
         gallery = subjects.catalogue()
         self.assertEqual(gallery["format"], "bp-subjects/1")
-        self.assertEqual(len(gallery["subjects"]), 10)
+        self.assertEqual(len(gallery["subjects"]), 11)
         self.assertEqual([row["id"] for row in gallery["subjects"]][:2], ["accounting", "finance"])
         cross = [row for row in gallery["subjects"] if row["cross_cutting"]]
         self.assertEqual([row["id"] for row in cross], ["research"])
@@ -60,8 +60,8 @@ class SubjectCatalogueTest(unittest.TestCase):
     def test_the_rail_lists_every_subject_in_order_with_a_distinct_icon(self):
         rows = subjects.catalogue()["subjects"]
         self.assertEqual([row["id"] for row in rows],
-                         ["accounting", "finance", "economics", "management", "entrepreneurship",
-                          "operations", "supply-chain", "marketing", "people", "research"])
+                         ["accounting", "finance", "economics", "management", "project-management",
+                          "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research"])
         icons = [row["icon"] for row in rows]
         self.assertTrue(all(icons), "a subject has no icon key")
         self.assertEqual(len(set(icons)), len(icons), "two subjects share an icon key")
@@ -75,7 +75,8 @@ class SubjectCatalogueTest(unittest.TestCase):
                          "discounted_payback"}.issubset({tool["method"] for tool in page["tools"]}))
         self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]],
                          ["template_business_model_canvas", "template_lean_canvas",
-                          "template_value_proposition_canvas", "template_swot", "template_marketing_plan"])
+                          "template_value_proposition_canvas", "template_swot",
+                          "template_blue_ocean_errc", "template_marketing_plan"])
         self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
     def test_every_economics_tool_carries_student_notes_and_a_level(self):
@@ -103,11 +104,132 @@ class SubjectCatalogueTest(unittest.TestCase):
             self.assertTrue(by_key[key]["diagram"], "%s has no diagram key" % key)
 
 
+class FrameworkMatchTest(unittest.TestCase):
+    """The instruction-first entry is a reading aid, not an analysis."""
+
+    def test_a_competitive_case_suggests_swot_or_five_forces(self):
+        result = subjects.match_frameworks(
+            "We need to weigh our strengths and weaknesses against competitors and new opportunities")
+        self.assertTrue(result["matches"])
+        self.assertIn(result["matches"][0]["template"], ("template_swot", "template_five_forces"))
+        self.assertTrue(result["matches"][0]["why"])
+        self.assertTrue(result["matches"][0]["matched_terms"])
+
+    def test_a_case_about_people_and_change_suggests_a_change_worksheet_or_none_but_never_invents_one(self):
+        result = subjects.match_frameworks("Our staff resist the new process and we need a change plan")
+        for match in result["matches"]:
+            self.assertIn(match["template"], {worksheet["template"] for worksheet in subjects.WORKSHEETS.values()})
+
+    def test_the_matcher_says_so_when_nothing_fits(self):
+        result = subjects.match_frameworks("zzzz qqqq")
+        self.assertEqual(result["matches"], [])
+        self.assertTrue(result["none_reason"])
+        self.assertEqual(subjects.match_frameworks("")["matches"], [])
+
+    def test_the_matcher_route_is_post_only_and_needs_text(self):
+        status, payload = api.handle("POST", "/api/cases/match", {"text": "pricing and customers"})
+        self.assertEqual(status, 200)
+        self.assertTrue(payload["matches"])
+        self.assertEqual(api.handle("POST", "/api/cases/match", {})[0], 422)
+        self.assertEqual(api.handle("GET", "/api/cases/match")[0], 405)
+
+
+class CatalogueHonestyTest(unittest.TestCase):
+    """A record must say what the product can do with it, and say it once."""
+
+    def test_project_management_owns_the_pm_records_and_the_appraisal_tools(self):
+        page = subjects.detail("project-management")
+        pm_ids = {"PM-%02d" % n for n in range(1, 15)}
+        self.assertEqual({row["id"] for row in page["records"]}, pm_ids,
+                         "the Project management page drops or repeats a PM record")
+        self.assertEqual([tool["key"] for tool in page["tools"]],
+                         ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision",
+                          "forecast", "cpm", "evm"])
+        for tool in page["tools"]:
+            self.assertTrue(tool["group"], "%s has no project group" % tool["key"])
+            self.assertTrue(tool["period"], "%s has no period badge" % tool["key"])
+            self.assertTrue(tool["formula"] and tool["steps"] and tool["common_mistakes"], tool["key"])
+        self.assertTrue(page["guidance"], "the page has no student guidance")
+        self.assertGreaterEqual(len(page["glossary"]), 15, "the page has no usable glossary")
+        self.assertEqual(page["discipline_labels"], ["Project delivery and governance"])
+        management = {row["id"] for row in subjects.detail("management")["catalogue"]}
+        self.assertFalse(pm_ids & management, "Management still claims the project records")
+
+    def test_economics_declares_the_impact_evaluation_records(self):
+        page = subjects.detail("economics")
+        ids = {row["id"] for row in page["catalogue"]}
+        self.assertTrue({"IMP-03", "IMP-04", "IMP-05", "IMP-06", "IMP-07"} <= ids)
+
+    def test_a_worksheet_is_not_repeated_as_a_catalogue_row(self):
+        for definition in subjects.SUBJECT_DEFS:
+            page = subjects.detail(definition["id"])
+            worksheets = {worksheet["catalogue_id"] for worksheet in page["worksheets"]}
+            records = {row["id"] for row in page["records"]}
+            theories = {row["id"] for row in page["theories"]}
+            self.assertFalse(worksheets & records, definition["id"])
+            self.assertFalse(worksheets & theories, definition["id"])
+            self.assertTrue(set(definition["catalogue_ids"]) <= (worksheets | records | theories),
+                            "%s does not show every assigned record" % definition["id"])
+            self.assertEqual(records | theories, set(definition["catalogue_ids"]) - worksheets,
+                             "%s repeats or drops a catalogue record" % definition["id"])
+
+    def test_theories_are_reading_lenses_not_a_build_backlog(self):
+        for definition in subjects.SUBJECT_DEFS:
+            for row in subjects.detail(definition["id"])["theories"]:
+                self.assertEqual(row["form"], "theory", row["id"])
+                self.assertEqual(row["status_short"], "Reading lens", row["id"])
+                self.assertIn("not a worksheet by design", row["status_note"], row["id"])
+                self.assertNotIn("not implemented", row["status_note"].lower(), row["id"])
+
+    def test_a_read_only_framework_does_not_say_not_implemented(self):
+        for definition in subjects.SUBJECT_DEFS:
+            for row in subjects.detail(definition["id"])["records"]:
+                if row["form"] == "read_only" and row["type"] in ("F", "M"):
+                    self.assertNotIn("not implemented", row["status_note"].lower(), row["id"])
+                    self.assertIn("read-only record", row["status_note"], row["id"])
+
+    def test_an_unbuilt_quantitative_method_is_not_called_a_missing_worksheet(self):
+        seen = 0
+        for definition in subjects.SUBJECT_DEFS:
+            for row in subjects.detail(definition["id"])["records"]:
+                if row["form"] == "read_only" and row["type"] == "Q":
+                    self.assertEqual(row["status_short"], "Method not built", row["id"])
+                    seen += 1
+        self.assertGreater(seen, 0, "no unbuilt quantitative record was exercised")
+
+    def test_every_record_row_carries_the_text_the_page_shows(self):
+        for definition in subjects.SUBJECT_DEFS:
+            page = subjects.detail(definition["id"])
+            for row in page["records"] + page["theories"]:
+                self.assertTrue(row["id"] and row["name"], definition["id"])
+                self.assertTrue(row["status_short"] and row["status_note"], row["id"])
+                self.assertTrue(row["structures"], row["id"])
+                self.assertTrue(row["disciplines"], row["id"])
+
+    def test_registry_form_and_status_are_derived_consistently(self):
+        from bp import registry
+
+        for record in registry.load()["records"]:
+            if record["type"] == "T":
+                self.assertEqual(record["form"], "theory", record["id"])
+                self.assertNotIn("not implemented", record["implementation_status"].lower(), record["id"])
+            elif record["template"]:
+                self.assertEqual(record["form"], "worksheet", record["id"])
+                self.assertIn("worksheet available", record["implementation_status"], record["id"])
+            elif record["linked_methods"]:
+                self.assertEqual(record["form"], "computed", record["id"])
+            elif record["type"] == "Q":
+                self.assertEqual(record["implementation_status"], "not implemented", record["id"])
+            else:
+                self.assertEqual(record["form"], "read_only", record["id"])
+                self.assertIn("read-only record", record["implementation_status"], record["id"])
+
+
 class ServedUiContractTest(unittest.TestCase):
     """The served page must carry the subject rail and the Enter affordance.
 
     The Python suite cannot run the browser, so this guards the static markup
-    the client starts from: if another agent replaces the page, the ten subject
+    the client starts from: if another agent replaces the page, the eleven subject
     links, the expandable rail toggle and the up-arrow run button either exist
     in the file or this test fails. It is a presence guard, not a DOM test.
     """
@@ -117,8 +239,8 @@ class ServedUiContractTest(unittest.TestCase):
             self.html = stream.read()
 
     def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
-        for subject_id in ["accounting", "finance", "economics", "management", "entrepreneurship",
-                           "operations", "supply-chain", "marketing", "people", "research"]:
+        for subject_id in ["accounting", "finance", "economics", "management", "project-management",
+                           "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research"]:
             self.assertIn('href="#/subject/%s"' % subject_id, self.html)
             self.assertIn('data-subject="%s"' % subject_id, self.html)
         self.assertIn('id="railtoggle"', self.html)
@@ -129,12 +251,30 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.85", self.html)
+        self.assertRegex(self.html, r'id="buildpill"[^>]*>v\d+\.\d+<',
+                         "the build pill must carry the served version")
         self.assertIn("levelhead", self.html)
         self.assertIn("studynote", self.html)
         self.assertIn("capcard .lvl", self.html)
+        self.assertIn("function worksheetForm", self.html)
+        self.assertIn("function collectWorksheetInputs", self.html)
+        self.assertIn('const id = "wb-" + b.key', self.html)
+        self.assertIn('id="wlinks"', self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
+        # Solid text: secondary and tertiary copy use the primary ink, not grey.
+        self.assertIn("--text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;", self.html)
+
+    def test_frameworks_come_before_computation_and_too_many_get_a_picker(self):
+        """The page puts no-computation worksheets first, then computed tools, and
+        offers one picker across every framework when the shelf is long."""
+        self.assertIn("Frameworks without computation", self.html)
+        self.assertIn(">With computation<", self.html)
+        self.assertIn('id="frameworkpick"', self.html)
+        self.assertIn('id="casebrief"', self.html)
+        self.assertIn("/api/cases/match", self.html)
+        self.assertNotIn('"Catalogue " + esc(item.catalogue_id)', self.html)
+        self.assertLess(self.html.index("Frameworks without computation"), self.html.index(">With computation<"))
 
     def test_the_home_chat_uses_an_up_arrow_and_enter(self):
         self.assertIn('id="run"', self.html)
@@ -268,13 +408,16 @@ class SubjectRouteTest(unittest.TestCase):
     def test_gallery_and_detail_are_served_without_computing_anything(self):
         status, gallery = api.handle("GET", "/api/cases/subjects")
         self.assertEqual(status, 200)
-        self.assertEqual(len(gallery["subjects"]), 10)
+        self.assertEqual(len(gallery["subjects"]), 11)
         status, page = api.handle("GET", "/api/cases/subjects/accounting")
         self.assertEqual(status, 200)
         self.assertEqual(page["id"], "accounting")
         self.assertEqual({tool["method"] for tool in page["tools"]},
                          {"management_accounts", "ratio_analysis",
-                          "breakeven", "multi_product_breakeven", "trial_balance_check"})
+                          "breakeven", "multi_product_breakeven", "trial_balance_check",
+                          "standard_cost_variances", "abc_costing", "sales_variances",
+                          "working_capital", "loan_amortization",
+                          "trend_analysis"})
 
     def test_a_stored_case_is_filtered_by_the_methods_of_a_subject(self):
         status, stored = api.handle("POST", "/api/cases", product_fixtures.make_bundle())

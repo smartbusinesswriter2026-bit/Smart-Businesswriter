@@ -58,7 +58,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 1160 tests; expect "OK"
+python -m unittest discover -s tests          # currently 1266 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 
@@ -160,4 +160,4 @@ Rules: no network in the suite (use fake openers/sources); no sleeps; no relianc
 
 ## 11. Stop and ask (do not decide these yourself)
 
-These are owner decisions with live entries in `docs/DECISIONS.md`: naming **expert reviewers** and any T2→T1 promotion (B-005), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: **starting any item parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)** without the owner explicitly granting the frontier-model lane (a general "continue" does not release it, B-075), **unfreezing any part of the core** ([`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md), B-079) or satisfying a product need by editing the core/fixture instead of requesting the unfreeze (B-080), adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.
+These are owner decisions with live entries in `docs/DECISIONS.md`: **reviewer naming is not planned** (B-112; methods stay disclosed as not reviewed), choosing **next framework templates** (B-028), the **ledger engine** (B-032), and **taxation** (B-052). Also stop before: **starting any item parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.md)** without the owner explicitly granting the frontier-model lane (a general "continue" does not release it, B-075), **unfreezing any part of the core** ([`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md), B-079) or satisfying a product need by editing the core/fixture instead of requesting the unfreeze (B-080), adding a new external API or model provider, touching personal data handling (B-038), changing the stage list or the mandatory checkpoints, or anything that would change what the product is allowed to claim.

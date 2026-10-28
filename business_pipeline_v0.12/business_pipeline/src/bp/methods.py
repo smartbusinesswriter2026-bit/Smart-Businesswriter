@@ -20,7 +20,7 @@ class Method:
     metric: str; unit: str; decision: Callable | None = None; test_names: tuple = ()
     # --- contract fields (all defaulted so older constructions keep working) ---
     version: str = "1.0.0"; category: str = "decision"; status: str = "implemented_tested"
-    review_status: str = "pending_named_reviewer"   # T1 label stays, but review is disclosed (manual 5.3 promotion rule)
+    review_status: str = "pending_named_reviewer"   # disclosure only: no reviewer is named (B-112)
     intended_use: str = ""; unsupported_use: str = ""
     input_schema: dict = field(default_factory=dict)
     defaults: tuple = (); assumptions: tuple = (); limitations: tuple = ()
@@ -9516,6 +9516,1845 @@ def purchase_intent_template(out, P, th):
     return t
 
 
+# ---------- Digital marketing and campaign measurement (B-113) ----------
+
+def campaign_efficiency_impl(inp):
+    impressions = D(str(inp["impressions"])); clicks = D(str(inp["clicks"]))
+    conversions = D(str(inp["conversions"])); spend = D(str(inp["spend"])); revenue = D(str(inp["revenue"]))
+    if impressions <= 0:
+        raise DataError("impressions must be positive")
+    if clicks <= 0 or clicks > impressions:
+        raise DataError("clicks must be positive and cannot exceed impressions")
+    if conversions <= 0 or conversions > clicks:
+        raise DataError("conversions must be positive and cannot exceed clicks")
+    if spend <= 0:
+        raise DataError("spend must be positive")
+    if revenue < 0:
+        raise DataError("revenue must be non-negative")
+    out = {"impressions": impressions, "clicks": clicks, "conversions": conversions,
+           "spend": spend, "revenue": revenue,
+           "ctr": clicks / impressions, "cpc": spend / clicks, "cpm": spend / impressions * D(1000),
+           "conversion_rate": conversions / clicks, "cpa": spend / conversions,
+           "roas": revenue / spend, "acos": spend / revenue if revenue > 0 else None}
+    if out["acos"] is None:
+        out.pop("acos")
+    margin = _optional_decimal(inp, "contribution_margin_rate")
+    if margin is not None:
+        if not (D(0) < margin <= D(1)):
+            raise DataError("contribution_margin_rate must be in (0, 1]")
+        out["contribution_margin_rate"] = margin
+        out["break_even_roas"] = D(1) / margin
+        out["profit_after_media"] = revenue * margin - spend
+        out["roas_gap"] = out["roas"] - out["break_even_roas"]
+    return out
+
+def _campaign_ref(inp):
+    i = float(D(str(inp["impressions"]))); c = float(D(str(inp["clicks"])))
+    v = float(D(str(inp["conversions"]))); s = float(D(str(inp["spend"]))); r = float(D(str(inp["revenue"])))
+    return {"ctr": c / i, "cpc": s / c, "cpm": s / i * 1000.0, "conversion_rate": v / c,
+            "cpa": s / v, "roas": r / s, "acos": (s / r if r else None)}
+
+def campaign_efficiency_tests(inp, impl):
+    base, ref = impl(inp), _campaign_ref(inp)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref if ref[k] is not None), "float route agrees with the Decimal route"),
+        ("ctr_is_clicks_over_impressions", _close(base["ctr"], base["clicks"] / base["impressions"]), "click-through rate is clicks over impressions"),
+        ("cpa_is_spend_over_conversions", _close(base["cpa"], base["spend"] / base["conversions"]), "cost per acquisition is spend over conversions"),
+        ("roas_is_the_inverse_of_acos", ("acos" not in base) or _close(base["roas"] * base["acos"], D(1)), "return on ad spend and advertising cost of sales are reciprocals"),
+        ("cpc_is_cpa_times_conversion_rate", _close(base["cpc"], base["cpa"] * base["conversion_rate"]), "cost per click is the cost per acquisition scaled by the conversion rate"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def campaign_efficiency_profile(inp):
+    try:
+        impressions = D(str(inp.get("impressions"))); clicks = D(str(inp.get("clicks")))
+        conversions = D(str(inp.get("conversions"))); spend = D(str(inp.get("spend"))); revenue = D(str(inp.get("revenue")))
+        if impressions <= 0: return ["impressions must be positive"]
+        if clicks <= 0 or clicks > impressions: return ["clicks must be positive and cannot exceed impressions"]
+        if conversions <= 0 or conversions > clicks: return ["conversions must be positive and cannot exceed clicks"]
+        if spend <= 0: return ["spend must be positive"]
+        if revenue < 0: return ["revenue must be non-negative"]
+        margin = _optional_decimal(inp, "contribution_margin_rate")
+        if margin is not None and not (D(0) < margin <= D(1)): return ["contribution_margin_rate must be in (0, 1]"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["campaign inputs are malformed: impressions, clicks, conversions, spend and revenue are required"]
+
+def _campaign_typing(metric):
+    if metric in ("roas", "break_even_roas", "roas_gap"):
+        return ("ratio", 2)
+    if metric in ("ctr", "conversion_rate", "acos", "contribution_margin_rate"):
+        return ("rate", 4)
+    if metric in ("impressions", "clicks", "conversions"):
+        return ("count", 0)
+    return ("currency", 2)
+
+def campaign_efficiency_caveats(out, th):
+    return ["Every figure is arithmetic on the counts you declare; the method does not read an ad platform or reconcile its numbers.",
+            "A conversion is whatever you declared it to be; the rate is not comparable with another campaign that defined it differently.",
+            "Revenue is attributed to the campaign as you supplied it. No incrementality, overlap or multi-channel effect is modelled."]
+
+def campaign_efficiency_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The campaign recorded " + tok("impressions") + " impressions and " + tok("clicks") + " clicks, a click-through rate of " +
+         tok("ctr") + ", at " + tok("cpc") + " per click and " + tok("cpm") + " per thousand impressions.")
+    t += (" It produced " + tok("conversions") + " conversions at " + tok("cpa") + " each, on a conversion rate of " + tok("conversion_rate") + ".")
+    if "acos" in out:
+        t += " Revenue was " + tok("revenue") + ", so return on ad spend is " + tok("roas") + " and advertising cost of sales is " + tok("acos") + "."
+    else:
+        t += " No revenue was declared, so return on ad spend is not reported."
+    if "break_even_roas" in out:
+        t += (" At the declared contribution margin, break-even return on ad spend is " + tok("break_even_roas") +
+              " and profit after media spend is " + tok("profit_after_media") + ".")
+    return t
+
+
+def ab_test_two_proportion_impl(inp):
+    na = D(str(inp["visitors_a"])); ka = D(str(inp["conversions_a"]))
+    nb = D(str(inp["visitors_b"])); kb = D(str(inp["conversions_b"]))
+    if na <= 0 or nb <= 0:
+        raise DataError("each arm needs a positive visitor count")
+    if ka < 0 or ka > na or kb < 0 or kb > nb:
+        raise DataError("each arm's conversions must lie between zero and its visitors")
+    pa, pb = ka / na, kb / nb
+    if pa <= 0 or pa >= 1 or pb <= 0 or pb >= 1:
+        raise DataError("both conversion rates must lie strictly between zero and one for the pooled test")
+    pooled = (ka + kb) / (na + nb)
+    se_pool = (pooled * (D(1) - pooled) * (D(1) / na + D(1) / nb)).sqrt()
+    diff = pb - pa
+    z = float(diff / se_pool)
+    p_value = _fd(2 * _norm_sf(abs(z)))
+    alpha = D(str(inp.get("alpha", "0.05")))
+    if not (D(0) < alpha < D(1)):
+        raise DataError("alpha must be between 0 and 1")
+    z_crit = _fd(_zinv(1 - float(alpha) / 2))
+    se_diff = (pa * (D(1) - pa) / na + pb * (D(1) - pb) / nb).sqrt()
+    out = {"visitors_a": na, "conversions_a": ka, "visitors_b": nb, "conversions_b": kb,
+           "rate_a": pa, "rate_b": pb, "absolute_lift": diff,
+           "relative_lift": diff / pa, "pooled_rate": pooled, "z": _fd(z), "p_value": p_value,
+           "alpha": alpha, "confidence_level": D(1) - alpha, "z_critical": z_crit,
+           "ci_low": diff - z_crit * se_diff, "ci_high": diff + z_crit * se_diff,
+           "significant": D(1) if p_value < alpha else D(0)}
+    mde = _optional_decimal(inp, "minimum_effect")
+    if mde is not None:
+        if mde <= 0:
+            raise DataError("minimum_effect must be positive")
+        target = pa * (D(1) + mde)
+        if target <= 0 or target >= 1:
+            raise DataError("the declared minimum effect takes the target rate outside (0, 1)")
+        power = D(str(inp.get("power", "0.8")))
+        if not (D(0) < power < D(1)):
+            raise DataError("power must be between 0 and 1")
+        n = ((z_crit + _fd(_zinv(float(power)))) ** 2) * (pa * (D(1) - pa) + target * (D(1) - target)) / ((target - pa) ** 2)
+        out["minimum_effect"] = mde
+        out["target_rate"] = target
+        out["required_per_arm"] = _fd(math.ceil(float(n)))
+        out["power"] = power
+    return out
+
+def _ab_ref(inp):
+    na = float(D(str(inp["visitors_a"]))); ka = float(D(str(inp["conversions_a"])))
+    nb = float(D(str(inp["visitors_b"]))); kb = float(D(str(inp["conversions_b"])))
+    pa, pb = ka / na, kb / nb; pooled = (ka + kb) / (na + nb)
+    se = math.sqrt(pooled * (1 - pooled) * (1 / na + 1 / nb)); z = (pb - pa) / se
+    return {"rate_a": pa, "rate_b": pb, "absolute_lift": pb - pa, "relative_lift": (pb - pa) / pa,
+            "pooled_rate": pooled, "z": z, "p_value": 2 * _norm_sf(abs(z))}
+
+def ab_test_two_proportion_tests(inp, impl):
+    base, ref = impl(inp), _ab_ref(inp)
+    na = D(str(inp["visitors_a"])); ka = D(str(inp["conversions_a"]))
+    nb = D(str(inp["visitors_b"])); kb = D(str(inp["conversions_b"]))
+    pa, pb = ka / na, kb / nb
+    pooled = (ka + kb) / (na + nb)
+    se = (pooled * (D(1) - pooled) * (D(1) / na + D(1) / nb)).sqrt()
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref), "float route agrees with the Decimal route"),
+        ("absolute_lift_is_b_minus_a", _close(base["absolute_lift"], pb - pa), "the absolute lift is the difference between the two rates"),
+        ("relative_lift_is_absolute_lift_over_rate_a", _close(base["relative_lift"], (pb - pa) / pa), "the relative lift is the absolute lift over the control rate"),
+        ("z_is_the_difference_over_the_pooled_standard_error", _close(base["z"], (pb - pa) / se), "the test statistic uses the pooled standard error"),
+        ("p_value_is_the_two_sided_normal_tail", _close(base["p_value"], 2 * _norm_sf(abs(float((pb - pa) / se))), rel=1e-8), "the p-value is the two-sided normal tail of the test statistic"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def ab_test_two_proportion_profile(inp):
+    try:
+        na = D(str(inp.get("visitors_a"))); ka = D(str(inp.get("conversions_a")))
+        nb = D(str(inp.get("visitors_b"))); kb = D(str(inp.get("conversions_b")))
+        if na <= 0 or nb <= 0: return ["each arm needs a positive visitor count"]
+        if ka < 0 or ka > na or kb < 0 or kb > nb: return ["each arm's conversions must lie between zero and its visitors"]
+        if ka / na in (D(0), D(1)) or kb / nb in (D(0), D(1)): return ["both conversion rates must lie strictly between zero and one"]
+        alpha = D(str(inp.get("alpha", "0.05")))
+        if not (D(0) < alpha < D(1)): return ["alpha must be between 0 and 1"]
+        mde = _optional_decimal(inp, "minimum_effect")
+        if mde is not None:
+            if mde <= 0: return ["minimum_effect must be positive"]
+            target = ka / na * (D(1) + mde)
+            if target <= 0 or target >= 1: return ["the declared minimum effect takes the target rate outside (0, 1)"]
+            power = D(str(inp.get("power", "0.8")))
+            if not (D(0) < power < D(1)): return ["power must be between 0 and 1"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["A/B inputs are malformed: visitors and conversions are required for both arms"]
+
+def _ab_typing(metric):
+    if metric in ("rate_a", "rate_b", "absolute_lift", "relative_lift", "pooled_rate", "p_value", "alpha", "confidence_level", "ci_low", "ci_high", "minimum_effect", "target_rate", "power"):
+        return ("rate", 4)
+    if metric in ("visitors_a", "conversions_a", "visitors_b", "conversions_b", "required_per_arm", "significant"):
+        return ("count", 0)
+    return ("ratio", 4)
+
+def ab_test_two_proportion_caveats(out, th):
+    return ["Both arms are assumed independent, randomly assigned and observed over the same window.",
+            "The test is a normal approximation to the two-proportion comparison; it is not a sequential test and has no correction for peeking.",
+            "A significant difference is evidence of an association in this test, not proof that the change caused it or that it will hold."]
+
+def ab_test_two_proportion_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Variant A converted at " + tok("rate_a") + " and variant B at " + tok("rate_b") + ", an absolute lift of " +
+         tok("absolute_lift") + " and a relative lift of " + tok("relative_lift") + ".")
+    t += (" The two-sided test gives z = " + tok("z") + " and p = " + tok("p_value") + " against a declared alpha of " +
+          tok("alpha") + "; the " + tok("confidence_level") + " interval for the difference runs from " + tok("ci_low") +
+          " to " + tok("ci_high") + ".")
+    if "required_per_arm" in out:
+        t += (" To detect the declared minimum effect at the declared power, each arm would need " + tok("required_per_arm") + " visitors.")
+    return t
+
+
+def attribution_split_impl(inp):
+    rows = inp["channels"]
+    if len(rows) < 2:
+        raise DataError("at least two channels are required")
+    if len(rows) > 12:
+        raise DataError("at most twelve channels are supported")
+    names, first, last, linear = [], [], [], []
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip()
+        if not name or len(name) > 60:
+            raise DataError("channel %d needs a name of at most 60 characters" % i)
+        vals = [D(str(row["first_click"])), D(str(row["last_click"])), D(str(row["linear"]))]
+        if any(v < 0 for v in vals):
+            raise DataError("channel %d has a negative credit count" % i)
+        names.append(name); first.append(vals[0]); last.append(vals[1]); linear.append(vals[2])
+    totals = [sum(first, D(0)), sum(last, D(0)), sum(linear, D(0))]
+    if any(t <= 0 for t in totals):
+        raise DataError("every attribution model needs a positive total credit count")
+    out = {"channels": D(len(rows)), "total_first_click": totals[0], "total_last_click": totals[1], "total_linear": totals[2]}
+    spreads = []
+    for i in range(len(rows)):
+        f, l, n = first[i] / totals[0], last[i] / totals[1], linear[i] / totals[2]
+        out["first_share_%d" % (i + 1)] = f
+        out["last_share_%d" % (i + 1)] = l
+        out["linear_share_%d" % (i + 1)] = n
+        spread = max(f, l, n) - min(f, l, n)
+        out["spread_%d" % (i + 1)] = spread
+        spreads.append(spread)
+    out["max_spread"] = max(spreads)
+    return out
+
+def _attribution_ref(inp):
+    rows = inp["channels"]
+    first = [float(D(str(r["first_click"]))) for r in rows]
+    last = [float(D(str(r["last_click"]))) for r in rows]
+    linear = [float(D(str(r["linear"]))) for r in rows]
+    tf, tl, tn = sum(first), sum(last), sum(linear)
+    return {"first_share_1": first[0] / tf, "last_share_1": last[0] / tl, "linear_share_1": linear[0] / tn,
+            "total_first_click": tf, "total_last_click": tl, "total_linear": tn}
+
+def attribution_split_tests(inp, impl):
+    base, ref = impl(inp), _attribution_ref(inp)
+    rows = inp["channels"]; n = len(rows)
+    first = [D(str(r["first_click"])) for r in rows]
+    last = [D(str(r["last_click"])) for r in rows]
+    linear = [D(str(r["linear"])) for r in rows]
+    tf, tl, tn = sum(first, D(0)), sum(last, D(0)), sum(linear, D(0))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref), "float route agrees with the Decimal route"),
+        ("each_model_shares_sum_to_one", all(_close(sum((base["%s_share_%d" % (m, i + 1)] for i in range(n)), D(0)), D(1)) for m in ("first", "last", "linear")), "each model allocates exactly all of the credit"),
+        ("linear_share_is_declared_linear_over_its_total", all(_close(base["linear_share_%d" % (i + 1)], linear[i] / tn) for i in range(n)), "each linear share is its declared credit over the model total"),
+        ("spread_is_max_minus_min_per_channel", all(_close(base["spread_%d" % (i + 1)], max(base["first_share_%d" % (i + 1)], base["last_share_%d" % (i + 1)], base["linear_share_%d" % (i + 1)]) - min(base["first_share_%d" % (i + 1)], base["last_share_%d" % (i + 1)], base["linear_share_%d" % (i + 1)])) for i in range(n)), "the spread is the largest share minus the smallest"),
+        ("max_spread_is_the_largest_channel_spread", _close(base["max_spread"], max(base["spread_%d" % (i + 1)] for i in range(n))), "the reported maximum is the largest channel spread"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def attribution_split_profile(inp):
+    try:
+        rows = inp.get("channels")
+        if not isinstance(rows, list) or len(rows) < 2: return ["at least two channels are required"]
+        if len(rows) > 12: return ["at most twelve channels are supported"]
+        totals = [D(0), D(0), D(0)]
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["channel %d needs a name" % i]
+            vals = [D(str(row.get("first_click"))), D(str(row.get("last_click"))), D(str(row.get("linear")))]
+            if any(v < 0 for v in vals): return ["channel %d has a negative credit count" % i]
+            for j in range(3): totals[j] += vals[j]
+        if any(t <= 0 for t in totals): return ["every attribution model needs a positive total credit count"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["attribution inputs are malformed: channels need first_click, last_click and linear counts"]
+
+def _attribution_typing(metric):
+    if metric.startswith(("first_share_", "last_share_", "linear_share_", "spread_")) or metric == "max_spread":
+        return ("rate", 4)
+    return ("count", 0)
+
+def attribution_split_caveats(out, th):
+    return ["The credit counts under each rule are declared by you; the method divides them and compares the shares, it does not allocate credit itself.",
+            "Credit is not causation: a channel can receive credit for a conversion it did not cause, and no incrementality is measured.",
+            "Only the three declared rules are compared; time-decay, data-driven and experiment-based attribution are out of scope."]
+
+def attribution_split_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Across the declared channels, the largest difference between the first-click, last-click and linear shares is " +
+         tok("max_spread") + ".")
+    t += (" First-click credit totals " + tok("total_first_click") + ", last-click " + tok("total_last_click") +
+          " and linear " + tok("total_linear") + "; each rule spreads the same conversions differently, so a channel's share depends on the rule you choose.")
+    return t
+
+
+def channel_economics_impl(inp):
+    rows = inp["channels"]
+    if len(rows) < 2:
+        raise DataError("at least two channels are required")
+    if len(rows) > 12:
+        raise DataError("at most twelve channels are supported")
+    parsed = []
+    total_spend = D(0); total_customers = D(0)
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip()
+        if not name or len(name) > 60:
+            raise DataError("channel %d needs a name of at most 60 characters" % i)
+        spend = D(str(row["spend"])); customers = D(str(row["new_customers"]))
+        margin = D(str(row["contribution_margin"])); churn = D(str(row["churn_rate"]))
+        if spend <= 0: raise DataError("channel %d spend must be positive" % i)
+        if customers <= 0: raise DataError("channel %d needs a positive customer count" % i)
+        if margin <= 0: raise DataError("channel %d contribution margin must be positive" % i)
+        if not (D(0) < churn <= D(1)): raise DataError("channel %d churn_rate must be in (0, 1]" % i)
+        parsed.append((name, spend, customers, margin, churn))
+        total_spend += spend; total_customers += customers
+    out = {"total_spend": total_spend, "total_customers": total_customers,
+           "blended_cac": total_spend / total_customers}
+    for i, (name, spend, customers, margin, churn) in enumerate(parsed, 1):
+        cac = spend / customers
+        out["spend_%d" % i] = spend
+        out["customers_%d" % i] = customers
+        out["cac_%d" % i] = cac
+        out["payback_%d" % i] = cac / margin
+        out["ltv_%d" % i] = margin / churn
+        out["ltv_cac_%d" % i] = (margin / churn) / cac
+        out["spend_share_%d" % i] = spend / total_spend
+    return out
+
+def _channel_ref(inp):
+    rows = inp["channels"]
+    spend = [float(D(str(r["spend"]))) for r in rows]
+    cust = [float(D(str(r["new_customers"]))) for r in rows]
+    margin = [float(D(str(r["contribution_margin"]))) for r in rows]
+    churn = [float(D(str(r["churn_rate"]))) for r in rows]
+    ts, tc = sum(spend), sum(cust)
+    return {"total_spend": ts, "total_customers": tc, "blended_cac": ts / tc,
+            "cac_1": spend[0] / cust[0], "ltv_1": margin[0] / churn[0], "payback_1": (spend[0] / cust[0]) / margin[0],
+            "spend_share_1": spend[0] / ts}
+
+def channel_economics_tests(inp, impl):
+    base, ref = impl(inp), _channel_ref(inp)
+    rows = inp["channels"]; n = len(rows)
+    spend = [D(str(r["spend"])) for r in rows]
+    cust = [D(str(r["new_customers"])) for r in rows]
+    margin = [D(str(r["contribution_margin"])) for r in rows]
+    churn = [D(str(r["churn_rate"])) for r in rows]
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref), "float route agrees with the Decimal route"),
+        ("cac_is_spend_over_customers", all(_close(base["cac_%d" % (i + 1)], spend[i] / cust[i]) for i in range(n)), "each channel's CAC is its spend over its new customers"),
+        ("payback_is_cac_over_margin", all(_close(base["payback_%d" % (i + 1)], (spend[i] / cust[i]) / margin[i]) for i in range(n)), "payback is the CAC divided by the contribution margin"),
+        ("spend_shares_sum_to_one", _close(sum((base["spend_share_%d" % (i + 1)] for i in range(n)), D(0)), D(1)), "the channel spend shares cover the whole budget"),
+        ("blended_cac_is_total_spend_over_total_customers", _close(base["blended_cac"], sum(spend, D(0)) / sum(cust, D(0))), "the blended CAC pools every channel"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def channel_economics_profile(inp):
+    try:
+        rows = inp.get("channels")
+        if not isinstance(rows, list) or len(rows) < 2: return ["at least two channels are required"]
+        if len(rows) > 12: return ["at most twelve channels are supported"]
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["channel %d needs a name" % i]
+            spend = D(str(row.get("spend"))); customers = D(str(row.get("new_customers")))
+            margin = D(str(row.get("contribution_margin"))); churn = D(str(row.get("churn_rate")))
+            if spend <= 0: return ["channel %d spend must be positive" % i]
+            if customers <= 0: return ["channel %d needs a positive customer count" % i]
+            if margin <= 0: return ["channel %d contribution margin must be positive" % i]
+            if not (D(0) < churn <= D(1)): return ["channel %d churn_rate must be in (0, 1]" % i]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["channel inputs are malformed: each channel needs spend, new_customers, contribution_margin and churn_rate"]
+
+def _channel_typing(metric):
+    if metric.startswith("payback_"):
+        return ("ratio", 2)
+    if metric in ("total_spend", "blended_cac") or metric.startswith(("cac_", "ltv_")):
+        return ("currency", 2)
+    if metric.startswith(("spend_share_", "ltv_cac_")):
+        return ("ratio", 4)
+    return ("count", 0)
+
+def channel_economics_caveats(out, th):
+    return ["Every channel is measured on its own declared spend, customers, margin and churn; the method does not allocate shared or brand spend.",
+            "LTV is the declared margin divided by churn, a period value with no discounting; it is not a modelled lifetime.",
+            "No cross-channel effect, saturation, incrementality or diminishing return is modelled; shifting budget may change these numbers."]
+
+def channel_economics_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Across the declared channels, " + tok("total_spend") + " bought " + tok("total_customers") +
+         " customers, a blended acquisition cost of " + tok("blended_cac") + ".")
+    t += (" The first declared channel pays back its acquisition cost in " + tok("payback_1") + " periods and returns " +
+          tok("ltv_cac_1") + " of lifetime value per unit of acquisition cost.")
+    return t
+
+
+def email_list_health_impl(inp):
+    start = D(str(inp["list_start"])); new = D(str(inp["new_subscribers"]))
+    unsub = D(str(inp["unsubscribes"])); bounce = D(str(inp["bounces"]))
+    sends = D(str(inp["sends"])); opens = D(str(inp["opens"])); clicks = D(str(inp["clicks"]))
+    revenue = D(str(inp["revenue"]))
+    if start <= 0: raise DataError("list_start must be positive")
+    if any(v < 0 for v in (new, unsub, bounce)): raise DataError("subscriber counts must be non-negative")
+    if unsub + bounce > start + new: raise DataError("unsubscribes and bounces exceed the list available")
+    if sends <= 0: raise DataError("sends must be positive")
+    if opens < 0 or opens > sends: raise DataError("opens must lie between zero and sends")
+    if clicks < 0 or clicks > opens: raise DataError("clicks cannot exceed opens")
+    if revenue < 0: raise DataError("revenue must be non-negative")
+    end = start + new - unsub - bounce
+    if end <= 0: raise DataError("the list is empty after the declared losses")
+    out = {"list_end": end, "growth_rate": (end - start) / start,
+           "churn_rate": (unsub + bounce) / start,
+           "open_rate": opens / sends, "click_rate": clicks / sends,
+           "click_to_open": clicks / opens if opens > 0 else None,
+           "revenue_per_subscriber": revenue / end, "revenue_per_send": revenue / sends}
+    if out["click_to_open"] is None:
+        out.pop("click_to_open")
+    return out
+
+def _email_ref(inp):
+    start = float(D(str(inp["list_start"]))); new = float(D(str(inp["new_subscribers"])))
+    unsub = float(D(str(inp["unsubscribes"]))); bounce = float(D(str(inp["bounces"])))
+    sends = float(D(str(inp["sends"]))); opens = float(D(str(inp["opens"]))); clicks = float(D(str(inp["clicks"])))
+    rev = float(D(str(inp["revenue"]))); end = start + new - unsub - bounce
+    return {"list_end": end, "growth_rate": (end - start) / start, "churn_rate": (unsub + bounce) / start,
+            "open_rate": opens / sends, "click_rate": clicks / sends,
+            "click_to_open": (clicks / opens if opens else None), "revenue_per_subscriber": rev / end}
+
+def email_list_health_tests(inp, impl):
+    base, ref = impl(inp), _email_ref(inp)
+    start = D(str(inp["list_start"])); new = D(str(inp["new_subscribers"]))
+    unsub = D(str(inp["unsubscribes"])); bounce = D(str(inp["bounces"]))
+    sends = D(str(inp["sends"])); opens = D(str(inp["opens"])); clicks = D(str(inp["clicks"]))
+    revenue = D(str(inp["revenue"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref if ref[k] is not None), "float route agrees with the Decimal route"),
+        ("list_end_is_start_plus_new_minus_losses", _close(base["list_end"], start + new - unsub - bounce), "the closing list adds new subscribers and removes unsubscribes and bounces"),
+        ("open_rate_is_opens_over_sends", _close(base["open_rate"], opens / sends), "the open rate is opens over sends"),
+        ("click_to_open_is_clicks_over_opens", ("click_to_open" not in base) or _close(base["click_to_open"], clicks / opens), "the click-to-open rate is clicks over opens"),
+        ("revenue_per_subscriber_is_revenue_over_list_end", _close(base["revenue_per_subscriber"], revenue / base["list_end"]), "revenue per subscriber uses the closing list"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def email_list_health_profile(inp):
+    try:
+        start = D(str(inp.get("list_start"))); new = D(str(inp.get("new_subscribers")))
+        unsub = D(str(inp.get("unsubscribes"))); bounce = D(str(inp.get("bounces")))
+        sends = D(str(inp.get("sends"))); opens = D(str(inp.get("opens"))); clicks = D(str(inp.get("clicks")))
+        revenue = D(str(inp.get("revenue")))
+        if start <= 0: return ["list_start must be positive"]
+        if any(v < 0 for v in (new, unsub, bounce)): return ["subscriber counts must be non-negative"]
+        if unsub + bounce > start + new: return ["unsubscribes and bounces exceed the list available"]
+        if sends <= 0: return ["sends must be positive"]
+        if opens < 0 or opens > sends: return ["opens must lie between zero and sends"]
+        if clicks < 0 or clicks > opens: return ["clicks cannot exceed opens"]
+        if revenue < 0: return ["revenue must be non-negative"]
+        if start + new - unsub - bounce <= 0: return ["the list is empty after the declared losses"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["email inputs are malformed: the list, send, open and click counts are required"]
+
+def _email_typing(metric):
+    if metric.startswith(("revenue_",)):
+        return ("currency", 2)
+    if metric in ("list_end",):
+        return ("count", 0)
+    return ("rate", 4)
+
+def email_list_health_caveats(out, th):
+    return ["The list counts and the send counts are declared; the method does not read an email platform or deduplicate the list.",
+            "An open is counted as declared: a machine-opened message still counts, so open rates are an upper bound on reading.",
+            "No deliverability, consent, segmentation or revenue-attribution model is applied; revenue is the amount you supplied."]
+
+def email_list_health_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The list moved from its starting size to " + tok("list_end") + ", a growth rate of " + tok("growth_rate") +
+         " and a churn rate of " + tok("churn_rate") + ".")
+    t += (" Sends produced an open rate of " + tok("open_rate") + " and a click rate of " + tok("click_rate") + ".")
+    if "click_to_open" in out:
+        t += " The click-to-open rate is " + tok("click_to_open") + "."
+    t += " Revenue per subscriber is " + tok("revenue_per_subscriber") + "."
+    return t
+
+
+def social_engagement_impl(inp):
+    impressions = D(str(inp["impressions"])); reach = D(str(inp["reach"]))
+    engagements = D(str(inp["engagements"])); followers = D(str(inp["followers_start"]))
+    gained = D(str(inp["followers_gained"])); spend = D(str(inp["spend"]))
+    if impressions <= 0: raise DataError("impressions must be positive")
+    if reach <= 0 or reach > impressions: raise DataError("reach must be positive and cannot exceed impressions")
+    if engagements < 0 or engagements > reach: raise DataError("engagements must lie between zero and reach")
+    if followers <= 0: raise DataError("followers_start must be positive")
+    if gained < -followers: raise DataError("followers_gained cannot take the audience below zero")
+    if spend < 0: raise DataError("spend must be non-negative")
+    out = {"impressions": impressions, "reach": reach, "engagements": engagements, "spend": spend,
+           "engagement_rate": engagements / reach, "frequency": impressions / reach,
+           "cpm": spend / impressions * D(1000),
+           "cost_per_engagement": (spend / engagements) if engagements > 0 else None,
+           "follower_growth": gained / followers}
+    if out["cost_per_engagement"] is None:
+        out.pop("cost_per_engagement")
+    posts = _optional_decimal(inp, "posts")
+    if posts is not None:
+        if posts <= 0: raise DataError("posts must be positive")
+        out["posts"] = posts
+        out["engagement_per_post"] = engagements / posts
+    return out
+
+def _social_ref(inp):
+    imp = float(D(str(inp["impressions"]))); reach = float(D(str(inp["reach"])))
+    eng = float(D(str(inp["engagements"]))); spend = float(D(str(inp["spend"])))
+    fol = float(D(str(inp["followers_start"]))); gained = float(D(str(inp["followers_gained"])))
+    return {"engagement_rate": eng / reach, "frequency": imp / reach, "cpm": spend / imp * 1000.0,
+            "cost_per_engagement": (spend / eng if eng else None), "follower_growth": gained / fol}
+
+def social_engagement_tests(inp, impl):
+    base, ref = impl(inp), _social_ref(inp)
+    imp = D(str(inp["impressions"])); reach = D(str(inp["reach"]))
+    eng = D(str(inp["engagements"])); spend = D(str(inp["spend"]))
+    fol = D(str(inp["followers_start"])); gained = D(str(inp["followers_gained"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref if ref[k] is not None), "float route agrees with the Decimal route"),
+        ("engagement_rate_is_engagements_over_reach", _close(base["engagement_rate"], eng / reach), "the engagement rate uses reach, not impressions"),
+        ("frequency_is_impressions_over_reach", _close(base["frequency"], imp / reach), "frequency is impressions over reach"),
+        ("cpm_is_spend_per_thousand_impressions", _close(base["cpm"], spend / imp * D(1000)), "cost per thousand impressions uses impressions"),
+        ("follower_growth_is_gained_over_starting_followers", _close(base["follower_growth"], gained / fol), "follower growth is measured against the starting audience"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def social_engagement_profile(inp):
+    try:
+        imp = D(str(inp.get("impressions"))); reach = D(str(inp.get("reach")))
+        eng = D(str(inp.get("engagements"))); fol = D(str(inp.get("followers_start")))
+        gained = D(str(inp.get("followers_gained"))); spend = D(str(inp.get("spend")))
+        if imp <= 0: return ["impressions must be positive"]
+        if reach <= 0 or reach > imp: return ["reach must be positive and cannot exceed impressions"]
+        if eng < 0 or eng > reach: return ["engagements must lie between zero and reach"]
+        if fol <= 0: return ["followers_start must be positive"]
+        if gained < -fol: return ["followers_gained cannot take the audience below zero"]
+        if spend < 0: return ["spend must be non-negative"]
+        posts = _optional_decimal(inp, "posts")
+        if posts is not None and posts <= 0: return ["posts must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["social inputs are malformed: impressions, reach, engagements, followers and spend are required"]
+
+def _social_typing(metric):
+    if metric in ("impressions", "reach", "engagements", "posts"):
+        return ("count", 0)
+    if metric in ("spend", "cpm", "cost_per_engagement"):
+        return ("currency", 2)
+    if metric == "frequency":
+        return ("ratio", 4)
+    if metric == "engagement_per_post":
+        return ("ratio", 2)
+    return ("rate", 4)
+
+def social_engagement_caveats(out, th):
+    return ["Reach, impressions and engagements are the counts the platform reported or you declared; the method does not reconcile them.",
+            "Every platform defines an engagement differently; a rate is only comparable with the same definition and the same period.",
+            "No bot filtering, view-through, sentiment or audience-quality correction is applied."]
+
+def social_engagement_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The posts reached " + tok("reach") + " people and recorded " + tok("engagements") + " engagements, an engagement rate of " +
+         tok("engagement_rate") + " at a frequency of " + tok("frequency") + ".")
+    t += (" Cost per thousand impressions is " + tok("cpm") + " and follower growth is " + tok("follower_growth") + ".")
+    if "cost_per_engagement" in out:
+        t += " Cost per engagement is " + tok("cost_per_engagement") + "."
+    return t
+
+
+def web_analytics_impl(inp):
+    rows = inp["channels"]
+    if len(rows) < 2:
+        raise DataError("at least two channels are required")
+    if len(rows) > 12:
+        raise DataError("at most twelve channels are supported")
+    parsed = []
+    total_sessions = D(0); total_conversions = D(0); total_revenue = D(0)
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip()
+        if not name or len(name) > 60:
+            raise DataError("channel %d needs a name of at most 60 characters" % i)
+        sessions = D(str(row["sessions"])); conversions = D(str(row["conversions"]))
+        revenue = D(str(row["revenue"]))
+        if sessions <= 0: raise DataError("channel %d sessions must be positive" % i)
+        if conversions < 0 or conversions > sessions: raise DataError("channel %d conversions must lie between zero and its sessions" % i)
+        if revenue < 0: raise DataError("channel %d revenue must be non-negative" % i)
+        parsed.append((name, sessions, conversions, revenue))
+        total_sessions += sessions; total_conversions += conversions; total_revenue += revenue
+    out = {"total_sessions": total_sessions, "total_conversions": total_conversions,
+           "total_revenue": total_revenue, "blended_conversion_rate": total_conversions / total_sessions,
+           "revenue_per_session": total_revenue / total_sessions}
+    for i, (name, sessions, conversions, revenue) in enumerate(parsed, 1):
+        out["sessions_%d" % i] = sessions
+        out["conversions_%d" % i] = conversions
+        out["revenue_%d" % i] = revenue
+        out["session_share_%d" % i] = sessions / total_sessions
+        out["conversion_rate_%d" % i] = conversions / sessions
+        out["revenue_per_session_%d" % i] = revenue / sessions
+    organic_impressions = _optional_decimal(inp, "organic_impressions")
+    organic_clicks = _optional_decimal(inp, "organic_clicks")
+    if organic_impressions is not None or organic_clicks is not None:
+        if organic_impressions is None or organic_clicks is None:
+            raise DataError("declare both organic_impressions and organic_clicks, or neither")
+        if organic_impressions <= 0: raise DataError("organic_impressions must be positive")
+        if organic_clicks < 0 or organic_clicks > organic_impressions: raise DataError("organic_clicks must lie between zero and organic_impressions")
+        out["organic_impressions"] = organic_impressions
+        out["organic_clicks"] = organic_clicks
+        out["organic_ctr"] = organic_clicks / organic_impressions
+    return out
+
+def _web_ref(inp):
+    rows = inp["channels"]
+    s = [float(D(str(r["sessions"]))) for r in rows]
+    c = [float(D(str(r["conversions"]))) for r in rows]
+    r = [float(D(str(r["revenue"]))) for r in rows]
+    ts, tc, tr = sum(s), sum(c), sum(r)
+    return {"total_sessions": ts, "total_conversions": tc, "total_revenue": tr,
+            "blended_conversion_rate": tc / ts, "revenue_per_session": tr / ts,
+            "session_share_1": s[0] / ts, "conversion_rate_1": c[0] / s[0], "revenue_per_session_1": r[0] / s[0]}
+
+def web_analytics_tests(inp, impl):
+    base, ref = impl(inp), _web_ref(inp)
+    rows = inp["channels"]; n = len(rows)
+    sessions = [D(str(r["sessions"])) for r in rows]
+    conversions = [D(str(r["conversions"])) for r in rows]
+    revenue = [D(str(r["revenue"])) for r in rows]
+    ts, tc, tr = sum(sessions, D(0)), sum(conversions, D(0)), sum(revenue, D(0))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref), "float route agrees with the Decimal route"),
+        ("session_shares_sum_to_one", _close(sum((base["session_share_%d" % (i + 1)] for i in range(n)), D(0)), D(1)), "the channel session shares cover every session"),
+        ("conversion_rate_is_conversions_over_sessions", all(_close(base["conversion_rate_%d" % (i + 1)], conversions[i] / sessions[i]) for i in range(n)), "each channel's conversion rate is its conversions over its sessions"),
+        ("blended_conversion_rate_is_total_conversions_over_total_sessions", _close(base["blended_conversion_rate"], tc / ts), "the blended rate pools every channel"),
+        ("revenue_per_session_is_revenue_over_sessions", all(_close(base["revenue_per_session_%d" % (i + 1)], revenue[i] / sessions[i]) for i in range(n)), "each channel's revenue per session uses its own revenue and sessions"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def web_analytics_profile(inp):
+    try:
+        rows = inp.get("channels")
+        if not isinstance(rows, list) or len(rows) < 2: return ["at least two channels are required"]
+        if len(rows) > 12: return ["at most twelve channels are supported"]
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["channel %d needs a name" % i]
+            sessions = D(str(row.get("sessions"))); conversions = D(str(row.get("conversions")))
+            revenue = D(str(row.get("revenue")))
+            if sessions <= 0: return ["channel %d sessions must be positive" % i]
+            if conversions < 0 or conversions > sessions: return ["channel %d conversions must lie between zero and its sessions" % i]
+            if revenue < 0: return ["channel %d revenue must be non-negative" % i]
+        oi = _optional_decimal(inp, "organic_impressions"); oc = _optional_decimal(inp, "organic_clicks")
+        if (oi is None) != (oc is None): return ["declare both organic_impressions and organic_clicks, or neither"]
+        if oi is not None:
+            if oi <= 0: return ["organic_impressions must be positive"]
+            if oc < 0 or oc > oi: return ["organic_clicks must lie between zero and organic_impressions"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["web inputs are malformed: each channel needs sessions, conversions and revenue"]
+
+def _web_typing(metric):
+    if metric.startswith(("session_share_", "conversion_rate_")) or metric in ("blended_conversion_rate", "organic_ctr"):
+        return ("rate", 4)
+    if metric.startswith(("revenue", "total_revenue")):
+        return ("currency", 2)
+    return ("count", 0)
+
+def web_analytics_caveats(out, th):
+    return ["Sessions, conversions and revenue are the numbers you declare; a session definition or attribution window that differs between channels makes the comparison unfair.",
+            "Direct traffic and unattributed sessions are only visible if you declare them as a channel.",
+            "No attribution, incrementality or bot filtering is applied; revenue is assigned to the channel that reported it."]
+
+def web_analytics_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The declared channels brought " + tok("total_sessions") + " sessions and " + tok("total_conversions") +
+         " conversions, a blended conversion rate of " + tok("blended_conversion_rate") + " and " +
+         tok("revenue_per_session") + " of revenue per session.")
+    if "organic_ctr" in out:
+        t += (" Organic search recorded " + tok("organic_ctr") + " click-through from " + tok("organic_impressions") + " impressions.")
+    return t
+
+
+# ---------- Accounting and operations shelf (B-110) ----------
+
+def standard_cost_variances_impl(inp):
+    units = D(str(inp["actual_units"]))
+    sq = units * D(str(inp["standard_material_per_unit"]))
+    sp = D(str(inp["standard_material_price"]))
+    aq = D(str(inp["actual_material_quantity"]))
+    ap = D(str(inp["actual_material_price"]))
+    sh = units * D(str(inp["standard_hours_per_unit"]))
+    sr = D(str(inp["standard_labour_rate"]))
+    ah = D(str(inp["actual_hours"]))
+    ar = D(str(inp["actual_labour_rate"]))
+    if units <= 0:
+        raise DataError("actual_units must be positive")
+    for key, value in (("standard_material_per_unit", inp["standard_material_per_unit"]),
+                       ("standard_material_price", sp), ("actual_material_quantity", aq),
+                       ("actual_material_price", ap), ("standard_hours_per_unit", inp["standard_hours_per_unit"]),
+                       ("standard_labour_rate", sr), ("actual_hours", ah), ("actual_labour_rate", ar)):
+        if D(str(value)) < 0:
+            raise DataError(key + " must be non-negative")
+    mat_price = aq * (ap - sp)
+    mat_usage = sp * (aq - sq)
+    lab_rate = ah * (ar - sr)
+    lab_eff = sr * (ah - sh)
+    out = {"actual_units": units, "standard_material_quantity": sq, "standard_hours": sh,
+           "material_price_variance": mat_price, "material_usage_variance": mat_usage,
+           "labour_rate_variance": lab_rate, "labour_efficiency_variance": lab_eff,
+           "material_variance": mat_price + mat_usage, "labour_variance": lab_rate + lab_eff}
+    total = mat_price + mat_usage + lab_rate + lab_eff
+    vo_rate = _optional_decimal(inp, "standard_variable_overhead_rate")
+    if vo_rate is not None:
+        avo = D(str(inp["actual_variable_overhead"]))
+        if vo_rate < 0 or avo < 0:
+            raise DataError("variable overhead inputs must be non-negative")
+        out["standard_variable_overhead_rate"] = vo_rate
+        out["variable_overhead_spending_variance"] = avo - ah * vo_rate
+        out["variable_overhead_efficiency_variance"] = vo_rate * (ah - sh)
+        total += out["variable_overhead_spending_variance"] + out["variable_overhead_efficiency_variance"]
+    budgeted = _optional_decimal(inp, "budgeted_fixed_overhead")
+    if budgeted is not None:
+        actual_foh = D(str(inp["actual_fixed_overhead"]))
+        denominator = D(str(inp["denominator_hours"]))
+        if budgeted < 0 or actual_foh < 0 or denominator <= 0:
+            raise DataError("fixed overhead inputs must be non-negative and denominator_hours positive")
+        rate = budgeted / denominator
+        applied = sh * rate
+        out["standard_fixed_overhead_rate"] = rate
+        out["fixed_overhead_spending_variance"] = actual_foh - budgeted
+        out["fixed_overhead_volume_variance"] = budgeted - applied
+        total += out["fixed_overhead_spending_variance"] + out["fixed_overhead_volume_variance"]
+    out["total_variance"] = total
+    return out
+
+def _scv_ref(inp):
+    units = float(D(str(inp["actual_units"])))
+    sq = units * float(D(str(inp["standard_material_per_unit"])))
+    sp = float(D(str(inp["standard_material_price"])))
+    aq = float(D(str(inp["actual_material_quantity"])))
+    ap = float(D(str(inp["actual_material_price"])))
+    sh = units * float(D(str(inp["standard_hours_per_unit"])))
+    sr = float(D(str(inp["standard_labour_rate"])))
+    ah = float(D(str(inp["actual_hours"])))
+    ar = float(D(str(inp["actual_labour_rate"])))
+    mat = aq * ap - sq * sp
+    lab = ah * ar - sh * sr
+    return {"material_variance": mat, "labour_variance": lab, "total_variance": mat + lab}
+
+def standard_cost_variances_tests(inp, impl):
+    base, ref = impl(inp), _scv_ref(inp)
+    units = D(str(inp["actual_units"]))
+    sq = units * D(str(inp["standard_material_per_unit"]))
+    sp = D(str(inp["standard_material_price"]))
+    aq = D(str(inp["actual_material_quantity"]))
+    ap = D(str(inp["actual_material_price"]))
+    sh = units * D(str(inp["standard_hours_per_unit"]))
+    sr = D(str(inp["standard_labour_rate"]))
+    ah = D(str(inp["actual_hours"]))
+    ar = D(str(inp["actual_labour_rate"]))
+    fixed = [base[k] for k in ("material_price_variance", "material_usage_variance", "labour_rate_variance",
+                               "labour_efficiency_variance", "variable_overhead_spending_variance",
+                               "variable_overhead_efficiency_variance", "fixed_overhead_spending_variance",
+                               "fixed_overhead_volume_variance") if k in base]
+    checks = [
+        ("second_implementation_agrees", _close(base["material_variance"], ref["material_variance"], rel=1e-9)
+         and _close(base["labour_variance"], ref["labour_variance"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("material_price_and_usage_sum_to_the_material_variance",
+         _close(base["material_price_variance"] + base["material_usage_variance"], aq * ap - sq * sp), "the price and usage variances add to actual material cost less standard material cost"),
+        ("labour_rate_and_efficiency_sum_to_the_labour_variance",
+         _close(base["labour_rate_variance"] + base["labour_efficiency_variance"], ah * ar - sh * sr), "the rate and efficiency variances add to actual labour cost less standard labour cost"),
+        ("fixed_overhead_volume_is_budget_applied",
+         "fixed_overhead_volume_variance" not in base
+         or _close(base["fixed_overhead_volume_variance"], D(str(inp["budgeted_fixed_overhead"])) - sh * base["standard_fixed_overhead_rate"]),
+         "the volume variance is the budgeted overhead less the overhead applied to actual output"),
+        ("total_variance_is_the_sum_of_the_reported_variances", _close(base["total_variance"], sum(fixed, D(0))), "the total is the sum of the variances reported"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def standard_cost_variances_profile(inp):
+    try:
+        units = D(str(inp["actual_units"]))
+        if units <= 0:
+            return ["actual_units must be positive"]
+        for key in ("standard_material_per_unit", "standard_material_price", "actual_material_quantity",
+                    "actual_material_price", "standard_hours_per_unit", "standard_labour_rate",
+                    "actual_hours", "actual_labour_rate"):
+            if D(str(inp[key])) < 0:
+                return [key + " must be non-negative"]
+        vo = _optional_decimal(inp, "standard_variable_overhead_rate")
+        if vo is not None:
+            if vo < 0 or D(str(inp.get("actual_variable_overhead", "0"))) < 0:
+                return ["variable overhead inputs must be non-negative"]
+            if "actual_variable_overhead" not in inp:
+                return ["actual_variable_overhead is required when a standard variable overhead rate is declared"]
+        budgeted = _optional_decimal(inp, "budgeted_fixed_overhead")
+        if budgeted is not None:
+            if budgeted < 0 or D(str(inp.get("actual_fixed_overhead", "0"))) < 0:
+                return ["fixed overhead inputs must be non-negative"]
+            if D(str(inp.get("denominator_hours", "0"))) <= 0:
+                return ["denominator_hours must be positive when fixed overhead is declared"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError) as e:
+        return ["standard-cost inputs are malformed: actual_units, the standard and actual material figures, and the standard and actual labour figures are required"]
+
+def _scv_typing(metric):
+    if metric in ("actual_units", "standard_material_quantity", "standard_hours"):
+        return ("units", 2)
+    if metric in ("standard_material_per_unit",):
+        return ("ratio", 4)
+    if metric in ("standard_hours_per_unit",):
+        return ("periods", 4)
+    return ("currency", 2)
+
+def standard_cost_variances_caveats(out, th):
+    return ["A positive variance means actual cost was higher than standard for the output achieved (unfavourable); a negative variance is favourable.",
+            "The standard quantities and prices are the ones you declare; the method does not set standards or judge whether they are attainable.",
+            "Only the variances named are computed: material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead. Mix, yield, sales and planning variances are not modelled."]
+
+def standard_cost_variances_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("For " + tok("actual_units") + " units, the material price variance is " + tok("material_price_variance") +
+         " and the material usage variance is " + tok("material_usage_variance") + "; the labour rate variance is " +
+         tok("labour_rate_variance") + " and the labour efficiency variance is " + tok("labour_efficiency_variance") + ".")
+    t += " The total variance is " + tok("total_variance") + ", with a positive figure unfavourable."
+    return t
+
+
+def inventory_policy_impl(inp):
+    demand = D(str(inp["annual_demand"]))
+    order_cost = D(str(inp["order_cost"]))
+    holding = D(str(inp["holding_cost_per_unit"]))
+    lead = D(str(inp["lead_time_days"]))
+    days = D(str(inp.get("days_per_year", "365")))
+    service = _optional_decimal(inp, "service_level")
+    sd = _optional_decimal(inp, "daily_demand_sd")
+    if demand <= 0:
+        raise DataError("annual_demand must be positive")
+    if order_cost <= 0:
+        raise DataError("order_cost must be positive")
+    if holding <= 0:
+        raise DataError("holding_cost_per_unit must be positive")
+    if lead <= 0:
+        raise DataError("lead_time_days must be positive")
+    if days <= 0:
+        raise DataError("days_per_year must be positive")
+    if service is not None and not (0 < service < 1):
+        raise DataError("service_level must be greater than zero and below one")
+    if sd is not None and sd < 0:
+        raise DataError("daily_demand_sd must be non-negative")
+    eoq = (2 * demand * order_cost / holding).sqrt()
+    orders = demand / eoq
+    cycle = eoq / 2
+    z = D(0)
+    safety = D(0)
+    if service is not None:
+        z = D(repr(statistics.NormalDist().inv_cdf(float(service))))
+    if sd is not None and service is not None:
+        safety = z * sd * lead.sqrt()
+    daily = demand / days
+    reorder = daily * lead + safety
+    average = cycle + safety
+    ordering = orders * order_cost
+    carrying = average * holding
+    return {"annual_demand": demand, "order_cost": order_cost, "holding_cost_per_unit": holding,
+            "lead_time_days": lead, "days_per_year": days, "service_level": service,
+            "daily_demand_sd": sd, "safety_factor": z,
+            "economic_order_quantity": eoq, "orders_per_year": orders, "cycle_stock": cycle,
+            "safety_stock": safety, "reorder_point": reorder, "average_inventory": average,
+            "annual_ordering_cost": ordering, "annual_holding_cost": carrying,
+            "total_annual_cost": ordering + carrying,
+            "daily_demand": daily}
+
+def _inventory_ref(inp):
+    demand = float(D(str(inp["annual_demand"])))
+    order_cost = float(D(str(inp["order_cost"])))
+    holding = float(D(str(inp["holding_cost_per_unit"])))
+    eoq = (2 * demand * order_cost / holding) ** 0.5
+    service = _optional_decimal(inp, "service_level")
+    sd = _optional_decimal(inp, "daily_demand_sd")
+    safety = 0.0
+    if service is not None and sd is not None:
+        safety = statistics.NormalDist().inv_cdf(float(service)) * float(sd) * float(D(str(inp["lead_time_days"]))) ** 0.5
+    return {"economic_order_quantity": eoq,
+            "total_annual_cost": (demand / eoq) * order_cost + (eoq / 2 + safety) * holding}
+
+def inventory_policy_tests(inp, impl):
+    base, ref = impl(inp), _inventory_ref(inp)
+    demand = D(str(inp["annual_demand"]))
+    order_cost = D(str(inp["order_cost"]))
+    holding = D(str(inp["holding_cost_per_unit"]))
+    bigger = impl({**inp, "annual_demand": str(demand * 2)})
+    worse = base["annual_ordering_cost"] * D("1.1") + (base["cycle_stock"] * D("1.1")) * holding
+    checks = [
+        ("second_implementation_agrees", _close(base["economic_order_quantity"], ref["economic_order_quantity"], rel=1e-6)
+         and _close(base["total_annual_cost"], ref["total_annual_cost"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("eoq_is_the_square_root_formula",
+         _close(base["economic_order_quantity"] ** 2, 2 * demand * order_cost / holding), "the order quantity squares to twice demand times order cost over holding cost"),
+        ("doubling_demand_raises_the_eoq_by_the_square_root_of_two",
+         _close(bigger["economic_order_quantity"], base["economic_order_quantity"] * D(2).sqrt()), "the EOQ moves with the square root of demand"),
+        ("reorder_point_covers_lead_time_demand",
+         base["reorder_point"] >= base["daily_demand"] * D(str(inp["lead_time_days"])), "the reorder point covers the lead-time demand plus safety stock"),
+        ("a_higher_service_level_never_lowers_safety_stock",
+         base["service_level"] is None or impl({**inp, "service_level": "0.99"})["safety_stock"] >= base["safety_stock"], "a higher service level cannot reduce safety stock"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def inventory_policy_profile(inp):
+    try:
+        if D(str(inp["annual_demand"])) <= 0:
+            return ["annual_demand must be positive"]
+        if D(str(inp["order_cost"])) <= 0:
+            return ["order_cost must be positive"]
+        if D(str(inp["holding_cost_per_unit"])) <= 0:
+            return ["holding_cost_per_unit must be positive"]
+        if D(str(inp["lead_time_days"])) <= 0:
+            return ["lead_time_days must be positive"]
+        service = _optional_decimal(inp, "service_level")
+        if service is not None and not (0 < service < 1):
+            return ["service_level must be greater than zero and below one"]
+        sd = _optional_decimal(inp, "daily_demand_sd")
+        if sd is not None and sd < 0:
+            return ["daily_demand_sd must be non-negative"]
+        if sd is not None and service is None:
+            return ["service_level is required when a demand standard deviation is declared"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["inventory inputs are malformed: annual_demand, order_cost, holding_cost_per_unit and lead_time_days are required numbers"]
+
+def _inventory_typing(metric):
+    if metric == "service_level":
+        return ("rate", 4)
+    if metric in ("daily_demand_sd", "annual_demand", "economic_order_quantity", "cycle_stock",
+                  "safety_stock", "reorder_point", "average_inventory", "daily_demand"):
+        return ("units", 2)
+    if metric == "orders_per_year":
+        return ("units", 2)
+    if metric == "safety_factor":
+        return ("ratio", 4)
+    if metric == "lead_time_days":
+        return ("days", 2)
+    return ("currency", 2)
+
+def inventory_policy_caveats(out, th):
+    return ["Demand is treated as level over the year and the lead time is constant; seasonality, quantity discounts and supplier reliability are not modelled.",
+            "Safety stock is the declared service level times the demand standard deviation over the square root of the lead time, using the normal approximation.",
+            "The total annual cost counts ordering and holding cost only: no purchase cost, stock-out cost, transport or warehouse space cost."]
+
+def inventory_policy_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("At an annual demand of " + tok("annual_demand") + ", an order cost of " + tok("order_cost") +
+         " and a holding cost of " + tok("holding_cost_per_unit") + " a unit, the economic order quantity is " +
+         tok("economic_order_quantity") + ", ordered " + tok("orders_per_year") + " times a year at a total cost of " +
+         tok("total_annual_cost") + ".")
+    if "safety_stock" in out:
+        t += " At the declared service level the safety stock is " + tok("safety_stock") + " and the reorder point is " + tok("reorder_point") + "."
+    return t
+
+
+def queue_analysis_impl(inp):
+    arrival = D(str(inp["arrival_rate"]))
+    service = D(str(inp["service_rate"]))
+    servers = int(D(str(inp.get("servers", "1"))))
+    if arrival <= 0:
+        raise DataError("arrival_rate must be positive")
+    if service <= 0:
+        raise DataError("service_rate must be positive")
+    if servers < 1 or servers > 50:
+        raise DataError("servers must be a whole number from 1 to 50")
+    if arrival >= servers * service:
+        raise DataError("arrival_rate must be below servers x service_rate, otherwise the queue never clears")
+    offered = arrival / service
+    rho = offered / servers
+    if servers == 1:
+        p0 = 1 - rho
+        p_wait = rho
+        lq = rho * rho / (1 - rho)
+    else:
+        head = sum((offered ** k) / D(math.factorial(k)) for k in range(servers))
+        tail = (offered ** servers) / (D(math.factorial(servers)) * (1 - rho))
+        p0 = 1 / (head + tail)
+        p_wait = tail * p0
+        lq = p_wait * rho / (1 - rho)
+    in_service = offered
+    l = lq + in_service
+    wq = lq / arrival
+    w = l / arrival
+    return {"arrival_rate": arrival, "service_rate": service, "servers": D(servers),
+            "offered_load": offered, "utilisation": rho,
+            "average_in_queue": lq, "average_in_system": l,
+            "average_wait_in_queue": wq, "average_time_in_system": w,
+            "probability_empty": p0, "probability_waiting": p_wait}
+
+def _queue_ref(inp):
+    a = float(D(str(inp["arrival_rate"])))
+    s = float(D(str(inp["service_rate"])))
+    c = int(D(str(inp.get("servers", "1"))))
+    offered = a / s
+    rho = offered / c
+    if c == 1:
+        lq = rho * rho / (1 - rho)
+    else:
+        head = sum(offered ** k / math.factorial(k) for k in range(c))
+        tail = offered ** c / (math.factorial(c) * (1 - rho))
+        p0 = 1 / (head + tail)
+        lq = tail * p0 * rho / (1 - rho)
+    return {"utilisation": rho, "average_in_queue": lq, "average_in_system": lq + offered}
+
+def queue_analysis_tests(inp, impl):
+    base, ref = impl(inp), _queue_ref(inp)
+    arrival = D(str(inp["arrival_rate"]))
+    service = D(str(inp["service_rate"]))
+    servers = D(str(int(D(str(inp.get("servers", "1"))))))
+    probe = {**inp, "servers": "1", "arrival_rate": str(arrival if arrival < service else service / 2)}
+    single = impl(probe)
+    checks = [
+        ("second_implementation_agrees", _close(base["utilisation"], ref["utilisation"], rel=1e-9)
+         and _close(base["average_in_queue"], ref["average_in_queue"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("utilisation_is_arrival_over_servers_times_service", _close(base["utilisation"], arrival / (servers * service)), "utilisation divides the offered load by the number of servers"),
+        ("little_law_holds_in_the_system", _close(base["average_in_system"], arrival * base["average_time_in_system"]), "customers in the system equal arrival rate times time in the system"),
+        ("little_law_holds_in_the_queue", _close(base["average_in_queue"], arrival * base["average_wait_in_queue"]), "customers in the queue equal arrival rate times wait in the queue"),
+        ("queue_length_is_wait_probability_times_rho_over_one_minus_rho",
+         _close(base["average_in_queue"], base["probability_waiting"] * base["utilisation"] / (1 - base["utilisation"])),
+         "the queue length follows the Erlang C identity, which reduces to M/M/1 at one server"),
+        ("one_server_matches_the_mm1_formula",
+         _close(single["average_in_queue"], single["utilisation"] ** 2 / (1 - single["utilisation"])),
+         "with one server the result is the M/M/1 queue length"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def queue_analysis_profile(inp):
+    try:
+        a, s = D(str(inp["arrival_rate"])), D(str(inp["service_rate"]))
+        if a <= 0:
+            return ["arrival_rate must be positive"]
+        if s <= 0:
+            return ["service_rate must be positive"]
+        c = D(str(inp.get("servers", "1")))
+        if c != int(c) or c < 1 or c > 50:
+            return ["servers must be a whole number from 1 to 50"]
+        if a >= c * s:
+            return ["arrival_rate must be below servers x service_rate, otherwise the queue never clears"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["queue inputs are malformed: arrival_rate and service_rate are required numbers"]
+
+def _queue_typing(metric):
+    if metric in ("arrival_rate", "service_rate", "servers"):
+        return ("count", 4)
+    if metric in ("average_wait_in_queue", "average_time_in_system"):
+        return ("periods", 4)
+    return ("ratio", 4)
+
+def queue_analysis_caveats(out, th):
+    return ["The model is a multi-server queue with random arrivals and service times (M/M/c), with constant average rates and interchangeable servers.",
+            "Arrivals must be below the number of servers times the service rate; at or above it the queue never clears and the method blocks.",
+            "It ignores priorities, abandonment, balking, batch arrivals, server heterogeneity and any distribution other than exponential."]
+
+def queue_analysis_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At an arrival rate of " + tok("arrival_rate") + " and " + tok("servers") + " servers each serving " +
+            tok("service_rate") + ", utilisation is " + tok("utilisation") + ", with " + tok("average_in_queue") +
+            " customers waiting on average and a wait of " + tok("average_wait_in_queue") + " periods.")
+
+
+def capacity_analysis_impl(inp):
+    resources = inp["resources"]
+    if not resources:
+        raise DataError("at least one resource is required")
+    caps, labels = [], []
+    for i, r in enumerate(resources, 1):
+        name = r["name"].strip()
+        if not name or len(name) > 60:
+            raise DataError("resource %d needs a name of at most 60 characters" % i)
+        available = D(str(r["available_hours"]))
+        minutes = D(str(r["minutes_per_unit"]))
+        if available <= 0:
+            raise DataError("resource %d available_hours must be positive" % i)
+        if minutes <= 0:
+            raise DataError("resource %d minutes_per_unit must be positive" % i)
+        caps.append(available * 60 / minutes)
+        labels.append(name)
+    bottleneck = min(range(len(caps)), key=lambda i: caps[i])
+    out = {"max_output": caps[bottleneck], "bottleneck_index": D(bottleneck + 1)}
+    for i, c in enumerate(caps, 1):
+        out["capacity_%d" % i] = c
+    demand = _optional_decimal(inp, "demand")
+    if demand is not None:
+        if demand < 0:
+            raise DataError("demand must be non-negative")
+        out["demand"] = demand
+        out["capacity_gap"] = out["max_output"] - demand
+        for i, c in enumerate(caps, 1):
+            out["utilisation_%d" % i] = demand / c
+        out["bottleneck_utilisation"] = demand / out["max_output"]
+    return out
+
+def _capacity_ref(inp):
+    caps = [float(D(str(r["available_hours"]))) * 60 / float(D(str(r["minutes_per_unit"]))) for r in inp["resources"]]
+    return {"max_output": min(caps)}
+
+def capacity_analysis_tests(inp, impl):
+    base, ref = impl(inp), _capacity_ref(inp)
+    caps = [base["capacity_%d" % i] for i in range(1, len(inp["resources"]) + 1)]
+    demand = base.get("demand")
+    checks = [
+        ("second_implementation_agrees", _close(base["max_output"], ref["max_output"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("capacity_is_available_minutes_over_minutes_per_unit",
+         all(_close(base["capacity_%d" % (i + 1)], D(str(r["available_hours"])) * 60 / D(str(r["minutes_per_unit"])))
+             for i, r in enumerate(inp["resources"])), "each capacity is available hours times sixty over minutes per unit"),
+        ("bottleneck_is_the_smallest_capacity", _close(base["max_output"], min(caps)), "throughput is set by the smallest capacity"),
+        ("utilisation_is_demand_over_capacity",
+         demand is None or all(_close(base["utilisation_%d" % (i + 1)], demand / base["capacity_%d" % (i + 1)]) for i in range(len(caps))),
+         "utilisation at the declared demand is demand over capacity"),
+        ("the_reported_bottleneck_index_points_at_the_smallest_capacity",
+         _close(caps[int(base["bottleneck_index"]) - 1], base["max_output"]), "the bottleneck index identifies the smallest capacity"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def capacity_analysis_profile(inp):
+    try:
+        resources = inp.get("resources")
+        if not isinstance(resources, list) or not resources:
+            return ["at least one resource is required"]
+        if len(resources) > 20:
+            return ["at most twenty resources are supported"]
+        for i, r in enumerate(resources, 1):
+            if not isinstance(r, dict) or not isinstance(r.get("name"), str) or not r["name"].strip():
+                return ["resource %d needs a name" % i]
+            if D(str(r["available_hours"])) <= 0:
+                return ["resource %d available_hours must be positive" % i]
+            if D(str(r["minutes_per_unit"])) <= 0:
+                return ["resource %d minutes_per_unit must be positive" % i]
+        demand = _optional_decimal(inp, "demand")
+        if demand is not None and demand < 0:
+            return ["demand must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["capacity inputs are malformed: resources must be records with a name, available_hours and minutes_per_unit"]
+
+def _capacity_typing(metric):
+    if metric.startswith("utilisation_") or metric == "bottleneck_utilisation":
+        return ("ratio", 4)
+    if metric == "bottleneck_index":
+        return ("count", 0)
+    return ("units", 2)
+
+def capacity_analysis_caveats(out, th):
+    return ["Capacity is available hours times sixty over minutes per unit, with no allowance for breaks, maintenance, scrap or changeover.",
+            "The bottleneck is the resource with the smallest capacity; the method does not schedule work, buffer or batch it.",
+            "Demand is a flat figure for the same period as the available hours; a changing mix or routing needs its own run per product."]
+
+def capacity_analysis_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The process capacity is " + tok("max_output") + " units, set by the bottleneck resource at position " +
+         tok("bottleneck_index") + ".")
+    if "demand" in out:
+        t += (" At the declared demand of " + tok("demand") + ", the bottleneck runs at " + tok("bottleneck_utilisation") +
+              " and the capacity gap is " + tok("capacity_gap") + ".")
+    return t
+
+
+# ---------- Scheduling, quality, costing and sales variance (B-116) ----------
+
+def _act_id(value):
+    text = str(value or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", text):
+        raise DataError("each activity id must be 1-20 letters, digits, - or _")
+    return text
+
+def cpm_schedule_impl(inp):
+    acts = inp["activities"]
+    three = str(inp.get("estimate", "single")) == "three_point"
+    if not acts:
+        raise DataError("at least one activity is required")
+    if len(acts) > 200:
+        raise DataError("at most 200 activities are supported")
+    nodes, order_in = {}, []
+    for a in acts:
+        aid = _act_id(a.get("id"))
+        if aid in nodes:
+            raise DataError("duplicate activity id " + aid)
+        preds = [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()]
+        if three:
+            o, m, p = (D(str(a[k])) for k in ("optimistic", "most_likely", "pessimistic"))
+            if o < 0 or not (o <= m <= p):
+                raise DataError("activity " + aid + " needs 0 <= optimistic <= most_likely <= pessimistic")
+            dur, var = (o + 4 * m + p) / 6, ((p - o) / 6) ** 2
+        else:
+            dur = D(str(a["duration"]))
+            if dur < 0:
+                raise DataError("activity " + aid + " duration must be non-negative")
+            var = D(0)
+        nodes[aid] = {"dur": dur, "var": var, "preds": preds}
+        order_in.append(aid)
+    for aid, node in nodes.items():
+        for p in node["preds"]:
+            if p not in nodes:
+                raise DataError("activity " + aid + " cites unknown predecessor " + p)
+            if p == aid:
+                raise DataError("activity " + aid + " cannot be its own predecessor")
+    indeg = {aid: len(n["preds"]) for aid, n in nodes.items()}
+    succ = {aid: [] for aid in nodes}
+    for aid, n in nodes.items():
+        for p in n["preds"]:
+            succ[p].append(aid)
+    queue = [aid for aid in order_in if indeg[aid] == 0]
+    topo = []
+    while queue:
+        aid = queue.pop(0)
+        topo.append(aid)
+        for s in succ[aid]:
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                queue.append(s)
+    if len(topo) != len(nodes):
+        raise DataError("the predecessor graph contains a cycle")
+    es, ef = {}, {}
+    for aid in topo:
+        es[aid] = max((ef[p] for p in nodes[aid]["preds"]), default=D(0))
+        ef[aid] = es[aid] + nodes[aid]["dur"]
+    duration = max(ef.values())
+    ls, lf = {}, {}
+    for aid in reversed(topo):
+        lf[aid] = min((ls[s] for s in succ[aid]), default=duration)
+        ls[aid] = lf[aid] - nodes[aid]["dur"]
+    out = {"project_duration": duration, "activity_count": D(len(nodes))}
+    critical = [aid for aid in order_in if ls[aid] - es[aid] == 0]
+    for aid in order_in:
+        out["es_" + aid] = es[aid]
+        out["ef_" + aid] = ef[aid]
+        out["ls_" + aid] = ls[aid]
+        out["lf_" + aid] = lf[aid]
+        out["float_" + aid] = ls[aid] - es[aid]
+        out["critical_" + aid] = D(1 if aid in critical else 0)
+    out["critical_count"] = D(len(critical))
+    if three:
+        out["pert_variance"] = sum((nodes[aid]["var"] for aid in critical), D(0))
+        out["pert_stdev"] = out["pert_variance"].sqrt()
+    return out
+
+def _cpm_ref(inp):
+    nodes = {}
+    for a in inp["activities"]:
+        aid = str(a["id"]).strip()
+        if str(inp.get("estimate", "single")) == "three_point":
+            o, m, p = (float(D(str(a[k]))) for k in ("optimistic", "most_likely", "pessimistic"))
+            d = (o + 4 * m + p) / 6
+        else:
+            d = float(D(str(a["duration"])))
+        nodes[aid] = (d, [x.strip() for x in str(a.get("predecessors") or "").split(",") if x.strip()])
+    ef = {}
+    pending = dict(nodes)
+    while pending:
+        progressed = False
+        for aid in list(pending):
+            d, preds = pending[aid]
+            if all(p in ef for p in preds):
+                ef[aid] = max((ef[p] for p in preds), default=0.0) + d
+                del pending[aid]
+                progressed = True
+        if not progressed:
+            raise ValueError("cycle")
+    return {"project_duration": max(ef.values())}
+
+def cpm_schedule_tests(inp, impl):
+    base, ref = impl(inp), _cpm_ref(inp)
+    ids = [str(a["id"]).strip() for a in inp["activities"]]
+    node = {str(a["id"]).strip(): a for a in inp["activities"]}
+    preds = {i: [p.strip() for p in str(node[i].get("predecessors") or "").split(",") if p.strip()] for i in ids}
+    succ = {i: [x for x in ids if i in preds[x]] for i in ids}
+    checks = [
+        ("second_implementation_agrees", _close(base["project_duration"], ref["project_duration"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("early_start_is_the_latest_predecessor_finish",
+         all(base["es_" + i] == max((base["ef_" + p] for p in preds[i]), default=D(0)) for i in ids), "each activity starts when its last predecessor finishes"),
+        ("late_finish_is_the_earliest_successor_start",
+         all(base["lf_" + i] == min((base["ls_" + s] for s in succ[i]), default=base["project_duration"]) for i in ids), "each activity finishes no later than its first successor must start"),
+        ("critical_activities_have_zero_float",
+         all((base["critical_" + i] == 1) == (base["float_" + i] == 0) for i in ids), "the critical flag is exactly the zero-float activities"),
+        ("project_duration_is_the_latest_early_finish",
+         base["project_duration"] == max(base["ef_" + i] for i in ids), "the project ends when the last activity ends"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def cpm_schedule_profile(inp):
+    try:
+        acts = inp.get("activities")
+        if not isinstance(acts, list) or not acts:
+            return ["at least one activity is required"]
+        ids = set()
+        for i, a in enumerate(acts, 1):
+            if not isinstance(a, dict):
+                return ["activity %d must be an object" % i]
+            aid = str(a.get("id") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid):
+                return ["activity %d needs an id of 1-20 letters, digits, - or _" % i]
+            if aid in ids:
+                return ["duplicate activity id " + aid]
+            ids.add(aid)
+            if str(inp.get("estimate", "single")) == "three_point":
+                try:
+                    o, m, p = (D(str(a[k])) for k in ("optimistic", "most_likely", "pessimistic"))
+                except (InvalidOperation, ValueError, TypeError, KeyError):
+                    return ["activity " + aid + " needs optimistic, most_likely and pessimistic numbers"]
+                if o < 0 or not (o <= m <= p):
+                    return ["activity " + aid + " needs 0 <= optimistic <= most_likely <= pessimistic"]
+            else:
+                if "duration" not in a:
+                    return ["activity " + aid + " needs a duration"]
+                if D(str(a["duration"])) < 0:
+                    return ["activity " + aid + " duration must be non-negative"]
+        for a in acts:
+            for p in str(a.get("predecessors") or "").split(","):
+                p = p.strip()
+                if p and p not in ids:
+                    return ["activity %s cites unknown predecessor %s" % (str(a["id"]).strip(), p)]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["schedule inputs are malformed: activities must carry an id and a duration or the three estimates"]
+
+def _cpm_typing(metric):
+    if metric == "activity_count" or metric == "critical_count" or metric.startswith("critical_"):
+        return ("count", 0)
+    if metric in ("pert_variance", "pert_stdev"):
+        return ("ratio", 4)
+    return ("periods", 2)
+
+def cpm_schedule_caveats(out, th):
+    return ["Durations are deterministic (or the expected value of the three-point estimate); the schedule does not model resource limits, calendars or uncertainty beyond the PERT variance.",
+            "The critical path is where float is zero; a delay there delays the project, but a critical path is not automatically the riskiest.",
+            "PERT uses (optimistic + 4 x most likely + pessimistic) / 6 and sums the variances on the critical path; those are declared conventions."]
+
+def cpm_schedule_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The project finishes in " + tok("project_duration") + " periods, with " + tok("critical_count") +
+         " of " + tok("activity_count") + " activities on the critical path.")
+    if "pert_variance" in out:
+        t += " The PERT variance along that path is " + tok("pert_variance") + "."
+    return t
+
+
+def earned_value_impl(inp):
+    pv, ev, ac, bac = (D(str(inp[k])) for k in ("planned_value", "earned_value", "actual_cost", "budget_at_completion"))
+    if bac <= 0:
+        raise DataError("budget_at_completion must be positive")
+    if min(pv, ev, ac) < 0:
+        raise DataError("planned value, earned value and actual cost must be non-negative")
+    method = str(inp.get("eac_method", "cpi"))
+    if method not in ("cpi", "budget_rate"):
+        raise DataError("eac_method must be cpi or budget_rate")
+    spi = ev / pv if pv > 0 else D(0)
+    cpi = ev / ac if ac > 0 else D(0)
+    eac = bac / cpi if method == "cpi" and cpi > 0 else ac + (bac - ev)
+    out = {"planned_value": pv, "earned_value": ev, "actual_cost": ac, "budget_at_completion": bac,
+           "schedule_variance": ev - pv, "cost_variance": ev - ac, "spi": spi, "cpi": cpi,
+           "estimate_at_completion": eac,
+           "estimate_to_complete": eac - ac, "variance_at_completion": bac - eac,
+           "tcpi": (bac - ev) / (bac - ac) if bac != ac else D(0)}
+    return out
+
+def _evm_ref(inp):
+    pv, ev, ac, bac = (float(D(str(inp[k]))) for k in ("planned_value", "earned_value", "actual_cost", "budget_at_completion"))
+    cpi = ev / ac if ac else 0.0
+    eac = bac / cpi if str(inp.get("eac_method", "cpi")) == "cpi" and cpi else ac + (bac - ev)
+    return {"spi": ev / pv if pv else 0.0, "cpi": cpi, "estimate_at_completion": eac}
+
+def earned_value_tests(inp, impl):
+    base, ref = impl(inp), _evm_ref(inp)
+    pv, ev, ac, bac = (D(str(inp[k])) for k in ("planned_value", "earned_value", "actual_cost", "budget_at_completion"))
+    checks = [
+        ("second_implementation_agrees", _close(base["spi"], ref["spi"], rel=1e-9)
+         and _close(base["cpi"], ref["cpi"], rel=1e-9)
+         and _close(base["estimate_at_completion"], ref["estimate_at_completion"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("schedule_variance_is_earned_minus_planned", _close(base["schedule_variance"], ev - pv), "SV = EV - PV"),
+        ("cost_variance_is_earned_minus_actual", _close(base["cost_variance"], ev - ac), "CV = EV - AC"),
+        ("spi_and_cpi_are_the_ratios", _close(base["spi"], ev / pv) and _close(base["cpi"], ev / ac), "SPI = EV/PV and CPI = EV/AC"),
+        ("variance_at_completion_is_budget_minus_eac", _close(base["variance_at_completion"], bac - base["estimate_at_completion"]), "VAC = BAC - EAC"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def earned_value_profile(inp):
+    try:
+        bac = D(str(inp["budget_at_completion"]))
+        if bac <= 0:
+            return ["budget_at_completion must be positive"]
+        for key in ("planned_value", "earned_value", "actual_cost"):
+            if D(str(inp[key])) < 0:
+                return [key + " must be non-negative"]
+        if str(inp.get("eac_method", "cpi")) not in ("cpi", "budget_rate"):
+            return ["eac_method must be cpi or budget_rate"]
+        if D(str(inp["planned_value"])) == 0:
+            return ["planned_value must be positive at the status date"]
+        if D(str(inp["actual_cost"])) == 0:
+            return ["actual_cost must be positive at the status date"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["earned-value inputs are malformed: planned_value, earned_value, actual_cost and budget_at_completion are required numbers"]
+
+def _evm_typing(metric):
+    if metric in ("spi", "cpi", "tcpi"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+def earned_value_caveats(out, th):
+    return ["The status date and the three cumulative figures are yours; the method does not derive them from a schedule.",
+            "EAC is one declared convention: budget divided by CPI, or actual cost plus the remaining budget at the budgeted rate.",
+            "Earned value measures progress against a plan; it cannot show whether the plan or the scope was right."]
+
+def earned_value_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At the status date the schedule variance is " + tok("schedule_variance") + " and the cost variance is " +
+            tok("cost_variance") + ", with SPI " + tok("spi") + " and CPI " + tok("cpi") +
+            ". The estimate at completion is " + tok("estimate_at_completion") + " and the variance at completion is " +
+            tok("variance_at_completion") + ".")
+
+
+def oee_analysis_impl(inp):
+    planned = D(str(inp["planned_production_time"]))
+    downtime = D(str(inp["downtime"]))
+    cycle = D(str(inp["ideal_cycle_time"]))
+    total = D(str(inp["total_units"]))
+    good = D(str(inp["good_units"]))
+    if planned <= 0:
+        raise DataError("planned_production_time must be positive")
+    if downtime < 0 or downtime > planned:
+        raise DataError("downtime must be between zero and the planned time")
+    if cycle <= 0:
+        raise DataError("ideal_cycle_time must be positive")
+    if total < 0 or good < 0 or good > total:
+        raise DataError("units must be non-negative and good units cannot exceed total units")
+    run = planned - downtime
+    availability = run / planned
+    performance = (cycle * total / run) if run > 0 else D(0)
+    quality = good / total if total > 0 else D(0)
+    oee = availability * performance * quality
+    return {"planned_production_time": planned, "downtime": downtime, "run_time": run,
+            "ideal_cycle_time": cycle, "total_units": total, "good_units": good,
+            "availability": availability, "performance": performance, "quality": quality, "oee": oee,
+            "scrap_units": total - good,
+            "theoretical_output": run / cycle if cycle > 0 else D(0)}
+
+def _oee_ref(inp):
+    planned = float(D(str(inp["planned_production_time"])))
+    downtime = float(D(str(inp["downtime"])))
+    cycle = float(D(str(inp["ideal_cycle_time"])))
+    total = float(D(str(inp["total_units"])))
+    good = float(D(str(inp["good_units"])))
+    run = planned - downtime
+    return {"availability": run / planned, "performance": cycle * total / run, "quality": good / total,
+            "oee": (run / planned) * (cycle * total / run) * (good / total)}
+
+def oee_analysis_tests(inp, impl):
+    base, ref = impl(inp), _oee_ref(inp)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k], rel=1e-9) for k in ref), "float route agrees with the Decimal route"),
+        ("availability_is_run_time_over_planned_time", _close(base["availability"], base["run_time"] / base["planned_production_time"]), "availability uses the planned time less downtime"),
+        ("performance_is_ideal_cycle_times_units_over_run_time", _close(base["performance"], base["ideal_cycle_time"] * base["total_units"] / base["run_time"]), "performance compares actual output with the ideal rate"),
+        ("quality_is_good_units_over_total_units", _close(base["quality"], base["good_units"] / base["total_units"]), "quality is the good share of output"),
+        ("oee_is_the_product_of_the_three", _close(base["oee"], base["availability"] * base["performance"] * base["quality"]), "OEE multiplies availability, performance and quality"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def oee_analysis_profile(inp):
+    try:
+        planned = D(str(inp["planned_production_time"]))
+        downtime = D(str(inp["downtime"]))
+        if planned <= 0:
+            return ["planned_production_time must be positive"]
+        if downtime < 0 or downtime > planned:
+            return ["downtime must be between zero and the planned time"]
+        if D(str(inp["ideal_cycle_time"])) <= 0:
+            return ["ideal_cycle_time must be positive"]
+        total = D(str(inp["total_units"])); good = D(str(inp["good_units"]))
+        if total < 0 or good < 0 or good > total:
+            return ["units must be non-negative and good units cannot exceed total units"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["OEE inputs are malformed: planned time, downtime, ideal cycle time and unit counts are required numbers"]
+
+def _oee_typing(metric):
+    if metric in ("availability", "performance", "quality", "oee"):
+        return ("ratio", 4)
+    if metric in ("total_units", "good_units", "scrap_units", "theoretical_output"):
+        return ("units", 2)
+    return ("periods", 2)
+
+def oee_caveats(out, th):
+    return ["OEE is arithmetic on the six figures you declare; the losses are not reclassified or assumed.",
+            "Performance above one usually means the ideal cycle time or the unit count is wrong; the method reports it rather than capping it.",
+            "OEE measures one machine or line, not a plant; six big losses and TEEP are not modelled."]
+
+def oee_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Availability is " + tok("availability") + ", performance " + tok("performance") + " and quality " +
+            tok("quality") + ", for an OEE of " + tok("oee") + ".")
+
+
+def process_control_impl(inp):
+    values = [D(str(x)) for x in inp["values"]]
+    if len(values) < 5:
+        raise DataError("at least five observations are required")
+    n = len(values)
+    mean = sum(values, D(0)) / n
+    mrs = [abs(values[i] - values[i - 1]) for i in range(1, n)]
+    mrbar = sum(mrs, D(0)) / len(mrs)
+    if mrbar == 0:
+        raise DataError("the series has no movement, so the control limits are undefined")
+    sigma = mrbar / D("1.128")
+    ucl = mean + 3 * sigma
+    lcl = mean - 3 * sigma
+    out = {"n": D(n), "mean": mean, "average_moving_range": mrbar, "sigma_estimate": sigma,
+           "upper_control_limit": ucl, "lower_control_limit": lcl,
+           "out_of_control": D(sum(1 for v in values if v > ucl or v < lcl))}
+    run, longest, side = 1, 1, None
+    for i in range(1, n):
+        s = 1 if values[i] > mean else -1 if values[i] < mean else 0
+        if s == side and s != 0:
+            run += 1
+        else:
+            side, run = s, 1
+        longest = max(longest, run)
+    out["longest_run"] = D(longest)
+    out["run_signal"] = D(1 if longest >= 8 else 0)
+    lower = _optional_decimal(inp, "spec_lower")
+    upper = _optional_decimal(inp, "spec_upper")
+    if lower is not None and upper is not None:
+        if upper <= lower:
+            raise DataError("spec_upper must exceed spec_lower")
+        cp = (upper - lower) / (6 * sigma)
+        cpk = min((upper - mean) / (3 * sigma), (mean - lower) / (3 * sigma))
+        out.update({"spec_lower": lower, "spec_upper": upper, "cp": cp, "cpk": cpk})
+    return out
+
+def _pc_ref(inp):
+    vals = [float(D(str(x))) for x in inp["values"]]
+    mean = sum(vals) / len(vals)
+    mrbar = sum(abs(vals[i] - vals[i - 1]) for i in range(1, len(vals))) / (len(vals) - 1)
+    sigma = mrbar / 1.128
+    return {"mean": mean, "sigma_estimate": sigma, "upper_control_limit": mean + 3 * sigma}
+
+def process_control_tests(inp, impl):
+    base, ref = impl(inp), _pc_ref(inp)
+    values = [D(str(x)) for x in inp["values"]]
+    checks = [
+        ("second_implementation_agrees", _close(base["mean"], ref["mean"], rel=1e-9)
+         and _close(base["sigma_estimate"], ref["sigma_estimate"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("limits_are_the_mean_plus_or_minus_three_sigma",
+         _close(base["upper_control_limit"], base["mean"] + 3 * base["sigma_estimate"])
+         and _close(base["lower_control_limit"], base["mean"] - 3 * base["sigma_estimate"]), "the limits sit three estimated sigmas from the mean"),
+        ("sigma_is_the_average_moving_range_over_one_point_one_two_eight",
+         _close(base["sigma_estimate"], base["average_moving_range"] / D("1.128")), "the moving-range estimate uses the declared constant"),
+        ("out_of_control_points_are_counted_against_the_limits",
+         base["out_of_control"] == sum(1 for v in values if v > base["upper_control_limit"] or v < base["lower_control_limit"]), "the count is a fresh scan of the series"),
+        ("cpk_is_the_distance_to_the_nearer_limit",
+         "cpk" not in base or _close(base["cpk"], min((base["spec_upper"] - base["mean"]) / (3 * base["sigma_estimate"]),
+                                                     (base["mean"] - base["spec_lower"]) / (3 * base["sigma_estimate"]))),
+         "Cpk uses the nearer specification limit"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def process_control_profile(inp):
+    try:
+        vals = inp.get("values") or []
+        if len(vals) < 5:
+            return ["at least five observations are required"]
+        nums = [D(str(x)) for x in vals]
+        mrs = [abs(nums[i] - nums[i - 1]) for i in range(1, len(nums))]
+        if sum(mrs, D(0)) == 0:
+            return ["the series has no movement, so the control limits are undefined"]
+        lower = _optional_decimal(inp, "spec_lower"); upper = _optional_decimal(inp, "spec_upper")
+        if (lower is None) != (upper is None):
+            return ["declare both spec_lower and spec_upper, or neither"]
+        if lower is not None and upper <= lower:
+            return ["spec_upper must exceed spec_lower"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["control-chart inputs are malformed: values is a list of numbers"]
+
+def _pc_typing(metric):
+    if metric in ("cp", "cpk"):
+        return ("ratio", 4)
+    if metric in ("n", "out_of_control", "longest_run", "run_signal"):
+        return ("count", 0)
+    if metric in ("spec_lower", "spec_upper"):
+        return ("currency", 2)
+    return ("ratio", 4)
+
+def process_control_caveats(out, th):
+    return ["The chart is an individuals chart with moving ranges (I-MR); subgroup charts, p-charts and EWMA are not computed.",
+            "Control limits describe the variation of the series you supplied; they do not prove the process is capable or stable in future.",
+            "Cp and Cpk use the estimated sigma and the specification limits you declare; no capability threshold is applied."]
+
+def process_control_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The mean is " + tok("mean") + " with an estimated sigma of " + tok("sigma_estimate") +
+         ", giving control limits of " + tok("lower_control_limit") + " to " + tok("upper_control_limit") +
+         ". " + tok("out_of_control") + " points fall outside the limits.")
+    if "cpk" in out:
+        t += " Against the declared specification, Cp is " + tok("cp") + " and Cpk is " + tok("cpk") + "."
+    return t
+
+
+def abc_costing_impl(inp):
+    activities = inp["activities"]
+    products = inp["products"]
+    allocations = inp["allocations"]
+    if not activities or not products or not allocations:
+        raise DataError("activities, products and allocations are all required")
+    pools, units = {}, {}
+    for a in activities:
+        name = str(a["name"]).strip()
+        if not name or name in pools:
+            raise DataError("activity names must be unique and non-empty")
+        cost = D(str(a["pool_cost"]))
+        if cost < 0:
+            raise DataError("activity pool costs must be non-negative")
+        pools[name] = cost
+    for p in products:
+        name = str(p["name"]).strip()
+        if not name or name in units:
+            raise DataError("product names must be unique and non-empty")
+        q = D(str(p["units"]))
+        if q <= 0:
+            raise DataError("product units must be positive")
+        units[name] = q
+    drivers = {a: D(0) for a in pools}
+    qty = {}
+    for row in allocations:
+        act = str(row["activity"]).strip(); prod = str(row["product"]).strip(); q = D(str(row["driver_quantity"]))
+        if act not in pools:
+            raise DataError("allocation cites unknown activity " + act)
+        if prod not in units:
+            raise DataError("allocation cites unknown product " + prod)
+        if q < 0:
+            raise DataError("driver quantities must be non-negative")
+        drivers[act] += q
+        qty[(act, prod)] = qty.get((act, prod), D(0)) + q
+    rates = {}
+    for act, cost in pools.items():
+        if drivers[act] <= 0:
+            raise DataError("activity " + act + " has no driver quantity to allocate against")
+        rates[act] = cost / drivers[act]
+    alloc = {p: D(0) for p in units}
+    for (act, prod), q in qty.items():
+        alloc[prod] += q * rates[act]
+    out = {"total_pool_cost": sum(pools.values(), D(0)), "total_allocated": sum(alloc.values(), D(0))}
+    for act in pools:
+        out["rate_" + act] = rates[act]
+        out["driver_" + act] = drivers[act]
+    for prod in units:
+        out["allocated_" + prod] = alloc[prod]
+        out["unit_cost_" + prod] = alloc[prod] / units[prod]
+    return out
+
+def _abc_ref(inp):
+    pools = {str(a["name"]).strip(): float(D(str(a["pool_cost"]))) for a in inp["activities"]}
+    drivers = {a: 0.0 for a in pools}
+    qty = {}
+    for row in inp["allocations"]:
+        act = str(row["activity"]).strip(); q = float(D(str(row["driver_quantity"])))
+        drivers[act] += q
+        qty[(act, str(row["product"]).strip())] = qty.get((act, str(row["product"]).strip()), 0.0) + q
+    rates = {a: pools[a] / drivers[a] for a in pools}
+    return {"total_allocated": sum(q * rates[a] for (a, _), q in qty.items())}
+
+def abc_costing_tests(inp, impl):
+    base, ref = impl(inp), _abc_ref(inp)
+    products = [str(p["name"]).strip() for p in inp["products"]]
+    checks = [
+        ("second_implementation_agrees", _close(base["total_allocated"], ref["total_allocated"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("every_pool_is_allocated_in_full", _close(base["total_allocated"], base["total_pool_cost"]), "the allocated cost equals the pool cost"),
+        ("rate_is_the_pool_cost_over_its_driver_total",
+         all(_close(base["rate_" + a], D(str(next(x for x in inp["activities"] if str(x["name"]).strip() == a)["pool_cost"])) / base["driver_" + a])
+             for a in (str(x["name"]).strip() for x in inp["activities"])), "each activity rate is its pool over its driver total"),
+        ("unit_cost_is_the_allocation_over_units",
+         all(_close(base["unit_cost_" + p], base["allocated_" + p] / D(str(next(x for x in inp["products"] if str(x["name"]).strip() == p)["units"])))
+             for p in products), "each unit cost is the allocation over the declared units"),
+        ("allocations_sum_to_the_total",
+         _close(sum((base["allocated_" + p] for p in products), D(0)), base["total_allocated"]), "the per-product allocations add to the total"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def abc_costing_profile(inp):
+    try:
+        acts, prods, allocs = inp.get("activities"), inp.get("products"), inp.get("allocations")
+        if not acts or not prods or not allocs:
+            return ["activities, products and allocations are all required"]
+        names = [str(a["name"]).strip() for a in acts]
+        if len(set(names)) != len(names) or any(not n for n in names):
+            return ["activity names must be unique and non-empty"]
+        pnames = [str(p["name"]).strip() for p in prods]
+        if len(set(pnames)) != len(pnames) or any(not n for n in pnames):
+            return ["product names must be unique and non-empty"]
+        for p in prods:
+            if D(str(p["units"])) <= 0:
+                return ["product units must be positive"]
+        for a in acts:
+            if D(str(a["pool_cost"])) < 0:
+                return ["activity pool costs must be non-negative"]
+        for row in allocs:
+            if str(row["activity"]).strip() not in names:
+                return ["allocation cites an unknown activity"]
+            if str(row["product"]).strip() not in pnames:
+                return ["allocation cites an unknown product"]
+            if D(str(row["driver_quantity"])) < 0:
+                return ["driver quantities must be non-negative"]
+        for a in acts:
+            total = sum((D(str(r["driver_quantity"])) for r in allocs if str(r["activity"]).strip() == str(a["name"]).strip()), D(0))
+            if total <= 0 and D(str(a["pool_cost"])) > 0:
+                return ["activity " + str(a["name"]).strip() + " has no driver quantity to allocate against"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["ABC inputs are malformed: activities, products and allocations are required records"]
+
+def _abc_typing(metric):
+    if metric.startswith("driver_"):
+        return ("units", 2)
+    if metric.startswith("rate_"):
+        return ("currency", 4)
+    if metric.startswith("unit_cost_"):
+        return ("currency", 4)
+    return ("currency", 2)
+
+def abc_costing_caveats(out, th):
+    return ["The activity pools, drivers and quantities are yours; the method does not choose the cost drivers.",
+            "Every pool must be allocated in full; an activity with no driver quantity and a positive cost is refused rather than left unallocated.",
+            "No idle capacity, unused capacity cost, or activity hierarchy (unit, batch, product, facility) is modelled."]
+
+def abc_costing_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("The declared pools total " + tok("total_pool_cost") + " and are allocated in full to the products.")
+    products = [k[10:] for k in out if k.startswith("allocated_")]
+    if products:
+        t += " Unit costs are reported for " + ", ".join(products) + "."
+    return t
+
+
+def sales_variances_impl(inp):
+    products = inp["products"]
+    if len(products) < 2:
+        raise DataError("at least two products are required for a mix and yield variance")
+    rows = []
+    for p in products:
+        name = str(p["name"]).strip()
+        bu, bp, au, ap = (D(str(p[k])) for k in ("budget_units", "budget_price", "actual_units", "actual_price"))
+        if not name or min(bu, bp, au, ap) < 0:
+            raise DataError("each product needs a name and non-negative units and prices")
+        rows.append({"name": name, "bu": bu, "bp": bp, "au": au, "ap": ap})
+    total_bu = sum((r["bu"] for r in rows), D(0))
+    total_au = sum((r["au"] for r in rows), D(0))
+    if total_bu <= 0:
+        raise DataError("budget units must sum to a positive total")
+    out = {"budget_units": total_bu, "actual_units": total_au,
+           "budget_revenue": sum((r["bu"] * r["bp"] for r in rows), D(0)),
+           "actual_revenue": sum((r["au"] * r["ap"] for r in rows), D(0))}
+    out["total_sales_variance"] = out["actual_revenue"] - out["budget_revenue"]
+    mix_total = yield_total = price_total = D(0)
+    for r in rows:
+        share = r["bu"] / total_bu
+        expected = share * total_au
+        price = r["au"] * (r["ap"] - r["bp"])
+        mix = r["bp"] * (r["au"] - expected)
+        yield_v = r["bp"] * (expected - r["bu"])
+        price_total += price; mix_total += mix; yield_total += yield_v
+        out["price_variance_" + r["name"]] = price
+        out["mix_variance_" + r["name"]] = mix
+        out["yield_variance_" + r["name"]] = yield_v
+    out.update({"price_variance": price_total, "mix_variance": mix_total,
+                "yield_variance": yield_total,
+                "volume_variance": mix_total + yield_total,
+                "variance_check": price_total + mix_total + yield_total})
+    return out
+
+def _sales_ref(inp):
+    rows = [(float(D(str(p["budget_units"]))), float(D(str(p["budget_price"]))),
+             float(D(str(p["actual_units"]))), float(D(str(p["actual_price"])))) for p in inp["products"]]
+    budget = sum(bu * bp for bu, bp, _, _ in rows)
+    actual = sum(au * ap for _, _, au, ap in rows)
+    return {"budget_revenue": budget, "actual_revenue": actual, "total_sales_variance": actual - budget}
+
+def sales_variances_tests(inp, impl):
+    base, ref = impl(inp), _sales_ref(inp)
+    names = [str(p["name"]).strip() for p in inp["products"]]
+    checks = [
+        ("second_implementation_agrees", _close(base["budget_revenue"], ref["budget_revenue"], rel=1e-9)
+         and _close(base["actual_revenue"], ref["actual_revenue"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("total_variance_is_actual_minus_budget_revenue", _close(base["total_sales_variance"], base["actual_revenue"] - base["budget_revenue"]), "the total is the revenue change"),
+        ("price_mix_and_yield_add_to_the_total_variance",
+         _close(base["variance_check"], base["total_sales_variance"]), "the three components reconstruct the total"),
+        ("volume_variance_is_mix_plus_yield", _close(base["volume_variance"], base["mix_variance"] + base["yield_variance"]), "volume splits into mix and yield"),
+        ("per_product_components_sum_to_the_totals",
+         _close(sum((base["price_variance_" + n] for n in names), D(0)), base["price_variance"])
+         and _close(sum((base["mix_variance_" + n] for n in names), D(0)), base["mix_variance"])
+         and _close(sum((base["yield_variance_" + n] for n in names), D(0)), base["yield_variance"]), "the product rows add to each total"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def sales_variances_profile(inp):
+    try:
+        products = inp.get("products") or []
+        if len(products) < 2:
+            return ["at least two products are required for a mix and yield variance"]
+        total = D(0); names = []
+        for i, p in enumerate(products, 1):
+            name = str(p.get("name") or "").strip()
+            if not name or name in names:
+                return ["product %d needs a unique name" % i]
+            names.append(name)
+            vals = [D(str(p[k])) for k in ("budget_units", "budget_price", "actual_units", "actual_price")]
+            if min(vals) < 0:
+                return ["product " + name + " needs non-negative units and prices"]
+            total += vals[0]
+        if total <= 0:
+            return ["budget units must sum to a positive total"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["sales-variance inputs are malformed: each product needs budget and actual units and prices"]
+
+def _sales_typing(metric):
+    if "variance" in metric:
+        return ("currency", 2)
+    if metric.endswith("_units") or metric in ("budget_units", "actual_units"):
+        return ("units", 2)
+    return ("currency", 2)
+
+def sales_variances_caveats(out, th):
+    return ["Mix and yield are measured at the budgeted prices, with the budget mix held as the standard; a different convention changes the split.",
+            "Price, mix and yield reconstruct the total revenue change; they do not explain why the mix or the price moved.",
+            "Two or more products are required; a single product has a price and a volume variance only."]
+
+def sales_variances_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Revenue moved by " + tok("total_sales_variance") + " against budget: a price variance of " +
+            tok("price_variance") + ", a mix variance of " + tok("mix_variance") + " and a yield variance of " +
+            tok("yield_variance") + ".")
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -11215,6 +13054,329 @@ LIBRARY = {
                   limitations=("Stated intent overstates purchase; no calibration against actual sales.", "No sampling error, non-response, seasonality or price response.", "The weights are conventions, not estimates."),
                   default_period="cross_section", caveats=purchase_intent_caveats, template=purchase_intent_template,
                   claim_ceiling="descriptive", typing=_intent_typing),
+    "campaign_efficiency": Method("campaign_efficiency", "T1", campaign_efficiency_impl, campaign_efficiency_tests,
+                  campaign_efficiency_profile, "roas", "rate", None,
+                  ("second_implementation_agrees", "ctr_is_clicks_over_impressions", "cpa_is_spend_over_conversions",
+                   "roas_is_the_inverse_of_acos", "cpc_is_cpa_times_conversion_rate"),
+                  category="digital marketing",
+                  intended_use="Click-through, cost per click, cost per thousand impressions, conversion rate, cost per acquisition, return on ad spend and advertising cost of sales from the campaign counts you declare, with break-even return on ad spend when a contribution margin is declared.",
+                  unsupported_use="Reading an ad platform; reconciling platform and analytics numbers; choosing the attribution window; incrementality; cross-campaign overlap; automated bidding or budget recommendations.",
+                  input_schema={"impressions": {"type": "decimal", "desc": "impressions served in the period"},
+                                "clicks": {"type": "decimal", "desc": "clicks recorded in the same period"},
+                                "conversions": {"type": "decimal", "desc": "conversions you define and count in the same period"},
+                                "spend": {"type": "decimal", "desc": "media spend for the period"},
+                                "revenue": {"type": "decimal", "desc": "revenue you attribute to the campaign; enter 0 when none is attributable"},
+                                "contribution_margin_rate": {"type": "decimal", "required": False, "desc": "optional contribution margin as a fraction of revenue, for break-even return on ad spend"}},
+                  defaults=({"question": "Attribution window", "default_chosen": "The conversions and revenue are the ones you declare for the period; no window is applied.", "impact": "A longer or shorter window changes the conversions and the revenue that follow."},
+                            {"question": "Break-even return", "default_chosen": "Break-even return on ad spend is one divided by the contribution margin rate, reported only when the margin is declared.", "impact": "A margin on revenue is not the same as a margin on spend."}),
+                  assumptions=("Impressions, clicks, conversions and revenue cover the same campaign and period.", "A conversion is the action you declared, counted once per acquisition."),
+                  limitations=("Arithmetic on declared counts; no platform read, model or attribution window.", "No incrementality, overlap, view-through or assisted-conversion adjustment.", "Revenue and spend must share a currency and a period."),
+                  default_period="per period", caveats=campaign_efficiency_caveats, template=campaign_efficiency_template,
+                  claim_ceiling="descriptive", typing=_campaign_typing),
+    "ab_test_two_proportion": Method("ab_test_two_proportion", "T1", ab_test_two_proportion_impl,
+                  ab_test_two_proportion_tests, ab_test_two_proportion_profile, "absolute_lift", "rate", None,
+                  ("second_implementation_agrees", "absolute_lift_is_b_minus_a", "relative_lift_is_absolute_lift_over_rate_a",
+                   "z_is_the_difference_over_the_pooled_standard_error", "p_value_is_the_two_sided_normal_tail"),
+                  category="digital marketing",
+                  intended_use="A two-proportion comparison of two observed arms: rates, absolute and relative lift, the pooled z-test, a two-sided p-value, an interval for the difference and, when a minimum effect is declared, the visitors each arm would need.",
+                  unsupported_use="Sequential or peeking-adjusted tests; more than two arms; Bayesian or exact tests; deciding the metric or the stopping rule; proving that the change caused the difference.",
+                  input_schema={"visitors_a": {"type": "decimal", "desc": "visitors or users assigned to the control arm"},
+                                "conversions_a": {"type": "decimal", "desc": "conversions in the control arm"},
+                                "visitors_b": {"type": "decimal", "desc": "visitors or users assigned to the variant arm"},
+                                "conversions_b": {"type": "decimal", "desc": "conversions in the variant arm"},
+                                "alpha": {"type": "decimal", "required": False, "desc": "two-sided significance level, default 0.05"},
+                                "power": {"type": "decimal", "required": False, "desc": "target power for the sample-size calculation, default 0.8"},
+                                "minimum_effect": {"type": "decimal", "required": False, "desc": "optional relative lift to detect, as a decimal (10% is 0.10)"}},
+                  defaults=({"question": "Test", "default_chosen": "A two-sided pooled normal approximation to the two-proportion comparison.", "impact": "An exact or sequential test gives a different p-value and a different stopping rule."},
+                            {"question": "Interval", "default_chosen": "The interval for the difference uses unpooled standard errors at the declared alpha.", "impact": "A pooled interval is narrower and is not the usual reporting convention."}),
+                  assumptions=("The two arms are independent, randomly assigned and observed over the same window.", "Each visitor is counted once and a conversion is counted once."),
+                  limitations=("One test, one primary metric and two arms only.", "The normal approximation needs enough conversions in both arms; sparse arms are refused.", "A significant result is evidence of a difference, not proof of cause or of future performance."),
+                  default_period="per observation", caveats=ab_test_two_proportion_caveats, template=ab_test_two_proportion_template,
+                  claim_ceiling="associational", typing=_ab_typing),
+    "attribution_split": Method("attribution_split", "T1", attribution_split_impl, attribution_split_tests,
+                  attribution_split_profile, "max_spread", "rate", None,
+                  ("second_implementation_agrees", "each_model_shares_sum_to_one", "linear_share_is_declared_linear_over_its_total",
+                   "spread_is_max_minus_min_per_channel", "max_spread_is_the_largest_channel_spread"),
+                  category="digital marketing",
+                  intended_use="Compare the credit each channel receives under first-click, last-click and linear attribution from the credit counts you declare, and show the largest share disagreement.",
+                  unsupported_use="Allocating credit from raw touchpoint logs; time-decay or data-driven models; incrementality or holdout estimation; deciding which model is correct.",
+                  input_schema={"channels": {"type": "records", "min_items": 2, "fields": {"name": "text", "first_click": "decimal", "last_click": "decimal", "linear": "decimal"},
+                                             "desc": "two to twelve channels, each with its declared credited conversions under the three rules"}},
+                  defaults=({"question": "Credit counts", "default_chosen": "The counts under each rule are declared by you, as reported by your analytics tool or worked out by hand.", "impact": "The engine compares the rules; it does not reconstruct the credit from touchpoints."},
+                            {"question": "Rules compared", "default_chosen": "First-click, last-click and linear only.", "impact": "Position-based, time-decay and data-driven rules would give different shares."}),
+                  assumptions=("The three credit columns describe the same conversions under three rules.", "Every conversion is allocated in full under each rule."),
+                  limitations=("Declared-count arithmetic; no touchpoint log, path or window is processed.", "Credit is not causation and no incrementality is measured.", "Only three rules are compared."),
+                  default_period="per period", caveats=attribution_split_caveats, template=attribution_split_template,
+                  claim_ceiling="descriptive", typing=_attribution_typing),
+    "channel_economics": Method("channel_economics", "T1", channel_economics_impl, channel_economics_tests,
+                  channel_economics_profile, "blended_cac", "currency", None,
+                  ("second_implementation_agrees", "cac_is_spend_over_customers", "payback_is_cac_over_margin",
+                   "spend_shares_sum_to_one", "blended_cac_is_total_spend_over_total_customers"),
+                  category="digital marketing",
+                  intended_use="Customer acquisition cost, payback, lifetime value and the lifetime-value-to-acquisition-cost ratio for each declared channel, with the blended acquisition cost and each channel's share of spend.",
+                  unsupported_use="Allocating shared or brand spend; retention curves and discounting; saturation and diminishing returns; cross-channel incrementality; choosing a budget.",
+                  input_schema={"channels": {"type": "records", "min_items": 2, "fields": {"name": "text", "spend": "decimal", "new_customers": "decimal", "contribution_margin": "decimal", "churn_rate": "decimal"},
+                                             "desc": "two to twelve channels, each with spend, new customers, contribution margin per customer and period churn"}},
+                  defaults=({"question": "Shared spend", "default_chosen": "Each channel carries only the spend you assign to it; shared or brand spend is not allocated.", "impact": "Allocating shared spend changes every acquisition cost and the blended figure."},
+                            {"question": "Lifetime value", "default_chosen": "Lifetime value is the contribution margin divided by the declared churn rate, a period value with no discounting.", "impact": "A discounted or cohort-based lifetime value would be lower and is not computed."}),
+                  assumptions=("Customers are attributed to the channel that won them, with no double counting.", "The contribution margin and churn are stable for the period."),
+                  limitations=("Arithmetic on declared channel rows; no model, allocation or significance test.", "No saturation, seasonality, cross-channel effect or incrementality.", "Lifetime value is a single-rate period value, not a survival model."),
+                  default_period="per period", caveats=channel_economics_caveats, template=channel_economics_template,
+                  claim_ceiling="descriptive", typing=_channel_typing),
+    "email_list_health": Method("email_list_health", "T1", email_list_health_impl, email_list_health_tests,
+                  email_list_health_profile, "open_rate", "rate", None,
+                  ("second_implementation_agrees", "list_end_is_start_plus_new_minus_losses", "open_rate_is_opens_over_sends",
+                   "click_to_open_is_clicks_over_opens", "revenue_per_subscriber_is_revenue_over_list_end"),
+                  category="digital marketing",
+                  intended_use="List growth, unsubscribe and bounce rates, open and click rates, click-to-open and revenue per subscriber from the email counts you declare.",
+                  unsupported_use="Reading an email platform; deduplicating lists; deliverability, consent or spam-complaint analysis; testing subject lines; revenue attribution beyond the declared amount.",
+                  input_schema={"list_start": {"type": "decimal", "desc": "subscribers on the list at the start of the period"},
+                                "new_subscribers": {"type": "decimal", "desc": "subscribers added in the period"},
+                                "unsubscribes": {"type": "decimal", "desc": "subscribers who unsubscribed in the period"},
+                                "bounces": {"type": "decimal", "desc": "addresses that hard-bounced in the period"},
+                                "sends": {"type": "decimal", "desc": "messages sent in the period"},
+                                "opens": {"type": "decimal", "desc": "opens recorded; a machine open still counts"},
+                                "clicks": {"type": "decimal", "desc": "clicks recorded"},
+                                "revenue": {"type": "decimal", "desc": "revenue you attribute to the sends"}},
+                  defaults=({"question": "Open counting", "default_chosen": "An open is counted as declared, including machine opens.", "impact": "Privacy features that pre-open mail inflate opens, so the rate is an upper bound on reading."},
+                            {"question": "List denominator", "default_chosen": "Churn is measured against the starting list; revenue per subscriber against the closing list.", "impact": "Using the closing list for churn would understate it when the list grew."}),
+                  assumptions=("The list counts and send counts cover one period and one list.", "Unsubscribes and bounces are removed once and are not also counted as inactive."),
+                  limitations=("Declared-count arithmetic; no platform read or deduplication.", "Open rates are inflated by machine opens; no deliverability or consent check.", "Revenue is the declared amount, not an attributed causal effect."),
+                  default_period="per period", caveats=email_list_health_caveats, template=email_list_health_template,
+                  claim_ceiling="descriptive", typing=_email_typing),
+    "social_engagement": Method("social_engagement", "T1", social_engagement_impl, social_engagement_tests,
+                  social_engagement_profile, "engagement_rate", "rate", None,
+                  ("second_implementation_agrees", "engagement_rate_is_engagements_over_reach", "frequency_is_impressions_over_reach",
+                   "cpm_is_spend_per_thousand_impressions", "follower_growth_is_gained_over_starting_followers"),
+                  category="digital marketing",
+                  intended_use="Engagement rate, frequency, cost per thousand impressions, cost per engagement, follower growth and engagement per post from the social counts you declare.",
+                  unsupported_use="Reading a social platform; sentiment, reach quality or bot filtering; influencer contract terms; attributing sales to social activity.",
+                  input_schema={"impressions": {"type": "decimal", "desc": "impressions recorded in the period"},
+                                "reach": {"type": "decimal", "desc": "unique accounts reached; cannot exceed impressions"},
+                                "engagements": {"type": "decimal", "desc": "engagements as the platform defines them"},
+                                "followers_start": {"type": "decimal", "desc": "followers at the start of the period"},
+                                "followers_gained": {"type": "decimal", "desc": "net follower change; may be negative"},
+                                "spend": {"type": "decimal", "desc": "spend on the activity; enter 0 for organic only"},
+                                "posts": {"type": "decimal", "required": False, "desc": "optional number of posts, for engagement per post"}},
+                  defaults=({"question": "Engagement definition", "default_chosen": "Engagements are whatever the platform counted and you declared; the rate uses reach.", "impact": "Likes, comments, saves and shares are not comparable across platforms."},
+                            {"question": "Frequency", "default_chosen": "Frequency is impressions over reach, a whole-period average.", "impact": "Per-post or per-user frequency needs data this method does not take."}),
+                  assumptions=("The counts cover one account, one period and one platform definition.", "Reach is a subset of impressions."),
+                  limitations=("Declared-count arithmetic; no platform read, bot filter or sentiment.", "Engagement definitions differ between platforms and change over time.", "No sales attribution or incrementality."),
+                  default_period="per period", caveats=social_engagement_caveats, template=social_engagement_template,
+                  claim_ceiling="descriptive", typing=_social_typing),
+    "web_analytics": Method("web_analytics", "T1", web_analytics_impl, web_analytics_tests,
+                  web_analytics_profile, "revenue_per_session", "currency", None,
+                  ("second_implementation_agrees", "session_shares_sum_to_one", "conversion_rate_is_conversions_over_sessions",
+                   "blended_conversion_rate_is_total_conversions_over_total_sessions", "revenue_per_session_is_revenue_over_sessions"),
+                  category="digital marketing",
+                  intended_use="Sessions, conversions, conversion rate, revenue per session and channel share from the acquisition rows you declare, with organic-search click-through when impressions and clicks are supplied.",
+                  unsupported_use="Reading an analytics platform; event-taxonomy design; attribution windows; deduplicating users across devices; bot filtering; causal claims about a channel.",
+                  input_schema={"channels": {"type": "records", "min_items": 2, "fields": {"name": "text", "sessions": "decimal", "conversions": "decimal", "revenue": "decimal"},
+                                             "desc": "two to twelve acquisition channels, each with sessions, conversions and revenue"},
+                                "organic_impressions": {"type": "decimal", "required": False, "desc": "optional organic-search impressions, declared with organic_clicks"},
+                                "organic_clicks": {"type": "decimal", "required": False, "desc": "optional organic-search clicks, declared with organic_impressions"}},
+                  defaults=({"question": "Session definition", "default_chosen": "A session is whatever the declared source counted; the method does not reconcile definitions across channels.", "impact": "A different session timeout or cross-device rule changes every channel row."},
+                            {"question": "Direct traffic", "default_chosen": "Only the channels you declare are included; direct and unattributed sessions must be one of the rows or they are omitted.", "impact": "Omitting direct traffic overstates every other channel's share."}),
+                  assumptions=("Each session belongs to exactly one declared channel.", "Conversions and revenue cover the same period as the sessions."),
+                  limitations=("Declared-count arithmetic; no platform read, attribution window or bot filter.", "Channel definitions and consent rules may not be comparable.", "No cross-device identity resolution or incrementality."),
+                  default_period="per period", caveats=web_analytics_caveats, template=web_analytics_template,
+                  claim_ceiling="descriptive", typing=_web_typing),
+    "standard_cost_variances": Method("standard_cost_variances", "T1", standard_cost_variances_impl,
+                  standard_cost_variances_tests, standard_cost_variances_profile, "total_variance", "currency", None,
+                  ("second_implementation_agrees", "material_price_and_usage_sum_to_the_material_variance",
+                   "labour_rate_and_efficiency_sum_to_the_labour_variance",
+                   "fixed_overhead_volume_is_budget_applied",
+                   "total_variance_is_the_sum_of_the_reported_variances"),
+                  category="management accounting",
+                  intended_use="Material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead variances for the output actually produced, with a positive figure unfavourable.",
+                  unsupported_use="Setting or judging standards; mix, yield, sales, planning or idle-capacity variances; standard costing in several processes or products; tax or inventory valuation effects.",
+                  input_schema={"actual_units": {"type": "decimal", "desc": "units actually produced in the period"},
+                                "standard_material_per_unit": {"type": "decimal", "desc": "standard material quantity allowed per unit"},
+                                "standard_material_price": {"type": "decimal", "desc": "standard price per unit of material"},
+                                "actual_material_quantity": {"type": "decimal", "desc": "material quantity actually used"},
+                                "actual_material_price": {"type": "decimal", "desc": "actual price paid per unit of material"},
+                                "standard_hours_per_unit": {"type": "decimal", "desc": "standard labour hours allowed per unit"},
+                                "standard_labour_rate": {"type": "decimal", "desc": "standard labour rate per hour"},
+                                "actual_hours": {"type": "decimal", "desc": "labour hours actually worked"},
+                                "actual_labour_rate": {"type": "decimal", "desc": "actual labour rate per hour"},
+                                "standard_variable_overhead_rate": {"type": "decimal", "required": False, "desc": "optional standard variable overhead per labour hour"},
+                                "actual_variable_overhead": {"type": "decimal", "required": False, "desc": "actual variable overhead, required with the standard rate"},
+                                "budgeted_fixed_overhead": {"type": "decimal", "required": False, "desc": "optional budgeted fixed overhead for the period"},
+                                "actual_fixed_overhead": {"type": "decimal", "required": False, "desc": "actual fixed overhead, required with the budget"},
+                                "denominator_hours": {"type": "decimal", "required": False, "desc": "budgeted labour hours used to set the fixed overhead rate"}},
+                  defaults=({"question": "Sign convention", "default_chosen": "Every variance is actual cost less the standard cost of the output achieved; positive is unfavourable.", "impact": "A different convention flips every sign and the favourable/unfavourable reading."},
+                            {"question": "Overhead detail", "default_chosen": "Variable and fixed overhead variances are reported only when their inputs are declared.", "impact": "Leaving them out reports material and labour only."}),
+                  assumptions=("The standards are the declared quantities and prices.", "Actual hours and quantities are for the same period and output."),
+                  limitations=("No standards setting, mix, yield, sales or planning variances.", "One product and one process only.", "No journal entries or inventory valuation."),
+                  default_period="annual", caveats=standard_cost_variances_caveats, template=standard_cost_variances_template,
+                  claim_ceiling="descriptive", typing=_scv_typing),
+    "inventory_policy": Method("inventory_policy", "T1", inventory_policy_impl, inventory_policy_tests,
+                  inventory_policy_profile, "economic_order_quantity", "units", None,
+                  ("second_implementation_agrees", "eoq_is_the_square_root_formula",
+                   "doubling_demand_raises_the_eoq_by_the_square_root_of_two",
+                   "reorder_point_covers_lead_time_demand",
+                   "a_higher_service_level_never_lowers_safety_stock"),
+                  category="operations and inventory",
+                  intended_use="Economic order quantity, orders per year, cycle and safety stock, reorder point and the annual ordering and holding cost from declared demand, costs, lead time and a service level.",
+                  unsupported_use="Forecasting demand; quantity discounts; variable lead times; stock-out cost; multi-item or warehouse constraints; supplier reliability.",
+                  input_schema={"annual_demand": {"type": "decimal", "desc": "units demanded in a year"},
+                                "order_cost": {"type": "decimal", "desc": "cost of placing one order"},
+                                "holding_cost_per_unit": {"type": "decimal", "desc": "cost of holding one unit for a year"},
+                                "lead_time_days": {"type": "decimal", "desc": "supplier lead time in days"},
+                                "days_per_year": {"type": "decimal", "required": False, "desc": "trading days in a year, default 365"},
+                                "service_level": {"type": "decimal", "required": False, "desc": "optional service level between zero and one, e.g. 0.95"},
+                                "daily_demand_sd": {"type": "decimal", "required": False, "desc": "optional standard deviation of daily demand, for safety stock"}},
+                  defaults=({"question": "Demand and lead time", "default_chosen": "Annual demand is level and the lead time is a constant number of days.", "impact": "Seasonality or a variable lead time changes the reorder point and the safety stock."},
+                            {"question": "Safety stock", "default_chosen": "Reported only when a service level and a daily demand standard deviation are both declared; the normal approximation is used.", "impact": "Without them the reorder point covers lead-time demand only."}),
+                  assumptions=("Demand is level over the year and the lead time is constant.", "Ordering and holding costs are constant per order and per unit-year.", "The service level and demand variability are declared."),
+                  limitations=("No quantity discounts, stock-out cost or variable lead time.", "One item only; no warehouse or budget constraint.", "Safety stock uses a normal approximation."),
+                  default_period="annual", caveats=inventory_policy_caveats, template=inventory_policy_template,
+                  claim_ceiling="descriptive", typing=_inventory_typing),
+    "queue_analysis": Method("queue_analysis", "T1", queue_analysis_impl, queue_analysis_tests,
+                  queue_analysis_profile, "utilisation", "ratio", None,
+                  ("second_implementation_agrees", "utilisation_is_arrival_over_servers_times_service",
+                   "little_law_holds_in_the_system", "little_law_holds_in_the_queue",
+                   "queue_length_is_wait_probability_times_rho_over_one_minus_rho",
+                   "one_server_matches_the_mm1_formula"),
+                  category="operations and queueing",
+                  intended_use="A multi-server M/M/c queue: utilisation, average customers in the queue and in the system, the average waits, the probability the system is empty and the probability a customer waits.",
+                  unsupported_use="Priorities; balking, reneging or batch arrivals; non-exponential service or arrival patterns; heterogeneous servers; scheduling or simulation.",
+                  input_schema={"arrival_rate": {"type": "decimal", "desc": "average arrivals per period"},
+                                "service_rate": {"type": "decimal", "desc": "average customers served per period by one server"},
+                                "servers": {"type": "decimal", "required": False, "desc": "number of interchangeable servers, default 1 (a whole number from 1 to 50)"}},
+                  defaults=({"question": "Queue discipline", "default_chosen": "First come, first served, identical servers, unlimited queue capacity.", "impact": "Priorities or a finite waiting room give different waits."},
+                            {"question": "Variability", "default_chosen": "Random arrivals and service times with exponential inter-arrival and service distributions.", "impact": "Lower or higher variability changes the queue, which M/M/c cannot capture."}),
+                  assumptions=("Arrivals are random and independent at a constant average rate.", "Service times are exponential with a constant average rate per server.", "Servers are interchangeable, with one queue and no priority or abandonment."),
+                  limitations=("No priorities, abandonment, batch arrivals or heterogeneous servers.", "The exponential assumption can understate or overstate real queues.", "At or above servers x service rate the queue never clears and the method blocks."),
+                  default_period="per period", caveats=queue_analysis_caveats, template=queue_analysis_template,
+                  claim_ceiling="descriptive", typing=_queue_typing),
+    "capacity_analysis": Method("capacity_analysis", "T1", capacity_analysis_impl, capacity_analysis_tests,
+                  capacity_analysis_profile, "max_output", "units", None,
+                  ("second_implementation_agrees", "capacity_is_available_minutes_over_minutes_per_unit",
+                   "bottleneck_is_the_smallest_capacity", "utilisation_is_demand_over_capacity",
+                   "the_reported_bottleneck_index_points_at_the_smallest_capacity"),
+                  category="operations and capacity",
+                  intended_use="Process capacity per resource from available hours and minutes per unit, the bottleneck resource and, when demand is declared, each resource's utilisation and the capacity gap.",
+                  unsupported_use="Scheduling, sequencing, batching or buffer design; changeover and maintenance losses; multi-product routings; variability and queueing at each step.",
+                  input_schema={"resources": {"type": "records", "min_items": 1, "fields": {"name": "text", "available_hours": "decimal", "minutes_per_unit": "decimal"},
+                                              "desc": "one record per resource: a name, the hours available in the period and the minutes it needs per unit"},
+                                "demand": {"type": "decimal", "required": False, "desc": "optional demand for the period, for utilisation and the capacity gap"}},
+                  defaults=({"question": "Capacity basis", "default_chosen": "Available hours times sixty over minutes per unit, with no allowance for breaks, maintenance, scrap or changeover.", "impact": "Real capacity is lower once those losses are included."},
+                            {"question": "Bottleneck", "default_chosen": "The resource with the smallest capacity; throughput is that capacity.", "impact": "Scheduling or extra shifts can move the bottleneck."}),
+                  assumptions=("Every resource is available for the declared hours and works at the declared minutes per unit.", "One product passes through every resource once."),
+                  limitations=("No scheduling, batching, changeover, scrap or maintenance.", "Single product and a fixed routing.", "Capacity is steady-state, not a queue simulation."),
+                  default_period="per period", caveats=capacity_analysis_caveats, template=capacity_analysis_template,
+                  claim_ceiling="descriptive", typing=_capacity_typing),
+    "cpm_schedule": Method("cpm_schedule", "T1", cpm_schedule_impl, cpm_schedule_tests, cpm_schedule_profile,
+                  "project_duration", "periods", None,
+                  ("second_implementation_agrees", "early_start_is_the_latest_predecessor_finish",
+                   "late_finish_is_the_earliest_successor_start", "critical_activities_have_zero_float",
+                   "project_duration_is_the_latest_early_finish"),
+                  category="project scheduling",
+                  intended_use="Critical-path scheduling and PERT from declared activities: early and late dates, total float, the critical path, the project duration and (with three-point estimates) the PERT variance along it.",
+                  unsupported_use="Resource levelling or calendars; cost crashing; probabilistic simulation; multiple projects sharing resources; activity durations that are not declared.",
+                  input_schema={"activities": {"type": "rows", "min_items": 1, "desc": "one row per activity: id, duration (or optimistic, most_likely, pessimistic), and optional predecessors as a comma-separated list of ids"},
+                                "estimate": {"type": "enum", "values": ["single", "three_point"], "required": False, "desc": "single duration (default) or a PERT three-point estimate"}},
+                  defaults=({"question": "Duration estimate", "default_chosen": "A single declared duration, or the PERT expected value (optimistic + 4 x most likely + pessimistic) / 6 when three_point is declared.", "impact": "Three-point estimates change the duration and add a variance."},
+                            {"question": "Calendar", "default_chosen": "Continuous time; no working calendar, holidays or resource limits.", "impact": "A calendar inserts gaps the method does not model."}),
+                  assumptions=("Activities are independent except for the declared predecessors.", "Durations are the declared figures, or the declared PERT expected values.", "The graph is acyclic."),
+                  limitations=("No resource levelling, calendars, crashing or simulation.", "The critical path is the zero-float path, not the riskiest one.", "PERT variance assumes independent activity durations and sums them along the critical path."),
+                  default_period="per period", caveats=cpm_schedule_caveats, template=cpm_schedule_template,
+                  claim_ceiling="descriptive", typing=_cpm_typing),
+    "earned_value": Method("earned_value", "T1", earned_value_impl, earned_value_tests, earned_value_profile,
+                  "spi", "ratio", None,
+                  ("second_implementation_agrees", "schedule_variance_is_earned_minus_planned",
+                   "cost_variance_is_earned_minus_actual", "spi_and_cpi_are_the_ratios",
+                   "variance_at_completion_is_budget_minus_eac"),
+                  category="project control",
+                  intended_use="Earned value at a status date: schedule and cost variances, SPI and CPI, one declared estimate at completion, the estimate to complete, the variance at completion and the to-complete performance index.",
+                  unsupported_use="Deriving the status figures from a schedule; forecasting the final cost beyond the declared EAC convention; earned schedule or time-based EVM; quality or scope performance.",
+                  input_schema={"planned_value": {"type": "decimal", "desc": "budgeted cost of the work scheduled by the status date"},
+                                "earned_value": {"type": "decimal", "desc": "budgeted cost of the work actually completed"},
+                                "actual_cost": {"type": "decimal", "desc": "cost actually incurred for the work completed"},
+                                "budget_at_completion": {"type": "decimal", "desc": "total approved budget for the project"},
+                                "eac_method": {"type": "enum", "values": ["cpi", "budget_rate"], "required": False, "desc": "estimate at completion as BAC/CPI (default) or AC + (BAC - EV)"}},
+                  defaults=({"question": "Estimate at completion", "default_chosen": "BAC divided by CPI, the current cost performance continuing; the budget-rate form is the declared alternative.", "impact": "A different convention gives a different EAC and VAC."},
+                            {"question": "Status date", "default_chosen": "The three cumulative figures are taken as at one declared status date.", "impact": "Mixing dates makes the variances meaningless."}),
+                  assumptions=("The three figures are cumulative and measured at the same status date.", "The budget at completion is the approved baseline."),
+                  limitations=("One EAC convention at a time; no earned schedule or forecast range.", "No quality or scope performance.", "The figures are declared, not derived from a schedule."),
+                  default_period="point in time", caveats=earned_value_caveats, template=earned_value_template,
+                  claim_ceiling="descriptive", typing=_evm_typing),
+    "oee_analysis": Method("oee_analysis", "T1", oee_analysis_impl, oee_analysis_tests, oee_analysis_profile,
+                  "oee", "ratio", None,
+                  ("second_implementation_agrees", "availability_is_run_time_over_planned_time",
+                   "performance_is_ideal_cycle_times_units_over_run_time", "quality_is_good_units_over_total_units",
+                   "oee_is_the_product_of_the_three"),
+                  category="operations and quality",
+                  intended_use="Overall equipment effectiveness from declared planned time, downtime, ideal cycle time and unit counts: availability, performance, quality and the product of the three.",
+                  unsupported_use="Classifying the six big losses; TEEP; multi-machine lines; maintenance or changeover optimisation; automatic data capture.",
+                  input_schema={"planned_production_time": {"type": "decimal", "desc": "planned production time for the period, in your time unit"},
+                                "downtime": {"type": "decimal", "desc": "unplanned and planned stops inside the planned time"},
+                                "ideal_cycle_time": {"type": "decimal", "desc": "the ideal time to make one unit, in the same time unit"},
+                                "total_units": {"type": "decimal", "desc": "units produced in the run time"},
+                                "good_units": {"type": "decimal", "desc": "units that met the quality standard"}},
+                  defaults=({"question": "Loss classification", "default_chosen": "Downtime is the only declared availability loss; no six-big-losses split or reclassification.", "impact": "Classifying losses differently changes availability and performance."},
+                            {"question": "Time unit", "default_chosen": "Planned time, downtime and ideal cycle time must share one time unit.", "impact": "Mixing minutes and hours gives a performance far from one."}),
+                  assumptions=("The planned time, downtime, ideal cycle and counts share one period and one time unit.", "Good units are a subset of total units."),
+                  limitations=("One machine or line; no TEEP, six-loss split or multi-machine aggregation.", "Performance above one is reported, not capped.", "The inputs are declared, not captured from a machine."),
+                  default_period="per period", caveats=oee_caveats, template=oee_template,
+                  claim_ceiling="descriptive", typing=_oee_typing),
+    "process_control": Method("process_control", "T1", process_control_impl, process_control_tests, process_control_profile,
+                  "sigma_estimate", "ratio", None,
+                  ("second_implementation_agrees", "limits_are_the_mean_plus_or_minus_three_sigma",
+                   "sigma_is_the_average_moving_range_over_one_point_one_two_eight",
+                   "out_of_control_points_are_counted_against_the_limits",
+                   "cpk_is_the_distance_to_the_nearer_limit"),
+                  category="operations and quality",
+                  intended_use="An individuals chart with moving ranges: mean, estimated sigma, three-sigma control limits, out-of-control points, the longest run on one side of the mean and, when specification limits are declared, Cp and Cpk.",
+                  unsupported_use="Subgroup charts (X-bar/R, p, c, u), EWMA or CUSUM; capability indices from a stable-process study; measurement-system analysis; automatic alarm logic beyond the declared rules.",
+                  input_schema={"values": {"type": "value_list", "min_items": 5, "desc": "the observations in time order"},
+                                "spec_lower": {"type": "decimal", "required": False, "desc": "optional lower specification limit"},
+                                "spec_upper": {"type": "decimal", "required": False, "desc": "optional upper specification limit, declared with the lower one"}},
+                  defaults=({"question": "Chart type", "default_chosen": "Individuals with moving ranges, limits at the mean plus or minus three estimated sigmas (MRbar / 1.128).", "impact": "A subgroup chart needs subgroup sizes and different constants."},
+                            {"question": "Signals", "default_chosen": "A point outside the limits, or a run of eight on one side of the mean.", "impact": "More Western Electric rules would flag more patterns."}),
+                  assumptions=("Observations are in time order and come from one process.", "The process is approximately stable apart from the signals reported."),
+                  limitations=("I-MR only; no subgroup charts, EWMA, CUSUM or multivariate charts.", "Capability uses the within-series sigma and the declared specification; no threshold is applied.", "The chart is descriptive; it does not prove future stability."),
+                  default_period="per observation", caveats=process_control_caveats, template=process_control_template,
+                  claim_ceiling="descriptive", typing=_pc_typing),
+    "abc_costing": Method("abc_costing", "T1", abc_costing_impl, abc_costing_tests, abc_costing_profile,
+                  "total_allocated", "currency", None,
+                  ("second_implementation_agrees", "every_pool_is_allocated_in_full",
+                   "rate_is_the_pool_cost_over_its_driver_total",
+                   "unit_cost_is_the_allocation_over_units", "allocations_sum_to_the_total"),
+                  category="management accounting",
+                  intended_use="Activity-based costing: a rate per activity from its pool and driver total, each product's allocation from the driver quantities it consumes, and the resulting unit cost.",
+                  unsupported_use="Choosing cost drivers; idle or unused capacity cost; activity hierarchies; time-driven ABC; cost of poor quality.",
+                  input_schema={"activities": {"type": "records", "min_items": 1, "fields": {"name": "text", "pool_cost": "decimal"},
+                                               "desc": "one record per activity pool: a name and its cost"},
+                                "products": {"type": "records", "min_items": 1, "fields": {"name": "text", "units": "decimal"},
+                                             "desc": "one record per product: a name and its units produced"},
+                                "allocations": {"type": "records", "min_items": 1, "fields": {"activity": "text", "product": "text", "driver_quantity": "decimal"},
+                                                "desc": "one record per activity-product pair: the driver quantity that product consumed"}},
+                  defaults=({"question": "Pool allocation", "default_chosen": "Every pool is allocated in full over the driver quantities declared, with no unused-capacity cost.", "impact": "Leaving idle capacity in the pool overstates product cost."},
+                            {"question": "Driver totals", "default_chosen": "Driver totals are the sum of the declared product quantities, not a separate capacity figure.", "impact": "Using practical capacity would need a separate driver total."}),
+                  assumptions=("Pool costs and driver quantities are declared for one period.", "Every product's driver quantities are recorded for every activity it consumes."),
+                  limitations=("No idle-capacity adjustment, activity hierarchy or time-driven ABC.", "One period and one currency.", "The drivers are the declared ones, not chosen or validated."),
+                  default_period="annual", caveats=abc_costing_caveats, template=abc_costing_template,
+                  claim_ceiling="descriptive", typing=_abc_typing),
+    "sales_variances": Method("sales_variances", "T1", sales_variances_impl, sales_variances_tests, sales_variances_profile,
+                  "total_sales_variance", "currency", None,
+                  ("second_implementation_agrees", "total_variance_is_actual_minus_budget_revenue",
+                   "price_mix_and_yield_add_to_the_total_variance", "volume_variance_is_mix_plus_yield",
+                   "per_product_components_sum_to_the_totals"),
+                  category="management accounting",
+                  intended_use="Sales price, mix and yield variances for two or more products, at budgeted prices with the budget mix as the standard, reconciling to the total revenue change.",
+                  unsupported_use="Explaining why price or mix moved; market-size and market-share variances; a changing standard; more than one period.",
+                  input_schema={"products": {"type": "records", "min_items": 2,
+                                             "fields": {"name": "text", "budget_units": "decimal", "budget_price": "decimal",
+                                                        "actual_units": "decimal", "actual_price": "decimal"},
+                                             "desc": "one record per product with budget and actual units and prices"}},
+                  defaults=({"question": "Standard mix", "default_chosen": "The budget mix is the standard, and mix and yield are valued at budgeted prices.", "impact": "A different standard or valuation changes the split, not the total."},
+                            {"question": "Scope", "default_chosen": "One period and the products declared; no market-size or market-share split.", "impact": "Those need the market total, which is not declared here."}),
+                  assumptions=("Budget and actual units and prices cover the same period and product set.", "The budget mix is the standard mix."),
+                  limitations=("No market-size or share variance; no explanation of the movements.", "The split depends on the declared convention.", "One currency and one period."),
+                  default_period="annual", caveats=sales_variances_caveats, template=sales_variances_template,
+                  claim_ceiling="descriptive", typing=_sales_typing),
 
 }
 

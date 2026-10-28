@@ -17,21 +17,27 @@
   --navy-900:#02284C; --navy-700:#0C243E; --navy-500:#143E68; --navy-300:#9DB2C6; --navy-100:#E7EDF3;
   --green-600:#02A15E; --green-700:#076B41; --green-900:#0A4632; --green-100:#E2F4EC;
   --teal:#0E8C8C; --indigo:#3A5BA0; --forest:#147A4E; --ochre:#9A6A16;
-  --violet:#6B4E9B; --slate:#4A5A6A; --moss:#4E7A2E;
+  --violet:#6B4E9B; --slate:#4A5A6A; --moss:#4E7A2E; --plum:#7E3F98;
   --canvas:#FCFCFC; --surface:#FFFFFF; --sunken:#F5F7F9; --border:#E4E8EC; --border-2:#EFF2F5;
-  --text:#0C243E; --text-2:#223447; --text-3:#3E5165;
+  /* Solid text: secondary and tertiary copy uses the primary ink, so hierarchy
+     comes from size and weight. Grey is kept for rules, borders and fills only. */
+  --text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;
   --amber:#B26A00; --amber-bg:#FFF7E8; --amber-line:#F0D9AE;
   --red:#A32C2C; --red-bg:#FDEFEF; --red-line:#F2C9C9;
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
   --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08); --sh-3:0 18px 48px rgba(2,40,76,.14);
   --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --doc:"Times New Roman",Times,serif;
-  --rail-w:49px; --rail-w-open:272px; --rail-gap:18px;
+  --rail-w:45px; --rail-w-open:272px; --rail-gap:10px;
   /* the strip carries the icon column and the label column starts a fixed gap
-     after the strip, so narrowing the strip moves both halves together. */
-  --rail-pad:10px;
+     after the strip, so narrowing the strip moves both halves together. The
+     icon column leans towards the labels: it is right-packed inside the strip
+     instead of centred in it, which is what closes the gap between the two.
+     --rail-pad is the strip's own inset, so the packed column ends 4 px short
+     of the strip edge and still clears the subject list's overflow clip. */
+  --rail-pad:4px;
   --rail-ic-w:26px;
-  --rail-ic-pad:calc((var(--rail-w) - 2 * var(--rail-pad) - var(--rail-ic-w)) / 2);
+  --rail-ic-pad:calc(var(--rail-w) - var(--rail-ic-w) - var(--rail-pad) - 4px);
   --rail-text-x:calc(var(--rail-w) + var(--rail-gap));
   --rail-text-off:calc(var(--rail-text-x) - var(--rail-pad));
   --rail-text-gap:calc(var(--rail-text-x) - var(--rail-pad) - var(--rail-ic-pad) - var(--rail-ic-w));
@@ -59,7 +65,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:14.4px;color:var(--text-2);
       border:1px solid var(--border);background:var(--surface);border-radius:var(--r-pill);padding:4px 10px;
       white-space:nowrap;flex:0 0 auto}
-.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--text-3)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--green-600)}
 .pill.ok .dot{background:var(--green-600)}
 .pill.bad .dot{background:var(--red)}
 .pill.off .dot{background:var(--ochre)}
@@ -68,6 +74,19 @@ select,input[type=text],input[type=search],textarea{border:1px solid var(--borde
 select:focus,input:focus,textarea:focus{border-color:var(--navy-300);outline:2px solid var(--navy-900);outline-offset:1px}
 textarea{resize:vertical;width:100%;font-family:inherit}
 label.field{display:block;font-size:14.4px;color:var(--text-2);margin:0 0 4px}
+/* Worksheet editor: solid labels and prompts, generous line height, white fields. */
+.wsheet{display:flex;flex-direction:column}
+.wsheet .wintro{font-size:15.4px;line-height:1.55;color:var(--text-2);margin:0 0 16px;max-width:80ch}
+.wsheet .wblock{padding:14px 0;border-top:1px solid var(--border)}
+.wsheet .wblock:first-of-type{border-top:0;padding-top:0}
+.wsheet .wtitle{display:block;font-size:15.8px;font-weight:700;color:var(--text);letter-spacing:.01em}
+.wsheet .wprompt{display:block;font-size:14.8px;line-height:1.5;color:var(--text-2);font-weight:400;margin-top:3px;max-width:80ch}
+.wsheet textarea.wtext{margin-top:8px;font-size:15.4px;line-height:1.55;min-height:76px;padding:10px 12px;background:#fff;color:var(--text)}
+.wsheet textarea.wtext:focus{border-color:#02A15E;outline:none;box-shadow:0 0 0 3px rgba(2,161,94,.12)}
+.wsheet .wmeta{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap}
+.wsheet .wmeta select,.wsheet .wmeta input[type=text]{font-size:14.6px;color:var(--text);background:#fff}
+.wsheet .whint{font-size:13.8px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.wsheet .wlinks{border-bottom:0}
 .locale{display:flex;align-items:center;gap:6px}
 .locale select{padding:5px 8px;font-size:14.4px}
 
@@ -85,6 +104,9 @@ body.rail-open .rail{width:var(--rail-w-open)}
 .railtoggle{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0;
             border-radius:var(--r-sm);color:#FFFFFF;flex:0 0 auto;position:relative;z-index:2}
 .railtoggle svg{flex:0 0 auto}
+/* collapsed, the toggle sits over the icon column, which leans towards the
+   labels, so the two read as one column */
+body:not(.rail-open) .railtoggle{transform:translateX(calc((var(--rail-pad) + var(--rail-ic-pad) + var(--rail-ic-w) / 2) - var(--rail-w) / 2))}
 .railtoggle:hover{background:rgba(255,255,255,.16)}
 .railtoggle .rt-collapse{display:none}
 body.rail-open .railtoggle{justify-content:flex-end}
@@ -106,12 +128,20 @@ body.rail-open .railitem[aria-current=page]{background:transparent}
               display:inline-flex;align-items:center;justify-content:center;
               position:relative;z-index:1}
 .railitem .ic svg{flex:0 0 auto;width:19px;height:19px;fill:var(--i,#FFFFFF);stroke:none}
-.railitem .railtext{font-size:15.6px;opacity:0;transform:translateX(-8px);
+.railitem .railtext{font-size:15px;font-weight:500;color:var(--navy-900);letter-spacing:-.005em;
+                    opacity:0;transform:translateX(-8px);
                     transition:opacity .2s ease,transform .34s cubic-bezier(.32,.72,0,1)}
 body.rail-open .railitem .railtext{opacity:1;transform:none}
 /* collapsed, the label sits outside the strip: it must not catch the pointer */
 body:not(.rail-open) .railitem .railtext{pointer-events:none}
+/* collapsed, the row is only as wide as the strip, so the icon's own 12 px
+   right padding would squeeze the content box and clip the glyph. The label is
+   invisible here anyway, so that padding is given back to the icon. */
+body:not(.rail-open) .railitem{padding-right:0}
 .railitem[aria-current=page]{color:var(--navy-900);font-weight:600}
+/* the active word steps up in weight and colour, not in size - the state
+   survives greyscale */
+.railitem[aria-current=page] .railtext{color:var(--navy-900);font-weight:600}
 .railitem[aria-current=page] .ic svg{filter:drop-shadow(0 0 3px rgba(255,255,255,.85))}
 body.rail-open .railitem .railtext{position:relative;z-index:1}
 body.rail-open .railitem[aria-current=page] .railtext::before{content:"";position:absolute;left:0;right:-12px;
@@ -129,9 +159,14 @@ body.rail-open .railitem::after{content:"";position:absolute;left:0;width:calc(v
           border-radius:var(--r-md) 0 0 var(--r-md);z-index:0;transition:opacity .15s ease-out}
 body.rail-open .railitem:hover::before,body.rail-open .railitem:hover::after,
 body.rail-open .railitem[aria-current=page]::after{opacity:1}
-body.rail-open .railitem[aria-current=page] .ic::before{content:"";position:absolute;inset:0;
-          background:#fff;border-radius:8px;z-index:-1}
-body.rail-open .railitem[aria-current=page] .ic svg{fill:var(--green-900);filter:none}
+/* Option 3 - in the open rail every glyph sits in a 26 px tile, so the word
+   reads as the tile's caption instead of as a separate column. The active tile
+   carries the subject's own colour and the glyph stays deep navy on it, which
+   holds for the pale tones too (Home, People, Calculator). The collapsed rail
+   keeps bare glyphs, so the strip stays clean. */
+body.rail-open .railitem .ic{background:rgba(255,255,255,.14);border-radius:8px}
+body.rail-open .railitem[aria-current=page] .ic{background:var(--i)}
+body.rail-open .railitem[aria-current=page] .ic svg{fill:var(--navy-900);filter:none}
 .railsep{height:1px;margin:6px 12px;
           background:linear-gradient(90deg,rgba(255,255,255,.40) 0 calc(var(--rail-w) - 10px),
                       var(--border) calc(var(--rail-w) - 10px) 100%)}
@@ -381,7 +416,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:900px){
-  :root{--rail-w:44px;--rail-pad:8px;--rail-ic-w:24px}
+  :root{--rail-w:44px;--rail-pad:4px;--rail-ic-w:24px}
   .topbar .tagline{display:none}
   .topbar{gap:10px;padding:0 12px}
   #pricingpill,#accountpill,#signuppill{display:none}
@@ -409,7 +444,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, global market data, PDF text and local OCR">v0.87</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v0.93</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -450,6 +485,10 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
       <a class="railitem" href="#/subject/management" data-panel="subject" data-subject="management" style="--i:#B388FF">
         <span class="ic"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></span>
         <span class="railtext">Management &amp; strategy</span>
+      </a>
+      <a class="railitem" href="#/subject/project-management" data-panel="subject" data-subject="project-management" style="--i:#E879F9">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="3" rx="1"/><rect x="3" y="9" width="10" height="3" rx="1"/><rect x="7" y="14" width="14" height="3" rx="1"/><rect x="3" y="19" width="11" height="2" rx="1"/></svg></span>
+        <span class="railtext">Project management</span>
       </a>
       <a class="railitem" href="#/subject/entrepreneurship" data-panel="subject" data-subject="entrepreneurship" style="--i:#FFC542">
         <span class="ic"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg></span>
@@ -706,6 +745,7 @@ const ICONS = {
   finance: '<path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/>',
   economics: '<path d="M12 3v18M5 7h14"/><path d="M5 7l-2 6a3 3 0 0 0 6 0z"/><path d="M19 7l-2 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/>',
   management: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
+  project: '<path d="M4 3v18"/><path d="M7 6h10M11 11h9M8 16h8"/>',
   entrepreneurship: '<path d="M12 3c3 2 5 5 5 9l-3 3H10l-3-3c0-4 2-7 5-9z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 16l-2 4 3-1M15 16l2 4-3-1"/>',
   operations: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
   "supply-chain": '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
@@ -719,7 +759,7 @@ const ICONS = {
 };
 const SUBJECT_TONES = {
   accounting: "var(--navy-700)", finance: "var(--green-600)", economics: "var(--teal)",
-  management: "var(--violet)", entrepreneurship: "var(--ochre)", operations: "var(--indigo)",
+  management: "var(--violet)", "project-management": "var(--plum)", entrepreneurship: "var(--ochre)", operations: "var(--indigo)",
   "supply-chain": "var(--forest)", marketing: "var(--moss)", people: "var(--slate)",
   research: "var(--navy-500)"
 };
@@ -734,6 +774,7 @@ const RAIL_ICONS = {
   "finance": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V400c0 44.2 35.8 80 80 80H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H80c-8.8 0-16-7.2-16-16V64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"/></svg>',
   "economics": '<svg viewBox="0 0 640 512" aria-hidden="true"><path d="M384 32H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H398.4c-5.2 25.8-22.9 47.1-46.4 57.3V448H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H320 128c-17.7 0-32-14.3-32-32s14.3-32 32-32H288V153.3c-23.5-10.3-41.2-31.6-46.4-57.3H128c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c14.6-19.4 37.8-32 64-32s49.4 12.6 64 32zm55.6 288H584.4L512 195.8 439.6 320zM512 416c-62.9 0-115.2-34-126-78.9c-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C627.2 382 574.9 416 512 416zM126.8 195.8L54.4 320H199.3L126.8 195.8zM.9 337.1c-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C242 382 189.7 416 126.8 416S11.7 382 .9 337.1z"/></svg>',
   "management": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>',
+  "project": '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="3" rx="1"/><rect x="3" y="9" width="10" height="3" rx="1"/><rect x="7" y="14" width="14" height="3" rx="1"/><rect x="3" y="19" width="11" height="2" rx="1"/></svg>',
   "entrepreneurship": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>',
   "operations": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>',
   "supply-chain": '<svg viewBox="0 0 640 512" aria-hidden="true"><path d="M48 0C21.5 0 0 21.5 0 48V368c0 26.5 21.5 48 48 48H64c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H48zM416 160h50.7L544 237.3V256H416V160zM112 416a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm368-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>',
@@ -752,6 +793,7 @@ const RAIL_TONES = {
   "finance": "#3DDC84",
   "economics": "#2BD9D9",
   "management": "#B388FF",
+  "project-management": "#E879F9",
   "entrepreneurship": "#FFC542",
   "operations": "#7AA7FF",
   "supply-chain": "#38E0C8",
@@ -785,7 +827,8 @@ const state = {
   presets: {}, methods: [], currencies: [], session: null, delivery: null,
   cases: [], caseId: null, caseBundle: null, ingest: null, ref: null,
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
-  subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null
+  subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
+  worksheet: null
 };
 const PANELS = ["home", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 
@@ -1071,7 +1114,8 @@ function subjectCard(row) {
     '<span class="meta">' +
       '<span class="badge">' + esc(row.tool_count) + " calculations</span>" +
       (row.worksheet_count ? '<span class="badge mute">' + esc(row.worksheet_count) + " worksheets</span>" : "") +
-      '<span class="badge mute">' + esc(row.catalogue_count) + " catalogue</span>" +
+      (row.record_count ? '<span class="badge mute">' + esc(row.record_count) + " records</span>" : "") +
+      (row.theory_count ? '<span class="badge mute">' + esc(row.theory_count) + " theory lenses</span>" : "") +
       (row.cross_cutting ? '<span class="badge warn">cross-cutting</span>' : "") +
     "</span>" +
     '<span class="capgo">Open the capabilities</span>' +
@@ -1102,7 +1146,8 @@ function renderRailSubjects() {
       '<span class="railtext">' + esc(row.label) + "</span>" +
       '<span class="railtip">' + esc(row.label) + ": " + esc(row.tool_count) + " calculations" +
         (row.worksheet_count ? ", " + esc(row.worksheet_count) + " worksheet" : "") +
-        (row.catalogue_count ? ", " + esc(row.catalogue_count) + " catalogue records" : "") + "</span>" +
+        (row.record_count ? ", " + esc(row.record_count) + " read-only records" : "") +
+        (row.theory_count ? ", " + esc(row.theory_count) + " theory lenses" : "") + "</span>" +
     "</a>").join("");
   // show() is not re-run here, so set the current marker for an already-open subject
   $$(".railitem").forEach((a) => {
@@ -1187,22 +1232,99 @@ function capabilityCard(item, kind) {
   const attrs = isSheet
     ? 'data-worksheet="' + esc(item.template) + '" data-wlabel="' + esc(item.label) + '"'
     : 'data-tool="' + esc(item.key) + '"';
-  const footer = isSheet
-    ? "Catalogue " + esc(item.catalogue_id)
-    : (item.preset ? "Preset " + esc(item.preset) : "Typed inputs");
-  const level = (!isSheet && item.level)
-    ? '<span class="lvl">' + esc(item.level) + "</span>"
-    : "";
-  const period = (!isSheet && item.period)
-    ? '<span class="lvl">' + esc(item.period) + "</span>"
-    : "";
+  const domain = (state.subject && state.subject.label) || "This subject";
   return '<button class="capcard" type="button" ' + attrs + ">" +
     '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' + iconSvg(toolIcon(isSheet ? { kind: "worksheet" } : item)) + "</span>" +
-      "<strong>" + esc(item.label) + "</strong>" + level + period + "</span>" +
+      "<strong>" + esc(item.label) + "</strong></span>" +
     '<span class="capdesc">' + esc(item.what) + "</span>" +
-    '<span class="capfoot"><span>' + footer + '</span><span class="capgo">' +
+    '<span class="capfoot"><span>' + esc(domain) + '</span><span class="capgo">' +
       (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
   "</button>";
+}
+
+function frameworkCard(row, kind, domain) {
+  const theory = kind === "theory";
+  const method = kind === "method";
+  const action = theory ? "Read the lens" : (method ? "Read the method record" : "Read the framework");
+  const description = theory
+    ? "Explains behaviour or relationships; use it to interpret evidence, not as a template."
+    : txt(row.structures);
+  return '<button class="capcard" type="button" data-framework="' + esc(row.id) + '">' +
+    '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' +
+      iconSvg("worksheet") + "</span><strong>" + esc(row.name) + "</strong></span>" +
+    '<span class="capdesc">' + esc(description) + "</span>" +
+    '<span class="capfoot"><span>' + esc(domain) + '</span><span class="capgo">' + esc(action) + " &rarr;</span></span>" +
+  "</button>";
+}
+
+function frameworkPicker(s, groups) {
+  const opts = [];
+  if (s.worksheets.length) {
+    opts.push('<optgroup label="Worksheets">' + s.worksheets.map((w, i) =>
+      '<option value="w:' + i + '">' + esc(w.label) + "</option>").join("") + "</optgroup>");
+  }
+  groups.forEach((g) => {
+    opts.push('<optgroup label="' + esc(g.label) + '">' + g.rows.map((r) =>
+      '<option value="r:' + esc(r.id) + '">' + esc(r.name) + "</option>").join("") + "</optgroup>");
+  });
+  if (s.theories.length) {
+    opts.push('<optgroup label="Reading lenses">' + s.theories.map((r) =>
+      '<option value="r:' + esc(r.id) + '">' + esc(r.name) + "</option>").join("") + "</optgroup>");
+  }
+  const total = s.worksheets.length + groups.reduce((n, g) => n + g.rows.length, 0) + s.theories.length;
+  return '<div class="row" style="gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap">' +
+    '<label class="field" for="frameworkpick" style="margin:0">Choose a framework</label>' +
+    '<select id="frameworkpick" style="min-width:320px"><option value="">' + esc(total) +
+    " frameworks - choose one</option>" + opts.join("") + "</select></div>";
+}
+
+function caseBriefBox() {
+  return '<div class="card" style="margin:0 0 14px">' +
+    '<h3 style="margin-top:0">Describe your case or paste the instruction</h3>' +
+    '<p class="muted">We will suggest the framework that fits. You still supply and confirm the evidence; ' +
+    "the suggestion is not an analysis and no evidence is invented for you.</p>" +
+    '<textarea id="casebrief" rows="3" style="width:100%" placeholder="For example: a local bakery faces a new competitor and we need to decide how to position it."></textarea>' +
+    '<div class="row" style="margin-top:8px;align-items:center"><button class="btn primary" id="casefind">Find the framework</button>' +
+    '<span class="muted" id="casefindnote"></span></div><div id="casefindout"></div></div>';
+}
+
+function openFramework(row) {
+  const theory = row.form === "theory";
+  const body = '<p class="muted">' + esc(row.status_note) + "</p>" +
+    "<p><strong>What it covers.</strong> " + esc(txt(row.structures)) + "</p>" +
+    (row.evidence_needs ? "<p><strong>Evidence it needs.</strong> " + esc(row.evidence_needs) + "</p>" : "") +
+    "<p><strong>Discipline.</strong> " + esc((row.disciplines || []).join("; ")) + "</p>" +
+    '<p class="muted">' + (theory
+      ? "A theory explains behaviour or relationships; it is not a template. Read it to interpret the evidence, retrieve and cite the original research, and state its limits."
+      : "This is a catalogue record: you can read and cite it, but no worksheet or method runs for it yet.") + "</p>";
+  openModal(row.name, body, "Close", async () => {});
+}
+
+async function findFramework() {
+  const text = ($("#casebrief").value || "").trim();
+  const out = $("#casefindout"), note = $("#casefindnote");
+  if (!text) { toast("Describe the case first."); return; }
+  note.textContent = "Matching the description...";
+  try {
+    const result = await post("/api/cases/match", { text: text });
+    const matches = (result && result.matches) || [];
+    note.textContent = "";
+    if (!matches.length) {
+      out.innerHTML = '<p class="muted">' + esc(result.none_reason || "No worksheet matches that description yet.") + "</p>";
+      return;
+    }
+    out.innerHTML = '<p class="sub">Best fit: <strong>' + esc(matches[0].label) +
+      "</strong>. Open it with your description as the objective, then add the evidence.</p>" +
+      '<div class="row" style="flex-wrap:wrap">' + matches.map((m, i) =>
+        '<button class="btn sm' + (i === 0 ? " primary" : "") + '" data-match="' + esc(m.template) +
+        '" data-mlabel="' + esc(m.label) + '">' + esc(m.label) + "</button>").join("") + "</div>";
+    $$("[data-match]", out).forEach((button) => {
+      button.onclick = () => openWorksheet(button.dataset.match, button.dataset.mlabel, text);
+    });
+  } catch (e) {
+    note.textContent = "";
+    out.innerHTML = errorBanner(e);
+  }
 }
 
 function renderSubject() {
@@ -1213,20 +1335,22 @@ function renderSubject() {
       iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + '</h2>' +
       '<p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
-    '<p class="muted" style="margin-top:6px">Catalogue disciplines: ' + esc((s.disciplines || []).join("; ") || "not recorded") +
-      (s.cross_cutting ? " - this shelf is linked from every subject." : "") + "</p>" +
     (s.guidance ? '<p style="margin:2px 0 10px">' + esc(s.guidance) + "</p>" : "") +
     '<div class="subjectask">' +
       '<button class="btn sm primary" id="subjectcalc">Open the Calculator</button>' +
       '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
       (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
     "</div>";
-  html += '<div class="capgroup"><h3 style="margin-top:0">Choose what to do in ' + esc(s.label) + "</h3>" +
-    '<p class="muted">Each tile opens the tool with the method the server will run. Nothing is calculated until you ' +
-    "supply or confirm the figures on the next screen.</p>";
+  html += '<div class="capgroup">';
   if (s.id === "finance") html += marketPanel();
   const tools = s.tools || [];
-  const sheets = (s.worksheets || []).map((w) => capabilityCard(w, "worksheet"));
+  const sheets = s.worksheets || [];
+  const records = s.records || [];
+  const theories = s.theories || [];
+  const readOnly = records.filter((r) => r.form === "read_only");
+  const frameworks = readOnly.filter((r) => r.type !== "Q");
+  const methodGaps = readOnly.filter((r) => r.type === "Q");
+  const computedRecords = records.filter((r) => r.form === "computed");
   const levels = [["intro", "Intro"], ["intermediate", "Intermediate"], ["advanced", "Advanced"]];
   const groups = [];
   tools.forEach((t) => {
@@ -1237,42 +1361,71 @@ function renderSubject() {
   });
   const hasGroups = tools.length && tools.every((t) => t.group);
   const hasLevels = tools.length && tools.every((t) => t.level);
-  if (hasGroups) {
-    groups.forEach((g) => {
-      html += '<h4 class="levelhead">' + esc(g.label) + '</h4><div class="capgrid">' +
-        g.items.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+  if (sheets.length) html += caseBriefBox();
+  if (sheets.length || frameworks.length || theories.length) {
+    html += '<h3 style="margin-top:0">Frameworks without computation</h3>' +
+      '<p class="muted">Each worksheet organizes evidence you supply. It computes nothing, scores nothing and adds no facts; ' +
+      "empty blocks and cells are named, not filled. The records beside it are catalogued frameworks with no worksheet yet.</p>";
+    const frameworkGroups = [];
+    frameworks.forEach((row) => {
+      const label = row.discipline_label || ((row.disciplines && row.disciplines.length) ? row.disciplines[0] : "Other");
+      let group = frameworkGroups.find((g) => g.label === label);
+      if (!group) { group = { label: label, rows: [] }; frameworkGroups.push(group); }
+      group.rows.push(row);
     });
-  } else if (hasLevels) {
-    levels.forEach((pair) => {
-      const subset = tools.filter((t) => t.level === pair[0]);
-      if (subset.length) {
-        html += '<h4 class="levelhead">' + pair[1] + '</h4><div class="capgrid">' +
-          subset.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
-      }
+    html += frameworkPicker(s, frameworkGroups);
+    if (sheets.length) {
+      html += '<h4 class="levelhead">Worksheets - ' + sheets.length + '</h4><div class="capgrid">' +
+        sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
+    }
+    frameworkGroups.forEach((group) => {
+      html += '<h4 class="levelhead">' + esc(group.label) + ' - ' + group.rows.length + '</h4>' +
+        '<div class="capgrid">' + group.rows.map((row) => frameworkCard(row, "framework", group.label)).join("") + "</div>";
     });
-  } else if (tools.length) {
-    html += '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+    if (theories.length) {
+      html += '<h4 class="levelhead">Reading lenses - ' + theories.length + '</h4>' +
+        '<p class="muted">A theory explains behaviour or relationships; it does not prescribe a template. Read it to interpret the evidence, retrieve the original research, cite it, and state its limits.</p>' +
+        '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
+    }
   }
-  if (sheets.length) {
-    html += '<h4 class="levelhead">Worksheets</h4><div class="capgrid">' + sheets.join("") + "</div>";
+  if (tools.length || methodGaps.length) {
+    html += '<h3 style="margin-top:22px">With computation</h3>' +
+      '<p class="muted">These run a frozen method. Supply the figures and confirm; the server computes the result and its checks.</p>';
+    if (hasGroups) {
+      groups.forEach((g) => {
+        html += '<h4 class="levelhead">' + esc(g.label) + '</h4><div class="capgrid">' +
+          g.items.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+      });
+    } else if (hasLevels) {
+      levels.forEach((pair) => {
+        const subset = tools.filter((t) => t.level === pair[0]);
+        if (subset.length) {
+          html += '<h4 class="levelhead">' + pair[1] + '</h4><div class="capgrid">' +
+            subset.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+        }
+      });
+    } else if (tools.length) {
+      html += '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+    }
+    if (methodGaps.length) {
+      html += '<h4 class="levelhead">Methods not built yet - ' + methodGaps.length + '</h4>' +
+        '<p class="muted">These are catalogued quantitative methods with no code yet; each record says what it would need.</p>' +
+        '<div class="capgrid">' + methodGaps.map((row) => frameworkCard(row, "method", "Quantitative methods")).join("") + "</div>";
+    }
   }
-  if (!tools.length && !sheets.length) {
-    html += '<p class="muted">No computed tool or worksheet is assigned to this subject yet.</p>';
+  if (!tools.length && !sheets.length && !records.length && !theories.length) {
+    html += '<p class="muted">No capability is assigned to this subject yet.</p>';
   }
   html += "</div>";
-  if (s.worksheets.length) {
-    html += '<p class="muted">Worksheets are structure and evidence audit only: they score and rank nothing, and the output says so.</p>';
+  if (computedRecords.length) {
+    html += '<details class="studynote"><summary>Catalogue coverage for the computed methods (' + computedRecords.length + ')</summary>' +
+      '<div class="tablewrap"><table><caption>What each computed catalogue record covers</caption><thead><tr>' +
+      "<th>Id</th><th>Name</th><th>Coverage</th></tr></thead><tbody>" +
+      computedRecords.map((row) => "<tr><td>" + esc(row.id) + "</td><td>" + esc(txt(row.name)) + "</td><td>" +
+        esc((row.linked_methods || []).join(", ") || row.status_note) + "</td></tr>").join("") +
+      "</tbody></table></div></details>";
   }
   html += '<h3>Stored cases in this subject</h3><div id="subjectcases">' + loading("Reading the case store") + "</div>";
-  html += '<h3>Catalogue records and their status</h3>' +
-    '<p class="muted">These records are readable structures. The implementation status is the registry\'s own wording, copied verbatim; a record stays "not implemented" until a method or worksheet actually runs, and nothing here is presented as an analysis the system performed.</p>' +
-    (s.catalogue.length
-      ? '<div class="tablewrap"><table><caption>Catalogue records assigned to ' + esc(s.label) + "</caption><thead><tr>" +
-        "<th>Id</th><th>Name</th><th>Implementation status</th><th>Linked methods</th></tr></thead><tbody>" +
-        s.catalogue.map((row) => "<tr><td>" + esc(row.id) + "</td><td>" + esc(txt(row.name)) + "</td><td>" +
-          esc(txt(row.implementation_status)) + "</td><td>" + esc((row.linked_methods || []).join(", ") || "none") + "</td></tr>").join("") +
-        "</tbody></table></div>"
-      : '<div class="empty">No catalogue records are assigned to this subject.</div>');
   if ((s.glossary || []).length) {
     html += '<h3>Glossary</h3><div class="tablewrap"><table><caption>Terms used on this page</caption><thead><tr>' +
       '<th>Term</th><th>Meaning</th></tr></thead><tbody>' +
@@ -1309,6 +1462,24 @@ function renderSubject() {
   $$("[data-worksheet]", out).forEach((b) => {
     b.onclick = () => openWorksheet(b.dataset.worksheet, b.dataset.wlabel);
   });
+  const frameworkpick = out.querySelector("#frameworkpick");
+  if (frameworkpick) frameworkpick.onchange = () => {
+    const value = frameworkpick.value;
+    if (!value) return;
+    if (value.indexOf("w:") === 0) {
+      const worksheet = (s.worksheets || [])[Number(value.slice(2))];
+      if (worksheet) openWorksheet(worksheet.template, worksheet.label);
+    } else {
+      const row = (s.records || []).concat(s.theories || []).find((r) => r.id === value.slice(2));
+      if (row) openFramework(row);
+    }
+  };
+  $$("[data-framework]", out).forEach((button) => {
+    const row = (s.records || []).concat(s.theories || []).find((r) => r.id === button.dataset.framework);
+    button.onclick = () => { if (row) openFramework(row); };
+  });
+  const find = out.querySelector("#casefind");
+  if (find) find.onclick = findFramework;
   loadSubjectCases(s);
 }
 
@@ -1332,6 +1503,7 @@ function marketPanel() {
       '<label>Equity symbol <input id="eqsym" value="AAPL" maxlength="12" size="7" aria-label="Equity symbol"></label>' +
       '<button class="btn sm" id="eqquote" type="button">Quote</button>' +
       '<button class="btn sm" id="eqfund" type="button">Fundamentals</button>' +
+      '<span id="eqstatus" class="muted"></span>' +
     '</div>' +
     '<div class="marketrow">' +
       '<label>SEC ticker <input id="secsym" value="AAPL" maxlength="12" size="7" aria-label="SEC ticker"></label>' +
@@ -1362,6 +1534,14 @@ function bindMarketPanel() {
   on("eqfund", () => lookupEquity("fundamentals"));
   on("seclookup", lookupSec);
   on("wblookup", lookupMacro);
+  api("/api/market/status").then((data) => {
+    if (data && data.sources && !data.sources.equity) {
+      const quote = $("#eqquote"), fund = $("#eqfund"), label = $("#eqstatus");
+      if (quote) quote.disabled = true;
+      if (fund) fund.disabled = true;
+      if (label) label.textContent = "Alpha Vantage key not configured (BP_ALPHAVANTAGE_KEY)";
+    }
+  }).catch(() => {});
 }
 
 function marketFoot(data) {
@@ -1486,6 +1666,7 @@ async function loadSubjectCases(subject) {
 
 async function openTool(tool) {
   state.tool = tool;
+  state.worksheet = null;
   const preset = tool.preset ? state.presets[tool.preset] : null;
   const body = {
     objective: (preset && preset.objective) || tool.label,
@@ -1498,14 +1679,16 @@ async function openTool(tool) {
   await createSession(body);
 }
 
-async function openWorksheet(template, label) {
+async function openWorksheet(template, label, objective) {
   state.tool = { kind: "worksheet", label: label || template, method: template, preset: null };
+  state.session = null;
+  state.delivery = null;
+  state.worksheet = null;
   try {
     const t = await api("/api/templates/" + encodeURIComponent(template));
-    const req = t.request || t.example || {};
-    const body = { objective: req.objective || ("Work through the " + (label || template) + " worksheet."),
-                   method: template, inputs: req.inputs || {} };
-    state.session = await post("/api/sessions", body);
+    state.worksheet = t;
+    state.tool.objective = objective || ("Work through the " + (label || t.name) + " worksheet.");
+    state.tool.inputs = null;
     show("new");
     renderNew();
   } catch (e) {
@@ -2252,6 +2435,69 @@ function guideCard() {
     "</details>";
 }
 
+function worksheetForm(t) {
+  if (!t.blocks || !t.blocks.length) {
+    const example = (t.example_request && t.example_request.inputs) || {};
+    return '<p class="sub">This worksheet takes a structured input. Edit the example object below: replace every item with your own evidence, keep the field names, and delete what you do not have. Anything you leave out is reported as a gap.</p>' +
+      '<div class="stack" style="gap:4px"><label class="field" for="ws-json">Worksheet inputs (JSON) <span class="muted">one object; the shape is the example</span></label>' +
+      '<textarea id="ws-json" data-type="object" rows="18" spellcheck="false" class="jsoninput" style="width:100%">' +
+      esc(JSON.stringify(example, null, 1)) + "</textarea></div>";
+  }
+  return '<div class="wsheet">' +
+    '<p class="wintro">Write one item per line in each block. Every line is your evidence; say whether it is yours, sourced or an assumption, and give the source when it is sourced. A block you leave empty stays empty and is reported as a gap; nothing is filled in for you.</p>' +
+    t.blocks.map((b) => {
+      const id = "wb-" + b.key;
+      return '<div class="wblock">' +
+        '<label class="field" for="' + esc(id) + '"><strong class="wtitle">' + esc(b.label) + '</strong>' +
+          '<span class="wprompt">' + esc(b.prompt) + "</span></label>" +
+        '<textarea class="wtext" id="' + esc(id) + '" data-block="' + esc(b.key) + '" rows="3" spellcheck="true" placeholder="One item per line"></textarea>' +
+        '<div class="wmeta">' +
+          '<select id="wp-' + esc(b.key) + '"><option value="user">my evidence</option><option value="sourced">sourced</option><option value="assumption">assumption</option><option value="synthetic">illustrative</option></select>' +
+          '<input type="text" id="wsrc-' + esc(b.key) + '" placeholder="source (needed when sourced)" style="flex:1;min-width:200px">' +
+          '<span class="whint">ids: ' + esc(b.prefix) + "1, " + esc(b.prefix) + "2, ...</span>" +
+        "</div></div>";
+    }).join("") +
+    '<div class="wblock wlinks"><label class="field" for="wlinks"><strong class="wtitle">Links</strong>' +
+      '<span class="wprompt">Optional: one link per line, FROM -&gt; TO, using the ids shown beside each block (for example a value proposition to the segment it serves).</span></label>' +
+    '<textarea class="wtext" id="wlinks" rows="2" spellcheck="false" placeholder="B1_1 -> B2_1"></textarea></div></div>';
+}
+
+function collectWorksheetInputs() {
+  const t = state.worksheet; if (!t) return null;
+  if (!t.blocks || !t.blocks.length) {
+    const el = document.getElementById("ws-json");
+    if (!el) return (state.tool && state.tool.inputs) || null;
+    try { return JSON.parse(el.value); } catch (e) { toast("The worksheet inputs are not valid JSON."); return null; }
+  }
+  const probe = document.getElementById("wb-" + t.blocks[0].key);
+  if (!probe) return (state.tool && state.tool.inputs) || null;
+  const blocks = {}, links = [];
+  for (const b of t.blocks) {
+    const el = document.getElementById("wb-" + b.key);
+    const provEl = document.getElementById("wp-" + b.key);
+    const srcEl = document.getElementById("wsrc-" + b.key);
+    const prov = (provEl && provEl.value) || "user";
+    const src = srcEl ? srcEl.value.trim() : "";
+    const lines = String(el ? el.value : "").split("\n").map((x) => x.trim()).filter((x) => x.length);
+    if (!lines.length) continue;
+    if (prov === "sourced" && !src) { toast("A sourced block needs a source. Add one or change the evidence type."); return null; }
+    blocks[b.key] = lines.map((text, i) => {
+      const item = { id: b.prefix + (i + 1), text: text, provenance: prov };
+      if (prov === "sourced") item.source = src;
+      return item;
+    });
+  }
+  if (!Object.keys(blocks).length) { toast("Add at least one item to a block before running the worksheet."); return null; }
+  const l = document.getElementById("wlinks");
+  const raw = String(l ? l.value : "").split("\n").map((x) => x.trim()).filter((x) => x.length);
+  for (const line of raw) {
+    const parts = line.split(/->|\u2192/).map((x) => x.trim());
+    if (parts.length !== 2 || !parts[0] || !parts[1]) { toast("Each link must be written FROM -> TO."); return null; }
+    links.push({ from: parts[0], to: parts[1] });
+  }
+  return links.length ? { blocks: blocks, links: links } : { blocks: blocks };
+}
+
 function inputField(name, spec, plan) {
   const type = (spec && spec.type) || "text";
   const desc = type === "engagement_spec"
@@ -2296,6 +2542,21 @@ function inputField(name, spec, plan) {
 
 function renderNew() {
   const s = state.session;
+  if (!s && state.worksheet) {
+    const t = state.worksheet;
+    $("#panel-new").innerHTML = '<div class="card"><h2>' + esc(state.tool && state.tool.label ? state.tool.label : t.name) + "</h2>" +
+      '<p class="sub">' + esc(state.tool && state.tool.objective ? state.tool.objective : "") + "</p>" +
+      '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
+        '<button class="btn sm" id="toolcalc">Calculator</button></div></div>' +
+      '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
+      '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
+      '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button></div>' +
+      worksheetForm(t) + "</div>";
+    const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
+    const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
+    const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
+    return;
+  }
   if (!s) { $("#panel-new").innerHTML = '<div class="empty">No session yet.</div>'; return; }
   const plan = s.work_plan || {};
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
@@ -2323,15 +2584,20 @@ function renderNew() {
         '<button class="btn" id="reject">Reject</button></div>' +
         '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
         mappingTable(s.account_mapping)
-      : '<h2>Enter the figures</h2>' +
-        '<p class="sub">These are the figures the engine will post. The engagement is declared once: the period, the chart, ' +
-        'the opening balances, the entries and any schedules. Change a figure, then run it.</p>' +
-        '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="apply">Apply figures and calculate</button>' +
+      : '<h2>' + (state.worksheet ? "Fill in the worksheet" : "Enter the figures") + "</h2>" +
+        '<p class="sub">' + (state.worksheet
+          ? "This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts."
+          : "These are the figures the engine will post. The engagement is declared once: the period, the chart, " +
+            "the opening balances, the entries and any schedules. Change a figure, then run it.") + "</p>" +
+        '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="apply">' +
+        (state.worksheet ? "Run the worksheet" : "Apply figures and calculate") + "</button>" +
         '<button class="btn" id="reject">Reject</button></div>' +
         '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
-        (Object.keys(schema).length
-          ? '<div class="grid2">' + Object.keys(schema).map((n) => inputField(n, schema[n], plan)).join("") + "</div>"
-          : '<p class="muted">This method declares no inputs.</p>')) +
+        (state.worksheet
+          ? worksheetForm(state.worksheet)
+          : (Object.keys(schema).length
+            ? '<div class="grid2">' + Object.keys(schema).map((n) => inputField(n, schema[n], plan)).join("") + "</div>"
+            : '<p class="muted">This method declares no inputs.</p>'))) +
       "</div>";
   }
 
@@ -2393,11 +2659,12 @@ function collectInputs(session) {
 }
 
 async function applyAndRun() {
-  const s = state.session; if (!s) return;
-  const inputs = collectInputs(s);
+  const s = state.session;
+  const inputs = state.worksheet ? collectWorksheetInputs() : collectInputs(s);
   if (inputs === null) return;
-  const plan = s.work_plan || {};
-  const body = { objective: plan.objective, method: plan.method, inputs: inputs };
+  const plan = (s && s.work_plan) || {};
+  const body = { objective: plan.objective || (state.tool && state.tool.objective) || "Worksheet",
+                 method: plan.method || (state.tool && state.tool.method), inputs: inputs };
   if (plan.currency) body.currency = plan.currency;
   if (plan.period) body.period = plan.period;
   if (state.tool) state.tool.inputs = inputs;

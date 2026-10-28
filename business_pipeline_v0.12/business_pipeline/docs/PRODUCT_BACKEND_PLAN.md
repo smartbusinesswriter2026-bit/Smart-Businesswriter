@@ -81,7 +81,7 @@ Each starts as a request in this file; nothing here is approved yet.
 
 - **REW stages R0-R8** — needs R1-R10 ratification (see [`proposals/DECISION_BRIEFS.md`](proposals/DECISION_BRIEFS.md) Brief 5).
 - **Standards / filings / tax retrieval** — needs source and licensing decisions.
-- **Tax computation (B-052), ledger engine (B-032), template breadth (B-028), named reviewers (B-005)** — existing open decisions.
+- **Tax computation (B-052), ledger engine (B-032), template breadth (B-028)** - existing open decisions; reviewer naming is not planned (B-112).
 - **Real-case held-out evaluation** — needs a governance decision on real data; the scaffold exists and is synthetic-only.
 
 ## Phase 5 — the UI

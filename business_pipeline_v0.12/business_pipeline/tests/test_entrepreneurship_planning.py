@@ -307,6 +307,17 @@ class CanvasTemplates(unittest.TestCase):
             self.assertTrue(desc["planned_checks"])
             self.assertTrue(desc["example_request"]["inputs"]["blocks"])
 
+    def test_describe_exposes_the_block_editor_metadata(self):
+        for kind in NEW_TEMPLATES:
+            desc = T.describe(kind)
+            self.assertTrue(desc["blocks"], kind)
+            for block in desc["blocks"]:
+                self.assertTrue(block["label"], kind)
+                self.assertTrue(block["prompt"], kind)
+                self.assertRegex(block["prefix"], r"^[A-Z]{2}$", kind)
+            prefixes = [b["prefix"] for b in desc["blocks"]]
+            self.assertEqual(len(prefixes), len(set(prefixes)), kind)
+
 
 class ShelfWiring(unittest.TestCase):
     def test_the_entrepreneurship_page_carries_the_planning_tools_and_worksheets(self):

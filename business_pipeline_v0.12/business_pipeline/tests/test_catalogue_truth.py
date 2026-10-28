@@ -120,6 +120,31 @@ class CatalogueDoesNotDenyWhatIsBuilt(unittest.TestCase):
         self.assertEqual(problems, [], "; ".join(problems))
 
 
+class VerdictsAreHonest(unittest.TestCase):
+    """The label must describe the delivery form, not grade the framework."""
+
+    def test_every_record_has_a_known_form(self):
+        from bp.product.subjects import FORM_SHORT
+
+        for rid, rec in _records().items():
+            self.assertIn(rec.get("form"), FORM_SHORT, rid)
+            self.assertTrue(rec.get("status_short"), rid)
+            self.assertTrue(rec.get("status_note"), rid)
+
+    def test_no_theory_is_presented_as_an_unbuilt_worksheet(self):
+        for rid, rec in _records().items():
+            if rec.get("type") == "T":
+                self.assertEqual(rec.get("form"), "theory", rid)
+                self.assertNotIn("not implemented", (rec.get("status_note") or "").lower(), rid)
+                self.assertIn("not a worksheet by design", rec.get("status_note"), rid)
+
+    def test_no_read_only_framework_says_not_implemented(self):
+        for rid, rec in _records().items():
+            if rec.get("form") == "read_only" and rec.get("type") in ("F", "M"):
+                self.assertNotIn("not implemented", (rec.get("status_note") or "").lower(), rid)
+                self.assertIn("read-only record", rec.get("status_note"), rid)
+
+
 class SubjectToolsResolve(unittest.TestCase):
     def test_every_subject_tool_resolves_to_something_that_runs(self):
         """A subject tile must resolve either to a registered method or to a

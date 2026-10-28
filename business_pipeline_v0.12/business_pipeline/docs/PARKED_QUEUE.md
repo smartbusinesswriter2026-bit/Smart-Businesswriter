@@ -26,7 +26,7 @@ These are listed here only so a reader does not park them by mistake — they ar
 - **Imputation / complex-design inference** — needs an owner-declared model (recommended default: none; keep the extreme-case bounds only). Not a difficulty problem.
 - **Standards / filings / tax retrieval** — needs the owner to name sources, jurisdictions and licensing (B-052 deferred).
 - **PDF/scan/OCR/SPSS ingestion** — explicitly refused by design (B-065); would need a declared extraction step plus human confirmation of unverified text.
-- **Breadth templates** — gated on B-028 (next templates) and B-005 (reviewers for any promotion).
+- **Breadth templates** - gated on B-028 (next templates); reviewer naming is not planned (B-112).
 - **REW stages R0–R8** — gated on ratifying R1–R10.
 
 ## When the queue resumes

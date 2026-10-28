@@ -222,5 +222,27 @@ class WorldBankTest(unittest.TestCase):
 
 
 
+class StatusTest(unittest.TestCase):
+    def setUp(self):
+        self.previous = os.environ.get("BP_ALPHAVANTAGE_KEY")
+
+    def tearDown(self):
+        if self.previous is None: os.environ.pop("BP_ALPHAVANTAGE_KEY", None)
+        else: os.environ["BP_ALPHAVANTAGE_KEY"] = self.previous
+
+    def test_equity_is_reported_as_unconfigured_without_a_key(self):
+        os.environ.pop("BP_ALPHAVANTAGE_KEY", None)
+        out = marketdata.status()
+        self.assertFalse(out["sources"]["equity"])
+        self.assertTrue(out["sources"]["fx"])
+        self.assertTrue(out["sources"]["filings"])
+        self.assertTrue(out["sources"]["macro"])
+
+    def test_equity_is_reported_as_configured_with_a_key(self):
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "abc123"
+        self.assertTrue(marketdata.status()["sources"]["equity"])
+
+
+
 if __name__ == "__main__":
     unittest.main()

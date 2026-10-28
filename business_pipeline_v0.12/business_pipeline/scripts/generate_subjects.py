@@ -20,6 +20,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+FORM_SHORT = {"computed": "Computed", "worksheet": "Worksheet",
+              "read_only": "No worksheet yet", "theory": "Reading lens"}
+
+
+def _status_short(record):
+    """A quantitative method with no linked method is a build gap, not a worksheet gap."""
+    if record["form"] == "read_only" and record["type"] == "Q":
+        return "Method not built"
+    return FORM_SHORT[record["form"]]
+
+
 def build_catalogue():
     sys.path.insert(0, str(ROOT / "src"))
     from bp import registry
@@ -29,6 +40,12 @@ def build_catalogue():
         data[record["id"]] = {
             "id": record["id"],
             "name": record["name"],
+            "type": record["type"],
+            "form": record["form"],
+            "summary": record.get("summary", ""),
+            "evidence_needs": record.get("evidence_needs", ""),
+            "status_short": _status_short(record),
+            "status_note": record.get("implementation_status", ""),
             "implementation_status": record.get("implementation_status", ""),
             "template": record.get("template"),
             "linked_methods": [{"method_id": item["method_id"], "coverage": item.get("coverage")}

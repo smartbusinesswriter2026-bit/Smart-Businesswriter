@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.87**, **1160 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **0.93**, **1266 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -105,9 +105,14 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md) | Living — product-backend sequence, slices and boundary rules | Update when a phase ships or an owner decision resolves (B-081) |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only decision register | Supersede, never delete; status must be current |
 | [`CHANGELOG.md`](CHANGELOG.md) | Append-only build log | Newest first; one entry per increment |
+| [`ACCOUNTING_STUDENT_GUIDE.md`](ACCOUNTING_STUDENT_GUIDE.md) | Living student guide | Update when the Accounting shelf, its conventions or its worked examples change |
+| [`CURRICULUM_MAP.md`](CURRICULUM_MAP.md) | Provisional coverage map, shelf to typical course | Update when a method or worksheet is added or a gap closes; it names no reviewer |
 | [`ECONOMICS_STUDENT_GUIDE.md`](ECONOMICS_STUDENT_GUIDE.md) | Living student guide | Update when the Economics shelf, its conventions or its worked examples change |
 | [`ENTREPRENEURSHIP_STUDENT_GUIDE.md`](ENTREPRENEURSHIP_STUDENT_GUIDE.md) | Living student guide | Update when the Entrepreneurship shelf, its conventions or its worked examples change |
 | [`FINANCE_STUDENT_GUIDE.md`](FINANCE_STUDENT_GUIDE.md) | Living student guide | Update when the Finance shelf, its conventions or its worked examples change |
+| [`MARKETING_STUDENT_GUIDE.md`](MARKETING_STUDENT_GUIDE.md) | Living student guide | Update when the Marketing & customers shelf, its conventions or its worked examples change |
+| [`OPERATIONS_STUDENT_GUIDE.md`](OPERATIONS_STUDENT_GUIDE.md) | Living student guide | Update when the Operations or Supply chain shelf, its conventions or its worked examples change |
+| [`PROJECT_MANAGEMENT_STUDENT_GUIDE.md`](PROJECT_MANAGEMENT_STUDENT_GUIDE.md) | Living student guide | Update when the Project management shelf, its conventions or its worked examples change |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |
 | [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) | Living backlog | Status changes only with verification + commit |
 | [`RESEARCH_EVIDENCE_WORKFLOW.md`](RESEARCH_EVIDENCE_WORKFLOW.md) | Living manual, ratified R11 | Proposals stay tagged until ratified |

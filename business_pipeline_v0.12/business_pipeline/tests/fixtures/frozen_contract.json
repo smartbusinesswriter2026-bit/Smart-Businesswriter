@@ -1,6 +1,48 @@
 {
   "note": "Frozen core deterministic contract (B-079). A difference between this file and the code is a contract change: it requires an owner-approved unfreeze and a matching B-decision before this fixture is edited. Bug fixes that do not change the contract do not need an unfreeze.",
   "methods": {
+    "ab_test_two_proportion": {
+      "tier": "T1",
+      "metric": "absolute_lift",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "absolute_lift_is_b_minus_a",
+        "relative_lift_is_absolute_lift_over_rate_a",
+        "z_is_the_difference_over_the_pooled_standard_error",
+        "p_value_is_the_two_sided_normal_tail"
+      ],
+      "claim_ceiling": "associational",
+      "category": "digital marketing",
+      "inputs": [
+        "alpha",
+        "conversions_a",
+        "conversions_b",
+        "minimum_effect",
+        "power",
+        "visitors_a",
+        "visitors_b"
+      ]
+    },
+    "abc_costing": {
+      "tier": "T1",
+      "metric": "total_allocated",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "every_pool_is_allocated_in_full",
+        "rate_is_the_pool_cost_over_its_driver_total",
+        "unit_cost_is_the_allocation_over_units",
+        "allocations_sum_to_the_total"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "management accounting",
+      "inputs": [
+        "activities",
+        "allocations",
+        "products"
+      ]
+    },
     "anova": {
       "tier": "T1",
       "metric": "eta_squared",
@@ -20,6 +62,23 @@
         "alpha",
         "groups",
         "missing_codes"
+      ]
+    },
+    "attribution_split": {
+      "tier": "T1",
+      "metric": "max_spread",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "each_model_shares_sum_to_one",
+        "linear_share_is_declared_linear_over_its_total",
+        "spread_is_max_minus_min_per_channel",
+        "max_spread_is_the_largest_channel_spread"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "channels"
       ]
     },
     "balance_of_payments": {
@@ -111,6 +170,28 @@
         "nominal_growth_rate"
       ]
     },
+    "campaign_efficiency": {
+      "tier": "T1",
+      "metric": "roas",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "ctr_is_clicks_over_impressions",
+        "cpa_is_spend_over_conversions",
+        "roas_is_the_inverse_of_acos",
+        "cpc_is_cpa_times_conversion_rate"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "clicks",
+        "contribution_margin_rate",
+        "conversions",
+        "impressions",
+        "revenue",
+        "spend"
+      ]
+    },
     "cap_table_round": {
       "tier": "T1",
       "metric": "investor_pct",
@@ -129,6 +210,24 @@
         "investment",
         "option_pool_pct",
         "pre_money_valuation"
+      ]
+    },
+    "capacity_analysis": {
+      "tier": "T1",
+      "metric": "max_output",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "capacity_is_available_minutes_over_minutes_per_unit",
+        "bottleneck_is_the_smallest_capacity",
+        "utilisation_is_demand_over_capacity",
+        "the_reported_bottleneck_index_points_at_the_smallest_capacity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and capacity",
+      "inputs": [
+        "demand",
+        "resources"
       ]
     },
     "capm": {
@@ -172,6 +271,23 @@
         "monthly_net_cash_flow",
         "opening_cash",
         "target_months"
+      ]
+    },
+    "channel_economics": {
+      "tier": "T1",
+      "metric": "blended_cac",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "cac_is_spend_over_customers",
+        "payback_is_cac_over_margin",
+        "spend_shares_sum_to_one",
+        "blended_cac_is_total_spend_over_total_customers"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "channels"
       ]
     },
     "chi_square": {
@@ -303,6 +419,24 @@
         "demand_slope",
         "marginal_cost_1",
         "marginal_cost_2"
+      ]
+    },
+    "cpm_schedule": {
+      "tier": "T1",
+      "metric": "project_duration",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "early_start_is_the_latest_predecessor_finish",
+        "late_finish_is_the_earliest_successor_start",
+        "critical_activities_have_zero_float",
+        "project_duration_is_the_latest_early_finish"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "activities",
+        "estimate"
       ]
     },
     "currency_convert": {
@@ -474,6 +608,27 @@
         "total_assets"
       ]
     },
+    "earned_value": {
+      "tier": "T1",
+      "metric": "spi",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "schedule_variance_is_earned_minus_planned",
+        "cost_variance_is_earned_minus_actual",
+        "spi_and_cpi_are_the_ratios",
+        "variance_at_completion_is_budget_minus_eac"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project control",
+      "inputs": [
+        "actual_cost",
+        "budget_at_completion",
+        "eac_method",
+        "earned_value",
+        "planned_value"
+      ]
+    },
     "elasticity": {
       "tier": "T1",
       "metric": "price_elasticity",
@@ -492,6 +647,30 @@
         "price_2",
         "quantity_1",
         "quantity_2"
+      ]
+    },
+    "email_list_health": {
+      "tier": "T1",
+      "metric": "open_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "list_end_is_start_plus_new_minus_losses",
+        "open_rate_is_opens_over_sends",
+        "click_to_open_is_clicks_over_opens",
+        "revenue_per_subscriber_is_revenue_over_list_end"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "bounces",
+        "clicks",
+        "list_start",
+        "new_subscribers",
+        "opens",
+        "revenue",
+        "sends",
+        "unsubscribes"
       ]
     },
     "equity_bridge": {
@@ -745,6 +924,29 @@
         "forward_rate",
         "spot_rate",
         "time_to_maturity"
+      ]
+    },
+    "inventory_policy": {
+      "tier": "T1",
+      "metric": "economic_order_quantity",
+      "unit": "units",
+      "test_names": [
+        "second_implementation_agrees",
+        "eoq_is_the_square_root_formula",
+        "doubling_demand_raises_the_eoq_by_the_square_root_of_two",
+        "reorder_point_covers_lead_time_demand",
+        "a_higher_service_level_never_lowers_safety_stock"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and inventory",
+      "inputs": [
+        "annual_demand",
+        "daily_demand_sd",
+        "days_per_year",
+        "holding_cost_per_unit",
+        "lead_time_days",
+        "order_cost",
+        "service_level"
       ]
     },
     "irr": {
@@ -1136,6 +1338,27 @@
         "rate"
       ]
     },
+    "oee_analysis": {
+      "tier": "T1",
+      "metric": "oee",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "availability_is_run_time_over_planned_time",
+        "performance_is_ideal_cycle_times_units_over_run_time",
+        "quality_is_good_units_over_total_units",
+        "oee_is_the_product_of_the_three"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and quality",
+      "inputs": [
+        "downtime",
+        "good_units",
+        "ideal_cycle_time",
+        "planned_production_time",
+        "total_units"
+      ]
+    },
     "ols": {
       "tier": "T1",
       "metric": "r_squared",
@@ -1494,6 +1717,25 @@
         "y"
       ]
     },
+    "process_control": {
+      "tier": "T1",
+      "metric": "sigma_estimate",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "limits_are_the_mean_plus_or_minus_three_sigma",
+        "sigma_is_the_average_moving_range_over_one_point_one_two_eight",
+        "out_of_control_points_are_counted_against_the_limits",
+        "cpk_is_the_distance_to_the_nearer_limit"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and quality",
+      "inputs": [
+        "spec_lower",
+        "spec_upper",
+        "values"
+      ]
+    },
     "profit_maximization": {
       "tier": "T1",
       "metric": "profit",
@@ -1604,6 +1846,26 @@
         "probably",
         "probably_weight",
         "target_population"
+      ]
+    },
+    "queue_analysis": {
+      "tier": "T1",
+      "metric": "utilisation",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "utilisation_is_arrival_over_servers_times_service",
+        "little_law_holds_in_the_system",
+        "little_law_holds_in_the_queue",
+        "queue_length_is_wait_probability_times_rho_over_one_minus_rho",
+        "one_server_matches_the_mm1_formula"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations and queueing",
+      "inputs": [
+        "arrival_rate",
+        "servers",
+        "service_rate"
       ]
     },
     "ratio_analysis": {
@@ -1754,6 +2016,23 @@
         "unit_variable_cost"
       ]
     },
+    "sales_variances": {
+      "tier": "T1",
+      "metric": "total_sales_variance",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "total_variance_is_actual_minus_budget_revenue",
+        "price_mix_and_yield_add_to_the_total_variance",
+        "volume_variance_is_mix_plus_yield",
+        "per_product_components_sum_to_the_totals"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "management accounting",
+      "inputs": [
+        "products"
+      ]
+    },
     "scenario_analysis": {
       "tier": "T1",
       "metric": "npv_base",
@@ -1772,6 +2051,29 @@
         "discount_rate",
         "rate_high",
         "rate_low"
+      ]
+    },
+    "social_engagement": {
+      "tier": "T1",
+      "metric": "engagement_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "engagement_rate_is_engagements_over_reach",
+        "frequency_is_impressions_over_reach",
+        "cpm_is_spend_per_thousand_impressions",
+        "follower_growth_is_gained_over_starting_followers"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "engagements",
+        "followers_gained",
+        "followers_start",
+        "impressions",
+        "posts",
+        "reach",
+        "spend"
       ]
     },
     "social_welfare": {
@@ -1831,6 +2133,36 @@
         "benefits",
         "discount_rate",
         "investment"
+      ]
+    },
+    "standard_cost_variances": {
+      "tier": "T1",
+      "metric": "total_variance",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "material_price_and_usage_sum_to_the_material_variance",
+        "labour_rate_and_efficiency_sum_to_the_labour_variance",
+        "fixed_overhead_volume_is_budget_applied",
+        "total_variance_is_the_sum_of_the_reported_variances"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "management accounting",
+      "inputs": [
+        "actual_fixed_overhead",
+        "actual_hours",
+        "actual_labour_rate",
+        "actual_material_price",
+        "actual_material_quantity",
+        "actual_units",
+        "actual_variable_overhead",
+        "budgeted_fixed_overhead",
+        "denominator_hours",
+        "standard_hours_per_unit",
+        "standard_labour_rate",
+        "standard_material_per_unit",
+        "standard_material_price",
+        "standard_variable_overhead_rate"
       ]
     },
     "startup_capital": {
@@ -2076,6 +2408,25 @@
         "equity_value"
       ]
     },
+    "web_analytics": {
+      "tier": "T1",
+      "metric": "revenue_per_session",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "session_shares_sum_to_one",
+        "conversion_rate_is_conversions_over_sessions",
+        "blended_conversion_rate_is_total_conversions_over_total_sessions",
+        "revenue_per_session_is_revenue_over_sessions"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "digital marketing",
+      "inputs": [
+        "channels",
+        "organic_clicks",
+        "organic_impressions"
+      ]
+    },
     "weighted_summary": {
       "tier": "T1",
       "metric": "weighted_mean",
@@ -2151,13 +2502,18 @@
     }
   },
   "presets": [
+    "abc",
+    "abtest",
     "accounts",
     "alpha",
     "anova",
+    "attribution",
     "bond",
     "bop",
     "breakeven",
     "budgetdebt",
+    "campaign",
+    "capacity",
     "capm",
     "captable",
     "case",
@@ -2165,12 +2521,14 @@
     "cashrunway",
     "cba",
     "cea",
+    "channelecon",
     "chi_square",
     "cohort",
     "comparative",
     "concentration",
     "costcurves",
     "cournot",
+    "cpm",
     "currency",
     "dcf",
     "dcfmid",
@@ -2180,8 +2538,10 @@
     "dpayback",
     "dupont",
     "elasticity",
+    "email",
     "equilibrium",
     "equitybridge",
+    "evm",
     "expectedutility",
     "externality",
     "factorial",
@@ -2194,6 +2554,7 @@
     "growth",
     "hdi",
     "inflation",
+    "inventory",
     "irp",
     "irr",
     "iv",
@@ -2211,6 +2572,7 @@
     "nash",
     "nationalincome",
     "npv",
+    "oee",
     "okun",
     "ols",
     "onesample",
@@ -2233,13 +2595,18 @@
     "prospect",
     "publicgood",
     "purchaseintent",
+    "queue",
     "ratios",
     "rdd",
     "risk",
     "roi",
     "salesprojection",
+    "salesvar",
     "scenario",
+    "scv",
+    "social",
     "socialwelfare",
+    "spc",
     "sroi",
     "startupcapital",
     "swot",
@@ -2253,6 +2620,7 @@
     "unitecon",
     "unsupported",
     "wacc",
+    "web",
     "weighted",
     "welch",
     "workingcapital"

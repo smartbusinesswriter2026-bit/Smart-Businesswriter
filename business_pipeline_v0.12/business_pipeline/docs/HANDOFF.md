@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 0.87 (see docs/CHANGELOG.md)
-Tests        : 1160 tests, all passing
+Build        : 0.93 (see docs/CHANGELOG.md)
+Tests        : 1266 tests, all passing
 ```
 
 ```powershell
@@ -32,7 +32,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 7. `docs/sources/` is read-only authority material. Never edit it.
 8. Do not mark a gap closed, or a PROPOSAL ratified, without the tests and an owner decision.
 9. **Two model owners (B-066, extended by B-080).** The computation owner (DeepSeek) exclusively owns `src/bp/**`, `tests/**`, the factual docs and every rule/number/citation/claim; the design owner (MiniMax) owns the workbench's presentation and may now also build the **product backend** — additive routes/modules/storage/workflows over the frozen core. Read `CONTRIBUTORS.md` §1A/§1B before editing; write only in your domain, and split cross-domain features into a computation commit then a design commit.
-10. **The core deterministic backend is FROZEN (B-079).** The stage contract, the 103 method contracts, the 105 presets, the 12 API route families and the delivery shape are pinned by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json`. Never edit that fixture to go green; an unfreeze needs the owner's approval and a B-decision. Full rules: `docs/BACKEND_CONTRACT.md`.
+10. **The core deterministic backend is FROZEN (B-079).** The stage contract, the 120 method contracts, the 122 presets, the 12 API route families and the delivery shape are pinned by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json`. Never edit that fixture to go green; an unfreeze needs the owner's approval and a B-decision. Full rules: `docs/BACKEND_CONTRACT.md`.
 
 ## 3. What is already built (do not rebuild)
 
@@ -49,7 +49,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 
 | Id | Decision needed | Blocks |
 |---|---|---|
-| B-005 | Name expert reviewers, or accept T2 relabelling | Any T2â†’T1 promotion, breadth |
+| B-005/B-112 | Reviewer naming is **not required**; methods stay disclosed as not reviewed | Nothing is blocked by it |
 | B-028 | Pick next framework templates (PESTEL, VRIO, Value Chain, BMC, MCDA) | P2 breadth |
 | B-032 | Ledger engine: custom kernel vs Beancount arm | Accounting tier, tax/valuation |
 | B-052 | Taxation deferred; do not build without resuming the decision | Tax work |
@@ -75,7 +75,7 @@ Imputation / complex-design inference stays blocked on an owner-declared model (
 ### D. REW stages (blocked until R1–R10 ratified)
 If ratified, start with the cheapest real slice: R0 intake â†’ R1 literature search with the existing retrieval + screening log â†’ R2 gap statement. Acceptance includes the stage contracts in the manual.
 
-### E. Breadth (blocked on B-005/B-028)
+### E. Breadth (blocked on B-028 only; reviewer naming is not planned, B-112)
 Framework templates as T4 structure-only, each with evidence schema + checks, registry linkage, docs.
 
 ### F. Product backend — design owner's lane (B-080; unblocked for the design owner)

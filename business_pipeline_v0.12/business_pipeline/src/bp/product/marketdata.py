@@ -247,6 +247,20 @@ def clear_cache():
     _CACHE.clear()
 
 
+def status():
+    """Which sources are configured, without making a network call.
+
+    Equity lookups need the user's own Alpha Vantage key; FX, Treasury, SEC and World Bank
+    need nothing. The UI uses this to explain a disabled button before it is clicked.
+    """
+    key = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
+    return {"format": FORMAT,
+            "sources": {"fx": True, "riskfree": True, "equity": key, "filings": True, "macro": True},
+            "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
+            "note": ("Equity quote and fundamentals use your own free Alpha Vantage key; every other lookup "
+                     "needs no key. Uncovered markets (PSE, private companies) are manual entries.")}
+
+
 def _alpha_key():
     key = (os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip()
     if not key:

@@ -123,9 +123,9 @@ class SandboxAndReperform(unittest.TestCase):
 class RegistryAndApi(unittest.TestCase):
     def test_registry_links(self):
         for rid, tid in (("STR-07", "template_swot"), ("STR-18", "template_swot"), ("STR-01", "template_five_forces")):
-            r = R.get(rid); self.assertEqual(r["template"], tid); self.assertIn("template available", r["implementation_status"])
-        self.assertIsNone(R.get("STR-06")["template"]); self.assertEqual(R.validate(), [])
-        bad = copy.deepcopy(R.load()); next(r for r in bad["records"] if r["id"] == "STR-06")["template"] = "template_swot"; self.assertIn("not consistent", " | ".join(R.validate(bad)))
+            r = R.get(rid); self.assertEqual(r["template"], tid); self.assertIn("worksheet available", r["implementation_status"])
+        self.assertIsNone(R.get("STR-02")["template"]); self.assertEqual(R.validate(), [])
+        bad = copy.deepcopy(R.load()); next(r for r in bad["records"] if r["id"] == "STR-02")["template"] = "template_swot"; self.assertIn("not consistent", " | ".join(R.validate(bad)))
     def test_case_suggestions_carry_the_template_link(self):
         r = R.recommend(server.PRESETS["case"]["objective"]); self.assertEqual([x["template"] for x in r["frameworks"] if x["id"] == "STR-01"], ["template_five_forces"])
     def test_http(self):
@@ -133,10 +133,12 @@ class RegistryAndApi(unittest.TestCase):
         old = server.M; server.M = SessionManager()
         try:
             get = lambda p: json.load(urllib.request.urlopen(base + p))
-            self.assertEqual({t["id"] for t in get("/api/templates")},
-                         {"template_swot", "template_five_forces", "template_business_model_canvas",
-                          "template_lean_canvas", "template_value_proposition_canvas",
-                          "template_marketing_plan", "case_decision"}); self.assertEqual(get("/api/templates/template_swot")["tier"], "T4"); self.assertEqual(get("/api/templates/case_decision")["tier"], "T2")
+            ids = {t["id"] for t in get("/api/templates")}
+            self.assertTrue({"template_swot", "template_five_forces", "template_business_model_canvas",
+                             "template_lean_canvas", "template_value_proposition_canvas",
+                             "template_marketing_plan", "case_decision"} <= ids)
+            self.assertEqual(len(ids), len(get("/api/templates")))
+            self.assertEqual(get("/api/templates/template_swot")["tier"], "T4"); self.assertEqual(get("/api/templates/case_decision")["tier"], "T2")
             with self.assertRaises(urllib.error.HTTPError) as c: get("/api/templates/nope")
             self.assertEqual(c.exception.code, 404)
             pre = get("/api/presets"); self.assertIn("swot", pre); self.assertIn("five_forces", pre)

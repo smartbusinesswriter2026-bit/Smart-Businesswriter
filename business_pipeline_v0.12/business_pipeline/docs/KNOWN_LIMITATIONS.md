@@ -8,6 +8,43 @@
 - Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
 - Server is for local development, not production.
 
+## Added with the Project management subject (B-116)
+- **Seven of the nine PM tiles are shared appraisal methods, and two are shared delivery methods.** NPV,
+  IRR, discounted payback, project metrics, scenario analysis, business-case decision and trend forecast
+  come from Finance; critical path/PERT and earned value come from the scheduling and project-control
+  methods. The shelf adds no second arithmetic path.
+- **The 14 delivery records are read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs, PRINCE2,
+  PMBOK, Scrum, Kanban, WBS, RACI, COBIT, ITIL, DeLone–McLean and TOE give structure and the evidence each
+  one needs; none is filled in, scored or checked.
+- **No project-charter, WBS, RACI or risk-register worksheet exists**, so the page says "No worksheet yet"
+  for every PM record.
+- **The schedule is deterministic.** CPM gives early/late dates, total float and the critical path from
+  declared durations, with PERT expected durations and variance when three-point estimates are declared.
+  There is **no Gantt drawing, resource levelling, crashing, calendars, multi-project scheduling or
+  schedule-risk simulation**, and no Monte Carlo, decision tree, real option or multi-criteria score.
+- **Earned value is arithmetic on one status date.** PV, EV and AC are cumulative figures the student
+  declares; the method does not derive them from the schedule, and it cannot say whether the plan or the
+  scope was right. EAC is one declared convention, not a forecast.
+- **A critical path is not automatically the riskiest path**, and total float is shared: spending it twice
+  is the student's error, not something the method models.
+- **The project-ranking method fails closed when its MIRR check contradicts the NPV sign.** A project with a
+  positive NPV at a high hurdle can still block because MIRR sits below that hurdle; the report is withheld
+  rather than contradicting itself.
+- **A stored appraisal case appears under both Finance and Project management**, because the subject filter
+  is method-based. The case is not tagged with the shelf it was framed under.
+- The PM **groups, glossary, guidance and student guide are teaching and presentation material**; they do not
+  choose the project, validate an estimate or turn a read-only framework into a computed answer.
+
+## Added with the digital marketing lane (B-117)
+- The seven digital methods are **arithmetic on declared counts**. Nothing reads Google Analytics, Google Ads, Meta, TikTok or an email platform: the counts, the conversion definition and the attribution window are the student's, and the report says so.
+- **Attribution credit is not causation.** `attribution_split` compares first-click, last-click and linear shares from counts you supply; it does not process touchpoint logs, and no holdout, incrementality or lift test exists.
+- **`ab_test_two_proportion` is one two-sided pooled normal test.** It has no sequential or peeking correction, supports two arms only, needs conversions in both arms, and its interval assumes independent observations - survey weights, clustering and repeated measures are not modelled.
+- **Return on ad spend is attributed revenue over spend**, not profit and not incremental revenue. Break-even return on ad spend is 1 / contribution margin rate and appears only when that margin is declared.
+- **Channel economics allocates nothing.** Shared, brand and overhead spend must be assigned by the student or left out; lifetime value is contribution margin / churn, undiscounted, with no survival curve or saturation effect.
+- **Email opens include machine opens**, so the open rate is an upper bound on reading; no deliverability, consent, spam-complaint or list-deduplication check is performed.
+- **Social and web rates use the platform's own definitions.** Engagement, session and conversion definitions differ between platforms and change over time, and no bot filtering, view-through, sentiment or cross-device identity resolution is applied.
+- **No budget, bid or creative recommendation is made anywhere in the lane.** `MKT-13..MKT-21` are framework records: `MKT-14` (SEO/content), `MKT-21` (automation and lead scoring) and the planning records remain read-only until a worksheet is built.
+
 ## Added with free market-data lookups (B-106, B-109)
 - Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes and fundamentals (the user's own free key), **SEC EDGAR** for US filings, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
 - Alpha Vantage needs `BP_ALPHAVANTAGE_KEY`. On the free tier it allows 25 requests a day; results are cached for 24 hours. Without a key the lookup refuses and says where to register.
@@ -358,6 +395,21 @@
 - `cohort_retention` pools cohorts and weights each by its starting size. Every cohort must be observed for the same number of periods; a period not yet reached must be omitted, not zero-filled. No survival model, reactivation, seasonality, revenue weighting or significance test.
 - `demand_curve` fits a straight line to your price-quantity pairs. It is an **association**, not an identified demand curve: omitted variables, simultaneity and measurement error are not addressed, and the revenue-maximising price exists only when the fitted slope is negative and only within the observed range.
 - `purchase_intent` applies **declared weights** to stated intent. The weights are conventions, not estimates; stated intent overstates purchase; sampling error, non-response and representativeness are not modelled.
+
+## Added with the accounting and operations shelves (B-114, B-115)
+- `standard_cost_variances` is single-product, single-process standard costing on the standards you declare. It does not set standards, compute mix/yield/sales/planning variances, handle several products or post journal entries.
+- `inventory_policy` assumes level annual demand, a constant lead time and constant ordering and holding costs. No quantity discounts, stock-out cost, variable lead time, multi-item constraint or budget cap. Safety stock uses a normal approximation and needs a declared service level and demand SD.
+- `queue_analysis` is **M/M/c** with identical servers, exponential arrivals and service, unlimited waiting room, no priorities or abandonment. At or above servers x service rate the method blocks. It is not a schedule or a simulation.
+- `capacity_analysis` is steady-state capacity with no breaks, changeover, maintenance or scrap, one product and a fixed routing. It is not a schedule or a simulation.
+- The accounting and operations **groups, notes, glossaries and guides are presentation and teaching material**; they do not validate a policy, choose an account or judge a standard.
+
+## Added with scheduling, quality and costing (B-118)
+- `cpm_schedule` uses deterministic durations (or the PERT expected value) and an acyclic declared graph. No resource levelling, calendars, holidays, crashing or simulation; the critical path is the zero-float path, not the riskiest one.
+- `earned_value` takes the three cumulative figures as at one declared status date. One EAC convention at a time; no earned schedule, forecast range, quality or scope performance.
+- `oee_analysis` is one machine or line: no six-big-losses split, TEEP or multi-machine aggregation. Performance above one is reported, not capped.
+- `process_control` is an **I-MR chart only**: no X-bar/R, p, c or u charts, EWMA, CUSUM, multivariate charts or measurement-system analysis. Cp/Cpk use the within-series sigma and the declared specification; no capability threshold is applied.
+- `abc_costing` allocates every pool in full over the declared drivers; no idle/unused-capacity adjustment, activity hierarchy or time-driven ABC.
+- `sales_variances` values mix and yield at budgeted prices with the budget mix as the standard. No market-size or market-share variance, and no explanation of why the movements occurred.
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.
