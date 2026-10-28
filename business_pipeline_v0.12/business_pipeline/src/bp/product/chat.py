@@ -2976,6 +2976,17 @@ def _schedule_risk_lines(row, inputs, result):
     return lines
 
 
+def _calendar_lines(row, inputs, result):
+    lines = ["On the declared working periods (" + str(result.get("working_periods") or "")
+             + "), the project runs for " + _money(result.get("project_duration"))
+             + " working periods across " + _fmt_exact(result.get("activity_count"))
+             + " activity(ies), with " + _fmt_exact(result.get("critical_count"))
+             + " on the critical path."]
+    lines.append("The dates follow from the declared durations and the declared working periods; the method "
+                 "does not know the real calendar.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -3077,6 +3088,7 @@ CAPABILITY_LINES.update({
     "resource_leveling": _levelling_lines,
     "project_crashing": _crashing_lines,
     "schedule_risk": _schedule_risk_lines,
+    "calendar_schedule": _calendar_lines,
 })
 
 

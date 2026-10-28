@@ -515,6 +515,11 @@ ENTRIES = dict([
          needs_any=[r"activit|optimistic|pessimistic|duration"], priority=15,
          row_fields={"activities": ["id", "optimistic", "most_likely", "pessimistic",
                                     "predecessors"]}),
+    _row("calendar_schedule", "calendar_schedule", "Calendar schedule", "schedule",
+         [r"calendar (?:schedule|days)", r"working (?:days|periods)", r"working-day"],
+         ("Delivery Status", "Calendar Schedule"),
+         needs_any=[r"activit|working|calendar|duration"], priority=12,
+         row_fields={"activities": ["id", "duration", "predecessors"]}),
 ])
 
 

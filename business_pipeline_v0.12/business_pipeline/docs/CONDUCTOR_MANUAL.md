@@ -373,6 +373,7 @@ answer selects or excludes the capability with a stated reason.
 | `resource_leveling` | the delay levelling costs and the peaks it removes | Delivery Status / Resource Levelling |
 | `project_crashing` | the cost of reaching the declared target duration | Delivery Status / Project Crashing |
 | `schedule_risk` | the duration range and the chance of meeting the target | Delivery Status / Schedule Risk |
+| `calendar_schedule` | the finish in working periods, not calendar days | Delivery Status / Calendar Schedule |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from

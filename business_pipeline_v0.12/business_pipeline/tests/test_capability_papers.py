@@ -105,6 +105,8 @@ CASES = {
     "schedule_risk": ({"activities": [{"id": "a", "optimistic": "2", "most_likely": "3",
                                        "pessimistic": "4"}], "iterations": "200", "seed": "1",
                        "target_duration": "4"}, "pestel"),
+    "calendar_schedule": ({"activities": [{"id": "a", "duration": "3"}],
+                           "working_periods": "1,2,3,4,5"}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "
