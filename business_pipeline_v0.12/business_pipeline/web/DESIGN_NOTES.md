@@ -594,6 +594,14 @@ section each capability writes into. Two cue fixes: "LTV/CAC" now belongs to
 channel economics, not lifetime value, and a trend is only forecast when the brief
 asks to project it.
 
+Wave 9 adds `line_balancing` (the `rows` input: one row per task with name, time
+and optional predecessors) and the paper-level guard,
+`tests/test_capability_papers.py`: fifteen capability families each start a paper,
+declare their figures, draft it, and must pass `paper.check` with nothing
+missing — so a formatter that breaks the hierarchy or the gate fails the suite,
+not the student. A third cue collision was fixed on the way: "discounted cash
+flow" no longer selects plain NPV over a DCF valuation.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

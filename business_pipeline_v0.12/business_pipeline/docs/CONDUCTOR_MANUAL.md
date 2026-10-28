@@ -313,6 +313,7 @@ answer selects or excludes the capability with a stated reason.
 | `customer_profitability` | profit and margin by declared segment | Customer Economics / Customer Profitability |
 | `channel_economics` | CAC, LTV/CAC and payback by channel | Customer Economics / Channel Economics |
 | `attribution_split` | first-click, last-click and linear credit | Marketing Performance / Attribution Split |
+| `line_balancing` | the stations and idle time for the declared tasks | Operations / Line Balancing |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -337,6 +338,7 @@ schema:
 | `column_map` | one named column per group or predictor, each with its own values | "Every value in the control column ... must be a number." |
 | `count_table` | one row per line of comma-separated whole-number counts | "Row 2 ... must be non-negative whole numbers." |
 | `value_matrix` | one row per line of comma-separated values | "Row 2 ... must be numbers." |
+| `rows` | one row per task with name, time and optional predecessors | "Row 2 ... needs a name." / "the time must be a number." |
 
 Two more declaration rules live in the catalogue, so no capability invents an
 input:

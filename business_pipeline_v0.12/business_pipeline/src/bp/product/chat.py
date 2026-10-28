@@ -815,6 +815,33 @@ def _capability_inputs(entry_row, values):
                 return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
             inputs[name] = parsed_rows
             continue
+        if kind == "rows":
+            rows = raw if isinstance(raw, list) else []
+            if not rows and not required:
+                continue
+            parsed_rows = []
+            for index, row in enumerate(rows, start=1):
+                if not isinstance(row, dict):
+                    return inputs, "Row " + str(index) + " of the " + desc + " must be a set of values."
+                task_name = _clean(str(row.get("name") or row.get("id") or row.get("task") or ""), 60)
+                if not task_name:
+                    return inputs, "Row " + str(index) + " of the " + desc + " needs a name."
+                try:
+                    task_time = str(Decimal(_clean(str(row.get("time") or row.get("duration") or ""), 40)))
+                except (InvalidOperation, ValueError):
+                    return inputs, "Row " + str(index) + ": the time must be a number."
+                parsed = {"name": task_name, "time": task_time}
+                predecessors = row.get("predecessors")
+                if isinstance(predecessors, list):
+                    predecessors = ",".join(_clean(str(item), 20) for item in predecessors)
+                if str(predecessors or "").strip():
+                    parsed["predecessors"] = _clean(str(predecessors), 200)
+                parsed_rows.append(parsed)
+            minimum = int(spec.get("min_items") or 1)
+            if len(parsed_rows) < minimum:
+                return inputs, "Declare at least " + str(minimum) + " rows for the " + desc + "."
+            inputs[name] = parsed_rows
+            continue
         if kind == "column_map":
             columns = raw if isinstance(raw, dict) else {}
             if not columns:
@@ -2295,6 +2322,25 @@ def _attribution_lines(row, inputs, result):
     return lines
 
 
+def _line_lines(row, inputs, result):
+    lines = ["The declared tasks total " + _money(result.get("total_time")) + " minutes per unit; at a declared "
+             "cycle time of " + _money(result.get("cycle_time")) + " minutes the line balances into "
+             + _fmt_exact(result.get("stations")) + " station(s) (lower bound "
+             + _fmt_exact(result.get("lower_bound_stations")) + "), with "
+             + _fmt_exact(result.get("idle_time")) + " minutes of idle time and an efficiency of "
+             + _pct(result.get("efficiency")) + "%."]
+    loads = []
+    for index in range(1, int(Decimal(str(result.get("stations") or "0"))) + 1):
+        load = result.get("load_%d" % index)
+        if load not in (None, ""):
+            loads.append("station " + str(index) + " " + _money(load) + " minutes")
+    if loads:
+        lines.append("The declared loads are: " + "; ".join(loads) + ".")
+    lines.append("The balance follows the chosen rule and the declared times; the method does not level the "
+                 "line itself or estimate the times.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2342,6 +2388,7 @@ CAPABILITY_LINES.update({
     "customer_profitability": _segment_lines,
     "channel_economics": _channel_lines,
     "attribution_split": _attribution_lines,
+    "line_balancing": _line_lines,
 })
 
 
