@@ -142,6 +142,32 @@ class DraftTest(unittest.TestCase):
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
+    def test_the_paper_uses_h1_for_frameworks_and_h2_for_dimensions(self, _a, _w):
+        state = chat.draft(self.prepared(), implications="A cautious entry.", style="apa")
+        levels = {section["heading"]: section["level"] for section in state["draft"]["outline"]}
+        self.assertEqual(levels["Introduction"], 1)
+        self.assertEqual(levels["PESTEL"], 1)
+        self.assertEqual(levels["Political"], 2)
+        self.assertEqual(levels["Discussion"], 1)
+        self.assertEqual(levels["Implications"], 2)
+        self.assertEqual(levels["Limitations"], 2)
+        self.assertEqual(levels["Conclusion"], 1)
+        self.assertEqual(levels["References"], 1)
+        text = "\n".join(line for section in state["draft"]["outline"] for line in section["lines"])
+        self.assertNotIn("(your analysis)", text)
+        self.assertNotIn("Not supplied", text)
+
+    @mock.patch("bp.product.sources.search_web", side_effect=web)
+    @mock.patch("bp.product.sources.search_academic", side_effect=academic)
+    def test_export_is_blocked_without_implications(self, _a, _w):
+        state = chat.draft(self.prepared(), accepted_ids=[], implications="", style="apa")
+        self.assertIn("implications", state["draft"]["missing"])
+        with self.assertRaises(chat.ExportBlocked) as blocked:
+            chat.docx_bytes(state)
+        self.assertIn("implications", blocked.exception.missing)
+
+    @mock.patch("bp.product.sources.search_web", side_effect=web)
+    @mock.patch("bp.product.sources.search_academic", side_effect=academic)
     def test_the_section_quotes_the_evidence_and_uses_harvard(self, _a, _w):
         state = self.prepared()
         state = chat.draft(state, implications="The evidence suggests a cautious entry.", style="harvard")
@@ -149,7 +175,7 @@ class DraftTest(unittest.TestCase):
         headings = [heading for heading, _lines in state["draft"]["sections"]]
         self.assertIn("Introduction", headings)
         self.assertIn("Political", headings)
-        self.assertIn("Implications (your analysis)", headings)
+        self.assertIn("Implications", headings)
         self.assertIn("Bibliography", headings)
         text = "\n".join(line for _h, lines in state["draft"]["sections"] for line in lines)
         self.assertIn("The source reports a relevant change", text)
@@ -164,8 +190,8 @@ class DraftTest(unittest.TestCase):
         state = self.prepared()
         state = chat.draft(state, accepted_ids=[], implications="")
         text = "\n".join(line for _h, lines in state["draft"]["sections"] for line in lines)
-        self.assertIn("No evidence was retrieved", text)
-        self.assertIn("The system does not infer a strategy", text)
+        self.assertIn("did not cover this dimension", text)
+        self.assertIn("implications", state["draft"]["missing"])
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
@@ -253,6 +279,56 @@ class SwotTest(unittest.TestCase):
         self.assertGreater(chat._rank(better, 4, cues, specific), chat._rank(older, 4, cues, specific))
 
 
+class FiveForcesTest(unittest.TestCase):
+    BRIEF = ("A mid-sized grocery chain is considering acquiring a cold-chain logistics provider in Saudi Arabia. "
+             "Use Porter's Five Forces and a break-even analysis.")
+
+    def answer_five(self):
+        state = chat.start(self.BRIEF, framework="five_forces_breakeven")
+        for question_id, value in (("decision", "Should the chain acquire the provider?"),
+                                   ("geography", "Middle East"), ("period", "5"), ("style", "apa"),
+                                   ("fixed", "2000000"), ("price", "40"), ("variable", "28"),
+                                   ("expected", "250000")):
+            state = chat.answer(state, question_id, value)
+        return state
+
+    def test_the_combination_asks_for_the_break_even_inputs(self):
+        state = chat.start(self.BRIEF, framework="five_forces_breakeven")
+        self.assertEqual([q["id"] for q in state["questions"]],
+                         ["decision", "geography", "period", "style", "fixed", "price", "variable", "expected"])
+        self.assertEqual(chat.start(self.BRIEF)["framework"], "five_forces_breakeven")
+
+    def test_the_plan_lists_the_five_forces(self):
+        state = self.answer_five()
+        self.assertEqual(state["plan"]["framework"], "Five Forces + Break-even")
+        self.assertEqual([d["key"] for d in state["plan"]["dimensions"]],
+                         ["rivalry", "entrants", "substitutes", "buyers", "suppliers"])
+
+    @mock.patch("bp.product.sources.search_web", side_effect=web)
+    @mock.patch("bp.product.sources.search_academic", side_effect=academic)
+    def test_the_draft_has_forces_and_a_core_break_even_result(self, _a, _w):
+        state = chat.research(chat.confirm_plan(self.answer_five()))
+        state = chat.draft(state, implications="The acquisition is defensible only above break-even.", style="apa")
+        levels = {item["heading"]: item["level"] for item in state["draft"]["outline"]}
+        self.assertEqual(levels["Five Forces"], 1)
+        self.assertEqual(levels["Industry rivalry"], 2)
+        self.assertEqual(levels["Financial Feasibility"], 1)
+        self.assertEqual(levels["Break-even Analysis"], 2)
+        text = "\n".join(line for _heading, lines in state["draft"]["sections"] for line in lines)
+        self.assertIn("166,666.67", text)
+        self.assertIn("6,666,666.67", text)
+
+    def test_a_price_below_variable_cost_is_refused(self):
+        state = chat.start(self.BRIEF, framework="five_forces_breakeven")
+        for question_id, value in (("decision", "Should the chain acquire?"), ("geography", "Middle East"),
+                                   ("period", "5"), ("style", "apa"), ("fixed", "100"),
+                                   ("price", "20"), ("variable", "30")):
+            state = chat.answer(state, question_id, value)
+        state = chat.answer(state, "expected", "")
+        with self.assertRaises(chat.ChatError):
+            chat.draft(chat.confirm_plan(chat.research(state)), implications="A view.", style="apa")
+
+
 class CombinedTest(unittest.TestCase):
     def answer_combined(self, style="apa"):
         state = chat.start(BRIEF + " Use PESTEL and SWOT.", framework="pestel_swot")
@@ -279,7 +355,7 @@ class CombinedTest(unittest.TestCase):
             self.assertIn(heading, headings)
         text = "\n".join(line for _heading, lines in state["draft"]["sections"] for line in lines)
         self.assertIn("Brand loyalty", text)
-        self.assertIn("mapped from", text)
+        self.assertIn("from the", text)
         self.assertIn("by keyword", text)
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
@@ -293,7 +369,7 @@ class CombinedTest(unittest.TestCase):
         state = chat.research(chat.confirm_plan(self.answer_combined()))
         state = chat.draft(state, style="apa")
         opportunities = dict(state["draft"]["sections"])["Opportunities"]
-        self.assertTrue(any("mapped from" in line for line in opportunities))
+        self.assertTrue(any("from the" in line for line in opportunities))
         self.assertIn("Growth in demand", "\n".join(opportunities))
 
 

@@ -115,7 +115,7 @@ xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 </w:p></w:ftr>"""
 
 
-def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None, hanging=None):
+def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None, hanging=None, italic=False):
     ppr = []
     if align:
         ppr.append('<w:jc w:val="%s"/>' % align)
@@ -126,7 +126,8 @@ def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None, 
         ppr.append('<w:ind w:firstLine="%d"/>' % indent)
     props = ('<w:pPr>' + "".join(ppr) + '</w:pPr>') if ppr else ""
     rpr = ('<w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/>'
-           + ("<w:b/>" if bold else "") + '<w:sz w:val="%d"/></w:rPr>' % size)
+           + ("<w:b/>" if bold else "") + ("<w:i/>" if italic else "")
+           + '<w:sz w:val="%d"/></w:rPr>' % size)
     return ('<w:p>%s<w:r>%s<w:t xml:space="preserve">%s</w:t></w:r></w:p>'
             % (props, rpr, escape(text or "")))
 
@@ -142,9 +143,21 @@ def academic_document_xml(title, sections, style="apa"):
         _academic_para(datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"), align="center"),
         '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
     ]
-    for heading, lines in sections:
+    for item in sections:
+        if isinstance(item, dict):
+            heading = item.get("heading", "")
+            level = int(item.get("level", 1))
+            lines = item.get("lines") or []
+        else:
+            heading, lines = item
+            level = 1
         is_reference = heading in ("References", "Bibliography")
-        parts.append(_academic_para(heading, bold=True, align="center", after=120))
+        if level >= 3:
+            parts.append(_academic_para(heading, bold=True, italic=True, after=60))
+        elif level == 2:
+            parts.append(_academic_para(heading, bold=True, after=60))
+        else:
+            parts.append(_academic_para(heading, bold=True, align="center", after=120))
         for line in lines:
             if line.startswith("•") or line.startswith("-"):
                 parts.append(_academic_para(line, indent=None))

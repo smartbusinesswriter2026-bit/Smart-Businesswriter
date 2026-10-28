@@ -81,6 +81,7 @@ def main(argv=None):
                              "firecrawl": web["firecrawl"] or web["firecrawl_keyless"],
                              "credentials_from": web["path"], "loaded": web["loaded"]},
               "model": {"provider": "opencode-go", "model": web["model"],
+                        "prose_model": web["prose_model"],
                         "configured": web["opengo_key"]},
               "academic_search": {"semantic_scholar": web["semantic_scholar"]},
               "python": sys.version.split()[0]}

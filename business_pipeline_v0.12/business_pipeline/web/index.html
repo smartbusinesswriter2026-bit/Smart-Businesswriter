@@ -484,7 +484,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.12</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.21</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1194,17 +1194,40 @@ function renderChat() {
     return;
   }
   if (c.stage === "draft") {
-    html += '<div class="card"><h3>Draft section</h3>' +
+    const outline = c.draft.outline || (c.draft.sections || []).map((section) => ({ heading: section[0], level: 1, lines: section[1] || [] }));
+    html += '<div class="card"><h3>Draft paper</h3>' +
       '<p class="muted">' + esc(c.draft.style === "harvard" ? "Harvard" : "APA 7") +
       " · " + esc(c.draft.accepted.length) + " evidence item(s). Review it, then download.</p>";
-    c.draft.sections.forEach((section) => {
-      html += "<h4>" + esc(section[0]) + "</h4>" +
-        (section[1] || []).map((line) => '<p style="margin:4px 0">' + esc(line) + "</p>").join("");
+    outline.forEach((section) => {
+      const heading = section.level === 1 ? "<h3>" + esc(section.heading) + "</h3>" : "<h4>" + esc(section.heading) + "</h4>";
+      html += heading + (section.lines || []).map((line) => '<p style="margin:4px 0">' + esc(line) + "</p>").join("");
     });
-    html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatdownload">Download the section (Word)</button></div></div>';
+    if (c.prose_proposal) {
+      const p = c.prose_proposal;
+      html += '<div class="card" style="margin-top:12px"><h3>Proposed prose</h3>' +
+        '<p class="muted">' + esc((p.model || "Model") + " proposal. Evidence paragraphs stay unchanged; the introduction, section links, integration and conclusion are rewritten. Nothing is applied until you accept it.") + "</p>" +
+        "<h4>Introduction</h4><p>" + esc(p.introduction || "") + "</p>" +
+        Object.keys(p.leads || {}).map((key) => "<h4>" + esc(key) + "</h4><p>" + esc(p.leads[key]) + "</p>").join("") +
+        (p.integration ? "<h4>Integration</h4><p>" + esc(p.integration) + "</p>" : "") +
+        (p.conclusion ? "<h4>Conclusion</h4><p>" + esc(p.conclusion) + "</p>" : "") +
+        '<div class="row" style="margin-top:8px"><button class="btn primary" id="chatapplyprose">Use this version</button>' +
+        '<button class="btn" id="chatdiscardprose">Discard</button></div></div>';
+    } else if (c.prose_available) {
+      html += '<div class="row" style="margin-top:10px"><button class="btn" id="chatpolish">Polish transitions (DeepSeek Flash)</button></div>';
+    }
+    if (c.draft.missing && c.draft.missing.length) {
+      html += banner("blocked", "Complete the paper before export",
+        "<p>Still needed: " + c.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
+    } else {
+      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatdownload">Download the paper (Word)</button></div>';
+    }
+    html += "</div>";
     out.innerHTML = html;
     $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
-    $("#chatdownload").onclick = downloadChat;
+    if ($("#chatdownload")) $("#chatdownload").onclick = downloadChat;
+    if ($("#chatpolish")) $("#chatpolish").onclick = polishChat;
+    if ($("#chatapplyprose")) $("#chatapplyprose").onclick = applyProseChat;
+    if ($("#chatdiscardprose")) $("#chatdiscardprose").onclick = discardProseChat;
     return;
   }
   out.innerHTML = html + '<div class="card"><p class="muted">This chat is at stage: ' + esc(c.stage) + ".</p></div>";
@@ -1260,6 +1283,32 @@ async function draftChat() {
   try {
     state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/draft",
       { accepted: accepted, implications: implications, style: style });
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function polishChat() {
+  const out = $("#chatout");
+  out.innerHTML = loading("Drafting a prose proposal with DeepSeek Flash");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/polish", {});
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function applyProseChat() {
+  const out = $("#chatout");
+  out.innerHTML = loading("Applying the accepted prose");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/apply-prose", {});
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function discardProseChat() {
+  const out = $("#chatout");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/discard-prose", {});
     renderChat();
   } catch (error) { out.innerHTML = errorBanner(error); }
 }
@@ -4404,7 +4453,8 @@ RENDERERS.deliver = function () {
     '<div id="delout"></div></div>' +
     '<div class="card"><h3>Report</h3><div class="report" id="delreport">' + (b && b.delivery ? esc(b.delivery.report) : "not recorded") + "</div></div>" +
     '<div class="card"><h3>Charts</h3><div class="row"><select id="chartkind"><option value="bar">bar</option>' +
-    '<option value="line">line</option><option value="table">table</option></select>' +
+    '<option value="line">line</option><option value="table">table</option>' +
+    '<option value="gantt">gantt (CPM schedule)</option></select>' +
     '<select id="chartart"></select><input type="text" id="charttitle" placeholder="Chart title" size="26">' +
     '<button class="btn primary" id="chartbtn">Render chart</button></div>' +
     '<p class="muted">The chart is drawn by the server from the stored values; nothing is computed in the browser.</p>' +
@@ -4432,8 +4482,28 @@ RENDERERS.deliver = function () {
 async function renderChart() {
   const out = $("#chartout");
   out.innerHTML = loading("Rendering on the server");
-  const spec = { kind: $("#chartkind").value, title: $("#charttitle").value || $("#chartart").value,
-                 series: [{ label: $("#chartart").value, artifact: $("#chartart").value }] };
+  const kind = $("#chartkind").value;
+  let spec;
+  if (kind === "gantt") {
+    const metrics = new Set(Array.from($("#chartart").options).map((o) => o.value));
+    const ids = Array.from(metrics).filter((m) => m.indexOf("es_") === 0).map((m) => m.slice(3));
+    if (!ids.length) {
+      out.innerHTML = banner("limit", "No schedule in this case",
+        "<div>A Gantt needs a CPM case with early dates recorded. Run the critical-path method first.</div>");
+      return;
+    }
+    spec = { kind: kind, title: $("#charttitle").value || "Project schedule",
+             activities: ids.map((id, index) => {
+               const label = "Activity " + (id.replace(/\d+/g, "") || String.fromCharCode(65 + index));
+               const activity = { label: label, start: "es_" + id, end: "ef_" + id };
+               if (metrics.has("float_" + id)) activity.float = "float_" + id;
+               if (metrics.has("critical_" + id)) activity.critical = "critical_" + id;
+               return activity;
+             }) };
+  } else {
+    spec = { kind: kind, title: $("#charttitle").value || $("#chartart").value,
+             series: [{ label: $("#chartart").value, artifact: $("#chartart").value }] };
+  }
   try {
     const r = await post("/api/cases/" + state.caseId + "/render", { chart: spec });
     out.innerHTML = '<figure class="chart">' + r.svg + "<figcaption>Rendered by the server from the stored values.</figcaption></figure>";

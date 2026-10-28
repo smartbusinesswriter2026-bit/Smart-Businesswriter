@@ -1,12 +1,13 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.12**, **1419 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.21**, **1465 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
 | You want to… | Go to |
 |---|---|
 | **Use** the system | [`../README.md`](../README.md) — commands, workbench, API routes |
+| **Build or extend the chat/paper** | [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) — the goal, paper model, framework/computation rules and checklist |
 | **Change** the system safely | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the rules any model or person must follow |
 | **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) — every B-xxx with status |
 | **Know what is broken or absent** | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) + [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) |

@@ -1,6 +1,6 @@
 # HANDOFF — instructions for the next coding agent
 
-You are taking over a working repo, not starting one. Read this file first, then `CONTRIBUTORS.md`, `HOME.md`, and the top three entries of `WORKLOG.md`. Do not re-architect anything; the rules below are the product.
+You are taking over a working repo, not starting one. Read this file first, then `CONDUCTOR_MANUAL.md`, `CONTRIBUTORS.md`, `HOME.md`, and the top three entries of `WORKLOG.md`. Do not re-architect anything; the rules below are the product.
 
 ## 1. Where things are and how to run them
 
@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.12 (see docs/CHANGELOG.md)
-Tests        : 1419 tests, all passing
+Build        : 1.21 (see docs/CHANGELOG.md)
+Tests        : 1465 tests, all passing
 ```
 
 ```powershell

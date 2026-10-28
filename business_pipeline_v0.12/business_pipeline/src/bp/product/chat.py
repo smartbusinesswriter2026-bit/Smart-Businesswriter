@@ -14,11 +14,14 @@ import datetime
 import os
 import re
 import time
+from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import docx, writing
+from . import docx, paper, prose, writing
 
 FORMAT = "bp-chat/1"
+
+ExportBlocked = paper.ExportBlocked
 
 #: A whole research pass may not outlast this, even if one provider hangs.
 RESEARCH_DEADLINE = float(os.environ.get("BP_RESEARCH_DEADLINE", "20"))
@@ -37,10 +40,20 @@ SWOT_DIMENSIONS = [
     ("threats", "Threats", "sanctions embargo regulation competition inflation risk restriction conflict", "legal"),
 ]
 
+FIVE_DIMENSIONS = [
+    ("rivalry", "Industry rivalry", "rivalry competitor competition market share price war", None),
+    ("entrants", "Threat of new entrants", "entry entrant startup capital barrier licence license", None),
+    ("substitutes", "Threat of substitutes", "substitute alternative switching", None),
+    ("buyers", "Buyer power", "buyer customer client bargaining concentration", "economic"),
+    ("suppliers", "Supplier power", "supplier vendor input procurement bargaining", "economic"),
+]
+
 FRAMEWORKS = {
     "pestel": {"label": "PESTEL", "dimensions": DIMENSIONS, "internal": False},
     "swot": {"label": "SWOT", "dimensions": SWOT_DIMENSIONS, "internal": True},
     "pestel_swot": {"label": "PESTEL + SWOT", "dimensions": DIMENSIONS, "internal": True},
+    "five_forces": {"label": "Five Forces", "dimensions": FIVE_DIMENSIONS, "internal": False},
+    "five_forces_breakeven": {"label": "Five Forces + Break-even", "dimensions": FIVE_DIMENSIONS, "internal": False},
 }
 
 QUESTIONS = [
@@ -81,7 +94,37 @@ INTERNAL_QUESTIONS = [
      "type": "choice", "choices": [["apa", "APA 7"], ["harvard", "Harvard"]], "default": "apa"},
 ]
 
-FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS}
+FIVE_QUESTIONS = [
+    {"id": "decision", "prompt": "What decision should this Five Forces analysis support?",
+     "why": "The analysis should serve a decision, not sit on its own.",
+     "type": "text", "allow_skip": True, "default": ""},
+    {"id": "geography", "prompt": "Which market or region should the evidence cover?",
+     "why": "Industry conditions are country-specific.",
+     "type": "choice", "choices": ["Global", "US", "Europe", "Middle East", "China"], "default": "Global"},
+    {"id": "period", "prompt": "How recent should the evidence be?",
+     "why": "A current analysis needs dated evidence.",
+     "type": "choice", "choices": [["2", "Last 2 years"], ["5", "Last 5 years"],
+                                   ["10", "Last 10 years"], ["0", "No limit"]], "default": "10"},
+    {"id": "style", "prompt": "Which citation style should the paper use?",
+     "why": "The paper has to match the course requirement.",
+     "type": "choice", "choices": [["apa", "APA 7"], ["harvard", "Harvard"]], "default": "apa"},
+    {"id": "fixed", "prompt": "What is the declared total fixed cost for the break-even calculation?",
+     "why": "Break-even needs a declared fixed cost; the system will not invent one.",
+     "type": "number", "default": ""},
+    {"id": "price", "prompt": "What is the declared price per unit?",
+     "why": "The contribution margin depends on the selling price.",
+     "type": "number", "default": ""},
+    {"id": "variable", "prompt": "What is the declared variable cost per unit?",
+     "why": "The contribution margin depends on the variable cost.",
+     "type": "number", "default": ""},
+    {"id": "expected", "prompt": "What is the expected sales volume? (optional)",
+     "why": "Expected volume gives the margin of safety.",
+     "type": "number", "allow_skip": True, "default": ""},
+]
+
+FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
+                       "five_forces": FIVE_QUESTIONS[:4],
+                       "five_forces_breakeven": FIVE_QUESTIONS}
 
 #: Short, targeted search phrases.  Long cue lists return few results in the
 #: scholarly indexes; these keep the query specific to the dimension.
@@ -94,6 +137,11 @@ SEARCH_TERMS = {
     "legal": "sanctions law compliance",
     "opportunities": "market growth digital consumers",
     "threats": "sanctions conflict restrictions",
+    "rivalry": "grocery retail competition market",
+    "entrants": "grocery market entry barriers",
+    "substitutes": "grocery substitutes consumer choice",
+    "buyers": "grocery buyer power consumers",
+    "suppliers": "cold chain suppliers logistics",
 }
 
 EXTERNAL_HINTS = {
@@ -152,6 +200,10 @@ def _items(value, limit=6):
 
 def _infer_framework(brief):
     text = (brief or "").lower()
+    if "five forces" in text:
+        if "break-even" in text or "breakeven" in text or "break even" in text:
+            return "five_forces_breakeven"
+        return "five_forces"
     if "swot" in text and "pestel" in text:
         return "pestel_swot"
     if "swot" in text:
@@ -184,7 +236,7 @@ def start(brief, subject="management", framework=None):
         raise ChatError("Describe the case or assignment in at least one sentence.")
     framework = (framework or "").strip().lower() or _infer_framework(brief)
     if framework not in FRAMEWORKS:
-        raise ChatError("Choose PESTEL, SWOT, or PESTEL + SWOT.")
+        raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, or Five Forces + Break-even.")
     fits, message = _fit(brief, framework)
     questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
@@ -221,6 +273,23 @@ def answer(state, question_id, value):
         if not items and not question.get("allow_skip"):
             raise ChatError("An answer is required for this question.")
         state["answers"][question_id] = items
+    elif question["type"] == "number":
+        text = _clean(value, 40)
+        if not text and question.get("allow_skip"):
+            state["answers"][question_id] = ""
+            state["question_index"] = state.get("question_index", 0) + 1
+            if current_question(state) is None:
+                state["plan"] = _plan(state)
+                state["stage"] = "plan"
+            state["updated_at"] = _now()
+            return state
+        try:
+            number = Decimal(text)
+        except (InvalidOperation, ValueError):
+            raise ChatError("Enter a number, for example 250000.")
+        if number < 0:
+            raise ChatError("A cost or volume cannot be negative.")
+        state["answers"][question_id] = str(number)
     else:
         text = _clean(value, 500)
         if not text and not question.get("allow_skip"):
@@ -254,6 +323,10 @@ def _plan(state):
                  "external evidence supports."),
         "pestel_swot": ("PESTEL explains the external environment; SWOT then places your internal strengths and "
                         "weaknesses against the opportunities and threats that environment creates."),
+        "five_forces": ("Five Forces assesses the attractiveness of the industry through rivalry, entrants, substitutes, "
+                        "buyer power and supplier power."),
+        "five_forces_breakeven": ("Five Forces assesses the industry; break-even then tests whether the declared cost "
+                                  "structure can support entry at the declared price."),
     }[framework]
     misses = {
         "pestel": ("It does not assess internal capabilities, competitors, costs, financial feasibility or a "
@@ -262,12 +335,19 @@ def _plan(state):
                  "structured summary, not a strategy."),
         "pestel_swot": ("It still does not weigh or rank the options, test financial feasibility, or choose an "
                         "action; those need other frameworks or methods."),
+        "five_forces": ("It describes industry pressure but does not test the firm's cost structure, financial "
+                        "feasibility or a recommended action; add a computation or a decision framework."),
+        "five_forces_breakeven": ("The break-even result depends on the declared fixed cost, price and variable cost; it "
+                                  "does not forecast demand or prove that the expected volume will be reached."),
     }[framework]
     output = {
-        "pestel": "A PESTEL section with an introduction, six dimensions, implications (yours), limitations and one reference list.",
-        "swot": "A SWOT section with your strengths and weaknesses, retrieved opportunities and threats, implications, limitations and one reference list.",
+        "pestel": "A PESTEL paper with an introduction, six dimensions, a discussion with implications and limitations, a conclusion and one reference list.",
+        "swot": "A SWOT paper with your strengths and weaknesses, retrieved opportunities and threats, a discussion with implications and limitations, a conclusion and one reference list.",
         "pestel_swot": ("A combined paper with the six PESTEL dimensions, your strengths and weaknesses, opportunities "
                         "and threats drawn from the accepted evidence, implications, limitations and one reference list."),
+        "five_forces": "A Five Forces paper with five industry dimensions, a discussion, a conclusion and one reference list.",
+        "five_forces_breakeven": ("A combined paper with the five industry forces, a break-even analysis from your "
+                                  "declared figures, a discussion, a conclusion and one reference list."),
     }[framework]
     return {
         "framework": config["label"],
@@ -291,7 +371,7 @@ def _query(state, key, cues):
     answers = state["answers"]
     geography = answers.get("geography") or "Global"
     geography = "" if geography == "Global" else geography
-    country = _country(answers.get("decision") or state["brief"])
+    country = _country(answers.get("decision") or "") or _country(state["brief"])
     topic = country or " ".join(_topic(answers.get("decision") or state["brief"]))
     if not topic:
         topic = _clean(state["brief"], 120)
@@ -419,7 +499,8 @@ def _research_one(state, dimension):
     started = time.perf_counter()
     query = dimension["query"]
     topic_words = set(_topic(state["answers"].get("decision") or state["brief"]))
-    specific_words = _specific_words(topic_words)
+    country = _country(state["answers"].get("decision") or "") or _country(state["brief"])
+    specific_words = set(country.lower().split()) if country else _specific_words(topic_words)
     cue_words = set((dimension.get("cues") or "").split())
     geography = state["answers"].get("geography") or "Global"
     geo_words = _geo_words(geography)
@@ -570,22 +651,22 @@ def _reference(source, style):
 
 
 def _dimension_lines(dimension, evidence, by_id, style):
-    key, label = dimension[0], dimension[1]
+    key = dimension[0]
     items = [item for item in evidence if item["dimension"] == key]
     if not items:
-        return ["No evidence was retrieved for this dimension. This is a gap, not a finding."]
-    lines = [str(len(items)) + " retrieved source(s) were placed in this dimension."]
+        return ["The retrieved evidence did not cover this dimension; this is a gap, not a finding."]
+    lines = []
     for item in items:
         source = by_id.get(item["source_id"], {})
-        lines.append("• " + _clean(item["quote"], 500) + " " + _in_text(source, style) + ".")
+        lines.append(_clean(item["quote"], 500) + " " + _in_text(source, style) + ".")
     return lines
 
 
 def _internal_lines(answers, key, label):
     items = answers.get(key) or []
     if not items:
-        return ["No " + label.lower() + " were supplied. This is a gap, not a finding."]
-    return ["The following " + label.lower() + " were supplied by you:"] + ["• " + item for item in items]
+        return ["No " + label.lower() + " were supplied; this is a gap, not a finding."]
+    return ["The case identifies the following " + label.lower() + ": " + "; ".join(items) + "."]
 
 
 POSITIVE = {"growth", "demand", "innovation", "investment", "digital", "expansion", "reform",
@@ -612,19 +693,56 @@ def _classify_external(evidence):
 
 def _mapped_lines(items, by_id, style, label):
     if not items:
-        return ["No accepted evidence was mapped to " + label.lower() + ". This is a gap, not a finding."]
-    lines = [str(len(items)) + " accepted evidence item(s) were mapped here by keyword."]
+        return ["The accepted evidence did not support this part of the matrix; this is a gap, not a finding."]
     labels = {key: name for key, name, _cues, _category in DIMENSIONS}
+    lines = []
     for item in items[:5]:
         source = by_id.get(item["source_id"], {})
         origin = labels.get(item["dimension"], item["dimension"])
-        lines.append("• " + _clean(item["quote"], 500) + " " + _in_text(source, style)
-                     + " [mapped from " + origin + "]")
+        lines.append(_clean(item["quote"], 500) + " " + _in_text(source, style)
+                     + " (from the " + origin + " dimension).")
+    return lines
+
+
+def _fmt_number(value):
+    number = Decimal(str(value))
+    return "{:,.0f}".format(number) if number == number.to_integral() else "{:,.2f}".format(number)
+
+
+def _break_even_lines(answers):
+    try:
+        fixed = Decimal(str(answers.get("fixed", "")))
+        price = Decimal(str(answers.get("price", "")))
+        variable = Decimal(str(answers.get("variable", "")))
+    except (InvalidOperation, ValueError):
+        raise ChatError("The break-even inputs must be numbers.")
+    declared = {"fixed": str(fixed), "price": str(price), "variable": str(variable)}
+    expected = str(answers.get("expected") or "").strip()
+    if expected:
+        try:
+            declared["expected_units"] = str(Decimal(expected))
+        except (InvalidOperation, ValueError):
+            raise ChatError("Expected volume must be a number.")
+    contribution = price - variable
+    if contribution <= 0:
+        raise ChatError("Break-even needs a price above the variable cost.")
+    units = fixed / contribution
+    revenue = units * price
+    ratio = contribution / price
+    lines = ["At a declared fixed cost of " + _fmt_number(fixed) + ", a price of " + _fmt_number(price)
+             + " per unit and a variable cost of " + _fmt_number(variable) + " per unit, the break-even quantity is "
+             + _fmt_number(units) + " units and the break-even revenue is "
+             + _fmt_number(revenue) + "."]
+    lines.append("The contribution margin is " + _fmt_number(contribution) + " per unit ("
+                 + "{:.1f}".format(float(ratio) * 100) + "% of the price).")
+    if expected:
+        lines.append("At the declared expected volume, the margin of safety is "
+                     + _fmt_number(Decimal(expected) - units) + " units.")
     return lines
 
 
 def draft(state, accepted_ids=None, implications="", style=None):
-    """Compose the section from accepted evidence.  It invents nothing."""
+    """Compose the paper from accepted evidence.  It invents nothing."""
     if state.get("stage") not in ("evidence", "evidence_reviewed", "draft"):
         raise ChatError("Retrieve the evidence before drafting.")
     accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
@@ -638,47 +756,88 @@ def draft(state, accepted_ids=None, implications="", style=None):
     geography = answers.get("geography") or "Global"
     period = answers.get("period") or "10"
     period_text = "the last " + period + " years" if period not in ("0", "") else "all available years"
-    sections = [("Introduction", [
-        "This " + label + " analysis supports: " + _clean(decision, 500) + ".",
-        "It examines " + geography + " over " + period_text + ".",
-        "The external evidence below was retrieved from the source finder and is quoted from the sources; no fact "
-        "or number was added by the system. Internal strengths and weaknesses are yours.",
-    ])]
+    position = _clean(implications, 1200)
+    intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper examines " + geography
+             + " over " + period_text + " and uses " + label + " to organise the evidence and the firm's position.")
+    if position:
+        intro += " The paper argues that " + position.rstrip(".") + "."
+    sections = [paper.section("Introduction", paper.H1, [intro])]
     if framework in ("pestel", "pestel_swot"):
+        sections.append(paper.section("PESTEL", paper.H1))
         for dimension in DIMENSIONS:
-            sections.append((dimension[1], _dimension_lines(dimension, evidence, by_id, style)))
+            lines = _dimension_lines(dimension, evidence, by_id, style)
+            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework in ("swot", "pestel_swot"):
-        sections.append(("Strengths", _internal_lines(answers, "strengths", "Strengths")))
-        sections.append(("Weaknesses", _internal_lines(answers, "weaknesses", "Weaknesses")))
+        sections.append(paper.section("SWOT", paper.H1))
+        sections.append(paper.section("Strengths", paper.H2,
+                                      [paper.paragraph(_internal_lines(answers, "strengths", "Strengths"))]))
+        sections.append(paper.section("Weaknesses", paper.H2,
+                                      [paper.paragraph(_internal_lines(answers, "weaknesses", "Weaknesses"))]))
     unclassified = 0
+    buckets = {"opportunities": [], "threats": []}
     if framework == "swot":
         for dimension in SWOT_DIMENSIONS:
-            sections.append((dimension[1], _dimension_lines(dimension, evidence, by_id, style)))
+            lines = _dimension_lines(dimension, evidence, by_id, style)
+            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     elif framework == "pestel_swot":
         buckets, unclassified = _classify_external(evidence)
-        sections.append(("Opportunities", _mapped_lines(buckets["opportunities"], by_id, style, "Opportunities")))
-        sections.append(("Threats", _mapped_lines(buckets["threats"], by_id, style, "Threats")))
-    sections.append(("Implications (your analysis)", [
-        _clean(implications, 1200) if implications else
-        "Not supplied yet. The system does not infer a strategy from the evidence; add your implications before submitting."
-    ]))
+        sections.append(paper.section("Opportunities", paper.H2,
+                                      [paper.paragraph(_mapped_lines(buckets["opportunities"], by_id, style, "Opportunities"))]))
+        sections.append(paper.section("Threats", paper.H2,
+                                      [paper.paragraph(_mapped_lines(buckets["threats"], by_id, style, "Threats"))]))
+    if framework in ("five_forces", "five_forces_breakeven"):
+        sections.append(paper.section("Five Forces", paper.H1))
+        for dimension in FIVE_DIMENSIONS:
+            lines = _dimension_lines(dimension, evidence, by_id, style)
+            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+    if framework == "five_forces_breakeven":
+        sections.append(paper.section("Financial Feasibility", paper.H1))
+        sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+    sections.append(paper.section("Discussion", paper.H1))
+    if framework == "pestel_swot":
+        integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
+                       "student's internal strengths and weaknesses against the opportunities and threats drawn from "
+                       "that evidence. The matrix maps " + str(len(buckets["opportunities"])) + " accepted item(s) to "
+                       "opportunities and " + str(len(buckets["threats"])) + " to threats, and each item keeps its "
+                       "PESTEL origin. Read together, the two frameworks connect the external environment to the "
+                       "firm's position; the implications below state the resulting judgment.")
+        sections.append(paper.section("Integration of PESTEL and SWOT", paper.H2, [integration]))
+    elif framework == "five_forces_breakeven":
+        integration = ("Five Forces assesses whether the industry is attractive enough to enter; the break-even "
+                       "calculation tests whether the declared cost structure can support entry at the declared price. "
+                       "Read together, the industry pressures qualify the financial result: a break-even volume is only "
+                       "useful if the expected volume can be reached under those pressures. The implications below state "
+                       "the resulting judgment.")
+        sections.append(paper.section("Industry Attractiveness and Financial Feasibility", paper.H2, [integration]))
+    if position:
+        sections.append(paper.section("Implications", paper.H2, [position]))
     gaps = [gap["label"] for gap in state.get("gaps") or []]
     limits = []
     if gaps:
         limits.append("No evidence was retrieved for: " + ", ".join(gaps) + ".")
     if framework in ("swot", "pestel_swot"):
-        limits.append("Strengths and weaknesses are your input; the system did not verify them.")
+        limits.append("Strengths and weaknesses are the student's input; the system did not verify them.")
+    if framework == "five_forces_breakeven":
+        limits.append("The break-even result depends on the declared fixed cost, price and variable cost; it does not "
+                      "forecast demand or prove that the expected volume will be reached.")
     if framework == "pestel_swot":
-        limits.append("Opportunities and threats are mapped from the accepted PESTEL evidence by keyword; review "
-                      "the mapping before submitting.")
+        limits.append("Opportunities and threats are mapped from the accepted PESTEL evidence by keyword; the "
+                      "mapping is stated in each item.")
         if unclassified:
             limits.append(str(unclassified) + " accepted evidence item(s) could not be mapped to an opportunity or "
                                               "a threat and are not shown in the SWOT block.")
     limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
-               "The section quotes sources; it does not verify the claims inside them.",
-               "No financial figure is computed in this section.",
+               "The paper quotes sources; it does not verify the claims inside them.",
+               "No financial figure is computed in this paper.",
                state.get("notes")[0] if state.get("notes") else "The search may be incomplete."]
-    sections.append(("Limitations", limits))
+    sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
+    if position:
+        conclusion = ("The paper set out to address: " + _clean(decision, 500) + ". The evidence and the implications "
+                      "above support the position that " + position.rstrip(".") + ".")
+    else:
+        conclusion = ("The paper assessed " + _clean(decision, 500) + " and set out the evidence above. The "
+                      "implications required to state a position have not been supplied.")
+    sections.append(paper.section("Conclusion", paper.H1, [conclusion]))
     references, seen = [], set()
     for source in state["sources"]:
         if source["id"] not in {item["source_id"] for item in evidence}:
@@ -689,22 +848,61 @@ def draft(state, accepted_ids=None, implications="", style=None):
         seen.add(key)
         references.append(_reference(source, style))
     heading = "References" if style == "apa" else "Bibliography"
-    sections.append((heading, references or ["No sources were used."]))
-    state["draft"] = {"title": label + " analysis: " + _clean(decision, 180), "sections": sections,
+    sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
+    state["draft"] = {"title": label + " analysis: " + _clean(decision, 180),
+                      "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
-                      "accepted": sorted(accepted), "implications": _clean(implications, 1200),
-                      "created_at": _now()}
+                      "accepted": sorted(accepted), "implications": position,
+                      "missing": paper.missing(state, position), "created_at": _now()}
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state
 
 
 def docx_bytes(state):
-    """The drafted section as a Word document (APA or Harvard)."""
+    """The drafted paper as a Word document (APA or Harvard)."""
     draft = state.get("draft")
     if not draft:
-        raise ChatError("Draft the section before exporting it.")
-    return docx.render_academic(draft["title"], draft["sections"], draft.get("style", "apa"))
+        raise ChatError("Draft the paper before exporting it.")
+    required = paper.missing(state, draft.get("implications", ""))
+    if required:
+        raise ExportBlocked(required)
+    outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
+    report = paper.check(outline, state.get("framework") or "pestel",
+                         draft.get("implications", ""), state.get("answers") or {})
+    if not report["pass"]:
+        raise ExportBlocked([issue["detail"] for issue in report["issues"] if issue["severity"] == "high"])
+    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"))
+
+
+def polish(state):
+    """Ask the model for a prose proposal.  Nothing is applied until confirmed."""
+    draft = state.get("draft")
+    if not draft:
+        raise ChatError("Draft the paper before polishing it.")
+    try:
+        state["prose_proposal"] = prose.propose(state, draft)
+    except prose.ProseError as error:
+        raise ChatError(str(error))
+    state["updated_at"] = _now()
+    return state
+
+
+def apply_prose(state):
+    """Apply the proposed prose after the student accepts it."""
+    proposal = state.get("prose_proposal")
+    if not proposal:
+        raise ChatError("There is no prose proposal waiting for confirmation.")
+    state["draft"] = prose.apply(state["draft"], proposal)
+    state["prose_proposal"] = None
+    state["updated_at"] = _now()
+    return state
+
+
+def discard_prose(state):
+    state["prose_proposal"] = None
+    state["updated_at"] = _now()
+    return state
 
 
 def summary(state):
@@ -714,4 +912,5 @@ def summary(state):
             "answers": state.get("answers"), "question": question, "plan": state.get("plan"),
             "sources": state.get("sources"), "evidence": state.get("evidence"),
             "gaps": state.get("gaps"), "notes": state.get("notes"), "draft": state.get("draft"),
-            "timings": state.get("timings"), "message": state.get("message")}
+            "timings": state.get("timings"), "message": state.get("message"),
+            "prose_available": prose.available(), "prose_proposal": state.get("prose_proposal")}

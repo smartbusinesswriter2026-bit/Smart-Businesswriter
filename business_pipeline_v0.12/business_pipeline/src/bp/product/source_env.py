@@ -27,6 +27,7 @@ ALLOWED = {
     "DEEPSEEK_API_KEY": "BP_DEEPSEEK_API_KEY",
     "OPENCODE_API_KEY": "BP_OPENGO_API_KEY",
     "OPENCODE_GO_MODEL": "BP_LLM_MODEL",
+    "PROSE_MODEL": "BP_PROSE_MODEL",
     "OPENGO_SEARCH_URL": "BP_OPENGO_SEARCH_URL",
     "OPENGO_WEBSEARCH": "BP_OPENGO_WEBSEARCH",
     "OPENGO_RESEARCH": "BP_OPENGO_RESEARCH",
@@ -63,6 +64,7 @@ def _status():
             "opengo": bool(shutil.which("opencode")) and os.environ.get("BP_OPENGO_WEBSEARCH", "0") == "1",
             "opengo_key": bool(os.environ.get("BP_OPENGO_API_KEY")),
             "model": os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
+            "prose_model": os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY")),
             "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"}
 

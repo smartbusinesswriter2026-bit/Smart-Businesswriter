@@ -17,12 +17,14 @@ from docx.shared import Inches, Pt
 from build_sample_paper import (
     HARVARD_REFERENCES,
     REFERENCES,
+    LEVEL2,
     SECTIONS as PESTEL_SECTIONS,
     add_page_number,
     body,
     double,
     heading,
     reference,
+    structure,
 )
 
 OUT_DIR = Path(__file__).resolve().parents[3] / "samples"
@@ -68,7 +70,7 @@ SWOT_SECTIONS = [
         "stress that raises operating costs. The World Bank (2026a) also reports that water and energy shortages "
         "disrupt activity and that poverty is expected to increase, which narrows the premium segment.",
     ]),
-    ("Implications (your analysis)", [
+    ("Implications", [
         "The SWOT balance is unfavourable. Apple's strengths are real, but they cannot neutralise sanctions, "
         "currency instability and digital controls. Entry should wait for durable sanctions relief and then use "
         "authorised local partners rather than a direct subsidiary. A distributor agreement would shift some legal "
@@ -88,7 +90,7 @@ COMBINED_SECTIONS = [
         "quoted with its citation.",
     ]),
 ] + [(name, lines) for name, lines in PESTEL_SECTIONS
-     if name not in ("", "Implications (your analysis)", "Limitations", "References", "Bibliography")] + [
+     if name not in ("", "Implications", "Limitations", "Conclusion", "References", "Bibliography")] + [
     ("Strengths", [
         "Apple's brand, integrated ecosystem and financial capacity are real advantages (case assumptions). They "
         "would support a premium offer and absorb the cost of a patient entry.",
@@ -110,7 +112,13 @@ COMBINED_SECTIONS = [
         "by 2.8% (World Bank, 2026b). Digital surveillance and filtering (Conduit, 2026; Bashirov et al., 2026) "
         "and water stress (Haji & Fallah Haghighi, 2026; Ahmadi et al., 2026) add operating and reputational risk.",
     ]),
-    ("Implications (your analysis)", [
+    ("Integration of PESTEL and SWOT", [
+        "PESTEL identifies the external conditions that frame the decision, and SWOT places the student's internal "
+        "strengths and weaknesses against the opportunities and threats drawn from that evidence. The matrix keeps "
+        "each opportunity and threat tied to its PESTEL origin. Read together, the two frameworks connect the "
+        "external environment to Apple's position; the implications below state the resulting judgment.",
+    ]),
+    ("Implications", [
         "PESTEL and SWOT point the same way: political and legal constraints dominate. Apple's strengths would "
         "matter only after sanctions relief; until then, direct entry is not defensible. A partner-led, "
         "compliance-first option is the only structure worth preparing.",
@@ -126,6 +134,15 @@ COMBINED_SECTIONS = [
 SWOT_KEYS = ("Ahmadi", "Bashirov", "Conduit", "Haji", "Koruzhde", "World Bank")
 SWOT_REFERENCES = [entry for entry in REFERENCES if entry[0][0].startswith(SWOT_KEYS)]
 SWOT_HARVARD_REFERENCES = [entry for entry in HARVARD_REFERENCES if entry[0][0].startswith(SWOT_KEYS)]
+
+
+SWOT_CONCLUSION = ("The SWOT balance is unfavourable. Apple's strengths are real, but they cannot neutralise "
+                   "sanctions, currency instability and digital controls. Entry should wait for durable sanctions relief "
+                   "and then use authorised local partners rather than a direct subsidiary.")
+
+COMBINED_CONCLUSION = ("PESTEL and SWOT point the same way: political and legal constraints dominate. Apple's strengths "
+                       "would matter only after sanctions relief; until then, direct entry is not defensible. A "
+                       "partner-led, compliance-first option is the only structure worth preparing.")
 
 
 def build(title, sections, style, out_path, references):
@@ -169,9 +186,10 @@ def build(title, sections, style, out_path, references):
     run.font.name = "Times New Roman"
     run.font.size = Pt(12)
 
-    for name, lines in sections:
+    conclusion = SWOT_CONCLUSION if title == SWOT_TITLE else COMBINED_CONCLUSION
+    for name, lines in structure(sections, conclusion):
         if name:
-            heading(document, name)
+            heading(document, name, 2 if name in LEVEL2 else 1)
         for line in lines:
             if style == "harvard":
                 line = line.replace("(UNCTAD, n.d.)", "(UNCTAD, no date)")

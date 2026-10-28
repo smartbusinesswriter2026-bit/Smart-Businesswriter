@@ -29,7 +29,9 @@ Routes:
     POST   /api/cases/chat/{id}/answer           -> 200 the next question, or the plan
     POST   /api/cases/chat/{id}/plan             -> 200 the confirmed plan
     POST   /api/cases/chat/{id}/research         -> 200 per-dimension evidence and gaps
-    POST   /api/cases/chat/{id}/draft            -> 200 the drafted PESTEL section
+    POST   /api/cases/chat/{id}/draft            -> 200 the drafted paper
+    POST   /api/cases/chat/{id}/polish          -> 200 a prose proposal for confirmation
+    POST   /api/cases/chat/{id}/apply-prose      -> 200 the paper with the accepted prose
     POST   /api/cases/chat/{id}/export           -> 200 the drafted section as Word bytes
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
@@ -263,6 +265,12 @@ def handle(method, path, body=None):
                 state = chat_conductor.confirm_plan(state)
             elif action == "research":
                 state = chat_conductor.research(state)
+            elif action == "polish":
+                state = chat_conductor.polish(state)
+            elif action == "apply-prose":
+                state = chat_conductor.apply_prose(state)
+            elif action == "discard-prose":
+                state = chat_conductor.discard_prose(state)
             elif action == "draft":
                 accepted = data.get("accepted")
                 if accepted is not None and not isinstance(accepted, list):
@@ -278,6 +286,8 @@ def handle(method, path, body=None):
                              "sha256": hashlib.sha256(data_bytes).hexdigest()}
             else:
                 return 404, {"error": "unknown chat action %r" % action}
+        except chat_conductor.ExportBlocked as error:
+            return 409, {"error": str(error), "missing": error.missing}
         except chat_conductor.ChatError as error:
             return _error(error)
         state = chat_store.save(state)

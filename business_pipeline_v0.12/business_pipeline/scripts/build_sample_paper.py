@@ -66,6 +66,15 @@ SECTIONS = [
         "intellectual-property enforcement and currency controls add further uncertainty. Legal risk is therefore "
         "decisive for Apple because it affects the ability to bank, ship, warrant and service products.",
     ]),
+    ("Implications", [
+        "The evidence points to a cautious position: Apple should not enter Iran directly while the sanctions regime "
+        "remains in force. The political and legal constraints dominate the economic and social opportunity, and the "
+        "operational environment would make a direct subsidiary difficult to defend.",
+    ]),
+    ("Limitations", [
+        "The analysis relies on published sources and does not test financial feasibility. The evidence is quoted "
+        "rather than audited, and some dimensions remain thinner than others.",
+    ]),
     ("Conclusion", [
         "PESTEL indicates that politics and law are the binding constraints on Apple's entry into Iran. Economic "
         "volatility, high youth unemployment and controlled digital infrastructure weaken the commercial case, while "
@@ -173,12 +182,19 @@ def add_page_number(paragraph):
     run._r.append(end)
 
 
-def heading(document, text):
+LEVEL2 = {"Political", "Economic", "Social", "Technological", "Environmental", "Legal",
+          "Strengths", "Weaknesses", "Opportunities", "Threats", "Integration of PESTEL and SWOT",
+          "Implications", "Limitations"}
+
+
+def heading(document, text, level=1):
     paragraph = document.add_paragraph()
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER if level == 1 else WD_ALIGN_PARAGRAPH.LEFT
     double(paragraph)
     run = paragraph.add_run(text)
     run.bold = True
+    if level >= 3:
+        run.italic = True
     run.font.name = "Times New Roman"
     run.font.size = Pt(12)
 
@@ -204,6 +220,34 @@ def reference(document, runs):
         run.italic = italic
         run.font.name = "Times New Roman"
         run.font.size = Pt(12)
+
+
+PESTEL_DIMS = {"Political", "Economic", "Social", "Technological", "Environmental", "Legal"}
+PESTEL_CONCLUSION = ("The PESTEL evidence points to political and legal constraints as the binding conditions for "
+                     "Apple's entry into Iran. Economic instability and controlled digital infrastructure weaken the "
+                     "commercial case, while environmental stress raises operating costs. Entry should wait for a "
+                     "durable sanctions settlement and then proceed through authorised local partners rather than a "
+                     "direct subsidiary.")
+
+
+def structure(sections, conclusion):
+    out, pestel, swot, discussion = [], False, False, False
+    for name, lines in sections:
+        if name in PESTEL_DIMS and not pestel:
+            out.append(("PESTEL", []))
+            pestel = True
+        if name in {"Strengths", "Weaknesses", "Opportunities", "Threats"} and not swot:
+            out.append(("SWOT", []))
+            swot = True
+        if name in {"Integration of PESTEL and SWOT", "Implications", "Limitations"} and not discussion:
+            out.append(("Discussion", []))
+            discussion = True
+        out.append((name, lines))
+    if not any(name == "Conclusion" for name, _lines in out):
+        reference = next((i for i, (name, _lines) in enumerate(out)
+                          if name in ("References", "Bibliography")), len(out))
+        out.insert(reference, ("Conclusion", [conclusion]))
+    return out
 
 
 def main():
@@ -250,9 +294,9 @@ def main():
     run.font.name = "Times New Roman"
     run.font.size = Pt(12)
 
-    for name, paragraphs in SECTIONS:
+    for name, paragraphs in structure(SECTIONS, PESTEL_CONCLUSION):
         if name:
-            heading(document, name)
+            heading(document, name, 2 if name in LEVEL2 else 1)
         for text in paragraphs:
             if STYLE == "harvard":
                 text = text.replace("(UNCTAD, n.d.)", "(UNCTAD, no date)")
