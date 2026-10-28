@@ -184,6 +184,11 @@ class EquityTest(unittest.TestCase):
             marketdata.equity_quote("AAPL")
         self.assertIn("rate limit", str(caught.exception))
 
+    def test_the_daily_limit_is_a_distinct_quota_error(self):
+        marketdata._fetch = FakeFetch(b'{"Information":"Thank you for using Alpha Vantage! Our standard API rate limit is 25 requests per day. Please subscribe to a premium plan."}')
+        with self.assertRaises(marketdata.MarketDataQuota):
+            marketdata.equity_quote("AAPL")
+
 
 class SecTest(unittest.TestCase):
     def setUp(self):

@@ -234,6 +234,8 @@ class RoutesTest(unittest.TestCase):
         self.assertIn("Time-weighted return", xml)
         self.assertIn("Journal of decisions", xml)
         self.assertIn("Held", xml)
+        self.assertIn("All 12 checks passed", xml)
+        self.assertNotIn("second_implementation_agrees", xml)
 
     def test_a_missing_benchmark_is_named_not_filled(self):
         _, portfolio = _post(self.base, "/api/portfolios", {"name": "No benchmark", "mode": "fund"})
@@ -314,6 +316,28 @@ class RoutesTest(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as caught:
             _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
         self.assertEqual(caught.exception.code, 422)
+
+    def test_a_daily_quota_returns_429_with_the_manual_fallback(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Quota"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        previous = (marketdata.status, marketdata.equity_quote)
+        marketdata.status = lambda: {"sources": {"equity": True}}
+
+        def quota(symbol):
+            raise marketdata.MarketDataQuota("25 requests per day")
+
+        marketdata.equity_quote = quota
+        try:
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        finally:
+            marketdata.status, marketdata.equity_quote = previous
+        self.assertEqual(caught.exception.code, 429)
+        body = json.loads(caught.exception.read())
+        self.assertTrue(body["quota"])
+        self.assertIn("manually", body["error"])
 
 if __name__ == "__main__":
     unittest.main()

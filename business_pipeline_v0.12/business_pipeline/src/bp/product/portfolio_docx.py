@@ -128,13 +128,42 @@ def _performance_section(performance, currency):
     return section
 
 
+_CHECK_LABELS = {
+    "second_implementation_agrees": "a second route gives the same result",
+    "nav_equals_invested_plus_cash": "NAV equals the holdings' value plus cash",
+    "holding_weights_and_cash_sum_to_one": "the holding weights plus cash sum to one",
+    "doubling_every_price_doubles_invested_value": "doubling every price doubles the invested value",
+    "adding_one_unit_of_cash_raises_nav_by_one": "one more unit of cash raises NAV by one",
+    "concentration_is_bounded": "the concentration measures stay between zero and one",
+    "twr_equals_the_product_of_end_over_base": "the return chains every period",
+    "a_period_with_no_flow_returns_the_nav_ratio": "a period with no flow equals the NAV ratio",
+    "geometric_mean_lies_between_best_and_worst": "the average period sits between the best and the worst",
+    "benchmark_chains_the_same_way": "the benchmark chains the same way",
+    "final_nav_matches_the_last_period": "the final NAV is the last period's end",
+}
+
+
 def _check_lines(snapshot, performance):
-    lines = ["Valuation · %s: %s" % (check.get("name", ""), "pass" if check.get("ok") else "fail")
-             for check in (snapshot.get("checks") or [])]
-    if performance:
-        lines.extend("Performance · %s: %s" % (check.get("name", ""), "pass" if check.get("ok") else "fail")
-                     for check in (performance.get("checks") or []))
-    return lines or ["No check result was recorded."]
+    """A student reads what was verified, not the machine's check names.
+
+    The stored snapshot keeps the machine-readable names for audit; a failure is
+    always named, because a failed check blocks the result.
+    """
+    valuation = snapshot.get("checks") or []
+    measured = (performance or {}).get("checks") or []
+    rows = [("Valuation", _CHECK_LABELS.get(str(check.get("name", "")), "a declared check"), bool(check.get("ok")))
+            for check in valuation]
+    rows += [("Performance", _CHECK_LABELS.get(str(check.get("name", "")), "a declared check"), bool(check.get("ok")))
+             for check in measured]
+    if not rows:
+        return ["No check result was recorded."]
+    passed = sum(1 for _, _, ok in rows if ok)
+    if passed == len(rows):
+        return ["All %d checks passed (%d valuation, %d performance)." % (len(rows), len(valuation), len(measured)),
+                "The checks confirm the arithmetic and the weights; they do not confirm the prices, which are yours to verify."]
+    failed = ["%s: %s" % (scope, label) for scope, label, ok in rows if not ok]
+    return ["%d of %d checks passed. A failed check blocks the result." % (passed, len(rows)),
+            "Failed: " + "; ".join(failed) + "."]
 
 
 def _limit_lines(performance):

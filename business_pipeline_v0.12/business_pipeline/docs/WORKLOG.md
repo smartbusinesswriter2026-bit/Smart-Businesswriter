@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - Plain-language checks and a quota fallback
+
+**Ask.** "Do we have to show this to users" (the raw check names) and "do we have a fallback if we exceeded the 25 per day limit?"
+
+**Did.** The Word report's Checks section now reads "All 12 checks passed (6 valuation, 6 performance)" with one sentence on what the checks confirm; machine names stay in the stored snapshot, and a failure is named. `marketdata.MarketDataQuota` separates a rate-limit/daily-limit response from a bad symbol; the fetch route returns 429 with `quota: true` when nothing could be stored, keeps a successful subset and names the rest. The UI shows an honesty banner that points to manual entry or paste.
+
+**Verified.** A market-data test asserts the quota subclass; a route test asserts 429 and the manual message; the fund export test asserts "All 12 checks passed" is present and the machine name is absent; the UI guard asserts the fallback banner. Full suite 1710 tests green.
+
+**Files.** `src/bp/product/marketdata.py`, `src/bp/server.py`, `src/bp/product/portfolio_docx.py`, `web/index.html`, `tests/test_product_marketdata.py`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`.
+
 ## 2026-10-29 - Optional quotes for the Portfolio Lab
 
 **Ask.** The owner supplied an Alpha Vantage key and expected the lab to use it.

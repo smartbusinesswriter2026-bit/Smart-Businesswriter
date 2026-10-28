@@ -58,7 +58,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 1708 tests; expect "OK"
+python -m unittest discover -s tests          # currently 1710 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 
@@ -110,7 +110,7 @@ These are trust boundaries, not features. Order of work: **design note â†’ 
 | Re-performance | A delivered bundle re-runs and matches | `tests/test_sandbox.py`, `src/bp/reperform.py` |
 | API / UI | Routes and the workbench expose the contract | `tests/test_session_api.py`, `test_literature_api.py` |
 
-Rules: no network in the suite (use fake openers/sources); no sleeps; no reliance on wall-clock time (inject a clock, as the retrieval audit does); tests must pass in any order. **Report the truth**: "1708 tests OK" means the count and the word OK; a PowerShell `[exit code: 1]` on a green suite is the known ResourceWarning artefact â€” read the `OK` line.
+Rules: no network in the suite (use fake openers/sources); no sleeps; no reliance on wall-clock time (inject a clock, as the retrieval audit does); tests must pass in any order. **Report the truth**: "1710 tests OK" means the count and the word OK; a PowerShell `[exit code: 1]` on a green suite is the known ResourceWarning artefact â€” read the `OK` line.
 
 ## 7. Environment and known traps
 

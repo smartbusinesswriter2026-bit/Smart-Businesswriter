@@ -91,6 +91,10 @@ class MarketDataError(Exception):
     """The lookup could not be completed; no value is returned."""
 
 
+class MarketDataQuota(MarketDataError):
+    """The free equity source's daily quota or rate limit is exhausted."""
+
+
 def _cache_get(key):
     hit = _CACHE.get(key)
     if hit and hit[0] > time.time(): return hit[1]
@@ -298,7 +302,11 @@ def _alpha_json(function, symbol, key):
         raise MarketDataError("the equity source returned a response this app cannot read")
     for field in ("Error Message", "Information", "Note"):
         if field in data:
-            raise MarketDataError("the equity source refused the request: " + str(data[field])[:300])
+            message = str(data[field])
+            if re.search(r"rate limit|requests per (day|minute)|premium plan|call frequency|"
+                         r"daily limit|exceeded", message, re.I):
+                raise MarketDataQuota("the free equity source's limit is reached: " + message[:300])
+            raise MarketDataError("the equity source refused the request: " + message[:300])
     return data, raw, final
 
 

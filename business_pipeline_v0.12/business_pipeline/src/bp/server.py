@@ -806,7 +806,7 @@ class H(BaseHTTPRequestHandler):
         status = product_marketdata.status()
         if not status["sources"].get("equity"):
             raise ValueError("equity quotes need an Alpha Vantage key: set BP_ALPHAVANTAGE_KEY and restart the server")
-        stored, failed = {}, []
+        stored, failed, quota = {}, [], None
         for row in holdings:
             symbol = row["symbol"]
             try:
@@ -816,11 +816,18 @@ class H(BaseHTTPRequestHandler):
                                              as_of=quote.get("as_of", ""))
                 stored[symbol] = {"price": str(quote["value"]), "as_of": quote.get("as_of", ""),
                                   "source": quote.get("source", "")}
+            except product_marketdata.MarketDataQuota as error:
+                quota = str(error)
+                failed.append({"symbol": symbol, "error": str(error)})
             except (product_marketdata.MarketDataError, ValueError, TypeError) as error:
                 failed.append({"symbol": symbol, "error": str(error)})
+        if not stored and quota:
+            return self._send(429, {"error": "the free equity source's daily limit is reached; "
+                                             "enter prices manually or paste them, or retry tomorrow",
+                                    "quota": True, "failed": failed})
         if not stored and failed:
             raise ValueError("; ".join("%s: %s" % (row["symbol"], row["error"]) for row in failed))
-        return self._send(200, {"prices": stored, "failed": failed, "date": day})
+        return self._send(200, {"prices": stored, "failed": failed, "quota": bool(quota), "date": day})
 
     def _portfolio_snapshot(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)

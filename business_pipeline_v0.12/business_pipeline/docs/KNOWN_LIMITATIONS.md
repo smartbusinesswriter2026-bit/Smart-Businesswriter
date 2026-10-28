@@ -490,7 +490,9 @@ If an assignment needs one of these, say so in the limitations and show the meth
   default. The **Fetch prices** button uses the server's `BP_ALPHAVANTAGE_KEY` and the free tier's
   25 requests/day; it is never called on its own, and every fetched price is shown for the student to
   check. A symbol that fails is named, and the price is still missing until the student supplies it.
-  The frozen core has no network access: it values the stored prices only.
+  When the daily limit is reached the fetch returns 429 and the UI points to manual entry or paste;
+  a partial fetch stores only what succeeded. The frozen core has no network access: it values the
+  stored prices only.
 - **Import is all-or-nothing.** A pasted table is validated row by row before it is written; one bad row
   refuses the whole paste and names its line. A header row is recognised by its label (Symbol, Ticker,
   Shares, Price, ...), so a data row with a mistaken value is refused rather than skipped.
