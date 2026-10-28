@@ -42,11 +42,14 @@ chat.set_method_compute(_run, methods.describe)
 #: The folder the Home page lists as the shipped samples.
 OUT_DIR = ROOT / "samples"
 
-#: One framework (PESTEL) and one computation (break-even), in two versions.
-#: The length is asked for in the brief, the way a student asks for it.
-SHORT = {"stem": "pestel-and-break-even-tehran-device-store", "brief_extra": ""}
-FULL = {"stem": "pestel-and-break-even-tehran-device-store-full",
-        "brief_extra": " Write about 2500 words."}
+#: One framework (PESTEL) and one computation (break-even), in the three length
+#: options the product offers. The length is asked for in the brief, the way a
+#: student asks for it; the Home page's selector sends the same option.
+SHORT = {"stem": "pestel-and-break-even-tehran-device-store-short", "brief_extra": ""}
+MID = {"stem": "pestel-and-break-even-tehran-device-store-mid",
+       "brief_extra": " Write a mid-length report."}
+LONG = {"stem": "pestel-and-break-even-tehran-device-store-long",
+        "brief_extra": " Write a long report."}
 
 SAMPLE = {
     "title": "PESTEL and Break-even: A Tehran Device Store",
@@ -132,7 +135,7 @@ def main():
     samples show the same two files, downloaded separately.
     """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for variant in (SHORT, FULL):
+    for variant in (SHORT, MID, LONG):
         sample = dict(SAMPLE)
         sample["brief"] = SAMPLE["brief"] + variant["brief_extra"]
         state, paper, explainer = build(sample)

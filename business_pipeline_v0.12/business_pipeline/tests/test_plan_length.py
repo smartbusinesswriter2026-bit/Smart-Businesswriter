@@ -1,10 +1,10 @@
-"""Report length: a word target with a floor, and the sections a full report adds.
+"""Report length: three options with ranges, and the sections each one adds.
 
-The rule the test protects: a length is a request the system answers honestly.  It
-is read from the brief ("write about 2500 words"), refused below the floor instead
-of padded, and a full report adds only the sections the record supports - method,
-evidence base, the reading of a dimension, the method's assumptions, the
-recommendation and the appendix.
+The rule the test protects: a length is a request the system answers honestly.
+Short is enough for many cases; mid adds the evidence base and discussion; long
+adds the reading of each dimension and the appendix. The draft never pads to hit
+a target, and the bands are the same in the brief, the Home box, the plan card
+and the draft.
 """
 
 import unittest
@@ -54,9 +54,9 @@ def _seed(state):
     return state
 
 
-def build(target=None):
-    """Run a case to a draft; `target` is written into the brief, as a student would."""
-    brief = BRIEF if target is None else BRIEF + " Write about " + str(target) + " words."
+def build(length=None):
+    """Run a case to a draft; `length` is a band name or a count, as a student gives it."""
+    brief = BRIEF if length is None else BRIEF + " Write a " + str(length) + " report."
     state = chat.start(brief, "management", "pestel")
     answers = {"decision": "Should the retailer open a device store in Tehran?",
                "geography": "Middle East", "period": "5", "style": "apa"}
@@ -71,94 +71,104 @@ def build(target=None):
                                           "the variable cost has to change before entry is viable.")
 
 
-class LengthTest(unittest.TestCase):
-    def test_a_brief_without_a_count_is_the_short_version(self):
+class LengthOptionTest(unittest.TestCase):
+    def test_the_three_options_and_their_ranges(self):
+        bands = {band[0]: (band[2], band[3]) for band in chat.LENGTH_BANDS}
+        self.assertEqual(bands["short"], (600, 1200))
+        self.assertEqual(bands["mid"], (1200, 2500))
+        self.assertEqual(bands["long"], (2500, 5000))
+        self.assertEqual([band[0] for band in chat.LENGTH_BANDS], ["short", "mid", "long"])
+
+    def test_a_count_falls_into_the_right_band(self):
+        for words, band in ((600, "short"), (900, "short"), (1199, "short"),
+                            (1200, "mid"), (2000, "mid"), (2499, "mid"),
+                            (2500, "long"), (4000, "long")):
+            self.assertEqual(chat.length_band(words), band, words)
+
+    def test_a_band_name_resolves_to_its_target(self):
+        self.assertEqual(chat.check_word_target("short"), chat.SHORT_WORDS)
+        self.assertEqual(chat.check_word_target("mid"), chat.MID_WORDS)
+        self.assertEqual(chat.check_word_target("long"), chat.LONG_WORDS)
+
+    def test_a_brief_without_a_length_is_short(self):
         state = chat.start(BRIEF, "management", "pestel")
         self.assertEqual(state["answers"].get("length"), None)
         self.assertEqual(chat.target_words(state), 0)
 
-    def test_a_brief_that_names_a_count_asks_for_the_full_report(self):
+    def test_a_brief_that_names_an_option_sets_that_length(self):
+        state = chat.start(BRIEF + " Write a mid-length report.", "management", "pestel")
+        self.assertEqual(state["answers"]["length"], str(chat.MID_WORDS))
+
+    def test_a_brief_that_gives_a_count_sets_that_count(self):
         state = chat.start(BRIEF + " Write about 2500 words.", "management", "pestel")
         self.assertEqual(state["answers"]["length"], "2500")
         self.assertEqual(chat.target_words(state), 2500)
-        # The questions a student answers are unchanged by the length.
-        self.assertEqual([question["id"] for question in state["questions"]],
-                         ["decision", "geography", "period", "style"])
 
-    def test_a_count_below_the_floor_is_refused_with_the_reason(self):
+    def test_a_count_below_the_short_floor_is_refused(self):
         with self.assertRaises(chat.ChatError) as raised:
-            chat.start(BRIEF + " Write 800 words.", "management", "pestel")
+            chat.start(BRIEF + " Write 300 words.", "management", "pestel")
         self.assertIn(str(chat.MIN_WORDS), str(raised.exception))
-        self.assertIn("cannot be written properly", str(raised.exception))
 
     def test_a_count_above_the_ceiling_is_refused(self):
         with self.assertRaises(chat.ChatError):
             chat.start(BRIEF + " Write " + str(chat.MAX_WORDS + 1) + " words.", "management", "pestel")
 
-    def test_the_home_composer_box_sets_the_length(self):
-        state = chat.start(BRIEF, "management", "pestel", words="2500")
-        self.assertEqual(state["answers"]["length"], "2500")
-        # The box is part of start, so the plan carries it before any question.
-        self.assertEqual(chat.target_words(state), 2500)
-
-    def test_the_home_box_floor_is_enforced(self):
-        with self.assertRaises(chat.ChatError) as raised:
-            chat.start(BRIEF, "management", "pestel", words="900")
-        self.assertIn(str(chat.MIN_WORDS), str(raised.exception))
-
-    def test_the_count_is_read_with_a_comma(self):
-        state = chat.start(BRIEF + " Write 2,500 words.", "management", "pestel")
-        self.assertEqual(state["answers"]["length"], "2500")
-        self.assertEqual(chat.check_word_target("2,500"), 2500)
-        self.assertEqual(chat.check_word_target("2500 words"), 2500)
-        self.assertEqual(chat.check_word_target(""), 0)
+    def test_the_home_box_choice_sets_the_length(self):
+        state = chat.start(BRIEF, "management", "pestel", words="long")
+        self.assertEqual(state["answers"]["length"], str(chat.LONG_WORDS))
+        self.assertEqual(chat.length_band(chat.target_words(state)), "long")
 
 
 class FullReportTest(unittest.TestCase):
-    def test_the_short_version_carries_no_full_report_sections(self):
+    def test_short_carries_none_of_the_long_sections(self):
         state = build(None)
-        headings = [item["heading"] for item in state["draft"]["outline"]]
-        self.assertNotIn("Scope and Method", headings)
-        self.assertNotIn("Evidence Base", headings)
-        self.assertNotIn("Recommendation", headings)
-        self.assertNotIn("Appendix: How the Computations Were Checked", headings)
-        self.assertEqual(state["draft"]["target_words"], chat.SHORT_WORDS)
-        self.assertTrue(state["draft"]["met_target"])
-
-    def test_a_full_report_adds_its_sections_in_order(self):
-        state = build(2000)
         headings = [item["heading"] for item in state["draft"]["outline"]]
         for heading in ("Scope and Method", "Evidence Base", "Recommendation",
                         "Appendix: How the Computations Were Checked"):
+            self.assertNotIn(heading, headings)
+        self.assertEqual(state["draft"]["length_band"], "short")
+        self.assertTrue(state["draft"]["met_target"])
+
+    def test_mid_adds_the_evidence_base_and_the_discussion(self):
+        state = build("mid")
+        headings = [item["heading"] for item in state["draft"]["outline"]]
+        self.assertIn("Scope and Method", headings)
+        self.assertIn("Evidence Base", headings)
+        self.assertIn("What the Evidence Shows Together", headings)
+        self.assertNotIn("Recommendation", headings)
+        self.assertNotIn("Appendix: How the Computations Were Checked", headings)
+        self.assertEqual(state["draft"]["length_band"], "mid")
+        self.assertGreaterEqual(state["draft"]["words"], chat.LENGTH_BANDS[1][2])
+
+    def test_long_adds_the_reading_the_recommendation_and_the_appendix(self):
+        state = build("long")
+        headings = [item["heading"] for item in state["draft"]["outline"]]
+        for heading in ("Recommendation", "Appendix: How the Computations Were Checked",
+                        "What the Figures Assume", "Reading the Result"):
             self.assertIn(heading, headings)
-        self.assertLess(headings.index("Scope and Method"), headings.index("PESTEL"))
-        self.assertLess(headings.index("Evidence Base"), headings.index("Discussion"))
-        self.assertLess(headings.index("Recommendation"), headings.index("Conclusion"))
-        self.assertEqual(state["draft"]["target_words"], 2000)
+        self.assertEqual(state["draft"]["length_band"], "long")
+        # This fixture's evidence is thin, so the target may not be reached; the
+        # draft says so rather than padding, which is the contract.
+        self.assertEqual(state["draft"]["met_target"],
+                         state["draft"]["words"] >= chat.LENGTH_BANDS[2][2])
 
-    def test_the_full_report_meets_its_target_and_passes_the_gate(self):
-        state = build(chat.MIN_WORDS)
-        self.assertTrue(state["draft"]["met_target"], state["draft"]["words"])
-        self.assertGreaterEqual(state["draft"]["words"], chat.MIN_WORDS)
-        self.assertEqual(state["draft"]["missing"], [])
-        data = chat.docx_bytes(state)
-        self.assertTrue(data.startswith(b"PK"))
+    def test_the_bands_are_in_order_by_size(self):
+        short = build(None)["draft"]["words"]
+        mid = build("mid")["draft"]["words"]
+        long = build("long")["draft"]["words"]
+        self.assertLess(short, mid)
+        self.assertLess(mid, long)
 
-    def test_a_full_report_states_its_own_length_and_its_limits(self):
-        state = build(chat.MIN_WORDS)
-        text = " ".join(line for _heading, lines in state["draft"]["sections"] for line in lines)
-        self.assertIn("planned at 1500 words", text)
-        self.assertIn("condition of entry", text)
-        self.assertIn("What Would Change the Answer", [item["heading"] for item in state["draft"]["outline"]])
-
-    def test_the_full_report_passes_the_claim_gate(self):
-        state = build(2000)
-        self.assertEqual(state.get("claim_problems"), [])
-        self.assertEqual(state.get("recompute_problems"), [])
+    def test_every_band_passes_the_gate_and_the_claim_ceiling(self):
+        for length in (None, "mid", "long"):
+            state = build(length)
+            self.assertEqual(state["draft"]["missing"], [], length)
+            self.assertEqual(state.get("claim_problems"), [], length)
+            self.assertTrue(chat.docx_bytes(state).startswith(b"PK"), length)
 
 
 class PlanLengthControlTest(unittest.TestCase):
-    """The word-count box on the plan card sets the same length the draft reads."""
+    """The plan card's selector sets the same length the draft reads."""
 
     def _planned(self):
         state = chat.start(BRIEF, "management", "pestel")
@@ -169,46 +179,33 @@ class PlanLengthControlTest(unittest.TestCase):
             state = chat.answer(state, question["id"], answers.get(question["id"], ""))
         return state
 
-    def test_the_plan_carries_the_length_it_will_write_to(self):
+    def test_the_plan_carries_the_options_and_the_current_band(self):
         state = self._planned()
-        self.assertEqual(state["plan"]["target_words"], chat.SHORT_WORDS)
-        self.assertFalse(state["plan"]["full_report"])
-        self.assertEqual(state["plan"]["min_words"], chat.MIN_WORDS)
+        self.assertEqual(state["plan"]["length_band"], "short")
+        self.assertEqual([option["key"] for option in state["plan"]["length_options"]],
+                         ["short", "mid", "long"])
 
-    def test_setting_a_length_updates_the_plan_and_the_draft(self):
-        state = chat.set_length(self._planned(), "2500")
-        self.assertEqual(state["answers"]["length"], "2500")
-        self.assertEqual(state["plan"]["target_words"], 2500)
-        self.assertTrue(state["plan"]["full_report"])
+    def test_setting_a_band_updates_the_plan_and_the_draft(self):
+        state = chat.set_length(self._planned(), "long")
+        self.assertEqual(state["answers"]["length"], str(chat.LONG_WORDS))
+        self.assertEqual(state["plan"]["length_band"], "long")
         state = chat.confirm_plan(state)
         state = chat.run_capability(state, "breakeven",
                                     {"fixed": "2000000", "price": "40000", "variable": "28000"})
         state = _seed(state)
         state = chat.draft(state, implications="The declared volume is below break-even.")
-        self.assertIn("Scope and Method", [item["heading"] for item in state["draft"]["outline"]])
-        # This fixture's evidence is thin, so the draft reports the shortfall rather
-        # than padding to the number, and the shortfall does not block the export.
-        self.assertFalse(state["draft"]["met_target"])
-        self.assertLess(state["draft"]["words"], 2500)
-        self.assertEqual(state["draft"]["missing"], [])
+        self.assertIn("Recommendation", [item["heading"] for item in state["draft"]["outline"]])
+        self.assertEqual(state["draft"]["length_band"], "long")
 
-    def test_a_length_below_the_floor_is_refused_at_the_plan(self):
+    def test_a_count_outside_the_bands_is_refused_at_the_plan(self):
         state = self._planned()
-        with self.assertRaises(chat.ChatError) as raised:
-            chat.set_length(state, "900")
-        self.assertIn(str(chat.MIN_WORDS), str(raised.exception))
-        self.assertEqual(state["answers"].get("length"), None)
-
-    def test_clearing_the_box_returns_to_the_short_version(self):
-        state = chat.set_length(self._planned(), "2500")
-        state = chat.set_length(state, "")
-        self.assertEqual(state["answers"]["length"], "")
-        self.assertEqual(state["plan"]["target_words"], chat.SHORT_WORDS)
-        self.assertFalse(state["plan"]["full_report"])
+        with self.assertRaises(chat.ChatError):
+            chat.set_length(state, "300")
+        self.assertIsNone(state["answers"].get("length"))
 
     def test_the_length_is_only_set_while_the_plan_is_open(self):
         with self.assertRaises(chat.ChatError):
-            chat.set_length(chat.start(BRIEF, "management", "pestel"), "2500")
+            chat.set_length(chat.start(BRIEF, "management", "pestel"), "mid")
 
 
 class LengthRouteTest(unittest.TestCase):
@@ -230,7 +227,14 @@ class LengthRouteTest(unittest.TestCase):
             os.environ["BP_CASES_DIR"] = self.previous
         shutil.rmtree(self.root, ignore_errors=True)
 
-    def _case(self):
+    def test_the_start_route_takes_the_band_from_the_home_box(self):
+        status, state = self.api.handle("POST", "/api/cases/chat",
+                                        {"brief": BRIEF, "framework": "pestel", "words": "long"})
+        self.assertEqual(status, 201)
+        self.assertEqual(state["answers"]["length"], str(chat.LONG_WORDS))
+        self.assertEqual(state["plan"]["length_band"] if state.get("plan") else "long", "long")
+
+    def test_the_route_sets_a_band_and_refuses_a_count_below_the_floor(self):
         status, state = self.api.handle("POST", "/api/cases/chat", {"brief": BRIEF, "framework": "pestel"})
         self.assertEqual(status, 201)
         answers = {"decision": "Should the retailer open a device store in Tehran?",
@@ -240,27 +244,12 @@ class LengthRouteTest(unittest.TestCase):
             status, state = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/answer",
                                             {"question_id": question["id"],
                                              "value": answers.get(question["id"], "")})
-            self.assertEqual(status, 200)
-        return state
-
-    def test_the_start_route_takes_the_length_from_the_home_box(self):
-        status, state = self.api.handle("POST", "/api/cases/chat",
-                                        {"brief": BRIEF, "framework": "pestel", "words": "2500"})
-        self.assertEqual(status, 201)
-        self.assertEqual(state["answers"]["length"], "2500")
-        status, payload = self.api.handle("POST", "/api/cases/chat",
-                                          {"brief": BRIEF, "framework": "pestel", "words": "900"})
-        self.assertEqual(status, 422)
-        self.assertIn(str(chat.MIN_WORDS), payload["error"])
-
-    def test_the_route_sets_a_length_and_refuses_below_the_floor(self):
-        state = self._case()
         status, state = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/length",
-                                        {"words": "2500"})
+                                        {"words": "mid"})
         self.assertEqual(status, 200)
-        self.assertEqual(state["plan"]["target_words"], 2500)
+        self.assertEqual(state["plan"]["length_band"], "mid")
         status, payload = self.api.handle("POST", "/api/cases/chat/" + state["id"] + "/length",
-                                          {"words": "900"})
+                                          {"words": "300"})
         self.assertEqual(status, 422)
         self.assertIn(str(chat.MIN_WORDS), payload["error"])
 

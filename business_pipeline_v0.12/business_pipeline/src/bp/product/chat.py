@@ -223,13 +223,24 @@ BREAKEVEN_QUESTIONS = [
     _STYLE,
 ]
 
-#: A full report is planned in words.  Below the minimum the framework, the evidence
-#: and the computation cannot be written properly, so the request is refused rather
-#: than answered with padding.  The length is read from the brief ("about 2500
-#: words"), so the Home page stays one composer and nothing else.
-MIN_WORDS = 1500
-MAX_WORDS = 10000
-SHORT_WORDS = 900
+#: Length is offered as three options, because a case does not always need a long
+#: paper.  Each band has a range and a target the draft writes to; a number in the
+#: brief or the box is read into the same bands, so the vocabulary never drifts.
+LENGTH_BANDS = (
+    ("short", "Short", 600, 1200, 600),
+    ("mid", "Mid", 1200, 2500, 1200),
+    ("long", "Long", 2500, 5000, 2500),
+)
+LENGTH_BY_KEY = {band[0]: band for band in LENGTH_BANDS}
+MIN_WORDS = LENGTH_BANDS[0][2]
+MAX_WORDS = LENGTH_BANDS[-1][3]
+SHORT_WORDS = LENGTH_BANDS[0][4]
+MID_WORDS = LENGTH_BANDS[1][4]
+LONG_WORDS = LENGTH_BANDS[2][4]
+#: At or above this a draft carries the full-report sections; at or above the
+#: second the deep sections (per-dimension reading, appendix) join them.
+MID_FLOOR = LENGTH_BANDS[1][2]
+LONG_FLOOR = LENGTH_BANDS[2][2]
 
 _WORD_TARGET = re.compile(r"\b(\d[\d,]*)\s*(?:-|to\s+)?\s*words?\b", re.I)
 
@@ -245,19 +256,58 @@ def parse_word_target(text):
         return None
 
 
+_LENGTH_NAME = re.compile(r"\b(short|mid|long)(?:[ -](?:length|report|paper))\b", re.I)
+
+
+def parse_length_name(text):
+    """The option a brief names ("mid-length", "long report"), or None."""
+    match = _LENGTH_NAME.search(str(text or ""))
+    return match.group(1).lower() if match else None
+
+
+def length_band(words):
+    """Which of the three options a word count belongs to."""
+    words = int(words or 0)
+    if words >= LONG_FLOOR:
+        return "long"
+    if words >= MID_FLOOR:
+        return "mid"
+    return "short"
+
+
+def band_label(words):
+    band = length_band(words or (SHORT_WORDS if not words else 0))
+    return LENGTH_BY_KEY[band][1]
+
+
+def band_target(key):
+    """The default target for a named option, or 0 for an unknown key."""
+    band = LENGTH_BY_KEY.get(str(key or "").strip().lower())
+    return band[4] if band else 0
+
+
 def check_word_target(value):
-    """Read a requested length; refuse a target the system cannot serve honestly."""
+    """Read a requested length as an option name or a number, or 0 for short.
+
+    Names ("short", "mid", "long") resolve to that option's target.  A number is
+    accepted only inside the offered range, so the system never promises a paper
+    it cannot write without padding.
+    """
     text = str(value or "").strip().replace(",", "")
     if not text:
         return 0
+    named = band_target(text)
+    if named:
+        return named
     match = re.search(r"\d+", text)
     if not match:
-        raise ChatError("Give the length as a number of words, for example 2500.")
+        raise ChatError("Choose short, mid or long, or give a word count between %d and %d."
+                        % (MIN_WORDS, MAX_WORDS))
     words = int(match.group(0))
     if words < MIN_WORDS:
-        raise ChatError("A full report needs at least %d words: below that the framework, the evidence and "
-                        "the computation cannot be written properly. Clear the box for the short version."
-                        % MIN_WORDS)
+        raise ChatError("A paper below %d words cannot carry the framework, the evidence and the computation "
+                        "properly. Choose the short option (%d-%d words) or a longer count."
+                        % (MIN_WORDS, LENGTH_BANDS[0][2], LENGTH_BANDS[0][3]))
     if words > MAX_WORDS:
         raise ChatError("A report longer than %d words is more than one case can support; ask for %d or fewer."
                         % (MAX_WORDS, MAX_WORDS))
@@ -529,8 +579,11 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
         fits, message = _fit(brief, framework)
     questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
-    # A brief that names a word count asks for the full report; the minimum is
-    # enforced here, before any question is put to the student.
+    # A brief may name the option ("mid-length report") or give a count; either is
+    # read here, before any question is put to the student.
+    named = parse_length_name(brief)
+    if named:
+        answers["length"] = str(check_word_target(named))
     requested = parse_word_target(brief)
     if requested is not None:
         answers["length"] = str(check_word_target(str(requested)))
@@ -907,8 +960,12 @@ def _plan(state):
         "catalogue_version": selection.get("catalogue_version"),
         # The report length is part of the plan, so the card and the draft agree.
         "target_words": target_words(state) or SHORT_WORDS,
-        "full_report": target_words(state) >= MIN_WORDS,
+        "length_band": length_band(target_words(state)),
+        "length_options": [{"key": key, "label": label, "low": low, "high": high, "target": target}
+                           for key, label, low, high, target in LENGTH_BANDS],
+        "full_report": (target_words(state) or SHORT_WORDS) >= MID_FLOOR,
         "min_words": MIN_WORDS,
+        "max_words": MAX_WORDS,
         "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"]
         if config.get("evidence", True) else ["Confirm this plan", "Review your inputs", "Review the drafted section"],
     }
@@ -4041,7 +4098,7 @@ def _reading_line(dimension, evidence, target, by_id=None):
     going wrong there would mean for the decision and what would change the
     reading.  It adds no fact and no figure.
     """
-    if target < MIN_WORDS:
+    if target < LONG_FLOOR:
         return ""
     items = [item for item in evidence if item["dimension"] == dimension[0]]
     if not items:
@@ -4188,7 +4245,7 @@ def _evidence_base_section(state, evidence, target):
 
 def _discussion_full_section(state, evidence, target):
     """What the dimensions show together, and what the computation adds."""
-    if target < MIN_WORDS:
+    if target < MID_FLOOR:
         return None
     plan = state.get("plan") or {}
     dimensions = plan.get("dimensions") or []
@@ -4255,7 +4312,7 @@ def _discussion_full_section(state, evidence, target):
 
 def _computation_reading(state, target):
     """A short reading of each recorded computation, for a full report."""
-    if target < MIN_WORDS:
+    if target < LONG_FLOOR:
         return None
     recorded = state.get("computations") or {}
     paragraphs = []
@@ -4288,7 +4345,7 @@ def _computation_reading(state, target):
 
 def _assumptions_section(state, target):
     """The method's own assumptions, limits and claim ceiling, quoted not invented."""
-    if target < MIN_WORDS or METHOD_DESCRIBE is None:
+    if target < LONG_FLOOR or METHOD_DESCRIBE is None:
         return None
     paragraphs = []
     for row in (state.get("selection") or {}).get("selected") or []:
@@ -4327,7 +4384,7 @@ def _lower_first(text):
 
 def _recommendation_section(state, position, target):
     """The position the record supports, and the condition it rests on."""
-    if target < MIN_WORDS or not str(position or "").strip():
+    if target < LONG_FLOOR or not str(position or "").strip():
         return None
     paragraphs = ["On the record above, the position this report supports is that "
                   + _lower_first(str(position).strip().rstrip(".")) + "."]
@@ -4352,7 +4409,7 @@ def _recommendation_section(state, position, target):
 
 def _method_appendix(state, target):
     """How each computation was checked: method, inputs, result, reproduction."""
-    if target < MIN_WORDS:
+    if target < LONG_FLOOR:
         return None
     recorded = state.get("computations") or {}
     selected = (state.get("selection") or {}).get("selected") or []
@@ -4441,7 +4498,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
     if position:
         intro += " The paper argues that " + position.rstrip(".") + "."
     sections = [paper.section("Introduction", paper.H1, [intro])]
-    if target >= MIN_WORDS:
+    if target >= MID_FLOOR:
         sections.append(_scope_section(state, evidence, target, style))
     if framework in ("pestel", "pestel_swot"):
         sections.append(paper.section("PESTEL", paper.H1))
@@ -4518,7 +4575,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
     assumptions = _assumptions_section(state, target)
     if assumptions:
         sections.append(assumptions)
-    if target >= MIN_WORDS:
+    if target >= MID_FLOOR:
         sections.append(_evidence_base_section(state, evidence, target))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
@@ -4574,7 +4631,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
         if unclassified:
             limits.append(str(unclassified) + " accepted evidence item(s) could not be mapped to an opportunity or "
                                               "a threat and are not shown in the SWOT block.")
-    if target >= MIN_WORDS:
+    if target >= MID_FLOOR:
         limits += [
             "The sources are market-level: they describe conditions, not this firm's costs, prices or volumes.",
             "Each source is quoted once; the report does not survey the literature on any dimension.",
@@ -4599,14 +4656,14 @@ def draft(state, accepted_ids=None, implications="", style=None):
     else:
         conclusion = ("The paper assessed " + _clean(decision, 500) + " and set out the evidence above. The "
                       "implications required to state a position have not been supplied.")
-    if target >= MIN_WORDS:
+    if target >= MID_FLOOR:
         change = _change_section(state, by_id, target)
         if change:
             sections.append(change)
         recommendation = _recommendation_section(state, position, target)
         if recommendation:
             sections.append(recommendation)
-    if target >= MIN_WORDS:
+    if target >= MID_FLOOR:
         conclusion += (" The position is stated with its condition: it holds for the declared figures and the "
                        "conditions the sources describe, and not beyond them.")
     sections.append(paper.section("Conclusion", paper.H1, [conclusion]))
@@ -4641,6 +4698,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
                       "style": style, "framework": framework,
                       "accepted": sorted(accepted), "implications": position,
                       "words": words, "target_words": target or SHORT_WORDS,
+                      "length_band": length_band(target or SHORT_WORDS),
                       "met_target": target == 0 or words >= target,
                       "missing": missing, "created_at": _now()}
     state["stage"] = "draft"

@@ -648,37 +648,26 @@ Adding a chain is a catalogue change, not a product change: register the pair in
 `NEEDS_FROM`, confirm the units agree, and add a row to
 `tests/test_plan_dependencies.py`.
 
-### 7.10 Report length (`write about 2500 words`)
+### 7.10 Report length: short, mid, long
 
-A report is planned in words, and three entry points share one validation:
+Students do not always need a long paper, so length is offered as three options,
+each with a range. The same bands are used everywhere: the Home selector, the
+brief, the plan card and the draft.
 
-- the **Report length** box under the Home composer, sent as `words` with the
-  start request (`chat.start(..., words=...)`);
-- a count in the brief itself (`2500 words`, `2,500 words`);
-- the **Report length** box on the plan card, which posts to
-  `/api/cases/chat/{id}/length` and re-renders the plan.
+| Option | Range (words) | What the draft carries |
+|---|---|---|
+| Short | 600-1,200 | the framework dimensions with their evidence, the computation, discussion, implications, limitations, conclusion |
+| Mid | 1,200-2,500 | short, plus Scope and Method, the Evidence Base, and What the Evidence Shows Together |
+| Long | 2,500-5,000 | mid, plus the reading of each dimension, Reading the Result, What the Figures Assume, What Would Change the Answer, Recommendation and the appendix |
 
-The floor is 1,500 words and an empty box is the short version (about 900 words).
-The plan carries `target_words`, `full_report` and `min_words`, so the Home box,
-the plan card and the draft can never disagree; `set_length` drops a stale draft
-when the target changes.
-- `check_word_target` enforces the floor: below **1,500 words** the request is
-  refused, because the framework, the evidence and the computation cannot be
-  written properly in less, and the system does not pad. Above 10,000 words it is
-  refused for the opposite reason.
-- `draft` reads the target once. A short report is unchanged. A full report adds
-  the sections the record supports: `Scope and Method`, a per-dimension reading
-  with the dimension's risk, `Evidence Base` (composition, coverage, which source
-  informs which dimension), `What the Evidence Shows Together`, `Reading the
-  Result`, `What the Figures Assume` (the method's own assumptions and limits,
-  quoted), expanded `Limitations`, `What Would Change the Answer`,
-  `Recommendation` and `Appendix: How the Computations Were Checked`.
-- the draft reports `words`, `target_words` and `met_target`. A full report that
-  cannot reach the target says so; it never fills the gap with invented material.
-
-The full report writes nothing the record does not hold: figures are the frozen
-method's, limitations are the method's own words, and the evidence base is the
-sources' own metadata.
+- the Home composer's **Report length** selector sends the option with the start
+  request; the plan card's selector changes it (`/api/cases/chat/{id}/length`);
+  a brief may also name an option ("mid-length report") or a count ("2500 words").
+- `check_word_target` accepts an option name or a number, resolves names to the
+  band's target, and refuses a count outside 600-5,000 with the reason.
+- the draft records `words`, `target_words`, `length_band` and `met_target`. When
+  the evidence cannot reach the target the draft says so and names the count; it
+  never pads to reach it.
 
 ## 8. Coherence and export gate
 

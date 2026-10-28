@@ -795,19 +795,14 @@ The Documents card on Home listed only Word samples, so a student could inspect 
 see what the product now ships beside it. The conductor's export is a ZIP holding the paper and its
 computation explainer, and a sample that does not show that is a sample of the wrong thing.
 
-`samples/pestel-and-break-even-tehran-device-store.docx` is one PESTEL paper with one break-even computation,
-built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student exports:
-`chat.docx_bytes`. Its companion, `…-explainer.docx`, is `explain.paper_document` over the same recorded
-case. The same case is also built as a **full report** (`…-full.docx`, planned at 2,500 words) with its own
-explainer: the length is asked for in the **Report length** box under the Home composer (a number input with the
-1,500-word floor, sent as `words` with the start request), in the brief itself, or in the box on the plan
-card (`/api/cases/chat/{id}/length`); the floor is 1,500 words, and
-the full version adds scope and method, a reading per dimension, the evidence base, the discussion, the
-method's assumptions, what would change the answer, a recommendation and the appendix. Four Word files
-rather than a ZIP: a ZIP downloads but a student then has to find the paper inside it, while Word files open
-on a double-click; the export route still bundles the pair for a real submission. The store accepts a `.zip` sample too (own MIME, `application/zip`), so a bundle can
-be offered later without another change. Downloads now carry `Content-Disposition` with the generated
-filename, so the browser saves the paper under its own name rather than the document id. The explainer also
+The Home page carries one worked example in the three length options the product offers: `...-short.docx`
+(784 words), `...-mid.docx` (1,672) and `...-long.docx` (2,542), each with its own explainer, all built by
+`scripts/build_home_sample.py` through `chat.docx_bytes` and `explain.paper_document`. The length is a
+selector on the Home composer (Short 600-1,200, Mid 1,200-2,500, Long 2,500-5,000), a selector on the plan
+card, or a sentence in the brief; all three resolve through `check_word_target` to one band, and the draft
+records the band and whether it reached the target. Short is enough for many cases; mid adds the evidence
+base and discussion; long adds the per-dimension reading and the appendix. The system never pads to a
+length - a thin case reports the shortfall instead. The explainer also
 stopped printing empty fields for a conductor paper ("Profile: Paper (, ).") and now names the framework,
 lists the draft's own sections and formats recorded figures (166.6667, not fifty digits); a declared word
 such as "monthly" is never rewritten.

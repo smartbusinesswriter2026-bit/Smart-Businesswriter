@@ -4814,9 +4814,9 @@ function fiveForcesForm(t) {
     '<div id="ffbottom" class="row" style="display:none;margin-top:12px;align-items:center">' +
       '<select id="ffversion"><option value="draft">Draft (evidence-led)</option>' +
       '<option value="full" selected>Full paper (model-assisted)</option></select>' +
-      '<select id="fflength"><option value="short">Short (900-1,200 words)</option>' +
-      '<option value="mid" selected>Mid (1,400-1,800 words)</option>' +
-      '<option value="long">Long (2,000-2,400 words)</option></select>' +
+      '<select id="fflength"><option value="short">Short (600-1,200 words)</option>' +
+      '<option value="mid" selected>Mid (1,200-2,500 words)</option>' +
+      '<option value="long">Long (2,500-5,000 words)</option></select>' +
       '<button class="btn primary" id="ffbottomgenerate">Generate paper (Word)</button>' +
       '<span class="muted">All five forces have content. Generate the paper from these entries.</span></div>';
 }
@@ -5048,8 +5048,8 @@ async function downloadFiveForcesDraft() {
   const lengthPicker = document.getElementById("ffresultlength") || document.getElementById("fflength");
   const length = lengthPicker ? lengthPicker.value : (state.ffLength || "mid");
   state.ffLength = length;
-  const lengthLabel = { short: "Short (900-1,200 words)", mid: "Mid (1,400-1,800 words)",
-                        long: "Long (2,000-2,400 words)" }[length] || "Mid";
+  const lengthLabel = { short: "Short (600-1,200 words)", mid: "Mid (1,200-2,500 words)",
+                        long: "Long (2,500-5,000 words)" }[length] || "Mid";
   const review = document.getElementById("ffreview");
   const trigger = document.getElementById("ffbottomgenerate") || document.getElementById("ffresultdraft");
   if (trigger) { trigger.disabled = true; trigger.dataset.old = trigger.textContent; trigger.textContent = "Writing..."; }

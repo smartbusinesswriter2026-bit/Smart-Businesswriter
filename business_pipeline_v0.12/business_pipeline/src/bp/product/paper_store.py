@@ -37,17 +37,24 @@ SAMPLE_TITLES = {
                                     "Five Forces", "Full paper"),
     "five-forces-completion-draft.docx": ("Porter's Five Forces: Apple's Entry into Iran's Smartphone Industry",
                                           "Five Forces", "Draft"),
-    # One framework and one computation, plus the companion that explains it,
-    # in a short version and a full report.  Word files, so a double-click opens them.
-    "pestel-and-break-even-tehran-device-store.docx": (
-        "PESTEL and Break-even: A Tehran Device Store", "PESTEL + break-even", "Short paper"),
-    "pestel-and-break-even-tehran-device-store-explainer.docx": (
-        "How the Tehran Device Store Paper Was Solved", "PESTEL + break-even", "Explainer"),
-    "pestel-and-break-even-tehran-device-store-full.docx": (
-        "PESTEL and Break-even: A Tehran Device Store - Full Report", "PESTEL + break-even",
-        "Full report"),
-    "pestel-and-break-even-tehran-device-store-full-explainer.docx": (
-        "How the Full Tehran Device Store Report Was Solved", "PESTEL + break-even", "Explainer"),
+    # One framework and one computation, in the three length options the product
+    # offers, each with the companion that explains it.  Word files, so a
+    # double-click opens them.
+    "pestel-and-break-even-tehran-device-store-short.docx": (
+        "PESTEL and Break-even: A Tehran Device Store - Short (600-1,200 words)",
+        "PESTEL + break-even", "Short paper"),
+    "pestel-and-break-even-tehran-device-store-short-explainer.docx": (
+        "How the Short Paper Was Solved", "PESTEL + break-even", "Explainer"),
+    "pestel-and-break-even-tehran-device-store-mid.docx": (
+        "PESTEL and Break-even: A Tehran Device Store - Mid (1,200-2,500 words)",
+        "PESTEL + break-even", "Mid report"),
+    "pestel-and-break-even-tehran-device-store-mid-explainer.docx": (
+        "How the Mid Report Was Solved", "PESTEL + break-even", "Explainer"),
+    "pestel-and-break-even-tehran-device-store-long.docx": (
+        "PESTEL and Break-even: A Tehran Device Store - Long (2,500-5,000 words)",
+        "PESTEL + break-even", "Long report"),
+    "pestel-and-break-even-tehran-device-store-long-explainer.docx": (
+        "How the Long Report Was Solved", "PESTEL + break-even", "Explainer"),
 }
 
 
@@ -85,7 +92,7 @@ def _slug(name):
     return base or "paper.docx"
 
 
-def save(data, filename, title, framework="Five Forces", version="draft", words=0):
+def save(data, filename, title, framework="Five Forces", version="draft", words=0, length=""):
     """Store one generated paper and return its record."""
     _ensure()
     stamp = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -96,7 +103,7 @@ def save(data, filename, title, framework="Five Forces", version="draft", words=
         handle.write(data)
     record = {"id": doc_id, "title": str(title or "Paper"), "framework": str(framework or ""),
               "version": str(version or ""), "created": stamp, "size": len(data),
-              "words": int(words or 0), "filename": name,
+              "words": int(words or 0), "length": str(length or ""), "filename": name,
               "download": "/api/cases/documents/" + doc_id}
     rows = [row for row in _index() if row.get("id") != doc_id]
     rows.insert(0, record)
