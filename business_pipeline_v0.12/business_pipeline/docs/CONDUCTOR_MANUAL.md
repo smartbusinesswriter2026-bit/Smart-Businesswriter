@@ -189,20 +189,47 @@ auto-completion.
    - **Draft (evidence-led)** is deterministic: it quotes the accepted items, labels
      assumptions and names gaps.
    - **Full paper (model-assisted)** sends the same structured items to DeepSeek
-     V4.1 Flash. The model writes the introduction, one paragraph per force, the
-     discussion and the conclusion; the system appends the real citations
-     afterwards. It may not add a citation, source, URL, number, percentage,
-     named condition, actor, technology or country that is not in the items; an
-     inference must read as an inference ("this suggests", "this implies"). A
-     validator checks citations, links, numbers and mid-sentence proper nouns,
-     retries once, and then refuses. **A failed full paper is never downloaded:**
-     the page says the run failed and asks the student to choose Draft
-     explicitly. Full is the default selection.
+     V4.1 Flash. One call writes the introduction, the thesis and the case
+     context; seven calls then run in parallel for the five forces, the
+     discussion with implications, and the limitations with the conclusion. The
+     system appends the real citations afterwards. It may not add a citation,
+     source, URL, number, percentage, named condition, actor, technology or
+     country that is not in the items; an inference must read as an inference
+     ("this suggests", "this implies"). A validator checks citations, links,
+     numbers and mid-sentence proper nouns, retries once, and then refuses.
+     **A failed full paper is never downloaded:** the page says the run failed
+     and asks the student to choose Draft explicitly. Full is the default
+     selection. A run takes 40-70 seconds and the button is disabled until it
+     finishes.
    - Generation reads the case instruction typed at the top of the worksheet. A
      missing instruction, or the worksheet's own tool title, is refused rather
      than written into the title and introduction.
    - An item the student supplied as their own evidence stays student evidence.
      Only assumption-flagged items are labelled "Case assumption".
+9. **Every paper is a full outline**, not a set of one-line sections. H1:
+   Introduction, Five Forces, Discussion, Conclusion, References. H2: Case and
+   industry context, the five forces, What the evidence shows, Implications for
+   the decision, Limitations. The full version targets 1,800-2,200 words; word
+   floors are enforced in code (introduction 150, each force 140, discussion
+   130, implications 150, conclusion 110, total 1,400), and a paper below them is
+   retried once and then refused. The deterministic Draft uses the same outline
+   and is about 1,200 words.
+10. **The title page follows APA 7.** The title begins three double-spaced lines
+   below the top margin, the student's name, institution, course and instructor
+   follow (four fields on the worksheet, remembered in the browser), then the
+   date and a page break. The title is repeated at the top of the first page of
+   text. The title drops the raw instruction's trailing period. No placeholder
+   such as `[your name]` is ever printed.
+11. **The DOCX carries real Word structure**: `styles.xml` defines Heading 1/2/3
+   with outline levels, body text is Times New Roman 12 double spaced with 1-inch
+   margins, references hang, and the page number sits in the header, top right
+   (APA 7), not the footer.
+12. **Documents on Home.** Every generated paper is stored with its metadata and
+   listed in the Documents card on Home beside the shipped samples, with title,
+   framework, Draft/Full, words, size, date and a Download link. `GET
+   /api/cases/documents` lists them; `GET /api/cases/documents/{id}` returns the
+   Word bytes. Ids are validated and path traversal is refused. Nothing is
+   recomputed on download: the stored bytes are served.
 
 The model may not add a number, source, citation, link or named fact. A
 suggestion that fails validation is dropped and the block remains a gap.
@@ -489,6 +516,46 @@ stores the declared inputs and the core result, and `_block_lines` formats them.
 Adding a plan block means adding the method to `COMPUTATION_BLOCKS`, declaring
 its level and section, and letting the core run it — never writing its formula
 in the product layer or the writer.
+
+### 7.6 The reading verifier and the frozen plan
+
+`bp/product/verify.py` is **code, not opinion**. Anything that proposes a reading
+of the brief — a person, the resolver, or later a panel of advocates — passes
+through it before a paper is built.
+
+- `input_kind(name, spec)` classifies a declared input as `amount`, `rate` or
+  `count` from its own schema (`desc`/type), so a percent cannot be filed as an
+  amount.
+- `normalise_number(written, kind, currency)` reads the ways people write figures
+  — `40,000`, `SAR 1.2m`, `1.2 million`, `about 40k`, `12%` — and returns the
+  canonical string plus the audit steps. It refuses: a bare rate above one, a
+  percentage for an amount, a currency the case does not use, two numbers in one
+  figure, and text with no number.
+- `verify_reading(reading, entries, frameworks, brief, currency)` refuses a
+  reading that names a method outside the catalogue, a method that does not fit
+  the framework, a quote that is not an exact substring of the brief, a figure
+  without a quote, a bad filing, a rationale that claims more than a method
+  licenses (`will`, `prove`, `causes`, `recommend`), or a reading that does not
+  say what is missing.
+- `freeze(record)` adds `plan_hash`. `chat.confirm_plan` stores the frozen
+  record — brief hash, catalogue version, frameworks, the selected capabilities
+  and their reasons, the figures, the models used — and `chat.replay_check`
+  re-hashes it, so a case can prove its plan has not drifted.
+
+Two guards keep the paper's numbers honest after the plan is frozen:
+
+- `chat._recompute_guard` re-runs every recorded computation from its stored
+  inputs at draft time. A mismatch is written into `recompute_problems` and
+  `paper.missing` turns it into a blocked export — a paper whose figure no
+  longer follows from its own inputs cannot be downloaded.
+- Each computation section now opens with a **Declared inputs** paragraph built
+  from the stored inputs, not from the prose, and a formatter that cannot read
+  the recorded result says so instead of printing a half-built sentence.
+
+`tests/test_plan_corpus.py` is the resolver's contract: forty real briefs with the
+reading a person expects, so a cue or priority change fails by name.
+`tests/test_plan_verifier.py` covers the normaliser, the verifier's refusals, the
+frozen record, replay and the recompute guard.
 
 ## 8. Coherence and export gate
 

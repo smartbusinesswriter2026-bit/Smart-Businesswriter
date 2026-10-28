@@ -45,6 +45,12 @@ def flatten(sections):
 
 def missing(state, implications=""):
     """What must be supplied before export.  Evidence gaps are not blockers."""
+    base = _missing_base(state, implications)
+    # A figure that no longer reproduces from its own declared inputs blocks export.
+    return list(base) + list(state.get("recompute_problems") or [])
+
+
+def _missing_base(state, implications=""):
     if state.get("profile") == "business_plan":
         return _plan_missing(state)
     answers = state.get("answers") or {}

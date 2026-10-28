@@ -647,6 +647,18 @@ expects, refusing a set of branch probabilities that does not sum to one. With
 them, every method the five shelves can launch is a paper capability except the
 `case_decision` template.
 
+Wave 15 puts the first of the four conditions in place: **the verifier is code,
+and the plan is frozen.** `bp/product/verify.py` classifies inputs as amount /
+rate / count, normalises written figures (`SAR 1.2m`, `about 40k`, `12%`) with an
+audit trail and refuses the classic filings; it verifies a reading against the
+closed catalogue, exact quotes, unit/currency rules, the claim licence and the
+missing list. `confirm_plan` now freezes a hashed plan record and `replay_check`
+re-hashes it. On the paper side, each computation section opens with its declared
+inputs, a formatter that cannot read the recorded result says so instead of
+crashing, and a recompute guard re-runs every recorded computation from its own
+inputs — a drift blocks the export. `tests/test_plan_corpus.py` (forty real
+briefs) makes resolver quality a diff instead of a story.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

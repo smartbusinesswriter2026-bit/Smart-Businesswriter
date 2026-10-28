@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, docx, guard, paper, prose, writing
+from . import capabilities, docx, guard, paper, prose, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -710,8 +710,71 @@ def confirm_plan(state):
         raise ChatError("There is no plan waiting for confirmation.")
     state["stage"] = "research_ready"
     state["plan_confirmed_at"] = _now()
+    state["plan_record"] = _freeze_plan(state)
     state["updated_at"] = _now()
     return state
+
+
+def _freeze_plan(state):
+    """Freeze what the paper will be made of, so it can be re-derived and compared."""
+    selection = state.get("selection") or {}
+    record = {
+        "format": verify.FORMAT,
+        "brief_hash": verify.brief_hash(state.get("brief")),
+        "catalogue_version": selection.get("catalogue_version"),
+        "frameworks": list(selection.get("frameworks") or []),
+        "capabilities": [{"key": row["key"], "because": row.get("because")}
+                         for row in selection.get("selected") or []],
+        "figures": list(state.get("plan_figures") or []),
+        "models": list(state.get("plan_models") or []),
+        "decided_at": _now(),
+    }
+    return verify.freeze(record)
+
+
+def replay_check(state):
+    """Prove the frozen plan still hashes to what it was decided as."""
+    record = state.get("plan_record") or {}
+    if not record:
+        return {"match": False, "plan_hash": None, "recomputed": None,
+                "reason": "no plan has been frozen for this case"}
+    fresh = verify.freeze(record)
+    return {"match": fresh["plan_hash"] == record.get("plan_hash"),
+            "plan_hash": record.get("plan_hash"), "recomputed": fresh["plan_hash"]}
+
+
+def _recompute_guard(state):
+    """Re-run every recorded computation from its stored inputs.
+
+    A paper whose figure no longer follows from its own declared inputs must not
+    be drafted.  The core is deterministic, so a mismatch means the record and the
+    code disagree and a person has to look.
+    """
+    problems = []
+    recorded = state.get("computations") or {}
+    for row in (state.get("selection") or {}).get("selected") or []:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            continue
+        if METHOD_RUN is None:
+            return []
+        try:
+            fresh = METHOD_RUN(row["method"], data.get("inputs") or {})
+        except Exception as error:
+            problems.append(row["label"] + ": the recorded figures are no longer accepted ("
+                            + str(error)[:120] + ")")
+            continue
+        if isinstance(fresh, dict):
+            fresh_map = {str(k): str(v) for k, v in fresh.items()}
+        else:
+            try:
+                output_key = capabilities.entry(row["key"]).get("output") or "value"
+            except KeyError:
+                output_key = "value"
+            fresh_map = {output_key: str(fresh)}
+        if fresh_map != (data.get("result") or {}):
+            problems.append(row["label"] + ": the recorded figure no longer reproduces from its inputs")
+    return problems
 
 
 def attach_computation(state, key="breakeven", values=None):
@@ -3295,14 +3358,36 @@ def _capability_lines(row, recorded):
     key = row["key"]
     if recorded.get("ok"):
         formatter = CAPABILITY_LINES.get(key)
-        if formatter is None:
-            return _generic_lines(row, recorded.get("inputs") or {}, recorded.get("result") or {})
-        return formatter(row, recorded.get("inputs") or {}, recorded.get("result") or {})
+        try:
+            if formatter is None:
+                return _generic_lines(row, recorded.get("inputs") or {}, recorded.get("result") or {})
+            return formatter(row, recorded.get("inputs") or {}, recorded.get("result") or {})
+        except (KeyError, TypeError, InvalidOperation, ValueError) as error:
+            # A formatter that cannot read the recorded result must say so, not crash
+            # the draft and not print a half-built sentence.
+            return ["The " + row["label"].lower() + " result could not be read from the recorded output ("
+                    + str(error)[:120] + "); no figure is reported."]
     if recorded.get("error"):
         return ["The " + row["label"].lower() + " analysis was refused: " + str(recorded["error"])
                 + " No figure is reported."]
     return ["The " + row["label"].lower() + " analysis has not been run, so no figure is reported; "
             "this is a named gap, not a result."]
+
+
+def _declared_inputs_line(recorded):
+    """The declared inputs of one computation, as the paper states them."""
+    inputs = (recorded or {}).get("inputs") or {}
+    if not inputs:
+        return ""
+    pieces = []
+    for name, value in inputs.items():
+        if isinstance(value, list):
+            pieces.append(name.replace("_", " ") + " " + "; ".join(str(item) for item in value))
+        elif isinstance(value, dict):
+            pieces.append(name.replace("_", " ") + " (" + ", ".join(str(k) for k in value) + ")")
+        else:
+            pieces.append(name.replace("_", " ") + " " + _fmt_exact(value))
+    return "Declared inputs: " + "; ".join(pieces) + "."
 
 
 def _plan_input(state, key):
@@ -3678,8 +3763,10 @@ def draft(state, accepted_ids=None, implications="", style=None):
         if heading not in rendered_sections:
             sections.append(paper.section(heading, paper.H1))
             rendered_sections.add(heading)
-        sections.append(paper.section(subheading, paper.H2,
-                                      [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]))
+        declared = _declared_inputs_line(recorded.get(row["key"]) or {})
+        lines = ([paper.paragraph([declared])] if declared else []) + \
+                [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]
+        sections.append(paper.section(subheading, paper.H2, lines))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
         integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
@@ -3761,11 +3848,14 @@ def draft(state, accepted_ids=None, implications="", style=None):
     elif (state.get("computation") or {}).get("key") == "breakeven" \
             and framework != "five_forces_breakeven":
         title_label = label + " and break-even"
+    recompute = _recompute_guard(state)
+    state["recompute_problems"] = recompute
+    missing = paper.missing(state, position)
     state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
                       "accepted": sorted(accepted), "implications": position,
-                      "missing": paper.missing(state, position), "created_at": _now()}
+                      "missing": missing, "created_at": _now()}
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state
@@ -3825,6 +3915,9 @@ def summary(state):
             "profile": state.get("profile"), "level": state.get("level"), "mode": state.get("mode"),
             "answers": state.get("answers"), "question": question, "plan": state.get("plan"),
             "selection": state.get("selection"),
+            "plan_record": state.get("plan_record"),
+            "replay": replay_check(state),
+            "recompute_problems": state.get("recompute_problems"),
             "computations": state.get("computations"), "missing_inputs": _missing_fields(state)
             if state.get("profile") == PROFILE_BUSINESS_PLAN else [],
             "sources": state.get("sources"), "evidence": state.get("evidence"),

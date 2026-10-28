@@ -512,7 +512,7 @@ ENTRIES = dict([
     _row("schedule_risk", "schedule_risk", "Schedule risk", "schedule",
          [r"schedule risk", r"\bpert\b", r"probability of finishing"],
          ("Delivery Status", "Schedule Risk"),
-         needs_any=[r"activit|optimistic|pessimistic|duration"], priority=15,
+         needs_any=[r"activit|optimistic|pessimistic|duration|three[- ]point|estimat"], priority=15,
          row_fields={"activities": ["id", "optimistic", "most_likely", "pessimistic",
                                     "predecessors"]}),
     _row("calendar_schedule", "calendar_schedule", "Calendar schedule", "schedule",
