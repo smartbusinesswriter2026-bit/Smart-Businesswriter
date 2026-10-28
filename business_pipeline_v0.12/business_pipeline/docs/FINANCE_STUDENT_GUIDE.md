@@ -55,6 +55,7 @@ can be genuine.
 | What forward rate and expected spot do the parities imply? | `fx_parity` |
 | What do EPS, leverage and the Altman Z-score look like? | `leverage_analysis` |
 | How much does the decision swing with the discount rate? | `scenario_analysis` |
+| How has the business performed over several years? | `trend_analysis` |
 
 ## Worked examples
 
@@ -253,6 +254,22 @@ The same project as example 9, with a base rate of 10% and a declared range of 5
 **Common mistake:** calling this a scenario analysis of the business. Only the discount rate
 moves; revenue, costs and timing are fixed. A multi-input scenario or a simulation is not built.
 
+### 15. Multi-year common-size and trend
+
+Revenue 1,000 → 1,100 → 1,210 → 1,331; cost of sales 600 → 650 → 710 → 760; operating expenses
+200 → 220 → 240 → 260; net income 120 → 140 → 160 → 190 (`years 2022..2025`).
+
+- Revenue CAGR: **10.0%**; latest period-on-period growth: **10.0%**.
+- Revenue index on 2022: **133.1**.
+- Latest common-size: cost of sales **57.1%**, operating expenses **19.5%**, operating margin
+  **23.4%**, net margin **14.3%**.
+- Net-income CAGR: **16.55%**; net-income index: **158.3**.
+- Net margin change against 2022: **+2.27 percentage points**.
+
+**Common mistakes:** reporting the latest 10% growth as the CAGR (they happen to match here, but
+they are different measures); using cost of sales as the common-size base; comparing a 12-month
+period with a shorter one; treating a CAGR as the path of growth when it uses only the endpoints.
+
 ## What the Finance shelf does not do
 
 - **No retrieved data:** no share prices, bond quotes, option prices, peer multiples, exchange
@@ -261,12 +278,13 @@ moves; revenue, costs and timing are fixed. A multi-input scenario or a simulati
   to interest and pre-tax earnings.
 - **No forecasting:** `trend_forecast` is the only forecasting tool, and it is a linear trend with
   an interval, not a financial model.
-- **No common-size or trend analysis across many years**, no Monte Carlo, no real options,
-  no American exercise, no spot/forward curve, no credit or liquidity risk, no multi-asset
-  optimisation and no efficient frontier, and no comparison of more than two financing plans.
-  These are recorded gaps, not hidden features. Common-size ratios and one declared prior-period
-  comparison *are* built into `dupont_analysis`, and a two-plan EBIT-EPS indifference point is
-  built into `leverage_analysis`.
+- **No common-size or trend analysis beyond the one-period and multi-year tools built here**,
+  no Monte Carlo, no real options, no American exercise, no spot/forward curve, no credit or
+  liquidity risk, no multi-asset optimisation and no efficient frontier, and no comparison of more
+  than two financing plans. These are recorded gaps, not hidden features. Common-size ratios and
+  one declared prior-period comparison are built into `dupont_analysis`; a multi-year common-size,
+  index and compound-growth table is the separate `trend_analysis`; and a two-plan EBIT-EPS
+  indifference point is built into `leverage_analysis`.
 - **Not a textbook:** the tools show the formula and the intermediate values, but they do not
   derive the theory, mark your working, or replace a lecturer's explanation.
 

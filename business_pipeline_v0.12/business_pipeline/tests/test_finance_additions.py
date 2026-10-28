@@ -21,7 +21,8 @@ from bp.product import subjects  # noqa: E402
 
 NEW = ["time_value", "loan_amortization", "bond_analysis", "capm", "dupont_analysis",
        "multiples_valuation", "working_capital", "portfolio_analysis", "project_metrics",
-       "option_pricing", "risk_metrics", "fx_parity", "leverage_analysis", "scenario_analysis"]
+       "option_pricing", "risk_metrics", "fx_parity", "leverage_analysis", "scenario_analysis",
+       "trend_analysis"]
 
 INPUTS = {
     "time_value": {"present_value": "100000", "payment": "12000", "rate": "0.06", "periods": "5",
@@ -63,10 +64,14 @@ INPUTS = {
                           "alternative_interest_expense": "200000", "alternative_shares_outstanding": "60000"},
     "scenario_analysis": {"cashflows": ["-1000", "400", "400", "400", "400"], "discount_rate": "0.10",
                           "rate_low": "0.05", "rate_high": "0.20"},
+    "trend_analysis": {"years": ["2022", "2023", "2024", "2025"], "revenue": ["1000", "1100", "1210", "1331"],
+                       "cost_of_sales": ["600", "650", "710", "760"], "operating_expenses": ["200", "220", "240", "260"],
+                       "net_income": ["120", "140", "160", "190"], "total_assets": ["2000", "2100", "2250", "2400"],
+                       "equity": ["900", "980", "1080", "1200"]},
 }
 
 PRESETS = ["tvm", "loan", "bond", "capm", "dupont", "multiples", "workingcapital", "portfolio",
-           "projectmetrics", "options", "risk", "fx", "leverage", "scenario"]
+           "projectmetrics", "options", "risk", "fx", "leverage", "scenario", "trendanalysis"]
 
 
 class FinanceGoldens(unittest.TestCase):
@@ -175,6 +180,14 @@ class FinanceGoldens(unittest.TestCase):
         self.near(out["npv_at_high_rate"], 35.4938271605, 6)
         self.near(out["breakeven_rate"], 0.218622696098, 8)
 
+    def test_multi_year_trend_and_common_size(self):
+        out = LIBRARY["trend_analysis"].impl(INPUTS["trend_analysis"])
+        self.near(out["revenue_cagr"], 0.10, 10)
+        self.near(out["revenue_index_latest"], 133.10, 8)
+        self.near(out["net_income_cagr"], 0.165531776, 8)
+        self.near(out["common_size_cost_of_sales"], 760 / 1331, 10)
+        self.near(out["net_margin_change"], 190 / 1331 - 120 / 1000, 10)
+
 
 class FinanceRefusals(unittest.TestCase):
     """A student's wrong input must block with a reason, not produce a plausible number."""
@@ -198,6 +211,7 @@ class FinanceRefusals(unittest.TestCase):
         self.refuses("fx_parity", {"spot_rate": "0"})
         self.refuses("leverage_analysis", {"shares_outstanding": "0"})
         self.refuses("scenario_analysis", {"rate_low": "0.30", "rate_high": "0.10"})
+        self.refuses("trend_analysis", {"revenue": ["1000", "1100", "1210"]})
         self.refuses("leverage_analysis", {"alternative_interest_expense": "200000", "alternative_shares_outstanding": "100000"})
         self.refuses("dupont_analysis", {"prior_revenue": "18000", "prior_net_income": "", "prior_total_assets": "", "prior_equity": ""})
         self.refuses("fx_parity", {"hedge_forward": ""})

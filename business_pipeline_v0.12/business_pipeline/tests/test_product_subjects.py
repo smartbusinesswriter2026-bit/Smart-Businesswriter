@@ -127,7 +127,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.80", self.html)
+        self.assertIn("v0.83", self.html)
         self.assertIn("levelhead", self.html)
         self.assertIn("studynote", self.html)
         self.assertIn("capcard .lvl", self.html)

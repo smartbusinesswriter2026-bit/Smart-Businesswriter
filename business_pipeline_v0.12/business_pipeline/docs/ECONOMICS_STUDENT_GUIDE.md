@@ -319,6 +319,20 @@ prospect theory as a normative recommendation.
 **Common mistake:** looking for the highest joint payoff instead of a cell where
 neither player can gain by switching alone.
 
+### 17. Advanced econometrics: panel, IV, RDD and probit
+
+- **Panel fixed effects:** the balanced three-entity example gives a within slope of `2`, with within
+  R-squared `1` in the constructed data.
+- **Instrumental variables:** the example gives an IV slope of `1.46`, a first-stage slope of `0.905`
+  and an OLS slope of `1.408`; the difference is the point of the exercise.
+- **Regression discontinuity:** a local-linear fit with a jump from a left intercept of `3` to a right
+  intercept of `9` gives an estimate of `6`.
+- **Probit:** the example slope is about `0.092` on the latent scale, with a marginal effect at the mean of
+  about `0.037`.
+
+**Common mistake:** treating a relevant instrument as a valid one, treating an RDD bandwidth as arbitrary, or
+reading a probit coefficient as a constant probability effect.
+
 ## What this shelf does and does not cover
 
 **Covered now:** equilibrium, elasticity, tax incidence, price controls, market
@@ -333,10 +347,10 @@ difference-in-differences; plus cost-benefit and cost-effectiveness appraisal,
 SROI, forecasting, currency conversion, break-even, unit economics and the core
 statistics used in economics.
 
-**Not covered yet:** advanced econometrics (panel data, instrumental variables,
-regression discontinuity, probit, VAR and cointegration), the economics catalogue
-section and the diagram renderer. Those remain labelled gaps rather than faked
-calculations. The student guide is not yet teacher-reviewed.
+**Not covered yet:** VAR, cointegration and the remaining time-series estimators,
+the economics catalogue section and the diagram renderer. Those remain labelled
+gaps rather than faked calculations. The student guide is not yet
+teacher-reviewed.
 
 **Never covered by arithmetic alone:** IS-LM and AD-AS diagrams, game theory
 trees, consumer-choice diagrams, schools of economic thought and economic

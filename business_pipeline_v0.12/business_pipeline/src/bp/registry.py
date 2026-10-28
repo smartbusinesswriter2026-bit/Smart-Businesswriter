@@ -62,7 +62,8 @@ METHOD_LINK_RULES = [
     (r"^Financial performance:",
      ["ratio_analysis", "dupont_analysis", "working_capital"],
      "15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, "
-     "one-period growth and the cash conversion cycle are implemented; multi-year trend series are not implemented"),
+     "one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks "
+     "and restatements are not implemented"),
     (r"^Valuation and financing:",
      ["wacc", "capm", "dcf_valuation", "equity_bridge", "multiples_valuation", "bond_analysis"],
      "WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond "

@@ -14,6 +14,7 @@
 - `bond_analysis` prices a plain fixed-coupon bond **on a coupon date** with no accrued interest, day-count convention, embedded option, credit spread or spot curve. Duration and convexity are local parallel-shift sensitivities.
 - `capm` uses a declared risk-free rate, market return and beta, or estimates beta by OLS from the supplied series; it does not choose an index, test beta stability or model multiple factors. Hamada relevering is arithmetic on the declared debt-to-equity ratio and tax rate.
 - `dupont_analysis` uses period-end balances and one period; no averages, benchmarks or adjustments. The five-step form appears only when EBIT, pre-tax income and tax are all declared, and a zero or negative equity blocks. Comparison is **one declared prior period** (simple relative growth), not a multi-year trend or index series.
+- `trend_analysis` is historical arithmetic on declared periods: the common-size base is revenue and the index base is the first period, so changing either changes every percentage. No adjustment, restatement, accounting-policy alignment, forecast or industry benchmark. A compound rate uses only the endpoints; a net-income CAGR is omitted when the base period is not positive.
 - `multiples_valuation` is **T2**: the peers are declared, not screened. No growth, risk, one-off-item or accounting-basis adjustment; no control premium, liquidity discount or fairness opinion.
 - `working_capital` assumes constant demand and constant order/holding costs; no seasonality, quantity discounts, stock-outs or cash budget. The trade-credit cost is an annualised convention.
 - `portfolio_analysis` is two assets with fixed weights; no multi-asset optimisation, efficient frontier, short selling, transaction costs or forecasting. Sharpe, Treynor and Jensen depend on the declared risk-free rate and benchmark series.
@@ -311,6 +312,13 @@
 - `price_discrimination` and `cournot_duopoly` are two-market or two-firm one-shot models; no entry, capacity, differentiation, repeated interaction or collusion.
 - `difference_in_differences` is a two-group, two-period estimate; it cannot test parallel trends and has no covariates, clustering or staggered adoption.
 - `nash_equilibrium` covers pure strategies of a 2x2 game only; mixed strategies, larger games, sequential play and equilibrium selection are not implemented.
+
+## Added with advanced econometrics (B-100)
+- `panel_regression` requires a balanced panel and uses only within-entity variation; time-invariant regressors are absorbed, and no standard errors, clustering or dynamic-panel correction is computed.
+- `instrumental_variables` is just-identified with one endogenous regressor and one excluded instrument; relevance is checked but the exclusion restriction is assumed, not tested, and there is no weak-instrument or over-identification diagnostic.
+- `regression_discontinuity` is a sharp design with a declared bandwidth and a separate local linear fit on each side; it cannot test manipulation, choose an optimal bandwidth or handle a fuzzy design.
+- `probit` uses one predictor and maximum likelihood with Newton-Raphson; separation is refused, and no robust, clustered or bootstrapped standard errors are computed.
+- VAR, cointegration and the remaining time-series estimators are still parked.
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

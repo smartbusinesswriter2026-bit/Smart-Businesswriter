@@ -1,6 +1,6 @@
 """T1 method library with an explicit method contract (Stage 5 brief s6; manual 5.3, 5.5, 9B).
 Discovery (describe/list) never executes a method. Inputs are schema-validated before anything runs."""
-import statistics, re, math
+import statistics, re, math, math
 from . import currency
 from dataclasses import dataclass, field
 from decimal import Decimal as D, InvalidOperation
@@ -7775,6 +7775,558 @@ def nash_equilibrium_template(out, P, th):
     return ("The declared two-by-two game has " + tok("nash_count") + " pure-strategy Nash equilibrium or equilibria. The cell flags are in the appendix.")
 
 
+# ---------- Advanced econometrics: panel, IV, RDD and probit (B-100) ----------
+# Balanced-panel fixed effects, just-identified 2SLS, sharp local-linear RDD and
+# binary probit.  Declared data only; no retrieved data and no causal claim
+# beyond the declared design.
+
+def _panel_rows(inp):
+    panels = {}
+    for row in inp["data"]:
+        entity, period = str(row["entity"]).strip(), str(row["period"]).strip()
+        if period in panels.get(entity, {}):
+            raise DataError("duplicate observation for entity %r in period %r" % (entity, period))
+        panels.setdefault(entity, {})[period] = (D(str(row["y"])), D(str(row["x"])))
+    if len(panels) < 2:
+        raise DataError("at least two entities are required")
+    counts = {len(v) for v in panels.values()}
+    if len(counts) != 1:
+        raise DataError("the panel must be balanced: every entity needs the same number of periods")
+    periods = counts.pop()
+    if periods < 2:
+        raise DataError("at least two periods are required")
+    return panels, len(panels), periods
+
+
+def panel_regression_impl(inp):
+    panels, n_ent, n_per = _panel_rows(inp)
+    all_y = [v[0] for p in panels.values() for v in p.values()]
+    all_x = [v[1] for p in panels.values() for v in p.values()]
+    n = len(all_y)
+    ybar, xbar = sum(all_y, D(0)) / D(n), sum(all_x, D(0)) / D(n)
+    sxy = sxx = D(0)
+    means = {}
+    for entity, periods in panels.items():
+        ys = [v[0] for v in periods.values()]
+        xs = [v[1] for v in periods.values()]
+        my, mx = sum(ys, D(0)) / D(len(ys)), sum(xs, D(0)) / D(len(xs))
+        means[entity] = (my, mx)
+        for y, x in zip(ys, xs):
+            sxy += (x - mx) * (y - my)
+            sxx += (x - mx) ** 2
+    if sxx == 0:
+        raise DataError("x has no within-entity variation, so the fixed-effects slope is undefined")
+    slope = sxy / sxx
+    intercept = ybar - slope * xbar
+    sse = sst = D(0)
+    for entity, periods in panels.items():
+        my, mx = means[entity]
+        for y, x in periods.values():
+            fitted = my + slope * (x - mx)
+            sse += (y - fitted) ** 2
+            sst += (y - my) ** 2
+    return {"slope": slope, "intercept": intercept,
+            "within_r2": D(1) - sse / sst if sst > 0 else D(0),
+            "n_obs": D(n), "n_entities": D(n_ent), "n_periods": D(n_per), "df": D(n - n_ent - 1)}
+
+
+def _panel_ref(inp):
+    panels, _, _ = _panel_rows(inp)
+    sxy = sxx = 0.0
+    for periods in panels.values():
+        ys = [float(v[0]) for v in periods.values()]
+        xs = [float(v[1]) for v in periods.values()]
+        my, mx = sum(ys) / len(ys), sum(xs) / len(xs)
+        for y, x in zip(ys, xs):
+            sxy += (x - mx) * (y - my)
+            sxx += (x - mx) ** 2
+    return {"slope": sxy / sxx}
+
+
+def panel_regression_tests(inp, impl):
+    base, ref = impl(inp), _panel_ref(inp)
+    shifted_y = [{**row, "y": str(D(str(row["y"])) + 10)} for row in inp["data"]]
+    shifted_x = [{**row, "x": str(D(str(row["x"])) + 10)} for row in inp["data"]]
+    panels, _, _ = _panel_rows(inp)
+    residuals = D(0)
+    for entity, periods in panels.items():
+        ys = [v[0] for v in periods.values()]
+        xs = [v[1] for v in periods.values()]
+        my, mx = sum(ys, D(0)) / D(len(ys)), sum(xs, D(0)) / D(len(xs))
+        for y, x in zip(ys, xs):
+            residuals += (y - my) - base["slope"] * (x - mx)
+    checks = [
+        ("second_implementation_agrees", _close(base["slope"], ref["slope"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("slope_equals_within_covariance_over_variance", _close(base["slope"], _panel_ref(inp)["slope"], rel=1e-6), "the slope is the within-entity covariance over variance"),
+        ("adding_a_constant_to_y_leaves_the_slope_unchanged", _close(impl({**inp, "data": shifted_y})["slope"], base["slope"]), "a level shift in the outcome does not change the within slope"),
+        ("adding_a_constant_to_x_leaves_the_slope_unchanged", _close(impl({**inp, "data": shifted_x})["slope"], base["slope"]), "a level shift in the regressor does not change the within slope"),
+        ("within_residuals_sum_to_zero", _close(residuals, 0, rel=1e-9), "the within transformation removes the entity means"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def panel_regression_profile(inp):
+    try:
+        _panel_rows(inp)
+        return []
+    except DataError as e:
+        return [str(e)]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["panel inputs are malformed: data must be records of entity, period, y and x"]
+
+
+def _panel_typing(metric):
+    if metric in ("n_obs", "n_entities", "n_periods", "df"):
+        return ("count", 0)
+    if metric == "within_r2":
+        return ("ratio", 4)
+    return ("ratio", 4)
+
+
+def panel_regression_caveats(out, th):
+    return ["The fixed-effects estimator uses only within-entity variation; time-invariant regressors are absorbed.",
+            "The panel must be balanced; an unbalanced panel is refused rather than handled with a different estimator.",
+            "No clustered or robust standard errors, lagged dependent variables or dynamic panel bias correction are included."]
+
+
+def panel_regression_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The within-entity slope is " + tok("slope") + " across " + tok("n_entities") +
+            " entities and " + tok("n_periods") + " periods, with a within R-squared of " +
+            tok("within_r2") + ".")
+
+
+def _cov_list(a, b):
+    n = len(a)
+    ma, mb = sum(a, D(0)) / D(n), sum(b, D(0)) / D(n)
+    return sum(((x - ma) * (y - mb) for x, y in zip(a, b)), D(0)) / D(n - 1)
+
+
+def instrumental_variables_impl(inp):
+    y = [D(str(v)) for v in inp["y"]]
+    x = [D(str(v)) for v in inp["x"]]
+    z = [D(str(v)) for v in inp["z"]]
+    if not (len(y) == len(x) == len(z)) or len(y) < 3:
+        raise DataError("y, x and z must be the same length and contain at least three observations")
+    vz, vx = _cov_list(z, z), _cov_list(x, x)
+    if vz == 0:
+        raise DataError("the instrument has no variation")
+    if vx == 0:
+        raise DataError("the endogenous regressor has no variation")
+    czx = _cov_list(z, x)
+    if czx == 0:
+        raise DataError("the instrument is not relevant: cov(z, x) is zero")
+    slope = _cov_list(z, y) / czx
+    return {"iv_slope": slope, "iv_intercept": sum(y, D(0)) / D(len(y)) - slope * sum(x, D(0)) / D(len(x)),
+            "first_stage_slope": czx / vz, "ols_slope": _cov_list(x, y) / vx, "n": D(len(y))}
+
+
+def _iv_ref(inp):
+    y = [float(D(str(v))) for v in inp["y"]]
+    x = [float(D(str(v))) for v in inp["x"]]
+    z = [float(D(str(v))) for v in inp["z"]]
+    def cov(a, b):
+        ma, mb = sum(a) / len(a), sum(b) / len(b)
+        return sum((p - ma) * (q - mb) for p, q in zip(a, b)) / (len(a) - 1)
+    return {"iv_slope": cov(z, y) / cov(z, x)}
+
+
+def instrumental_variables_tests(inp, impl):
+    base, ref = impl(inp), _iv_ref(inp)
+    doubled = [{**inp, "z": [str(D(str(v)) * 2) for v in inp["z"]]}][0]
+    shifted = [{**inp, "y": [str(D(str(v)) + 10) for v in inp["y"]]}][0]
+    checks = [
+        ("second_implementation_agrees", _close(base["iv_slope"], ref["iv_slope"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("iv_slope_is_the_covariance_ratio", _close(base["iv_slope"], _cov_list([D(str(v)) for v in inp["z"]], [D(str(v)) for v in inp["y"]]) / _cov_list([D(str(v)) for v in inp["z"]], [D(str(v)) for v in inp["x"]])), "the just-identified IV slope is cov(z, y) / cov(z, x)"),
+        ("first_stage_slope_is_the_instrument_on_the_regressor", _close(base["first_stage_slope"], _cov_list([D(str(v)) for v in inp["z"]], [D(str(v)) for v in inp["x"]]) / _cov_list([D(str(v)) for v in inp["z"]], [D(str(v)) for v in inp["z"]])), "the first-stage slope is the instrument's relevance"),
+        ("scaling_the_instrument_leaves_the_iv_slope_unchanged", _close(impl(doubled)["iv_slope"], base["iv_slope"]), "the IV slope is invariant to the instrument's scale"),
+        ("adding_a_constant_to_y_shifts_the_intercept_not_the_slope", _close(impl(shifted)["iv_slope"], base["iv_slope"]) and impl(shifted)["iv_intercept"] != base["iv_intercept"], "a level shift moves the intercept only"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def instrumental_variables_profile(inp):
+    try:
+        y, x, z = ([D(str(v)) for v in inp[k]] for k in ("y", "x", "z"))
+        errs = []
+        if not (len(y) == len(x) == len(z)) or len(y) < 3:
+            errs.append("y, x and z must be the same length and contain at least three observations")
+        if _cov_list(z, z) == 0:
+            errs.append("the instrument has no variation")
+        if _cov_list(x, x) == 0:
+            errs.append("the endogenous regressor has no variation")
+        if not errs and _cov_list(z, x) == 0:
+            errs.append("the instrument is not relevant: cov(z, x) is zero")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["IV inputs are malformed: y, x and z must be equal-length numeric lists"]
+
+
+def _iv_typing(metric):
+    if metric == "n":
+        return ("count", 0)
+    return ("ratio", 4)
+
+
+def instrumental_variables_caveats(out, th):
+    return ["A just-identified IV estimator with one endogenous regressor and one excluded instrument; there is no over-identification test.",
+            "The estimate is causal only if the instrument is relevant and satisfies the exclusion restriction, which the method cannot test.",
+            "No controls, robust or clustered standard errors, weak-instrument diagnostics or panel structure are included."]
+
+
+def instrumental_variables_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The just-identified IV slope is " + tok("iv_slope") + "; the first-stage slope is " +
+            tok("first_stage_slope") + " and the OLS slope is " + tok("ols_slope") + ".")
+
+
+def _rdd_side(points, cutoff):
+    ds = [point[0] - cutoff for point in points]
+    ys = [point[1] for point in points]
+    if len(set(ds)) < 2:
+        raise DataError("each side of the cutoff needs variation in the running variable")
+    md, my = sum(ds, D(0)) / D(len(ds)), sum(ys, D(0)) / D(len(ys))
+    sxx = sum(((d - md) ** 2 for d in ds), D(0))
+    sxy = sum(((d - md) * (y - my) for d, y in zip(ds, ys)), D(0))
+    slope = sxy / sxx
+    return my - slope * md, slope
+
+
+def regression_discontinuity_impl(inp):
+    cutoff, bandwidth = D(str(inp["cutoff"])), D(str(inp["bandwidth"]))
+    if bandwidth <= 0:
+        raise DataError("bandwidth must be positive")
+    left, right = [], []
+    for row in inp["data"]:
+        running = D(str(row["running"]))
+        distance = running - cutoff
+        if abs(distance) <= bandwidth:
+            (left if distance < 0 else right).append((running, D(str(row["outcome"]))))
+    if len(left) < 2 or len(right) < 2:
+        raise DataError("at least two observations are required on each side of the cutoff within the bandwidth")
+    left_intercept, left_slope = _rdd_side(left, cutoff)
+    right_intercept, right_slope = _rdd_side(right, cutoff)
+    return {"estimate": right_intercept - left_intercept,
+            "left_intercept": left_intercept, "right_intercept": right_intercept,
+            "left_slope": left_slope, "right_slope": right_slope,
+            "n_left": D(len(left)), "n_right": D(len(right))}
+
+
+def _rdd_ref(inp):
+    cutoff, bw = float(D(str(inp["cutoff"]))), float(D(str(inp["bandwidth"])))
+    left = [(float(D(str(r["running"]))), float(D(str(r["outcome"])))) for r in inp["data"] if -bw <= float(D(str(r["running"]))) - cutoff < 0]
+    right = [(float(D(str(r["running"]))), float(D(str(r["outcome"])))) for r in inp["data"] if 0 <= float(D(str(r["running"]))) - cutoff <= bw]
+    def fit(points):
+        ds = [p[0] - cutoff for p in points]; ys = [p[1] for p in points]
+        md, my = sum(ds) / len(ds), sum(ys) / len(ys)
+        sxx = sum((d - md) ** 2 for d in ds); sxy = sum((d - md) * (y - my) for d, y in zip(ds, ys))
+        slope = sxy / sxx
+        return my - slope * md
+    return {"estimate": fit(right) - fit(left)}
+
+
+def regression_discontinuity_tests(inp, impl):
+    base, ref = impl(inp), _rdd_ref(inp)
+    shifted = [{**row, "outcome": str(D(str(row["outcome"])) + 10)} for row in inp["data"]]
+    cutoff, bw = D(str(inp["cutoff"])), D(str(inp["bandwidth"]))
+    expected_left = sum(1 for row in inp["data"] if -bw <= D(str(row["running"])) - cutoff < 0)
+    expected_right = sum(1 for row in inp["data"] if 0 <= D(str(row["running"])) - cutoff <= bw)
+    jump = impl({"data": [{"running": "-2", "outcome": "0"}, {"running": "-1", "outcome": "1"},
+                          {"running": "1", "outcome": "10"}, {"running": "2", "outcome": "11"}],
+                 "cutoff": "0", "bandwidth": "3"})
+    checks = [
+        ("second_implementation_agrees", _close(base["estimate"], ref["estimate"], rel=1e-6), "float route agrees with the Decimal route"),
+        ("estimate_is_the_right_intercept_minus_the_left_intercept", _close(base["estimate"], base["right_intercept"] - base["left_intercept"]), "the jump is the difference of the two side intercepts"),
+        ("shifting_the_outcome_leaves_the_estimate_unchanged", _close(impl({**inp, "data": shifted})["estimate"], base["estimate"]), "a level shift in the outcome cancels in the difference"),
+        ("the_bandwidth_excludes_observations_outside_it", int(base["n_left"]) == expected_left and int(base["n_right"]) == expected_right, "only observations within the bandwidth are used"),
+        ("a_positive_jump_at_the_cutoff_gives_a_positive_estimate", jump["estimate"] > 0, "a constructed upward jump is recovered"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def regression_discontinuity_profile(inp):
+    try:
+        cutoff, bw = D(str(inp["cutoff"])), D(str(inp["bandwidth"]))
+        if bw <= 0:
+            return ["bandwidth must be positive"]
+        left = sum(1 for row in inp["data"] if -bw <= D(str(row["running"])) - cutoff < 0)
+        right = sum(1 for row in inp["data"] if 0 <= D(str(row["running"])) - cutoff <= bw)
+        return [] if left >= 2 and right >= 2 else ["at least two observations are required on each side of the cutoff within the bandwidth"]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["RDD inputs are malformed: data records, cutoff and bandwidth are required"]
+
+
+def _rdd_typing(metric):
+    if metric in ("n_left", "n_right"):
+        return ("count", 0)
+    return ("ratio", 4)
+
+
+def regression_discontinuity_caveats(out, th):
+    return ["A sharp RDD with a local linear fit on each side and a declared bandwidth; the estimate is the intercept jump at the cutoff.",
+            "The design assumes no manipulation of the running variable and no other discontinuity at the cutoff, which the method cannot test.",
+            "No optimal bandwidth selection, bias correction, covariates or fuzzy design is included."]
+
+
+def regression_discontinuity_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The local-linear jump at the cutoff is " + tok("estimate") + ", using " +
+            tok("n_left") + " observations on the left and " + tok("n_right") + " on the right.")
+
+
+def probit_impl(inp):
+    ys = [int(D(str(v))) for v in inp["y"]]
+    xs = [float(D(str(v))) for v in inp["x"]]
+    if not (len(ys) == len(xs)) or len(ys) < 5:
+        raise DataError("y and x must be the same length and contain at least five observations")
+    if any(v not in (0, 1) for v in ys):
+        raise DataError("y must be binary, coded 0 or 1")
+    if len(set(ys)) < 2:
+        raise DataError("both outcomes are required")
+    if len(set(xs)) < 2:
+        raise DataError("x must vary")
+    a = b = 0.0
+    for _ in range(100):
+        g0 = g1 = h00 = h01 = h11 = 0.0
+        for y, x in zip(ys, xs):
+            p = statistics.NormalDist().cdf(a + b * x)
+            w = max(p * (1 - p), 1e-12)
+            g0 += y - p; g1 += (y - p) * x
+            h00 += w; h01 += w * x; h11 += w * x * x
+        det = h00 * h11 - h01 * h01
+        if abs(det) < 1e-15:
+            raise DataError("the probit design is singular")
+        da = (h11 * g0 - h01 * g1) / det
+        db = (-h01 * g0 + h00 * g1) / det
+        a += da; b += db
+        if max(abs(da), abs(db)) < 1e-10:
+            break
+    probs = [statistics.NormalDist().cdf(a + b * x) for x in xs]
+    if any(p < 1e-9 or p > 1 - 1e-9 for p in probs):
+        raise DataError("separation or near-separation: the probit fit is not finite for these data")
+    ll = sum(y * math.log(p) + (1 - y) * math.log(1 - p) for y, p in zip(ys, probs))
+    n0 = sum(1 for y in ys if y == 0); n1 = len(ys) - n0
+    ll0 = n0 * math.log(n0 / len(ys)) + n1 * math.log(n1 / len(ys))
+    mean_x = sum(xs) / len(xs)
+    eta = a + b * mean_x
+    return {"intercept": D(str(a)), "slope": D(str(b)), "log_likelihood": D(str(ll)),
+            "pseudo_r2": D(str(1 - ll / ll0)), "marginal_effect_at_mean": D(str(statistics.NormalDist().pdf(eta) * b))}
+
+
+def _probit_ref(inp):
+    # A small independent gradient-ascent route for the same likelihood surface.
+    ys = [int(D(str(v))) for v in inp["y"]]
+    xs = [float(D(str(v))) for v in inp["x"]]
+    a = b = 0.0
+    for step in range(1, 20001):
+        rate = 0.1 / (1 + step / 5000)
+        g0 = g1 = 0.0
+        for y, x in zip(ys, xs):
+            p = statistics.NormalDist().cdf(a + b * x)
+            g0 += y - p; g1 += (y - p) * x
+        a += rate * g0; b += rate * g1
+    return {"slope": b}
+
+
+def probit_tests(inp, impl):
+    base, ref = impl(inp), _probit_ref(inp)
+    ys = [int(D(str(v))) for v in inp["y"]]
+    xs = [float(D(str(v))) for v in inp["x"]]
+    doubled = {**inp, "x": [str(D(str(v)) * 2) for v in inp["x"]]}
+    shifted = {**inp, "x": [str(D(str(v)) + 1) for v in inp["x"]]}
+    g0 = g1 = 0.0
+    a, b = float(base["intercept"]), float(base["slope"])
+    for y, x in zip(ys, xs):
+        p = statistics.NormalDist().cdf(a + b * x)
+        g0 += y - p; g1 += (y - p) * x
+    checks = [
+        ("second_implementation_agrees", _close(base["slope"], ref["slope"], rel=1e-4), "an independent gradient route agrees with Newton-Raphson"),
+        ("score_equations_are_near_zero", abs(g0) < 1e-6 and abs(g1) < 1e-6, "the fitted score equations are close to zero"),
+        ("predicted_probabilities_are_between_zero_and_one", all(0 < statistics.NormalDist().cdf(a + b * x) < 1 for x in xs), "every fitted probability is valid"),
+        ("scaling_the_predictor_rescales_the_slope", _close(impl(doubled)["slope"], base["slope"] / 2, rel=1e-6), "doubling x halves the slope"),
+        ("shifting_the_predictor_moves_the_intercept_not_the_slope", _close(impl(shifted)["slope"], base["slope"], rel=1e-6) and impl(shifted)["intercept"] != base["intercept"], "a location shift of x moves the intercept only"),
+    ]
+    return [(n, ok) for n, ok, _ in checks]
+
+
+def probit_profile(inp):
+    try:
+        ys = [int(D(str(v))) for v in inp["y"]]
+        xs = [float(D(str(v))) for v in inp["x"]]
+        errs = []
+        if not (len(ys) == len(xs)) or len(ys) < 5:
+            errs.append("y and x must be the same length and contain at least five observations")
+        if any(v not in (0, 1) for v in ys):
+            errs.append("y must be binary, coded 0 or 1")
+        if len(set(ys)) < 2:
+            errs.append("both outcomes are required")
+        if len(set(xs)) < 2:
+            errs.append("x must vary")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["probit inputs are malformed: y and x must be equal-length numeric lists"]
+
+
+def _probit_typing(metric):
+    if metric in ("intercept", "slope", "marginal_effect_at_mean"):
+        return ("ratio", 4)
+    if metric == "pseudo_r2":
+        return ("ratio", 4)
+    return ("ratio", 4)
+
+
+def probit_caveats(out, th):
+    return ["A binary probit with one predictor; the coefficients are on the latent-index scale.",
+            "The marginal effect is evaluated at the mean of x and is not a constant effect.",
+            "Separation or near-separation is refused; no robust or clustered standard errors are computed."]
+
+
+def probit_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The probit slope is " + tok("slope") + " and the intercept is " + tok("intercept") +
+            ". The marginal effect at the mean of the predictor is " + tok("marginal_effect_at_mean") + ".")
+
+
+# ---------- Multi-year common-size and trend analysis (B-100) ----------
+# Historical statement analysis on declared figures: each line as a share of revenue, an index on
+# the first period, and compound growth.  No adjustment, restatement, forecast or benchmark.
+
+def trend_impl(inp):
+    def col(key):
+        return [D(str(x)) for x in inp[key]]
+
+    years, rev = col("years"), col("revenue")
+    cogs, opex, ni = col("cost_of_sales"), col("operating_expenses"), col("net_income")
+    n = len(rev)
+    if not (len(years) == len(cogs) == len(opex) == len(ni) == n):
+        raise DataError("years, revenue, cost_of_sales, operating_expenses and net_income must all have the same length")
+    if n < 2: raise DataError("at least two periods are required for a trend")
+    if n > 10: raise DataError("at most ten periods are supported")
+    if any(b <= a for a, b in zip(years, years[1:])):
+        raise DataError("the years must be in increasing order")
+    if any(r <= 0 for r in rev): raise DataError("revenue must be positive in every period, because it is the common-size base")
+    if any(c < 0 for c in cogs) or any(o < 0 for o in opex):
+        raise DataError("cost of sales and operating expenses must be non-negative")
+
+    gm = [(r - c) / r for r, c in zip(rev, cogs)]
+    om = [(r - c - o) / r for r, c, o in zip(rev, cogs, opex)]
+    nm = [x / r for x, r in zip(ni, rev)]
+    out = {
+        "n_periods": D(n),
+        "revenue_cagr": (rev[-1] / rev[0]) ** (D(1) / (n - 1)) - 1,
+        "revenue_growth_latest": rev[-1] / rev[-2] - 1,
+        "revenue_index_latest": rev[-1] / rev[0] * 100,
+        "gross_margin_latest": gm[-1],
+        "operating_margin_latest": om[-1],
+        "net_margin_latest": nm[-1],
+        "common_size_cost_of_sales": cogs[-1] / rev[-1],
+        "common_size_operating_expenses": opex[-1] / rev[-1],
+        "gross_margin_change": gm[-1] - gm[0],
+        "net_margin_change": nm[-1] - nm[0],
+    }
+    if ni[0] > 0:
+        out["net_income_cagr"] = (ni[-1] / ni[0]) ** (D(1) / (n - 1)) - 1
+        out["net_income_index_latest"] = ni[-1] / ni[0] * 100
+    if ni[0] != 0:
+        out["net_income_growth_total"] = (ni[-1] - ni[0]) / abs(ni[0])
+    raw_ta, raw_eq = inp.get("total_assets"), inp.get("equity")
+    if raw_ta is not None and raw_eq is not None:
+        ta = [D(str(x)) for x in raw_ta]; eq = [D(str(x)) for x in raw_eq]
+        if len(ta) != n or len(eq) != n:
+            raise DataError("total_assets and equity must have one value per period")
+        if any(x <= 0 for x in ta): raise DataError("total assets must be positive in every period")
+        out.update({"equity_to_assets_latest": eq[-1] / ta[-1],
+                    "asset_growth_latest": ta[-1] / ta[-2] - 1})
+    return out
+
+def _trend_ref(inp):
+    rev = [float(D(str(x))) for x in inp["revenue"]]
+    cogs = [float(D(str(x))) for x in inp["cost_of_sales"]]
+    opex = [float(D(str(x))) for x in inp["operating_expenses"]]
+    ni = [float(D(str(x))) for x in inp["net_income"]]
+    n = len(rev)
+    gm = [(r - c) / r for r, c in zip(rev, cogs)]
+    om = [(r - c - o) / r for r, c, o in zip(rev, cogs, opex)]
+    out = {"revenue_cagr": (rev[-1] / rev[0]) ** (1 / (n - 1)) - 1,
+           "revenue_growth_latest": rev[-1] / rev[-2] - 1,
+           "revenue_index_latest": rev[-1] / rev[0] * 100,
+           "gross_margin_latest": gm[-1], "operating_margin_latest": om[-1],
+           "net_margin_latest": ni[-1] / rev[-1],
+           "common_size_cost_of_sales": cogs[-1] / rev[-1],
+           "common_size_operating_expenses": opex[-1] / rev[-1],
+           "gross_margin_change": gm[-1] - gm[0],
+           "net_margin_change": ni[-1] / rev[-1] - ni[0] / rev[0]}
+    if ni[0] > 0:
+        out["net_income_cagr"] = (ni[-1] / ni[0]) ** (1 / (n - 1)) - 1
+        out["net_income_index_latest"] = ni[-1] / ni[0] * 100
+    return out
+
+def _trend_tests(inp, impl):
+    base, ref = impl(inp), _trend_ref(inp)
+    rev = [D(str(x)) for x in inp["revenue"]]
+    cogs = [D(str(x)) for x in inp["cost_of_sales"]]
+    opex = [D(str(x)) for x in inp["operating_expenses"]]
+    n = len(rev)
+    compounded = rev[0] * (1 + base["revenue_cagr"]) ** (n - 1)
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_cagr_compounds_the_first_period_to_the_last", _close(compounded, rev[-1]), "the compound rate turns the base-period revenue into the latest revenue"),
+        ("the_common_size_lines_and_the_operating_margin_sum_to_one", _close(base["common_size_cost_of_sales"] + base["common_size_operating_expenses"] + base["operating_margin_latest"], D(1)), "cost of sales plus operating expenses plus operating margin is the whole of revenue"),
+        ("the_index_is_the_latest_value_over_the_base_times_one_hundred", _close(base["revenue_index_latest"], rev[-1] / rev[0] * 100), "the index uses the first period as 100"),
+        ("the_latest_growth_is_the_change_from_the_previous_period", _close(base["revenue_growth_latest"], rev[-1] / rev[-2] - 1), "period-on-period growth is not the CAGR"),
+        ("the_margin_change_is_the_difference_between_the_endpoints", _close(base["gross_margin_change"], base["gross_margin_latest"] - (rev[0] - cogs[0]) / rev[0]), "the change is the latest margin minus the base margin"),
+    ]
+    return [(m, ok) for m, ok, _ in checks]
+
+def _trend_profile(inp):
+    try:
+        cols = [inp.get(k) for k in ("years", "revenue", "cost_of_sales", "operating_expenses", "net_income")]
+        errs = []
+        if any(c is None for c in cols): return ["years, revenue, cost_of_sales, operating_expenses and net_income are all required"]
+        lengths = {len(c) for c in cols}
+        if len(lengths) != 1: errs.append("every period list must have the same length")
+        n = len(cols[0])
+        if n < 2: errs.append("at least two periods are required")
+        if n > 10: errs.append("at most ten periods are supported")
+        years = [D(str(x)) for x in cols[0]]
+        if any(b <= a for a, b in zip(years, years[1:])): errs.append("the years must be in increasing order")
+        if any(D(str(x)) <= 0 for x in cols[1]): errs.append("revenue must be positive in every period")
+        if any(D(str(x)) < 0 for x in cols[2]) or any(D(str(x)) < 0 for x in cols[3]):
+            errs.append("cost of sales and operating expenses must be non-negative")
+        ta, eq = inp.get("total_assets"), inp.get("equity")
+        if (ta is None) != (eq is None): errs.append("total_assets and equity must be supplied together")
+        elif ta is not None:
+            if len(ta) != n or len(eq) != n: errs.append("total_assets and equity need one value per period")
+            elif any(D(str(x)) <= 0 for x in ta): errs.append("total assets must be positive in every period")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["trend inputs are malformed: five period lists of numbers are required"]
+
+def _trend_typing(metric):
+    if metric == "n_periods": return ("count", 0)
+    if metric in ("revenue_cagr", "net_income_cagr", "revenue_growth_latest", "asset_growth_latest",
+                  "gross_margin_latest", "operating_margin_latest", "net_margin_latest",
+                  "gross_margin_change", "net_margin_change", "net_income_growth_total"): return ("rate", 4)
+    return ("ratio", 4)
+
+def _trend_caveats(out, th):
+    return ["The analysis is historical arithmetic on the figures you declared; no adjustment, restatement, reclassification or accounting-policy alignment is applied.",
+            "A compound growth rate depends only on the first and last values and ignores the path between them; a single good or bad endpoint moves it sharply.",
+            "The common-size base is revenue, and the index base is the first period you declared. Changing either base changes every percentage.",
+            "A net-income CAGR is reported only when the first period's net income is positive; a negative base makes the compound rate undefined."]
+
+def _trend_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    s = ("Over the declared periods revenue grew at a compound rate of " + tok("revenue_cagr") + ", with the latest period " +
+         tok("revenue_growth_latest") + " above the previous one and an index of " + tok("revenue_index_latest") + " against the base period. " +
+         "In the latest period, cost of sales was " + tok("common_size_cost_of_sales") + " of revenue, operating expenses were " +
+         tok("common_size_operating_expenses") + ", the gross margin was " + tok("gross_margin_latest") + " and the net margin was " +
+         tok("net_margin_latest") + ", a net-margin change of " + tok("net_margin_change") + " against the base period.")
+    if "net_income_cagr" in out:
+        s += " Net income grew at a compound rate of " + tok("net_income_cagr") + "."
+    return s
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -9164,6 +9716,99 @@ LIBRARY = {
                   limitations=("Pure strategies only; mixed equilibria are not computed.", "2x2 games only.", "Multiple equilibria are reported, not ranked."),
                   default_period="cross_section", caveats=nash_equilibrium_caveats, template=nash_equilibrium_template,
                   claim_ceiling="descriptive", typing=_nash_typing),
+    "panel_regression": Method("panel_regression", "T1", panel_regression_impl, panel_regression_tests,
+                  panel_regression_profile, "slope", "ratio", None,
+                  ("second_implementation_agrees", "slope_equals_within_covariance_over_variance",
+                   "adding_a_constant_to_y_leaves_the_slope_unchanged",
+                   "adding_a_constant_to_x_leaves_the_slope_unchanged", "within_residuals_sum_to_zero"),
+                  category="panel data",
+                  intended_use="Balanced-panel fixed-effects (within) slope and intercept for one regressor, with within R-squared and degrees of freedom.",
+                  unsupported_use="Unbalanced panels; time-invariant regressors; dynamic panels with lagged outcomes; clustered or robust standard errors; causal claims.",
+                  input_schema={"data": {"type": "records", "min_items": 4,
+                                          "fields": {"entity": "text", "period": "text", "y": "decimal", "x": "decimal"},
+                                          "desc": "one record per entity-period; the panel must be balanced"}},
+                  defaults=({"question": "Estimator", "default_chosen": "Within (fixed-effects) transformation, which removes each entity's mean.", "impact": "Random effects or pooled OLS would use between-entity variation and give a different slope."},
+                            {"question": "Inference", "default_chosen": "No standard errors are computed; the output is the point estimate and within fit.", "impact": "Clustered or robust inference would need a declared design."}),
+                  assumptions=("The panel is balanced and the entity effect is additive.", "The slope is common across entities.", "No time-varying omitted variable is correlated with x."),
+                  limitations=("Time-invariant regressors are absorbed and cannot be estimated.", "No standard errors, clustering or robust inference.", "Dynamic panel bias is not addressed."),
+                  default_period="annual", caveats=panel_regression_caveats, template=panel_regression_template,
+                  claim_ceiling="associational", typing=_panel_typing),
+    "instrumental_variables": Method("instrumental_variables", "T1", instrumental_variables_impl,
+                  instrumental_variables_tests, instrumental_variables_profile, "iv_slope", "ratio", None,
+                  ("second_implementation_agrees", "iv_slope_is_the_covariance_ratio",
+                   "first_stage_slope_is_the_instrument_on_the_regressor",
+                   "scaling_the_instrument_leaves_the_iv_slope_unchanged",
+                   "adding_a_constant_to_y_shifts_the_intercept_not_the_slope"),
+                  category="instrumental variables",
+                  intended_use="Just-identified instrumental-variables slope and intercept with one endogenous regressor and one excluded instrument, plus the first-stage and OLS slopes for comparison.",
+                  unsupported_use="Over-identified models; weak instruments; controls; robust or clustered inference; testing the exclusion restriction; causal claims without a defended design.",
+                  input_schema={"y": {"type": "value_list", "min_items": 3, "desc": "the outcome"},
+                                "x": {"type": "value_list", "min_items": 3, "desc": "the endogenous regressor"},
+                                "z": {"type": "value_list", "min_items": 3, "desc": "the excluded instrument"}},
+                  defaults=({"question": "Estimator", "default_chosen": "Just-identified 2SLS, which here reduces to cov(z, y) / cov(z, x).", "impact": "Over-identification or controls would need a matrix estimator."},
+                            {"question": "Instrument validity", "default_chosen": "Relevance is checked by a non-zero cov(z, x); the exclusion restriction is assumed, not tested.", "impact": "An invalid instrument gives a biased estimate with no warning."}),
+                  assumptions=("The instrument is relevant and satisfies the exclusion restriction.", "The relationship is linear with a constant effect.", "Observations are independent."),
+                  limitations=("One instrument and one endogenous regressor only.", "No weak-instrument diagnostics or over-identification test.", "No controls, robust or clustered standard errors."),
+                  default_period="cross_section", caveats=instrumental_variables_caveats, template=instrumental_variables_template,
+                  claim_ceiling="associational", typing=_iv_typing),
+    "regression_discontinuity": Method("regression_discontinuity", "T1", regression_discontinuity_impl,
+                  regression_discontinuity_tests, regression_discontinuity_profile, "estimate", "ratio", None,
+                  ("second_implementation_agrees", "estimate_is_the_right_intercept_minus_the_left_intercept",
+                   "shifting_the_outcome_leaves_the_estimate_unchanged",
+                   "the_bandwidth_excludes_observations_outside_it",
+                   "a_positive_jump_at_the_cutoff_gives_a_positive_estimate"),
+                  category="regression discontinuity",
+                  intended_use="Sharp regression-discontinuity estimate from a local linear fit on each side of a declared cutoff and bandwidth.",
+                  unsupported_use="Fuzzy designs; manipulation of the running variable; optimal bandwidth selection; covariates; bias-corrected or robust inference; causal claims without a defended design.",
+                  input_schema={"data": {"type": "records", "min_items": 4,
+                                          "fields": {"running": "decimal", "outcome": "decimal"},
+                                          "desc": "one record per observation: the running variable and the outcome"},
+                                "cutoff": {"type": "decimal", "desc": "the treatment cutoff"},
+                                "bandwidth": {"type": "decimal", "desc": "the symmetric bandwidth around the cutoff"}},
+                  defaults=({"question": "Fit", "default_chosen": "A separate local linear fit on each side, with the estimate as the jump in intercepts at the cutoff.", "impact": "A global polynomial or a different bandwidth gives a different estimate."},
+                            {"question": "Design", "default_chosen": "Sharp design: treatment switches exactly at the cutoff.", "impact": "A fuzzy design would need an instrument for treatment."}),
+                  assumptions=("Treatment is determined by the running variable crossing the cutoff.", "No manipulation of the running variable.", "No other discontinuity at the cutoff."),
+                  limitations=("No optimal bandwidth, bias correction or covariates.", "Sharp design only; no fuzzy RDD.", "No robust or clustered inference."),
+                  default_period="cross_section", caveats=regression_discontinuity_caveats, template=regression_discontinuity_template,
+                  claim_ceiling="associational", typing=_rdd_typing),
+    "probit": Method("probit", "T1", probit_impl, probit_tests, probit_profile, "slope", "ratio", None,
+                  ("second_implementation_agrees", "score_equations_are_near_zero",
+                   "predicted_probabilities_are_between_zero_and_one",
+                   "scaling_the_predictor_rescales_the_slope",
+                   "shifting_the_predictor_moves_the_intercept_not_the_slope"),
+                  category="binary choice",
+                  intended_use="Binary probit with one predictor: latent-index coefficients, log likelihood, McFadden pseudo R-squared and the marginal effect at the mean.",
+                  unsupported_use="Multiple predictors, interactions, robust or clustered inference, separation, causal claims, or predicted probabilities outside the observed support.",
+                  input_schema={"y": {"type": "value_list", "min_items": 5, "desc": "the binary outcome, coded 0 or 1"},
+                                "x": {"type": "value_list", "min_items": 5, "desc": "the numeric predictor, same length as y"}},
+                  defaults=({"question": "Estimator", "default_chosen": "Maximum likelihood by Newton-Raphson on the probit likelihood.", "impact": "Logit or a linear probability model gives different coefficients."},
+                            {"question": "Marginal effect", "default_chosen": "Reported at the mean of the predictor; it is not a constant effect.", "impact": "A marginal effect at a different x changes the number."}),
+                  assumptions=("The outcome is binary and observations are independent.", "The latent index is linear in the predictor.", "No separation or near-separation."),
+                  limitations=("One predictor only; no controls or interactions.", "No robust, clustered or bootstrapped standard errors.", "Separation is refused rather than penalised."),
+                  default_period="cross_section", caveats=probit_caveats, template=probit_template,
+                  claim_ceiling="associational", typing=_probit_typing),
+    "trend_analysis": Method("trend_analysis", "T1", trend_impl, _trend_tests, _trend_profile, "revenue_cagr", "rate", None,
+                  ("second_implementation_agrees", "the_cagr_compounds_the_first_period_to_the_last",
+                   "the_common_size_lines_and_the_operating_margin_sum_to_one",
+                   "the_index_is_the_latest_value_over_the_base_times_one_hundred",
+                   "the_latest_growth_is_the_change_from_the_previous_period",
+                   "the_margin_change_is_the_difference_between_the_endpoints"),
+                  category="financial statement analysis",
+                  intended_use="Turn several years of income-statement figures into common-size percentages, an index on the first period, compound growth rates and margin changes.",
+                  unsupported_use="Forecasting; adjusting or restating the figures; industry benchmarks; segment or consolidated analysis; balance-sheet common-size beyond the equity-to-assets ratio; more than ten periods.",
+                  input_schema={"years": {"type": "value_list", "min_items": 2, "desc": "the period labels, in increasing order, e.g. 2022, 2023, 2024"},
+                                "revenue": {"type": "value_list", "min_items": 2, "desc": "revenue for each period, in the same order"},
+                                "cost_of_sales": {"type": "value_list", "min_items": 2, "desc": "cost of sales for each period"},
+                                "operating_expenses": {"type": "value_list", "min_items": 2, "desc": "operating expenses for each period"},
+                                "net_income": {"type": "value_list", "min_items": 2, "desc": "net income for each period; may be negative"},
+                                "total_assets": {"type": "value_list", "required": False, "min_items": 2, "desc": "optional total assets per period, for equity-to-assets and asset growth"},
+                                "equity": {"type": "value_list", "required": False, "min_items": 2, "desc": "optional equity per period, supplied with total_assets"}},
+                  defaults=({"question": "Which base?", "default_chosen": "Revenue is the common-size base and the first declared period is the index base (100).", "impact": "A different base changes every percentage but not the underlying figures."},
+                            {"question": "Growth measure", "default_chosen": "Both the compound rate across the whole span and the latest period-on-period change are reported, so they are not confused.", "impact": "A single endpoint can move the CAGR sharply."}),
+                  assumptions=("Revenue is positive in every period, because it is the common-size base.", "The periods are consecutive and in increasing order.", "The figures are as reported, on one accounting basis and in one currency."),
+                  limitations=("Historical arithmetic only; no adjustment, restatement or forecast.", "CAGR uses only the endpoints and ignores the path.", "A net-income CAGR is omitted when the base period's net income is not positive."),
+                  default_period="annual", caveats=_trend_caveats, template=_trend_template, claim_ceiling="descriptive", typing=_trend_typing),
+
 }
 
 # ---------- discovery (never executes a method) ----------

@@ -28,24 +28,7 @@ from bp.product import subjects  # noqa: E402
 FIXTURE = os.path.join(ROOT, "tests", "fixtures", "frozen_contract.json")
 
 
-def check():
-    page = subjects.detail("economics")
-    print("methods: %d" % len(LIBRARY))
-    print("presets: %d" % len(server.PRESETS))
-    print("economics tools: %d" % len(page["tools"]))
-    for level in ("intro", "intermediate", "advanced"):
-        keys = [tool["key"] for tool in page["tools"] if tool["level"] == level]
-        print("  %-12s %d" % (level, len(keys)))
-    missing = [tool["key"] for tool in page["tools"]
-               if not (tool["formula"] and tool["steps"] and tool["common_mistakes"])]
-    print("missing student notes: %s" % (", ".join(missing) if missing else "none"))
-    print("glossary terms: %d" % len(page["glossary"]))
-    return 1 if missing else 0
-
-
-def fixture():
-    with open(FIXTURE, encoding="utf-8") as stream:
-        old = json.load(stream)
+def _contract_methods():
     methods = {}
     for method_id in sorted(LIBRARY):
         method = LIBRARY[method_id]
@@ -58,6 +41,36 @@ def fixture():
             "category": method.category,
             "inputs": sorted(method.input_schema),
         }
+    return methods
+
+
+def check():
+    page = subjects.detail("economics")
+    with open(FIXTURE, encoding="utf-8") as stream:
+        on_disk = json.load(stream)
+    drift = []
+    if on_disk.get("methods") != _contract_methods():
+        drift.append("methods")
+    if on_disk.get("presets") != sorted(server.PRESETS):
+        drift.append("presets")
+    print("methods: %d" % len(LIBRARY))
+    print("presets: %d" % len(server.PRESETS))
+    print("economics tools: %d" % len(page["tools"]))
+    for level in ("intro", "intermediate", "advanced"):
+        keys = [tool["key"] for tool in page["tools"] if tool["level"] == level]
+        print("  %-12s %d" % (level, len(keys)))
+    missing = [tool["key"] for tool in page["tools"]
+               if not (tool["formula"] and tool["steps"] and tool["common_mistakes"])]
+    print("missing student notes: %s" % (", ".join(missing) if missing else "none"))
+    print("glossary terms: %d" % len(page["glossary"]))
+    print("frozen fixture: %s" % ("in sync" if not drift else "DRIFT in " + ", ".join(drift)))
+    return 1 if missing or drift else 0
+
+
+def fixture():
+    with open(FIXTURE, encoding="utf-8") as stream:
+        old = json.load(stream)
+    methods = _contract_methods()
     payload = {"note": old["note"], "methods": methods,
                "presets": sorted(server.PRESETS), "routes": old["routes"]}
     with open(FIXTURE, "w", encoding="utf-8", newline="\n") as stream:

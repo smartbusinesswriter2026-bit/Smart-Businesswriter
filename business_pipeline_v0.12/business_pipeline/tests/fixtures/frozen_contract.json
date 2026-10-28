@@ -625,6 +625,25 @@
         "wage_start"
       ]
     },
+    "instrumental_variables": {
+      "tier": "T1",
+      "metric": "iv_slope",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "iv_slope_is_the_covariance_ratio",
+        "first_stage_slope_is_the_instrument_on_the_regressor",
+        "scaling_the_instrument_leaves_the_iv_slope_unchanged",
+        "adding_a_constant_to_y_shifts_the_intercept_not_the_slope"
+      ],
+      "claim_ceiling": "associational",
+      "category": "instrumental variables",
+      "inputs": [
+        "x",
+        "y",
+        "z"
+      ]
+    },
     "interest_rate_parity": {
       "tier": "T1",
       "metric": "implied_forward",
@@ -1168,6 +1187,23 @@
         "pairs"
       ]
     },
+    "panel_regression": {
+      "tier": "T1",
+      "metric": "slope",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "slope_equals_within_covariance_over_variance",
+        "adding_a_constant_to_y_leaves_the_slope_unchanged",
+        "adding_a_constant_to_x_leaves_the_slope_unchanged",
+        "within_residuals_sum_to_zero"
+      ],
+      "claim_ceiling": "associational",
+      "category": "panel data",
+      "inputs": [
+        "data"
+      ]
+    },
     "pearson": {
       "tier": "T1",
       "metric": "r",
@@ -1318,6 +1354,24 @@
         "marginal_cost"
       ]
     },
+    "probit": {
+      "tier": "T1",
+      "metric": "slope",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "score_equations_are_near_zero",
+        "predicted_probabilities_are_between_zero_and_one",
+        "scaling_the_predictor_rescales_the_slope",
+        "shifting_the_predictor_moves_the_intercept_not_the_slope"
+      ],
+      "claim_ceiling": "associational",
+      "category": "binary choice",
+      "inputs": [
+        "x",
+        "y"
+      ]
+    },
     "profit_maximization": {
       "tier": "T1",
       "metric": "profit",
@@ -1433,6 +1487,25 @@
         "revenue",
         "total_assets",
         "total_liabilities"
+      ]
+    },
+    "regression_discontinuity": {
+      "tier": "T1",
+      "metric": "estimate",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "estimate_is_the_right_intercept_minus_the_left_intercept",
+        "shifting_the_outcome_leaves_the_estimate_unchanged",
+        "the_bandwidth_excludes_observations_outside_it",
+        "a_positive_jump_at_the_cutoff_gives_a_positive_estimate"
+      ],
+      "claim_ceiling": "associational",
+      "category": "regression discontinuity",
+      "inputs": [
+        "bandwidth",
+        "cutoff",
+        "data"
       ]
     },
     "reliability_alpha": {
@@ -1634,6 +1707,30 @@
         "present_value",
         "rate",
         "timing"
+      ]
+    },
+    "trend_analysis": {
+      "tier": "T1",
+      "metric": "revenue_cagr",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_cagr_compounds_the_first_period_to_the_last",
+        "the_common_size_lines_and_the_operating_margin_sum_to_one",
+        "the_index_is_the_latest_value_over_the_base_times_one_hundred",
+        "the_latest_growth_is_the_change_from_the_previous_period",
+        "the_margin_change_is_the_difference_between_the_endpoints"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "financial statement analysis",
+      "inputs": [
+        "cost_of_sales",
+        "equity",
+        "net_income",
+        "operating_expenses",
+        "revenue",
+        "total_assets",
+        "years"
       ]
     },
     "trend_forecast": {
@@ -1866,6 +1963,7 @@
     "inflation",
     "irp",
     "irr",
+    "iv",
     "labour",
     "leverage",
     "loan",
@@ -1885,6 +1983,7 @@
     "optimalpollution",
     "options",
     "paired",
+    "panel",
     "pearson",
     "portfolio",
     "posthoc",
@@ -1893,11 +1992,13 @@
     "ppp",
     "pricecontrol",
     "pricediscrimination",
+    "probit",
     "profitmax",
     "projectmetrics",
     "prospect",
     "publicgood",
     "ratios",
+    "rdd",
     "risk",
     "scenario",
     "socialwelfare",
@@ -1907,6 +2008,7 @@
     "taxincidence",
     "taxprogressivity",
     "tbcheck",
+    "trendanalysis",
     "tvm",
     "unemployment",
     "unitecon",

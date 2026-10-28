@@ -1,5 +1,30 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — Multi-year trend analysis, the last core Finance gap
+
+**Ask.** "go" after the P0-3 presentation work: close the one remaining core assignment, multi-year
+common-size and trend analysis, and then stop at the items that need an owner decision.
+
+**Did.** `trend_analysis` (T1): five equal-length period lists (years, revenue, cost of sales,
+operating expenses, net income) with optional total assets and equity; outputs are the revenue CAGR,
+the latest period-on-period growth, a revenue index on the first period, gross/operating/net margins,
+the common-size cost and expense shares, endpoint margin changes, a net-income CAGR and index when
+the base is positive, and equity-to-assets and asset growth when the balance-sheet lists are given.
+Six frozen checks, including the common-size identity and the CAGR compounding identity. The method
+refuses unordered years, mismatched lists, non-positive revenue and a partial balance-sheet pair.
+
+**Why this one and not the P2 list.** Multi-year trend is standard coursework and needs only declared
+figures, so it fits the engine's boundary. Market-data retrieval, PDF/OCR ingestion, a multi-run case
+container and named reviewer sign-off each need an owner decision (sources, dependencies, case
+semantics, reviewer names); inventing any of them would break the honesty rule that made the audit
+worth doing.
+
+**Verified.** 1068 tests pass, including a new golden for the trend method (10% CAGR, 133.1 index,
+16.55% net-income CAGR, 57.1% common-size cost of sales) and a refusal for mismatched period lists.
+The live page was restarted after the increment; the Foundations group now carries 11 tiles and the
+new study note and period badge render.
+
+
 ## 2026-10-28 — Finance gets a student front door: groups, notes, period badges and a percent guard
 
 **Ask.** "okay do p0-3" after the Finance coverage audit: group the 32 tiles, put the study material on the page
@@ -25,6 +50,26 @@ steps and mistakes in the declared group order (with no leakage onto Economics),
 the desktop window was not visible; the DOM checks stand in for it and are recorded here rather than claimed as
 a visual pass.
 
+
+## 2026-10-28 — Advanced econometrics: panel, IV, RDD and probit
+
+**Ask.** "Go finish" after the welfare/international/behavioural release.
+
+**Did.** Added four T1 methods: `panel_regression` (balanced within estimator), `instrumental_variables`
+(just-identified IV with first-stage and OLS comparison), `regression_discontinuity` (sharp local-linear RDD) and
+`probit` (binary probit with Newton-Raphson and marginal effect at the mean). Each has five frozen checks, declared
+assumptions and a formula-level report. Added presets `panel`, `iv`, `rdd`, `probit` and student notes. The
+Economics subject is now 55 tiles (21 intro, 21 intermediate, 13 advanced). Frozen fixture regenerated (92 methods,
+94 presets) under B-100. Four new tests plus the existing table-driven suite.
+
+**Verified.** The advanced tests pass, including the score equations for probit and the within-entity slope of 2;
+the full suite passes at 1067 tests. `scripts/econ_shelf.py --check` reports 92 methods, 94 presets, 55 tools and
+no missing student notes.
+
+**Open/next.** VAR, cointegration and the remaining time-series estimators are parked; the economics catalogue
+section and the diagram renderer remain product-layer gaps. The student guide is not yet teacher-reviewed.
+
+---
 
 ## 2026-10-28 — Economics completed: welfare, international, development, behavioural and games
 

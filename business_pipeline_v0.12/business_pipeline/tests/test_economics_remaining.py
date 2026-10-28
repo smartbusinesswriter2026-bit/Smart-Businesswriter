@@ -110,5 +110,60 @@ class Delivery(unittest.TestCase):
         self.assertGreaterEqual(len(page["glossary"]), 25)
 
 
+ADVANCED = {
+    "panel_regression": {"data": [
+        {"entity": "A", "period": "1", "y": "2", "x": "1"}, {"entity": "A", "period": "2", "y": "4", "x": "2"}, {"entity": "A", "period": "3", "y": "6", "x": "3"},
+        {"entity": "B", "period": "1", "y": "5", "x": "2"}, {"entity": "B", "period": "2", "y": "7", "x": "3"}, {"entity": "B", "period": "3", "y": "9", "x": "4"},
+        {"entity": "C", "period": "1", "y": "1", "x": "1"}, {"entity": "C", "period": "2", "y": "5", "x": "3"}, {"entity": "C", "period": "3", "y": "9", "x": "5"}]},
+    "instrumental_variables": {"y": ["3", "5", "7", "6", "8", "10", "11", "13"],
+                               "x": ["2", "4", "5", "4", "5", "7", "8", "9"],
+                               "z": ["1", "2", "3", "4", "5", "6", "7", "8"]},
+    "regression_discontinuity": {"data": [{"running": "-3", "outcome": "0"}, {"running": "-2", "outcome": "1"},
+                                          {"running": "-1", "outcome": "2"}, {"running": "1", "outcome": "10"},
+                                          {"running": "2", "outcome": "11"}, {"running": "3", "outcome": "12"}],
+                                 "cutoff": "0", "bandwidth": "2.5"},
+    "probit": {"y": ["0", "1", "0", "1", "0", "1", "0", "1", "1", "0"],
+               "x": ["-2", "-1.5", "-1", "-0.5", "0", "0.5", "1", "1.5", "2", "2.5"]},
+}
+
+ADVANCED_BAD = {
+    "panel_regression": {"data": [{"entity": "A", "period": "1", "y": "1", "x": "1"},
+                                  {"entity": "A", "period": "2", "y": "2", "x": "2"},
+                                  {"entity": "B", "period": "1", "y": "1", "x": "1"}]},
+    "instrumental_variables": {"y": ["1", "2", "3", "4"], "x": ["1", "2", "3", "4"], "z": ["1", "1", "1", "1"]},
+    "regression_discontinuity": {"data": [{"running": "-3", "outcome": "0"}, {"running": "-2", "outcome": "1"},
+                                          {"running": "1", "outcome": "10"}, {"running": "2", "outcome": "11"}],
+                                 "cutoff": "0", "bandwidth": "0.5"},
+    "probit": {"y": ["1", "1", "1", "1", "1"], "x": ["1", "2", "3", "4", "5"]},
+}
+
+
+class AdvancedEconometrics(unittest.TestCase):
+    def test_arithmetic_and_frozen_checks(self):
+        for method_id, inputs in ADVANCED.items():
+            method = LIBRARY[method_id]
+            checks = method.tests(inputs, method.impl)
+            self.assertEqual(tuple(n for n, _ in checks), method.test_names, method_id)
+            self.assertTrue(all(ok for _, ok in checks), (method_id, checks))
+
+    def test_headline_values(self):
+        self.assertEqual(LIBRARY["panel_regression"].impl(ADVANCED["panel_regression"])["slope"], D(2))
+        self.assertEqual(LIBRARY["regression_discontinuity"].impl(ADVANCED["regression_discontinuity"])["estimate"], D("6.0"))
+        self.assertAlmostEqual(float(LIBRARY["instrumental_variables"].impl(ADVANCED["instrumental_variables"])["iv_slope"]), 1.4605263158, places=6)
+        self.assertAlmostEqual(float(LIBRARY["probit"].impl(ADVANCED["probit"])["slope"]), 0.091617, places=5)
+
+    def test_refusals(self):
+        for method_id, inputs in ADVANCED_BAD.items():
+            self.assertEqual(Pipeline().run({"objective": "x", "method": method_id, "inputs": inputs}, YES).status,
+                             "blocked", method_id)
+
+    def test_presets_deliver(self):
+        for key in ("panel", "iv", "rdd", "probit"):
+            preset = server.PRESETS[key]
+            delivery = Pipeline().run({"objective": preset["objective"], "method": preset["method"],
+                                       "period": preset.get("period", "annual"), "inputs": preset["inputs"]}, YES)
+            self.assertEqual(delivery.status, "delivered", (key, delivery.blocked_reason))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -237,6 +237,27 @@ PRESETS = {
             "inputs": {"treated_pre": "50", "treated_post": "70", "control_pre": "40", "control_post": "45"}},
     "nash": {"objective": "Where are the Nash equilibria in this game?", "method": "nash_equilibrium", "period": "annual",
              "inputs": {"row_payoffs": ["3", "0", "5", "1"], "column_payoffs": ["3", "5", "0", "1"]}},
+    "panel": {"objective": "What is the within-entity effect?", "method": "panel_regression", "period": "annual",
+              "inputs": {"data": [
+                  {"entity": "A", "period": "1", "y": "2", "x": "1"}, {"entity": "A", "period": "2", "y": "4", "x": "2"}, {"entity": "A", "period": "3", "y": "6", "x": "3"},
+                  {"entity": "B", "period": "1", "y": "5", "x": "2"}, {"entity": "B", "period": "2", "y": "7", "x": "3"}, {"entity": "B", "period": "3", "y": "9", "x": "4"},
+                  {"entity": "C", "period": "1", "y": "1", "x": "1"}, {"entity": "C", "period": "2", "y": "5", "x": "3"}, {"entity": "C", "period": "3", "y": "9", "x": "5"}]}},
+    "iv": {"objective": "What does the instrument imply for the effect?", "method": "instrumental_variables", "period": "annual",
+           "inputs": {"y": ["3", "5", "7", "6", "8", "10", "11", "13"],
+                      "x": ["2", "4", "5", "4", "5", "7", "8", "9"],
+                      "z": ["1", "2", "3", "4", "5", "6", "7", "8"]}},
+    "rdd": {"objective": "Is there a jump at the cutoff?", "method": "regression_discontinuity", "period": "annual",
+            "inputs": {"data": [{"running": "-3", "outcome": "0"}, {"running": "-2", "outcome": "1"}, {"running": "-1", "outcome": "2"},
+                                {"running": "1", "outcome": "10"}, {"running": "2", "outcome": "11"}, {"running": "3", "outcome": "12"}],
+                       "cutoff": "0", "bandwidth": "2.5"}},
+    "probit": {"objective": "What predicts the binary outcome?", "method": "probit", "period": "annual",
+               "inputs": {"y": ["0", "1", "0", "1", "0", "1", "0", "1", "1", "0"],
+                          "x": ["-2", "-1.5", "-1", "-0.5", "0", "0.5", "1", "1.5", "2", "2.5"]}},
+    "trendanalysis": {"objective": "How has the business performed across these years?", "method": "trend_analysis", "currency": "USD", "period": "annual",
+                      "inputs": {"years": ["2022", "2023", "2024", "2025"], "revenue": ["1000", "1100", "1210", "1331"],
+                                 "cost_of_sales": ["600", "650", "710", "760"], "operating_expenses": ["200", "220", "240", "260"],
+                                 "net_income": ["120", "140", "160", "190"], "total_assets": ["2000", "2100", "2250", "2400"],
+                                 "equity": ["900", "980", "1080", "1200"]}},
 }
 
 class H(BaseHTTPRequestHandler):
