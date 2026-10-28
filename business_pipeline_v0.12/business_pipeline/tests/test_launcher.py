@@ -14,10 +14,15 @@ class LauncherTest(unittest.TestCase):
 
     def test_check_prints_the_resolved_configuration(self):
         with tempfile.TemporaryDirectory() as folder:
+            credentials = os.path.join(folder, ".env")
+            with open(credentials, "w", encoding="utf-8") as stream:
+                stream.write("BRAVE_API_KEY=launcher-secret\n")
             environment = {**os.environ,
                            "BP_CASES_DIR": os.path.join(folder, "cases"),
                            "BP_STATE_DIR": os.path.join(folder, "state"),
-                           "BP_REQUEST_LOG": ""}
+                           "BP_REQUEST_LOG": "",
+                           "BP_SOURCE_ENV": credentials}
+            environment.pop("BP_BRAVE_API_KEY", None)
             result = subprocess.run([sys.executable, SCRIPT, "--check"], capture_output=True, text=True,
                                     env=environment, cwd=ROOT, timeout=120)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -27,6 +32,13 @@ class LauncherTest(unittest.TestCase):
             self.assertIsNone(config["request_log"])
             self.assertEqual(config["case_store"], os.path.join(folder, "cases"))
             self.assertEqual(config["state_dir"], os.path.join(folder, "state"))
+            self.assertEqual(config["web_search"]["primary"], "brave")
+            self.assertEqual(config["web_search"]["fallback"], "firecrawl")
+            self.assertTrue(config["web_search"]["brave"])
+            self.assertIn("BP_BRAVE_API_KEY", config["web_search"]["loaded"])
+            self.assertNotIn("launcher-secret", result.stdout)
+            self.assertIn("semantic_scholar", config["academic_search"])
+            self.assertNotIn("core", config["academic_search"])
 
     def test_bad_arguments_are_refused(self):
         for arguments in (["--port", "abc"], ["--unknown"]):

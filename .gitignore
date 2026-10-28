@@ -9,6 +9,7 @@ env/
 # Secrets / environment (keys are env-only by design; never commit them)
 .env
 .env.*
+!**/.env.example
 *.key
 *.pem
 

@@ -12,6 +12,7 @@ Environment it understands (documented in README.md):
     BP_CASES_DIR    case store directory (default <repo>/cases)
     BP_STATE_DIR    logs/backups (default <repo>/state)
     BP_REQUEST_LOG  request log path; "" disables it
+    BP_SOURCE_ENV   source credentials file (default <repo>/Backend/.env)
     BP_LLM_PROVIDER / BP_LLM_MODEL / provider API key - optional model assistance (off by default)
 
 The launcher adds `<repo>/src` to sys.path, so it works from a clean checkout
@@ -68,10 +69,17 @@ def main(argv=None):
     if src not in sys.path:
         sys.path.insert(0, src)
     from bp.product import ops   # noqa: E402  (product layer only: health/log/state paths)
+    from bp.product import source_env   # noqa: E402  (loads only the two search keys)
+    web = source_env.load_web_credentials()
     config = {"format": "bp-launcher/1", "host": options["host"], "port": options["port"],
               "sandbox": options["sandbox"], "project_root": root,
               "case_store": str(ops.case_store.cases_dir()), "state_dir": str(ops.state_dir()),
               "request_log": str(ops.request_log_path()) if ops.request_log_path() else None,
+              "web_search": {"primary": "brave", "fallback": "firecrawl",
+                             "brave": web["brave"],
+                             "firecrawl": web["firecrawl"] or web["firecrawl_keyless"],
+                             "credentials_from": web["path"], "loaded": web["loaded"]},
+              "academic_search": {"semantic_scholar": web["semantic_scholar"]},
               "python": sys.version.split()[0]}
     if options["check"]:
         print(json.dumps(config, indent=2))

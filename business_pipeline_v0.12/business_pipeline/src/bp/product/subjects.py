@@ -2352,28 +2352,28 @@ GLOSSARIES["project-management"] = PROJECT_MANAGEMENT_GLOSSARY
 #: audit; it scores and ranks nothing.
 WORKSHEETS = {
     "STR-01": {"catalogue_id": "STR-01", "template": "template_five_forces",
-               "label": "Porter's Five Forces",
+               "label": "Porter's Five Forces", "draftable": True,
                "what": "Organise the evidence on rivalry, entrants, substitutes, buyer power and supplier power."},
     "STR-07": {"catalogue_id": "STR-07", "template": "template_swot",
-               "label": "SWOT / TOWS",
+               "label": "SWOT / TOWS", "draftable": True,
                "what": "Organise strengths, weaknesses, opportunities and threats with provenance and materiality."},
     "STR-18": {"catalogue_id": "STR-18", "template": "template_swot",
-               "label": "SWOT evidence-to-action review",
+               "label": "SWOT evidence-to-action review", "draftable": True,
                "what": "Audit the evidence behind a SWOT and turn it into declared actions, not scores."},
     "STR-15": {"catalogue_id": "STR-15", "template": "template_business_model_canvas",
-               "label": "Business Model Canvas",
+               "label": "Business Model Canvas", "draftable": True,
                "what": "Lay your own evidence into the nine business-model blocks, link related items and audit the empty blocks."},
     "STR-16": {"catalogue_id": "STR-16", "template": "template_lean_canvas",
-               "label": "Lean Canvas",
+               "label": "Lean Canvas", "draftable": True,
                "what": "State the problem, solution, metrics and unfair advantage in nine blocks, with the gaps reported rather than filled."},
     "STR-17": {"catalogue_id": "STR-17", "template": "template_value_proposition_canvas",
-               "label": "Value Proposition Canvas",
+               "label": "Value Proposition Canvas", "draftable": True,
                "what": "Set customer jobs, pains and gains beside your pain relievers and gain creators, and link the fit you claim."},
     "MKT-02": {"catalogue_id": "MKT-02", "template": "template_marketing_plan",
-               "label": "Marketing plan: STP and the marketing mix",
+               "label": "Marketing plan: STP and the marketing mix", "draftable": True,
                "what": "Structure segmentation, targeting and positioning and the product, price, place and promotion mix."},
     "STR-06": {"catalogue_id": "STR-06", "template": "template_pestel",
-               "label": "PESTEL",
+               "label": "PESTEL", "draftable": True,
                "what": "Organise political, economic, social, technological, environmental and legal evidence, with provenance and the empty dimensions named."},
     "STR-03": {"catalogue_id": "STR-03", "template": "template_value_chain",
                "label": "Porter's Value Chain",
@@ -2674,7 +2674,8 @@ def _worksheet(catalogue_id):
     """A fresh launcher descriptor for one T4 worksheet."""
     info = WORKSHEETS[catalogue_id]
     return {"kind": "worksheet", "key": catalogue_id, "catalogue_id": info["catalogue_id"],
-            "template": info["template"], "label": info["label"], "what": info["what"]}
+            "template": info["template"], "label": info["label"], "what": info["what"],
+            "draftable": bool(info.get("draftable"))}
 
 
 def _subject_definition(subject_id):

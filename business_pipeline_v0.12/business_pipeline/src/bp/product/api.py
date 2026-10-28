@@ -16,6 +16,20 @@ Routes:
     GET    /api/cases/subjects/{id}              -> 200 subject page
     GET    /api/cases/calculator                 -> 200 Calculator tool groups
     POST   /api/cases/match                      -> 200 worksheet suggestions for a case description
+    GET    /api/cases/sources/databases          -> 200 the business database registry
+    GET    /api/cases/sources/sites?region=<r>   -> 200 the curated official-site registry
+    POST   /api/cases/sources/search             -> 200 merged academic results (with per-database errors)
+    POST   /api/cases/sources/web                -> 200 curated web results, or the directory when no key is set
+    POST   /api/cases/worksheets/draft           -> 200 drafted worksheet inputs from retrieved sources
+    POST   /api/cases/worksheets/report          -> 200 a sourced report and its Word (.docx) bytes
+    GET    /api/cases/chat                       -> 200 the stored PESTEL chat cases
+    POST   /api/cases/chat                       -> 201 a new guided PESTEL case
+    GET    /api/cases/chat/{id}                  -> 200 one chat state
+    POST   /api/cases/chat/{id}/answer           -> 200 the next question, or the plan
+    POST   /api/cases/chat/{id}/plan             -> 200 the confirmed plan
+    POST   /api/cases/chat/{id}/research         -> 200 per-dimension evidence and gaps
+    POST   /api/cases/chat/{id}/draft            -> 200 the drafted PESTEL section
+    POST   /api/cases/chat/{id}/export           -> 200 the drafted section as Word bytes
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
     DELETE /api/cases/{id}                       -> 200 {"deleted": id}
@@ -28,9 +42,12 @@ Routes:
 """
 
 import base64
+import hashlib
 import os
 
 from . import cases as case_store
+from . import chat as chat_conductor
+from . import chat_store
 from . import charts as chart_renderer
 from . import compare as comparator
 from . import diagrams as diagram_renderer
@@ -41,8 +58,11 @@ from . import spreadsheets
 from . import docx as docx_export
 from . import credits
 from . import deliverables
+from . import drafting
+from . import sources as source_finder
 from . import subjects as subject_index
 from . import versions as version_store
+from . import writing
 
 CASE_ROUTE = "/api/cases"
 
@@ -138,6 +158,149 @@ def handle(method, path, body=None):
         if not isinstance(text, str) or not text.strip():
             return _error("a case description is required")
         return 200, subject_index.match_frameworks(text)
+
+    # -- source finder (shared by every subject) ------------------------------
+    if segments and segments[0] == "sources":
+        if segments == ["sources", "databases"]:
+            if verb != "GET":
+                return 405, {"error": "method %s is not allowed on the database registry" % verb}
+            return 200, {"databases": source_finder.databases(), "regions": source_finder.REGIONS,
+                         "categories": source_finder.CATEGORIES, "web": source_finder.web_status(),
+                         "credentials": {"semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY"))}}
+        if segments == ["sources", "sites"]:
+            if verb != "GET":
+                return 405, {"error": "method %s is not allowed on the site registry" % verb}
+            region = query.get("region")
+            if region and region not in source_finder.REGIONS:
+                return _error("unknown region %r" % region)
+            category = query.get("category")
+            if category and category not in source_finder.CATEGORIES:
+                return _error("unknown category %r" % category)
+            return 200, {"regions": source_finder.REGIONS, "categories": source_finder.CATEGORIES,
+                         "sites": source_finder.vetted_sites(region, category=category)}
+        if segments == ["sources", "search"]:
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on source search" % verb}
+            if not isinstance(body, dict):
+                return _error("a search object is required")
+            limit = body.get("limit", 20)
+            try:
+                limit = max(1, min(int(limit), 50))
+            except (TypeError, ValueError):
+                return _error("limit must be an integer")
+            year_from = body.get("year_from")
+            if year_from is not None:
+                try:
+                    year_from = int(year_from)
+                except (TypeError, ValueError):
+                    return _error("year_from must be a year")
+            return 200, source_finder.search_academic(body.get("query"), body.get("databases"), limit, year_from)
+        if segments == ["sources", "web"]:
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on web search" % verb}
+            if not isinstance(body, dict):
+                return _error("a search object is required")
+            region = body.get("region") or "Global"
+            if region not in source_finder.REGIONS:
+                return _error("unknown region %r" % region)
+            category = body.get("category")
+            if category and category not in source_finder.CATEGORIES:
+                return _error("unknown category %r" % category)
+            try:
+                limit = max(1, min(int(body.get("limit", 10)), 20))
+            except (TypeError, ValueError):
+                return _error("limit must be an integer")
+            return 200, source_finder.search_web(body.get("query"), region, limit, category)
+        return 404, {"error": "unknown source route"}
+
+    # -- the deterministic PESTEL conductor ----------------------------------
+    if segments and segments[0] == "chat":
+        if segments == ["chat"]:
+            if verb == "GET":
+                return 200, {"cases": chat_store.list_cases()}
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on chat" % verb}
+            if not isinstance(body, dict):
+                return _error("a chat object is required")
+            try:
+                state = chat_conductor.start(body.get("brief"), body.get("subject") or "management",
+                                             body.get("framework"))
+                state = chat_store.save(state)
+            except chat_conductor.ChatError as error:
+                return _error(error)
+            return 201, state
+        chat_id = segments[1]
+        try:
+            state = chat_store.load(chat_id)
+        except chat_store.ChatCaseNotFound as error:
+            return 404, {"error": str(error)}
+        except (chat_store.ChatCaseCorrupt, ValueError) as error:
+            return _error(error)
+        if len(segments) == 2:
+            if verb == "GET":
+                return 200, state
+            if verb == "DELETE":
+                return 200, chat_store.delete(chat_id)
+            return 405, {"error": "method %s is not allowed on a chat case" % verb}
+        action = segments[2]
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a chat action" % verb}
+        data = body if isinstance(body, dict) else {}
+        try:
+            if action == "answer":
+                state = chat_conductor.answer(state, data.get("question_id"), data.get("value"))
+            elif action == "plan":
+                state = chat_conductor.confirm_plan(state)
+            elif action == "research":
+                state = chat_conductor.research(state)
+            elif action == "draft":
+                accepted = data.get("accepted")
+                if accepted is not None and not isinstance(accepted, list):
+                    return _error("accepted must be a list of evidence ids")
+                state = chat_conductor.draft(state, accepted, data.get("implications"), data.get("style"))
+            elif action == "export":
+                draft = state.get("draft") or {}
+                if not draft:
+                    return _error("draft the section before exporting it")
+                data_bytes = chat_conductor.docx_bytes(state)
+                return 200, {"filename": writing.filename({"title": draft.get("title")}),
+                             "mime": _MIME["docx"], "data": base64.b64encode(data_bytes).decode("ascii"),
+                             "sha256": hashlib.sha256(data_bytes).hexdigest()}
+            else:
+                return 404, {"error": "unknown chat action %r" % action}
+        except chat_conductor.ChatError as error:
+            return _error(error)
+        state = chat_store.save(state)
+        return 200, state
+
+    if segments == ["worksheets", "draft"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on worksheet drafting" % verb}
+        if not isinstance(body, dict):
+            return _error("a draft object is required")
+        try:
+            return 200, drafting.draft(body.get("template"), body.get("sources"))
+        except ValueError as error:
+            return _error(error)
+
+    if segments == ["worksheets", "report"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on report writing" % verb}
+        if not isinstance(body, dict):
+            return _error("a report object is required")
+        draft = body.get("draft")
+        if draft is not None and not isinstance(draft, dict):
+            return _error("draft must be an object")
+        try:
+            report = writing.compose(body.get("template"), body.get("objective"), body.get("sources"), draft,
+                                     body.get("framework"), body.get("style"))
+        except ValueError as error:
+            return _error(error)
+        data = writing.docx_bytes(report)
+        return 200, {"report": report, "docx": {
+            "filename": writing.filename(report), "mime": _MIME["docx"],
+            "data": base64.b64encode(data).decode("ascii"),
+            "sha256": hashlib.sha256(data).hexdigest()}}
 
     case_id = segments[0]
     tail = segments[1:]

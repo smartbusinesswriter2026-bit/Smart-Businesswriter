@@ -285,6 +285,36 @@ class ServedUiContractTest(unittest.TestCase):
                      "Your cases", "Or choose a subject", "Enter to start"):
             self.assertNotIn(gone, self.html)
 
+    def test_every_subject_page_offers_the_shared_source_finder(self):
+        self.assertIn("function sourceFinderBox", self.html)
+        self.assertIn('id="sourceq"', self.html)
+        self.assertIn("/api/cases/sources/search", self.html)
+        self.assertIn("/api/cases/sources/web", self.html)
+        self.assertIn("Find sources", self.html)
+        self.assertIn("Vetted sites for", self.html)
+        self.assertIn('id="drafttemplate"', self.html)
+        self.assertIn("/api/cases/worksheets/draft", self.html)
+        self.assertIn("Draft review", self.html)
+        self.assertIn("Run the drafted worksheet", self.html)
+        self.assertIn("Download the report (Word)", self.html)
+        self.assertIn("/api/cases/worksheets/report", self.html)
+        self.assertIn("Browse vetted sources", self.html)
+        self.assertIn('id="sitecategory"', self.html)
+        self.assertIn("browseVettedSources", self.html)
+        self.assertIn('id="reportstyle"', self.html)
+        self.assertIn("APA 7", self.html)
+        self.assertIn("Harvard", self.html)
+        self.assertIn("Recent (last 10 years)", self.html)
+        self.assertIn('id="sourcerecent"', self.html)
+        self.assertIn('href="#/chat"', self.html)
+        self.assertIn('id="panel-chat"', self.html)
+        self.assertIn('id="chatout"', self.html)
+        self.assertIn('id="chatstart"', self.html)
+        self.assertIn("/api/cases/chat", self.html)
+        self.assertIn("function renderChat", self.html)
+        self.assertIn('id="chatframework"', self.html)
+        self.assertIn("PESTEL + SWOT", self.html)
+
     def test_worksheets_never_show_raw_json_to_the_user(self):
         """A student fills a guided form; the page never exposes the input object."""
         self.assertNotIn("Worksheet inputs (JSON)", self.html)
