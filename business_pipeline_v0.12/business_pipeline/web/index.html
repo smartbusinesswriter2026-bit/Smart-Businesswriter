@@ -295,6 +295,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .studynote{border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin:8px 0;background:var(--surface)}
 .studynote summary{cursor:pointer;font-weight:650;color:var(--navy-900)}
 .studynote p,.studynote li{font-size:14.4px;color:var(--text-2);line-height:1.5}
+.marketpanel{border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;margin:0 0 14px;background:var(--surface)}
+.marketrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.marketrow label{font-size:13.6px;color:var(--text-2);display:flex;gap:6px;align-items:center}
+.marketrow input,.marketrow select{border:1px solid var(--border);border-radius:8px;padding:5px 7px;font-size:14px;background:var(--surface)}
+.marketcard{border-left:3px solid var(--green-600);padding:8px 12px;margin-top:10px;background:var(--surface-2);border-radius:8px}
+.doctext{white-space:pre-wrap;max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:6px;font-size:13.4px;background:var(--surface-2)}
 .capgroup{margin-top:18px}
 .subjectask{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .toolrow{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border-2);padding:10px 0}
@@ -315,6 +321,27 @@ pre.json{background:var(--sunken);border:1px solid var(--border);border-radius:v
 textarea.jsoninput{grid-column:1/-1;width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
          font-size:13.6px;line-height:1.45;background:var(--sunken)}
 pre.json.statement{font-size:12.8px;line-height:1.4;max-height:none;white-space:pre}
+/* the engagement, as a form */
+.eng{grid-column:1/-1;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;background:var(--surface)}
+.eng h4{margin:16px 0 4px;font-size:12.6px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.eng h4:first-child{margin-top:0}
+.enggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 12px}
+.engtable{width:100%;border-collapse:collapse;font-size:14.4px}
+.engtable th{text-align:left;font-size:12.2px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);
+             padding:3px 4px;border-bottom:1px solid var(--border)}
+.engtable td{padding:3px 4px;border-bottom:1px solid var(--border-2);vertical-align:middle}
+.engtable input[type=text],.engtable input[type=date],.engtable select,.enggrid input,.enggrid select{
+             width:100%;padding:4px 6px;font-size:14.4px}
+.engtable input.num{text-align:right;font-variant-numeric:tabular-nums}
+.engentry{border:1px solid var(--border);border-radius:var(--r-sm);padding:8px;margin:6px 0;background:var(--sunken)}
+.engentryhead{display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.engentryhead input[type=text]{flex:1;min-width:160px}
+.eng .rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;line-height:1;padding:0 4px}
+.eng .ok{color:var(--green-700);font-weight:650}
+.eng .bad{color:var(--red);font-weight:650}
+.eng details.engadv{margin-top:16px}
+.eng details.engadv summary{cursor:pointer;color:var(--navy-500);font-weight:650;font-size:14.4px}
+.eng .engnote{font-size:13.8px;color:var(--text-3);margin:2px 0 6px}
 figure.chart{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;overflow:auto}
 figure.chart svg{max-width:100%;height:auto}
 figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
@@ -888,6 +915,8 @@ async function uploadAttachments(files) {
 function intakeStatus(row) {
   if (row.corrupt) return '<span class="badge warn">record unreadable</span>';
   if (row.status === "ingested") return '<span class="badge">Ingested</span>';
+  if (row.status === "extracted") return '<span class="badge">Text extracted (unverified)</span>';
+  if (row.status === "ocr_required") return '<span class="badge warn">OCR required</span>';
   if (row.status === "reference_only") return '<span class="badge mute">Reference only</span>';
   if (row.error) return '<span class="badge warn">Stored, not read</span>';
   return '<span class="badge mute">Stored</span>';
@@ -901,7 +930,15 @@ function intakeDetail(row) {
     return '<div class="muted">' + esc(row.n_rows) + " rows x " + esc(row.n_cols) + " columns" +
       (cols ? ' <details><summary>Columns read</summary>' + esc(cols) + "</details>" : "") + "</div>";
   }
+  if (row.status === "extracted" && row.extraction) {
+    return '<div class="muted">' + esc(row.extraction.pages) + " page(s), " + esc(row.extraction.chars) +
+      " characters - " + esc(row.note) + "</div>";
+  }
   return '<div class="muted">' + esc(row.note) + "</div>";
+}
+
+function isReadableDocument(row) {
+  return row.kind === "document" && [".pdf", ".png", ".jpg", ".jpeg"].includes(String(row.ext || "").toLowerCase());
 }
 
 function intakeRow(row) {
@@ -909,10 +946,14 @@ function intakeRow(row) {
   const actions =
     (row.kind === "structured" && row.status !== "ingested"
       ? '<button class="btn sm" type="button" data-ingest="' + esc(id) + '">Ingest</button>' : "") +
+    (isReadableDocument(row) && row.status !== "extracted"
+      ? '<button class="btn sm" type="button" data-extract="' + esc(id) + '">Extract text</button>' : "") +
+    (row.status === "extracted"
+      ? '<button class="btn sm" type="button" data-showtext="' + esc(id) + '">Show text</button>' : "") +
     '<button class="btn sm" type="button" data-remove="' + esc(id) + '">Remove</button>';
   return '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.filename || id) + "</strong>" +
     '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) + "</div>" +
-    intakeDetail(row) + '</div><div class="row">' + actions + "</div></div>";
+    intakeDetail(row) + '<div data-textbox="' + esc(id) + '"></div></div><div class="row">' + actions + "</div></div>";
 }
 
 async function loadAttachments() {
@@ -922,13 +963,40 @@ async function loadAttachments() {
     const data = await api("/api/intake");
     const rows = (data && data.files) || [];
     if (!rows.length) {
-      box.innerHTML = '<p class="muted">No files attached. Spreadsheets are read into a typed table; ' +
-        "any other file is stored and labelled not read.</p>";
+      box.innerHTML = '<p class="muted">No files attached. Spreadsheets are read into a typed table; PDFs and images ' +
+        "can be read on request; every other file is stored and labelled not read.</p>";
       return;
     }
     box.innerHTML = rows.map(intakeRow).join("");
     $$("[data-ingest]", box).forEach((b) => { b.onclick = () => ingestAttachment(b.dataset.ingest); });
+    $$("[data-extract]", box).forEach((b) => { b.onclick = () => extractAttachment(b.dataset.extract); });
+    $$("[data-showtext]", box).forEach((b) => { b.onclick = () => showAttachmentText(b.dataset.showtext); });
     $$("[data-remove]", box).forEach((b) => { b.onclick = () => removeAttachment(b.dataset.remove); });
+  } catch (error) {
+    box.innerHTML = errorBanner(error);
+  }
+}
+
+async function extractAttachment(id) {
+  try {
+    const record = await post("/api/intake/" + encodeURIComponent(id) + "/extract", {});
+    toast(record.status === "extracted" ? "Text extracted; it is unverified." :
+      record.status === "ocr_required" ? "OCR is required for this file." : "The file could not be read.");
+  } catch (error) {
+    toast(error.message || String(error));
+  }
+  loadAttachments();
+}
+
+async function showAttachmentText(id) {
+  const box = document.querySelector('[data-textbox="' + id + '"]');
+  if (!box) return;
+  box.innerHTML = loading("Reading the extracted text");
+  try {
+    const data = await api("/api/intake/" + encodeURIComponent(id) + "/text?limit=6000");
+    box.innerHTML = '<div class="muted">Unverified text; check it against the document. ' +
+      (data.truncated ? "Showing the first part of " + esc(data.chars) + " characters." : esc(data.chars) + " characters.") +
+      '</div><pre class="doctext">' + esc(data.text) + "</pre>";
   } catch (error) {
     box.innerHTML = errorBanner(error);
   }
@@ -1122,6 +1190,7 @@ function renderSubject() {
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     '<p class="muted" style="margin-top:6px">Catalogue disciplines: ' + esc((s.disciplines || []).join("; ") || "not recorded") +
       (s.cross_cutting ? " - this shelf is linked from every subject." : "") + "</p>" +
+    (s.guidance ? '<p style="margin:2px 0 10px">' + esc(s.guidance) + "</p>" : "") +
     '<div class="subjectask">' +
       '<button class="btn sm primary" id="subjectcalc">Open the Calculator</button>' +
       '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
@@ -1130,6 +1199,7 @@ function renderSubject() {
   html += '<div class="capgroup"><h3 style="margin-top:0">Choose what to do in ' + esc(s.label) + "</h3>" +
     '<p class="muted">Each tile opens the tool with the method the server will run. Nothing is calculated until you ' +
     "supply or confirm the figures on the next screen.</p>";
+  if (s.id === "finance") html += marketPanel();
   const tools = s.tools || [];
   const sheets = (s.worksheets || []).map((w) => capabilityCard(w, "worksheet"));
   const levels = [["intro", "Intro"], ["intermediate", "Intermediate"], ["advanced", "Advanced"]];
@@ -1205,6 +1275,7 @@ function renderSubject() {
   $("#subjectback").onclick = () => show("subjects");
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
   const home = $("#subjecthome"); if (home) home.onclick = () => show("home");
+  if (s.id === "finance") bindMarketPanel();
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
     const tool = (s.tools || []).find((t) => t.key === b.dataset.tool);
@@ -1214,6 +1285,70 @@ function renderSubject() {
     b.onclick = () => openWorksheet(b.dataset.worksheet, b.dataset.wlabel);
   });
   loadSubjectCases(s);
+}
+
+
+function marketPanel() {
+  return '<div class="marketpanel"><h3 style="margin-top:0">Market data (retrieved, not verified)</h3>' +
+    '<p class="muted">Look up a reference FX rate or a Treasury par yield. The source, date and response hash are shown; ' +
+    'the app never fills a tool silently, so confirm the value and type it into the tool.</p>' +
+    '<div class="marketrow">' +
+      '<label>FX base <input id="fxbase" value="USD" maxlength="3" size="4" aria-label="FX base currency"></label>' +
+      '<label>quote <input id="fxquote" value="PHP" maxlength="3" size="4" aria-label="FX quote currency"></label>' +
+      '<label>date <input id="fxdate" type="date" aria-label="FX date (optional)"></label>' +
+      '<button class="btn sm" id="fxlookup" type="button">Look up FX</button>' +
+    '</div>' +
+    '<div class="marketrow">' +
+      '<label>Risk-free <select id="rfmat" aria-label="Treasury maturity">' +
+        ["1M","2M","3M","4M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"].map((m) =>
+          '<option value="' + m + '"' + (m === "10Y" ? " selected" : "") + ">" + m + "</option>").join("") +
+      '</select></label>' +
+      '<button class="btn sm" id="rflookup" type="button">Look up yield</button>' +
+    '</div>' +
+    '<div id="marketout" aria-live="polite"></div></div>';
+}
+
+function bindMarketPanel() {
+  const fx = $("#fxlookup"), rf = $("#rflookup");
+  if (fx) fx.onclick = lookupFx;
+  if (rf) rf.onclick = lookupRiskfree;
+}
+
+function marketResult(data) {
+  const isRate = data.kind === "riskfree";
+  const value = isRate ? (Number(data.value) * 100).toFixed(3) + "%" : Number(data.value).toFixed(4);
+  return '<div class="marketcard"><strong>' + esc(value) + "</strong> " +
+    '<span class="muted">as of ' + esc(data.as_of) + "</span>" +
+    '<div class="muted">' + esc(data.source) + " - " +
+      '<a href="' + esc(data.source_url) + '" target="_blank" rel="noopener">open the source</a></div>' +
+    '<div class="muted">Response SHA-256 ' + esc(String(data.response_sha256 || "").slice(0, 16)) + "...</div>" +
+    '<div class="muted">' + esc(data.verification) + ". " + esc(data.note) + "</div></div>";
+}
+
+async function lookupFx() {
+  const out = $("#marketout"); if (!out) return;
+  const base = ($("#fxbase").value || "").trim().toUpperCase();
+  const quote = ($("#fxquote").value || "").trim().toUpperCase();
+  const date = ($("#fxdate").value || "").trim();
+  out.innerHTML = loading("Reading the reference rate");
+  try {
+    const q = "/api/market/fx?base=" + encodeURIComponent(base) + "&quote=" + encodeURIComponent(quote) +
+      (date ? "&date=" + encodeURIComponent(date) : "");
+    out.innerHTML = marketResult(await api(q));
+  } catch (error) {
+    out.innerHTML = errorBanner(error);
+  }
+}
+
+async function lookupRiskfree() {
+  const out = $("#marketout"); if (!out) return;
+  const maturity = $("#rfmat").value || "10Y";
+  out.innerHTML = loading("Reading the Treasury par yield");
+  try {
+    out.innerHTML = marketResult(await api("/api/market/riskfree?maturity=" + encodeURIComponent(maturity)));
+  } catch (error) {
+    out.innerHTML = errorBanner(error);
+  }
 }
 
 
@@ -1385,6 +1520,411 @@ function inputValue(name, spec, plan) {
   return value;
 }
 
+/* ---------- the engagement, as a form ----------
+   The engine takes a declarative spec. Asking a student to edit that JSON was the wrong surface: it
+   showed them "prior_closing", "statement.lines" and a wall of braces. This form edits the same spec
+   through the four things an owner actually has - a chart, opening balances, entries, a bank statement -
+   and keeps the JSON underneath, one click away, for the schedules the form does not cover. */
+const ENG_TYPES = [["asset", "asset"], ["liability", "liability"], ["equity", "equity"],
+                   ["income", "income"], ["expense", "expense"], ["oci", "other comprehensive income"]];
+const ENG_SECTIONS = [["", "not stated"], ["current", "current"], ["non_current", "non-current"]];
+const ENG_ROLES = [["", "none"], ["cash", "cash"], ["capital", "capital"],
+                   ["retained_earnings", "retained earnings"], ["oci_reserve", "revaluation reserve"],
+                   ["dividends", "dividends"]];
+const ENG_NORMAL = { asset: "D", expense: "D", income: "C", liability: "C", equity: "C", oci: "C" };
+
+function engClone(value) { try { return JSON.parse(JSON.stringify(value || {})); } catch (e) { return {}; } }
+
+/* The mapping checkpoint, as the table the owner is actually confirming. */
+function mappingTable(mapping) {
+  const rows = (mapping && mapping.rows) || [];
+  const checks = (mapping && mapping.checks) || [];
+  if (!rows.length) return '<p class="muted">The engine returned no mapping rows.</p>';
+  return '<div class="tablewrap"><table><caption>The accounts as the engine will post them</caption><thead><tr>' +
+    '<th>Code</th><th>Account</th><th>Type</th><th>Statement line</th><th>Role</th><th>Cash-flow activity</th>' +
+    "</tr></thead><tbody>" +
+    rows.map((r) => "<tr><td>" + esc(r.code) + "</td><td>" + esc(r.name) + "</td><td>" + esc(r.type) + "</td><td>" +
+      esc(r.line) + "</td><td>" + esc(r.role || "-") + "</td><td>" +
+      esc(r.activity || "from its type and section") + "</td></tr>").join("") +
+    "</tbody></table></div>" +
+    (checks.length ? '<ul style="margin:8px 0 0;color:var(--text-2)">' + checks.map((c) =>
+      '<li><strong style="color:' + (c[1] ? "var(--green-700)" : "var(--red)") + '">' +
+      (c[1] ? "PASS" : "FAIL") + "</strong> " + esc(c[0]) +
+      (c[2] ? ' <span class="muted">&mdash; ' + esc(c[2]) + "</span>" : "") + "</li>").join("") + "</ul>" : "");
+}
+function engFromValue(value) {
+  if (value && typeof value === "object") return engClone(value);
+  if (typeof value === "string" && value.trim()) { try { return JSON.parse(value); } catch (e) {} }
+  return {};
+}
+function engSide(a) {
+  const base = ENG_NORMAL[a.type] || "D";
+  const contra = a.contra === true || a.role === "dividends";
+  return contra ? (base === "D" ? "C" : "D") : base;
+}
+function engValue(v) { return v === undefined || v === null ? "" : String(v); }
+function engOpts(pairs, current) {
+  return pairs.map((p) => '<option value="' + esc(p[0]) + '"' +
+    (String(current === undefined || current === null ? "" : current) === String(p[0]) ? " selected" : "") +
+    ">" + esc(p[1]) + "</option>").join("");
+}
+function engMoney(n) {
+  return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function engTotals(lines) {
+  let dr = 0, cr = 0;
+  (lines || []).forEach((l) => { dr += Number(l && l.debit) || 0; cr += Number(l && l.credit) || 0; });
+  return { dr: dr, cr: cr, ok: dr > 0 && Math.abs(dr - cr) < 0.005 };
+}
+function engStatusText(lines) {
+  const t = engTotals(lines);
+  if (!t.dr && !t.cr) return '<span class="muted">no amounts yet</span>';
+  return t.ok ? '<span class="ok">balanced &middot; ' + engMoney(t.dr) + "</span>"
+              : '<span class="bad">out by ' + engMoney(Math.abs(t.dr - t.cr)) +
+                " &middot; Dr " + engMoney(t.dr) + " &middot; Cr " + engMoney(t.cr) + "</span>";
+}
+
+/* The spec the form would post: blank rows dropped, the opening entry built from the balances. */
+function engSerialise() {
+  const spec = state.engagement || {};
+  const out = engClone(spec);
+  const chart = (spec.chart || []).filter((a) => a && String(a.code || "").trim());
+  out.chart = chart.map((a) => {
+    const row = { code: String(a.code).trim(), name: String(a.name || "").trim() || String(a.code).trim(),
+                  type: a.type || "expense",
+                  line: String(a.line || "").trim() || String(a.name || a.code).trim() };
+    if (a.section) row.section = a.section;
+    if (a.role) row.role = a.role;
+    if (a.contra === true) row.contra = true;
+    if (a.activity) row.activity = a.activity;
+    return row;
+  });
+  out.prior_closing = {};
+  out.chart.forEach((a) => {
+    const v = (spec.prior_closing || {})[a.code];
+    out.prior_closing[a.code] = v === undefined || v === null || String(v).trim() === "" ? "0" : String(v).trim();
+  });
+  const opening = [];
+  out.chart.forEach((a) => {
+    const v = out.prior_closing[a.code];
+    if (!v || Number(v) === 0) return;
+    opening.push(engSide(a) === "D" ? { account: a.code, debit: v } : { account: a.code, credit: v });
+  });
+  out.opening = opening.length ? [{ description: "opening balances", lines: opening }] : [];
+  out.entries = (spec.entries || []).map((e) => ({
+    date: String(e.date || ""), description: String(e.description || ""),
+    lines: (e.lines || []).filter((l) => l && l.account &&
+        ((l.debit !== undefined && String(l.debit).trim() !== "") ||
+         (l.credit !== undefined && String(l.credit).trim() !== "")))
+      .map((l) => (l.debit !== undefined && String(l.debit).trim() !== "")
+        ? { account: l.account, debit: String(l.debit).trim() }
+        : { account: l.account, credit: String(l.credit).trim() }),
+  })).filter((e) => e.lines.length);
+  const rec = spec.reconciliation;
+  if (rec && rec.account) {
+    const st = rec.statement || {};
+    out.reconciliation = {
+      account: rec.account,
+      statement: {
+        opening_balance: String(st.opening_balance === undefined || String(st.opening_balance).trim() === "" ? "0" : st.opening_balance),
+        closing_balance: String(st.closing_balance === undefined || String(st.closing_balance).trim() === "" ? "0" : st.closing_balance),
+        lines: (st.lines || []).filter((l) => l && l.date && String(l.amount || "").trim() !== "")
+          .map((l) => ({ date: String(l.date), description: String(l.description || ""),
+                         amount: String(l.amount).trim(), direction: l.direction === "out" ? "out" : "in" })),
+      },
+    };
+  } else { delete out.reconciliation; }
+  return out;
+}
+
+function engAccountSelect(i, j, current) {
+  const chart = (state.engagement || {}).chart || [];
+  return '<select data-eng-line="' + i + "." + j + '" data-field="account"><option value="">choose an account</option>' +
+    chart.map((a) => '<option value="' + esc(a.code) + '"' + (a.code === current ? " selected" : "") + ">" +
+      esc(a.code + " " + (a.name || "")) + "</option>").join("") + "</select>";
+}
+
+function engShell() {
+  const spec = state.engagement || {};
+  const period = spec.period || {};
+  const chart = spec.chart || [];
+  const priors = spec.prior_closing || {};
+  const entries = spec.entries || [];
+  const rec = spec.reconciliation;
+  const cash = chart.filter((a) => a.role === "cash");
+  const currency = spec.currency || "USD";
+  const currencies = (state.currencies || []).map((c) => c.code);
+  if (currencies.indexOf(currency) < 0) currencies.unshift(currency);
+  let html = '<div class="eng" id="eng">';
+
+  html += "<h4>Period and basis</h4><div class=\"enggrid\">" +
+    '<label class="field">Start<input type="date" data-eng="period.start" value="' + esc(engValue(period.start)) + '"></label>' +
+    '<label class="field">End<input type="date" data-eng="period.end" value="' + esc(engValue(period.end)) + '"></label>' +
+    '<label class="field">Currency<select data-eng="currency">' +
+      currencies.map((c) => '<option' + (c === currency ? " selected" : "") + ">" + esc(c) + "</option>").join("") +
+    "</select></label>" +
+    '<label class="field">Decimal places<input type="number" min="0" max="6" step="1" data-eng="places" data-eng-int="1" value="' +
+      esc(engValue(spec.places === undefined ? 2 : spec.places)) + '"></label>' +
+    '<label class="field">Framework<select data-eng="framework">' +
+      engOpts([["IFRS", "IFRS"], ["US_GAAP", "US GAAP"], ["local", "local"]], spec.framework || "local") +
+    "</select></label></div>";
+
+  html += '<h4>Accounts</h4><p class="engnote">The chart the entries post to. Section decides the balance-sheet ' +
+    "grouping and the cash-flow classification: receivables and prepayments are current, equipment and long-term " +
+    "loans are not. A contra account (accumulated depreciation) has its own tick.</p>" +
+    '<div class="tablewrap"><table class="engtable"><thead><tr><th style="width:74px">Code</th><th>Name</th>' +
+    "<th style=\"width:96px\">Type</th><th>Statement line</th><th style=\"width:100px\">Section</th>" +
+    '<th style="width:120px">Role</th><th style="width:52px">Contra</th><th></th></tr></thead><tbody>';
+  chart.forEach((a, i) => {
+    html += "<tr>" +
+      '<td><input type="text" data-eng="chart.' + i + '.code" value="' + esc(engValue(a.code)) + '"></td>' +
+      '<td><input type="text" data-eng="chart.' + i + '.name" value="' + esc(engValue(a.name)) + '"></td>' +
+      '<td><select data-eng="chart.' + i + '.type">' + engOpts(ENG_TYPES, a.type) + "</select></td>" +
+      '<td><input type="text" data-eng="chart.' + i + '.line" value="' + esc(engValue(a.line)) + '"></td>' +
+      '<td><select data-eng="chart.' + i + '.section">' + engOpts(ENG_SECTIONS, a.section) + "</select></td>" +
+      '<td><select data-eng="chart.' + i + '.role">' + engOpts(ENG_ROLES, a.role) + "</select></td>" +
+      '<td style="text-align:center"><input type="checkbox" data-eng="chart.' + i + '.contra" data-eng-bool="1"' +
+        (a.contra === true ? " checked" : "") + ' style="width:auto"></td>' +
+      '<td><button class="rm" type="button" data-eng-remove="account" data-i="' + i + '" title="Remove account">&times;</button></td>' +
+      "</tr>";
+  });
+  html += "</tbody></table></div>" +
+    '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" data-eng-add="account">Add an account</button></div>';
+
+  html += '<h4>Opening balances</h4><p class="engnote">The balance on each account at the start of the period, ' +
+    "on its natural side (a contra account is on the other side). The opening entry is built from these, so it " +
+    "always agrees with them.</p>" +
+    '<div class="tablewrap"><table class="engtable"><thead><tr><th>Account</th>' +
+    '<th class="num" style="width:150px">Balance</th><th style="width:54px">Side</th></tr></thead><tbody>';
+  chart.forEach((a) => {
+    const code = String(a.code || "");
+    html += '<tr><td>' + esc(code + " " + (a.name || "")) + "</td>" +
+      '<td><input class="num" type="text" inputmode="decimal" data-eng-prior="' + esc(code) + '" value="' +
+        esc(engValue(priors[code] === undefined ? "0" : priors[code])) + '" style="text-align:right"></td>' +
+      "<td>" + (engSide(a) === "D" ? "Dr" : "Cr") + "</td></tr>";
+  });
+  html += '</tbody></table></div><p class="engnote" id="eng-open-status"></p>';
+
+  html += '<h4>Journal entries</h4><p class="engnote">Each entry must balance. The tick turns red with the ' +
+    "amount it is out by, so the engine never has to refuse it.</p>";
+  entries.forEach((e, i) => {
+    const lines = e.lines || [];
+    html += '<div class="engentry"><div class="engentryhead">' +
+      '<input type="date" data-eng="entries.' + i + '.date" value="' + esc(engValue(e.date)) + '" style="max-width:160px">' +
+      '<input type="text" data-eng="entries.' + i + '.description" value="' + esc(engValue(e.description)) +
+        '" placeholder="what happened (sale, rent, wages...)">' +
+      '<span class="engbal" data-eng-status="' + i + '">' + engStatusText(lines) + "</span>" +
+      '<button class="rm" type="button" data-eng-remove="entry" data-i="' + i + '" title="Remove entry">&times;</button></div>' +
+      '<table class="engtable"><thead><tr><th>Account</th><th style="width:64px">Dr/Cr</th>' +
+      '<th style="width:130px" class="num">Amount</th><th style="width:26px"></th></tr></thead><tbody>';
+    lines.forEach((l, j) => {
+      const side = l.debit !== undefined ? "D" : "C";
+      const amount = l.debit !== undefined ? l.debit : l.credit;
+      html += "<tr><td>" + engAccountSelect(i, j, l.account) + "</td>" +
+        '<td><select data-eng-line="' + i + "." + j + '" data-field="side">' + engOpts([["D", "Dr"], ["C", "Cr"]], side) + "</select></td>" +
+        '<td><input class="num" type="text" inputmode="decimal" data-eng-line="' + i + "." + j +
+          '" data-field="amount" value="' + esc(engValue(amount)) + '" style="text-align:right"></td>' +
+        '<td><button class="rm" type="button" data-eng-remove="line" data-i="' + i + '" data-j="' + j + '" title="Remove line">&times;</button></td></tr>';
+    });
+    html += '</tbody></table><div class="row" style="margin-top:5px">' +
+      '<button class="btn sm" type="button" data-eng-add="line" data-i="' + i + '">Add a line</button></div></div>';
+  });
+  html += '<div class="row"><button class="btn sm" type="button" data-eng-add="entry">Add an entry</button></div>';
+
+  const recOn = !!(rec && rec.account);
+  html += "<h4>Bank statement</h4>" +
+    '<label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="eng-recon"' +
+      (recOn ? " checked" : "") + ' style="width:auto"><span>Reconcile a bank statement against a cash account</span></label>';
+  if (recOn) {
+    const st = rec.statement || {};
+    html += '<div class="enggrid" style="margin-top:8px">' +
+      '<label class="field">Cash account<select data-eng="reconciliation.account">' +
+        cash.map((a) => '<option value="' + esc(a.code) + '"' + (a.code === rec.account ? " selected" : "") + ">" +
+          esc(a.code + " " + (a.name || "")) + "</option>").join("") + "</select></label>" +
+      '<label class="field">Statement opening balance<input type="text" inputmode="decimal" data-eng="reconciliation.statement.opening_balance" value="' +
+        esc(engValue(st.opening_balance)) + '"></label>' +
+      '<label class="field">Statement closing balance<input type="text" inputmode="decimal" data-eng="reconciliation.statement.closing_balance" value="' +
+        esc(engValue(st.closing_balance)) + '"></label></div>' +
+      '<div class="tablewrap" style="margin-top:8px"><table class="engtable"><thead><tr><th style="width:150px">Date</th>' +
+      "<th>Description</th><th style=\"width:130px\" class=\"num\">Amount</th><th style=\"width:90px\">Direction</th><th></th></tr></thead><tbody>";
+    (st.lines || []).forEach((l, i) => {
+      html += '<tr><td><input type="date" data-eng-rec="' + i + '" data-field="date" value="' + esc(engValue(l.date)) + '"></td>' +
+        '<td><input type="text" data-eng-rec="' + i + '" data-field="description" value="' + esc(engValue(l.description)) + '"></td>' +
+        '<td><input class="num" type="text" inputmode="decimal" data-eng-rec="' + i + '" data-field="amount" value="' +
+          esc(engValue(l.amount)) + '" style="text-align:right"></td>' +
+        '<td><select data-eng-rec="' + i + '" data-field="direction">' + engOpts([["in", "money in"], ["out", "money out"]], l.direction) + "</select></td>" +
+        '<td><button class="rm" type="button" data-eng-remove="recon-line" data-i="' + i + '" title="Remove line">&times;</button></td></tr>';
+    });
+    html += '</tbody></table></div><div class="row" style="margin-top:6px">' +
+      '<button class="btn sm" type="button" data-eng-add="recon-line">Add a statement line</button></div>';
+  }
+
+  html += '<details class="engadv"><summary>Advanced: the engagement as JSON</summary>' +
+    '<p class="engnote">Depreciation, disposals, prepayments, deferred income, bad debts, revaluations and policy ' +
+    "changes are declared here. The form above covers the accounts, the opening balances, the entries and the bank " +
+    "statement; this box always shows exactly what will be posted.</p>" +
+    '<textarea id="eng-json" rows="12" class="jsoninput" spellcheck="false">' +
+      esc(JSON.stringify(engSerialise(), null, 1)) + "</textarea>" +
+    '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" id="eng-load">Load this JSON</button>' +
+      '<span class="muted" id="eng-json-msg"></span></div></details>';
+
+  html += '</div><textarea id="in-spec" data-type="object" hidden></textarea>';
+  return '<div class="stack" style="gap:4px">' + html + "</div>";
+}
+
+function engSync() {
+  const spec = engSerialise();
+  const box = document.getElementById("in-spec");
+  if (box) box.value = JSON.stringify(spec);
+  const adv = document.getElementById("eng-json");
+  if (adv) adv.value = JSON.stringify(spec, null, 1);
+  engRefresh(spec);
+}
+
+function engRefresh(spec) {
+  spec = spec || engSerialise();
+  (spec.entries || []).forEach((e, i) => {
+    const el = document.querySelector('[data-eng-status="' + i + '"]');
+    if (el) el.innerHTML = engStatusText(e.lines);
+  });
+  const box = document.getElementById("eng-open-status");
+  if (box) {
+    const t = engTotals(((spec.opening || [])[0] || {}).lines || []);
+    box.innerHTML = (t.dr || t.cr)
+      ? (t.ok ? '<span class="ok">The opening entry balances: Dr ' + engMoney(t.dr) + "</span>"
+              : '<span class="bad">The opening balances do not balance: Dr ' + engMoney(t.dr) +
+                " &middot; Cr " + engMoney(t.cr) + "</span>")
+      : "No opening balances.";
+  }
+}
+
+function engRedraw() {
+  const host = document.getElementById("eng");
+  if (!host) return;
+  host.outerHTML = engShell();
+  engBind();
+  engSync();
+}
+
+function engAdd(kind, i) {
+  const spec = state.engagement;
+  const chart = spec.chart || (spec.chart = []);
+  const first = (chart[0] || {}).code || "";
+  if (kind === "account") chart.push({ code: "", name: "", type: "expense", line: "", section: "" });
+  if (kind === "entry") {
+    spec.entries = spec.entries || [];
+    spec.entries.push({ date: (spec.period || {}).start || "", description: "",
+                        lines: [{ account: first, debit: "" }, { account: first, credit: "" }] });
+  }
+  if (kind === "line") {
+    const entry = spec.entries[i]; entry.lines = entry.lines || [];
+    entry.lines.push({ account: first, debit: "" });
+  }
+  if (kind === "recon-line") {
+    const st = ((spec.reconciliation || {}).statement) || {};
+    st.lines = st.lines || [];
+    st.lines.push({ date: (spec.period || {}).end || "", description: "", amount: "", direction: "in" });
+    spec.reconciliation.statement = st;
+  }
+  engRedraw();
+}
+
+function engRemove(kind, i, j) {
+  const spec = state.engagement;
+  if (kind === "account") {
+    const code = ((spec.chart || [])[i] || {}).code;
+    (spec.chart || []).splice(i, 1);
+    if (code && spec.prior_closing) delete spec.prior_closing[code];
+  }
+  if (kind === "entry") (spec.entries || []).splice(i, 1);
+  if (kind === "line") ((spec.entries || [])[i].lines || []).splice(j, 1);
+  if (kind === "recon-line") (((spec.reconciliation || {}).statement || {}).lines || []).splice(i, 1);
+  engRedraw();
+}
+
+function engBind() {
+  const host = document.getElementById("eng");
+  if (!host) return;
+  const setPath = (path, value) => {
+    const parts = path.split(".");
+    let node = state.engagement;
+    for (let k = 0; k < parts.length - 1; k++) {
+      const key = parts[k];
+      if (node[key] === undefined || node[key] === null || typeof node[key] !== "object")
+        node[key] = /^\d+$/.test(parts[k + 1]) ? [] : {};
+      node = node[key];
+    }
+    node[parts[parts.length - 1]] = value;
+  };
+  const edit = (ev) => {
+    const el = ev.target;
+    if (el.dataset.eng) {
+      setPath(el.dataset.eng, el.dataset.engBool ? el.checked : (el.dataset.engInt ? Number(el.value) : el.value));
+      engSync();
+      return;
+    }
+    if (el.dataset.engPrior) {
+      state.engagement.prior_closing = state.engagement.prior_closing || {};
+      state.engagement.prior_closing[el.dataset.engPrior] = el.value;
+      engSync();
+      return;
+    }
+    if (el.dataset.engLine) {
+      const pair = el.dataset.engLine.split(".").map(Number);
+      const entry = state.engagement.entries[pair[0]];
+      const line = entry.lines[pair[1]] || (entry.lines[pair[1]] = {});
+      const field = el.dataset.field;
+      if (field === "account") line.account = el.value;
+      else if (field === "side") {
+        const amount = line.debit !== undefined ? line.debit : (line.credit !== undefined ? line.credit : "");
+        delete line.debit; delete line.credit;
+        if (String(amount).trim() !== "") line[el.value === "D" ? "debit" : "credit"] = String(amount);
+      } else {
+        const useDebit = line.debit !== undefined;
+        delete line.debit; delete line.credit;
+        if (String(el.value).trim() !== "") line[useDebit ? "debit" : "credit"] = el.value;
+      }
+      engSync();
+      return;
+    }
+    if (el.dataset.engRec) {
+      const st = state.engagement.reconciliation.statement;
+      const line = st.lines[Number(el.dataset.engRec)] || (st.lines[Number(el.dataset.engRec)] = {});
+      line[el.dataset.field] = el.value;
+      engSync();
+      return;
+    }
+    if (el.id === "eng-recon") {
+      if (el.checked) {
+        const cash = (state.engagement.chart || []).filter((a) => a.role === "cash")[0];
+        state.engagement.reconciliation = { account: cash ? cash.code : "",
+          statement: { opening_balance: "0", closing_balance: "0", lines: [] } };
+      } else { delete state.engagement.reconciliation; }
+      engRedraw();
+    }
+  };
+  host.addEventListener("input", edit);
+  host.addEventListener("change", edit);
+  host.addEventListener("click", (ev) => {
+    const add = ev.target.closest("[data-eng-add]");
+    const rm = ev.target.closest("[data-eng-remove]");
+    if (add) { engAdd(add.dataset.engAdd, Number(add.dataset.i)); return; }
+    if (rm) { engRemove(rm.dataset.engRemove, Number(rm.dataset.i), Number(rm.dataset.j)); return; }
+    if (ev.target.id === "eng-load") {
+      const box = document.getElementById("eng-json");
+      const msg = document.getElementById("eng-json-msg");
+      try {
+        const parsed = JSON.parse(box.value);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("the engagement must be an object");
+        state.engagement = parsed;
+        engRedraw();
+        if (msg) msg.textContent = "Loaded.";
+      } catch (e) { if (msg) msg.textContent = "That is not valid JSON: " + e.message; }
+    }
+  });
+  engSync();
+}
+
 function inputField(name, spec, plan) {
   const type = (spec && spec.type) || "text";
   const desc = type === "engagement_spec"
@@ -1392,13 +1932,17 @@ function inputField(name, spec, plan) {
     : ((spec && spec.desc) || "");
   const value = inputValue(name, spec, plan);
   const label = type === "engagement_spec" ? "The engagement" : name;
+  if (type === "engagement_spec") {
+    state.engagement = engFromValue(value);
+    return engShell();
+  }
   if (type === "decimal_list") {
     const text = Array.isArray(value) ? value.join(", ") : String(value || "");
     return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(name) +
       ' <span class="muted">' + esc(desc) + "</span></label>" +
       '<input type="text" id="in-' + esc(name) + '" data-type="decimal_list" value="' + esc(text) + '" placeholder="comma separated"></div>';
   }
-  if (type === "object" || type === "array" || type === "engagement_spec" ||
+  if (type === "object" || type === "array" ||
       (value !== null && typeof value === "object")) {
     const text = typeof value === "string" ? value : JSON.stringify(value || (type === "array" ? [] : {}), null, 1);
     const rows = Math.min(16, Math.max(4, text.split("\n").length + 1));
@@ -1449,7 +1993,7 @@ function renderNew() {
         '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="confirmmap">Confirm the account mapping and post</button>' +
         '<button class="btn" id="reject">Reject</button></div>' +
         '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
-        '<pre class="json">' + esc(JSON.stringify(s.account_mapping || {}, null, 1)) + "</pre>"
+        mappingTable(s.account_mapping)
       : '<h2>Enter the figures</h2>' +
         '<p class="sub">These are the figures the engine will post. The engagement is declared once: the period, the chart, ' +
         'the opening balances, the entries and any schedules. Change a figure, then run it.</p>' +
@@ -1501,6 +2045,7 @@ function renderNew() {
     html += '<div class="card"><h2>Suggested frameworks (informational)</h2><p class="muted">' + esc(suggested.none_reason) + "</p></div>";
   }
   $("#panel-new").innerHTML = html;
+  if (document.getElementById("eng")) engBind();
   const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
   const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
   const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
