@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - Equity quote fallbacks with internal ceilings
+
+**Ask.** Keep Alpha Vantage primary while starting, then fall back to Massive (5 requests/minute; put the ceiling internally) and QVeris (credits, top-up).
+
+**Did.** `equity_quote` is now a chain: Alpha Vantage, then Massive's previous close, then a declared QVeris capability. Each provider has a key env and an internal ceiling (Alpha 25/day and 5/min, Massive 5/min, QVeris 60/min), all overridable. A missing key skips the provider; a reached ceiling or vendor rate limit skips to the next; the payload records `provider` and `attempts`. `/api/market/status` lists the chain. Keys stay in the query/header and URLs are redacted. QVeris requires `BP_QVERIS_TOOL_ID` and `BP_QVERIS_PRICE_PATH`, so it cannot guess a capability schema.
+
+**Verified.** `tests/test_product_marketdata.py` grows to 26: Alpha primary, Massive fallback after an Alpha rate limit, the internal Massive ceiling producing a named quota error, the no-key message naming every variable, status order, and QVeris staying unconfigured until its contract is declared. Full suite 1716 tests green.
+
+**Files.** `src/bp/product/marketdata.py`, `web/index.html`, `tests/test_product_marketdata.py`.
+
 ## 2026-10-29 - Plain-language checks and a quota fallback
 
 **Ask.** "Do we have to show this to users" (the raw check names) and "do we have a fallback if we exceeded the 25 per day limit?"

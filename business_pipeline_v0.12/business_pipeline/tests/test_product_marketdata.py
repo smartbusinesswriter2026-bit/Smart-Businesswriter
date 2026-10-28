@@ -131,13 +131,16 @@ class EquityTest(unittest.TestCase):
     def setUp(self):
         marketdata.clear_cache()
         self.real = marketdata._fetch
-        self.previous = os.environ.get("BP_ALPHAVANTAGE_KEY")
+        self.saved = {key: os.environ.get(key) for key in PROVIDER_KEYS}
+        for key in PROVIDER_KEYS:
+            os.environ.pop(key, None)
         os.environ["BP_ALPHAVANTAGE_KEY"] = "secret123"
 
     def tearDown(self):
         marketdata._fetch = self.real
-        if self.previous is None: os.environ.pop("BP_ALPHAVANTAGE_KEY", None)
-        else: os.environ["BP_ALPHAVANTAGE_KEY"] = self.previous
+        for key, value in self.saved.items():
+            if value is None: os.environ.pop(key, None)
+            else: os.environ[key] = value
         marketdata.clear_cache()
 
     def test_a_quote_records_the_price_and_redacts_the_key(self):
@@ -188,6 +191,103 @@ class EquityTest(unittest.TestCase):
         marketdata._fetch = FakeFetch(b'{"Information":"Thank you for using Alpha Vantage! Our standard API rate limit is 25 requests per day. Please subscribe to a premium plan."}')
         with self.assertRaises(marketdata.MarketDataQuota):
             marketdata.equity_quote("AAPL")
+
+
+MASSIVE_QUOTE = b"""{"adjusted":true,"queryCount":1,"request_id":"r1",
+ "results":[{"T":"AAPL","c":345.67,"h":350,"l":340,"o":344,"t":1761609600000,"v":1000,"vw":345.1}],
+ "resultsCount":1,"status":"OK","ticker":"AAPL"}"""
+
+PROVIDER_KEYS = ("BP_ALPHAVANTAGE_KEY", "BP_MASSIVE_KEY", "BP_QVERIS_KEY", "BP_QVERIS_TOOL_ID",
+                 "BP_QVERIS_PRICE_PATH", "BP_ALPHA_DAILY_CEILING", "BP_ALPHA_PER_MINUTE_CEILING",
+                 "BP_MASSIVE_PER_MINUTE_CEILING", "BP_QVERIS_PER_MINUTE_CEILING")
+
+
+class Router:
+    def __init__(self, alpha_body, massive_body=MASSIVE_QUOTE):
+        self.alpha_body, self.massive_body, self.calls = alpha_body, massive_body, []
+
+    def __call__(self, url):
+        self.calls.append(url)
+        if "alphavantage.co" in url:
+            return self.alpha_body, url
+        if "api.massive.com" in url:
+            return self.massive_body, url
+        raise AssertionError("unexpected URL: " + url)
+
+
+class ProviderChainTest(unittest.TestCase):
+    def setUp(self):
+        marketdata.clear_cache()
+        self.real = marketdata._fetch
+        self.saved = {key: os.environ.get(key) for key in PROVIDER_KEYS}
+        for key in PROVIDER_KEYS:
+            os.environ.pop(key, None)
+
+    def tearDown(self):
+        marketdata._fetch = self.real
+        for key, value in self.saved.items():
+            if value is None: os.environ.pop(key, None)
+            else: os.environ[key] = value
+        marketdata.clear_cache()
+
+    def test_alpha_is_primary_when_it_answers(self):
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "a"
+        os.environ["BP_MASSIVE_KEY"] = "m"
+        marketdata._fetch = Router(AV_QUOTE)
+        out = marketdata.equity_quote("AAPL")
+        self.assertEqual(out["provider"], "Alpha Vantage")
+        self.assertEqual(out["attempts"], [])
+        self.assertEqual(out["value"], "230.50")
+
+    def test_massive_is_the_fallback_when_alpha_is_limited(self):
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "a"
+        os.environ["BP_MASSIVE_KEY"] = "m"
+        marketdata._fetch = Router(b'{"Note":"Thank you for using Alpha Vantage! Our standard API rate limit is 25 requests per day."}')
+        out = marketdata.equity_quote("AAPL")
+        self.assertEqual(out["provider"], "Massive")
+        self.assertEqual(out["value"], "345.67")
+        self.assertEqual(out["source"], "Massive (previous close)")
+        self.assertRegex(out["as_of"], r"\d{4}-\d{2}-\d{2}")
+        self.assertIn("rate limit", out["attempts"][0]["error"])
+        self.assertNotIn("apiKey=m", out["source_url"])
+        self.assertIn("apiKey=***", out["source_url"])
+
+    def test_the_internal_massive_ceiling_skips_to_a_named_limit(self):
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "a"
+        os.environ["BP_MASSIVE_KEY"] = "m"
+        os.environ["BP_MASSIVE_PER_MINUTE_CEILING"] = "1"
+        marketdata._fetch = Router(b'{"Note":"alpha rate limit reached"}')
+        first = marketdata.equity_quote("AAPL")
+        self.assertEqual(first["provider"], "Massive")
+        with self.assertRaises(marketdata.MarketDataQuota) as caught:
+            marketdata.equity_quote("MSFT")
+        self.assertIn("internal ceiling", str(caught.exception))
+        self.assertIn("limit", str(caught.exception))
+
+    def test_without_any_key_the_chain_names_the_variables(self):
+        with self.assertRaises(marketdata.MarketDataError) as caught:
+            marketdata.equity_quote("AAPL")
+        self.assertIn("BP_ALPHAVANTAGE_KEY", str(caught.exception))
+        self.assertIn("BP_MASSIVE_KEY", str(caught.exception))
+        self.assertIn("BP_QVERIS_TOOL_ID", str(caught.exception))
+
+    def test_status_lists_the_chain_in_order(self):
+        out = marketdata.status()
+        self.assertEqual([row["name"] for row in out["equity_providers"]],
+                         ["Alpha Vantage", "Massive", "QVeris"])
+        self.assertFalse(out["sources"]["equity"])
+        os.environ["BP_MASSIVE_KEY"] = "m"
+        out = marketdata.status()
+        self.assertTrue(out["sources"]["equity"])
+        self.assertTrue([row for row in out["equity_providers"] if row["name"] == "Massive"][0]["configured"])
+
+    def test_qveris_is_skipped_until_its_contract_is_declared(self):
+        os.environ["BP_QVERIS_KEY"] = "q"
+        self.assertFalse([row for row in marketdata.status()["equity_providers"]
+                          if row["name"] == "QVeris"][0]["configured"])
+        with self.assertRaises(marketdata.MarketDataError) as caught:
+            marketdata.equity_quote("AAPL")
+        self.assertIn("BP_QVERIS_TOOL_ID", str(caught.exception))
 
 
 class SecTest(unittest.TestCase):
