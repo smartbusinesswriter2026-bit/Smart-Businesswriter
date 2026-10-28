@@ -392,7 +392,7 @@ def handle(method, path, body=None):
                 record, payload = paper_store.read(segments[1])
             except paper_store.NotFound:
                 return 404, {"error": "no such document"}
-            return 200, payload, paper_store.MIME
+            return 200, payload, (record or {}).get("mime") or paper_store.MIME
         return 404, {"error": "no such document"}
 
     if segments == ["frameworks", "complete"]:

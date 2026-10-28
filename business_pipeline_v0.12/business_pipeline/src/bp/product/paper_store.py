@@ -17,6 +17,10 @@ import re
 import time
 
 MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+ZIP_MIME = "application/zip"
+#: A shipped sample is a Word file, or a ZIP holding the paper and its explainer
+#: exactly as the export route produces them.
+MIME_BY_EXT = {".docx": MIME, ".zip": ZIP_MIME}
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
@@ -33,6 +37,11 @@ SAMPLE_TITLES = {
                                     "Five Forces", "Full paper"),
     "five-forces-completion-draft.docx": ("Porter's Five Forces: Apple's Entry into Iran's Smartphone Industry",
                                           "Five Forces", "Draft"),
+    # One framework and one computation, exported as the student's export is:
+    # a ZIP holding the paper and its computation explainer.
+    "pestel-and-break-even-tehran-device-store-submission.zip": (
+        "PESTEL and Break-even: A Tehran Device Store", "PESTEL + break-even",
+        "Paper + explainer"),
 }
 
 
@@ -96,7 +105,9 @@ def _samples():
     except OSError:
         return rows
     for name in names:
-        if not name.lower().endswith(".docx"):
+        extension = os.path.splitext(name)[1].lower()
+        mime = MIME_BY_EXT.get(extension)
+        if mime is None:
             continue
         path = os.path.join(SAMPLES, name)
         try:
@@ -105,17 +116,26 @@ def _samples():
         except OSError:
             continue
         title, framework, version = SAMPLE_TITLES.get(
-            name, (re.sub(r"[-_]+", " ", name[:-5]).strip().title(), "Sample", "Sample"))
-        doc_id = "sample-" + re.sub(r"[^a-z0-9]+", "-", name[:-5].lower()).strip("-")
+            name, (re.sub(r"[-_]+", " ", os.path.splitext(name)[0]).strip().title(), "Sample", "Sample"))
+        doc_id = "sample-" + re.sub(r"[^a-z0-9]+", "-", os.path.splitext(name)[0].lower()).strip("-")
         rows.append({"id": doc_id, "title": title, "framework": framework, "version": version,
                      "created": created, "size": size, "words": 0, "filename": name,
-                     "download": "/api/cases/documents/" + doc_id, "sample": True})
+                     "download": "/api/cases/documents/" + doc_id, "sample": True, "mime": mime})
     return rows
+
+
+LABELS = {"full": "Full paper", "draft": "Draft"}
 
 
 def listing():
     """Newest first: the student's papers, then the shipped samples."""
-    rows = [row for row in _index() if row.get("id")]
+    rows = []
+    for row in _index():
+        if not row.get("id"):
+            continue
+        row = dict(row)
+        row["version"] = LABELS.get(str(row.get("version") or "").lower(), row.get("version") or "")
+        rows.append(row)
     return {"documents": rows + _samples()}
 
 

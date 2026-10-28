@@ -27,6 +27,29 @@ The script runs `chat.start`, answers the question bank, confirms the plan, draf
 `chat.docx_bytes`, which enforces the export gate and renders `bp.product.docx.render_academic`. If the
 conductor or the formatter changes, rebuilding the samples shows the change — they cannot silently drift.
 
+## The Home-page bundle: one framework and one computation
+
+`samples/pestel-and-break-even-tehran-device-store-submission.zip` is the worked example the Home page
+lists under **Documents**. It is one PESTEL paper with one break-even computation, exported exactly as a
+student's export is: a ZIP holding the paper and its computation explainer.
+
+- the paper carries the six PESTEL dimensions with a frozen source in each, one recorded break-even
+  (fixed 2,000,000; price 40,000; variable 28,000) and a declared-inputs line the gate checks;
+- the explainer is `explain.paper_document` over the same recorded case: the question, why the method,
+  the declared formula, the figures, the result, the limits and the likely questions.
+
+Rebuild it with:
+
+```powershell
+Set-Location "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline"
+$env:PYTHONPATH="src;scripts"
+python scripts\build_home_sample.py
+```
+
+The script runs `chat.start`, the question bank, `confirm_plan`, the break-even capability, the evidence
+seeding and `chat.draft`, then `chat.docx_bytes` and `explain.paper_document`; nothing is typed by hand,
+so the sample cannot drift from the product.
+
 ## Where the evidence comes from
 
 `scripts/sample_evidence.py` holds nine records already cited in this repository's Apple-Iran paper

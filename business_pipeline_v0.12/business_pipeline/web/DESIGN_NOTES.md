@@ -788,3 +788,17 @@ Measured after the change (Chrome, device pixel ratio 1):
 - Open (1400x900): unchanged - strip 0 -> 45 px, glyph 18.5 -> 37.5 px, the label column and the
   "SUBJECTS" heading both at 55 px, the open chevron at 249 -> 267 px.
 - The full suite passes, and `scripts/ui_smoke.py` passes against the served page.
+
+## 18. The Home page carries one worked example, paper and explainer
+
+The Documents card on Home listed only Word samples, so a student could inspect a finished paper but never
+see what the product now ships beside it. The conductor's export is a ZIP holding the paper and its
+computation explainer, and a sample that does not show that is a sample of the wrong thing.
+
+`samples/pestel-and-break-even-tehran-device-store-submission.zip` is one PESTEL paper with one break-even
+computation, built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student
+exports: `chat.docx_bytes` plus `explain.paper_document`. The store now lists a `.zip` sample with its own
+MIME, so the download is served as `application/zip` and the card reads "PESTEL + break-even · Paper +
+explainer". The explainer also stopped printing empty fields for a conductor paper ("Profile: Paper (, ).")
+and now names the framework, lists the draft's own sections and formats recorded figures (166.6667, not fifty
+digits); a declared word such as "monthly" is never rewritten.

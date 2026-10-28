@@ -24,6 +24,7 @@ import json
 import os
 import re
 import zipfile
+from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 
 from . import docx
@@ -36,6 +37,14 @@ HTML_MIME = "text/html; charset=utf-8"
 ZIP_MIME = "application/zip"
 
 _DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "explain_contracts_v0_1.json")
+
+#: The conductor framework as a reader knows it.  A chat paper has no profile label
+#: on its plan, so the explainer names the framework here.
+_FRAMEWORK_LABELS = {
+    "pestel": "PESTEL", "swot": "SWOT", "pestel_swot": "PESTEL and SWOT",
+    "five_forces": "Five Forces", "five_forces_breakeven": "Five Forces and break-even",
+    "value_chain": "Value chain", "ansoff": "Ansoff", "vrio": "VRIO", "breakeven": "Break-even",
+}
 
 
 class ExplainError(ValueError):
@@ -201,6 +210,24 @@ def _record(bundle):
     }
 
 
+def _figure(value):
+    """A recorded figure as a reader reads it: 2,000,000 and 166.6667, not 50 digits.
+
+    Only a number is touched; a declared word ("monthly", "SAR 1.2m") is returned
+    exactly as it was recorded, because the explainer may not rewrite an input.
+    """
+    text = _text(value)
+    try:
+        number = Decimal(text)
+    except (InvalidOperation, ValueError):
+        return text
+    if not number.is_finite():
+        return text
+    if number == number.to_integral_value():
+        return format(number.to_integral_value(), ",f")
+    return format(number.quantize(Decimal("0.0001")).normalize(), ",f")
+
+
 def _input_rows(contract, inputs, provenance):
     rows = []
     schema = contract.get("inputs") or {}
@@ -212,7 +239,7 @@ def _input_rows(contract, inputs, provenance):
         source = {"user": "declared by you", "owner": "declared by you",
                   "engine": "recorded by the engine", "default": "method default"}.get(source, source)
         rows.append([_humanise(name), spec.get("desc") or "declared input",
-                     _text(inputs.get(name)), source])
+                     _figure(inputs.get(name)), source])
     return rows
 
 
@@ -221,10 +248,10 @@ def _output_rows(artifacts, outputs):
     if artifacts:
         for row in artifacts:
             rows.append([_humanise(row.get("metric") or row.get("id")),
-                         _text(row.get("value")), row.get("derivation") or ""])
+                         _figure(row.get("value")), row.get("derivation") or ""])
         return rows
     for name in sorted(outputs or {}):
-        rows.append([_humanise(name), _text(outputs[name]), ""])
+        rows.append([_humanise(name), _figure(outputs[name]), ""])
     return rows
 
 
@@ -244,13 +271,13 @@ _HEADLINE_KEYS = (
 def _headline(outputs, artifacts):
     if artifacts:
         first = artifacts[0]
-        return _humanise(first.get("metric") or first.get("id")) + ": " + _text(first.get("value"))
+        return _humanise(first.get("metric") or first.get("id")) + ": " + _figure(first.get("value"))
     outputs = outputs or {}
     for name in _HEADLINE_KEYS:
         if name in outputs:
-            return _humanise(name) + ": " + _text(outputs[name])
+            return _humanise(name) + ": " + _figure(outputs[name])
     for name in outputs:
-        return _humanise(name) + ": " + _text(outputs[name])
+        return _humanise(name) + ": " + _figure(outputs[name])
     return ""
 
 
@@ -543,11 +570,25 @@ def paper_document(state):
         raise ExplainError("this paper records no computation to explain")
     title = draft.get("title") or state.get("brief") or "Paper"
     plan = state.get("plan") or {}
+    framework = str(state.get("framework") or plan.get("framework") or "").lower()
     profile = state.get("profile") or plan.get("profile") or "paper"
-    profile_label = plan.get("label") or _humanise(profile)
+    profile_label = plan.get("label") or ""
+    if not profile_label:
+        profile_label = (_FRAMEWORK_LABELS.get(framework, _humanise(framework)) + " paper"
+                         if framework else _humanise(profile))
     level = state.get("level") or plan.get("level")
     level_label = state.get("level_label") or plan.get("level_label") or _humanise(level)
     mode_label = state.get("mode_label") or plan.get("mode_label") or _humanise(state.get("mode") or plan.get("mode"))
+    # A chat paper records its sections on the draft; a business plan records them
+    # on the plan.  Read whichever exists, and omit the sentence when neither does.
+    headings = [item.get("heading") for item in (draft.get("outline") or []) if item.get("heading")]
+    if not headings:
+        headings = [item.get("heading") for item in (plan.get("sections") or []) if item.get("heading")]
+    built = ["Profile: " + _text(profile_label)
+             + (" (" + ", ".join(_text(part) for part in (level_label, mode_label) if part) + ")"
+                if any((level_label, mode_label)) else "") + "."]
+    if headings:
+        built.append("Sections: " + _sentence_list(headings) + ".")
     count = len(computations)
     count_label = str(count) + " computation" + ("" if count == 1 else "s")
     sections = [
@@ -556,11 +597,7 @@ def paper_document(state):
             "The paper records the decision, the framework and every figure below; this companion explains "
             "how those parts were solved.",
         ]),
-        _section("How the paper is built", paragraphs=[
-            "Profile: " + _text(profile_label) + " (" + _text(level_label)
-            + ", " + _text(mode_label) + ").",
-            "Sections: " + _sentence_list([item.get("heading") for item in (plan.get("sections") or [])]) + ".",
-        ]),
+        _section("How the paper is built", paragraphs=built),
     ]
     gaps = [str(gap) for gap in (state.get("gaps") or []) if str(gap or "").strip()]
     sections.append(_section(

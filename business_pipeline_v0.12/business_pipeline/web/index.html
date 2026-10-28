@@ -1414,7 +1414,8 @@ async function loadHomeDocuments() {
       return;
     }
     box.innerHTML = '<h3 style="margin-top:0">Documents</h3>' +
-      '<p class="muted">Your generated papers and the sample papers. Download opens the Word file.</p>' +
+      '<p class="muted">Your generated papers and the sample papers. Download opens the Word file; ' +
+      'a sample bundle opens as a ZIP holding the paper and its computation explainer.</p>' +
       '<div class="stack" style="gap:10px">' + rows.map((row) => {
         const meta = [row.framework, row.version, row.words ? row.words + " words" : "",
                       Math.max(1, Math.round((row.size || 0) / 1024)) + " KB",

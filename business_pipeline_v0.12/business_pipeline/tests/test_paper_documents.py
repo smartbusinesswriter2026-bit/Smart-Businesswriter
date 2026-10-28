@@ -19,6 +19,8 @@ class PaperStoreTest(unittest.TestCase):
         os.makedirs(self.samples)
         with open(os.path.join(self.samples, "demo-paper.docx"), "wb") as handle:
             handle.write(b"sample-bytes")
+        with open(os.path.join(self.samples, "worked-example.zip"), "wb") as handle:
+            handle.write(b"zip-bytes")
         self.patch = mock.patch.multiple(paper_store, STORE=self.store, INDEX=self.index,
                                          SAMPLES=self.samples)
         self.patch.start()
@@ -46,6 +48,14 @@ class PaperStoreTest(unittest.TestCase):
         self.assertEqual(data, b"sample-bytes")
         self.assertTrue(record["sample"])
 
+    def test_a_sample_bundle_is_listed_and_served_as_a_zip(self):
+        rows = {row["id"]: row for row in paper_store.listing()["documents"]}
+        self.assertIn("sample-worked-example", rows)
+        self.assertEqual(rows["sample-worked-example"]["mime"], paper_store.ZIP_MIME)
+        self.assertTrue(rows["sample-worked-example"]["sample"])
+        record, data = paper_store.read("sample-worked-example")
+        self.assertEqual(data, b"zip-bytes")
+
     def test_an_unknown_or_malformed_id_is_refused(self):
         for bad in ("../../secrets", "deadbeef", "sample-../../x", ""):
             with self.assertRaises(paper_store.NotFound):
@@ -67,6 +77,8 @@ class DocumentRouteTest(unittest.TestCase):
         os.makedirs(self.samples)
         with open(os.path.join(self.samples, "demo-paper.docx"), "wb") as handle:
             handle.write(b"sample-bytes")
+        with open(os.path.join(self.samples, "worked-example.zip"), "wb") as handle:
+            handle.write(b"zip-bytes")
         self.patch = mock.patch.multiple(paper_store, STORE=self.store, INDEX=self.index,
                                          SAMPLES=self.samples)
         self.patch.start()
@@ -85,6 +97,12 @@ class DocumentRouteTest(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(payload, b"sample-bytes")
         self.assertEqual(ctype, paper_store.MIME)
+
+    def test_a_sample_bundle_downloads_as_a_zip(self):
+        code, payload, ctype = api.handle("GET", "/api/cases/documents/sample-worked-example")
+        self.assertEqual(code, 200)
+        self.assertEqual(payload, b"zip-bytes")
+        self.assertEqual(ctype, paper_store.ZIP_MIME)
 
     def test_an_unknown_document_is_a_404_not_a_path(self):
         code, payload = api.handle("GET", "/api/cases/documents/../../etc/passwd")
