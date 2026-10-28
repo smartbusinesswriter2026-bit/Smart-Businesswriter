@@ -1,0 +1,568 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Calculator ΓÇö UI mockup (no computation)</title>
+<style>
+/* ============================================================
+   MOCKUP ONLY. Self-contained. Nothing here computes anything:
+   the keypad types into fields, "=" shows a canned placeholder,
+   and the chat answers are hand-written demo responses.
+   Palette matches the served workbench (web/index.html).
+   ============================================================ */
+:root{
+  --navy-900:#02284C; --navy-700:#0C243E; --navy-500:#143E68; --navy-300:#9DB2C6; --navy-100:#E7EDF3;
+  --green-600:#02A15E; --green-100:#E2F4EC; --teal:#0E8C8C;
+  --canvas:#FCFCFC; --surface:#FFFFFF; --sunken:#F5F7F9; --border:#E4E8EC; --border-2:#EFF2F5;
+  --text:#0C243E; --text-2:#55636F; --text-3:#7A8894;
+  --amber:#B26A00; --amber-bg:#FFF7E8; --amber-line:#F0D9AE;
+  --red:#A32C2C; --red-bg:#FDEFEF; --red-line:#F2C9C9;
+  --violet:#6B4E9B; --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:16px/1.5 var(--font);color:var(--text);background:var(--canvas);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:4px}
+.visually-hidden{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---------- mockup banner ---------- */
+.mockbar{background:#2B1B00;color:#FFE9BF;border-bottom:1px solid #4A3300;padding:8px 20px;font-size:13.5px;
+         display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.mockbar strong{color:#FFC65C;letter-spacing:.04em}
+.mockbar span{opacity:.9}
+
+/* ---------- top bar (echo of the real one) ---------- */
+.topbar{height:56px;display:flex;align-items:center;gap:14px;padding:0 20px;background:var(--canvas);
+        border-bottom:1px solid var(--border);position:sticky;top:41px;z-index:40}
+.wordmark{font-size:19px;font-weight:700;color:var(--navy-900)}
+.wordmark .g{color:var(--green-600)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-2);
+      border:1px solid var(--border);background:var(--surface);border-radius:var(--r-pill);padding:4px 10px}
+.spacer{flex:1}
+
+/* ---------- panel ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:20px}
+h1{font-size:22px;margin:0 0 4px;color:var(--navy-900)}
+.sub{margin:0 0 14px;color:var(--text-2);font-size:14.5px;max-width:78ch}
+
+/* ask row */
+.askrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ask{flex:1 1 340px;display:flex;gap:8px;align-items:center;border:1px solid var(--border);border-radius:var(--r-md);
+     background:var(--surface);padding:6px 10px}
+.ask input{flex:1;border:none;background:none;padding:6px 2px;font-size:15.5px;outline:none}
+.toggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-pill);overflow:hidden;background:var(--sunken)}
+.toggle button{border:none;background:none;padding:7px 14px;cursor:pointer;font-size:14px;color:var(--text-2)}
+.toggle button[aria-pressed=true]{background:var(--navy-900);color:#fff}
+
+/* chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--border);background:var(--surface);border-radius:var(--r-pill);padding:6px 12px;
+      font-size:13.8px;cursor:pointer;color:var(--text-2)}
+.chip:hover{border-color:var(--navy-300)}
+.chip[aria-pressed=true]{border-color:var(--navy-300);background:var(--navy-100);color:var(--navy-900);font-weight:600}
+
+/* grid */
+.calc{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:18px;align-items:start}
+@media (max-width:900px){.calc{grid-template-columns:1fr}}
+
+/* display */
+.display{border:1px solid var(--navy-300);background:linear-gradient(180deg,#FBFDFF,#F3F7FB);border-radius:var(--r-md);
+         padding:14px 16px}
+.display .sent{font-family:var(--mono);font-size:15.5px;line-height:1.65;white-space:pre-wrap;min-height:74px}
+.display .sent .dim{color:var(--text-3)}
+.display .sent .live{background:#FFF3C4;border-radius:3px;padding:0 2px;font-weight:600}
+.display .unit{margin-top:8px;font-size:13.5px;color:var(--text-2);letter-spacing:.02em}
+.display .answer{margin-top:6px;font-size:14px;color:var(--text-2);border-top:1px dashed var(--border);padding-top:8px}
+
+/* keypad */
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.pad button{height:52px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);
+            font-size:19px;font-weight:600;cursor:pointer;color:var(--navy-900);box-shadow:var(--sh-1)}
+.pad button:hover{background:var(--sunken)}
+.pad button.op{color:var(--teal);font-weight:700}
+.pad button.eq{background:var(--navy-900);color:#fff;border-color:var(--navy-900)}
+.pad button.eq:hover{background:var(--navy-500)}
+.pad button:disabled{opacity:.38;cursor:not-allowed}
+.padnote{font-size:12.8px;color:var(--text-3);margin-top:8px;min-height:2.6em}
+
+/* method column */
+.mhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.mhead h2{margin:0;font-size:18px}
+.badge{font-size:12.5px;border:1px solid var(--border);border-radius:var(--r-pill);padding:3px 9px;color:var(--text-2)}
+.badge.t1{border-color:#BFE3D2;background:var(--green-100);color:#076B41}
+.field{margin-top:12px}
+.field label{display:block;font-size:13.5px;color:var(--text-2);margin-bottom:4px}
+.field input{border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;width:100%;font-family:var(--mono);font-size:15.5px}
+.field.active input{border-color:var(--navy-900);box-shadow:0 0 0 3px rgba(2,40,76,.08)}
+.field.active label{color:var(--navy-900);font-weight:600}
+.field.active label::after{content:"  ΓåÉ typing here";font-weight:400;color:var(--text-3)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:9px 14px;cursor:pointer;font-size:14.5px}
+.btn.primary{background:var(--navy-900);color:#fff;border-color:var(--navy-900)}
+.btn.primary:hover{background:var(--navy-500)}
+.note{margin-top:16px;border:1px solid var(--amber-line);background:var(--amber-bg);border-radius:var(--r-md);padding:12px 14px;font-size:13.8px;color:#6B4300}
+.note strong{display:block;margin-bottom:4px}
+details.more{margin-top:10px;font-size:13.5px;color:var(--text-2)}
+details.more summary{cursor:pointer;color:var(--navy-500)}
+details.more table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+details.more th,details.more td{text-align:left;border-bottom:1px solid var(--border-2);padding:5px 6px;vertical-align:top}
+
+/* method list */
+.mlist{margin-top:16px;border-top:1px solid var(--border-2);padding-top:10px;max-height:290px;overflow:auto}
+.mrow{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent}
+.mrow:hover{background:var(--sunken)}
+.mrow[aria-current=true]{border-color:var(--navy-300);background:var(--navy-100)}
+.mrow .fit{flex:0 0 20px;height:20px;border-radius:4px;font-size:11.5px;font-weight:700;display:grid;place-items:center;
+           background:var(--green-100);color:#076B41;border:1px solid #BFE3D2;margin-top:2px}
+.mrow .fit.b{background:#EDF1FA;color:#2E4A85;border-color:#C9D5EE}
+.mrow .fit.c{background:#F3EEF9;color:#5B3F8A;border-color:#DCCFEE}
+.mrow .mt{flex:1;min-width:0}
+.mrow .mt b{display:block;font-size:14.2px}
+.mrow .mt span{display:block;font-size:12.6px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* result card */
+.result{display:none;margin-top:18px;border:1px solid var(--border);border-radius:var(--r-md);padding:16px;background:var(--surface)}
+.result.on{display:block}
+.result h3{margin:0 0 6px;font-size:16px}
+.result .val{font-family:var(--mono);font-size:26px;color:var(--navy-900);margin:6px 0}
+.result .prov{font-size:12.8px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:8px;font-family:var(--mono)}
+.result .ph{display:inline-block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#7A4A00;
+            background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:var(--r-pill);padding:2px 8px}
+
+/* chat */
+.chat{display:none}
+.chat.on{display:block}
+.chatlog{display:flex;flex-direction:column;gap:12px;margin:6px 0 14px}
+.msg{max-width:94%;padding:10px 13px;border-radius:var(--r-md);font-size:14.5px}
+.msg.me{align-self:flex-end;background:var(--navy-100);border:1px solid #CFDCE8}
+.msg.calc{align-self:flex-start;background:var(--surface);border:1px solid var(--border)}
+.msg.calc .who{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px}
+.msg.refuse{border-color:var(--red-line);background:var(--red-bg)}
+.msg.unsup{border-color:var(--amber-line);background:var(--amber-bg)}
+.msg .alt{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.msg .alt button{font-size:13px;border:1px solid var(--navy-300);background:var(--surface);border-radius:var(--r-pill);
+                 padding:4px 10px;cursor:pointer;color:var(--navy-900)}
+.msg .no{display:block;margin-top:7px;font-size:12.6px;color:var(--text-3)}
+.chatbar{display:flex;gap:8px}
+.chatbar input{flex:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
+.demos{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.demos button{font-size:12.6px;border:1px dashed var(--border);background:var(--surface);border-radius:var(--r-pill);
+              padding:4px 10px;cursor:pointer;color:var(--text-2)}
+.demos button:hover{border-color:var(--navy-300);color:var(--navy-900)}
+</style>
+</head>
+<body>
+
+<div class="mockbar">
+  <strong>MOCKUP</strong>
+  <span>Illustrative UI only. This file computes nothing: the keypad types into fields, ΓÇ£=ΓÇ¥ shows a placeholder, and every chat reply is hand-written. Real numbers would come only from a delivery.</span>
+</div>
+
+<div class="topbar">
+  <span class="wordmark">Smart Business <span class="g">Writer</span></span>
+  <span class="spacer"></span>
+  <span class="pill">v0.74</span>
+  <span class="pill">local</span>
+</div>
+
+<div class="wrap">
+<div class="card">
+  <h1>Business Calculator</h1>
+  <p class="sub">One sentence, two keyboards. Type the figures on the keypad, or ask in words ΓÇö both build the same request, you confirm it, and the engine answers. 38 tools from 36 frozen methods. <strong>It computes nothing itself.</strong></p>
+
+  <div class="askrow">
+    <div class="ask">
+      <span aria-hidden="true">≡ƒöÄ</span>
+      <label class="visually-hidden" for="q">What do you want to work out?</label>
+      <input id="q" type="search" placeholder="What do you want to work out?  break-even, NPV, WACC, averageΓÇª">
+    </div>
+    <div class="toggle" role="group" aria-label="Input mode">
+      <button id="modePad" aria-pressed="true">Keypad</button>
+      <button id="modeChat" aria-pressed="false">Ask instead</button>
+    </div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="calc" id="viewPad">
+    <div>
+      <div class="display">
+        <div class="sent" id="sent" aria-live="polite"></div>
+        <div class="unit" id="unit"></div>
+        <div class="answer" id="answer"></div>
+      </div>
+      <div class="pad" id="pad"></div>
+      <p class="padnote" id="padnote"></p>
+    </div>
+
+    <div>
+      <div class="mhead">
+        <div><h2 id="mname">Break-even point</h2>
+          <p class="sub" id="mwhat" style="margin:2px 0 0;font-size:13.8px"></p></div>
+        <span class="badge t1" id="mtier">T1 ┬╖ v1.0.0</span>
+      </div>
+      <div id="fields"></div>
+      <div class="actions">
+        <button class="btn primary" id="eq">=  Calculate and record</button>
+        <button class="btn" id="clear">Clear</button>
+        <button class="btn" id="attach">Attach to case Γû╛</button>
+      </div>
+      <div class="note">
+        <strong>What this does not do</strong>
+        Runs recorded business methods and records how each number was produced. Bare arithmetic (2 + 2, 15% of 84,000) is not enabled ΓÇö it would be a second arithmetic path.
+        <details class="more"><summary>What it can't do at all</summary>
+          <table>
+            <tr><th>Asked for</th><th>Why not</th></tr>
+            <tr><td>VAT / income / deferred tax</td><td>Tax is out of scope in this build; no tax is computed.</td></tr>
+            <tr><td>Share prices, market forecasts</td><td>No market data exists. Trend forecast uses a series you supply.</td></tr>
+            <tr><td>Personal credit, medical, legal</td><td>No method and no advice ΓÇö outside what this engine is.</td></tr>
+          </table>
+        </details>
+      </div>
+      <div class="mlist" id="mlist" role="listbox" aria-label="Methods"></div>
+    </div>
+  </div>
+
+  <div class="chat" id="viewChat">
+    <div class="chatlog" id="chatlog"></div>
+    <div class="chatbar">
+      <label class="visually-hidden" for="ask">Ask the calculator</label>
+      <input id="ask" placeholder="e.g. break-even with 1200 fixed cost, price 20, variable 12">
+      <button class="btn primary" id="send">Ask</button>
+    </div>
+    <div class="demos" id="demos"></div>
+  </div>
+
+  <div class="result" id="result">
+    <span class="ph">placeholder ΓÇö a real run shows the delivery</span>
+    <h3 id="rname">Break-even point</h3>
+    <div class="val" id="rval">ΓÇö</div>
+    <div id="rtext" class="sub" style="margin:0"></div>
+    <div class="prov" id="rprov"></div>
+  </div>
+</div>
+</div>
+<script>
+/* ------------------------------------------------------------------
+   MOCKUP DATA. Labels and formulas are copied from the served app's
+   tool catalogue so the mockup looks like the real thing. No value
+   here is calculated; the result card prints a placeholder.
+   ------------------------------------------------------------------ */
+const GROUPS = ["All","Finance","Accounting","Statistics","Economics","Operations","Marketing","People"];
+
+const METHODS = [
+  {id:"breakeven", label:"Break-even point", group:"Finance", fit:"A", tier:"T1", v:"1.0.0",
+   what:"Solve the break-even quantity from fixed cost, price and variable cost",
+   formula:"Break-even units\n  = fixed / (price - variable)", unit:"units to break even",
+   fields:[{k:"fixed",l:"Fixed cost",p:"1200"},{k:"price",l:"Price per unit",p:"20"},{k:"variable",l:"Variable cost per unit",p:"12"}]},
+  {id:"npv", label:"Net present value", group:"Finance", fit:"A", tier:"T1", v:"1.0.0",
+   what:"Discount a project's cash flows at a declared rate and record the NPV",
+   formula:"NPV\n  = sum of cashflow / (1 + rate)^t", unit:"currency value at t=0",
+   fields:[{k:"rate",l:"Discount rate per period",p:"0.10"},{k:"cashflows",l:"Cash flows (comma separated, first at t=0)",p:"-1000, 400, 400, 400"}]},
+  {id:"irr", label:"Internal rate of return", group:"Finance", fit:"A", tier:"T1", v:"1.0.0",
+   what:"Find the rate at which the project's NPV is zero, with the declared search",
+   formula:"IRR: the rate where NPV = 0", unit:"rate per period",
+   fields:[{k:"cashflows",l:"Cash flows (comma separated, first at t=0)",p:"-1000, 400, 400, 400, 400"}]},
+  {id:"wacc", label:"Weighted average cost of capital", group:"Finance", fit:"A", tier:"T1", v:"1.0.0",
+   what:"Record the WACC from the declared capital structure and component costs",
+   formula:"WACC\n  = E/V x Re + D/V x Rd", unit:"rate",
+   fields:[{k:"equity",l:"Market value of equity",p:"6000"},{k:"debt",l:"Market value of debt",p:"4000"},
+           {k:"cost_equity",l:"Cost of equity",p:"0.12"},{k:"cost_debt",l:"After-tax cost of debt",p:"0.06"}]},
+  {id:"unitecon", label:"Unit economics", group:"Finance", fit:"A", tier:"T1", v:"1.0.0",
+   what:"Record contribution margin, CAC payback and the customer value implied",
+   formula:"Contribution margin\n  = price - variable cost", unit:"currency per unit",
+   fields:[{k:"price",l:"Price per unit",p:"40"},{k:"variable",l:"Variable cost per unit",p:"18"}]},
+  {id:"ratios", label:"Financial statement ratios", group:"Accounting", fit:"B", tier:"T1", v:"1.0.0",
+   what:"Compute the declared liquidity, profitability, solvency and efficiency ratios",
+   formula:"15 declared ratios from supplied statement figures", unit:"ratios",
+   fields:[{k:"current_assets",l:"Current assets",p:"5000"},{k:"current_liabilities",l:"Current liabilities",p:"2000"}]},
+  {id:"accounts", label:"Management accounts", group:"Accounting", fit:"C", tier:"T2", v:"1.0.0",
+   what:"Run the double-entry engagement, confirm the account mapping and produce statements",
+   formula:"Ledger engagement - opens the worksheet", unit:"statements", fields:[]},
+  {id:"descriptive", label:"Descriptive statistics", group:"Statistics", fit:"B", tier:"T1", v:"1.0.0",
+   what:"Record the mean, spread and shape of one series with declared missing codes",
+   formula:"mean, SD, quartiles, shape", unit:"statistics",
+   fields:[{k:"values",l:"Values (comma separated)",p:"72, 85, 90, 68, 99"}]},
+  {id:"welch", label:"Welch t-test", group:"Statistics", fit:"B", tier:"T1", v:"1.0.0",
+   what:"Compare two group means without an equal-variance assumption",
+   formula:"Welch t with a declared alternative", unit:"test statistic and p-value",
+   fields:[{k:"groups",l:"Group values",p:"62, 70, 68 | 72, 78, 74"}]},
+  {id:"forecast", label:"Trend forecast", group:"Statistics", fit:"B", tier:"T1", v:"1.0.0",
+   what:"Fit a linear trend with prediction intervals and an out-of-sample holdout",
+   formula:"linear trend + prediction interval", unit:"value per period",
+   fields:[{k:"values",l:"Series (comma separated)",p:"10, 12, 11, 14, 13, 16"}]},
+  {id:"cba", label:"Cost-benefit analysis", group:"Economics", fit:"A", tier:"T2", v:"1.0.0",
+   what:"Discount declared benefits and costs to a net present value",
+   formula:"NPV of benefits - NPV of costs", unit:"currency",
+   fields:[{k:"benefits",l:"Benefits by period",p:"5000, 6000, 7000"},{k:"costs",l:"Costs by period",p:"9000, 1000, 1000"},{k:"rate",l:"Discount rate",p:"0.08"}]},
+  {id:"multibreakeven", label:"Multi-product break-even", group:"Operations", fit:"C", tier:"T1", v:"1.0.0",
+   what:"Find the break-even mix for several products with a declared sales mix",
+   formula:"mix-weighted break-even - opens the worksheet", unit:"units by product", fields:[]},
+  {id:"alpha", label:"Reliability (Cronbach's alpha)", group:"People", fit:"B", tier:"T1", v:"1.0.0",
+   what:"Internal consistency of a scale from item responses you supply",
+   formula:"alpha from item and total variance", unit:"coefficient", fields:[{k:"items",l:"Item responses",p:"columns of scores"}]}
+];
+
+const state = {method: METHODS[0], values:{}, focus:0, group:"All", mode:"pad"};
+
+const $ = (sel, root) => (root || document).querySelector(sel);
+const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+function esc(s){return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* ---------- rendering ---------- */
+function renderChips(){
+  $("#chips").innerHTML = GROUPS.map((g) =>
+    '<button class="chip" data-group="' + esc(g) + '" aria-pressed="' + (g === state.group) + '">' + esc(g) + "</button>").join("");
+  $$("#chips .chip").forEach((b) => { b.onclick = () => { state.group = b.dataset.group; renderChips(); renderList(); }; });
+}
+
+function visibleMethods(){
+  const q = ($("#q").value || "").trim().toLowerCase();
+  return METHODS.filter((m) => {
+    if (state.group !== "All" && m.group !== state.group) return false;
+    return !q || (m.label + " " + m.what + " " + m.id + " " + m.group).toLowerCase().includes(q);
+  });
+}
+
+function renderList(){
+  const rows = visibleMethods();
+  $("#mlist").innerHTML = rows.length ? rows.map((m) =>
+    '<div class="mrow" role="option" tabindex="0" data-id="' + esc(m.id) + '" aria-current="' + (m.id === state.method.id) + '">' +
+      '<span class="fit ' + m.fit.toLowerCase() + '">' + m.fit + "</span>" +
+      '<span class="mt"><b>' + esc(m.label) + "</b><span>" + esc(m.what) + "</span></span></div>").join("")
+    : '<p class="sub" style="font-size:13.5px">No tool in this group matches that search.</p>';
+  $$("#mlist .mrow").forEach((r) => {
+    r.onclick = () => selectMethod(r.dataset.id);
+    r.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectMethod(r.dataset.id); } };
+  });
+}
+
+function selectMethod(id){
+  const m = METHODS.find((x) => x.id === id); if (!m) return;
+  state.method = m; state.values = {}; state.focus = 0;
+  $("#result").classList.remove("on");
+  renderMethod(); renderList();
+}
+
+function renderMethod(){
+  const m = state.method;
+  $("#mname").textContent = m.label;
+  $("#mwhat").textContent = m.what;
+  $("#mtier").textContent = m.tier + " / v" + m.v;
+  $("#fields").innerHTML = m.fields.length ? m.fields.map((f, i) =>
+    '<div class="field ' + (i === state.focus && m.fit === "A" ? "active" : "") + '" data-i="' + i + '">' +
+      '<label for="f-' + esc(f.k) + '">' + esc(f.l) + "</label>" +
+      '<input id="f-' + esc(f.k) + '" data-k="' + esc(f.k) + '" value="' + esc(state.values[f.k] || "") +
+      '" placeholder="' + esc(f.p) + '"></div>').join("")
+    : '<p class="sub" style="font-size:13.5px">This tool opens its worksheet instead of taking single figures here.</p>';
+  $$("#fields input").forEach((el, i) => {
+    el.onfocus = () => { state.focus = i; markFocus(); };
+    el.oninput = () => { state.values[el.dataset.k] = el.value; renderSent(); };
+  });
+  $$("#pad button").forEach((b) => { b.disabled = m.fit !== "A"; });
+  $("#eq").disabled = m.fit === "C";
+  $("#padnote").textContent = m.fit === "A"
+    ? "Digits type into the highlighted field. The operator keys move between fields ΓÇö they do not perform the operation."
+    : "This one takes " + (m.fit === "B" ? "a list of values" : "a whole worksheet") + ", so the keypad is off.";
+  renderSent();
+}
+
+function renderSent(){
+  const m = state.method;
+  if (m.fit !== "A") {
+    $("#sent").innerHTML = '<span class="dim">' + esc(m.formula) + "</span>";
+    $("#unit").textContent = "";
+    $("#answer").textContent = "No keypad for this tool ΓÇö " + (m.fit === "B" ? "paste the values" : "open the worksheet") + " and calculate there.";
+    return;
+  }
+  const lines = m.formula.split("\n");
+  const vals = m.fields.map((f) => (state.values[f.k] || "").trim() || "ΓÇö");
+  const body = lines[0] + "\n" + lines[1] + "\n  " + vals.join("  ┬╖  ");
+  $("#sent").innerHTML = esc(body).replace(/ΓÇö/g, '<span class="dim">ΓÇö</span>');
+  $("#unit").textContent = "ΓåÆ " + m.unit;
+  const empty = m.fields.some((f) => !(state.values[f.k] || "").trim());
+  $("#answer").textContent = empty
+    ? "Enter the figures (keypad or keyboard), then press = . Nothing is calculated until the engine answers."
+    : "Ready. Press = to send this to " + m.id + " ΓÇö the value appears only when the delivery returns.";
+}
+
+function markFocus(){
+  $$("#fields .field").forEach((f, i) => f.classList.toggle("active", i === state.focus && state.method.fit === "A"));
+}
+
+/* ---------- keypad ---------- */
+const KEYS = ["7","8","9","├╖","4","5","6","├ù","1","2","3","ΓêÆ","0",".","Γî½","+"];
+function buildPad(){
+  $("#pad").innerHTML = KEYS.map((k) => {
+    const op = "├╖├ùΓêÆ+".includes(k);
+    return '<button type="button" class="' + (op ? "op" : "") + '" data-key="' + esc(k) +
+           '" aria-label="' + esc(op ? { "├╖":"divide","├ù":"multiply","ΓêÆ":"subtract","+":"add" }[k] : k) + '">' + esc(k) + "</button>";
+  }).join("") + '<button type="button" class="eq" data-key="=" aria-label="Calculate">=</button>';
+  $$("#pad button").forEach((b) => { b.onclick = () => pressKey(b.dataset.key); });
+}
+
+function focusedInput(){ return $$("#fields input")[state.focus]; }
+
+function pressKey(k){
+  const m = state.method;
+  if (m.fit !== "A") return;
+  if (k === "=") { run(); return; }
+  if ("├╖├ùΓêÆ+".includes(k)) {                      /* move focus, never compute */
+    state.focus = (state.focus + 1) % Math.max(1, m.fields.length);
+    markFocus();
+    const el = focusedInput(); if (el) el.focus();
+    $("#answer").textContent = "Focus moved to ΓÇ£" + m.fields[state.focus].l + "ΓÇ¥. The operator keys order the fields; the method does the arithmetic.";
+    return;
+  }
+  const el = focusedInput(); if (!el) return;
+  const key = k === "Γî½" ? "Backspace" : k;
+  el.focus();
+  el.setRangeText && el.setRangeText("", 0, 0, "end");   /* keep caret at end */
+  if (key === "Backspace") { el.value = el.value.slice(0, -1); }
+  else { el.value = el.value + key; }
+  state.values[el.dataset.k] = el.value;
+  renderSent();
+}
+
+/* ---------- the answer ---------- */
+function run(){
+  const m = state.method;
+  const missing = m.fields.filter((f) => !(state.values[f.k] || "").trim());
+  $("#result").classList.add("on");
+  $("#rname").textContent = m.label;
+  if (missing.length) {
+    $("#rval").textContent = "ΓÇö";
+    $("#rtext").textContent = "Missing: " + missing.map((f) => f.l.toLowerCase()).join(", ") +
+      ". A real run asks for the figure ΓÇö it never supplies a default.";
+  } else {
+    $("#rval").textContent = "Γƒªdelivery valueΓƒº";
+    $("#rtext").textContent = "A real run prints the value the delivery returned, with its tier, checks and limitations. This mockup shows a placeholder on purpose.";
+  }
+  $("#rprov").textContent = "method " + m.id + " ┬╖ v" + m.v + " ┬╖ tier " + m.tier + " ┬╖ spec hash (on delivery) ┬╖ inputs as recorded";
+}
+
+/* ---------- chat (hand-written demo replies) ---------- */
+const DEMOS = [
+  {ask:"break-even with 1200 fixed cost, price 20, variable 12", kind:"run"},
+  {ask:"should we invest? -1000 now, 400 a year for 4 years at 10%", kind:"run"},
+  {ask:"how healthy is this company", kind:"ask"},
+  {ask:"VAT on 84,000", kind:"unsupported"},
+  {ask:"what will Apple's share price be in June", kind:"unsupported"},
+  {ask:"2 + 2", kind:"out"},
+  {ask:"solve 3x + 7 = 22", kind:"out"},
+  {ask:"what's my BMI", kind:"out"}
+];
+
+/* ---------- chat replies (fixed copy, no computation) ---------- */
+function replyFor(ask){
+  const kind = (DEMOS.find((d) => d.ask === ask) || {kind:"out"}).kind;
+  const a = ask.toLowerCase();
+  if (kind === "run") {
+    const method = a.includes("invest") ? "Net present value" : "Break-even point";
+    const id = a.includes("invest") ? "npv" : "breakeven";
+    return {cls:"calc", who:"Business Calculator",
+      html:"<b>" + method + "</b> ┬╖ T1" +
+           "<div style='margin-top:5px'>Read from your sentence: the figures you named. Anything unnamed stays empty.</div>" +
+           "<div class='alt'><button data-open='" + id + "'>Open with these figures</button><button data-open=''>Change them</button></div>" +
+           "<span class='no'>Nothing has been calculated yet ΓÇö the plan is shown first, on purpose.</span>"};
+  }
+  if (kind === "ask") {
+    return {cls:"calc", who:"Business Calculator",
+      html:"<b>Which one did you mean?</b><div style='margin-top:5px'>That could be financial statement ratios, trend forecast or DCF valuation.</div>" +
+           "<div class='alt'><button data-open='ratios'>Ratios</button><button data-open='forecast'>Trend forecast</button><button data-open=''>DCF valuation</button></div>" +
+           "<span class='no'>No calculation has run. Pick one and the inputs it needs appear.</span>"};
+  }
+  if (kind === "unsupported") {
+    const isTax = a.includes("vat") || a.includes("tax");
+    return {cls:"calc unsup", who:"Business Calculator",
+      html:"<b>I can't " + (isTax ? "compute tax" : "price a market") + ".</b>" +
+           "<div style='margin-top:5px'>" + (isTax
+             ? "Tax is a recorded limitation of this build ΓÇö VAT, income and deferred tax are out of scope, and I will not estimate them."
+             : "There is no market data here. A forecast needs a series you supply; I can't invent a price.") + "</div>" +
+           "<div>Closest thing I can actually run:</div>" +
+           "<div class='alt'><button data-open='npv'>Net present value</button><button data-open='ratios'>Financial ratios</button><button data-open='forecast'>Trend forecast</button></div>" +
+           "<span class='no'>Business, but not built ΓÇö a roadmap answer, not an estimate.</span>"};
+  }
+  return {cls:"calc refuse", who:"Business Calculator",
+    html:"<b>That isn't a business calculation, so I won't give you a number for it.</b>" +
+         "<div style='margin-top:5px'>This calculator runs recorded business methods ΓÇö finance, accounting, economics, operations, marketing, people and statistics.</div>" +
+         "<div>If you meant a business question, name the situation.</div>" +
+         "<div class='alt'><button data-open='breakeven'>Break-even point</button><button data-open='ratios'>Financial ratios</button><button data-open='descriptive'>Descriptive statistics</button></div>" +
+         "<span class='no'>Out of scope: stated once, then a door back in.</span>"};
+}
+
+function bubble(cls, who, html){
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerHTML = (who ? '<span class="who">' + esc(who) + "</span>" : "") + html;
+  $$("[data-open]", div).forEach((b) => {
+    b.onclick = () => { const id = b.dataset.open; if (id) { selectMethod(id); setMode("pad"); } };
+  });
+  return div;
+}
+
+function send(ask){
+  const text = (ask || "").trim(); if (!text) return;
+  $("#chatlog").appendChild(bubble("me", "", esc(text)));
+  const r = replyFor(text);
+  $("#chatlog").appendChild(bubble(r.cls, r.who, r.html));
+  $("#chatlog").scrollTop = $("#chatlog").scrollHeight;
+  $("#ask").value = "";
+}
+
+/* ---------- mode + boot ---------- */
+function setMode(mode){
+  state.mode = mode;
+  $("#viewPad").style.display = mode === "pad" ? "" : "none";
+  $("#viewChat").className = "chat" + (mode === "chat" ? " on" : "");
+  $("#modePad").setAttribute("aria-pressed", mode === "pad");
+  $("#modeChat").setAttribute("aria-pressed", mode === "chat");
+}
+
+buildPad();
+renderChips();
+renderMethod();
+renderList();
+
+$("#q").oninput = () => {
+  const q = ($("#q").value || "").trim();
+  if (/^[\d\s.+\-*/x├ù├╖()%]+$/.test(q) && q) {          /* a bare expression was typed */
+    $("#sent").innerHTML = '<span class="live">' + esc(q) + "</span>";
+    $("#unit").textContent = "";
+    $("#answer").textContent = "That is bare arithmetic. This calculator runs recorded business methods and does not evaluate expressions ΓÇö choose a method, or say what the figure is for.";
+    return;
+  }
+  renderList(); renderMethod();
+};
+$("#eq").onclick = run;
+$("#clear").onclick = () => { state.values = {}; state.focus = 0; renderMethod(); $("#result").classList.remove("on"); };
+$("#attach").onclick = () => { $("#rname").textContent = "Attach to a case"; $("#result").classList.add("on");
+  $("#rval").textContent = "Γƒªcase pickerΓƒº"; $("#rtext").textContent = "A real run starts or attaches a case automatically, so no number exists outside the audit trail."; };
+$("#modePad").onclick = () => setMode("pad");
+$("#modeChat").onclick = () => setMode("chat");
+$("#send").onclick = () => send($("#ask").value);
+$("#ask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); send($("#ask").value); } };
+
+$("#demos").innerHTML = DEMOS.map((d, i) => '<button data-demo="' + i + '">' + esc(d.ask) + "</button>").join("");
+$$("#demos button").forEach((b) => { b.onclick = () => { setMode("chat"); send(DEMOS[b.dataset.demo].ask); }; });
+
+document.addEventListener("keydown", (e) => {
+  if (state.mode !== "pad") return;
+  const el = document.activeElement;
+  if (el && (el.id === "q" || el.id === "ask")) return;      /* never hijack the search box */
+  if (/^[0-9.]$/.test(e.key)) { pressKey(e.key); }
+  else if (e.key === "Enter" && document.activeElement && document.activeElement.tagName === "INPUT") { e.preventDefault(); run(); }
+  else if (e.key === "Escape") { state.values = {}; state.focus = 0; renderMethod(); }
+});
+</script>
+
+
+</body>
+</html>
