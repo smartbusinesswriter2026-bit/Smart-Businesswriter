@@ -8,9 +8,9 @@
 
 **Also:** `scripts/generate_calc_inputs.py` regenerates the committed schema slice `src/bp/product/data/calc_inputs_v0_1.json` (the product layer may not import `bp.methods`; `tests/test_product_calc_router.py` fails if the slice drifts from `list_methods()`).
 
-**Files:** `src/bp/product/calc_router.py` (new), `src/bp/product/api.py` (one route + import), `src/bp/product/data/calc_inputs_v0_1.json` (new, generated), `scripts/generate_calc_inputs.py` (new), `web/index.html`, `tests/test_product_calc_router.py` (new, 15 tests), `tests/test_product_subjects.py` (one chat guard), docs: `CHANGELOG.md` (0.76), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, `proposals/BUSINESS_CALCULATOR_DESIGN.md` (status + corrected golden), this entry.
+**Files:** `src/bp/product/calc_router.py` (new), `src/bp/product/api.py` (one route + import), `src/bp/product/data/calc_inputs_v0_1.json` (new, generated), `scripts/generate_calc_inputs.py` (new), `web/index.html`, `tests/test_product_calc_router.py` (new, 16 tests), `tests/test_product_subjects.py` (one chat guard), docs: `CHANGELOG.md` (0.76), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, `proposals/BUSINESS_CALCULATOR_DESIGN.md` (status + corrected golden), this entry.
 
-**Verified:** 774 tests OK; `node --check` on the page script; live server smoke: the plan route returned `run/breakeven`, `unsupported/tax`, `out_of_scope/bare_arithmetic` and `choose` for the four sample sentences, and the served page carries the chat markup and the plan route reference. No frozen method, fixture or business number changed.
+**Verified:** 775 tests OK; `node --check` on the page script; live server smoke: the plan route returned `run/breakeven`, `unsupported/tax`, `out_of_scope/bare_arithmetic` and `choose` for the four sample sentences, and the served page carries the chat markup and the plan route reference. No frozen method, fixture or business number changed.
 
 **Open/next:** P4 (`arithmetic`) still needs decision D1 and an unfreeze; the router's vocabulary is deliberately small (it will ask rather than guess), and no browser test exists, so the visual result still needs one human look.
 

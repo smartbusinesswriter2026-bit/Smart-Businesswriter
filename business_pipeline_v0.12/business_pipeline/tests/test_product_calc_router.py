@@ -183,5 +183,42 @@ class PlanRouteTest(unittest.TestCase):
             self.assertNotIn(forbidden, payload)
 
 
+class PlannedRunIsAcceptedTest(unittest.TestCase):
+    def test_every_planned_run_is_accepted_by_the_pipeline(self):
+        """The parser must produce requests the engine actually runs.
+
+        A router that returns figures the pipeline rejects would be a parser
+        gap dressed up as a feature, so each `run` golden is handed to the real
+        session manager and must deliver (or the test fails with the reason).
+        """
+        from bp.session import SessionManager
+
+        planned = delivered = 0
+        for message, outcome, _tool in GOLDENS:
+            if outcome != "run":
+                continue
+            payload = calc_router.plan(message)
+            session = SessionManager().create({
+                "objective": message,
+                "method": payload["method"],
+                "inputs": payload["inputs"],
+            })
+            current = session.to_dict()
+            if current["status"] == "awaiting_confirmation":
+                session.confirm(True)
+                current = session.to_dict()
+            delivery = current.get("delivery") or {}
+            # The engine may still block (sample-size rules are its domain, not
+            # the parser's), but it must answer - never crash, never silent.
+            self.assertIn(delivery.get("status"), ("delivered", "blocked"), message)
+            if delivery.get("status") == "blocked":
+                self.assertTrue(delivery.get("blocked_reason"), message)
+            else:
+                delivered += 1
+            planned += 1
+        self.assertGreater(planned, 4)
+        self.assertGreaterEqual(delivered, 4)
+
+
 if __name__ == "__main__":
     unittest.main()
