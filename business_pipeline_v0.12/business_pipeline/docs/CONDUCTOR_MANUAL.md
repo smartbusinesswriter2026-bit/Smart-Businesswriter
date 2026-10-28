@@ -242,7 +242,55 @@ The resolver is deterministic and must stay so: no model, no retrieval, no
 clock. Ambiguity gets exactly one recorded question (`capability:<key>`) and the
 answer selects or excludes the capability with a stated reason.
 
-### 7.1 The capability state (what every later step reads)
+### 7.3 Registered capabilities (wave 1: scalar inputs only)
+
+| Capability (key) | Answers | Slot (H1 / H2) |
+|---|---|---|
+| `breakeven` | whether the declared price covers the declared costs | Financial Feasibility / Break-even Analysis |
+| `npv` | the value of the declared cash flows at the declared rate | Financial Feasibility / Net Present Value |
+| `irr` | the rate the declared cash flows earn | Financial Feasibility / Internal Rate of Return |
+| `discounted_payback` | when the declared flows recover the outlay | Financial Feasibility / Discounted Payback |
+| `project_metrics` | NPV, PI, MIRR, EAA and payback for one project | Financial Feasibility / Project Metrics |
+| `unit_economics` | contribution per unit and acquisition payback | Financial Feasibility / Unit Economics |
+| `wacc` | the declared cost of capital | Financial Feasibility / Cost of Capital |
+| `return_on_investment` | return on the declared investment | Financial Feasibility / Return on Investment |
+| `startup_capital` | the capital the venture needs | Financial Feasibility / Start-up Capital |
+| `cash_runway` | how long the declared cash lasts | Financial Feasibility / Cash Runway |
+| `market_sizing` | TAM, SAM and SOM from declared population and spend | Market Assessment / Market Size |
+| `market_share` | the declared firm's share of the declared market | Market Assessment / Market Share |
+| `clv_model` | lifetime value from declared margin and churn | Customer Economics / Customer Lifetime Value |
+| `campaign_efficiency` | funnel rates and cost per outcome | Marketing Performance / Campaign Efficiency |
+| `elasticity` | price elasticity from two declared points | Market Response / Price Elasticity of Demand |
+| `earned_value` | SPI, CPI and estimate at completion | Delivery Status / Earned Value |
+| `growth_rate` | growth between two declared values | Economic Context / Growth Rate |
+| `inflation_cpi` | inflation between two declared CPIs | Economic Context / Inflation |
+| `tax_incidence` | who bears a declared tax | Policy Impact / Tax Incidence |
+| `pricing_decision` | a declared-cost price under a declared markup | Pricing / Pricing Decision |
+| `cap_table_round` | the post-round ownership split | Ownership / Cap Table |
+
+Every entry is scalar: no table editor is needed to declare it. The **licence**
+(`intended_use`) and the **limitation** (`unsupported_use`) are read from
+`bp.methods.describe` when the selection is filled, so no capability restates
+its method by hand in the product layer.
+
+The appraisal family (`npv`, `irr`, `discounted_payback`, `project_metrics`)
+shares one `intent` group, so a question that names two of them selects one (NPV
+by priority) and the others stay addable from the plan. They take a declared
+series: `decimal_list` renders as one number per line (period 0 first) and is
+parsed and validated server-side, so a list can never arrive as prose.
+
+Methods whose inputs include `records` (multi-product break-even, CPM, leveling,
+Monte Carlo, regression and friends) are **not registered**: they need a typed
+table editor in the chat first, and registering them behind a text box would
+break the "no invented input" rule.
+
+Formatting: `CAPABILITY_LINES` holds a bespoke formatter per capability where the
+prose matters (break-even today). Everything else uses `_generic_lines`, which
+prints the declared inputs and the method's recorded outputs verbatim and says
+the figure is not a forecast. Replacing a generic formatter with a bespoke one is
+a normal, isolated change: register it under the same key, add its matrix row.
+
+### 7.4 The capability state (what every later step reads)
 
 ```
 selection: {format, catalogue_version, hash, frameworks[], selected[], not_included[], question}
@@ -263,7 +311,7 @@ computations: {key: {ok, method, inputs, result, error}}
 - `paper.missing` requires the figures of a selected capability and nothing
   once it is recorded; dropping it removes the requirement.
 
-### 7.2 Test matrix (one row per capability, not one file per method)
+### 7.5 Test matrix (one row per capability, not one file per method)
 
 | Row | Expectation |
 |---|---|

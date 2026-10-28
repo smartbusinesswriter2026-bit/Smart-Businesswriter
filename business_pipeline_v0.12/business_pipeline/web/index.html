@@ -1370,11 +1370,16 @@ function capabilityPanel(c, plan) {
     if (fields.length) {
       html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
         const spec = cap.inputs[name] || {};
-        const value = (recorded.inputs || {})[name] || "";
+        const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
+        const isList = /_list$/.test(spec.type || "");
+        const shown = isList ? (Array.isArray(raw) ? raw.join("\n") : "") : (raw || "");
+        const control = isList
+          ? '<textarea id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) +
+            '" data-caplist="1" rows="4" placeholder="One number per line; period 0 first">' + esc(shown) + "</textarea>"
+          : '<input id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) + '" value="' + esc(shown) + '">';
         return '<label class="field" for="' + esc(id) + '">' + esc(spec.desc || name) +
-          (spec.required === false ? ' <span class="muted">(optional)</span>' : "") +
-          '<input id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) + '" value="' + esc(value) + '"></label>';
+          (spec.required === false ? ' <span class="muted">(optional)</span>' : "") + control + "</label>";
       }).join("") + "</div>" +
       '<div class="row" style="margin-top:8px"><button class="btn primary sm" type="button" data-caprun="' +
       esc(cap.key) + '">Validate and attach</button></div>';
@@ -1420,7 +1425,10 @@ async function runCapability(key) {
   const values = {};
   $$("[data-capinput]").forEach((box) => {
     const parts = String(box.dataset.capinput || "").split(":");
-    if (parts[0] === key) values[parts[1]] = box.value;
+    if (parts[0] !== key) return;
+    values[parts[1]] = box.dataset.caplist
+      ? box.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
+      : box.value;
   });
   const out = $("#chatout");
   out.innerHTML = loading("Validating the declared figures");

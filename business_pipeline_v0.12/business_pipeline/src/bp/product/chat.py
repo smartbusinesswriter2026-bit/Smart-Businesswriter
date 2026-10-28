@@ -488,6 +488,7 @@ def _fill_capability_inputs(selection):
         schema = _schema_for(row.get("method") or "")
         row["inputs_required"] = [name for name, spec in schema.items() if spec.get("required", True)]
         row["inputs"] = {name: {"desc": spec.get("desc") or name,
+                                "type": spec.get("type") or "",
                                 "required": bool(spec.get("required", True))}
                          for name, spec in schema.items()}
         if METHOD_DESCRIBE is not None and row.get("method"):
@@ -718,6 +719,11 @@ def run_capability(state, key, values):
     of reporting a figure.
     """
     entry_row = capabilities.entry(key)
+    if not capabilities.carries(state.get("selection"), entry_row["key"]):
+        # Fail closed: a capability the paper does not carry is never run, so a
+        # figure can never appear in a paper that did not plan for it.
+        raise ChatError("This paper does not include " + entry_row["label"].lower()
+                        + ". Add it in the plan first.")
     if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "draft"):
         raise ChatError("Finish the questions before declaring the figures.")
     values = values if isinstance(values, dict) else {}
@@ -737,8 +743,13 @@ def run_capability(state, key, values):
         store[entry_row["key"]] = {"ok": False, "method": entry_row["method"], "inputs": inputs,
                                    "error": str(error)[:500]}
         raise ChatError(entry_row["label"] + " refused the declared figures: " + str(error)[:200])
+    if isinstance(output, dict):
+        recorded = {str(name): str(value) for name, value in output.items()}
+    else:
+        # some methods return a bare value; the catalogue names the key
+        recorded = {entry_row.get("output") or "value": str(output)}
     store[entry_row["key"]] = {"ok": True, "method": entry_row["method"], "inputs": inputs,
-                               "result": {str(name): str(value) for name, value in dict(output).items()}}
+                               "result": recorded}
     state["computation"] = {"key": entry_row["key"], "inputs": inputs}
     if state.get("draft"):
         # The paper changed; the old draft would report the previous figures.
@@ -760,18 +771,35 @@ def _capability_inputs(entry_row, values):
     inputs = {}
     for name, spec in schema.items():
         required = spec.get("required", True)
+        desc = spec.get("desc") or name
         raw = values.get(name, "")
+        kind = str(spec.get("type") or "")
+        if kind.endswith("_list"):
+            items = raw if isinstance(raw, list) else re.split(r"[\n,;]+", str(raw or ""))
+            cleaned = [_clean(str(item), 40) for item in items if str(item).strip()]
+            if not cleaned:
+                if required:
+                    return {}, "Declare the " + desc + "."
+                continue
+            parsed = []
+            for item in cleaned:
+                try:
+                    parsed.append(str(Decimal(item)))
+                except (InvalidOperation, ValueError):
+                    return {}, "Every value of the " + desc + " must be a number."
+            inputs[name] = parsed
+            continue
         if isinstance(raw, (int, float)) and not isinstance(raw, bool):
             raw = str(raw)
         text = _clean(str(raw), 40) if raw is not None else ""
         if not text:
             if required:
-                return {}, "Declare the " + (spec.get("desc") or name) + "."
+                return {}, "Declare the " + desc + "."
             continue
         try:
             number = Decimal(text)
         except (InvalidOperation, ValueError):
-            return {}, "The " + (spec.get("desc") or name) + " must be a number."
+            return {}, "The " + desc + " must be a number."
         inputs[name] = str(number)
     if entry_row.get("domain") == "breakeven":
         for name in ("fixed", "price", "variable"):
@@ -1432,7 +1460,22 @@ def _break_even_lines(answers, result=None):
 #: prints it.  No capability branch, no formula and no default lives in `draft`.
 #: A capability without a bespoke formatter falls back to `_generic_lines`, which
 #: quotes the recorded output and claims nothing beyond it.
-CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result)}
+CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result),
+                    "npv": lambda row, inputs, result: _npv_lines(row, inputs, result)}
+
+
+def _npv_lines(row, inputs, result):
+    """Net present value from the declared flows.  Arithmetic, never advice."""
+    rate = Decimal(str(inputs.get("rate", "0")))
+    flows = inputs.get("cashflows") or []
+    figure = result.get("npv")
+    lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "% and the declared cash flows ("
+             + "; ".join(_fmt_exact(value) for value in flows) + "), the net present value is "
+             + _fmt_number(figure) + "."]
+    lines.append("A positive net present value means the declared flows recover the declared discount rate; a "
+                 "negative one means they do not. The figure is arithmetic on the declared flows and the "
+                 "declared rate, not a forecast.")
+    return lines
 
 
 def _fmt_exact(value):
@@ -1450,17 +1493,22 @@ def _fmt_exact(value):
 
 
 def _generic_lines(row, inputs, result):
-    """The honest fallback: the declared inputs and the recorded output, in prose."""
+    """The honest fallback: the declared inputs and the recorded output, in prose.
+
+    The core echoes the declared inputs in its result; those are dropped here so
+    the paragraph reports what the method produced, not what the student typed.
+    """
     declared = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
                          for name, value in (inputs or {}).items())
+    computed = {name: value for name, value in (result or {}).items() if name not in (inputs or {})}
     produced = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
-                         for name, value in (result or {}).items())
-    lines = []
-    if declared:
-        lines.append("From the declared inputs (" + declared + "), the frozen " + row["label"].lower()
-                     + " method returns: " + produced + ".")
+                         for name, value in computed.items())
+    head = ("From the declared inputs (" + declared + "), ") if declared else ""
+    if produced:
+        lines = [head + "the frozen " + row["label"].lower() + " method returns " + produced + "."]
     else:
-        lines.append("The frozen " + row["label"].lower() + " method returns: " + produced + ".")
+        lines = [head + "the frozen " + row["label"].lower()
+                 + " method recorded no output beyond the declared inputs."]
     lines.append("The figures are the method's recorded output; they are not a forecast and they "
                  "hold only for the inputs the student declared.")
     return lines

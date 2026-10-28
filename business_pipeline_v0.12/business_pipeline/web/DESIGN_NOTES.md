@@ -534,6 +534,21 @@ Server side (design lane, product backend): `bp/product/capabilities.py` (new),
 `paper.missing`, one new API action `POST /api/cases/chat/{id}/capabilities`.
 No formula, no frozen-core edit, no new dependency, no model in the selection.
 
+Wave 1 registers sixteen capabilities beyond break-even (unit economics,
+WACC, ROI, start-up capital, cash runway, market size, market share, CLV,
+campaign efficiency, elasticity, earned value, growth, inflation, tax incidence,
+pricing, cap table — seventeen entries in all). Each shows the same panel with
+its own frozen fields; a capability without a bespoke formatter prints its
+recorded output through `_generic_lines`, which reports exactly what the core
+returned and says it is not a forecast.
+
+Wave 2 adds the appraisal family (`npv`, `irr`, `discounted_payback`,
+`project_metrics`). Their cash flows are a `decimal_list`, so the panel renders a
+"one number per line, period 0 first" box whose values are split and parsed
+server-side; a letter in the list is refused with the field named. NPV has a
+bespoke paragraph; the others use the generic one. One `intent` group means a
+brief that names NPV and IRR selects NPV and leaves IRR addable.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

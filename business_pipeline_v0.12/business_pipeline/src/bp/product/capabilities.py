@@ -43,7 +43,7 @@ _EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_fo
 
 
 def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
-         domain=None, integration=None):
+         domain=None, integration=None, output=None):
     """One catalogue entry.  The licence and the limitation are read from the
     method's own description at resolve time, never restated here."""
     return key, {
@@ -52,16 +52,35 @@ def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, ap
         "applies_to": tuple(applies or _EVIDENCE_FRAMEWORKS), "slot": tuple(slot),
         "integration": integration or "Framework and Declared Figures",
         "needs": "scalar", "licenses": "", "not": "", "domain": domain,
+        # some frozen methods return a bare value instead of a mapping; the
+        # catalogue names the key it is recorded under
+        "output": output,
     }
 
 
 ENTRIES = dict([
     _row("breakeven", "breakeven", "Break-even", "cost_cover",
-         [r"break[\s-]?even", r"pay (?:for itself|back)", r"cover (?:its|the|our) costs?",
+         [r"break[\s-]?even", r"pay (?:for itself)", r"cover (?:its|the|our) costs?",
           r"how many units", r"fixed cost"],
          ("Financial Feasibility", "Break-even Analysis"),
          needs_any=[r"\bprice\b", r"per unit", r"\bvariable\b", r"unit cost", r"\bcosts?\b", r"\bunits?\b"],
          priority=20, integration="Framework and Financial Feasibility", domain="breakeven"),
+    _row("npv", "npv", "Net present value", "appraisal",
+         [r"net present value", r"\bnpv\b", r"discount(?:ed)? (?:the )?cash ?flows?"],
+         ("Financial Feasibility", "Net Present Value"),
+         needs_any=[r"cash ?flows?", r"\boutlay\b", r"invest(?:ment)?"], priority=30, output="npv"),
+    _row("irr", "irr", "Internal rate of return", "appraisal",
+         [r"internal rate of return", r"\birr\b"],
+         ("Financial Feasibility", "Internal Rate of Return"),
+         needs_any=[r"cash ?flows?", r"\boutlay\b"], priority=25),
+    _row("discounted_payback", "discounted_payback", "Discounted payback", "appraisal",
+         [r"discounted payback", r"pay ?back period", r"when (?:will|does) (?:it|the investment) pay back"],
+         ("Financial Feasibility", "Discounted Payback"),
+         needs_any=[r"cash ?flows?", r"\boutlay\b"], priority=20),
+    _row("project_metrics", "project_metrics", "Project metrics", "appraisal",
+         [r"profitability index", r"project ranking", r"rank the projects?", r"equivalent annual"],
+         ("Financial Feasibility", "Project Metrics"),
+         needs_any=[r"cash ?flows?", r"\boutlay\b"], priority=15),
     _row("unit_economics", "unit_economics", "Unit economics", "unit_margin",
          [r"unit economics", r"contribution (?:margin )?per (?:unit|customer)", r"margin per (?:unit|customer)",
           r"acquisition cost"],
