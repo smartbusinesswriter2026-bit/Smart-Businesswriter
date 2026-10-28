@@ -806,3 +806,20 @@ length - a thin case reports the shortfall instead. The explainer also
 stopped printing empty fields for a conductor paper ("Profile: Paper (, ).") and now names the framework,
 lists the draft's own sections and formats recorded figures (166.6667, not fifty digits); a declared word
 such as "monthly" is never rewritten.
+
+## 19. Home: a composer that invites, and documents that do not shout
+
+The page read as a form above a list: the hero, the box and nine identical rows, three of them explainers for
+the same paper. Two changes, both structural rather than decorative:
+
+- **The composer leads.** A soft radial wash behind the hero, a larger wordmark and title, a 22px composer with
+  a transparent textarea and a green focus ring, and a hover lift. The page still carries only the hero, the
+  box, Attach files, the length selector and the arrow; nothing new was added to be looked at.
+- **Documents are grouped.** Samples are one worked-example card with a segmented control for Short/Mid/Long
+  and two quiet links - "Open the paper" and "How it was solved" - so an explainer is never a row of its own.
+  The other samples sit in one compact section, and a student's own papers get their own section above them.
+
+Measured on the served page: `.doclink` and `.seg` resolve to 999px pills, the composer to 22px with a 104px
+textarea, and the worked-example card to the 14px card radius. The inline script parses (`node --check`), and
+`tests/test_web_inline_script.py` keeps it that way: a CSS rule pasted into the script had taken the whole
+workbench down while every Python test stayed green.
