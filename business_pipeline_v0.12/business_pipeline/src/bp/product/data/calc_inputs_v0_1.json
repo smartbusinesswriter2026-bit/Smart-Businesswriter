@@ -1,0 +1,758 @@
+{
+ "format": "bp-calc-inputs/1",
+ "methods": {
+  "anova": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)",
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "breakeven": {
+   "inputs": {
+    "fixed": {
+     "desc": "total fixed cost",
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit",
+     "type": "decimal"
+    },
+    "variable": {
+     "desc": "variable cost per unit",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "chi_square": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "table": {
+     "desc": "a table of non-negative whole-number counts (rows x columns)",
+     "type": "count_table"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cost_benefit": {
+   "inputs": {
+    "benefits": {
+     "desc": "benefit per period, same length as costs",
+     "type": "value_list"
+    },
+    "costs": {
+     "desc": "cost per period, starting at period 1",
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, default 0",
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "cost_effectiveness": {
+   "inputs": {
+    "options": {
+     "desc": "the first option is the comparator; each other option is compared with it on cost and effect",
+     "type": "records"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "currency_convert": {
+   "inputs": {
+    "amount": {
+     "desc": "the amount in the source currency",
+     "type": "decimal"
+    },
+    "from_currency": {
+     "desc": "ISO 4217 code, e.g. USD",
+     "type": "currency"
+    },
+    "rate": {
+     "desc": "units of the target currency per one unit of the source currency (declared)",
+     "type": "decimal"
+    },
+    "rate_date": {
+     "desc": "the rate date as YYYY-MM-DD (recorded, not verified)",
+     "type": "text"
+    },
+    "rate_provenance": {
+     "desc": "default user",
+     "type": "enum"
+    },
+    "rate_source": {
+     "desc": "where a sourced rate came from (recorded, not verified)",
+     "type": "text"
+    },
+    "to_currency": {
+     "desc": "ISO 4217 code, e.g. EUR, CNY, JPY",
+     "type": "currency"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dcf_valuation": {
+   "inputs": {
+    "cashflows": {
+     "desc": "free cash flows, one per period, first in period 1",
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, e.g. 0.10",
+     "type": "decimal"
+    },
+    "terminal_growth": {
+     "desc": "optional perpetual growth after the forecast; must be below the discount rate",
+     "type": "decimal"
+    },
+    "timing": {
+     "desc": "discounting convention: 'end' (default, end-of-period) or 'mid' (mid-year, exponents t-0.5)",
+     "type": "enum"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "descriptive_stats": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "discounted_payback": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0 and negative (the initial outlay)",
+     "type": "decimal_list"
+    },
+    "rate": {
+     "desc": "periodic discount rate, default 0",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "equity_bridge": {
+   "inputs": {
+    "cash": {
+     "desc": "cash and cash equivalents, default 0",
+     "type": "decimal"
+    },
+    "debt": {
+     "desc": "total debt at the valuation date, default 0",
+     "type": "decimal"
+    },
+    "enterprise_value": {
+     "desc": "the enterprise value to bridge, from a declared valuation",
+     "type": "decimal"
+    },
+    "minority_interest": {
+     "desc": "non-controlling interest to subtract, default 0",
+     "type": "decimal"
+    },
+    "preferred_equity": {
+     "desc": "preferred equity claim to subtract, default 0",
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "optional share count for a per-share value",
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "irr": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0 (normally the negative outlay)",
+     "type": "decimal_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "kruskal_wallis": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)",
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "logistic_regression": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row missing anything is dropped and counted",
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "named numeric predictor columns, same length as y",
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "the outcome, coded 0 or 1",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "management_accounts": {
+   "inputs": {
+    "spec": {
+     "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules",
+     "type": "engagement_spec"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "mann_whitney": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "exactly two groups: name -> observations (letters and underscores in names; group sizes may differ)",
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "missing_data_bounds": {
+   "inputs": {
+    "mechanism": {
+     "desc": "the mechanism you declare (recorded, not verified); default unknown",
+     "type": "enum"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multi_product_breakeven": {
+   "inputs": {
+    "fixed_costs": {
+     "desc": "total fixed costs for the period",
+     "type": "decimal"
+    },
+    "products": {
+     "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)",
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multiple_comparison": {
+   "inputs": {
+    "alpha": {
+     "desc": "family-wise level, default 0.05",
+     "type": "decimal"
+    },
+    "method": {
+     "desc": "holm (step-down, uniformly more powerful) or bonferroni",
+     "type": "enum"
+    },
+    "p_values": {
+     "desc": "the raw p-values of one declared family",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "npv": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0",
+     "type": "decimal_list"
+    },
+    "rate": {
+     "desc": "discount rate per period, e.g. 0.10",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ols": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row with any missing value is excluded",
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "name -> values for each predictor, paired by position with y (names: letters and underscores only)",
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "outcome variable; blank or null counts as missing",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ols_robust": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row with any missing value is excluded",
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "name -> values for each predictor, paired by position with y (names: letters and underscores only)",
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "outcome variable; blank or null counts as missing",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "one_sample_t": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "type": "code_list"
+    },
+    "mu0": {
+     "desc": "the reference value the mean is compared with",
+     "type": "decimal"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "paired_t": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; applied to both columns",
+     "type": "code_list"
+    },
+    "pairs": {
+     "desc": "exactly two columns of paired values: name -> observations; pair i is (column 1 item i, column 2 item i)",
+     "type": "column_map"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "pearson": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; apply to both variables",
+     "type": "code_list"
+    },
+    "x": {
+     "desc": "first variable; blank or null counts as missing",
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "second variable, paired by position with x",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "posthoc_pairwise": {
+   "inputs": {
+    "adjust": {
+     "desc": "family-wise correction, default holm",
+     "type": "enum"
+    },
+    "alpha": {
+     "desc": "family-wise level, default 0.05",
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "name -> observations; every unordered pair of groups is compared",
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; excluded within each group",
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "power_analysis": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "design": {
+     "desc": "two_sample compares two means; one_sample tests a single mean",
+     "type": "enum"
+    },
+    "effect": {
+     "desc": "the difference (or mean) to detect, in the units of the outcome",
+     "type": "decimal"
+    },
+    "n1": {
+     "desc": "sample size of group 1 (or the single sample for one_sample)",
+     "type": "decimal"
+    },
+    "n2": {
+     "desc": "sample size of group 2 (two_sample only)",
+     "type": "decimal"
+    },
+    "sd1": {
+     "desc": "standard deviation of group 1 (or the single sample)",
+     "type": "decimal"
+    },
+    "sd2": {
+     "desc": "standard deviation of group 2 (two_sample only)",
+     "type": "decimal"
+    },
+    "tails": {
+     "desc": "two_sided (default) or one_sided",
+     "type": "enum"
+    },
+    "target_power": {
+     "desc": "power used to compute the minimum detectable effect, default 0.8",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ratio_analysis": {
+   "inputs": {
+    "cash": {
+     "desc": "cash and cash equivalents",
+     "type": "decimal"
+    },
+    "cost_of_sales": {
+     "desc": "cost of sales for the period",
+     "type": "decimal"
+    },
+    "current_assets": {
+     "desc": "current assets at the period end",
+     "type": "decimal"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities at the period end",
+     "type": "decimal"
+    },
+    "equity": {
+     "desc": "total equity",
+     "type": "decimal"
+    },
+    "interest_expense": {
+     "desc": "interest expense for the period, as a positive amount",
+     "type": "decimal"
+    },
+    "inventory": {
+     "desc": "inventory",
+     "type": "decimal"
+    },
+    "net_income": {
+     "desc": "net income for the period (as supplied; no tax computation is performed)",
+     "type": "decimal"
+    },
+    "operating_profit": {
+     "desc": "operating profit for the period",
+     "type": "decimal"
+    },
+    "payables": {
+     "desc": "trade payables",
+     "type": "decimal"
+    },
+    "receivables": {
+     "desc": "trade receivables",
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "type": "decimal"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "type": "decimal"
+    },
+    "total_liabilities": {
+     "desc": "total liabilities",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "reliability_alpha": {
+   "inputs": {
+    "items": {
+     "desc": "named item columns, one response per row",
+     "type": "column_map"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "spearman": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; apply to both variables",
+     "type": "code_list"
+    },
+    "x": {
+     "desc": "first variable; blank or null counts as missing",
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "second variable, paired by position with x",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sroi": {
+   "inputs": {
+    "benefits": {
+     "desc": "monetised benefit per period, starting at period 1",
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, default 0",
+     "type": "decimal"
+    },
+    "investment": {
+     "desc": "the investment amount",
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "trend_forecast": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "horizon": {
+     "desc": "number of periods ahead to forecast, default 3 (a whole number from 1 to 12)",
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the time series in period order; blank or null counts as missing at that position",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "two_way_anova": {
+   "inputs": {
+    "data": {
+     "desc": "one record per observation: the numeric response and its two factor levels; every cell must have the same count",
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "unit_economics": {
+   "inputs": {
+    "acquisition_cost": {
+     "desc": "cost to acquire one customer",
+     "type": "decimal"
+    },
+    "churn_rate": {
+     "desc": "period churn in (0,1); if supplied, LTV = unit margin / churn",
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit",
+     "type": "decimal"
+    },
+    "variable_cost": {
+     "desc": "variable cost per unit",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "wacc": {
+   "inputs": {
+    "cost_of_debt_after_tax": {
+     "desc": "cost of debt AFTER tax, e.g. 0.05; no tax is computed here",
+     "type": "decimal"
+    },
+    "cost_of_equity": {
+     "desc": "required return on equity, e.g. 0.11",
+     "type": "decimal"
+    },
+    "debt_value": {
+     "desc": "market value of debt (interest-bearing)",
+     "type": "decimal"
+    },
+    "equity_value": {
+     "desc": "market value of equity",
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "weighted_summary": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "type": "value_list"
+    },
+    "weight_kind": {
+     "desc": "reliability (precision-style, default) or frequency (counts of observations)",
+     "type": "enum"
+    },
+    "weights": {
+     "desc": "one positive weight per value, same length as values (a missing value's weight is dropped with it)",
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "welch_t": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "exactly two groups: name -> observations (letters and underscores in names; group sizes may differ)",
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  }
+ },
+ "note": "Generated from bp.methods.list_methods() by scripts/generate_calc_inputs.py. Names, types and descriptions only; the calculator router computes nothing."
+}

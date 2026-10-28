@@ -1,6 +1,6 @@
 # Business Calculator — UI and chat design (PROPOSAL, DRAFT)
 
-**Status: draft for owner review. Not a decision, not a commitment, no code changed.**
+**Status: P1–P3 built (builds 0.75 and 0.76). P4 awaits decision D1.** This document remains design input, not a decision.
 Prepared after the owner's instruction (2026-10-28): *"I want this feature to be the easy business calculator which uses all the calculation capabilities of the pipeline. First, think of a UI similar to a typical calculator where users [can] calculate whatever business computation they want. I'm also thinking of a chat feature where users can ask it to calculate using chat. But you have to scope it as user may ask it to do computation not related to business."*
 
 **Who owns what.** Presentation, labels, layout and interaction copy are the design lane (`docs/CONTRIBUTORS.md` §1A, B-066). Anything that parses a request into a method, or evaluates an expression, is computation-lane work and needs the computation owner's review before it is built. This document stays on the presentation side and names exactly where it crosses the line.
@@ -264,7 +264,7 @@ These are the cases the router's goldens should cover before the chat ships. Eve
 | Utterance | Expected |
 |---|---|
 | "break-even for 1200 fixed, 20 price, 12 variable" | run break-even |
-| "should we invest? -1000 now then 400 a year for 4 years at 10%" | run NPV |
+| "should we invest? -1000 now then 400 a year for 4 years at 10%" | route NPV and **ask** for the rate and the cash flows (the sentence names no input; `10%` is flagged, never converted) |
 | "what discount rate does this project earn: -1000, 400, 400, 400" | run IRR |
 | "average and standard deviation of 72, 85, 90, 68" | run descriptive stats |
 | "are sales and ad spend correlated" | run Pearson (ask for the two lists) |

@@ -1,5 +1,19 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [product] Business Calculator P2 + P3: the deterministic router and the chat (build 0.76)
+
+**Ask:** "go" — continue building the proposal: P2 (the sentence router) and P3 (the chat surface).
+
+**Did:** added `src/bp/product/calc_router.py` (product layer, stdlib only, imports no core module) and `POST /api/cases/calculator/plan`. The router answers with one of five declared outcomes and returns a **draft plan**: the tool, the declared inputs it could read, what is missing, the reason and up to three alternatives. It never defaults a figure, never converts a percentage (it tells you to enter 0.10), never invents a method and treats the message purely as data - an instruction gets `out_of_scope`. The panel gained an "Ask instead" toggle that posts the sentence, renders the answer with every payload string escaped, and prefills the keypad from the plan on request; nothing runs until `=`.
+
+**Also:** `scripts/generate_calc_inputs.py` regenerates the committed schema slice `src/bp/product/data/calc_inputs_v0_1.json` (the product layer may not import `bp.methods`; `tests/test_product_calc_router.py` fails if the slice drifts from `list_methods()`).
+
+**Files:** `src/bp/product/calc_router.py` (new), `src/bp/product/api.py` (one route + import), `src/bp/product/data/calc_inputs_v0_1.json` (new, generated), `scripts/generate_calc_inputs.py` (new), `web/index.html`, `tests/test_product_calc_router.py` (new, 15 tests), `tests/test_product_subjects.py` (one chat guard), docs: `CHANGELOG.md` (0.76), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, `proposals/BUSINESS_CALCULATOR_DESIGN.md` (status + corrected golden), this entry.
+
+**Verified:** 774 tests OK; `node --check` on the page script; live server smoke: the plan route returned `run/breakeven`, `unsupported/tax`, `out_of_scope/bare_arithmetic` and `choose` for the four sample sentences, and the served page carries the chat markup and the plan route reference. No frozen method, fixture or business number changed.
+
+**Open/next:** P4 (`arithmetic`) still needs decision D1 and an unfreeze; the router's vocabulary is deliberately small (it will ask rather than guess), and no browser test exists, so the visual result still needs one human look.
+
 ## 2026-10-28 — [product/design] Business Calculator P1: display, keypad, "=" and auto-recording (build 0.75)
 
 **Ask:** "go" — build the design in `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md` (Phase P1), i.e. the calculator-shaped panel over the frozen methods, with free-form arithmetic left as decision D1.

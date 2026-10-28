@@ -271,6 +271,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .calctool{background:none;border:none;text-align:left;padding:0;cursor:pointer;flex:1;color:inherit}
 .calctool:hover strong{color:var(--navy-500)}
 .calcrow.on{border-color:var(--navy-300);background:var(--navy-100);border-radius:var(--r-sm);padding:10px}
+.toggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-pill);overflow:hidden;background:var(--sunken)}
+.toggle button{border:none;background:none;padding:7px 14px;cursor:pointer;font-size:14.4px;color:var(--text-2)}
+.toggle button[aria-pressed=true]{background:var(--navy-900);color:#fff}
 .field.active input{border-color:var(--navy-900);box-shadow:0 0 0 3px rgba(2,40,76,.08)}
 .field.active label.field{color:var(--navy-900);font-weight:600}
 .field.active label.field::after{content:"  \2190 typing here";font-weight:400;color:var(--text-3)}
@@ -321,7 +324,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: the Business Calculator is a keypad over the frozen methods">v0.75</span>
+  <span class="pill" id="buildpill" title="Served build: the Business Calculator takes a keypad or a sentence">v0.76</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -440,6 +443,20 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <div class="calcbar">
           <label class="visually-hidden" for="calcq">Search the Business Calculator</label>
           <input type="search" id="calcq" placeholder="Search a calculation (NPV, WACC, break-even, t-test, ...)">
+          <div class="toggle" role="group" aria-label="Input mode">
+            <button id="calcmode-pad" type="button" aria-pressed="true">Keypad</button>
+            <button id="calcmode-ask" type="button" aria-pressed="false">Ask instead</button>
+          </div>
+        </div>
+        <div id="calcchat" hidden>
+          <div class="calcbar">
+            <label class="visually-hidden" for="calcask">Ask the Business Calculator</label>
+            <input type="text" id="calcask" placeholder="e.g. break-even with 1200 fixed cost, price 20, variable 12">
+            <button class="btn primary" id="calcaskgo" type="button">Ask</button>
+            <button class="btn" id="calcmode-back" type="button">Back to the keypad</button>
+          </div>
+          <p class="muted">Ask in words or type the figures. The sentence becomes a plan you confirm; nothing is calculated here.</p>
+          <div id="calcchatout"></div>
         </div>
         <div class="chips" id="calcgroups" style="justify-content:flex-start;margin-top:0"></div>
         <div class="calcgrid" id="calcgrid" hidden>
@@ -663,7 +680,7 @@ const state = {
   cases: [], caseId: null, caseBundle: null, ingest: null, ref: null,
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
-  calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null
+  calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad"
 };
 const PANELS = ["home", "subjects", "subject", "calculator", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 
@@ -1017,6 +1034,11 @@ RENDERERS.calculator = function () {
       renderCalcShell();
     };
     $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
+    $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+    $("#calcmode-ask").onclick = () => setCalcMode("ask");
+    $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+    $("#calcaskgo").onclick = calcAsk;
+    $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
     renderCalculator();
   }).catch((e) => { note.innerHTML = errorBanner(e); });
 };
@@ -1080,7 +1102,7 @@ function renderCalculator() {
     };
   });
   const grid = $("#calcgrid");
-  if (state.calcTool) { grid.hidden = false; renderCalcShell(); } else { grid.hidden = true; }
+  if (state.calcTool && state.calcMode !== "ask") { grid.hidden = false; renderCalcShell(); } else { grid.hidden = true; }
 }
 
 /* Preset values become the strings the fields show, so one code path
@@ -1266,6 +1288,101 @@ function renderCalcResult() {
     '<button class="btn" id="calcopenresult">Open the full Result page</button></div>';
   const save = $("#calcsaveresult"); if (save) save.onclick = () => saveCase();
   const open = $("#calcopenresult"); if (open) open.onclick = () => { show("results"); renderResults(); };
+}
+
+/* ---------- the chat ("Ask instead") -------------------------------------
+   The sentence is sent to the product-layer router, which returns one of
+   five outcomes. This code only renders that answer; it never scores the
+   sentence, never adds or changes a figure and never computes anything.
+   Every string from the payload is escaped.
+   ------------------------------------------------------------------------- */
+function setCalcMode(mode) {
+  state.calcMode = mode === "ask" ? "ask" : "pad";
+  const ask = state.calcMode === "ask";
+  $("#calcchat").hidden = !ask;
+  $("#calcout").hidden = ask;
+  $("#calcgroups").hidden = ask;
+  $("#calcgrid").hidden = ask || !state.calcTool;
+  $("#calcmode-pad").setAttribute("aria-pressed", String(!ask));
+  $("#calcmode-ask").setAttribute("aria-pressed", String(ask));
+  if (ask) $("#calcask").focus();
+}
+
+function planTool(key) {
+  const d = state.calculator; if (!d) return null;
+  for (const group of d.groups) {
+    const tool = (group.tools || []).find((t) => t.key === key);
+    if (tool) return tool;
+  }
+  return null;
+}
+
+function planAlternatives(payload) {
+  const rows = payload.alternatives || [];
+  if (!rows.length) return "";
+  return '<div class="row" style="margin-top:10px">' + rows.map((alt) =>
+    '<button class="btn sm" data-plan-tool="' + esc(alt.tool) + '">' + esc(alt.label) +
+    (alt.tier ? " (" + esc(alt.tier) + ")" : "") + "</button>").join("") + "</div>";
+}
+
+function planHtml(payload) {
+  const reason = esc(payload.reason || "");
+  const notes = (payload.notes || []).map((note) => "<div>" + esc(note) + "</div>").join("");
+  if (payload.outcome === "out_of_scope") {
+    return banner("blocked", "Not a business calculation",
+      "<div>This calculator runs recorded business methods - finance, accounting, economics, " +
+      "operations, marketing, people and statistics - and it will not produce a number for anything else.</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">" + reason + "</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">If you meant a business question, name the situation " +
+      "(for example: break-even with 1200 fixed cost).</div>");
+  }
+  if (payload.outcome === "unsupported") {
+    return banner("limit", "Business, but not built",
+      "<div>" + reason + "</div><div style=\"margin-top:6px\">Closest thing it can actually run:</div>" +
+      planAlternatives(payload));
+  }
+  if (payload.outcome === "choose") {
+    return banner("honesty", "Which one did you mean?",
+      "<div>" + reason + "</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">No calculation has run. Pick one and its declared inputs appear.</div>" +
+      planAlternatives(payload));
+  }
+  const missing = (payload.missing || []).length
+    ? "<div style=\"margin-top:6px\">Needs: <strong>" + esc(payload.missing.join(", ")) + "</strong> - nothing has been calculated yet.</div>"
+    : "<div style=\"margin-top:6px\">Every declared input was read from your sentence.</div>";
+  const figures = Object.keys(payload.inputs || {}).length
+    ? kv(Object.keys(payload.inputs).map((k) => [k, Array.isArray(payload.inputs[k]) ? payload.inputs[k].join(", ") : payload.inputs[k]]))
+    : "";
+  return banner(payload.outcome === "run" ? "honesty" : "limit",
+    payload.label + (payload.tier ? " - " + payload.tier : ""),
+    "<div>" + reason + "</div>" + figures + missing + notes +
+    '<div class="row" style="margin-top:10px"><button class="btn sm primary" data-plan-tool="' + esc(payload.tool) +
+    '">Open it with these figures</button></div>');
+}
+
+async function calcAsk() {
+  const text = ($("#calcask").value || "").trim();
+  if (!text) { toast("Type the question first."); return; }
+  const out = $("#calcchatout");
+  out.innerHTML = loading("Reading the sentence");
+  try {
+    const payload = await post("/api/cases/calculator/plan", { text: text });
+    out.innerHTML = '<div class="toolwhat" style="margin-bottom:10px">You asked: <em>' + esc(text) + "</em></div>" +
+      planHtml(payload);
+    $$("[data-plan-tool]", out).forEach((button) => {
+      button.onclick = () => {
+        const tool = planTool(button.dataset.planTool);
+        if (!tool) return;
+        selectCalcTool(tool);
+        Object.keys(payload.inputs || {}).forEach((key) => {
+          state.calcValues[key] = calcValueText(payload.inputs[key]);
+        });
+        setCalcMode("pad");
+        renderCalculator();
+        toast("Opened " + tool.label + " with the figures from your sentence. Nothing has been calculated yet.");
+      };
+    });
+  } catch (e) { out.innerHTML = errorBanner(e); }
 }
 
 

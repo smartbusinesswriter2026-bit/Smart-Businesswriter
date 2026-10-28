@@ -15,6 +15,7 @@ Routes:
     GET    /api/cases/subjects                   -> 200 subject gallery
     GET    /api/cases/subjects/{id}              -> 200 subject page
     GET    /api/cases/calculator                 -> 200 Calculator tool groups
+    POST   /api/cases/calculator/plan            -> 200 draft plan for one sentence
     POST   /api/cases                            -> 201 <the stored bundle>
     GET    /api/cases/{id}                       -> 200 <the stored bundle>
     DELETE /api/cases/{id}                       -> 200 {"deleted": id}
@@ -26,6 +27,7 @@ Routes:
     GET    /api/cases/{id}/signoff?version=n     -> 200 {"signoffs": [...]}
 """
 
+from . import calc_router
 from . import cases as case_store
 from . import charts as chart_renderer
 from . import compare as comparator
@@ -117,6 +119,14 @@ def handle(method, path, body=None):
         if verb != "GET":
             return 405, {"error": "method %s is not allowed on the calculator" % verb}
         return 200, subject_index.calculator_groups()
+    if segments == ["calculator", "plan"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a calculator plan" % verb}
+        text = body.get("text") if isinstance(body, dict) else None
+        try:
+            return 200, calc_router.plan(text)
+        except calc_router.PlanError as error:
+            return _error(error)
 
     case_id = segments[0]
     tail = segments[1:]

@@ -103,7 +103,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.75", self.html)
+        self.assertIn("v0.76", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
 
@@ -177,6 +177,22 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('b.disabled = fit !== "A";', self.html)
         self.assertIn('$("#calceq").disabled = fit === "C";', self.html)
         self.assertIn('class="fitbadge ', self.html)
+
+    def test_the_calculator_can_be_asked_in_words_only_through_the_router(self):
+        """P3: the chat posts the sentence to the product layer and renders its answer."""
+        for present in ('id="calcchat"', 'id="calcask"', 'id="calcaskgo"', 'id="calcmode-ask"'):
+            self.assertIn(present, self.html)
+        self.assertIn('post("/api/cases/calculator/plan", { text: text })', self.html)
+        self.assertIn("function calcAsk()", self.html)
+        self.assertIn("function planHtml(payload)", self.html)
+        # the router's declared outcomes are rendered explicitly
+        for outcome in ("out_of_scope", "unsupported", "choose", "run"):
+            self.assertIn('payload.outcome === "' + outcome + '"', self.html)
+        self.assertIn("payload.outcome === \"run\" ? \"honesty\" : \"limit\"", self.html)
+        # every payload string is escaped before it reaches the page
+        self.assertIn("esc(payload.reason || \"\")", self.html)
+        self.assertIn("esc(payload.missing.join", self.html)
+        self.assertIn("esc(text)", self.html)
 
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only

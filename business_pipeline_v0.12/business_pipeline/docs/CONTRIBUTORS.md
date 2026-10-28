@@ -58,7 +58,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 758 tests; expect "OK"
+python -m unittest discover -s tests          # currently 774 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 
