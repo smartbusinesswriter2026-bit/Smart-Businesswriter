@@ -177,7 +177,9 @@ A theory can inform a framework without becoming a separate operational template
 | PM-11 | COBIT | F/reference framework | Governance and management of enterprise information and technology | Current version, objectives, capability measures and organizational context |
 | PM-12 | ITIL | F/reference framework | IT service management practices and service value system | Service outcomes, incidents, service levels and operational data; apply the appropriate version |
 | PM-13 | DeLone–McLean IS Success Model | M | Relationships among system quality, information quality, use, satisfaction and net benefits | Defined constructs and validated measures; causal interpretations require suitable evidence |
-| PM-14 | Technology–Organization–Environment (TOE) Framework | F | Technology, organizational and environmental context for adoption decisions | Evidence for each context dimension; not a universal numerical score |
+| PM-14 | Technology-Organization-Environment (TOE) Framework | F | Technology, organizational and environmental context for adoption decisions | Evidence for each context dimension; not a universal numerical score |
+| PM-15 | Stakeholder engagement and communication plan | F | Who is affected, what each stakeholder needs, and how, when and by whom the project will communicate with them | Confirmed stakeholders, interests, influence, messages, channels, frequency and owners |
+| PM-16 | Lessons learned | F | What worked, what did not, why, and what the next project should change | Project records, incident and change evidence, and the people who did the work |
 
 ---
 

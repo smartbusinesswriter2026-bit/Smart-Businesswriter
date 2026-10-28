@@ -204,6 +204,7 @@ TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01"
                   "STR-08": "template_vrio",
                   "PM-05": "template_project_charter", "PM-06": "template_risk_register",
                   "PM-09": "template_wbs", "PM-10": "template_raci",
+                  "PM-15": "template_stakeholder_plan", "PM-16": "template_lessons_learned",
                   "MKT-04": "template_customer_journey", "MKT-06": "template_kano",
                   "MKT-07": "template_servqual", "MKT-15": "template_paid_media_plan",
                   "MKT-18": "template_measurement_plan"}

@@ -1,6 +1,6 @@
 """T1 method library with an explicit method contract (Stage 5 brief s6; manual 5.3, 5.5, 9B).
 Discovery (describe/list) never executes a method. Inputs are schema-validated before anything runs."""
-import statistics, re, math, math
+import statistics, re, math, math, random
 from . import currency
 from dataclasses import dataclass, field
 from decimal import Decimal as D, InvalidOperation
@@ -11613,6 +11613,1625 @@ def cpm_schedule_template(out, P, th):
     return t
 
 
+def _cpm_network(activities, durations=None):
+    """A small acyclic CPM core shared by levelling and crashing."""
+    nodes, order = {}, []
+    for a in activities:
+        aid = _act_id(a.get("id"))
+        if aid in nodes:
+            raise DataError("duplicate activity id " + aid)
+        dur = D(str(a["duration"])) if durations is None else D(str(durations[aid]))
+        if dur < 0:
+            raise DataError("activity " + aid + " duration must be non-negative")
+        preds = [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()]
+        nodes[aid] = {"dur": dur, "preds": preds}
+        order.append(aid)
+    for aid, node in nodes.items():
+        for p in node["preds"]:
+            if p not in nodes:
+                raise DataError("activity " + aid + " cites unknown predecessor " + p)
+            if p == aid:
+                raise DataError("activity " + aid + " cannot be its own predecessor")
+    succ = {aid: [] for aid in nodes}
+    indeg = {aid: len(n["preds"]) for aid, n in nodes.items()}
+    for aid, n in nodes.items():
+        for p in n["preds"]:
+            succ[p].append(aid)
+    queue = [aid for aid in order if indeg[aid] == 0]
+    topo = []
+    while queue:
+        aid = queue.pop(0)
+        topo.append(aid)
+        for s in succ[aid]:
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                queue.append(s)
+    if len(topo) != len(nodes):
+        raise DataError("the predecessor graph contains a cycle")
+    es, ef = {}, {}
+    for aid in topo:
+        es[aid] = max((ef[p] for p in nodes[aid]["preds"]), default=D(0))
+        ef[aid] = es[aid] + nodes[aid]["dur"]
+    duration = max(ef.values())
+    ls, lf = {}, {}
+    for aid in reversed(topo):
+        lf[aid] = min((ls[s] for s in succ[aid]), default=duration)
+        ls[aid] = lf[aid] - nodes[aid]["dur"]
+    return {"order": order, "nodes": nodes, "topo": topo, "succ": succ,
+            "es": es, "ef": ef, "ls": ls, "lf": lf, "duration": duration}
+
+
+def _whole(value, what):
+    number = D(str(value))
+    if number != number.to_integral_value():
+        raise DataError(what + " must be a whole number of periods")
+    return int(number)
+
+
+def _fits(schedule, demand, capacity, start, duration, extra=0):
+    for period in range(start, start + duration):
+        used = sum(demand[aid] for aid, (other_start, other_duration) in schedule.items()
+                   if other_start <= period < other_start + other_duration)
+        if used + extra > capacity:
+            return False
+    return True
+
+
+def _load_by_period(schedule, demand, capacity):
+    """Peak and over-capacity periods for one resource."""
+    peak, over = 0, 0
+    for period in range(0, max([s + d for s, d in schedule.values()] or [0])):
+        load = sum(demand[aid] for aid, (start, dur) in schedule.items() if start <= period < start + dur)
+        peak = max(peak, load)
+        if load > capacity:
+            over += 1
+    return peak, over
+
+
+def resource_leveling_impl(inp):
+    activities, resources = inp["activities"], inp["resources"]
+    capacity = {}
+    for r in resources:
+        name = _act_id(r.get("name"))
+        cap = _whole(r.get("capacity"), "resource " + name + " capacity")
+        if cap <= 0:
+            raise DataError("resource " + name + " capacity must be positive")
+        capacity[name] = cap
+    net = _cpm_network(activities)
+    demand, resource = {}, {}
+    for a in activities:
+        aid = _act_id(a.get("id"))
+        res = _act_id(a.get("resource"))
+        if res not in capacity:
+            raise DataError("activity " + aid + " cites unknown resource " + res)
+        amount = _whole(a.get("demand"), "activity " + aid + " demand")
+        if amount < 0 or amount > capacity[res]:
+            raise DataError("activity %s demand must be between 0 and the capacity of %s" % (aid, res))
+        demand[aid], resource[aid] = amount, res
+        net["nodes"][aid]["dur_int"] = _whole(net["nodes"][aid]["dur"], "activity " + aid + " duration")
+    before_schedule = {aid: (int(net["es"][aid]), net["nodes"][aid]["dur_int"]) for aid in net["order"]}
+    peak_before, over_before = 0, 0
+    for name, cap in capacity.items():
+        schedule = {aid: v for aid, v in before_schedule.items() if resource[aid] == name}
+        peak, over = _load_by_period(schedule, {aid: demand[aid] for aid in schedule}, cap)
+        peak_before, over_before = max(peak_before, peak), over_before + over
+    sequence = sorted(net["order"], key=lambda aid: (net["es"][aid], -net["nodes"][aid]["dur"], aid))
+    starts = {}
+    for aid in sequence:
+        earliest = max((starts[p] + net["nodes"][p]["dur_int"] for p in net["nodes"][aid]["preds"]), default=0)
+        earliest = max(earliest, int(net["es"][aid]))
+        start = earliest
+        while True:
+            peers = {x: (s, net["nodes"][x]["dur_int"]) for x, s in starts.items()
+                     if resource[x] == resource[aid]}
+            if _fits(peers, {x: demand[x] for x in peers}, capacity[resource[aid]],
+                     start, net["nodes"][aid]["dur_int"], extra=demand[aid]):
+                break
+            start += 1
+        starts[aid] = start
+    after_schedule = {aid: (starts[aid], net["nodes"][aid]["dur_int"]) for aid in net["order"]}
+    peak_after, over_after = 0, 0
+    for name, cap in capacity.items():
+        schedule = {aid: v for aid, v in after_schedule.items() if resource[aid] == name}
+        peak, over = _load_by_period(schedule, {aid: demand[aid] for aid in schedule}, cap)
+        peak_after, over_after = max(peak_after, peak), over_after + over
+    levelled = max(starts[aid] + net["nodes"][aid]["dur_int"] for aid in net["order"])
+    out = {"cpm_duration": net["duration"], "levelled_duration": D(levelled),
+           "levelling_delay": D(levelled) - net["duration"], "activity_count": D(len(net["order"])),
+           "overallocated_periods_before": D(over_before), "overallocated_periods_after": D(over_after),
+           "peak_demand_before": D(peak_before), "peak_demand_after": D(peak_after)}
+    for aid in net["order"]:
+        out["lv_start_" + aid] = D(starts[aid])
+        out["lv_finish_" + aid] = D(starts[aid] + net["nodes"][aid]["dur_int"])
+        out["lv_delay_" + aid] = D(starts[aid]) - net["es"][aid]
+    return out
+
+
+def _level_float(inp):
+    activities = inp["activities"]
+    capacity = {str(r["name"]).strip(): int(float(D(str(r["capacity"])))) for r in inp["resources"]}
+    nodes = {}
+    for a in activities:
+        aid = str(a["id"]).strip()
+        nodes[aid] = {"dur": int(float(D(str(a["duration"])))),
+                      "preds": [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()],
+                      "res": str(a["resource"]).strip(), "dem": int(float(D(str(a["demand"]))))}
+    ef = {}
+    pending = dict(nodes)
+    while pending:
+        progressed = False
+        for aid in list(pending):
+            if all(p in ef for p in pending[aid]["preds"]):
+                ef[aid] = max((ef[p] for p in pending[aid]["preds"]), default=0) + pending[aid]["dur"]
+                del pending[aid]
+                progressed = True
+        if not progressed:
+            raise ValueError("cycle")
+    es = {aid: ef[aid] - nodes[aid]["dur"] for aid in nodes}
+    sequence = sorted(nodes, key=lambda aid: (es[aid], -nodes[aid]["dur"], aid))
+    starts = {}
+    for aid in sequence:
+        start = max([starts[p] + nodes[p]["dur"] for p in nodes[aid]["preds"]] + [es[aid]])
+        peers = {x: (s, nodes[x]["dur"]) for x, s in starts.items() if nodes[x]["res"] == nodes[aid]["res"]}
+        while not _fits(peers, {x: nodes[x]["dem"] for x in peers}, capacity[nodes[aid]["res"]],
+                        start, nodes[aid]["dur"], extra=nodes[aid]["dem"]):
+            start += 1
+        starts[aid] = start
+    return {"levelled_duration": float(max(starts[a] + nodes[a]["dur"] for a in nodes)), "starts": starts}
+
+
+def resource_leveling_tests(inp, impl):
+    base, ref = impl(inp), _level_float(inp)
+    net = _cpm_network(inp["activities"])
+    capacity = {str(r["name"]).strip(): int(float(D(str(r["capacity"])))) for r in inp["resources"]}
+    resource = {str(a["id"]).strip(): str(a["resource"]).strip() for a in inp["activities"]}
+    demand = {str(a["id"]).strip(): int(float(D(str(a["demand"])))) for a in inp["activities"]}
+    starts = {aid: int(base["lv_start_" + aid]) for aid in net["order"]}
+    duration = {aid: _whole(net["nodes"][aid]["dur"], "activity " + aid + " duration") for aid in net["order"]}
+    schedule = {aid: (starts[aid], duration[aid]) for aid in net["order"]}
+    peak_ok = True
+    for name, cap in capacity.items():
+        used = {aid: v for aid, v in schedule.items() if resource[aid] == name}
+        peak, over = _load_by_period(used, {aid: demand[aid] for aid in used}, cap)
+        peak_ok = peak_ok and over == 0 and peak <= cap
+    checks = [
+        ("second_implementation_agrees", _close(base["levelled_duration"], ref["levelled_duration"], rel=1e-9)
+         and all(_close(base["lv_start_" + a], ref["starts"][a], rel=1e-9) for a in net["order"]),
+         "float route agrees with the Decimal route"),
+        ("no_period_exceeds_a_resource_capacity", peak_ok, "every levelled period is within capacity"),
+        ("precedence_is_respected", all(starts[a] >= starts[p] + duration[p]
+                                        for a in net["order"] for p in net["nodes"][a]["preds"]),
+         "no activity starts before its predecessor finishes"),
+        ("no_activity_starts_before_its_cpm_early_start",
+         all(starts[a] >= net["es"][a] for a in net["order"]), "levelling only delays work"),
+        ("levelling_never_shortens_the_project",
+         base["levelled_duration"] >= base["cpm_duration"], "the resource-constrained plan is at least as long"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def resource_leveling_profile(inp):
+    try:
+        acts, resources = inp.get("activities"), inp.get("resources")
+        if not isinstance(acts, list) or not acts:
+            return ["at least one activity is required"]
+        if not isinstance(resources, list) or not resources:
+            return ["at least one resource is required"]
+        names = set()
+        for i, r in enumerate(resources, 1):
+            if not isinstance(r, dict):
+                return ["resource %d must be an object" % i]
+            name = str(r.get("name") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", name):
+                return ["resource %d needs a name of 1-20 letters, digits, - or _" % i]
+            if name in names:
+                return ["duplicate resource name " + name]
+            names.add(name)
+            if D(str(r.get("capacity", ""))) <= 0:
+                return ["resource " + name + " capacity must be positive"]
+        seen = set()
+        for i, a in enumerate(acts, 1):
+            if not isinstance(a, dict):
+                return ["activity %d must be an object" % i]
+            aid = str(a.get("id") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid) or aid in seen:
+                return ["activity %d needs a unique id of 1-20 letters, digits, - or _" % i]
+            seen.add(aid)
+            if "duration" not in a or D(str(a["duration"])) < 0:
+                return ["activity " + aid + " needs a non-negative duration"]
+            if str(a["resource"]).strip() not in names:
+                return ["activity " + aid + " cites an unknown resource"]
+            amount, cap = D(str(a.get("demand", ""))), D(str(next(r for r in resources if str(r["name"]).strip() == str(a["resource"]).strip())["capacity"]))
+            if amount < 0 or amount > cap:
+                return ["activity %s demand must be between 0 and its resource capacity" % aid]
+        for a in acts:
+            for p in str(a.get("predecessors") or "").split(","):
+                if p.strip() and p.strip() not in seen:
+                    return ["activity %s cites unknown predecessor %s" % (str(a["id"]).strip(), p.strip())]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError, StopIteration):
+        return ["resource-levelling inputs are malformed; every activity needs id, duration, resource and demand"]
+
+
+def _level_typing(metric):
+    if metric in ("overallocated_periods_before", "overallocated_periods_after", "peak_demand_before",
+                  "peak_demand_after", "activity_count"):
+        return ("count", 0)
+    return ("periods", 2)
+
+
+def resource_leveling_caveats(out, th):
+    return ["Levelling is serial and non-preemptive: activities keep their duration and are delayed until their declared resource has capacity.",
+            "The order is by early start, then longest duration, then activity id; a different priority rule can produce a different, equally valid plan.",
+            "Only one resource per activity and whole-period durations and demands are supported; calendars, multiple resources per activity and preemption are not."]
+
+
+def resource_leveling_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The resource-constrained plan finishes in " + tok("levelled_duration") + " periods, against " +
+            tok("cpm_duration") + " without resource limits, a delay of " + tok("levelling_delay") +
+            " periods. " + tok("overallocated_periods_before") + " periods were over capacity before levelling and " +
+            tok("overallocated_periods_after") + " after.")
+
+
+def project_crashing_impl(inp):
+    activities = inp["activities"]
+    normal, lowest, cost = {}, {}, {}
+    for a in activities:
+        aid = _act_id(a.get("id"))
+        n = _whole(a.get("normal_duration"), "activity " + aid + " normal_duration")
+        c = _whole(a.get("crash_duration"), "activity " + aid + " crash_duration")
+        if c < 0 or c > n:
+            raise DataError("activity " + aid + " needs 0 <= crash_duration <= normal_duration")
+        amount = D(str(a.get("crash_cost", "0")))
+        if amount < 0:
+            raise DataError("activity " + aid + " crash_cost must be non-negative")
+        if n > c and amount == 0:
+            raise DataError("activity " + aid + " can be crashed but has no crash cost")
+        normal[aid], lowest[aid], cost[aid] = n, c, amount
+    net = _cpm_network(activities, durations=normal)
+    target = _whole(inp.get("target_duration"), "target_duration")
+    if target < 0:
+        raise DataError("target_duration must be non-negative")
+    feasible = _cpm_network(activities, durations=lowest)["duration"]
+    if target < feasible:
+        raise DataError("target_duration is below the fully crashed duration of " + str(feasible))
+    normal_duration = net["duration"]
+    current = dict(normal)
+    spend, crashed = D(0), {aid: 0 for aid in normal}
+    guard = 0
+    while True:
+        net = _cpm_network(activities, durations=current)
+        if net["duration"] <= target:
+            break
+        guard += 1
+        if guard > 10000:
+            raise DataError("crashing did not converge")
+        critical = [aid for aid in net["order"] if net["ls"][aid] - net["es"][aid] == 0 and current[aid] > lowest[aid]]
+        if not critical:
+            raise DataError("target_duration cannot be reached by crashing the critical path")
+        def rate(aid):
+            return (cost[aid] / D(normal[aid] - lowest[aid]), aid)
+        chosen = min(critical, key=rate)
+        current[chosen] -= 1
+        crashed[chosen] += 1
+        spend += cost[chosen] / D(normal[chosen] - lowest[chosen])
+    out = {"normal_duration": normal_duration,
+           "crashed_duration": _cpm_network(activities, durations=current)["duration"],
+           "target_duration": D(target), "total_crash_cost": spend, "activity_count": D(len(normal))}
+    for aid in net["order"]:
+        out["crash_periods_" + aid] = D(crashed[aid])
+        out["crash_cost_" + aid] = D(crashed[aid]) * (cost[aid] / D(normal[aid] - lowest[aid])) if normal[aid] > lowest[aid] else D(0)
+        out["final_duration_" + aid] = D(current[aid])
+    return out
+
+
+def _crash_float(inp):
+    normal = {str(a["id"]).strip(): int(float(D(str(a["normal_duration"])))) for a in inp["activities"]}
+    lowest = {str(a["id"]).strip(): int(float(D(str(a["crash_duration"])))) for a in inp["activities"]}
+    cost = {str(a["id"]).strip(): float(D(str(a.get("crash_cost", "0")))) for a in inp["activities"]}
+    preds = {str(a["id"]).strip(): [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()]
+             for a in inp["activities"]}
+    target = int(float(D(str(inp["target_duration"]))))
+    current = dict(normal)
+
+    def network(durs):
+        ef, pending, order = {}, dict(durs), []
+        while pending:
+            moved = False
+            for aid in list(pending):
+                if all(p in ef for p in preds[aid]):
+                    ef[aid] = max((ef[p] for p in preds[aid]), default=0) + durs[aid]
+                    del pending[aid]
+                    order.append(aid)
+                    moved = True
+            if not moved:
+                raise ValueError("cycle")
+        duration = max(ef.values())
+        succ = {aid: [x for x in durs if aid in preds[x]] for aid in durs}
+        ls, lf = {}, {}
+        for aid in reversed(order):
+            lf[aid] = min((ls[s] for s in succ[aid]), default=duration)
+            ls[aid] = lf[aid] - durs[aid]
+        es = {aid: ef[aid] - durs[aid] for aid in durs}
+        return duration, [aid for aid in durs if ls[aid] - es[aid] == 0]
+
+    spend = 0.0
+    while network(current)[0] > target:
+        duration, critical = network(current)
+        candidates = [aid for aid in critical if current[aid] > lowest[aid]]
+        if not candidates:
+            raise ValueError("unreachable")
+        aid = min(candidates, key=lambda x: (cost[x] / (normal[x] - lowest[x]), x))
+        current[aid] -= 1
+        spend += cost[aid] / (normal[aid] - lowest[aid])
+    return {"crashed_duration": network(current)[0], "total_crash_cost": spend, "final": current}
+
+
+def project_crashing_tests(inp, impl):
+    base, ref = impl(inp), _crash_float(inp)
+    normal = {str(a["id"]).strip(): int(float(D(str(a["normal_duration"])))) for a in inp["activities"]}
+    lowest = {str(a["id"]).strip(): int(float(D(str(a["crash_duration"])))) for a in inp["activities"]}
+    cost = {str(a["id"]).strip(): D(str(a.get("crash_cost", "0"))) for a in inp["activities"]}
+    final = {aid: int(base["final_duration_" + aid]) for aid in normal}
+    recomputed = _cpm_network(inp["activities"], durations=final)["duration"]
+    spend = sum(base["crash_cost_" + aid] for aid in normal)
+    checks = [
+        ("second_implementation_agrees", _close(base["crashed_duration"], ref["crashed_duration"], rel=1e-9)
+         and _close(base["total_crash_cost"], ref["total_crash_cost"], rel=1e-9),
+         "float route agrees with the Decimal route"),
+        ("target_duration_is_met", base["crashed_duration"] <= base["target_duration"],
+         "the crashed plan is no longer than the target"),
+        ("every_activity_stays_within_its_crash_limits",
+         all(lowest[a] <= final[a] <= normal[a] for a in normal), "no activity is crashed beyond its declared range"),
+        ("total_cost_is_the_sum_of_the_activity_costs", _close(base["total_crash_cost"], spend, rel=1e-9),
+         "the reported cost is the sum of the crash costs"),
+        ("recomputed_network_matches_the_crashed_duration", D(recomputed) == base["crashed_duration"],
+         "the dates recompute to the same project duration"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def project_crashing_profile(inp):
+    try:
+        acts = inp.get("activities")
+        if not isinstance(acts, list) or not acts:
+            return ["at least one activity is required"]
+        for i, a in enumerate(acts, 1):
+            if not isinstance(a, dict):
+                return ["activity %d must be an object" % i]
+            aid = str(a.get("id") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid):
+                return ["activity %d needs an id of 1-20 letters, digits, - or _" % i]
+            n, c = D(str(a.get("normal_duration", ""))), D(str(a.get("crash_duration", "")))
+            if c < 0 or c > n:
+                return ["activity " + aid + " needs 0 <= crash_duration <= normal_duration"]
+            if D(str(a.get("crash_cost", "0"))) < 0:
+                return ["activity " + aid + " crash_cost must be non-negative"]
+        if "target_duration" not in inp or D(str(inp["target_duration"])) < 0:
+            return ["target_duration must be a non-negative number"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["crashing inputs are malformed; every activity needs normal_duration, crash_duration and crash_cost"]
+
+
+def _crash_typing(metric):
+    if metric in ("activity_count",) or metric.startswith("crash_periods_"):
+        return ("count", 0)
+    if metric.startswith("crash_cost_") or metric == "total_crash_cost":
+        return ("currency", 2)
+    return ("periods", 2)
+
+
+def project_crashing_caveats(out, th):
+    return ["Crashing is a greedy rule: one period at a time, the cheapest critical activity, recomputing the network after each step. It is not a linear-programming optimum.",
+            "Crash cost is treated as linear between the normal and crash durations; shared or non-linear costs are not modelled.",
+            "A target below the fully crashed duration or beyond the normal duration is refused or reported unchanged."]
+
+
+def project_crashing_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The normal plan lasts " + tok("normal_duration") + " periods. Crashing it to the target of " +
+            tok("target_duration") + " costs " + tok("total_crash_cost") + " and leaves a duration of " +
+            tok("crashed_duration") + ".")
+
+
+def _calendar_numbers(text):
+    raw = [p.strip() for p in str(text or "").split(",") if p.strip()]
+    values = []
+    for item in raw:
+        value = _whole(item, "working period")
+        if value < 0:
+            raise DataError("working periods must be non-negative")
+        values.append(value)
+    if not values:
+        raise DataError("at least one working period is required")
+    return sorted(set(values))
+
+
+def _calendar_advance(work, start, duration):
+    index = next((i for i, value in enumerate(work) if value >= start), None)
+    if index is None:
+        raise DataError("the calendar has no working period at or after the required start")
+    if duration == 0:
+        return work[index], work[index], []
+    if index + duration > len(work):
+        raise DataError("the calendar is too short for the declared durations")
+    occupied = work[index:index + duration]
+    return occupied[0], occupied[-1] + 1, occupied
+
+
+def _calendar_latest(work, finish, duration):
+    if duration == 0:
+        eligible = [value for value in work if value <= finish]
+        if not eligible:
+            raise DataError("the calendar cannot place a milestone before its late finish")
+        return eligible[-1]
+    for index in range(len(work) - duration, -1, -1):
+        block = work[index:index + duration]
+        if block and block[-1] + 1 <= finish:
+            return block[0]
+    raise DataError("the calendar cannot place an activity before its late finish")
+
+
+def calendar_schedule_impl(inp):
+    work = _calendar_numbers(inp.get("working_periods"))
+    activities = inp["activities"]
+    nodes, order = {}, []
+    for a in activities:
+        aid = _act_id(a.get("id"))
+        if aid in nodes:
+            raise DataError("duplicate activity id " + aid)
+        dur = _whole(a.get("duration"), "activity " + aid + " duration")
+        preds = [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()]
+        nodes[aid] = {"dur": dur, "preds": preds}
+        order.append(aid)
+    for aid, node in nodes.items():
+        for p in node["preds"]:
+            if p not in nodes:
+                raise DataError("activity " + aid + " cites unknown predecessor " + p)
+            if p == aid:
+                raise DataError("activity " + aid + " cannot be its own predecessor")
+    succ = {aid: [] for aid in nodes}
+    indeg = {aid: len(n["preds"]) for aid, n in nodes.items()}
+    for aid, n in nodes.items():
+        for p in n["preds"]:
+            succ[p].append(aid)
+    queue = [aid for aid in order if indeg[aid] == 0]
+    topo = []
+    while queue:
+        aid = queue.pop(0)
+        topo.append(aid)
+        for s in succ[aid]:
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                queue.append(s)
+    if len(topo) != len(nodes):
+        raise DataError("the predecessor graph contains a cycle")
+    es, ef = {}, {}
+    for aid in topo:
+        earliest = max((ef[p] for p in nodes[aid]["preds"]), default=0)
+        start, finish, _ = _calendar_advance(work, earliest, nodes[aid]["dur"])
+        es[aid], ef[aid] = start, finish
+    duration = max(ef.values())
+    ls, lf = {}, {}
+    for aid in reversed(topo):
+        latest = min((ls[s] for s in succ[aid]), default=duration)
+        lf[aid] = latest
+        ls[aid] = _calendar_latest(work, latest, nodes[aid]["dur"])
+    critical = [aid for aid in order if ls[aid] - es[aid] == 0]
+    out = {"project_duration": D(duration), "activity_count": D(len(nodes)),
+           "working_periods": D(len(work)), "critical_count": D(len(critical))}
+    for aid in order:
+        out["es_" + aid] = D(es[aid])
+        out["ef_" + aid] = D(ef[aid])
+        out["ls_" + aid] = D(ls[aid])
+        out["lf_" + aid] = D(lf[aid])
+        out["float_" + aid] = D(ls[aid] - es[aid])
+        out["critical_" + aid] = D(1 if aid in critical else 0)
+    return out
+
+
+def _calendar_float(inp):
+    work = sorted({int(float(D(str(x)))) for x in str(inp.get("working_periods") or "").split(",") if x.strip()})
+    nodes = {}
+    for a in inp["activities"]:
+        aid = str(a["id"]).strip()
+        nodes[aid] = (int(float(D(str(a["duration"])))),
+                      [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()])
+    ef, pending = {}, dict(nodes)
+    while pending:
+        moved = False
+        for aid in list(pending):
+            dur, preds = pending[aid]
+            if all(p in ef for p in preds):
+                earliest = max((ef[p] for p in preds), default=0)
+                index = next(i for i, value in enumerate(work) if value >= earliest)
+                ef[aid] = work[index + dur - 1] + 1
+                del pending[aid]
+                moved = True
+        if not moved:
+            raise ValueError("cycle")
+    return {"project_duration": max(ef.values())}
+
+
+def calendar_schedule_tests(inp, impl):
+    base, ref = impl(inp), _calendar_float(inp)
+    work = _calendar_numbers(inp.get("working_periods"))
+    ids = [str(a["id"]).strip() for a in inp["activities"]]
+    nodes = {str(a["id"]).strip(): a for a in inp["activities"]}
+    preds = {i: [p.strip() for p in str(nodes[i].get("predecessors") or "").split(",") if p.strip()] for i in ids}
+    before = _cpm_network([{**a, "duration": a["duration"]} for a in inp["activities"]])["duration"]
+    checks = [
+        ("second_implementation_agrees", _close(base["project_duration"], ref["project_duration"], rel=1e-9),
+         "float route agrees with the Decimal route"),
+        ("precedence_is_respected", all(base["es_" + a] >= base["ef_" + p] for a in ids for p in preds[a]),
+         "no activity starts before its predecessor finishes"),
+        ("every_working_period_is_used", all(
+            sum(1 for p in work if int(base["es_" + aid]) <= p < int(base["ef_" + aid])) == int(D(str(nodes[aid]["duration"])))
+            for aid in ids), "each activity occupies exactly its declared number of working periods"),
+        ("critical_activities_have_zero_float",
+         all((base["critical_" + i] == 1) == (base["float_" + i] == 0) for i in ids),
+         "the critical flag is exactly the zero-float activities"),
+        ("the_calendar_cannot_shorten_the_work",
+         base["project_duration"] >= before, "skipping non-working periods cannot make the project shorter"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def calendar_schedule_profile(inp):
+    try:
+        work = [p.strip() for p in str(inp.get("working_periods") or "").split(",") if p.strip()]
+        if not work:
+            return ["working_periods must list at least one period"]
+        values = []
+        for item in work:
+            value = D(str(item))
+            if value < 0 or value != value.to_integral_value():
+                return ["working periods must be non-negative whole numbers"]
+            values.append(int(value))
+        if len(set(values)) != len(values):
+            return ["working periods must not repeat"]
+        acts = inp.get("activities")
+        if not isinstance(acts, list) or not acts:
+            return ["at least one activity is required"]
+        seen = set()
+        for i, a in enumerate(acts, 1):
+            if not isinstance(a, dict):
+                return ["activity %d must be an object" % i]
+            aid = str(a.get("id") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid) or aid in seen:
+                return ["activity %d needs a unique id of 1-20 letters, digits, - or _" % i]
+            seen.add(aid)
+            if "duration" not in a or D(str(a["duration"])) < 0 or D(str(a["duration"])) != D(str(a["duration"])).to_integral_value():
+                return ["activity " + aid + " needs a whole, non-negative duration"]
+        for a in acts:
+            for p in str(a.get("predecessors") or "").split(","):
+                if p.strip() and p.strip() not in seen:
+                    return ["activity %s cites unknown predecessor %s" % (str(a["id"]).strip(), p.strip())]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["calendar inputs are malformed; provide working_periods and activities with id and duration"]
+
+
+def calendar_schedule_caveats(out, th):
+    return ["The calendar is a declared list of working period numbers; no dates, weekends, holidays or shifts are inferred.",
+            "Durations are counted in working periods and an activity cannot start or finish inside a non-working gap.",
+            "One calendar applies to the whole project; per-activity calendars and resource limits are not modelled."]
+
+
+def calendar_schedule_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("With the declared working calendar, the project finishes in " + tok("project_duration") +
+            " calendar periods, using " + tok("working_periods") + " working periods, with " +
+            tok("critical_count") + " of " + tok("activity_count") + " activities on the critical path.")
+
+
+def _multi_project_core(inp):
+    capacity = {}
+    for r in inp["resources"]:
+        name = _act_id(r.get("name"))
+        cap = _whole(r.get("capacity"), "resource " + name + " capacity")
+        if cap <= 0:
+            raise DataError("resource " + name + " capacity must be positive")
+        capacity[name] = cap
+    projects, seen_projects = [], set()
+    for raw in inp["projects"]:
+        name = _act_id(raw.get("name"))
+        if name in seen_projects:
+            raise DataError("duplicate project name " + name)
+        seen_projects.add(name)
+        priority = D(str(raw.get("priority", "1")))
+        net = _cpm_network(raw["activities"])
+        activities = []
+        for a in raw["activities"]:
+            aid = _act_id(a.get("id"))
+            res = _act_id(a.get("resource"))
+            if res not in capacity:
+                raise DataError("activity %s/%s cites unknown resource %s" % (name, aid, res))
+            amount = _whole(a.get("demand"), "activity " + aid + " demand")
+            if amount < 0 or amount > capacity[res]:
+                raise DataError("activity %s/%s demand must be between 0 and the capacity of %s" % (name, aid, res))
+            activities.append({"project": name, "id": aid, "key": name + "_" + aid,
+                               "duration": _whole(net["nodes"][aid]["dur"], "activity " + aid + " duration"),
+                               "resource": res, "demand": amount,
+                               "preds": net["nodes"][aid]["preds"], "es": net["es"][aid]})
+        projects.append({"name": name, "priority": priority, "activities": activities,
+                         "cpm_duration": net["duration"]})
+    return capacity, projects
+
+
+def multi_project_schedule_impl(inp):
+    capacity, projects = _multi_project_core(inp)
+    sequence = sorted(
+        [a for project in projects for a in project["activities"]],
+        key=lambda a: (next(p["priority"] for p in projects if p["name"] == a["project"]),
+                       a["es"], -a["duration"], a["project"], a["id"]))
+    starts, by_key = {}, {a["key"]: a for a in sequence}
+    for activity in sequence:
+        earliest = int(activity["es"])
+        for pred in activity["preds"]:
+            earliest = max(earliest, starts[activity["project"] + "_" + pred]
+                           + by_key[activity["project"] + "_" + pred]["duration"])
+        start = earliest
+        while True:
+            peers = {k: (s, by_key[k]["duration"]) for k, s in starts.items()
+                     if by_key[k]["resource"] == activity["resource"]}
+            if _fits(peers, {k: by_key[k]["demand"] for k in peers}, capacity[activity["resource"]],
+                     start, activity["duration"], extra=activity["demand"]):
+                break
+            start += 1
+        starts[activity["key"]] = start
+    finishes = {a["key"]: starts[a["key"]] + a["duration"] for a in sequence}
+    overall = max(finishes.values())
+    out = {"overall_duration": D(overall), "project_count": D(len(projects)),
+           "activity_count": D(len(sequence))}
+    for project in projects:
+        finish = max(finishes[a["key"]] for a in project["activities"])
+        out["finish_" + project["name"]] = D(finish)
+        out["delay_" + project["name"]] = D(finish) - project["cpm_duration"]
+        for activity in project["activities"]:
+            out["start_" + activity["key"]] = D(starts[activity["key"]])
+            out["finish_" + activity["key"]] = D(finishes[activity["key"]])
+    return out
+
+
+def _multi_project_float(inp):
+    capacity = {str(r["name"]).strip(): int(float(D(str(r["capacity"])))) for r in inp["resources"]}
+    projects = []
+    for raw in inp["projects"]:
+        name = str(raw["name"]).strip()
+        acts = []
+        for a in raw["activities"]:
+            acts.append({"project": name, "key": name + "_" + str(a["id"]).strip(),
+                         "id": str(a["id"]).strip(),
+                         "duration": int(float(D(str(a["duration"])))),
+                         "resource": str(a["resource"]).strip(),
+                         "demand": int(float(D(str(a["demand"])))),
+                         "preds": [p.strip() for p in str(a.get("predecessors") or "").split(",") if p.strip()]})
+        # forward early starts by repeated relaxation in input order
+        es = {}
+        pending = {a["id"]: a for a in acts}
+        while pending:
+            moved = False
+            for aid in list(pending):
+                a = pending[aid]
+                if all(a["project"] + "_" + p in es for p in a["preds"]):
+                    es[a["key"]] = max([es[a["project"] + "_" + p] + next(
+                        x["duration"] for x in acts if x["key"] == a["project"] + "_" + p) for p in a["preds"]] or [0])
+                    del pending[aid]
+                    moved = True
+            if not moved:
+                raise ValueError("cycle")
+        projects.append({"name": name, "priority": float(D(str(raw.get("priority", "1")))),
+                         "activities": [{**a, "es": es[a["key"]]} for a in acts]})
+    sequence = sorted([a for p in projects for a in p["activities"]],
+                      key=lambda a: (next(p["priority"] for p in projects if p["name"] == a["project"]),
+                                     a["es"], -a["duration"], a["project"], a["id"]))
+    by_key = {a["key"]: a for a in sequence}
+    starts = {}
+    for a in sequence:
+        start = max([a["es"]] + [starts[a["project"] + "_" + p] + by_key[a["project"] + "_" + p]["duration"]
+                                 for p in a["preds"]])
+        peers = {k: (s, by_key[k]["duration"]) for k, s in starts.items() if by_key[k]["resource"] == a["resource"]}
+        while not _fits(peers, {k: by_key[k]["demand"] for k in peers}, capacity[a["resource"]],
+                        start, a["duration"], extra=a["demand"]):
+            start += 1
+        starts[a["key"]] = start
+    return {"overall_duration": max(starts[k] + by_key[k]["duration"] for k in starts),
+            "finish": {p["name"]: max(starts[a["key"]] + a["duration"] for a in p["activities"]) for p in projects},
+            "starts": starts}
+
+
+def multi_project_schedule_tests(inp, impl):
+    base, ref = impl(inp), _multi_project_float(inp)
+    capacity, projects = _multi_project_core(inp)
+    sequence = [a for project in projects for a in project["activities"]]
+    starts = {a["key"]: int(base["start_" + a["key"]]) for a in sequence}
+    finishes = {a["key"]: int(base["finish_" + a["key"]]) for a in sequence}
+    peak_ok = True
+    for name, cap in capacity.items():
+        used = {a["key"]: (starts[a["key"]], a["duration"]) for a in sequence if a["resource"] == name}
+        demand_used = {a["key"]: a["demand"] for a in sequence if a["resource"] == name}
+        _, over = _load_by_period(used, demand_used, cap)
+        peak_ok = peak_ok and over == 0
+    checks = [
+        ("second_implementation_agrees", _close(base["overall_duration"], ref["overall_duration"], rel=1e-9)
+         and all(_close(base["finish_" + p["name"]], ref["finish"][p["name"]], rel=1e-9) for p in projects),
+         "float route agrees with the Decimal route"),
+        ("no_period_exceeds_a_resource_capacity", peak_ok, "no resource is over capacity after scheduling"),
+        ("precedence_within_each_project_is_respected",
+         all(starts[a["project"] + "_" + a["id"]] >= finishes[a["project"] + "_" + p]
+             for a in sequence for p in a["preds"]), "every activity starts after its own predecessors"),
+        ("no_project_finishes_before_its_unconstrained_duration",
+         all(base["finish_" + p["name"]] >= p["cpm_duration"] for p in projects),
+         "shared resources cannot make a project finish earlier than its own CPM"),
+        ("every_activity_is_scheduled_exactly_once",
+         len(starts) == len(sequence) and all(a["key"] in starts for a in sequence),
+         "each project activity appears once"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def multi_project_schedule_profile(inp):
+    try:
+        resources, projects = inp.get("resources"), inp.get("projects")
+        if not isinstance(resources, list) or not resources:
+            return ["at least one resource is required"]
+        names = {str(r.get("name") or "").strip() for r in resources}
+        if len(names) != len(resources):
+            return ["resource names must be unique"]
+        if not isinstance(projects, list) or not projects:
+            return ["at least one project is required"]
+        seen = set()
+        for i, project in enumerate(projects, 1):
+            if not isinstance(project, dict):
+                return ["project %d must be an object" % i]
+            name = str(project.get("name") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", name) or name in seen:
+                return ["project %d needs a unique name of 1-20 letters, digits, - or _" % i]
+            seen.add(name)
+            if not isinstance(project.get("activities"), list) or not project["activities"]:
+                return ["project " + name + " needs at least one activity"]
+            ids = set()
+            for a in project["activities"]:
+                aid = str(a.get("id") or "").strip()
+                if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid) or aid in ids:
+                    return ["project %s needs unique activity ids" % name]
+                ids.add(aid)
+                if str(a.get("resource", "")).strip() not in names:
+                    return ["activity %s/%s cites an unknown resource" % (name, aid)]
+                if D(str(a.get("duration", ""))) < 0:
+                    return ["activity %s/%s needs a non-negative duration" % (name, aid)]
+            for a in project["activities"]:
+                for p in str(a.get("predecessors") or "").split(","):
+                    if p.strip() and p.strip() not in ids:
+                        return ["activity %s/%s cites unknown predecessor %s" % (name, str(a["id"]).strip(), p.strip())]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["multi-project inputs are malformed; every project needs a name and activities with resource and demand"]
+
+
+def _multi_project_typing(metric):
+    if metric in ("project_count", "activity_count"):
+        return ("count", 0)
+    return ("periods", 2)
+
+
+def multi_project_schedule_caveats(out, th):
+    return ["Projects are sequenced by declared priority, then early start, longest duration and id; a different priority changes the plan.",
+            "One resource per activity, whole-period durations and demands, no preemption, no calendars and no inter-project dependencies.",
+            "Shared resources delay projects; the reported delay is against each project's own unconstrained CPM duration."]
+
+
+def multi_project_schedule_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The shared-resource plan finishes in " + tok("overall_duration") + " periods across " +
+            tok("project_count") + " projects and " + tok("activity_count") + " activities.")
+
+
+def _pert_draw(rng, low, mode, high):
+    if high == low:
+        return low
+    u = rng.random()
+    split = (mode - low) / (high - low)
+    if u < split:
+        return low + math.sqrt(u * (high - low) * (mode - low))
+    return high - math.sqrt((1.0 - u) * (high - low) * (high - mode))
+
+
+def _percentile(values, pct):
+    ordered = sorted(values)
+    index = max(0, min(len(ordered) - 1, int(math.ceil(pct / 100.0 * len(ordered))) - 1))
+    return ordered[index]
+
+
+def schedule_risk_impl(inp):
+    activities = inp["activities"]
+    iterations = int(inp.get("iterations", 1000))
+    seed = int(inp.get("seed", 0))
+    if iterations < 1 or iterations > 5000:
+        raise DataError("iterations must be between 1 and 5000")
+    nodes, order = {}, []
+    for a in activities:
+        aid = _act_id(a.get("id"))
+        if aid in nodes:
+            raise DataError("duplicate activity id " + aid)
+        o, m, p = (D(str(a[k])) for k in ("optimistic", "most_likely", "pessimistic"))
+        if o < 0 or not (o <= m <= p):
+            raise DataError("activity " + aid + " needs 0 <= optimistic <= most_likely <= pessimistic")
+        preds = [x.strip() for x in str(a.get("predecessors") or "").split(",") if x.strip()]
+        nodes[aid] = {"o": float(o), "m": float(m), "p": float(p), "preds": preds}
+        order.append(aid)
+    for aid, node in nodes.items():
+        for p in node["preds"]:
+            if p not in nodes:
+                raise DataError("activity " + aid + " cites unknown predecessor " + p)
+    succ = {aid: [] for aid in nodes}
+    indeg = {aid: len(n["preds"]) for aid, n in nodes.items()}
+    for aid, n in nodes.items():
+        for p in n["preds"]:
+            succ[p].append(aid)
+    queue = [aid for aid in order if indeg[aid] == 0]
+    topo = []
+    while queue:
+        aid = queue.pop(0)
+        topo.append(aid)
+        for s in succ[aid]:
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                queue.append(s)
+    if len(topo) != len(nodes):
+        raise DataError("the predecessor graph contains a cycle")
+    rng = random.Random(seed)
+    durations, samples, critical = [], {aid: [] for aid in nodes}, {aid: 0 for aid in nodes}
+    for _ in range(iterations):
+        span = {aid: _pert_draw(rng, nodes[aid]["o"], nodes[aid]["m"], nodes[aid]["p"]) for aid in order}
+        for aid in order:
+            samples[aid].append(span[aid])
+        es, ef = {}, {}
+        for aid in topo:
+            es[aid] = max((ef[p] for p in nodes[aid]["preds"]), default=0.0)
+            ef[aid] = es[aid] + span[aid]
+        duration = max(ef.values())
+        durations.append(duration)
+        ls, lf = {}, {}
+        for aid in reversed(topo):
+            lf[aid] = min((ls[s] for s in succ[aid]), default=duration)
+            ls[aid] = lf[aid] - span[aid]
+        for aid in order:
+            if ls[aid] - (ef[aid] - span[aid]) <= 1e-12:
+                critical[aid] += 1
+    target = inp.get("target_duration")
+    target = None if target in (None, "") else D(str(target))
+    out = {"iterations": D(iterations), "mean_duration": D(str(sum(durations) / len(durations))),
+           "p50_duration": D(str(_percentile(durations, 50))), "p80_duration": D(str(_percentile(durations, 80))),
+           "p90_duration": D(str(_percentile(durations, 90))), "min_duration": D(str(min(durations))),
+           "max_duration": D(str(max(durations)))}
+    if target is not None:
+        within = sum(1 for value in durations if value <= float(target))
+        out["n_within_target"] = D(within)
+        out["probability_within_target"] = D(str(within / iterations))
+    for aid in order:
+        out["criticality_" + aid] = D(str(critical[aid] / iterations))
+        out["sample_min_" + aid] = D(str(min(samples[aid])))
+        out["sample_max_" + aid] = D(str(max(samples[aid])))
+    return out
+
+
+def _risk_float(inp):
+    activities = inp["activities"]
+    iterations = int(inp.get("iterations", 1000))
+    seed = int(inp.get("seed", 0))
+    nodes, order = {}, []
+    for a in activities:
+        aid = str(a["id"]).strip()
+        nodes[aid] = {"o": float(D(str(a["optimistic"]))), "m": float(D(str(a["most_likely"]))),
+                      "p": float(D(str(a["pessimistic"]))),
+                      "preds": [x.strip() for x in str(a.get("predecessors") or "").split(",") if x.strip()]}
+        order.append(aid)
+    rng = random.Random(seed)
+    durations = []
+    for _ in range(iterations):
+        span = {aid: _pert_draw(rng, nodes[aid]["o"], nodes[aid]["m"], nodes[aid]["p"]) for aid in order}
+        ef, pending = {}, dict(nodes)
+        while pending:
+            moved = False
+            for aid in list(pending):
+                if all(p in ef for p in nodes[aid]["preds"]):
+                    ef[aid] = max((ef[p] for p in nodes[aid]["preds"]), default=0.0) + span[aid]
+                    del pending[aid]
+                    moved = True
+            if not moved:
+                raise ValueError("cycle")
+        durations.append(max(ef.values()))
+    return {"mean_duration": sum(durations) / len(durations), "p50_duration": _percentile(durations, 50),
+            "p80_duration": _percentile(durations, 80), "p90_duration": _percentile(durations, 90),
+            "min_duration": min(durations), "max_duration": max(durations)}
+
+
+def schedule_risk_tests(inp, impl):
+    base, ref = impl(inp), _risk_float(inp)
+    repeat = impl(inp)
+    bounds_ok = all(base["sample_min_" + aid] >= D(str(next(a for a in inp["activities"] if str(a["id"]).strip() == aid)["optimistic"]))
+                    and base["sample_max_" + aid] <= D(str(next(a for a in inp["activities"] if str(a["id"]).strip() == aid)["pessimistic"]))
+                    for aid in [str(a["id"]).strip() for a in inp["activities"]])
+    probability_ok = True
+    if "n_within_target" in base:
+        probability_ok = _close(base["probability_within_target"], base["n_within_target"] / base["iterations"], rel=1e-9)
+    checks = [
+        ("second_implementation_and_seed_agree",
+         all(_close(base[k], ref[k], rel=1e-9) for k in ("mean_duration", "p50_duration", "p80_duration", "p90_duration"))
+         and base["mean_duration"] == repeat["mean_duration"] and base["p80_duration"] == repeat["p80_duration"],
+         "the float route and a repeated run with the same seed agree"),
+        ("sampled_durations_stay_within_the_declared_bounds", bounds_ok,
+         "every sampled activity duration is between its optimistic and pessimistic values"),
+        ("percentiles_are_ordered", base["p50_duration"] <= base["p80_duration"] <= base["p90_duration"]
+         <= base["max_duration"], "P50 <= P80 <= P90 <= maximum"),
+        ("the_mean_lies_between_the_observed_extremes",
+         base["min_duration"] <= base["mean_duration"] <= base["max_duration"], "the mean is inside the sampled range"),
+        ("the_target_probability_matches_the_sample_count", probability_ok,
+         "the probability is the counted fraction of iterations within the target"),
+        ("criticality_indices_are_fractions",
+         all(D(0) <= base["criticality_" + aid] <= D(1) for aid in [str(a["id"]).strip() for a in inp["activities"]])
+         and any(base["criticality_" + aid] > 0 for aid in [str(a["id"]).strip() for a in inp["activities"]]),
+         "each criticality index is a fraction and at least one activity is critical in some run"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def schedule_risk_profile(inp):
+    try:
+        acts = inp.get("activities")
+        if not isinstance(acts, list) or not acts:
+            return ["at least one activity is required"]
+        ids = set()
+        for i, a in enumerate(acts, 1):
+            aid = str(a.get("id") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", aid) or aid in ids:
+                return ["activity %d needs a unique id of 1-20 letters, digits, - or _" % i]
+            ids.add(aid)
+            try:
+                o, m, p = (D(str(a[k])) for k in ("optimistic", "most_likely", "pessimistic"))
+            except (InvalidOperation, ValueError, TypeError, KeyError):
+                return ["activity " + aid + " needs optimistic, most_likely and pessimistic numbers"]
+            if o < 0 or not (o <= m <= p):
+                return ["activity " + aid + " needs 0 <= optimistic <= most_likely <= pessimistic"]
+        for a in acts:
+            for p in str(a.get("predecessors") or "").split(","):
+                if p.strip() and p.strip() not in ids:
+                    return ["activity %s cites unknown predecessor %s" % (str(a["id"]).strip(), p.strip())]
+        iterations = int(inp.get("iterations", 1000))
+        if iterations < 1 or iterations > 5000:
+            return ["iterations must be between 1 and 5000"]
+        if int(inp.get("seed", 0)) < 0:
+            return ["seed must be a non-negative integer"]
+        if inp.get("target_duration") not in (None, "") and D(str(inp["target_duration"])) <= 0:
+            return ["target_duration must be positive when supplied"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["schedule-risk inputs are malformed; every activity needs optimistic, most_likely and pessimistic durations"]
+
+
+def _risk_typing(metric):
+    if metric == "iterations" or metric == "n_within_target":
+        return ("count", 0)
+    if metric.startswith("criticality_") or metric.startswith("probability_"):
+        return ("ratio", 4)
+    return ("periods", 2)
+
+
+def schedule_risk_caveats(out, th):
+    return ["Durations are independent triangular draws between the optimistic and pessimistic values with the most likely as the mode; that distribution is a declared convention.",
+            "The simulation is seeded and reproducible, but a different seed gives different percentiles; it is not a forecast or a guarantee.",
+            "Resource limits, calendars and correlated durations are not modelled; the criticality index is the share of runs in which an activity had zero float."]
+
+
+def schedule_risk_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    text = ("Across " + tok("iterations") + " seeded simulations the mean duration is " + tok("mean_duration") +
+            ", with median " + tok("p50_duration") + ", eightieth percentile " + tok("p80_duration") +
+            " and ninetieth percentile " + tok("p90_duration") + ".")
+    if "probability_within_target" in out:
+        text += " The share of runs within the target is " + tok("probability_within_target") + "."
+    return text
+
+
+def _tree_node(node, depth=0):
+    if not isinstance(node, dict) or depth > 12:
+        raise DataError("each tree node must be an object, nested at most twelve deep")
+    kind = str(node.get("type") or "").strip()
+    if kind == "terminal":
+        try:
+            value = D(str(node["value"]))
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError("a terminal node needs a numeric value")
+        return {"kind": "terminal", "value": value}
+    if kind == "decision":
+        raw = node.get("alternatives")
+        if not isinstance(raw, list) or not raw:
+            raise DataError("a decision node needs at least one alternative")
+        return {"kind": "decision", "alternatives": [
+            {"name": str(item.get("name") or ("Alternative %d" % (index + 1))),
+             "node": _tree_node(item.get("node"), depth + 1)}
+            for index, item in enumerate(raw)]}
+    if kind == "chance":
+        raw = node.get("branches")
+        if not isinstance(raw, list) or not raw:
+            raise DataError("a chance node needs at least one branch")
+        branches, total = [], D(0)
+        for index, item in enumerate(raw):
+            try:
+                probability = D(str(item["probability"]))
+            except (InvalidOperation, ValueError, TypeError, KeyError):
+                raise DataError("chance branch %d needs a numeric probability" % (index + 1))
+            if probability < 0 or probability > 1:
+                raise DataError("chance branch %d probability must be between zero and one" % (index + 1))
+            total += probability
+            branches.append({"probability": probability, "node": _tree_node(item.get("node"), depth + 1)})
+        if total != 1:
+            raise DataError("the probabilities at a chance node must sum to one (found %s)" % total)
+        return {"kind": "chance", "branches": branches}
+    raise DataError("node type must be decision, chance or terminal")
+
+
+def _tree_eval(node):
+    """Return (expected value, terminal paths [(probability, value)], terminal count)."""
+    if node["kind"] == "terminal":
+        return node["value"], [(D(1), node["value"])], 1
+    if node["kind"] == "chance":
+        ev, paths, count = D(0), [], 0
+        for branch in node["branches"]:
+            child_ev, child_paths, child_count = _tree_eval(branch["node"])
+            ev += branch["probability"] * child_ev
+            paths += [(branch["probability"] * p, v) for p, v in child_paths]
+            count += child_count
+        return ev, paths, count
+    options = [(_tree_eval(alt["node"]), alt["name"]) for alt in node["alternatives"]]
+    best = max(options, key=lambda item: (item[0][0], -len(item[1])))
+    return best[0][0], best[0][1], sum(item[0][2] for item in options)
+
+
+def decision_tree_impl(inp):
+    root = _tree_node(inp.get("tree"))
+    if root["kind"] != "decision":
+        raise DataError("the root of a decision tree must be a decision node")
+    alternatives = []
+    for alt in root["alternatives"]:
+        ev, paths, count = _tree_eval(alt["node"])
+        alternatives.append({"name": alt["name"], "ev": ev, "paths": paths, "count": count})
+    best = max(range(len(alternatives)), key=lambda i: (alternatives[i]["ev"], -i))
+    out = {"expected_value": alternatives[best]["ev"], "best_index": D(best + 1),
+           "alternative_count": D(len(alternatives)),
+           "terminal_count": D(sum(alt["count"] for alt in alternatives))}
+    for index, alt in enumerate(alternatives, 1):
+        out["ev_" + str(index)] = alt["ev"]
+        out["loss_probability_" + str(index)] = sum((p for p, value in alt["paths"] if value < 0), D(0))
+        out["worst_value_" + str(index)] = min(value for _, value in alt["paths"])
+        out["best_value_" + str(index)] = max(value for _, value in alt["paths"])
+    return out
+
+
+def _tree_float(node):
+    if node["type"] == "terminal":
+        return float(D(str(node["value"]))), 1
+    if node["type"] == "chance":
+        ev, count = 0.0, 0
+        for branch in node["branches"]:
+            child, child_count = _tree_float(branch["node"])
+            ev += float(D(str(branch["probability"]))) * child
+            count += child_count
+        return ev, count
+    best, count = None, 0
+    for alt in node["alternatives"]:
+        value, child_count = _tree_float(alt["node"])
+        count += child_count
+        best = value if best is None else max(best, value)
+    return best, count
+
+
+def decision_tree_tests(inp, impl):
+    base = impl(inp)
+    ref, _ = _tree_float(inp["tree"])
+    root = _tree_node(inp["tree"])
+    alternatives = [_tree_eval(alt["node"])[0] for alt in root["alternatives"]]
+    recounted = max(alternatives)
+    probabilities_ok = True
+    def walk(node):
+        nonlocal probabilities_ok
+        if node["kind"] == "chance":
+            probabilities_ok = probabilities_ok and sum(b["probability"] for b in node["branches"]) == 1
+            for branch in node["branches"]:
+                walk(branch["node"])
+        elif node["kind"] == "decision":
+            for alt in node["alternatives"]:
+                walk(alt["node"])
+    walk(root)
+    checks = [
+        ("second_implementation_agrees", _close(base["expected_value"], ref, rel=1e-9),
+         "float route agrees with the Decimal route"),
+        ("chance_probabilities_sum_to_one", probabilities_ok, "every chance node sums to one"),
+        ("the_root_value_is_the_best_alternative", base["expected_value"] == recounted,
+         "the root value is the maximum of the alternative expected values"),
+        ("every_alternative_has_a_probability_and_a_range",
+         all(D(0) <= base["loss_probability_" + str(i)] <= D(1) for i in range(1, len(alternatives) + 1))
+         and all(base["worst_value_" + str(i)] <= base["ev_" + str(i)] <= base["best_value_" + str(i)]
+                 for i in range(1, len(alternatives) + 1)),
+         "loss probability is a fraction and the expected value lies in its range"),
+        ("the_best_index_points_to_the_highest_value",
+         base["ev_" + str(int(base["best_index"]))] == base["expected_value"],
+         "the reported best alternative carries the root value"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def decision_tree_profile(inp):
+    try:
+        root = _tree_node(inp.get("tree"))
+        if root["kind"] != "decision":
+            return ["the root of a decision tree must be a decision node"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["decision-tree inputs are malformed; each node needs a type and its children"]
+
+
+def _tree_typing(metric):
+    if metric in ("best_index", "alternative_count", "terminal_count"):
+        return ("count", 0)
+    if metric.startswith("loss_probability_"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def decision_tree_caveats(out, th):
+    return ["The tree, its probabilities and its terminal values are yours; the method only multiplies and adds them.",
+            "No probability is inferred, no branch is pruned and no recommendation is added beyond the highest expected value.",
+            "Expected value ignores risk aversion; the loss probability and the range are reported beside it."]
+
+
+def decision_tree_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The best alternative is number " + tok("best_index") + ", with an expected value of " +
+            tok("expected_value") + " across " + tok("terminal_count") + " terminal outcomes.")
+
+
+def real_option_impl(inp):
+    s0, strike = D(str(inp["underlying_value"])), D(str(inp["investment_cost"]))
+    sigma, rate = D(str(inp["volatility"])), D(str(inp["risk_free_rate"]))
+    steps = _whole(inp.get("steps", 5), "steps")
+    horizon = D(str(inp.get("horizon_years", 1)))
+    kind = str(inp.get("option_type", "call"))
+    exercise = str(inp.get("exercise", "european"))
+    if s0 <= 0 or strike <= 0 or sigma <= 0 or horizon <= 0:
+        raise DataError("underlying_value, investment_cost, volatility and horizon_years must be positive")
+    if steps < 1 or steps > 200:
+        raise DataError("steps must be between 1 and 200")
+    if kind not in ("call", "put") or exercise not in ("european", "american"):
+        raise DataError("option_type must be call or put and exercise must be european or american")
+    dt = horizon / D(steps)
+    up = (sigma * dt.sqrt()).exp()
+    down = D(1) / up
+    growth = (rate * dt).exp()
+    probability = (growth - down) / (up - down)
+    if not (D(0) < probability < D(1)):
+        raise DataError("the risk-neutral probability is outside zero and one; check the rate and volatility")
+    discount = (-rate * dt).exp()
+    values = []
+    for node in range(steps + 1):
+        price = s0 * (up ** node) * (down ** (steps - node))
+        values.append(max(price - strike, D(0)) if kind == "call" else max(strike - price, D(0)))
+    level_one = None
+    for level in range(steps - 1, -1, -1):
+        for node in range(level + 1):
+            values[node] = discount * (probability * values[node + 1] + (D(1) - probability) * values[node])
+            if exercise == "american":
+                price = s0 * (up ** node) * (down ** (level - node))
+                intrinsic = max(price - strike, D(0)) if kind == "call" else max(strike - price, D(0))
+                values[node] = max(values[node], intrinsic)
+        if level == 1:
+            level_one = (values[0], values[1])
+    value = values[0]
+    price_up, price_down = s0 * up, s0 * down
+    delta = (level_one[1] - level_one[0]) / (price_up - price_down)
+    intrinsic = max(s0 - strike, D(0)) if kind == "call" else max(strike - s0, D(0))
+    return {"option_value": value, "intrinsic_value": intrinsic, "delta": delta, "up_factor": up,
+            "down_factor": down, "risk_neutral_probability": probability, "steps": D(steps),
+            "terminal_nodes": D(steps + 1)}
+
+
+def _real_option_float(inp):
+    s0, strike = float(D(str(inp["underlying_value"]))), float(D(str(inp["investment_cost"])))
+    sigma, rate = float(D(str(inp["volatility"]))), float(D(str(inp["risk_free_rate"])))
+    steps = int(float(D(str(inp.get("steps", 5)))))
+    horizon = float(D(str(inp.get("horizon_years", 1))))
+    kind, exercise = str(inp.get("option_type", "call")), str(inp.get("exercise", "european"))
+    dt = horizon / steps
+    up = math.exp(sigma * math.sqrt(dt)); down = 1.0 / up
+    probability = (math.exp(rate * dt) - down) / (up - down)
+    discount = math.exp(-rate * dt)
+    values = []
+    for node in range(steps + 1):
+        price = s0 * up ** node * down ** (steps - node)
+        values.append(max(price - strike, 0.0) if kind == "call" else max(strike - price, 0.0))
+    for level in range(steps - 1, -1, -1):
+        for node in range(level + 1):
+            values[node] = discount * (probability * values[node + 1] + (1 - probability) * values[node])
+            if exercise == "american":
+                price = s0 * up ** node * down ** (level - node)
+                intrinsic = max(price - strike, 0.0) if kind == "call" else max(strike - price, 0.0)
+                values[node] = max(values[node], intrinsic)
+    return {"option_value": values[0], "up_factor": up, "risk_neutral_probability": probability}
+
+
+def real_option_tests(inp, impl):
+    base, ref = impl(inp), _real_option_float(inp)
+    kind, exercise = str(inp.get("option_type", "call")), str(inp.get("exercise", "european"))
+    checks = [
+        ("second_implementation_agrees",
+         _close(base["option_value"], ref["option_value"], rel=1e-9)
+         and _close(base["up_factor"], ref["up_factor"], rel=1e-9)
+         and _close(base["risk_neutral_probability"], ref["risk_neutral_probability"], rel=1e-9),
+         "float route agrees with the Decimal route"),
+        ("the_option_is_worth_at_least_its_intrinsic_value",
+         (exercise != "american") or base["option_value"] >= base["intrinsic_value"],
+         "an American option cannot be worth less than exercising it now"),
+        ("the_value_respects_its_upper_bound",
+         base["option_value"] <= (D(str(inp["underlying_value"])) if kind == "call" else D(str(inp["investment_cost"]))),
+         "a call cannot exceed the underlying and a put cannot exceed the strike"),
+        ("the_risk_neutral_probability_is_a_probability",
+         D(0) < base["risk_neutral_probability"] < D(1) and base["up_factor"] > 1 > base["down_factor"],
+         "the lattice has a valid up factor, down factor and probability"),
+        ("delta_has_the_sign_of_the_option",
+         (kind == "call" and D(0) <= base["delta"] <= D(1)) or (kind == "put" and D(-1) <= base["delta"] <= D(0)),
+         "call delta is between zero and one; put delta is between minus one and zero"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def real_option_profile(inp):
+    try:
+        s0 = D(str(inp.get("underlying_value", "")))
+        strike = D(str(inp.get("investment_cost", "")))
+        sigma = D(str(inp.get("volatility", "")))
+        horizon = D(str(inp.get("horizon_years", 1)))
+        steps = D(str(inp.get("steps", 5)))
+        if s0 <= 0 or strike <= 0 or sigma <= 0 or horizon <= 0:
+            return ["underlying_value, investment_cost, volatility and horizon_years must be positive"]
+        if steps != steps.to_integral_value() or steps < 1 or steps > 200:
+            return ["steps must be a whole number between 1 and 200"]
+        if str(inp.get("option_type", "call")) not in ("call", "put"):
+            return ["option_type must be call or put"]
+        if str(inp.get("exercise", "european")) not in ("european", "american"):
+            return ["exercise must be european or american"]
+        return []
+    except (InvalidOperation, ValueError, TypeError):
+        return ["real-option inputs are malformed; provide underlying_value, investment_cost, volatility and risk_free_rate"]
+
+
+def _real_option_typing(metric):
+    if metric in ("steps", "terminal_nodes"):
+        return ("count", 0)
+    if metric in ("delta", "risk_neutral_probability", "up_factor", "down_factor"):
+        return ("ratio", 6)
+    return ("currency", 2)
+
+
+def real_option_caveats(out, th):
+    return ["The lattice is a Cox-Ross-Rubinstein binomial with a declared volatility, rate, horizon and step count; the project value and investment are yours.",
+            "A real option is not a traded option: no market price, no continuous hedging and no replication argument is available.",
+            "More steps change the value slightly; the model does not calibrate volatility or estimate the underlying distribution."]
+
+
+def real_option_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The option value is " + tok("option_value") + " against an intrinsic value of " +
+            tok("intrinsic_value") + ", with a delta of " + tok("delta") + " on " + tok("steps") + " steps.")
+
+
+def multi_criteria_impl(inp):
+    criteria = inp["criteria"]
+    alternatives = inp["alternatives"]
+    scale = D(str(inp.get("scale_max", "10")))
+    if scale <= 0:
+        raise DataError("scale_max must be positive")
+    names, total = set(), D(0)
+    for criterion in criteria:
+        name = _act_id(criterion.get("name"))
+        if name in names:
+            raise DataError("duplicate criterion " + name)
+        names.add(name)
+        weight = D(str(criterion.get("weight")))
+        if weight < 0:
+            raise DataError("criterion " + name + " weight must be non-negative")
+        total += weight
+    if total != 1:
+        raise DataError("criterion weights must sum to one (found %s)" % total)
+    totals = {}
+    for index, alt in enumerate(alternatives, 1):
+        scores = alt.get("scores") or {}
+        if set(scores) != names:
+            raise DataError("alternative %d must score every criterion exactly once" % index)
+        value = D(0)
+        for criterion in criteria:
+            name = str(criterion["name"]).strip()
+            score = D(str(scores[name]))
+            if score < 0 or score > scale:
+                raise DataError("score for %s on %s must be between zero and %s" % (alt.get("name"), name, scale))
+            value += D(str(criterion["weight"])) * score
+        totals[index] = value
+    ranked = sorted(totals, key=lambda i: (-totals[i], i))
+    out = {"best_index": D(ranked[0]), "best_total": totals[ranked[0]],
+           "alternative_count": D(len(alternatives)), "criteria_count": D(len(criteria)), "weight_sum": total}
+    for index in totals:
+        out["total_" + str(index)] = totals[index]
+        out["rank_" + str(index)] = D(ranked.index(index) + 1)
+    return out
+
+
+def _multi_criteria_float(inp):
+    criteria = [(str(c["name"]).strip(), float(D(str(c["weight"])))) for c in inp["criteria"]]
+    totals = {}
+    for index, alt in enumerate(inp["alternatives"], 1):
+        totals[index] = sum(weight * float(D(str(alt["scores"][name]))) for name, weight in criteria)
+    return totals
+
+
+def multi_criteria_tests(inp, impl):
+    base, ref = impl(inp), _multi_criteria_float(inp)
+    totals = {i: base["total_" + str(i)] for i in range(1, len(inp["alternatives"]) + 1)}
+    ranks = [int(base["rank_" + str(i)]) for i in range(1, len(inp["alternatives"]) + 1)]
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(totals[i], ref[i], rel=1e-9) for i in totals), "float route agrees with the Decimal route"),
+        ("weights_sum_to_one", base["weight_sum"] == 1, "the declared criterion weights sum to one"),
+        ("every_score_is_within_the_scale",
+         all(D(0) <= D(str(a["scores"][c["name"]])) <= D(str(inp.get("scale_max", "10")))
+             for a in inp["alternatives"] for c in inp["criteria"]), "every score is inside the declared scale"),
+        ("each_total_is_the_weighted_sum",
+         all(totals[i] == sum(D(str(c["weight"])) * D(str(inp["alternatives"][i - 1]["scores"][c["name"]]))
+                             for c in inp["criteria"]) for i in totals), "the total is the weighted sum of the scores"),
+        ("ranks_are_a_permutation_and_the_best_has_the_highest_total",
+         sorted(ranks) == list(range(1, len(ranks) + 1))
+         and totals[int(base["best_index"])] == max(totals.values()),
+         "each alternative has one rank and the best index carries the highest total"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def multi_criteria_profile(inp):
+    try:
+        criteria, alternatives = inp.get("criteria"), inp.get("alternatives")
+        if not isinstance(criteria, list) or not criteria:
+            return ["at least one criterion is required"]
+        if not isinstance(alternatives, list) or len(alternatives) < 2:
+            return ["at least two alternatives are required"]
+        names, total = set(), D(0)
+        for criterion in criteria:
+            name = str(criterion.get("name") or "").strip()
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", name) or name in names:
+                return ["criterion names must be unique and use 1-20 letters, digits, - or _"]
+            names.add(name)
+            weight = D(str(criterion.get("weight", "")))
+            if weight < 0:
+                return ["criterion weights must be non-negative"]
+            total += weight
+        if total != 1:
+            return ["criterion weights must sum to one"]
+        for alt in alternatives:
+            if not isinstance(alt.get("scores"), dict) or set(alt["scores"]) != names:
+                return ["every alternative must score every criterion exactly once"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["multi-criteria inputs are malformed; provide criteria with weights and alternatives with scores"]
+
+
+def _multi_criteria_typing(metric):
+    if metric in ("best_index", "alternative_count", "criteria_count", "weight_sum") or metric.startswith("rank_"):
+        return ("count", 0)
+    return ("score", 4)
+
+
+def multi_criteria_caveats(out, th):
+    return ["The criteria, weights, scale and scores are yours; the method only multiplies and adds them.",
+            "A weighted total is not a truth: weights encode your judgement, and a different weighting can reorder the alternatives.",
+            "No score is inferred, no weight is optimised and no recommendation is made beyond the highest declared total."]
+
+
+def multi_criteria_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Alternative number " + tok("best_index") + " has the highest weighted total of " +
+            tok("best_total") + " across " + tok("criteria_count") + " criteria.")
+
+
+MC_KINDS = ("fixed", "uniform", "triangular")
+
+
+def _mc_distribution(row, name):
+    kind = str(row.get("distribution", "fixed")).strip().lower()
+    if kind not in MC_KINDS:
+        raise DataError(name + " distribution must be fixed, uniform or triangular")
+    if kind == "fixed":
+        try:
+            return {"kind": "fixed", "value": float(D(str(row["value"])))}
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError(name + " needs a numeric value")
+    if kind == "uniform":
+        try:
+            low, high = (float(D(str(row[k]))) for k in ("low", "high"))
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError(name + " needs numeric low and high values")
+        if low > high:
+            raise DataError(name + " low must not exceed high")
+        return {"kind": "uniform", "low": low, "high": high}
+    try:
+        low, mode, high = (float(D(str(row[k]))) for k in ("low", "mode", "high"))
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        raise DataError(name + " needs numeric low, mode and high values")
+    if not (low <= mode <= high):
+        raise DataError(name + " needs low <= mode <= high")
+    return {"kind": "triangular", "low": low, "mode": mode, "high": high}
+
+
+def _mc_draw(rng, dist):
+    if dist["kind"] == "fixed":
+        return dist["value"]
+    if dist["kind"] == "uniform":
+        return dist["low"] + rng.random() * (dist["high"] - dist["low"])
+    return _pert_draw(rng, dist["low"], dist["mode"], dist["high"])
+
+
+def _mc_setup(inp):
+    iterations = int(inp.get("iterations", 1000))
+    seed = int(inp.get("seed", 0))
+    if iterations < 1 or iterations > 5000:
+        raise DataError("iterations must be between 1 and 5000")
+    if seed < 0:
+        raise DataError("seed must be a non-negative integer")
+    model = str(inp.get("model", "npv"))
+    if model not in ("npv", "profit"):
+        raise DataError("model must be npv or profit")
+    if model == "npv":
+        rate = float(D(str(inp.get("discount_rate", "0"))))
+        rows = inp.get("cashflows")
+        if not isinstance(rows, list) or not rows:
+            raise DataError("an npv simulation needs at least one cash flow")
+        flows = []
+        for index, row in enumerate(rows, 1):
+            name = str(row.get("name") or ("cashflow_%d" % index)).strip()
+            period = int(row.get("period", index - 1))
+            if period < 0:
+                raise DataError("cash-flow periods must be non-negative")
+            flows.append({"name": name, "period": period, "dist": _mc_distribution(row, name)})
+        return model, iterations, seed, {"rate": rate, "flows": flows}
+    variables = inp.get("variables")
+    if not isinstance(variables, list) or not variables:
+        raise DataError("a profit simulation needs price, variable_cost and volume variables")
+    found = {}
+    for row in variables:
+        name = str(row.get("name") or "").strip().lower()
+        if name not in ("price", "variable_cost", "volume"):
+            raise DataError("profit variables must be named price, variable_cost or volume")
+        if name in found:
+            raise DataError("duplicate profit variable " + name)
+        found[name] = _mc_distribution(row, name)
+    if set(found) != {"price", "variable_cost", "volume"}:
+        raise DataError("profit simulation needs exactly price, variable_cost and volume")
+    return model, iterations, seed, {"variables": found, "fixed_cost": float(D(str(inp.get("fixed_cost", "0"))))}
+
+
+def monte_carlo_impl(inp):
+    model, iterations, seed, setup = _mc_setup(inp)
+    rng = random.Random(seed)
+    results, samples = [], {}
+    for _ in range(iterations):
+        if model == "npv":
+            value = 0.0
+            for flow in setup["flows"]:
+                draw = _mc_draw(rng, flow["dist"])
+                samples.setdefault(flow["name"], []).append(draw)
+                value += draw / ((1 + setup["rate"]) ** flow["period"])
+            results.append(value)
+        else:
+            draws = {}
+            for name, dist in setup["variables"].items():
+                draws[name] = _mc_draw(rng, dist)
+                samples.setdefault(name, []).append(draws[name])
+            results.append((draws["price"] - draws["variable_cost"]) * draws["volume"] - setup["fixed_cost"])
+    positive = sum(1 for value in results if value > 0)
+    out = {"iterations": D(iterations), "mean_result": D(str(sum(results) / len(results))),
+           "p10_result": D(str(_percentile(results, 10))), "p50_result": D(str(_percentile(results, 50))),
+           "p90_result": D(str(_percentile(results, 90))), "min_result": D(str(min(results))),
+           "max_result": D(str(max(results))), "n_positive": D(positive),
+           "probability_positive": D(str(positive / iterations))}
+    for name, values in samples.items():
+        out["sample_min_" + name] = D(str(min(values)))
+        out["sample_max_" + name] = D(str(max(values)))
+    return out
+
+
+def _monte_carlo_float(inp):
+    model, iterations, seed, setup = _mc_setup(inp)
+    rng = random.Random(seed)
+    results = []
+    for _ in range(iterations):
+        if model == "npv":
+            results.append(sum(_mc_draw(rng, flow["dist"]) / ((1 + setup["rate"]) ** flow["period"])
+                               for flow in setup["flows"]))
+        else:
+            draws = {name: _mc_draw(rng, dist) for name, dist in setup["variables"].items()}
+            results.append((draws["price"] - draws["variable_cost"]) * draws["volume"] - setup["fixed_cost"])
+    return {"mean_result": sum(results) / len(results), "p10_result": _percentile(results, 10),
+            "p50_result": _percentile(results, 50), "p90_result": _percentile(results, 90),
+            "min_result": min(results), "max_result": max(results)}
+
+
+def monte_carlo_tests(inp, impl):
+    base, ref = impl(inp), _monte_carlo_float(inp)
+    repeat = impl(inp)
+    bounded = True
+    model, _iterations, _seed, setup = _mc_setup(inp)
+    rows = ([(flow["name"], flow["dist"]) for flow in setup["flows"]] if model == "npv"
+            else list(setup["variables"].items()))
+    for name, dist in rows:
+        if dist["kind"] in ("uniform", "triangular"):
+            bounded = bounded and base["sample_min_" + name] >= D(str(dist["low"])) and base["sample_max_" + name] <= D(str(dist["high"]))
+    checks = [
+        ("second_implementation_and_seed_agree",
+         all(_close(base[k], ref[k], rel=1e-9) for k in ("mean_result", "p10_result", "p50_result", "p90_result"))
+         and base["mean_result"] == repeat["mean_result"] and base["p90_result"] == repeat["p90_result"],
+         "the float route and a repeated run with the same seed agree"),
+        ("sampled_inputs_stay_within_their_bounds", bounded,
+         "every bounded draw is between its low and high values"),
+        ("percentiles_are_ordered", base["p10_result"] <= base["p50_result"] <= base["p90_result"] <= base["max_result"],
+         "P10 <= P50 <= P90 <= maximum"),
+        ("the_mean_lies_between_the_observed_extremes",
+         base["min_result"] <= base["mean_result"] <= base["max_result"], "the mean is inside the sampled range"),
+        ("the_positive_probability_matches_the_count",
+         _close(base["probability_positive"], base["n_positive"] / base["iterations"], rel=1e-9)
+         and D(0) <= base["probability_positive"] <= D(1),
+         "the probability is the counted fraction of positive results"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def monte_carlo_profile(inp):
+    try:
+        model, iterations, seed, _setup = _mc_setup(inp)
+        if model == "npv":
+            if str(inp.get("discount_rate", "0")) == "":
+                return ["discount_rate must be a number"]
+            for row in inp["cashflows"]:
+                if not str(row.get("name") or "").strip():
+                    return ["every cash flow needs a name"]
+        else:
+            if D(str(inp.get("fixed_cost", "0"))) < 0:
+                return ["fixed_cost must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["Monte Carlo inputs are malformed; provide a model, iterations, a seed and the declared distributions"]
+
+
+def _monte_carlo_typing(metric):
+    if metric in ("iterations", "n_positive"):
+        return ("count", 0)
+    if metric == "probability_positive":
+        return ("ratio", 4)
+    return ("currency", 2)
+
+
+def monte_carlo_caveats(out, th):
+    return ["The model is limited to NPV of declared cash flows or profit = (price - variable cost) x volume - fixed cost; no arbitrary formula is evaluated.",
+            "Distributions are fixed, uniform or triangular, and every draw is independent; correlation and distribution fitting are not modelled.",
+            "The simulation is seeded and reproducible, but a different seed changes the percentiles; it is not a forecast or a guarantee."]
+
+
+def monte_carlo_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("iterations") + " seeded simulations the mean result is " + tok("mean_result") +
+            ", with median " + tok("p50_result") + ", ninetieth percentile " + tok("p90_result") +
+            " and a " + tok("probability_positive") + " share of positive results.")
+
+
 def earned_value_impl(inp):
     pv, ev, ac, bac = (D(str(inp[k])) for k in ("planned_value", "earned_value", "actual_cost", "budget_at_completion"))
     if bac <= 0:
@@ -12351,6 +13970,512 @@ def tax_declared_template(out, P, th):
         t += " The deferred tax is " + tok("deferred_tax") + "."
     t += " The total tax charge is " + tok("total_tax_charge") + "."
     return t
+
+
+# ---------- Business-plan spine (B-121) ----------
+
+def depreciation_schedule_impl(inp):
+    cost = D(str(inp["cost"])); salvage = D(str(inp.get("salvage", "0")))
+    life = int(D(str(inp["life"])))
+    method = str(inp.get("method", "straight_line"))
+    if cost <= 0:
+        raise DataError("cost must be positive")
+    if salvage < 0 or salvage > cost:
+        raise DataError("salvage must be between zero and the cost")
+    if life < 1 or life > 40:
+        raise DataError("life must be a whole number from 1 to 40")
+    if method not in ("straight_line", "declining_balance"):
+        raise DataError("method must be straight_line or declining_balance")
+    rate = D(str(inp.get("declining_rate", ""))) if str(inp.get("declining_rate", "")).strip() else D(2) / D(life)
+    if rate <= 0 or rate > 1:
+        raise DataError("declining_rate must be greater than zero and at most one")
+    carrying = cost; out = {}; total = D(0)
+    for period in range(1, life + 1):
+        if method == "straight_line":
+            dep = (cost - salvage) / life
+        else:
+            dep = carrying * rate
+            if period == life:
+                dep = carrying - salvage
+            else:
+                dep = min(dep, carrying - salvage)
+        if dep < 0:
+            dep = D(0)
+        carrying -= dep; total += dep
+        out["depreciation_%d" % period] = dep
+        out["accumulated_%d" % period] = total
+        out["carrying_%d" % period] = carrying
+    out.update({"cost": cost, "salvage": salvage, "life": D(life), "rate": rate,
+                "total_depreciation": total, "final_carrying": carrying})
+    return out
+
+def _dep_ref(inp):
+    cost = float(D(str(inp["cost"]))); salvage = float(D(str(inp.get("salvage", "0"))))
+    life = int(D(str(inp["life"]))); method = str(inp.get("method", "straight_line"))
+    carrying = cost; total = 0.0
+    for period in range(1, life + 1):
+        if method == "straight_line":
+            dep = (cost - salvage) / life
+        else:
+            rate = float(D(str(inp.get("declining_rate", "")))) if str(inp.get("declining_rate", "")).strip() else 2 / life
+            dep = carrying - salvage if period == life else min(carrying * rate, carrying - salvage)
+        dep = max(0.0, dep); carrying -= dep; total += dep
+    return {"total_depreciation": total, "final_carrying": carrying}
+
+def depreciation_schedule_tests(inp, impl):
+    base, ref = impl(inp), _dep_ref(inp)
+    life = int(D(str(inp["life"]))); cost = D(str(inp["cost"])); salvage = D(str(inp.get("salvage", "0")))
+    deps = [base["depreciation_%d" % i] for i in range(1, life + 1)]
+    checks = [
+        ("second_implementation_agrees", _close(base["total_depreciation"], ref["total_depreciation"], rel=1e-9)
+         and _close(base["final_carrying"], ref["final_carrying"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("depreciation_never_takes_carrying_below_salvage",
+         all(base["carrying_%d" % i] >= salvage - D("1e-9") for i in range(1, life + 1)), "carrying stays at or above salvage"),
+        ("accumulated_depreciation_is_the_running_total",
+         all(_close(base["accumulated_%d" % i], sum(deps[:i], D(0))) for i in range(1, life + 1)), "accumulated depreciation sums the schedule"),
+        ("the_schedule_reaches_salvage_at_the_end", _close(base["final_carrying"], salvage, rel=1e-9), "the final carrying amount is the salvage value"),
+        ("period_depreciation_sums_to_the_total", _close(sum(deps, D(0)), base["total_depreciation"]), "the period figures add to the total"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def depreciation_schedule_profile(inp):
+    try:
+        cost = D(str(inp["cost"])); salvage = D(str(inp.get("salvage", "0")))
+        life = D(str(inp["life"]))
+        if cost <= 0:
+            return ["cost must be positive"]
+        if salvage < 0 or salvage > cost:
+            return ["salvage must be between zero and the cost"]
+        if life != int(life) or life < 1 or life > 40:
+            return ["life must be a whole number from 1 to 40"]
+        if str(inp.get("method", "straight_line")) not in ("straight_line", "declining_balance"):
+            return ["method must be straight_line or declining_balance"]
+        rate = str(inp.get("declining_rate", "")).strip()
+        if rate and not (0 < D(rate) <= 1):
+            return ["declining_rate must be greater than zero and at most one"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["depreciation inputs are malformed: cost and life are required numbers"]
+
+def _dep_typing(metric):
+    if metric == "life":
+        return ("count", 0)
+    if metric == "rate":
+        return ("rate", 4)
+    return ("currency", 2)
+
+def depreciation_schedule_caveats(out, th):
+    return ["The schedule is a declared accounting allocation, not a tax depreciation rule or a fair-value estimate.",
+            "Straight-line divides the depreciable amount evenly; declining balance applies the declared rate to the carrying amount and plugs the final period to salvage.",
+            "No disposals, revaluations, impairment or mid-year conventions are modelled."]
+
+def depreciation_schedule_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Depreciation on a cost of " + tok("cost") + " to a salvage value of " + tok("salvage") +
+            " over " + tok("life") + " periods totals " + tok("total_depreciation") +
+            ", leaving a carrying amount of " + tok("final_carrying") + ".")
+
+
+def _same_length(values, periods, name):
+    if len(values) != periods:
+        raise DataError("%s must have one figure for each period" % name)
+
+def _proforma_loan_terms(inp):
+    """The declared opening-loan terms, or None.  Partial terms are refused."""
+    keys = ("loan_principal", "loan_annual_rate", "loan_years")
+    supplied = [key for key in keys if str(inp.get(key, "")).strip() != ""]
+    if not supplied:
+        return None
+    if len(supplied) != len(keys):
+        raise DataError("supply loan_principal, loan_annual_rate and loan_years together, or none of them")
+    principal = D(str(inp["loan_principal"]))
+    rate = D(str(inp["loan_annual_rate"]))
+    years = D(str(inp["loan_years"]))
+    if years != int(years) or years < 1:
+        raise DataError("loan_years must be a whole number of periods")
+    if principal <= 0:
+        raise DataError("loan_principal must be positive")
+    if not (0 <= rate < 1):
+        raise DataError("loan_annual_rate must be at least zero and below one")
+    return principal, rate, int(years)
+
+
+def _proforma_loan_schedule(principal, rate, years):
+    """Level annual payments: the interest and principal split for each period."""
+    payment = (principal / years if rate == 0 else
+               principal * rate / (1 - (1 + rate) ** -years))
+    interest, repayment, balance = [], [], principal
+    for period in range(years):
+        charge = balance * rate
+        part = payment - charge
+        if period == years - 1:
+            part = balance
+        interest.append(charge)
+        repayment.append(part)
+        balance -= part
+    return interest, repayment
+
+
+def proforma_statements_impl(inp):
+    revenue = [D(str(x)) for x in inp["revenue"]]
+    periods = len(revenue)
+    if periods < 1 or periods > 10:
+        raise DataError("revenue must cover between one and ten periods")
+    margin = D(str(inp.get("gross_margin_rate", "0")))
+    opex = [D(str(x)) for x in inp["operating_costs"]]
+    dep = [D(str(x)) for x in inp["depreciation"]]
+    loan_terms = _proforma_loan_terms(inp)
+    if loan_terms:
+        if "interest" in inp or "principal_repayment" in inp:
+            raise DataError("declare either the opening loan terms or the interest and principal lists, not both")
+        loan_principal, loan_rate, loan_years = loan_terms
+        if loan_years != periods:
+            raise DataError("loan_years must equal the number of revenue periods")
+        interest, principal = _proforma_loan_schedule(loan_principal, loan_rate, loan_years)
+    else:
+        interest = [D(str(x)) for x in inp["interest"]]
+        principal = [D(str(x)) for x in inp["principal_repayment"]]
+    capex = [D(str(x)) for x in (inp.get("capex") or ["0"] * periods)]
+    for name, values in (("operating_costs", opex), ("depreciation", dep), ("interest", interest),
+                         ("principal_repayment", principal), ("capex", capex)):
+        _same_length(values, periods, name)
+    rate = D(str(inp.get("tax_rate", "0")))
+    ar_days = D(str(inp.get("receivable_days", "0")))
+    inv_days = D(str(inp.get("inventory_days", "0")))
+    ap_days = D(str(inp.get("payable_days", "0")))
+    if not (0 <= margin <= 1):
+        raise DataError("gross_margin_rate must be between zero and one")
+    if not (0 <= rate <= 1):
+        raise DataError("tax_rate must be between zero and one")
+    if min(ar_days, inv_days, ap_days) < 0:
+        raise DataError("working-capital days must be non-negative")
+    if any(v < 0 for v in revenue + opex + dep + interest + principal + capex):
+        raise DataError("revenue and cost figures must be non-negative")
+    cash = D(str(inp.get("opening_cash", "0")))
+    fixed = D(str(inp.get("opening_fixed_assets", "0")))
+    ar = D(str(inp.get("opening_receivables", "0")))
+    inventory = D(str(inp.get("opening_inventory", "0")))
+    ap = D(str(inp.get("opening_payables", "0")))
+    if loan_terms and "opening_loan" in inp and D(str(inp["opening_loan"])) != loan_terms[0]:
+        raise DataError("opening_loan must equal loan_principal when the loan terms are declared")
+    loan = loan_terms[0] if loan_terms else D(str(inp.get("opening_loan", "0")))
+    equity = D(str(inp.get("opening_equity", "0")))
+    if min(cash, fixed, ar, inventory, ap, loan, equity) < 0:
+        raise DataError("opening balances must be non-negative")
+    assets0 = cash + fixed + ar + inventory
+    if assets0 != ap + loan + equity:
+        raise DataError("the opening balance sheet does not balance: assets %s, liabilities plus equity %s; "
+                        "set opening_equity to %s to balance it" % (assets0, ap + loan + equity, assets0 - ap - loan))
+    out = {"total_revenue": D(0), "total_net_income": D(0)}
+    cumulative_ni = D(0)
+    for period in range(1, periods + 1):
+        rev = revenue[period - 1]
+        cogs = rev * (1 - margin)
+        gross = rev - cogs
+        ebit = gross - opex[period - 1] - dep[period - 1]
+        pretax = ebit - interest[period - 1]
+        tax = max(D(0), pretax) * rate
+        ni = pretax - tax
+        ar_new = rev * ar_days / D(365)
+        inv_new = cogs * inv_days / D(365)
+        ap_new = cogs * ap_days / D(365)
+        cfo = ni + dep[period - 1] - (ar_new - ar) - (inv_new - inventory) + (ap_new - ap)
+        cfi = -capex[period - 1]
+        cff = -principal[period - 1]
+        net_cash = cfo + cfi + cff
+        cash += net_cash
+        fixed = fixed + capex[period - 1] - dep[period - 1]
+        loan -= principal[period - 1]
+        if loan < 0:
+            raise DataError("period %d repays more loan than is outstanding" % period)
+        equity += ni
+        ar, inventory, ap = ar_new, inv_new, ap_new
+        cumulative_ni += ni
+        row = {"revenue": rev, "gross_profit": gross, "operating_profit": ebit, "interest": interest[period - 1],
+               "principal_repayment": principal[period - 1],
+               "pre_tax_profit": pretax, "tax": tax, "net_income": ni,
+               "cash_from_operations": cfo, "cash_from_investing": cfi, "cash_from_financing": cff,
+               "net_cash_flow": net_cash, "closing_cash": cash, "receivables": ar, "inventory": inventory,
+               "fixed_assets": fixed, "total_assets": cash + ar + inventory + fixed,
+               "payables": ap, "loan": loan, "total_liabilities": ap + loan, "equity": equity}
+        for key, value in row.items():
+            out[key + "_%d" % period] = value
+        out["total_revenue"] += rev
+        out["total_net_income"] += ni
+    out["closing_cash_final"] = cash
+    out["closing_equity_final"] = equity
+    return out
+
+def _proforma_ref(inp):
+    revenue = [float(D(str(x))) for x in inp["revenue"]]
+    margin = float(D(str(inp.get("gross_margin_rate", "0"))))
+    opex = [float(D(str(x))) for x in inp["operating_costs"]]
+    dep = [float(D(str(x))) for x in inp["depreciation"]]
+    terms = _proforma_loan_terms(inp)
+    if terms:
+        principal, rate_loan, years = float(terms[0]), float(terms[1]), terms[2]
+        payment = principal / years if rate_loan == 0 else principal * rate_loan / (1 - (1 + rate_loan) ** -years)
+        interest, balance = [], principal
+        for period in range(years):
+            interest.append(balance * rate_loan)
+            part = balance if period == years - 1 else payment - balance * rate_loan
+            balance -= part
+    else:
+        interest = [float(D(str(x))) for x in inp["interest"]]
+    rate = float(D(str(inp.get("tax_rate", "0"))))
+    total = 0.0
+    for rev, cost, d, i in zip(revenue, opex, dep, interest):
+        pretax = rev - rev * (1 - margin) - cost - d - i
+        total += pretax - max(0.0, pretax) * rate
+    return {"total_net_income": total}
+
+def proforma_statements_tests(inp, impl):
+    base, ref = impl(inp), _proforma_ref(inp)
+    periods = len(inp["revenue"])
+    margin = D(str(inp.get("gross_margin_rate", "0")))
+    rate = D(str(inp.get("tax_rate", "0")))
+    checks = [
+        ("second_implementation_agrees", _close(base["total_net_income"], ref["total_net_income"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("gross_profit_is_revenue_times_the_margin",
+         all(_close(base["gross_profit_%d" % p], base["revenue_%d" % p] * margin) for p in range(1, periods + 1)),
+         "gross profit is the declared margin on revenue"),
+        ("net_income_is_operating_profit_less_interest_and_tax",
+         all(_close(base["net_income_%d" % p], base["pre_tax_profit_%d" % p] - base["tax_%d" % p]) for p in range(1, periods + 1)),
+         "net income nets interest and tax"),
+        ("the_balance_sheet_balances_every_period",
+         all(_close(base["total_assets_%d" % p], base["total_liabilities_%d" % p] + base["equity_%d" % p]) for p in range(1, periods + 1)),
+         "assets equal liabilities plus equity in each period"),
+        ("cash_and_equity_roll_forward",
+         _close(base["closing_cash_final"], D(str(inp.get("opening_cash", "0"))) + sum((base["net_cash_flow_%d" % p] for p in range(1, periods + 1)), D(0)))
+         and _close(base["closing_equity_final"], D(str(inp.get("opening_equity", "0"))) + base["total_net_income"]),
+         "closing cash and equity are the opening figures plus the flows"),
+        ("a_declared_loan_is_repaid_in_full",
+         (not _proforma_loan_terms(inp)) or (
+             _close(base["loan_%d" % periods], D(0)) and
+             _close(sum((base["principal_repayment_%d" % p] for p in range(1, periods + 1)), D(0)),
+                    D(str(inp["loan_principal"])))),
+         "when loan terms are declared, the repayment clears the principal"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def proforma_statements_profile(inp):
+    try:
+        revenue = inp.get("revenue") or []
+        periods = len(revenue)
+        if periods < 1 or periods > 10:
+            return ["revenue must cover between one and ten periods"]
+        margin = D(str(inp.get("gross_margin_rate", "0")))
+        if not (0 <= margin <= 1):
+            return ["gross_margin_rate must be between zero and one"]
+        rate = D(str(inp.get("tax_rate", "0")))
+        if not (0 <= rate <= 1):
+            return ["tax_rate must be between zero and one"]
+        loan_keys = ("loan_principal", "loan_annual_rate", "loan_years")
+        supplied_loan = [key for key in loan_keys if str(inp.get(key, "")).strip() != ""]
+        if supplied_loan and len(supplied_loan) != len(loan_keys):
+            return ["supply loan_principal, loan_annual_rate and loan_years together, or none of them"]
+        if supplied_loan:
+            if "interest" in inp or "principal_repayment" in inp:
+                return ["declare either the opening loan terms or the interest and principal lists, not both"]
+            loan_principal = D(str(inp["loan_principal"]))
+            loan_rate = D(str(inp["loan_annual_rate"]))
+            loan_years = D(str(inp["loan_years"]))
+            if loan_years != int(loan_years) or loan_years < 1:
+                return ["loan_years must be a whole number of periods"]
+            if loan_principal <= 0:
+                return ["loan_principal must be positive"]
+            if not (0 <= loan_rate < 1):
+                return ["loan_annual_rate must be at least zero and below one"]
+            if int(loan_years) != periods:
+                return ["loan_years must equal the number of revenue periods"]
+            if "opening_loan" in inp and D(str(inp["opening_loan"])) != loan_principal:
+                return ["opening_loan must equal loan_principal when the loan terms are declared"]
+        else:
+            for name in ("interest", "principal_repayment"):
+                if len(inp.get(name) or []) != periods:
+                    return [name + " must have one figure for each period, or declare loan terms instead"]
+        for name in ("operating_costs", "depreciation"):
+            if len(inp.get(name) or []) != periods:
+                return [name + " must have one figure for each period"]
+        capex = inp.get("capex") or []
+        if capex and len(capex) != periods:
+            return ["capex must have one figure for each period"]
+        for value in revenue:
+            if D(str(value)) < 0:
+                return ["revenue must be non-negative"]
+        opening = {k: D(str(inp.get(k, "0"))) for k in ("opening_cash", "opening_fixed_assets", "opening_receivables",
+                                                        "opening_inventory", "opening_payables", "opening_equity")}
+        opening["opening_loan"] = (D(str(inp["opening_loan"])) if "opening_loan" in inp
+                                   else (D(str(inp["loan_principal"])) if supplied_loan else D(0)))
+        if min(opening.values()) < 0:
+            return ["opening balances must be non-negative"]
+        assets = opening["opening_cash"] + opening["opening_fixed_assets"] + opening["opening_receivables"] + opening["opening_inventory"]
+        claims = opening["opening_payables"] + opening["opening_loan"] + opening["opening_equity"]
+        if assets != claims:
+            return ["the opening balance sheet does not balance: set opening_equity to %s" % (assets - opening["opening_payables"] - opening["opening_loan"])]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["pro-forma inputs are malformed: revenue and the per-period cost lists are required"]
+
+def _proforma_typing(metric):
+    if metric in ("gross_margin_rate", "tax_rate", "loan_annual_rate"):
+        return ("rate", 4)
+    if metric == "loan_years":
+        return ("count", 0)
+    if metric.endswith("_days"):
+        return ("days", 2)
+    return ("currency", 2)
+
+def proforma_statements_caveats(out, th):
+    return ["The statements are built from the declared revenue, margin, costs, depreciation, interest and principal (or the declared opening loan), tax rate and working-capital days; nothing is forecast.",
+            "Working capital uses receivable, inventory and payable days on revenue and cost of sales; no tax payable, dividends or new borrowing beyond the opening loan is modelled.",
+            "The balance sheet must balance at opening and in every period; an unbalanced opening balance is refused with the equity that would balance it."]
+
+def proforma_statements_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across the declared periods, revenue totals " + tok("total_revenue") + " and net income totals " +
+            tok("total_net_income") + ", closing with cash of " + tok("closing_cash_final") +
+            " and equity of " + tok("closing_equity_final") + ".")
+
+
+def sales_from_market_impl(inp):
+    market = D(str(inp["market_size"])); share = D(str(inp["target_share"]))
+    price = D(str(inp["price"]))
+    if market <= 0:
+        raise DataError("market_size must be positive")
+    if not (0 < share <= 1):
+        raise DataError("target_share must be greater than zero and at most one")
+    if price <= 0:
+        raise DataError("price must be positive")
+    revenue = market * share
+    return {"market_size": market, "target_share": share, "price": price,
+            "target_revenue": revenue, "target_units": revenue / price}
+
+def _sfm_ref(inp):
+    market = float(D(str(inp["market_size"]))); share = float(D(str(inp["target_share"])))
+    price = float(D(str(inp["price"])))
+    return {"target_revenue": market * share, "target_units": market * share / price}
+
+def sales_from_market_tests(inp, impl):
+    base, ref = impl(inp), _sfm_ref(inp)
+    market = D(str(inp["market_size"])); share = D(str(inp["target_share"]))
+    checks = [
+        ("second_implementation_agrees", _close(base["target_revenue"], ref["target_revenue"], rel=1e-9)
+         and _close(base["target_units"], ref["target_units"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("target_revenue_is_the_share_of_the_market", _close(base["target_revenue"], market * share), "revenue is the declared share of the market"),
+        ("target_units_are_revenue_over_price", _close(base["target_units"], base["target_revenue"] / base["price"]), "units are the revenue at the declared price"),
+        ("a_higher_share_raises_revenue", impl({**inp, "target_share": str(min(D(1), share + D("0.01")))})["target_revenue"] >= base["target_revenue"], "a larger share cannot lower revenue"),
+        ("the_share_is_bounded", share <= 1 and share > 0, "the share is a fraction of the market"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def sales_from_market_profile(inp):
+    try:
+        if D(str(inp["market_size"])) <= 0:
+            return ["market_size must be positive"]
+        share = D(str(inp["target_share"]))
+        if not (0 < share <= 1):
+            return ["target_share must be greater than zero and at most one"]
+        if D(str(inp["price"])) <= 0:
+            return ["price must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["market inputs are malformed: market_size, target_share and price are required numbers"]
+
+def _sfm_typing(metric):
+    if metric == "target_share":
+        return ("rate", 4)
+    if metric == "target_units":
+        return ("units", 2)
+    return ("currency", 2)
+
+def sales_from_market_caveats(out, th):
+    return ["The market size and the share are declared; the method does not estimate either.",
+            "Revenue assumes the whole target share is sold at the declared price; no ramp-up, discount or seasonality.",
+            "A share is a plan assumption, not evidence that customers will buy."]
+
+def sales_from_market_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("A declared " + tok("target_share") + " share of a " + tok("market_size") + " market gives revenue of " +
+            tok("target_revenue") + ", or " + tok("target_units") + " units at " + tok("price") + ".")
+
+
+def sensitivity_table_impl(inp):
+    price = D(str(inp["base_price"])); units = D(str(inp["base_units"]))
+    variable = D(str(inp["base_variable_cost"])); fixed = D(str(inp["base_fixed_cost"]))
+    price_changes = [D(str(x)) for x in inp["price_changes"]]
+    volume_changes = [D(str(x)) for x in inp["volume_changes"]]
+    if price <= 0 or units <= 0:
+        raise DataError("base_price and base_units must be positive")
+    if variable < 0 or fixed < 0:
+        raise DataError("costs must be non-negative")
+    if len(price_changes) > 5 or len(volume_changes) > 5 or not price_changes or not volume_changes:
+        raise DataError("provide one to five price changes and one to five volume changes")
+    if any(c <= -1 for c in price_changes + volume_changes):
+        raise DataError("a change cannot be -100% or worse")
+    base_profit = (price - variable) * units - fixed
+    out = {"base_profit": base_profit, "base_price": price, "base_units": units}
+    for i, dp in enumerate(price_changes, 1):
+        for j, dv in enumerate(volume_changes, 1):
+            p = price * (1 + dp); u = units * (1 + dv)
+            out["profit_%d_%d" % (i, j)] = (p - variable) * u - fixed
+    return out
+
+def _sens_ref(inp):
+    price = float(D(str(inp["base_price"]))); units = float(D(str(inp["base_units"])))
+    variable = float(D(str(inp["base_variable_cost"]))); fixed = float(D(str(inp["base_fixed_cost"])))
+    return {"base_profit": (price - variable) * units - fixed}
+
+def sensitivity_table_tests(inp, impl):
+    base, ref = impl(inp), _sens_ref(inp)
+    price = D(str(inp["base_price"])); units = D(str(inp["base_units"]))
+    variable = D(str(inp["base_variable_cost"])); fixed = D(str(inp["base_fixed_cost"]))
+    high = impl({**inp, "price_changes": ["-0.1", "0.1"], "volume_changes": ["0"]})
+    high_v = impl({**inp, "price_changes": ["0"], "volume_changes": ["-0.1", "0.1"]})
+    checks = [
+        ("second_implementation_agrees", _close(base["base_profit"], ref["base_profit"], rel=1e-9), "float route agrees with the Decimal route"),
+        ("base_profit_is_the_declared_base_case", _close(base["base_profit"], (price - variable) * units - fixed), "the base profit uses the declared base figures"),
+        ("a_higher_price_raises_profit_at_a_positive_margin", high["profit_2_1"] > high["profit_1_1"], "a higher price raises profit when the unit margin is positive"),
+        ("a_higher_volume_raises_profit_at_a_positive_margin", high_v["profit_1_2"] > high_v["profit_1_1"], "a higher volume raises profit when the unit margin is positive"),
+        ("every_cell_is_the_profit_identity",
+         all(_close(base["profit_%d_%d" % (i, j)],
+                    (price * (1 + D(str(dp))) - variable) * units * (1 + D(str(dv))) - fixed)
+             for i, dp in enumerate(inp["price_changes"], 1) for j, dv in enumerate(inp["volume_changes"], 1)),
+         "each cell is the same profit identity at the changed price and volume"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def sensitivity_table_profile(inp):
+    try:
+        if D(str(inp["base_price"])) <= 0 or D(str(inp["base_units"])) <= 0:
+            return ["base_price and base_units must be positive"]
+        if D(str(inp["base_variable_cost"])) < 0 or D(str(inp["base_fixed_cost"])) < 0:
+            return ["costs must be non-negative"]
+        pc = inp.get("price_changes") or []; vc = inp.get("volume_changes") or []
+        if not pc or not vc or len(pc) > 5 or len(vc) > 5:
+            return ["provide one to five price changes and one to five volume changes"]
+        if any(D(str(c)) <= -1 for c in pc + vc):
+            return ["a change cannot be -100% or worse"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["sensitivity inputs are malformed: base price, units, variable cost, fixed cost and two change lists are required"]
+
+def _sens_typing(metric):
+    if metric.startswith("profit_") or metric == "base_profit":
+        return ("currency", 2)
+    if metric == "base_units":
+        return ("units", 2)
+    return ("currency", 2)
+
+def sensitivity_table_caveats(out, th):
+    return ["The table changes price and volume only; cost changes need a separate table or a declared second run.",
+            "Each cell is profit at the same declared unit cost and fixed cost; no demand response to price is modelled.",
+            "A table is arithmetic on declared changes, not a forecast or a probability."]
+
+def sensitivity_table_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At the declared base case the profit is " + tok("base_profit") +
+            "; the table reports profit for each declared price and volume change.")
 
 
 LIBRARY = {
@@ -14374,6 +16499,164 @@ LIBRARY = {
                   limitations=("No resource levelling, calendars, crashing or simulation.", "The critical path is the zero-float path, not the riskiest one.", "PERT variance assumes independent activity durations and sums them along the critical path."),
                   default_period="per period", caveats=cpm_schedule_caveats, template=cpm_schedule_template,
                   claim_ceiling="descriptive", typing=_cpm_typing),
+    "resource_leveling": Method("resource_leveling", "T1", resource_leveling_impl, resource_leveling_tests,
+                  resource_leveling_profile, "levelled_duration", "periods", None,
+                  ("second_implementation_agrees", "no_period_exceeds_a_resource_capacity",
+                   "precedence_is_respected", "no_activity_starts_before_its_cpm_early_start",
+                   "levelling_never_shortens_the_project"),
+                  category="project scheduling",
+                  intended_use="Level a declared schedule against declared resource capacities: early and levelled starts and finishes, the delay each activity takes, the project duration and the over-capacity periods before and after.",
+                  unsupported_use="Choosing the priority rule that a real project should use; calendars; multiple resources per activity; preemption; cost or resource smoothing beyond a capacity check.",
+                  input_schema={"activities": {"type": "rows", "min_items": 1, "desc": "one row per activity: id, whole-period duration, resource, demand and optional predecessors"},
+                                "resources": {"type": "rows", "min_items": 1, "desc": "one row per resource: name and whole-unit capacity"}},
+                  defaults=({"question": "Levelling order", "default_chosen": "Serial scheduling by early start, then longest duration, then activity id; activities are non-preemptive.", "impact": "A different priority rule can produce a different, equally valid plan."},
+                            {"question": "Resource model", "default_chosen": "One resource per activity, whole-period durations and demands, no calendars.", "impact": "Shared units, shifts and preemption are not modelled."}),
+                  assumptions=("Each activity consumes one declared resource at a constant demand for its whole duration.", "Capacities are constant over the project.", "Durations and demands are whole periods."),
+                  limitations=("Greedy serial levelling, not an optimal scheduler.", "No calendars, multiple resources per activity, preemption or resource smoothing.", "The priority rule is fixed, not chosen."),
+                  default_period="per period", caveats=resource_leveling_caveats, template=resource_leveling_template,
+                  claim_ceiling="descriptive", typing=_level_typing),
+    "project_crashing": Method("project_crashing", "T1", project_crashing_impl, project_crashing_tests,
+                  project_crashing_profile, "total_crash_cost", "currency", None,
+                  ("second_implementation_agrees", "target_duration_is_met",
+                   "every_activity_stays_within_its_crash_limits",
+                   "total_cost_is_the_sum_of_the_activity_costs",
+                   "recomputed_network_matches_the_crashed_duration"),
+                  category="project scheduling",
+                  intended_use="Crash a declared schedule to a target duration: the activity periods bought, the resulting duration and the total crash cost.",
+                  unsupported_use="Finding the least-cost crash plan globally; non-linear, shared or step crash costs; crashing with resource limits, calendars or uncertain durations.",
+                  input_schema={"activities": {"type": "rows", "min_items": 1, "desc": "one row per activity: id, normal_duration, crash_duration, crash_cost and optional predecessors"},
+                                "target_duration": {"type": "number", "min": 0, "desc": "the project duration to reach"}},
+                  defaults=({"question": "Crash cost", "default_chosen": "Linear between the normal and crash durations; the declared crash_cost is the total premium to reach the crash duration.", "impact": "A non-linear or shared cost changes the plan."},
+                            {"question": "Search rule", "default_chosen": "Greedy: one period at a time on the cheapest available critical activity, recomputing the network each step.", "impact": "This is not a linear-programming optimum."}),
+                  assumptions=("Crash cost is linear between normal and crash durations.", "Durations are whole periods and the graph is acyclic.", "Crashing one critical activity does not change scope or quality."),
+                  limitations=("Greedy, not globally optimal.", "No calendars, resource limits, non-linear costs or quality trade-off.", "A target below the fully crashed duration is refused."),
+                  default_period="per period", caveats=project_crashing_caveats, template=project_crashing_template,
+                  claim_ceiling="descriptive", typing=_crash_typing),
+    "calendar_schedule": Method("calendar_schedule", "T1", calendar_schedule_impl, calendar_schedule_tests,
+                  calendar_schedule_profile, "project_duration", "periods", None,
+                  ("second_implementation_agrees", "precedence_is_respected", "every_working_period_is_used",
+                   "critical_activities_have_zero_float", "the_calendar_cannot_shorten_the_work"),
+                  category="project scheduling",
+                  intended_use="Schedule declared activities over a declared working calendar: early and late dates, float, the critical path and the calendar duration with non-working gaps.",
+                  unsupported_use="Inferring weekends, holidays or shifts; per-activity calendars; resource limits; dates rather than period numbers; probabilistic durations.",
+                  input_schema={"activities": {"type": "rows", "min_items": 1, "desc": "one row per activity: id, whole-period duration and optional predecessors"},
+                                "working_periods": {"type": "text", "desc": "comma-separated period numbers that are working, for example 0,1,2,5,6,7"}},
+                  defaults=({"question": "Calendar", "default_chosen": "A declared list of working period numbers; no weekday or holiday convention is assumed.", "impact": "A different calendar changes every date and float."},
+                            {"question": "Zero-duration milestones", "default_chosen": "A zero-duration activity sits on the first working period at or after its constraint.", "impact": "It does not consume a working period."}),
+                  assumptions=("One calendar applies to every activity.", "Durations count working periods only.", "The graph is acyclic."),
+                  limitations=("No date arithmetic, weekends, holidays, shifts, per-activity calendars or resources.", "Float is measured in calendar periods, not working periods.", "The calendar must be long enough for the declared durations."),
+                  default_period="per period", caveats=calendar_schedule_caveats, template=calendar_schedule_template,
+                  claim_ceiling="descriptive", typing=_cpm_typing),
+    "multi_project_schedule": Method("multi_project_schedule", "T1", multi_project_schedule_impl,
+                  multi_project_schedule_tests, multi_project_schedule_profile, "overall_duration", "periods", None,
+                  ("second_implementation_agrees", "no_period_exceeds_a_resource_capacity",
+                   "precedence_within_each_project_is_respected",
+                   "no_project_finishes_before_its_unconstrained_duration",
+                   "every_activity_is_scheduled_exactly_once"),
+                  category="project scheduling",
+                  intended_use="Schedule several projects that share declared resources: project and activity starts and finishes, each project's finish and delay against its own CPM, and the overall duration.",
+                  unsupported_use="Choosing the project priority; inter-project dependencies; calendars, preemption, multiple resources per activity or optimal multi-project scheduling.",
+                  input_schema={"projects": {"type": "rows", "min_items": 1, "desc": "projects with a unique name, a priority and activities carrying id, duration, resource, demand and predecessors"},
+                                "resources": {"type": "rows", "min_items": 1, "desc": "one row per shared resource: name and whole-unit capacity"}},
+                  defaults=({"question": "Project priority", "default_chosen": "Lower priority number first, then early start, longest duration and id; the priority is yours.", "impact": "A different priority changes which project waits."},
+                            {"question": "Resource model", "default_chosen": "One resource per activity, whole periods, non-preemptive, no calendars or inter-project links.", "impact": "Shared crews can delay a project; the delay is reported against its own CPM."}),
+                  assumptions=("Projects share only the declared resources.", "Durations, demands and capacities are whole periods.", "Each project graph is acyclic."),
+                  limitations=("Greedy serial scheduling, not an optimal multi-project plan.", "No calendars, preemption, inter-project dependencies or multiple resources per activity.", "The priority rule is fixed, not chosen."),
+                  default_period="per period", caveats=multi_project_schedule_caveats, template=multi_project_schedule_template,
+                  claim_ceiling="descriptive", typing=_multi_project_typing),
+    "schedule_risk": Method("schedule_risk", "T1", schedule_risk_impl, schedule_risk_tests, schedule_risk_profile,
+                  "p80_duration", "periods", None,
+                  ("second_implementation_and_seed_agree", "sampled_durations_stay_within_the_declared_bounds",
+                   "percentiles_are_ordered", "the_mean_lies_between_the_observed_extremes",
+                   "the_target_probability_matches_the_sample_count", "criticality_indices_are_fractions"),
+                  category="project scheduling",
+                  intended_use="Seeded Monte Carlo of a PERT network: mean, P50/P80/P90 and range of the project duration, the share of runs within a target, and each activity's criticality index.",
+                  unsupported_use="Resource limits, calendars or correlated durations; treating the seed or the distribution as a forecast; a guarantee that the P80 will hold.",
+                  input_schema={"activities": {"type": "rows", "min_items": 1, "desc": "one row per activity: id, optimistic, most_likely, pessimistic and optional predecessors"},
+                                "iterations": {"type": "number", "min": 1, "desc": "number of seeded simulations, at most 5000"},
+                                "seed": {"type": "number", "min": 0, "desc": "integer seed for reproducibility"},
+                                "target_duration": {"type": "number", "required": False, "desc": "optional duration whose achievement probability is reported"}},
+                  defaults=({"question": "Distribution", "default_chosen": "Independent triangular draws between optimistic and pessimistic with the most likely as the mode.", "impact": "A different distribution changes the percentiles."},
+                            {"question": "Reproducibility", "default_chosen": "A declared integer seed; the same inputs and seed reproduce the same sample.", "impact": "A different seed gives different percentiles."}),
+                  assumptions=("Activity durations are independent draws from the declared triangular distributions.", "The network is acyclic and has no resource limits.", "The seed is declared and kept for the report."),
+                  limitations=("Monte Carlo is a sample, not a guarantee; percentiles move with the seed.", "No resource limits, calendars, correlation or distribution fitting.", "Criticality is the share of runs with zero float, not a causal importance measure."),
+                  default_period="per period", caveats=schedule_risk_caveats, template=schedule_risk_template,
+                  claim_ceiling="descriptive", typing=_risk_typing),
+    "decision_tree": Method("decision_tree", "T1", decision_tree_impl, decision_tree_tests, decision_tree_profile,
+                  "expected_value", "currency", None,
+                  ("second_implementation_agrees", "chance_probabilities_sum_to_one",
+                   "the_root_value_is_the_best_alternative", "every_alternative_has_a_probability_and_a_range",
+                   "the_best_index_points_to_the_highest_value"),
+                  category="decision analysis",
+                  intended_use="Roll back a declared decision tree: expected value of each alternative, the best alternative, loss probability and the best/worst terminal value for each path.",
+                  unsupported_use="Supplying probabilities, branches or terminal values; risk aversion or utility weighting; option pricing; deciding for you beyond the highest expected value.",
+                  input_schema={"tree": {"type": "object", "desc": "a decision root with alternatives; chance nodes with branches whose probabilities sum to one; terminal nodes with a value"}},
+                  defaults=({"question": "Decision rule", "default_chosen": "The alternative with the highest expected value; ties go to the earlier alternative.", "impact": "A different rule, such as avoiding loss, changes the choice."},
+                            {"question": "Risk", "default_chosen": "Expected value only; loss probability and the best/worst terminal value are reported beside it.", "impact": "Expected value ignores risk aversion."}),
+                  assumptions=("The tree, its probabilities and its terminal values are the student's.", "Chance branches at a node are mutually exclusive and exhaustive.", "The tree is at most twelve levels deep."),
+                  limitations=("No probabilities are inferred and no branch is pruned.", "Expected value ignores risk aversion; no utility or certainty equivalent.", "No sensitivity analysis beyond the reported range."),
+                  default_period="point in time", caveats=decision_tree_caveats, template=decision_tree_template,
+                  claim_ceiling="descriptive", typing=_tree_typing),
+    "real_option": Method("real_option", "T1", real_option_impl, real_option_tests, real_option_profile,
+                  "option_value", "currency", None,
+                  ("second_implementation_agrees", "the_option_is_worth_at_least_its_intrinsic_value",
+                   "the_value_respects_its_upper_bound", "the_risk_neutral_probability_is_a_probability",
+                   "delta_has_the_sign_of_the_option"),
+                  category="capital budgeting",
+                  intended_use="Value a real option on a declared project value with a Cox-Ross-Rubinstein binomial lattice: option value, intrinsic value, delta, up/down factors and risk-neutral probability.",
+                  unsupported_use="Calibrating volatility; a traded-option replication argument; continuous hedging; multiple interacting options; a project value that is not declared.",
+                  input_schema={"underlying_value": {"type": "number", "min": 0.01, "desc": "the project or asset value today"},
+                                "investment_cost": {"type": "number", "min": 0.01, "desc": "the strike or investment needed to exercise"},
+                                "volatility": {"type": "number", "min": 0.0001, "desc": "annual volatility as a decimal"},
+                                "risk_free_rate": {"type": "number", "desc": "annual risk-free rate as a decimal"},
+                                "steps": {"type": "number", "min": 1, "desc": "lattice steps, at most 200"},
+                                "horizon_years": {"type": "number", "required": False, "desc": "time to expiry in years, default one"},
+                                "option_type": {"type": "enum", "values": ["call", "put"], "desc": "call (option to invest) or put (option to abandon)"},
+                                "exercise": {"type": "enum", "values": ["european", "american"], "desc": "exercise only at expiry or at any step"}},
+                  defaults=({"question": "Lattice", "default_chosen": "Cox-Ross-Rubinstein binomial with the declared steps, volatility, rate and horizon.", "impact": "More steps change the value slightly."},
+                            {"question": "Real-option caveat", "default_chosen": "No market price or continuous hedging; the value is a declared model, not an observable.", "impact": "It is not a traded option."}),
+                  assumptions=("The project value follows a binomial lattice with constant volatility and rate.", "The option is on the declared project value, not a traded asset.", "Exercise is European or American as declared."),
+                  limitations=("No volatility calibration or estimation.", "No continuous hedging or market-price comparison.", "One option at a time; no compound or interacting options."),
+                  default_period="point in time", caveats=real_option_caveats, template=real_option_template,
+                  claim_ceiling="descriptive", typing=_real_option_typing),
+    "multi_criteria": Method("multi_criteria", "T1", multi_criteria_impl, multi_criteria_tests, multi_criteria_profile,
+                  "best_total", "score", None,
+                  ("second_implementation_agrees", "weights_sum_to_one", "every_score_is_within_the_scale",
+                   "each_total_is_the_weighted_sum", "ranks_are_a_permutation_and_the_best_has_the_highest_total"),
+                  category="decision analysis",
+                  intended_use="Score declared alternatives against declared criteria with declared weights: weighted totals, ranks and the best alternative.",
+                  unsupported_use="Choosing the criteria, weights, scale or scores; inferring a score; optimising weights; treating the total as an objective truth.",
+                  input_schema={"criteria": {"type": "rows", "min_items": 1, "desc": "one row per criterion: name and weight; weights must sum to one"},
+                                "alternatives": {"type": "rows", "min_items": 2, "desc": "one row per alternative: name and a score for every criterion"},
+                                "scale_max": {"type": "number", "required": False, "desc": "highest score on the common scale, default ten"}},
+                  defaults=({"question": "Scale", "default_chosen": "A common zero-to-ten scale unless scale_max is declared; higher is better for every criterion.", "impact": "A cost criterion must be scored as desirability, not as the raw cost."},
+                            {"question": "Weights", "default_chosen": "The declared weights must sum to one; the method does not normalise them silently.", "impact": "A different weighting can reorder the alternatives."}),
+                  assumptions=("Scores are on one declared scale and higher is better.", "Weights sum to one and encode the student's judgement.", "Alternatives and criteria are independent."),
+                  limitations=("No objective weights, score inference or sensitivity analysis.", "A weighted total is a declared judgement, not a fact.", "Cost criteria must be converted to desirability by the student."),
+                  default_period="point in time", caveats=multi_criteria_caveats, template=multi_criteria_template,
+                  claim_ceiling="descriptive", typing=_multi_criteria_typing),
+    "monte_carlo": Method("monte_carlo", "T1", monte_carlo_impl, monte_carlo_tests, monte_carlo_profile,
+                  "mean_result", "currency", None,
+                  ("second_implementation_and_seed_agree", "sampled_inputs_stay_within_their_bounds",
+                   "percentiles_are_ordered", "the_mean_lies_between_the_observed_extremes",
+                   "the_positive_probability_matches_the_count"),
+                  category="decision analysis",
+                  intended_use="A seeded Monte Carlo for two declared decision models: NPV of uncertain cash flows, or profit from uncertain price, variable cost and volume. Reports the mean, P10/P50/P90, range and the share of positive outcomes.",
+                  unsupported_use="Arbitrary formulas, correlated inputs, fitted distributions or forecasts; deciding for you; treating a percentile as a guarantee.",
+                  input_schema={"model": {"type": "enum", "values": ["npv", "profit"], "desc": "npv of declared cash flows, or profit = (price - variable cost) x volume - fixed cost"},
+                                "iterations": {"type": "number", "min": 1, "desc": "seeded simulations, at most 5000"},
+                                "seed": {"type": "number", "min": 0, "desc": "integer seed for reproducibility"},
+                                "discount_rate": {"type": "number", "required": False, "desc": "decimal discount rate for the npv model"},
+                                "cashflows": {"type": "rows", "required": False, "desc": "for npv: name, period and a fixed, uniform or triangular distribution"},
+                                "variables": {"type": "rows", "required": False, "desc": "for profit: price, variable_cost and volume distributions"},
+                                "fixed_cost": {"type": "number", "required": False, "desc": "fixed cost for the profit model"}},
+                  defaults=({"question": "Model", "default_chosen": "NPV of the declared cash flows unless profit is selected; no arbitrary formula is evaluated.", "impact": "A different model is a different simulation."},
+                            {"question": "Distributions", "default_chosen": "Fixed, uniform or triangular per input, drawn independently.", "impact": "Correlation or a fitted distribution changes the percentiles."},
+                            {"question": "Reproducibility", "default_chosen": "A declared integer seed; the same inputs and seed reproduce the sample.", "impact": "A different seed gives different percentiles."}),
+                  assumptions=("Inputs are independent draws from the declared distributions.", "The NPV discount rate is constant; profit uses one price, variable cost and volume per draw.", "The seed is declared and kept for the report."),
+                  limitations=("Two declared models only; no arbitrary formula.", "No correlation, distribution fitting or resource constraints.", "A seeded sample is not a forecast or a guarantee."),
+                  default_period="point in time", caveats=monte_carlo_caveats, template=monte_carlo_template,
+                  claim_ceiling="descriptive", typing=_monte_carlo_typing),
     "earned_value": Method("earned_value", "T1", earned_value_impl, earned_value_tests, earned_value_profile,
                   "spi", "ratio", None,
                   ("second_implementation_agrees", "schedule_variance_is_earned_minus_planned",
@@ -14505,6 +16788,99 @@ LIBRARY = {
                   limitations=("No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.", "No link to the accounting profit or the statements.", "Deferred tax is one declared difference times one declared rate."),
                   default_period="annual", caveats=tax_declared_caveats, template=tax_declared_template,
                   claim_ceiling="descriptive", typing=_tax_typing),
+    "depreciation_schedule": Method("depreciation_schedule", "T1", depreciation_schedule_impl, depreciation_schedule_tests,
+                  depreciation_schedule_profile, "total_depreciation", "currency", None,
+                  ("second_implementation_agrees", "depreciation_never_takes_carrying_below_salvage",
+                   "accumulated_depreciation_is_the_running_total", "the_schedule_reaches_salvage_at_the_end",
+                   "period_depreciation_sums_to_the_total"),
+                  category="management accounting",
+                  intended_use="A depreciation schedule by straight line or declining balance, with the period charge, accumulated depreciation and carrying amount.",
+                  unsupported_use="Tax depreciation rules, mid-year or monthly conventions, revaluations, impairment, disposals or component accounting.",
+                  input_schema={"cost": {"type": "decimal", "desc": "the asset's cost"},
+                                "salvage": {"type": "decimal", "required": False, "desc": "expected salvage value at the end of the life, default 0"},
+                                "life": {"type": "decimal", "desc": "useful life in whole periods, 1 to 40"},
+                                "method": {"type": "enum", "values": ["straight_line", "declining_balance"], "required": False, "desc": "straight line (default) or declining balance"},
+                                "declining_rate": {"type": "decimal", "required": False, "desc": "declining-balance rate, default 2 / life"}},
+                  defaults=({"question": "Method", "default_chosen": "Straight line over the declared life; declining balance applies the declared rate to the carrying amount and plugs the final period to salvage.", "impact": "A different method changes the early-year charge."},
+                            {"question": "Timing", "default_chosen": "One full period of depreciation in each period of the life.", "impact": "A mid-year purchase needs a partial first period, which is not computed."}),
+                  assumptions=("The asset is held for its full life and the salvage value is the declared figure.", "The method is an accounting allocation, not a tax rule."),
+                  limitations=("No tax depreciation, mid-year convention, revaluation, impairment or disposal.", "The rate is yours; declining balance plugs the final period to salvage.", "One asset at a time."),
+                  default_period="annual", caveats=depreciation_schedule_caveats, template=depreciation_schedule_template,
+                  claim_ceiling="descriptive", typing=_dep_typing),
+    "proforma_statements": Method("proforma_statements", "T1", proforma_statements_impl, proforma_statements_tests,
+                  proforma_statements_profile, "total_net_income", "currency", None,
+                  ("second_implementation_agrees", "gross_profit_is_revenue_times_the_margin",
+                   "net_income_is_operating_profit_less_interest_and_tax",
+                   "the_balance_sheet_balances_every_period", "cash_and_equity_roll_forward",
+                   "a_declared_loan_is_repaid_in_full"),
+                  category="business planning",
+                  intended_use="Projected income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal (or a declared opening loan), tax and working-capital days, with the balance check.",
+                  unsupported_use="Forecasting demand; deriving revenue; tax rules; dividends; new borrowing; deferred tax; asset disposals; monthly periods; multi-product statements.",
+                  input_schema={"revenue": {"type": "value_list", "min_items": 1, "desc": "declared revenue for each period, one to ten periods"},
+                                "gross_margin_rate": {"type": "decimal", "desc": "gross margin as a fraction of revenue, e.g. 0.40"},
+                                "operating_costs": {"type": "value_list", "min_items": 1, "desc": "fixed operating costs each period, excluding depreciation and interest"},
+                                "depreciation": {"type": "value_list", "min_items": 1, "desc": "depreciation each period"},
+                                "interest": {"type": "value_list", "required": False, "min_items": 1, "desc": "interest expense each period; omit when loan terms are declared"},
+                                "principal_repayment": {"type": "value_list", "required": False, "min_items": 1, "desc": "loan principal repaid each period; omit when loan terms are declared"},
+                                "loan_principal": {"type": "decimal", "required": False, "desc": "optional opening loan principal; with the rate and years, the interest and principal are derived"},
+                                "loan_annual_rate": {"type": "decimal", "required": False, "desc": "optional annual interest rate on the opening loan, e.g. 0.09"},
+                                "loan_years": {"type": "decimal", "required": False, "desc": "optional number of level annual payments; must equal the number of periods"},
+                                "capex": {"type": "value_list", "required": False, "min_items": 1, "desc": "optional capital expenditure each period, default zero"},
+                                "tax_rate": {"type": "decimal", "required": False, "desc": "tax rate on positive pre-tax profit, default 0"},
+                                "receivable_days": {"type": "decimal", "required": False, "desc": "receivable days of revenue, default 0"},
+                                "inventory_days": {"type": "decimal", "required": False, "desc": "inventory days of cost of sales, default 0"},
+                                "payable_days": {"type": "decimal", "required": False, "desc": "payable days of cost of sales, default 0"},
+                                "opening_cash": {"type": "decimal", "required": False, "desc": "opening cash, default 0"},
+                                "opening_fixed_assets": {"type": "decimal", "required": False, "desc": "opening net fixed assets, default 0"},
+                                "opening_receivables": {"type": "decimal", "required": False, "desc": "opening receivables, default 0"},
+                                "opening_inventory": {"type": "decimal", "required": False, "desc": "opening inventory, default 0"},
+                                "opening_payables": {"type": "decimal", "required": False, "desc": "opening payables, default 0"},
+                                "opening_loan": {"type": "decimal", "required": False, "desc": "opening loan balance, default 0"},
+                                "opening_equity": {"type": "decimal", "required": False, "desc": "opening equity; the opening balance sheet must balance"}},
+                  defaults=({"question": "Period and currency", "default_chosen": "Annual periods in one currency; revenue and cost lists must be the same length.", "impact": "Monthly periods need their own declared list and days basis."},
+                            {"question": "Balance sheet", "default_chosen": "Cash, receivables, inventory, net fixed assets, payables, loan and equity; the opening balance must balance and every period is checked.", "impact": "An unbalanced opening balance is refused with the equity that would balance it."}),
+                  assumptions=("Revenue, margin, costs and depreciation are declared for each period; interest and principal follow declared lists or the declared opening loan terms.", "Working capital follows the declared days on revenue and cost of sales.", "Tax applies to positive pre-tax profit at the declared rate."),
+                  limitations=("No forecast, tax payable, dividends, new borrowing beyond the opening loan, deferred tax or disposals.", "One product and one currency; annual periods only.", "The balance check is an identity only when the declared inputs are internally consistent."),
+                  default_period="annual", caveats=proforma_statements_caveats, template=proforma_statements_template,
+                  claim_ceiling="descriptive", typing=_proforma_typing),
+    "sales_from_market": Method("sales_from_market", "T1", sales_from_market_impl, sales_from_market_tests,
+                  sales_from_market_profile, "target_revenue", "currency", None,
+                  ("second_implementation_agrees", "target_revenue_is_the_share_of_the_market",
+                   "target_units_are_revenue_over_price", "a_higher_share_raises_revenue",
+                   "the_share_is_bounded"),
+                  category="business planning",
+                  intended_use="Target revenue and units from a declared market size, target share and price, so the market section and the financial plan agree.",
+                  unsupported_use="Estimating the market or the share; ramping the share over time; discounts, seasonality or demand response to price.",
+                  input_schema={"market_size": {"type": "decimal", "desc": "the annual market size in your currency"},
+                                "target_share": {"type": "decimal", "desc": "the share of the market you plan to win, a fraction above zero and at most one"},
+                                "price": {"type": "decimal", "desc": "price per unit"}},
+                  defaults=({"question": "Market basis", "default_chosen": "The declared market size is annual spending and the share is a single declared assumption.", "impact": "A monthly market or a ramped share needs its own run."},
+                            {"question": "What it proves", "default_chosen": "Arithmetic linking the market to the plan; it does not prove customers will buy.", "impact": "A share is an assumption, not evidence."}),
+                  assumptions=("The market size and share are declared.", "All target units sell at the declared price."),
+                  limitations=("No market estimate, ramp, discount or demand response.", "One period and one product.", "The share is not validated."),
+                  default_period="annual", caveats=sales_from_market_caveats, template=sales_from_market_template,
+                  claim_ceiling="descriptive", typing=_sfm_typing),
+    "sensitivity_table": Method("sensitivity_table", "T1", sensitivity_table_impl, sensitivity_table_tests,
+                  sensitivity_table_profile, "base_profit", "currency", None,
+                  ("second_implementation_agrees", "base_profit_is_the_declared_base_case",
+                   "a_higher_price_raises_profit_at_a_positive_margin",
+                   "a_higher_volume_raises_profit_at_a_positive_margin",
+                   "every_cell_is_the_profit_identity"),
+                  category="business planning",
+                  intended_use="A one- or two-way profit table across declared price and volume changes, with the base case, for the plan's risk section.",
+                  unsupported_use="Cost-change tables; probability-weighted scenarios; demand response to price; Monte Carlo; ranking or recommending a scenario.",
+                  input_schema={"base_price": {"type": "decimal", "desc": "base-case price per unit"},
+                                "base_units": {"type": "decimal", "desc": "base-case units sold"},
+                                "base_variable_cost": {"type": "decimal", "desc": "variable cost per unit"},
+                                "base_fixed_cost": {"type": "decimal", "desc": "fixed cost for the period"},
+                                "price_changes": {"type": "value_list", "min_items": 1, "max_items": 5, "desc": "price changes as fractions, e.g. -0.1 for -10%"},
+                                "volume_changes": {"type": "value_list", "min_items": 1, "max_items": 5, "desc": "volume changes as fractions, one to five"}},
+                  defaults=({"question": "What changes", "default_chosen": "Price and volume only; unit variable cost and fixed cost stay at the base case.", "impact": "A cost sensitivity needs a separate table."},
+                            {"question": "Interpretation", "default_chosen": "Arithmetic on declared changes, not a forecast or a probability.", "impact": "A table can look precise without being likely."}),
+                  assumptions=("The base figures and the declared changes are the owner's inputs.", "Unit cost and fixed cost stay constant across the table."),
+                  limitations=("No cost changes, demand response or probabilities.", "One product and one period.", "The table is descriptive; it does not choose a scenario."),
+                  default_period="annual", caveats=sensitivity_table_caveats, template=sensitivity_table_template,
+                  claim_ceiling="descriptive", typing=_sens_typing),
 
 }
 

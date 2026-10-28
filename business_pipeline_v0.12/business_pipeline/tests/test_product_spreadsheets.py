@@ -45,6 +45,40 @@ class SpreadsheetTest(unittest.TestCase):
         self.assertIn("The net present value is 50.00 currency.", [cell.text for cell in sheets[2].findall(".//" + SS + "Data")])
         self.assertIn("sha256:spec-abc", [cell.text for cell in sheets[0].findall(".//" + SS + "Data")])
 
+    def test_spreadsheetml_adds_a_schedule_sheet_for_cpm_artifacts(self):
+        base = bundle()
+        metrics = ("es_A", "ef_A", "ls_A", "lf_A", "float_A", "critical_A")
+        base["delivery"]["appendix"]["artifacts"] = [
+            [metric, [metric, "days", "entity", "base"], ""] for metric in metrics]
+        base["reperform"]["outputs"] = {
+            "es_A": "0", "ef_A": "3", "ls_A": "0", "lf_A": "3", "float_A": "0", "critical_A": "1"}
+        text = spreadsheets.to_spreadsheetml(base)
+        root = ET.fromstring(text)
+        sheets = root.findall(SS + "Worksheet")
+        self.assertEqual([sheet.get(SS + "Name") for sheet in sheets],
+                         ["Case", "Artifacts", "Schedule", "Report"])
+        cells = [cell.text for cell in sheets[2].findall(".//" + SS + "Cell/" + SS + "Data")]
+        self.assertIn("Activity", cells)
+        self.assertIn("A", cells)
+        self.assertIn("3", cells)
+
+    def test_xlsx_schedule_adds_a_coloured_bar_strip(self):
+        import zipfile
+        base = bundle()
+        metrics = ("es_A", "ef_A", "ls_A", "lf_A", "float_A", "critical_A", "critical_count", "activity_count")
+        base["delivery"]["appendix"]["artifacts"] = [
+            [metric, [metric, "days", "entity", "base"], ""] for metric in metrics]
+        base["reperform"]["outputs"] = {
+            "es_A": "0", "ef_A": "3", "ls_A": "0", "lf_A": "3", "float_A": "0", "critical_A": "1",
+            "critical_count": "1", "activity_count": "1"}
+        data = spreadsheets.to_xlsx(base)
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            schedule = archive.read("xl/worksheets/sheet2.xml").decode("utf-8")
+        self.assertIn('s="3"', schedule)          # the critical bar fill
+        self.assertNotIn('s="2"', schedule)       # no non-critical bar in a one-activity case
+        self.assertIn(">0</t>", schedule)         # the period header is present
+        self.assertNotIn(">count</t>", schedule)  # a critical_count total is not an activity row
+
     def test_writing_spreadsheets_is_deterministic(self):
         self.assertEqual(spreadsheets.to_csv(bundle()), spreadsheets.to_csv(bundle()))
         self.assertEqual(spreadsheets.to_spreadsheetml(bundle()), spreadsheets.to_spreadsheetml(bundle()))

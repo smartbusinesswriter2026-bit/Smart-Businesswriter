@@ -8,7 +8,7 @@ import zipfile
 import sys
 sys.path.insert(0, "src")
 
-from bp.product import api, writing  # noqa: E402
+from bp.product import api, docx, writing  # noqa: E402
 
 
 SOURCES = [
@@ -67,6 +67,18 @@ class ComposeTest(unittest.TestCase):
         reference = writing.reference(source, "apa")
         self.assertIn("World Bank (2026)", reference)
         self.assertNotIn("Bank, W.", reference)
+
+    def test_level_one_is_centred_and_level_two_is_flush_left(self):
+        data = docx.render_academic("Paper", [
+            {"heading": "PESTEL", "level": 1, "lines": ["External evidence."]},
+            {"heading": "Political", "level": 2, "lines": ["A political point."]},
+        ], "apa")
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            document = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn('<w:jc w:val="center"/><w:spacing', document)
+        self.assertIn("Political", document)
+        political = document[document.index("Political") - 300:document.index("Political") + 100]
+        self.assertNotIn('<w:jc w:val="center"/>', political)
 
     def test_word_bytes_are_a_real_docx_and_deterministic(self):
         first = writing.docx_bytes(self.report)

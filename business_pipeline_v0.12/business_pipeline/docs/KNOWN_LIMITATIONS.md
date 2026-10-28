@@ -13,18 +13,25 @@
   IRR, discounted payback, project metrics, scenario analysis, business-case decision and trend forecast
   come from Finance; critical path/PERT and earned value come from the scheduling and project-control
   methods. The shelf adds no second arithmetic path.
-- **Ten of the 14 delivery records remain read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs,
-  Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE give structure and the evidence each one needs; none is
-  filled in, scored or checked. PRINCE2 and PMBOK anchor the charter and risk register; WBS and RACI have
-  their own worksheets.
-- **The four delivery worksheets compute nothing.** The charter and WBS place supplied evidence and name
+- **Ten of the 16 delivery records remain read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs,
+  Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE give structure and the evidence each one needs; none is
+  filled in, scored or checked. PRINCE2 and PMBOK anchor the charter and risk register; WBS, RACI, the
+  stakeholder/communication plan and lessons learned have their own worksheets.
+- **The six delivery worksheets compute nothing.** The charter and WBS place supplied evidence and name
   empty blocks; the RACI refuses a cell that does not start R, A, C or I and blocks an activity without
   exactly one A or at least one R; the risk register records declared labels and computes no probability,
-  expected value or score. No stakeholder/communication-plan or lessons-learned worksheet exists.
+  expected value or score; the stakeholder plan records influence as a declared label with its evidence; the
+  lessons-learned sheet names a lesson without an action or an action without an owner rather than filling it.
 - **The schedule is deterministic.** CPM gives early/late dates, total float and the critical path from
   declared durations, with PERT expected durations and variance when three-point estimates are declared.
-  There is **no Gantt drawing, resource levelling, crashing, calendars, multi-project scheduling or
-  schedule-risk simulation**, and no Monte Carlo, decision tree, real option or multi-criteria score.
+  The **Gantt chart draws the stored early dates, marks the critical path, shows float and draws the
+  dependencies you declare**; it does not infer a sequence. **Resource levelling, crashing and one declared calendar are
+  built**; levelling is greedy and non-preemptive, crashing is linear-cost and greedy rather than an LP
+  optimum, and the calendar is a list of working period numbers. **Multi-project scheduling and a seeded
+  schedule-risk simulation are built**; the multi-project rule is priority-ordered and greedy, and the risk
+  sample assumes independent triangular durations with no resource limits. A decision tree, a binomial real
+  option, a weighted decision matrix and an NPV/profit Monte Carlo are built; **arbitrary formulas, correlated
+  inputs and fitted distributions are not**.
 - **Earned value is arithmetic on one status date.** PV, EV and AC are cumulative figures the student
   declares; the method does not derive them from the schedule, and it cannot say whether the plan or the
   scope was right. EAC is one declared convention, not a forecast.
@@ -414,7 +421,16 @@
 - The accounting and operations **groups, notes, glossaries and guides are presentation and teaching material**; they do not validate a policy, choose an account or judge a standard.
 
 ## Added with scheduling, quality and costing (B-118)
-- `cpm_schedule` uses deterministic durations (or the PERT expected value) and an acyclic declared graph. No resource levelling, calendars, holidays, crashing or simulation; the critical path is the zero-float path, not the riskiest one.
+- `cpm_schedule` uses deterministic durations (or the PERT expected value) and an acyclic declared graph. It does not itself level resources, crash or apply a calendar; use `resource_leveling`, `project_crashing` or `calendar_schedule`. The critical path is the zero-float path, not the riskiest one.
+- `resource_leveling` is a greedy serial schedule: one resource per activity, whole-period durations and demands, a fixed priority rule, and no calendars, preemption or resource smoothing.
+- `project_crashing` is greedy and assumes a linear crash cost between the normal and crash durations. It is not an LP optimum, and shared or non-linear costs, quality trade-offs and resource limits are not modelled.
+- `calendar_schedule` uses one declared list of working period numbers; it does not infer weekends, holidays or shifts, and float is measured in calendar periods.
+- `multi_project_schedule` sequences projects by a declared priority, then early start, duration and id. It is greedy, not an optimal multi-project plan; it has no inter-project dependencies, calendars, preemption or multiple resources per activity, and a project's delay is measured against its own CPM.
+- `schedule_risk` is a seeded Monte Carlo over independent triangular durations. Percentiles move with the seed and are not a guarantee; it has no resource limits, calendars, correlation or distribution fitting, and criticality is the share of runs with zero float, not a causal measure.
+- `decision_tree` rolls back only the tree, probabilities and terminal values the student declares. Expected value ignores risk aversion; the loss probability and range are shown beside it, and no branch is pruned or recommended beyond the highest expected value.
+- `real_option` is a Cox-Ross-Rubinstein lattice with a declared volatility, rate, horizon and step count. It is not a traded option: there is no market price, continuous hedging or volatility calibration, and more steps change the value slightly.
+- `multi_criteria` multiplies the student's weights and scores on one common scale. A cost criterion must be scored as desirability; weights must sum to one, and the weighted total is a declared judgement, not a fact or a sensitivity analysis.
+- `monte_carlo` supports two declared models only: NPV of cash flows and profit from price, variable cost and volume. Inputs are independent fixed, uniform or triangular draws; there is no arbitrary formula, correlation, fitted distribution, sensitivity analysis or guarantee, and the seed is part of the result.
 - `earned_value` takes the three cumulative figures as at one declared status date. One EAC convention at a time; no earned schedule, forecast range, quality or scope performance.
 - `oee_analysis` is one machine or line: no six-big-losses split, TEEP or multi-machine aggregation. Performance above one is reported, not capped.
 - `process_control` is an **I-MR chart only**: no X-bar/R, p, c or u charts, EWMA, CUSUM, multivariate charts or measurement-system analysis. Cp/Cpk use the within-series sigma and the declared specification; no capability threshold is applied.
@@ -431,6 +447,18 @@ These are not oversights and they are not approximations waiting to be shipped. 
 - **A shared session store for multi-instance serving.** Sessions are in memory by design. A durable shared store is feasible, but it is a serving decision with confirmation semantics to preserve, not a computation a student runs.
 
 If an assignment needs one of these, say so in the limitations and show the method you used by hand. That is the same rule the shelf applies to itself.
+
+## Business-plan profile (B-148)
+- The plan is **composed from declared drivers, not forecast**. `proforma_statements` projects whatever revenue, margin, costs, depreciation, interest and principal (or the declared opening loan) tax and working-capital days you declare; it has no demand model, seasonality, ramp, multi-product mix, new borrowing beyond that opening loan, dividend, deferred-tax balance or disposal.
+- The projected statements use **annual periods and one currency**. A monthly plan needs its own declared lists and days basis; the method does not convert them.
+- **The opening balance sheet must balance.** An unbalanced opening is refused with the equity that would balance it; the system never plugs a difference. Every projected period is checked as an identity.
+- `depreciation_schedule` is an **accounting allocation**, not a tax depreciation rule. It has no mid-year convention, revaluation, impairment, disposal or component accounting.
+- `sales_from_market` multiplies two declarations (market size and share) by a declared price. It does not estimate the market, validate the share or prove that customers will buy.
+- `sensitivity_table` changes price and volume only; unit cost and fixed cost stay at the base case. It is arithmetic, not a probability or a recommendation.
+- The **cap table** is one priced round; it does not model convertible notes, SAFEs, multiple rounds, vesting or liquidation preferences.
+- The **cost-effectiveness ratio** compares declared options on one declared effect measure; it is not a recommendation and has no threshold.
+- The **market analysis** retrieves four dimensions and names a gap when no source matches. Retrieval quality and coverage are the source finder's limits; the plan does not fill a gap.
+- The strict convention keeps every standard section; open composition may leave an optional section out but changes **no fact and no figure**, and the same export gate applies to both.
 
 ## Deferred areas
 - Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

@@ -7,6 +7,19 @@ from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata
+product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
+
+
+def _plan_method(method_id, inputs):
+    """Validate and run one frozen method for a business-plan block."""
+    method = methods.LIBRARY[method_id]
+    errors = methods.validate_inputs(method, inputs)
+    if errors:
+        raise ValueError("; ".join(errors))
+    return method.impl(inputs)
+
+
+product_api.attach_methods(_plan_method, methods.describe)
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}
@@ -139,6 +152,60 @@ PRESETS = {
                 {"id": "B", "duration": "4", "predecessors": "A"},
                 {"id": "C", "duration": "2", "predecessors": "A"},
                 {"id": "D", "duration": "5", "predecessors": "B,C"}]}},
+    "leveling": {"objective": "Level the plan against the crew capacity", "method": "resource_leveling", "currency": "PHP", "period": "days",
+                 "inputs": {"resources": [{"name": "crew", "capacity": "2"}],
+                            "activities": [{"id": "A", "duration": "2", "resource": "crew", "demand": "2", "predecessors": ""},
+                                           {"id": "B", "duration": "2", "resource": "crew", "demand": "2", "predecessors": "A"},
+                                           {"id": "C", "duration": "2", "resource": "crew", "demand": "1", "predecessors": "A"},
+                                           {"id": "D", "duration": "1", "resource": "crew", "demand": "1", "predecessors": "B,C"}]}},
+    "crashing": {"objective": "Crash the plan to the target duration", "method": "project_crashing", "currency": "PHP", "period": "days",
+                 "inputs": {"target_duration": "7", "activities": [
+                     {"id": "A", "normal_duration": "5", "crash_duration": "3", "crash_cost": "100", "predecessors": ""},
+                     {"id": "B", "normal_duration": "4", "crash_duration": "2", "crash_cost": "80", "predecessors": "A"},
+                     {"id": "C", "normal_duration": "3", "crash_duration": "3", "crash_cost": "0", "predecessors": "A"}]}},
+    "calendar": {"objective": "Schedule the plan over a working calendar", "method": "calendar_schedule", "currency": "PHP", "period": "days",
+                 "inputs": {"working_periods": "0,1,2,5,6,7,10,11,12", "activities": [
+                     {"id": "A", "duration": "2", "predecessors": ""},
+                     {"id": "B", "duration": "2", "predecessors": "A"},
+                     {"id": "C", "duration": "1", "predecessors": "B"},
+                     {"id": "D", "duration": "1", "predecessors": "A"}]}},
+    "multiproject": {"objective": "Schedule two projects that share one crew", "method": "multi_project_schedule", "currency": "PHP", "period": "days",
+                     "inputs": {"resources": [{"name": "crew", "capacity": "2"}],
+                                "projects": [
+                                    {"name": "alpha", "priority": "1", "activities": [
+                                        {"id": "A", "duration": "2", "resource": "crew", "demand": "2", "predecessors": ""},
+                                        {"id": "B", "duration": "2", "resource": "crew", "demand": "2", "predecessors": "A"}]},
+                                    {"name": "beta", "priority": "2", "activities": [
+                                        {"id": "X", "duration": "2", "resource": "crew", "demand": "1", "predecessors": ""},
+                                        {"id": "Y", "duration": "2", "resource": "crew", "demand": "1", "predecessors": "X"}]}]}},
+    "schedrisk": {"objective": "How uncertain is the project duration?", "method": "schedule_risk", "currency": "PHP", "period": "days",
+                  "inputs": {"iterations": "1000", "seed": "42", "target_duration": "9",
+                             "activities": [{"id": "A", "optimistic": "2", "most_likely": "3", "pessimistic": "5", "predecessors": ""},
+                                            {"id": "B", "optimistic": "3", "most_likely": "4", "pessimistic": "6", "predecessors": "A"},
+                                            {"id": "C", "optimistic": "1", "most_likely": "2", "pessimistic": "4", "predecessors": "A"}]}},
+    "decisiontree": {"objective": "Which launch option should we choose?", "method": "decision_tree", "currency": "PHP", "period": "point in time",
+                     "inputs": {"tree": {"type": "decision", "alternatives": [
+                         {"name": "Launch", "node": {"type": "chance", "branches": [
+                             {"probability": "0.6", "node": {"type": "terminal", "value": "100000"}},
+                             {"probability": "0.4", "node": {"type": "terminal", "value": "-20000"}}]}},
+                         {"name": "Pilot", "node": {"type": "chance", "branches": [
+                             {"probability": "0.7", "node": {"type": "terminal", "value": "40000"}},
+                             {"probability": "0.3", "node": {"type": "terminal", "value": "5000"}}]}}]}}},
+    "realoption": {"objective": "What is the option to invest in the project worth?", "method": "real_option", "currency": "PHP", "period": "point in time",
+                   "inputs": {"underlying_value": "100", "investment_cost": "100", "volatility": "0.30",
+                              "risk_free_rate": "0.05", "steps": "5", "horizon_years": "1",
+                              "option_type": "call", "exercise": "american"}},
+    "mcda": {"objective": "Which supplier scores best on the declared criteria?", "method": "multi_criteria", "currency": "PHP", "period": "point in time",
+             "inputs": {"scale_max": "10", "criteria": [{"name": "cost", "weight": "0.6"}, {"name": "speed", "weight": "0.4"}],
+                        "alternatives": [{"name": "A", "scores": {"cost": "9", "speed": "5"}},
+                                         {"name": "B", "scores": {"cost": "6", "speed": "9"}},
+                                         {"name": "C", "scores": {"cost": "7", "speed": "7"}}]}},
+    "montecarlo": {"objective": "How uncertain is the project's net present value?", "method": "monte_carlo", "currency": "PHP", "period": "point in time",
+                   "inputs": {"model": "npv", "iterations": "2000", "seed": "7", "discount_rate": "0.10",
+                              "cashflows": [{"name": "outlay", "period": "0", "distribution": "fixed", "value": "-1000"},
+                                            {"name": "year_one", "period": "1", "distribution": "triangular", "low": "200", "mode": "400", "high": "600"},
+                                            {"name": "year_two", "period": "2", "distribution": "triangular", "low": "200", "mode": "400", "high": "600"},
+                                            {"name": "year_three", "period": "3", "distribution": "triangular", "low": "200", "mode": "400", "high": "600"}]}},
     "evm": {"objective": "Are we ahead or behind, and what will it cost?", "method": "earned_value", "currency": "PHP", "period": "point in time",
             "inputs": {"planned_value": "100000", "earned_value": "90000", "actual_cost": "95000",
                        "budget_at_completion": "200000", "eac_method": "cpi"}},
@@ -170,6 +237,25 @@ PRESETS = {
             "inputs": {"taxable_income": "1000000", "income_tax_rate": "0.25",
                        "vat_output_tax": "144000", "vat_input_tax": "84000",
                        "temporary_difference": "100000", "deferred_tax_rate": "0.25"}},
+    "depreciation": {"objective": "What is the depreciation schedule for the equipment?", "method": "depreciation_schedule", "currency": "PHP", "period": "annual",
+                     "inputs": {"cost": "500000", "salvage": "50000", "life": "5", "method": "straight_line"}},
+    "proforma": {"objective": "Project the income statement, cash flow and balance sheet", "method": "proforma_statements", "currency": "PHP", "period": "annual",
+                 "inputs": {"revenue": ["1200000", "1500000", "1800000"], "gross_margin_rate": "0.40",
+                            "operating_costs": ["300000", "320000", "340000"],
+                            "depreciation": ["90000", "90000", "90000"],
+                            "interest": ["40000", "30000", "20000"],
+                            "principal_repayment": ["100000", "100000", "100000"],
+                            "capex": ["0", "0", "0"], "tax_rate": "0.25",
+                            "receivable_days": "30", "inventory_days": "45", "payable_days": "30",
+                            "opening_cash": "200000", "opening_fixed_assets": "450000",
+                            "opening_receivables": "0", "opening_inventory": "0", "opening_payables": "0",
+                            "opening_loan": "400000", "opening_equity": "250000"}},
+    "frommarket": {"objective": "What revenue does our target market share imply?", "method": "sales_from_market", "currency": "PHP", "period": "annual",
+                   "inputs": {"market_size": "60000000", "target_share": "0.03", "price": "120"}},
+    "sensitivity": {"objective": "What happens to profit if price or volume changes?", "method": "sensitivity_table", "currency": "PHP", "period": "annual",
+                    "inputs": {"base_price": "120", "base_units": "10000", "base_variable_cost": "55",
+                               "base_fixed_cost": "300000",
+                               "price_changes": ["-0.1", "0", "0.1"], "volume_changes": ["-0.2", "0", "0.2"]}},
     "descriptive": {"objective": "Describe the exam scores", "method": "descriptive_stats", "unit": "points",
                     "inputs": {"values": ["72", "85", "90", "68", "99", "77", "81"], "missing_codes": ["99"]}},
     "pearson": {"objective": "Is study time associated with exam score?", "method": "pearson",

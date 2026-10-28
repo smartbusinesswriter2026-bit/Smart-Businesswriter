@@ -234,6 +234,22 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "calendar_schedule": {
+   "inputs": {
+    "activities": {
+     "desc": "one row per activity: id, whole-period duration and optional predecessors",
+     "required": true,
+     "type": "rows"
+    },
+    "working_periods": {
+     "desc": "comma-separated period numbers that are working, for example 0,1,2,5,6,7",
+     "required": true,
+     "type": "text"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "campaign_efficiency": {
    "inputs": {
     "clicks": {
@@ -652,6 +668,17 @@
    "tier": "T2",
    "version": "1.0.0"
   },
+  "decision_tree": {
+   "inputs": {
+    "tree": {
+     "desc": "a decision root with alternatives; chance nodes with branches whose probabilities sum to one; terminal nodes with a value",
+     "required": true,
+     "type": "object"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "demand_curve": {
    "inputs": {
     "prices": {
@@ -688,6 +715,37 @@
     "supply_slope": {
      "desc": "d in Qs = c + dP, must be positive",
      "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "depreciation_schedule": {
+   "inputs": {
+    "cost": {
+     "desc": "the asset's cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "declining_rate": {
+     "desc": "declining-balance rate, default 2 / life",
+     "required": false,
+     "type": "decimal"
+    },
+    "life": {
+     "desc": "useful life in whole periods, 1 to 40",
+     "required": true,
+     "type": "decimal"
+    },
+    "method": {
+     "desc": "straight line (default) or declining balance",
+     "required": false,
+     "type": "enum"
+    },
+    "salvage": {
+     "desc": "expected salvage value at the end of the life, default 0",
+     "required": false,
      "type": "decimal"
     }
    },
@@ -1725,6 +1783,68 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "monte_carlo": {
+   "inputs": {
+    "cashflows": {
+     "desc": "for npv: name, period and a fixed, uniform or triangular distribution",
+     "required": false,
+     "type": "rows"
+    },
+    "discount_rate": {
+     "desc": "decimal discount rate for the npv model",
+     "required": false,
+     "type": "number"
+    },
+    "fixed_cost": {
+     "desc": "fixed cost for the profit model",
+     "required": false,
+     "type": "number"
+    },
+    "iterations": {
+     "desc": "seeded simulations, at most 5000",
+     "required": true,
+     "type": "number"
+    },
+    "model": {
+     "desc": "npv of declared cash flows, or profit = (price - variable cost) x volume - fixed cost",
+     "required": true,
+     "type": "enum"
+    },
+    "seed": {
+     "desc": "integer seed for reproducibility",
+     "required": true,
+     "type": "number"
+    },
+    "variables": {
+     "desc": "for profit: price, variable_cost and volume distributions",
+     "required": false,
+     "type": "rows"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multi_criteria": {
+   "inputs": {
+    "alternatives": {
+     "desc": "one row per alternative: name and a score for every criterion",
+     "required": true,
+     "type": "rows"
+    },
+    "criteria": {
+     "desc": "one row per criterion: name and weight; weights must sum to one",
+     "required": true,
+     "type": "rows"
+    },
+    "scale_max": {
+     "desc": "highest score on the common scale, default ten",
+     "required": false,
+     "type": "number"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "multi_product_breakeven": {
    "inputs": {
     "fixed_costs": {
@@ -1736,6 +1856,22 @@
      "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)",
      "required": true,
      "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multi_project_schedule": {
+   "inputs": {
+    "projects": {
+     "desc": "projects with a unique name, a priority and activities carrying id, duration, resource, demand and predecessors",
+     "required": true,
+     "type": "rows"
+    },
+    "resources": {
+     "desc": "one row per shared resource: name and whole-unit capacity",
+     "required": true,
+     "type": "rows"
     }
    },
    "tier": "T1",
@@ -2456,6 +2592,133 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "proforma_statements": {
+   "inputs": {
+    "capex": {
+     "desc": "optional capital expenditure each period, default zero",
+     "required": false,
+     "type": "value_list"
+    },
+    "depreciation": {
+     "desc": "depreciation each period",
+     "required": true,
+     "type": "value_list"
+    },
+    "gross_margin_rate": {
+     "desc": "gross margin as a fraction of revenue, e.g. 0.40",
+     "required": true,
+     "type": "decimal"
+    },
+    "interest": {
+     "desc": "interest expense each period; omit when loan terms are declared",
+     "required": false,
+     "type": "value_list"
+    },
+    "inventory_days": {
+     "desc": "inventory days of cost of sales, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "loan_annual_rate": {
+     "desc": "optional annual interest rate on the opening loan, e.g. 0.09",
+     "required": false,
+     "type": "decimal"
+    },
+    "loan_principal": {
+     "desc": "optional opening loan principal; with the rate and years, the interest and principal are derived",
+     "required": false,
+     "type": "decimal"
+    },
+    "loan_years": {
+     "desc": "optional number of level annual payments; must equal the number of periods",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_cash": {
+     "desc": "opening cash, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_equity": {
+     "desc": "opening equity; the opening balance sheet must balance",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_fixed_assets": {
+     "desc": "opening net fixed assets, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_inventory": {
+     "desc": "opening inventory, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_loan": {
+     "desc": "opening loan balance, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_payables": {
+     "desc": "opening payables, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "opening_receivables": {
+     "desc": "opening receivables, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "operating_costs": {
+     "desc": "fixed operating costs each period, excluding depreciation and interest",
+     "required": true,
+     "type": "value_list"
+    },
+    "payable_days": {
+     "desc": "payable days of cost of sales, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "principal_repayment": {
+     "desc": "loan principal repaid each period; omit when loan terms are declared",
+     "required": false,
+     "type": "value_list"
+    },
+    "receivable_days": {
+     "desc": "receivable days of revenue, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "declared revenue for each period, one to ten periods",
+     "required": true,
+     "type": "value_list"
+    },
+    "tax_rate": {
+     "desc": "tax rate on positive pre-tax profit, default 0",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "project_crashing": {
+   "inputs": {
+    "activities": {
+     "desc": "one row per activity: id, normal_duration, crash_duration, crash_cost and optional predecessors",
+     "required": true,
+     "type": "rows"
+    },
+    "target_duration": {
+     "desc": "the project duration to reach",
+     "required": true,
+     "type": "number"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "project_metrics": {
    "inputs": {
     "cashflows": {
@@ -2707,6 +2970,52 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "real_option": {
+   "inputs": {
+    "exercise": {
+     "desc": "exercise only at expiry or at any step",
+     "required": true,
+     "type": "enum"
+    },
+    "horizon_years": {
+     "desc": "time to expiry in years, default one",
+     "required": false,
+     "type": "number"
+    },
+    "investment_cost": {
+     "desc": "the strike or investment needed to exercise",
+     "required": true,
+     "type": "number"
+    },
+    "option_type": {
+     "desc": "call (option to invest) or put (option to abandon)",
+     "required": true,
+     "type": "enum"
+    },
+    "risk_free_rate": {
+     "desc": "annual risk-free rate as a decimal",
+     "required": true,
+     "type": "number"
+    },
+    "steps": {
+     "desc": "lattice steps, at most 200",
+     "required": true,
+     "type": "number"
+    },
+    "underlying_value": {
+     "desc": "the project or asset value today",
+     "required": true,
+     "type": "number"
+    },
+    "volatility": {
+     "desc": "annual volatility as a decimal",
+     "required": true,
+     "type": "number"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "regression_discontinuity": {
    "inputs": {
     "bandwidth": {
@@ -2734,6 +3043,22 @@
      "desc": "named item columns, one response per row",
      "required": true,
      "type": "column_map"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "resource_leveling": {
+   "inputs": {
+    "activities": {
+     "desc": "one row per activity: id, whole-period duration, resource, demand and optional predecessors",
+     "required": true,
+     "type": "rows"
+    },
+    "resources": {
+     "desc": "one row per resource: name and whole-unit capacity",
+     "required": true,
+     "type": "rows"
     }
    },
    "tier": "T1",
@@ -2796,6 +3121,27 @@
     "stress_return": {
      "desc": "a declared adverse return, to report its loss alongside VaR",
      "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sales_from_market": {
+   "inputs": {
+    "market_size": {
+     "desc": "the annual market size in your currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "target_share": {
+     "desc": "the share of the market you plan to win, a fraction above zero and at most one",
+     "required": true,
      "type": "decimal"
     }
    },
@@ -2886,6 +3232,68 @@
      "desc": "the optimistic (lower) discount rate for the range",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "schedule_risk": {
+   "inputs": {
+    "activities": {
+     "desc": "one row per activity: id, optimistic, most_likely, pessimistic and optional predecessors",
+     "required": true,
+     "type": "rows"
+    },
+    "iterations": {
+     "desc": "number of seeded simulations, at most 5000",
+     "required": true,
+     "type": "number"
+    },
+    "seed": {
+     "desc": "integer seed for reproducibility",
+     "required": true,
+     "type": "number"
+    },
+    "target_duration": {
+     "desc": "optional duration whose achievement probability is reported",
+     "required": false,
+     "type": "number"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sensitivity_table": {
+   "inputs": {
+    "base_fixed_cost": {
+     "desc": "fixed cost for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "base_price": {
+     "desc": "base-case price per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "base_units": {
+     "desc": "base-case units sold",
+     "required": true,
+     "type": "decimal"
+    },
+    "base_variable_cost": {
+     "desc": "variable cost per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "price_changes": {
+     "desc": "price changes as fractions, e.g. -0.1 for -10%",
+     "required": true,
+     "type": "value_list"
+    },
+    "volume_changes": {
+     "desc": "volume changes as fractions, one to five",
+     "required": true,
+     "type": "value_list"
     }
    },
    "tier": "T1",

@@ -23,6 +23,7 @@ import io
 import os
 import tempfile
 import zipfile
+from decimal import Decimal as D, InvalidOperation
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -48,6 +49,65 @@ def to_csv(bundle):
     return buffer.getvalue()
 
 
+SCHEDULE_HEADER = ("Activity", "Early start", "Early finish", "Late start", "Late finish", "Float", "Critical")
+
+
+def _schedule_values(bundle):
+    values = {}
+    for row in artifact_rows(bundle):
+        metric = row.get("metric")
+        if not isinstance(metric, str):
+            continue
+        for prefix in ("es_", "ef_", "ls_", "lf_", "float_", "critical_"):
+            if metric.startswith(prefix):
+                values.setdefault(metric[len(prefix):], {})[prefix[:-1]] = row.get("value")
+                break
+    # `critical_count` and similar totals are not activities: a schedule row
+    # needs an early start and an early finish.
+    return {name: found for name, found in values.items() if "es" in found and "ef" in found}
+
+
+def _schedule_rows(bundle):
+    """A schedule sheet from stored CPM artifacts, or [] when the case has none."""
+    values = _schedule_values(bundle)
+    if not values:
+        return []
+    rows = [SCHEDULE_HEADER]
+    for activity in sorted(values):
+        found = values[activity]
+        rows.append((activity,) + tuple("" if found.get(key) is None else str(found.get(key))
+                                        for key in ("es", "ef", "ls", "lf", "float", "critical")))
+    return rows
+
+
+def _schedule_xlsx_rows(bundle):
+    """The schedule with a coloured bar strip, when every date is a whole period."""
+    values = _schedule_values(bundle)
+    if not values:
+        return []
+    try:
+        periods = {}
+        for activity, found in values.items():
+            start, finish = int(D(str(found["es"]))), int(D(str(found["ef"])))
+            if D(str(found["es"])) != start or D(str(found["ef"])) != finish:
+                return []
+            periods[activity] = (start, finish, str(found.get("critical")) == "1")
+    except (KeyError, InvalidOperation, ValueError):
+        return []
+    horizon = max(finish for _start, finish, _critical in periods.values())
+    header = list(SCHEDULE_HEADER) + [str(period) for period in range(horizon + 1)]
+    rows = [[(cell, True) for cell in header]]
+    for activity in sorted(values):
+        found = values[activity]
+        base = [activity] + ["" if found.get(key) is None else str(found.get(key))
+                             for key in ("es", "ef", "ls", "lf", "float", "critical")]
+        start, finish, critical = periods[activity]
+        strip = [("", 3 if critical else 2) if start <= period < finish else ""
+                 for period in range(horizon + 1)]
+        rows.append(base + strip)
+    return rows
+
+
 def _sheet(name, rows):
     """One SpreadsheetML worksheet from a list of string rows."""
     body = []
@@ -71,13 +131,16 @@ def to_spreadsheetml(bundle):
     artifacts = [CSV_HEADER] + [
         tuple("" if row.get(key) is None else str(row.get(key)) for key in ROW_KEYS)
         for row in artifact_rows(bundle)]
+    schedule = _schedule_rows(bundle)
     delivery = bundle.get("delivery")
     report = delivery.get("report") if isinstance(delivery, dict) and isinstance(delivery.get("report"), str) else ""
     report_rows = [("Line", "Text")] + [("", line) for line in report.splitlines()] or [("not recorded", "")]
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" '
             'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
-            + _sheet("Case", identity) + _sheet("Artifacts", artifacts) + _sheet("Report", report_rows)
+            + _sheet("Case", identity) + _sheet("Artifacts", artifacts)
+            + (_sheet("Schedule", schedule) if schedule else "")
+            + _sheet("Report", report_rows)
             + "</Workbook>\n")
 
 
@@ -134,11 +197,16 @@ _XLSX_STYLES = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
                 '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
                 '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>'
                 '<font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
-                '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>'
+                '<fills count="4"><fill><patternFill patternType="none"/></fill>'
+                '<fill><patternFill patternType="gray125"/></fill>'
+                '<fill><patternFill patternType="solid"><fgColor rgb="FF4E79A7"/><bgColor indexed="64"/></patternFill></fill>'
+                '<fill><patternFill patternType="solid"><fgColor rgb="FFE15759"/><bgColor indexed="64"/></patternFill></fill></fills>'
                 '<borders count="1"><border/></borders>'
                 '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-                '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-                '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
+                '<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+                '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+                '<xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1"/>'
+                '<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/></cellXfs>'
                 '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
                 '</styleSheet>')
 
@@ -168,11 +236,20 @@ def _xlsx_sheet(rows):
     for r, cells in enumerate(rows, start=1):
         out = []
         for c, cell in enumerate(cells):
-            bold = isinstance(cell, tuple) and len(cell) == 2 and cell[1] is True
+            marker = cell[1] if isinstance(cell, tuple) and len(cell) == 2 else None
             value = cell[0] if isinstance(cell, tuple) else cell
-            style = ' s="1"' if bold else ""
-            out.append('<c r="%s%d" t="inlineStr"%s><is><t xml:space="preserve">%s</t></is></c>'
-                       % (_column(c), r, style, _text(value)))
+            if marker is True:
+                style_id = 1
+            elif isinstance(marker, int):
+                style_id = marker
+            else:
+                style_id = 0
+            style = ' s="%d"' % style_id if style_id else ""
+            if style_id in (2, 3) and (value is None or str(value) == ""):
+                out.append('<c r="%s%d"%s/>' % (_column(c), r, style))
+            else:
+                out.append('<c r="%s%d" t="inlineStr"%s><is><t xml:space="preserve">%s</t></is></c>'
+                           % (_column(c), r, style, _text(value)))
         body.append('<row r="%d">%s</row>' % (r, "".join(out)))
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
@@ -256,6 +333,9 @@ def to_xlsx(bundle):
     artifacts = [[(label, True) for label in CSV_HEADER]] + [
         ["" if row.get(key) is None else str(row.get(key)) for key in ROW_KEYS]
         for row in artifact_rows(bundle)]
+    schedule = _schedule_xlsx_rows(bundle)
+    if schedule:
+        sheets.append(("Schedule", schedule))
     sheets.append(("Recorded values", artifacts))
     report = delivery.get("report") if isinstance(delivery, dict) and isinstance(delivery.get("report"), str) else ""
     if report.strip():

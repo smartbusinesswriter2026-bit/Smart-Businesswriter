@@ -45,8 +45,10 @@ Routes:
 """
 
 import base64
+import binascii
 import hashlib
 import os
+import re
 
 from . import calc_router
 from . import cases as case_store
@@ -54,6 +56,7 @@ from . import chat as chat_conductor
 from . import chat_store
 from . import charts as chart_renderer
 from . import compare as comparator
+from . import completion as framework_completion
 from . import diagrams as diagram_renderer
 from . import export as case_export
 from . import ops
@@ -62,11 +65,23 @@ from . import spreadsheets
 from . import docx as docx_export
 from . import credits
 from . import deliverables
+from . import documents
 from . import drafting
 from . import sources as source_finder
 from . import subjects as subject_index
 from . import versions as version_store
 from . import writing
+
+
+def attach_compute(fn):
+    """Attach the frozen-core computation callable used by the chat draft."""
+    chat_conductor.set_compute(fn)
+
+
+def attach_methods(run, describe=None):
+    """Attach the frozen core to the chat's plan blocks (run and describe)."""
+    chat_conductor.set_method_compute(run, describe)
+
 
 CASE_ROUTE = "/api/cases"
 
@@ -225,6 +240,33 @@ def handle(method, path, body=None):
             return 200, source_finder.search_web(body.get("query"), region, limit, category)
         return 404, {"error": "unknown source route"}
 
+    # -- brief upload: read a plan brief's text, never guess it -----------------
+    if segments == ["brief"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on brief extraction" % verb}
+        if not isinstance(body, dict):
+            return _error("a brief object is required")
+        text = body.get("text")
+        if isinstance(text, str) and text.strip():
+            clean = re.sub(r"\s+", " ", text).strip()
+            return 200, {"status": "extracted", "text": clean, "chars": len(clean),
+                         "method": "pasted_text", "note": "The brief is your own text; no file was read."}
+        encoded = body.get("data")
+        filename = body.get("filename")
+        if not isinstance(encoded, str) or not encoded.strip():
+            return _error("attach a file as base64 'data', or paste the brief as 'text'")
+        try:
+            raw = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error):
+            return _error("the attached data is not valid base64")
+        if len(raw) > 5_000_000:
+            return _error("the attached file is larger than 5 MB; split it first")
+        try:
+            result = documents.extract_document(raw, filename)
+        except documents.DocumentError as error:
+            return 422, {"error": str(error)}
+        return 200, result
+
     # -- the deterministic PESTEL conductor ----------------------------------
     if segments and segments[0] == "chat":
         if segments == ["chat"]:
@@ -235,8 +277,10 @@ def handle(method, path, body=None):
             if not isinstance(body, dict):
                 return _error("a chat object is required")
             try:
-                state = chat_conductor.start(body.get("brief"), body.get("subject") or "management",
-                                             body.get("framework"))
+                state = chat_conductor.start(body.get("brief"), body.get("subject"),
+                                             body.get("framework"), profile=body.get("profile"),
+                                             level=body.get("level") or "shs",
+                                             mode=body.get("mode") or "strict")
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)
@@ -263,6 +307,12 @@ def handle(method, path, body=None):
                 state = chat_conductor.answer(state, data.get("question_id"), data.get("value"))
             elif action == "plan":
                 state = chat_conductor.confirm_plan(state)
+            elif action == "customise":
+                state = chat_conductor.customise(state, data)
+            elif action == "inputs":
+                state = chat_conductor.set_inputs(state, data.get("values") or data.get("inputs") or {})
+            elif action == "compute":
+                state = chat_conductor.compute(state, data.get("blocks") or data.get("inputs") or {})
             elif action == "research":
                 state = chat_conductor.research(state)
             elif action == "polish":
@@ -292,6 +342,32 @@ def handle(method, path, body=None):
             return _error(error)
         state = chat_store.save(state)
         return 200, state
+
+    if segments == ["frameworks", "complete"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on framework completion" % verb}
+        if not isinstance(body, dict):
+            return _error("a completion object is required")
+        try:
+            return 200, framework_completion.complete(body.get("template"), body.get("instruction"),
+                                                      body.get("region"), body.get("student_items"))
+        except ValueError as error:
+            return _error(error)
+
+    if segments == ["frameworks", "report"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on framework reporting" % verb}
+        if not isinstance(body, dict) or not isinstance(body.get("completion"), dict):
+            return _error("a completion object is required")
+        try:
+            report = framework_completion.draft(body["completion"], body.get("style"))
+            data = framework_completion.draft_bytes(body["completion"], body.get("style"))
+        except ValueError as error:
+            return _error(error)
+        return 200, {"report": report, "docx": {
+            "filename": writing.filename(report), "mime": _MIME["docx"],
+            "data": base64.b64encode(data).decode("ascii"),
+            "sha256": hashlib.sha256(data).hexdigest()}}
 
     if segments == ["worksheets", "draft"]:
         if verb != "POST":

@@ -17,10 +17,12 @@ The current working model is deliberately narrow:
 | Area | Working now |
 |---|---|
 | Frameworks | PESTEL, SWOT, PESTEL + SWOT, Five Forces, Five Forces + Break-even |
-| Computation | Break-even only, through the frozen core |
+| Paper profiles | Business plan (SHS core; college adds tax, cap table and impact) |
+| Computation | Break-even in the framework stack; five plan blocks at SHS and eight at college, through the frozen core |
 | Output | APA 7 or Harvard `.docx`, hierarchy enforced |
 | Evidence | Curated academic databases and vetted web domains |
 | Model prose | Optional, proposal only, DeepSeek V4.1 Flash by default |
+| Framework completion | Porter's Five Forces pilot: instruction box, research per force, sourced/suggested/gap provenance |
 
 Other frameworks and computations are being strengthened in the backend. They
 must be wired into the chat one at a time, following this manual, not improvised
@@ -81,6 +83,37 @@ A framework is level 1; its dimensions are level 2. A computation is a level 1
 feasibility section with a level 2 method section. The Discussion carries the
 integration, not a second framework heading.
 
+### 3.1 A paper profile is not a framework
+
+A **profile** composes a whole paper when no single framework is the paper. The
+business plan is the first profile (`PROFILE_BUSINESS_PLAN` in
+`bp/product/chat.py`). It has four kinds of section:
+
+| Kind | What it supplies | Rule |
+|---|---|---|
+| `input` | the student's business description, marketing, operations, management and named risks | reproduced verbatim; never inferred or filled |
+| `evidence` | market size and growth, customers, competition and regulation | retrieved and cited, or a named gap |
+| `computation` | the plan-level blocks, each a core method | the frozen core runs it; the product formats the result |
+| `integration` | executive summary, risk analysis, limitations, conclusion | only supplied facts and stored core results; no new claim |
+
+The **Financial Plan is one H1**; each computation block is an H2 under it. A
+college plan adds H1s for Funding and Ownership and Social and Environmental
+Impact, with the cap table and impact ratio as their H2s. The SHS core blocks
+are `sales_from_market`, `breakeven`, `depreciation_schedule`,
+`proforma_statements` and `sensitivity_table`; college adds `tax_declared`,
+`cap_table_round` and `cost_effectiveness`.
+
+A profile follows the same rules as a framework: the plan is proposed and
+confirmed before research or computation, the student's words stay theirs,
+every gap is named and the export gate lists what is missing. Two entry points
+share one engine: the Entrepreneurship page opens the **strict** convention,
+which keeps every standard section; Home opens **open composition**, which may
+leave an optional section out but changes no fact and no figure.
+
+`proforma_statements` is a hard refusal at the opening balance sheet. An
+unbalanced opening is rejected with the equity that would balance it, and the
+refusal is named in the export gate; the product never plugs a difference.
+
 ## 4. Non-negotiable rules
 
 1. **No invented evidence.** Every external claim is quoted or paraphrased from a
@@ -120,7 +153,36 @@ integration, not a second framework heading.
 Do not add a framework by hard-coding its headings in the writer. The writer
 only renders what the chat plan supplies.
 
-## 6. Adding a computation (checklist)
+## 6. Completing a framework from an instruction
+
+The Five Forces pilot is the reference behaviour for future framework
+auto-completion.
+
+1. On the subject page, the student describes the case in **Describe your case or paste the instruction**; the matcher opens the suggested worksheet with that description already in the completion box. The subject-level source finder has been removed; research happens inside the worksheet.
+2. `bp.product.completion` extracts the country and case context, builds one
+   short query per force, retrieves academic and vetted web sources, and ranks
+   them.
+3. A force with sources gets one to three sourced items. Each item carries the
+   citation in the form `text || reference`.
+4. A force with no evidence gets a **suggested case assumption** from the model,
+   labelled `suggested`, with no citation. It is not evidence and must be
+   ticked by the student.
+5. A force with neither gets a **named gap**.
+6. The review lists every block and every item. The student ticks what the
+   worksheet may use, then applies it.
+7. The worksheet input accepts per-line `text || source`, so one block can carry
+   several citations without losing them.
+8. **Download the draft (Word)** produces a paper-shaped draft from the completion
+   before or after the worksheet run; the draft keeps citations, labels case
+   assumptions and names gaps.
+
+The model may not add a number, source, citation, link or named fact. A
+suggestion that fails validation is dropped and the block remains a gap.
+
+The pilot is deliberately limited to `template_five_forces`. Do not enable
+other frameworks until the same behaviour has been reviewed for that framework.
+
+## 7. Adding a computation (checklist)
 
 1. Confirm the method exists in the frozen core and has a declared input schema.
 2. Add the numeric questions to the framework's question bank.
@@ -134,9 +196,13 @@ only renders what the chat plan supplies.
 
 Break-even is the reference implementation: `bp.methods.breakeven` is called
 from `bp/product/chat.py`; the product formats the result but does not recompute
-it.
+it. A plan block follows the same route: `chat.compute` calls the attached core,
+stores the declared inputs and the core result, and `_block_lines` formats them.
+Adding a plan block means adding the method to `COMPUTATION_BLOCKS`, declaring
+its level and section, and letting the core run it — never writing its formula
+in the product layer or the writer.
 
-## 7. Coherence and export gate
+## 8. Coherence and export gate
 
 `bp.product.paper.check` must pass before a `.docx` is produced. It rejects:
 
@@ -157,7 +223,7 @@ Coherence expectations for every paper:
 - every reference is cited in the body;
 - combined papers name the origin of each mapped item.
 
-## 8. Sources and search order
+## 9. Sources and search order
 
 - Academic: OpenAlex, Semantic Scholar, DOAJ; Crossref only as metadata.
 - Web order: OpenGo (headless OpenCode, opt-in because it is slow), DeepSeek
@@ -166,7 +232,7 @@ Coherence expectations for every paper:
 - Search results are precision-ranked (relevance, title cue, country anchor,
   source tier, recency, credibility) before placement.
 
-## 9. Model configuration
+## 10. Model configuration
 
 - Default model for model-assisted prose: `deepseek-v4.1-flash`.
 - `PROSE_MODEL` overrides the prose model without changing the search model.
@@ -175,7 +241,7 @@ Coherence expectations for every paper:
 - Regardless of model, the same validation applies: no new number, citation,
   link, heading or template text.
 
-## 10. Adding a new model or opening a new chat
+## 11. Adding a new model or opening a new chat
 
 A new model or session should:
 
@@ -190,7 +256,7 @@ A new model or session should:
 7. Update `CHANGELOG.md`, `DECISIONS.md`, `HOME.md`, `HANDOFF.md` and
    `CONTRIBUTORS.md` digits with the build.
 
-## 11. Reference files
+## 12. Reference files
 
 - `src/bp/product/chat.py` — conductor, framework registry, questions, draft.
 - `src/bp/product/paper.py` — levels, paragraph joining, export gate.
@@ -199,16 +265,22 @@ A new model or session should:
 - `src/bp/product/writing.py` — citations and references.
 - `src/bp/product/sources.py` — academic and web retrieval.
 - `src/bp/product/api.py` — routes.
-- `web/index.html` — Chat panel and framework selector.
+- `src/bp/product/documents.py` — PDF, Word `.docx`, TXT and image readers.
+- `web/index.html` — Chat panel, business-plan builder and framework selector.
 - `tests/test_chat.py`, `tests/test_prose.py`, `tests/test_writing.py` — the
   conductor contract.
+- `tests/test_business_plan_profile.py` — the plan profile, brief readers and
+  export gate.
 - `samples/` — the current APA/Harvard examples.
 
-## 12. Current limits
+## 13. Current limits
 
 - Five Forces + Break-even is the only non-PESTEL/SWOT combination.
+- Framework auto-completion is enabled for Porter's Five Forces only; other worksheets are still manual.
 - Other frameworks are refused, not silently replaced.
-- Break-even is the only computation wired into chat.
+- The business plan is the only paper profile; it is not a framework and cannot be combined with one.
+- Plan-level methods use annual periods, one product and one currency; they do not forecast demand, apply a jurisdiction's tax law or model disposals.
+- Open composition changes which optional sections appear, not the facts, figures or the export gate.
 - OpenGo search is opt-in and slow; DeepSeek Search is the fast default.
 - Model prose is linking prose, not a full rewrite.
 - The sample papers demonstrate the target; the live conductor can still show

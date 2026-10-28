@@ -167,3 +167,91 @@ def extract_image(raw, ext):
     if len(text) > MAX_CHARS:
         raise DocumentError("the extracted text is longer than the %d-character limit" % MAX_CHARS)
     return {"status": "extracted", "text": text, "pages": 1, "chars": len(text), "method": "image_ocr"}
+
+
+def extract_docx(raw):
+    """The text of a Word .docx, read from its document XML (standard library only).
+
+    Paragraphs become lines; tabs and explicit breaks are kept as whitespace.
+    Comments, headers and tracked deletions are not included.  An empty document
+    is refused rather than reported as a successful extraction.
+    """
+    import zipfile
+    from xml.etree import ElementTree
+    if not raw or raw[:2] != b"PK":
+        raise DocumentError("this file is not a Word .docx document")
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(raw))
+    except (zipfile.BadZipFile, OSError) as exc:
+        raise DocumentError("this .docx could not be opened (%s)" % type(exc).__name__)
+    with archive:
+        names = set(archive.namelist())
+        if "word/document.xml" not in names:
+            raise DocumentError("this .docx has no word/document.xml part, so it is not a Word text document")
+        try:
+            root = ElementTree.fromstring(archive.read("word/document.xml"))
+        except (ElementTree.ParseError, KeyError) as exc:
+            raise DocumentError("this .docx document XML could not be read (%s)" % type(exc).__name__)
+    ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    parts = []
+    for paragraph in root.iter(ns + "p"):
+        pieces = []
+        for node in paragraph.iter():
+            if node.tag == ns + "t":
+                pieces.append(node.text or "")
+            elif node.tag == ns + "tab":
+                pieces.append(" ")
+            elif node.tag in (ns + "br", ns + "cr"):
+                pieces.append("\n")
+        line = _clean("".join(pieces))
+        if line:
+            parts.append(line)
+    text = _clean("\n".join(parts))
+    if len(text) < MIN_CHARS:
+        raise DocumentError("the Word document contains no readable text; copy the text into the brief instead")
+    if len(text) > MAX_CHARS:
+        raise DocumentError("the extracted text is longer than the %d-character limit; split the document" % MAX_CHARS)
+    return {"status": "extracted", "text": text, "pages": None, "chars": len(text), "method": "docx_text"}
+
+
+def extract_txt(raw):
+    """A plain-text brief.  UTF-8, UTF-16 with a BOM and Windows-1252 are tried, in that order."""
+    if not raw:
+        raise DocumentError("the text file is empty")
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        candidates = ["utf-16"]
+    elif raw[:3] == b"\xef\xbb\xbf":
+        candidates = ["utf-8-sig", "cp1252"]
+    else:
+        candidates = ["utf-8", "cp1252"]
+    text = None
+    for encoding in candidates:
+        try:
+            text = raw.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    if text is None:
+        raise DocumentError("the text file is not readable as UTF-8 or Windows-1252")
+    if "\x00" in text:
+        raise DocumentError("the text file contains binary data, not text")
+    text = _clean(text)
+    if len(text) < MIN_CHARS:
+        raise DocumentError("the text file is empty or too short to be a brief")
+    if len(text) > MAX_CHARS:
+        raise DocumentError("the text is longer than the %d-character limit; split the document" % MAX_CHARS)
+    return {"status": "extracted", "text": text, "pages": None, "chars": len(text), "method": "text_file"}
+
+
+def extract_document(raw, filename):
+    """Read a brief attachment by its declared extension.  Text is never guessed."""
+    ext = os.path.splitext(str(filename or ""))[1].lower()
+    if ext == ".pdf":
+        return extract_pdf(raw)
+    if ext in (".docx", ".docm"):
+        return extract_docx(raw)
+    if ext in (".txt", ".text", ".md"):
+        return extract_txt(raw)
+    if ext in (".png", ".jpg", ".jpeg", ".webp"):
+        return extract_image(raw, ext)
+    raise DocumentError("attach a PDF, Word .docx, TXT, PNG or JPG file, or paste the brief as text")

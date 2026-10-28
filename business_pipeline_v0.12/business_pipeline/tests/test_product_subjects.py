@@ -139,16 +139,17 @@ class CatalogueHonestyTest(unittest.TestCase):
 
     def test_project_management_owns_the_pm_records_and_the_appraisal_tools(self):
         page = subjects.detail("project-management")
-        pm_ids = {"PM-%02d" % n for n in range(1, 15)}
-        worksheet_ids = {"PM-05", "PM-06", "PM-09", "PM-10"}
+        pm_ids = {"PM-%02d" % n for n in range(1, 17)}
+        worksheet_ids = {"PM-05", "PM-06", "PM-09", "PM-10", "PM-15", "PM-16"}
         self.assertEqual({row["id"] for row in page["records"]}, pm_ids - worksheet_ids,
                          "the Project management page drops or repeats a PM record")
         self.assertEqual([row["catalogue_id"] for row in page["worksheets"]],
-                         ["PM-05", "PM-09", "PM-10", "PM-06"],
-                         "the four PM worksheets are missing or out of order")
+                         ["PM-05", "PM-09", "PM-10", "PM-06", "PM-15", "PM-16"],
+                         "the six PM worksheets are missing or out of order")
         self.assertEqual([tool["key"] for tool in page["tools"]],
                          ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision",
-                          "forecast", "cpm", "evm"])
+                          "forecast", "cpm", "evm", "leveling", "crashing", "calendar",
+                          "multiproject", "schedrisk", "decisiontree", "realoption", "mcda", "montecarlo"])
         for tool in page["tools"]:
             self.assertTrue(tool["group"], "%s has no project group" % tool["key"])
             self.assertTrue(tool["period"], "%s has no period badge" % tool["key"])
@@ -156,6 +157,10 @@ class CatalogueHonestyTest(unittest.TestCase):
         self.assertTrue(page["guidance"], "the page has no student guidance")
         self.assertGreaterEqual(len(page["glossary"]), 15, "the page has no usable glossary")
         self.assertEqual(page["discipline_labels"], ["Project delivery and governance"])
+        self.assertGreaterEqual(len(page["start_steps"]), 4, "the PM page has no start-here steps")
+        self.assertTrue(page["does_not"], "the PM page does not say what it cannot do")
+        self.assertTrue(all(tool["need"] for tool in page["tools"]), "a PM tool has no 'you will need' line")
+        self.assertTrue(all(sheet["before"] for sheet in page["worksheets"]), "a PM worksheet has no 'before you start' line")
         management = {row["id"] for row in subjects.detail("management")["catalogue"]}
         self.assertFalse((pm_ids - worksheet_ids) & management, "Management still claims the project records")
 
@@ -278,6 +283,22 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("restoreWorksheetDraft", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
+        # Student orientation: a first-run explainer and structured table editors.
+        self.assertIn("How it works", self.html)
+        self.assertIn("Start here", self.html)
+        self.assertIn("Before you start", self.html)
+        self.assertIn('data-rows="', self.html)
+        self.assertIn("function rowsEditor", self.html)
+        self.assertIn("View the Gantt", self.html)
+        self.assertIn("Download spreadsheet", self.html)
+        self.assertIn("Key numbers", self.html)
+        self.assertIn("What this means", self.html)
+        self.assertIn("function treeEditor", self.html)
+        self.assertIn("function projectsEditor", self.html)
+        self.assertIn("function mcdaEditor", self.html)
+        self.assertIn("data-tree", self.html)
+        self.assertIn("data-projects", self.html)
+        self.assertIn("data-mcda", self.html)
         # Solid text: secondary and tertiary copy use the primary ink, not grey.
         self.assertIn("--text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;", self.html)
 

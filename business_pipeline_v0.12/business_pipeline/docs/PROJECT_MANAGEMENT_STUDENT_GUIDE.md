@@ -6,23 +6,23 @@ high school ABM** students and **first- and second-year undergraduate** manageme
 below is produced by the method named, from the figures shown, in PHP, and can be reproduced in the app.
 
 The shelf appraises a project, plans its schedule, tracks its delivery and records the delivery documents —
-charter, WBS, RACI and risk register — from figures and evidence you declare. It does not draw a Gantt,
-level resources, score a risk or invent an owner.
+charter, WBS, RACI, risk register, stakeholder/communication plan and lessons learned — from figures and
+evidence you declare. It does not level resources, score a risk or invent an owner.
 
 ## Reading the page
 
 | Group | What it is for | Tiles |
 |---|---|---|
-| Appraise the business case | Is the project worth doing, what rate does it earn, and how does it rank? | NPV, IRR, discounted payback, project ranking metrics |
-| Compare the options | Which assumption changes the decision, and which declared alternative wins? | Scenario analysis, business-case decision |
+| Appraise the business case | Is the project worth doing, what rate does it earn, how does it rank, what is the option to invest, and how uncertain is the result? | NPV, IRR, discounted payback, project ranking metrics, real option valuation, Monte Carlo simulation |
+| Compare the options | Which assumption changes the decision, which declared alternative wins, and how does a decision tree or a weighted matrix rank them? | Scenario analysis, business-case decision, decision tree, weighted decision matrix |
 | Project cost and benefit | What do the declared costs and benefits look like in later periods? | Trend forecast |
-| Schedule and control | When can the project finish, what is critical, and are we ahead or behind? | Critical path and PERT, earned value |
+| Schedule and control | When can the project finish, what is critical, who is over capacity, what does speed cost, how do several projects share a crew, how uncertain is the finish, and are we ahead or behind? | Critical path and PERT, resource levelling, project crashing, calendar schedule, multi-project scheduling, schedule risk, earned value |
 
-Four of the delivery frameworks now have worksheets: **PRINCE2** anchors the project charter, **WBS** and
-**RACI** have their own, and **PMBOK** anchors the risk register. The other ten — Balanced Scorecard,
-strategy map, KPI tree, OKRs, Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE — remain read-only
-records. The page gives the structure and the evidence each one needs; it does not fill them in or score
-them.
+Six of the delivery frameworks now have worksheets: **PRINCE2** anchors the project charter, **WBS** and
+**RACI** have their own, **PMBOK** anchors the risk register, and the stakeholder/communication plan and
+lessons learned have dedicated sheets. The other ten — Balanced Scorecard, strategy map, KPI tree, OKRs,
+Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE — remain read-only records. The page gives the structure
+and the evidence each one needs; it does not fill them in or score them.
 
 ## Worksheets
 
@@ -32,6 +32,8 @@ them.
 | Work breakdown structure | Level-1 deliverables, work packages, acceptance criteria and exclusions, with work packages linked to their deliverable | Every item appears once; the links resolve; an empty block or unlinked package is named; no total, tree or Gantt is drawn |
 | RACI responsibility matrix | Activities against the roles you have confirmed, with R, A, C or I in each cell and an optional note | Every cell starts with R, A, C or I; each activity has exactly one A and at least one R; empty cells are named |
 | Risk register (PMBOK) | Each risk with your likelihood and impact labels, the response and the owner | Every cell is reproduced; empty cells are named; no probability, expected value or risk score is computed |
+| Stakeholder engagement and communication plan | Stakeholders, interests, evidenced influence, engagement approach, messages, channels, timing, owner and communication risks | Every item is reproduced; empty blocks are named; influence stays a declared label with its evidence, not a computed score |
+| Lessons learned | What went well and what did not, the evidenced cause, the change for next time, its owner, the audience and the evidence | Every item is reproduced; a lesson without an action or an action without an owner is named; no blame, score or rank is derived |
 
 The worksheets are T4: they place and audit your evidence and compute nothing. A RACI with two accountable
 roles on one activity blocks rather than being silently corrected; a risk register with an empty owner names
@@ -63,6 +65,26 @@ the gap rather than filling it.
   promise about the future.
 - **The RACI letter is the assignment.** R does the work, A owns the outcome, C is consulted, I is informed;
   every activity needs exactly one A and at least one R.
+- **Levelling is serial and non-preemptive.** The order is early start, then longest duration, then id; one
+  resource per activity; whole-period durations and demands. A different priority rule gives a different,
+  equally valid plan.
+- **Crashing is greedy and linear.** It buys one period at a time on the cheapest critical activity; it is
+  not a linear-programming optimum, and shared or non-linear costs are not modelled.
+- **The calendar is a declared list of working periods.** No weekends, holidays or shifts are inferred, and
+  one calendar applies to the whole project.
+- **Multi-project scheduling follows your priority.** Lower priority number first, then early start; the
+  higher-priority project takes the shared resource and the lower one waits.
+- **Schedule risk is a seeded sample, not a forecast.** Percentiles move with the seed; the P80 is not a
+  guarantee, and independent triangular durations are a declared convention.
+- **The decision tree is yours.** Probabilities and terminal values are declared; expected value ignores risk
+  aversion, so read the loss probability and range beside it.
+- **A real option is a model, not a market price.** The lattice value depends on the declared volatility,
+  rate and steps; there is no continuous hedging or observable price.
+- **Weighted totals are judgement.** Criteria, weights and scores are yours, every score uses one common
+  scale where higher is better, and a different weighting can reorder the alternatives.
+- **Monte Carlo is a seeded sample of two declared models.** It simulates NPV of uncertain cash flows or
+  profit from uncertain price, cost and volume; inputs are independent and fixed, uniform or triangular.
+  A different seed changes the percentiles, and the result is not a forecast or a guarantee.
 - **The risk labels are yours.** Likelihood and impact are labels you declare; no probability, expected loss
   or score is computed.
 - **The WBS records the hierarchy you declare.** It does not draw a tree, sum estimates or prove that the
@@ -79,6 +101,15 @@ the gap rather than filling it.
 | How sensitive is the decision to the discount rate? | `scenario` | the cash flows, the base rate and a low/high range |
 | Which of two or three declared options should be compared? | `case_decision` | the facts, the alternatives, their cash flows and provenance |
 | When can the project finish, and what is critical? | `cpm` | each activity's id, duration and predecessors; optional three-point estimates |
+| Who is over capacity, and how late does the plan become? | `leveling` | activities with resource, demand and duration; each resource's capacity |
+| What does it cost to finish earlier? | `crashing` | normal and crash durations, the crash cost and the target duration |
+| What dates result when non-working periods are skipped? | `calendar` | the working period numbers and the activities |
+| How do several projects share one crew? | `multiproject` | each project's priority, activities, resource and demand, and the shared capacities |
+| How uncertain is the finish? | `schedrisk` | optimistic, most likely and pessimistic durations, iterations, a seed and an optional target |
+| Which alternative has the best expected value? | `decisiontree` | the decision, chance and terminal nodes, with your probabilities and values |
+| What is the option to invest or abandon worth? | `realoption` | the project value, investment, volatility, rate, steps and option type |
+| Which alternative scores best on our criteria? | `mcda` | the criteria, weights and scores, with weights summing to one |
+| How uncertain is the NPV or the profit? | `montecarlo` | the model, the distribution of every uncertain input, iterations and a seed |
 | Are we ahead or behind, and what will it cost? | `evm` | cumulative PV, EV and AC, the budget at completion and the EAC convention |
 | What do cost and benefit look like in later periods? | `forecast` | a series in period order and the horizon |
 | What is the project authorised to do? | project charter (`template_project_charter`) | objective, scope in and out, deliverables, governance, budget, milestones, success measures, assumptions, constraints |
@@ -143,9 +174,11 @@ The **charter** states the objective, scope in and out, deliverables, sponsor, b
 measures, assumptions and constraints. The **WBS** breaks the scope into deliverables and work packages,
 gives each an acceptance test, records exclusions and links each package to its deliverable. The **RACI**
 gives every activity exactly one A and at least one R. The **risk register** records each risk with your
-likelihood and impact labels, the response and the owner. These four are evidence worksheets: they name
-empty blocks and cells, refuse a RACI with two accountable roles, and compute no total, probability or
-score.
+likelihood and impact labels, the response and the owner. The **stakeholder/communication plan** records who
+is affected, what they need, how and when you will communicate, and who owns it. **Lessons learned** records
+what worked, what did not, the evidenced cause and the change for next time. These six are evidence
+worksheets: they name empty blocks and cells, refuse a RACI with two accountable roles, and compute no
+total, probability, score or blame.
 
 ## Practice set
 
@@ -173,13 +206,22 @@ score.
 6. SV = **PHP (10,000)**; CV = **PHP (5,000)**; SPI = **0.8750**; CPI = **0.9333**; EAC =
    **PHP 171,428.57**; VAC = **PHP (11,428.57)**.
 
+## Charts and the schedule workbook
+
+Once a CPM case is saved, open **Charts and exports** and choose **gantt (CPM schedule)**. Each bar is the
+stored early start and early finish, red is the critical path, the thin line after a bar is its float, and the
+arrows are the predecessors you declared. The browser draws the same spec from the stored values; the server
+render and export remain authoritative. The same case exports to XLSX or SpreadsheetML with a **Schedule**
+sheet listing the early and late dates, float and the critical flag; the XLSX sheet also carries a coloured
+bar strip (critical red, normal blue) when every date is a whole period. The Gantt and the sheet are renderings
+of the stored artifacts: no date is recomputed, no dependency is inferred and no resource is levelled.
+
 ## What is not built
 
-- **No stakeholder/communication-plan or lessons-learned worksheet.** The charter, WBS, RACI and risk
-  register are built; the other ten delivery records remain read-only structures.
-- **No Gantt chart drawing, resource levelling, crashing, calendars, multi-project scheduling or
-  schedule-risk simulation.** The schedule is a deterministic forward/backward pass, with PERT expected
-  durations and variances when you declare three-point estimates.
+- **No dependency arrows on the Gantt.** Multi-project scheduling and schedule risk are built, but the
+  multi-project rule is priority-ordered and greedy, and the risk simulation assumes independent triangular
+  durations with no resource limits or calendars. Decision trees, real options, a weighted decision matrix and
+  a generic NPV/profit Monte Carlo are built; arbitrary formulas, correlation and fitted distributions are not.
 - **No Monte Carlo, decision tree, real-option model or multi-criteria scoring.**
 - **No probability on a scenario** and no recommendation by the engine.
 - **Seven appraisal and forecast tiles are shared with Finance**, and critical path/PERT and earned value

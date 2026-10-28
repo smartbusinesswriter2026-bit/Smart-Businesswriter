@@ -159,7 +159,7 @@ class IntakeExtractTest(unittest.TestCase):
             intake.extracted_text(record["id"])
 
     def test_a_reference_only_file_cannot_be_read(self):
-        record = intake.save("notes.docx", b"PK\x03\x04 not really a docx")
+        record = intake.save("slides.pptx", b"PK\x03\x04 not really a deck")
         self.assertEqual(record["status"], "reference_only")
         with self.assertRaises(intake.IntakeError):
             intake.extract(record["id"])

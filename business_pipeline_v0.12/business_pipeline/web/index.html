@@ -355,6 +355,10 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .shield .capicon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .capcard strong{font-size:16.2px;color:var(--navy-900);display:block;line-height:1.3}
 .capcard p,.capcard .capdesc{margin:0;font-size:14.4px;color:var(--text-2);line-height:1.45}
+.capcard .capneed{display:block;margin-top:6px;font-size:13.6px;line-height:1.45;color:var(--text)}
+.startsteps{margin:8px 0 4px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+.startsteps h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:15.4px;color:var(--text)}
+.startsteps .guidesteps{margin:4px 0 2px 18px;font-size:14.4px;line-height:1.55}
 .capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;
                   font-size:13.2px;color:var(--text-3)}
 .capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap}
@@ -488,7 +492,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.21</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.27</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -593,12 +597,32 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         </div>
         <div id="attachments" class="attachments" aria-live="polite"></div>
       </div>
+      <div class="card">
+        <h2>How it works</h2>
+        <ol class="guidesteps">
+          <li><strong>Choose your subject.</strong> The rail lists the business subjects; each page says what it can do and what it cannot.</li>
+          <li><strong>Enter your figures.</strong> Every tool shows what to gather first, and every calculation loads a worked example you can replace with your own numbers.</li>
+          <li><strong>Read the checked result.</strong> The engine runs its checks and shows the answer, the limits and an export you can submit.</li>
+        </ol>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="trypm" type="button">Try the Project management example</button>
+          <button class="btn" id="allsubjects" type="button">Browse all subjects</button>
+        </div>
+        <p class="muted" style="margin-bottom:0">No figure is computed in the browser. The page arranges your inputs and the server returns the recorded result.</p>
+      </div>
     </section>
 
     <section class="panel" id="panel-chat" hidden aria-labelledby="chat-title">
       <div class="card">
         <h2 id="chat-title">Chat</h2>
         <div id="chatout"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-plan" hidden aria-labelledby="plan-title">
+      <div class="card">
+        <h2 id="plan-title">Business plan</h2>
+        <div id="planout"></div>
       </div>
     </section>
 
@@ -931,9 +955,9 @@ const state = {
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
   calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
-  worksheet: null, panel: null, railSubject: null
+  worksheet: null, panel: null, railSubject: null, plan: null, planMode: "strict"
 };
-const PANELS = ["home", "chat", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+const PANELS = ["home", "chat", "plan", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
@@ -1052,8 +1076,23 @@ RENDERERS.home = function () {
         "</button>" +
       "</div>" +
       '<div id="attachments" class="attachments" aria-live="polite"></div>' +
+    "</div>" +
+    '<div class="card"><h2>How it works</h2>' +
+      '<ol class="guidesteps">' +
+        "<li><strong>Choose your subject.</strong> The rail lists the business subjects; each page says what it can do and what it cannot.</li>" +
+        "<li><strong>Enter your figures.</strong> Every tool shows what to gather first, and every calculation loads a worked example you can replace with your own numbers.</li>" +
+        "<li><strong>Read the checked result.</strong> The engine runs its checks and shows the answer, the limits and an export you can submit.</li>" +
+      "</ol>" +
+      '<div class="row" style="margin-top:10px"><button class="btn primary" id="trypm">Try the Project management example</button>' +
+      '<button class="btn" id="allsubjects">Browse all subjects</button>' +
+      '<button class="btn" id="homeplan">Build a business plan</button></div>' +
+      '<p class="muted" style="margin-bottom:0">No figure is computed in the browser. The page arranges your inputs and the server returns the recorded result.</p>' +
     "</div>";
   $("#run").onclick = startFromHome;
+  $("#trypm").onclick = () => openSubject("project-management");
+  $("#allsubjects").onclick = () => show("subjects");
+  const homeplan = $("#homeplan");
+  if (homeplan) homeplan.onclick = () => startPlan("open");
   $("#objective").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); startFromHome(); }
   });
@@ -1331,6 +1370,346 @@ async function downloadChat() {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     toast("Section downloaded: " + result.filename);
   } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+/* ---------- business-plan builder ---------- */
+RENDERERS.plan = function () { renderPlan(); };
+
+function startPlan(mode) {
+  state.planMode = mode || "strict";
+  if (state.plan && state.plan.data && (state.plan.data.mode || "strict") !== state.planMode) state.plan = null;
+  if (!state.plan || !state.plan.data) state.plan = null;
+  show("plan");
+}
+
+function planCheckbox(value, label, group) {
+  return '<label class="check"><input type="checkbox" ' + group + ' value="' + esc(value) + '" checked> ' + esc(label) + "</label>";
+}
+
+function planTextControl(field, value) {
+  const tag = field.type === "items" ? "textarea" : "textarea";
+  const rows = field.type === "items" ? 2 : 2;
+  const text = Array.isArray(value) ? value.join("; ") : (value || "");
+  return "<" + tag + ' rows="' + rows + '" style="width:100%" data-planfield="' + esc(field.key) +
+    '" data-kind="' + esc(field.type) + '" placeholder="' + esc(field.label) + '">' + esc(text) + "</" + tag + ">";
+}
+
+function planSchemaControl(name, spec, value) {
+  const kind = spec.type || "decimal";
+  const current = value === undefined || value === null ? "" : value;
+  const desc = spec.desc || name;
+  if (kind === "enum") {
+    return '<select data-input="' + esc(name) + '" data-kind="enum"><option value="">default</option>' +
+      (spec.values || []).map((v) => '<option value="' + esc(v) + '"' +
+        (String(current) === String(v) ? " selected" : "") + ">" + esc(v) + "</option>").join("") + "</select>";
+  }
+  if (kind === "value_list") {
+    const text = Array.isArray(current) ? current.join(", ") : current;
+    return '<textarea rows="2" style="width:100%" data-input="' + esc(name) + '" data-kind="list" placeholder="' +
+      esc(desc) + '">' + esc(text) + "</textarea>";
+  }
+  if (kind === "records") {
+    const fields = spec.fields || {};
+    const rows = Array.isArray(current) ? current : [];
+    let html = '<div data-records><p class="muted" style="margin:4px 0">' + esc(desc) + "</p>";
+    for (let index = 0; index < Math.max(2, Math.min(5, rows.length + 1)); index++) {
+      const row = rows[index] || {};
+      html += '<div class="row" data-record style="gap:6px;margin-bottom:4px">';
+      Object.keys(fields).forEach((key) => {
+        html += '<input type="text" data-r' + esc(key) + ' placeholder="' + esc(key) + '" value="' +
+          esc(row[key] === undefined ? "" : row[key]) + '" style="flex:1;min-width:90px">';
+      });
+      html += "</div>";
+    }
+    return html + "</div>";
+  }
+  return '<input type="text" data-input="' + esc(name) + '" data-kind="scalar" placeholder="' + esc(desc) +
+    '" value="' + esc(current) + '" style="width:100%">';
+}
+
+function capturePlanForms() {
+  if (!state.plan || !state.plan.data) return;
+  if (!document.querySelector("[data-planfield]") && !document.querySelector("[data-block]")) return;
+  const student = {};
+  $$("[data-planfield]").forEach((el) => { student[el.dataset.planfield] = el.value; });
+  const blocks = {};
+  $$("[data-block]").forEach((card) => {
+    const values = {};
+    $$("[data-input]", card).forEach((el) => {
+      const name = el.dataset.input;
+      if (el.dataset.kind === "list") {
+        const list = el.value.split(/[,\n]/).map((part) => part.trim()).filter(Boolean);
+        if (list.length) values[name] = list;
+      } else {
+        const text = el.value.trim();
+        if (text !== "") values[name] = text;
+      }
+    });
+    $$("[data-records]", card).forEach((box) => {
+      const rows = [];
+      $$("[data-record]", box).forEach((row) => {
+        const record = {};
+        $$("input", row).forEach((input) => {
+          const key = Object.keys(input.dataset).find((k) => k.startsWith("r"));
+          const value = input.value.trim();
+          if (key && value !== "") record[key.slice(1)] = value;
+        });
+        if (record.name) rows.push(record);
+      });
+      if (rows.length) values.options = rows;
+    });
+    if (Object.keys(values).length) blocks[card.dataset.block] = values;
+  });
+  state.plan.student = student;
+  state.plan.blocks = blocks;
+}
+
+function planBlockInputs(block, stored) {
+  let html = '<div class="card planblock" data-block="' + esc(block.key) + '" style="margin:10px 0">' +
+    "<h4 style=\"margin:0\">" + esc(block.label) + "</h4>" +
+    '<p class="muted" style="margin:2px 0 8px">' + esc(block.what) + " Method: <code>" + esc(block.method) + "</code>.</p>";
+  const schema = block.input_schema || {};
+  Object.keys(schema).forEach((name) => {
+    html += '<label class="field" style="margin:6px 0">' + esc(name) +
+      (schema[name].required === false ? ' <span class="muted">(optional)</span>' : "") +
+      planSchemaControl(name, schema[name], (stored || {})[name]) + "</label>";
+  });
+  html += "</div>";
+  return html;
+}
+
+function planResultTable(block, data) {
+  if (!data) return "";
+  if (!data.ok) return banner("blocked", esc(block.label) + " was refused", "<p>" + esc(data.error) + "</p>");
+  const rows = Object.keys(data.result || {}).slice(0, 40)
+    .map((key) => "<tr><td>" + esc(key) + "</td><td>" + esc(data.result[key]) + "</td></tr>").join("");
+  return '<details class="studynote"><summary><strong>' + esc(block.label) + " result</strong></summary>" +
+    '<div class="tablewrap"><table><thead><tr><th>Figure</th><th>Value</th></tr></thead><tbody>' + rows +
+    "</tbody></table></div></details>";
+}
+
+function planOutlineHtml(outline) {
+  return (outline || []).map((item) => {
+    const level = Number(item.level) || 1;
+    return '<div style="margin:6px 0 6px ' + ((level - 1) * 16) + 'px">' +
+      "<strong>" + esc(item.heading) + "</strong>" +
+      (item.lines || []).map((line) => '<p style="margin:3px 0">' + esc(line) + "</p>").join("") + "</div>";
+  }).join("");
+}
+
+function renderPlan() {
+  const out = $("#planout"); if (!out) return;
+  capturePlanForms();
+  const p = state.plan;
+  if (!p || !p.data) {
+    out.innerHTML = '<p class="sub">Describe the business and the plan, or attach a PDF, Word .docx or TXT brief. ' +
+      "The plan is proposed first; no source is retrieved and no figure is computed until you confirm it.</p>" +
+      '<textarea id="planbrief" rows="5" style="width:100%" placeholder="For example: a coffee shop selling specialty coffee to university students in Cebu City. It needs start-up funding for equipment, a kiosk lease and two staff."></textarea>' +
+      '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
+        '<label class="field" style="margin:0">Brief file <input type="file" id="planfile" accept=".pdf,.docx,.txt"></label>' +
+        '<label class="field" style="margin:0">Level <select id="planlevel"><option value="shs">Senior high school</option><option value="college">College</option></select></label>' +
+        '<label class="field" style="margin:0">Composition <select id="planmode">' +
+          '<option value="strict"' + (state.planMode === "strict" ? " selected" : "") + '>Business-plan convention</option>' +
+          '<option value="open"' + (state.planMode === "open" ? " selected" : "") + '>Open composition</option>' +
+        "</select></label>" +
+        '<button class="btn primary" id="planbegin">Propose the plan</button>' +
+      "</div>" +
+      '<p class="muted" style="margin-bottom:0">Supported briefs: PDF text layer, Word .docx, TXT, or a pasted description. ' +
+      "A scanned PDF needs OCR on this machine; the reader says so rather than guessing the text.</p>";
+    const begin = $("#planbegin"); if (begin) begin.onclick = beginPlan;
+    return;
+  }
+  const d = p.data, plan = d.plan || {}, stage = d.stage;
+  let html = '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between">' +
+    '<div><strong>' + esc(plan.label || "Business plan") + "</strong> <span class=\"pill\">" + esc(plan.level_label || "") +
+    "</span> <span class=\"pill\">" + esc(plan.mode_label || "") + "</span></div>" +
+    '<button class="btn sm" id="planreset">Start over</button></div>' +
+    '<p style="margin:6px 0 0">' + esc(d.brief) + "</p>" +
+    (p.attachment ? '<p class="muted">Brief read from ' + esc(p.attachment.method || "the attachment") +
+      " (" + esc(p.attachment.chars) + " characters). Check it against the document.</p>" : "") +
+    "</div>";
+  if (p.error) html += banner("blocked", "The last step did not complete", "<p>" + esc(p.error) + "</p>");
+
+  html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">The proposed plan</h3>' +
+    '<p>' + esc(plan.why) + "</p><p class=\"muted\">" + esc(plan.misses) + "</p>" +
+    "<h4>Sections</h4><ol>" + (plan.sections || []).map((section) =>
+      "<li>" + esc(section.heading) + ' <span class="muted">(' + esc(section.kind) + ")</span></li>").join("") + "</ol>" +
+    "<h4>Computation blocks</h4><ul>" + (plan.blocks || []).map((block) =>
+      "<li><strong>" + esc(block.label) + "</strong> - " + esc(block.what) + "</li>").join("") + "</ul>" +
+    '<p class="muted">' + esc(plan.output) + "</p>";
+  if (stage === "plan") {
+    const optional = (plan.sections || []).filter((section) =>
+      ["marketing_plan", "operations_plan", "management", "risk", "impact"].indexOf(section.key) >= 0);
+    html += '<h4>Customise</h4><div class="row" style="flex-wrap:wrap;gap:8px">' +
+      '<label class="field" style="margin:0">Level <select id="plancustomlevel">' +
+        '<option value="shs"' + (plan.level === "shs" ? " selected" : "") + '>Senior high school</option>' +
+        '<option value="college"' + (plan.level === "college" ? " selected" : "") + '>College</option></select></label>' +
+      '<label class="field" style="margin:0">Composition <select id="plancustommode">' +
+        '<option value="strict"' + (plan.mode === "strict" ? " selected" : "") + '>Business-plan convention</option>' +
+        '<option value="open"' + (plan.mode === "open" ? " selected" : "") + '>Open composition</option></select></label>' +
+      '<button class="btn sm" id="plancustomise">Apply</button></div>' +
+      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-top:6px">' +
+        optional.map((section) => '<label class="check"><input type="checkbox" data-plandrop="' + esc(section.key) + '"> Leave out ' +
+          esc(section.heading) + "</label>").join("") + "</div>" +
+      '<p class="muted">The strict convention keeps every standard section; leaving one out is open composition only.</p>' +
+      '<div class="row" style="margin-top:10px"><button class="btn primary" id="planconfirm">Confirm the plan</button></div>';
+  } else {
+    html += '<p class="muted">The plan was confirmed. Change the level by starting a new plan; the confirmed structure is fixed.</p>';
+  }
+  html += "</div>";
+
+  if (stage !== "plan") {
+    // -- student inputs
+    html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Your inputs</h3>' +
+      '<p class="sub">These are your words. The system reproduces them and does not invent a market, a customer or a cost.</p>';
+    const supplied = (d.answers && d.answers.inputs) || {};
+    const values = Object.assign({}, supplied, p.student || {});
+    const sections = plan.sections || [];
+    sections.forEach((section) => {
+      const fields = (plan.fields || []).filter((field) => field.section === section.key);
+      if (!fields.length) return;
+      html += "<h4>" + esc(section.heading) + "</h4>";
+      fields.forEach((field) => {
+        html += '<label class="field" style="margin:6px 0">' + esc(field.label) +
+          (field.required ? "" : ' <span class="muted">(optional)</span>') + planTextControl(field, values[field.key]) + "</label>";
+      });
+    });
+    html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="plansaveinputs">Save the inputs</button></div></div>';
+
+    // -- computations
+    html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Declared figures and computations</h3>' +
+      '<p class="sub">Every figure below is declared by you and computed by the frozen core. The projected statements ' +
+      "refuse an opening balance sheet that does not balance, and the export stays blocked until every required block runs.</p>";
+    (plan.blocks || []).forEach((block) => {
+      const stored = ((d.computations || {})[block.key] || {}).inputs || (p.blocks || {})[block.key] || {};
+      html += planBlockInputs(block, stored);
+      html += planResultTable(block, (d.computations || {})[block.key]);
+    });
+    html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="plancompute">Run the declared computations</button></div></div>';
+
+    // -- evidence
+    html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Market evidence</h3>' +
+      '<p class="sub">Retrieval fills the market dimensions from academic and vetted sources. A dimension with no source is a named gap, never filled.</p>';
+    if (d.evidence && d.evidence.length) {
+      const sources = {};
+      (d.sources || []).forEach((source) => { sources[source.id] = source; });
+      html += '<div class="stack">' + d.evidence.map((item) => {
+        const source = sources[item.source_id] || {};
+        return '<label class="check"><input type="checkbox" data-planevidence value="' + esc(item.id) + '" checked> ' +
+          esc(item.quote) + ' <span class="muted">- ' + esc(source.title || "source") +
+          (source.year ? " (" + esc(source.year) + ")" : "") + "</span></label>";
+      }).join("") + "</div>";
+    }
+    if (d.gaps && d.gaps.length) {
+      html += '<p class="muted">Named gaps: ' + d.gaps.map((gap) => esc(gap.label)).join(", ") + ".</p>";
+    }
+    (d.notes || []).slice(0, 5).forEach((note) => { html += '<p class="muted">' + esc(note) + "</p>"; });
+    html += '<div class="row" style="margin-top:10px"><button class="btn" id="planresearch">Find market evidence</button>' +
+      '<button class="btn primary" id="plandraft">Draft the plan</button></div></div>';
+  }
+
+  if (d.draft) {
+    html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Draft</h3>' +
+      "<p><strong>" + esc(d.draft.title) + "</strong></p>";
+    if ((d.draft.missing || []).length) {
+      html += banner("blocked", "Complete the plan before export",
+        "<p>Still needed: " + d.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
+    } else {
+      html += '<div class="row" style="margin-bottom:8px"><button class="btn primary" id="plandownload">Download the plan (Word)</button></div>';
+    }
+    html += '<details class="studynote"><summary><strong>Read the drafted plan</strong></summary>' +
+      planOutlineHtml(d.draft.outline) + "</details></div>";
+  }
+  out.innerHTML = html;
+  const reset = $("#planreset"); if (reset) reset.onclick = () => { state.plan = null; renderPlan(); };
+  const confirm = $("#planconfirm"); if (confirm) confirm.onclick = () => planPost("plan", {});
+  const customise = $("#plancustomise");
+  if (customise) customise.onclick = () => {
+    const body = { level: $("#plancustomlevel").value, mode: $("#plancustommode").value };
+    const drop = $$("[data-plandrop]:checked").map((box) => box.value);
+    if (drop.length) body.sections = drop;
+    planPost("customise", body);
+  };
+  const save = $("#plansaveinputs");
+  if (save) save.onclick = () => {
+    capturePlanForms();
+    planPost("inputs", { values: state.plan.student || {} });
+  };
+  const compute = $("#plancompute");
+  if (compute) compute.onclick = () => {
+    capturePlanForms();
+    planPost("compute", { blocks: state.plan.blocks || {} });
+  };
+  const research = $("#planresearch"); if (research) research.onclick = () => planPost("research", {});
+  const draft = $("#plandraft");
+  if (draft) draft.onclick = () => {
+    const accepted = $$("[data-planevidence]:checked").map((box) => box.value);
+    planPost("draft", { accepted: accepted });
+  };
+  const download = $("#plandownload"); if (download) download.onclick = downloadPlan;
+}
+
+async function planPost(action, body) {
+  if (!state.plan || !state.plan.data) return;
+  capturePlanForms();
+  const out = $("#planout");
+  out.innerHTML = loading("Working");
+  try {
+    state.plan.data = await post("/api/cases/chat/" + encodeURIComponent(state.plan.data.id) + "/" + action, body || {});
+    state.plan.error = null;
+    renderPlan();
+  } catch (error) {
+    state.plan.error = error.message;
+    renderPlan();
+  }
+}
+
+async function beginPlan() {
+  const out = $("#planout");
+  let brief = (($("#planbrief") || {}).value || "").trim();
+  const level = $("#planlevel").value, mode = $("#planmode").value;
+  const input = $("#planfile");
+  let attachment = null;
+  out.innerHTML = loading("Proposing the plan");
+  try {
+    if (input && input.files && input.files[0]) {
+      const file = input.files[0];
+      const encoded = await readAsBase64(file);
+      attachment = await post("/api/cases/brief", { filename: file.name, data: encoded });
+      if (attachment.status !== "extracted") throw new Error(attachment.reason || "the brief could not be read");
+      brief = (brief ? brief + "\n" : "") + attachment.text;
+    }
+    if (brief.trim().length < 15) {
+      throw new Error("Describe the business in at least one sentence, or attach a brief.");
+    }
+    state.planMode = mode;
+    const data = await post("/api/cases/chat", { brief: brief, profile: "business_plan",
+      subject: "entrepreneurship", level: level, mode: mode });
+    state.plan = { data: data, attachment: attachment, error: null, student: null, blocks: null };
+    renderPlan();
+  } catch (error) {
+    state.plan = state.plan || {};
+    state.plan.data = null;
+    state.plan.error = error.message;
+    renderPlan();
+    toast(error.message);
+  }
+}
+
+async function downloadPlan() {
+  const out = $("#planout");
+  out.insertAdjacentHTML("afterbegin", loading("Preparing the Word file"));
+  try {
+    const result = await post("/api/cases/chat/" + encodeURIComponent(state.plan.data.id) + "/export", {});
+    const binary = atob(result.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: result.mime }));
+    const link = document.createElement("a");
+    link.href = url; link.download = result.filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Plan downloaded: " + result.filename);
+  } catch (error) { state.plan.error = error.message; renderPlan(); }
 }
 
 /* ---------- intake: attached files ---------- */
@@ -1624,11 +2003,14 @@ function capabilityCard(item, kind) {
     ? 'data-worksheet="' + esc(item.template) + '" data-wlabel="' + esc(item.label) + '"'
     : 'data-tool="' + esc(item.key) + '"';
   const domain = (state.subject && state.subject.label) || "This subject";
+  const need = (!isSheet && item.need)
+    ? '<span class="capneed">You will need: ' + esc(item.need) + "</span>" : "";
+  const source = isSheet ? "Worksheet" : (item.preset ? "Worked example" : "Your figures");
   return '<button class="capcard" type="button" ' + attrs + ">" +
     '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' + iconSvg(toolIcon(isSheet ? { kind: "worksheet" } : item)) + "</span>" +
       "<strong>" + esc(item.label) + "</strong></span>" +
-    '<span class="capdesc">' + esc(item.what) + "</span>" +
-    '<span class="capfoot"><span>' + esc(domain) + '</span><span class="capgo">' +
+    '<span class="capdesc">' + esc(item.what) + "</span>" + need +
+    '<span class="capfoot"><span>' + esc(source) + '</span><span class="capgo">' +
       (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
   "</button>";
 }
@@ -1672,8 +2054,8 @@ function frameworkPicker(s, groups) {
 function caseBriefBox() {
   return '<div class="card" style="margin:0 0 14px">' +
     '<h3 style="margin-top:0">Describe your case or paste the instruction</h3>' +
-    '<p class="muted">We will suggest the framework that fits. You still supply and confirm the evidence; ' +
-    "the suggestion is not an analysis and no evidence is invented for you.</p>" +
+    '<p class="muted">We will suggest the framework that fits and open it with your description prefilled. ' +
+    "You then choose <strong>Complete this framework</strong>; the suggestion is not an analysis and no evidence is invented for you.</p>" +
     '<textarea id="casebrief" rows="3" style="width:100%" placeholder="For example: a local bakery faces a new competitor and we need to decide how to position it."></textarea>' +
     '<div class="row" style="margin-top:8px;align-items:center"><button class="btn primary" id="casefind">Find the framework</button>' +
     '<span class="muted" id="casefindnote"></span></div><div id="casefindout"></div></div>';
@@ -1705,7 +2087,7 @@ async function findFramework() {
       return;
     }
     out.innerHTML = '<p class="sub">Best fit: <strong>' + esc(matches[0].label) +
-      "</strong>. Open it with your description as the objective, then add the evidence.</p>" +
+      "</strong>. Open it; your description becomes the instruction for completion.</p>" +
       '<div class="row" style="flex-wrap:wrap">' + matches.map((m, i) =>
         '<button class="btn sm' + (i === 0 ? " primary" : "") + '" data-match="' + esc(m.template) +
         '" data-mlabel="' + esc(m.label) + '">' + esc(m.label) + "</button>").join("") + "</div>";
@@ -1722,10 +2104,10 @@ function sourceFinderBox() {
   const regions = ["Global", "US", "Europe", "Middle East", "China"];
   const sheets = ((state.subject && state.subject.worksheets) || []).filter((worksheet) => worksheet.draftable);
   return '<div class="card" style="margin:0 0 14px">' +
-    '<h3 style="margin-top:0">Find sources</h3>' +
-    '<p class="muted">Search the business databases and the vetted official sites. Every result keeps its database, DOI or URL, and retrieval time; no source is invented.</p>' +
+    '<h3 style="margin-top:0">Optional: search for sources</h3>' +
+    '<p class="muted">Use this only if you already know the sources you want. The case box above is the main path: describe your case, open the suggested worksheet, then complete it.</p>' +
     '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">' +
-      '<input type="text" id="sourceq" placeholder="e.g. competition in the US grocery market" style="flex:1;min-width:260px">' +
+      '<input type="text" id="sourceq" placeholder="Optional: a source topic you already have, e.g. US grocery competition" style="flex:1;min-width:260px">' +
       '<select id="sourceregion">' + regions.map((r) => '<option value="' + r + '">' + r + '</option>').join("") + '</select>' +
       '<select id="sourcecategory"><option value="">All categories</option>' +
         ["legal", "economic", "social", "company", "news"].map((c) =>
@@ -1950,6 +2332,14 @@ function renderSubject() {
       '<p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     (s.guidance ? '<p style="margin:2px 0 10px">' + esc(s.guidance) + "</p>" : "") +
+    ((s.start_steps || []).length
+      ? '<div class="startsteps"><h3 style="margin-top:10px">Start here</h3><ol class="guidesteps">' +
+        s.start_steps.map((step) => "<li>" + esc(step) + "</li>").join("") + "</ol></div>"
+      : "") +
+    ((s.does_not || []).length
+      ? '<details class="studynote"><summary><strong>What this shelf does not do</strong></summary><ul>' +
+        s.does_not.map((line) => "<li>" + esc(line) + "</li>").join("") + "</ul></details>"
+      : "") +
     '<div class="subjectask">' +
       '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
       '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
@@ -1957,6 +2347,11 @@ function renderSubject() {
     "</div>";
   html += '<div class="capgroup">';
   if (s.id === "finance") html += marketPanel();
+  if (s.id === "entrepreneurship") html +=
+    '<div class="card" style="margin:0 0 14px"><h3 style="margin-top:0">Build the business plan</h3>' +
+    '<p class="sub" style="margin:4px 0 10px">A business plan combines your own description, the retrieved market evidence and plan-level computations. ' +
+    'This shelf uses the strict business-plan convention: the standard sections, a Financial Plan with its computation blocks, and an export that is blocked until the plan is complete.</p>' +
+    '<button class="btn primary" id="subjectplan" type="button">Start the business plan</button></div>';
   const tools = s.tools || [];
   const sheets = s.worksheets || [];
   const records = s.records || [];
@@ -1975,7 +2370,6 @@ function renderSubject() {
   });
   const hasGroups = tools.length && tools.every((t) => t.group);
   const hasLevels = tools.length && tools.every((t) => t.level);
-  html += sourceFinderBox();
   if (sheets.length) html += caseBriefBox();
   if (sheets.length || frameworks.length || theories.length) {
     html += '<h3 style="margin-top:0">Frameworks without computation</h3>' +
@@ -2068,6 +2462,7 @@ function renderSubject() {
   $("#subjectback").onclick = () => show("subjects");
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
   const home = $("#subjecthome"); if (home) home.onclick = () => show("chat");
+  const subjectplan = $("#subjectplan"); if (subjectplan) subjectplan.onclick = () => startPlan("strict");
   if (s.id === "finance") bindMarketPanel();
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
@@ -2302,6 +2697,7 @@ async function openTool(tool) {
 }
 
 async function openWorksheet(template, label, objective) {
+  state.completionSeed = objective && !/^Work through the /.test(objective) ? objective : null;
   state.draft = null;
   state.tool = { kind: "worksheet", label: label || template, method: template, preset: null };
   state.session = null;
@@ -2572,7 +2968,7 @@ function calcKey(k) {
 async function calcRun() {
   const tool = state.calcTool; if (!tool) return;
   const schema = calcSchema(tool);
-  const inputs = readInputs(schema);
+  const inputs = readInputs(schema, tool.method);
   if (inputs === null) return;
   const preset = tool.preset ? state.presets[tool.preset] : null;
   const body = { objective: (preset && preset.objective) || tool.label, method: tool.method, inputs: inputs };
@@ -3438,7 +3834,16 @@ function fiveForcesForm(t) {
   const forces = [["rivalry", "Industry rivalry"], ["entrants", "Threat of new entrants"],
                   ["substitutes", "Threat of substitutes"], ["buyers", "Buyer power"],
                   ["suppliers", "Supplier power"]];
-  return '<div class="wsheet"><p class="wintro">Write one item per line for each force. A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score.</p>' +
+  return '<div class="card" id="ffcompletion" style="margin-bottom:14px"><h3 style="margin-top:0">Complete this framework</h3>' +
+    '<p class="muted">Paste the case instruction. The pipeline researches each force and returns sourced items; a force with no evidence is a named gap. Nothing is invented.</p>' +
+    '<textarea id="ffinstruction" rows="3" style="width:100%" placeholder="For example: a mid-sized grocery chain is considering acquiring a cold-chain logistics provider in Saudi Arabia. Complete a Five Forces analysis for the board."></textarea>' +
+    '<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="field" for="ffindustry" style="margin:0">Industry or market</label>' +
+    '<input id="ffindustry" type="text" placeholder="e.g. smartphones, grocery retail, banking" style="flex:1;min-width:220px">' +
+    '<span class="muted">Required: Five Forces analyses an industry, not a company.</span></div>' +
+    '<div class="row" style="margin-top:8px;flex-wrap:wrap"><input type="file" id="fffile" accept=".txt,.md">' +
+    '<button class="btn primary" id="ffcomplete">Complete the five forces</button><span class="muted" id="ffcompletenote"></span></div>' +
+    '<div id="ffreview"></div></div>' +
+    '<div class="wsheet"><p class="wintro">Write one item per line for each force. A line can carry its own source as <code>text || citation</code>, or provenance as <code>text || assumption</code>; otherwise the block selection applies. A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score.</p>' +
     forces.map((pair) => worksheetTextBlock("ff-" + pair[0], pair[1], "What evidence shows this force?",
       '<select id="ffp-' + pair[0] + '">' + provOptions() + "</select>" +
       '<input type="text" id="ffs-' + pair[0] + '" placeholder="source (needed when sourced)" style="flex:1;min-width:170px">' +
@@ -3461,17 +3866,27 @@ function swotForm(t) {
 
 function matrixForm(t) {
   const grouped = t.id === "template_strategic_group_map";
-  return '<div class="wsheet"><p class="wintro">' +
-    (grouped ? "List the competitors you have evidence for, the group you assign to each, and the two axes with a reason for each. Placing a competitor is your judgment."
-             : "List the scenarios and the drivers that distinguish them. The grid is built from your lists; you then state what you assume in each cell.") + "</p>" +
+  const raci = t.id === "template_raci";
+  const risk = t.id === "template_risk_register";
+  const intro = raci
+    ? "List the activities and the roles you have confirmed. Then write R, A, C or I in each cell: R does the work, A owns the outcome, C is consulted, I is informed. Every activity needs exactly one A and at least one R."
+    : risk
+      ? "List the risks, then choose four fields: likelihood (your label), impact (your label), response and owner. Likelihood and impact are labels you declare; no probability or score is computed."
+      : grouped
+        ? "List the competitors you have evidence for, the group you assign to each, and the two axes with a reason for each. Placing a competitor is your judgment."
+        : "List the scenarios and the drivers that distinguish them. The grid is built from your lists; you then state what you assume in each cell.";
+  return '<div class="wsheet">' + (t.before ? '<p class="sub">' + esc(t.before) + "</p>" : "") +
+    '<p class="wintro">' + intro + "</p>" +
     '<div class="wblock"><label class="field" for="mx-rows"><strong class="wtitle">' +
-      (grouped ? "Competitors" : "Scenarios") + '</strong><span class="wprompt">One per line</span></label>' +
+      (raci ? "Activities" : risk ? "Risks" : grouped ? "Competitors" : "Scenarios") +
+      '</strong><span class="wprompt">One per line</span></label>' +
       '<textarea class="wtext" id="mx-rows" rows="3" placeholder="One per line"></textarea>' +
       (grouped ? '<div class="wmeta"><input type="text" id="mx-groups" placeholder="group for each competitor, in the same order" style="flex:1"></div>' : "") +
     "</div>" +
     '<div class="wblock"><label class="field" for="mx-cols"><strong class="wtitle">' +
-      (grouped ? "Two axes" : "Drivers") + '</strong><span class="wprompt">' +
-      (grouped ? "Exactly two, one per line" : "Two to six, one per line") + "</span></label>" +
+      (raci ? "Roles" : risk ? "Fields" : grouped ? "Two axes" : "Drivers") + '</strong><span class="wprompt">' +
+      (raci ? "One role per line" : risk ? "Four fields: likelihood, impact, response, owner" :
+        grouped ? "Exactly two, one per line" : "Two to six, one per line") + "</span></label>" +
       '<textarea class="wtext" id="mx-cols" rows="3" placeholder="One per line"></textarea>' +
       (grouped ? '<div class="wmeta"><input type="text" id="mx-rationale" placeholder="why each axis, in the same order" style="flex:1"></div>' : "") +
     "</div>" +
@@ -3486,11 +3901,14 @@ function buildMatrixGrid() {
     grid.innerHTML = '<p class="muted">Add the rows and columns first.</p>';
     return;
   }
+  const kind = state.worksheet && state.worksheet.id;
+  const placeholder = kind === "template_raci" ? "R, A, C or I"
+    : kind === "template_risk_register" ? "your label, response or owner" : "assumption";
   let html = '<div class="tablewrap"><table><caption>What you assume in each cell</caption><thead><tr><th></th>' +
     columns.map((column) => "<th>" + esc(column) + "</th>").join("") + "</tr></thead><tbody>";
   rows.forEach((row, r) => {
     html += "<tr><th>" + esc(row) + "</th>" + columns.map((column, c) =>
-      '<td><input type="text" id="mx-cell-' + r + "-" + c + '" placeholder="assumption"></td>').join("") + "</tr>";
+      '<td><input type="text" id="mx-cell-' + r + "-" + c + '" placeholder="' + placeholder + '"></td>').join("") + "</tr>";
   });
   grid.innerHTML = html + "</tbody></table></div>";
 }
@@ -3518,12 +3936,149 @@ function vrioForm(t) {
     '<div class="row"><button class="btn sm" type="button" id="vrio-add">Add another resource</button></div></div>';
 }
 
+function bindFiveForcesCompletion() {
+  const button = document.getElementById("ffcomplete");
+  if (!button) return;
+  const instruction = document.getElementById("ffinstruction");
+  const seed = state.completionSeed || (state.tool && state.tool.objective) || "";
+  if (instruction && !instruction.value && seed && !/^Work through the /.test(seed)) instruction.value = seed;
+  button.onclick = completeFiveForces;
+  const file = document.getElementById("fffile");
+  if (file) file.onchange = async () => {
+    const chosen = file.files && file.files[0];
+    if (!chosen) return;
+    if (!/\.(txt|md)$/i.test(chosen.name)) { toast("Use a .txt or .md file for this pilot."); return; }
+    document.getElementById("ffinstruction").value = await chosen.text();
+  };
+}
+
+async function completeFiveForces() {
+  const instruction = (document.getElementById("ffinstruction").value || "").trim();
+  if (!instruction) { toast("Paste the case instruction first."); return; }
+  const note = document.getElementById("ffcompletenote");
+  const review = document.getElementById("ffreview");
+  note.textContent = "Researching the five forces...";
+  review.innerHTML = "";
+  const forces = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"];
+  const student = [];
+  for (const key of forces) {
+    const blockSource = (document.getElementById("ffs-" + key) || {}).value || "";
+    const provenance = (document.getElementById("ffp-" + key) || {}).value || "user";
+    for (const line of linesOf("ff-" + key)) {
+      const cut = line.indexOf("||");
+      const text = cut >= 0 ? line.slice(0, cut).trim() : line;
+      const own = cut >= 0 ? line.slice(cut + 2).trim() : "";
+      if (text) student.push({ force: key, text, source: own || blockSource, provenance });
+    }
+  }
+  try {
+    const result = await post("/api/cases/frameworks/complete", {
+      template: "template_five_forces", instruction,
+      industry: (($("#ffindustry") || {}).value || "").trim(),
+      region: ($("#sourceregion") || {}).value || "", student_items: student
+    });
+    state.ffCompletion = result;
+    note.textContent = "";
+    renderFiveForcesReview(result);
+  } catch (error) {
+    note.textContent = "";
+    review.innerHTML = errorBanner(error);
+  }
+}
+
+function renderFiveForcesReview(result) {
+  const review = document.getElementById("ffreview");
+  if (!review) return;
+  let html = '<h4 style="margin-bottom:6px">Completion review</h4>' +
+    '<p class="muted">Tick what the paper may use. Sourced items carry a citation; a gap stays a gap. Nothing is written into the worksheet until you apply it.</p>';
+  for (const block of result.blocks || []) {
+    html += "<h4>" + esc(block.label) + "</h4>";
+    if (!block.items.length) {
+      html += '<p class="muted">' + esc(block.gap || "No evidence found.") + "</p>";
+      continue;
+    }
+    html += '<div class="stack" style="gap:6px">' + block.items.map((item, index) =>
+      '<label style="display:flex;gap:8px;align-items:flex-start;margin:3px 0">' +
+        '<input type="checkbox" data-ffblock="' + esc(block.key) + '" data-ffindex="' + index + '" checked style="margin-top:4px">' +
+        '<span><strong>' + esc(item.text) + '</strong><br><span class="muted">' +
+          esc(item.provenance === "sourced" ? (item.source || "source missing") : (item.provenance === "suggested" ? "case assumption (no source)" : "your input")) +
+        "</span></span></label>").join("") + "</div>";
+  }
+  html += '<div class="row" style="margin-top:8px"><button class="btn primary" id="ffapply">Use the ticked items</button>' +
+    '<button class="btn" id="ffdraft">Generate paper (Word)</button></div>';
+  review.innerHTML = html;
+  const apply = document.getElementById("ffapply");
+  if (apply) apply.onclick = applyFiveForcesCompletion;
+  const draft = document.getElementById("ffdraft");
+  if (draft) draft.onclick = downloadFiveForcesDraft;
+}
+
+async function downloadFiveForcesDraft() {
+  if (!state.ffCompletion) return;
+  const selected = {
+    ...state.ffCompletion,
+    blocks: (state.ffCompletion.blocks || []).map((block) => ({
+      ...block,
+      items: block.items.filter((item, index) => {
+        const box = document.querySelector('[data-ffblock="' + block.key + '"][data-ffindex="' + index + '"]');
+        return !box || box.checked;
+      }),
+    })),
+  };
+  if (!selected.blocks.some((block) => block.items.length)) { toast("Tick at least one item first."); return; }
+  const review = document.getElementById("ffreview");
+  const note = document.createElement("p");
+  note.className = "muted";
+  note.textContent = "Generating the Word paper...";
+  if (review) review.appendChild(note);
+  try {
+    const result = await post("/api/cases/frameworks/report", { completion: selected, style: "apa" });
+    const binary = atob(result.docx.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: result.docx.mime }));
+    const link = document.createElement("a");
+    link.href = url; link.download = result.docx.filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    note.textContent = "Generated " + result.docx.filename;
+    toast("Generated " + result.docx.filename);
+  } catch (error) {
+    note.textContent = "";
+    if (review) review.insertAdjacentHTML("beforeend", errorBanner(error)); else toast(error.message || String(error));
+  }
+}
+
+function applyFiveForcesCompletion() {
+  const result = state.ffCompletion;
+  if (!result) return;
+  for (const block of result.blocks || []) {
+    const chosen = [];
+    $$('[data-ffblock="' + block.key + '"]').forEach((box) => {
+      if (box.checked) chosen.push(block.items[Number(box.dataset.ffindex)]);
+    });
+    const area = document.getElementById("ff-" + block.key);
+    if (area) {
+      area.value = chosen.map((item) => {
+        if (item.provenance === "sourced" && item.source) return item.text + " || sourced || " + item.source;
+        if (item.provenance === "suggested") return item.text + " || assumption";
+        return item.text;
+      }).join("\n");
+    }
+    const provenance = document.getElementById("ffp-" + block.key);
+    if (provenance) provenance.value = "user";
+    const source = document.getElementById("ffs-" + block.key);
+    if (source) source.value = "";
+  }
+  toast("Completed items placed in the worksheet for your review.");
+}
+
 function bindWorksheetForm(t) {
   if (!t) return;
   if (t.form_kind === "matrix") {
     const build = document.getElementById("mx-build");
     if (build) build.onclick = buildMatrixGrid;
   }
+  if (t.form_kind === "five_forces") bindFiveForcesCompletion();
   if (t.form_kind === "vrio") {
     const box = document.getElementById("vrio-resources");
     const add = document.getElementById("vrio-add");
@@ -3586,6 +4141,7 @@ function worksheetForm(t) {
     return '<p class="muted">This worksheet has no guided form yet. Nothing is shown as raw code; ask for the guided form to be added.</p>';
   }
   return '<div class="wsheet">' +
+    (t.before ? '<p class="sub">' + esc(t.before) + "</p>" : "") +
     '<p class="wintro">Write one item per line in each block. Every line is your evidence; say whether it is yours, sourced or an assumption, and give the source when it is sourced. A block you leave empty stays empty and is reported as a gap; nothing is filled in for you.</p>' +
     t.blocks.map((b) => {
       const id = "wb-" + b.key;
@@ -3612,15 +4168,23 @@ function collectFiveForcesInputs() {
     const provenance = document.getElementById("ffp-" + key).value;
     const source = document.getElementById("ffs-" + key).value.trim();
     const items = linesOf("ff-" + key);
-    if (items.length && provenance === "sourced" && !source) {
-      toast("Add the source for " + key + ".");
-      return null;
-    }
-    items.forEach((text) => {
-      const item = { text: text, force: key, provenance: provenance };
-      if (provenance === "sourced") item.source = source;
+    for (const line of items) {
+      const parts = line.split("||").map((part) => part.trim());
+      let text = line.trim(), itemProvenance = provenance, itemSource = source;
+      if (parts.length >= 3) {
+        text = parts[0]; itemProvenance = parts[1]; itemSource = parts.slice(2).join(" || ");
+      } else if (parts.length === 2) {
+        text = parts[0]; itemProvenance = "sourced"; itemSource = parts[1];
+      }
+      if (!text) continue;
+      if (itemProvenance === "sourced" && !itemSource) {
+        toast("Add the source for " + key + ".");
+        return null;
+      }
+      const item = { text: text, force: key, provenance: itemProvenance };
+      if (itemProvenance === "sourced") item.source = itemSource;
       evidence.push(item);
-    });
+    }
     const rating = document.getElementById("ffr-" + key).value;
     const rationale = document.getElementById("ffw-" + key).value.trim();
     if (rating) {
@@ -3752,14 +4316,270 @@ function collectWorksheetInputs() {
   return links.length ? { blocks: blocks, links: links } : { blocks: blocks };
 }
 
+const ROW_COLUMNS = {
+  activities: [["id", "Activity"], ["duration", "Duration"], ["predecessors", "Must finish before"]],
+  resources: [["name", "Resource"], ["capacity", "Capacity"]],
+  criteria: [["name", "Criterion"], ["weight", "Weight"]]
+};
+
+function rowsColumns(name, method) {
+  if (name === "activities" || name.indexOf("project-") === 0) {
+    if (method === "resource_leveling") return [["id", "Activity"], ["duration", "Duration"],
+      ["resource", "Resource"], ["demand", "Demand"], ["predecessors", "Must finish before"]];
+    if (method === "project_crashing") return [["id", "Activity"], ["normal_duration", "Normal duration"],
+      ["crash_duration", "Crash duration"], ["crash_cost", "Crash cost"], ["predecessors", "Must finish before"]];
+    if (method === "schedule_risk") return [["id", "Activity"], ["optimistic", "Optimistic"],
+      ["most_likely", "Most likely"], ["pessimistic", "Pessimistic"], ["predecessors", "Must finish before"]];
+    if (method === "multi_project_schedule") return [["id", "Activity"], ["duration", "Duration"],
+      ["resource", "Resource"], ["demand", "Demand"], ["predecessors", "Must finish before"]];
+    return [["id", "Activity"], ["duration", "Duration"], ["predecessors", "Must finish before"]];
+  }
+  if (name === "cashflows") return [["name", "Name"], ["period", "Period"], ["distribution", "Distribution"],
+    ["value", "Fixed value"], ["low", "Low"], ["mode", "Most likely"], ["high", "High"]];
+  if (name === "variables") return [["name", "Variable (price / variable cost / volume)"], ["distribution", "Distribution"],
+    ["low", "Low"], ["mode", "Most likely"], ["high", "High"], ["value", "Fixed value"]];
+  return ROW_COLUMNS[name] || [["name", "Name"]];
+}
+
+function rowCell(col, value) {
+  if (col[0] === "distribution") {
+    return '<td><select data-col="distribution">' +
+      ["fixed", "uniform", "triangular"].map((kind) =>
+        '<option value="' + kind + '"' + (kind === (value || "fixed") ? " selected" : "") + ">" + kind + "</option>").join("") +
+      "</select></td>";
+  }
+  return '<td><input type="text" data-col="' + col[0] + '" value="' + esc(value || "") + '" aria-label="' + esc(col[1]) + '"></td>';
+}
+
+function rowsTable(name, method, rows) {
+  const columns = rowsColumns(name, method);
+  const body = (rows.length ? rows : [{}]).map((row) =>
+    "<tr>" + columns.map((col) => rowCell(col, row[col[0]])).join("") +
+    '<td><button class="btn sm" type="button" data-delrow="' + esc(name) + '" aria-label="Remove this row">Remove</button></td></tr>').join("");
+  return '<div class="tablewrap"><table data-rows="' + esc(name) + '"><thead><tr>' +
+    columns.map((col) => "<th>" + esc(col[1]) + "</th>").join("") + "<th></th></tr></thead><tbody>" +
+    body + "</tbody></table></div>" +
+    '<button class="btn sm" type="button" data-addrows="' + esc(name) + '">Add a row</button>';
+}
+
+function rowsEditor(name, value, plan) {
+  const rows = Array.isArray(value) ? value : [];
+  return '<div class="stack" style="gap:6px"><label class="field">' + esc(name) +
+    ' <span class="muted">one row per record; use Add a row for another</span></label>' +
+    rowsTable(name, plan && plan.method, rows) + "</div>";
+}
+
+function addRowsRow(name) {
+  const table = document.querySelector('[data-rows="' + name + '"]');
+  if (!table) return;
+  const method = (state.tool && state.tool.method) || (state.session && state.session.work_plan && state.session.work_plan.method);
+  const columns = rowsColumns(name, method);
+  const row = document.createElement("tr");
+  row.innerHTML = columns.map((col) => rowCell(col, "")).join("") +
+    '<td><button class="btn sm" type="button" data-delrow="' + esc(name) + '" aria-label="Remove this row">Remove</button></td>';
+  table.tBodies[0].appendChild(row);
+}
+
+function readRowsElement(table) {
+  if (!table) return [];
+  const rows = [];
+  Array.from(table.tBodies[0].rows).forEach((tr) => {
+    const record = {};
+    Array.from(tr.querySelectorAll("[data-col]")).forEach((el) => {
+      const value = String(el.value || "").trim();
+      if (value) record[el.dataset.col] = value;
+    });
+    if (Object.keys(record).length) rows.push(record);
+  });
+  return rows;
+}
+
+function readRowsTable(name) {
+  return readRowsElement(document.querySelector('[data-rows="' + name + '"]'));
+}
+
+/* ---------- decision-tree builder ---------- */
+function treeBranchHtml(probability, value) {
+  return '<tr data-branch><td><input type="text" data-prob value="' + esc(probability || "") +
+    '" aria-label="Probability"></td><td><input type="text" data-value value="' + esc(value || "") +
+    '" aria-label="Outcome value"></td><td><button class="btn sm" type="button" data-treedelbranch>Remove</button></td></tr>';
+}
+
+function treeAlternativeHtml(alternative) {
+  const node = (alternative && alternative.node) || {};
+  const branches = node.type === "chance" ? (node.branches || [])
+    : [{ probability: "1", node: { value: node.value || "" } }];
+  return '<div class="treealt" data-treealt><div class="row" style="align-items:flex-end">' +
+    '<label class="field" style="flex:1">Alternative <input type="text" data-altname value="' +
+      esc((alternative && alternative.name) || "") + '"></label>' +
+    '<button class="btn sm" type="button" data-treedelalt>Remove alternative</button></div>' +
+    '<table><thead><tr><th>Probability</th><th>Outcome value</th><th></th></tr></thead><tbody>' +
+    branches.map((branch) => treeBranchHtml(branch.probability,
+      branch.node && branch.node.type === "terminal" ? branch.node.value : branch.node && branch.node.value)).join("") +
+    "</tbody></table>" +
+    '<button class="btn sm" type="button" data-treeaddbranch>Add an outcome</button></div>';
+}
+
+function treeEditor(value) {
+  const alternatives = (value && Array.isArray(value.alternatives)) ? value.alternatives : [];
+  return '<div class="stack" style="gap:10px" data-tree><p class="muted" style="margin:0">' +
+    "Each alternative has one or more outcomes. Enter the probability of each outcome; the probabilities for one alternative should sum to one. For a certain outcome, enter 1 and its value.</p>" +
+    '<div data-treealts>' + (alternatives.length ? alternatives.map(treeAlternativeHtml).join("") : treeAlternativeHtml({})) + "</div>" +
+    '<button class="btn sm" type="button" data-treeaddalt>Add an alternative</button></div>';
+}
+
+function readDecisionTree() {
+  const box = document.querySelector("[data-tree]"); if (!box) return null;
+  const alternatives = [];
+  Array.from(box.querySelectorAll("[data-treealt]")).forEach((card) => {
+    const name = card.querySelector("[data-altname]").value.trim();
+    const branches = Array.from(card.querySelectorAll("[data-branch]")).map((row) => ({
+      probability: row.querySelector("[data-prob]").value.trim(),
+      value: row.querySelector("[data-value]").value.trim()
+    })).filter((branch) => branch.probability || branch.value);
+    if (!name && !branches.length) return;
+    alternatives.push({ name: name || ("Alternative " + (alternatives.length + 1)),
+      node: { type: "chance", branches: branches.map((branch) => ({
+        probability: branch.probability,
+        node: { type: "terminal", value: branch.value } })) } });
+  });
+  return alternatives.length ? { type: "decision", alternatives: alternatives } : null;
+}
+
+/* ---------- multi-project builder ---------- */
+let PROJECT_SEQ = 0;
+function projectCard(project) {
+  const uid = "project-" + (++PROJECT_SEQ);
+  const activities = (project && project.activities) || [];
+  return '<div class="treealt" data-project="' + uid + '"><div class="row" style="align-items:flex-end">' +
+    '<label class="field" style="flex:1">Project name <input type="text" data-projname value="' +
+      esc((project && project.name) || "") + '"></label>' +
+    '<label class="field" style="width:130px">Priority <input type="text" data-projpriority value="' +
+      esc((project && project.priority) || "") + '"></label>' +
+    '<button class="btn sm" type="button" data-delproject>Remove project</button></div>' +
+    '<h4 style="margin:8px 0 4px">Activities</h4>' +
+    '<div data-project-table>' + rowsTable(uid, "multi_project_schedule", activities) + "</div></div>";
+}
+
+function projectsEditor(value) {
+  const projects = Array.isArray(value) ? value : [];
+  return '<div class="stack" style="gap:10px" data-projects>' +
+    '<p class="muted" style="margin:0">Give each project a priority (lower runs first), then list its activities, the shared resource each uses and the demand.</p>' +
+    '<div data-projectlist>' + (projects.length ? projects.map(projectCard).join("") : projectCard({})) + "</div>" +
+    '<button class="btn sm" type="button" data-addproject>Add a project</button></div>';
+}
+
+function readProjects() {
+  const box = document.querySelector("[data-projects]"); if (!box) return [];
+  return Array.from(box.querySelectorAll("[data-project]")).map((card) => ({
+    name: card.querySelector("[data-projname]").value.trim(),
+    priority: card.querySelector("[data-projpriority]").value.trim() || "1",
+    activities: readRowsElement(card.querySelector("[data-project-table] table"))
+  })).filter((project) => project.name && project.activities.length);
+}
+
+/* ---------- weighted matrix score rows ---------- */
+function mcdaColumns() {
+  const columns = readRowsTable("criteria").map((criterion) => criterion.name).filter(Boolean);
+  if (columns.length) return columns;
+  const current = (state.tool && state.tool.inputs && state.tool.inputs.alternatives) || [];
+  return current.length ? Object.keys(current[0].scores || {}) : [];
+}
+
+function mcdaRow(alternative, columns) {
+  const scores = (alternative && alternative.scores) || {};
+  return "<tr data-mcdaalt><td><input type=\"text\" data-altname value=\"" + esc((alternative && alternative.name) || "") +
+    '"></td>' + columns.map((column) => '<td><input type="text" data-criterion="' + esc(column) + '" value="' +
+      esc(scores[column] || "") + '"></td>').join("") +
+    '<td><button class="btn sm" type="button" data-delmcda>Remove</button></td></tr>';
+}
+
+function mcdaEditor(value) {
+  const columns = mcdaColumns();
+  const alternatives = Array.isArray(value) ? value : [];
+  return '<div class="stack" style="gap:6px" data-mcda><p class="muted" style="margin:0">' +
+    "Enter the criteria first, then press Refresh score columns. Score each alternative on the common scale; higher is better." +
+    '</p><div class="row"><button class="btn sm" type="button" data-refreshmcda>Refresh score columns</button></div>' +
+    '<div class="tablewrap"><table data-mcdatable><thead><tr><th>Alternative</th>' +
+      columns.map((column) => "<th>" + esc(column) + "</th>").join("") + "<th></th></tr></thead><tbody>" +
+      (alternatives.length ? alternatives.map((alternative) => mcdaRow(alternative, columns)).join("") : mcdaRow({}, columns)) +
+    '</tbody></table></div><button class="btn sm" type="button" data-addmcda>Add an alternative</button></div>';
+}
+
+function readMcda() {
+  const table = document.querySelector("[data-mcdatable]"); if (!table) return [];
+  return Array.from(table.tBodies[0].rows).map((row) => {
+    const alternative = { name: row.querySelector("[data-altname]").value.trim(), scores: {} };
+    Array.from(row.querySelectorAll("[data-criterion]")).forEach((input) => {
+      if (input.value.trim()) alternative.scores[input.dataset.criterion] = input.value.trim();
+    });
+    return alternative;
+  }).filter((alternative) => alternative.name);
+}
+
+document.addEventListener("click", (event) => {
+  const treeAddAlt = event.target.closest("[data-treeaddalt]");
+  if (treeAddAlt) {
+    document.querySelector("[data-treealts]").insertAdjacentHTML("beforeend", treeAlternativeHtml({}));
+    return;
+  }
+  const treeDelAlt = event.target.closest("[data-treedelalt]");
+  if (treeDelAlt) { treeDelAlt.closest("[data-treealt]").remove(); return; }
+  const treeAddBranch = event.target.closest("[data-treeaddbranch]");
+  if (treeAddBranch) {
+    treeAddBranch.closest("[data-treealt]").querySelector("tbody").insertAdjacentHTML("beforeend", treeBranchHtml("", ""));
+    return;
+  }
+  const treeDelBranch = event.target.closest("[data-treedelbranch]");
+  if (treeDelBranch) { treeDelBranch.closest("tr").remove(); return; }
+  const addProject = event.target.closest("[data-addproject]");
+  if (addProject) {
+    document.querySelector("[data-projectlist]").insertAdjacentHTML("beforeend", projectCard({}));
+    return;
+  }
+  const delProject = event.target.closest("[data-delproject]");
+  if (delProject) { delProject.closest("[data-project]").remove(); return; }
+  const addMcda = event.target.closest("[data-addmcda]");
+  if (addMcda) {
+    document.querySelector("[data-mcdatable] tbody").insertAdjacentHTML("beforeend", mcdaRow({}, mcdaColumns()));
+    return;
+  }
+  const delMcda = event.target.closest("[data-delmcda]");
+  if (delMcda) { delMcda.closest("tr").remove(); return; }
+  const refreshMcda = event.target.closest("[data-refreshmcda]");
+  if (refreshMcda) {
+    const current = readMcda(), columns = mcdaColumns();
+    const body = document.querySelector("[data-mcdatable]");
+    body.querySelector("thead tr").innerHTML = "<th>Alternative</th>" +
+      columns.map((column) => "<th>" + esc(column) + "</th>").join("") + "<th></th>";
+    body.tBodies[0].innerHTML = (current.length ? current : [{}]).map((alternative) =>
+      mcdaRow(alternative, columns)).join("");
+    return;
+  }
+  const add = event.target.closest("[data-addrows]");
+  if (add) { addRowsRow(add.dataset.addrows); return; }
+  const remove = event.target.closest("[data-delrow]");
+  if (remove) {
+    const table = document.querySelector('[data-rows="' + remove.dataset.delrow + '"]');
+    const row = remove.closest("tr");
+    if (table && row && table.tBodies[0].rows.length > 1) row.remove();
+    return;
+  }
+});
+
 function inputField(name, spec, plan) {
   const type = (spec && spec.type) || "text";
+  const method = (plan && plan.method) || (state.tool && state.tool.method) || (state.calcTool && state.calcTool.method);
   const desc = type === "engagement_spec"
     ? "what the engine will post: the period, the currency and framework, the chart, the opening balances, the entries and any schedules"
     : ((spec && spec.desc) || "");
   const value = inputValue(name, spec, plan);
+  if (method === "decision_tree" && name === "tree") return treeEditor(value);
+  if (method === "multi_project_schedule" && name === "projects") return projectsEditor(value);
+  if (method === "multi_criteria" && name === "alternatives") return mcdaEditor(value);
   const label = type === "engagement_spec" ? "The engagement" : name;
   if (type === "records") return recordsField(name, spec, value);
+  if (type === "rows") return rowsEditor(name, value, plan);
   if (type === "engagement_spec") {
     state.engagement = engFromValue(value);
     return engShell();
@@ -3829,6 +4649,15 @@ function renderNew() {
       '<button class="btn sm" id="toolcalc">Calculator</button></div>' +
     "</div>";
 
+  if (!delivered && !mapping && !state.worksheet && state.tool) {
+    html += '<div class="card"><h2>Before you start</h2>' +
+      '<p class="sub">' + esc(state.tool.need || "Gather the figures this calculation needs; nothing is estimated for you.") + ".</p>" +
+      (state.tool.preset
+        ? '<p class="muted">A worked example is loaded so you can see the format. Replace it with your own figures, or clear it and start blank.</p>' +
+          '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>'
+        : '<p class="muted">Enter only the figures you can support. The checks will refuse a figure that does not hold.</p>') +
+      "</div>";
+  }
   if (!delivered && !mapping && (plan.method || "") === "management_accounts") html += guideCard();
   if (!delivered) {
     html += '<div class="card" id="figures">' +
@@ -3895,20 +4724,43 @@ function renderNew() {
   const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
   const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
   const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
+  const clear = $("#clearexample"); if (clear) clear.onclick = clearExampleFields;
   const rj = $("#reject"); if (rj) rj.onclick = () => confirmSession(true);
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
 }
 
-function readInputs(schema) {
+function clearExampleFields() {
+  $$("#figures input[type=text], #figures textarea").forEach((el) => { el.value = ""; });
+  $$("#figures [data-table]").forEach((box) => { box.innerHTML = ""; });
+  toast("The example figures are cleared. Enter your own, then run the calculation.");
+}
+
+function readInputs(schema, methodId) {
   const inputs = {};
+  const method = methodId || (state.tool && state.tool.method) ||
+    (state.session && state.session.work_plan && state.session.work_plan.method) ||
+    (state.calcTool && state.calcTool.method);
   for (const name of Object.keys(schema || {})) {
+    const spec = schema[name];
+    if (method === "decision_tree" && name === "tree") {
+      const tree = readDecisionTree(); if (tree) inputs[name] = tree; continue;
+    }
+    if (method === "multi_project_schedule" && name === "projects") {
+      inputs[name] = readProjects(); continue;
+    }
+    if (method === "multi_criteria" && name === "alternatives") {
+      inputs[name] = readMcda(); continue;
+    }
+    if (spec && spec.type === "rows") { inputs[name] = readRowsTable(name); continue; }
     const el = document.getElementById("in-" + name); if (!el) continue;
     const type = el.dataset.type;
     if (type === "boolean") { inputs[name] = el.checked; continue; }
     const raw = el.value.trim(); if (!raw) continue;
-    if (type === "decimal_list" || type === "value_list" || type === "code_list") {
+    if (type === "rows") {
+      inputs[name] = readRowsTable(name);
+    } else if (type === "decimal_list" || type === "value_list" || type === "code_list") {
       inputs[name] = raw.split(",").map((x) => x.trim()).filter((x) => x.length);
-    } else if (type === "object" || type === "records" || type === "rows" ||
+    } else if (type === "object" || type === "records" ||
                type === "column_map" || type === "count_table" || type === "engagement_spec") {
       try { inputs[name] = JSON.parse(raw); } catch (e) { toast("That field is not valid JSON."); return null; }
     } else inputs[name] = raw;
@@ -3919,7 +4771,8 @@ function readInputs(schema) {
 function collectInputs(session) {
   const s = session || state.session; if (!s) return null;
   const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
-  return readInputs((method && method.input_schema) || {});
+  return readInputs((method && method.input_schema) || {},
+    (s.work_plan && s.work_plan.method) || (s.spec && s.spec.method));
 }
 
 async function applyAndRun() {
@@ -3967,6 +4820,50 @@ function tierLabel(tier) {
 
 /* One builder for the delivered result, used by the Result page and by the
    Business Calculator, so the two can never show a delivery differently. */
+const RESULT_KEYS = {
+  cpm_schedule: [["project_duration", "Project duration"], ["critical_count", "Critical activities"], ["activity_count", "Activities"]],
+  resource_leveling: [["levelled_duration", "Levelled duration"], ["cpm_duration", "Unconstrained duration"],
+    ["levelling_delay", "Delay from levelling"], ["overallocated_periods_after", "Periods over capacity"]],
+  project_crashing: [["normal_duration", "Normal duration"], ["crashed_duration", "Crashed duration"],
+    ["total_crash_cost", "Total crash cost"]],
+  calendar_schedule: [["project_duration", "Calendar duration"], ["critical_count", "Critical activities"],
+    ["working_periods", "Working periods"]],
+  multi_project_schedule: [["overall_duration", "Overall duration"], ["project_count", "Projects"],
+    ["activity_count", "Activities"]],
+  schedule_risk: [["mean_duration", "Mean duration"], ["p50_duration", "Median (P50)"],
+    ["p80_duration", "P80"], ["p90_duration", "P90"], ["probability_within_target", "Within target"]],
+  earned_value: [["spi", "SPI"], ["cpi", "CPI"], ["estimate_at_completion", "EAC"], ["variance_at_completion", "VAC"]],
+  decision_tree: [["expected_value", "Expected value"], ["best_index", "Best alternative (number)"]],
+  real_option: [["option_value", "Option value"], ["intrinsic_value", "Intrinsic value"], ["delta", "Delta"]],
+  multi_criteria: [["best_index", "Best alternative (number)"], ["best_total", "Best weighted total"]],
+  monte_carlo: [["mean_result", "Mean result"], ["p50_result", "Median"], ["p90_result", "P90"],
+    ["probability_positive", "Share positive"]],
+  npv: [["npv", "Net present value"], ["irr", "IRR"]]
+};
+
+function resultHighlights(ap) {
+  const outputs = (ap.reperform && ap.reperform.outputs) || {};
+  const artifacts = {};
+  (ap.artifacts || []).forEach((a) => {
+    const id = Array.isArray(a) ? a[0] : a.id;
+    const labels = Array.isArray(a) ? a[1] : null;
+    artifacts[labels ? labels[0] : a.metric] = outputs[id];
+  });
+  const method = (ap.method && ap.method.id) || "";
+  const wanted = RESULT_KEYS[method];
+  const rows = [];
+  if (wanted) {
+    wanted.forEach(([key, label]) => {
+      const value = outputs[key] !== undefined ? outputs[key] : artifacts[key];
+      if (value !== undefined && value !== null) rows.push([label, String(value)]);
+    });
+  }
+  if (!rows.length) {
+    Object.keys(outputs).slice(0, 6).forEach((key) => rows.push([key.replace(/_/g, " "), String(outputs[key])]));
+  }
+  return rows;
+}
+
 function resultBodyHtml(d, withActions) {
   const ap = d.appendix || {};
   const honesty = ap.honesty || {};
@@ -3976,9 +4873,20 @@ function resultBodyHtml(d, withActions) {
       ' style="margin:0">Result</' + (withActions ? "h2" : "h3") + '><span class="badge">' + esc(tierLabel(ap.tier)) + "</span></div>" +
     (withActions ? '<div class="row" style="margin:10px 0 12px">' +
       '<button class="btn primary" id="savecase">Save as case</button>' +
+      (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="viewgantt">View the Gantt</button>' : "") +
+      '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
+      (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts">Charts and exports</button>' +
-      (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") + "</div>" : "") +
+      (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
+      (state.ffCompletion ? '<button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
+    '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
+  const highlights = resultHighlights(ap);
+  if (highlights.length) {
+    html += '<h3>Key numbers</h3><div class="tablewrap"><table><caption>What this calculation returned</caption><tbody>' +
+      highlights.map(([label, value]) => "<tr><th>" + esc(label) + "</th><td>" + esc(value) + "</td></tr>").join("") +
+      "</tbody></table></div>";
+  }
   if (honestyKeys.length) {
     html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
       "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>");
@@ -3990,7 +4898,7 @@ function resultBodyHtml(d, withActions) {
     html += banner("limit", "Assumptions (as recorded)", "<ul>" + ap.assumptions.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
   }
   html += "</div>";
-  html += '<details class="studynote"><summary>Technical record (hashes, checks and artifacts)</summary>' +
+  html += '<details class="studynote"><summary>For audit: recorded values, checks and hashes</summary>' +
     '<p class="muted">Every value above can be reproduced from this record. It is kept for audit, not for reading.</p>' +
     "<h3>Artifacts</h3>" + artifactTable(ap) +
     "<h3>Recorded metadata</h3>" + kv([
@@ -4040,9 +4948,14 @@ function renderResults() {
   }
   p.innerHTML = resultBodyHtml(d, true);
   $("#savecase").onclick = saveCase;
+  const gantt = $("#viewgantt"); if (gantt) gantt.onclick = viewGantt;
+  const xlsx = $("#downloadxlsx"); if (xlsx) xlsx.onclick = downloadResultXlsx;
+  const svg = $("#downloadsvg"); if (svg) svg.onclick = downloadResultSvg;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
   if (resultReport && state.draft) resultReport.onclick = () => downloadDraftReport(state.draft.draft, state.draft.worksheet);
+  const ffResultDraft = $("#ffresultdraft");
+  if (ffResultDraft) ffResultDraft.onclick = downloadFiveForcesDraft;
   window.scrollTo(0, 0);
 }
 
@@ -4063,14 +4976,81 @@ function artifactTable(ap) {
   return html + "</tbody></table></div>";
 }
 
-async function saveCase() {
-  const s = state.session; if (!s || !s.delivery) return;
+async function viewGantt() {
+  let id = state.savedCaseId || state.caseId;
+  if (!id) { await saveCase(); id = state.savedCaseId; }
+  if (!id) { toast("Save the case first, then view its Gantt."); return; }
+  await openCase(id);
+  show("deliver");
+  const kind = $("#chartkind");
+  if (kind) { kind.value = "gantt"; await renderChart(); }
+  window.scrollTo(0, 0);
+}
+
+async function persistCase() {
+  const s = state.session; if (!s || !s.delivery) return null;
   try {
     const stored = await post("/api/cases", caseBundle(s));
     state.caseId = stored.id; state.savedCaseId = stored.id;
-    toast("Case " + stored.id + " saved.");
-    openCase(stored.id);
-  } catch (e) { $("#panel-results").insertAdjacentHTML("afterbegin", errorBanner(e)); }
+    return stored.id;
+  } catch (e) {
+    $("#panel-results").insertAdjacentHTML("afterbegin", errorBanner(e));
+    return null;
+  }
+}
+
+async function saveCase() {
+  const id = await persistCase();
+  if (id) { toast("Case " + id + " saved."); openCase(id); }
+}
+
+async function ensureSavedCase() {
+  if (state.savedCaseId) return state.savedCaseId;
+  return await persistCase();
+}
+
+async function downloadResultXlsx() {
+  const id = await ensureSavedCase();
+  if (!id) return;
+  const destination = "exports/" + id + ".xlsx";
+  try {
+    const r = await post("/api/cases/" + id + "/export", { kind: "xlsx", destination: destination });
+    toast("Spreadsheet exported to " + (r.path || destination));
+  } catch (e) { toast("The spreadsheet could not be exported: " + (e.message || e)); }
+}
+
+async function downloadResultSvg() {
+  const id = await ensureSavedCase();
+  if (!id) return;
+  try {
+    const bundle = state.caseBundle && state.caseBundle.id === id
+      ? state.caseBundle : await api("/api/cases/" + id);
+    const repertoire = bundle.reperform || {};
+    const values = repertoire.outputs || {};
+    const ids = Object.keys(values).filter((key) => key.indexOf("es_") === 0).map((key) => key.slice(3));
+    const dependencies = [];
+    ((repertoire.inputs || {}).activities || []).forEach((activity) => {
+      String(activity.predecessors || "").split(",").forEach((p) => {
+        if (p.trim()) dependencies.push({ from: p.trim(), to: activity.id });
+      });
+    });
+    const spec = { title: "Project schedule",
+      activities: ids.map((activity, index) => {
+        const label = "Activity " + (activity.replace(/\d+/g, "") || String.fromCharCode(65 + index));
+        const entry = { id: activity, label: label, start: "es_" + activity, end: "ef_" + activity };
+        if (values["float_" + activity] !== undefined) entry.float = "float_" + activity;
+        if (values["critical_" + activity] !== undefined) entry.critical = "critical_" + activity;
+        return entry;
+      }),
+      dependencies: dependencies };
+    const svg = ganttSvg(spec, values);
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = "gantt-" + id + ".svg";
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) { toast("The Gantt could not be downloaded: " + (e.message || e)); }
 }
 
 /* ---------- cases ---------- */
@@ -4483,6 +5463,59 @@ RENDERERS.deliver = function () {
   $("#expzip").onclick = backupCases;
 };
 
+/* Client-side Gantt from the same stored values as the server. Deterministic
+   geometry only: no number is derived beyond scaling the stored dates. */
+function ganttSvg(spec, values) {
+  const acts = (spec.activities || []).map((a) => ({
+    id: a.id, label: a.label, startName: a.start, endName: a.end,
+    start: Number(values[a.start]), end: Number(values[a.end]),
+    float: a.float ? Number(values[a.float]) : 0,
+    critical: a.critical ? Number(values[a.critical]) !== 0 : false
+  })).filter((a) => Number.isFinite(a.start) && Number.isFinite(a.end) && a.end >= a.start);
+  if (!acts.length) return "";
+  const width = 720, left = 250, right = width - 40, top = 76;
+  const rowHeight = 28, height = Math.max(220, top + acts.length * rowHeight + 70);
+  const horizon = Math.max(...acts.map((a) => a.end + (a.float || 0)), 1);
+  const scale = (right - left) / horizon;
+  const parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + width + " " + height +
+    '" width="' + width + '" height="' + height + '" role="img" aria-label="' + esc(spec.title || "Gantt chart") + '">',
+    '<rect width="100%" height="100%" fill="#fdfdfb"/>',
+    '<text x="24" y="34" font-family="Georgia, serif" font-size="18" fill="#1b1b1b">' + esc(spec.title || "Gantt chart") + "</text>",
+    '<line x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (top + acts.length * rowHeight) + '" stroke="#c9c9c4"/>'];
+  const step = Math.max(1, Math.ceil(horizon / 8));
+  for (let tick = 0; tick <= Math.floor(horizon); tick += step) {
+    const x = left + tick * scale;
+    parts.push('<line x1="' + x + '" y1="' + top + '" x2="' + x + '" y2="' + (top + acts.length * rowHeight) + '" stroke="#e6e6e1"/>');
+    parts.push('<text x="' + x + '" y="' + (top + acts.length * rowHeight + 18) + '" text-anchor="middle" font-family="Consolas, monospace" font-size="11" fill="#555550">' + tick + "</text>");
+  }
+  const positions = {};
+  acts.forEach((a, index) => {
+    const y = top + index * rowHeight + 6, barHeight = 14;
+    const x = left + a.start * scale, barWidth = Math.max(2, (a.end - a.start) * scale);
+    parts.push('<text x="24" y="' + (y + 11) + '" font-family="Georgia, serif" font-size="13" fill="#1b1b1b">' + esc(a.label) + "</text>");
+    parts.push('<text x="24" y="' + (y + 24) + '" font-family="Consolas, monospace" font-size="11" fill="#555550">' + esc(String(values[a.startName]) + " to " + String(values[a.endName])) + "</text>");
+    parts.push('<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + barHeight + '" rx="2" fill="' + (a.critical ? "#e15759" : "#4e79a7") + '"/>');
+    if (a.float) {
+      const endX = x + barWidth, floatX = endX + a.float * scale, mid = y + barHeight / 2;
+      parts.push('<line x1="' + endX + '" y1="' + mid + '" x2="' + floatX + '" y2="' + mid + '" stroke="#7a7a75" stroke-width="2"/>');
+      parts.push('<line x1="' + floatX + '" y1="' + (mid - 5) + '" x2="' + floatX + '" y2="' + (mid + 5) + '" stroke="#7a7a75" stroke-width="2"/>');
+    }
+    positions[a.id] = { start: x, end: x + barWidth, mid: y + barHeight / 2 };
+  });
+  (spec.dependencies || []).forEach((dep) => {
+    const source = positions[dep.from], target = positions[dep.to];
+    if (!source || !target) return;
+    const bend = Math.max(source.end + 8, target.start - 10);
+    parts.push('<polyline points="' + source.end + "," + source.mid + " " + bend + "," + source.mid + " " +
+      bend + "," + target.mid + " " + (target.start - 6) + "," + target.mid + '" fill="none" stroke="#7a7a75" stroke-width="1.5"/>');
+    parts.push('<path d="M' + target.start + "," + target.mid + " L" + (target.start - 6) + "," + (target.mid - 4) +
+      " L" + (target.start - 6) + "," + (target.mid + 4) + ' Z" fill="#7a7a75"/>');
+  });
+  parts.push('<text x="24" y="' + (height - 18) + '" font-family="Georgia, serif" font-size="11" fill="#555550">Bars are the stored early dates; red marks the critical path, the thin line is float and arrows are the declared dependencies.</text>');
+  parts.push("</svg>");
+  return parts.join("");
+}
+
 async function renderChart() {
   const out = $("#chartout");
   out.innerHTML = loading("Rendering on the server");
@@ -4496,14 +5529,33 @@ async function renderChart() {
         "<div>A Gantt needs a CPM case with early dates recorded. Run the critical-path method first.</div>");
       return;
     }
+    const b = state.caseBundle || {};
+    const repertoire = b.reperform || (b.delivery && b.delivery.appendix && b.delivery.appendix.reperform) || {};
+    const inputs = repertoire.inputs || {};
+    const dependencies = [];
+    (inputs.activities || []).forEach((a) => {
+      String(a.predecessors || "").split(",").forEach((p) => {
+        if (p.trim()) dependencies.push({ from: p.trim(), to: a.id });
+      });
+    });
     spec = { kind: kind, title: $("#charttitle").value || "Project schedule",
              activities: ids.map((id, index) => {
                const label = "Activity " + (id.replace(/\d+/g, "") || String.fromCharCode(65 + index));
-               const activity = { label: label, start: "es_" + id, end: "ef_" + id };
+               const activity = { id: id, label: label, start: "es_" + id, end: "ef_" + id };
                if (metrics.has("float_" + id)) activity.float = "float_" + id;
                if (metrics.has("critical_" + id)) activity.critical = "critical_" + id;
                return activity;
-             }) };
+             }),
+             dependencies: dependencies };
+    const values = repertoire.outputs || {};
+    if (!Object.keys(values).some((key) => key.indexOf("es_") === 0)) {
+      out.innerHTML = banner("limit", "No schedule in this case",
+        "<div>The Gantt needs a CPM case with stored early dates.</div>");
+      return;
+    }
+    out.innerHTML = '<figure class="chart">' + ganttSvg(spec, values) +
+      "<figcaption>Drawn in the browser from the same stored values; the server render and export remain authoritative.</figcaption></figure>";
+    return;
   } else {
     spec = { kind: kind, title: $("#charttitle").value || $("#chartart").value,
              series: [{ label: $("#chartart").value, artifact: $("#chartart").value }] };
@@ -4754,6 +5806,8 @@ async function boot() {
   let railWasOpen = false;
   try { railWasOpen = localStorage.getItem("bp-rail") === "open"; } catch (e) {}
   setRailOpen(railWasOpen);
+  const tryPm = $("#trypm"); if (tryPm) tryPm.onclick = () => openSubject("project-management");
+  const allSubjects = $("#allsubjects"); if (allSubjects) allSubjects.onclick = () => show("subjects");
   /* one tooltip for the rail. The strip is narrow and the subject list scrolls, so
      a tip inside the item would be clipped by the strip; this one is placed over
      the page, next to the icon that was pointed at. */

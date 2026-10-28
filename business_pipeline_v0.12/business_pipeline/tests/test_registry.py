@@ -26,15 +26,15 @@ class Import(unittest.TestCase):
     def test_every_catalogue_row_is_present_and_nothing_is_dropped(self):
         import re
         ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]
-        self.assertEqual(len(ids), 100)
+        self.assertEqual(len(ids), 102)
         for i in ids: self.assertEqual(R.get(i)["id"] in ids or i in R.get(i)["also_listed_as"], True, i)
     def test_counts_and_types(self):
         recs = R.load()["records"]; from collections import Counter; c = Counter(r["type"] for r in recs)
-        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (156, 66, 24, 59, 7))
+        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (158, 68, 24, 59, 7))
     def test_duplicates_merged_with_both_ids_kept(self):
         self.assertEqual(R.get("IMP-01")["id"], "CHG-07"); self.assertEqual(R.get("IMP-02")["id"], "CHG-08"); self.assertIn("IMP-01", R.get("CHG-07")["also_listed_as"])
         self.assertEqual(R.get("QNT-MKT-04")["id"], "MKT-08"); self.assertIn("QNT-MKT-04", R.get("MKT-08")["also_listed_as"])
-        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 156)
+        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 158)
     def test_names_are_complete_and_not_truncated(self):
         """A name ending in ' and', ' or', ',' or '(' is a cut, not a name (B-113)."""
         for r in R.load()["records"]:

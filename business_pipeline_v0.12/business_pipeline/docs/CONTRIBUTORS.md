@@ -47,7 +47,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 
 **The core deterministic backend is FROZEN.** Read [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) before touching anything in `src/bp/**` or the public surface. In short:
 
-1. **Frozen:** the stage/flow contract, spec + hash, the public contract of every method (124 ids, tier, metric, unit, `test_names` order, claim ceiling, input names), the 126 presets, the 12 API route families, the delivery shape, and the verification invariants. `tests/test_frozen_contract.py` fails when the code diverges from `tests/fixtures/frozen_contract.json`.
+1. **Frozen:** the stage/flow contract, spec + hash, the public contract of every method (140 ids, tier, metric, unit, `test_names` order, claim ceiling, input names), the 142 presets, the 12 API route families, the delivery shape, and the verification invariants. `tests/test_frozen_contract.py` fails when the code diverges from `tests/fixtures/frozen_contract.json`.
 2. **Never** edit `tests/fixtures/frozen_contract.json`, loosen a frozen check, or trim a contract field to make a UI/product change pass. That is an unfreeze, not a fix.
 3. **Unfreeze** = owner approval → computation owner writes the B-decision, changes code + tests, and updates the fixture **in the same commit** (B-079). Bug fixes that restore declared behaviour ship with a trap test and need no unfreeze.
 4. **Product backend (B-080)** is the design owner's lane: presentation/interaction plus *additive* product routes, modules, storage and workflows that consume the frozen core through its API. The design owner may not compute, round, re-derive or adjust any business number, threshold, rating, caveat, honesty notice, refusal message, tier label or claim wording, and may not edit frozen modules, `tests/**` or factual docs. Any genuinely needed core change is recorded in `WORKLOG.md` as a `[design]` request for the owner, never made directly.
@@ -58,7 +58,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 1465 tests; expect "OK"
+python -m unittest discover -s tests          # currently 1536 tests; expect "OK"
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 

@@ -17,11 +17,12 @@ The page follows the sections of a business plan, not the difficulty of the arit
 
 | Group | What it is for | Tiles |
 |---|---|---|
-| Market and customers | Size the market and describe the customers | market size, demand line, purchase intent, funnel, cohort retention, trend forecast, elasticity, descriptive statistics, chi-square, power |
+| Market and customers | Size the market and describe the customers | market size, demand line, purchase intent, funnel, cohort retention, market concentration, trend forecast, elasticity, descriptive statistics, chi-square, power |
 | Costs, pricing and break-even | Price the product and find the break-even | pricing, break-even, multi-product break-even, unit economics, cost curves, markup and Lerner index |
-| Financial plan and return | Plan the sales, cash and capital, and appraise the return | sales projection, start-up capital, cash runway, ROI, NPV, IRR, discounted payback, project metrics, scenario analysis, trend analysis, working capital |
+| Operations plan | Show how the business will deliver | capacity and bottleneck, inventory policy |
+| Financial plan and return | Plan the sales, cash and capital, and appraise the return | sales from market share, projected statements, depreciation, sensitivity, financial ratios, sales projection, start-up capital, cash runway, ROI, NPV, IRR, discounted payback, project metrics, scenario analysis, trend analysis, working capital, tax |
 | Funding and valuation | Cost and value the financing | cap table and dilution, loan amortization, DCF, multiples, equity bridge, currency conversion |
-| Impact and options | Social return and choosing between alternatives | SROI, cost-benefit, compare strategic options |
+| Impact and options | Social return and choosing between alternatives | SROI, cost-benefit, cost per unit of impact, compare strategic options |
 
 Below the tools sit the **worksheets**: the Business Model Canvas, Lean Canvas, Value Proposition
 Canvas, the SWOT evidence review and a marketing plan for segmentation, targeting, positioning and the
@@ -31,12 +32,37 @@ Each tile shows its level (intro, intermediate, advanced), the period convention
 monthly, point in time, per observation) and an expandable study note with the formula, the steps and
 the mistakes that most often cost marks. The glossary at the foot of the page defines the terms.
 
+## The business plan
+
+The button at the top of the page opens the **business plan**, which is a paper, not a single
+calculation. It follows the strict business-plan convention: business description, market analysis,
+marketing, operations, management, a **Financial Plan with its computations as level-2 blocks**, risk
+analysis, conclusion and references. Your own words stay yours; the market section quotes retrieved
+evidence or names a gap.
+
+The senior-high-school plan requires five computation blocks: sales from market share, break-even,
+depreciation, projected statements and sensitivity. The college plan adds tax, the cap table and a
+cost-per-unit-of-impact ratio. Every block is a frozen method: you declare the figures and the server
+returns the recorded result and its checks. The **projected statements refuse an opening balance sheet
+that does not balance**, and the export is blocked until every required field and block is complete;
+the page names what is missing.
+
+You can attach a brief as a PDF (text layer), Word `.docx`, TXT or an image when OCR is installed on
+the machine, or paste the text. The reader says when a scan needs OCR rather than guessing the words.
+Home opens the same plan in **open composition**, where you may leave an optional section out; the
+facts, the figures and the gate do not change.
+
 ## Your assignment requirement, and the tool that answers it
 
 | What the assignment asks for | Tool | What you must supply |
 |---|---|---|
 | How big is the market, and how much of it can we serve and win? | `market_sizing` | customers in the market, annual spend per customer, a serviceable share and an obtainable share |
 | What will customers pay? | `pricing_decision` | unit cost, fixed cost, expected volume, a markup and (optionally) a target margin and profit |
+| What revenue does our target market share imply? | `sales_from_market` | the market size, the share you plan to win and your price |
+| What are the full projected statements, not just profit? | `proforma_statements` | revenue, margin, costs, depreciation, interest and principal (or opening loan terms), tax, working-capital days and opening balances |
+| What is the depreciation charge and carrying amount? | `depreciation_schedule` | cost, salvage, life and method |
+| How much does profit move if price or volume changes? | `sensitivity_table` | base price, units, unit cost, fixed cost and the changes to test |
+| What is the tax charge on the declared income? | `tax_declared` | taxable income, the declared rate and, optionally, VAT and a temporary difference |
 | What are our sales, costs and profit next year? | `sales_projection` | starting volume, price, unit cost, fixed cost per period and a growth rate |
 | How many units must we sell to break even? | `breakeven` | fixed cost, price, variable cost, and optionally the expected volume and a profit target |
 | What is the margin on each sale, and what does a customer return? | `unit_economics` | price, variable cost, acquisition cost, churn |
@@ -255,10 +281,14 @@ the shelf does not do:
   The marketing plan worksheet covers STP and the mix, not these instruments.
 - **Blue Ocean/ERRC and the diffusion theory record** are still catalogue-only ("not implemented"), as
   is the catalogue's market-share and penetration lane.
-- **No tax, depreciation schedule or full pro-forma statement** inside these methods. Use the
-  Accounting shelf's management accounts for a double-entry build, or declare after-tax figures here.
-- **No PDF, scan, SPSS or image ingestion.** A CSV, TSV or XLSX data file can be ingested; a PDF or a
-  photo cannot.
+- **Plan-level methods use annual periods, one product and one currency.** The projected statements
+  are arithmetic on your declared drivers, not a demand forecast, and they do not apply a
+  jurisdiction's tax law, model disposals or consolidate a group. The sensitivity table changes price
+  and volume only.
+- **The business plan's market analysis is retrieval, not market research.** A dimension with no
+  returned source is a named gap; the plan never fills it.
+- **Brief upload reads text, not scans.** A PDF text layer, `.docx` and TXT work without extras; a
+  scanned PDF or image needs a local Tesseract and reports `ocr_required` when it is absent.
 
 If your assignment requires one of these, say so in the limitations section and show the arithmetic you
 did by hand. That is honest, and it is what the tool's own limitations block is for.

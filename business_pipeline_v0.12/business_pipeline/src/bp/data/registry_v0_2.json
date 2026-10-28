@@ -4,7 +4,7 @@
  "source": {
   "file": "Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md",
   "catalogue_version": "0.4",
-  "sha256": "1a53f0a68f639d3da595e5992a207612c27a3d49ee1c7f9e7c8fdce6d7b1e157"
+  "sha256": "3f63b3e27ffa5dc92c0e510cab79428288d2152711c414995feb582066d219fe"
  },
  "import_warnings": [
   "IMP-01 duplicates CHG-07 (Theory of Change); merged",
@@ -2439,7 +2439,7 @@
   },
   {
    "id": "PM-14",
-   "name": "Technology–Organization–Environment (TOE) Framework",
+   "name": "Technology-Organization-Environment (TOE) Framework",
    "type": "F",
    "secondary_types": [],
    "type_note": "",
@@ -2455,6 +2455,58 @@
    "summary": "Technology, organizational and environmental context for adoption decisions",
    "members": [],
    "source_ref": "catalogue section 8, row PM-14",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.4",
+   "version": "0.1"
+  },
+  {
+   "id": "PM-15",
+   "name": "Stakeholder engagement and communication plan",
+   "type": "F",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "performance, projects and technology governance"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "Who is affected, what each stakeholder needs, and how, when and by whom the project will communicate with them",
+   "evidence_needs": "Confirmed stakeholders, interests, influence, messages, channels, frequency and owners",
+   "summary": "Who is affected, what each stakeholder needs, and how, when and by whom the project will communicate with them",
+   "members": [],
+   "source_ref": "catalogue section 8, row PM-15",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.4",
+   "version": "0.1"
+  },
+  {
+   "id": "PM-16",
+   "name": "Lessons learned",
+   "type": "F",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "performance, projects and technology governance"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "What worked, what did not, why, and what the next project should change",
+   "evidence_needs": "Project records, incident and change evidence, and the people who did the work",
+   "summary": "What worked, what did not, why, and what the next project should change",
+   "members": [],
+   "source_ref": "catalogue section 8, row PM-16",
    "verify_edition_and_permissions": false,
    "evidence_status": "unreviewed",
    "pipeline_status": "catalogued",

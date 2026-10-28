@@ -15,7 +15,7 @@ import urllib.error
 import urllib.request
 
 MARKERS = ("worksheetForm", "matrixForm", "bp-ws-draft-", "Download the worksheet (Word)",
-           "not teacher-approved")
+           "not teacher-approved", "renderPlan", "Business plan")
 ABSENT = ("Reviewer name", "Sign-off", "Review status", "pending_named_reviewer")
 RAIL_MARKERS = ("markCurrentRailItem", "SUBJECT_WORKSPACE", "railSubject")
 SUBJECTS = ("accounting", "finance", "economics", "management", "project-management",
@@ -77,6 +77,38 @@ def main():
         check("worksheet run delivers", delivery.get("status") == "delivered", str(session.get("status")))
         check("delivered report has no unresolved token", "{{ref:" not in report and bool(report))
         check("every check passed", all(bool(c[1]) for c in checks if len(c) > 1), str(checks))
+
+        # -- the business-plan profile, end to end over the same routes ------
+        plan = _post(base, "/api/cases/chat", {
+            "brief": "A coffee shop selling specialty coffee to university students in Cebu City.",
+            "profile": "business_plan", "subject": "entrepreneurship", "level": "shs", "mode": "strict"})
+        plan = _post(base, "/api/cases/chat/" + plan["id"] + "/plan", {})
+        plan = _post(base, "/api/cases/chat/" + plan["id"] + "/inputs", {"values": {
+            "business_name": "Bean There", "product": "specialty coffee and pastries",
+            "customers": "university students", "location": "Cebu City",
+            "positioning": "affordable specialty coffee", "channels": "a campus kiosk",
+            "pricing_note": "mid-market pricing", "operations": "a single kiosk with two staff",
+            "team": "the owner and one barista", "risks": ["a rent increase"]}})
+        plan = _post(base, "/api/cases/chat/" + plan["id"] + "/compute", {"blocks": {
+            "frommarket": {"market_size": "60000000", "target_share": "0.03", "price": "120"},
+            "breakeven": {"fixed": "300000", "price": "120", "variable": "55"},
+            "depreciation": {"cost": "500000", "salvage": "50000", "life": "5", "method": "straight_line"},
+            "proforma": {"revenue": ["1200000", "1500000", "1800000"], "gross_margin_rate": "0.40",
+                         "operating_costs": ["300000", "320000", "340000"],
+                         "depreciation": ["90000", "90000", "90000"],
+                         "interest": ["40000", "30000", "20000"],
+                         "principal_repayment": ["100000", "100000", "100000"],
+                         "tax_rate": "0.25", "opening_cash": "200000",
+                         "opening_fixed_assets": "450000", "opening_loan": "400000",
+                         "opening_equity": "250000"},
+            "sensitivity": {"base_price": "120", "base_units": "10000", "base_variable_cost": "55",
+                            "base_fixed_cost": "300000", "price_changes": ["-0.1", "0.1"],
+                            "volume_changes": ["-0.2", "0.2"]}}})
+        plan = _post(base, "/api/cases/chat/" + plan["id"] + "/draft", {"accepted": []})
+        check("business plan drafts with no missing input", plan.get("draft", {}).get("missing") == [],
+              str(plan.get("draft", {}).get("missing")))
+        export = _post(base, "/api/cases/chat/" + plan["id"] + "/export", {})
+        check("business plan exports Word bytes", bool(export.get("data")) and export.get("mime", "").endswith("wordprocessingml.document"))
     except (urllib.error.URLError, urllib.error.HTTPError, KeyError, ValueError) as error:
         print("FAIL  smoke run raised %r" % (error,))
         failures.append("exception")

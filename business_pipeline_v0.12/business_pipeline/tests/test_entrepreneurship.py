@@ -264,7 +264,7 @@ class EntrepreneurshipPage(unittest.TestCase):
             if tool["group"] not in order:
                 order.append(tool["group"])
         self.assertEqual(order, ["Market and customers", "Costs, pricing and break-even",
-                                 "Financial plan and return", "Funding and valuation",
+                                 "Operations plan", "Financial plan and return", "Funding and valuation",
                                  "Impact and options"])
         self.assertTrue(self.page["guidance"])
         self.assertIn("business plan", self.page["guidance"])

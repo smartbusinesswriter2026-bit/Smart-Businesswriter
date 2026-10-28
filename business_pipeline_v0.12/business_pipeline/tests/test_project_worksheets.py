@@ -21,6 +21,8 @@ NEW = {
     "template_wbs": "PM-09",
     "template_raci": "PM-10",
     "template_risk_register": "PM-06",
+    "template_stakeholder_plan": "PM-15",
+    "template_lessons_learned": "PM-16",
 }
 
 
@@ -44,7 +46,8 @@ class RegistrationTest(unittest.TestCase):
 
     def test_every_new_worksheet_declares_the_form_the_page_renders(self):
         expected = {"template_project_charter": "canvas", "template_wbs": "canvas",
-                    "template_raci": "matrix", "template_risk_register": "matrix"}
+                    "template_raci": "matrix", "template_risk_register": "matrix",
+                    "template_stakeholder_plan": "canvas", "template_lessons_learned": "canvas"}
         for kind, form_kind in expected.items():
             self.assertEqual(T.describe(kind)["form_kind"], form_kind, kind)
 
@@ -59,7 +62,7 @@ class RegistrationTest(unittest.TestCase):
             self.assertIn("blocks" if kind in T.CANVAS_BLOCKS else "rows",
                           described["input_help"], kind)
 
-    def test_the_pm_page_offers_all_four_and_no_record_is_repeated(self):
+    def test_the_pm_page_offers_all_six_and_no_record_is_repeated(self):
         from bp.product import subjects
 
         page = subjects.detail("project-management")

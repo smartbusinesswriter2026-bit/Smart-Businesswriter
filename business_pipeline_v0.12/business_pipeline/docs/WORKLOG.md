@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [computation/product] A business plan is a paper profile, with all its computations
+
+**Ask.** Add a complete business-plan capability: every computation a plan needs, brief upload, customisation, and an entry point from both the Entrepreneurship page (strict convention) and Home (open composition), without inventing a fact, a source or a number.
+
+**Did.** (1) Four T1 methods join the frozen core, each with a float second route and five checks: `sales_from_market`, `depreciation_schedule`, `proforma_statements` and `sensitivity_table`. The projected statements build an income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal (or an opening loan), tax, working-capital days and opening balances; the opening balance sheet must balance and an unbalanced opening is refused with the equity that would balance it, and a loan repaid faster than it is owed is refused. Presets `depreciation`, `proforma`, `frommarket`, `sensitivity`; README list, calculator slice and frozen fixture regenerated (140 methods, 142 presets, B-148). (2) `bp.product.chat` gains `PROFILE_BUSINESS_PLAN`, `PLAN_SECTIONS`, `PLAN_FIELDS` and `COMPUTATION_BLOCKS`. A plan composes student input, evidence, computation and integration sections; the Financial Plan is one H1 with its blocks as H2s. SHS requires sales from market, break-even, depreciation, projected statements and sensitivity; college adds tax, the cap table and a cost-effectiveness impact ratio. `customise` changes level, composition or (open mode only) an optional section; `set_inputs` stores the student's words; `compute` calls the attached frozen core and stores the declared inputs and result; `draft` composes the plan and never states a figure that is not in a stored result or a supplied input. (3) `paper.missing` is profile-aware: every required field and block is named, a refused block is named with its reason, and the route returns 409 with the list. (4) `documents.extract_docx` reads `word/document.xml` with the standard library; `extract_txt` handles UTF-8, UTF-16 and Windows-1252; `extract_document` dispatches PDF, DOCX, TXT and images; the brief route returns `ocr_required` rather than guessing a scan. Intake now treats `.docx` as a document. (5) The Entrepreneurship page opens the plan in strict mode; Home opens open composition; a new Plan panel renders the proposed structure, a form per block from its declared schema, the evidence review, the draft and the export gate. (6) Entrepreneurship now exposes capacity, inventory, market concentration, ratios and cost-effectiveness on the page, with the nine new tiles grouped. (7) Tests: `tests/test_business_plan_core.py` (20) and `tests/test_business_plan_profile.py` (38), plus the four methods in the sandbox/session cases; `tests/test_business_plan_profile.py` covers the hard refusals, the readers and the routes.
+
+**Verified.** `python scripts/generate_subjects.py` (158 records, 11 subjects, 143 compute tools), `python scripts/econ_shelf.py --fixture` (140 methods, 142 presets), `python scripts/generate_calc_inputs.py` (140 methods), full suite 1536 tests green, `python scripts/ci.py`. In-process plans: SHS draft has 11 H1s and the Financial Plan H2s in order; college adds Funding and Ownership and Social and Environmental Impact; an unbalanced opening balance gives `set opening_equity to 250000` and blocks export; the Word file is produced only when the gate passes. `node --check` on the served script is clean.
+
+**Files.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/product/chat.py`, `paper.py`, `api.py`, `documents.py`, `intake.py`, `subjects.py`, `src/bp/product/data/calc_inputs_v0_1.json`, `tests/fixtures/frozen_contract.json`, `src/bp/data/registry_v0_2.json`, `web/index.html`, `README.md`, `docs/CONDUCTOR_MANUAL.md`, `HANDOFF.md`, `CHANGELOG.md`, `DECISIONS.md`, `KNOWN_LIMITATIONS.md`, `CURRICULUM_MAP.md`, `ENTREPRENEURSHIP_STUDENT_GUIDE.md`, `BACKEND_CONTRACT.md`, `HOME.md`, `WORKLOG.md`, `tests/test_business_plan_core.py`, `test_business_plan_profile.py`, `test_sandbox.py`, `test_session_api.py`, `test_entrepreneurship.py`, `test_product_documents.py`.
+
+**Open/next.** A restricted set of blocks is deliberate: no monthly pro-forma, multi-product mix, disposal, group consolidation or jurisdiction tax law. The plan's market evidence depends on the source finder; a dimension with no match stays a gap. The plan builder currently asks for every declared figure as text; structured period tables would be a presentation increment, not a new computation.
+
 ## 2026-10-28 — [design] The hero's promise steps up, its proof steps aside
 
 **Ask.** On the Home page, "Your reliable business writing assistant." must be bold and slightly bigger, and "Real computation. Real research. Verifiable." must be italicised and smaller.
@@ -251,6 +263,166 @@ code. Full suite: 1234 tests pass.
 **Deliberately not done.** No ad-platform or analytics connector, no automated bidding, no incrementality or
 holdout estimation, no multi-touch causal attribution, no sequential tests, no budget recommendation. The
 method and preset contract is otherwise untouched.
+
+## 2026-10-28 — Increment 3: tree, projects and weighted-matrix editors
+
+**Ask.** "go" after Increment 2.
+
+**Did.** The decision tree is now built from alternatives and outcome rows; multi-project from project cards with
+per-project activity tables; the weighted matrix generates score rows from the criteria table with a refresh action.
+Add/remove works for each. The JSON field remains for nested decision trees and any schema without a guided form.
+
+**Verified.** Browser: decision-tree preset renders 2 alternatives, 4 outcomes, no JSON, runs to expected value
+52,000; multi-project renders 2 project cards, 4 activities, runs to overall duration 8; MCDA renders the criteria
+columns and 3 alternatives. No console errors; 1531 tests pass.
+
+## 2026-10-28 — Result polish: key numbers and direct exports
+
+**Ask.** "go" after Increment 1: finish the student result screen.
+
+**Did.** The result now shows **What this means**, a method-specific **Key numbers** table and the actions Save, View the
+Gantt (CPM), Download spreadsheet (XLSX), Download Gantt (SVG) and Charts and exports. Saving uses a non-navigating
+persist step so the download buttons reuse the same case; the full artifact table stays under **For audit**.
+
+**Verified.** Browser: CPM run shows duration 12, 3 critical activities and 4 activities; XLSX export wrote
+`exports/<id>.xlsx`; the SVG button renders the client Gantt; no console errors. 1467 tests at the time of the
+increment; the concurrent `proforma_statements`/`costeffectiveness` method wiring is not part of this change.
+
+## 2026-10-28 — Student UX layer: guided Home, plain tiles, table editors
+
+**Ask.** "increment 1 with student UX": make the UI intuitive for a business student, with guidance and explainers.
+
+**Did.** Home now explains the three steps and links the PM worked example. The PM page leads with a six-step Start here
+and states what it does not do. Tool tiles say what the student needs and whether an example is loaded; the method and
+preset ids are gone from the first layer. The tool screen has a Before-you-start card, a note that the example is loaded
+and a Clear action. Activities, resources, criteria, cash-flow and variable distributions are table editors with add and
+remove rows; projects, decision trees and MCDA score maps keep JSON as an advanced fallback. Worksheets show their own
+before-you-start line (RACI legend, risk-label rule). Results gain View the Gantt and a "For audit" technical record.
+
+**Verified.** Browser smoke pass: Home explainer, subject start steps and 18 need lines, CPM table with four rows, run,
+result, View the Gantt with arrows; no console errors. `test_product_subjects` checks the new copy fields and static
+markers. 1467 tests pass at the time of the increment (the concurrent `proforma_statements` method was still being
+wired by another session and is not part of this change).
+
+## 2026-10-28 — Renderer extras: Gantt arrows, client SVG and XLSX bars
+
+**Ask.** "renderer extras".
+
+**Did.** Gantt specs accept declared `dependencies` and the server draws validated arrows; the Charts panel
+renders the same spec client-side from the case's stored dates (no model, no new dependency); the XLSX Schedule
+sheet adds a coloured bar strip (critical red, normal blue) when every date is a whole period. Also restored the
+core-computation boundary: the chat break-even section now calls a frozen-core callable attached by the server
+instead of doing the arithmetic in the product layer.
+
+**Verified.** New tests for dependency arrows, unknown-endpoint refusal, the XLSX fill strip and the chat
+boundary; the product package still imports no core module. 1467 tests pass; no method, input, check or number
+changed.
+
+**Still open.** Arbitrary-formula simulation, correlated inputs and fitted distributions; no computed PM gap
+remains in the named scope.
+
+## 2026-10-28 — Generic Monte Carlo for non-schedule decisions
+
+**Ask.** "generic Monte Carlo".
+
+**Did.** One T1 method, `monte_carlo`, with two declared models: NPV of uncertain cash flows and profit =
+(price - variable cost) x volume - fixed cost. Inputs are fixed, uniform or triangular distributions; the run is
+seeded and reports the mean, P10/P50/P90, range, positive share and observed input bounds. Five frozen checks,
+refusals, notes and preset `montecarlo`.
+
+**Verified.** Seeded NPV example: mean -9.20, P50 -9.63, P90 143.57, 46.5% positive. Profit example: mean
+120.76, 84.2% positive. A different seed changes the sample. 1465 tests pass; frozen fixture 136 methods and
+138 presets. No existing method, input, check or number changed.
+
+**Still open.** Dependency arrows, client-side Gantt and the XLSX bar strip; no generic arbitrary-formula
+simulation, correlation or fitted distributions.
+
+## 2026-10-28 — Decision batch C: decision tree, real option, weighted matrix
+
+**Ask.** "start batch C".
+
+**Did — methods.** `decision_tree` (rollback of a declared decision/chance/terminal tree with loss probability and range),
+`real_option` (Cox-Ross-Rubinstein call/put, European or American, with delta) and `multi_criteria` (weighted totals and
+ranks from declared criteria, weights and scores). Each has a float second route, five frozen checks, refusals, notes
+and a preset (`decisiontree`, `realoption`, `mcda`).
+
+**Verified.** Hand checks: Launch EV 52 against Pilot 29.5; five-step American call 14.79 with delta 0.617; weighted
+totals 7.4, 7.2, 7.0. 1454 tests pass; frozen fixture 135 methods and 137 presets. Also removed a product-layer
+import of the frozen core from the chat break-even helper.
+
+**Still open.** Generic Monte Carlo outside scheduling; dependency arrows, client-side Gantt and the XLSX bar strip.
+
+## 2026-10-28 — Project scheduling batch B: multi-project and schedule risk
+
+**Ask.** "b" after batch A.
+
+**Did — methods.** `multi_project_schedule`: priority-ordered serial scheduling across shared resource capacities, with
+every activity start/finish, each project finish and delay against its own CPM, and the overall duration.
+`schedule_risk`: a seeded Monte Carlo over independent triangular PERT durations, with mean, median, P80/P90,
+observed range, target probability and each activity's criticality index. Both have a float second route,
+five and six frozen checks, refusals, notes and presets `multiproject`/`schedrisk`.
+
+**Verified.** Hand-checked examples: two projects sharing a crew finish at 4 and 8; 1,000 seeded runs give a
+mean of 7.71, P80 of 8.46 and 92.9% within nine periods. A different seed changes the sample. 1446 tests pass;
+the frozen fixture is 132 methods and 134 presets. No existing method, input, check or number changed.
+
+**Still open.** Dependency arrows, client-side Gantt and the XLSX bar strip; the decision batch (Monte Carlo
+outside scheduling, decision trees, real options, multi-criteria scoring).
+
+## 2026-10-28 — Project scheduling batch A: levelling, crashing and calendars
+
+**Ask.** "start batch A" of the remaining PM computation gaps.
+
+**Did — methods.** Three T1 methods, each with a float second route and five frozen checks:
+- `resource_leveling`: serial non-preemptive scheduling against declared resource capacities; levelled starts and
+  finishes, delays, levelled vs unconstrained duration, over-capacity periods and peak demand before/after.
+- `project_crashing`: greedy one-period crashing of the cheapest critical activity with a linear crash cost;
+  final durations, crash periods, per-activity and total cost to a declared target.
+- `calendar_schedule`: CPM over a declared working-period list, with early/late dates, float and critical path.
+
+**Did — wiring.** Presets `leveling`, `crashing`, `calendar`; PM Schedule and control tools; Calculator
+Operations group; student notes; README; frozen fixture regenerated (130 methods, 132 presets).
+
+**Verified.** New `tests/test_project_batch_a.py` covers the hand-checked examples (7 vs 5 periods after
+levelling; 7 periods at cost 130 after crashing; 7 calendar periods with a two-period gap), four refusals and
+the three presets through the pipeline. 1438 tests pass. No existing method, input, check or number changed.
+
+**Still open.** Multi-project scheduling and schedule-risk simulation; dependency arrows, client-side Gantt
+and the XLSX bar strip; the decision batch (Monte Carlo, decision trees, real options, multi-criteria).
+
+## 2026-10-28 — Stakeholder/communication and lessons-learned worksheets
+
+**Ask.** "close 1-3", starting with the two missing delivery documents.
+
+**Did.** Two catalogue records (PM-15 stakeholder engagement and communication plan, PM-16 lessons learned) and two T4 canvas worksheets. The stakeholder
+sheet covers stakeholders, interests, evidenced influence, engagement approach, messages, channels, timing, owner and communication risks; the lessons
+sheet covers what went well and what did not, the evidenced cause, the change, its owner, the audience and the evidence. Empty blocks and assumptions
+are named; no score, rank or blame is derived. Registry regenerated from the source (158 records); PM page now 9 tools, 6 worksheets, 10 read-only records.
+
+**Verified.** `test_project_worksheets` now covers six templates; registry counts and the PM composition test updated; 1427 tests pass. No computed
+method, preset, check or frozen-contract entry changed.
+
+**Still open.** Resource levelling, crashing, calendars, multi-project scheduling, schedule-risk simulation; Monte Carlo, decision trees, real options,
+multi-criteria scoring.
+
+## 2026-10-28 — Project management Gantt and schedule workbook
+
+**Ask.** "close remaining PM gaps", after the answer that a third-party model is the wrong tool for drawing.
+
+**Did — chart.** New `gantt` kind in `bp.product.charts`: one bar per activity from stored `es_`/`ef_` artifacts,
+critical path in red, float as a thin whisker, shared time axis, deterministic SVG, digit-free labels and
+refusals for a missing artifact or a finish before the start. The Charts panel offers "gantt (CPM schedule)"
+and builds the spec from the case artifacts; no model, no browser arithmetic.
+
+**Did — workbook.** SpreadsheetML and XLSX exports add a `Schedule` sheet (activity, early/late start and
+finish, float, critical) when CPM artifacts are present, copied from the stored strings.
+
+**Verified.** Five new tests: stored dates and critical colour, determinism, finish-before-start, missing
+artifact, digit label, and the Schedule sheet. 1426 tests pass. No method, preset, input, check, number or
+frozen-contract entry changed.
+
+**Still not built.** Resource levelling, crashing, calendars, multi-project scheduling, schedule-risk
+simulation; stakeholder/communication-plan and lessons-learned worksheets.
 
 ## 2026-10-28 — Project management delivery worksheets: charter, WBS, RACI and risk register
 

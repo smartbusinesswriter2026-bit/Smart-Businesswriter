@@ -43,6 +43,8 @@ def flatten(sections):
 
 def missing(state, implications=""):
     """What must be supplied before export.  Evidence gaps are not blockers."""
+    if state.get("profile") == "business_plan":
+        return _plan_missing(state)
     answers = state.get("answers") or {}
     framework = state.get("framework") or "pestel"
     required = []
@@ -56,7 +58,33 @@ def missing(state, implications=""):
     return required
 
 
-def check(sections, framework="pestel", implications="", answers=None):
+def _plan_missing(state):
+    """A business plan needs its student fields and every required block.
+
+    A computation that refused is named with its reason, so an unbalanced
+    opening balance sheet or a loan repaid faster than it is owed blocks export
+    instead of being hidden.
+    """
+    plan = state.get("plan") or {}
+    supplied = (state.get("answers") or {}).get("inputs") or {}
+    required = []
+    for field in plan.get("fields") or []:
+        if field.get("required") and not supplied.get(field.get("key")):
+            required.append(field.get("label") or field.get("key"))
+    results = state.get("computations") or {}
+    for block in plan.get("blocks") or []:
+        if not block.get("required"):
+            continue
+        data = results.get(block.get("key"))
+        if not data:
+            required.append("the " + str(block.get("label") or block.get("key")).lower() + " computation")
+        elif not data.get("ok"):
+            required.append(str(block.get("label") or block.get("key")) + ": " +
+                             str(data.get("error") or "the computation did not run"))
+    return required
+
+
+def check(sections, framework="pestel", implications="", answers=None, state=None):
     """Structural coherence checks.  Returns high/medium/low issues."""
     issues = []
     seen_h1 = False
@@ -83,7 +111,8 @@ def check(sections, framework="pestel", implications="", answers=None):
     if not any(item.get("heading") in ("References", "Bibliography") for item in sections):
         issues.append({"type": "missing_references", "severity": "high",
                        "detail": "The paper has no reference list."})
-    required = missing({"framework": framework, "answers": answers or {}}, implications)
+    target = state if isinstance(state, dict) else {"framework": framework, "answers": answers or {}}
+    required = missing(target, implications)
     for item in required:
         issues.append({"type": "missing_input", "severity": "high",
                        "detail": "Required before export: %s." % item})

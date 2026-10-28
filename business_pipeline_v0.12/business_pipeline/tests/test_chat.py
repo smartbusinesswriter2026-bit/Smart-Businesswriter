@@ -13,7 +13,10 @@ from unittest import mock
 import sys
 sys.path.insert(0, "src")
 
+from bp.methods import breakeven as core_breakeven  # noqa: E402  (test-side core import)
 from bp.product import api, chat  # noqa: E402
+
+chat.set_compute(core_breakeven)
 
 
 BRIEF = ("A grocery chain is considering entering the Saudi market and needs to assess the "
@@ -286,6 +289,7 @@ class FiveForcesTest(unittest.TestCase):
     def answer_five(self):
         state = chat.start(self.BRIEF, framework="five_forces_breakeven")
         for question_id, value in (("decision", "Should the chain acquire the provider?"),
+                                   ("industry", "grocery retail"),
                                    ("geography", "Middle East"), ("period", "5"), ("style", "apa"),
                                    ("fixed", "2000000"), ("price", "40"), ("variable", "28"),
                                    ("expected", "250000")):
@@ -295,7 +299,7 @@ class FiveForcesTest(unittest.TestCase):
     def test_the_combination_asks_for_the_break_even_inputs(self):
         state = chat.start(self.BRIEF, framework="five_forces_breakeven")
         self.assertEqual([q["id"] for q in state["questions"]],
-                         ["decision", "geography", "period", "style", "fixed", "price", "variable", "expected"])
+                         ["decision", "industry", "geography", "period", "style", "fixed", "price", "variable", "expected"])
         self.assertEqual(chat.start(self.BRIEF)["framework"], "five_forces_breakeven")
 
     def test_the_plan_lists_the_five_forces(self):
@@ -320,9 +324,9 @@ class FiveForcesTest(unittest.TestCase):
 
     def test_a_price_below_variable_cost_is_refused(self):
         state = chat.start(self.BRIEF, framework="five_forces_breakeven")
-        for question_id, value in (("decision", "Should the chain acquire?"), ("geography", "Middle East"),
-                                   ("period", "5"), ("style", "apa"), ("fixed", "100"),
-                                   ("price", "20"), ("variable", "30")):
+        for question_id, value in (("decision", "Should the chain acquire?"), ("industry", "grocery retail"),
+                                   ("geography", "Middle East"), ("period", "5"), ("style", "apa"),
+                                   ("fixed", "100"), ("price", "20"), ("variable", "30")):
             state = chat.answer(state, question_id, value)
         state = chat.answer(state, "expected", "")
         with self.assertRaises(chat.ChatError):

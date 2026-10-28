@@ -45,7 +45,7 @@ ID_RE = re.compile(r"[0-9a-f]{12}")
 STRUCTURED_EXT = (".csv", ".tsv", ".txt", ".xlsx", ".xlsm")
 
 #: Extensions stored as documents that can be read only on an explicit extract request.
-DOCUMENT_EXT = (".pdf", ".png", ".jpg", ".jpeg")
+DOCUMENT_EXT = (".pdf", ".docx", ".png", ".jpg", ".jpeg")
 
 #: Extensions accepted for storage but never read (explicit notes below).
 LEGACY_NOTE = "Legacy .xls is not read; save the workbook as .xlsx to ingest it."
@@ -307,7 +307,7 @@ def extract(file_id):
     _, raw = payload(file_id)
     ext = record.get("ext") or ""
     try:
-        result = documents.extract_pdf(raw) if ext == ".pdf" else documents.extract_image(raw, ext)
+        result = documents.extract_document(raw, "attachment" + ext)
     except documents.DocumentError as error:
         record["status"] = "reference_only"
         record["error"] = str(error)

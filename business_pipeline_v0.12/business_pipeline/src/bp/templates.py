@@ -324,6 +324,26 @@ CANVAS_BLOCKS = {
         "acceptance": ("Acceptance criteria", "The test that shows a deliverable or work package is complete"),
         "exclusions": ("Exclusions", "Work the WBS deliberately leaves out"),
     },
+    "template_stakeholder_plan": {
+        "stakeholders": ("Stakeholders", "Who is affected by the project or can affect it"),
+        "interests": ("Interests and concerns", "What each stakeholder wants, fears or needs from the project"),
+        "influence": ("Influence and impact", "The influence and impact labels you assign, with the evidence for them"),
+        "engagement": ("Engagement approach", "How you will engage: inform, consult, involve or collaborate"),
+        "messages": ("Key messages", "What each stakeholder needs to hear, in plain terms"),
+        "channels": ("Channels", "The route the message takes: meeting, email, notice, report or one-to-one"),
+        "frequency": ("Timing and frequency", "When and how often the communication happens, tied to milestones"),
+        "owners": ("Communication owner", "Who is responsible for each message or channel"),
+        "risks": ("Communication risks", "What could make the communication fail, and the response"),
+    },
+    "template_lessons_learned": {
+        "went_well": ("What went well", "Practices, decisions or behaviours that worked and should be repeated"),
+        "went_poorly": ("What did not go well", "What failed, slipped or caused avoidable cost"),
+        "causes": ("Why it happened", "The cause you can evidence, not blame"),
+        "changes": ("What to change next time", "The specific change the next project should make"),
+        "actions": ("Actions and owners", "Who will make the change, and by when"),
+        "share": ("Who should see this", "The teams or roles that need the lesson"),
+        "evidence": ("Evidence", "Records, incidents, change requests or data behind the lesson"),
+    },
 }
 
 CANVAS_META = {
@@ -412,6 +432,18 @@ CANVAS_META = {
         "unsupported_use": "Inventing deliverables or acceptance criteria; estimating effort or cost for you; drawing a tree or Gantt; computing a total, a duration or a critical path; deciding the decomposition is complete.",
         "extra_help": "links: optional list of {from, to} item ids, normally a work package to its deliverable. The worksheet records the hierarchy you declare; it does not draw a tree, sum estimates or prove that the breakdown is mutually exclusive and complete.",
     },
+    "template_stakeholder_plan": {
+        "name": "Stakeholder engagement and communication plan with an evidence audit", "short": "stakeholder and communication plan", "registry_ids": ["PM-15"],
+        "intended_use": "List the stakeholders, their interests and the influence you can evidence, then record how you will engage them, what you will say, through which channel, how often and who owns it. Empty blocks are named.",
+        "unsupported_use": "Inventing stakeholders, interests, influence, messages or owners; scoring stakeholders; choosing an engagement strategy for you; guaranteeing that a stakeholder will be satisfied.",
+        "extra_help": "The influence and impact entries are labels you declare with their evidence, not a computed power-interest score. A stakeholder with no owner or channel is shown as a gap.",
+    },
+    "template_lessons_learned": {
+        "name": "Lessons learned with a cause and action audit", "short": "lessons learned", "registry_ids": ["PM-16"],
+        "intended_use": "Record what went well and what did not, the cause you can evidence, the specific change for the next project, who owns it and who should see the lesson.",
+        "unsupported_use": "Assigning blame, scoring the project, inventing a cause without evidence, or writing an action with no owner; turning a lesson into a claim about a person.",
+        "extra_help": "A lesson without an action is named as a gap; an action without an owner is named too. The worksheet records causes you can evidence and does not infer motive.",
+    },
 }
 CANVAS_MAX_ITEMS_PER_BLOCK = 20
 
@@ -433,6 +465,10 @@ CANVAS_PREFIXES = {
                                  "governance": "GOV", "budget": "BUD", "milestones": "MS", "success_measures": "SM",
                                  "assumptions": "AS", "constraints": "CON"},
     "template_wbs": {"deliverables": "DEL", "work_packages": "WP", "acceptance": "AC", "exclusions": "EX"},
+    "template_stakeholder_plan": {"stakeholders": "STK", "interests": "INT", "influence": "INF", "engagement": "ENG",
+                                  "messages": "MSG", "channels": "CH", "frequency": "FQ", "owners": "OWN", "risks": "CR"},
+    "template_lessons_learned": {"went_well": "LW", "went_poorly": "LP", "causes": "CA", "changes": "CHG",
+                                 "actions": "ACT", "share": "SH", "evidence": "EV"},
     "template_kano": {"must_be": "MB", "performance": "PF", "attractive": "AT", "indifferent": "IN", "reverse": "RV"},
     "template_paid_media_plan": {"objective": "OBJ", "audience": "AUD", "channels_placements": "CHP", "budget_bid": "BUD",
                                  "creative_variants": "CRE", "conversion_definition": "CONV", "measurement": "MSR"},
@@ -1462,6 +1498,36 @@ EXAMPLES = {
                   {"row": "D2", "column": "C1", "text": "Under five minutes", "provenance": "assumption"},
                   {"row": "D2", "column": "C2", "text": "About eight minutes at noon", "provenance": "synthetic"},
                   {"row": "D3", "column": "C2", "text": "Clean and visibly freshly cooked", "provenance": "synthetic"}]}},
+    "template_stakeholder_plan": {"objective": "Plan stakeholder communication for the meal counter project", "method": "template_stakeholder_plan", "inputs": {
+        "blocks": {
+            "stakeholders": [{"text": "Student affairs office", "provenance": "synthetic", "id": "STK1"},
+                             {"text": "Students using the gate", "provenance": "synthetic", "id": "STK2"},
+                             {"text": "Food-handling inspector", "provenance": "synthetic", "id": "STK3"}],
+            "interests": [{"text": "The office needs the counter to open on schedule", "provenance": "synthetic"},
+                          {"text": "Students want a fast, affordable meal", "provenance": "synthetic"},
+                          {"text": "The inspector needs the permit conditions met", "provenance": "synthetic"}],
+            "influence": [{"text": "High influence: the office approves the site and the budget", "provenance": "synthetic"},
+                          {"text": "Medium influence: students choose whether to buy", "provenance": "synthetic"}],
+            "engagement": [{"text": "Collaborate with the student affairs office", "provenance": "synthetic"},
+                           {"text": "Inform students through class-group chats", "provenance": "synthetic"}],
+            "messages": [{"text": "The counter opens on the published date", "provenance": "synthetic"},
+                         {"text": "Orders can be placed ahead and collected without queuing", "provenance": "synthetic"}],
+            "channels": [{"text": "A short email to the office", "provenance": "synthetic"},
+                         {"text": "Class-group chat and a poster at the gate", "provenance": "synthetic"}],
+            "frequency": [{"text": "A weekly update to the office until opening", "provenance": "synthetic"},
+                          {"text": "A daily message to students in the first week", "provenance": "synthetic"}],
+            "owners": [{"text": "Project lead owns the office updates", "provenance": "synthetic"},
+                       {"text": "Counter supervisor owns the student messages", "provenance": "synthetic"}],
+            "risks": [{"text": "The opening date slips and students arrive at a closed counter", "provenance": "assumption"}]}}},
+    "template_lessons_learned": {"objective": "Record lessons from the meal counter opening", "method": "template_lessons_learned", "inputs": {
+        "blocks": {
+            "went_well": [{"text": "Pre-orders cut the lunch queue", "provenance": "synthetic"}],
+            "went_poorly": [{"text": "The permit arrived two weeks late", "provenance": "synthetic"}],
+            "causes": [{"text": "The permit application was submitted after the fit-out started", "provenance": "synthetic"}],
+            "changes": [{"text": "Submit permits in the first week, before any fit-out", "provenance": "synthetic"}],
+            "actions": [{"text": "Project lead adds a permit milestone to the next charter", "provenance": "synthetic"}],
+            "share": [{"text": "The next campus food project team", "provenance": "synthetic"}],
+            "evidence": [{"text": "The permit log and the change request", "provenance": "synthetic"}]}}},
 }
 
 

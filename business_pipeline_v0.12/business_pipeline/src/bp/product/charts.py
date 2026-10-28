@@ -14,7 +14,12 @@ that is not already recorded.  Rules, all enforced:
 * geometry arithmetic (bar lengths, point positions) is rendering-only: the
   labels a reader sees are the stored strings, verbatim.
 
-Kinds: bar, line, stacked_bar, waterfall, pie, sparkline, table.
+Kinds: bar, line, stacked_bar, waterfall, pie, sparkline, table, gantt.
+
+A Gantt chart is drawn from the stored CPM artifacts: each activity names its
+early-start and early-finish artifact, and optionally its float and critical
+flag.  The drawing scales those stored values into the frame; it does not
+schedule, level resources or infer a dependency.
 """
 
 import html
@@ -24,7 +29,7 @@ from decimal import Decimal, InvalidOperation
 from . import export as case_export
 
 FORMAT = "bp-chart/1"
-KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table")
+KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table", "gantt")
 WIDTH, HEIGHT = 720, 300
 PALETTE = ("#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948", "#b07aa1", "#9c755f")
 _DIGIT = re.compile(r"\d")
@@ -84,6 +89,45 @@ def validate_spec(spec):
         _text(spec["x_label"], "x axis label")
     if spec.get("y_label") is not None:
         _text(spec["y_label"], "y axis label")
+    if kind == "gantt":
+        activities = spec.get("activities")
+        if not isinstance(activities, list) or not activities:
+            raise ChartError("a gantt chart needs a non-empty 'activities' list")
+        clean = []
+        for index, entry in enumerate(activities, 1):
+            where = "activities[%d]" % (index - 1)
+            if not isinstance(entry, dict):
+                raise ChartError("%s must be an object" % where)
+            label = _text(entry.get("label"), "%s label" % where)
+            for key in ("start", "end"):
+                if not isinstance(entry.get(key), str) or not entry[key].strip():
+                    raise ChartError("%s needs a stored artifact id in %r" % (where, key))
+            for key in ("float", "critical"):
+                if entry.get(key) is not None and (not isinstance(entry[key], str) or not entry[key].strip()):
+                    raise ChartError("%s %r must be a stored artifact id when supplied" % (where, key))
+            identifier = entry.get("id") or label
+            if not isinstance(identifier, str) or not identifier.strip():
+                raise ChartError("%s id must be text when supplied" % where)
+            clean.append({"id": identifier.strip(), "label": label, "start": entry["start"].strip(),
+                          "end": entry["end"].strip(), "float": (entry.get("float") or "").strip() or None,
+                          "critical": (entry.get("critical") or "").strip() or None})
+        identifiers = [item["id"] for item in clean]
+        if len(set(identifiers)) != len(identifiers):
+            raise ChartError("gantt activity ids must be unique")
+        raw_dependencies = spec.get("dependencies") or []
+        if not isinstance(raw_dependencies, list):
+            raise ChartError("gantt dependencies must be a list")
+        dependencies = []
+        for index, dep in enumerate(raw_dependencies, 1):
+            if not isinstance(dep, dict):
+                raise ChartError("dependencies[%d] must be an object" % (index - 1))
+            source, target = dep.get("from"), dep.get("to")
+            if source not in identifiers or target not in identifiers:
+                raise ChartError("dependencies[%d] must name two activities in this chart" % (index - 1))
+            if source == target:
+                raise ChartError("dependencies[%d] cannot link an activity to itself" % (index - 1))
+            dependencies.append({"from": source, "to": target})
+        return kind, title, {"activities": clean, "dependencies": dependencies}
     series = spec.get("series")
     if kind != "table":
         if not isinstance(series, list) or not series:
@@ -241,6 +285,82 @@ def _pie(series, title):
     return _frame(title, "".join(body))
 
 
+def _gantt(payload, rows, title):
+    """Bars from stored early dates, with the critical path, float and declared dependencies."""
+    activities = payload["activities"]
+    resolved = []
+    for entry in activities:
+        start_row = _row_for(rows, entry["start"])
+        end_row = _row_for(rows, entry["end"])
+        start = _number(start_row, entry["start"])
+        end = _number(end_row, entry["end"])
+        if start < 0 or end < start:
+            raise ChartError("activity %r has an early finish before its early start" % entry["label"])
+        float_value = _number(_row_for(rows, entry["float"]), entry["float"]) if entry["float"] else Decimal(0)
+        critical = _number(_row_for(rows, entry["critical"]), entry["critical"]) if entry["critical"] else Decimal(0)
+        resolved.append({"id": entry["id"], "label": entry["label"], "start": start, "end": end,
+                         "float": float_value, "critical": critical != 0,
+                         "start_stored": str(start_row.get("value")),
+                         "end_stored": str(end_row.get("value"))})
+    horizon = max(item["end"] + item["float"] for item in resolved) or Decimal(1)
+    left, right, top, bottom = 250, WIDTH - 40, 76, HEIGHT - 58
+    row_height = (bottom - top) / max(1, len(resolved))
+    scale = float((right - left) / horizon) if horizon else 1.0
+    body = []
+    step = max(1, int(float(horizon) / 8) + 1)
+    body.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c9c4"/>' % (left, top, left, bottom))
+    for tick in range(0, int(horizon) + 1, step):
+        x = left + tick * scale
+        body.append('<line x1="%s" y1="%d" x2="%s" y2="%d" stroke="#e6e6e1"/>'
+                    % (_fmt(x), top, _fmt(x), bottom))
+        body.append('<text x="%s" y="%d" text-anchor="middle" font-family="Consolas, monospace" font-size="11" '
+                    'fill="#555550">%d</text>' % (_fmt(x), bottom + 18, tick))
+    for index, item in enumerate(resolved):
+        y = top + row_height * index + row_height * 0.18
+        height = row_height * 0.52
+        body.append('<text x="24" y="%s" font-family="Georgia, serif" font-size="13" fill="#1b1b1b">%s</text>'
+                    % (_fmt(y + height * 0.7), html.escape(item["label"], quote=False)))
+        body.append('<text x="24" y="%s" font-family="Consolas, monospace" font-size="11" fill="#555550">%s</text>'
+                    % (_fmt(y + height * 0.7 + 13),
+                       html.escape("%s to %s" % (item["start_stored"], item["end_stored"]), quote=False)))
+        x = left + float(item["start"]) * scale
+        width = max(2.0, float(item["end"] - item["start"]) * scale)
+        colour = "#e15759" if item["critical"] else PALETTE[index % len(PALETTE)]
+        body.append('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" rx="2"/>'
+                    % (_fmt(x), _fmt(y), _fmt(width), _fmt(height), colour))
+        if item["float"]:
+            end_x = x + width
+            float_x = end_x + float(item["float"]) * scale
+            mid = y + height / 2.0
+            body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#7a7a75" stroke-width="2"/>'
+                        % (_fmt(end_x), _fmt(mid), _fmt(float_x), _fmt(mid)))
+            body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#7a7a75" stroke-width="2"/>'
+                        % (_fmt(float_x), _fmt(mid - 5), _fmt(float_x), _fmt(mid + 5)))
+    positions = {}
+    for index, item in enumerate(resolved):
+        y = top + row_height * index + row_height * 0.18
+        height = row_height * 0.52
+        x = left + float(item["start"]) * scale
+        width = max(2.0, float(item["end"] - item["start"]) * scale)
+        positions[item["id"]] = {"start": x, "end": x + width, "mid": y + height / 2.0}
+    for dependency in payload["dependencies"]:
+        source, target = positions[dependency["from"]], positions[dependency["to"]]
+        bend = max(source["end"] + 8, target["start"] - 10)
+        body.append('<polyline points="%s,%s %s,%s %s,%s %s,%s" fill="none" stroke="#7a7a75" '
+                    'stroke-width="1.5"/>'
+                    % (_fmt(source["end"]), _fmt(source["mid"]), _fmt(bend), _fmt(source["mid"]),
+                       _fmt(bend), _fmt(target["mid"]), _fmt(target["start"] - 6), _fmt(target["mid"])))
+        body.append('<path d="M%s,%s L%s,%s L%s,%s Z" fill="#7a7a75"/>'
+                    % (_fmt(target["start"]), _fmt(target["mid"]),
+                       _fmt(target["start"] - 6), _fmt(target["mid"] - 4),
+                       _fmt(target["start"] - 6), _fmt(target["mid"] + 4)))
+    body.append('<text x="24" y="%d" font-family="Georgia, serif" font-size="11" fill="#555550">'
+                'Bars are the stored early dates; red marks the critical path, the thin line is float and '
+                'arrows are the declared dependencies.</text>'
+                % (HEIGHT - 34))
+    return _frame(title, "".join(body))
+
+
 def _table(rows, title):
     body, y = [], 62
     header = ("Artifact", "Metric", "Unit", "Value", "Derivation")
@@ -260,10 +380,12 @@ def _table(rows, title):
 
 def render_svg(bundle, spec):
     """Draw one chart as deterministic SVG. Returns the SVG string."""
-    kind, title, _ = validate_spec(spec)
+    kind, title, payload = validate_spec(spec)
     rows = _stored_rows(bundle)
     if kind == "table":
         return _table(rows, title)
+    if kind == "gantt":
+        return _gantt(payload, rows, title)
     series = _series_values(spec, rows)
     if kind == "bar":
         return _bar(series, title)

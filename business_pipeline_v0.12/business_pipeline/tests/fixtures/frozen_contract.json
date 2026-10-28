@@ -170,6 +170,24 @@
         "nominal_growth_rate"
       ]
     },
+    "calendar_schedule": {
+      "tier": "T1",
+      "metric": "project_duration",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "precedence_is_respected",
+        "every_working_period_is_used",
+        "critical_activities_have_zero_float",
+        "the_calendar_cannot_shorten_the_work"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "activities",
+        "working_periods"
+      ]
+    },
     "campaign_efficiency": {
       "tier": "T1",
       "metric": "roas",
@@ -522,6 +540,23 @@
         "timing"
       ]
     },
+    "decision_tree": {
+      "tier": "T1",
+      "metric": "expected_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "chance_probabilities_sum_to_one",
+        "the_root_value_is_the_best_alternative",
+        "every_alternative_has_a_probability_and_a_range",
+        "the_best_index_points_to_the_highest_value"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "decision analysis",
+      "inputs": [
+        "tree"
+      ]
+    },
     "demand_curve": {
       "tier": "T1",
       "metric": "slope",
@@ -558,6 +593,27 @@
         "demand_slope",
         "supply_intercept",
         "supply_slope"
+      ]
+    },
+    "depreciation_schedule": {
+      "tier": "T1",
+      "metric": "total_depreciation",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "depreciation_never_takes_carrying_below_salvage",
+        "accumulated_depreciation_is_the_running_total",
+        "the_schedule_reaches_salvage_at_the_end",
+        "period_depreciation_sums_to_the_total"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "management accounting",
+      "inputs": [
+        "cost",
+        "declining_rate",
+        "life",
+        "method",
+        "salvage"
       ]
     },
     "descriptive_stats": {
@@ -1319,6 +1375,48 @@
         "reserve_ratio"
       ]
     },
+    "monte_carlo": {
+      "tier": "T1",
+      "metric": "mean_result",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_and_seed_agree",
+        "sampled_inputs_stay_within_their_bounds",
+        "percentiles_are_ordered",
+        "the_mean_lies_between_the_observed_extremes",
+        "the_positive_probability_matches_the_count"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "decision analysis",
+      "inputs": [
+        "cashflows",
+        "discount_rate",
+        "fixed_cost",
+        "iterations",
+        "model",
+        "seed",
+        "variables"
+      ]
+    },
+    "multi_criteria": {
+      "tier": "T1",
+      "metric": "best_total",
+      "unit": "score",
+      "test_names": [
+        "second_implementation_agrees",
+        "weights_sum_to_one",
+        "every_score_is_within_the_scale",
+        "each_total_is_the_weighted_sum",
+        "ranks_are_a_permutation_and_the_best_has_the_highest_total"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "decision analysis",
+      "inputs": [
+        "alternatives",
+        "criteria",
+        "scale_max"
+      ]
+    },
     "multi_product_breakeven": {
       "tier": "T1",
       "metric": "breakeven_total_units",
@@ -1335,6 +1433,24 @@
       "inputs": [
         "fixed_costs",
         "products"
+      ]
+    },
+    "multi_project_schedule": {
+      "tier": "T1",
+      "metric": "overall_duration",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "no_period_exceeds_a_resource_capacity",
+        "precedence_within_each_project_is_respected",
+        "no_project_finishes_before_its_unconstrained_duration",
+        "every_activity_is_scheduled_exactly_once"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "projects",
+        "resources"
       ]
     },
     "multiple_comparison": {
@@ -1856,6 +1972,62 @@
         "quadratic_cost"
       ]
     },
+    "proforma_statements": {
+      "tier": "T1",
+      "metric": "total_net_income",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "gross_profit_is_revenue_times_the_margin",
+        "net_income_is_operating_profit_less_interest_and_tax",
+        "the_balance_sheet_balances_every_period",
+        "cash_and_equity_roll_forward",
+        "a_declared_loan_is_repaid_in_full"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "business planning",
+      "inputs": [
+        "capex",
+        "depreciation",
+        "gross_margin_rate",
+        "interest",
+        "inventory_days",
+        "loan_annual_rate",
+        "loan_principal",
+        "loan_years",
+        "opening_cash",
+        "opening_equity",
+        "opening_fixed_assets",
+        "opening_inventory",
+        "opening_loan",
+        "opening_payables",
+        "opening_receivables",
+        "operating_costs",
+        "payable_days",
+        "principal_repayment",
+        "receivable_days",
+        "revenue",
+        "tax_rate"
+      ]
+    },
+    "project_crashing": {
+      "tier": "T1",
+      "metric": "total_crash_cost",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "target_duration_is_met",
+        "every_activity_stays_within_its_crash_limits",
+        "total_cost_is_the_sum_of_the_activity_costs",
+        "recomputed_network_matches_the_crashed_duration"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "activities",
+        "target_duration"
+      ]
+    },
     "project_metrics": {
       "tier": "T1",
       "metric": "npv",
@@ -1998,6 +2170,30 @@
         "total_liabilities"
       ]
     },
+    "real_option": {
+      "tier": "T1",
+      "metric": "option_value",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "the_option_is_worth_at_least_its_intrinsic_value",
+        "the_value_respects_its_upper_bound",
+        "the_risk_neutral_probability_is_a_probability",
+        "delta_has_the_sign_of_the_option"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "exercise",
+        "horizon_years",
+        "investment_cost",
+        "option_type",
+        "risk_free_rate",
+        "steps",
+        "underlying_value",
+        "volatility"
+      ]
+    },
     "regression_discontinuity": {
       "tier": "T1",
       "metric": "estimate",
@@ -2032,6 +2228,24 @@
       "category": "measurement",
       "inputs": [
         "items"
+      ]
+    },
+    "resource_leveling": {
+      "tier": "T1",
+      "metric": "levelled_duration",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_agrees",
+        "no_period_exceeds_a_resource_capacity",
+        "precedence_is_respected",
+        "no_activity_starts_before_its_cpm_early_start",
+        "levelling_never_shortens_the_project"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "activities",
+        "resources"
       ]
     },
     "return_on_investment": {
@@ -2090,6 +2304,25 @@
         "portfolio_value",
         "returns",
         "stress_return"
+      ]
+    },
+    "sales_from_market": {
+      "tier": "T1",
+      "metric": "target_revenue",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "target_revenue_is_the_share_of_the_market",
+        "target_units_are_revenue_over_price",
+        "a_higher_share_raises_revenue",
+        "the_share_is_bounded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "business planning",
+      "inputs": [
+        "market_size",
+        "price",
+        "target_share"
       ]
     },
     "sales_funnel": {
@@ -2167,6 +2400,49 @@
         "discount_rate",
         "rate_high",
         "rate_low"
+      ]
+    },
+    "schedule_risk": {
+      "tier": "T1",
+      "metric": "p80_duration",
+      "unit": "periods",
+      "test_names": [
+        "second_implementation_and_seed_agree",
+        "sampled_durations_stay_within_the_declared_bounds",
+        "percentiles_are_ordered",
+        "the_mean_lies_between_the_observed_extremes",
+        "the_target_probability_matches_the_sample_count",
+        "criticality_indices_are_fractions"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "project scheduling",
+      "inputs": [
+        "activities",
+        "iterations",
+        "seed",
+        "target_duration"
+      ]
+    },
+    "sensitivity_table": {
+      "tier": "T1",
+      "metric": "base_profit",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "base_profit_is_the_declared_base_case",
+        "a_higher_price_raises_profit_at_a_positive_margin",
+        "a_higher_volume_raises_profit_at_a_positive_margin",
+        "every_cell_is_the_profit_identity"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "business planning",
+      "inputs": [
+        "base_fixed_cost",
+        "base_price",
+        "base_units",
+        "base_variable_cost",
+        "price_changes",
+        "volume_changes"
       ]
     },
     "social_engagement": {
@@ -2650,6 +2926,7 @@
     "bop",
     "breakeven",
     "budgetdebt",
+    "calendar",
     "campaign",
     "capacity",
     "capm",
@@ -2668,11 +2945,14 @@
     "costcurves",
     "cournot",
     "cpm",
+    "crashing",
     "currency",
     "custprofit",
     "dcf",
     "dcfmid",
+    "decisiontree",
     "demandcurve",
+    "depreciation",
     "descriptive",
     "did",
     "dpayback",
@@ -2688,6 +2968,7 @@
     "fiscal",
     "five_forces",
     "forecast",
+    "frommarket",
     "funnel",
     "fx",
     "gini",
@@ -2699,6 +2980,7 @@
     "irr",
     "iv",
     "labour",
+    "leveling",
     "leverage",
     "linebalance",
     "loan",
@@ -2706,12 +2988,15 @@
     "marketpower",
     "marketshare",
     "marketsize",
+    "mcda",
     "mediaplan",
     "missing",
     "moneymultiplier",
+    "montecarlo",
     "multibreakeven",
     "multicomp",
     "multiples",
+    "multiproject",
     "nash",
     "nationalincome",
     "npv",
@@ -2734,6 +3019,7 @@
     "pricing",
     "probit",
     "profitmax",
+    "proforma",
     "projectmetrics",
     "prospect",
     "publicgood",
@@ -2741,13 +3027,16 @@
     "queue",
     "ratios",
     "rdd",
+    "realoption",
     "rfm",
     "risk",
     "roi",
     "salesprojection",
     "salesvar",
     "scenario",
+    "schedrisk",
     "scv",
+    "sensitivity",
     "social",
     "socialwelfare",
     "spc",
