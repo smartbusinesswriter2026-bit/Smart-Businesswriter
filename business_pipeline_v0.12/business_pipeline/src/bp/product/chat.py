@@ -489,6 +489,7 @@ def _fill_capability_inputs(selection):
         row["inputs_required"] = [name for name, spec in schema.items() if spec.get("required", True)]
         row["inputs"] = {name: {"desc": spec.get("desc") or name,
                                 "type": spec.get("type") or "",
+                                "values": list(spec.get("values") or []),
                                 "required": bool(spec.get("required", True)),
                                 "fields": spec.get("fields") or {},
                                 "min_items": spec.get("min_items") or 1}
@@ -789,6 +790,8 @@ def _capability_inputs(entry_row, values):
         kind = str(spec.get("type") or "")
         if kind == "records":
             rows = raw if isinstance(raw, list) else []
+            if not rows and not required:
+                continue
             fields = spec.get("fields") or {}
             parsed_rows = []
             for index, row in enumerate(rows, start=1):
@@ -826,6 +829,17 @@ def _capability_inputs(entry_row, values):
                 except (InvalidOperation, ValueError):
                     return inputs, "Every value of the " + desc + " must be a number."
             inputs[name] = parsed
+            continue
+        if kind == "enum":
+            choice = _clean(str(raw or ""), 40)
+            allowed = [str(value) for value in spec.get("values") or []]
+            if not choice:
+                if required:
+                    return inputs, "Declare the " + desc + " (" + ", ".join(allowed) + ")."
+                continue
+            if allowed and choice not in allowed:
+                return inputs, "The " + desc + " must be one of: " + ", ".join(allowed) + "."
+            inputs[name] = choice
             continue
         if isinstance(raw, (int, float)) and not isinstance(raw, bool):
             raw = str(raw)
@@ -1525,9 +1539,9 @@ def _npv_lines(row, inputs, result):
 
 
 def _pct(value):
-    """A declared rate or ratio as a percentage, without inventing precision."""
+    """A declared rate or ratio as a percentage, rounded to the paper's two decimals."""
     try:
-        return _fmt_exact(Decimal(str(value)) * 100)
+        return _fmt_number(Decimal(str(value)) * 100)
     except (InvalidOperation, ValueError):
         return str(value)
 
@@ -1710,9 +1724,9 @@ def _bond_lines(row, inputs, result):
                 + "% annual coupon and " + _fmt_exact(inputs.get("years_to_maturity"))
                 + " years to maturity, the declared price of " + _money(inputs.get("price"))
                 + " solves to a yield of " + _pct(result.get("yield_to_maturity")) + "%.")
-    lines = [head, "The Macaulay duration is " + _fmt_exact(result.get("macaulay_duration"))
-             + " years, the modified duration is " + _fmt_exact(result.get("modified_duration"))
-             + ", the convexity is " + _fmt_exact(result.get("convexity"))
+    lines = [head, "The Macaulay duration is " + _money(result.get("macaulay_duration"))
+             + " years, the modified duration is " + _money(result.get("modified_duration"))
+             + ", the convexity is " + _money(result.get("convexity"))
              + " and the DV01 is " + _money(result.get("dv01")) + "."]
     lines.append("Every figure is computed from the declared bond terms; nothing is retrieved from a market.")
     return lines
@@ -1745,6 +1759,82 @@ def _ratio_lines(row, inputs, result):
     return lines
 
 
+def _dcf_lines(row, inputs, result):
+    rate = Decimal(str(inputs.get("discount_rate", "0")))
+    flows = inputs.get("cashflows") or []
+    lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared free cash flows ("
+             + "; ".join(_fmt_exact(value) for value in flows) + ") have a present value of "
+             + _money(result.get("pv_explicit")) + "."]
+    if str(inputs.get("terminal_growth") or "").strip():
+        lines.append("With a declared terminal growth of " + _pct(inputs.get("terminal_growth"))
+                     + "%, the terminal value is " + _money(result.get("terminal_value"))
+                     + ", worth " + _money(result.get("pv_terminal")) + " today ("
+                     + _pct(result.get("terminal_share")) + "% of the total).")
+    lines.append("The enterprise value is " + _money(result.get("enterprise_value")) + " on those declared "
+                 "flows and that declared rate; it is arithmetic on the declarations, not a forecast.")
+    return lines
+
+
+def _multiples_lines(row, inputs, result):
+    metric = str(inputs.get("metric") or "metric")
+    count = result.get("n_comparables")
+    lines = ["Applying a mean multiple of " + _fmt_exact(result.get("mean_multiple")) + "x to the declared "
+             + metric.replace("_", " ") + " of " + _money(inputs.get("subject_value"))
+             + (" across " + str(count) + " peer(s)" if count not in (None, "") else "")
+             + " gives an implied enterprise value of " + _money(result.get("implied_enterprise_value"))
+             + "."]
+    if result.get("implied_equity_value") not in (None, ""):
+        lines.append("After declared net debt of " + _money(inputs.get("net_debt") or "0")
+                     + ", the implied equity value is " + _money(result.get("implied_equity_value"))
+                     + (", or " + _money(result.get("per_share_value")) + " per share on the declared shares."
+                        if result.get("per_share_value") not in (None, "") else "."))
+    lines.append("The multiple is the student's declared peer or sector figure; the paper retrieves no market "
+                 "multiple and does not recommend a price.")
+    return lines
+
+
+def _option_lines(row, inputs, result):
+    lines = ["At a declared spot price of " + _money(inputs.get("spot_price")) + ", a strike of "
+             + _money(inputs.get("strike_price")) + ", a volatility of " + _pct(inputs.get("volatility"))
+             + "%, a risk-free rate of " + _pct(inputs.get("risk_free_rate")) + "% and "
+             + _fmt_exact(inputs.get("time_to_maturity")) + " years to maturity, the declared "
+             + str(inputs.get("option_type") or "call") + " option prices at "
+             + _money(result.get("option_price")) + " (binomial check "
+             + _money(result.get("binomial_price")) + ")."]
+    lines.append("Delta is " + _money(result.get("delta")) + ", gamma is " + _money(result.get("gamma"))
+                 + ", vega is " + _money(result.get("vega")) + ", theta is " + _money(result.get("theta"))
+                 + " and rho is " + _money(result.get("rho")) + ".")
+    lines.append("Every input is declared; the price is the model's output for those inputs, not a market quote.")
+    return lines
+
+
+def _real_option_lines(row, inputs, result):
+    lines = ["With a declared underlying value of " + _money(inputs.get("underlying_value"))
+             + ", an investment cost of " + _money(inputs.get("investment_cost"))
+             + ", a volatility of " + _pct(inputs.get("volatility")) + "%, a risk-free rate of "
+             + _pct(inputs.get("risk_free_rate")) + "% and " + _fmt_exact(inputs.get("steps"))
+             + " declared steps, the " + str(inputs.get("exercise") or "european") + " "
+             + str(inputs.get("option_type") or "call") + " real option is worth "
+             + _money(result.get("option_value")) + " (intrinsic value "
+             + _money(result.get("intrinsic_value")) + ")."]
+    lines.append("The value follows from the declared inputs; the option's value is not a recommendation to "
+                 "wait, expand or abandon.")
+    return lines
+
+
+def _portfolio_lines(row, inputs, result):
+    lines = ["From the declared return series for two assets at a declared weight of "
+             + _pct(inputs.get("weight_a")) + "% and a risk-free rate of "
+             + _pct(inputs.get("risk_free_rate")) + "%, the portfolio return is "
+             + _pct(result.get("portfolio_return")) + "% with a standard deviation of "
+             + _pct(result.get("portfolio_sd")) + "%."]
+    lines.append("The Sharpe ratio is " + _money(result.get("sharpe_ratio")) + ", the beta against the "
+                 "declared market series is " + _money(result.get("beta")) + ", and the correlation "
+                 "between the two return series is " + _money(result.get("correlation")) + ".")
+    lines.append("Every series is declared by the student; no return or covariance is retrieved.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -1760,6 +1850,11 @@ CAPABILITY_LINES.update({
     "capm": _capm_lines,
     "bond_analysis": _bond_lines,
     "ratio_analysis": _ratio_lines,
+    "dcf_valuation": _dcf_lines,
+    "multiples_valuation": _multiples_lines,
+    "option_pricing": _option_lines,
+    "real_option": _real_option_lines,
+    "portfolio_analysis": _portfolio_lines,
 })
 
 
@@ -1822,7 +1917,7 @@ def _plan_input(state, key):
     return _clean(value, 2000)
 
 
-def _pct(value):
+def _pct_sign(value):
     try:
         return "{:.1f}%".format(float(Decimal(str(value))) * 100)
     except (InvalidOperation, ValueError):
@@ -1843,7 +1938,7 @@ def _block_lines(state, block):
     result, inputs = data.get("result") or {}, data.get("inputs") or {}
     key = block["key"]
     if key == "frommarket":
-        return ["A declared target share of " + _pct(inputs.get("target_share")) + " of a market of "
+        return ["A declared target share of " + _pct_sign(inputs.get("target_share")) + " of a market of "
                 + _fmt_number(inputs.get("market_size")) + " at a price of " + _fmt_number(inputs.get("price"))
                 + " gives target revenue of " + _fmt_number(result.get("target_revenue")) + " and "
                 + _fmt_number(result.get("target_units")) + " units."]
@@ -1887,10 +1982,10 @@ def _block_lines(state, block):
             low_i, low_j = (int(part) - 1 for part in low[0].split("_")[1:])
             high_i, high_j = (int(part) - 1 for part in high[0].split("_")[1:])
             lines.append("Across the declared changes, profit ranges from " + _fmt_number(low[1])
-                         + " at a price change of " + _pct(prices[low_i]) + " and a volume change of "
-                         + _pct(volumes[low_j]) + ", to " + _fmt_number(high[1])
-                         + " at a price change of " + _pct(prices[high_i]) + " and a volume change of "
-                         + _pct(volumes[high_j]) + ".")
+                         + " at a price change of " + _pct_sign(prices[low_i]) + " and a volume change of "
+                         + _pct_sign(volumes[low_j]) + ", to " + _fmt_number(high[1])
+                         + " at a price change of " + _pct_sign(prices[high_i]) + " and a volume change of "
+                         + _pct_sign(volumes[high_j]) + ".")
         lines.append("Each cell is the profit identity at the changed price and volume; the unit cost and the "
                      "fixed cost stay at the base case.")
         return lines
@@ -1907,8 +2002,8 @@ def _block_lines(state, block):
         return ["After the round the post-money value is " + _fmt_number(result.get("post_money_valuation"))
                 + ", the price per share is " + _fmt_number(result.get("price_per_share"))
                 + ", the new shares number " + _fmt_number(result.get("new_shares"))
-                + ", the investor holds " + _pct(result.get("investor_pct"))
-                + " and the founders hold " + _pct(result.get("founder_pct")) + "."]
+                + ", the investor holds " + _pct_sign(result.get("investor_pct"))
+                + " and the founders hold " + _pct_sign(result.get("founder_pct")) + "."]
     if key == "impact":
         lines = []
         for name, value in result.items():

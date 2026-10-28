@@ -1395,6 +1395,13 @@ function capabilityPanel(c, plan) {
         }
         const isList = /_list$/.test(spec.type || "");
         const shown = isList ? (Array.isArray(raw) ? raw.join("\n") : "") : (raw || "");
+        if (spec.type === "enum") {
+          return '<label class="field" for="' + esc(id) + '">' + esc(spec.desc || name) +
+            '<select id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) + '">' +
+            (spec.values || []).map((option) =>
+              '<option value="' + esc(option) + '"' + (String(raw || "") === String(option) ? " selected" : "") + ">" +
+              esc(option) + "</option>").join("") + "</select></label>";
+        }
         const control = isList
           ? '<textarea id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) +
             '" data-caplist="1" rows="4" placeholder="One number per line; period 0 first">' + esc(shown) + "</textarea>"

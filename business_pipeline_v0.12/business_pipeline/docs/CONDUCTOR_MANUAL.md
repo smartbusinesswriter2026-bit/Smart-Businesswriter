@@ -281,6 +281,11 @@ answer selects or excludes the capability with a stated reason.
 | `capm` | the cost of equity from a declared beta or two return series | Financial Feasibility / Cost of Equity (CAPM) |
 | `bond_analysis` | the bond price from a declared yield, or the yield from a price | Financial Feasibility / Bond Price and Yield |
 | `ratio_analysis` | the ratios the declared statement figures support | Financial Analysis / Ratio Analysis |
+| `dcf_valuation` | enterprise value from declared free cash flows | Financial Feasibility / Discounted Cash Flow Valuation |
+| `multiples_valuation` | implied value from a declared peer multiple | Financial Feasibility / Comparable Multiples Valuation |
+| `option_pricing` | the option price for the declared terms | Financial Feasibility / Option Price |
+| `real_option` | the value of a declared real option to wait or invest | Financial Feasibility / Real Option Value |
+| `portfolio_analysis` | portfolio return, risk, beta and Sharpe ratio | Financial Feasibility / Portfolio Return and Risk |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -301,14 +306,17 @@ schema:
 | `decimal`, `integer` | one field | the field's own description names the missing value |
 | `decimal_list`, `value_list` | one number per line, period 0 first | "Every value of the cash flows ... must be a number." |
 | `records` | one typed row per item, with the schema's own columns and an *Add row* button | "Row 2 of the products needs a price." / "Declare at least 2 rows ..." |
+| `enum` | a select of exactly the values the schema declares | "The which multiple you are applying ... must be one of: earnings, ebitda, ..." |
 
 Two more declaration rules live in the catalogue, so no capability invents an
 input:
 
 - `one_of` — the method needs one of several declarations: `capm` takes a `beta`
   or both return series, `bond_analysis` takes a `yield_to_maturity` or a
-  `price`. If no group is declared the request is refused, naming the options;
-  if both are declared the method decides (the frozen implementation says so).
+  `price`, `multiples_valuation` takes peer `comparables` or a single
+  `peer_multiple`. If no group is declared the request is refused, naming the
+  options; if both are declared the method decides (the frozen implementation
+  says so).
 - `min_inputs` — for a method whose inputs are all optional (`ratio_analysis`),
   at least N figures must be declared, otherwise the request is refused.
 

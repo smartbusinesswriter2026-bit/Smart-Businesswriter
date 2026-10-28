@@ -221,6 +221,32 @@ class RunnerTest(unittest.TestCase):
             chat.run_capability(state, "ratio_analysis", {"current_assets": "200000"})
         self.assertIn("at least 2", str(caught.exception))
 
+    def test_an_enum_input_is_required_and_checked(self):
+        brief = ("The grocery chain is entering the Saudi market and needs a multiples valuation against a "
+                 "declared peer multiple for its ebitda.")
+        state = self._ready(brief)
+        self.assertIn("multiples_valuation", [row["key"] for row in state["selection"]["selected"]])
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.run_capability(state, "multiples_valuation",
+                                {"subject_value": "500000", "peer_multiple": "8"})
+        self.assertIn("earnings", str(caught.exception))
+        chat.run_capability(state, "multiples_valuation",
+                            {"metric": "ebitda", "subject_value": "500000", "peer_multiple": "8"})
+        self.assertTrue(state["computations"]["multiples_valuation"]["ok"])
+
+    def test_a_dcf_paper_reports_the_core_value(self):
+        brief = ("The grocery chain is entering the Saudi market and needs a dcf on its declared free cash "
+                 "flows at a declared discount rate.")
+        state = draftable(answer_all(chat.start(brief, "management")))
+        chat.attach_computation(state, "dcf_valuation",
+                                {"cashflows": ["100000", "120000", "140000"], "discount_rate": "0.10"})
+        state = chat.draft(state, accepted_ids=[], implications="The declared flows support the proposal.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Discounted Cash Flow Valuation"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("295,266.72", text)
+        self.assertIn("not a forecast", text)
+
 
 class PaperTest(unittest.TestCase):
     def test_a_framework_only_paper_has_no_computation_section_and_no_figure_gate(self):
