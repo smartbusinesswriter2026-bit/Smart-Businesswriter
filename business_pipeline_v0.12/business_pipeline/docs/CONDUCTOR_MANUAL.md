@@ -374,6 +374,8 @@ answer selects or excludes the capability with a stated reason.
 | `project_crashing` | the cost of reaching the declared target duration | Delivery Status / Project Crashing |
 | `schedule_risk` | the duration range and the chance of meeting the target | Delivery Status / Schedule Risk |
 | `calendar_schedule` | the finish in working periods, not calendar days | Delivery Status / Calendar Schedule |
+| `multi_criteria` | the weighted ranking of the declared alternatives | Delivery Status / Weighted Decision Matrix |
+| `monte_carlo` | the simulated range and the share of draws above zero | Delivery Status / Monte Carlo Range |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from

@@ -107,6 +107,16 @@ CASES = {
                        "target_duration": "4"}, "pestel"),
     "calendar_schedule": ({"activities": [{"id": "a", "duration": "3"}],
                            "working_periods": "1,2,3,4,5"}, "pestel"),
+    "multi_criteria": ({"criteria": [{"name": "cost", "weight": "0.6"},
+                                     {"name": "speed", "weight": "0.4"}],
+                        "alternatives": [{"name": "a", "scores": "8, 5"},
+                                         {"name": "b", "scores": "5, 9"}],
+                        "scale_max": "10"}, "pestel"),
+    "monte_carlo": ({"model": "npv", "iterations": "200", "seed": "1", "discount_rate": "0.1",
+                     "cashflows": [{"name": "inflow", "period": "1", "distribution": "fixed",
+                                    "value": "1000"},
+                                   {"name": "cost", "period": "0", "distribution": "fixed",
+                                    "value": "800"}]}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "

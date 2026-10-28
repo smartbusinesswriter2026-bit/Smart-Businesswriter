@@ -835,15 +835,11 @@ def _capability_inputs(entry_row, values):
                     return inputs, "Row " + str(index) + " of the " + desc + " must be a set of values."
                 parsed = {}
                 fields = declared or list(row.keys())
-                for field in fields:
+                for position, field in enumerate(fields):
                     value = row.get(field)
-                    if value is None and field not in row:
-                        continue
                     text = _clean(str(value if value is not None else ""), 200)
                     if not text:
-                        if field in ("predecessors", "resource"):
-                            continue
-                        if declared:
+                        if declared and position == 0:
                             return inputs, ("Row " + str(index) + " of the " + desc + " needs a "
                                             + field.replace("_", " ") + ".")
                         continue
@@ -852,7 +848,6 @@ def _capability_inputs(entry_row, values):
                     except (InvalidOperation, ValueError):
                         parsed[field] = text
                 if not declared:
-                    # legacy rows shape: name, time and optional predecessors
                     legacy_name = _clean(str(row.get("name") or row.get("id") or ""), 60)
                     if legacy_name:
                         parsed["name"] = legacy_name
@@ -980,6 +975,24 @@ def _capability_inputs(entry_row, values):
     if minimum and len(inputs) < int(minimum):
         return inputs, ("Declare at least " + str(minimum) + " of the declared figures for the "
                         + entry_row["label"].lower() + ".")
+    if entry_row["key"] == "multi_criteria":
+        criteria = inputs.get("criteria") or []
+        names = [str(criterion.get("name")) for criterion in criteria]
+        coupled = []
+        for index, alternative in enumerate(inputs.get("alternatives") or [], start=1):
+            raw = str(alternative.get("scores") or "")
+            parts = [part for part in re.split(r"[,\s]+", raw) if part.strip()]
+            if len(parts) != len(names):
+                return inputs, ("Alternative " + str(index) + " needs one score for each of the "
+                                + str(len(names)) + " criteria, in the order the criteria are listed.")
+            scores = {}
+            for name, part in zip(names, parts):
+                try:
+                    scores[name] = str(Decimal(part))
+                except (InvalidOperation, ValueError):
+                    return inputs, ("Alternative " + str(index) + ": every score must be a number.")
+            coupled.append({"name": alternative.get("name"), "scores": scores})
+        inputs["alternatives"] = coupled
     return inputs, None
 
 
@@ -2987,6 +3000,41 @@ def _calendar_lines(row, inputs, result):
     return lines
 
 
+def _matrix_lines(row, inputs, result):
+    names = [str(criterion.get("name")) for criterion in inputs.get("criteria") or []]
+    ranking = []
+    for index in range(1, int(Decimal(str(result.get("alternative_count") or "0"))) + 1):
+        total = result.get("total_%d" % index)
+        if total in (None, ""):
+            continue
+        alternative = ""
+        rows = inputs.get("alternatives") or []
+        if index - 1 < len(rows):
+            alternative = str(rows[index - 1].get("name") or "")
+        ranking.append(str(result.get("rank_%d" % index)) + ". " + alternative + " ("
+                       + _money(total) + ")")
+    lines = ["Scoring " + _fmt_exact(result.get("alternative_count")) + " alternative(s) against "
+             + _fmt_exact(result.get("criteria_count")) + " weighted criteria (weights summing to "
+             + _money(result.get("weight_sum")) + "), the ranking is: " + "; ".join(ranking) + "."]
+    lines.append("The highest weighted score is " + _money(result.get("best_total"))
+                 + ". The scores and the weights are the student's declaration; the method does not measure "
+                 "either.")
+    return lines
+
+
+def _monte_carlo_lines(row, inputs, result):
+    probability = result.get("probability_positive")
+    lines = ["Across " + _fmt_exact(result.get("iterations")) + " seeded draws, the simulated result has a "
+             "mean of " + _money(result.get("mean_result")) + ", a P10 of "
+             + _money(result.get("p10_result")) + ", a P50 of " + _money(result.get("p50_result"))
+             + " and a P90 of " + _money(result.get("p90_result")) + "."]
+    if probability not in (None, ""):
+        lines.append("The share of draws above zero is " + _pct(probability) + "%.")
+    lines.append("The range follows from the declared distributions and the declared seed; it is not a "
+                 "forecast of the case.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -3089,6 +3137,8 @@ CAPABILITY_LINES.update({
     "project_crashing": _crashing_lines,
     "schedule_risk": _schedule_risk_lines,
     "calendar_schedule": _calendar_lines,
+    "multi_criteria": _matrix_lines,
+    "monte_carlo": _monte_carlo_lines,
 })
 
 

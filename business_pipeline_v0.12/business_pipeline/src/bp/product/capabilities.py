@@ -520,6 +520,17 @@ ENTRIES = dict([
          ("Delivery Status", "Calendar Schedule"),
          needs_any=[r"activit|working|calendar|duration"], priority=12,
          row_fields={"activities": ["id", "duration", "predecessors"]}),
+    _row("multi_criteria", "multi_criteria", "Weighted decision matrix", "decision_matrix",
+         [r"multi[- ]criteria", r"weighted decision matrix", r"decision matrix", r"score the options"],
+         ("Delivery Status", "Weighted Decision Matrix"),
+         needs_any=[r"criteria|weights?|alternatives?|options?|scores?"], priority=15,
+         row_fields={"criteria": ["name", "weight"], "alternatives": ["name", "scores"]}),
+    _row("monte_carlo", "monte_carlo", "Monte Carlo range", "simulation",
+         [r"monte carlo", r"simulat(?:e|ion) the (?:range|outcome)", r"probability distribution of"],
+         ("Delivery Status", "Monte Carlo Range"),
+         priority=15,
+         row_fields={"cashflows": ["name", "period", "distribution", "value", "low", "mode", "high"],
+                     "variables": ["name", "distribution", "value", "low", "mode", "high"]}),
 ])
 
 

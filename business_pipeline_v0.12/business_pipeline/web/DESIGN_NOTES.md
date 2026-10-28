@@ -632,10 +632,12 @@ so the catalogue now does (`row_fields`): the panel renders exactly those column
 and the parser coerces each value, refusing a missing one by row and column. Four
 schedules are registered — critical path, resource levelling, crashing, schedule
 risk — each with a paragraph that reports the durations and the path or the range.
-`calendar_schedule` adds dates in declared working periods. Remaining in the shelf:
-multi-criteria scoring (needs dynamic columns from the criteria list), decision
-trees (a nested tree object), Monte Carlo (distribution rows) and the multi-project
-scheduler.
+`calendar_schedule` adds dates in declared working periods, `multi_criteria` a
+weighted ranking (the alternatives' scores are typed in criteria order and coupled
+to the criteria by name), and `monte_carlo` a simulated range from declared
+distributions. Two remain, both needing a nested editor rather than a column list:
+`decision_tree` (alternatives, chance nodes, terminal values) and
+`multi_project_schedule` (projects that contain their own activities).
 
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded

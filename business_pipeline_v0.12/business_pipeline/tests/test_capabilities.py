@@ -383,6 +383,32 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("project duration is 8", text)
         self.assertIn("critical path runs through a, b", text)
 
+    def test_a_weighted_matrix_ranks_the_alternatives(self):
+        brief = ("The grocery chain is entering the Saudi market and the board needs a weighted decision "
+                 "matrix over the declared criteria.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "multi_criteria", {
+            "criteria": [{"name": "cost", "weight": "0.6"}, {"name": "speed", "weight": "0.4"}],
+            "alternatives": [{"name": "a", "scores": "8, 5"}, {"name": "b", "scores": "5, 9"}],
+            "scale_max": "10"})
+        state = chat.draft(state, accepted_ids=[], implications="The cheaper option leads on the declared weights.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Weighted Decision Matrix"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("1. a (6.80)", text)
+        self.assertIn("2. b (6.60)", text)
+
+    def test_a_matrix_needs_one_score_per_criterion(self):
+        brief = ("The grocery chain is entering the Saudi market and the board needs a weighted decision "
+                 "matrix over the declared criteria.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        with self.assertRaises(chat.ChatError) as caught:
+            chat.attach_computation(state, "multi_criteria", {
+                "criteria": [{"name": "cost", "weight": "0.6"}, {"name": "speed", "weight": "0.4"}],
+                "alternatives": [{"name": "a", "scores": "8, 5"}, {"name": "b", "scores": "5"}],
+                "scale_max": "10"})
+        self.assertIn("one score for each", str(caught.exception))
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")
