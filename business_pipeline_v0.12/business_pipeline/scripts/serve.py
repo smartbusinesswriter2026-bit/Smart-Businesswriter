@@ -89,6 +89,7 @@ def main(argv=None):
         print(json.dumps(config, indent=2))
         return 0
     from bp import server   # noqa: E402  (the frozen core server, imported only when serving)
+    server._load_local_keys()
     try:
         server.serve(options["port"], host=options["host"], sandbox=options["sandbox"])
     except KeyboardInterrupt:
