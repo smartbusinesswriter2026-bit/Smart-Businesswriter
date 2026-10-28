@@ -798,9 +798,12 @@ computation explainer, and a sample that does not show that is a sample of the w
 `samples/pestel-and-break-even-tehran-device-store.docx` is one PESTEL paper with one break-even computation,
 built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student exports:
 `chat.docx_bytes`. Its companion, `…-explainer.docx`, is `explain.paper_document` over the same recorded
-case. They are listed as two Word files rather than one ZIP: a ZIP downloads but a student then has to find
-the paper inside it, while two Word files open on a double-click; the export route still bundles the pair
-for a real submission. The store accepts a `.zip` sample too (own MIME, `application/zip`), so a bundle can
+case. The same case is also built as a **full report** (`…-full.docx`, planned at 2,500 words) with its own
+explainer: the length is asked for in the brief ("write about 2500 words"), the floor is 1,500 words, and
+the full version adds scope and method, a reading per dimension, the evidence base, the discussion, the
+method's assumptions, what would change the answer, a recommendation and the appendix. Four Word files
+rather than a ZIP: a ZIP downloads but a student then has to find the paper inside it, while Word files open
+on a double-click; the export route still bundles the pair for a real submission. The store accepts a `.zip` sample too (own MIME, `application/zip`), so a bundle can
 be offered later without another change. Downloads now carry `Content-Disposition` with the generated
 filename, so the browser saves the paper under its own name rather than the document id. The explainer also
 stopped printing empty fields for a conductor paper ("Profile: Paper (, ).") and now names the framework,

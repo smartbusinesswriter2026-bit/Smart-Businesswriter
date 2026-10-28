@@ -648,6 +648,31 @@ Adding a chain is a catalogue change, not a product change: register the pair in
 `NEEDS_FROM`, confirm the units agree, and add a row to
 `tests/test_plan_dependencies.py`.
 
+### 7.10 Report length (`write about 2500 words`)
+
+A report is planned in words, and the length is asked for **in the brief**, so the
+Home page stays one composer and nothing else:
+
+- `parse_word_target` reads a count from the brief (`2500 words`, `2,500 words`);
+  a brief without one is the short version (about 900 words).
+- `check_word_target` enforces the floor: below **1,500 words** the request is
+  refused, because the framework, the evidence and the computation cannot be
+  written properly in less, and the system does not pad. Above 10,000 words it is
+  refused for the opposite reason.
+- `draft` reads the target once. A short report is unchanged. A full report adds
+  the sections the record supports: `Scope and Method`, a per-dimension reading
+  with the dimension's risk, `Evidence Base` (composition, coverage, which source
+  informs which dimension), `What the Evidence Shows Together`, `Reading the
+  Result`, `What the Figures Assume` (the method's own assumptions and limits,
+  quoted), expanded `Limitations`, `What Would Change the Answer`,
+  `Recommendation` and `Appendix: How the Computations Were Checked`.
+- the draft reports `words`, `target_words` and `met_target`. A full report that
+  cannot reach the target says so; it never fills the gap with invented material.
+
+The full report writes nothing the record does not hold: figures are the frozen
+method's, limitations are the method's own words, and the evidence base is the
+sources' own metadata.
+
 ## 8. Coherence and export gate
 
 `bp.product.paper.check` must pass before a `.docx` is produced. It rejects:

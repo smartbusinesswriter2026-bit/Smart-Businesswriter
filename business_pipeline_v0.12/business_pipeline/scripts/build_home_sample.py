@@ -42,7 +42,12 @@ chat.set_method_compute(_run, methods.describe)
 #: The folder the Home page lists as the shipped samples.
 OUT_DIR = ROOT / "samples"
 
-#: One framework (PESTEL) and one computation (break-even), nothing else.
+#: One framework (PESTEL) and one computation (break-even), in two versions.
+#: The length is asked for in the brief, the way a student asks for it.
+SHORT = {"stem": "pestel-and-break-even-tehran-device-store", "brief_extra": ""}
+FULL = {"stem": "pestel-and-break-even-tehran-device-store-full",
+        "brief_extra": " Write about 2500 words."}
+
 SAMPLE = {
     "title": "PESTEL and Break-even: A Tehran Device Store",
     "framework": "pestel",
@@ -106,8 +111,8 @@ def build(sample=SAMPLE):
         raise chat.ChatError("The sample brief was refused: " + str(state.get("message")))
     while chat.current_question(state):
         question = chat.current_question(state)
-        state = chat.answer(state, question["id"],
-                            sample["answers"].get(question["id"], question.get("default") or ""))
+        value = sample["answers"].get(question["id"], question.get("default") or "")
+        state = chat.answer(state, question["id"], value)
     state = chat.confirm_plan(state)
     state = chat.run_capability(state, "breakeven", sample["inputs"])
     state = seed_evidence(state, sample["placement"])
@@ -120,24 +125,28 @@ def build(sample=SAMPLE):
 
 
 def main():
-    """Write the paper and its explainer as two Word files the Home page lists.
+    """Write the short paper and the full report, each with its explainer.
 
-    Two Word files rather than a ZIP: a student double-clicks the sample and Word
-    opens it. The export route still ships the pair as a ZIP; the sample shows the
-    same two files, downloaded separately.
+    Two Word files per version rather than a ZIP: a student double-clicks the
+    sample and Word opens it. The export route still ships the pair as a ZIP; the
+    samples show the same two files, downloaded separately.
     """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    state, paper, explainer = build()
-    stem = explain.slug("PESTEL and Break-even - Tehran Device Store")
-    written = []
-    for name, data in ((stem + ".docx", paper), (stem + "-explainer.docx", explainer)):
-        path = OUT_DIR / name
-        path.write_bytes(data)
-        written.append((path, len(data)))
-    print("title  ", state["draft"]["title"])
-    print("missing", state["draft"]["missing"])
-    for path, size in written:
-        print("wrote  ", path.name, size, "bytes")
+    for variant in (SHORT, FULL):
+        sample = dict(SAMPLE)
+        sample["brief"] = SAMPLE["brief"] + variant["brief_extra"]
+        state, paper, explainer = build(sample)
+        stem = variant["stem"]
+        written = []
+        for name, data in ((stem + ".docx", paper), (stem + "-explainer.docx", explainer)):
+            path = OUT_DIR / name
+            path.write_bytes(data)
+            written.append((path, len(data)))
+        print("title  ", state["draft"]["title"])
+        print("words  ", state["draft"]["words"], "of", state["draft"]["target_words"],
+              "| met:", state["draft"]["met_target"], "| missing:", state["draft"]["missing"])
+        for path, size in written:
+            print("wrote  ", path.name, size, "bytes")
     return 0
 
 

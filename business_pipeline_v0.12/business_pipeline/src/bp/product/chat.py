@@ -223,12 +223,66 @@ BREAKEVEN_QUESTIONS = [
     _STYLE,
 ]
 
+#: A full report is planned in words.  Below the minimum the framework, the evidence
+#: and the computation cannot be written properly, so the request is refused rather
+#: than answered with padding.  The length is read from the brief ("about 2500
+#: words"), so the Home page stays one composer and nothing else.
+MIN_WORDS = 1500
+MAX_WORDS = 10000
+SHORT_WORDS = 900
+
+_WORD_TARGET = re.compile(r"\b(\d[\d,]*)\s*(?:-|to\s+)?\s*words?\b", re.I)
+
+
+def parse_word_target(text):
+    """The word count a brief asks for, or None.  It never guesses a number."""
+    match = _WORD_TARGET.search(str(text or ""))
+    if not match:
+        return None
+    try:
+        return int(match.group(1).replace(",", ""))
+    except ValueError:
+        return None
+
+
+def check_word_target(value):
+    """Read a requested length; refuse a target the system cannot serve honestly."""
+    text = str(value or "").strip().replace(",", "")
+    if not text:
+        return 0
+    match = re.search(r"\d+", text)
+    if not match:
+        raise ChatError("Give the length as a number of words, for example 2500.")
+    words = int(match.group(0))
+    if words < MIN_WORDS:
+        raise ChatError("A full report needs at least %d words: below that the framework, the evidence and "
+                        "the computation cannot be written properly. Ask for the short version by leaving the "
+                        "word count out of the brief." % MIN_WORDS)
+    if words > MAX_WORDS:
+        raise ChatError("A report longer than %d words is more than one case can support; ask for %d or fewer."
+                        % (MAX_WORDS, MAX_WORDS))
+    return words
+
+
+def target_words(state):
+    """The requested length in words, or 0 for the short version."""
+    return int((state.get("answers") or {}).get("length") or 0)
+
+
+def _word_count(sections):
+    """The body words of a draft, counted the way a course counts them."""
+    total = 0
+    for item in sections or []:
+        for line in item.get("lines") or []:
+            total += len(str(line or "").split())
+    return total
+
+
 FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
                        "five_forces": [q for q in FIVE_QUESTIONS if q["id"] != "expected"],
                        "five_forces_breakeven": FIVE_QUESTIONS,
                        "value_chain": VALUE_QUESTIONS, "ansoff": ANSOFF_QUESTIONS,
                        "vrio": VRIO_QUESTIONS, "breakeven": BREAKEVEN_QUESTIONS}
-
 # ---------- business-plan profile (B-121) ----------
 #: A paper profile is not a framework.  It composes sections of four kinds:
 #: student input, evidence, computation and integration.  The same frozen core
@@ -474,6 +528,11 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
         fits, message = _fit(brief, framework)
     questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
+    # A brief that names a word count asks for the full report; the minimum is
+    # enforced here, before any question is put to the student.
+    requested = parse_word_target(brief)
+    if requested is not None:
+        answers["length"] = str(check_word_target(str(requested)))
     if FRAMEWORKS[framework]["internal"]:
         answers.update({"strengths": [], "weaknesses": []})
     for key in FRAMEWORKS[framework].get("inputs") or []:
@@ -1835,7 +1894,7 @@ def _reference(source, style):
     return writing.reference(source, style)
 
 
-def _dimension_lines(dimension, evidence, by_id, style):
+def _dimension_lines(dimension, evidence, by_id, style, target=0):
     key = dimension[0]
     items = [item for item in evidence if item["dimension"] == key]
     if not items:
@@ -1844,6 +1903,9 @@ def _dimension_lines(dimension, evidence, by_id, style):
     for item in items:
         source = by_id.get(item["source_id"], {})
         lines.append(_clean(item["quote"], 500) + " " + _in_text(source, style) + ".")
+    reading = _reading_line(dimension, evidence, target, by_id)
+    if reading:
+        lines.append(reading)
     return lines
 
 
@@ -3881,6 +3943,447 @@ def _claim_scan(sections):
     return claims
 
 
+#: What each dimension is about, for the fuller reading a full report carries.
+_FULL_READING = {
+    "political": "the political conditions around trade, sanctions and entry",
+    "economic": "the economic conditions that shape trade and demand",
+    "social": "the population and social conditions the offer would meet",
+    "technological": "the technology environment the firm would operate in",
+    "environmental": "the environmental conditions that affect cost and production",
+    "legal": "the legal framework the decision would be judged under",
+    "opportunities": "the opportunities the external evidence supports",
+    "threats": "the threats the external evidence supports",
+    "rivalry": "the intensity of competition among existing firms",
+    "entrants": "the height of the barriers a new entrant faces",
+    "substitutes": "the pressure from substitute offers",
+    "buyers": "the bargaining position of buyers",
+    "suppliers": "the bargaining position of suppliers",
+    "inbound": "the supply and inbound-logistics conditions",
+    "operations": "the production and operations conditions",
+    "outbound": "the distribution and fulfilment conditions",
+    "marketing": "the marketing and sales conditions",
+    "service": "the service and after-sales conditions",
+    "procurement": "the procurement and sourcing conditions",
+    "technology": "the technology-development conditions",
+    "human": "the labour and skills conditions",
+    "infrastructure": "the management, finance and governance conditions",
+    "penetration": "the case for selling more to existing customers",
+    "development": "the case for taking the offer to a new market",
+    "product": "the case for a new product in the existing market",
+    "diversification": "the case for a new offer in a new market",
+}
+
+
+#: What would change the reading of a dimension, in its own terms.
+_FULL_READING_CHANGE = {
+    "political": "a settlement that lifts the sanctions, which no source here anticipates",
+    "economic": "a household-income or retail-spending series for the city, which the sources do not report",
+    "social": "an adoption or willingness-to-pay study for this offer, which the sources do not contain",
+    "technological": "a ruling or licence that changes what the store's channels may do",
+    "environmental": "a utility or water tariff for the location, which the case would have to declare",
+    "legal": "a change in the sanctions instrument that alters what entry requires",
+    "rivalry": "a price or capacity announcement from an existing rival",
+    "entrants": "a licensing change or a new entrant's announcement",
+    "substitutes": "a substitute offer priced below the declared price",
+    "buyers": "a buyer contract that fixes volume or price",
+    "suppliers": "a supplier quote for the inputs the store would buy",
+}
+
+#: What going wrong in each dimension would mean for the decision, in its terms.
+_FULL_READING_RISK = {
+    "political": "the political conditions tighten before the store opens, raising the cost of entry",
+    "economic": "demand is weaker than the economic evidence implies, so fewer units are sold",
+    "social": "the customers the sources describe do not adopt this offer at this price",
+    "technological": "the controls described extend to the store's channels, raising distribution cost",
+    "environmental": "water or energy constraints raise the store's operating cost",
+    "legal": "the legal basis changes, and with it the permissions and payment channels entry needs",
+    "opportunities": "the opportunity the evidence supports is smaller than the evidence implies",
+    "threats": "the threat materialises before entry, and the industry becomes less attractive",
+    "rivalry": "rivalry holds prices down while the cost structure stays as declared",
+    "entrants": "entry barriers fall and new capacity arrives after the store opens",
+    "substitutes": "a substitute takes the demand the store's volume depends on",
+    "buyers": "buyers concentrate and press the declared price down",
+    "suppliers": "suppliers raise input costs above the declared variable cost",
+}
+
+
+def _reading_line(dimension, evidence, target, by_id=None):
+    """One honest paragraph of reading per dimension, for a full report only.
+
+    It states what the paper does with the dimension (a condition of entry), what
+    going wrong there would mean for the decision and what would change the
+    reading.  It adds no fact and no figure.
+    """
+    if target < MIN_WORDS:
+        return ""
+    items = [item for item in evidence if item["dimension"] == dimension[0]]
+    if not items:
+        return ""
+    clause = _FULL_READING.get(dimension[0]) or "the conditions this dimension describes"
+    risk = _FULL_READING_RISK.get(dimension[0]) or ("the condition it describes does not hold when the decision "
+                                                    "is taken")
+    change = _FULL_READING_CHANGE.get(dimension[0]) or ("a study of this firm in this market would replace the "
+                                                        "market-level sources with a direct measurement")
+    venues, seen = [], set()
+    years, databases = [], []
+    for item in items:
+        source = (by_id or {}).get(item.get("source_id")) or {}
+        year = str(source.get("year") or "").strip()
+        name = str(source.get("venue") or source.get("publisher") or source.get("database") or "").strip()
+        if name:
+            label = name + (" (" + year + ")" if year else "")
+            if label not in seen:
+                seen.add(label)
+                venues.append(label)
+        years.extend(int(found) for found in re.findall(r"\d{4}", year))
+        database = str(source.get("database") or "").strip()
+        if database and database not in databases:
+            databases.append(database)
+    from_text = (" The sources are " + "; ".join(venues) + ".") if venues else ""
+    state_text = ""
+    if years:
+        span = str(min(years)) if min(years) == max(years) else str(min(years)) + " to " + str(max(years))
+        state_text = (" The material was published " + span
+                      + ((" and is indexed in " + ", ".join(databases)) if databases else "") + ".")
+    return ("Read as a whole, this dimension sets " + clause + "." + from_text + state_text
+            + " For the decision, the risk is that " + risk + ". What would change this reading is " + change + ".")
+
+
+def _source_mix(sources):
+    """How the accepted sources divide by database, and their year span."""
+    counts = {}
+    years = []
+    for source in sources:
+        name = str(source.get("database") or source.get("item_type") or "other").strip() or "other"
+        counts[name] = counts.get(name, 0) + 1
+        year = str(source.get("year") or "")
+        digits = re.findall(r"\d{4}", year)
+        if digits:
+            years.append(int(digits[0]))
+    parts = [name + " " + str(count) for name, count in sorted(counts.items())]
+    return parts, (min(years) if years else None), (max(years) if years else None)
+
+
+def _scope_section(state, evidence, target, style):
+    """The question, the plan, the checks and the length: a method section."""
+    answers = state.get("answers") or {}
+    plan = state.get("plan") or {}
+    decision = _clean(answers.get("decision") or state.get("brief"), 500).rstrip(" .?!")
+    geography = answers.get("geography") or "Global"
+    period = answers.get("period") or "10"
+    period_text = ("the last " + period + " years") if period not in ("0", "") else "all available years"
+    label = FRAMEWORKS.get(state.get("framework") or "pestel", {}).get("label", "the framework")
+    why = str(plan.get("why") or "").strip()
+    geo_text = "the " + geography if geography not in ("Global", "") else "the global market"
+    decision_line = _clean(answers.get("decision") or state.get("brief"), 500).rstrip()
+    if not decision_line.endswith(("?", "!", ".")):
+        decision_line += "."
+    paragraphs = [
+        "This report addresses the decision: " + decision_line + " The analysis uses " + label + "."
+        + ((" " + why) if why else ""),
+        str(len(evidence)) + " accepted evidence item" + ("" if len(evidence) == 1 else "s")
+        + " support the dimensions below, drawn from " + geo_text + " over " + period_text
+        + ". A source was used when it addressed the decision in that market and was published within the "
+        "period; anything else was not used, and a dimension left without a source is reported as a gap rather "
+        "than filled.",
+    ]
+    selected = (state.get("selection") or {}).get("selected") or []
+    if selected:
+        labels = ", ".join(row["label"].lower() for row in selected)
+        paragraphs.append(
+            "The report carries the " + labels + " computation. Each computation is run once by the frozen method from the "
+            "inputs shown with it, and the recorded figure is reproduced from those inputs before the paper is "
+            "drafted; a figure that does not reproduce is not reported.")
+    else:
+        paragraphs.append("No computation is carried: the question is answered from the framework and the "
+                          "evidence, and no financial figure is reported.")
+    framework = state.get("framework") or "pestel"
+    others = [name for name in ("SWOT", "Five Forces", "Value Chain", "VRIO", "Ansoff") if name != label]
+    if others:
+        paragraphs.append(
+            "The question is about the conditions the decision faces rather than about the firm's own resources "
+            "or the structure of one industry, so " + label + " answers it more directly than "
+            + ", ".join(others[:-1]) + " or " + others[-1] + " would.")
+    paragraphs.append("All figures are in the case's own currency; the report applies no conversion.")
+    paragraphs.append(
+        "The analysis reads each dimension against the decision rather than summarising it, and every citation "
+        "supports the sentence it is attached to. Each dimension is treated as a condition of entry, not as a "
+        "cost the firm has measured; the financial test uses only the figures the case declares.")
+    paragraphs.append(
+        "The report was planned at " + str(target) + " words. Sections are included only where the record "
+        "supports them; where it does not, the gap is named instead of filled.")
+    return paper.section("Scope and Method", paper.H1, [paper.paragraph(paragraphs)])
+
+
+def _evidence_base_section(state, evidence, target):
+    """The evidence base: composition, coverage, and how a quotation is used."""
+    sources = [source for source in state.get("sources") or []
+               if source["id"] in {item["source_id"] for item in evidence}]
+    parts, first, last = _source_mix(sources)
+    span = ((" The publication years run from " + str(first) + " to " + str(last) + ".")
+            if first is not None and last is not None and first != last
+            else ((" The sources were published in " + str(first) + ".") if first is not None else ""))
+    paragraphs = [
+        "The analysis rests on " + str(len(sources)) + " cited source" + ("" if len(sources) == 1 else "s")
+        + (" (" + ", ".join(parts) + ")." if parts else ".") + span,
+    ]
+    coverage = []
+    for dimension in state.get("plan", {}).get("dimensions") or []:
+        count = len([item for item in evidence if item["dimension"] == dimension["key"]])
+        coverage.append(dimension["label"] + " " + str(count))
+    if coverage:
+        paragraphs.append("Items per dimension: " + "; ".join(coverage) + ".")
+        paragraphs.append("A source that informs more than one dimension is counted in each; the quotations above "
+                          "show which sentence supports which.")
+        paragraphs.append("The newest source sets the currency of the evidence; anything published after it is not "
+                          "covered here.")
+    # Which source informs which dimension, in short form: the full record is the
+    # reference list, and repeating it here would only pad the report.
+    rows = []
+    for source in sources:
+        labels = []
+        for dimension in state.get("plan", {}).get("dimensions") or []:
+            if any(item["source_id"] == source["id"] and item["dimension"] == dimension["key"]
+                   for item in evidence):
+                labels.append(dimension["label"])
+        venue = _clean(source.get("venue") or source.get("publisher") or source.get("database"), 90)
+        cited = _in_text(source, "apa").strip("()")
+        rows.append(cited + (", " + venue if venue else "") + " - " + (", ".join(labels) or "no dimension") + ".")
+    if rows:
+        paragraphs.append("Sources and the dimensions they inform (full records in the reference list): "
+                          + " ".join(rows))
+    paragraphs.append(
+        "Every quotation in the analysis above is a sentence from the source it cites. The source's own claim "
+        "is not independently verified here, and a source that speaks about a market does not by itself measure "
+        "the firm's costs or demand.")
+    return paper.section("Evidence Base", paper.H1, [paper.paragraph(paragraphs)])
+
+
+def _discussion_full_section(state, evidence, target):
+    """What the dimensions show together, and what the computation adds."""
+    if target < MIN_WORDS:
+        return None
+    plan = state.get("plan") or {}
+    dimensions = plan.get("dimensions") or []
+    counts = []
+    for dimension in dimensions:
+        count = len([item for item in evidence if item["dimension"] == dimension["key"]])
+        counts.append((dimension["key"], dimension["label"], count))
+    covered = [label for _key, label, count in counts if count]
+    thin = [label for _key, label, count in counts if count == 1]
+    empty = [label for _key, label, count in counts if not count]
+    by_key = {key: count for key, _label, count in counts}
+    paragraphs = []
+    if covered:
+        paragraphs.append(
+            "The dimensions are not independent: the political and legal evidence sets what entry is permitted, "
+            "the economic and social evidence sets who could buy, and the technological and environmental "
+            "evidence sets how the offer would have to operate. Read together, they describe the conditions the "
+            "decision faces before any figure is computed.")
+        for name, keys, bearing in (
+                ("Permission and cost", ("political", "legal"),
+                 "act on the cost of entry before any unit is sold"),
+                ("Demand", ("economic", "social"),
+                 "act on the volume the case can expect"),
+                ("Operations", ("technological", "environmental"),
+                 "act on the operating cost the store would carry")):
+            if any(by_key.get(key) for key in keys):
+                paragraphs.append("Under " + name.lower() + ", the sources " + bearing + ".")
+    paragraphs.append("Those links are the reading the report draws between the evidence and the financial "
+                      "test: they are not figures the sources report, and the case has to supply the figures.")
+    paragraphs.append("The decision is taken before those conditions can be measured again, so the report "
+                      "treats them as the conditions of entry rather than as inputs to a forecast.")
+    if thin:
+        paragraphs.append("The evidence is thinnest in " + ", ".join(thin)
+                          + ": one source per dimension, so the position there rests on a single record.")
+    paragraphs.append("That is also the main weakness of the evidence base: it describes the market in general, "
+                      "not this store's own costs, so the report cannot say how the firm's figures compare with "
+                      "the declared ones.")
+    paragraphs.append("The report therefore treats the decision as conditional on the declared figures and on the "
+                      "conditions the sources describe, and it does not extend the position beyond them.")
+    paragraphs.append("It does not rank the dimensions, because the sources do not measure their relative weight "
+                      "for this decision.")
+    if empty:
+        paragraphs.append("No accepted source covers " + ", ".join(empty)
+                          + ", so the report treats those dimensions as open rather than settled.")
+    selected = (state.get("selection") or {}).get("selected") or []
+    recorded = state.get("computations") or {}
+    for row in selected:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            paragraphs.append("The " + row["label"].lower() + " has no recorded result, so the financial side "
+                              "of the discussion is a named gap.")
+            continue
+        inputs = data.get("inputs") or {}
+        paragraphs.append(
+            "The " + row["label"].lower() + " adds a figure the evidence cannot supply: it is computed from the "
+            "declared figures (" + ", ".join(name.replace("_", " ") for name in inputs)
+            + "). The two readings have to be "
+            "held together, because a favourable market does not by itself cover a cost structure that needs "
+            "more volume than the case expects.")
+    if not paragraphs:
+        return None
+    return paper.section("What the Evidence Shows Together", paper.H2, [paper.paragraph(paragraphs)])
+
+
+def _computation_reading(state, target):
+    """A short reading of each recorded computation, for a full report."""
+    if target < MIN_WORDS:
+        return None
+    recorded = state.get("computations") or {}
+    paragraphs = []
+    for row in (state.get("selection") or {}).get("selected") or []:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            continue
+        result = data.get("result") or {}
+        pairs = []
+        for name, value in list(result.items())[:6]:
+            if name in (data.get("inputs") or {}):
+                continue
+            label = name.replace("_", " ").replace("breakeven", "break-even")
+            if name.endswith("ratio") or name.endswith("rate"):
+                shown = "{:,.1f}%".format(Decimal(str(value)) * 100)
+            else:
+                shown = _fmt_number(value)
+            pairs.append(label + " " + shown)
+        if not pairs:
+            continue
+        paragraphs.append(
+            "The " + row["label"].lower() + " reports " + "; ".join(pairs) + ". These figures follow from the "
+            "declared inputs and nothing else; the method does not forecast demand, price or cost, so the "
+            "reading is a test of the declared case rather than a prediction of the outcome. Figures are shown to "
+            "two decimal places, and the declared inputs are shown as they were declared.")
+    if not paragraphs:
+        return None
+    return paper.section("Reading the Result", paper.H2, [paper.paragraph(paragraphs)])
+
+
+def _assumptions_section(state, target):
+    """The method's own assumptions, limits and claim ceiling, quoted not invented."""
+    if target < MIN_WORDS or METHOD_DESCRIBE is None:
+        return None
+    paragraphs = []
+    for row in (state.get("selection") or {}).get("selected") or []:
+        if not (state.get("computations") or {}).get(row["key"], {}).get("ok"):
+            continue
+        try:
+            info = METHOD_DESCRIBE(row["method"]) or {}
+        except Exception:
+            info = {}
+        assumptions = [str(item).rstrip(".").replace("_", " ").replace("breakeven", "break-even")
+                       for item in info.get("assumptions") or [] if str(item).strip()]
+        limitations = [str(item).rstrip(".").replace("_", " ").replace("breakeven", "break-even")
+                       for item in info.get("limitations") or [] if str(item).strip()]
+        ceiling = str(info.get("claim_ceiling") or "").strip()
+        if not (assumptions or limitations):
+            continue
+        sentence = row["label"] + " assumes "
+        sentence += "; ".join(item[0].lower() + item[1:] for item in assumptions) if assumptions else "the inputs as declared"
+        if limitations:
+            sentence += ". Its stated limits are " + "; ".join(item[0].lower() + item[1:] for item in limitations)
+        if ceiling:
+            sentence += ". It supports " + ceiling + " claims and no stronger ones"
+        paragraphs.append(sentence + ".")
+    if not paragraphs:
+        return None
+    return paper.section("What the Figures Assume", paper.H2, [paper.paragraph(paragraphs)])
+
+
+def _lower_first(text):
+    """Lower a sentence-opening capital unless the word is a name or acronym."""
+    value = str(text or "").strip()
+    if len(value) > 1 and value[0].isupper() and value[1].islower():
+        return value[0].lower() + value[1:]
+    return value
+
+
+def _recommendation_section(state, position, target):
+    """The position the record supports, and the condition it rests on."""
+    if target < MIN_WORDS or not str(position or "").strip():
+        return None
+    paragraphs = ["On the record above, the position this report supports is that "
+                  + _lower_first(str(position).strip().rstrip(".")) + "."]
+    recorded = state.get("computations") or {}
+    for row in (state.get("selection") or {}).get("selected") or []:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            continue
+        paragraphs.append(
+            "That position is conditional on the declared figures in the " + row["label"].lower()
+            + ". If any of them changes, the method has to be run again on the new figures; the position here "
+            "does not carry over to a case those figures do not describe.")
+    paragraphs.append(
+        "If the fixed cost is committed before the price is tested in the market the sources describe, the case "
+        "carries the risk they describe without the demand the model assumes.")
+    paragraphs.append(
+        "The alternative is to hold the decision until the named gaps in the evidence are covered, because the "
+        "sources describe conditions rather than this firm's costs and demand. Either way, the figures in the "
+        "report are the ones a reviewer can re-run.")
+    return paper.section("Recommendation", paper.H1, [paper.paragraph(paragraphs)])
+
+
+def _method_appendix(state, target):
+    """How each computation was checked: method, inputs, result, reproduction."""
+    if target < MIN_WORDS:
+        return None
+    recorded = state.get("computations") or {}
+    selected = (state.get("selection") or {}).get("selected") or []
+    if not selected:
+        return None
+    paragraphs = [
+        "Each computation in this report is a frozen method run once from the inputs the case declares. The "
+        "method is named with its result, the declared inputs are listed with it, and the figure is reproduced "
+        "from those inputs before the paper is drafted; a figure that does not reproduce is not reported.",
+        "The declared figures were read in the method's units, and the method's own refusal would have stopped "
+        "the computation before a result was stored. The report's sentences were checked against the claims the "
+        "methods license: a sentence claiming proof or certainty, or a forecast, would have blocked the export.",
+    ]
+    for row in selected:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            paragraphs.append(row["label"] + ": no recorded result, so there is nothing to reproduce.")
+            continue
+        inputs = data.get("inputs") or {}
+        declar = "; ".join(name.replace("_", " ") + " " + _fmt_exact(value)
+                           for name, value in inputs.items())
+        paragraphs.append("The " + row["label"].lower() + " computation runs the "
+                          + str(row.get("method") or row["key"]).replace("_", " ")
+                          + " method with the declared figures (" + declar
+                          + "). Re-running the method with those inputs returns the recorded figures above.")
+    return paper.section("Appendix: How the Computations Were Checked", paper.H1,
+                         [paper.paragraph(paragraphs)])
+
+
+def _change_section(state, by_id, target):
+    """What would move the answer, named from the recorded inputs and gaps."""
+    selected = (state.get("selection") or {}).get("selected") or []
+    recorded = state.get("computations") or {}
+    paragraphs = []
+    for row in selected:
+        data = recorded.get(row["key"]) or {}
+        if not data.get("ok"):
+            paragraphs.append("The " + row["label"].lower() + " computation has not been recorded, so no figure "
+                              "from it can be revisited yet.")
+            continue
+        inputs = data.get("inputs") or {}
+        names = ", ".join(name.replace("_", " ") for name in inputs)
+        paragraphs.append(
+            "The " + row["label"].lower() + " result follows from the declared figures (" + names
+            + "). Changing any one of them changes the result, and a different set would have to be declared and "
+            "run again rather than inferred from this one.")
+    gaps = [gap.get("label") for gap in state.get("gaps") or [] if gap.get("label")]
+    if gaps:
+        paragraphs.append("A source that covers " + ", ".join(gaps) + " would test the position where the "
+                          "retrieved evidence was thin.")
+    else:
+        paragraphs.append("A firm-level cost or demand study would test the position more directly than the "
+                          "market-level sources above, which describe conditions rather than the firm's own figures.")
+    if not paragraphs:
+        return None
+    return paper.section("What Would Change the Answer", paper.H1, [paper.paragraph(paragraphs)])
+
+
 def draft(state, accepted_ids=None, implications="", style=None):
     """Compose the paper from accepted evidence.  It invents nothing."""
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
@@ -3899,6 +4402,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
     period = answers.get("period") or "10"
     period_text = "the last " + period + " years" if period not in ("0", "") else "all available years"
     position = _clean(implications, 1200)
+    target = target_words(state)
     decision_text = _clean(decision, 500).rstrip(" .?!")
     if framework in ("breakeven", "vrio"):
         intro = ("The decision under analysis is: " + decision_text + ". The paper uses " + label
@@ -3910,10 +4414,12 @@ def draft(state, accepted_ids=None, implications="", style=None):
     if position:
         intro += " The paper argues that " + position.rstrip(".") + "."
     sections = [paper.section("Introduction", paper.H1, [intro])]
+    if target >= MIN_WORDS:
+        sections.append(_scope_section(state, evidence, target, style))
     if framework in ("pestel", "pestel_swot"):
         sections.append(paper.section("PESTEL", paper.H1))
         for dimension in DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style)
+            lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework in ("swot", "pestel_swot"):
         sections.append(paper.section("SWOT", paper.H1))
@@ -3925,7 +4431,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
     buckets = {"opportunities": [], "threats": []}
     if framework == "swot":
         for dimension in SWOT_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style)
+            lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     elif framework == "pestel_swot":
         buckets, unclassified = _classify_external(evidence)
@@ -3936,17 +4442,17 @@ def draft(state, accepted_ids=None, implications="", style=None):
     if framework in ("five_forces", "five_forces_breakeven"):
         sections.append(paper.section("Five Forces", paper.H1))
         for dimension in FIVE_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style)
+            lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "value_chain":
         sections.append(paper.section("Value Chain", paper.H1))
         for dimension in VALUE_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style)
+            lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "ansoff":
         sections.append(paper.section("Ansoff Growth Matrix", paper.H1))
         for dimension in ANSOFF_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style)
+            lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "vrio":
         sections.append(paper.section("VRIO", paper.H1))
@@ -3979,6 +4485,14 @@ def draft(state, accepted_ids=None, implications="", style=None):
         lines = ([paper.paragraph([declared])] if declared else []) + \
                 [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]
         sections.append(paper.section(subheading, paper.H2, lines))
+    reading = _computation_reading(state, target)
+    if reading:
+        sections.append(reading)
+    assumptions = _assumptions_section(state, target)
+    if assumptions:
+        sections.append(assumptions)
+    if target >= MIN_WORDS:
+        sections.append(_evidence_base_section(state, evidence, target))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
         integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
@@ -4004,6 +4518,9 @@ def draft(state, accepted_ids=None, implications="", style=None):
                        "resulting judgment.")
         heading = selected_caps[0].get("integration") or "Framework and Declared Figures"
         sections.append(paper.section(heading, paper.H2, [integration]))
+    together = _discussion_full_section(state, evidence, target)
+    if together:
+        sections.append(together)
     if position:
         sections.append(paper.section("Implications", paper.H2, [position]))
     gaps = [gap["label"] for gap in state.get("gaps") or []]
@@ -4030,6 +4547,13 @@ def draft(state, accepted_ids=None, implications="", style=None):
         if unclassified:
             limits.append(str(unclassified) + " accepted evidence item(s) could not be mapped to an opportunity or "
                                               "a threat and are not shown in the SWOT block.")
+    if target >= MIN_WORDS:
+        limits += [
+            "The sources are market-level: they describe conditions, not this firm's costs, prices or volumes.",
+            "Each source is quoted once; the report does not survey the literature on any dimension.",
+            "The reading of a dimension is the author's, and a different reader could weigh the same sources "
+            "differently.",
+        ]
     limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
                "The paper quotes sources; it does not verify the claims inside them.",
                "No financial figure is computed in this paper."
@@ -4040,12 +4564,28 @@ def draft(state, accepted_ids=None, implications="", style=None):
                      else "No search was run for this paper.")]
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
     if position:
-        conclusion = ("The paper set out to address: " + _clean(decision, 500) + ". The evidence and the implications "
-                      "above support the position that " + position.rstrip(".") + ".")
+        asked = _clean(decision, 500).rstrip()
+        if not asked.endswith(("?", "!", ".")):
+            asked += "."
+        conclusion = ("The paper set out to address: " + asked + " The evidence and the implications "
+                      "above support the position that " + _lower_first(position.rstrip(".")) + ".")
     else:
         conclusion = ("The paper assessed " + _clean(decision, 500) + " and set out the evidence above. The "
                       "implications required to state a position have not been supplied.")
+    if target >= MIN_WORDS:
+        change = _change_section(state, by_id, target)
+        if change:
+            sections.append(change)
+        recommendation = _recommendation_section(state, position, target)
+        if recommendation:
+            sections.append(recommendation)
+    if target >= MIN_WORDS:
+        conclusion += (" The position is stated with its condition: it holds for the declared figures and the "
+                       "conditions the sources describe, and not beyond them.")
     sections.append(paper.section("Conclusion", paper.H1, [conclusion]))
+    appendix = _method_appendix(state, target)
+    if appendix:
+        sections.append(appendix)
     references, seen = [], set()
     for source in state["sources"]:
         if source["id"] not in {item["source_id"] for item in evidence}:
@@ -4068,10 +4608,13 @@ def draft(state, accepted_ids=None, implications="", style=None):
     # The gate reads the paper's own sentences, not attributed quotations.
     state["claim_problems"] = _claim_scan(sections)
     missing = paper.missing(state, position)
+    words = _word_count(sections)
     state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
                       "accepted": sorted(accepted), "implications": position,
+                      "words": words, "target_words": target or SHORT_WORDS,
+                      "met_target": target == 0 or words >= target,
                       "missing": missing, "created_at": _now()}
     state["stage"] = "draft"
     state["updated_at"] = _now()
