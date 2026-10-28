@@ -479,6 +479,8 @@ PRESETS = {
                                  "cost_of_sales": ["600", "650", "710", "760"], "operating_expenses": ["200", "220", "240", "260"],
                                  "net_income": ["120", "140", "160", "190"], "total_assets": ["2000", "2100", "2250", "2400"],
                                  "equity": ["900", "980", "1080", "1200"]}},
+    "portfolioperf": {"objective": "What return did the portfolio earn over these periods?", "method": "portfolio_performance", "currency": "USD", "period": "period",
+                    "inputs": {"periods": [{"label": "week 1", "start_nav": "10000", "end_nav": "10250", "flow": "0"}, {"label": "week 2", "start_nav": "10250", "end_nav": "10100", "flow": "0"}]}},
     "portfolioval": {"objective": "What is this portfolio worth today?", "method": "portfolio_valuation", "currency": "USD", "period": "point in time",
                      "inputs": {"holdings": [{"symbol": "AAPL", "shares": "10", "price": "200"},
                                                 {"symbol": "MSFT", "shares": "5", "price": "400"}], "cash": "1000"}},
@@ -686,7 +688,9 @@ class H(BaseHTTPRequestHandler):
                 if verb == "POST":
                     if not isinstance(body, dict): raise ValueError("body must be an object")
                     doc = product_portfolios.create(body.get("name"), body.get("base_currency", "USD"),
-                                                    body.get("benchmark", ""), body.get("mode", "paper"))
+                                                    body.get("benchmark", ""), body.get("mode", "paper"),
+                                                    objective=body.get("objective", ""),
+                                                    roster=body.get("roster", ""))
                     return self._send(201, doc)
             if len(parts) < 3 or parts[1] != "portfolios": return self._send(404, {"error": "not found"})
             portfolio_id = parts[2]
@@ -697,14 +701,27 @@ class H(BaseHTTPRequestHandler):
                     product_portfolios.delete(portfolio_id)
                     return self._send(200, {"deleted": portfolio_id})
             action = parts[3]
+            if action == "holdings" and verb == "POST" and len(parts) == 5 and parts[4] == "import":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                rows = product_portfolios.import_holdings(portfolio_id, body.get("text"))
+                return self._send(200, {"holdings": rows})
+            if action == "prices" and verb == "POST" and len(parts) == 5 and parts[4] == "import":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                document = product_portfolios.import_prices(portfolio_id, body.get("text"),
+                                                             body.get("date"), body.get("source", "user"))
+                return self._send(200, document)
             if action == "holdings" and verb == "POST":
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 rows = product_portfolios.add_holding(portfolio_id, body.get("symbol"), body.get("shares"),
-                                                       body.get("cost_basis", "0"))
+                                                       body.get("cost_basis", "0"),
+                                                       body.get("rationale", ""))
                 return self._send(200, {"holdings": rows})
             if action == "holdings" and verb == "DELETE" and len(parts) == 5:
                 rows = product_portfolios.remove_holding(portfolio_id, parts[4])
                 return self._send(200, {"holdings": rows})
+            if action == "prices" and verb == "POST" and len(parts) == 5 and parts[4] == "fetch":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                return self._portfolio_price_fetch(portfolio_id, body)
             if action == "prices" and verb == "POST":
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 document = product_portfolios.set_price(portfolio_id, body.get("symbol"), body.get("date"),
@@ -712,6 +729,18 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, document)
             if action == "snapshots" and verb == "GET":
                 return self._send(200, product_portfolios.load(portfolio_id)["snapshots"])
+            if action == "journal" and verb == "GET" and len(parts) == 4:
+                return self._send(200, {"journal": product_portfolios.journal(portfolio_id)})
+            if action == "journal" and verb == "POST" and len(parts) == 4:
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                entry = product_portfolios.save_journal(portfolio_id, body.get("date"), body.get("note", ""),
+                                                        body.get("flow", "0"), body.get("benchmark", ""))
+                return self._send(200, entry)
+            if action == "journal" and verb == "DELETE" and len(parts) == 5:
+                product_portfolios.remove_journal(portfolio_id, parts[4])
+                return self._send(200, {"deleted": parts[4]})
+            if action == "performance" and verb == "GET" and len(parts) == 4:
+                return self._send(200, self._performance_payload(portfolio_id))
             if action == "snapshot" and verb == "POST":
                 return self._portfolio_snapshot(portfolio_id, body or {})
             if action == "export" and verb == "POST":
@@ -721,6 +750,98 @@ class H(BaseHTTPRequestHandler):
             return self._send(404, {"error": str(error)})
         except (product_portfolios.PortfolioError, ValueError, TypeError) as error:
             return self._send(422, {"error": str(error)})
+
+    def _performance_payload(self, portfolio_id):
+        """Chain the stored snapshots through the frozen performance method.
+
+        The flow and benchmark level recorded on a date belong to the period that
+        ends on that date. A benchmark is used only when every period carries both
+        levels; otherwise the return is reported without one and the gap is named.
+        """
+        bundle = product_portfolios.load(portfolio_id)
+        snapshots = bundle["snapshots"]
+        if len(snapshots) < 2:
+            raise ValueError("at least two dated snapshots are required for a return")
+        entries = {entry["date"]: entry for entry in bundle.get("journal", [])}
+        loaded = [product_portfolios.snapshot(portfolio_id, row["date"]) for row in snapshots]
+        periods, starts, ends = [], [], []
+        benchmark_complete = True
+        for previous, current in zip(loaded, loaded[1:]):
+            entry = entries.get(current["date"], {})
+            periods.append({"label": current["date"],
+                            "start_nav": previous["outputs"].get("nav", ""),
+                            "end_nav": current["outputs"].get("nav", ""),
+                            "flow": str(entry.get("flow", "0") or "0")})
+            b_start = str(entries.get(previous["date"], {}).get("benchmark", "") or "")
+            b_end = str(entry.get("benchmark", "") or "")
+            if b_start and b_end:
+                starts.append(b_start); ends.append(b_end)
+            else:
+                benchmark_complete = False
+        inputs = {"periods": periods}
+        if benchmark_complete and starts:
+            inputs["benchmark_start"] = starts
+            inputs["benchmark_end"] = ends
+        method = methods.LIBRARY["portfolio_performance"]
+        issues = methods.validate_inputs(method, inputs) + method.profile(inputs)
+        if issues:
+            raise ValueError("; ".join(issues))
+        results = method.tests(inputs, method.impl)
+        failed = [name for name, ok in results if not ok]
+        if failed:
+            raise ValueError("the performance checks failed: " + ", ".join(failed))
+        outputs = method.impl(inputs)
+        appendix = outputs.pop("_appendix", {})
+        outputs.pop("_checks", None)
+        return {"outputs": {key: str(value) for key, value in outputs.items()},
+                "periods": appendix.get("periods", []),
+                "conventions": appendix.get("conventions", ""),
+                "benchmark_used": "benchmark_return" in outputs,
+                "benchmark_complete": benchmark_complete,
+                "checks": [{"name": name, "ok": bool(ok)} for name, ok in results]}
+
+    def _portfolio_price_fetch(self, portfolio_id, body):
+        """Fetch a quote per holding from the configured free equity source.
+
+        The key lives in the server's environment, never in the page. Every quote
+        is stored with its source and its real trading day; a symbol that fails is
+        named rather than filled, and a date with a saved snapshot is refused before
+        anything is fetched.
+        """
+        bundle = product_portfolios.load(portfolio_id)
+        holdings = bundle["holdings"]
+        if not holdings:
+            raise ValueError("add at least one holding before fetching prices")
+        day = str(body.get("date") or "").strip()
+        if not day:
+            raise ValueError("a price date is required (YYYY-MM-DD)")
+        if day in {row.get("date") for row in bundle["snapshots"]}:
+            raise ValueError("the snapshot for %s is already saved; its prices are immutable" % day)
+        status = product_marketdata.status()
+        if not status["sources"].get("equity"):
+            raise ValueError("equity quotes need an Alpha Vantage key: set BP_ALPHAVANTAGE_KEY and restart the server")
+        stored, failed, quota = {}, [], None
+        for row in holdings:
+            symbol = row["symbol"]
+            try:
+                quote = product_marketdata.equity_quote(symbol)
+                product_portfolios.set_price(portfolio_id, symbol, day, quote["value"],
+                                             source=quote.get("source", "Alpha Vantage"),
+                                             as_of=quote.get("as_of", ""))
+                stored[symbol] = {"price": str(quote["value"]), "as_of": quote.get("as_of", ""),
+                                  "source": quote.get("source", "")}
+            except product_marketdata.MarketDataQuota as error:
+                quota = str(error)
+                failed.append({"symbol": symbol, "error": str(error)})
+            except (product_marketdata.MarketDataError, ValueError, TypeError) as error:
+                failed.append({"symbol": symbol, "error": str(error)})
+        if not stored and quota:
+            return self._send(429, {"error": "the free equity source's daily limit is reached; "
+                                             "enter prices manually or paste them, or retry tomorrow",
+                                    "quota": True, "failed": failed})
+        if not stored and failed:
+            raise ValueError("; ".join("%s: %s" % (row["symbol"], row["error"]) for row in failed))
+        return self._send(200, {"prices": stored, "failed": failed, "quota": bool(quota), "date": day})
 
     def _portfolio_snapshot(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)
@@ -777,7 +898,16 @@ class H(BaseHTTPRequestHandler):
             return self._send(422, {"error": "create a snapshot before exporting"})
         date = str(body.get("date") or max(row["date"] for row in snapshots))
         snapshot = product_portfolios.snapshot(portfolio_id, date)
-        data, filename = product_portfolio_docx.render(bundle["portfolio"], snapshot)
+        performance = None
+        if bundle["portfolio"].get("mode") == "fund" and len(snapshots) >= 2:
+            try:
+                performance = self._performance_payload(portfolio_id)
+            except ValueError:
+                performance = None
+        data, filename = product_portfolio_docx.render(bundle["portfolio"], snapshot,
+                                                       holdings=bundle.get("holdings", []),
+                                                       performance=performance,
+                                                       journal=bundle.get("journal", []))
         return self._send(200, {"filename": filename, "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 "data": base64.b64encode(data).decode("ascii")})
 
@@ -879,6 +1009,40 @@ class H(BaseHTTPRequestHandler):
             return self._send(422, {"error": str(e)})
         return self._send(200, product_intake.attach_table(file_id, table))
 
+def _load_local_keys(path=None):
+    """Load local provider keys into the environment at server startup.
+
+    The file is gitignored (``state/market_keys.json``). An environment variable
+    that is already set wins, so a shell export or CI key is never overwritten.
+    A missing or malformed file is ignored: the server still starts.
+    """
+    from pathlib import Path
+    candidate = path or os.environ.get("BP_MARKET_KEYS_FILE") or (
+        Path(__file__).resolve().parents[2] / "state" / "market_keys.json")
+    try:
+        data = json.loads(Path(candidate).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    mapping = {
+        "alpha_vantage": "BP_ALPHAVANTAGE_KEY",
+        "massive": "BP_MASSIVE_KEY",
+        "qveris": "BP_QVERIS_KEY",
+        "qveris_tool_id": "BP_QVERIS_TOOL_ID",
+        "qveris_symbol_param": "BP_QVERIS_SYMBOL_PARAM",
+        "qveris_price_path": "BP_QVERIS_PRICE_PATH",
+        "qveris_asof_path": "BP_QVERIS_ASOF_PATH",
+    }
+    loaded = {}
+    for key, env in mapping.items():
+        value = str(data.get(key) or "").strip()
+        if value and not os.environ.get(env):
+            os.environ[env] = value
+            loaded[env] = True
+    return loaded
+
+
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS, SANDBOX_ENABLED
     M = SessionManager(SubprocessSandbox() if sandbox else None, ASSIST_RUNS); MODELS = models if models is not None else llm.from_env()
@@ -888,5 +1052,6 @@ def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     ThreadingHTTPServer((host, port), H).serve_forever()
 
 if __name__ == "__main__":
+    _load_local_keys()
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     serve(int(args[0]) if args else 8000, sandbox="--no-sandbox" not in sys.argv)

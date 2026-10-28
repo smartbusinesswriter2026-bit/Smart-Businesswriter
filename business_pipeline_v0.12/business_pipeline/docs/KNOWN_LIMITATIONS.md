@@ -478,11 +478,27 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **The companion is not the assignment.** It is a study and defence aid; the paper remains the submitted record. It carries no new source, citation, recommendation or number.
 
 ## Added with the Portfolio Lab (B-154)
-- **Paper mode only in this build.** A portfolio has one valuation date and one snapshot; the weekly
-  mock-fund journal (cadence, reviews, team roster) is deferred to the second increment.
-- **Prices are declared, never fetched.** Manual entry and paste/CSV are the default; the optional free
-  US weekly feed is not wired yet, and the core has no network access. A missing price blocks the
-  snapshot rather than being estimated.
+- **Fund mode is a journal, not a trading system.** A fund records weekly snapshots, a student note,
+  the external flow and an optional benchmark level, and computes a time-weighted return from the
+  dated snapshots. There is no order execution, broker connection or team authentication; the
+  roster is a recorded label, not a login.
+- **The flow is modelled at the start of its period.** The return is (end NAV - start NAV - flow) /
+  (start NAV + flow); a contribution spread through the week or made at its end is not represented.
+- **A benchmark is reported only when every period declares both levels.** A partial benchmark is a
+  named gap, not a filled number.
+- **Prices are declared; fetching is optional and explicit.** Manual entry and paste/CSV import remain the
+  default. The **Fetch prices** button tries Alpha Vantage (primary, 25/day), then Massive
+  (5/minute), then a declared QVeris capability (credits per call). Each provider has an internal
+  ceiling; a reached ceiling or vendor limit skips to the next, and every attempt is named. The
+  ceilings are held in memory, so restarting the server resets them; the vendor still enforces its
+  real quota. QVeris needs an explicit tool id, parameter name and price path, so it is skipped
+  until that contract is declared. Keys may live in the gitignored `state/market_keys.json`; an
+  environment variable always wins, and that local file is the only place they are stored. When every provider is exhausted the fetch returns 429 and the
+  UI points to manual entry or paste; a partial fetch stores only what succeeded. The frozen core
+  has no network access: it values the stored prices only.
+- **Import is all-or-nothing.** A pasted table is validated row by row before it is written; one bad row
+  refuses the whole paste and names its line. A header row is recognised by its label (Symbol, Ticker,
+  Shares, Price, ...), so a data row with a mistaken value is refused rather than skipped.
 - **One base currency, no FX.** Every price and the cash balance must already be in the portfolio's base
   currency; the valuation does not convert. A holding quoted elsewhere is entered after conversion, and
   the snapshot records that convention.

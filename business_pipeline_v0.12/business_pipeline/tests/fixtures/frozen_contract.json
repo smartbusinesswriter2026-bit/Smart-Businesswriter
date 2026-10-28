@@ -1786,6 +1786,26 @@
         "weight_a"
       ]
     },
+    "portfolio_performance": {
+      "tier": "T1",
+      "metric": "twr",
+      "unit": "ratio",
+      "test_names": [
+        "second_implementation_agrees",
+        "twr_equals_the_product_of_end_over_base",
+        "a_period_with_no_flow_returns_the_nav_ratio",
+        "geometric_mean_lies_between_best_and_worst",
+        "benchmark_chains_the_same_way",
+        "final_nav_matches_the_last_period"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "portfolio",
+      "inputs": [
+        "benchmark_end",
+        "benchmark_start",
+        "periods"
+      ]
+    },
     "portfolio_valuation": {
       "tier": "T1",
       "metric": "nav",
@@ -3029,6 +3049,7 @@
     "panel",
     "pearson",
     "portfolio",
+    "portfolioperf",
     "portfolioval",
     "posthoc",
     "poverty",

@@ -5551,6 +5551,64 @@
    "unsupported_use": "Choosing the assets, the weights or the benchmark; multi-asset optimisation; the efficient frontier; risk-free lending and borrowing; forecasting returns.",
    "version": "1.0.0"
   },
+  "portfolio_performance": {
+   "assumptions": [
+    "Each period's start NAV is the previous period's end NAV unless the student declares otherwise.",
+    "The flow is the only external cash movement in the period.",
+    "Any benchmark level is declared by the student for the same dates."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "At the start of its period, so the period return is (end_nav - start_nav - flow) / (start_nav + flow).",
+     "impact": "A flow at the end or spread through the period would produce a different return; the report states the convention.",
+     "question": "When does the external flow occur?"
+    },
+    {
+     "default_chosen": "Time-weighted return, chaining each period's return so deposits and withdrawals do not flatter it.",
+     "impact": "A money-weighted return would answer a different question: the student's own experience rather than the portfolio's.",
+     "question": "What does the return measure?"
+    }
+   ],
+   "inputs": {
+    "benchmark_end": {
+     "desc": "the matching end level for each period",
+     "required": false,
+     "type": "value_list"
+    },
+    "benchmark_start": {
+     "desc": "one benchmark level per period, in the same order; give both lists or neither",
+     "required": false,
+     "type": "value_list"
+    },
+    "periods": {
+     "desc": "one row per period: label, start and end NAV, and the external flow (enter 0 when there is none)",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "intended_use": "Measure the time-weighted return of a portfolio across dated periods from each period's start and end NAV, its external flow and, optionally, a declared benchmark level.",
+   "limitations": [
+    "No fees, tax, dividends or corporate actions.",
+    "No money-weighted return, forecast or recommendation.",
+    "A flow is modelled at the start of its period only; intra-period timing is not represented."
+   ],
+   "method_id": "portfolio_performance",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "twr_equals_the_product_of_end_over_base",
+    "a_period_with_no_flow_returns_the_nav_ratio",
+    "geometric_mean_lies_between_best_and_worst",
+    "benchmark_chains_the_same_way",
+    "final_nav_matches_the_last_period"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Fetching NAVs, prices or benchmark levels; fees, tax, dividends or corporate actions; money-weighted return (IRR); forecasting; short positions or derivatives; a recommendation.",
+   "version": "1.0.0"
+  },
   "portfolio_valuation": {
    "assumptions": [
     "The prices are the owner's dated values for the same date.",

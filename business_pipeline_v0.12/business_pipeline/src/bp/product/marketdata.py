@@ -6,8 +6,12 @@ Read-only services from a fixed allowlist of public sources:
   No API key, no quota, daily and historical.
 * **Risk-free yield** - the U.S. Treasury daily par yield curve CSV (``home.treasury.gov``).
   No API key.
-* **Equity quote and fundamentals** - Alpha Vantage (``www.alphavantage.co``) with the user's
-  own free key in ``BP_ALPHAVANTAGE_KEY``; 25 requests/day on the free tier.
+* **Equity quote** - a declared chain: Alpha Vantage (``www.alphavantage.co``, primary, the
+  user's own free key in ``BP_ALPHAVANTAGE_KEY``, 25 requests/day), then Massive
+  (``api.massive.com``, ``BP_MASSIVE_KEY``, 5 requests/minute), then QVeris
+  (``qveris.ai``, ``BP_QVERIS_KEY`` plus a declared tool and price path, credits per call).
+  Each provider has an internal ceiling; when one is reached the next is tried.
+* **Equity fundamentals** - the U.S. SEC EDGAR XBRL facts (``data.sec.gov``). No key.
 * **Filings** - U.S. SEC EDGAR's public Atom feed (``www.sec.gov``). No key.
 * **Macro** - the World Bank Open Data API (``api.worldbank.org``), CC BY 4.0. No key.
 
@@ -29,6 +33,7 @@ import io
 import json
 import os
 import re
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -38,6 +43,8 @@ from decimal import Decimal, InvalidOperation
 FORMAT = "bp-marketdata/1"
 
 FRANKFURTER = "https://api.frankfurter.dev/v2/rate/{base}/{quote}"
+MASSIVE = "https://api.massive.com"
+QVERIS = "https://qveris.ai/api/v1"
 TREASURY = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
             "daily-treasury-rates.csv/{year}/all?type=daily_treasury_yield_curve"
             "&field_tdr_date_value={year}&page&_format=csv")
@@ -48,6 +55,7 @@ WORLDBANK = ("https://api.worldbank.org/v2/country/{country}/indicator/{indicato
              "?format=json&per_page={count}")
 
 ALLOWED_HOSTS = {"api.frankfurter.dev", "home.treasury.gov", "www.alphavantage.co",
+                 "api.massive.com", "qveris.ai",
                  "www.sec.gov", "data.sec.gov", "api.worldbank.org"}
 MAX_BYTES = 1_000_000
 TIMEOUT = 20
@@ -91,6 +99,10 @@ class MarketDataError(Exception):
     """The lookup could not be completed; no value is returned."""
 
 
+class MarketDataQuota(MarketDataError):
+    """The free equity source's daily quota or rate limit is exhausted."""
+
+
 def _cache_get(key):
     hit = _CACHE.get(key)
     if hit and hit[0] > time.time(): return hit[1]
@@ -103,7 +115,7 @@ def _cache_put(key, value, seconds=CACHE_SECONDS):
 
 def _public_url(url):
     """A source URL safe to show: an API key in the query string is redacted."""
-    return re.sub(r"(apikey=)[^&]+", r"\1***", url, flags=re.I)
+    return re.sub(r"((?:api_?key)=)[^&]+", r"\1***", url, flags=re.I)
 
 
 def _fetch(url):
@@ -115,6 +127,36 @@ def _fetch(url):
     request = urllib.request.Request(url, headers={
         "User-Agent": "SmartBusinessWriter/0.83 (local educational app)",
         "Accept": "application/json, text/csv;q=0.9, text/plain;q=0.8",
+    })
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+            final = urllib.parse.urlparse(response.geturl()).hostname
+            if final not in ALLOWED_HOSTS:
+                raise MarketDataError("the source redirected to an address outside the allowlist")
+            raw = response.read(MAX_BYTES + 1)
+            status = response.status
+    except MarketDataError:
+        raise
+    except Exception as exc:
+        raise MarketDataError("the source could not be reached: " + type(exc).__name__)
+    if status != 200:
+        raise MarketDataError("the source answered with status %s" % status)
+    if len(raw) > MAX_BYTES:
+        raise MarketDataError("the source response is larger than the 1 MB limit")
+    return raw, response.geturl()
+
+
+def _post_json(url, payload, key):
+    """POST an allowlisted JSON endpoint with a bearer key; the key never enters the URL."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS:
+        raise MarketDataError("this lookup may only read from the declared public sources over HTTPS")
+    body = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(url, data=body, method="POST", headers={
+        "User-Agent": "SmartBusinessWriter/0.83 (local educational app)",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + key,
     })
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
@@ -253,24 +295,32 @@ def riskfree_rate(maturity="10Y", year=None):
 
 
 def clear_cache():
-    """Drop the in-memory cache (tests and a manual refresh)."""
+    """Drop the in-memory cache and the internal ceilings (tests and a manual refresh)."""
     _CACHE.clear()
+    with _LIMIT_LOCK:
+        _LIMIT_WINDOWS.clear()
 
 
 def status():
     """Which sources are configured, without making a network call.
 
-    Equity lookups need the user's own Alpha Vantage key; FX, Treasury, SEC and World Bank
-    need nothing. The UI uses this to explain a disabled button before it is clicked.
+    Equity quotes use a chain: Alpha Vantage first, then Massive, then QVeris.
+    FX, Treasury, SEC and World Bank need no key. The UI uses this to explain a
+    disabled button before it is clicked.
     """
-    key = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
+    providers = _equity_providers()
+    equity = any(row["configured"] for row in providers)
     return {"format": FORMAT,
-            "sources": {"fx": True, "riskfree": True, "equity": key, "fundamentals": True,
+            "sources": {"fx": True, "riskfree": True, "equity": equity, "fundamentals": True,
                         "filings": True, "macro": True},
+            "equity_providers": [{"name": row["name"], "configured": row["configured"],
+                                  "key_env": row["key_env"], "per_minute": row["per_minute"],
+                                  "per_day": row["per_day"]} for row in providers],
             "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
-            "note": ("Equity quotes use your own free Alpha Vantage key; fundamentals come from SEC EDGAR's "
-                     "XBRL facts (US registrants) and need no key. Uncovered markets (PSE, private companies) "
-                     "are manual entries.")}
+            "note": ("Equity quotes try Alpha Vantage first, then Massive, then QVeris. Each provider "
+                     "has an internal ceiling; when one is reached the next is tried. Fundamentals come "
+                     "from SEC EDGAR and need no key. Uncovered markets (PSE, private companies) are "
+                     "manual entries.")}
 
 
 def _alpha_key():
@@ -298,30 +348,222 @@ def _alpha_json(function, symbol, key):
         raise MarketDataError("the equity source returned a response this app cannot read")
     for field in ("Error Message", "Information", "Note"):
         if field in data:
-            raise MarketDataError("the equity source refused the request: " + str(data[field])[:300])
+            message = str(data[field])
+            if re.search(r"rate limit|requests per (day|minute)|premium plan|call frequency|"
+                         r"daily limit|exceeded", message, re.I):
+                raise MarketDataQuota("the free equity source's limit is reached: " + message[:300])
+            raise MarketDataError("the equity source refused the request: " + message[:300])
     return data, raw, final
 
 
+_LIMIT_LOCK = threading.Lock()
+_LIMIT_WINDOWS = {}
+
+
+def _int_env(name, default):
+    try:
+        return max(1, int(str(os.environ.get(name) or default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _limit_ok(name, per_minute=None, per_day=None):
+    """May this provider be called now? The ceiling is internal, not the vendor's."""
+    now = time.time()
+    with _LIMIT_LOCK:
+        state = _LIMIT_WINDOWS.setdefault(name, {"minute": [], "day": [None, 0]})
+        if per_minute:
+            state["minute"] = [stamp for stamp in state["minute"] if now - stamp < 60]
+            if len(state["minute"]) >= per_minute:
+                return False
+        if per_day:
+            today = datetime.date.today().isoformat()
+            if state["day"][0] != today:
+                state["day"] = [today, 0]
+            if state["day"][1] >= per_day:
+                return False
+        return True
+
+
+def _limit_spend(name):
+    now = time.time()
+    with _LIMIT_LOCK:
+        state = _LIMIT_WINDOWS.setdefault(name, {"minute": [], "day": [None, 0]})
+        state["minute"].append(now)
+        today = datetime.date.today().isoformat()
+        if state["day"][0] != today:
+            state["day"] = [today, 0]
+        state["day"][1] += 1
+
+
+def _equity_providers():
+    """The declared order. A provider without its key is skipped, not guessed."""
+    alpha = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
+    massive = bool((os.environ.get("BP_MASSIVE_KEY") or "").strip())
+    qveris = bool((os.environ.get("BP_QVERIS_KEY") or "").strip()
+                  and (os.environ.get("BP_QVERIS_TOOL_ID") or "").strip()
+                  and (os.environ.get("BP_QVERIS_PRICE_PATH") or "").strip())
+    return [
+        {"name": "Alpha Vantage", "configured": alpha, "fetch": _alpha_quote,
+         "per_minute": _int_env("BP_ALPHA_PER_MINUTE_CEILING", 5),
+         "per_day": _int_env("BP_ALPHA_DAILY_CEILING", 25),
+         "key_env": "BP_ALPHAVANTAGE_KEY"},
+        {"name": "Massive", "configured": massive, "fetch": _massive_quote,
+         "per_minute": _int_env("BP_MASSIVE_PER_MINUTE_CEILING", 5), "per_day": None,
+         "key_env": "BP_MASSIVE_KEY"},
+        {"name": "QVeris", "configured": qveris, "fetch": _qveris_quote,
+         "per_minute": _int_env("BP_QVERIS_PER_MINUTE_CEILING", 60), "per_day": None,
+         "key_env": "BP_QVERIS_KEY"},
+    ]
+
+
+def _attempt_text(attempts):
+    return "; ".join("%s: %s" % (row["provider"], row["error"]) for row in attempts)
+
+
 def equity_quote(symbol):
-    """Latest quote for one symbol from Alpha Vantage's free tier (the user's own key)."""
+    """The first quote from Alpha Vantage, Massive or QVeris, with provenance.
+
+    Alpha is primary. A provider at its internal ceiling, or one the vendor
+    rate-limits, is skipped; the next is tried. Every attempt is recorded in
+    ``attempts`` so the report can say which source answered and why the others
+    did not. Nothing is invented and no key appears in the URL.
+    """
     symbol = _symbol(symbol)
-    key = _alpha_key()
     cache_key = ("quote", symbol)
     cached = _cache_get(cache_key)
     if cached: return cached
+    attempts, configured, limited = [], 0, 0
+    for provider in _equity_providers():
+        if not provider["configured"]:
+            continue
+        configured += 1
+        if not _limit_ok(provider["name"], provider["per_minute"], provider["per_day"]):
+            limited += 1
+            attempts.append({"provider": provider["name"], "error": "internal ceiling reached"})
+            continue
+        _limit_spend(provider["name"])
+        try:
+            payload = provider["fetch"](symbol)
+        except MarketDataQuota as error:
+            limited += 1
+            attempts.append({"provider": provider["name"], "error": str(error)})
+            continue
+        except MarketDataError as error:
+            attempts.append({"provider": provider["name"], "error": str(error)})
+            continue
+        payload["provider"] = provider["name"]
+        payload["attempts"] = attempts
+        _cache_put(cache_key, payload, DAY_SECONDS)
+        return payload
+    if configured and limited == configured:
+        raise MarketDataQuota("every configured equity source is at its limit: " + _attempt_text(attempts))
+    if configured:
+        raise MarketDataError("no equity source returned a quote: " + _attempt_text(attempts))
+    raise MarketDataError("equity quotes need a key: set BP_ALPHAVANTAGE_KEY (primary), "
+                          "BP_MASSIVE_KEY, or BP_QVERIS_KEY with BP_QVERIS_TOOL_ID and "
+                          "BP_QVERIS_PRICE_PATH")
+
+
+def _alpha_quote(symbol):
+    """Latest quote from Alpha Vantage's free tier (the primary source)."""
+    key = _alpha_key()
     data, raw, final = _alpha_json("GLOBAL_QUOTE", symbol, key)
     quote = data.get("Global Quote") or {}
     try:
         price = Decimal(str(quote["05. price"]))
     except (KeyError, InvalidOperation, TypeError):
         raise MarketDataError("the equity source returned no quote for " + symbol)
-    payload = _payload("quote", price, str(quote.get("07. latest trading day") or ""),
-                       "Alpha Vantage (free tier)", _public_url(final), raw,
-                       {"symbol": symbol, "change_percent": str(quote.get("10. change percent") or "").strip(),
-                        "volume": str(quote.get("06. volume") or "").strip(),
-                        "previous_close": str(quote.get("08. previous close") or "").strip()})
-    _cache_put(cache_key, payload, DAY_SECONDS)
-    return payload
+    return _payload("quote", price, str(quote.get("07. latest trading day") or ""),
+                    "Alpha Vantage (free tier)", _public_url(final), raw,
+                    {"symbol": symbol, "change_percent": str(quote.get("10. change percent") or "").strip(),
+                     "volume": str(quote.get("06. volume") or "").strip(),
+                     "previous_close": str(quote.get("08. previous close") or "").strip()})
+
+
+def _massive_quote(symbol):
+    """Previous close from Massive's Stocks Basic plan (5 requests/minute)."""
+    key = (os.environ.get("BP_MASSIVE_KEY") or "").strip()
+    if not key:
+        raise MarketDataError("a Massive key is required: set BP_MASSIVE_KEY")
+    url = (MASSIVE + "/v2/aggs/ticker/" + urllib.parse.quote(symbol) +
+           "/prev?adjusted=true&apiKey=" + urllib.parse.quote(key))
+    raw, final = _fetch(url)
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise MarketDataError("Massive returned a response this app cannot read")
+    if data.get("status") not in ("OK", "DELAYED"):
+        raise MarketDataError("Massive refused the request: " + str(data.get("status") or "")[:120])
+    results = data.get("results") or []
+    if not results:
+        raise MarketDataError("Massive returned no previous close for " + symbol)
+    row = results[0]
+    try:
+        price = Decimal(str(row["c"]))
+    except (KeyError, InvalidOperation, TypeError):
+        raise MarketDataError("Massive returned no usable close for " + symbol)
+    try:
+        as_of = datetime.datetime.fromtimestamp(int(row.get("t")) / 1000,
+                                                tz=datetime.timezone.utc).date().isoformat()
+    except (TypeError, ValueError, OSError):
+        as_of = ""
+    return _payload("quote", price, as_of, "Massive (previous close)", _public_url(final), raw,
+                    {"symbol": symbol, "volume": str(row.get("v") or "")})
+
+
+def _dig(data, path):
+    node = data
+    for part in str(path or "").split("."):
+        if not part:
+            continue
+        if isinstance(node, dict) and part in node:
+            node = node[part]
+        elif isinstance(node, list) and part.isdigit() and int(part) < len(node):
+            node = node[int(part)]
+        else:
+            raise MarketDataError("the QVeris result did not carry the configured field")
+    return node
+
+
+def _qveris_quote(symbol):
+    """Call one declared QVeris capability. Credits are spent, so it is the last resort."""
+    key = (os.environ.get("BP_QVERIS_KEY") or "").strip()
+    tool = (os.environ.get("BP_QVERIS_TOOL_ID") or "").strip()
+    price_path = (os.environ.get("BP_QVERIS_PRICE_PATH") or "").strip()
+    if not (key and tool and price_path):
+        raise MarketDataError("QVeris needs BP_QVERIS_KEY, BP_QVERIS_TOOL_ID and BP_QVERIS_PRICE_PATH")
+    param = (os.environ.get("BP_QVERIS_SYMBOL_PARAM") or "symbol").strip()
+    url = QVERIS + "/tools/execute?tool_id=" + urllib.parse.quote(tool, safe="")
+    body = {"parameters": {param: symbol},
+            "model": (os.environ.get("BP_QVERIS_MODEL") or "smart-businesswriter").strip()}
+    raw, final = _post_json(url, body, key)
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise MarketDataError("QVeris returned a response this app cannot read")
+    if data.get("success") is False:
+        raise MarketDataError("QVeris refused the call: " + str(data.get("error_message") or "")[:300])
+    try:
+        price = Decimal(str(_dig(data, price_path)))
+    except (InvalidOperation, TypeError, ValueError):
+        raise MarketDataError("QVeris returned no usable price for " + symbol)
+    as_of_path = (os.environ.get("BP_QVERIS_ASOF_PATH") or "").strip()
+    as_of = datetime.date.today().isoformat()
+    if as_of_path:
+        raw_as_of = _dig(data, as_of_path)
+        text = str(raw_as_of).strip()
+        if isinstance(raw_as_of, (int, float)) or (text.isdigit() and len(text) >= 9):
+            try:
+                stamp = float(text)
+                if stamp > 1e12: stamp /= 1000
+                as_of = datetime.datetime.fromtimestamp(stamp, tz=datetime.timezone.utc).date().isoformat()
+            except (TypeError, ValueError, OSError):
+                pass
+        elif text:
+            as_of = text
+    return _payload("quote", price, as_of, "QVeris (" + tool + ")", _public_url(final), raw,
+                    {"symbol": symbol})
 
 
 def _sec_concept(cik, tags):

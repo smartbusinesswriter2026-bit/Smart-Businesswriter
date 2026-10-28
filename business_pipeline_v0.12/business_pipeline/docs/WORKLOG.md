@@ -1,5 +1,65 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - Local key file and the live QVeris contract
+
+**Ask.** The owner supplied Alpha, Massive and QVeris keys and does not want to re-export them each session.
+
+**Did.** `bp.server._load_local_keys` reads the gitignored `state/market_keys.json` at startup and sets only absent `BP_*` variables. QVeris is configured against Finnhub's quote capability (`result.data.c`, 1 credit) and its epoch `t` is converted to a UTC date. Verified live: Alpha 343.83 (2026-10-28), Massive 347.1 (2026-10-27), QVeris 343.83 (2026-10-28).
+
+**Verified.** A loader test asserts a file value is set, an existing environment value wins, and a missing file is ignored. Full suite 1717 tests green.
+
+**Files.** `src/bp/server.py`, `src/bp/product/marketdata.py`, `tests/test_product_marketdata.py`.
+
+## 2026-10-29 - Equity quote fallbacks with internal ceilings
+
+**Ask.** Keep Alpha Vantage primary while starting, then fall back to Massive (5 requests/minute; put the ceiling internally) and QVeris (credits, top-up).
+
+**Did.** `equity_quote` is now a chain: Alpha Vantage, then Massive's previous close, then a declared QVeris capability. Each provider has a key env and an internal ceiling (Alpha 25/day and 5/min, Massive 5/min, QVeris 60/min), all overridable. A missing key skips the provider; a reached ceiling or vendor rate limit skips to the next; the payload records `provider` and `attempts`. `/api/market/status` lists the chain. Keys stay in the query/header and URLs are redacted. QVeris requires `BP_QVERIS_TOOL_ID` and `BP_QVERIS_PRICE_PATH`, so it cannot guess a capability schema.
+
+**Verified.** `tests/test_product_marketdata.py` grows to 26: Alpha primary, Massive fallback after an Alpha rate limit, the internal Massive ceiling producing a named quota error, the no-key message naming every variable, status order, and QVeris staying unconfigured until its contract is declared. Full suite 1716 tests green.
+
+**Files.** `src/bp/product/marketdata.py`, `web/index.html`, `tests/test_product_marketdata.py`.
+
+## 2026-10-29 - Plain-language checks and a quota fallback
+
+**Ask.** "Do we have to show this to users" (the raw check names) and "do we have a fallback if we exceeded the 25 per day limit?"
+
+**Did.** The Word report's Checks section now reads "All 12 checks passed (6 valuation, 6 performance)" with one sentence on what the checks confirm; machine names stay in the stored snapshot, and a failure is named. `marketdata.MarketDataQuota` separates a rate-limit/daily-limit response from a bad symbol; the fetch route returns 429 with `quota: true` when nothing could be stored, keeps a successful subset and names the rest. The UI shows an honesty banner that points to manual entry or paste.
+
+**Verified.** A market-data test asserts the quota subclass; a route test asserts 429 and the manual message; the fund export test asserts "All 12 checks passed" is present and the machine name is absent; the UI guard asserts the fallback banner. Full suite 1710 tests green.
+
+**Files.** `src/bp/product/marketdata.py`, `src/bp/server.py`, `src/bp/product/portfolio_docx.py`, `web/index.html`, `tests/test_product_marketdata.py`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`.
+
+## 2026-10-29 - Optional quotes for the Portfolio Lab
+
+**Ask.** The owner supplied an Alpha Vantage key and expected the lab to use it.
+
+**Did.** `POST /api/portfolios/{id}/prices/fetch` reads `BP_ALPHAVANTAGE_KEY` from the server, calls the existing `marketdata.equity_quote` once per holding and stores each price with its real `as_of` and source. A failed symbol is returned in a `failed` list; a date with a snapshot is refused before any call; a missing key is refused with the variable name. `set_price` gained an `as_of` so a Friday close used for a weekend snapshot is not relabelled. The Prices tab gains a fetch button gated on `/api/market/status`, disabled until the key is configured.
+
+**Verified.** `tests/test_product_portfolios.py` grows to 17: a fake source stores AAPL and names MSFT's failure, a missing key is refused, and a saved date is refused before fetching. UI guards assert the button and the status call. Full suite 1708 tests green.
+
+**Files.** `src/bp/server.py`, `src/bp/product/portfolios.py`, `web/index.html`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`.
+
+## 2026-10-29 - The Portfolio Lab becomes a mock fund
+
+**Ask.** Complete the Portfolio Lab: the semester mock-fund journal, a return the student can defend, and a report shaped like the assignment.
+
+**Did.** (1) `portfolio_performance` joins the frozen core (T1, category `portfolio`): one row per period with label, start NAV, end NAV and flow, optional benchmark levels; it returns the time-weighted return, total flow, start and final NAV, best and worst period and, when complete, the benchmark and active return. The flow is declared at the start of its period. Six checks; the independent route chains `end / (start + flow)`. (2) `bp.product.portfolios` gains the journal (`journal`, `save_journal`, `remove_journal`) and records an objective, roster and per-holding rationale. (3) Routes `GET .../performance`, `GET/POST .../journal`, `DELETE .../journal/{date}`; the performance payload names a missing benchmark and refuses fewer than two snapshots. (4) Fund creation is enabled; the workspace adds a **Journal and return** tab, and both paste boxes take a CSV/TSV file. (5) The Word report is rubric-shaped: objective, summary, holdings and rationale, performance and conventions, journal, provenance, checks, limits. (6) Preset `portfolioperf`, the finance shelf, calculator group, study notes, synonyms and both slices are updated; the fixture is regenerated at 142 methods and 144 presets.
+
+**Verified.** `tests/test_portfolio_performance.py` (7) covers chaining, flows, benchmark, a loss, the six checks and the refusals. `tests/test_product_portfolios.py` grows to 14, including the journal store, the performance route, a named missing benchmark, the two-snapshot refusal and the fund DOCX content. `tests/test_product_subjects.py` guards the fund UI. Full suite 1705 tests green.
+
+**Files.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/product/portfolios.py`, `src/bp/product/portfolio_docx.py`, `src/bp/product/subjects.py`, `src/bp/product/calc_router.py`, `src/bp/product/data/*.json`, `web/index.html`, `tests/test_portfolio_performance.py`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`, `tests/fixtures/frozen_contract.json`.
+
+## 2026-10-29 - The Portfolio Lab takes a pasted book and a pasted price list
+
+**Ask.** Continue the Portfolio Lab with the import path students actually use: a spreadsheet or a paste, not forty rows by hand.
+
+**Did.** `parse_holdings` and `parse_prices` in `bp.product.portfolios` read comma, tab or semicolon tables with an optional labelled header, cost basis and price source; a duplicate symbol in one paste is refused. `import_holdings` upserts in one write; `import_prices` writes one date in one write, refuses a symbol that is not a holding and refuses a date that already has a snapshot. Validation runs over every row before anything is stored, so one bad row refuses the whole paste with its row number. Two routes (`POST .../holdings/import`, `POST .../prices/import`) and a paste area in the Holdings and Prices tabs; the browser sends text and does no arithmetic.
+
+**Verified.** `tests/test_product_portfolios.py` grows to 10 tests: header and tabbed pastes, the comma/tab paths, all-or-nothing refusal, duplicate refusal, unknown-symbol and saved-date refusal, the two routes feeding a snapshot, and the 422 on a bad paste. Focused suite 64 tests green.
+
+**Files.** `src/bp/product/portfolios.py`, `src/bp/server.py`, `web/index.html`, `tests/test_product_portfolios.py`.
+
 ## 2026-10-29 - A Portfolio Lab values a dated portfolio and exports the report
 
 **Ask.** "start with the build. we will do the manual later when its done" - a portfolio workspace, paper mode first, global by default, aligned to what students actually do.

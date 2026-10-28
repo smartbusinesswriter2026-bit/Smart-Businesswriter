@@ -1,6 +1,7 @@
 """Portfolio store, snapshot integration and the Portfolio Lab routes."""
 
 import base64
+import io
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ import threading
 import unittest
 import urllib.request
 import urllib.error
+import zipfile
 from http.server import ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -78,6 +80,57 @@ class StoreTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             portfolios.set_price(portfolio["id"], "AAPL", "2026-10-30", "200")
 
+    def test_pasted_rows_import_in_one_write(self):
+        portfolio = portfolios.create("Imported")
+        rows = portfolios.import_holdings(
+            portfolio["id"], "Symbol,Shares,Cost basis\nAAPL,10,150\nMSFT,5,350")
+        self.assertEqual([row["symbol"] for row in rows], ["AAPL", "MSFT"])
+        document = portfolios.import_prices(
+            portfolio["id"], "Symbol,Price,Source\nAAPL,200,user\nMSFT,400,user", "2026-10-30")
+        self.assertEqual(document["prices"]["AAPL"]["price"], "200")
+        self.assertEqual(document["prices"]["MSFT"]["source"], "user")
+
+    def test_tabbed_rows_without_a_header_import(self):
+        portfolio = portfolios.create("Tabbed")
+        rows = portfolios.import_holdings(portfolio["id"], "AAPL\t10\nMSFT\t5")
+        self.assertEqual(len(rows), 2)
+        document = portfolios.import_prices(portfolio["id"], "AAPL\t200\nMSFT\t400", "2026-10-30")
+        self.assertEqual(set(document["prices"]), {"AAPL", "MSFT"})
+
+    def test_one_bad_row_refuses_the_whole_paste(self):
+        portfolio = portfolios.create("Bad paste")
+        with self.assertRaises(ValueError):
+            portfolios.import_holdings(portfolio["id"], "AAPL,10\nMSFT,oops")
+        self.assertEqual(portfolios.load(portfolio["id"])["holdings"], [])
+        with self.assertRaises(ValueError):
+            portfolios.import_holdings(portfolio["id"], "AAPL,10\nAAPL,5")
+        self.assertEqual(portfolios.load(portfolio["id"])["holdings"], [])
+
+    def test_price_import_refuses_an_unknown_symbol_and_a_saved_date(self):
+        portfolio = portfolios.create("Price rules")
+        portfolios.import_holdings(portfolio["id"], "AAPL,10")
+        with self.assertRaises(ValueError):
+            portfolios.import_prices(portfolio["id"], "MSFT,400", "2026-10-30")
+        portfolios.import_prices(portfolio["id"], "AAPL,200", "2026-10-30")
+        portfolios.save_snapshot(portfolio["id"], {"date": "2026-10-30", "outputs": {}})
+        with self.assertRaises(portfolios.PortfolioError):
+            portfolios.import_prices(portfolio["id"], "AAPL,201", "2026-10-30")
+
+
+    def test_the_journal_keeps_the_students_words_and_flow(self):
+        portfolio = portfolios.create("Fund journal", mode="fund", objective="Learn", roster="A, B")
+        entry = portfolios.save_journal(portfolio["id"], "2026-10-31", note="Added cash",
+                                        flow="500", benchmark="4300")
+        self.assertEqual(entry["flow"], "500")
+        self.assertEqual(entry["benchmark"], "4300")
+        self.assertEqual(portfolios.load(portfolio["id"])["journal"][0]["note"], "Added cash")
+        portfolios.save_journal(portfolio["id"], "2026-10-31", note="Revised", flow="0", benchmark="")
+        self.assertEqual(portfolios.journal(portfolio["id"])[0]["note"], "Revised")
+        portfolios.remove_journal(portfolio["id"], "2026-10-31")
+        self.assertEqual(portfolios.journal(portfolio["id"]), [])
+        with self.assertRaises(ValueError):
+            portfolios.save_journal(portfolio["id"], "2026-10-31", benchmark="-1")
+
 
 class RoutesTest(unittest.TestCase):
     @classmethod
@@ -128,6 +181,163 @@ class RoutesTest(unittest.TestCase):
         body = json.loads(caught.exception.read())
         self.assertIn("missing prices", body["error"])
 
+    def test_paste_import_routes_feed_the_snapshot(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Imported route"})
+        pid = portfolio["id"]
+        status, rows = _post(self.base, "/api/portfolios/%s/holdings/import" % pid,
+                             {"text": "Symbol,Shares\nAAPL,10\nMSFT,5"})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(rows["holdings"]), 2)
+        status, prices = _post(self.base, "/api/portfolios/%s/prices/import" % pid,
+                               {"date": "2026-10-31", "text": "AAPL,200\nMSFT,400"})
+        self.assertEqual(status, 200)
+        self.assertEqual(set(prices["prices"]), {"AAPL", "MSFT"})
+        status, snapshot = _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+                                 {"date": "2026-10-31", "cash": "0"})
+        self.assertEqual(status, 201)
+        self.assertEqual(snapshot["outputs"]["nav"], "4000")
+
+    def test_a_bad_paste_is_refused_with_422(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Bad paste route"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/holdings/import" % portfolio["id"],
+                  {"text": "AAPL,nope"})
+        self.assertEqual(caught.exception.code, 422)
+        body = json.loads(caught.exception.read())
+        self.assertIn("row 1", body["error"])
+
+
+    def test_fund_performance_and_journal_routes(self):
+        _, portfolio = _post(self.base, "/api/portfolios",
+                             {"name": "Fund route", "mode": "fund", "objective": "Learn"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "220"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/journal" % pid,
+              {"date": "2026-10-24", "note": "Start", "flow": "0", "benchmark": "100"})
+        _post(self.base, "/api/portfolios/%s/journal" % pid,
+              {"date": "2026-10-31", "note": "Held", "flow": "0", "benchmark": "102"})
+        status, performance = _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(status, 200)
+        self.assertEqual(performance["outputs"]["twr"], "0.1")
+        self.assertTrue(performance["benchmark_used"])
+        self.assertEqual(performance["outputs"]["benchmark_return"], "0.02")
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("Time-weighted return", xml)
+        self.assertIn("Journal of decisions", xml)
+        self.assertIn("Held", xml)
+        self.assertIn("All 12 checks passed", xml)
+        self.assertNotIn("second_implementation_agrees", xml)
+
+    def test_a_missing_benchmark_is_named_not_filled(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No benchmark", "mode": "fund"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "220"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        status, performance = _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(status, 200)
+        self.assertFalse(performance["benchmark_used"])
+        self.assertNotIn("benchmark_return", performance["outputs"])
+
+    def test_performance_needs_two_snapshots(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "One snapshot", "mode": "fund"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-24", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-24", "cash": "0"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _get(self.base, "/api/portfolios/%s/performance" % pid)
+        self.assertEqual(caught.exception.code, 422)
+
+    def test_fetch_prices_uses_the_configured_source_and_names_failures(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Fetch route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "MSFT", "shares": "5"})
+        previous = (marketdata.status, marketdata.equity_quote)
+        marketdata.status = lambda: {"sources": {"equity": True}, "alpha_key_env": "BP_ALPHAVANTAGE_KEY"}
+
+        def fake_quote(symbol):
+            if symbol == "MSFT":
+                raise marketdata.MarketDataError("quota exhausted")
+            return {"value": "210", "as_of": "2026-10-30", "source": "Alpha Vantage (free tier)"}
+
+        marketdata.equity_quote = fake_quote
+        try:
+            status, result = _post(self.base, "/api/portfolios/%s/prices/fetch" % pid,
+                                   {"date": "2026-10-31"})
+        finally:
+            marketdata.status, marketdata.equity_quote = previous
+        self.assertEqual(status, 200)
+        self.assertEqual(result["prices"]["AAPL"]["price"], "210")
+        self.assertEqual(result["prices"]["AAPL"]["as_of"], "2026-10-30")
+        self.assertEqual(result["failed"][0]["symbol"], "MSFT")
+        stored = portfolios.prices(pid, "2026-10-31")
+        self.assertEqual(stored["prices"]["AAPL"]["as_of"], "2026-10-30")
+        self.assertEqual(stored["prices"]["AAPL"]["source"], "Alpha Vantage (free tier)")
+
+    def test_fetch_prices_without_a_key_is_refused(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No key"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        previous = marketdata.status
+        marketdata.status = lambda: {"sources": {"equity": False}}
+        try:
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        finally:
+            marketdata.status = previous
+        self.assertEqual(caught.exception.code, 422)
+        self.assertIn("BP_ALPHAVANTAGE_KEY", json.loads(caught.exception.read())["error"])
+
+    def test_fetch_prices_refuses_a_date_with_a_saved_snapshot(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Saved date"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-10-31", "price": "200"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid, {"date": "2026-10-31", "cash": "0"})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        self.assertEqual(caught.exception.code, 422)
+
+    def test_a_daily_quota_returns_429_with_the_manual_fallback(self):
+        from bp.product import marketdata
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Quota"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        previous = (marketdata.status, marketdata.equity_quote)
+        marketdata.status = lambda: {"sources": {"equity": True}}
+
+        def quota(symbol):
+            raise marketdata.MarketDataQuota("25 requests per day")
+
+        marketdata.equity_quote = quota
+        try:
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                _post(self.base, "/api/portfolios/%s/prices/fetch" % pid, {"date": "2026-10-31"})
+        finally:
+            marketdata.status, marketdata.equity_quote = previous
+        self.assertEqual(caught.exception.code, 429)
+        body = json.loads(caught.exception.read())
+        self.assertTrue(body["quota"])
+        self.assertIn("manually", body["error"])
 
 if __name__ == "__main__":
     unittest.main()
