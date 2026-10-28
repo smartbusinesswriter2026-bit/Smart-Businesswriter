@@ -103,7 +103,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertIn("v0.73", self.html)
+        self.assertIn("v0.74", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
 
@@ -119,6 +119,27 @@ class ServedUiContractTest(unittest.TestCase):
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
             self.assertNotIn(gone, self.html)
+
+    def test_the_rail_launcher_is_named_the_business_calculator(self):
+        """The owner renamed the feature: the served page must say it everywhere.
+
+        The route, the panel id and the JS identifiers stay `calculator` (they
+        are contract, not copy); every label a reader sees says "Business
+        Calculator", and the bare name may not come back.
+        """
+        self.assertIn('<span class="railtext">Business Calculator</span>', self.html)
+        self.assertIn('<h2 id="calculator-title">Business Calculator</h2>', self.html)
+        self.assertIn("Business Calculator: launch any financial or business calculation", self.html)
+        self.assertIn("Search the Business Calculator", self.html)
+        self.assertIn("Open the Business Calculator", self.html)
+        self.assertIn("The Business Calculator arranges the inputs", self.html)
+        self.assertIn("What this Business Calculator is", self.html)
+        self.assertNotIn('<span class="railtext">Calculator</span>', self.html)
+        self.assertNotIn('<h2 id="calculator-title">Calculator</h2>', self.html)
+        self.assertNotIn("Open the Calculator", self.html)
+        # the contract surface is unchanged by the rename
+        self.assertIn('href="#/calculator"', self.html)
+        self.assertIn('id="panel-calculator"', self.html)
 
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only
@@ -213,6 +234,7 @@ class CalculatorGuardTest(unittest.TestCase):
                           "operations", "marketing", "people"])
         self.assertIn("computes nothing", payload["note"])
         self.assertIn("free-form arithmetic is not supported", payload["note"])
+        self.assertIn("The Business Calculator arranges inputs", payload["note"])
 
     def test_the_calculator_covers_every_frozen_method_or_says_why_not(self):
         from bp import methods  # test-side only

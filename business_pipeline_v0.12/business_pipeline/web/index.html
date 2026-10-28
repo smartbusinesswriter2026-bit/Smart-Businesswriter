@@ -87,7 +87,7 @@ body.rail-open .railitem .railtext{opacity:1;transform:none}
          font-size:14.4px;padding:5px 9px;border-radius:var(--r-sm);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s;z-index:40}
 .railitem:hover .railtip,body.rail-open .railtip{display:none}
 body.rail-open .railitem:hover .railtip{display:block;opacity:1;left:calc(100% + 6px)}
-/* the subject list scrolls inside the rail; Calculator stays pinned at the foot */
+/* the subject list scrolls inside the rail; the Business Calculator stays pinned at the foot */
 .railsubjects{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
               scrollbar-color:var(--border) transparent}
 .railsubjects::-webkit-scrollbar{width:6px}
@@ -293,7 +293,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: wider, smoother rail with the arrow on the right">v0.73</span>
+  <span class="pill" id="buildpill" title="Served build: the rail launcher is renamed Business Calculator">v0.74</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -362,9 +362,9 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 
     <div class="railfoot">
       <div class="railsep"></div>
-      <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:var(--teal)" title="Calculator: launch any financial or business calculation the engine supports">
+      <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:var(--teal)" title="Business Calculator: launch any financial or business calculation the engine supports">
         <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h.01M8 15h2M12 15h2M16 15h.01M8 18h2M12 18h2M16 18h.01"/></svg></span>
-        <span class="railtext">Calculator</span><span class="railtip">Calculator: launch any financial or business calculation the engine supports</span>
+        <span class="railtext">Business Calculator</span><span class="railtip">Business Calculator: launch any financial or business calculation the engine supports</span>
       </a>
     </div>
   </nav>
@@ -405,12 +405,12 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 
     <section class="panel" id="panel-calculator" hidden aria-labelledby="calculator-title">
       <div class="card">
-        <h2 id="calculator-title">Calculator</h2>
-        <p class="sub">Launch a frozen financial or business calculation. The Calculator arranges the inputs and calls
+        <h2 id="calculator-title">Business Calculator</h2>
+        <p class="sub">Launch a frozen financial or business calculation. The Business Calculator arranges the inputs and calls
           the same method the subject page uses; <strong>it computes nothing itself</strong>.</p>
         <div id="calcnote"></div>
         <div class="calcbar">
-          <label class="visually-hidden" for="calcq">Search the calculator</label>
+          <label class="visually-hidden" for="calcq">Search the Business Calculator</label>
           <input type="search" id="calcq" placeholder="Search a calculation (NPV, WACC, break-even, t-test, ...)">
         </div>
         <div class="chips" id="calcgroups" style="justify-content:flex-start;margin-top:0"></div>
@@ -853,7 +853,7 @@ function renderSubject() {
     '<p class="muted" style="margin-top:6px">Catalogue disciplines: ' + esc((s.disciplines || []).join("; ") || "not recorded") +
       (s.cross_cutting ? " - this shelf is linked from every subject." : "") + "</p>" +
     '<div class="subjectask">' +
-      '<button class="btn sm primary" id="subjectcalc">Open the Calculator</button>' +
+      '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
       '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
       (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
     "</div>";
@@ -952,7 +952,7 @@ RENDERERS.calculator = function () {
       return;
     }
     state.calcGroup = state.calcGroup || d.groups[0].id;
-    note.innerHTML = banner("honesty", "What this Calculator is", "<div>" + esc(d.note) + "</div>");
+    note.innerHTML = banner("honesty", "What this Business Calculator is", "<div>" + esc(d.note) + "</div>");
     $("#calcgroups").innerHTML = d.groups.map((g) =>
       '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
     $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; renderCalculator(); }; });
@@ -990,10 +990,10 @@ async function startFromHome() {
   const objective = $("#objective").value.trim();
   if (!objective) { toast("Describe the question first."); return; }
   // The Home box no longer carries method controls (owner instruction: logo + chat box only).
-  // Method selection lives in the subject rail and the Calculator.
+  // Method selection lives in the subject rail and the Business Calculator.
   const methodSelect = $("#method");
   const method = methodSelect ? methodSelect.value : "";
-  if (!method) { toast("Choose a subject from the rail, or open the Calculator, to pick a method."); return; }
+  if (!method) { toast("Choose a subject from the rail, or open the Business Calculator, to pick a method."); return; }
   const presetSelect = $("#preset");
   const preset = presetSelect ? state.presets[presetSelect.value] : null;
   const body = { objective: objective, method: method };
@@ -1077,7 +1077,7 @@ function renderNew() {
     '<div class="row" style="justify-content:space-between"><span class="sub">' + esc(plan.objective || "") + "</span>" +
     '<span class="badge">' + esc(plan.tier_label || txt(plan.tier)) + "</span></div>" +
     '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
-      '<button class="btn sm" id="toolcalc">Calculator</button></div>' +
+      '<button class="btn sm" id="toolcalc">Business Calculator</button></div>' +
     (blocked ? banner("blocked", "Blocked", "<div>" + esc(s.delivery.blocked_reason) + "</div>") : "") +
     '<h3>Method</h3>' +
     kv([["Method", (method && method.method_id) || plan.method], ["Version", method && method.version],

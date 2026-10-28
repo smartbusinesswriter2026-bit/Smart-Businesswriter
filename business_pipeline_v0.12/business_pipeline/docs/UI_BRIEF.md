@@ -49,6 +49,8 @@ Rail items are the website's real capabilities (final labels, icon choice and co
 
 **Current served UI (2026-10-27, build 0.68, B-092/B-093):** the rail enumerates the ten subjects (with Entrepreneurship) plus the Calculator. The subject links and icons are static in the page, so the rail exists before the subject API answers; the live call enriches them with counts. The rail toggle expands/collapses explicitly. Items 7 (Catalogue) and 8 (Assistant) are **no longer surfaced in the served UI**; their backend routes remain and the assistant lane is retained for a later release. Item 9 (Status) remains, reached from the health pill rather than the rail. Subject pages carry their own catalogue-only tables and worksheet tiles, and the Calculator lists every calculation, so no computation or method is lost. The Home chat is centred without changing its width, and its run control is a circular up-arrow button with Enter-to-start (Shift+Enter for a newline).
 
+**Rename note (build 0.74, 2026-10-28):** the rail launcher, its panel heading, the subject-page button, the tool-page button, the search label and the honesty banner now read **Business Calculator** (owner instruction). The route `/api/cases/calculator`, the format `bp-calculator/1`, the panel id `panel-calculator` and the `#/calculator` hash were deliberately left alone; a future design pass should keep the visible name and the identifier distinct rather than "fixing" the mismatch.
+
 ## 5. Fonts
 
 - **UI text: a sans-serif system stack only** — e.g. `system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`. No remote/web fonts (the product is offline), no more than two families.

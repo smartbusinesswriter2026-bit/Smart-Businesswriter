@@ -1,5 +1,19 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [product/design] The calculator feature checked and renamed "Business Calculator" (build 0.74)
+
+**Ask:** "check the calculator feature. change the name to 'Business Calculator'."
+
+**What the check found.** The feature is the pinned rail launcher at the foot of the rail (`#/calculator`), backed by `GET /api/cases/calculator` -> `bp.product.subjects.calculator_groups()` (format `bp-calculator/1`). It lists 8 business-function groups (Finance, Accounting, Statistics, Economics, Entrepreneurship, Operations, Marketing, People) whose union is exactly the subjects' compute tools, and each entry launches a frozen method with the subject page's own preset or typed inputs. It holds no arithmetic of its own: every number comes from the normal pipeline, and free-form typed expressions are still refused by design. Its labels, however, said only "Calculator".
+
+**Did:** renamed every reader-facing label to **Business Calculator** in `web/index.html` (rail text + tooltip, panel heading and description, search accessible label, `Open the Business Calculator` on subject pages, `Business Calculator` on the tool page, the honesty banner title, the Home toast) and the note string the panel displays in `bp.product.subjects.calculator_groups()`. Kept the contract surface identical on purpose: route `/api/cases/calculator`, format `bp-calculator/1`, panel id `panel-calculator`, hash `#/calculator`, the JS identifiers (`RENDERERS.calculator`, `renderCalculator`, `state.calculator`) and the eight groups. Bumped the served-build pill to `v0.74` and added one presence guard.
+
+**Files:** `web/index.html`, `src/bp/product/subjects.py` (one user-facing note string only), `tests/test_product_subjects.py`, docs: `CHANGELOG.md` (0.74), `UI_BRIEF.md` (rename note), `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, this entry.
+
+**Verified:** 754 tests OK; the new guard fails on the old page (it asserts the new labels and the absence of the bare "Calculator" rail text and heading); `/api/cases/calculator` still returns `bp-calculator/1` with the same eight group ids and the same tool union; no computation, frozen module, fixture, route or business number changed.
+
+**Open/next:** the internal identifiers deliberately still say `calculator` - renaming the route or the format would be an API-contract change and needs its own decision. Screenshots/browser rendering were not checked (no browser in this environment); the rail label is 19 characters and fits the 272px expanded rail, but that was reasoned, not observed.
+
 ## 2026-10-27 — [product] Clean Home: logo + unchanged slogan + chat box only (build 0.70)
 
 **Ask:** the owner rejected the 0.69 Home as regressed and over-filled: it should be clean and contain only the chat box and its logo; the side rail is already fine; do not change the slogan; do not act without permission. Confirmed scope: remove the dropdowns too; the chat box is only the text area and up arrow.

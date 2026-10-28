@@ -423,7 +423,7 @@ def calculator_groups():
         })
     return {"format": CALCULATOR_FORMAT, "groups": groups,
             "note": ("Every calculation is a frozen method run through the normal pipeline. "
-                     "The Calculator arranges inputs and launches the method; it computes nothing. "
+                     "The Business Calculator arranges inputs and launches the method; it computes nothing. "
                      "Typed free-form arithmetic is not supported: it would be a second arithmetic path.")}
 
 
