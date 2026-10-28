@@ -32,8 +32,9 @@ The panel shows the value, its as-of date, the source link and a SHA-256 of the 
 fills a tool for you: read the value, confirm it, and type it into `fx_parity` or wherever it
 belongs. It also offers:
 
-- **Equity quote and fundamentals** — Alpha Vantage, using your own free key in
-  `BP_ALPHAVANTAGE_KEY` (25 requests a day; register at alphavantage.co).
+- **Equity quote** — Alpha Vantage, using your own free key in `BP_ALPHAVANTAGE_KEY`
+  (25 requests a day; register at alphavantage.co).
+- **Fundamentals** — SEC EDGAR XBRL facts (US registrants only; no key needed).
 - **Recent filings** — U.S. SEC EDGAR, no key.
 - **Macro indicators** — World Bank (GDP growth, inflation, unemployment, GDP per capita,
   population, government debt), no key.

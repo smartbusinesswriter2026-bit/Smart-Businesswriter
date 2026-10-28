@@ -35,7 +35,7 @@
 - The PM **groups, glossary, guidance and student guide are teaching and presentation material**; they do not
   choose the project, validate an estimate or turn a read-only framework into a computed answer.
 
-## Added with the digital marketing lane (B-117)
+## Added with the digital marketing lane (B-117, B-121)
 - The seven digital methods are **arithmetic on declared counts**. Nothing reads Google Analytics, Google Ads, Meta, TikTok or an email platform: the counts, the conversion definition and the attribution window are the student's, and the report says so.
 - **Attribution credit is not causation.** `attribution_split` compares first-click, last-click and linear shares from counts you supply; it does not process touchpoint logs, and no holdout, incrementality or lift test exists.
 - **`ab_test_two_proportion` is one two-sided pooled normal test.** It has no sequential or peeking correction, supports two arms only, needs conversions in both arms, and its interval assumes independent observations - survey weights, clustering and repeated measures are not modelled.
@@ -44,10 +44,13 @@
 - **Email opens include machine opens**, so the open rate is an upper bound on reading; no deliverability, consent, spam-complaint or list-deduplication check is performed.
 - **Social and web rates use the platform's own definitions.** Engagement, session and conversion definitions differ between platforms and change over time, and no bot filtering, view-through, sentiment or cross-device identity resolution is applied.
 - **No budget, bid or creative recommendation is made anywhere in the lane.** `MKT-13..MKT-21` are framework records: `MKT-14` (SEO/content), `MKT-21` (automation and lead scoring) and the planning records remain read-only until a worksheet is built.
+- **RFM bands are relative to the file** (B-121). Quintile scores are ranks inside the uploaded customer list, so the same customer can score differently in another dataset; ties share the better band, so bands need not be equal in size, and no external or industry benchmark is applied.
+- **The RFM segments are labels from declared rules**, tried in a fixed order; nothing tests whether a segment is stable over time, differs by more than chance, or predicts next-period value.
+- **Media reach is declared, and combined reach is an estimate** (B-121). `media_plan` uses the random-duplication formula, which assumes different vehicles' audiences overlap only by chance; real overlap is usually higher, so the combined reach is an upper bound. There is no measured overlap, no effective frequency, no wear-out, no scheduling and no recommended buy.
 
 ## Added with free market-data lookups (B-106, B-109)
-- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes and fundamentals (the user's own free key), **SEC EDGAR** for US filings, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
-- Alpha Vantage needs `BP_ALPHAVANTAGE_KEY`. On the free tier it allows 25 requests a day; results are cached for 24 hours. Without a key the lookup refuses and says where to register.
+- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes (the user's own free key; its fundamentals endpoint is premium and is not used), **SEC EDGAR** for US filings and XBRL fundamentals, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
+- Alpha Vantage needs `BP_ALPHAVANTAGE_KEY` for the **quote**; on the free tier it allows 25 requests a day, cached for 24 hours. Without a key the quote refuses and says where to register. The **fundamentals** button reads SEC XBRL instead and needs no key.
 - A retrieved value is **published by the source, not independently verified here**. There is no cross-source check, no correction and no guarantee that the source's terms will stay the same.
 - The value is **never written into a method input automatically**. The panel shows the value, as-of date, source and response SHA-256; the student confirms and types it into the tool.
 - A lookup needs network access. On failure it returns a reason and no value; it does not fall back to a remembered or invented rate. Caches are in memory only and clear on restart.

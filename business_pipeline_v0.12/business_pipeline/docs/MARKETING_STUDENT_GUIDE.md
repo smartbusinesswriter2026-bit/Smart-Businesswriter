@@ -17,8 +17,8 @@ The page follows the order a marketing plan is written in, not the difficulty of
 | Group | What it is for | Tiles |
 |---|---|---|
 | Market size and demand | Size the market and describe what customers will buy | market size, demand line, price elasticity, purchase intent, trend forecast |
-| Customer economics and retention | Check whether a customer is worth winning and keeping | unit economics, multi-product break-even, cohort retention |
-| Campaigns, channels and web analytics | Measure the campaign and the channels that feed it | campaign efficiency, attribution, channel economics, email list health, social reach and engagement, web traffic and conversion |
+| Customer economics and retention | Check whether a customer is worth winning and keeping | unit economics, multi-product break-even, cohort retention, RFM segmentation |
+| Campaigns, channels and web analytics | Measure the campaign and the channels that feed it | campaign efficiency, attribution, channel economics, email list health, social reach and engagement, web traffic and conversion, reach and rating points |
 | Funnel, surveys and testing | Follow the funnel, test a change, and check the survey | sales funnel, A/B test result, reliability (alpha), chi-square, power and sample size |
 
 Each tile shows the period convention it expects - **annual**, **per period**, **per observation** - and an
@@ -51,6 +51,8 @@ the framework is valid.
 | How many visitors does the test need? | `power_analysis`, `ab_test_two_proportion` | the baseline rate, the effect you care about, your alpha and power |
 | Are the survey items measuring one thing? | `reliability_alpha` | every respondent's answer to every item |
 | Is answer A associated with segment B? | `chi_square` | the cross-tabulated counts |
+| Which customer segments do we have, and how big is each? | `rfm_scoring` | each customer's recency in days, purchase count and monetary value, with unique names |
+| What does a media plan buy in reach, frequency and rating points? | `media_plan` | the target population and each vehicle's reach, insertions and cost |
 
 If a requirement is not in the table, the shelf probably does not compute it: see **What is not built** at the
 end rather than forcing a number into the nearest tool.
@@ -175,6 +177,50 @@ Email converts best but brings the smallest volume; paid converts better than or
 tool does not see - pair it with `channel_economics`. Direct and unattributed traffic must be one of the rows
 or every other channel's share is overstated.
 
+### 8. Which customer segments do we have? - `rfm` (`rfm_scoring`)
+
+Inputs: ten customers, each with days since the last purchase, the number of purchases and the monetary value.
+
+| Customer | Recency (days) | Frequency | Monetary | R | F | M | Combined | Segment |
+|---|---|---|---|---|---|---|---|---|
+| C1 | 3 | 10 | 20,000 | 5 | 5 | 5 | 15 | Champions |
+| C2 | 8 | 9 | 18,000 | 5 | 5 | 5 | 15 | Champions |
+| C3 | 15 | 8 | 16,000 | 4 | 4 | 4 | 12 | Champions |
+| C4 | 25 | 7 | 14,000 | 4 | 4 | 4 | 12 | Champions |
+| C5 | 40 | 6 | 12,000 | 3 | 3 | 3 | 9 | Need attention |
+| C6 | 55 | 5 | 10,000 | 3 | 3 | 3 | 9 | Need attention |
+| C7 | 70 | 4 | 8,000 | 2 | 2 | 2 | 6 | About to sleep |
+| C8 | 90 | 3 | 6,000 | 2 | 2 | 2 | 6 | About to sleep |
+| C9 | 120 | 2 | 4,000 | 1 | 1 | 1 | 3 | Hibernating |
+| C10 | 160 | 1 | 2,000 | 1 | 1 | 1 | 3 | Hibernating |
+
+Every band is a rank inside this list: ten customers split into five pairs, so the two most recent score five
+and the two least recent score one. The segment counts are **4 Champions, 2 Need attention, 2 About to sleep,
+2 Hibernating**, the mean scores are 3.00 each and the combined mean is 9.00.
+
+Two things to say in a write-up. First, the bands are **relative to this list**: the same customer in another
+file can score differently. Second, the names come from a declared rule set tried in a fixed order
+(cannot lose, champions, loyal, potential loyalist, new, promising, need attention, at risk, about to sleep,
+hibernating, lost), so a customer who is recent, frequent and valuable is a Champion whether you think of them
+that way or not.
+
+### 9. What does a media plan buy? - `mediaplan` (`media_plan`)
+
+Inputs: population 1,000,000; TV 450,000 reach, 8 insertions, PHP 1,200,000; radio 300,000, 12, PHP 450,000;
+print 120,000, 4, PHP 180,000.
+
+- Reach share: TV **45%**, radio **30%**, print **12%**
+- Rating points: TV 45 x 8 = **360**, radio 30 x 12 = **360**, print 12 x 4 = **48**; plan total **768**
+- Gross impressions: 3,600,000 + 3,600,000 + 480,000 = **7,680,000**
+- Cost per rating point: TV **PHP 3,333.33**, radio **PHP 1,250.00**, print **PHP 3,750.00**
+- Cost per thousand impressions: blended **PHP 238.28**
+- Combined reach under random duplication: 1 - (0.55 x 0.70 x 0.88) = **66.12%**, or **661,200 people**
+- Average frequency: 7,680,000 / 661,200 = **11.62**
+
+Radio is by far the cheapest way to buy a rating point here, and print the dearest. The combined reach is an
+**upper bound**: the formula assumes audiences overlap only by chance, and in reality heavy viewers of one
+vehicle tend to be heavy viewers of another. Points add up; people do not.
+
 ## Practice set
 
 Use the presets, change one input at a time, and write down the effect before you look.
@@ -192,6 +238,9 @@ Use the presets, change one input at a time, and write down the effect before yo
    impressions?
 8. With the `web` preset, add a `direct` row with 20,000 sessions, 200 conversions and PHP 100,000 revenue.
    Whose share falls?
+9. With the `rfm` preset, set customer C3's monetary value to PHP 1,000. Which segments change, and why?
+10. With the `mediaplan` preset, halve TV's insertions from 8 to 4. What happens to TV's rating points, the
+    plan total, TV's cost per point and the combined reach?
 
 ### Answer key
 
@@ -211,6 +260,13 @@ Use the presets, change one input at a time, and write down the effect before yo
 8. Every other channel's share falls (organic to about 44%, paid to 25%, email to 9% of 95,000 sessions), and
    the blended conversion rate falls to 3.21%; the tool cannot warn you about a channel you left out, because
    it only sees the rows you gave it.
+9. C3's monetary band falls to one, so it stops being a Champion: Champions falls from 4 to 3 and Loyal
+   customers rises from 0 to 1. Nothing else moves, because only C3's rank changed. This is the clearest
+   demonstration that the labels follow the rule, not the customer's story.
+10. TV's rating points fall to 180 and the plan total to 588. TV's cost per point rises to **PHP 6,666.67**,
+    because the same cost now buys half the points. The combined reach does **not** change - reach was never the
+    insertions - but the average frequency falls from 11.62 to about 8.89, since there are fewer impressions
+    over the same audience.
 
 ## Handing it in
 
@@ -236,3 +292,10 @@ is usually worth marks, and it is always more honest than a number with no limit
 - **SEO rank tracking, keyword research and content scoring.** `MKT-14` is a read-only record: the plan can be
   written and cited, not computed here.
 - **Lead scoring and marketing automation execution.** `MKT-21` is a read-only record for the same reason.
+- **Segment stability, clustering and next-period value.** `rfm_scoring` describes one snapshot with bands
+  relative to your own file; it does not test whether segments persist, whether they differ by more than
+  chance, or what a customer will be worth next period.
+- **Measured audience overlap and effective frequency.** `media_plan` estimates combined reach by random
+  duplication, so it is an upper bound, and it has no wear-out or response curve.
+- **Budget allocation or a recommended buy.** No tool here says where to spend; `media_plan` and
+  `channel_economics` describe what a declared plan or channel produced.

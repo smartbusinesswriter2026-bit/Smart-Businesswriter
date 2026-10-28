@@ -1542,10 +1542,9 @@ function bindMarketPanel() {
   on("wblookup", lookupMacro);
   api("/api/market/status").then((data) => {
     if (data && data.sources && !data.sources.equity) {
-      const quote = $("#eqquote"), fund = $("#eqfund"), label = $("#eqstatus");
+      const quote = $("#eqquote"), label = $("#eqstatus");
       if (quote) quote.disabled = true;
-      if (fund) fund.disabled = true;
-      if (label) label.textContent = "Alpha Vantage key not configured (BP_ALPHAVANTAGE_KEY)";
+      if (label) label.textContent = "Quote needs an Alpha Vantage key (BP_ALPHAVANTAGE_KEY); fundamentals still work via SEC";
     }
   }).catch(() => {});
 }
@@ -1561,8 +1560,8 @@ function marketResult(data) {
   let head = "";
   if (data.kind === "fundamentals") {
     const rows = Object.entries(data.values || {}).filter((pair) => pair[1]);
-    head = "<strong>" + esc(data.symbol || "") + "</strong> " +
-      '<span class="muted">' + esc(data.currency || "") + " - as of " + esc(data.as_of) + "</span>" +
+    head = "<strong>" + esc(data.company || data.symbol || "") + "</strong> " +
+      '<span class="muted">' + esc(data.symbol || "") + " - " + esc(data.currency || "") + " - as of " + esc(data.as_of) + "</span>" +
       '<div class="tablewrap"><table><caption>Company overview</caption><tbody>' +
       rows.map((pair) => "<tr><td>" + esc(pair[0]) + "</td><td>" + esc(pair[1]) + "</td></tr>").join("") +
       "</tbody></table></div>";
@@ -2582,12 +2581,13 @@ function worksheetForm(t) {
         '<div class="wmeta">' +
           '<select id="wp-' + esc(b.key) + '"><option value="user">my evidence</option><option value="sourced">sourced</option><option value="assumption">assumption</option><option value="synthetic">illustrative</option></select>' +
           '<input type="text" id="wsrc-' + esc(b.key) + '" placeholder="source (needed when sourced)" style="flex:1;min-width:200px">' +
-          '<span class="whint">ids: ' + esc(b.prefix) + "1, " + esc(b.prefix) + "2, ...</span>" +
         "</div></div>";
     }).join("") +
-    '<div class="wblock wlinks"><label class="field" for="wlinks"><strong class="wtitle">Links</strong>' +
-      '<span class="wprompt">Optional: one link per line, FROM -&gt; TO, using the ids shown beside each block (for example a value proposition to the segment it serves).</span></label>' +
-    '<textarea class="wtext" id="wlinks" rows="2" spellcheck="false" placeholder="B1_1 -> B2_1"></textarea></div></div>';
+    '<details class="wblock wlinks"><summary><strong class="wtitle">Link items between blocks (optional, advanced)</strong></summary>' +
+      '<p class="wprompt">Only if one item depends on another. Write one link per line as FROM -&gt; TO, using the item references shown below. A link is your claim about how two items relate; it is not a test.</p>' +
+      '<textarea class="wtext" id="wlinks" rows="2" spellcheck="false" placeholder="B1_1 -> B2_1"></textarea>' +
+      '<p class="whint">Item references: ' + t.blocks.map((b) => esc(b.prefix) + "1, " + esc(b.prefix) + "2, ...").join("; ") + "</p>" +
+    "</details></div>";
 }
 
 function collectFiveForcesInputs() {

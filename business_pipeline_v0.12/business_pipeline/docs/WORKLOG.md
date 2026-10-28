@@ -1,5 +1,49 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — RFM and media planning: the two gaps a marketing student actually has
+
+**Ask.** After the digital lane shipped, the owner asked whether the parked items — ad-platform and analytics
+connectors, automated bidding, incrementality and holdout tests, multi-touch causal attribution, sequential
+tests, budget recommendations — were needed by marketing students. The answer given was no for four of them and
+"a concept, not a tool" for the other two, and the real gaps were RFM and media-planning arithmetic. The owner
+chose both.
+
+**Did — `rfm_scoring` (T1).** Quintile recency, frequency and monetary bands from a declared customer list.
+Recency is ranked in reverse; ranks use competition ranking, so ties share the better band and band sizes can
+differ; the eleven named segments come from a declared first-match rule set over the five-by-five grid
+(`cannot_lose` first, `lost` last). Outputs are the segment sizes, the three mean scores and their sum; the
+scored rows, the rule text and the label map travel in the appendix. Five frozen checks: an independent
+band-boundary route built with integer ceilings, segment sizes summing to the count, bands inside one to five,
+monotonic recency scoring and the combined mean as the sum of the three. Refuses fewer than five or more than
+a thousand customers, duplicate names, negative recency and a frequency below one.
+
+**Did — `media_plan` (T1).** Per vehicle: reach share, gross impressions, gross rating points, cost per rating
+point and cost per thousand impressions; then the plan totals, a combined net reach under random duplication
+and the average frequency that follows from it. Five frozen checks: a float second route, rating points as
+reach share times frequency times a hundred, impressions as reach times frequency, plan points as the sum of
+the vehicles', and a combined reach that lies between the largest vehicle and the sum. The report calls the
+combined reach an upper bound and says the method does not recommend a buy.
+
+**Did — catalogue and page.** Catalogue v0.4 appends one section-11.2 bullet, `QNT-MKT-15` (media planning), so
+no existing `QNT-MKT` number moves; `MKT-08` is linked to `rfm_scoring` and is now a computed record, with
+`QNT-MKT-04` still pointing at it. The Marketing shelf grows to 21 tiles in the same four groups, a 42-term
+glossary (reach, reach share, average frequency, gross impressions, GRP, CPP, net reach, quintile score, RFM
+segment) and two presets, `rfm` and `mediaplan`.
+
+**One structural change.** `registry.py` used to try its link rules only for `QNT-` ids, so a quantitative
+record sitting in a framework section could never be marked computed. The rules are now tried for every record
+the catalogue types as `Q`, which is what `MKT-08` needed; no other record gained a link, because no other
+rule matches those summaries.
+
+**Tests.** `tests/test_marketing_additions.py` gains the RFM goldens (a ten-customer list whose bands are exact),
+a rule-table test that fires all eleven segment rules, the media-plan goldens, refusals for both, and the
+`MKT-08` / `QNT-MKT-15` link guards. `tests/test_session_api.py` gains sample inputs. Registry counts move to
+156 records (Q 59) and catalogue version 0.4. Frozen fixture regenerated (124 methods, 126 presets) under B-121.
+
+**Deliberately not built, and now stated in the guide:** platform connectors (import the export), automated
+bidding, incrementality and holdout estimation, data-driven attribution, sequential tests and any budget
+recommendation.
+
 ## 2026-10-28 — Line balancing and declared-rate tax; the rest named in the limitations
 
 **Ask.** "Go. Those that are needed and will only bring issues, put it in limitation."

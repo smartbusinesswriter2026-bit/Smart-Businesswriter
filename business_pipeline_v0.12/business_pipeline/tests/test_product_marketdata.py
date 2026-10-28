@@ -149,12 +149,25 @@ class EquityTest(unittest.TestCase):
         self.assertNotIn("secret123", out["source_url"])
         self.assertIn("apikey=***", out["source_url"])
 
-    def test_fundamentals_return_a_labelled_snapshot(self):
-        marketdata._fetch = FakeFetch(AV_OVERVIEW, "https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=secret123")
-        out = marketdata.equity_fundamentals("AAPL")
-        self.assertEqual(out["kind"], "fundamentals")
-        self.assertEqual(out["values"]["P/E"], "35.2")
-        self.assertEqual(out["currency"], "USD")
+    def test_sec_fundamentals_reads_xbrl_facts_without_a_key(self):
+        original_filings, original_fetch = marketdata.sec_filings, marketdata._fetch
+        marketdata.sec_filings = lambda *args, **kwargs: {"cik": "0000320193", "company": "Apple Inc."}
+        class Router:
+            def __call__(self, url):
+                tag = url.rsplit("/", 1)[-1].replace(".json", "")
+                unit = "USD/shares" if "EarningsPerShare" in tag else "USD"
+                body = ('{"tag":"%s","units":{"%s":[{"end":"2025-09-27","val":1000,'
+                        '"form":"10-K","fp":"FY","filed":"2025-10-31"}]}}' % (tag, unit)).encode()
+                return body, url
+        marketdata._fetch = Router()
+        try:
+            out = marketdata.sec_fundamentals("AAPL")
+            self.assertEqual(out["kind"], "fundamentals")
+            self.assertEqual(out["company"], "Apple Inc.")
+            self.assertIn("Total assets", out["values"])
+            self.assertEqual(out["as_of"], "2025-09-27")
+        finally:
+            marketdata.sec_filings, marketdata._fetch = original_filings, original_fetch
 
     def test_without_a_key_the_lookup_refuses_before_any_fetch(self):
         os.environ.pop("BP_ALPHAVANTAGE_KEY", None)
