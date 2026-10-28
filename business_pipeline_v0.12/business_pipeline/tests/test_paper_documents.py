@@ -93,16 +93,18 @@ class DocumentRouteTest(unittest.TestCase):
         self.assertEqual(payload["documents"][0]["id"], "sample-demo-paper")
 
     def test_the_download_route_returns_the_word_bytes(self):
-        code, payload, ctype = api.handle("GET", "/api/cases/documents/sample-demo-paper")
+        code, payload, ctype, filename = api.handle("GET", "/api/cases/documents/sample-demo-paper")
         self.assertEqual(code, 200)
         self.assertEqual(payload, b"sample-bytes")
         self.assertEqual(ctype, paper_store.MIME)
+        self.assertEqual(filename, "demo-paper.docx")
 
     def test_a_sample_bundle_downloads_as_a_zip(self):
-        code, payload, ctype = api.handle("GET", "/api/cases/documents/sample-worked-example")
+        code, payload, ctype, filename = api.handle("GET", "/api/cases/documents/sample-worked-example")
         self.assertEqual(code, 200)
         self.assertEqual(payload, b"zip-bytes")
         self.assertEqual(ctype, paper_store.ZIP_MIME)
+        self.assertEqual(filename, "worked-example.zip")
 
     def test_an_unknown_document_is_a_404_not_a_path(self):
         code, payload = api.handle("GET", "/api/cases/documents/../../etc/passwd")

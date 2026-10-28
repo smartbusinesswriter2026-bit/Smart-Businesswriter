@@ -3,7 +3,7 @@ import base64, json, os, re, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from decimal import Decimal
 from .session import SessionManager
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx
@@ -486,9 +486,18 @@ PRESETS = {
 }
 
 class H(BaseHTTPRequestHandler):
-    def _send(self, code, body, ctype="application/json"):
+    def _send(self, code, body, ctype="application/json", filename=None):
         b = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
+        if filename:
+            # A document download carries its own name, so the browser saves
+            # "PESTEL and Break-even ... .docx" instead of the id it fetched. The
+            # plain name is kept ASCII for old clients; the encoded one is exact.
+            name = re.sub("[\\r\\n\"\\\\]", " ", str(filename)).strip() or "download"
+            plain = re.sub(r"[^ -~]", "", name).strip() or "download"
+            self.send_header("Content-Disposition",
+                             'attachment; filename="%s"; filename*=UTF-8\'\'%s'
+                             % (plain, quote(name)))
         self.send_header("X-Content-Type-Options", "nosniff")
         # Every response is computed fresh from the checkout on disk. A cached copy is
         # therefore always wrong after a change, and worse, it looks current. The build
@@ -547,7 +556,12 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.load(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
-            if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("GET", self.path))
+            if self.path.startswith(product_api.CASE_ROUTE):
+                result = product_api.handle("GET", self.path)
+                if len(result) == 4:
+                    code, payload, ctype, filename = result
+                    return self._send(code, payload, ctype, filename=filename)
+                return self._send(*result)
             if self.path.startswith("/api/portfolios"): return self._portfolios("GET")
             u = urlparse(self.path); qs = parse_qs(u.query)
             if u.path == "/api/market/fx":

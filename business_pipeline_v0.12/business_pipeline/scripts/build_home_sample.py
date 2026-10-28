@@ -100,7 +100,7 @@ def seed_evidence(state, placement):
 
 
 def build(sample=SAMPLE):
-    """Run the conductor once and return (state, paper bytes, explainer bytes, zip bytes)."""
+    """Run the conductor once and return (state, paper bytes, explainer bytes)."""
     state = chat.start(sample["brief"], subject="management", framework=sample["framework"])
     if state["stage"] == "not_supported":
         raise chat.ChatError("The sample brief was refused: " + str(state.get("message")))
@@ -116,24 +116,28 @@ def build(sample=SAMPLE):
                                            "Worked example: one framework and one computation"])
     document = explain.paper_document(state)
     explainer = explain.docx_bytes(document)
-    # The download is named for the sample, not for the paper's sentence-long title.
-    payload, contents, _zip_name = explain.zip_pair("PESTEL and Break-even - Tehran Device Store",
-                                                    paper, "docx", explainer, "docx")
-    zip_name = explain.slug("PESTEL and Break-even - Tehran Device Store") + "-submission.zip"
-    return state, paper, explainer, payload, contents, zip_name
+    return state, paper, explainer
 
 
 def main():
+    """Write the paper and its explainer as two Word files the Home page lists.
+
+    Two Word files rather than a ZIP: a student double-clicks the sample and Word
+    opens it. The export route still ships the pair as a ZIP; the sample shows the
+    same two files, downloaded separately.
+    """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    state, paper, explainer, payload, contents, zip_name = build()
-    path = OUT_DIR / zip_name
-    path.write_bytes(payload)
-    print("zip    ", path.name, len(payload), "bytes")
-    for item in contents:
-        print("  inside", item["filename"], item["bytes"], "bytes")
+    state, paper, explainer = build()
+    stem = explain.slug("PESTEL and Break-even - Tehran Device Store")
+    written = []
+    for name, data in ((stem + ".docx", paper), (stem + "-explainer.docx", explainer)):
+        path = OUT_DIR / name
+        path.write_bytes(data)
+        written.append((path, len(data)))
     print("title  ", state["draft"]["title"])
     print("missing", state["draft"]["missing"])
-    print("paper  ", len(paper), "bytes | explainer", len(explainer), "bytes")
+    for path, size in written:
+        print("wrote  ", path.name, size, "bytes")
     return 0
 
 

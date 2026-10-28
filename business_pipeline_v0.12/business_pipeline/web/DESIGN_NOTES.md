@@ -795,10 +795,14 @@ The Documents card on Home listed only Word samples, so a student could inspect 
 see what the product now ships beside it. The conductor's export is a ZIP holding the paper and its
 computation explainer, and a sample that does not show that is a sample of the wrong thing.
 
-`samples/pestel-and-break-even-tehran-device-store-submission.zip` is one PESTEL paper with one break-even
-computation, built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student
-exports: `chat.docx_bytes` plus `explain.paper_document`. The store now lists a `.zip` sample with its own
-MIME, so the download is served as `application/zip` and the card reads "PESTEL + break-even · Paper +
-explainer". The explainer also stopped printing empty fields for a conductor paper ("Profile: Paper (, ).")
-and now names the framework, lists the draft's own sections and formats recorded figures (166.6667, not fifty
-digits); a declared word such as "monthly" is never rewritten.
+`samples/pestel-and-break-even-tehran-device-store.docx` is one PESTEL paper with one break-even computation,
+built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student exports:
+`chat.docx_bytes`. Its companion, `…-explainer.docx`, is `explain.paper_document` over the same recorded
+case. They are listed as two Word files rather than one ZIP: a ZIP downloads but a student then has to find
+the paper inside it, while two Word files open on a double-click; the export route still bundles the pair
+for a real submission. The store accepts a `.zip` sample too (own MIME, `application/zip`), so a bundle can
+be offered later without another change. Downloads now carry `Content-Disposition` with the generated
+filename, so the browser saves the paper under its own name rather than the document id. The explainer also
+stopped printing empty fields for a conductor paper ("Profile: Paper (, ).") and now names the framework,
+lists the draft's own sections and formats recorded figures (166.6667, not fifty digits); a declared word
+such as "monthly" is never rewritten.

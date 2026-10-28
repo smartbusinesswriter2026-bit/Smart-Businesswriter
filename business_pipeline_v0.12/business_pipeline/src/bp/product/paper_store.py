@@ -37,11 +37,12 @@ SAMPLE_TITLES = {
                                     "Five Forces", "Full paper"),
     "five-forces-completion-draft.docx": ("Porter's Five Forces: Apple's Entry into Iran's Smartphone Industry",
                                           "Five Forces", "Draft"),
-    # One framework and one computation, exported as the student's export is:
-    # a ZIP holding the paper and its computation explainer.
-    "pestel-and-break-even-tehran-device-store-submission.zip": (
-        "PESTEL and Break-even: A Tehran Device Store", "PESTEL + break-even",
-        "Paper + explainer"),
+    # One framework and one computation, plus the companion that explains it.
+    # Two Word files, so a student double-clicks the sample and Word opens it.
+    "pestel-and-break-even-tehran-device-store.docx": (
+        "PESTEL and Break-even: A Tehran Device Store", "PESTEL + break-even", "Paper"),
+    "pestel-and-break-even-tehran-device-store-explainer.docx": (
+        "How the Tehran Device Store Paper Was Solved", "PESTEL + break-even", "Explainer"),
 }
 
 

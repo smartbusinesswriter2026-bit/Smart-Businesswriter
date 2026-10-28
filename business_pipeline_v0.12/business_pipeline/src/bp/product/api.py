@@ -392,7 +392,10 @@ def handle(method, path, body=None):
                 record, payload = paper_store.read(segments[1])
             except paper_store.NotFound:
                 return 404, {"error": "no such document"}
-            return 200, payload, (record or {}).get("mime") or paper_store.MIME
+            # The fourth element is the download name: the browser saves the file
+            # under the name it was generated with, not the opaque document id.
+            return (200, payload, (record or {}).get("mime") or paper_store.MIME,
+                    (record or {}).get("filename") or segments[1])
         return 404, {"error": "no such document"}
 
     if segments == ["frameworks", "complete"]:

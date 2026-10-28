@@ -27,16 +27,22 @@ The script runs `chat.start`, answers the question bank, confirms the plan, draf
 `chat.docx_bytes`, which enforces the export gate and renders `bp.product.docx.render_academic`. If the
 conductor or the formatter changes, rebuilding the samples shows the change — they cannot silently drift.
 
-## The Home-page bundle: one framework and one computation
+## The Home-page worked example: one framework and one computation
 
-`samples/pestel-and-break-even-tehran-device-store-submission.zip` is the worked example the Home page
-lists under **Documents**. It is one PESTEL paper with one break-even computation, exported exactly as a
-student's export is: a ZIP holding the paper and its computation explainer.
+The Home page lists two Word files under **Documents**, both built from the same recorded case:
+
+| File | Shows |
+|---|---|
+| `pestel-and-break-even-tehran-device-store.docx` | one PESTEL paper with one break-even computation |
+| `pestel-and-break-even-tehran-device-store-explainer.docx` | how that paper was solved |
 
 - the paper carries the six PESTEL dimensions with a frozen source in each, one recorded break-even
   (fixed 2,000,000; price 40,000; variable 28,000) and a declared-inputs line the gate checks;
 - the explainer is `explain.paper_document` over the same recorded case: the question, why the method,
   the declared formula, the figures, the result, the limits and the likely questions.
+
+They are two Word files rather than a ZIP so a student double-clicks the sample and Word opens it; the
+export route still ships the same pair as a ZIP for a real submission.
 
 Rebuild it with:
 
