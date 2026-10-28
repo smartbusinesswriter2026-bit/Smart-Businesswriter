@@ -254,6 +254,12 @@ class ServedUiContractTest(unittest.TestCase):
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             self.html = stream.read()
 
+    def test_a_reload_cannot_land_on_a_dead_session_page(self):
+        self.assertNotIn("No session yet", self.html)
+        self.assertIn("SESSION_ROUTES", self.html)
+        self.assertIn("lastDurableRoute", self.html)
+        self.assertIn("rememberRoute", self.html)
+
     def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
         for subject_id in ["accounting", "finance", "economics", "management", "project-management",
                            "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research"]:
@@ -298,6 +304,8 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Journal and return", self.html)
         self.assertIn('id="pfhfile"', self.html)
         self.assertIn("function pfJournal", self.html)
+        self.assertIn('class="pfhero', self.html)
+        self.assertIn("function pfTone", self.html)
         self.assertIn('id="pffetch"', self.html)
         self.assertIn("function fetchPrices", self.html)
         self.assertIn("/api/market/status", self.html)

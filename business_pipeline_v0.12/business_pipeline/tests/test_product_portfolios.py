@@ -170,6 +170,9 @@ class RoutesTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(bundle["portfolio"]["name"], "Route paper")
         self.assertEqual(len(bundle["snapshots"]), 1)
+        status, stored = _get(self.base, "/api/portfolios/%s/snapshot/2026-10-30" % pid)
+        self.assertEqual(status, 200)
+        self.assertEqual(stored["outputs"]["nav"], "5000")
 
     def test_a_snapshot_without_every_price_is_refused(self):
         _, portfolio = _post(self.base, "/api/portfolios", {"name": "Missing price"})

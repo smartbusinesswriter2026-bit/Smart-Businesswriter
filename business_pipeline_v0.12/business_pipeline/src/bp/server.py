@@ -741,6 +741,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, {"deleted": parts[4]})
             if action == "performance" and verb == "GET" and len(parts) == 4:
                 return self._send(200, self._performance_payload(portfolio_id))
+            if action == "snapshot" and verb == "GET" and len(parts) == 5:
+                return self._send(200, product_portfolios.snapshot(portfolio_id, parts[4]))
             if action == "snapshot" and verb == "POST":
                 return self._portfolio_snapshot(portfolio_id, body or {})
             if action == "export" and verb == "POST":

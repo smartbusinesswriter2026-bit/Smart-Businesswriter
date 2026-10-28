@@ -6,7 +6,7 @@
 
 **Did.** Every Portfolio label and input is wrapped in a `fieldgroup`, so the grid places whole fields; the create form is two columns above 720 px. `scripts/build_portfolio_sample.py` generates `samples/portfolio-mock-fund-sample.docx` from simulated prices: three weekly snapshots, a contribution, a benchmark, a decision journal, a time-weighted return and "All 12 checks passed" in plain language.
 
-**Verified.** `node --check` clean; the sample was unzipped and checked for its sections and for the absence of machine check names; the full suite 1779 tests green.
+**Verified.** `node --check` clean; the sample was unzipped and checked for its sections and for the absence of machine check names; the full suite 1780 tests green.
 
 **Files.** `web/index.html`, `scripts/build_portfolio_sample.py`, `samples/portfolio-mock-fund-sample.docx`, `docs/SAMPLE_PAPERS.md`.
 

@@ -506,6 +506,65 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   .wsheet textarea.wtext{min-height:96px}
 }
 
+
+/* ---------- Portfolio Lab: market dashboard ---------- */
+.pfhero{position:relative;overflow:hidden;border-radius:20px;padding:24px;color:#fff;
+  background:linear-gradient(135deg,#071A2B 0%,#0E3555 55%,#0B5A4A 100%);
+  box-shadow:0 18px 40px rgba(7,26,43,.22)}
+.pfhero:before{content:"";position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:32px 32px;mask-image:linear-gradient(180deg,#000,transparent 88%)}
+.pfhero>*{position:relative;z-index:1}
+.pfhero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.pfhero h2{margin:6px 0 0;color:#fff;font-size:30px;letter-spacing:-.02em}
+.pfhero p{color:#C6D5E4;margin:8px 0 0;max-width:72ch}
+.pfkicker{display:inline-block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7FE0BE;font-weight:700}
+.pfpills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pfpill{font-size:12px;color:#DCE8F4;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 10px}
+.pfnav{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-top:22px}
+.pfnavlabel{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8FA9C4}
+.pfnav strong{display:block;font-size:38px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.pfnavmeta{display:block;color:#8FA9C4;font-size:12px;margin-top:4px}
+.pfstatrow{display:flex;gap:10px;flex-wrap:wrap}
+.pfstat{min-width:118px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 12px}
+.pfstat span{display:block;font-size:11px;color:#9FB6CC;text-transform:uppercase;letter-spacing:.08em}
+.pfstat strong{display:block;font-size:17px;margin-top:3px;font-variant-numeric:tabular-nums}
+.pf-up{color:#7FE0BE!important}
+.pf-down{color:#FF9B8F!important}
+.pfempty{color:#C6D5E4;margin:18px 0 0}
+.pfdark{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.22)!important;color:#fff!important}
+.pfdark:hover{background:rgba(255,255,255,.18)!important}
+.pfchoices{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:20px}
+.pfchoice{display:block;text-align:left;padding:15px;border-radius:14px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.07);color:#fff;cursor:pointer;transition:transform .15s,background .15s}
+.pfchoice:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+.pfchoice strong{display:block;font-size:16px;margin:8px 0 3px}
+.pfchoice span{display:block;color:#C6D5E4;font-size:13px;line-height:1.4}
+.pfchoice em{display:inline-block;margin-top:10px;color:#7FE0BE;font-style:normal;font-size:12px;font-weight:700}
+.pficon{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:rgba(127,224,190,.15)}
+.pficon svg{width:17px;height:17px;fill:#7FE0BE}
+.pfworkspace{margin-top:14px}
+.pfoverview{display:grid;gap:12px;margin-top:14px}
+.pfcardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.pfboard{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pfchip{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:7px 10px;background:var(--sunken)}
+.pfchip strong{font-size:13px}
+.pfchip span{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.pftiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.pftile{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:linear-gradient(180deg,#fff,#F7FAFD)}
+.pftile span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.pftile strong{display:block;font-size:20px;margin:4px 0 2px}
+.pftile small{color:var(--text-3);font-size:12px}
+.pfvalue{border-left:3px solid var(--green);border-radius:12px;padding:14px 16px;background:linear-gradient(135deg,#F2FBF7,#fff)}
+.pfvalue strong{font-size:28px;font-variant-numeric:tabular-nums}
+.pflimit{border:1px dashed var(--border);border-radius:12px;padding:12px 14px;color:var(--text-2);background:var(--sunken)}
+.pftimeline{display:grid;gap:10px;margin-top:10px}
+.pfentry{display:grid;grid-template-columns:96px 1fr auto;gap:12px;align-items:start;padding:10px 0;border-top:1px solid var(--border)}
+.pfentry:first-child{border-top:0}
+.pfdate{font-size:12px;font-weight:700;color:var(--navy-900);background:var(--sunken);border-radius:8px;padding:5px 7px;text-align:center}
+.pfentry p{margin:0;font-size:13.5px}
+.pfentry .muted{font-size:12px}
 </style>
 </head>
 <body>
@@ -520,7 +579,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes, clear checks, provider fallbacks, local keys">v1.43</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes, clear checks, provider fallbacks, local keys">v1.45</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1101,10 +1160,41 @@ function show(id) {
   const render = RENDERERS[id];
   if (render) render();
 }
+/* Routes that only mean something while a session lives in this tab. A reload
+   cannot restore that session, so landing on one of them would show a dead end.
+   Instead the page returns to the last durable screen the student was on. */
+const SESSION_ROUTES = ["new", "results", "deliver"];
+
+function lastDurableRoute() {
+  try {
+    const saved = localStorage.getItem("sbw.lastRoute");
+    if (saved && saved.indexOf("#/") === 0) {
+      const head = saved.replace(/^#\/?/, "").split("/")[0];
+      if (!SESSION_ROUTES.includes(head)) return saved;
+    }
+  } catch (e) {}
+  return "#/home";
+}
+
+function rememberRoute(hash) {
+  const head = String(hash || "").replace(/^#\/?/, "").split("/")[0];
+  if (!head || SESSION_ROUTES.includes(head)) return;
+  try { localStorage.setItem("sbw.lastRoute", hash); } catch (e) {}
+}
+
 function route() {
-  const raw = (location.hash || "#/home").replace(/^#\/?/, "");
-  const parts = raw.split("/").filter(Boolean);
-  const head = parts[0] || "home";
+  let raw = (location.hash || "#/home").replace(/^#\/?/, "");
+  let parts = raw.split("/").filter(Boolean);
+  let head = parts[0] || "home";
+  if (SESSION_ROUTES.includes(head) && !state.session && !state.delivery) {
+    const fallback = lastDurableRoute();
+    if (location.hash !== fallback) history.replaceState(null, "", fallback);
+    raw = fallback.replace(/^#\/?/, "");
+    parts = raw.split("/").filter(Boolean);
+    head = parts[0] || "home";
+  } else {
+    rememberRoute(location.hash || "#/home");
+  }
   if (head === "subject" && parts[1]) {
     state.subjectId = decodeURIComponent(parts[1]);
     state.subject = null;
@@ -1176,13 +1266,14 @@ async function loadPortfolioPage() {
 
 function renderPortfolioLanding(rows) {
   const out = $("#portfolioout");
-  let html = '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
-    '<div><h2 style="margin:0">Portfolio</h2><p class="sub" style="margin:4px 0 0">' +
-    "Value a paper portfolio from your own holdings and prices. Every figure comes from the frozen method; the app stores the dated snapshot and exports the report.</p></div></div>" +
-    '<div class="decisiongrid" style="margin-top:14px">' +
-      '<button class="decision" type="button" id="pfnewpaper"><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span></button>' +
-      '<button class="decision" type="button" id="pfnewfund"><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span></button>' +
-    "</div></div>";
+  let html = '<section class="pfhero pfhero-landing">' +
+    '<span class="pfkicker">Portfolio Lab</span>' +
+    '<h2>Build a book a professor can grade.</h2>' +
+    '<p>Value your own holdings, keep a dated snapshot and export the report. Every figure comes from the frozen method; the app never fetches a price silently.</p>' +
+    '<div class="pfchoices">' +
+      '<button class="pfchoice" type="button" id="pfnewpaper"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8v12H3z"/></svg></span><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span><em>Start a paper \u2192</em></button>' +
+      '<button class="pfchoice" type="button" id="pfnewfund"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h2v12h14v2H4zm4-3V9h2v7H8zm4 0V6h2v10h-2zm4 0v-4h2v4h-2z"/></svg></span><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span><em>Open a fund \u2192</em></button>' +
+    '</div></section>';
   html += '<div class="card"><h3>Create a portfolio</h3>' +
     '<div class="grid2 pf-form">' +
     '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
@@ -1250,18 +1341,34 @@ function renderPortfolioWorkspace() {
   const latest = snapshots.slice(-1)[0];
   const snapshot = state.portfolioSnapshot;
   const tab = state.portfolioTab || "overview";
-  let html = '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
-    '<div><h2 style="margin:0">' + esc(p.name) + "</h2>" +
-    '<p class="sub" style="margin:4px 0 0">' + esc(p.mode) + " · " + esc(p.base_currency) +
-    (p.benchmark ? " · benchmark " + esc(p.benchmark) : "") + " · " + esc(p.status) + "</p></div>" +
-    '<div class="row"><button class="btn sm" type="button" id="pfall">All portfolios</button>' +
-    '<button class="btn sm" type="button" id="pfexport"' + (snapshot ? "" : " disabled") + ">Export the report</button></div></div>" +
-    '<div class="tabs" role="tablist">' +
+  const performance = state.portfolioPerformance;
+  const twr = performance && performance.outputs ? performance.outputs.twr : "";
+  let html = '<section class="pfhero">' +
+    '<div class="pfhero-top"><div>' +
+      '<span class="pfkicker">' + esc(p.mode) + ' portfolio</span>' +
+      '<h2>' + esc(p.name) + '</h2>' +
+      '<div class="pfpills"><span class="pfpill">' + esc(p.base_currency) + '</span>' +
+        (p.benchmark ? '<span class="pfpill">Benchmark ' + esc(p.benchmark) + '</span>' : '') +
+        '<span class="pfpill">' + esc(p.status) + '</span>' +
+        '<span class="pfpill">' + esc(p.cadence || "one snapshot") + '</span></div>' +
+    '</div><div class="row"><button class="btn sm pfdark" type="button" id="pfall">All portfolios</button>' +
+    '<button class="btn sm pfdark" type="button" id="pfexport"' + (snapshot ? "" : " disabled") + '>Export the report</button></div></div>' +
+    (snapshot
+      ? '<div class="pfnav"><div><span class="pfnavlabel">Net asset value</span><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + '</strong><span class="pfnavmeta">Snapshot ' + esc(snapshot.date) + '</span></div>' +
+        '<div class="pfstatrow">' +
+          '<div class="pfstat"><span>Invested</span><strong>' + esc(snapshot.outputs.invested_value) + '</strong></div>' +
+          '<div class="pfstat"><span>Cash</span><strong>' + esc(snapshot.outputs.cash) + '</strong></div>' +
+          '<div class="pfstat"><span>Top three</span><strong>' + esc(snapshot.outputs.top3_concentration) + '</strong></div>' +
+          (twr ? '<div class="pfstat"><span>Time-weighted return</span><strong class="' + pfTone(twr) + '">' + esc(twr) + '</strong></div>' : '') +
+        '</div></div>'
+      : '<p class="pfempty">Add holdings, enter their prices on one date, then create the snapshot.</p>') +
+    '</section>' +
+    '<div class="card pfworkspace"><div class="tabs" role="tablist">' +
       (p.mode === "fund" ? ["overview", "holdings", "data", "journal"] : ["overview", "holdings", "data"]).map((key) =>
         '<button class="tab" type="button" data-pftab="' + key + '" aria-selected="' + (tab === key) + '">' +
         ({ overview: "Overview", holdings: "Holdings", data: "Prices and snapshot", journal: "Journal and return" })[key] + "</button>").join("") +
     "</div><div id=\"pfmsg\"></div>";
-  if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot);
+  if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot, snapshots.length);
   if (tab === "holdings") html += pfHoldings(holdings);
   if (tab === "data") html += pfData(holdings, latest, snapshot);
   if (tab === "journal" && p.mode === "fund") html += pfJournal(bundle, snapshot);
@@ -1291,25 +1398,38 @@ function renderPortfolioWorkspace() {
   $$("[data-pfremove]", out).forEach((button) => { button.onclick = () => removeHolding(button.dataset.pfremove); });
 }
 
-function pfOverview(p, holdings, latest, snapshot) {
-  let html = '<div class="card" style="margin-top:14px"><h3>Objective</h3><p class="muted">' + esc(p.objective || "No objective was recorded.") + "</p>" +
-    '<p class="muted">Mode: ' + esc(p.mode) + " | cadence: " + esc(p.cadence || "") + (p.roster ? " | team: " + esc(p.roster) : "") + "</p></div>";
-  html += '<div class="grid2" style="margin-top:14px"><div class="card" style="margin:0"><h3>Progress</h3><ul>' +
-    "<li>Holdings: <strong>" + holdings.length + "</strong>" + (holdings.length ? "" : " — add at least one") + "</li>" +
-    "<li>Dated snapshots: <strong>" + (latest ? 1 : 0) + "</strong>" + (latest ? " (latest " + esc(latest.date) + ")" : " — set prices and create one") + "</li>" +
-    "<li>Export: <strong>" + (snapshot ? "ready" : "blocked until a snapshot exists") + "</strong></li></ul>" +
-    '<p class="muted">Prices are the values you declare on the snapshot date; the app does not fetch them silently.</p></div>';
-  html += '<div class="card" style="margin:0"><h3>Latest valuation</h3>';
-  if (latest && snapshot) {
-    html += '<p style="font-size:24px;margin:6px 0"><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + "</strong></p>" +
-      '<p class="muted">Invested ' + esc(snapshot.outputs.invested_value) + " · cash " + esc(snapshot.outputs.cash) +
-      " · top three " + esc(snapshot.outputs.top3_concentration) + " of NAV</p>" +
-      '<p class="muted">Snapshot ' + esc(snapshot.date) + " · method " + esc(snapshot.method || "portfolio_valuation") + "</p>";
-  } else {
-    html += '<p class="muted">No snapshot yet. Add holdings, enter their prices on one date, then create the snapshot.</p>';
+function pfTone(value) {
+  const text = String(value === undefined || value === null ? "" : value).trim();
+  return text.startsWith("-") ? "pf-down" : "pf-up";
+}
+
+function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
+  const rows = snapshot && snapshot.positions ? snapshot.positions : [];
+  let html = '<div class="pfoverview">';
+  if (holdings.length) {
+    html += '<div class="card" style="margin:0"><div class="pfcardhead"><h3>Position board</h3><span class="muted">' +
+      holdings.length + " holdings</span></div>" +
+      '<div class="pfboard">' + holdings.map((row) => {
+        const found = rows.find((item) => String(item.symbol).toUpperCase() === String(row.symbol).toUpperCase());
+        return '<div class="pfchip"><strong>' + esc(row.symbol) + "</strong><span>" +
+          (found ? esc(found.weight) : "no price") + "</span></div>";
+      }).join("") + "</div></div>";
   }
-  html += "</div></div>";
-  html += '<div class="card"><h3>What this does not do</h3><p class="muted">No FX conversion, fees, tax, dividends, forecast or recommendation. One base currency; long-only holdings; the snapshot is a valuation, not a sale price.</p></div>';
+  html += '<div class="pftiles">' +
+    '<div class="pftile"><span>Holdings</span><strong>' + holdings.length + "</strong><small>declared positions</small></div>" +
+    '<div class="pftile"><span>Snapshots</span><strong>' + (nSnapshots || 0) + "</strong><small>" +
+      (latest ? "latest " + esc(latest.date) : "none yet") + "</small></div>" +
+    '<div class="pftile"><span>Export</span><strong>' + (snapshot ? "Ready" : "Blocked") + "</strong><small>" +
+      (snapshot ? "word report" : "needs a snapshot") + "</small></div></div>";
+  if (snapshot) {
+    html += '<div class="pfvalue"><span class="pfnavlabel">Latest valuation \u00b7 ' + esc(snapshot.date) +
+      '</span><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + "</strong>" +
+      '<p class="muted" style="margin:4px 0 0">Invested ' + esc(snapshot.outputs.invested_value) +
+      " \u00b7 cash " + esc(snapshot.outputs.cash) + " \u00b7 top three " +
+      esc(snapshot.outputs.top3_concentration) + "</p></div>";
+  }
+  html += '<div class="pflimit"><strong>What this does not do.</strong> No FX, fees, tax, dividends, forecast or recommendation. One base currency; long-only; the snapshot is a valuation, not a sale price.</div>';
+  html += "</div>";
   return html;
 }
 
@@ -4118,14 +4238,11 @@ async function createSession(body) {
 
 RENDERERS.new = function () {
   if (state.session) { renderNew(); return; }
-  const p = ensurePanel("new");
-  p.hidden = false;
-  p.innerHTML = '<div class="card"><h2>No session yet</h2>' +
-    '<p class="sub">A session lives in this browser tab. Reloading the page starts a fresh one, so this page has nothing to show.</p>' +
-    '<div class="row"><button class="btn primary" id="newsession">Start from a subject</button>' +
-    '<button class="btn" id="newcases">Open a saved case</button></div></div>';
-  const b = $("#newsession"); if (b) b.onclick = () => show("subjects");
-  const c = $("#newcases"); if (c) c.onclick = () => show("cases");
+  // A reload has no session; send the student back to the last durable screen
+  // instead of showing an empty "no session" page.
+  const target = lastDurableRoute();
+  if (location.hash !== target) history.replaceState(null, "", target);
+  route();
 };
 
 function inputValue(name, spec, plan) {
@@ -4818,6 +4935,7 @@ function fiveForcesForm(t) {
       '<option value="mid" selected>Mid (1,200-2,500 words)</option>' +
       '<option value="long">Long (2,500-5,000 words)</option></select>' +
       '<button class="btn primary" id="ffbottomgenerate">Generate paper (Word)</button>' +
+      '<span class="muted" id="ffwordscount" aria-live="polite"></span>' +
       '<span class="muted">All five forces have content. Generate the paper from these entries.</span></div>';
 }
 
@@ -4931,6 +5049,15 @@ function bindFiveForcesCompletion() {
   });
   const seed = state.completionSeed || (state.tool && state.tool.objective) || "";
   if (instruction && !instruction.value && seed && !/^Work through the /.test(seed)) instruction.value = seed;
+  const lengthPick = document.getElementById("fflength");
+  const wordsNote = document.getElementById("ffwordscount");
+  const showTarget = () => {
+    if (!wordsNote) return;
+    const label = lengthPick ? lengthPick.options[lengthPick.selectedIndex].text : "";
+    wordsNote.textContent = label ? "Target: " + label + " (body only)" : "";
+  };
+  if (lengthPick) lengthPick.addEventListener("change", showTarget);
+  showTarget();
   const bottom = document.getElementById("ffbottomgenerate");
   if (bottom) bottom.onclick = () => {
     const inputs = collectFiveForcesInputs();
@@ -5078,9 +5205,16 @@ async function downloadFiveForcesDraft() {
     link.href = url; link.download = result.docx.filename;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    note.textContent = "Generated " + result.docx.filename + " (" + result.report.words + " words, " +
-      (result.report.length_label || "Mid") + "). It is saved under Documents on Home.";
-    toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") + result.docx.filename);
+    const wordsLine = document.getElementById("ffwordscount");
+    note.textContent = "Generated " + result.docx.filename +
+      (wordsLine ? "." : " (" + result.report.words + " words, " + (result.report.length_label || "Mid") + ").") +
+      " It is saved under Documents on Home.";
+    if (wordsLine) {
+      wordsLine.textContent = "Word count: " + result.report.words + " (" +
+        (result.report.length_label || "Mid") + ", body only; references excluded)";
+    }
+    toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") +
+      result.docx.filename + " ? " + result.report.words + " words");
   } catch (error) {
     note.textContent = "";
     if (review) review.insertAdjacentHTML("beforeend", errorBanner(error)); else toast(error.message || String(error));
@@ -5837,7 +5971,7 @@ function renderNew() {
     const disc = $("#wsdiscard"); if (disc) disc.onclick = discardWorksheetDraft;
     return;
   }
-  if (!s) { $("#panel-new").innerHTML = '<div class="empty">No session yet.</div>'; return; }
+  if (!s) { show("home"); return; }
   const plan = s.work_plan || {};
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
   const schema = (method && method.input_schema) || {};
