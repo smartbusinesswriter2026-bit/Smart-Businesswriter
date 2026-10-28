@@ -659,6 +659,36 @@ crashing, and a recompute guard re-runs every recorded computation from its own
 inputs — a drift blocks the export. `tests/test_plan_corpus.py` (forty real
 briefs) makes resolver quality a diff instead of a story.
 
+Wave 16 convenes the council — advocates propose, code verifies, an examiner
+decides among approved readings, the registrar freezes — behind
+`BP_PLAN_COUNCIL=1`, with the resolver as default and fallback. Nothing a model
+writes reaches the paper: the frozen reading becomes the same selection the
+conductor already composes from, and the advocates' figures are stored with the
+quotes they came from. The whole council is tested against a fake provider, so no
+network is needed to prove the contract.
+
+Wave 17 carries the reading's figures into the plan. `chat.apply_figures` matches
+each verified figure to a selected capability's schema, normalises it and offers
+it in the plan card with the sentence it came from; the student validates, the
+frozen core decides, and a figure the student declared is never swapped out. A
+figure that cannot be read, two figures for one input, or a figure no selected
+computation takes is named in `plan.figure_problems` instead of being dropped —
+the ambiguity is resolved by the tool and shown, not hidden.
+
+Wave 18 puts a claim ceiling at the gate. `verify.overclaims` reads the paper's
+own sentences and blocks export on `proves`, `guarantees`, `definitely`,
+`conclusive`, `confirms/demonstrates/establishes that` and `leads to`, unless the
+same clause negates it; source sentences (they carry an in-text citation) and the
+Limitations section are attributed, not asserted, so they are not scanned. The
+blocked export names the sentence, so the student rewrites the claim instead of
+arguing with a checklist.
+
+Wave 19 makes a case auditable from the command line:
+`python -m bp.product.replay case.json` re-hashes the frozen plan, re-hashes the
+brief, re-runs every recorded figure from its declared inputs and re-reads the
+draft's claims. It exits `0` only when all four hold, and names any drift on
+stderr. Replay reports; it never repairs.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

@@ -214,12 +214,14 @@ auto-completion.
    130, implications 150, conclusion 110, total 1,400), and a paper below them is
    retried once and then refused. The deterministic Draft uses the same outline
    and is about 1,200 words.
-10. **The title page follows APA 7.** The title begins three double-spaced lines
-   below the top margin, the student's name, institution, course and instructor
-   follow (four fields on the worksheet, remembered in the browser), then the
-   date and a page break. The title is repeated at the top of the first page of
-   text. The title drops the raw instruction's trailing period. No placeholder
-   such as `[your name]` is ever printed.
+10. **The title page is its own section and is centred vertically on the page**
+   (section `vAlign=center`). The student's name, institution, course and
+   instructor follow (four fields on the worksheet, remembered in the browser),
+   then the date. The body is a second section, so it starts on a new page and is
+   not centred; the title is repeated at the top of the first page of text. The
+   title drops the raw instruction's trailing period. No placeholder such as
+   `[your name]` is ever printed. The reference list starts on its own page, and
+   the reported word count excludes it.
 11. **The DOCX carries real Word structure**: `styles.xml` defines Heading 1/2/3
    with outline levels, body text is Times New Roman 12 double spaced with 1-inch
    margins, references hang, and the page number sits in the header, top right
@@ -552,10 +554,73 @@ Two guards keep the paper's numbers honest after the plan is frozen:
   from the stored inputs, not from the prose, and a formatter that cannot read
   the recorded result says so instead of printing a half-built sentence.
 
+`chat.apply_figures` carries the reading's verified figures into the plan. Each
+figure names an input; the input is matched against a *selected* capability's
+schema, normalised with the audit trail, and offered in the plan card together
+with the sentence it came from (`fixed 40000 (“fixed cost 40000”)`). It is an
+offer, not a result: the student still validates, the core still decides, and a
+figure the student already declared is never swapped out. Three cases are refused
+and named in `plan.figure_problems` rather than dropped: a figure that does not
+normalise (a percentage for an amount, a currency the case does not use), two
+different figures for one input, and a figure no selected computation takes. A
+brief whose figures are all read produces a paper whose declared inputs are the
+brief's own numbers, quoted.
+
 `tests/test_plan_corpus.py` is the resolver's contract: forty real briefs with the
 reading a person expects, so a cue or priority change fails by name.
 `tests/test_plan_verifier.py` covers the normaliser, the verifier's refusals, the
 frozen record, replay and the recompute guard.
+
+### 7.7 The plan council (opt-in, `BP_PLAN_COUNCIL=1`)
+
+Ambiguity in a set case is deliberate, so the conductor can convene a small
+council instead of guessing by priority.  `bp/product/council.py`:
+
+1. **Advocates** (two or three model calls, different stances — narrowest
+   reading, the reading a marker expects, the reading the others will miss)
+   propose a *reading*: frameworks, capabilities, the figures it found **with
+   the text they came from**, what is missing, what is excluded.  They choose
+   only from the closed catalogue and quote the brief.
+2. **The verifier is code** (`bp/product/verify.py`) and vetoes a reading that
+   leaves the catalogue, quotes something the brief does not say, files a figure
+   wrongly, overclaims, or does not name what is missing.
+3. **An examiner that did not propose** ranks only the approved readings and
+   returns a verdict, its criteria, the dissent and its confidence.
+4. **The registrar** freezes the verdict into `plan_record` (see §7.6), so the
+   paper is built from a record and never from a conversation.
+
+Rules that keep it honest:
+
+- no reading reaches the plan unless `verify` approved it;
+- the examiner cannot pick a reading that was not approved;
+- three unreadable or unapproved answers mean **ask one question**, not guess;
+- a provider failure falls back to the deterministic resolver and records the
+  reason in `state["council"]`; the brief is never lost to a model outage;
+- `BP_PLAN_COUNCIL=1` plus a configured key is the only way to enable it; with
+  neither, the resolver decides exactly as before.
+
+`tests/test_plan_council.py` drives all of this with a fake provider: approval,
+rejection by the verifier, the lone-reading path, the unreadable answer, the
+examiner's clamp to the approved set, the flag-off path, the failure fallback and
+the frozen record.
+
+### 7.8 Replay a case (`python -m bp.product.replay case.json`)
+
+A saved case is the JSON the case returns. `bp/product/replay.py` re-derives it:
+
+- `plan`: the frozen record re-hashes to the value it was stored with
+  (`chat.replay_check`);
+- `brief`: the current brief hashes to the brief the plan was frozen against;
+- `recompute`: every recorded computation still reproduces from its declared
+  inputs (`chat._recompute_guard`);
+- `claims`: the paper's own prose contains no unlicensed claim (`_claim_scan`).
+
+It prints the report and exits `0` only when all four hold, `1` when something
+drifted (naming it on stderr) and `2` on a usage or read error. Replay never
+repairs: a case that has drifted says so, which is what a marker or an appeals
+process needs in order to trust the paper. `tests/test_plan_replay.py` drives the
+command itself, including the tampered figure, the changed brief and the draft
+overclaim.
 
 ## 8. Coherence and export gate
 
@@ -568,6 +633,21 @@ frozen record, replay and the recompute guard.
 
 The export route returns `409` with `missing` when the gate fails. The UI hides
 the Download button and names what is missing.
+
+Three number-and-claim guards travel with the gate:
+
+- `recompute_problems`: a recorded figure that no longer follows from its own
+  declared inputs (`chat._recompute_guard`);
+- `claim_problems`: a sentence the paper asserts that no frozen method licenses —
+  `verify.overclaims` flags `proves`, `guarantees`, `definitely`, `conclusive`,
+  `confirms/demonstrates/establishes that`, `leads to`, unless the same clause
+  negates it (`does not prove`, `not a guarantee`, `cannot establish`). Sentences
+  that carry an in-text citation belong to the source, and the Limitations
+  section states limits by design, so neither is scanned;
+- `paper.check`'s structural rules below.
+
+All three are named in `missing`, so a blocked export says which sentence or
+figure is the reason.
 
 Coherence expectations for every paper:
 

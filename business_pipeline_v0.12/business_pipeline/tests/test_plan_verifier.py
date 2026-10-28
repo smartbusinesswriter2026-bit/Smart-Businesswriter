@@ -186,5 +186,126 @@ class PlanRecordTest(unittest.TestCase):
                          "Declared inputs: fixed 40,000; price 25; variable 12.")
 
 
+class FigureApplicationTest(unittest.TestCase):
+    """The brief's own figures reach the plan; nothing is typed twice, guessed or dropped."""
+
+    def _planned(self, figures):
+        state = answer_all(chat.start(BRIEF, "management", "pestel"))
+        state["plan_figures"] = figures
+        chat.apply_figures(state)
+        return state
+
+    def _figures(self, **overrides):
+        base = [{"input": "fixed", "written": "40,000", "kind": "amount", "quote": "fixed cost 40000"},
+                {"input": "price", "written": "25", "kind": "amount", "quote": "price 25"},
+                {"input": "variable", "written": "12", "kind": "amount", "quote": "variable 12"}]
+        for row in base:
+            row.update(overrides.get(row["input"]) or {})
+        return base
+
+    def test_a_declared_figure_lands_in_the_inputs_and_in_the_plan_card(self):
+        state = self._planned(self._figures())
+        applied = state["plan_figures_applied"]["breakeven"]
+        self.assertEqual(applied, {"fixed": "40000", "price": "25", "variable": "12"})
+        card = [row for row in state["plan"]["capabilities"] if row["key"] == "breakeven"][0]
+        self.assertEqual(card["figures"]["fixed"], "40000")
+        self.assertEqual(card["figure_quotes"]["fixed"], "fixed cost 40000")
+        self.assertEqual(state["plan"]["figure_problems"], [])
+
+    def test_the_offered_figures_still_pass_through_the_core_and_the_guard(self):
+        state = self._planned(self._figures())
+        state = chat.attach_computation(state, "breakeven", state["plan_figures_applied"]["breakeven"])
+        self.assertTrue(state["computations"]["breakeven"]["ok"])
+        self.assertEqual(chat._recompute_guard(state), [])
+
+    def test_a_figure_the_case_does_not_support_is_refused_and_named(self):
+        state = self._planned(self._figures(fixed={"written": "12%"}))
+        self.assertNotIn("fixed", state["plan_figures_applied"]["breakeven"])
+        problems = state["plan"]["figure_problems"]
+        self.assertEqual(len(problems), 1)
+        self.assertEqual(problems[0]["input"], "fixed")
+        self.assertIn("percentage", problems[0]["refused"])
+
+    def test_two_figures_for_one_input_are_refused_rather_than_chosen_between(self):
+        figures = self._figures()
+        figures.append({"input": "fixed", "written": "50000", "kind": "amount", "quote": "fixed cost 40000"})
+        state = self._planned(figures)
+        self.assertNotIn("fixed", state["plan_figures_applied"]["breakeven"])
+        self.assertIn("more than one figure",
+                      " ".join(row.get("refused", "") for row in state["plan"]["figure_problems"]))
+
+    def test_a_figure_no_selected_computation_needs_is_recorded_as_unused(self):
+        figures = self._figures() + [{"input": "discount_rate", "written": "10%", "kind": "rate",
+                                      "quote": "a discount rate of 10 percent"}]
+        state = self._planned(figures)
+        unused = [row for row in state["plan"]["figure_problems"] if row.get("unused")]
+        self.assertEqual(len(unused), 1)
+        self.assertIn("discount_rate", unused[0]["unused"])
+
+    def test_without_a_reading_nothing_is_offered(self):
+        state = answer_all(chat.start(BRIEF, "management", "pestel"))
+        self.assertEqual(state["plan_figures_applied"], {})
+        self.assertEqual(state["plan"]["capabilities"][0]["figures"], {})
+
+
+class ClaimGateTest(unittest.TestCase):
+    """A paper may name a limit; it may not claim more than a method licenses."""
+
+    def test_an_unqualified_claim_is_named(self):
+        problems = verify.overclaims("The analysis proves that the branch succeeds.")
+        self.assertEqual(problems[0]["claim"], "proves")
+        self.assertIn("branch succeeds", problems[0]["sentence"])
+
+    def test_a_negated_limit_is_not_a_claim(self):
+        for text in ("The analysis does not prove that entry succeeds.",
+                     "The figure is not a guarantee about the future.",
+                     "It cannot establish that entry is safe.",
+                     "No calculation leads to that conclusion.",
+                     "The figures do not change, and the analysis does not prove entry works."):
+            self.assertEqual(verify.overclaims(text), [], text)
+
+    def test_a_negated_clause_does_not_excuse_the_next_clause(self):
+        problems = verify.overclaims("The figures do not change, and the analysis proves entry works.")
+        self.assertEqual([problem["claim"] for problem in problems], ["proves"])
+
+    def test_the_draft_scans_its_own_sentences_and_the_gate_blocks_the_export(self):
+        state = answer_all(chat.start(BRIEF, "management", "pestel"))
+        state = chat.attach_computation(state, "breakeven",
+                                        {"fixed": "40000", "price": "25", "variable": "12"})
+        state["stage"] = "evidence"
+        state["evidence"] = []
+        state["gaps"] = []
+        state = chat.draft(state, accepted_ids=[],
+                           implications="This analysis guarantees that the branch will pay for itself.")
+        self.assertTrue(state["claim_problems"])
+        self.assertIn("guarantees", " ".join(state["claim_problems"]))
+        self.assertTrue(any("guarantees" in item for item in state["draft"]["missing"]))
+        with self.assertRaises(paper.ExportBlocked):
+            chat.docx_bytes(state)
+
+    def test_a_source_sentence_or_a_limit_is_not_the_paper_s_own_claim(self):
+        sections = [paper.section("Discussion", paper.H2,
+                                  [paper.paragraph(["The study proves entry fails (Smith, 2020)."])]),
+                    paper.section("Limitations", paper.H2,
+                                  [paper.paragraph(["The method is not a guarantee that the P80 will hold."])]),
+                    paper.section("Implications", paper.H1,
+                                  [paper.paragraph(["The declared volume proves the branch pays."])])]
+        problems = chat._claim_scan(sections)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("Implications", problems[0])
+        self.assertIn("proves", problems[0])
+
+    def test_an_honest_limit_does_not_block_the_draft(self):
+        state = answer_all(chat.start(BRIEF, "management", "pestel"))
+        state = chat.attach_computation(state, "breakeven",
+                                        {"fixed": "40000", "price": "25", "variable": "12"})
+        state["stage"] = "evidence"
+        state["evidence"] = []
+        state["gaps"] = []
+        state = chat.draft(state, accepted_ids=[],
+                           implications="The break-even figure does not prove that the branch will reach its volume.")
+        self.assertEqual(state["claim_problems"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, docx, guard, paper, prose, verify, writing
+from . import capabilities, council, docx, guard, paper, prose, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -447,6 +447,22 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
         return _start_plan(brief, subject, level, mode)
     framework = (framework or "").strip().lower() or _infer_framework(brief)
+    council_result, council_note = None, None
+    if council.available():
+        # The council may change the reading of the brief, including the framework.
+        # Its output is verified by code before it is used, and the resolver stays
+        # the fallback whenever it cannot decide.
+        try:
+            council_result = council.advise(brief, capabilities.ENTRIES, tuple(FRAMEWORKS))
+        except council.CouncilError as error:
+            council_note = "the council could not decide: " + str(error)[:200]
+        except Exception as error:  # a provider failure must never lose the brief
+            council_note = "the council failed: " + str(error)[:200]
+        if council_result and council_result.get("reading"):
+            chosen = [name for name in council_result["reading"].get("frameworks") or []
+                      if name in FRAMEWORKS]
+            if chosen:
+                framework = chosen[0]
     if framework not in FRAMEWORKS:
         raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
     fits, message = guard.subject_fit(brief, subject or "management")
@@ -470,15 +486,119 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
              "selection": None, "computations": {}}
     # Which capabilities this paper carries is decided from the brief, not from a
     # fixed list: a framework-only brief selects nothing and the paper runs as before.
-    selection = capabilities.resolve(brief, framework, answers)
+    if council_result and council_result.get("reading"):
+        selection = _selection_from_reading(council_result["reading"], framework, council_result)
+        state["plan_figures"] = list(council_result["reading"].get("figures") or [])
+        state["plan_models"] = [{"role": "council", "model": council.model_id()}]
+    else:
+        selection = capabilities.resolve(brief, framework, answers)
     _fill_capability_inputs(selection)
     state["selection"] = selection
+    # Figures the brief already declares are offered as declared inputs; nothing
+    # is run until the student asks the core to accept them.
+    apply_figures(state)
+    state["council"] = ({"format": council.FORMAT,
+                         "approved": council_result.get("approved") if council_result else [],
+                         "rejected": council_result.get("rejected") if council_result else [],
+                         "verdict": council_result.get("verdict") if council_result else None}
+                        if council_result else ({"note": council_note} if council_note else None))
     if selection.get("question") and fits:
         questions.insert(0, dict(selection["question"]))
         state["question_quote"] = selection.get("question_quote") or ""
     if not fits:
         state.update({"stage": "not_supported", "message": message, "questions": [], "question_index": 0})
     return state
+
+
+def _selection_from_reading(reading, framework, result=None):
+    """Turn a verified reading into the selection every later step reads."""
+    selected = []
+    for item in reading.get("capabilities") or []:
+        key = str((item or {}).get("key") or "") if isinstance(item, dict) else str(item)
+        if key not in capabilities.ENTRIES:
+            continue
+        row = capabilities.ENTRIES[key]
+        anchor = ""
+        for candidate in reading.get("anchors") or []:
+            if isinstance(candidate, dict) and candidate.get("quote"):
+                anchor = candidate["quote"]
+                break
+        selected.append({
+            "key": key, "method": row["method"], "label": row["label"],
+            "subject": row.get("subject") or "", "slot": list(row["slot"]),
+            "integration": row.get("integration") or "Framework and Declared Figures",
+            "inputs_required": [], "inputs": {}, "one_of": [], "min_inputs": row.get("min_inputs"),
+            "licenses": "", "not": "", "row_fields": {},
+            "because": {"rule": "council:" + str(reading.get("stance") or "reading"), "quote": anchor},
+        })
+    payload = {"format": capabilities.FORMAT, "catalogue_version": capabilities.CATALOGUE_VERSION,
+               "framework": framework,
+               "selected": [{k: row[k] for k in ("key", "method", "slot")} for row in selected],
+               "question": None}
+    return {"format": capabilities.FORMAT, "catalogue_version": capabilities.CATALOGUE_VERSION,
+            "frameworks": [framework], "selected": selected,
+            "not_included": [dict(item) for item in reading.get("not_included") or []
+                             if isinstance(item, dict)],
+            "question": None, "question_quote": "", "hash": capabilities._hash(payload),
+            "because": {"rule": "council", "quote": str(reading.get("why") or "")[:300]}}
+
+
+def apply_figures(state):
+    """Offer the figures the brief already declares as the declared inputs.
+
+    A verified reading carries each figure with the text it came from.  This
+    turns those figures into the canonical value the frozen schema expects and
+    offers them to the capability whose input they name.  Nothing is computed
+    here: the student still presses Validate and attach, and the core still
+    decides whether the figures are acceptable.  A figure that cannot be read is
+    refused and recorded with its reason, never guessed, and a figure no selected
+    computation needs is recorded as unused rather than dropped silently.
+    """
+    applied, filings = {}, []
+    figures = [figure for figure in state.get("plan_figures") or [] if isinstance(figure, dict)]
+    selected = (state.get("selection") or {}).get("selected") or []
+    schemas = {row["key"]: _schema_for(row.get("method") or "") for row in selected}
+    for figure in figures:
+        name = str(figure.get("input") or "")
+        quote = str(figure.get("quote") or "")
+        written = figure.get("written")
+        if not name:
+            filings.append({"input": "", "written": written, "quote": quote,
+                            "refused": "the figure does not name the input it belongs to"})
+            continue
+        used = False
+        for row in selected:
+            schema = schemas.get(row["key"]) or {}
+            if name not in schema:
+                continue
+            used = True
+            kind = figure.get("kind") or verify.input_kind(name, schema.get(name) or {})
+            try:
+                value, steps = verify.normalise_number(written, kind)
+            except verify.VerifyError as error:
+                filings.append({"key": row["key"], "input": name, "written": written, "quote": quote,
+                                "refused": str(error)})
+                continue
+            target = applied.setdefault(row["key"], {})
+            if name in target and target[name] != value:
+                # Two figures for one input is an ambiguity; the tool refuses it
+                # rather than choosing a number on the student's behalf.
+                target.pop(name, None)
+                filings.append({"key": row["key"], "input": name, "written": written, "quote": quote,
+                                "refused": "the reading gives more than one figure for this input"})
+                continue
+            target[name] = value
+            filings.append({"key": row["key"], "input": name, "written": written, "quote": quote,
+                            "value": value, "steps": steps})
+        if not used:
+            filings.append({"input": name, "written": written, "quote": quote,
+                            "unused": "no selected computation takes an input named " + name})
+    state["plan_figures_applied"] = applied
+    state["figure_filings"] = filings
+    if state.get("plan"):
+        # The card shows what the brief supplied, so it is rebuilt with the plan.
+        state["plan"] = _plan(state)
+    return applied
 
 
 def _fill_capability_inputs(selection):
@@ -539,6 +659,7 @@ def answer(state, question_id, value):
             state["selection"] = capabilities.apply_answer(state.get("selection") or {},
                                                            question_id, value)
             _fill_capability_inputs(state["selection"])
+            apply_figures(state)
     elif question["type"] == "items":
         items = _items(value)
         if not items and not question.get("allow_skip"):
@@ -671,11 +792,19 @@ def _plan(state):
                           "one_of": row.get("one_of") or [], "min_inputs": row.get("min_inputs"),
                           "row_fields": row.get("row_fields") or {},
                           "licenses": row.get("licenses"), "not": row.get("not"),
+                          "figures": (state.get("plan_figures_applied") or {}).get(row["key"]) or {},
+                          "figure_quotes": {str(figure.get("input")): str(figure.get("quote") or "")
+                                            for figure in state.get("plan_figures") or []
+                                            if isinstance(figure, dict)
+                                            and str(figure.get("input") or "") in (row.get("inputs") or {})},
                           "status": _capability_status(state, row)} for row in selected],
         "available": [{"key": row["key"], "label": row["label"], "because": row.get("because"),
                        "slot": row.get("slot")}
                       for row in _available_capabilities(framework, selected)],
         "not_included": list(selection.get("not_included") or []),
+        # A figure the brief declares but the paper cannot take is named, not dropped.
+        "figure_problems": [dict(item) for item in state.get("figure_filings") or []
+                            if item.get("refused") or item.get("unused")],
         "selection_hash": selection.get("hash"),
         "catalogue_version": selection.get("catalogue_version"),
         "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"]
@@ -1145,6 +1274,9 @@ def set_capability(state, key, enabled=True, reason=""):
         raise ChatError(str(error))
     state["selection"] = selection
     _fill_capability_inputs(selection)
+    if capabilities.carries(selection, key):
+        # A capability added later still gets the figures the brief declared.
+        apply_figures(state)
     if not capabilities.carries(selection, key):
         state.setdefault("computations", {}).pop(key, None)
         if (state.get("computation") or {}).get("key") == key:
@@ -3658,6 +3790,7 @@ def _draft_plan(state, accepted_ids=None, style=None):
     heading = "References" if style == "apa" else "Bibliography"
     sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
 
+    state["claim_problems"] = _claim_scan(sections)
     state["draft"] = {"title": "Business plan: " + (name or _clean(plan.get("decision"), 180)),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "profile": PROFILE_BUSINESS_PLAN, "level": level,
@@ -3667,6 +3800,31 @@ def _draft_plan(state, accepted_ids=None, style=None):
     state["updated_at"] = _now()
     return state
 
+
+
+def _claim_scan(sections):
+    """The paper's own sentences that claim more than any frozen method licenses.
+
+    Source sentences (they carry an in-text citation) and the contract's own
+    limitation wording are attributed, not asserted by the paper, so they are not
+    scanned; the limitations section exists to name limits.
+    """
+    claims, seen = [], set()
+    for item in sections:
+        if str(item.get("heading") or "").strip().lower() in ("limitations", "references"):
+            continue
+        for line in item.get("lines") or []:
+            if verify.CITATION.search(str(line or "")):
+                continue
+            for problem in verify.overclaims(line):
+                key = (problem["sentence"], problem["claim"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                claims.append(item.get("heading", "the paper") + ": the word \""
+                              + problem["claim"] + "\" claims more than any method licenses: "
+                              + problem["sentence"])
+    return claims
 
 
 def draft(state, accepted_ids=None, implications="", style=None):
@@ -3850,6 +4008,8 @@ def draft(state, accepted_ids=None, implications="", style=None):
         title_label = label + " and break-even"
     recompute = _recompute_guard(state)
     state["recompute_problems"] = recompute
+    # The gate reads the paper's own sentences, not attributed quotations.
+    state["claim_problems"] = _claim_scan(sections)
     missing = paper.missing(state, position)
     state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,

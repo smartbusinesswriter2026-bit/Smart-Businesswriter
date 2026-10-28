@@ -204,6 +204,51 @@ def verify_reading(reading, entries, frameworks, brief, currency=None, quoted=No
     return problems
 
 
+#: Claims a paper may not make unless a frozen method licenses them.  Checked at
+#: the export gate, so a draft that overclaims is blocked rather than submitted.
+OVERCLAIM = (r"\bproves?\b", r"\bproven\b", r"\bguarantees?\b", r"\bdefinitely\b",
+             r"\bconclusive(?:ly)?\b", r"\bconfirms? that\b", r"\bdemonstrates? that\b",
+             r"\bestablishes? that\b", r"\bleads? to\b")
+#: A negation earlier in the clause clears the claim: naming a limit is honest.
+NEGATED = re.compile(r"\b(?:not|never|no|none|neither|nor|cannot|without|unlikely|hardly)\b"
+                     r"|n't\b|\bdoesn't\b|\bdon't\b|\bisn't\b|\baren't\b|\bwon't\b|\bcan't\b", re.I)
+#: Clause boundaries, so "it does not change, and it proves X" is still an overclaim.
+CLAUSE = re.compile(r"[,;:]|\b(?:but|and|yet|so|although|while)\b", re.I)
+#: An in-text citation marks a sentence as the source's claim, not the paper's.
+CITATION = re.compile(r"\([^()]{1,160}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
+
+
+def _clause_before(sentence, position):
+    start = 0
+    for match in CLAUSE.finditer(sentence):
+        if match.end() > position:
+            break
+        start = match.end()
+    return sentence[start:position]
+
+
+def overclaims(text):
+    """Sentences that assert more than any frozen method licenses.
+
+    "The analysis proves entry succeeds" is a claim; "the analysis does not prove
+    entry succeeds" is a limit, and is allowed.  The negation test looks only at
+    the clause before the claim, so a negated first clause does not excuse a
+    claim in the next one.
+    """
+    problems = []
+    for sentence in re.split(r"(?<=[.!?;])\s+", str(text or "")):
+        clean = " ".join(sentence.split())
+        for pattern in OVERCLAIM:
+            match = re.search(pattern, clean, re.I)
+            if not match:
+                continue
+            if NEGATED.search(_clause_before(clean, match.start())):
+                continue
+            problems.append({"claim": match.group(0).lower(), "sentence": clean[:300]})
+            break
+    return problems
+
+
 def freeze(record):
     """Add the plan hash so the frozen plan can be re-derived and compared."""
     frozen = dict(record or {})
