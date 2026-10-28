@@ -566,7 +566,7 @@ different figures for one input, and a figure no selected computation takes. A
 brief whose figures are all read produces a paper whose declared inputs are the
 brief's own numbers, quoted.
 
-`tests/test_plan_corpus.py` is the resolver's contract: forty real briefs with the
+`tests/test_plan_corpus.py` is the resolver's contract: forty-one real briefs with the
 reading a person expects, so a cue or priority change fails by name.
 `tests/test_plan_verifier.py` covers the normaliser, the verifier's refusals, the
 frozen record, replay and the recompute guard.

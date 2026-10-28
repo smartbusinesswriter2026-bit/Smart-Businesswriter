@@ -389,5 +389,17 @@
   ],
   "expected_question": null,
   "note": "scenario"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the net present value of a branch that costs 100000 and returns 40000 a year for four years, at its cost of capital. The equity is 1000 at a required return of 11%, the debt is 500 at 5% after tax.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "capm",
+   "npv",
+   "wacc"
+  ],
+  "expected_question": null,
+  "note": "NPV written as costs and yearly returns plus its cost of capital: three capabilities, no question"
  }
 ]

@@ -80,7 +80,7 @@ class ReplayTest(unittest.TestCase):
         self.assertTrue(result["brief"]["match"])
         self.assertEqual(result["recompute"], [])
         self.assertEqual(result["claims"], [])
-        self.assertEqual(result["catalogue_version"], "1")
+        self.assertEqual(result["catalogue_version"], "2")
 
     def test_a_tampered_figure_fails_replay_and_is_named(self):
         state = build_state()

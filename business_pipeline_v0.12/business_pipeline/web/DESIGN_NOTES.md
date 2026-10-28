@@ -656,7 +656,7 @@ missing list. `confirm_plan` now freezes a hashed plan record and `replay_check`
 re-hashes it. On the paper side, each computation section opens with its declared
 inputs, a formatter that cannot read the recorded result says so instead of
 crashing, and a recompute guard re-runs every recorded computation from its own
-inputs — a drift blocks the export. `tests/test_plan_corpus.py` (forty real
+inputs — a drift blocks the export. `tests/test_plan_corpus.py` (forty-one real
 briefs) makes resolver quality a diff instead of a story.
 
 Wave 16 convenes the council — advocates propose, code verifies, an examiner
@@ -745,3 +745,46 @@ from `/api/health`, the eight most recent cases from `/api/cases` with their met
 export wallet from `/api/cases/credits` - balance, price chips, ledger - and the catalogue counts.
 Every request the page makes returns 200; `/assets/../server.py` returns 404. The full suite
 passes.
+
+## 17. The collapsed rail shows its icons in full
+
+Owner instruction: recheck the side rails when they are collapsed - the icons are not fully
+showing; adjust their width so the icons can be seen in full even when collapsed.
+
+What was wrong, measured on the served page (Chrome, device pixel ratio 1, 1400x700):
+- The subject list scrolls inside the rail (`.railsubjects{overflow-y:auto; overflow-x:hidden}`),
+  and a vertical scrollbar takes the scrollport's right edge: with the list scrolling, the
+  scrollport was x = 4 -> 30, not 4 -> 40.
+- The icon column is right-packed inside the strip (section 10), so the glyph sits at
+  x = 18.5 -> 37.5 - under the scrollbar's column.
+- The glyph was therefore cut at x = 30. The measured ink of the Accounting glyph was 10 px wide
+  instead of its own 17 px: the book was cut in half. Every subject glyph was cut the same way.
+- The defect was window-height dependent, which is why it had survived: the list only scrolls when
+  the rail is shorter than the list, so at 1400x900 (no scrollbar) the same measurement gave the
+  full 19 px.
+
+What changed (presentation only - no behaviour, number, wording, endpoint or frozen-core change):
+- The collapsed rail is now the strip **plus a column for the scrollbar**: `--rail-sb:16px` and
+  `--rail-w-collapsed:calc(var(--rail-w) + var(--rail-sb))`, applied by
+  `body:not(.rail-open) .rail{width:var(--rail-w-collapsed)}`. The collapsed rail is 61 px in the
+  wide layout and 60 px in the narrow one (`--rail-w:44px` there).
+- The green strip keeps its own width - `.railaccent` is still `--rail-w` (45 px / 44 px) - so the
+  open rail is untouched and the extra column is the white one the labels start in. The scrollbar
+  now lands in that column instead of on the icons.
+- The icons do not move: `--rail-ic-pad` is unchanged, so the glyph is still at 18.5 -> 37.5.
+- The collapsed toggle hugs the strip (`width:calc(var(--rail-w) - var(--rail-pad))`, 41 px) instead
+  of the whole rail, and its chevron is walked back onto the icon column by hand:
+  `translateX(calc(var(--rail-ic-pad) + var(--rail-ic-w) / 2 - (var(--rail-w) - var(--rail-pad)) / 2))`
+  - 3.5 px, which puts the chevron's centre on 28, the icon column's centre.
+- `scripts/ui_smoke.py` now carries the rail-geometry markers (`--rail-sb`, `--rail-w-collapsed`,
+  `body:not(.rail-open) .rail`) so the column cannot be silently dropped.
+
+Measured after the change (Chrome, device pixel ratio 1):
+- Collapsed, list scrolling (1400x700): rail 61 px, content box 4 -> 56, scrollport 4 -> 46,
+  glyph 18.5 -> 37.5 - fully visible. The ink of every glyph is its full width (19 px; the
+  Accounting glyph 17 px, which is the shape's own width), against 10-11 px before.
+- Collapsed, narrow layout (760x700): rail 60 px, strip 44 px, scrollport 4 -> 45, glyph
+  18.5 -> 37.5 - fully visible.
+- Open (1400x900): unchanged - strip 0 -> 45 px, glyph 18.5 -> 37.5 px, the label column and the
+  "SUBJECTS" heading both at 55 px, the open chevron at 249 -> 267 px.
+- The full suite passes, and `scripts/ui_smoke.py` passes against the served page.

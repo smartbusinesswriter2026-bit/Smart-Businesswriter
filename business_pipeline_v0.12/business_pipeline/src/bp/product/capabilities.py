@@ -28,7 +28,7 @@ FORMAT = "bp-capabilities/1"
 
 #: Bump when a cue, a slot or a priority changes.  The value is stored in every
 #: case, so a paper can always be re-derived against the catalogue it used.
-CATALOGUE_VERSION = "1"
+CATALOGUE_VERSION = "2"
 
 #: A paper may not carry more than this many computations; a fourth candidate is
 #: reported as not included instead of quietly widening the paper.
@@ -93,11 +93,15 @@ ENTRIES = dict([
     _row("npv", "npv", "Net present value", "appraisal",
          [r"net present value", r"\bnpv\b"],
          ("Financial Feasibility", "Net Present Value"),
-         needs_any=[r"cash ?flows?", r"\boutlay\b", r"invest(?:ment)?"], priority=30, output="npv"),
+         needs_any=[r"cash ?flows?", r"\boutlay\b", r"invest(?:ment)?",
+                    r"\breturns?\b", r"a year|per year|annually",
+                    r"\bcosts?\b", r"\bpay(?:s|back)?\b"],
+         priority=30, output="npv"),
     _row("irr", "irr", "Internal rate of return", "appraisal",
          [r"internal rate of return", r"\birr\b"],
          ("Financial Feasibility", "Internal Rate of Return"),
-         needs_any=[r"cash ?flows?", r"\boutlay\b"], priority=25),
+         needs_any=[r"cash ?flows?", r"\boutlay\b", r"\breturns?\b",
+                    r"a year|per year|annually", r"\bcosts?\b"], priority=25),
     _row("discounted_payback", "discounted_payback", "Discounted payback", "appraisal",
          [r"discounted payback", r"pay ?back period", r"when (?:will|does) (?:it|the investment) pay back"],
          ("Financial Feasibility", "Discounted Payback"),
