@@ -513,6 +513,7 @@ def _fill_capability_inputs(selection):
             list(row.get("inputs_required") or []) + sorted(forced)))
         row["one_of"] = [list(group) for group in entry.get("one_of") or []]
         row["min_inputs"] = entry.get("min_inputs")
+        row["row_fields"] = {name: list(fields) for name, fields in (entry.get("row_fields") or {}).items()}
     return selection
 
 
@@ -668,6 +669,7 @@ def _plan(state):
                           "because": row.get("because"), "inputs_required": row.get("inputs_required") or [],
                           "inputs": row.get("inputs") or {},
                           "one_of": row.get("one_of") or [], "min_inputs": row.get("min_inputs"),
+                          "row_fields": row.get("row_fields") or {},
                           "licenses": row.get("licenses"), "not": row.get("not"),
                           "status": _capability_status(state, row)} for row in selected],
         "available": [{"key": row["key"], "label": row["label"], "because": row.get("because"),
@@ -826,23 +828,36 @@ def _capability_inputs(entry_row, values):
             rows = raw if isinstance(raw, list) else []
             if not rows and not required:
                 continue
+            declared = (entry_row.get("row_fields") or {}).get(name) or []
             parsed_rows = []
             for index, row in enumerate(rows, start=1):
                 if not isinstance(row, dict):
                     return inputs, "Row " + str(index) + " of the " + desc + " must be a set of values."
-                task_name = _clean(str(row.get("name") or row.get("id") or row.get("task") or ""), 60)
-                if not task_name:
-                    return inputs, "Row " + str(index) + " of the " + desc + " needs a name."
-                try:
-                    task_time = str(Decimal(_clean(str(row.get("time") or row.get("duration") or ""), 40)))
-                except (InvalidOperation, ValueError):
-                    return inputs, "Row " + str(index) + ": the time must be a number."
-                parsed = {"name": task_name, "time": task_time}
-                predecessors = row.get("predecessors")
-                if isinstance(predecessors, list):
-                    predecessors = ",".join(_clean(str(item), 20) for item in predecessors)
-                if str(predecessors or "").strip():
-                    parsed["predecessors"] = _clean(str(predecessors), 200)
+                parsed = {}
+                fields = declared or list(row.keys())
+                for field in fields:
+                    value = row.get(field)
+                    if value is None and field not in row:
+                        continue
+                    text = _clean(str(value if value is not None else ""), 200)
+                    if not text:
+                        if field in ("predecessors", "resource"):
+                            continue
+                        if declared:
+                            return inputs, ("Row " + str(index) + " of the " + desc + " needs a "
+                                            + field.replace("_", " ") + ".")
+                        continue
+                    try:
+                        parsed[field] = str(Decimal(text))
+                    except (InvalidOperation, ValueError):
+                        parsed[field] = text
+                if not declared:
+                    # legacy rows shape: name, time and optional predecessors
+                    legacy_name = _clean(str(row.get("name") or row.get("id") or ""), 60)
+                    if legacy_name:
+                        parsed["name"] = legacy_name
+                if not parsed:
+                    return inputs, "Row " + str(index) + " of the " + desc + " is empty."
                 parsed_rows.append(parsed)
             minimum = int(spec.get("min_items") or 1)
             if len(parsed_rows) < minimum:
@@ -2907,6 +2922,60 @@ def _probit_lines(row, inputs, result):
     return lines
 
 
+def _cpm_lines(row, inputs, result):
+    critical = []
+    for activity in inputs.get("activities") or []:
+        name = str(activity.get("id") or "")
+        if name and str(result.get("critical_" + name)) in ("1", "True", "true"):
+            critical.append(name)
+    lines = ["On the declared activities, the project duration is "
+             + _money(result.get("project_duration")) + " periods across "
+             + _fmt_exact(result.get("activity_count")) + " activity(ies)"
+             + ("; the critical path runs through " + ", ".join(critical) if critical else "") + "."]
+    lines.append("The dates and floats are the method's output for the declared durations and predecessors; "
+                 "they are not a committed schedule.")
+    return lines
+
+
+def _levelling_lines(row, inputs, result):
+    lines = ["The declared activities give a critical-path duration of "
+             + _money(result.get("cpm_duration")) + " and a levelled duration of "
+             + _money(result.get("levelled_duration")) + ", a levelling delay of "
+             + _money(result.get("levelling_delay")) + " periods."]
+    lines.append("Overallocated periods fall from "
+                 + _fmt_exact(result.get("overallocated_periods_before")) + " to "
+                 + _fmt_exact(result.get("overallocated_periods_after")) + ", and peak demand from "
+                 + _money(result.get("peak_demand_before")) + " to "
+                 + _money(result.get("peak_demand_after")) + " against the declared capacities.")
+    return lines
+
+
+def _crashing_lines(row, inputs, result):
+    lines = ["Crashing from the declared normal duration of " + _money(result.get("normal_duration"))
+             + " to " + _money(result.get("crashed_duration")) + " periods costs "
+             + _money(result.get("total_crash_cost")) + " on the declared crash costs."]
+    target = result.get("target_duration")
+    if target not in (None, ""):
+        lines.append("The declared target was " + _money(target) + " periods.")
+    lines.append("The method reports the cheapest declared way to shorten the work; it does not judge whether "
+                 "the target is worth its cost.")
+    return lines
+
+
+def _schedule_risk_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("iterations")) + " seeded simulations, the project duration has a "
+             "mean of " + _money(result.get("mean_duration")) + " periods, a P50 of "
+             + _money(result.get("p50_duration")) + ", a P80 of " + _money(result.get("p80_duration"))
+             + " and a P90 of " + _money(result.get("p90_duration")) + "."]
+    probability = result.get("probability_within_target")
+    if probability not in (None, ""):
+        lines.append("The probability of finishing within the declared target is "
+                     + _pct(probability) + "%.")
+    lines.append("The range follows from the declared three-point estimates and the declared seed; it is not a "
+                 "forecast of the real project.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -3004,6 +3073,10 @@ CAPABILITY_LINES.update({
     "panel_regression": _panel_lines,
     "regression_discontinuity": _rdd_lines,
     "probit": _probit_lines,
+    "cpm_schedule": _cpm_lines,
+    "resource_leveling": _levelling_lines,
+    "project_crashing": _crashing_lines,
+    "schedule_risk": _schedule_risk_lines,
 })
 
 

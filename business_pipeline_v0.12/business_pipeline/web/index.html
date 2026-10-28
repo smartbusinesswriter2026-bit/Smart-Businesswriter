@@ -503,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations">v1.33</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations">v1.34</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1301,7 +1301,8 @@ function renderChat() {
       html += banner("blocked", "Complete the paper before export",
         "<p>Still needed: " + c.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
     } else {
-      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatdownload">Download the paper (Word)</button></div>';
+      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatdownload">Download the paper</button>' +
+        '<span class="muted">A paper with a computation downloads as a ZIP with its explainer.</span></div>';
     }
     html += "</div>";
     out.innerHTML = html;
@@ -1382,8 +1383,9 @@ function capabilityPanel(c, plan) {
         const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
         if (spec.type === "records" || spec.type === "rows") {
+          const declaredRows = (cap.row_fields || {})[name] || [];
           const cols = spec.type === "rows"
-            ? ["name", "time", "predecessors"]
+            ? (declaredRows.length ? declaredRows : ["name", "time", "predecessors"])
             : Object.keys(spec.fields || {});
           const rows = Array.isArray(raw) && raw.length ? raw : [{}];
           return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
@@ -1680,7 +1682,7 @@ async function discardProseChat() {
 
 async function downloadChat() {
   const out = $("#chatout");
-  out.insertAdjacentHTML("afterbegin", loading("Preparing the Word file"));
+  out.insertAdjacentHTML("afterbegin", loading("Preparing the paper"));
   try {
     const result = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/export", {});
     const binary = atob(result.data), bytes = new Uint8Array(binary.length);
@@ -1690,7 +1692,8 @@ async function downloadChat() {
     link.href = url; link.download = result.filename;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    toast("Section downloaded: " + result.filename);
+    toast(result.contents ? "Paper and explainer downloaded: " + result.filename
+                          : "Paper downloaded: " + result.filename);
   } catch (error) { out.innerHTML = errorBanner(error); }
 }
 
@@ -1937,7 +1940,8 @@ function renderPlan() {
       html += banner("blocked", "Complete the plan before export",
         "<p>Still needed: " + d.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
     } else {
-      html += '<div class="row" style="margin-bottom:8px"><button class="btn primary" id="plandownload">Download the plan (Word)</button></div>';
+      html += '<div class="row" style="margin-bottom:8px"><button class="btn primary" id="plandownload">Download the plan</button>' +
+        '<span class="muted">A plan with a computation downloads as a ZIP with its explainer.</span></div>';
     }
     html += '<details class="studynote"><summary><strong>Read the drafted plan</strong></summary>' +
       planOutlineHtml(d.draft.outline) + "</details></div>";
@@ -2020,7 +2024,7 @@ async function beginPlan() {
 
 async function downloadPlan() {
   const out = $("#planout");
-  out.insertAdjacentHTML("afterbegin", loading("Preparing the Word file"));
+  out.insertAdjacentHTML("afterbegin", loading("Preparing the plan"));
   try {
     const result = await post("/api/cases/chat/" + encodeURIComponent(state.plan.data.id) + "/export", {});
     const binary = atob(result.data), bytes = new Uint8Array(binary.length);
@@ -2030,7 +2034,8 @@ async function downloadPlan() {
     link.href = url; link.download = result.filename;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    toast("Plan downloaded: " + result.filename);
+    toast(result.contents ? "Plan and explainer downloaded: " + result.filename
+                          : "Plan downloaded: " + result.filename);
   } catch (error) { state.plan.error = error.message; renderPlan(); }
 }
 
@@ -2629,6 +2634,23 @@ async function downloadDraftReport(draft, worksheet) {
   } catch (error) {
     out.innerHTML = errorBanner(error);
   }
+}
+
+async function downloadCaseExplanation(caseId) {
+  if (!caseId) { toast("Record the case before downloading its explanation."); return; }
+  try {
+    const result = await post("/api/cases/" + encodeURIComponent(caseId) + "/explanation",
+                              { format: "docx" });
+    const doc = result.document || {};
+    const binary = atob(doc.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: doc.mime }));
+    const link = document.createElement("a");
+    link.href = url; link.download = doc.filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Explanation downloaded: " + doc.filename);
+  } catch (error) { toast("The explanation could not be produced: " + (error.message || error)); }
 }
 
 async function runDraft(draft, worksheet) {
@@ -3335,10 +3357,13 @@ function renderCalcResult() {
     resultBodyHtml(d, false) +
     '<div class="row" style="margin-top:12px">' +
     (state.calcRan
-      ? '<button class="btn primary" id="calcopenresult">Open the recorded case</button>'
+      ? '<button class="btn primary" id="calcopenresult">Open the recorded case</button>' +
+        '<button class="btn" id="calcexplain">Download the explanation</button>'
       : '<button class="btn primary" id="calcsaveresult">Save as case</button><button class="btn" id="calcopenresult">Open the full Result page</button>') +
     "</div>";
   const save = $("#calcsaveresult"); if (save) save.onclick = () => saveCase();
+  const explain = $("#calcexplain");
+  if (explain) explain.onclick = () => downloadCaseExplanation(state.calcRan);
   const open = $("#calcopenresult");
   if (open) open.onclick = () => {
     if (state.calcRan) { openCase(state.calcRan); return; }
@@ -5663,6 +5688,13 @@ async function openCase(id) {
   } catch (e) { p.innerHTML = '<div class="card">' + errorBanner(e) + "</div>"; }
 }
 
+function hasComputation(bundle) {
+  const rep = (bundle && bundle.reperform) || {};
+  const ap = (bundle && bundle.delivery && bundle.delivery.appendix) || {};
+  return !!(rep.outputs && Object.keys(rep.outputs).length) ||
+    !!(ap.accounts && ap.accounts.statements);
+}
+
 function renderCase() {
   const b = state.caseBundle; if (!b) return;
   const d = b.delivery || {}; const ap = d.appendix || {};
@@ -5681,8 +5713,9 @@ function renderCase() {
     "</div>";
   html += '<div class="tabpanel" data-panel="report"' + (state.tab === "report" ? "" : " hidden") + ">" +
     '<div class="row" style="margin:12px 0"><button class="btn primary" id="dlxlsx" type="button">Download the figures (Excel)</button>' +
-    '<button class="btn" id="dlword" type="button">Download the submission (Word)</button>' +
-    '<button class="btn" id="dlhtml" type="button">Download it as HTML (prints to PDF)</button>' +
+    '<button class="btn" id="dlword" type="button">Download the submission' + (hasComputation(b) ? ' (Word + explainer)' : ' (Word)') + '</button>' +
+    '<button class="btn" id="dlhtml" type="button">Download it as HTML' + (hasComputation(b) ? ' + explainer' : '') + ' (prints to PDF)</button>' +
+    (hasComputation(b) ? '<button class="btn" id="dlexplain" type="button">Download the explainer</button>' : '') +
     (isSheet ? '<button class="btn" id="dlws" type="button">Download the worksheet (Word)</button>' : '') +
     '<span class="muted" id="dlmsg"></span></div>' +
     '<div class="report">' + esc(d.report) + "</div>" +
@@ -5733,6 +5766,7 @@ function renderCase() {
   if (w) w.onclick = download("docx", "submission");
   if (h) h.onclick = download("html", "submission");
   if (ws) ws.onclick = download("docx", "worksheet");
+  const ex = $("#dlexplain"); if (ex) ex.onclick = () => downloadCaseExplanation(b.id);
   const nv = $("#newver"); if (nv) nv.onclick = newVersion;
   const cm = $("#cmp"); if (cm) cm.onclick = compareVersions;
   $$("[data-ver]").forEach((btn) => { btn.onclick = () => openVersion(Number(btn.dataset.ver)); });

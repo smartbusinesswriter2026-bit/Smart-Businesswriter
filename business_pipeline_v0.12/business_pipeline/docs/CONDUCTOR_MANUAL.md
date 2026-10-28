@@ -369,6 +369,10 @@ answer selects or excludes the capability with a stated reason.
 | `panel_regression` | the within slope and within R squared | Data Analysis / Panel Regression |
 | `regression_discontinuity` | the jump at the declared cutoff | Data Analysis / Regression Discontinuity |
 | `probit` | the slope, marginal effect and pseudo R squared | Data Analysis / Probit Model |
+| `cpm_schedule` | the project duration and the critical path | Delivery Status / Critical Path |
+| `resource_leveling` | the delay levelling costs and the peaks it removes | Delivery Status / Resource Levelling |
+| `project_crashing` | the cost of reaching the declared target duration | Delivery Status / Project Crashing |
+| `schedule_risk` | the duration range and the chance of meeting the target | Delivery Status / Schedule Risk |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -413,6 +417,10 @@ input:
   `principal_repayment`). The catalogue names them, so the panel asks for them and
   the refusal is a sentence, not an exception. When the core's schema is corrected,
   delete the list.
+- `row_fields` — the columns of a `rows` input, which the schema does not declare
+  (`cpm_schedule` takes `id`, `duration`, `predecessors`; `resource_leveling`
+  takes two row sets). The panel renders exactly these columns and the parser
+  coerces each value; a missing column is refused by row and column name.
 
 Methods not registered yet are simply not curated: each needs its cue pair, its
 slot and a formatter. Every input shape the catalogue supports now exists

@@ -44,7 +44,7 @@ _EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_fo
 
 def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
          domain=None, integration=None, output=None, one_of=None, min_inputs=None,
-         require_inputs=None):
+         require_inputs=None, row_fields=None):
     """One catalogue entry.  The licence and the limitation are read from the
     method's own description at resolve time, never restated here."""
     return key, {
@@ -64,6 +64,8 @@ def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, ap
         # inputs the frozen core requires but its own schema marks optional;
         # named here so the form asks for them and the refusal is not a crash
         "require_inputs": list(require_inputs or []),
+        # `rows` inputs do not declare their columns; the catalogue does
+        "row_fields": {name: list(fields) for name, fields in (row_fields or {}).items()},
     }
 
 
@@ -248,7 +250,8 @@ ENTRIES = dict([
     _row("line_balancing", "line_balancing", "Line balancing", "line_balance",
          [r"line balanc", r"assembly line", r"balance the line", r"station"],
          ("Operations", "Line Balancing"),
-         needs_any=[r"tasks?|stations?|cycle"], priority=15),
+         needs_any=[r"tasks?|stations?|cycle"], priority=15,
+         row_fields={"tasks": ["name", "time", "predecessors"]}),
     _row("demand_curve", "demand_curve", "Demand curve", "demand",
          [r"demand curve", r"price[- ]quantity", r"elasticity at (?:the )?mean"],
          ("Market Response", "Demand Curve"),
@@ -488,6 +491,30 @@ ENTRIES = dict([
     _row("probit", "probit", "Probit model", "relationship_model",
          [r"\bprobit\b", r"binary (?:outcome|choice) model"],
          ("Data Analysis", "Probit Model"), priority=15),
+    # ---- project management: schedules -----------------------------------
+    _row("cpm_schedule", "cpm_schedule", "Critical path", "schedule",
+         [r"critical path", r"\bcpm\b", r"float (?:of|on) the activities"],
+         ("Delivery Status", "Critical Path"),
+         needs_any=[r"activit|duration|predecessor"], priority=15,
+         row_fields={"activities": ["id", "duration", "predecessors"]}),
+    _row("resource_leveling", "resource_leveling", "Resource levelling", "schedule",
+         [r"resource level", r"overallocat", r"levell?ing"],
+         ("Delivery Status", "Resource Levelling"),
+         needs_any=[r"activit|resource|capacit"], priority=15,
+         row_fields={"activities": ["id", "duration", "resource", "demand", "predecessors"],
+                     "resources": ["name", "capacity"]}),
+    _row("project_crashing", "project_crashing", "Project crashing", "schedule",
+         [r"project crash", r"crash(?:ing)? the (?:project|schedule)", r"compress the schedule"],
+         ("Delivery Status", "Project Crashing"),
+         needs_any=[r"activit|duration|crash"], priority=15,
+         row_fields={"activities": ["id", "normal_duration", "crash_duration", "crash_cost",
+                                    "predecessors"]}),
+    _row("schedule_risk", "schedule_risk", "Schedule risk", "schedule",
+         [r"schedule risk", r"\bpert\b", r"probability of finishing"],
+         ("Delivery Status", "Schedule Risk"),
+         needs_any=[r"activit|optimistic|pessimistic|duration"], priority=15,
+         row_fields={"activities": ["id", "optimistic", "most_likely", "pessimistic",
+                                    "predecessors"]}),
 ])
 
 

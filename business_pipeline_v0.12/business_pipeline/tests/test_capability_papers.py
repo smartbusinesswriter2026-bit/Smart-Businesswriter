@@ -94,6 +94,17 @@ CASES = {
         {"entity": "a", "period": "2", "y": "2", "x": "3"},
         {"entity": "b", "period": "1", "y": "3", "x": "4"},
         {"entity": "b", "period": "2", "y": "4", "x": "5"}]}, "pestel"),
+    "cpm_schedule": ({"activities": [{"id": "a", "duration": "3"},
+                                     {"id": "b", "duration": "5", "predecessors": "a"}]}, "pestel"),
+    "resource_leveling": ({"activities": [
+        {"id": "a", "duration": "2", "resource": "dev", "demand": "1"},
+        {"id": "b", "duration": "2", "resource": "dev", "demand": "1"}],
+        "resources": [{"name": "dev", "capacity": "1"}]}, "pestel"),
+    "project_crashing": ({"activities": [{"id": "a", "normal_duration": "3", "crash_duration": "2",
+                                          "crash_cost": "100"}], "target_duration": "2"}, "pestel"),
+    "schedule_risk": ({"activities": [{"id": "a", "optimistic": "2", "most_likely": "3",
+                                       "pessimistic": "4"}], "iterations": "200", "seed": "1",
+                       "target_duration": "4"}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "

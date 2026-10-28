@@ -627,6 +627,15 @@ HDI) and decision/evidence (expected utility, prospect theory, DiD, IV, panel,
 RDD, probit). The evidence designs share the regression intent, so priority
 decides between them instead of catalogue order.
 
+Wave 13 opens project management. A `rows` input does not declare its columns,
+so the catalogue now does (`row_fields`): the panel renders exactly those columns
+and the parser coerces each value, refusing a missing one by row and column. Four
+schedules are registered — critical path, resource levelling, crashing, schedule
+risk — each with a paragraph that reports the durations and the path or the range.
+Remaining in the shelf: multi-criteria scoring (needs dynamic columns from the
+criteria list), decision trees (a nested tree object), Monte Carlo (distribution
+rows) and the multi-project and calendar schedulers.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

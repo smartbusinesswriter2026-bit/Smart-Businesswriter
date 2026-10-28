@@ -369,6 +369,20 @@ class RunnerTest(unittest.TestCase):
         selection = capabilities.resolve(brief, "pestel")
         self.assertEqual([row["key"] for row in selection["selected"]], ["labour_market"])
 
+    def test_a_schedule_paper_names_the_critical_path(self):
+        brief = ("The grocery chain is entering the Saudi market and the project needs the critical path on its "
+                 "declared activities.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "cpm_schedule",
+                                {"activities": [{"id": "a", "duration": "3"},
+                                                {"id": "b", "duration": "5", "predecessors": "a"}]})
+        state = chat.draft(state, accepted_ids=[], implications="The path sets the earliest finish.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Critical Path"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("project duration is 8", text)
+        self.assertIn("critical path runs through a, b", text)
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")
