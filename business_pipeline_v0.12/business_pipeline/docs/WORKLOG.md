@@ -1,5 +1,17 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [design] The hero's promise steps up, its proof steps aside
+
+**Ask.** On the Home page, "Your reliable business writing assistant." must be bold and slightly bigger, and "Real computation. Real research. Verifiable." must be italicised and smaller.
+
+**Did.** The slogan paragraph now carries two spans instead of one string and a break. The promise line is 19.8 px at weight 700, up from 18.0 px regular; the proof line is 15.0 px and italic, down from 18.0 px and the size of the page's `.sub` body text. The colour is unchanged, so weight, size and slant carry the hierarchy and nothing else moves. Both copies were changed - the static markup in the served page and the string `RENDERERS.home` rebuilds on every visit - so changing one alone would have reverted the other on the next render.
+
+**Verified.** On the served page (127.0.0.1:8765, Chromium) the Home hero shows the promise line bold at the larger size and the proof line italic at the smaller one, and the rendered DOM carries both spans with their classes.
+
+**Files.** `web/index.html`, `web/DESIGN_NOTES.md` (section 13), `docs/WORKLOG.md`.
+
+**Open/next.** No `docs/CHANGELOG.md` entry, for the same reason as the rail increment: the build number is in flight in the concurrent lane - the pill moved twice while this was written - and the changelog's newest build is tied by a test to the build string in `HOME.md` and `HANDOFF.md`.
+
 ## 2026-10-28 — [design] The rail keeps the subject marked while you work inside it
 
 **Ask.** "continue your unfinished fix in the left rails" — the left rail lost its green highlight the moment a student opened a subsection of a subject, and the previous run ran out of credit before that fix was verified, recorded or committed.

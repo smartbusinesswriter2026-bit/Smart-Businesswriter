@@ -397,3 +397,25 @@ not caught up. This change touches `web/index.html` only.
 Not done, on purpose: the mark is not carried into a saved case. A case is the student's own
 object, not the subject's workspace, and letting a subject stay lit inside someone else's case
 would be the wrong anchor.
+
+## 13. The hero's promise steps up, its proof steps aside
+
+Owner instruction: on the Home page, "Your reliable business writing assistant." must be bold and
+slightly bigger; "Real computation. Real research. Verifiable." must be italicised and smaller.
+
+What changed:
+- The slogan paragraph now carries two spans instead of one string and a `<br>`: `.slogan-lead`
+  and `.slogan-proof`.
+- The promise line is 19.8 px at weight 700, up from 18.0 px at the inherited regular weight, so
+  it reads as the line that carries the claim.
+- The proof line is 15.0 px and italic, down from 18.0 px - the size of the page's `.sub` body
+  text - so it sits under the promise as a quieter statement of fact.
+- The colour is unchanged: both lines stay in `--text-2`, so weight, size and slant carry the
+  hierarchy and nothing else moves.
+
+Both copies were changed: the static markup in the served page and the string `RENDERERS.home`
+rebuilds on every visit, so changing one alone would have reverted the other on the next render.
+
+Verification: on the served page (`127.0.0.1:8765`, Chromium) the Home hero shows the promise line
+bold at the larger size and the proof line italic at the smaller one, and the rendered DOM carries
+both spans with their classes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit.
