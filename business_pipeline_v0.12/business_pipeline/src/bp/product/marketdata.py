@@ -549,7 +549,19 @@ def _qveris_quote(symbol):
     except (InvalidOperation, TypeError, ValueError):
         raise MarketDataError("QVeris returned no usable price for " + symbol)
     as_of_path = (os.environ.get("BP_QVERIS_ASOF_PATH") or "").strip()
-    as_of = str(_dig(data, as_of_path)) if as_of_path else datetime.date.today().isoformat()
+    as_of = datetime.date.today().isoformat()
+    if as_of_path:
+        raw_as_of = _dig(data, as_of_path)
+        text = str(raw_as_of).strip()
+        if isinstance(raw_as_of, (int, float)) or (text.isdigit() and len(text) >= 9):
+            try:
+                stamp = float(text)
+                if stamp > 1e12: stamp /= 1000
+                as_of = datetime.datetime.fromtimestamp(stamp, tz=datetime.timezone.utc).date().isoformat()
+            except (TypeError, ValueError, OSError):
+                pass
+        elif text:
+            as_of = text
     return _payload("quote", price, as_of, "QVeris (" + tool + ")", _public_url(final), raw,
                     {"symbol": symbol})
 

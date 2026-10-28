@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - Local key file and the live QVeris contract
+
+**Ask.** The owner supplied Alpha, Massive and QVeris keys and does not want to re-export them each session.
+
+**Did.** `bp.server._load_local_keys` reads the gitignored `state/market_keys.json` at startup and sets only absent `BP_*` variables. QVeris is configured against Finnhub's quote capability (`result.data.c`, 1 credit) and its epoch `t` is converted to a UTC date. Verified live: Alpha 343.83 (2026-10-28), Massive 347.1 (2026-10-27), QVeris 343.83 (2026-10-28).
+
+**Verified.** A loader test asserts a file value is set, an existing environment value wins, and a missing file is ignored. Full suite 1717 tests green.
+
+**Files.** `src/bp/server.py`, `src/bp/product/marketdata.py`, `tests/test_product_marketdata.py`.
+
 ## 2026-10-29 - Equity quote fallbacks with internal ceilings
 
 **Ask.** Keep Alpha Vantage primary while starting, then fall back to Massive (5 requests/minute; put the ceiling internally) and QVeris (credits, top-up).

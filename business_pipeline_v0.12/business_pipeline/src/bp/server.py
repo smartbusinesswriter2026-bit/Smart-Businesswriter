@@ -995,6 +995,40 @@ class H(BaseHTTPRequestHandler):
             return self._send(422, {"error": str(e)})
         return self._send(200, product_intake.attach_table(file_id, table))
 
+def _load_local_keys(path=None):
+    """Load local provider keys into the environment at server startup.
+
+    The file is gitignored (``state/market_keys.json``). An environment variable
+    that is already set wins, so a shell export or CI key is never overwritten.
+    A missing or malformed file is ignored: the server still starts.
+    """
+    from pathlib import Path
+    candidate = path or os.environ.get("BP_MARKET_KEYS_FILE") or (
+        Path(__file__).resolve().parents[2] / "state" / "market_keys.json")
+    try:
+        data = json.loads(Path(candidate).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    mapping = {
+        "alpha_vantage": "BP_ALPHAVANTAGE_KEY",
+        "massive": "BP_MASSIVE_KEY",
+        "qveris": "BP_QVERIS_KEY",
+        "qveris_tool_id": "BP_QVERIS_TOOL_ID",
+        "qveris_symbol_param": "BP_QVERIS_SYMBOL_PARAM",
+        "qveris_price_path": "BP_QVERIS_PRICE_PATH",
+        "qveris_asof_path": "BP_QVERIS_ASOF_PATH",
+    }
+    loaded = {}
+    for key, env in mapping.items():
+        value = str(data.get(key) or "").strip()
+        if value and not os.environ.get(env):
+            os.environ[env] = value
+            loaded[env] = True
+    return loaded
+
+
 def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     global M, MODELS, SANDBOX_ENABLED
     M = SessionManager(SubprocessSandbox() if sandbox else None, ASSIST_RUNS); MODELS = models if models is not None else llm.from_env()
@@ -1004,5 +1038,6 @@ def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     ThreadingHTTPServer((host, port), H).serve_forever()
 
 if __name__ == "__main__":
+    _load_local_keys()
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     serve(int(args[0]) if args else 8000, sandbox="--no-sandbox" not in sys.argv)

@@ -492,7 +492,8 @@ If an assignment needs one of these, say so in the limitations and show the meth
   ceiling; a reached ceiling or vendor limit skips to the next, and every attempt is named. The
   ceilings are held in memory, so restarting the server resets them; the vendor still enforces its
   real quota. QVeris needs an explicit tool id, parameter name and price path, so it is skipped
-  until that contract is declared. When every provider is exhausted the fetch returns 429 and the
+  until that contract is declared. Keys may live in the gitignored `state/market_keys.json`; an
+  environment variable always wins, and that local file is the only place they are stored. When every provider is exhausted the fetch returns 429 and the
   UI points to manual entry or paste; a partial fetch stores only what succeeded. The frozen core
   has no network access: it values the stored prices only.
 - **Import is all-or-nothing.** A pasted table is validated row by row before it is written; one bad row

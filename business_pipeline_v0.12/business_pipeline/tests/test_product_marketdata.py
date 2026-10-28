@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import pathlib
 import sys
 import unittest
 from decimal import Decimal
@@ -288,6 +289,35 @@ class ProviderChainTest(unittest.TestCase):
         with self.assertRaises(marketdata.MarketDataError) as caught:
             marketdata.equity_quote("AAPL")
         self.assertIn("BP_QVERIS_TOOL_ID", str(caught.exception))
+
+
+class LocalKeyFileTest(unittest.TestCase):
+    def test_the_server_loads_local_keys_and_the_environment_wins(self):
+        import json as _json
+        import tempfile
+        from bp import server
+        names = ("BP_ALPHAVANTAGE_KEY", "BP_MASSIVE_KEY", "BP_QVERIS_KEY")
+        saved = {name: os.environ.get(name) for name in names}
+        for name in names:
+            os.environ.pop(name, None)
+        os.environ["BP_MASSIVE_KEY"] = "already-set"
+        handle, path = tempfile.mkstemp(suffix=".json")
+        os.close(handle)
+        pathlib.Path(path).write_text(_json.dumps({"alpha_vantage": "a", "massive": "m", "qveris": "q"}),
+                                      encoding="utf-8")
+        try:
+            loaded = server._load_local_keys(path)
+            self.assertTrue(loaded.get("BP_ALPHAVANTAGE_KEY"))
+            self.assertEqual(os.environ["BP_ALPHAVANTAGE_KEY"], "a")
+            self.assertEqual(os.environ["BP_MASSIVE_KEY"], "already-set")
+            self.assertNotIn("BP_MASSIVE_KEY", loaded)
+            self.assertEqual(os.environ["BP_QVERIS_KEY"], "q")
+            self.assertEqual(server._load_local_keys(path + ".missing"), {})
+        finally:
+            os.unlink(path)
+            for name, value in saved.items():
+                if value is None: os.environ.pop(name, None)
+                else: os.environ[name] = value
 
 
 class SecTest(unittest.TestCase):
