@@ -140,8 +140,12 @@ class CatalogueHonestyTest(unittest.TestCase):
     def test_project_management_owns_the_pm_records_and_the_appraisal_tools(self):
         page = subjects.detail("project-management")
         pm_ids = {"PM-%02d" % n for n in range(1, 15)}
-        self.assertEqual({row["id"] for row in page["records"]}, pm_ids,
+        worksheet_ids = {"PM-05", "PM-06", "PM-09", "PM-10"}
+        self.assertEqual({row["id"] for row in page["records"]}, pm_ids - worksheet_ids,
                          "the Project management page drops or repeats a PM record")
+        self.assertEqual([row["catalogue_id"] for row in page["worksheets"]],
+                         ["PM-05", "PM-09", "PM-10", "PM-06"],
+                         "the four PM worksheets are missing or out of order")
         self.assertEqual([tool["key"] for tool in page["tools"]],
                          ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision",
                           "forecast", "cpm", "evm"])
@@ -153,7 +157,7 @@ class CatalogueHonestyTest(unittest.TestCase):
         self.assertGreaterEqual(len(page["glossary"]), 15, "the page has no usable glossary")
         self.assertEqual(page["discipline_labels"], ["Project delivery and governance"])
         management = {row["id"] for row in subjects.detail("management")["catalogue"]}
-        self.assertFalse(pm_ids & management, "Management still claims the project records")
+        self.assertFalse((pm_ids - worksheet_ids) & management, "Management still claims the project records")
 
     def test_economics_declares_the_impact_evaluation_records(self):
         page = subjects.detail("economics")
@@ -328,6 +332,84 @@ class ServedUiContractTest(unittest.TestCase):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
             self.assertNotIn(gone, self.html)
 
+    def test_the_rail_launcher_is_named_the_business_calculator(self):
+        """The owner renamed the feature: the served page must say it everywhere.
+
+        The route, the panel id and the JS identifiers stay `calculator` (they
+        are contract, not copy); every label a reader sees says "Business
+        Calculator", and the bare name may not come back.
+        """
+        self.assertIn('<span class="railtext">Business Calculator</span>', self.html)
+        self.assertIn('<h2 id="calculator-title">Business Calculator</h2>', self.html)
+        self.assertIn("Business Calculator: launch any financial or business calculation", self.html)
+        self.assertIn("Search the Business Calculator", self.html)
+        self.assertIn("Open the Business Calculator", self.html)
+        self.assertIn("The Business Calculator arranges the inputs", self.html)
+        self.assertIn("What this Business Calculator is", self.html)
+        self.assertNotIn('<span class="railtext">Calculator</span>', self.html)
+        self.assertNotIn('<h2 id="calculator-title">Calculator</h2>', self.html)
+        self.assertNotIn("Open the Calculator", self.html)
+        # the contract surface is unchanged by the rename
+        self.assertIn('href="#/calculator"', self.html)
+        self.assertIn('id="panel-calculator"', self.html)
+
+    def test_the_business_calculator_shell_has_a_display_and_a_keypad(self):
+        """P1 of docs/proposals/BUSINESS_CALCULATOR_DESIGN.md: the calculator shell.
+
+        The panel has to look like a calculator (display, keypad, "=") while the
+        engine still does every sum. These are presence guards: the Python suite
+        cannot run the page, so it asserts the parts exist and are wired to the
+        session route rather than to any local arithmetic.
+        """
+        for present in ('id="calcgrid"', 'id="calcline"', 'aria-live="polite"',
+                        'id="calcpad"', 'id="calceq"', 'id="calcinputs"',
+                        'id="calcreset"', 'id="calcback"', 'id="calclimits"'):
+            self.assertIn(present, self.html)
+        self.assertIn("Bare arithmetic", self.html)
+        self.assertIn("Tax law", self.html)
+        self.assertIn("Market data", self.html)
+        for builder in ("function buildCalcPad()", "function calcKey(", "function calcRun(",
+                        "function renderCalcLine()", "function selectCalcTool(",
+                        "function calcFitOf("):
+            self.assertIn(builder, self.html)
+
+    def test_the_calculator_never_computes_in_the_browser(self):
+        for forbidden in ("eval(", "new Function", "parseFloat(", "parseInt("):
+            self.assertNotIn(forbidden, self.html, "the page must not evaluate expressions")
+        # "=" runs the normal two-call sequence; nothing is rendered before a delivery
+        self.assertIn('post("/api/sessions", body)', self.html)
+        self.assertIn('post("/api/sessions/" + current.id + "/confirm", {})', self.html)
+        # the keypad only ever writes text into a field
+        self.assertIn('state.calcValues[el.id.replace(/^in-/, "")] = el.value;', self.html)
+
+    def test_every_calculator_run_is_recorded_as_a_case(self):
+        self.assertIn("function recordCalcCase(session)", self.html)
+        self.assertIn('post("/api/cases", caseBundle(session))', self.html)
+        self.assertIn("await recordCalcCase(current)", self.html)
+        self.assertIn("Open the recorded case", self.html)
+
+    def test_the_keypad_is_off_for_list_and_worksheet_tools(self):
+        self.assertIn('if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";', self.html)
+        self.assertIn('b.disabled = fit !== "A";', self.html)
+        self.assertIn('$("#calceq").disabled = fit === "C";', self.html)
+        self.assertIn('class="fitbadge ', self.html)
+
+    def test_the_calculator_can_be_asked_in_words_only_through_the_router(self):
+        """P3: the chat posts the sentence to the product layer and renders its answer."""
+        for present in ('id="calcchat"', 'id="calcask"', 'id="calcaskgo"', 'id="calcmode-ask"'):
+            self.assertIn(present, self.html)
+        self.assertIn('post("/api/cases/calculator/plan", { text: text })', self.html)
+        self.assertIn("function calcAsk()", self.html)
+        self.assertIn("function planHtml(payload)", self.html)
+        # the router's declared outcomes are rendered explicitly
+        for outcome in ("out_of_scope", "unsupported", "choose", "run"):
+            self.assertIn('payload.outcome === "' + outcome + '"', self.html)
+        self.assertIn("payload.outcome === \"run\" ? \"honesty\" : \"limit\"", self.html)
+        # every payload string is escaped before it reaches the page
+        self.assertIn("esc(payload.reason || \"\")", self.html)
+        self.assertIn("esc(payload.missing.join", self.html)
+        self.assertIn("esc(text)", self.html)
+
     def test_every_launch_id_exists_in_the_frozen_contract(self):
         from bp import templates  # test-side only
 
@@ -421,6 +503,7 @@ class CalculatorGuardTest(unittest.TestCase):
                           "operations", "marketing", "people"])
         self.assertIn("computes nothing", payload["note"])
         self.assertIn("free-form arithmetic is not supported", payload["note"])
+        self.assertIn("The Business Calculator arranges inputs", payload["note"])
 
     def test_the_calculator_covers_every_frozen_method_or_says_why_not(self):
         from bp import methods  # test-side only

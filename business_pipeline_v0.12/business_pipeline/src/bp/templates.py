@@ -15,6 +15,10 @@ QUAD = {"S": ("Strengths", "internal"), "W": ("Weaknesses", "internal"), "O": ("
 FORCES = {"rivalry": "Industry rivalry", "entrants": "Threat of new entrants", "substitutes": "Threat of substitutes", "buyers": "Buyer power", "suppliers": "Supplier power"}
 PERIOD = "cross_section"
 
+def _plural(word):
+    return word[:-1] + "ies" if word.endswith("y") else word + "s"
+
+
 def _label(it):
     """A plain-language label for the student; never a field name or code."""
     p = it["provenance"]
@@ -242,6 +246,29 @@ CANVAS_BLOCKS = {
         "process": ("Process", "The service process the customer experiences"),
         "physical_evidence": ("Physical evidence", "What the customer can see or touch"),
     },
+    "template_kano": {
+        "must_be": ("Must-be (basic)", "Attributes whose absence disappoints but whose presence earns no delight"),
+        "performance": ("Performance (one-dimensional)", "Attributes where more is better and satisfaction rises with the level"),
+        "attractive": ("Attractive (delighters)", "Attributes that delight when present but do not disappoint when absent"),
+        "indifferent": ("Indifferent", "Attributes the customer does not care about either way"),
+        "reverse": ("Reverse", "Attributes whose presence actually disappoints"),
+    },
+    "template_paid_media_plan": {
+        "objective": ("Objective", "The declared campaign objective, such as reach, leads or sales"),
+        "audience": ("Audience", "Who is targeted, and the evidence for that audience"),
+        "channels_placements": ("Channels and placements", "The paid channels and where in each the message appears"),
+        "budget_bid": ("Budget and bid", "Money allocated to each channel and the bid or buying method"),
+        "creative_variants": ("Creative variants", "The messages and creative you will run, and the variants to compare"),
+        "conversion_definition": ("Conversion definition", "What counts as a conversion, over what window, and who counts it"),
+        "measurement": ("Measurement and checks", "The figures you will read at the end, from which source, and what would make you stop"),
+    },
+    "template_measurement_plan": {
+        "questions": ("Questions", "The decision or question each measurement is meant to answer"),
+        "metrics": ("Metrics", "The metrics, with the definition and the formula you will use"),
+        "events_dimensions": ("Events and dimensions", "The events, parameters and dimensions that make the journey measurable"),
+        "data_quality": ("Data quality", "Checks for duplicates, missing tags, bots and consent gaps"),
+        "governance": ("Access, consent and ownership", "Who owns the tag, who may see the data, and what consent allows"),
+    },
     "template_pestel": {
         "political": ("Political", "Government policy, stability, regulation and trade posture"),
         "economic": ("Economic", "Growth, inflation, interest and exchange rates, and demand"),
@@ -278,6 +305,24 @@ CANVAS_BLOCKS = {
         "activities": ("Activities", "The main activities that deliver that position"),
         "reinforcing_choices": ("Reinforcing choices", "How the activities reinforce one another"),
         "boundaries": ("What we will not do", "Activities, segments or promises deliberately excluded"),
+    },
+    "template_project_charter": {
+        "objective": ("Objective", "The outcome the project exists to deliver, in one testable statement"),
+        "scope_in": ("In scope", "What the project will deliver and cover"),
+        "scope_out": ("Out of scope", "What the project deliberately will not do"),
+        "deliverables": ("Deliverables", "The verifiable outputs you will hand over"),
+        "governance": ("Sponsor and governance", "Who authorises the project, who decides, and how change is controlled"),
+        "budget": ("Budget and funding", "The declared budget, its source and the spending authority"),
+        "milestones": ("Milestones", "The dated checkpoints and decisions, including the end date"),
+        "success_measures": ("Success measures", "How completion and benefit will be judged, with baselines and targets"),
+        "assumptions": ("Assumptions", "What must hold for the plan to work, marked as assumptions"),
+        "constraints": ("Constraints and dependencies", "Fixed dates, resources, contracts or dependencies outside the project's control"),
+    },
+    "template_wbs": {
+        "deliverables": ("Level 1 deliverables", "The major deliverables the project must produce"),
+        "work_packages": ("Work packages", "The smallest pieces of work, each with an owner and a completion test"),
+        "acceptance": ("Acceptance criteria", "The test that shows a deliverable or work package is complete"),
+        "exclusions": ("Exclusions", "Work the WBS deliberately leaves out"),
     },
 }
 
@@ -337,6 +382,36 @@ CANVAS_META = {
         "unsupported_use": "Choosing a position for you; inventing activities or fit; scoring fit or ranking positions; proving that a set of activities is hard to imitate.",
         "extra_help": "links: optional list of {from, to} activity item ids; a link records a fit you claim between two activities, not a tested relationship. 'What we will not do' keeps the trade-offs visible.",
     },
+    "template_kano": {
+        "name": "Kano classification with an evidence audit", "short": "Kano grid", "registry_ids": ["MKT-06"],
+        "intended_use": "Place each attribute in the Kano category your survey supports - must-be, performance, attractive, indifferent or reverse - with the evidence and its source, and audit the empty categories.",
+        "unsupported_use": "Deriving a category from the functional and dysfunctional answers for you; inventing survey results; scoring satisfaction; deciding which attribute to invest in.",
+        "extra_help": "The category is your conclusion from the paired answers: the worksheet records and audits it, and applies no lookup table. The Kano model is associated with Noriaki Kano; no proprietary instrument is reproduced.",
+    },
+    "template_paid_media_plan": {
+        "name": "Paid media plan with an evidence audit", "short": "paid media plan", "registry_ids": ["MKT-15"],
+        "intended_use": "Set the campaign objective and audience, the channels and placements, the budget and bid for each, the creative variants and the conversion definition, and audit what is still asserted rather than evidenced.",
+        "unsupported_use": "Choosing a budget, a bid or a channel for you; inventing audience, cost or platform data; predicting performance; replacing a media buy or the reach and rating-point arithmetic in `media_plan`.",
+        "extra_help": "The plan is yours; the arithmetic that turns declared reach, insertions and cost into rating points lives in the `media_plan` tool, not here. A conversion definition must name the action and the window.",
+    },
+    "template_measurement_plan": {
+        "name": "Web and app measurement plan with an evidence audit", "short": "measurement plan", "registry_ids": ["MKT-18"],
+        "intended_use": "Tie each measurement question to a metric, the events and dimensions that produce it, the data-quality checks and the access and consent rules, and audit which parts are still missing.",
+        "unsupported_use": "Reading an analytics platform; designing an event taxonomy for you; guessing volumes; certifying that a tag fires correctly or that consent is sufficient.",
+        "extra_help": "Events and dimensions are declared, not deployed: the worksheet records the plan and its evidence, and nothing here reads a live property.",
+    },
+    "template_project_charter": {
+        "name": "Project charter with an authorisation and scope audit", "short": "project charter", "registry_ids": ["PM-05"],
+        "intended_use": "Write the authorisation for the project: objective, scope in and out, deliverables, sponsor and governance, budget, milestones, success measures, assumptions and constraints. Empty blocks are named, not filled.",
+        "unsupported_use": "Choosing the objective, budget or sponsor for you; inventing a benefit, a date or an approval; calculating a business case; replacing the sponsor's decision.",
+        "extra_help": "The charter records what you have agreed and what is still assumption. A benefit in the success measures is your claim, not a forecast, and the worksheet does not compute a business case.",
+    },
+    "template_wbs": {
+        "name": "Work breakdown structure with a scope and acceptance audit", "short": "WBS", "registry_ids": ["PM-09"],
+        "intended_use": "Break the declared scope into deliverables and work packages, give each a completion test, record what is excluded, and link each work package to the deliverable it belongs to.",
+        "unsupported_use": "Inventing deliverables or acceptance criteria; estimating effort or cost for you; drawing a tree or Gantt; computing a total, a duration or a critical path; deciding the decomposition is complete.",
+        "extra_help": "links: optional list of {from, to} item ids, normally a work package to its deliverable. The worksheet records the hierarchy you declare; it does not draw a tree, sum estimates or prove that the breakdown is mutually exclusive and complete.",
+    },
 }
 CANVAS_MAX_ITEMS_PER_BLOCK = 20
 
@@ -354,6 +429,15 @@ CANVAS_PREFIXES = {
     "template_marketing_plan": {"segmentation": "SG", "targeting": "TG", "positioning": "PO", "product": "PD",
                                 "price": "PC", "place": "PL", "promotion": "PM", "people": "PE", "process": "PS",
                                 "physical_evidence": "PH"},
+    "template_project_charter": {"objective": "OBJ", "scope_in": "IN", "scope_out": "OUT", "deliverables": "DEL",
+                                 "governance": "GOV", "budget": "BUD", "milestones": "MS", "success_measures": "SM",
+                                 "assumptions": "AS", "constraints": "CON"},
+    "template_wbs": {"deliverables": "DEL", "work_packages": "WP", "acceptance": "AC", "exclusions": "EX"},
+    "template_kano": {"must_be": "MB", "performance": "PF", "attractive": "AT", "indifferent": "IN", "reverse": "RV"},
+    "template_paid_media_plan": {"objective": "OBJ", "audience": "AUD", "channels_placements": "CHP", "budget_bid": "BUD",
+                                 "creative_variants": "CRE", "conversion_definition": "CONV", "measurement": "MSR"},
+    "template_measurement_plan": {"questions": "QUE", "metrics": "MET", "events_dimensions": "EVT",
+                                  "data_quality": "DQ", "governance": "GOV"},
 }
 
 
@@ -592,6 +676,42 @@ MATRIX_META = {
         "unsupported_use": "Choosing the axes or the groups for you; inventing competitor data; drawing or computing a position; scoring or ranking competitors.",
         "extra_help": "Exactly two axes are required, each with a one-line rationale. Placing a competitor is your judgment; the system only records and audits it.",
     },
+    "template_customer_journey": {
+        "name": "Customer journey map with an evidence audit", "short": "journey map",
+        "registry_ids": ["MKT-04"], "row_label": "touchpoint", "column_label": "stage",
+        "min_rows": 3, "max_rows": 12, "min_columns": 2, "max_columns": 6,
+        "require_groups": False, "require_rationale": False,
+        "intended_use": "Lay the touchpoints you have evidence for against the journey stages you declare, record what the customer does, sees or feels at each crossing, and audit the cells you could not fill.",
+        "unsupported_use": "Inventing stages, touchpoints or customer feelings; scoring friction or emotion; drawing a journey diagram; deciding where to intervene.",
+        "extra_help": "A cell records what you know happens at that touchpoint in that stage, with its provenance. The stages and touchpoints are yours; nothing is plotted and no friction or sentiment score is computed.",
+    },
+    "template_servqual": {
+        "name": "Service-quality gap grid with an evidence audit", "short": "SERVQUAL grid",
+        "registry_ids": ["MKT-07"], "row_label": "service dimension", "column_label": "measure",
+        "min_rows": 2, "max_rows": 10, "min_columns": 3, "max_columns": 5,
+        "require_groups": False, "require_rationale": False,
+        "intended_use": "Record, for each service dimension you declare, the expectation, the perception and the gap you concluded, with the evidence behind each, and audit the cells that are still empty.",
+        "unsupported_use": "Computing an average, a weighted score or an overall service-quality index; designing the questionnaire; inventing responses; deciding what to improve.",
+        "extra_help": "The conventional columns are the expectation, the perception and the gap; any numbers in a cell are yours, and the worksheet computes no average or score. The five SERVQUAL dimensions (tangibles, reliability, responsiveness, assurance, empathy) are associated with Parasuraman, Zeithaml and Berry; no proprietary instrument is reproduced.",
+    },
+    "template_raci": {
+        "name": "RACI responsibility matrix with a declared-role audit", "short": "RACI matrix",
+        "registry_ids": ["PM-10"], "row_label": "activity", "column_label": "role",
+        "min_rows": 2, "max_rows": 20, "min_columns": 2, "max_columns": 12,
+        "require_groups": False, "require_rationale": False, "raci": True,
+        "intended_use": "List the activities and the roles you have confirmed, then assign R, A, C or I to each cell: responsible does the work, accountable owns the outcome, consulted gives input, informed is kept up to date.",
+        "unsupported_use": "Deciding who should be accountable; inventing roles or decision rights; scoring or ranking roles; enforcing an organisation chart or a single-A rule you have not declared.",
+        "extra_help": "Each cell starts with one letter, R, A, C or I, optionally followed by a note (for example 'R - prepares the draft'). Every activity must have exactly one A and at least one R; the audit names any activity without them. A cell with no letter stays empty and is named.",
+    },
+    "template_risk_register": {
+        "name": "Risk register with a declared-response audit", "short": "risk register",
+        "registry_ids": ["PM-06"], "row_label": "risk", "column_label": "field",
+        "min_rows": 2, "max_rows": 30, "min_columns": 4, "max_columns": 4,
+        "require_groups": False, "require_rationale": False,
+        "intended_use": "List each risk, then record the likelihood and impact labels you declare, the response you will take and the owner. Audit which cells are still empty.",
+        "unsupported_use": "Assigning probabilities, computing an expected loss or a risk score, ranking risks for you, or inventing a response or owner.",
+        "extra_help": "Declare exactly four fields: Likelihood (your label), Impact (your label), Response and Owner. No probability, expected value or risk score is computed; an empty cell is named and stays empty.",
+    },
 }
 
 
@@ -667,9 +787,16 @@ def normalize_matrix(kind, inp):
         cell = _canvas_item(it, where, errs, cell_used, n, prefix="X")
         if not cell:
             continue
+        if spec.get("raci"):
+            letter = re.match(r"^([RACI])(?:\s*[-—:]\s*(.*))?$", cell["text"], re.I)
+            if not letter:
+                errs.append(f"{where}: text must start with one letter, R, A, C or I, optionally followed by a note")
+                continue
+            cell["assignment"] = letter.group(1).upper()
         seen.add((row_id, column_id))
         cells.append({"row": row_id, "column": column_id, "text": cell["text"], "provenance": cell["provenance"],
-                      "source": cell["source"], "materiality": cell["materiality"]})
+                      "source": cell["source"], "materiality": cell["materiality"],
+                      **({"assignment": cell["assignment"]} if spec.get("raci") else {})})
     return ({"rows": rows, "columns": columns, "cells": cells} if not errs else None), errs
 
 
@@ -693,6 +820,15 @@ def build_matrix(kind, inp):
     counts = {"n_rows": len(n["rows"]), "n_columns": len(n["columns"]), "n_cells": len(n["cells"]),
               "n_empty_cells": len(audit["empty_cells"]), "n_unsupported": len(audit["unsupported_cells"]),
               "n_rows_without_group": len(audit["rows_without_group"])}
+    if spec.get("raci"):
+        audit["rows_without_accountable"] = [
+            r["id"] for r in n["rows"]
+            if sum(1 for c in n["cells"] if c["row"] == r["id"] and c.get("assignment") == "A") != 1]
+        audit["rows_without_responsible"] = [
+            r["id"] for r in n["rows"]
+            if not any(c["row"] == r["id"] and c.get("assignment") == "R" for c in n["cells"])]
+        counts["n_rows_without_accountable"] = len(audit["rows_without_accountable"])
+        counts["n_rows_without_responsible"] = len(audit["rows_without_responsible"])
     return {"kind": kind, "registry_ids": spec["registry_ids"], "name": spec["name"], "short": spec["short"],
             "row_label": spec["row_label"], "column_label": spec["column_label"],
             "rows": rows, "columns": n["columns"], "audit": audit, "counts": counts}
@@ -702,7 +838,7 @@ def render_matrix(a):
     P = PERIOD
     tok = lambda m: "{{ref:%s:%s:%s}}" % (m, m, P)
     a_ = a["audit"]
-    t = (f"This {a['short']} organizes {tok('n_rows')} {a['row_label']}s against {tok('n_columns')} "
+    t = (f"This {a['short']} organizes {tok('n_rows')} {_plural(a['row_label'])} against {tok('n_columns')} "
          f"{a['column_label']}s, with {tok('n_cells')} cells of evidence you supplied. ")
     if a_["empty_cells"]:
         t += f"{tok('n_empty_cells')} cells are empty. They are named below and are not filled in by the system. "
@@ -711,7 +847,11 @@ def render_matrix(a):
     if a_["synthetic_cells"]:
         t += "Some cells are synthetic and illustrative only; they are not observations. "
     if a_["rows_without_group"]:
-        t += f"{len(a_['rows_without_group'])} {a['row_label']}s have no declared group. "
+        t += f"{len(a_['rows_without_group'])} {_plural(a['row_label'])} have no declared group. "
+    if a_.get("rows_without_accountable"):
+        t += f"{len(a_['rows_without_accountable'])} activities do not have exactly one accountable role. "
+    if a_.get("rows_without_responsible"):
+        t += f"{len(a_['rows_without_responsible'])} activities have no responsible role. "
     t += ("This worksheet records the evidence and assumptions you declare. It attaches no probability, computes no "
           "position, ranks nothing and predicts nothing.")
     lines = []
@@ -780,6 +920,19 @@ def tests_matrix(kind, inp, a, narrative, listing):
     if spec["require_groups"]:
         checks.insert(5, ("every_row_declares_a_group",
                           all(r.get("group") for r in a["rows"]), "every competitor carries the group you assigned"))
+    if spec.get("raci"):
+        raw_by_row = {}
+        for cell in raw_cells:
+            raw_by_row.setdefault(cell.get("row"), []).append(str(cell.get("text", "")).strip()[:1].upper())
+        expected_no_a = [rid for rid in row_ids
+                         if sum(1 for letter in raw_by_row.get(rid, []) if letter == "A") != 1]
+        expected_no_r = [rid for rid in row_ids if "R" not in raw_by_row.get(rid, [])]
+        checks.insert(6, ("every_activity_has_exactly_one_accountable",
+                          a["audit"]["rows_without_accountable"] == expected_no_a and not expected_no_a,
+                          "each activity has exactly one A"))
+        checks.insert(7, ("every_activity_has_at_least_one_responsible",
+                          a["audit"]["rows_without_responsible"] == expected_no_r and not expected_no_r,
+                          "each activity has at least one R"))
     return [(name, ok) for name, ok, _ in checks]
 
 
@@ -1021,6 +1174,9 @@ for _kind, _meta in MATRIX_META.items():
         _matrix_names.insert(4, "axes_are_declared_with_a_rationale")
     if _meta["require_groups"]:
         _matrix_names.insert(5, "every_row_declares_a_group")
+    if _meta.get("raci"):
+        _matrix_names.insert(6, "every_activity_has_exactly_one_accountable")
+        _matrix_names.insert(7, "every_activity_has_at_least_one_responsible")
     TEMPLATES[_kind] = {
         "id": _kind, "version": "0.1.0", "tier": "T4", "name": _meta["name"],
         "registry_ids": _meta["registry_ids"],
@@ -1214,6 +1370,98 @@ EXAMPLES = {
                        "evidence": [{"text": "Students order ahead to skip the queue", "question": "valuable", "provenance": "synthetic"},
                                     {"text": "Two nearby stalls use the same app", "question": "rare", "provenance": "synthetic"},
                                     {"text": "The app is available to any vendor", "question": "costly_to_imitate", "provenance": "synthetic"}]}]}},
+    "template_project_charter": {"objective": "Authorise the campus meal counter project", "method": "template_project_charter", "inputs": {
+        "blocks": {
+            "objective": [{"text": "Serve 150 hot meals a day from the main-gate counter by the end of the semester", "provenance": "synthetic"}],
+            "scope_in": [{"text": "Fit out the gate counter, hire two part-time staff, launch a phone order line", "provenance": "synthetic"}],
+            "scope_out": [{"text": "No delivery beyond the gate and no second campus location", "provenance": "synthetic"}],
+            "deliverables": [{"text": "A fitted counter with a food-handling permit", "provenance": "synthetic", "id": "DEL1"},
+                             {"text": "A phone order line and a prepaid meal card", "provenance": "synthetic", "id": "DEL2"}],
+            "governance": [{"text": "The student affairs office sponsors the project; the owner approves spend above 50,000 pesos", "provenance": "synthetic"}],
+            "budget": [{"text": "450,000 pesos from the student services fund", "provenance": "synthetic"}],
+            "milestones": [{"text": "Permit approved by week 4; counter open by week 10", "provenance": "synthetic"}],
+            "success_measures": [{"text": "150 meals a day and a queue under five minutes by week 12", "provenance": "assumption"}],
+            "assumptions": [{"text": "The gate stays open for the whole semester", "provenance": "assumption"}],
+            "constraints": [{"text": "The counter must close during the mid-semester break", "provenance": "synthetic"}]}}},
+    "template_wbs": {"objective": "Break down the campus meal counter scope", "method": "template_wbs", "inputs": {
+        "blocks": {
+            "deliverables": [{"text": "Counter and permit", "provenance": "synthetic", "id": "DEL1"},
+                             {"text": "Ordering and payment", "provenance": "synthetic", "id": "DEL2"}],
+            "work_packages": [{"text": "Fit the counter and pass the food-handling inspection", "provenance": "synthetic", "id": "WP1"},
+                              {"text": "Set up the phone line and meal-card process", "provenance": "synthetic", "id": "WP2"}],
+            "acceptance": [{"text": "The counter passes inspection and serves a test meal", "provenance": "synthetic"},
+                           {"text": "A student can order and collect a meal without queuing", "provenance": "synthetic"}],
+            "exclusions": [{"text": "Delivery and a second location are outside this breakdown", "provenance": "synthetic"}]},
+        "links": [{"from": "WP1", "to": "DEL1"}, {"from": "WP2", "to": "DEL2"}]}},
+    "template_raci": {"objective": "Assign responsibilities for the campus meal counter", "method": "template_raci", "inputs": {
+        "rows": [{"id": "A1", "text": "Approve the budget", "provenance": "synthetic"},
+                 {"id": "A2", "text": "Fit out the counter", "provenance": "synthetic"},
+                 {"id": "A3", "text": "Run the daily service", "provenance": "synthetic"}],
+        "columns": [{"id": "C1", "text": "Project owner"}, {"id": "C2", "text": "Project lead"}, {"id": "C3", "text": "Student affairs office"}],
+        "cells": [{"row": "A1", "column": "C1", "text": "A", "provenance": "synthetic"},
+                  {"row": "A1", "column": "C2", "text": "R", "provenance": "synthetic"},
+                  {"row": "A1", "column": "C3", "text": "C", "provenance": "synthetic"},
+                  {"row": "A2", "column": "C1", "text": "I", "provenance": "synthetic"},
+                  {"row": "A2", "column": "C2", "text": "A", "provenance": "synthetic"},
+                  {"row": "A2", "column": "C3", "text": "R", "provenance": "synthetic"},
+                  {"row": "A3", "column": "C1", "text": "C", "provenance": "synthetic"},
+                  {"row": "A3", "column": "C2", "text": "R", "provenance": "synthetic"},
+                  {"row": "A3", "column": "C3", "text": "A", "provenance": "synthetic"}]}},
+    "template_risk_register": {"objective": "Record the risks on the campus meal counter project", "method": "template_risk_register", "inputs": {
+        "rows": [{"id": "R1", "text": "The food-handling permit is delayed", "provenance": "synthetic"},
+                 {"id": "R2", "text": "Demand is lower than 150 meals a day", "provenance": "synthetic"}],
+        "columns": [{"id": "C1", "text": "Likelihood (your label)"}, {"id": "C2", "text": "Impact (your label)"},
+                    {"id": "C3", "text": "Response"}, {"id": "C4", "text": "Owner"}],
+        "cells": [{"row": "R1", "column": "C1", "text": "Medium", "provenance": "assumption"},
+                  {"row": "R1", "column": "C2", "text": "High", "provenance": "assumption"},
+                  {"row": "R1", "column": "C3", "text": "Submit the permit in week 1 and keep a fallback menu", "provenance": "synthetic"},
+                  {"row": "R1", "column": "C4", "text": "Project lead", "provenance": "synthetic"},
+                  {"row": "R2", "column": "C1", "text": "Medium", "provenance": "assumption"},
+                  {"row": "R2", "column": "C2", "text": "Medium", "provenance": "assumption"},
+                  {"row": "R2", "column": "C3", "text": "Pre-sell meal cards and track daily covers", "provenance": "synthetic"},
+                  {"row": "R2", "column": "C4", "text": "Project owner", "provenance": "synthetic"}]}},
+    "template_kano": {"objective": "Classify the meal-counter attributes with the survey evidence", "method": "template_kano", "inputs": {
+        "blocks": {
+            "must_be": [{"text": "The meal is hot and safely handled", "provenance": "synthetic"}],
+            "performance": [{"text": "The queue is shorter than it was last semester", "provenance": "synthetic"}],
+            "attractive": [{"text": "A student can see the day's menu on a phone before walking over", "provenance": "assumption"}],
+            "indifferent": []}}},
+    "template_paid_media_plan": {"objective": "Plan the paid launch of the campus meal counter", "method": "template_paid_media_plan", "inputs": {
+        "blocks": {
+            "objective": [{"text": "Fill the counter at lunchtime during the first month", "provenance": "user"}],
+            "audience": [{"text": "Students with a break between the late morning and early afternoon classes", "provenance": "assumption"}],
+            "channels_placements": [{"text": "Campus social feed and a booth beside the gate", "provenance": "user"}],
+            "budget_bid": [{"text": "A fixed daily budget for the feed and a flat fee for the booth", "provenance": "user"}],
+            "conversion_definition": [{"text": "A meal collected at the counter within the same day as the ad click", "provenance": "user"}],
+            "creative_variants": [], "measurement": []}}},
+    "template_measurement_plan": {"objective": "Make the meal-counter journey measurable", "method": "template_measurement_plan", "inputs": {
+        "blocks": {
+            "questions": [{"text": "Which channel brings the students who actually collect a meal?", "provenance": "user"}],
+            "metrics": [{"text": "Meals collected per day, by entry channel", "provenance": "user"}],
+            "events_dimensions": [{"text": "A page view with the channel parameter, and an order-collected event", "provenance": "user"}],
+            "data_quality": [{"text": "Check that the counter staff record every collection on the same device", "provenance": "assumption"}],
+            "governance": []}}},
+    "template_customer_journey": {"objective": "Map the meal-counter customer journey", "method": "template_customer_journey", "inputs": {
+        "rows": [{"id": "T1", "text": "A student sees the menu on a phone", "provenance": "synthetic"},
+                 {"id": "T2", "text": "The student walks to the gate counter", "provenance": "synthetic"},
+                 {"id": "T3", "text": "The student collects and pays", "provenance": "synthetic"}],
+        "columns": [{"id": "S1", "text": "Notices the offer"}, {"id": "S2", "text": "Decides and orders"}, {"id": "S3", "text": "Collects the meal"}],
+        "cells": [{"row": "T1", "column": "S1", "text": "Sees the day's menu in the campus feed", "provenance": "synthetic"},
+                  {"row": "T1", "column": "S2", "text": "Checks the price and the queue estimate", "provenance": "assumption"},
+                  {"row": "T2", "column": "S2", "text": "Walks over only if the queue looks short", "provenance": "assumption"},
+                  {"row": "T3", "column": "S3", "text": "Pays at the counter and takes the meal", "provenance": "synthetic"}]}},
+    "template_servqual": {"objective": "Audit the service-quality gaps at the meal counter", "method": "template_servqual", "inputs": {
+        "rows": [{"id": "D1", "text": "Reliability: the counter is open when it says it is", "provenance": "user"},
+                 {"id": "D2", "text": "Responsiveness: the queue moves quickly", "provenance": "user"},
+                 {"id": "D3", "text": "Tangibles: the counter is clean and the food looks fresh", "provenance": "user"}],
+        "columns": [{"id": "C1", "text": "Expectation (your note)"}, {"id": "C2", "text": "Perception (your note)"},
+                    {"id": "C3", "text": "Gap you concluded"}],
+        "cells": [{"row": "D1", "column": "C1", "text": "Open through the lunch break", "provenance": "assumption"},
+                  {"row": "D1", "column": "C2", "text": "Closed twice last week without notice", "provenance": "synthetic"},
+                  {"row": "D1", "column": "C3", "text": "A shortfall the students mentioned", "provenance": "assumption"},
+                  {"row": "D2", "column": "C1", "text": "Under five minutes", "provenance": "assumption"},
+                  {"row": "D2", "column": "C2", "text": "About eight minutes at noon", "provenance": "synthetic"},
+                  {"row": "D3", "column": "C2", "text": "Clean and visibly freshly cooked", "provenance": "synthetic"}]}},
 }
 
 

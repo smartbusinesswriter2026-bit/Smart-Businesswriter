@@ -10555,6 +10555,405 @@ def media_plan_template(out, P, th):
     return t
 
 
+# ---------- Marketing measurement additions (B-131) ----------
+
+def market_share_impl(inp):
+    firm = D(str(inp["firm_sales"])); market = D(str(inp["market_sales"]))
+    if market <= 0:
+        raise DataError("market_sales must be positive")
+    if firm < 0 or firm > market:
+        raise DataError("firm_sales must be non-negative and cannot exceed market_sales")
+    out = {"firm_sales": firm, "market_sales": market, "market_share": firm / market}
+    prior_firm = _optional_decimal(inp, "prior_firm_sales")
+    prior_market = _optional_decimal(inp, "prior_market_sales")
+    if (prior_firm is None) != (prior_market is None):
+        raise DataError("declare both prior_firm_sales and prior_market_sales, or neither")
+    if prior_firm is not None:
+        if prior_market <= 0:
+            raise DataError("prior_market_sales must be positive")
+        if prior_firm < 0 or prior_firm > prior_market:
+            raise DataError("prior_firm_sales must be non-negative and cannot exceed prior_market_sales")
+        prior_share = prior_firm / prior_market
+        out["prior_share"] = prior_share
+        out["share_change"] = out["market_share"] - prior_share
+        out["firm_growth"] = (firm / prior_firm - D(1)) if prior_firm > 0 else None
+        if out["firm_growth"] is None:
+            out.pop("firm_growth")
+        out["market_growth"] = market / prior_market - D(1)
+    customers = _optional_decimal(inp, "customers")
+    population = _optional_decimal(inp, "target_population")
+    if (customers is None) != (population is None):
+        raise DataError("declare both customers and target_population, or neither")
+    if customers is not None:
+        if population <= 0:
+            raise DataError("target_population must be positive")
+        if customers < 0 or customers > population:
+            raise DataError("customers must be non-negative and cannot exceed target_population")
+        out["customers"] = customers
+        out["target_population"] = population
+        out["penetration_rate"] = customers / population
+    rival = _optional_decimal(inp, "largest_competitor_sales")
+    if rival is not None:
+        if rival <= 0:
+            raise DataError("largest_competitor_sales must be positive")
+        out["largest_competitor_sales"] = rival
+        out["relative_market_share"] = firm / rival
+        out["competitor_share"] = rival / market
+    return out
+
+def _market_share_ref(inp):
+    firm = float(D(str(inp["firm_sales"]))); market = float(D(str(inp["market_sales"])))
+    res = {"market_share": firm / market}
+    if str(inp.get("prior_firm_sales", "")).strip() and str(inp.get("prior_market_sales", "")).strip():
+        res["share_change"] = firm / market - float(D(str(inp["prior_firm_sales"]))) / float(D(str(inp["prior_market_sales"])))
+    if str(inp.get("customers", "")).strip() and str(inp.get("target_population", "")).strip():
+        res["penetration_rate"] = float(D(str(inp["customers"]))) / float(D(str(inp["target_population"])))
+    if str(inp.get("largest_competitor_sales", "")).strip():
+        res["relative_market_share"] = firm / float(D(str(inp["largest_competitor_sales"])))
+    return res
+
+def market_share_tests(inp, impl):
+    base, ref = impl(inp), _market_share_ref(inp)
+    firm = D(str(inp["firm_sales"])); market = D(str(inp["market_sales"]))
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("share_is_firm_sales_over_market_sales", _close(base["market_share"], firm / market), "share is the firm's sales over the whole market"),
+        ("share_lies_between_zero_and_one", D(0) <= base["market_share"] <= D(1), "a share cannot exceed the market it is drawn from"),
+        ("share_change_is_the_difference_of_shares",
+         ("share_change" not in base) or _close(base["share_change"], base["market_share"] - base["prior_share"]),
+         "the change is this period's share minus last period's"),
+        ("relative_share_is_the_firm_over_the_largest_rival",
+         ("relative_market_share" not in base) or _close(base["relative_market_share"], base["firm_sales"] / base["largest_competitor_sales"]),
+         "relative share compares the firm with the largest declared competitor"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def market_share_profile(inp):
+    try:
+        market = D(str(inp.get("market_sales"))); firm = D(str(inp.get("firm_sales")))
+        if market <= 0: return ["market_sales must be positive"]
+        if firm < 0 or firm > market: return ["firm_sales must be non-negative and cannot exceed market_sales"]
+        for a, b in (("prior_firm_sales", "prior_market_sales"), ("customers", "target_population")):
+            x = _optional_decimal(inp, a); y = _optional_decimal(inp, b)
+            if (x is None) != (y is None): return ["declare both %s and %s, or neither" % (a, b)]
+            if x is not None and y is not None and y <= 0: return ["%s must be positive" % b]
+        rival = _optional_decimal(inp, "largest_competitor_sales")
+        if rival is not None and rival <= 0: return ["largest_competitor_sales must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["market inputs are malformed: firm_sales and market_sales are required numbers"]
+
+def _market_share_typing(metric):
+    if metric in ("firm_sales", "market_sales", "largest_competitor_sales"):
+        return ("currency", 2)
+    if metric in ("customers", "target_population"):
+        return ("count", 0)
+    if metric == "relative_market_share":
+        return ("ratio", 2)
+    return ("rate", 4)
+
+def market_share_caveats(out, th):
+    return ["Firm and market sales are the figures you declare, from the same definition and the same period; a retailer's and a manufacturer's sales are not the same market.",
+            "The market boundary is your choice: widening or narrowing it changes the share without any sales changing.",
+            "Penetration is customers divided by the declared target population, not buyer behaviour measured over time, and a customer may count in more than one category.",
+            "No competitor data is retrieved and no share is estimated; the largest rival is one you name."]
+
+def market_share_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("On the declared market, the firm holds " + tok("market_share") + " of sales (" + tok("firm_sales") +
+         " of " + tok("market_sales") + ").")
+    if "share_change" in out:
+        t += (" That is a change of " + tok("share_change") + " from the previous period, when the share was " +
+              tok("prior_share") + ".")
+    if "penetration_rate" in out:
+        t += (" Of the declared target population, " + tok("customers") + " customers buy, a penetration rate of " +
+              tok("penetration_rate") + ".")
+    if "relative_market_share" in out:
+        t += (" Against the largest declared competitor the firm's relative share is " + tok("relative_market_share") + ".")
+    return t
+
+
+def clv_model_impl(inp):
+    margin = D(str(inp["margin_per_period"])); churn = D(str(inp["churn_rate"]))
+    horizon = int(D(str(inp.get("horizon_periods", "12"))))
+    rate = _optional_decimal(inp, "discount_rate")
+    rate = D(0) if rate is None else rate
+    if margin <= 0:
+        raise DataError("margin_per_period must be positive")
+    if not (D(0) < churn <= D(1)):
+        raise DataError("churn_rate must be in (0, 1]")
+    if rate < 0:
+        raise DataError("discount_rate must be non-negative")
+    if not (1 <= horizon <= 60):
+        raise DataError("horizon_periods must be between one and sixty")
+    keep = D(1) - churn
+    discounted, undiscounted = D(0), D(0)
+    survival = D(1)
+    for t in range(1, horizon + 1):
+        undiscounted += margin * survival
+        discounted += margin * survival / ((D(1) + rate) ** t)
+        survival *= keep
+    out = {"margin_per_period": margin, "churn_rate": churn, "horizon_periods": D(horizon),
+           "discount_rate": rate, "clv_undiscounted": undiscounted, "clv_discounted": discounted}
+    if rate > 0:
+        out["discount_effect"] = undiscounted - discounted
+    cac = _optional_decimal(inp, "acquisition_cost")
+    if cac is not None:
+        if cac <= 0:
+            raise DataError("acquisition_cost must be positive when declared")
+        running = D(0); payback = None; survival = D(1)
+        for t in range(1, horizon + 1):
+            running += margin * survival
+            survival *= keep
+            if payback is None and running >= cac:
+                payback = D(t)
+        out["acquisition_cost"] = cac
+        out["ltv_cac"] = discounted / cac
+        out["payback_within_horizon"] = D(1) if payback is not None else D(0)
+        if payback is not None:
+            out["payback_periods"] = payback
+    return out
+
+def _clv_ref(inp):
+    margin = float(D(str(inp["margin_per_period"]))); churn = float(D(str(inp["churn_rate"])))
+    horizon = int(D(str(inp.get("horizon_periods", "12"))))
+    rate = inp.get("discount_rate")
+    rate = 0.0 if rate in (None, "") else float(D(str(rate)))
+    disc = undisc = 0.0; survival = 1.0
+    for t in range(1, horizon + 1):
+        undisc += margin * survival
+        disc += margin * survival / (1.0 + rate) ** t
+        survival *= (1.0 - churn)
+    return {"clv_undiscounted": undisc, "clv_discounted": disc}
+
+def clv_model_tests(inp, impl):
+    base, ref = impl(inp), _clv_ref(inp)
+    margin = D(str(inp["margin_per_period"])); churn = D(str(inp["churn_rate"]))
+    horizon = int(D(str(inp.get("horizon_periods", "12"))))
+    keep = D(1) - churn
+    closed = margin * horizon if churn == 1 else margin * (D(1) - keep ** horizon) / churn
+    one = impl({**inp, "horizon_periods": "1"})
+    checks = [
+        ("second_implementation_agrees",
+         _close(base["clv_undiscounted"], ref["clv_undiscounted"]) and _close(base["clv_discounted"], ref["clv_discounted"]),
+         "float route agrees with the Decimal route"),
+        ("undiscounted_value_is_the_closed_form_annuity",
+         _close(base["clv_undiscounted"], closed),
+         "the undiscounted value equals margin times the finite geometric sum of survival"),
+        ("discounting_never_increases_the_value",
+         base["clv_discounted"] <= base["clv_undiscounted"],
+         "a positive discount rate can only lower the value"),
+        ("a_single_period_is_the_margin_over_one_plus_the_rate",
+         _close(one["clv_discounted"], margin / (D(1) + base["discount_rate"])),
+         "with a one-period horizon the value is the margin discounted once"),
+        ("payback_is_the_first_period_whose_cumulative_margin_covers_the_cost",
+         ("payback_periods" not in base) or _cumulative_covers(margin, churn, horizon, int(base["payback_periods"]), base["acquisition_cost"]),
+         "the reported payback is the first period at which cumulative margin reaches the acquisition cost"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def _cumulative_covers(margin, churn, horizon, payback, cost):
+    if not (1 <= payback <= horizon):
+        return False
+    running = D(0); survival = D(1)
+    for t in range(1, horizon + 1):
+        running += margin * survival; survival *= (D(1) - churn)
+        if t == payback:
+            return running >= cost
+    return False
+
+def clv_model_profile(inp):
+    try:
+        margin = D(str(inp.get("margin_per_period"))); churn = D(str(inp.get("churn_rate")))
+        horizon = int(D(str(inp.get("horizon_periods", "12"))))
+        rate = inp.get("discount_rate"); rate = D(0) if rate in (None, "") else D(str(rate))
+        if margin <= 0: return ["margin_per_period must be positive"]
+        if not (D(0) < churn <= D(1)): return ["churn_rate must be in (0, 1]"]
+        if rate < 0: return ["discount_rate must be non-negative"]
+        if not (1 <= horizon <= 60): return ["horizon_periods must be between one and sixty"]
+        cac = _optional_decimal(inp, "acquisition_cost")
+        if cac is not None and cac <= 0: return ["acquisition_cost must be positive when declared"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["customer-value inputs are malformed: margin_per_period and churn_rate are required numbers"]
+
+def _clv_typing(metric):
+    if metric in ("horizon_periods", "payback_within_horizon", "payback_periods"):
+        return ("count", 0)
+    if metric in ("churn_rate", "discount_rate"):
+        return ("rate", 4)
+    if metric == "ltv_cac":
+        return ("ratio", 2)
+    return ("currency", 2)
+
+def clv_model_caveats(out, th):
+    return ["The margin, churn and discount rate are declared constants; a real customer's margin and churn change over time and by segment.",
+            "Value is summed over the declared horizon only, so a longer horizon raises the figure; the horizon is a choice, not a fact.",
+            "Churn is a constant probability per period, which cannot represent a cohort whose risk rises or falls.",
+            "Payback is measured in the same periods as the margin and is not discounted, so it is a cash-timing view, not a value."]
+
+def clv_model_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Over a declared horizon of " + tok("horizon_periods") + " periods at a " + tok("discount_rate") +
+         " discount rate, a customer worth " + tok("margin_per_period") + " of margin per period and churning at " +
+         tok("churn_rate") + " is worth " + tok("clv_discounted") + " today.")
+    t += " Undiscounted, the same customer is worth " + tok("clv_undiscounted") + "."
+    if "ltv_cac" in out:
+        t += (" At the declared acquisition cost of " + tok("acquisition_cost") + ", value per unit of acquisition cost is " +
+              tok("ltv_cac") + " and the cost is recovered in " + tok("payback_periods") + " periods.")
+    return t
+
+
+def customer_profitability_impl(inp):
+    rows = inp["segments"]
+    if not isinstance(rows, list) or len(rows) < 2:
+        raise DataError("at least two segments are required")
+    if len(rows) > 50:
+        raise DataError("at most fifty segments are supported")
+    threshold = _optional_decimal(inp, "concentration_threshold")
+    threshold = D("0.8") if threshold is None else threshold
+    if not (D(0) < threshold <= D(1)):
+        raise DataError("concentration_threshold must be in (0, 1]")
+    parsed, seen = [], set()
+    for i, row in enumerate(rows, 1):
+        name = row["name"].strip() if isinstance(row.get("name"), str) else ""
+        if not name or len(name) > 60:
+            raise DataError("segment %d needs a name of at most 60 characters" % i)
+        if name in seen:
+            raise DataError("segment name %r appears more than once" % name)
+        seen.add(name)
+        try:
+            revenue = D(str(row["revenue"])); direct = D(str(row["direct_cost"]))
+        except (InvalidOperation, ValueError, TypeError, KeyError):
+            raise DataError("segment %d needs numeric revenue and direct_cost" % i)
+        allocated = _optional_decimal(row, "allocated_cost")
+        allocated = D(0) if allocated is None else allocated
+        if revenue < 0 or direct < 0 or allocated < 0:
+            raise DataError("segment %d has a negative revenue or cost" % i)
+        parsed.append((name, revenue, direct, allocated))
+    total_revenue = sum((p[1] for p in parsed), D(0))
+    if total_revenue <= 0:
+        raise DataError("total revenue must be positive")
+    total_cost = sum((p[2] + p[3] for p in parsed), D(0))
+    total_profit = total_revenue - total_cost
+    out = {"segments": D(len(parsed)), "total_revenue": total_revenue, "total_cost": total_cost,
+           "total_profit": total_profit, "overall_margin": total_profit / total_revenue}
+    profits = []
+    for i, (name, revenue, direct, allocated) in enumerate(parsed, 1):
+        profit = revenue - direct - allocated
+        out["revenue_%d" % i] = revenue
+        out["profit_%d" % i] = profit
+        out["margin_%d" % i] = profit / revenue if revenue > 0 else None
+        if out["margin_%d" % i] is None:
+            out.pop("margin_%d" % i)
+        out["profit_share_%d" % i] = profit / total_profit if total_profit != 0 else None
+        if out["profit_share_%d" % i] is None:
+            out.pop("profit_share_%d" % i)
+        profits.append(profit)
+    out["profitable"] = D(sum(1 for p in profits if p > 0))
+    out["unprofitable"] = D(sum(1 for p in profits if p < 0))
+    ordered = sorted(profits, key=lambda p: -p)
+    running = D(0); needed = None
+    for i, p in enumerate(ordered, 1):
+        running += p
+        if total_profit > 0 and needed is None and running >= total_profit * threshold:
+            needed = i
+    out["segments_for_threshold"] = D(needed if needed is not None else len(ordered))
+    out["concentration_threshold"] = threshold
+    out["_appendix"] = {"segments": [{"name": name, "revenue": str(revenue), "direct_cost": str(direct),
+                                      "allocated_cost": str(allocated), "profit": str(revenue - direct - allocated)}
+                                     for name, revenue, direct, allocated in parsed],
+                        "ranked_by_profit": [name for name, _, _, _ in sorted(parsed, key=lambda p: -(p[1] - p[2] - p[3]))]}
+    return out
+
+def _customer_profitability_ref(inp):
+    rev = [float(D(str(r["revenue"]))) for r in inp["segments"]]
+    cost = [float(D(str(r["direct_cost"]))) + float(D(str(r.get("allocated_cost") or 0))) for r in inp["segments"]]
+    profit = [r - c for r, c in zip(rev, cost)]
+    total_r, total_p = sum(rev), sum(profit)
+    return {"segments": len(rev), "total_revenue": total_r, "total_profit": total_p,
+            "overall_margin": total_p / total_r, "profitable": sum(1 for p in profit if p > 0),
+            "unprofitable": sum(1 for p in profit if p < 0)}
+
+def customer_profitability_tests(inp, impl):
+    base, ref = impl(inp), _customer_profitability_ref(inp)
+    rows = inp["segments"]; n = len(rows)
+    rev = [D(str(r["revenue"])) for r in rows]
+    cost = [D(str(r["direct_cost"])) + (D(str(r["allocated_cost"])) if str(r.get("allocated_cost") or "").strip() else D(0)) for r in rows]
+    profit = [rev[i] - cost[i] for i in range(n)]
+    shares = [base["profit_share_%d" % (i + 1)] for i in range(n) if "profit_share_%d" % (i + 1) in base]
+    ordered = sorted(profit, key=lambda p: -p)
+    running = D(0); needed = 0
+    for i, p in enumerate(ordered, 1):
+        running += p
+        if base["total_profit"] > 0 and needed == 0 and running >= base["total_profit"] * base["concentration_threshold"]:
+            needed = i
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("profit_is_revenue_minus_direct_and_allocated_cost",
+         all(_close(base["profit_%d" % (i + 1)], profit[i]) for i in range(n)),
+         "each segment's profit is its revenue less both declared cost lines"),
+        ("total_profit_is_the_sum_of_the_segments",
+         _close(base["total_profit"], sum(profit, D(0))), "the total is the sum of the segment profits"),
+        ("profit_shares_sum_to_one_when_the_total_is_positive",
+         (base["total_profit"] <= 0) or _close(sum(shares, D(0)), D(1)),
+         "when the plan is profitable, the segment shares cover it exactly"),
+        ("concentration_count_is_the_smallest_group_reaching_the_threshold",
+         int(base["segments_for_threshold"]) == (needed if needed else n),
+         "the reported count is the smallest number of most profitable segments that reach the declared share"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def customer_profitability_profile(inp):
+    try:
+        rows = inp.get("segments")
+        if not isinstance(rows, list) or len(rows) < 2: return ["at least two segments are required"]
+        if len(rows) > 50: return ["at most fifty segments are supported"]
+        threshold = _optional_decimal(inp, "concentration_threshold")
+        if threshold is not None and not (D(0) < threshold <= D(1)):
+            return ["concentration_threshold must be in (0, 1]"]
+        seen = set()
+        for i, row in enumerate(rows, 1):
+            if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"].strip():
+                return ["segment %d needs a name" % i]
+            if row["name"] in seen: return ["segment name %r appears more than once" % row["name"]]
+            seen.add(row["name"])
+            revenue = D(str(row.get("revenue"))); direct = D(str(row.get("direct_cost")))
+            allocated = _optional_decimal(row, "allocated_cost")
+            if revenue < 0 or direct < 0 or (allocated is not None and allocated < 0):
+                return ["segment %d has a negative revenue or cost" % i]
+        if sum((D(str(r["revenue"])) for r in rows), D(0)) <= 0:
+            return ["total revenue must be positive"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["profitability inputs are malformed: each segment needs a name, revenue and direct_cost"]
+
+def _customer_profitability_typing(metric):
+    if metric in ("segments", "profitable", "unprofitable", "segments_for_threshold"):
+        return ("count", 0)
+    if metric.startswith("margin_") or metric in ("overall_margin", "concentration_threshold"):
+        return ("rate", 4)
+    if metric.startswith("profit_share_"):
+        return ("ratio", 4)
+    return ("currency", 2)
+
+def customer_profitability_caveats(out, th):
+    return ["Revenue and both cost lines are the figures you declare; allocating a shared cost is a choice that changes which segments look profitable.",
+            "Direct and allocated costs are treated as fully variable with the segment; a fixed cost left out of the rows is not recovered anywhere.",
+            "Profit here is contribution after the declared costs, not accounting profit: no depreciation, tax or capital charge is applied.",
+            "The concentration count describes this snapshot of declared segments; it does not test whether the concentration is stable or significant."]
+
+def customer_profitability_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Across " + tok("segments") + " declared segments, revenue of " + tok("total_revenue") + " and declared costs of " +
+         tok("total_cost") + " leave " + tok("total_profit") + ", an overall margin of " + tok("overall_margin") + ".")
+    t += (" The profitable segments number " + tok("profitable") + " and the unprofitable " + tok("unprofitable") +
+          "; the smallest group of leading segments that reaches the declared profit share contains " +
+          tok("segments_for_threshold") + " of them.")
+    return t
+
+
 # ---------- Accounting and operations shelf (B-110) ----------
 
 def standard_cost_variances_impl(inp):
@@ -13815,6 +14214,64 @@ LIBRARY = {
                   limitations=("Declared figures only; no media-owner data and no measured overlap.", "Random duplication overstates combined reach when audiences concentrate.", "No effective-frequency, wear-out, seasonality or response model, and no recommendation."),
                   default_period="per period", caveats=media_plan_caveats, template=media_plan_template,
                   claim_ceiling="descriptive", typing=_media_typing),
+    "market_share": Method("market_share", "T1", market_share_impl, market_share_tests, market_share_profile,
+                  "market_share", "rate", None,
+                  ("second_implementation_agrees", "share_is_firm_sales_over_market_sales",
+                   "share_lies_between_zero_and_one", "share_change_is_the_difference_of_shares",
+                   "relative_share_is_the_firm_over_the_largest_rival"),
+                  category="marketing and customers",
+                  intended_use="Market share, the change from a declared prior period, the implied growth of the firm and the market, penetration against a declared population and relative share against a named largest competitor.",
+                  unsupported_use="Retrieving market or competitor data; choosing the market boundary; estimating an unobserved competitor; share of a market measured in units when the figures are in money, or the reverse; significance of a share change.",
+                  input_schema={"firm_sales": {"type": "decimal", "desc": "the firm's sales in the period, in the declared currency"},
+                                "market_sales": {"type": "decimal", "desc": "total sales of the market on the same definition and period"},
+                                "prior_firm_sales": {"type": "decimal", "required": False, "desc": "optional prior-period firm sales, declared with prior_market_sales"},
+                                "prior_market_sales": {"type": "decimal", "required": False, "desc": "optional prior-period market sales"},
+                                "customers": {"type": "decimal", "required": False, "desc": "optional number of customers who bought, declared with target_population"},
+                                "target_population": {"type": "decimal", "required": False, "desc": "optional people or accounts in the target market"},
+                                "largest_competitor_sales": {"type": "decimal", "required": False, "desc": "optional sales of the largest named competitor"}},
+                  defaults=({"question": "Market boundary", "default_chosen": "The market is exactly the one whose total sales you declare; the method does not widen or narrow it.", "impact": "A different market boundary changes the share with no sales changing."},
+                            {"question": "Share basis", "default_chosen": "Sales in money on both sides, in one currency and period.", "impact": "A unit share and a revenue share are different numbers."}),
+                  assumptions=("Firm and market sales cover the same definition, currency and period.", "The declared market contains the firm and every competitor counted in it."),
+                  limitations=("Declared figures only; no market data and no competitor estimate.", "The boundary is the student's and cannot be tested.", "No significance test on a share change and no trend model."),
+                  default_period="annual", caveats=market_share_caveats, template=market_share_template,
+                  claim_ceiling="descriptive", typing=_market_share_typing),
+    "clv_model": Method("clv_model", "T1", clv_model_impl, clv_model_tests, clv_model_profile,
+                  "clv_discounted", "currency", None,
+                  ("second_implementation_agrees", "undiscounted_value_is_the_closed_form_annuity",
+                   "discounting_never_increases_the_value", "a_single_period_is_the_margin_over_one_plus_the_rate",
+                   "payback_is_the_first_period_whose_cumulative_margin_covers_the_cost"),
+                  category="marketing and customers",
+                  intended_use="The present value of a customer's margin over a declared horizon, with a constant churn and discount rate, the undiscounted value beside it, and (with an acquisition cost) the value per unit of acquisition cost and the payback period.",
+                  unsupported_use="Fitting churn or margin from data; retention curves that change by period; segment-level or cohort models; expansion revenue; a capital charge; predicting an individual customer.",
+                  input_schema={"margin_per_period": {"type": "decimal", "desc": "contribution margin the customer leaves in one period"},
+                                "churn_rate": {"type": "decimal", "desc": "share of customers lost each period, as a decimal (4% is 0.04)"},
+                                "horizon_periods": {"type": "decimal", "required": False, "desc": "periods to value, default 12, at most 60"},
+                                "discount_rate": {"type": "decimal", "required": False, "desc": "period discount rate, default 0"},
+                                "acquisition_cost": {"type": "decimal", "required": False, "desc": "optional cost of winning the customer, for the value ratio and payback"}},
+                  defaults=({"question": "Churn", "default_chosen": "A constant probability of leaving each period, applied from the first period's end.", "impact": "A rising or falling hazard needs a survival model this method does not fit."},
+                            {"question": "Horizon", "default_chosen": "Twelve periods unless you declare another; the value is summed over that horizon only.", "impact": "A longer horizon raises the value, so the horizon must be stated with the figure."}),
+                  assumptions=("The margin, the churn rate and the discount rate stay constant for every period in the horizon.", "Churn reduces the chance of a purchase in later periods, not the margin of a customer who stays."),
+                  limitations=("Declared constants only; no fitting, no survival curve and no segment model.", "Value stops at the declared horizon, so it is not a perpetuity.", "No expansion revenue, cost-to-serve change, tax or capital charge.", "Payback is undiscounted and only reported when an acquisition cost is declared."),
+                  default_period="per period", caveats=clv_model_caveats, template=clv_model_template,
+                  claim_ceiling="descriptive", typing=_clv_typing),
+    "customer_profitability": Method("customer_profitability", "T1", customer_profitability_impl,
+                  customer_profitability_tests, customer_profitability_profile, "total_profit", "currency", None,
+                  ("second_implementation_agrees", "profit_is_revenue_minus_direct_and_allocated_cost",
+                   "total_profit_is_the_sum_of_the_segments", "profit_shares_sum_to_one_when_the_total_is_positive",
+                   "concentration_count_is_the_smallest_group_reaching_the_threshold"),
+                  category="marketing and customers",
+                  intended_use="Revenue, declared cost, profit, margin and profit share for each segment, product or channel, with the totals, the profitable and unprofitable counts and the smallest number of segments that produce a declared share of the profit.",
+                  unsupported_use="Choosing what to allocate; activity-based costing from activities and drivers; fixed-cost absorption; customer-level profitability; significance tests or forecasts; a decision about which segment to drop.",
+                  input_schema={"segments": {"type": "records", "min_items": 2, "max_items": 50,
+                                             "fields": {"name": "text", "revenue": "decimal", "direct_cost": "decimal", "allocated_cost": "decimal"},
+                                             "desc": "two to fifty segments, each with a unique name, its revenue, its direct cost and (optionally) the shared cost you choose to allocate to it"},
+                                "concentration_threshold": {"type": "decimal", "required": False, "desc": "optional share of total profit for the concentration count, default 0.8"}},
+                  defaults=({"question": "Cost allocation", "default_chosen": "Each segment carries only the direct and allocated cost you declare; the method allocates nothing.", "impact": "A different allocation changes which segments look profitable."},
+                            {"question": "Profit definition", "default_chosen": "Contribution after the declared costs; no depreciation, tax or capital charge.", "impact": "Accounting profit would need costs this method does not take."}),
+                  assumptions=("Revenue and costs cover the same period and the same segment definition.", "The allocated cost, when declared, is the share you decided is attributable to that segment."),
+                  limitations=("Declared arithmetic; no allocation rule is chosen for you.", "No fixed-cost absorption, depreciation, tax or capital charge.", "One snapshot: no significance test, no trend and no prediction."),
+                  default_period="per period", caveats=customer_profitability_caveats, template=customer_profitability_template,
+                  claim_ceiling="descriptive", typing=_customer_profitability_typing),
     "standard_cost_variances": Method("standard_cost_variances", "T1", standard_cost_variances_impl,
                   standard_cost_variances_tests, standard_cost_variances_profile, "total_variance", "currency", None,
                   ("second_implementation_agrees", "material_price_and_usage_sum_to_the_material_variance",

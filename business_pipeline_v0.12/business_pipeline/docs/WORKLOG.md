@@ -1,5 +1,72 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — The marketing shelf finishes its assignments
+
+**Ask.** After the RFM and media-planning increment, the owner asked what was still open for a marketing
+student and chose all five items: worksheets for the read-only records, customer profitability, market share
+and penetration, discounted customer value, and a sandbox guard.
+
+**Did — five worksheets.** `template_customer_journey` and `template_servqual` on the declared-matrix
+machinery (touchpoints against stages; service dimensions against expectation, perception and your gap), and
+`template_kano`, `template_paid_media_plan` and `template_measurement_plan` on the canvas machinery. Every one
+inherits the shared builder, renderer, nine- or eight-check audit and refusals: empty blocks and cells are
+named, sourced items need a source, unknown blocks and cells that cite unknown rows are refused, and no score,
+ranking, average, probability or verdict is produced. The Kano category and the SERVQUAL gap stay the
+student's: deriving either inside the worksheet would put judgment or arithmetic in the product layer. Five
+worked examples were added to `T.EXAMPLES`, so the sandbox equality test covers them too.
+
+**Did — three computations.** `market_share` (share, change from a declared prior period, implied growth,
+penetration, relative share), `clv_model` (discounted and undiscounted value over a horizon at constant churn
+and discount, value per unit of acquisition cost, undiscounted payback only when it is reached) and
+`customer_profitability` (profit, margin, profit share by segment, profitable counts, concentration count).
+Each has a float second route, five frozen checks, refusals and a token-only report.
+
+**Did — truth.** `QNT-MKT-07` now links to `customer_profitability`; `QNT-MKT-02` gains `market_share` and
+`QNT-MKT-03` gains `clv_model`; the five worksheet records leave the read-only list. The page is 24 tiles,
+6 worksheets and a 48-term glossary; no marketing record says "not built". Three presets: `marketshare`,
+`clv`, `custprofit`.
+
+**Two presentation bugs the smoke tests caught.** A payback period was formatted as currency ("PHP 7.00
+periods") and two templates read badly for a count of one ("1 are not", "1 segments"); both were fixed at
+source rather than in the guide.
+
+**Tests.** `tests/test_marketing_worksheets.py` (14 tests): registration, every example passing its own named
+checks, verbatim listing, gap counts, no score in the analysis, pipeline delivery and five refusal cases.
+`tests/test_marketing_additions.py` gains six golden tests, sixteen refusals and the new link guards; the
+session API sample inputs cover the three methods. Full suite: 1410 tests pass. Frozen fixture regenerated
+(127 methods, 129 presets) under B-133.
+
+**Deliberately not built, unchanged:** platform connectors, automated bidding, incrementality beyond a
+designed A/B test, data-driven attribution, sequential tests and budget recommendations.
+
+## 2026-10-28 — The Business Calculator: the main-line shell and sentence router, harmonized with this line
+
+**Ask.** "check the calculator or business calculator, its in the main git. cline worked on it but ran out of credit. finish the job" and "harmonize it with the local file also so i can see how it works."
+
+**Did.** Ported the main-line Business Calculator (main builds 0.74-0.76) onto `design/v0.73-rail`, where the served page had kept the older launcher. `web/index.html` gains the P1-P3 shell from `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md`: tool selection stays in the panel, a display names the method and its declared inputs, a 16-key pad edits the focused field (operator keys move focus, they never evaluate), fit badges separate keypad tools from list/table tools and worksheets, and `=` posts the normal `POST /api/sessions` -> `POST /api/sessions/{id}/confirm` pair. A delivered run is recorded automatically through `recordCalcCase`, and a recording failure is reported. The panel's search is now global rather than group-only. An **Ask instead** toggle posts the sentence to the new `bp.product.calc_router` through `POST /api/cases/calculator/plan` and renders one of five declared outcomes. The router imports no core module and reads `src/bp/product/data/calc_inputs_v0_1.json`, regenerated from all **127 frozen methods** by the new `scripts/generate_calc_inputs.py`.
+
+**Harmonization, not a copy.** The first build's vocabulary knew 36 methods; this line has 127. `SYNONYMS`, `CLUES` and `INPUT_WORDS` now cover the local shelves (tax, RFM, media planning, line balancing, marketing analytics, the economics models). Three defects the local catalogue exposed are fixed: schema inputs marked `required: false` are no longer reported as missing; a thousands separator is punctuation, so `84,000` becomes `84000` (same value) instead of the old `84`; and a `records`/`rows` input is never filled from a bare number, so "RFM segmentation for 20 customers" asks for the customer records instead of sending `[20]` as the list. `tax_declared` exists here, so VAT/income tax now routes to it rather than being refused as unsupported. Every reader-facing label says **Business Calculator**; the route, panel id and JS identifiers stay `calculator`.
+
+**Verified.** `python -m pytest -q tests/test_product_calc_router.py` passes 18 tests, including the golden table, the "every figure is quoted" guard, the input-slice drift guard and a live `SessionManager` run for every `run` golden. Live on `http://127.0.0.1:8030/`: break-even opened in place, the keypad edited a field, `=` delivered and recorded case `e0cb4e2d32f4`; the tax preset delivered and recorded `b62cbdfd4789`; descriptive statistics ran with the keypad off; Ask parsed "break-even with 1500 fixed cost, price 25, variable 10" into the break-even plan; global search for "tax" returned 7 calculations across groups; the page produced no console errors and no browser arithmetic (`eval`, `Function`, `parseFloat`, `parseInt` absent). No frozen method, preset, input schema, computed number or frozen-contract entry changed.
+
+**Files.** `web/index.html`, `src/bp/product/calc_router.py`, `src/bp/product/data/calc_inputs_v0_1.json`, `src/bp/product/api.py`, `src/bp/product/subjects.py` (note wording), `scripts/generate_calc_inputs.py`, `tests/test_product_calc_router.py`, `tests/test_product_subjects.py`, `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md`, `mockup/business-calculator.html`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`, `docs/WORKLOG.md`, `SERVING.md`.
+
+**Open/next.** Free-form arithmetic (decision D1) is still refused: `2 + 2` is out of scope and `=` runs a declared method, never an expression. The `calc_inputs` slice must be regenerated whenever a method's input schema changes; the drift test fails until it is.
+
+## 2026-10-28 — The favicon loses its white card: true alpha from the logo, verified in a real tab
+
+**Ask.** "continue this fix about the favicon" — locate the favicon sources, confirm the white-background defect, cut the book-and-bar mark out of `logo.png` with true alpha, render 16/32/64px tab icons and a 180px apple-touch icon on a transparent background, inline them into `web/index.html`, and verify in a real browser tab.
+
+**Did — the defect, confirmed.** `web/assets/logo.png` is RGB (1284x1032, no alpha): the owner's PNG flattened onto solid `#FCFCFC` paper. The pre-fix inline icons (commit `a826fcf`) carried that paper with them. 25% of the 16px tile, 36% of the 32px, 41% of the 64px and 78% of the 180px were opaque white, and the apple-touch-icon was alpha 255 edge to edge — a solid white square. The tab icon therefore showed a white card around the mark.
+
+**Did — the rebuild.** `scripts/generate_favicons.py` cuts the mark from the logo's book-and-bars block; the `Smart BusinessWriter` wordmark is deliberately left out, because a favicon must not carry it. Every pixel's coverage is keyed against the paper, and the gaps between the book's page strokes are sealed so the paper between them reads as the book's interior. The paper *outside* the artwork becomes transparent; the book's own pages stay opaque, so the book still reads as a solid object on a dark tab. Four PNGs — 16, 32, 64, 180 — are written to `web/assets/favicon-*.png` and inlined into `web/index.html` as data URIs, because the server serves only `/` and `/api/*` (`web/DESIGN_NOTES.md` open request 1). The script now writes each asset file from the same encoded bytes it inlines, so the committed PNGs are byte-for-byte the icons the page serves and cannot drift apart by a few bytes of PNG encoding; the four files are pixel-identical to the ones shipped in `8c686a6` and differ only in encoding.
+
+**Verified.** The four inline data URIs decode byte-for-byte equal to `web/assets/favicon-*.png`; every icon has alpha 0..255 with all four corners fully transparent; the residual opaque white (0%/2%/2%/3%) is the book's own pages, not a card. In a real Chromium tab on `http://127.0.0.1:8765/` the page loads with no console errors and **no `/favicon.ico` request** — the browser accepting the inlined icons instead of falling back to the default path. A before/after harness renders the pre-fix and current icon sets over a simulated dark tab strip in Chromium itself, and the old set's 16px tile shows the white card pixel for pixel.
+
+**Files.** `scripts/generate_favicons.py`, `web/assets/favicon-16.png`, `web/assets/favicon-32.png`, `web/assets/favicon-64.png`, `web/assets/favicon-180.png`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+
+**Open/next.** The open request in `web/DESIGN_NOTES.md` for a `GET /assets/<path>` route is unchanged; until that route exists the favicons stay inlined. The in-page logo (`web/assets/mark.png`, still RGB on white) is unaffected: it sits on the white topbar, so it carries no card.
+
 ## 2026-10-28 — RFM and media planning: the two gaps a marketing student actually has
 
 **Ask.** After the digital lane shipped, the owner asked whether the parked items — ad-platform and analytics
@@ -43,6 +110,13 @@ a rule-table test that fires all eleven segment rules, the media-plan goldens, r
 **Deliberately not built, and now stated in the guide:** platform connectors (import the export), automated
 bidding, incrementality and holdout estimation, data-driven attribution, sequential tests and any budget
 recommendation.
+
+**Also corrected in the same pass.** Once the link rules applied to every `Q` record, two marketing records that
+had been saying "not implemented" while their arithmetic existed under the quantitative section were linked:
+`MKT-19` (attribution and campaign measurement) to `attribution_split`, and `MKT-20` (conversion-rate
+optimisation and landing-page testing) to `ab_test_two_proportion` with `power_analysis`. `QNT-MKT-07` (customer
+profitability by segment, product, channel or cohort) is now the only marketing record that says "not built",
+which is true.
 
 ## 2026-10-28 — Line balancing and declared-rate tax; the rest named in the limitations
 
@@ -149,6 +223,30 @@ code. Full suite: 1234 tests pass.
 **Deliberately not done.** No ad-platform or analytics connector, no automated bidding, no incrementality or
 holdout estimation, no multi-touch causal attribution, no sequential tests, no budget recommendation. The
 method and preset contract is otherwise untouched.
+
+## 2026-10-28 — Project management delivery worksheets: charter, WBS, RACI and risk register
+
+**Ask.** "go." after the shelf was complete except for the delivery documents a project assignment asks for.
+
+**Did — templates.** Four T4 worksheets on the existing shared builders. **Project charter** (`template_project_charter`,
+canvas, `PM-05`): objective, scope in and out, deliverables, sponsor and governance, budget, milestones, success
+measures, assumptions and constraints. **WBS** (`template_wbs`, canvas, `PM-09`): deliverables, work packages,
+acceptance criteria and exclusions, with declared work-package-to-deliverable links. **RACI** (`template_raci`,
+declared matrix, `PM-10`): activities against confirmed roles; each cell starts R, A, C or I; the builder checks
+exactly one A and at least one R per activity and names empty cells. **Risk register** (`template_risk_register`,
+declared matrix, `PM-06`): risks against declared likelihood and impact labels, response and owner; no probability,
+expected value or score. Registry template links added; the catalogue slice was regenerated.
+
+**Did — page and docs.** The PM page now shows 9 tools, 4 worksheets and 10 read-only records. The student guide
+gained a worksheet table and revised limits; `KNOWN_LIMITATIONS.md`, `PRODUCT_GAP_MAP.md`, `CURRICULUM_MAP.md`,
+`DECISIONS.md` (B-131) and the changelog were updated.
+
+**Verified.** New `tests/test_project_worksheets.py` (13 tests) covers registration, forms, examples, verbatim
+text, the RACI one-A/one-R checks, the invalid-letter refusal and the risk register's empty-cell and no-score
+behaviour. 1366 tests pass. No method, preset, input, check, computed number or frozen-contract entry changed.
+
+**Still not built.** Stakeholder/communication plan and lessons-learned worksheets; Gantt drawing, resource
+levelling, crashing, calendars and schedule-risk simulation.
 
 ## 2026-10-28 — Project management joins the rail; text goes solid
 

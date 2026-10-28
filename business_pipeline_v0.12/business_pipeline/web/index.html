@@ -376,6 +376,37 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .calcbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
 .calcbar input[type=search]{flex:1;min-width:220px}
 
+/* ---------- business calculator shell (display + keypad) ---------- */
+.calcgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start;margin-top:6px}
+@media (max-width:980px){.calcgrid{grid-template-columns:1fr}}
+.calcdisplay{border:1px solid var(--navy-300);background:linear-gradient(180deg,#FBFDFF,#F3F7FB);border-radius:var(--r-md);
+             padding:12px 14px;position:sticky;top:70px}
+.calcdisplay .line{font-family:var(--mono);font-size:15.6px;line-height:1.6;white-space:pre-wrap;min-height:66px}
+.calcdisplay .line .dim{color:var(--text-3)}
+.calcdisplay .line .live{background:#FFF3C4;border-radius:3px;padding:0 2px;font-weight:600}
+.calcdisplay .unit{margin-top:6px;font-size:14.4px;color:var(--text-2)}
+.calcdisplay .said{margin-top:6px;border-top:1px dashed var(--border);padding-top:8px;font-size:14.4px;color:var(--text-2)}
+.calcpad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.calcpad button{height:48px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);
+                font-size:19.2px;font-weight:600;cursor:pointer;color:var(--navy-900);box-shadow:var(--sh-1)}
+.calcpad button:hover{background:var(--sunken)}
+.calcpad button.op{color:var(--teal);font-weight:700}
+.calcpad button:disabled{opacity:.35;cursor:not-allowed}
+.calcpadnote{font-size:13.2px;color:var(--text-3);margin:8px 0 0;min-height:2.6em}
+.fitbadge{flex:0 0 20px;height:20px;border-radius:4px;font-size:12.0px;font-weight:700;display:grid;place-items:center;
+          background:var(--green-100);color:#076B41;border:1px solid #BFE3D2;margin-top:2px}
+.fitbadge.b{background:#EDF1FA;color:#2E4A85;border-color:#C9D5EE}
+.fitbadge.c{background:#F3EEF9;color:#5B3F8A;border-color:#DCCFEE}
+.calctool{background:none;border:none;text-align:left;padding:0;cursor:pointer;flex:1;color:inherit}
+.calctool:hover strong{color:var(--navy-500)}
+.calcrow.on{border-color:var(--navy-300);background:var(--navy-100);border-radius:var(--r-sm);padding:10px}
+.toggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-pill);overflow:hidden;background:var(--sunken)}
+.toggle button{border:none;background:none;padding:7px 14px;cursor:pointer;font-size:14.4px;color:var(--text-2)}
+.toggle button[aria-pressed=true]{background:var(--navy-900);color:#fff}
+.field.active input{border-color:var(--navy-900);box-shadow:0 0 0 3px rgba(2,40,76,.08)}
+.field.active label.field{color:var(--navy-900);font-weight:600}
+.field.active label.field::after{content:"  \2190 typing here";font-weight:400;color:var(--text-3)}
+
 .kv{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 14px;font-size:15.6px}
 .kv dt{color:var(--text-3)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums;word-break:break-word}
@@ -449,7 +480,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.7</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.11</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -529,7 +560,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
       <div class="railsep"></div>
       <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:#DDD6FE">
         <span class="ic"><svg viewBox="0 0 384 512" aria-hidden="true"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM96 64H288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg></span>
-        <span class="railtext">Calculator</span><span class="railtip">Calculator: launch any financial or business calculation the engine supports</span>
+        <span class="railtext">Business Calculator</span><span class="railtip">Business Calculator: launch any financial or business calculation the engine supports</span>
       </a>
     </div>
   </nav>
@@ -581,15 +612,63 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 
     <section class="panel" id="panel-calculator" hidden aria-labelledby="calculator-title">
       <div class="card">
-        <h2 id="calculator-title">Calculator</h2>
-        <p class="sub">Launch a frozen financial or business calculation. The Calculator arranges the inputs and calls
+        <h2 id="calculator-title">Business Calculator</h2>
+        <p class="sub">Launch a frozen financial or business calculation. The Business Calculator arranges the inputs and calls
           the same method the subject page uses; <strong>it computes nothing itself</strong>.</p>
         <div id="calcnote"></div>
+        <details class="studynote" id="calclimits">
+          <summary>What it can't do</summary>
+          <p class="muted">This is every calculation the engine actually holds, not every calculation a business course names. It runs a recorded method and returns that method's delivery; it computes nothing in the page.</p>
+          <ul>
+            <li><strong>Bare arithmetic</strong> - <code>2 + 2</code> or <code>15% of 84,000</code> is not enabled. Pressing <code>=</code> runs a declared method, never an expression.</li>
+            <li><strong>Tax law</strong> - tax is computed only from rates you declare; no jurisdiction's credits, thresholds or filing rules are applied.</li>
+            <li><strong>Market data</strong> - no share prices or market forecasts. A trend forecast uses the series you supply.</li>
+            <li><strong>Advice</strong> - the engine values the cash flows and figures you declare; it does not recommend a loan, an investment or a purchase.</li>
+          </ul>
+        </details>
         <div class="calcbar">
-          <label class="visually-hidden" for="calcq">Search the calculator</label>
+          <label class="visually-hidden" for="calcq">Search the Business Calculator</label>
           <input type="search" id="calcq" placeholder="Search a calculation (NPV, WACC, break-even, t-test, ...)">
+          <div class="toggle" role="group" aria-label="Input mode">
+            <button id="calcmode-pad" type="button" aria-pressed="true">Keypad</button>
+            <button id="calcmode-ask" type="button" aria-pressed="false">Ask instead</button>
+          </div>
+        </div>
+        <div id="calcchat" hidden>
+          <div class="calcbar">
+            <label class="visually-hidden" for="calcask">Ask the Business Calculator</label>
+            <input type="text" id="calcask" placeholder="e.g. break-even with 1200 fixed cost, price 20, variable 12">
+            <button class="btn primary" id="calcaskgo" type="button">Ask</button>
+            <button class="btn" id="calcmode-back" type="button">Back to the keypad</button>
+          </div>
+          <p class="muted">Ask in words or type the figures. The sentence becomes a plan you confirm; nothing is calculated here.</p>
+          <div id="calcchatout"></div>
         </div>
         <div class="chips" id="calcgroups" style="justify-content:flex-start;margin-top:0"></div>
+        <div class="calcgrid" id="calcgrid" hidden>
+          <div>
+            <div class="calcdisplay">
+              <div class="line" id="calcline" aria-live="polite"></div>
+              <div class="unit" id="calcunit"></div>
+              <div class="said" id="calcsaid"></div>
+            </div>
+            <div class="calcpad" id="calcpad" role="group" aria-label="Calculator keypad"></div>
+            <p class="calcpadnote" id="calcpadnote"></p>
+          </div>
+          <div>
+            <div class="row" style="justify-content:space-between;align-items:flex-start">
+              <div><h3 id="calcname" style="margin:0"></h3><p class="muted" id="calcwhat" style="margin:4px 0 0"></p></div>
+              <span class="badge" id="calctier"></span>
+            </div>
+            <div class="grid2" id="calcinputs" style="margin-top:12px"></div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn primary" id="calceq" type="button">= Calculate and record</button>
+              <button class="btn" id="calcreset" type="button">Clear</button>
+              <button class="btn" id="calcback" type="button">Back to the list</button>
+            </div>
+            <div id="calcresult"></div>
+          </div>
+        </div>
         <div id="calcout"></div>
       </div>
     </section>
@@ -844,6 +923,7 @@ const state = {
   cases: [], caseId: null, caseBundle: null, ingest: null, ref: null,
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
+  calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
   worksheet: null
 };
 const PANELS = ["home", "chat", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
@@ -1799,7 +1879,7 @@ function renderSubject() {
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     (s.guidance ? '<p style="margin:2px 0 10px">' + esc(s.guidance) + "</p>" : "") +
     '<div class="subjectask">' +
-      '<button class="btn sm primary" id="subjectcalc">Open the Calculator</button>' +
+      '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
       '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
       (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
     "</div>";
@@ -2179,14 +2259,54 @@ RENDERERS.calculator = function () {
       return;
     }
     state.calcGroup = state.calcGroup || d.groups[0].id;
-    note.innerHTML = banner("honesty", "What this Calculator is", "<div>" + esc(d.note) + "</div>");
+    note.innerHTML = banner("honesty", "What this Business Calculator is", "<div>" + esc(d.note) + "</div>");
     $("#calcgroups").innerHTML = d.groups.map((g) =>
       '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
-    $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; renderCalculator(); }; });
-    $("#calcq").oninput = renderCalculator;
+    $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
+    $("#calcq").oninput = () => renderCalculator();
+    buildCalcPad();
+    $("#calceq").onclick = calcRun;
+    $("#calcreset").onclick = () => {
+      state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null;
+      renderCalcShell();
+    };
+    $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
+    $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+    $("#calcmode-ask").onclick = () => setCalcMode("ask");
+    $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+    $("#calcaskgo").onclick = calcAsk;
+    $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
     renderCalculator();
   }).catch((e) => { note.innerHTML = errorBanner(e); });
 };
+
+/* ---------- the Business Calculator shell -------------------------------
+   The keypad types into a method's declared inputs; it performs no
+   arithmetic. "=" posts the normal session + confirm pair, so every
+   number on screen comes from a delivery. See
+   docs/proposals/BUSINESS_CALCULATOR_DESIGN.md.
+   ------------------------------------------------------------------------ */
+function calcMethodInfo(tool) {
+  return state.methods.find((m) => m.method_id === tool.method) || null;
+}
+function calcSchema(tool) {
+  const m = calcMethodInfo(tool);
+  return (m && m.input_schema) || {};
+}
+function calcFitOf(tool) {
+  if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";
+  const schema = calcSchema(tool);
+  const keys = Object.keys(schema);
+  if (!keys.length) return "A";
+  const listy = keys.some((k) => {
+    const t = (schema[k] || {}).type;
+    return t === "decimal_list" || t === "value_list" || t === "records" || t === "rows" ||
+      t === "object" || t === "array" || t === "engagement_spec";
+  });
+  if (listy || keys.length > 6) return "B";
+  return "A";
+}
+
 
 function renderCalculator() {
   const d = state.calculator; if (!d) return;
@@ -2197,18 +2317,331 @@ function renderCalculator() {
     b.style.borderColor = on ? "var(--navy-300)" : "";
     b.style.background = on ? "var(--navy-100)" : "";
   });
-  const tools = group.tools.filter((t) =>
-    !q || (t.label + " " + t.method + " " + t.what).toLowerCase().includes(q));
+  // A search is global: a student who types "tax" should not have to guess
+  // which business-function chip the method was filed under.
+  let tools;
+  if (q) {
+    const seen = new Set();
+    tools = [];
+    d.groups.forEach((g) => (g.tools || []).forEach((t) => {
+      if (seen.has(t.key)) return;
+      seen.add(t.key);
+      if ((t.label + " " + t.method + " " + t.what).toLowerCase().includes(q)) tools.push(t);
+    }));
+  } else {
+    tools = group.tools;
+  }
+  const heading = q
+    ? "Search results - " + tools.length + " calculation" + (tools.length === 1 ? "" : "s")
+    : group.label + " - " + group.tools.length + " calculations";
   $("#calcout").innerHTML = tools.length
-    ? "<h3>" + esc(group.label) + " - " + esc(group.tools.length) + " calculations</h3>" +
-      tools.map((t) => '<div class="toolrow"><div class="tooltext"><strong>' + esc(t.label) + "</strong>" +
-        "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></div>" +
-        '<button class="btn sm" data-calctool="' + esc(t.key) + '">Use this calculation</button></div>').join("")
+    ? "<h3>" + esc(heading) + "</h3>" +
+      tools.map((t) => {
+        const fit = calcFitOf(t);
+        const on = state.calcTool && state.calcTool.key === t.key;
+        const fitTitle = fit === "A" ? "Keypad" : (fit === "B" ? "Takes a list" : "Opens a worksheet");
+        return '<div class="toolrow calcrow' + (on ? " on" : "") + '">' +
+          '<span class="fitbadge ' + fit.toLowerCase() + '" title="' + fitTitle + '">' + fit + "</span>" +
+          '<button class="calctool" type="button" data-calctool="' + esc(t.key) + '"><strong>' + esc(t.label) + "</strong>" +
+          "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></button>" +
+          "</div>";
+      }).join("")
     : '<p class="muted">No calculation in this group matches that search.</p>';
   $$("[data-calctool]").forEach((b) => {
-    const tool = group.tools.find((t) => t.key === b.dataset.calctool);
-    b.onclick = () => { if (tool) openTool(tool); };
+    b.onclick = () => {
+      const tool = tools.find((t) => t.key === b.dataset.calctool);
+      if (tool) selectCalcTool(tool);
+    };
   });
+  const grid = $("#calcgrid");
+  if (state.calcTool && state.calcMode !== "ask") { grid.hidden = false; renderCalcShell(); } else { grid.hidden = true; }
+}
+
+/* Preset values become the strings the fields show, so one code path
+   (readInputs) parses them back for the request. No arithmetic here. */
+function calcValueText(value) {
+  if (value === null || value === undefined) return "";
+  if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
+  if (typeof value === "object") return JSON.stringify(value, null, 1);
+  return String(value);
+}
+
+function calcField(name, spec) {
+  const type = (spec && spec.type) || "text";
+  const desc = (spec && spec.desc) || "";
+  const value = state.calcValues[name] === undefined ? "" : state.calcValues[name];
+  const label = '<label class="field" for="in-' + esc(name) + '">' + esc(name) +
+    ' <span class="muted">' + esc(desc) + "</span></label>";
+  if (type === "decimal_list" || type === "value_list" || type === "code_list") {
+    return '<div class="stack" style="gap:4px">' + label +
+      '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(value) +
+      '" placeholder="comma separated"></div>';
+  }
+  if (type === "object" || type === "array" || type === "records" || type === "rows" || type === "engagement_spec") {
+    return '<div class="stack" style="gap:4px">' + label +
+      '<textarea id="in-' + esc(name) + '" data-type="' + esc(type) + '" rows="3" placeholder="{}">' + esc(value) + "</textarea></div>";
+  }
+  if (type === "boolean") {
+    return '<div class="row"><input type="checkbox" id="in-' + esc(name) + '" data-type="boolean"' +
+      (value ? " checked" : "") + '><label class="field" for="in-' + esc(name) + '">' + esc(name) +
+      ' <span class="muted">' + esc(desc) + "</span></label></div>";
+  }
+  return '<div class="stack" style="gap:4px">' + label +
+    '<input type="text" id="in-' + esc(name) + '" data-type="decimal" value="' + esc(value) + '"></div>';
+}
+
+function selectCalcTool(tool) {
+  const preset = tool.preset ? state.presets[tool.preset] : null;
+  const inputs = (preset && preset.inputs) || {};
+  state.calcTool = tool;
+  state.calcValues = {};
+  Object.keys(inputs).forEach((k) => { state.calcValues[k] = calcValueText(inputs[k]); });
+  state.calcFocus = 0;
+  state.calcDelivery = null;
+  state.calcRan = null;
+  renderCalculator();
+  const first = $("#calcinputs input[data-type='decimal']");
+  if (first) first.focus();
+}
+
+function renderCalcShell() {
+  const tool = state.calcTool; if (!tool) return;
+  const m = calcMethodInfo(tool);
+  const schema = calcSchema(tool);
+  const fit = calcFitOf(tool);
+  $("#calcname").textContent = tool.label;
+  $("#calcwhat").textContent = tool.what || (m && m.intended_use) || "";
+  $("#calctier").textContent = (m ? m.tier : "T4") + (m ? " / v" + m.version : "");
+  $("#calcinputs").innerHTML = Object.keys(schema).length
+    ? Object.keys(schema).map((n) => calcField(n, schema[n])).join("")
+    : '<p class="muted">This method declares no inputs.</p>';
+  $$("#calcinputs input, #calcinputs textarea").forEach((el) => {
+    el.onfocus = () => {
+      const scalar = $$("#calcinputs input[data-type='decimal']");
+      state.calcFocus = Math.max(0, scalar.indexOf(el));
+      markCalcFocus();
+    };
+    el.oninput = () => { state.calcValues[el.id.replace(/^in-/, "")] = el.value; renderCalcLine(); };
+  });
+  $$("#calcpad button").forEach((b) => { b.disabled = fit !== "A"; });
+  $("#calceq").disabled = fit === "C";
+  $("#calcinputs").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcRun(); } };
+  $("#calcpadnote").textContent = fit === "A"
+    ? "Digits type into the highlighted field. The operator keys move between fields: they do not do the arithmetic."
+    : (fit === "B"
+      ? "This one takes a list or a table, so the keypad is off - fill the fields on the right instead."
+      : "This one runs as a worksheet, so there is no keypad: open it and work through it there.");
+  markCalcFocus();
+  renderCalcLine();
+  renderCalcResult();
+}
+
+function renderCalcLine() {
+  const tool = state.calcTool; if (!tool) return;
+  const schema = calcSchema(tool);
+  const keys = Object.keys(schema);
+  const fit = calcFitOf(tool);
+  if (fit === "C") {
+    $("#calcline").innerHTML = esc(tool.label) + "\n  " + '<span class="dim">runs as a worksheet - no figures are typed here</span>';
+    $("#calcunit").textContent = "";
+    $("#calcsaid").textContent = "Open the worksheet to work through it. Nothing is calculated on this page.";
+    return;
+  }
+  const head = keys.length ? keys.join("  \u00b7  ") : "no declared inputs";
+  const vals = keys.map((k) => (state.calcValues[k] || "").trim() || "\u2014");
+  const body = tool.label + "\n  " + head + "\n  " + vals.join("   ");
+  $("#calcline").innerHTML = esc(body).replace(/\u2014/g, '<span class="dim">\u2014</span>');
+  $("#calcunit").textContent = tool.method ? "method " + tool.method : "";
+  const empty = fit === "A" && keys.some((k) => !(state.calcValues[k] || "").trim());
+  $("#calcsaid").textContent = empty
+    ? "Fill the figures, then press = . Nothing is calculated until the engine answers."
+    : "Ready. Press = to run this as a recorded calculation.";
+}
+
+function markCalcFocus() {
+  const fields = $$("#calcinputs input[data-type='decimal']");
+  $$("#calcinputs .stack").forEach((s) => s.classList.remove("field", "active"));
+  fields.forEach((el, i) => {
+    const box = el.closest(".stack");
+    if (box) { box.classList.add("field"); if (i === state.calcFocus) box.classList.add("active"); }
+  });
+}
+
+const CALC_PAD = ["7", "8", "9", "\u00f7", "4", "5", "6", "\u00d7", "1", "2", "3", "\u2212", "0", ".", "\u232b", "+"];
+function buildCalcPad() {
+  $("#calcpad").innerHTML = CALC_PAD.map((k) => {
+    const op = "\u00f7\u00d7\u2212+".includes(k);
+    const name = { "\u00f7": "divide", "\u00d7": "multiply", "\u2212": "subtract", "+": "add", "\u232b": "delete" }[k] || k;
+    return '<button type="button" class="' + (op ? "op" : "") + '" data-key="' + esc(k) +
+      '" aria-label="' + esc(name) + '">' + esc(k) + "</button>";
+  }).join("");
+  $$("#calcpad button").forEach((b) => { b.onclick = () => calcKey(b.dataset.key); });
+}
+
+function calcKey(k) {
+  const tool = state.calcTool; if (!tool || calcFitOf(tool) !== "A") return;
+  const fields = $$("#calcinputs input[data-type='decimal']");
+  if (!fields.length) return;
+  if ("\u00f7\u00d7\u2212+".includes(k)) {
+    state.calcFocus = (state.calcFocus + 1) % fields.length;
+    markCalcFocus();
+    fields[state.calcFocus].focus();
+    $("#calcsaid").textContent = "Focus moved to " + fields[state.calcFocus].id.replace(/^in-/, "") +
+      ". The operator keys order the fields; the method does the arithmetic.";
+    return;
+  }
+  const el = fields[state.calcFocus] || fields[0];
+  el.value = k === "\u232b" ? el.value.slice(0, -1) : el.value + k;
+  state.calcValues[el.id.replace(/^in-/, "")] = el.value;
+  renderCalcLine();
+}
+
+async function calcRun() {
+  const tool = state.calcTool; if (!tool) return;
+  const schema = calcSchema(tool);
+  const inputs = readInputs(schema);
+  if (inputs === null) return;
+  const preset = tool.preset ? state.presets[tool.preset] : null;
+  const body = { objective: (preset && preset.objective) || tool.label, method: tool.method, inputs: inputs };
+  if (preset && preset.currency) body.currency = preset.currency;
+  if (preset && preset.period) body.period = preset.period;
+  $("#calceq").disabled = true;
+  $("#calcresult").innerHTML = loading("Running the frozen method");
+  try {
+    let current = await post("/api/sessions", body);
+    if (current.status === "awaiting_confirmation") current = await post("/api/sessions/" + current.id + "/confirm", {});
+    state.session = current;
+    state.delivery = current.delivery || null;
+    if (current.delivery && current.delivery.status === "delivered") {
+      const recorded = await recordCalcCase(current);
+      state.calcDelivery = current.delivery;
+      state.calcRan = recorded;
+    }
+    renderCalcResult();
+  } catch (e) {
+    $("#calcresult").innerHTML = errorBanner(e);
+  } finally {
+    $("#calceq").disabled = calcFitOf(tool) === "C";
+  }
+}
+
+function renderCalcResult() {
+  const box = $("#calcresult"); if (!box) return;
+  const d = state.calcDelivery;
+  if (!d) { box.innerHTML = ""; return; }
+  if (d.status === "blocked") {
+    box.innerHTML = '<div class="card" style="margin-top:14px">' +
+      banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
+    return;
+  }
+  box.innerHTML = (state.calcRan ? '<p class="muted">Recorded as case ' + esc(state.calcRan) + " - every number here is inside the audit trail.</p>" : "") +
+    resultBodyHtml(d, false) +
+    '<div class="row" style="margin-top:12px">' +
+    (state.calcRan
+      ? '<button class="btn primary" id="calcopenresult">Open the recorded case</button>'
+      : '<button class="btn primary" id="calcsaveresult">Save as case</button><button class="btn" id="calcopenresult">Open the full Result page</button>') +
+    "</div>";
+  const save = $("#calcsaveresult"); if (save) save.onclick = () => saveCase();
+  const open = $("#calcopenresult");
+  if (open) open.onclick = () => {
+    if (state.calcRan) { openCase(state.calcRan); return; }
+    show("results"); renderResults();
+  };
+}
+
+/* ---------- the chat ("Ask instead") -------------------------------------
+   The sentence is sent to the product-layer router, which returns one of
+   five outcomes. This code only renders that answer; it never scores the
+   sentence, never adds or changes a figure and never computes anything.
+   Every string from the payload is escaped.
+   ------------------------------------------------------------------------- */
+function setCalcMode(mode) {
+  state.calcMode = mode === "ask" ? "ask" : "pad";
+  const ask = state.calcMode === "ask";
+  $("#calcchat").hidden = !ask;
+  $("#calcout").hidden = ask;
+  $("#calcgroups").hidden = ask;
+  $("#calcgrid").hidden = ask || !state.calcTool;
+  $("#calcmode-pad").setAttribute("aria-pressed", String(!ask));
+  $("#calcmode-ask").setAttribute("aria-pressed", String(ask));
+  if (ask) $("#calcask").focus();
+}
+
+function planTool(key) {
+  const d = state.calculator; if (!d) return null;
+  for (const group of d.groups) {
+    const tool = (group.tools || []).find((t) => t.key === key);
+    if (tool) return tool;
+  }
+  return null;
+}
+
+function planAlternatives(payload) {
+  const rows = payload.alternatives || [];
+  if (!rows.length) return "";
+  return '<div class="row" style="margin-top:10px">' + rows.map((alt) =>
+    '<button class="btn sm" data-plan-tool="' + esc(alt.tool) + '">' + esc(alt.label) +
+    (alt.tier ? " (" + esc(alt.tier) + ")" : "") + "</button>").join("") + "</div>";
+}
+
+function planHtml(payload) {
+  const reason = esc(payload.reason || "");
+  const notes = (payload.notes || []).map((note) => "<div>" + esc(note) + "</div>").join("");
+  if (payload.outcome === "out_of_scope") {
+    return banner("blocked", "Not a business calculation",
+      "<div>This calculator runs recorded business methods - finance, accounting, economics, " +
+      "operations, marketing, people and statistics - and it will not produce a number for anything else.</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">" + reason + "</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">If you meant a business question, name the situation " +
+      "(for example: break-even with 1200 fixed cost).</div>");
+  }
+  if (payload.outcome === "unsupported") {
+    return banner("limit", "Business, but not built",
+      "<div>" + reason + "</div><div style=\"margin-top:6px\">Closest thing it can actually run:</div>" +
+      planAlternatives(payload));
+  }
+  if (payload.outcome === "choose") {
+    return banner("honesty", "Which one did you mean?",
+      "<div>" + reason + "</div>" +
+      "<div class=\"muted\" style=\"margin-top:6px\">No calculation has run. Pick one and its declared inputs appear.</div>" +
+      planAlternatives(payload));
+  }
+  const missing = (payload.missing || []).length
+    ? "<div style=\"margin-top:6px\">Needs: <strong>" + esc(payload.missing.join(", ")) + "</strong> - nothing has been calculated yet.</div>"
+    : "<div style=\"margin-top:6px\">Every declared input was read from your sentence.</div>";
+  const figures = Object.keys(payload.inputs || {}).length
+    ? kv(Object.keys(payload.inputs).map((k) => [k, Array.isArray(payload.inputs[k]) ? payload.inputs[k].join(", ") : payload.inputs[k]]))
+    : "";
+  return banner(payload.outcome === "run" ? "honesty" : "limit",
+    payload.label + (payload.tier ? " - " + payload.tier : ""),
+    "<div>" + reason + "</div>" + figures + missing + notes +
+    '<div class="row" style="margin-top:10px"><button class="btn sm primary" data-plan-tool="' + esc(payload.tool) +
+    '">Open it with these figures</button></div>');
+}
+
+async function calcAsk() {
+  const text = ($("#calcask").value || "").trim();
+  if (!text) { toast("Type the question first."); return; }
+  const out = $("#calcchatout");
+  out.innerHTML = loading("Reading the sentence");
+  try {
+    const payload = await post("/api/cases/calculator/plan", { text: text });
+    out.innerHTML = '<div class="toolwhat" style="margin-bottom:10px">You asked: <em>' + esc(text) + "</em></div>" +
+      planHtml(payload);
+    $$("[data-plan-tool]", out).forEach((button) => {
+      button.onclick = () => {
+        const tool = planTool(button.dataset.planTool);
+        if (!tool) return;
+        selectCalcTool(tool);
+        Object.keys(payload.inputs || {}).forEach((key) => {
+          state.calcValues[key] = calcValueText(payload.inputs[key]);
+        });
+        setCalcMode("pad");
+        renderCalculator();
+        toast("Opened " + tool.label + " with the figures from your sentence. Nothing has been calculated yet.");
+      };
+    });
+  } catch (e) { out.innerHTML = errorBanner(e); }
 }
 
 
@@ -2217,10 +2650,10 @@ async function startFromHome() {
   const objective = $("#objective").value.trim();
   if (!objective) { toast("Describe the question first."); return; }
   // The Home box no longer carries method controls (owner instruction: logo + chat box only).
-  // Method selection lives in the subject rail and the Calculator.
+  // Method selection lives in the subject rail and the Business Calculator.
   const methodSelect = $("#method");
   const method = methodSelect ? methodSelect.value : "";
-  if (!method) { toast("Choose a subject from the rail, or open the Calculator, to pick a method."); return; }
+  if (!method) { toast("Choose a subject from the rail, or open the Business Calculator, to pick a method."); return; }
   const presetSelect = $("#preset");
   const preset = presetSelect ? state.presets[presetSelect.value] : null;
   const body = { objective: objective, method: method };
@@ -3252,7 +3685,7 @@ function renderNew() {
     $("#panel-new").innerHTML = '<div class="card"><h2>' + esc(state.tool && state.tool.label ? state.tool.label : t.name) + "</h2>" +
       '<p class="sub">' + esc(state.tool && state.tool.objective ? state.tool.objective : "") + "</p>" +
       '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
-        '<button class="btn sm" id="toolcalc">Calculator</button></div></div>' +
+        '<button class="btn sm" id="toolcalc">Business Calculator</button></div></div>' +
       '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
       '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
       '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button></div>' +
@@ -3347,21 +3780,26 @@ function renderNew() {
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
 }
 
-function collectInputs(session) {
-  const s = session || state.session; if (!s) return null;
-  const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
-  const schema = (method && method.input_schema) || {};
+function readInputs(schema) {
   const inputs = {};
-  for (const name of Object.keys(schema)) {
+  for (const name of Object.keys(schema || {})) {
     const el = document.getElementById("in-" + name); if (!el) continue;
     const type = el.dataset.type;
     if (type === "boolean") { inputs[name] = el.checked; continue; }
     const raw = el.value.trim(); if (!raw) continue;
-    if (type === "decimal_list") inputs[name] = raw.split(",").map((x) => x.trim()).filter((x) => x.length);
-    else if (type === "object") { try { inputs[name] = JSON.parse(raw); } catch (e) { toast("That field is not valid JSON."); return null; } }
-    else inputs[name] = raw;
+    if (type === "decimal_list" || type === "value_list" || type === "code_list") {
+      inputs[name] = raw.split(",").map((x) => x.trim()).filter((x) => x.length);
+    } else if (type === "object" || type === "records" || type === "rows" || type === "engagement_spec") {
+      try { inputs[name] = JSON.parse(raw); } catch (e) { toast("That field is not valid JSON."); return null; }
+    } else inputs[name] = raw;
   }
   return inputs;
+}
+
+function collectInputs(session) {
+  const s = session || state.session; if (!s) return null;
+  const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
+  return readInputs((method && method.input_schema) || {});
 }
 
 async function applyAndRun() {
@@ -3404,23 +3842,19 @@ function tierLabel(tier) {
             T4: "Framework worksheet" })[tier] || "Result";
 }
 
-function renderResults() {
-  const s = state.session; const d = s && s.delivery;
-  const p = $("#panel-results");
-  if (!d) { p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>'; return; }
-  if (d.status === "blocked") {
-    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
-    return;
-  }
+/* One builder for the delivered result, used by the Result page and by the
+   Business Calculator, so the two can never show a delivery differently. */
+function resultBodyHtml(d, withActions) {
   const ap = d.appendix || {};
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
-    '<div class="row" style="justify-content:space-between"><h2>Result</h2><span class="badge">' + esc(tierLabel(ap.tier)) + "</span></div>" +
-    '<div class="row" style="margin:0 0 12px">' +
+    '<div class="row" style="justify-content:space-between"><' + (withActions ? "h2" : "h3") +
+      ' style="margin:0">Result</' + (withActions ? "h2" : "h3") + '><span class="badge">' + esc(tierLabel(ap.tier)) + "</span></div>" +
+    (withActions ? '<div class="row" style="margin:10px 0 12px">' +
       '<button class="btn primary" id="savecase">Save as case</button>' +
       '<button class="btn" id="tocharts">Charts and exports</button>' +
-      (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") + "</div>" +
+      (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") + "</div>" : "") +
     '<div class="report">' + esc(d.report) + "</div>";
   if (honestyKeys.length) {
     html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
@@ -3442,7 +3876,46 @@ function renderResults() {
       ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id],
       ["Sandbox", ap.sandbox && ap.sandbox.isolation ? ap.sandbox.isolation : ap.sandbox],
       ["Checks", (ap.tests || []).join(", ")]]) + "</details>";
-  p.innerHTML = html;
+  return html;
+}
+
+/* D3: every calculator run is recorded, so no number exists outside the
+   audit trail. A failure to record is reported, never swallowed. */
+async function recordCalcCase(session) {
+  if (!session || !session.delivery) return null;
+  try {
+    const stored = await post("/api/cases", caseBundle(session));
+    state.caseId = stored.id; state.savedCaseId = stored.id;
+    return stored.id;
+  } catch (e) {
+    toast("The calculation ran but could not be recorded as a case: " + (e.message || e));
+    return null;
+  }
+}
+
+function caseBundle(s) {
+  const ap = (s.delivery && s.delivery.appendix) || {};
+  return {
+    title: (s.work_plan || {}).objective || "Untitled case",
+    method: (s.work_plan || {}).method || (ap.method && ap.method.id) || "",
+    tier: ap.tier || "",
+    spec_hash: ap.spec_hash || "",
+    outputs_hash: (ap.reperform && ap.reperform.outputs_hash) || "",
+    session: s,
+    delivery: { report: s.delivery.report, appendix: ap },
+    reperform: ap.reperform || {}
+  };
+}
+
+function renderResults() {
+  const s = state.session; const d = s && s.delivery;
+  const p = $("#panel-results");
+  if (!d) { p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>'; return; }
+  if (d.status === "blocked") {
+    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
+    return;
+  }
+  p.innerHTML = resultBodyHtml(d, true);
   $("#savecase").onclick = saveCase;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
@@ -3469,19 +3942,8 @@ function artifactTable(ap) {
 
 async function saveCase() {
   const s = state.session; if (!s || !s.delivery) return;
-  const ap = s.delivery.appendix || {};
-  const bundle = {
-    title: (s.work_plan || {}).objective || "Untitled case",
-    method: (s.work_plan || {}).method || (ap.method && ap.method.id) || "",
-    tier: ap.tier || "",
-    spec_hash: ap.spec_hash || "",
-    outputs_hash: (ap.reperform && ap.reperform.outputs_hash) || "",
-    session: s,
-    delivery: { report: s.delivery.report, appendix: ap },
-    reperform: ap.reperform || {}
-  };
   try {
-    const stored = await post("/api/cases", bundle);
+    const stored = await post("/api/cases", caseBundle(s));
     state.caseId = stored.id; state.savedCaseId = stored.id;
     toast("Case " + stored.id + " saved.");
     openCase(stored.id);

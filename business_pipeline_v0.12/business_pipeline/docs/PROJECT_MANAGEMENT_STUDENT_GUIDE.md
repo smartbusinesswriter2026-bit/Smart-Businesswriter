@@ -5,8 +5,9 @@ on a business-case, project-appraisal, scheduling or project-control assignment.
 high school ABM** students and **first- and second-year undergraduate** management students. Every number
 below is produced by the method named, from the figures shown, in PHP, and can be reproduced in the app.
 
-The shelf appraises a project, plans its schedule and tracks its delivery from figures you declare. It does
-not assign responsibilities, fill in a WBS or RACI chart, or estimate a missing number.
+The shelf appraises a project, plans its schedule, tracks its delivery and records the delivery documents —
+charter, WBS, RACI and risk register — from figures and evidence you declare. It does not draw a Gantt,
+level resources, score a risk or invent an owner.
 
 ## Reading the page
 
@@ -17,9 +18,24 @@ not assign responsibilities, fill in a WBS or RACI chart, or estimate a missing 
 | Project cost and benefit | What do the declared costs and benefits look like in later periods? | Trend forecast |
 | Schedule and control | When can the project finish, what is critical, and are we ahead or behind? | Critical path and PERT, earned value |
 
-The 14 delivery frameworks below the tiles — Balanced Scorecard, strategy map, KPI tree, OKRs, PRINCE2,
-PMBOK, Scrum, Kanban, WBS, RACI, COBIT, ITIL, DeLone–McLean and TOE — are **read-only records**. The page
-gives the structure and the evidence each one needs; it does not fill them in or score them.
+Four of the delivery frameworks now have worksheets: **PRINCE2** anchors the project charter, **WBS** and
+**RACI** have their own, and **PMBOK** anchors the risk register. The other ten — Balanced Scorecard,
+strategy map, KPI tree, OKRs, Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE — remain read-only
+records. The page gives the structure and the evidence each one needs; it does not fill them in or score
+them.
+
+## Worksheets
+
+| Worksheet | What you record | What the worksheet checks |
+|---|---|---|
+| Project charter (PRINCE2) | Objective, scope in and out, deliverables, sponsor and governance, budget, milestones, success measures, assumptions and constraints | Every block you fill is reproduced verbatim; empty blocks and assumptions are named, not filled |
+| Work breakdown structure | Level-1 deliverables, work packages, acceptance criteria and exclusions, with work packages linked to their deliverable | Every item appears once; the links resolve; an empty block or unlinked package is named; no total, tree or Gantt is drawn |
+| RACI responsibility matrix | Activities against the roles you have confirmed, with R, A, C or I in each cell and an optional note | Every cell starts with R, A, C or I; each activity has exactly one A and at least one R; empty cells are named |
+| Risk register (PMBOK) | Each risk with your likelihood and impact labels, the response and the owner | Every cell is reproduced; empty cells are named; no probability, expected value or risk score is computed |
+
+The worksheets are T4: they place and audit your evidence and compute nothing. A RACI with two accountable
+roles on one activity blocks rather than being silently corrected; a risk register with an empty owner names
+the gap rather than filling it.
 
 ## Conventions
 
@@ -45,6 +61,12 @@ gives the structure and the evidence each one needs; it does not fill them in or
   option, weight the criteria or choose for you.
 - **The forecast is a linear trend on your own series.** It is not a demand model, a seasonal model or a
   promise about the future.
+- **The RACI letter is the assignment.** R does the work, A owns the outcome, C is consulted, I is informed;
+  every activity needs exactly one A and at least one R.
+- **The risk labels are yours.** Likelihood and impact are labels you declare; no probability, expected loss
+  or score is computed.
+- **The WBS records the hierarchy you declare.** It does not draw a tree, sum estimates or prove that the
+  breakdown is complete.
 
 ## Your assignment requirement, and the tool that answers it
 
@@ -59,7 +81,10 @@ gives the structure and the evidence each one needs; it does not fill them in or
 | When can the project finish, and what is critical? | `cpm` | each activity's id, duration and predecessors; optional three-point estimates |
 | Are we ahead or behind, and what will it cost? | `evm` | cumulative PV, EV and AC, the budget at completion and the EAC convention |
 | What do cost and benefit look like in later periods? | `forecast` | a series in period order and the horizon |
-| What structure does PRINCE2, WBS, RACI or a risk register give? | the read-only records | the evidence each record names; no computation |
+| What is the project authorised to do? | project charter (`template_project_charter`) | objective, scope in and out, deliverables, governance, budget, milestones, success measures, assumptions, constraints |
+| What work has to be done? | WBS (`template_wbs`) | deliverables, work packages, acceptance tests, exclusions and the package-to-deliverable links |
+| Who is accountable and responsible? | RACI (`template_raci`) | activities, confirmed roles, and R, A, C or I in each cell |
+| What could go wrong, and who owns it? | risk register (`template_risk_register`) | risks, your likelihood and impact labels, the response and the owner |
 
 ## Worked example
 
@@ -112,6 +137,16 @@ AC. At the current cost efficiency the remaining work needs a cost performance i
 on the original budget, which is a sentence for the report. The figures are yours; the method does not
 know whether the plan or the scope was right.
 
+### 4. Record the delivery documents
+
+The **charter** states the objective, scope in and out, deliverables, sponsor, budget, milestones, success
+measures, assumptions and constraints. The **WBS** breaks the scope into deliverables and work packages,
+gives each an acceptance test, records exclusions and links each package to its deliverable. The **RACI**
+gives every activity exactly one A and at least one R. The **risk register** records each risk with your
+likelihood and impact labels, the response and the owner. These four are evidence worksheets: they name
+empty blocks and cells, refuse a RACI with two accountable roles, and compute no total, probability or
+score.
+
 ## Practice set
 
 1. Keep the same project and move the hurdle rate. What is NPV at 5% and at 20%, and at what rate does the
@@ -140,15 +175,16 @@ know whether the plan or the scope was right.
 
 ## What is not built
 
-- **No project-charter, WBS, RACI, risk-register, stakeholder or communication-plan worksheet.** The PM
-  records are read-only structures until a worksheet is built.
+- **No stakeholder/communication-plan or lessons-learned worksheet.** The charter, WBS, RACI and risk
+  register are built; the other ten delivery records remain read-only structures.
 - **No Gantt chart drawing, resource levelling, crashing, calendars, multi-project scheduling or
   schedule-risk simulation.** The schedule is a deterministic forward/backward pass, with PERT expected
   durations and variances when you declare three-point estimates.
 - **No Monte Carlo, decision tree, real-option model or multi-criteria scoring.**
 - **No probability on a scenario** and no recommendation by the engine.
-- **The seven appraisal and forecast tiles are shared with Finance**; the PM shelf adds no second arithmetic
-  path, and the same stored case can appear under both shelves.
+- **Seven appraisal and forecast tiles are shared with Finance**, and critical path/PERT and earned value
+  are shared with the scheduling and project-control methods; the PM shelf adds no second arithmetic path,
+  and the same stored case can appear under both shelves.
 
 If your assignment needs one of these, say so in the limitations section and show the method you used by
 hand. Do not force a number into the nearest tool.

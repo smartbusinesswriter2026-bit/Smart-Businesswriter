@@ -13,11 +13,14 @@
   IRR, discounted payback, project metrics, scenario analysis, business-case decision and trend forecast
   come from Finance; critical path/PERT and earned value come from the scheduling and project-control
   methods. The shelf adds no second arithmetic path.
-- **The 14 delivery records are read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs, PRINCE2,
-  PMBOK, Scrum, Kanban, WBS, RACI, COBIT, ITIL, DeLone–McLean and TOE give structure and the evidence each
-  one needs; none is filled in, scored or checked.
-- **No project-charter, WBS, RACI or risk-register worksheet exists**, so the page says "No worksheet yet"
-  for every PM record.
+- **Ten of the 14 delivery records remain read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs,
+  Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE give structure and the evidence each one needs; none is
+  filled in, scored or checked. PRINCE2 and PMBOK anchor the charter and risk register; WBS and RACI have
+  their own worksheets.
+- **The four delivery worksheets compute nothing.** The charter and WBS place supplied evidence and name
+  empty blocks; the RACI refuses a cell that does not start R, A, C or I and blocks an activity without
+  exactly one A or at least one R; the risk register records declared labels and computes no probability,
+  expected value or score. No stakeholder/communication-plan or lessons-learned worksheet exists.
 - **The schedule is deterministic.** CPM gives early/late dates, total float and the critical path from
   declared durations, with PERT expected durations and variance when three-point estimates are declared.
   There is **no Gantt drawing, resource levelling, crashing, calendars, multi-project scheduling or
@@ -35,7 +38,7 @@
 - The PM **groups, glossary, guidance and student guide are teaching and presentation material**; they do not
   choose the project, validate an estimate or turn a read-only framework into a computed answer.
 
-## Added with the digital marketing lane (B-117, B-121)
+## Added with the digital marketing lane (B-117, B-121, B-133)
 - The seven digital methods are **arithmetic on declared counts**. Nothing reads Google Analytics, Google Ads, Meta, TikTok or an email platform: the counts, the conversion definition and the attribution window are the student's, and the report says so.
 - **Attribution credit is not causation.** `attribution_split` compares first-click, last-click and linear shares from counts you supply; it does not process touchpoint logs, and no holdout, incrementality or lift test exists.
 - **`ab_test_two_proportion` is one two-sided pooled normal test.** It has no sequential or peeking correction, supports two arms only, needs conversions in both arms, and its interval assumes independent observations - survey weights, clustering and repeated measures are not modelled.
@@ -47,6 +50,10 @@
 - **RFM bands are relative to the file** (B-121). Quintile scores are ranks inside the uploaded customer list, so the same customer can score differently in another dataset; ties share the better band, so bands need not be equal in size, and no external or industry benchmark is applied.
 - **The RFM segments are labels from declared rules**, tried in a fixed order; nothing tests whether a segment is stable over time, differs by more than chance, or predicts next-period value.
 - **Media reach is declared, and combined reach is an estimate** (B-121). `media_plan` uses the random-duplication formula, which assumes different vehicles' audiences overlap only by chance; real overlap is usually higher, so the combined reach is an upper bound. There is no measured overlap, no effective frequency, no wear-out, no scheduling and no recommended buy.
+- **Market share is arithmetic on the market you declare** (B-133). `market_share` divides declared firm sales by declared market sales; the boundary is the student's, no market data or competitor estimate is retrieved, and no share change is tested for significance.
+- **Customer value rests on constant rates** (B-133). `clv_model` sums a constant margin at a constant churn and discount rate over a declared horizon; it fits no survival curve, models no expansion revenue and is not a perpetuity.
+- **Segment profit carries the allocation you chose** (B-133). `customer_profitability` takes the allocated cost as declared, absorbs no fixed cost, applies no depreciation or capital charge, and reports no customer-level or time-series result.
+- **Five marketing worksheets structure evidence and compute nothing** (B-133). The journey map, Kano grid, SERVQUAL grid, paid media plan and measurement plan name empty blocks and cells; they do not derive a Kano category, average a SERVQUAL gap, deploy a tag or read a platform.
 
 ## Added with free market-data lookups (B-106, B-109)
 - Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes (the user's own free key; its fundamentals endpoint is premium and is not used), **SEC EDGAR** for US filings and XBRL fundamentals, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.

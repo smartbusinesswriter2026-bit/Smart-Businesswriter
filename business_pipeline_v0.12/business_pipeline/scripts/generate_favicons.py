@@ -194,9 +194,14 @@ def main():
     for size in list(ICON_SIZES) + [APPLE_SIZE]:
         tile = _render(mark, size)
         path = os.path.join(ASSETS, "favicon-%d.png" % size)
-        tile.save(path)
-        uris[size] = _data_uri(tile)
-        print("wrote %s (%d bytes)" % (os.path.relpath(path, ROOT), os.path.getsize(path)))
+        # The file on disk is written from the same encoded bytes that go into
+        # the page, so `web/assets/favicon-*.png` and the inline data URIs stay
+        # identical instead of drifting apart by a few bytes of PNG encoding.
+        payload = _encode(tile)
+        with open(path, "wb") as stream:
+            stream.write(payload)
+        uris[size] = _data_uri(payload)
+        print("wrote %s (%d bytes)" % (os.path.relpath(path, ROOT), len(payload)))
 
     patched = _patch_page(uris)
     print("inlined %d icons into %s" % (patched, os.path.relpath(PAGE, ROOT)))

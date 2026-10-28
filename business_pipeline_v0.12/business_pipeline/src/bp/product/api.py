@@ -15,6 +15,7 @@ Routes:
     GET    /api/cases/subjects                   -> 200 subject gallery
     GET    /api/cases/subjects/{id}              -> 200 subject page
     GET    /api/cases/calculator                 -> 200 Calculator tool groups
+    POST   /api/cases/calculator/plan            -> 200 draft plan for one sentence
     POST   /api/cases/match                      -> 200 worksheet suggestions for a case description
     GET    /api/cases/sources/databases          -> 200 the business database registry
     GET    /api/cases/sources/sites?region=<r>   -> 200 the curated official-site registry
@@ -45,6 +46,7 @@ import base64
 import hashlib
 import os
 
+from . import calc_router
 from . import cases as case_store
 from . import chat as chat_conductor
 from . import chat_store
@@ -151,6 +153,14 @@ def handle(method, path, body=None):
         if verb != "GET":
             return 405, {"error": "method %s is not allowed on the calculator" % verb}
         return 200, subject_index.calculator_groups()
+    if segments == ["calculator", "plan"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a calculator plan" % verb}
+        text = body.get("text") if isinstance(body, dict) else None
+        try:
+            return 200, calc_router.plan(text)
+        except calc_router.PlanError as error:
+            return _error(error)
     if segments == ["match"]:
         if verb != "POST":
             return 405, {"error": "method %s is not allowed on the matcher" % verb}

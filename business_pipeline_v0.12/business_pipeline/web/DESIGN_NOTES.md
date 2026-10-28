@@ -37,7 +37,7 @@ tile, no outline. Shape carries the meaning; colour is secondary (greyscale-safe
 | 9 | Marketing & customers | megaphone | `#FF7A6B` |
 | 10 | People & organisation | people | `#C3CEDA` |
 | 11 | Research & statistics | flask | `#8E9BFF` |
-| 12 | Calculator | calculator | `#DDD6FE` |
+| 12 | Business Calculator | calculator | `#DDD6FE` |
 
 Behaviour: collapsed by default (icon only + tooltip), expand/collapse via the top toggle (a
 hamburger when collapsed, a chevron when open), the choice persists in `localStorage`. Active item:

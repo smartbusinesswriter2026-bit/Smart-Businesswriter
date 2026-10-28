@@ -16,8 +16,8 @@ The page follows the order a marketing plan is written in, not the difficulty of
 
 | Group | What it is for | Tiles |
 |---|---|---|
-| Market size and demand | Size the market and describe what customers will buy | market size, demand line, price elasticity, purchase intent, trend forecast |
-| Customer economics and retention | Check whether a customer is worth winning and keeping | unit economics, multi-product break-even, cohort retention, RFM segmentation |
+| Market size and demand | Size the market and describe what customers will buy | market size, market share and penetration, demand line, price elasticity, purchase intent, trend forecast |
+| Customer economics and retention | Check whether a customer is worth winning and keeping | unit economics, multi-product break-even, cohort retention, RFM segmentation, customer lifetime value, customer profitability by segment |
 | Campaigns, channels and web analytics | Measure the campaign and the channels that feed it | campaign efficiency, attribution, channel economics, email list health, social reach and engagement, web traffic and conversion, reach and rating points |
 | Funnel, surveys and testing | Follow the funnel, test a change, and check the survey | sales funnel, A/B test result, reliability (alpha), chi-square, power and sample size |
 
@@ -25,11 +25,16 @@ Each tile shows the period convention it expects - **annual**, **per period**, *
 expandable study note with the formula, the steps and the mistakes that most often cost marks. A monthly
 campaign figure must never be entered as an annual one; an A/B test is per observation, not per period.
 
-Below the tiles sit the **records**: 11 Marketing frameworks, 6 Customer and market analytics records and 16
-Digital marketing records. A row marked **computed** already has a method the engine runs; **worksheet**
-means a template you fill in; **no worksheet yet** means the framework can be read and cited but not worked
-through here. The label says what the product can do with the record today - it is not a judgment on whether
-the framework is valid.
+Below the tiles sit the **worksheets**: the marketing plan for segmentation, targeting, positioning and the mix,
+the customer journey map, the Kano classification, the SERVQUAL gap grid, the paid media plan and the web/app
+measurement plan. A worksheet organises evidence you supply; it computes nothing, scores nothing and names
+the blocks or cells that are still empty.
+
+Under them sit the remaining **records** - 8 Marketing frameworks, 7 Customer and market analytics records and
+14 Digital marketing records. A row marked **computed** has a method the engine runs; **worksheet** means the
+template above; **no worksheet yet** means the framework can be read and cited but not worked through here.
+The label says what the product can do with the record today - it is not a judgment on whether the framework
+is valid.
 
 ## Your assignment requirement, and the tool that answers it
 
@@ -53,6 +58,10 @@ the framework is valid.
 | Is answer A associated with segment B? | `chi_square` | the cross-tabulated counts |
 | Which customer segments do we have, and how big is each? | `rfm_scoring` | each customer's recency in days, purchase count and monetary value, with unique names |
 | What does a media plan buy in reach, frequency and rating points? | `media_plan` | the target population and each vehicle's reach, insertions and cost |
+| What share of the market do we hold, and is it rising? | `market_share` | firm and market sales, and optionally a prior period, customers, population and the largest rival |
+| What is a customer worth once churn and time are counted? | `clv_model` | margin per period, churn, discount rate and horizon, optionally an acquisition cost |
+| Which segments actually make money? | `customer_profitability` | each segment's revenue, direct cost and any allocated cost |
+| A journey, Kano, service-quality, media or measurement plan | **worksheets**: customer journey map, Kano classification, SERVQUAL gap grid, paid media plan, measurement plan | your own evidence for each cell or block, marked user / sourced / assumption |
 
 If a requirement is not in the table, the shelf probably does not compute it: see **What is not built** at the
 end rather than forcing a number into the nearest tool.
@@ -221,6 +230,42 @@ Radio is by far the cheapest way to buy a rating point here, and print the deare
 **upper bound**: the formula assumes audiences overlap only by chance, and in reality heavy viewers of one
 vehicle tend to be heavy viewers of another. Points add up; people do not.
 
+### 10. What share of the market do we hold? - `marketshare` (`market_share`)
+
+Inputs: firm sales PHP 2,400,000, market sales PHP 12,000,000, prior firm PHP 2,100,000, prior market
+PHP 11,500,000, 48,000 customers, 400,000 people, largest rival PHP 3,600,000.
+
+- Market share = 2,400,000 / 12,000,000 = **20.00%**; prior share = **18.26%**, so the change is **+1.74 points**
+- Firm growth = **14.29%**, market growth = **4.35%** - the share rose because the firm outgrew the market
+- Penetration = 48,000 / 400,000 = **12.00%**
+- Relative share = 2,400,000 / 3,600,000 = **0.67**; the rival holds **30%**
+
+A relative share below one means the largest competitor is still bigger. Note what the tool cannot see: if you
+had drawn the market boundary more narrowly, every figure above would move without a single sale changing.
+
+### 11. What is a customer worth once churn and time are counted? - `clv` (`clv_model`)
+
+Inputs: margin PHP 1,500 a month, churn 4%, discount rate 10%, horizon 24 months, acquisition cost PHP 9,000.
+
+- Discounted value = **PHP 10,305.92**; undiscounted = **PHP 23,422.00**
+- Value per unit of acquisition cost = **1.15**; payback = **7 months**
+
+Time costs more than half the value here (10,305 against 23,422), which is exactly what the discount rate is
+for. A ratio of 1.15 is thin: a small rise in churn or in the acquisition cost takes it below one.
+
+### 12. Which segments actually make money? - `custprofit` (`customer_profitability`)
+
+Inputs: Enterprise PHP 5,000,000 revenue, 3,000,000 direct, 600,000 allocated; SME 3,000,000 / 2,100,000 /
+400,000; Retail 1,200,000 / 1,500,000 / 100,000.
+
+- Profits: Enterprise **PHP 1,400,000**, SME **PHP 500,000**, Retail **PHP -400,000**
+- Total profit **PHP 1,500,000**, overall margin **16.30%**
+- Profit shares: **93.33%**, **33.33%** and **-26.67%**
+- Two segments are profitable and one is not; **one** segment alone reaches 80% of the profit
+
+Retail loses money after the declared costs, and Enterprise carries the result. That is a description, not a
+decision: the tool cannot see the fixed cost Retail covers or the customers it brings to the other two.
+
 ## Practice set
 
 Use the presets, change one input at a time, and write down the effect before you look.
@@ -241,6 +286,9 @@ Use the presets, change one input at a time, and write down the effect before yo
 9. With the `rfm` preset, set customer C3's monetary value to PHP 1,000. Which segments change, and why?
 10. With the `mediaplan` preset, halve TV's insertions from 8 to 4. What happens to TV's rating points, the
     plan total, TV's cost per point and the combined reach?
+11. With the `marketshare` preset, halve the target population to 200,000. Which figures change?
+12. With the `clv` preset, raise churn from 4% to 8%. What happens to the value, the ratio and the payback?
+13. With the `custprofit` preset, cut Retail's direct cost to PHP 1,200,000. How do the counts change?
 
 ### Answer key
 
@@ -267,6 +315,15 @@ Use the presets, change one input at a time, and write down the effect before yo
     because the same cost now buys half the points. The combined reach does **not** change - reach was never the
     insertions - but the average frequency falls from 11.62 to about 8.89, since there are fewer impressions
     over the same audience.
+11. Only penetration changes, doubling to **24.00%**. Share, the share change and relative share rest on sales,
+    which the population does not touch - a good reminder that a population figure and a sales figure answer
+    different questions.
+12. The discounted value falls to about **PHP 8,218.97**, the ratio to **0.91** and payback extends to **8
+    months**; at that churn the customer no longer repays the PHP 9,000 acquisition cost. The undiscounted value
+    falls to about PHP 16,215.40.
+13. Retail's profit becomes **-PHP 100,000**, so total profit rises to **PHP 1,800,000**; the profitable and
+    unprofitable counts do not change, but the concentration count rises from one segment to **two**, because
+    Enterprise alone no longer reaches 80% of the smaller total.
 
 ## Handing it in
 
@@ -299,3 +356,12 @@ is usually worth marks, and it is always more honest than a number with no limit
   duplication, so it is an upper bound, and it has no wear-out or response curve.
 - **Budget allocation or a recommended buy.** No tool here says where to spend; `media_plan` and
   `channel_economics` describe what a declared plan or channel produced.
+- **Market data, competitor estimates and a tested market boundary.** `market_share` divides the figures you
+  declare on the market you declare; a narrower or wider boundary changes the share, and no share change is
+  tested for significance.
+- **Fitted churn, changing margin and cohort models.** `clv_model` values a constant margin at a constant
+  churn rate; a retention curve that rises or falls, expansion revenue and segment-level models are not built.
+- **Cost-allocation rules and customer-level profit.** `customer_profitability` takes the allocation you
+  declare; it does not choose one, absorb fixed cost, or report profit per individual customer.
+- **A derived Kano category or SERVQUAL average.** Both worksheets record the category, the gap or the notes
+  you concluded; the product computes no lookup and no mean.

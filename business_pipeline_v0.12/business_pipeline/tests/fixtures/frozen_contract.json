@@ -309,6 +309,27 @@
         "table"
       ]
     },
+    "clv_model": {
+      "tier": "T1",
+      "metric": "clv_discounted",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "undiscounted_value_is_the_closed_form_annuity",
+        "discounting_never_increases_the_value",
+        "a_single_period_is_the_margin_over_one_plus_the_rate",
+        "payback_is_the_first_period_whose_cumulative_margin_covers_the_cost"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "marketing and customers",
+      "inputs": [
+        "acquisition_cost",
+        "churn_rate",
+        "discount_rate",
+        "horizon_periods",
+        "margin_per_period"
+      ]
+    },
     "cohort_retention": {
       "tier": "T1",
       "metric": "average_retention",
@@ -460,6 +481,24 @@
         "rate_provenance",
         "rate_source",
         "to_currency"
+      ]
+    },
+    "customer_profitability": {
+      "tier": "T1",
+      "metric": "total_profit",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "profit_is_revenue_minus_direct_and_allocated_cost",
+        "total_profit_is_the_sum_of_the_segments",
+        "profit_shares_sum_to_one_when_the_total_is_positive",
+        "concentration_count_is_the_smallest_group_reaching_the_threshold"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "marketing and customers",
+      "inputs": [
+        "concentration_threshold",
+        "segments"
       ]
     },
     "dcf_valuation": {
@@ -1179,6 +1218,29 @@
       "inputs": [
         "marginal_cost",
         "price"
+      ]
+    },
+    "market_share": {
+      "tier": "T1",
+      "metric": "market_share",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "share_is_firm_sales_over_market_sales",
+        "share_lies_between_zero_and_one",
+        "share_change_is_the_difference_of_shares",
+        "relative_share_is_the_firm_over_the_largest_rival"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "marketing and customers",
+      "inputs": [
+        "customers",
+        "firm_sales",
+        "largest_competitor_sales",
+        "market_sales",
+        "prior_firm_sales",
+        "prior_market_sales",
+        "target_population"
       ]
     },
     "market_sizing": {
@@ -2599,6 +2661,7 @@
     "cea",
     "channelecon",
     "chi_square",
+    "clv",
     "cohort",
     "comparative",
     "concentration",
@@ -2606,6 +2669,7 @@
     "cournot",
     "cpm",
     "currency",
+    "custprofit",
     "dcf",
     "dcfmid",
     "demandcurve",
@@ -2640,6 +2704,7 @@
     "loan",
     "logit",
     "marketpower",
+    "marketshare",
     "marketsize",
     "mediaplan",
     "missing",

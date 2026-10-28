@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.7**, **1352 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.11**, **1410 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -63,7 +63,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`literature.py`](../src/bp/literature.py) | DOI retrieval + verification, response audit, durable retrieval log, provisional citation | `test_literature`, `test_literature_api`, `test_literature_log` | B-040, B-054, B-058; REW §9 |
 | [`server.py`](../src/bp/server.py) | Stdlib HTTP API, `PRESETS` | `test_session_api`, `test_literature_api` | B-002 |
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | — |
-| [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch, and the subject index + Calculator launcher (`subjects.py`). Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088, B-090 |
+| [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch, and the subject index + Business Calculator launcher (`subjects.py`, `calc_router.py`, committed `data/calc_inputs_v0_1.json`). Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088, B-090, B-132 |
 | [`product/intake.py`](../src/bp/product/intake.py) | Attached-file intake store: immutable bytes under `BP_INTAKE_DIR`, SHA-256, one record per file. It reads nothing; structured files are read by `bp.ingest` through the server and every other file stays `reference_only` | `test_product_intake` | B-080 |
 
 ## 3. By capability and status

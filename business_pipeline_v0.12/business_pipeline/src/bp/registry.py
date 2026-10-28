@@ -87,13 +87,15 @@ METHOD_LINK_RULES = [
      "top-down TAM, SAM and SOM from a declared population, spend and two shares are implemented; bottom-up "
      "segmentation, retrieved market data and a demand estimate are not implemented"),
     (r"^Market share, growth rates",
-     ["growth_rate", "sales_funnel"],
-     "compound and period growth rates and stage-by-stage funnel conversion are implemented; market share, "
-     "penetration and funnel leakage across channels are not implemented as methods"),
+     ["growth_rate", "sales_funnel", "market_share"],
+     "compound and period growth rates, market share with penetration and relative share, and stage-by-stage "
+     "funnel conversion are implemented; market-data retrieval, an estimated competitor and funnel leakage across "
+     "channels are not implemented"),
     (r"^Cohort retention",
-     ["cohort_retention", "unit_economics"],
-     "pooled cohort retention, churn, average lifetime and a single-rate LTV are implemented; repeat-purchase "
-     "analysis and segment-level retention are not implemented"),
+     ["cohort_retention", "unit_economics", "clv_model"],
+     "pooled cohort retention, churn, average lifetime, a single-rate LTV and a discounted customer lifetime value "
+     "over a declared horizon are implemented; fitted survival curves, segment-level retention and expansion "
+     "revenue are not implemented"),
     (r"^Demand forecasting",
      ["trend_forecast"],
      "a linear trend fit, forecast periods and a prediction interval are implemented; forecast-error measures, "
@@ -145,6 +147,21 @@ METHOD_LINK_RULES = [
      "reach, average frequency, gross impressions, gross rating points, cost per rating point, cost per thousand "
      "impressions and a combined reach under random duplication are computed from declared vehicles; measured "
      "audience overlap, effective frequency, scheduling and a recommended buy are not implemented"),
+    (r"^Which touchpoints receive credit",
+     ["attribution_split"],
+     "first-click, last-click and linear shares are compared from declared credit counts, with the spread per "
+     "channel; touchpoint logs, time-decay, position-based and data-driven models, holdouts and incrementality "
+     "are not implemented"),
+    (r"^The page or step to change",
+     ["ab_test_two_proportion", "power_analysis"],
+     "the two-proportion comparison, its interval and the sample each arm needs are implemented, with a separate "
+     "sample-size and power method; sequential tests, more than two arms, qualitative research and a design "
+     "recommendation are not implemented"),
+    (r"^Customer profitability and contribution analysis",
+     ["customer_profitability"],
+     "revenue, declared cost, profit, margin and profit share by segment, with the totals, the profitable and "
+     "unprofitable counts and a concentration count, are implemented; cost-allocation rules, fixed-cost absorption, "
+     "customer-level profitability and significance tests are not implemented"),
     (r"^Data profiling, descriptive statistics", ["descriptive_stats"], "descriptive statistics for one variable only; cross-tabulation and visualization are not implemented"),
     (r"^Chi-square tests, t-tests, ANOVA",
      ["welch_t", "mann_whitney", "chi_square", "anova", "kruskal_wallis", "two_way_anova", "posthoc_pairwise",
@@ -184,7 +201,12 @@ TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01"
                   "STR-06": "template_pestel", "STR-03": "template_value_chain", "STR-09": "template_ansoff",
                   "STR-13": "template_blue_ocean_errc", "STR-04": "template_activity_system_fit",
                   "STR-14": "template_scenario_planning", "STR-12": "template_strategic_group_map",
-                  "STR-08": "template_vrio"}
+                  "STR-08": "template_vrio",
+                  "PM-05": "template_project_charter", "PM-06": "template_risk_register",
+                  "PM-09": "template_wbs", "PM-10": "template_raci",
+                  "MKT-04": "template_customer_journey", "MKT-06": "template_kano",
+                  "MKT-07": "template_servqual", "MKT-15": "template_paid_media_plan",
+                  "MKT-18": "template_measurement_plan"}
 
 #: What the product can do with a record today.  Kept separate from the
 #: catalogue's evidence vocabulary (all 140 records are still `unreviewed`):

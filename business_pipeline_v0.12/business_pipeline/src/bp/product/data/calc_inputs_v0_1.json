@@ -1,0 +1,3593 @@
+{
+ "format": "bp-calc-inputs/1",
+ "methods": {
+  "ab_test_two_proportion": {
+   "inputs": {
+    "alpha": {
+     "desc": "two-sided significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "conversions_a": {
+     "desc": "conversions in the control arm",
+     "required": true,
+     "type": "decimal"
+    },
+    "conversions_b": {
+     "desc": "conversions in the variant arm",
+     "required": true,
+     "type": "decimal"
+    },
+    "minimum_effect": {
+     "desc": "optional relative lift to detect, as a decimal (10% is 0.10)",
+     "required": false,
+     "type": "decimal"
+    },
+    "power": {
+     "desc": "target power for the sample-size calculation, default 0.8",
+     "required": false,
+     "type": "decimal"
+    },
+    "visitors_a": {
+     "desc": "visitors or users assigned to the control arm",
+     "required": true,
+     "type": "decimal"
+    },
+    "visitors_b": {
+     "desc": "visitors or users assigned to the variant arm",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "abc_costing": {
+   "inputs": {
+    "activities": {
+     "desc": "one record per activity pool: a name and its cost",
+     "required": true,
+     "type": "records"
+    },
+    "allocations": {
+     "desc": "one record per activity-product pair: the driver quantity that product consumed",
+     "required": true,
+     "type": "records"
+    },
+    "products": {
+     "desc": "one record per product: a name and its units produced",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "anova": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)",
+     "required": true,
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "required": false,
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "attribution_split": {
+   "inputs": {
+    "channels": {
+     "desc": "two to twelve channels, each with its declared credited conversions under the three rules",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "balance_of_payments": {
+   "inputs": {
+    "capital_account": {
+     "desc": "capital-account balance",
+     "required": true,
+     "type": "decimal"
+    },
+    "current_account": {
+     "desc": "current-account balance",
+     "required": true,
+     "type": "decimal"
+    },
+    "errors_and_omissions": {
+     "desc": "net errors and omissions, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "financial_account": {
+     "desc": "financial-account balance",
+     "required": true,
+     "type": "decimal"
+    },
+    "gdp": {
+     "desc": "optional nominal GDP for the current-account ratio",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "bond_analysis": {
+   "inputs": {
+    "coupon_rate": {
+     "desc": "ANNUAL coupon rate as a decimal, e.g. 0.08 for 8%",
+     "required": true,
+     "type": "decimal"
+    },
+    "face_value": {
+     "desc": "amount repaid at maturity, e.g. 1000",
+     "required": true,
+     "type": "decimal"
+    },
+    "payments_per_year": {
+     "desc": "coupon payments a year; default 2 (semiannual)",
+     "required": false,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "market price to solve the yield from; leave blank if you supply the yield",
+     "required": false,
+     "type": "decimal"
+    },
+    "years_to_maturity": {
+     "desc": "years until the bond matures",
+     "required": true,
+     "type": "decimal"
+    },
+    "yield_to_maturity": {
+     "desc": "annual yield as a decimal, to price the bond; leave blank if you supply a price instead",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "breakeven": {
+   "inputs": {
+    "expected_units": {
+     "desc": "optional expected sales volume, for the margin of safety",
+     "required": false,
+     "type": "decimal"
+    },
+    "fixed": {
+     "desc": "total fixed cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "target_profit": {
+     "desc": "optional pre-tax profit target, for the required volume",
+     "required": false,
+     "type": "decimal"
+    },
+    "variable": {
+     "desc": "variable cost per unit",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "budget_debt": {
+   "inputs": {
+    "debt_stock": {
+     "desc": "the debt stock at the start of the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "government_revenue": {
+     "desc": "total government revenue",
+     "required": true,
+     "type": "decimal"
+    },
+    "government_spending": {
+     "desc": "primary spending, excluding interest",
+     "required": true,
+     "type": "decimal"
+    },
+    "inflation_rate": {
+     "desc": "optional inflation rate for the real interest rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "interest_payments": {
+     "desc": "interest paid on the debt",
+     "required": true,
+     "type": "decimal"
+    },
+    "nominal_gdp": {
+     "desc": "nominal GDP",
+     "required": true,
+     "type": "decimal"
+    },
+    "nominal_growth_rate": {
+     "desc": "nominal GDP growth rate",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "campaign_efficiency": {
+   "inputs": {
+    "clicks": {
+     "desc": "clicks recorded in the same period",
+     "required": true,
+     "type": "decimal"
+    },
+    "contribution_margin_rate": {
+     "desc": "optional contribution margin as a fraction of revenue, for break-even return on ad spend",
+     "required": false,
+     "type": "decimal"
+    },
+    "conversions": {
+     "desc": "conversions you define and count in the same period",
+     "required": true,
+     "type": "decimal"
+    },
+    "impressions": {
+     "desc": "impressions served in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue you attribute to the campaign; enter 0 when none is attributable",
+     "required": true,
+     "type": "decimal"
+    },
+    "spend": {
+     "desc": "media spend for the period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cap_table_round": {
+   "inputs": {
+    "founders_shares": {
+     "desc": "shares outstanding before the round (founders and any existing holders)",
+     "required": true,
+     "type": "decimal"
+    },
+    "investment": {
+     "desc": "the new money invested in this round",
+     "required": true,
+     "type": "decimal"
+    },
+    "option_pool_pct": {
+     "desc": "optional post-money option pool as a fraction of the fully diluted company, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "pre_money_valuation": {
+     "desc": "the agreed value of the company before the new money",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "capacity_analysis": {
+   "inputs": {
+    "demand": {
+     "desc": "optional demand for the period, for utilisation and the capacity gap",
+     "required": false,
+     "type": "decimal"
+    },
+    "resources": {
+     "desc": "one record per resource: a name, the hours available in the period and the minutes it needs per unit",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "capm": {
+   "inputs": {
+    "beta": {
+     "desc": "beta of the asset or firm; leave blank to estimate it from the two return series",
+     "required": false,
+     "type": "decimal"
+    },
+    "debt_to_equity": {
+     "desc": "debt divided by equity at market values, for Hamada relevering; leave blank if not needed",
+     "required": false,
+     "type": "decimal"
+    },
+    "market_return": {
+     "desc": "expected annual market return as a decimal, e.g. 0.10",
+     "required": true,
+     "type": "decimal"
+    },
+    "returns_asset": {
+     "desc": "the asset's periodic returns, one per period, used only when beta is not declared",
+     "required": false,
+     "type": "value_list"
+    },
+    "returns_market": {
+     "desc": "the market's returns for the same periods, used only when beta is not declared",
+     "required": false,
+     "type": "value_list"
+    },
+    "risk_free_rate": {
+     "desc": "annual risk-free rate as a decimal, e.g. 0.04",
+     "required": true,
+     "type": "decimal"
+    },
+    "tax_rate": {
+     "desc": "corporate tax rate as a decimal, used only with debt_to_equity",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cash_runway": {
+   "inputs": {
+    "monthly_growth": {
+     "desc": "monthly growth applied to the net flow, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "monthly_net_cash_flow": {
+     "desc": "cash received minus cash paid in a month; must be negative for a runway",
+     "required": true,
+     "type": "decimal"
+    },
+    "opening_cash": {
+     "desc": "cash on hand at the start",
+     "required": true,
+     "type": "decimal"
+    },
+    "target_months": {
+     "desc": "horizon for the lowest balance and funding gap, default 12 (a whole number from 1 to 120)",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "channel_economics": {
+   "inputs": {
+    "channels": {
+     "desc": "two to twelve channels, each with spend, new customers, contribution margin per customer and period churn",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "chi_square": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "table": {
+     "desc": "a table of non-negative whole-number counts (rows x columns)",
+     "required": true,
+     "type": "count_table"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "clv_model": {
+   "inputs": {
+    "acquisition_cost": {
+     "desc": "optional cost of winning the customer, for the value ratio and payback",
+     "required": false,
+     "type": "decimal"
+    },
+    "churn_rate": {
+     "desc": "share of customers lost each period, as a decimal (4% is 0.04)",
+     "required": true,
+     "type": "decimal"
+    },
+    "discount_rate": {
+     "desc": "period discount rate, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "horizon_periods": {
+     "desc": "periods to value, default 12, at most 60",
+     "required": false,
+     "type": "decimal"
+    },
+    "margin_per_period": {
+     "desc": "contribution margin the customer leaves in one period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cohort_retention": {
+   "inputs": {
+    "cohort_sizes": {
+     "desc": "starting customers in each cohort, one per row of retained",
+     "required": true,
+     "type": "value_list"
+    },
+    "retained": {
+     "desc": "one row per cohort, one column per period, holding the customers still retained",
+     "required": true,
+     "type": "value_matrix"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "comparative_advantage": {
+   "inputs": {
+    "countries": {
+     "desc": "exactly two countries with their unit labour requirements",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cost_benefit": {
+   "inputs": {
+    "benefits": {
+     "desc": "benefit per period, same length as costs",
+     "required": true,
+     "type": "value_list"
+    },
+    "costs": {
+     "desc": "cost per period, starting at period 1",
+     "required": true,
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, default 0",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "cost_curves": {
+   "inputs": {
+    "fixed_cost": {
+     "desc": "total fixed cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "linear_cost": {
+     "desc": "linear variable cost per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "optional price for revenue and profit",
+     "required": false,
+     "type": "decimal"
+    },
+    "quadratic_cost": {
+     "desc": "quadratic variable cost per unit squared",
+     "required": true,
+     "type": "decimal"
+    },
+    "quantity": {
+     "desc": "the quantity at which costs are evaluated",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cost_effectiveness": {
+   "inputs": {
+    "options": {
+     "desc": "the first option is the comparator; each other option is compared with it on cost and effect",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "cournot_duopoly": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in P = a - bQ",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in P = a - bQ, positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_cost_1": {
+     "desc": "constant marginal cost of firm one",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_cost_2": {
+     "desc": "constant marginal cost of firm two",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cpm_schedule": {
+   "inputs": {
+    "activities": {
+     "desc": "one row per activity: id, duration (or optimistic, most_likely, pessimistic), and optional predecessors as a comma-separated list of ids",
+     "required": true,
+     "type": "rows"
+    },
+    "estimate": {
+     "desc": "single duration (default) or a PERT three-point estimate",
+     "required": false,
+     "type": "enum"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "currency_convert": {
+   "inputs": {
+    "amount": {
+     "desc": "the amount in the source currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "from_currency": {
+     "desc": "ISO 4217 code, e.g. USD",
+     "required": true,
+     "type": "currency"
+    },
+    "rate": {
+     "desc": "units of the target currency per one unit of the source currency (declared)",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate_date": {
+     "desc": "the rate date as YYYY-MM-DD (recorded, not verified)",
+     "required": false,
+     "type": "text"
+    },
+    "rate_provenance": {
+     "desc": "default user",
+     "required": false,
+     "type": "enum"
+    },
+    "rate_source": {
+     "desc": "where a sourced rate came from (recorded, not verified)",
+     "required": false,
+     "type": "text"
+    },
+    "to_currency": {
+     "desc": "ISO 4217 code, e.g. EUR, CNY, JPY",
+     "required": true,
+     "type": "currency"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "customer_profitability": {
+   "inputs": {
+    "concentration_threshold": {
+     "desc": "optional share of total profit for the concentration count, default 0.8",
+     "required": false,
+     "type": "decimal"
+    },
+    "segments": {
+     "desc": "two to fifty segments, each with a unique name, its revenue, its direct cost and (optionally) the shared cost you choose to allocate to it",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dcf_valuation": {
+   "inputs": {
+    "cashflows": {
+     "desc": "free cash flows, one per period, first in period 1",
+     "required": true,
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, e.g. 0.10",
+     "required": true,
+     "type": "decimal"
+    },
+    "terminal_growth": {
+     "desc": "optional perpetual growth after the forecast; must be below the discount rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "timing": {
+     "desc": "discounting convention: 'end' (default, end-of-period) or 'mid' (mid-year, exponents t-0.5)",
+     "required": false,
+     "type": "enum"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "demand_curve": {
+   "inputs": {
+    "prices": {
+     "desc": "observed or declared prices, one per observation",
+     "required": true,
+     "type": "value_list"
+    },
+    "quantities": {
+     "desc": "quantity demanded at each price, paired by position",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "demand_supply_equilibrium": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in Qd = a - bP",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in Qd = a - bP, must be positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_intercept": {
+     "desc": "c in Qs = c + dP",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_slope": {
+     "desc": "d in Qs = c + dP, must be positive",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "descriptive_stats": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "required": false,
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "difference_in_differences": {
+   "inputs": {
+    "control_post": {
+     "desc": "control group mean after",
+     "required": true,
+     "type": "decimal"
+    },
+    "control_pre": {
+     "desc": "control group mean before",
+     "required": true,
+     "type": "decimal"
+    },
+    "treated_post": {
+     "desc": "treated group mean after",
+     "required": true,
+     "type": "decimal"
+    },
+    "treated_pre": {
+     "desc": "treated group mean before",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "discounted_payback": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0 and negative (the initial outlay)",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "rate": {
+     "desc": "periodic discount rate, default 0",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dupont_analysis": {
+   "inputs": {
+    "cost_of_sales": {
+     "desc": "cost of sales, to add the gross margin and the cost-to-revenue common-size ratio",
+     "required": false,
+     "type": "decimal"
+    },
+    "ebit": {
+     "desc": "operating profit (EBIT), for the five-step form",
+     "required": false,
+     "type": "decimal"
+    },
+    "equity": {
+     "desc": "total equity at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "net_income": {
+     "desc": "net income for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "pretax_income": {
+     "desc": "pre-tax income, for the five-step form",
+     "required": false,
+     "type": "decimal"
+    },
+    "prior_equity": {
+     "desc": "last period's total equity",
+     "required": false,
+     "type": "decimal"
+    },
+    "prior_net_income": {
+     "desc": "last period's net income",
+     "required": false,
+     "type": "decimal"
+    },
+    "prior_revenue": {
+     "desc": "last period's revenue, for growth and the prior ROE",
+     "required": false,
+     "type": "decimal"
+    },
+    "prior_total_assets": {
+     "desc": "last period's total assets",
+     "required": false,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "tax_expense": {
+     "desc": "tax expense, for the five-step form",
+     "required": false,
+     "type": "decimal"
+    },
+    "total_assets": {
+     "desc": "total assets at the period end",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "earned_value": {
+   "inputs": {
+    "actual_cost": {
+     "desc": "cost actually incurred for the work completed",
+     "required": true,
+     "type": "decimal"
+    },
+    "budget_at_completion": {
+     "desc": "total approved budget for the project",
+     "required": true,
+     "type": "decimal"
+    },
+    "eac_method": {
+     "desc": "estimate at completion as BAC/CPI (default) or AC + (BAC - EV)",
+     "required": false,
+     "type": "enum"
+    },
+    "earned_value": {
+     "desc": "budgeted cost of the work actually completed",
+     "required": true,
+     "type": "decimal"
+    },
+    "planned_value": {
+     "desc": "budgeted cost of the work scheduled by the status date",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "elasticity": {
+   "inputs": {
+    "price_1": {
+     "desc": "price at the first observation",
+     "required": true,
+     "type": "decimal"
+    },
+    "price_2": {
+     "desc": "price at the second observation",
+     "required": true,
+     "type": "decimal"
+    },
+    "quantity_1": {
+     "desc": "quantity at the first observation",
+     "required": true,
+     "type": "decimal"
+    },
+    "quantity_2": {
+     "desc": "quantity at the second observation",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "email_list_health": {
+   "inputs": {
+    "bounces": {
+     "desc": "addresses that hard-bounced in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "clicks": {
+     "desc": "clicks recorded",
+     "required": true,
+     "type": "decimal"
+    },
+    "list_start": {
+     "desc": "subscribers on the list at the start of the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "new_subscribers": {
+     "desc": "subscribers added in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "opens": {
+     "desc": "opens recorded; a machine open still counts",
+     "required": true,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue you attribute to the sends",
+     "required": true,
+     "type": "decimal"
+    },
+    "sends": {
+     "desc": "messages sent in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "unsubscribes": {
+     "desc": "subscribers who unsubscribed in the period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "equity_bridge": {
+   "inputs": {
+    "cash": {
+     "desc": "cash and cash equivalents, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "debt": {
+     "desc": "total debt at the valuation date, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "enterprise_value": {
+     "desc": "the enterprise value to bridge, from a declared valuation",
+     "required": true,
+     "type": "decimal"
+    },
+    "minority_interest": {
+     "desc": "non-controlling interest to subtract, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "preferred_equity": {
+     "desc": "preferred equity claim to subtract, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "optional share count for a per-share value",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "exchange_rate_ppp": {
+   "inputs": {
+    "domestic_inflation": {
+     "desc": "optional domestic inflation for relative PPP",
+     "required": false,
+     "type": "decimal"
+    },
+    "foreign_inflation": {
+     "desc": "optional foreign inflation for relative PPP",
+     "required": false,
+     "type": "decimal"
+    },
+    "nominal_rate": {
+     "desc": "domestic currency per one unit of foreign currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "price_domestic": {
+     "desc": "domestic price level or basket cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "price_foreign": {
+     "desc": "foreign price level in foreign currency",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "expected_utility": {
+   "inputs": {
+    "outcomes": {
+     "desc": "positive final wealth outcomes",
+     "required": true,
+     "type": "value_list"
+    },
+    "probabilities": {
+     "desc": "probabilities, same length, summing to one",
+     "required": true,
+     "type": "value_list"
+    },
+    "risk_aversion": {
+     "desc": "CRRA coefficient, default 1",
+     "required": false,
+     "type": "decimal"
+    },
+    "utility_function": {
+     "desc": "default crra",
+     "required": false,
+     "type": "enum"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "externality_pigouvian": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in Qd = a - bP",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in Qd = a - bP, positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_external_cost": {
+     "desc": "external cost per unit produced",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_intercept": {
+     "desc": "c in Qs = c + dP",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_slope": {
+     "desc": "d in Qs = c + dP, positive",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "fiscal_multiplier": {
+   "inputs": {
+    "government_spending_change": {
+     "desc": "change in government spending, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "mpc": {
+     "desc": "marginal propensity to consume, between zero and one",
+     "required": true,
+     "type": "decimal"
+    },
+    "tax_change": {
+     "desc": "change in lump-sum tax, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "tax_rate": {
+     "desc": "proportional income tax rate, default 0",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "fx_parity": {
+   "inputs": {
+    "domestic_inflation": {
+     "desc": "domestic annual inflation as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "domestic_rate": {
+     "desc": "domestic nominal annual interest rate as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "expected_spot": {
+     "desc": "spot rate you expect at settlement; defaults to the PPP expected spot",
+     "required": false,
+     "type": "decimal"
+    },
+    "exposure_amount": {
+     "desc": "foreign-currency amount receivable or payable, to compare hedged and unhedged",
+     "required": false,
+     "type": "decimal"
+    },
+    "foreign_inflation": {
+     "desc": "foreign annual inflation as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "foreign_rate": {
+     "desc": "foreign nominal annual interest rate as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "forward_rate": {
+     "desc": "a quoted forward rate, to compare with the parity forward and compute its premium",
+     "required": false,
+     "type": "decimal"
+    },
+    "hedge_forward": {
+     "desc": "forward rate at which the exposure would be hedged",
+     "required": false,
+     "type": "decimal"
+    },
+    "spot_rate": {
+     "desc": "spot exchange rate quoted as domestic currency per one unit of foreign currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "time_to_maturity": {
+     "desc": "horizon in years",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "gini_coefficient": {
+   "inputs": {
+    "incomes": {
+     "desc": "declared incomes, non-negative",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "growth_rate": {
+   "inputs": {
+    "end_value": {
+     "desc": "the value at the end",
+     "required": true,
+     "type": "decimal"
+    },
+    "periods": {
+     "desc": "the number of periods between the two values",
+     "required": true,
+     "type": "decimal"
+    },
+    "population_end": {
+     "desc": "optional ending population for per-capita growth",
+     "required": false,
+     "type": "decimal"
+    },
+    "population_start": {
+     "desc": "optional starting population for per-capita growth",
+     "required": false,
+     "type": "decimal"
+    },
+    "start_value": {
+     "desc": "the value at the start",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "hdi": {
+   "inputs": {
+    "expected_years_schooling": {
+     "desc": "expected years of schooling",
+     "required": true,
+     "type": "decimal"
+    },
+    "gni_per_capita": {
+     "desc": "GNI per capita in purchasing-power terms",
+     "required": true,
+     "type": "decimal"
+    },
+    "life_expectancy": {
+     "desc": "life expectancy at birth in years",
+     "required": true,
+     "type": "decimal"
+    },
+    "mean_years_schooling": {
+     "desc": "mean years of schooling",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "inflation_cpi": {
+   "inputs": {
+    "cpi_end": {
+     "desc": "the CPI at the end",
+     "required": true,
+     "type": "decimal"
+    },
+    "cpi_start": {
+     "desc": "the CPI at the start",
+     "required": true,
+     "type": "decimal"
+    },
+    "nominal_interest_rate": {
+     "desc": "nominal interest rate, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "wage_end": {
+     "desc": "optional nominal wage at the end",
+     "required": false,
+     "type": "decimal"
+    },
+    "wage_start": {
+     "desc": "optional nominal wage at the start",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "instrumental_variables": {
+   "inputs": {
+    "x": {
+     "desc": "the endogenous regressor",
+     "required": true,
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "the outcome",
+     "required": true,
+     "type": "value_list"
+    },
+    "z": {
+     "desc": "the excluded instrument",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "interest_rate_parity": {
+   "inputs": {
+    "domestic_inflation": {
+     "desc": "optional domestic inflation for the real rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "domestic_rate": {
+     "desc": "domestic interest rate for the horizon",
+     "required": true,
+     "type": "decimal"
+    },
+    "foreign_inflation": {
+     "desc": "optional foreign inflation for the real rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "foreign_rate": {
+     "desc": "foreign interest rate for the horizon",
+     "required": true,
+     "type": "decimal"
+    },
+    "forward_rate": {
+     "desc": "optional declared forward rate to compare with parity",
+     "required": false,
+     "type": "decimal"
+    },
+    "spot_rate": {
+     "desc": "spot domestic currency per foreign currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "time_to_maturity": {
+     "desc": "horizon in years",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "inventory_policy": {
+   "inputs": {
+    "annual_demand": {
+     "desc": "units demanded in a year",
+     "required": true,
+     "type": "decimal"
+    },
+    "daily_demand_sd": {
+     "desc": "optional standard deviation of daily demand, for safety stock",
+     "required": false,
+     "type": "decimal"
+    },
+    "days_per_year": {
+     "desc": "trading days in a year, default 365",
+     "required": false,
+     "type": "decimal"
+    },
+    "holding_cost_per_unit": {
+     "desc": "cost of holding one unit for a year",
+     "required": true,
+     "type": "decimal"
+    },
+    "lead_time_days": {
+     "desc": "supplier lead time in days",
+     "required": true,
+     "type": "decimal"
+    },
+    "order_cost": {
+     "desc": "cost of placing one order",
+     "required": true,
+     "type": "decimal"
+    },
+    "service_level": {
+     "desc": "optional service level between zero and one, e.g. 0.95",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "irr": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0 (normally the negative outlay)",
+     "required": true,
+     "type": "decimal_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "kruskal_wallis": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)",
+     "required": true,
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "required": false,
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "labour_market": {
+   "inputs": {
+    "cpi": {
+     "desc": "consumer price index, base 100",
+     "required": true,
+     "type": "decimal"
+    },
+    "labour_productivity": {
+     "desc": "output per worker",
+     "required": true,
+     "type": "decimal"
+    },
+    "nominal_wage": {
+     "desc": "nominal wage",
+     "required": true,
+     "type": "decimal"
+    },
+    "unemployment_rate": {
+     "desc": "optional unemployment rate as a fraction for tightness",
+     "required": false,
+     "type": "decimal"
+    },
+    "vacancies": {
+     "desc": "optional vacancy count",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "leverage_analysis": {
+   "inputs": {
+    "alternative_interest_expense": {
+     "desc": "interest the alternative financing plan would carry, for EBIT-EPS indifference",
+     "required": false,
+     "type": "decimal"
+    },
+    "alternative_shares_outstanding": {
+     "desc": "shares under the alternative plan, which must differ from the current count",
+     "required": false,
+     "type": "decimal"
+    },
+    "debt": {
+     "desc": "interest-bearing debt",
+     "required": true,
+     "type": "decimal"
+    },
+    "ebit": {
+     "desc": "earnings before interest and tax",
+     "required": true,
+     "type": "decimal"
+    },
+    "equity": {
+     "desc": "book equity",
+     "required": true,
+     "type": "decimal"
+    },
+    "interest_expense": {
+     "desc": "interest expense for the period, as a positive amount",
+     "required": true,
+     "type": "decimal"
+    },
+    "market_value_equity": {
+     "desc": "market value of equity, for Altman",
+     "required": false,
+     "type": "decimal"
+    },
+    "retained_earnings": {
+     "desc": "retained earnings, for Altman",
+     "required": false,
+     "type": "decimal"
+    },
+    "sales": {
+     "desc": "sales, for Altman",
+     "required": false,
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "number of ordinary shares outstanding",
+     "required": true,
+     "type": "decimal"
+    },
+    "tax_rate": {
+     "desc": "corporate tax rate as a decimal, e.g. 0.30",
+     "required": true,
+     "type": "decimal"
+    },
+    "total_assets": {
+     "desc": "total assets, for Altman",
+     "required": false,
+     "type": "decimal"
+    },
+    "total_liabilities": {
+     "desc": "total liabilities, for Altman",
+     "required": false,
+     "type": "decimal"
+    },
+    "working_capital": {
+     "desc": "current assets minus current liabilities, for Altman",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "line_balancing": {
+   "inputs": {
+    "cycle_time": {
+     "desc": "the time available at each station for one unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "rule": {
+     "desc": "the heuristic: longest task time (default) or ranked positional weight",
+     "required": false,
+     "type": "enum"
+    },
+    "tasks": {
+     "desc": "one row per task: id (or name), time, and optional predecessors as a comma-separated list of task ids",
+     "required": true,
+     "type": "rows"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "loan_amortization": {
+   "inputs": {
+    "annual_rate": {
+     "desc": "nominal ANNUAL interest rate as a decimal, e.g. 0.09 for 9%",
+     "required": true,
+     "type": "decimal"
+    },
+    "payments_per_year": {
+     "desc": "number of payments a year; default 12 (monthly)",
+     "required": false,
+     "type": "decimal"
+    },
+    "principal": {
+     "desc": "amount borrowed",
+     "required": true,
+     "type": "decimal"
+    },
+    "years": {
+     "desc": "loan term in YEARS",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "logistic_regression": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row missing anything is dropped and counted",
+     "required": false,
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "named numeric predictor columns, same length as y",
+     "required": true,
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "the outcome, coded 0 or 1",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "management_accounts": {
+   "inputs": {
+    "spec": {
+     "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules",
+     "required": true,
+     "type": "engagement_spec"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "mann_whitney": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "exactly two groups: name -> observations (letters and underscores in names; group sizes may differ)",
+     "required": true,
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "required": false,
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "market_concentration": {
+   "inputs": {
+    "firm_revenues": {
+     "desc": "revenue for each firm; shares are derived from the total",
+     "required": true,
+     "type": "decimal_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "market_power": {
+   "inputs": {
+    "marginal_cost": {
+     "desc": "marginal cost at the relevant quantity",
+     "required": true,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "the observed or declared price",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "market_share": {
+   "inputs": {
+    "customers": {
+     "desc": "optional number of customers who bought, declared with target_population",
+     "required": false,
+     "type": "decimal"
+    },
+    "firm_sales": {
+     "desc": "the firm's sales in the period, in the declared currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "largest_competitor_sales": {
+     "desc": "optional sales of the largest named competitor",
+     "required": false,
+     "type": "decimal"
+    },
+    "market_sales": {
+     "desc": "total sales of the market on the same definition and period",
+     "required": true,
+     "type": "decimal"
+    },
+    "prior_firm_sales": {
+     "desc": "optional prior-period firm sales, declared with prior_market_sales",
+     "required": false,
+     "type": "decimal"
+    },
+    "prior_market_sales": {
+     "desc": "optional prior-period market sales",
+     "required": false,
+     "type": "decimal"
+    },
+    "target_population": {
+     "desc": "optional people or accounts in the target market",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "market_sizing": {
+   "inputs": {
+    "annual_spend_per_customer": {
+     "desc": "average annual spend per customer, in your currency",
+     "required": true,
+     "type": "decimal"
+    },
+    "obtainable_share": {
+     "desc": "the fraction of the serviceable market you can win, greater than zero and at most one",
+     "required": true,
+     "type": "decimal"
+    },
+    "serviceable_share": {
+     "desc": "the fraction of the market you can realistically serve, greater than zero and at most one",
+     "required": true,
+     "type": "decimal"
+    },
+    "target_population": {
+     "desc": "the number of potential customers in the declared market",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "media_plan": {
+   "inputs": {
+    "population": {
+     "desc": "people in the target population the reach is measured against",
+     "required": true,
+     "type": "decimal"
+    },
+    "vehicles": {
+     "desc": "one to twelve vehicles, each with a unique name, the people reached at least once, the average number of insertions per reached person and the cost",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "missing_data_bounds": {
+   "inputs": {
+    "mechanism": {
+     "desc": "the mechanism you declare (recorded, not verified); default unknown",
+     "required": false,
+     "type": "enum"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "required": false,
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "money_multiplier": {
+   "inputs": {
+    "currency_drain_ratio": {
+     "desc": "currency held outside banks as a fraction of deposits, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "monetary_base": {
+     "desc": "the monetary base",
+     "required": true,
+     "type": "decimal"
+    },
+    "reserve_ratio": {
+     "desc": "the reserve requirement as a fraction, greater than zero and at most one",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multi_product_breakeven": {
+   "inputs": {
+    "fixed_costs": {
+     "desc": "total fixed costs for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "products": {
+     "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multiple_comparison": {
+   "inputs": {
+    "alpha": {
+     "desc": "family-wise level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "method": {
+     "desc": "holm (step-down, uniformly more powerful) or bonferroni",
+     "required": true,
+     "type": "enum"
+    },
+    "p_values": {
+     "desc": "the raw p-values of one declared family",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "multiples_valuation": {
+   "inputs": {
+    "comparables": {
+     "desc": "peer rows with a name and its multiple, e.g. name 'Peer A' with multiple 12.5",
+     "required": false,
+     "type": "records"
+    },
+    "metric": {
+     "desc": "which multiple you are applying: P/E and P/B are equity multiples, EV/EBITDA and EV/Sales are enterprise multiples",
+     "required": true,
+     "type": "enum"
+    },
+    "net_debt": {
+     "desc": "debt minus cash; used to bridge enterprise value to equity value (default zero)",
+     "required": false,
+     "type": "decimal"
+    },
+    "peer_multiple": {
+     "desc": "a single peer or sector multiple, used if you have no peer rows",
+     "required": false,
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "shares outstanding, to add a value per share",
+     "required": false,
+     "type": "decimal"
+    },
+    "subject_value": {
+     "desc": "the subject company's earnings, EBITDA, sales or book value, matching the metric",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "nash_equilibrium": {
+   "inputs": {
+    "column_payoffs": {
+     "desc": "column player's payoffs in the same cell order",
+     "required": true,
+     "type": "value_list"
+    },
+    "row_payoffs": {
+     "desc": "row player's payoffs in the order (row one, column one), (row one, column two), (row two, column one), (row two, column two)",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "national_income": {
+   "inputs": {
+    "consumption": {
+     "desc": "household consumption",
+     "required": true,
+     "type": "decimal"
+    },
+    "depreciation": {
+     "desc": "capital consumption, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "exports": {
+     "desc": "exports of goods and services",
+     "required": true,
+     "type": "decimal"
+    },
+    "gdp_deflator": {
+     "desc": "optional GDP deflator index (base 100) for real GDP",
+     "required": false,
+     "type": "decimal"
+    },
+    "government_spending": {
+     "desc": "government consumption and investment",
+     "required": true,
+     "type": "decimal"
+    },
+    "imports": {
+     "desc": "imports of goods and services",
+     "required": true,
+     "type": "decimal"
+    },
+    "investment": {
+     "desc": "gross investment",
+     "required": true,
+     "type": "decimal"
+    },
+    "net_factor_income": {
+     "desc": "net factor income from abroad, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "population": {
+     "desc": "optional population for GDP per capita",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "npv": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "rate": {
+     "desc": "discount rate per period, e.g. 0.10",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "oee_analysis": {
+   "inputs": {
+    "downtime": {
+     "desc": "unplanned and planned stops inside the planned time",
+     "required": true,
+     "type": "decimal"
+    },
+    "good_units": {
+     "desc": "units that met the quality standard",
+     "required": true,
+     "type": "decimal"
+    },
+    "ideal_cycle_time": {
+     "desc": "the ideal time to make one unit, in the same time unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "planned_production_time": {
+     "desc": "planned production time for the period, in your time unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "total_units": {
+     "desc": "units produced in the run time",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ols": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row with any missing value is excluded",
+     "required": false,
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "name -> values for each predictor, paired by position with y (names: letters and underscores only)",
+     "required": true,
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "outcome variable; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ols_robust": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; a row with any missing value is excluded",
+     "required": false,
+     "type": "code_list"
+    },
+    "predictors": {
+     "desc": "name -> values for each predictor, paired by position with y (names: letters and underscores only)",
+     "required": true,
+     "type": "column_map"
+    },
+    "y": {
+     "desc": "outcome variable; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "one_sample_t": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "required": false,
+     "type": "code_list"
+    },
+    "mu0": {
+     "desc": "the reference value the mean is compared with",
+     "required": true,
+     "type": "decimal"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "optimal_pollution": {
+   "inputs": {
+    "marginal_abatement_intercept": {
+     "desc": "intercept of the marginal-abatement-cost curve",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_abatement_slope": {
+     "desc": "positive slope of marginal abatement cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_damage_intercept": {
+     "desc": "intercept of the marginal-damage curve",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_damage_slope": {
+     "desc": "positive slope of marginal damage",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "option_pricing": {
+   "inputs": {
+    "dividend_yield": {
+     "desc": "continuous dividend yield as a decimal; default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "option_type": {
+     "desc": "call (right to buy) or put (right to sell)",
+     "required": true,
+     "type": "enum"
+    },
+    "risk_free_rate": {
+     "desc": "annual continuously compounded risk-free rate as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "spot_price": {
+     "desc": "current price of the underlying asset",
+     "required": true,
+     "type": "decimal"
+    },
+    "steps": {
+     "desc": "binomial steps for the cross-check; default 200, maximum 2000",
+     "required": false,
+     "type": "decimal"
+    },
+    "strike_price": {
+     "desc": "price at which the option can be exercised",
+     "required": true,
+     "type": "decimal"
+    },
+    "time_to_maturity": {
+     "desc": "years until expiry, e.g. 0.5 for six months",
+     "required": true,
+     "type": "decimal"
+    },
+    "volatility": {
+     "desc": "annual volatility as a decimal, e.g. 0.25 for 25%",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "output_gap_okun": {
+   "inputs": {
+    "actual_gdp": {
+     "desc": "actual nominal or real GDP",
+     "required": true,
+     "type": "decimal"
+    },
+    "current_unemployment_rate": {
+     "desc": "current unemployment rate as a fraction, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "okun_coefficient": {
+     "desc": "percentage-point unemployment change per one percent output gap, default 0.5",
+     "required": false,
+     "type": "decimal"
+    },
+    "potential_gdp": {
+     "desc": "potential GDP on the same basis",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "paired_t": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; applied to both columns",
+     "required": false,
+     "type": "code_list"
+    },
+    "pairs": {
+     "desc": "exactly two columns of paired values: name -> observations; pair i is (column 1 item i, column 2 item i)",
+     "required": true,
+     "type": "column_map"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "panel_regression": {
+   "inputs": {
+    "data": {
+     "desc": "one record per entity-period; the panel must be balanced",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "pearson": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; apply to both variables",
+     "required": false,
+     "type": "code_list"
+    },
+    "x": {
+     "desc": "first variable; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "second variable, paired by position with x",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "portfolio_analysis": {
+   "inputs": {
+    "returns_a": {
+     "desc": "periodic returns of the first asset, one per period, as decimals",
+     "required": true,
+     "type": "value_list"
+    },
+    "returns_b": {
+     "desc": "periodic returns of the second asset for the same periods",
+     "required": true,
+     "type": "value_list"
+    },
+    "returns_market": {
+     "desc": "market returns for the same periods, used for beta and Jensen's alpha",
+     "required": true,
+     "type": "value_list"
+    },
+    "risk_free_rate": {
+     "desc": "risk-free rate for the same period, as a decimal",
+     "required": true,
+     "type": "decimal"
+    },
+    "weight_a": {
+     "desc": "share of the portfolio in the first asset, between 0 and 1; the rest is in the second",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "posthoc_pairwise": {
+   "inputs": {
+    "adjust": {
+     "desc": "family-wise correction, default holm",
+     "required": false,
+     "type": "enum"
+    },
+    "alpha": {
+     "desc": "family-wise level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "name -> observations; every unordered pair of groups is compared",
+     "required": true,
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes; excluded within each group",
+     "required": false,
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "poverty_measures": {
+   "inputs": {
+    "incomes": {
+     "desc": "declared incomes, non-negative",
+     "required": true,
+     "type": "value_list"
+    },
+    "poverty_line": {
+     "desc": "the declared poverty line",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "power_analysis": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "design": {
+     "desc": "two_sample compares two means; one_sample tests a single mean",
+     "required": true,
+     "type": "enum"
+    },
+    "effect": {
+     "desc": "the difference (or mean) to detect, in the units of the outcome",
+     "required": true,
+     "type": "decimal"
+    },
+    "n1": {
+     "desc": "sample size of group 1 (or the single sample for one_sample)",
+     "required": true,
+     "type": "decimal"
+    },
+    "n2": {
+     "desc": "sample size of group 2 (two_sample only)",
+     "required": false,
+     "type": "decimal"
+    },
+    "sd1": {
+     "desc": "standard deviation of group 1 (or the single sample)",
+     "required": true,
+     "type": "decimal"
+    },
+    "sd2": {
+     "desc": "standard deviation of group 2 (two_sample only)",
+     "required": false,
+     "type": "decimal"
+    },
+    "tails": {
+     "desc": "two_sided (default) or one_sided",
+     "required": false,
+     "type": "enum"
+    },
+    "target_power": {
+     "desc": "power used to compute the minimum detectable effect, default 0.8",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "price_control": {
+   "inputs": {
+    "control_price": {
+     "desc": "the ceiling or floor price",
+     "required": true,
+     "type": "decimal"
+    },
+    "control_type": {
+     "desc": "ceiling (maximum price) or floor (minimum price)",
+     "required": true,
+     "type": "enum"
+    },
+    "demand_intercept": {
+     "desc": "a in Qd = a - bP",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in Qd = a - bP, must be positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_intercept": {
+     "desc": "c in Qs = c + dP",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_slope": {
+     "desc": "d in Qs = c + dP, must be positive",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "price_discrimination": {
+   "inputs": {
+    "demand_intercept_1": {
+     "desc": "intercept of demand in market one",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_intercept_2": {
+     "desc": "intercept of demand in market two",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope_1": {
+     "desc": "positive slope of demand in market one",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope_2": {
+     "desc": "positive slope of demand in market two",
+     "required": true,
+     "type": "decimal"
+    },
+    "marginal_cost": {
+     "desc": "constant marginal cost",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "pricing_decision": {
+   "inputs": {
+    "expected_units": {
+     "desc": "units expected to be sold in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "fixed_cost": {
+     "desc": "total fixed cost for the period, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "markup_rate": {
+     "desc": "markup on cost as a decimal, e.g. 0.60 for 60%",
+     "required": true,
+     "type": "decimal"
+    },
+    "target_margin_rate": {
+     "desc": "optional margin on the price, greater than zero and below one",
+     "required": false,
+     "type": "decimal"
+    },
+    "target_profit": {
+     "desc": "optional profit target for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "unit_cost": {
+     "desc": "variable cost per unit",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "probit": {
+   "inputs": {
+    "x": {
+     "desc": "the numeric predictor, same length as y",
+     "required": true,
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "the binary outcome, coded 0 or 1",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "process_control": {
+   "inputs": {
+    "spec_lower": {
+     "desc": "optional lower specification limit",
+     "required": false,
+     "type": "decimal"
+    },
+    "spec_upper": {
+     "desc": "optional upper specification limit, declared with the lower one",
+     "required": false,
+     "type": "decimal"
+    },
+    "values": {
+     "desc": "the observations in time order",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "profit_maximization": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in P = a - bQ",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in P = a - bQ, must be positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "fixed_cost": {
+     "desc": "total fixed cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "linear_cost": {
+     "desc": "linear marginal cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "quadratic_cost": {
+     "desc": "quadratic cost term",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "project_metrics": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0 (normally the negative outlay), then one per period",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "finance_rate": {
+     "desc": "rate at which positive flows are reinvested for MIRR; default is the discount rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "rate": {
+     "desc": "discount rate (cost of capital) per period, e.g. 0.10",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "prospect_theory": {
+   "inputs": {
+    "gain_curvature": {
+     "desc": "gain curvature, default 0.88",
+     "required": false,
+     "type": "decimal"
+    },
+    "loss_aversion": {
+     "desc": "loss-aversion coefficient, default 2.25",
+     "required": false,
+     "type": "decimal"
+    },
+    "loss_curvature": {
+     "desc": "loss curvature, default 0.88",
+     "required": false,
+     "type": "decimal"
+    },
+    "outcomes": {
+     "desc": "outcomes to be evaluated relative to the reference",
+     "required": true,
+     "type": "value_list"
+    },
+    "probabilities": {
+     "desc": "probabilities, same length, summing to one",
+     "required": true,
+     "type": "value_list"
+    },
+    "probability_weighting": {
+     "desc": "probability-weighting parameter, default 0.61",
+     "required": false,
+     "type": "decimal"
+    },
+    "reference_point": {
+     "desc": "the reference outcome",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "public_good": {
+   "inputs": {
+    "mb1_intercept": {
+     "desc": "intercept of the first marginal-benefit schedule",
+     "required": true,
+     "type": "decimal"
+    },
+    "mb1_slope": {
+     "desc": "positive slope of the first marginal-benefit schedule",
+     "required": true,
+     "type": "decimal"
+    },
+    "mb2_intercept": {
+     "desc": "intercept of the second marginal-benefit schedule",
+     "required": true,
+     "type": "decimal"
+    },
+    "mb2_slope": {
+     "desc": "positive slope of the second marginal-benefit schedule",
+     "required": true,
+     "type": "decimal"
+    },
+    "mc_intercept": {
+     "desc": "intercept of marginal cost",
+     "required": true,
+     "type": "decimal"
+    },
+    "mc_slope": {
+     "desc": "positive slope of marginal cost",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "purchase_intent": {
+   "inputs": {
+    "definitely": {
+     "desc": "respondents who said they would definitely buy",
+     "required": true,
+     "type": "decimal"
+    },
+    "definitely_weight": {
+     "desc": "declared weight for definitely, default 0.8",
+     "required": false,
+     "type": "decimal"
+    },
+    "maybe": {
+     "desc": "respondents who were unsure",
+     "required": true,
+     "type": "decimal"
+    },
+    "maybe_weight": {
+     "desc": "declared weight for maybe, default 0.1",
+     "required": false,
+     "type": "decimal"
+    },
+    "never": {
+     "desc": "respondents who said they would not buy",
+     "required": true,
+     "type": "decimal"
+    },
+    "never_weight": {
+     "desc": "declared weight for never, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "optional price to convert projected buyers into revenue",
+     "required": false,
+     "type": "decimal"
+    },
+    "probably": {
+     "desc": "respondents who said they would probably buy",
+     "required": true,
+     "type": "decimal"
+    },
+    "probably_weight": {
+     "desc": "declared weight for probably, default 0.3",
+     "required": false,
+     "type": "decimal"
+    },
+    "target_population": {
+     "desc": "optional population to project buyers onto",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "queue_analysis": {
+   "inputs": {
+    "arrival_rate": {
+     "desc": "average arrivals per period",
+     "required": true,
+     "type": "decimal"
+    },
+    "servers": {
+     "desc": "number of interchangeable servers, default 1 (a whole number from 1 to 50)",
+     "required": false,
+     "type": "decimal"
+    },
+    "service_rate": {
+     "desc": "average customers served per period by one server",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ratio_analysis": {
+   "inputs": {
+    "cash": {
+     "desc": "cash and cash equivalents",
+     "required": false,
+     "type": "decimal"
+    },
+    "cost_of_sales": {
+     "desc": "cost of sales for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "current_assets": {
+     "desc": "current assets at the period end",
+     "required": false,
+     "type": "decimal"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities at the period end",
+     "required": false,
+     "type": "decimal"
+    },
+    "equity": {
+     "desc": "total equity",
+     "required": false,
+     "type": "decimal"
+    },
+    "interest_expense": {
+     "desc": "interest expense for the period, as a positive amount",
+     "required": false,
+     "type": "decimal"
+    },
+    "inventory": {
+     "desc": "inventory",
+     "required": false,
+     "type": "decimal"
+    },
+    "net_income": {
+     "desc": "net income for the period (as supplied; no tax computation is performed)",
+     "required": false,
+     "type": "decimal"
+    },
+    "operating_profit": {
+     "desc": "operating profit for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "payables": {
+     "desc": "trade payables",
+     "required": false,
+     "type": "decimal"
+    },
+    "receivables": {
+     "desc": "trade receivables",
+     "required": false,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": false,
+     "type": "decimal"
+    },
+    "total_liabilities": {
+     "desc": "total liabilities",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "regression_discontinuity": {
+   "inputs": {
+    "bandwidth": {
+     "desc": "the symmetric bandwidth around the cutoff",
+     "required": true,
+     "type": "decimal"
+    },
+    "cutoff": {
+     "desc": "the treatment cutoff",
+     "required": true,
+     "type": "decimal"
+    },
+    "data": {
+     "desc": "one record per observation: the running variable and the outcome",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "reliability_alpha": {
+   "inputs": {
+    "items": {
+     "desc": "named item columns, one response per row",
+     "required": true,
+     "type": "column_map"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "return_on_investment": {
+   "inputs": {
+    "net_gain": {
+     "desc": "the total gain net of the investment, over the whole holding period; may be negative",
+     "required": true,
+     "type": "decimal"
+    },
+    "total_investment": {
+     "desc": "the total amount invested",
+     "required": true,
+     "type": "decimal"
+    },
+    "years": {
+     "desc": "optional holding period in years, for the annualised return",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "rfm_scoring": {
+   "inputs": {
+    "customers": {
+     "desc": "five to a thousand customers, each with a unique name, days since the last purchase, the number of purchases and the total monetary value",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "risk_metrics": {
+   "inputs": {
+    "confidence": {
+     "desc": "confidence level between 0 and 1; default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "horizon_days": {
+     "desc": "holding period in days, scaled by the square root of time; default 1",
+     "required": false,
+     "type": "decimal"
+    },
+    "portfolio_value": {
+     "desc": "value the loss is measured on; default 1",
+     "required": false,
+     "type": "decimal"
+    },
+    "returns": {
+     "desc": "periodic returns as decimals, one per period",
+     "required": true,
+     "type": "value_list"
+    },
+    "stress_return": {
+     "desc": "a declared adverse return, to report its loss alongside VaR",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sales_funnel": {
+   "inputs": {
+    "spend": {
+     "desc": "optional acquisition spend for the period, to report the cost per customer",
+     "required": false,
+     "type": "decimal"
+    },
+    "stages": {
+     "desc": "two to eight stages in order, each with a name and the count reaching it; counts must not increase",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sales_projection": {
+   "inputs": {
+    "fixed_cost_per_period": {
+     "desc": "fixed cost in every period",
+     "required": true,
+     "type": "decimal"
+    },
+    "growth_rate": {
+     "desc": "period-on-period volume growth as a decimal, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "periods": {
+     "desc": "number of periods, default 12 (a whole number from 1 to 24)",
+     "required": false,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit, constant across periods",
+     "required": true,
+     "type": "decimal"
+    },
+    "start_units": {
+     "desc": "units sold in the first period, in whole or fractional units",
+     "required": true,
+     "type": "decimal"
+    },
+    "unit_variable_cost": {
+     "desc": "variable cost per unit, constant across periods",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sales_variances": {
+   "inputs": {
+    "products": {
+     "desc": "one record per product with budget and actual units and prices",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "scenario_analysis": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flows, first at t=0, then one per period",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "discount_rate": {
+     "desc": "base-case discount rate per period",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate_high": {
+     "desc": "the pessimistic (higher) discount rate for the range",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate_low": {
+     "desc": "the optimistic (lower) discount rate for the range",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "social_engagement": {
+   "inputs": {
+    "engagements": {
+     "desc": "engagements as the platform defines them",
+     "required": true,
+     "type": "decimal"
+    },
+    "followers_gained": {
+     "desc": "net follower change; may be negative",
+     "required": true,
+     "type": "decimal"
+    },
+    "followers_start": {
+     "desc": "followers at the start of the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "impressions": {
+     "desc": "impressions recorded in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "posts": {
+     "desc": "optional number of posts, for engagement per post",
+     "required": false,
+     "type": "decimal"
+    },
+    "reach": {
+     "desc": "unique accounts reached; cannot exceed impressions",
+     "required": true,
+     "type": "decimal"
+    },
+    "spend": {
+     "desc": "spend on the activity; enter 0 for organic only",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "social_welfare": {
+   "inputs": {
+    "incomes": {
+     "desc": "declared incomes, all positive",
+     "required": true,
+     "type": "value_list"
+    },
+    "welfare_function": {
+     "desc": "which welfare function to report",
+     "required": true,
+     "type": "enum"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "spearman": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; apply to both variables",
+     "required": false,
+     "type": "code_list"
+    },
+    "x": {
+     "desc": "first variable; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    },
+    "y": {
+     "desc": "second variable, paired by position with x",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sroi": {
+   "inputs": {
+    "benefits": {
+     "desc": "monetised benefit per period, starting at period 1",
+     "required": true,
+     "type": "value_list"
+    },
+    "discount_rate": {
+     "desc": "periodic discount rate, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "investment": {
+     "desc": "the investment amount",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "standard_cost_variances": {
+   "inputs": {
+    "actual_fixed_overhead": {
+     "desc": "actual fixed overhead, required with the budget",
+     "required": false,
+     "type": "decimal"
+    },
+    "actual_hours": {
+     "desc": "labour hours actually worked",
+     "required": true,
+     "type": "decimal"
+    },
+    "actual_labour_rate": {
+     "desc": "actual labour rate per hour",
+     "required": true,
+     "type": "decimal"
+    },
+    "actual_material_price": {
+     "desc": "actual price paid per unit of material",
+     "required": true,
+     "type": "decimal"
+    },
+    "actual_material_quantity": {
+     "desc": "material quantity actually used",
+     "required": true,
+     "type": "decimal"
+    },
+    "actual_units": {
+     "desc": "units actually produced in the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "actual_variable_overhead": {
+     "desc": "actual variable overhead, required with the standard rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "budgeted_fixed_overhead": {
+     "desc": "optional budgeted fixed overhead for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "denominator_hours": {
+     "desc": "budgeted labour hours used to set the fixed overhead rate",
+     "required": false,
+     "type": "decimal"
+    },
+    "standard_hours_per_unit": {
+     "desc": "standard labour hours allowed per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "standard_labour_rate": {
+     "desc": "standard labour rate per hour",
+     "required": true,
+     "type": "decimal"
+    },
+    "standard_material_per_unit": {
+     "desc": "standard material quantity allowed per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "standard_material_price": {
+     "desc": "standard price per unit of material",
+     "required": true,
+     "type": "decimal"
+    },
+    "standard_variable_overhead_rate": {
+     "desc": "optional standard variable overhead per labour hour",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "startup_capital": {
+   "inputs": {
+    "contingency_rate": {
+     "desc": "contingency as a fraction of set-up costs plus working capital, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "loan_amount": {
+     "desc": "loan already committed, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "owner_equity": {
+     "desc": "cash the owner will put in, default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "start_up_costs": {
+     "desc": "one-off costs to open: equipment, fit-out, permits, deposits",
+     "required": true,
+     "type": "decimal"
+    },
+    "working_capital": {
+     "desc": "cash needed to operate before receipts cover costs",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "tariff_welfare": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in Qd = a - bP",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in Qd = a - bP, positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_intercept": {
+     "desc": "c in Qs = c + dP",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_slope": {
+     "desc": "d in Qs = c + dP, positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "tariff_per_unit": {
+     "desc": "the per-unit tariff",
+     "required": true,
+     "type": "decimal"
+    },
+    "world_price": {
+     "desc": "the world price before the tariff",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "tax_declared": {
+   "inputs": {
+    "deferred_tax_rate": {
+     "desc": "the deferred tax rate, declared with the temporary difference",
+     "required": false,
+     "type": "decimal"
+    },
+    "income_tax_rate": {
+     "desc": "the income tax rate as a decimal, e.g. 0.25 for 25%",
+     "required": true,
+     "type": "decimal"
+    },
+    "taxable_income": {
+     "desc": "the taxable income you declare; a loss can be entered as a negative figure",
+     "required": true,
+     "type": "decimal"
+    },
+    "temporary_difference": {
+     "desc": "optional temporary difference for deferred tax",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_input_tax": {
+     "desc": "optional input VAT on purchases, declared with the output VAT",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_output_tax": {
+     "desc": "optional output VAT on sales",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "tax_incidence": {
+   "inputs": {
+    "demand_intercept": {
+     "desc": "a in Qd = a - bP",
+     "required": true,
+     "type": "decimal"
+    },
+    "demand_slope": {
+     "desc": "b in Qd = a - bP, must be positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_intercept": {
+     "desc": "c in Qs = c + dP",
+     "required": true,
+     "type": "decimal"
+    },
+    "supply_slope": {
+     "desc": "d in Qs = c + dP, must be positive",
+     "required": true,
+     "type": "decimal"
+    },
+    "tax_per_unit": {
+     "desc": "per-unit tax on sellers",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "tax_progressivity": {
+   "inputs": {
+    "incomes": {
+     "desc": "pre-tax incomes, positive",
+     "required": true,
+     "type": "value_list"
+    },
+    "taxes": {
+     "desc": "tax paid, one per income and same length",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "time_value": {
+   "inputs": {
+    "compounding": {
+     "desc": "how often interest is added; default annual",
+     "required": false,
+     "type": "enum"
+    },
+    "payment": {
+     "desc": "equal amount paid or received each period; leave blank for a lump sum only",
+     "required": false,
+     "type": "decimal"
+    },
+    "periods": {
+     "desc": "number of YEARS the money is invested or borrowed",
+     "required": true,
+     "type": "decimal"
+    },
+    "present_value": {
+     "desc": "amount you have today (the lump sum)",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate": {
+     "desc": "nominal ANNUAL rate as a decimal, e.g. 0.06 for 6%",
+     "required": true,
+     "type": "decimal"
+    },
+    "timing": {
+     "desc": "'end' for an ordinary annuity (default), 'begin' for an annuity due",
+     "required": false,
+     "type": "enum"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "trend_analysis": {
+   "inputs": {
+    "cost_of_sales": {
+     "desc": "cost of sales for each period",
+     "required": true,
+     "type": "value_list"
+    },
+    "equity": {
+     "desc": "optional equity per period, supplied with total_assets",
+     "required": false,
+     "type": "value_list"
+    },
+    "net_income": {
+     "desc": "net income for each period; may be negative",
+     "required": true,
+     "type": "value_list"
+    },
+    "operating_expenses": {
+     "desc": "operating expenses for each period",
+     "required": true,
+     "type": "value_list"
+    },
+    "revenue": {
+     "desc": "revenue for each period, in the same order",
+     "required": true,
+     "type": "value_list"
+    },
+    "total_assets": {
+     "desc": "optional total assets per period, for equity-to-assets and asset growth",
+     "required": false,
+     "type": "value_list"
+    },
+    "years": {
+     "desc": "the period labels, in increasing order, e.g. 2022, 2023, 2024",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "trend_forecast": {
+   "inputs": {
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "horizon": {
+     "desc": "number of periods ahead to forecast, default 3 (a whole number from 1 to 12)",
+     "required": false,
+     "type": "decimal"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "required": false,
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the time series in period order; blank or null counts as missing at that position",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "trial_balance_check": {
+   "inputs": {
+    "journal": {
+     "desc": "the student's journal in the engagement shape (period, chart, opening, entries); optional, and supplying it is what makes the check meaningful",
+     "required": false,
+     "type": "engagement_spec"
+    },
+    "places": {
+     "desc": "decimal places the figures were stated to (default 2)",
+     "required": false,
+     "type": "decimal"
+    },
+    "trial_balance": {
+     "desc": "the student's own trial balance rows: a code or a name, and a debit or a credit",
+     "required": false,
+     "type": "rows"
+    }
+   },
+   "tier": "T2",
+   "version": "1.0.0"
+  },
+  "two_way_anova": {
+   "inputs": {
+    "data": {
+     "desc": "one record per observation: the numeric response and its two factor levels; every cell must have the same count",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "unemployment_rate": {
+   "inputs": {
+    "employed": {
+     "desc": "the number employed",
+     "required": true,
+     "type": "decimal"
+    },
+    "labour_force": {
+     "desc": "the labour force: employed plus unemployed",
+     "required": true,
+     "type": "decimal"
+    },
+    "working_age_population": {
+     "desc": "the working-age population",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "unit_economics": {
+   "inputs": {
+    "acquisition_cost": {
+     "desc": "cost to acquire one customer",
+     "required": true,
+     "type": "decimal"
+    },
+    "churn_rate": {
+     "desc": "period churn in (0,1); if supplied, LTV = unit margin / churn",
+     "required": false,
+     "type": "decimal"
+    },
+    "price": {
+     "desc": "price per unit",
+     "required": true,
+     "type": "decimal"
+    },
+    "variable_cost": {
+     "desc": "variable cost per unit",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "wacc": {
+   "inputs": {
+    "cost_of_debt_after_tax": {
+     "desc": "cost of debt AFTER tax, e.g. 0.05; no tax is computed here",
+     "required": true,
+     "type": "decimal"
+    },
+    "cost_of_equity": {
+     "desc": "required return on equity, e.g. 0.11",
+     "required": true,
+     "type": "decimal"
+    },
+    "debt_value": {
+     "desc": "market value of debt (interest-bearing)",
+     "required": true,
+     "type": "decimal"
+    },
+    "equity_value": {
+     "desc": "market value of equity",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "web_analytics": {
+   "inputs": {
+    "channels": {
+     "desc": "two to twelve acquisition channels, each with sessions, conversions and revenue",
+     "required": true,
+     "type": "records"
+    },
+    "organic_clicks": {
+     "desc": "optional organic-search clicks, declared with organic_impressions",
+     "required": false,
+     "type": "decimal"
+    },
+    "organic_impressions": {
+     "desc": "optional organic-search impressions, declared with organic_clicks",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "weighted_summary": {
+   "inputs": {
+    "missing_codes": {
+     "desc": "user-defined missing codes such as 99; never read as values",
+     "required": false,
+     "type": "code_list"
+    },
+    "values": {
+     "desc": "the observations; blank or null counts as missing",
+     "required": true,
+     "type": "value_list"
+    },
+    "weight_kind": {
+     "desc": "reliability (precision-style, default) or frequency (counts of observations)",
+     "required": false,
+     "type": "enum"
+    },
+    "weights": {
+     "desc": "one positive weight per value, same length as values (a missing value's weight is dropped with it)",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "welch_t": {
+   "inputs": {
+    "alpha": {
+     "desc": "significance level, default 0.05",
+     "required": false,
+     "type": "decimal"
+    },
+    "confidence_level": {
+     "desc": "default 0.95",
+     "required": false,
+     "type": "decimal"
+    },
+    "groups": {
+     "desc": "exactly two groups: name -> observations (letters and underscores in names; group sizes may differ)",
+     "required": true,
+     "type": "column_map"
+    },
+    "missing_codes": {
+     "desc": "user-defined missing codes",
+     "required": false,
+     "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "working_capital": {
+   "inputs": {
+    "annual_demand": {
+     "desc": "units demanded in a year, for the order quantity",
+     "required": true,
+     "type": "decimal"
+    },
+    "cost_of_sales": {
+     "desc": "cost of sales for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "credit_terms_days": {
+     "desc": "full credit period in days, e.g. 30",
+     "required": true,
+     "type": "decimal"
+    },
+    "daily_demand": {
+     "desc": "units sold per day; default annual demand divided by days",
+     "required": false,
+     "type": "decimal"
+    },
+    "days": {
+     "desc": "days in the period; default 365",
+     "required": false,
+     "type": "decimal"
+    },
+    "discount_days": {
+     "desc": "days within which the discount must be taken, e.g. 10",
+     "required": true,
+     "type": "decimal"
+    },
+    "discount_percent": {
+     "desc": "early-payment discount as a decimal, e.g. 0.02 for 2%; use 0 if there is none",
+     "required": true,
+     "type": "decimal"
+    },
+    "holding_cost_per_unit": {
+     "desc": "cost of holding one unit for a year",
+     "required": true,
+     "type": "decimal"
+    },
+    "inventory": {
+     "desc": "inventory at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "lead_time_days": {
+     "desc": "supplier lead time in days; default 0",
+     "required": false,
+     "type": "decimal"
+    },
+    "order_cost": {
+     "desc": "cost of placing one order",
+     "required": true,
+     "type": "decimal"
+    },
+    "payables": {
+     "desc": "trade payables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "receivables": {
+     "desc": "trade receivables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "safety_stock": {
+     "desc": "buffer units held; default 0",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  }
+ },
+ "note": "Generated from bp.methods.list_methods() by scripts/generate_calc_inputs.py. Names, types and descriptions only; the calculator router computes nothing."
+}

@@ -23,6 +23,9 @@ PROJECT_ENV = Path(__file__).resolve().parents[3] / "Backend" / ".env"
 ALLOWED = {
     "BRAVE_API_KEY": "BP_BRAVE_API_KEY",
     "FIRECRAWL_API_KEY": "BP_FIRECRAWL_API_KEY",
+    "DEEPSEEK_API_KEY": "BP_DEEPSEEK_API_KEY",
+    "OPENCODE_API_KEY": "BP_OPENGO_API_KEY",
+    "OPENGO_SEARCH_URL": "BP_OPENGO_SEARCH_URL",
     "SEMANTIC_SCHOLAR_API_KEY": "BP_SEMANTIC_SCHOLAR_KEY",
     "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
     "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
@@ -51,6 +54,8 @@ def _parse(path):
 def _status():
     return {"brave": bool(os.environ.get("BP_BRAVE_API_KEY")),
             "firecrawl": bool(os.environ.get("BP_FIRECRAWL_API_KEY")),
+            "deepseek": bool(os.environ.get("BP_DEEPSEEK_API_KEY")),
+            "opengo": bool(os.environ.get("BP_OPENGO_SEARCH_URL") and os.environ.get("BP_OPENGO_API_KEY")),
             "semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY")),
             "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"}
 

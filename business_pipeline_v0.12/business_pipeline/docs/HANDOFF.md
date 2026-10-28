@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.7 (see docs/CHANGELOG.md)
-Tests        : 1352 tests, all passing
+Build        : 1.11 (see docs/CHANGELOG.md)
+Tests        : 1410 tests, all passing
 ```
 
 ```powershell
@@ -32,7 +32,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 7. `docs/sources/` is read-only authority material. Never edit it.
 8. Do not mark a gap closed, or a PROPOSAL ratified, without the tests and an owner decision.
 9. **Two model owners (B-066, extended by B-080).** The computation owner (DeepSeek) exclusively owns `src/bp/**`, `tests/**`, the factual docs and every rule/number/citation/claim; the design owner (MiniMax) owns the workbench's presentation and may now also build the **product backend** — additive routes/modules/storage/workflows over the frozen core. Read `CONTRIBUTORS.md` §1A/§1B before editing; write only in your domain, and split cross-domain features into a computation commit then a design commit.
-10. **The core deterministic backend is FROZEN (B-079).** The stage contract, the 124 method contracts, the 126 presets, the 12 API route families and the delivery shape are pinned by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json`. Never edit that fixture to go green; an unfreeze needs the owner's approval and a B-decision. Full rules: `docs/BACKEND_CONTRACT.md`.
+10. **The core deterministic backend is FROZEN (B-079).** The stage contract, the 127 method contracts, the 129 presets, the 12 API route families and the delivery shape are pinned by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json`. Never edit that fixture to go green; an unfreeze needs the owner's approval and a B-decision. Full rules: `docs/BACKEND_CONTRACT.md`.
 
 ## 3. What is already built (do not rebuild)
 

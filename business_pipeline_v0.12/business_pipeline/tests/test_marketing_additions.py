@@ -20,7 +20,8 @@ from bp.orchestrator import Pipeline  # noqa: E402
 from bp.product import subjects  # noqa: E402
 
 NEW = ["campaign_efficiency", "ab_test_two_proportion", "attribution_split", "channel_economics",
-       "email_list_health", "social_engagement", "web_analytics", "rfm_scoring", "media_plan"]
+       "email_list_health", "social_engagement", "web_analytics", "rfm_scoring", "media_plan",
+       "market_share", "clv_model", "customer_profitability"]
 
 INPUTS = {
     "campaign_efficiency": {"impressions": "250000", "clicks": "6000", "conversions": "220",
@@ -62,9 +63,20 @@ INPUTS = {
         {"name": "TV prime time", "reach": "450000", "insertions": "8", "cost": "1200000"},
         {"name": "Radio drive time", "reach": "300000", "insertions": "12", "cost": "450000"},
         {"name": "Print weekly", "reach": "120000", "insertions": "4", "cost": "180000"}]},
+    "market_share": {"firm_sales": "2400000", "market_sales": "12000000", "prior_firm_sales": "2100000",
+                     "prior_market_sales": "11500000", "customers": "48000", "target_population": "400000",
+                     "largest_competitor_sales": "3600000"},
+    "clv_model": {"margin_per_period": "1500", "churn_rate": "0.04", "discount_rate": "0.10",
+                  "horizon_periods": "24", "acquisition_cost": "9000"},
+    "customer_profitability": {"segments": [
+        {"name": "Enterprise", "revenue": "5000000", "direct_cost": "3000000", "allocated_cost": "600000"},
+        {"name": "SME", "revenue": "3000000", "direct_cost": "2100000", "allocated_cost": "400000"},
+        {"name": "Retail", "revenue": "1200000", "direct_cost": "1500000", "allocated_cost": "100000"}],
+        "concentration_threshold": "0.8"},
 }
 
-PRESETS = ["campaign", "abtest", "attribution", "channelecon", "email", "social", "web", "rfm", "mediaplan"]
+PRESETS = ["campaign", "abtest", "attribution", "channelecon", "email", "social", "web", "rfm", "mediaplan",
+           "marketshare", "clv", "custprofit"]
 
 
 class DigitalGoldens(unittest.TestCase):
@@ -211,6 +223,58 @@ class DigitalGoldens(unittest.TestCase):
         self.near(out["net_reach"], 1000000 * (1 - 0.55 * 0.70 * 0.88), 6)
         self.near(out["average_frequency"], 7680000 / (1000000 * (1 - 0.55 * 0.70 * 0.88)), 6)
 
+    def test_market_share_change_penetration_and_relative_share(self):
+        out = LIBRARY["market_share"].impl(INPUTS["market_share"])
+        self.near(out["market_share"], 0.20, 12)
+        self.near(out["prior_share"], 2100000 / 11500000, 12)
+        self.near(out["share_change"], 0.20 - 2100000 / 11500000, 12)
+        self.near(out["penetration_rate"], 0.12, 12)
+        self.near(out["relative_market_share"], 2400000 / 3600000, 12)
+        self.near(out["competitor_share"], 0.30, 12)
+        self.near(out["firm_growth"], 2400000 / 2100000 - 1, 12)
+
+    def test_market_share_reports_only_what_is_declared(self):
+        out = LIBRARY["market_share"].impl({"firm_sales": "2400000", "market_sales": "12000000"})
+        self.assertNotIn("share_change", out)
+        self.assertNotIn("penetration_rate", out)
+        self.assertNotIn("relative_market_share", out)
+
+    def test_clv_is_the_discounted_survival_sum(self):
+        out = LIBRARY["clv_model"].impl(INPUTS["clv_model"])
+        margin, churn, rate, horizon = 1500.0, 0.04, 0.10, 24
+        disc = sum(margin * (1 - churn) ** (t - 1) / (1 + rate) ** t for t in range(1, horizon + 1))
+        undisc = sum(margin * (1 - churn) ** (t - 1) for t in range(1, horizon + 1))
+        self.near(out["clv_discounted"], disc, 4)
+        self.near(out["clv_undiscounted"], undisc, 4)
+        self.near(out["clv_undiscounted"], margin * (1 - (1 - churn) ** horizon) / churn, 4)
+        self.assertLess(out["clv_discounted"], out["clv_undiscounted"])
+        self.near(out["ltv_cac"], float(out["clv_discounted"]) / 9000, 6)
+        self.assertEqual(out["payback_periods"], D(7))
+        self.assertEqual(out["payback_within_horizon"], D(1))
+
+    def test_clv_payback_is_reported_only_when_it_is_reached(self):
+        out = LIBRARY["clv_model"].impl({**INPUTS["clv_model"], "acquisition_cost": "90000"})
+        self.assertEqual(out["payback_within_horizon"], D(0))
+        self.assertNotIn("payback_periods", out)
+
+    def test_customer_profitability_by_segment(self):
+        out = LIBRARY["customer_profitability"].impl(INPUTS["customer_profitability"])
+        self.assertEqual(out["total_revenue"], D(9200000))
+        self.assertEqual(out["total_cost"], D(7700000))
+        self.assertEqual(out["total_profit"], D(1500000))
+        self.near(out["overall_margin"], 1500000 / 9200000, 12)
+        self.assertEqual(out["profit_1"], D(1400000))
+        self.assertEqual(out["profit_2"], D(500000))
+        self.assertEqual(out["profit_3"], D(-400000))
+        self.assertEqual(out["profitable"], D(2))
+        self.assertEqual(out["unprofitable"], D(1))
+        self.near(out["profit_share_1"], 1400000 / 1500000, 12)
+        self.assertEqual(out["segments_for_threshold"], D(1))
+
+    def test_customer_profitability_counts_the_group_that_reaches_a_lower_threshold(self):
+        out = LIBRARY["customer_profitability"].impl({**INPUTS["customer_profitability"], "concentration_threshold": "1"})
+        self.assertEqual(out["segments_for_threshold"], D(2))
+
 
 class DigitalRefusals(unittest.TestCase):
     """A student's impossible count must block with a reason, not produce a plausible figure."""
@@ -245,6 +309,23 @@ class DigitalRefusals(unittest.TestCase):
         self.refuses("media_plan", {"vehicles": [dict(INPUTS["media_plan"]["vehicles"][0], insertions="0")]})
         self.refuses("media_plan", {"vehicles": [dict(INPUTS["media_plan"]["vehicles"][0], cost="-1")]})
         self.refuses("media_plan", {"population": "0"})
+        self.refuses("market_share", {"market_sales": "0"})
+        self.refuses("market_share", {"firm_sales": "13000000"})
+        self.refuses("market_share", {"prior_firm_sales": "2100000", "prior_market_sales": ""})
+        self.refuses("market_share", {"customers": "500000", "target_population": "400000"})
+        self.refuses("market_share", {"largest_competitor_sales": "0"})
+        self.refuses("clv_model", {"margin_per_period": "0"})
+        self.refuses("clv_model", {"churn_rate": "0"})
+        self.refuses("clv_model", {"churn_rate": "1.2"})
+        self.refuses("clv_model", {"horizon_periods": "0"})
+        self.refuses("clv_model", {"horizon_periods": "61"})
+        self.refuses("clv_model", {"acquisition_cost": "0"})
+        self.refuses("customer_profitability", {"segments": INPUTS["customer_profitability"]["segments"][:1]})
+        self.refuses("customer_profitability", {"segments": [dict(INPUTS["customer_profitability"]["segments"][0], name="SME")]
+                                                + INPUTS["customer_profitability"]["segments"][1:]})
+        self.refuses("customer_profitability", {"segments": [dict(INPUTS["customer_profitability"]["segments"][0], revenue="-1")]
+                                                + INPUTS["customer_profitability"]["segments"][1:]})
+        self.refuses("customer_profitability", {"concentration_threshold": "1.5"})
 
     def test_profile_reports_the_reason_before_execution(self):
         issues = LIBRARY["campaign_efficiency"].profile({**INPUTS["campaign_efficiency"], "clicks": "300000"})
@@ -310,8 +391,8 @@ class MarketingShelf(unittest.TestCase):
     def test_the_page_shows_digital_marketing_as_its_own_record_group(self):
         page = subjects.detail("marketing")
         labels = [row["discipline_label"] for row in page["records"]]
-        self.assertEqual(labels.count("Digital marketing"), 16)
-        self.assertEqual(labels.count("Marketing frameworks"), 11)
+        self.assertEqual(labels.count("Digital marketing"), 14)
+        self.assertEqual(labels.count("Marketing frameworks"), 8)
         self.assertEqual(labels.count("Customer and market analytics"), 7)
 
     def test_the_digital_frameworks_and_methods_are_in_the_catalogue(self):
@@ -345,6 +426,22 @@ class MarketingShelf(unittest.TestCase):
         self.assertEqual(record["name"], "Media planning")
         self.assertEqual([m["method_id"] for m in record["linked_methods"]], ["media_plan"])
         self.assertEqual(record["form"], "computed")
+
+    def test_a_marketing_record_never_says_not_built_when_a_method_exists(self):
+        from bp import registry
+        page = subjects.detail("marketing")
+        unbuilt = {row["id"] for row in page["records"] if row["status_short"] == "Method not built"}
+        self.assertEqual(unbuilt, set(),
+                         "every marketing record either computes, has a worksheet, or is honestly read-only")
+        self.assertEqual([m["method_id"] for m in registry.get("MKT-19")["linked_methods"]], ["attribution_split"])
+        self.assertEqual([m["method_id"] for m in registry.get("MKT-20")["linked_methods"]],
+                         ["ab_test_two_proportion", "power_analysis"])
+        self.assertEqual([m["method_id"] for m in registry.get("QNT-MKT-07")["linked_methods"]],
+                         ["customer_profitability"])
+        self.assertEqual([m["method_id"] for m in registry.get("QNT-MKT-02")["linked_methods"]],
+                         ["growth_rate", "sales_funnel", "market_share"])
+        self.assertEqual([m["method_id"] for m in registry.get("QNT-MKT-03")["linked_methods"]],
+                         ["cohort_retention", "unit_economics", "clv_model"])
 
     def test_the_page_carries_the_digital_vocabulary(self):
         terms = {item["term"] for item in subjects.detail("marketing")["glossary"]}
