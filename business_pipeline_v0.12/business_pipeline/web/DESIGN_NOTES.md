@@ -420,48 +420,6 @@ Verification: on the served page (`127.0.0.1:8765`, Chromium) the Home hero show
 bold at the larger size and the proof line italic at the smaller one, and the rendered DOM carries
 both spans with their classes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit.
 
-## 14. "My account": the account this product actually has
-
-Owner instruction: take the attached hosted account page as inspiration and build one for Smart
-BusinessWriter, curated to this product rather than copied where it does not apply.
-
-What did not survive the transfer, and why:
-- **The identity.** The hosted page has a profile, an e-mail address, a password and a sign-out
-  button. This product runs as a single local user on one machine and stores no identity, so there
-  is nothing to authenticate and nothing to log out of. The page says so on its face rather than
-  shipping an empty form.
-- **The subscription.** Starter, Pro and Studio exist as the owner's illustrative tiers and are not
-  wired to a payment system, so there is no card, no billing date, no payment history and no
-  renewal to show.
-- **The analytics.** The hosted page loads a tag manager, a clarity script and a web font. This
-  product makes no external network calls, so the page loads none either, and its head says why so
-  a later change does not undo it on autopilot.
-- **The search-engine metadata.** There is no public URL and no organisation to claim, so no
-  schema.org or OpenGraph block asserts one.
-
-What did survive, because it exists here:
-- **The credit balance.** `src/bp/product/credits.py` already keeps an append-only ledger with a
-  derived balance, a price table (`html` and `csv` free, `docx`, `spreadsheetml` and `xlsx` 1,
-  `pptx` 3), a free first export and a 100-credit free tier - but nothing could read it, so the
-  balance was invisible to the user. `GET /api/cases/credits` returns the module's own receipt
-  unchanged: read-only, and it cannot charge anything.
-- **The usage table.** The stored cases with their method, tier and save time, from
-  `GET /api/cases`.
-- **The machine.** The build being served, the server's health, the case store and state
-  directories, the sandbox and model-assistance flags, from `GET /api/health`.
-
-What was built: `web/account.html`, served at `/account.html`, with `GET /assets/<file>` added so
-the logo and the tab icons are served as files rather than inlined. The page states plainly that
-there is no account, shows what is actually on the machine, and closes with a list of what it
-deliberately does not have. Every figure on it is read from the local API or is stated verbatim by
-the code that owns it.
-
-Verification: on the served page (`127.0.0.1:8766`, Chromium) the page renders the machine's facts
-from `/api/health`, the eight most recent cases from `/api/cases` with their methods and dates, the
-export wallet from `/api/cases/credits` - balance, price chips, ledger - and the catalogue counts.
-Every request the page makes returns 200; `/assets/../server.py` returns 404. The full suite
-passes.
-
 ## 14. The chat is the Home page (the separate Chat panel is gone)
 
 Owner instruction: the Chat rail item overlapped with the Home page, which already carries a chat
@@ -628,6 +586,14 @@ bespoke formatters. Capacity names the bottleneck resource from the declared
 rows; the funnel says how many people were not carried through; a test states its
 lift and p without claiming the change caused anything.
 
+Wave 8 finishes the curation — `cohort_retention` (with the `value_matrix`
+input), `trend_forecast`, `missing_data_bounds`, `media_plan`, `web_analytics`,
+`email_list_health`, `customer_profitability`, `channel_economics`,
+`attribution_split` — and groups the *Add a computation* select by the paper
+section each capability writes into. Two cue fixes: "LTV/CAC" now belongs to
+channel economics, not lifetime value, and a trend is only forecast when the brief
+asks to project it.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries
@@ -636,4 +602,44 @@ paragraph, the export gate passes; dropping the capability removes both the
 section and the requirement; a brief about the market alone selects nothing and
 the draft has no computation section; the full suite passes.
 
+## 16. "My account": the account this product actually has
 
+Owner instruction: take the attached hosted account page as inspiration and build one for Smart
+BusinessWriter, curated to this product rather than copied where it does not apply.
+
+What did not survive the transfer, and why:
+- **The identity.** The hosted page has a profile, an e-mail address, a password and a sign-out
+  button. This product runs as a single local user on one machine and stores no identity, so there
+  is nothing to authenticate and nothing to log out of. The page says so on its face rather than
+  shipping an empty form.
+- **The subscription.** Starter, Pro and Studio exist as the owner's illustrative tiers and are not
+  wired to a payment system, so there is no card, no billing date, no payment history and no
+  renewal to show.
+- **The analytics.** The hosted page loads a tag manager, a clarity script and a web font. This
+  product makes no external network calls, so the page loads none either, and its head says why so
+  a later change does not undo it on autopilot.
+- **The search-engine metadata.** There is no public URL and no organisation to claim, so no
+  schema.org or OpenGraph block asserts one.
+
+What did survive, because it exists here:
+- **The credit balance.** `src/bp/product/credits.py` already keeps an append-only ledger with a
+  derived balance, a price table (`html` and `csv` free, `docx`, `spreadsheetml` and `xlsx` 1,
+  `pptx` 3), a free first export and a 100-credit free tier - but nothing could read it, so the
+  balance was invisible to the user. `GET /api/cases/credits` returns the module's own receipt
+  unchanged: read-only, and it cannot charge anything.
+- **The usage table.** The stored cases with their method, tier and save time, from
+  `GET /api/cases`.
+- **The machine.** The build being served, the server's health, the case store and state
+  directories, the sandbox and model-assistance flags, from `GET /api/health`.
+
+What was built: `web/account.html`, served at `/account.html`, with `GET /assets/<file>` added so
+the logo and the tab icons are served as files rather than inlined. The page states plainly that
+there is no account, shows what is actually on the machine, and closes with a list of what it
+deliberately does not have. Every figure on it is read from the local API or is stated verbatim by
+the code that owns it.
+
+Verification: on the served page (`127.0.0.1:8766`, Chromium) the page renders the machine's facts
+from `/api/health`, the eight most recent cases from `/api/cases` with their methods and dates, the
+export wallet from `/api/cases/credits` - balance, price chips, ledger - and the catalogue counts.
+Every request the page makes returns 200; `/assets/../server.py` returns 404. The full suite
+passes.

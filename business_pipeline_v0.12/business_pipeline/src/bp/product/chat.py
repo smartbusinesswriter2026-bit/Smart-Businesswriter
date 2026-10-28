@@ -840,7 +840,7 @@ def _capability_inputs(entry_row, values):
                 parsed_columns[label] = parsed_values
             inputs[name] = parsed_columns
             continue
-        if kind == "count_table":
+        if kind == "count_table" or kind == "value_matrix":
             if isinstance(raw, list):
                 rows = raw
             else:
@@ -860,11 +860,12 @@ def _capability_inputs(entry_row, values):
                     try:
                         number = Decimal(text)
                     except (InvalidOperation, ValueError):
-                        return inputs, "Row " + str(index) + " of the " + desc + " must be whole numbers."
-                    if number != number.to_integral() or number < 0:
+                        return inputs, ("Row " + str(index) + " of the " + desc
+                                        + " must be numbers.")
+                    if kind == "count_table" and (number != number.to_integral() or number < 0):
                         return inputs, ("Row " + str(index) + " of the " + desc
                                         + " must be non-negative whole numbers.")
-                    row_values.append(str(int(number)))
+                    row_values.append(str(int(number)) if kind == "count_table" else str(number))
                 if row_values:
                     parsed_rows.append(row_values)
             minimum = int(spec.get("min_rows") or 1)
@@ -2143,6 +2144,157 @@ def _power_lines(row, inputs, result):
     return lines
 
 
+def _named_row(inputs, index):
+    rows = inputs.get("channels") or inputs.get("segments") or inputs.get("vehicles") or []
+    try:
+        row = rows[index]
+        return str(row.get("name") or ("row " + str(index + 1)))
+    except (IndexError, TypeError, AttributeError):
+        return "row " + str(index + 1)
+
+
+def _cohort_lines(row, inputs, result):
+    periods = [key for key in sorted(result) if key.startswith("retention_")]
+    retained = ", ".join(_pct(result[key]) + "%" for key in periods)
+    lines = ["Across " + _fmt_exact(len(inputs.get("cohort_sizes") or [])) + " declared cohort(s), retention is "
+             + retained + " at successive periods (average " + _pct(result.get("average_retention"))
+             + "%), with an average lifetime of " + _money(result.get("average_lifetime")) + " periods."]
+    lines.append("The curve follows the declared cohort sizes and retained counts; the method does not predict "
+                 "future retention.")
+    return lines
+
+
+def _trend_lines(row, inputs, result):
+    horizon = int(Decimal(str(result.get("horizon") or "1")))
+    points = []
+    for step in range(1, horizon + 1):
+        value = result.get("forecast_%d" % step)
+        if value in (None, ""):
+            continue
+        points.append(_money(value) + " (" + _money(result.get("ci_lower_%d" % step)) + " to "
+                      + _money(result.get("ci_upper_%d" % step)) + ")")
+    lines = ["The declared series of " + _fmt_exact(result.get("n_fitted")) + " period(s) has a trend of "
+             + _money(result.get("slope")) + " per period (r squared " + _money(result.get("r_squared"))
+             + ", p = " + _p_text(result.get("p_slope")) + "), and the method projects "
+             + "; ".join(points) + " over the declared horizon."]
+    lines.append("The projection extends the declared trend with its interval; it is not a market forecast and "
+                 "it assumes the declared pattern continues.")
+    return lines
+
+
+def _missing_lines(row, inputs, result):
+    lines = ["Of the declared values, " + _fmt_exact(result.get("n_valid")) + " are valid and "
+             + _fmt_exact(result.get("n_missing")) + " missing (" + _pct(result.get("pct_missing"))
+             + "%); the observed mean is " + _money(result.get("mean_observed")) + "."]
+    lines.append("Under the declared mechanism the mean can lie between " + _money(result.get("bound_low"))
+                 + " and " + _money(result.get("bound_high")) + ", a width of "
+                 + _money(result.get("bound_width")) + "; the bounds state what the missing values could hide.")
+    return lines
+
+
+def _media_lines(row, inputs, result):
+    vehicles = inputs.get("vehicles") or []
+    first = ""
+    if vehicles:
+        first = (" The largest single declared reach is " + _pct(result.get("reach_pct_1")) + "% of the declared "
+                 "population (" + str(vehicles[0].get("name") or "the first vehicle") + ").")
+    lines = ["With " + _fmt_exact(result.get("vehicles") or len(vehicles)) + " declared vehicle(s), the plan "
+             "delivers " + _money(result.get("total_impressions")) + " impressions (GRP "
+             + _money(result.get("total_grp")) + ") at a blended CPM of " + _money(result.get("blended_cpm"))
+             + " for a declared cost of " + _money(result.get("total_cost")) + "." + first]
+    lines.append("Reach and frequency are arithmetic on the declared populations and insertions; no audience "
+                 "data is retrieved.")
+    return lines
+
+
+def _web_lines(row, inputs, result):
+    channels = inputs.get("channels") or []
+    best = ""
+    try:
+        counts = [(str(channel.get("name")), Decimal(str(result.get("conversions_%d" % (index + 1)))))
+                  for index, channel in enumerate(channels)]
+        if counts:
+            name, value = max(counts, key=lambda pair: pair[1])
+            best = " The most conversions come from " + name + " (" + _fmt_exact(value) + ")."
+    except (InvalidOperation, ValueError):
+        best = ""
+    lines = ["Across the declared channels, " + _money(result.get("total_sessions")) + " sessions produced "
+             + _money(result.get("total_conversions")) + " conversions ("
+             + _pct(result.get("blended_conversion_rate")) + "%), for revenue of "
+             + _money(result.get("total_revenue")) + " and revenue per session of "
+             + _money(result.get("revenue_per_session")) + "." + best]
+    lines.append("The rates are arithmetic on the declared channel figures; no analytics platform is connected.")
+    return lines
+
+
+def _email_lines(row, inputs, result):
+    lines = ["From a declared list of " + _money(inputs.get("list_start")) + ", the list ends at "
+             + _money(result.get("list_end")) + " (" + _pct(result.get("growth_rate")) + "% growth, "
+             + _pct(result.get("churn_rate")) + "% churn); the open rate is "
+             + _pct(result.get("open_rate")) + "%, the click rate " + _pct(result.get("click_rate"))
+             + "% and click-to-open " + _pct(result.get("click_to_open")) + "%."]
+    lines.append("Revenue per subscriber is " + _money(result.get("revenue_per_subscriber"))
+                 + " and per send " + _money(result.get("revenue_per_send"))
+                 + "; the figures are arithmetic on the declared sends and responses.")
+    return lines
+
+
+def _segment_lines(row, inputs, result):
+    shares = []
+    for index in range(len(inputs.get("segments") or [])):
+        share = result.get("profit_share_%d" % (index + 1))
+        if share in (None, ""):
+            continue
+        shares.append(_named_row(inputs, index) + " " + _pct(share) + "%")
+    lines = ["Across " + _fmt_exact(result.get("segments")) + " declared segment(s), revenue of "
+             + _money(result.get("total_revenue")) + " and cost of " + _money(result.get("total_cost"))
+             + " leave profit of " + _money(result.get("total_profit")) + " ("
+             + _pct(result.get("overall_margin")) + "% margin)."]
+    if shares:
+        lines.append("Profit is concentrated as: " + "; ".join(shares) + " of the total.")
+    lines.append("The margins follow from the declared revenue and costs; the method does not reassign the "
+                 "allocated cost.")
+    return lines
+
+
+def _channel_lines(row, inputs, result):
+    parts = []
+    for index in range(len(inputs.get("channels") or [])):
+        cac = result.get("cac_%d" % (index + 1))
+        if cac in (None, ""):
+            continue
+        ratio = result.get("ltv_cac_%d" % (index + 1))
+        parts.append(_named_row(inputs, index) + " CAC " + _money(cac)
+                     + (", LTV/CAC " + _money(ratio) if ratio not in (None, "") else ""))
+    lines = ["Across the declared channels, " + _money(result.get("total_spend")) + " of spend acquired "
+             + _money(result.get("total_customers")) + " customers at a blended CAC of "
+             + _money(result.get("blended_cac")) + "."]
+    if parts:
+        lines.append("By channel: " + "; ".join(parts) + ".")
+    lines.append("The ratios use the declared spend, customers, contribution margin and churn; the method does "
+                 "not retrieve acquisition costs.")
+    return lines
+
+
+def _attribution_lines(row, inputs, result):
+    parts = []
+    for index in range(len(inputs.get("channels") or [])):
+        first = result.get("first_share_%d" % (index + 1))
+        if first in (None, ""):
+            continue
+        parts.append(_named_row(inputs, index) + " first " + _pct(first) + "%, last "
+                     + _pct(result.get("last_share_%d" % (index + 1))) + "%, linear "
+                     + _pct(result.get("linear_share_%d" % (index + 1))) + "%")
+    lines = ["Across the declared channels the credit totals " + _money(result.get("total_first_click"))
+             + " first-click, " + _money(result.get("total_last_click")) + " last-click and "
+             + _money(result.get("total_linear")) + " linear."]
+    if parts:
+        lines.append("By channel: " + "; ".join(parts) + ".")
+    lines.append("The three rules are alternative allocations of the same declared credit; the method does not "
+                 "say which rule is right.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2181,6 +2333,15 @@ CAPABILITY_LINES.update({
     "reliability_alpha": _alpha_lines,
     "weighted_summary": _weighted_lines,
     "power_analysis": _power_lines,
+    "cohort_retention": _cohort_lines,
+    "trend_forecast": _trend_lines,
+    "missing_data_bounds": _missing_lines,
+    "media_plan": _media_lines,
+    "web_analytics": _web_lines,
+    "email_list_health": _email_lines,
+    "customer_profitability": _segment_lines,
+    "channel_economics": _channel_lines,
+    "attribution_split": _attribution_lines,
 })
 
 

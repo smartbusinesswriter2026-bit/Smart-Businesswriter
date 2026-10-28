@@ -304,6 +304,15 @@ answer selects or excludes the capability with a stated reason.
 | `reliability_alpha` | Cronbach's alpha for a declared survey | Data Analysis / Survey Reliability |
 | `weighted_summary` | the weighted mean and effective sample size | Data Analysis / Weighted Summary |
 | `power_analysis` | the power and minimum detectable effect of a design | Data Analysis / Statistical Power |
+| `cohort_retention` | retention by declared cohort | Customer Evidence / Cohort Retention |
+| `trend_forecast` | the declared series' trend and its projection | Data Analysis / Trend Forecast |
+| `missing_data_bounds` | what the missing values could hide | Data Analysis / Missing Data Bounds |
+| `media_plan` | impressions, GRP and blended CPM | Marketing Performance / Media Plan |
+| `web_analytics` | sessions, conversions and revenue per session | Marketing Performance / Web Analytics |
+| `email_list_health` | list growth and the open and click rates | Marketing Performance / Email List Health |
+| `customer_profitability` | profit and margin by declared segment | Customer Economics / Customer Profitability |
+| `channel_economics` | CAC, LTV/CAC and payback by channel | Customer Economics / Channel Economics |
+| `attribution_split` | first-click, last-click and linear credit | Marketing Performance / Attribution Split |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -327,6 +336,7 @@ schema:
 | `enum` | a select of exactly the values the schema declares | "The which multiple you are applying ... must be one of: earnings, ebitda, ..." |
 | `column_map` | one named column per group or predictor, each with its own values | "Every value in the control column ... must be a number." |
 | `count_table` | one row per line of comma-separated whole-number counts | "Row 2 ... must be non-negative whole numbers." |
+| `value_matrix` | one row per line of comma-separated values | "Row 2 ... must be numbers." |
 
 Two more declaration rules live in the catalogue, so no capability invents an
 input:

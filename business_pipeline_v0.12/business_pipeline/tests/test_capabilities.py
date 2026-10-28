@@ -279,6 +279,27 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("line A", text)
         self.assertIn("short of the declared demand", text)
 
+    def test_a_cohort_paper_takes_a_retention_matrix(self):
+        brief = ("The grocery chain is entering the Saudi market and the loyalty cohorts need their cohort "
+                 "retention read from declared sizes and retained counts.")
+        state = draftable(answer_all(chat.start(brief, "management")))
+        chat.attach_computation(state, "cohort_retention",
+                                {"cohort_sizes": ["1000", "800", "600"],
+                                 "retained": [["1000", "600", "420"], ["800", "480", "300"],
+                                              ["600", "360", "180"]]})
+        state = chat.draft(state, accepted_ids=[], implications="Retention falls quickly after the first period.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Cohort Retention"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("average", text.lower())
+        self.assertIn("65.83", text)
+
+    def test_ltv_cac_belongs_to_channel_economics_not_clv(self):
+        brief = ("The grocery chain is entering the Saudi market and the channel economics need reading: CAC and "
+                 "LTV/CAC on declared channels.")
+        selection = capabilities.resolve(brief, "pestel")
+        self.assertEqual([row["key"] for row in selection["selected"]], ["channel_economics"])
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")

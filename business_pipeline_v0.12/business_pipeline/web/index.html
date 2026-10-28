@@ -1407,7 +1407,7 @@ function capabilityPanel(c, plan) {
             '<button class="btn sm" type="button" data-capaddcolumn="' + esc(cap.key + ":" + name) +
             '">Add column</button></div>';
         }
-        if (spec.type === "count_table") {
+        if (spec.type === "count_table" || spec.type === "value_matrix") {
           const text = Array.isArray(raw)
             ? raw.map((line) => (Array.isArray(line) ? line.join(", ") : line)).join("\n")
             : "";
@@ -1442,9 +1442,18 @@ function capabilityPanel(c, plan) {
       esc(row.label) + " (" + esc(row.reason) + ")").join("; ") + ".</p>";
   }
   if (available.length) {
+    const sections = [];
+    available.forEach((row) => {
+      const section = (row.slot && row.slot[0]) || "Other";
+      let group = sections.find((entry) => entry.section === section);
+      if (!group) { group = { section: section, rows: [] }; sections.push(group); }
+      group.rows.push(row);
+    });
     html += '<div class="row" style="margin-top:10px;flex-wrap:wrap"><label class="field" for="capadd" style="margin:0">Add a computation</label>' +
-      '<select id="capadd">' + available.map((row) =>
-        '<option value="' + esc(row.key) + '">' + esc(row.label) + "</option>").join("") + "</select>" +
+      '<select id="capadd">' + sections.map((group) =>
+        '<optgroup label="' + esc(group.section) + '">' + group.rows.map((row) =>
+          '<option value="' + esc(row.key) + '">' + esc(row.label) + "</option>").join("") +
+        "</optgroup>").join("") + "</select>" +
       '<button class="btn sm" type="button" id="capaddgo">Add</button></div>';
   }
   html += "</div>";
