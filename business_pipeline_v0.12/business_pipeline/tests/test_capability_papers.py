@@ -79,6 +79,21 @@ CASES = {
                       "benefits": ["0", "80000", "90000"], "discount_rate": "0.08"}, "pestel"),
     "cost_effectiveness": ({"options": [{"name": "a", "cost": "100000", "effect": "40"},
                                         {"name": "b", "cost": "150000", "effect": "55"}]}, "pestel"),
+    "demand_supply_equilibrium": ({"demand_intercept": "100", "demand_slope": "2",
+                                   "supply_intercept": "20", "supply_slope": "1"}, "pestel"),
+    "national_income": ({"consumption": "600", "investment": "200", "government_spending": "150",
+                         "exports": "100", "imports": "80"}, "pestel"),
+    "gini_coefficient": ({"incomes": ["10", "20", "30", "40"]}, "pestel"),
+    "tariff_welfare": ({"demand_intercept": "100", "demand_slope": "2", "supply_intercept": "20",
+                        "supply_slope": "1", "world_price": "20", "tariff_per_unit": "5"}, "pestel"),
+    "comparative_advantage": ({"countries": [
+        {"name": "A", "good_1_hours": "2", "good_2_hours": "4"},
+        {"name": "B", "good_1_hours": "6", "good_2_hours": "3"}]}, "pestel"),
+    "panel_regression": ({"data": [
+        {"entity": "a", "period": "1", "y": "1", "x": "2"},
+        {"entity": "a", "period": "2", "y": "2", "x": "3"},
+        {"entity": "b", "period": "1", "y": "3", "x": "4"},
+        {"entity": "b", "period": "2", "y": "4", "x": "5"}]}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "

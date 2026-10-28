@@ -345,6 +345,30 @@ class RunnerTest(unittest.TestCase):
         selection = capabilities.resolve(brief, "pestel")
         self.assertEqual([row["key"] for row in selection["selected"]], ["sroi"])
 
+    def test_a_gini_paper_reports_inequality(self):
+        brief = ("The grocery chain is entering the Saudi market and the report needs the gini coefficient on "
+                 "the declared household incomes.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "gini_coefficient", {"incomes": ["10", "20", "30", "40"]})
+        state = chat.draft(state, accepted_ids=[], implications="The declared incomes are unequal.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Gini Coefficient"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("Gini coefficient is 0.25", text)
+        self.assertIn("poorest person holds 10%", text)
+
+    def test_a_panel_regression_is_not_also_plain_ols(self):
+        brief = ("The grocery chain is entering the Saudi market and needs a panel regression on its declared "
+                 "observations across entities.")
+        selection = capabilities.resolve(brief, "pestel")
+        self.assertEqual([row["key"] for row in selection["selected"]], ["panel_regression"])
+
+    def test_real_wages_do_not_select_inflation(self):
+        brief = ("The grocery chain is entering the Saudi market and needs the real wage against the declared "
+                 "CPI and productivity.")
+        selection = capabilities.resolve(brief, "pestel")
+        self.assertEqual([row["key"] for row in selection["selected"]], ["labour_market"])
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")

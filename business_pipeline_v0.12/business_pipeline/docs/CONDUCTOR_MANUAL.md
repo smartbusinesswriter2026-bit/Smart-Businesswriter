@@ -336,6 +336,39 @@ answer selects or excludes the capability with a stated reason.
 | `sroi` | the social return on a declared investment | Impact / Social Return on Investment |
 | `cost_benefit` | present values, net value and the benefit-cost ratio | Impact / Cost-Benefit Analysis |
 | `cost_effectiveness` | the incremental cost per unit of effect | Impact / Cost-Effectiveness Analysis |
+| `demand_supply_equilibrium` | the equilibrium price, quantity and surplus | Market Structure / Market Equilibrium |
+| `price_control` | whether a declared ceiling or floor binds, and the gap | Market Structure / Price Control |
+| `profit_maximization` | the profit-maximising price and quantity | Market Structure / Profit Maximisation |
+| `price_discrimination` | price and quantity in two separated markets | Market Structure / Price Discrimination |
+| `cournot_duopoly` | the duopoly quantities, price and profits | Market Structure / Cournot Duopoly |
+| `nash_equilibrium` | the pure-strategy equilibria of a payoff matrix | Market Structure / Nash Equilibrium |
+| `national_income` | GDP, GNP and net national product | Economic Context / National Income |
+| `unemployment_rate` | the unemployment and participation rates | Economic Context / Unemployment |
+| `labour_market` | the real wage against productivity | Economic Context / Real Wages |
+| `money_multiplier` | the money multiplier and money supply | Economic Context / Money Multiplier |
+| `fiscal_multiplier` | the spending, tax and balanced-budget multipliers | Economic Context / Fiscal Multiplier |
+| `budget_debt` | the overall and primary balance, and debt to GDP | Economic Context / Budget and Debt |
+| `output_gap_okun` | the output gap and its unemployment counterpart | Economic Context / Output Gap (Okun) |
+| `externality_pigouvian` | the social optimum and the Pigouvian tax | Policy Impact / Externality and Pigouvian Tax |
+| `public_good` | the efficient quantity of a declared public good | Policy Impact / Public Good |
+| `optimal_pollution` | optimal emissions and the pollution tax | Policy Impact / Optimal Pollution |
+| `social_welfare` | three welfare functions over the same incomes | Policy Impact / Social Welfare |
+| `gini_coefficient` | the Gini coefficient and income shares | Policy Impact / Gini Coefficient |
+| `poverty_measures` | headcount, gap and squared gap | Policy Impact / Poverty Measures |
+| `tax_progressivity` | the progressivity gap between income and tax shares | Policy Impact / Tax Progressivity |
+| `tariff_welfare` | the price, imports and deadweight loss of a tariff | Policy Impact / Tariff Welfare |
+| `comparative_advantage` | opportunity costs and who holds the advantage | Economic Context / Comparative Advantage |
+| `exchange_rate_ppp` | the PPP rate, the real rate and the misalignment | Economic Context / Purchasing-Power Parity |
+| `interest_rate_parity` | the forward implied by covered parity | Economic Context / Interest-Rate Parity |
+| `balance_of_payments` | the net balance and whether it balances | Economic Context / Balance of Payments |
+| `hdi` | the three indices and the HDI | Economic Context / Human Development Index |
+| `expected_utility` | expected value, utility, certainty equivalent | Data Analysis / Expected Utility |
+| `prospect_theory` | the prospect value against the expected value | Data Analysis / Prospect Theory |
+| `difference_in_differences` | the treated and control changes and the estimate | Data Analysis / Difference-in-Differences |
+| `instrumental_variables` | the two-stage slope against OLS | Data Analysis / Instrumental Variables |
+| `panel_regression` | the within slope and within R squared | Data Analysis / Panel Regression |
+| `regression_discontinuity` | the jump at the declared cutoff | Data Analysis / Regression Discontinuity |
+| `probit` | the slope, marginal effect and pseudo R squared | Data Analysis / Probit Model |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from

@@ -617,6 +617,16 @@ fixed: "marginal cost" no longer drags cost curves into a market-power paper,
 "markup" no longer drags pricing in, and "social return on investment" is SROI,
 not plain ROI.
 
+Wave 12 closes the economics gap: thirty-three capabilities covering market
+structure (equilibrium, price control, profit maximisation, discrimination,
+Cournot, Nash), macro (national income, unemployment, real wages, the money and
+fiscal multipliers, budget and debt, Okun), welfare (externality, public good,
+optimal pollution, social welfare, Gini, poverty, progressivity, tariffs),
+international (comparative advantage, PPP, interest parity, balance of payments,
+HDI) and decision/evidence (expected utility, prospect theory, DiD, IV, panel,
+RDD, probit). The evidence designs share the regression intent, so priority
+decides between them instead of catalogue order.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

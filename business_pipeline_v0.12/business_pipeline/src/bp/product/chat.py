@@ -2552,6 +2552,361 @@ def _cea_lines(row, inputs, result):
     return lines
 
 
+def _equilibrium_lines(row, inputs, result):
+    lines = ["From the declared demand and supply curves, the equilibrium price is "
+             + _money(result.get("equilibrium_price")) + " at a quantity of "
+             + _money(result.get("equilibrium_quantity")) + ", with consumer surplus of "
+             + _money(result.get("consumer_surplus")) + ", producer surplus of "
+             + _money(result.get("producer_surplus")) + " and total surplus of "
+             + _money(result.get("total_surplus")) + "."]
+    lines.append("The curves are the student's declaration; the method does not estimate demand or supply.")
+    return lines
+
+
+def _price_control_lines(row, inputs, result):
+    binding = "binding" if str(result.get("binding")).lower() in ("true", "yes", "1") else "not binding"
+    lines = ["A declared control price of " + _money(result.get("control_price")) + " against an equilibrium of "
+             + _money(result.get("equilibrium_price")) + " is " + binding + "; the quantity traded is "
+             + _money(result.get("quantity_traded")) + " against demand of "
+             + _money(result.get("quantity_demanded_at_control")) + " and supply of "
+             + _money(result.get("quantity_supplied_at_control")) + "."]
+    gap = result.get("quantity_gap")
+    if gap not in (None, "") and Decimal(str(gap)) != 0:
+        lines.append("The resulting shortfall in quantity is " + _money(abs(Decimal(str(gap)))) + ".")
+    lines.append("The result follows from the declared curves and the declared control; the method does not "
+                 "assess whether the policy is desirable.")
+    return lines
+
+
+def _profit_max_lines(row, inputs, result):
+    lines = ["The declared demand and cost curves give a profit-maximising quantity of "
+             + _money(result.get("profit_maximizing_quantity")) + " at a price of "
+             + _money(result.get("profit_maximizing_price")) + ", with profit of "
+             + _money(result.get("profit")) + " and a markup of " + _money(result.get("markup"))
+             + " (Lerner index " + _pct(result.get("lerner_index")) + "%)."]
+    lines.append("The optimum is arithmetic on the declared curves; no market price is retrieved.")
+    return lines
+
+
+def _discrimination_lines(row, inputs, result):
+    lines = ["Charging separately in the two declared markets gives quantities of "
+             + _money(result.get("quantity_1")) + " at " + _money(result.get("price_1")) + " and "
+             + _money(result.get("quantity_2")) + " at " + _money(result.get("price_2"))
+             + ", for total revenue of " + _money(result.get("total_revenue")) + " and profit of "
+             + _money(result.get("total_profit")) + "."]
+    lines.append("The two demands and the marginal cost are declared; the method does not test whether the "
+                 "markets can be separated.")
+    return lines
+
+
+def _cournot_lines(row, inputs, result):
+    lines = ["In the declared duopoly, the two firms produce " + _money(result.get("quantity_1")) + " and "
+             + _money(result.get("quantity_2")) + " units, giving a price of " + _money(result.get("price"))
+             + " and profits of " + _money(result.get("profit_1")) + " and "
+             + _money(result.get("profit_2")) + "."]
+    lines.append("The equilibrium follows from the declared demand and the two declared marginal costs.")
+    return lines
+
+
+def _nash_lines(row, inputs, result):
+    found = []
+    for i in (1, 2):
+        for j in (1, 2):
+            if str(result.get("nash_%d%d" % (i, j))).lower() in ("true", "yes", "1"):
+                found.append("(row " + str(i) + ", column " + str(j) + ")")
+    lines = ["On the declared payoff matrix the method finds " + _fmt_exact(result.get("nash_count"))
+             + " pure-strategy Nash equilibrium point(s)"
+             + (": " + "; ".join(found) if found else "") + "."]
+    lines.append("The payoffs are the student's declaration; the method does not predict how players behave.")
+    return lines
+
+
+def _national_income_lines(row, inputs, result):
+    lines = ["From the declared components, GDP is " + _money(result.get("gdp")) + ", GNP "
+             + _money(result.get("gnp")) + " and net national product " + _money(result.get("nnp"))
+             + ", with net exports of " + _money(result.get("net_exports")) + "."]
+    lines.append("The identity is applied to the declared figures; no national account is retrieved.")
+    return lines
+
+
+def _unemployment_lines(row, inputs, result):
+    lines = ["On a declared labour force of " + _money(result.get("labour_force")) + " and "
+             + _money(result.get("employed")) + " employed, unemployment is "
+             + _money(result.get("unemployed")) + " people, an unemployment rate of "
+             + _pct(result.get("unemployment_rate")) + "% and a participation rate of "
+             + _pct(result.get("labour_force_participation_rate")) + "%."]
+    lines.append("The rates are arithmetic on the declared counts; the method does not define who counts as "
+                 "unemployed.")
+    return lines
+
+
+def _real_wage_lines(row, inputs, result):
+    lines = ["At a declared nominal wage of " + _money(result.get("nominal_wage")) + " and a CPI of "
+             + _money(result.get("cpi")) + ", the real wage is " + _money(result.get("real_wage"))
+             + ", which is " + _pct(result.get("wage_share_of_productivity"))
+             + "% of the declared labour productivity."]
+    lines.append("The comparison uses the declared price index and productivity; the method does not measure "
+                 "either.")
+    return lines
+
+
+def _money_multiplier_lines(row, inputs, result):
+    lines = ["With a declared monetary base of " + _money(result.get("monetary_base")) + " and a reserve ratio "
+             "of " + _pct(result.get("reserve_ratio")) + "%, the simple money multiplier is "
+             + _money(result.get("simple_money_multiplier")) + " and the extended one "
+             + _money(result.get("extended_money_multiplier")) + ", giving a money supply of "
+             + _money(result.get("money_supply_extended")) + "."]
+    lines.append("The multiplier assumes the declared ratios hold; the method does not model central-bank "
+                 "behaviour.")
+    return lines
+
+
+def _fiscal_multiplier_lines(row, inputs, result):
+    lines = ["At a declared marginal propensity to consume of " + _money(result.get("mpc"))
+             + ", the government spending multiplier is "
+             + _money(result.get("government_spending_multiplier")) + " and the tax multiplier "
+             + _money(result.get("tax_multiplier")) + "."]
+    change = result.get("output_change")
+    if change not in (None, "") and Decimal(str(change)) != 0:
+        lines.append("On the declared changes, output changes by " + _money(change) + ".")
+    lines.append("The multipliers follow from the declared propensities; they are not an estimate of the actual "
+                 "economy.")
+    return lines
+
+
+def _budget_lines(row, inputs, result):
+    lines = ["With declared revenue of " + _money(result.get("government_revenue")) + " and total spending of "
+             + _money(result.get("total_spending")) + ", the overall balance is "
+             + _money(result.get("overall_balance")) + " and the primary balance "
+             + _money(result.get("primary_balance")) + "."]
+    if result.get("debt_to_gdp") not in (None, ""):
+        lines.append("On the declared debt and GDP, debt is " + _pct(result.get("debt_to_gdp"))
+                     + "% of GDP.")
+    lines.append("The balances are arithmetic on the declared figures; no fiscal rule is applied.")
+    return lines
+
+
+def _okun_lines(row, inputs, result):
+    lines = ["At a declared actual GDP of " + _money(inputs.get("actual_gdp")) + " against potential of "
+             + _money(inputs.get("potential_gdp")) + ", the output gap is "
+             + _pct(result.get("output_gap")) + "%, which the declared Okun coefficient links to a "
+             + _money(result.get("predicted_unemployment_change_pp"))
+             + " percentage-point change in unemployment"
+             + (" (a predicted rate of " + _pct(result.get("predicted_unemployment_rate")) + "%)"
+                if result.get("predicted_unemployment_rate") not in (None, "") else "") + "."]
+    lines.append("The link is the declared coefficient, not an estimated relationship.")
+    return lines
+
+
+def _externality_lines(row, inputs, result):
+    lines = ["With a declared external cost of " + _money(result.get("external_cost")) + " per unit, the market "
+             "produces " + _money(result.get("market_quantity")) + " units at "
+             + _money(result.get("market_price")) + " against a social optimum of "
+             + _money(result.get("social_quantity")) + " units."]
+    lines.append("The Pigouvian tax that would close the gap is " + _money(result.get("pigouvian_tax"))
+                 + " per unit, and the deadweight loss at the market quantity is "
+                 + _money(result.get("deadweight_loss")) + ".")
+    lines.append("The optimum is arithmetic on the declared curves and the declared external cost.")
+    return lines
+
+
+def _public_good_lines(row, inputs, result):
+    lines = ["Summing the two declared marginal-benefit curves against the declared marginal cost gives an "
+             "efficient quantity of " + _money(result.get("efficient_quantity")) + " units, a social marginal "
+             "benefit of " + _money(result.get("social_marginal_benefit")) + " and a net benefit of "
+             + _money(result.get("net_benefit")) + "."]
+    lines.append("The curves are declared; the method does not value the good or estimate demand.")
+    return lines
+
+
+def _pollution_lines(row, inputs, result):
+    lines = ["Where the declared marginal damage meets the declared marginal abatement cost, optimal emissions "
+             "are " + _money(result.get("optimal_emissions")) + " units, with a Pigouvian tax of "
+             + _money(result.get("pollution_tax")) + " per unit, damage of "
+             + _money(result.get("total_damage")) + " and abatement cost of "
+             + _money(result.get("total_abatement_cost")) + "."]
+    lines.append("The optimum uses the declared damage and abatement curves only.")
+    return lines
+
+
+def _welfare_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes with a mean of "
+             + _money(result.get("mean_income")) + ", utilitarian welfare is "
+             + _money(result.get("utilitarian_welfare")) + ", Rawlsian "
+             + _money(result.get("rawlsian_welfare")) + " and Nash "
+             + _money(result.get("nash_welfare")) + "."]
+    lines.append("Each figure is one declared welfare function applied to the same incomes; the method does not "
+                 "say which is right.")
+    return lines
+
+
+def _gini_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes with a mean of "
+             + _money(result.get("mean_income")) + ", the Gini coefficient is "
+             + _money(result.get("gini")) + "; the poorest person holds "
+             + _pct(result.get("poorest_share")) + "% of the total income and the richest "
+             + _pct(result.get("richest_share")) + "%."]
+    lines.append("The coefficient describes the declared incomes; the method does not infer the wider "
+                 "population.")
+    return lines
+
+
+def _poverty_lines(row, inputs, result):
+    lines = ["Against a declared poverty line, " + _fmt_exact(result.get("poor_count")) + " of "
+             + _fmt_exact(result.get("n")) + " people are poor, a headcount ratio of "
+             + _pct(result.get("headcount_ratio")) + "%, a poverty gap of "
+             + _pct(result.get("poverty_gap")) + "% and a squared gap of "
+             + _pct(result.get("squared_gap")) + "%."]
+    lines.append("The measures use the declared line and incomes; the method does not set the line.")
+    return lines
+
+
+def _progressivity_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes and taxes, the average tax rate is "
+             + _pct(result.get("average_tax_rate")) + "%; the top earner holds "
+             + _pct(result.get("top_income_share")) + "% of income and pays "
+             + _pct(result.get("top_tax_share")) + "% of the tax, a progressivity gap of "
+             + _pct(result.get("progressivity_gap")) + " points."]
+    lines.append("The measure compares the declared distributions; it does not judge the tax system.")
+    return lines
+
+
+def _tariff_lines(row, inputs, result):
+    lines = ["At a declared world price plus a tariff of " + _money(inputs.get("tariff_per_unit")) + ", the "
+             "domestic price is " + _money(result.get("domestic_price")) + ", imports fall to "
+             + _money(result.get("imports")) + " from " + _money(result.get("imports_free_trade"))
+             + " free-trade units, and the tariff raises " + _money(result.get("tariff_revenue")) + "."]
+    lines.append("The deadweight loss is " + _money(result.get("total_dwloss"))
+                 + " (production " + _money(result.get("production_dwloss")) + ", consumption "
+                 + _money(result.get("consumption_dwloss")) + "); the welfare arithmetic uses the declared "
+                 "curves.")
+    return lines
+
+
+def _advantage_lines(row, inputs, result):
+    countries = inputs.get("countries") or []
+    first = str((countries[0] or {}).get("name") if countries else "the first country")
+    second = str((countries[1] or {}).get("name") if len(countries) > 1 else "the second country")
+    lines = ["From the declared hours per unit, " + first + " gives up "
+             + _money(result.get("oc_a_good1")) + " units of good 2 per unit of good 1 (and "
+             + _money(result.get("oc_a_good2")) + " the other way round); " + second + " gives up "
+             + _money(result.get("oc_b_good1")) + " units of good 2 per unit of good 1 (and "
+             + _money(result.get("oc_b_good2")) + " the other way round)."]
+    if str(result.get("a_has_advantage_good1")).lower() in ("true", "yes", "1"):
+        lines.append(first + " has the comparative advantage in good 1 and " + second + " in good 2.")
+    else:
+        lines.append(second + " has the comparative advantage in good 1 and " + first + " in good 2.")
+    lines.append("The comparison uses the declared labour requirements only.")
+    return lines
+
+
+def _ppp_lines(row, inputs, result):
+    lines = ["At declared prices of " + _money(inputs.get("price_domestic")) + " and "
+             + _money(inputs.get("price_foreign")) + " and a declared nominal rate of "
+             + _fmt_exact(inputs.get("nominal_rate")) + ", purchasing-power parity implies a rate of "
+             + _money(result.get("ppp_rate")) + "; the real exchange rate is "
+             + _money(result.get("real_exchange_rate")) + " and the misalignment "
+             + _pct(result.get("misalignment")) + "%."]
+    lines.append("The comparison uses the declared prices and rate; no market rate is retrieved.")
+    return lines
+
+
+def _irp_lines(row, inputs, result):
+    lines = ["At a declared spot rate of " + _fmt_exact(inputs.get("spot_rate")) + " and interest rates of "
+             + _pct(inputs.get("domestic_rate")) + "% and " + _pct(inputs.get("foreign_rate"))
+             + "%, covered interest parity implies a forward rate of "
+             + _money(result.get("implied_forward")) + ", a premium of "
+             + _pct(result.get("forward_premium")) + "%."]
+    lines.append("The forward is arithmetic on the declared rates; it is not a forecast of the spot rate.")
+    return lines
+
+
+def _bop_lines(row, inputs, result):
+    balanced = "balances" if str(result.get("balanced")).lower() in ("true", "yes", "1") else "does not balance"
+    lines = ["With the declared current, capital and financial accounts, the net balance is "
+             + _money(result.get("net_balance")) + ", so the statement " + balanced
+             + " before any declared errors and omissions."]
+    lines.append("The accounts are the student's declaration; the method does not reconcile them for you.")
+    return lines
+
+
+def _hdi_lines(row, inputs, result):
+    lines = ["From the declared life expectancy, schooling and income, the health index is "
+             + _money(result.get("life_index")) + ", the education index "
+             + _money(result.get("education_index")) + " and the income index "
+             + _money(result.get("income_index")) + ", giving a human development index of "
+             + _money(result.get("hdi")) + "."]
+    lines.append("The index is the declared formula on the declared indicators; the data are not retrieved.")
+    return lines
+
+
+def _expected_utility_lines(row, inputs, result):
+    lines = ["On the declared outcomes and probabilities, the expected value is "
+             + _money(result.get("expected_value")) + " and the expected utility "
+             + _money(result.get("expected_utility")) + "; the certainty equivalent is "
+             + _money(result.get("certainty_equivalent")) + " and the risk premium "
+             + _money(result.get("risk_premium")) + "."]
+    lines.append("The utility function and the declared probabilities drive the result; the method does not "
+                 "estimate preferences.")
+    return lines
+
+
+def _prospect_lines(row, inputs, result):
+    lines = ["On the declared outcomes around the declared reference point, prospect theory gives a value of "
+             + _money(result.get("prospect_value")) + " against an expected value of "
+             + _money(result.get("expected_value")) + "."]
+    lines.append("The gap comes from the declared loss aversion, curvature and probability weighting; the "
+                 "method does not measure those parameters.")
+    return lines
+
+
+def _did_lines(row, inputs, result):
+    lines = ["The treated group changed by " + _money(result.get("treated_change")) + " and the control group by "
+             + _money(result.get("control_change")) + ", so the difference-in-differences estimate is "
+             + _money(result.get("did_estimate")) + "."]
+    lines.append("The estimate assumes the two groups would have moved together without the intervention; that "
+                 "assumption is the student's, not the method's.")
+    return lines
+
+
+def _iv_lines(row, inputs, result):
+    lines = ["With the declared instrument, the two-stage estimate of the slope is "
+             + _money(result.get("iv_slope")) + " against an ordinary least-squares slope of "
+             + _money(result.get("ols_slope")) + "; the first-stage slope is "
+             + _money(result.get("first_stage_slope")) + " on " + _fmt_exact(result.get("n"))
+             + " observation(s)."]
+    lines.append("The estimate is only as good as the declared instrument; the method does not test exclusion.")
+    return lines
+
+
+def _panel_lines(row, inputs, result):
+    lines = ["On " + _fmt_exact(result.get("n_obs")) + " observation(s) across "
+             + _fmt_exact(result.get("n_entities")) + " entity(ies) and "
+             + _fmt_exact(result.get("n_periods")) + " period(s), the within slope is "
+             + _money(result.get("slope")) + " with a within R squared of "
+             + _money(result.get("within_r2")) + "."]
+    lines.append("The model absorbs the declared entity effects; it does not establish causation.")
+    return lines
+
+
+def _rdd_lines(row, inputs, result):
+    lines = ["Around the declared cutoff, the jump estimate is " + _money(result.get("estimate"))
+             + ", from " + _fmt_exact(result.get("n_left")) + " observation(s) below and "
+             + _fmt_exact(result.get("n_right")) + " above."]
+    lines.append("The estimate assumes the declared running variable is continuous at the cutoff; the method "
+                 "does not test that assumption.")
+    return lines
+
+
+def _probit_lines(row, inputs, result):
+    lines = ["The declared binary outcomes give a probit slope of " + _money(result.get("slope"))
+             + " with a pseudo R squared of " + _money(result.get("pseudo_r2"))
+             + " and a marginal effect at the mean of "
+             + _money(result.get("marginal_effect_at_mean")) + "."]
+    lines.append("The model describes the declared sample; a coefficient is not a causal effect.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2616,6 +2971,39 @@ CAPABILITY_LINES.update({
     "sroi": _sroi_lines,
     "cost_benefit": _cba_lines,
     "cost_effectiveness": _cea_lines,
+    "demand_supply_equilibrium": _equilibrium_lines,
+    "price_control": _price_control_lines,
+    "profit_maximization": _profit_max_lines,
+    "price_discrimination": _discrimination_lines,
+    "cournot_duopoly": _cournot_lines,
+    "nash_equilibrium": _nash_lines,
+    "national_income": _national_income_lines,
+    "unemployment_rate": _unemployment_lines,
+    "labour_market": _real_wage_lines,
+    "money_multiplier": _money_multiplier_lines,
+    "fiscal_multiplier": _fiscal_multiplier_lines,
+    "budget_debt": _budget_lines,
+    "output_gap_okun": _okun_lines,
+    "externality_pigouvian": _externality_lines,
+    "public_good": _public_good_lines,
+    "optimal_pollution": _pollution_lines,
+    "social_welfare": _welfare_lines,
+    "gini_coefficient": _gini_lines,
+    "poverty_measures": _poverty_lines,
+    "tax_progressivity": _progressivity_lines,
+    "tariff_welfare": _tariff_lines,
+    "comparative_advantage": _advantage_lines,
+    "exchange_rate_ppp": _ppp_lines,
+    "interest_rate_parity": _irp_lines,
+    "balance_of_payments": _bop_lines,
+    "hdi": _hdi_lines,
+    "expected_utility": _expected_utility_lines,
+    "prospect_theory": _prospect_lines,
+    "difference_in_differences": _did_lines,
+    "instrumental_variables": _iv_lines,
+    "panel_regression": _panel_lines,
+    "regression_discontinuity": _rdd_lines,
+    "probit": _probit_lines,
 })
 
 
