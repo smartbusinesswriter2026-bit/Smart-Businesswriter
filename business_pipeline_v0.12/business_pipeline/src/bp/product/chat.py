@@ -4020,7 +4020,10 @@ def draft(state, accepted_ids=None, implications="", style=None):
                       "forecast demand or prove that the expected volume will be reached.")
     if selected_caps:
         for row in selected_caps:
-            limits.append(row["label"] + ": " + str(row.get("not") or "") + ".")
+            # The method's own limitation is quoted; its full stop is not doubled.
+            wording = str(row.get("not") or "").strip().rstrip(".")
+            if wording:
+                limits.append(row["label"] + ": " + wording + ".")
     if framework == "pestel_swot":
         limits.append("Opportunities and threats are mapped from the accepted PESTEL evidence by keyword; the "
                       "mapping is stated in each item.")

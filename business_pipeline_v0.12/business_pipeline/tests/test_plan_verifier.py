@@ -4,7 +4,9 @@ These are the parts that make a reading checkable without a model: a closed
 catalogue, exact quotes, figures normalised by code, and a plan that hashes.
 """
 
+import io
 import unittest
+import zipfile
 from decimal import Decimal
 
 from bp import methods
@@ -305,6 +307,52 @@ class ClaimGateTest(unittest.TestCase):
         state = chat.draft(state, accepted_ids=[],
                            implications="The break-even figure does not prove that the branch will reach its volume.")
         self.assertEqual(state["claim_problems"], [])
+
+
+CHAIN_BRIEF = ("The grocery chain is entering the Saudi market and needs the net present value of a branch "
+               "that costs 100000 and returns 40000 a year for four years, at its cost of capital. "
+               "The equity is 1000 at a required return of 11%, the debt is 500 at 5% after tax.")
+
+
+class PaperFormatTest(unittest.TestCase):
+    """The paper's own wording: a quoted limitation is not punctuated twice, and a
+    chained figure says where it came from in the export as well as on screen."""
+
+    def _drafted(self):
+        state = answer_all(chat.start(CHAIN_BRIEF, "management", "pestel"))
+        for key in ("wacc", "npv"):
+            if not capabilities.carries(state["selection"], key):
+                state = chat.set_capability(state, key)
+        if capabilities.carries(state["selection"], "capm"):
+            state = chat.set_capability(state, "capm", False, "the rate is declared in the brief")
+        state = chat.confirm_plan(state)
+        state = chat.run_capability(state, "wacc", {"equity_value": "1000", "debt_value": "500",
+                                                    "cost_of_equity": "0.11",
+                                                    "cost_of_debt_after_tax": "0.05"})
+        state = chat.run_capability(state, "npv",
+                                    {"rate": state["dependency_inputs"]["npv"]["rate"],
+                                     "cashflows": ["-100000", "40000", "40000", "40000", "40000"]})
+        state["stage"] = "evidence"
+        state["evidence"] = []
+        state["gaps"] = []
+        return chat.draft(state, accepted_ids=[],
+                          implications="The appraisal depends on the five declared flows.")
+
+    def test_a_quoted_limitation_is_not_given_a_second_full_stop(self):
+        state = self._drafted()
+        limitations = [line for heading, lines in state["draft"]["sections"]
+                       if heading == "Limitations" for line in lines]
+        self.assertTrue(limitations)
+        for line in limitations:
+            self.assertNotIn("..", line)
+
+    def test_the_export_states_where_a_chained_figure_came_from(self):
+        state = self._drafted()
+        data = chat.docx_bytes(state, byline=["A Student", "Example University", "BUS301", "Dr A"])
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            body = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("from the cost of capital result", body)
+        self.assertIn("29,588", body)
 
 
 if __name__ == "__main__":
