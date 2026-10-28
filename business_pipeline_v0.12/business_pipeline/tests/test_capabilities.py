@@ -300,6 +300,39 @@ class RunnerTest(unittest.TestCase):
         selection = capabilities.resolve(brief, "pestel")
         self.assertEqual([row["key"] for row in selection["selected"]], ["channel_economics"])
 
+    def test_a_currency_conversion_takes_codes_and_a_declared_rate(self):
+        brief = ("The grocery chain is entering the Saudi market and needs a currency conversion of a declared "
+                 "amount at a declared rate.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "currency_convert",
+                                {"amount": "1000", "from_currency": "usd", "to_currency": "sar",
+                                 "rate": "3.75", "rate_provenance": "user"})
+        recorded = state["computations"]["currency_convert"]
+        self.assertTrue(recorded["ok"])
+        self.assertEqual(recorded["inputs"]["from_currency"], "USD")
+        state = chat.draft(state, accepted_ids=[], implications="The conversion is at the declared rate.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Currency Conversion"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("1,000 USD", text)
+        self.assertIn("3,750 SAR", text)
+
+    def test_a_finance_paper_reports_the_cash_conversion_cycle(self):
+        brief = ("The grocery chain is entering the Saudi market and the working capital cycle is the question, "
+                 "with inventory and receivables declared.")
+        state = draftable(answer_all(chat.start(brief, "management", "pestel")))
+        chat.attach_computation(state, "working_capital", {
+            "revenue": "1200000", "cost_of_sales": "800000", "inventory": "100000",
+            "receivables": "150000", "payables": "90000", "annual_demand": "24000",
+            "order_cost": "50", "holding_cost_per_unit": "2", "discount_percent": "0.02",
+            "credit_terms_days": "40", "discount_days": "10"})
+        state = chat.draft(state, accepted_ids=[], implications="The cycle ties up cash for about 50 days.")
+        section = [row for row in state["draft"]["outline"]
+                   if row.get("heading") == "Working Capital Cycle"][0]
+        text = " ".join(section.get("lines") or [])
+        self.assertIn("cash conversion cycle of 50.19 days", text)
+        self.assertIn("1,095.45", text)
+
     def test_a_survey_reliability_paper_takes_named_columns(self):
         brief = ("The grocery chain is entering the Saudi market and the staff survey needs its reliability "
                  "(Cronbach) read on declared items.")

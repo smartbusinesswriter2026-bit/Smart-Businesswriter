@@ -602,6 +602,12 @@ missing — so a formatter that breaks the hierarchy or the gate fails the suite
 not the student. A third cue collision was fixed on the way: "discounted cash
 flow" no longer selects plain NPV over a DCF valuation.
 
+Wave 10 closes the finance gap: `dupont_analysis`, `trend_analysis`,
+`working_capital`, `scenario_analysis`, `risk_metrics`, `fx_parity`,
+`currency_convert` and `ols_robust` — eight entries, and the `currency` and `text`
+inputs (a currency code is upper-cased, a source or date stays text).
+`case_decision` is a template, not a frozen method, so it is not a capability.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

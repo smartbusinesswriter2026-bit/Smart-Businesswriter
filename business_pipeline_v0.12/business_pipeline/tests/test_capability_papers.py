@@ -45,10 +45,27 @@ CASES = {
     "capm": ({"risk_free_rate": "0.04", "market_return": "0.10", "beta": "1.2"}, "pestel"),
     "bond_analysis": ({"face_value": "1000", "coupon_rate": "0.08", "years_to_maturity": "5",
                        "yield_to_maturity": "0.06"}, "pestel"),
+    "dupont_analysis": ({"revenue": "1000000", "net_income": "80000", "total_assets": "600000",
+                         "equity": "300000"}, "pestel"),
+    "working_capital": ({"revenue": "1200000", "cost_of_sales": "800000", "inventory": "100000",
+                         "receivables": "150000", "payables": "90000", "annual_demand": "24000",
+                         "order_cost": "50", "holding_cost_per_unit": "2", "discount_percent": "0.02",
+                         "credit_terms_days": "40", "discount_days": "10"}, "pestel"),
+    "scenario_analysis": ({"cashflows": ["-100000", "40000", "40000", "40000"],
+                           "discount_rate": "0.10", "rate_low": "0.08", "rate_high": "0.12"}, "pestel"),
+    "risk_metrics": ({"returns": ["0.01", "-0.02", "0.015", "0.005"], "confidence": "0.95",
+                      "portfolio_value": "1000000", "horizon_days": "1"}, "pestel"),
+    "currency_convert": ({"amount": "1000", "from_currency": "USD", "to_currency": "SAR",
+                          "rate": "3.75", "rate_provenance": "user"}, "pestel"),
+    "fx_parity": ({"spot_rate": "3.75", "domestic_rate": "0.05", "foreign_rate": "0.02",
+                   "domestic_inflation": "0.03", "foreign_inflation": "0.01",
+                   "time_to_maturity": "1"}, "pestel"),
+    "ols_robust": ({"y": ["10", "12", "13", "15", "16", "18"],
+                    "predictors": {"advertising": ["1", "2", "3", "4", "5", "6"]}}, "pestel"),
 }
 
 BRIEF = ("The grocery chain is assessing the Saudi market and the figures it declared, "
-         "with {label} as the analysis it needs.")
+         "with {label} as the analysis it needs, on its declared observations and figures.")
 
 
 def answer_all(state):

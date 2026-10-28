@@ -926,6 +926,14 @@ def _capability_inputs(entry_row, values):
                 return inputs, "The " + desc + " must be one of: " + ", ".join(allowed) + "."
             inputs[name] = choice
             continue
+        if kind in ("currency", "text"):
+            text = _clean(str(raw or ""), 80)
+            if not text:
+                if required:
+                    return inputs, "Declare the " + desc + "."
+                continue
+            inputs[name] = text.upper() if kind == "currency" else text
+            continue
         if isinstance(raw, (int, float)) and not isinstance(raw, bool):
             raw = str(raw)
         text = _clean(str(raw), 40) if raw is not None else ""
@@ -1988,11 +1996,14 @@ def _chi_square_lines(row, inputs, result):
 
 
 def _ols_lines(row, inputs, result):
+    fit = ("F = " + _money(result.get("f_stat")) + " with p = " + _p_text(result.get("p_f"))
+           if result.get("f_stat") not in (None, "") else
+           "no F statistic is reported for this variant")
     lines = ["On " + _fmt_exact(result.get("n")) + " declared observation(s) and "
              + _fmt_exact(result.get("k")) + " predictor(s), the regression has R squared "
              + _money(result.get("r_squared")) + " (adjusted " + _money(result.get("adj_r_squared"))
-             + "), F = " + _money(result.get("f_stat")) + " with p = " + _p_text(result.get("p_f"))
-             + " and a residual standard error of " + _money(result.get("residual_se")) + "."]
+             + "), " + fit + " and a residual standard error of "
+             + _money(result.get("residual_se")) + "."]
     pieces = []
     for name in (inputs.get("predictors") or {}):
         coefficient = result.get("coef_" + str(name))
@@ -2341,6 +2352,100 @@ def _line_lines(row, inputs, result):
     return lines
 
 
+def _dupont_lines(row, inputs, result):
+    lines = ["From a declared revenue of " + _money(inputs.get("revenue")) + ", net income of "
+             + _money(inputs.get("net_income")) + ", total assets of " + _money(inputs.get("total_assets"))
+             + " and equity of " + _money(inputs.get("equity")) + ", the net margin is "
+             + _pct(result.get("net_margin")) + "%, asset turnover "
+             + _money(result.get("asset_turnover")) + " and the equity multiplier "
+             + _money(result.get("equity_multiplier")) + "x, giving a return on equity of "
+             + _pct(result.get("return_on_equity")) + "% (return on assets "
+             + _pct(result.get("return_on_assets")) + "%)."]
+    lines.append("The decomposition multiplies the three declared ratios; it does not judge whether the "
+                 "leverage is prudent.")
+    return lines
+
+
+def _trend_lines(row, inputs, result):
+    lines = ["Across " + _fmt_exact(result.get("n_periods")) + " declared period(s), revenue grew at "
+             + _pct(result.get("revenue_cagr")) + "% a year (latest "
+             + _pct(result.get("revenue_growth_latest")) + "%), and net income at "
+             + _pct(result.get("net_income_cagr")) + "% a year."]
+    lines.append("The latest gross margin is " + _pct(result.get("gross_margin_latest"))
+                 + "%, the operating margin " + _pct(result.get("operating_margin_latest"))
+                 + "% and the net margin " + _pct(result.get("net_margin_latest"))
+                 + "%; the method describes the declared series and does not forecast the next period.")
+    return lines
+
+
+def _working_capital_lines(row, inputs, result):
+    lines = ["With declared revenue of " + _money(inputs.get("revenue")) + " and cost of sales of "
+             + _money(inputs.get("cost_of_sales")) + ", the days sales outstanding are "
+             + _money(result.get("dso")) + ", days inventory " + _money(result.get("dio"))
+             + " and days payables " + _money(result.get("dpo")) + ", giving a cash conversion cycle of "
+             + _money(result.get("cash_conversion_cycle")) + " days and net working capital of "
+             + _money(result.get("net_working_capital")) + "."]
+    lines.append("At the declared annual demand and order cost, the economic order quantity is "
+                 + _money(result.get("eoq")) + " units and the cost of the declared trade credit is "
+                 + _pct(result.get("cost_of_trade_credit")) + "% a year.")
+    lines.append("The cycle measures are arithmetic on the declared balances; the method does not judge the "
+                 "credit or ordering policy.")
+    return lines
+
+
+def _scenario_lines(row, inputs, result):
+    lines = ["At a declared discount rate of " + _pct(inputs.get("discount_rate"))
+             + "%, the declared cash flows have a net present value of " + _money(result.get("npv_base"))
+             + "; at the declared low rate of " + _pct(result.get("rate_low")) + "% it is "
+             + _money(result.get("npv_at_low_rate")) + " and at the high rate of "
+             + _pct(result.get("rate_high")) + "% it is " + _money(result.get("npv_at_high_rate"))
+             + ", a swing of " + _money(result.get("swing")) + "."]
+    if result.get("breakeven_rate") not in (None, ""):
+        lines.append("The rate at which the declared flows break even is " + _pct(result.get("breakeven_rate"))
+                     + "%.")
+    lines.append("Only the discount rate moves between the scenarios; every other declared input is held.")
+    return lines
+
+
+def _risk_lines(row, inputs, result):
+    confidence = Decimal(str(result.get("confidence") or "0.95"))
+    lines = ["On the declared return series, the mean return is " + _pct(result.get("mean_return"))
+             + "% with a standard deviation of " + _pct(result.get("sd_return"))
+             + "%; at the declared " + _fmt_number(confidence * 100) + "% confidence over "
+             + _fmt_exact(result.get("horizon_days")) + " day(s), the parametric value at risk is "
+             + _pct(result.get("parametric_var")) + "% of the declared portfolio value and the historical "
+             "figure is " + _pct(result.get("historical_var")) + "%."]
+    lines.append("In money, the value at risk on the declared portfolio is " + _money(result.get("var_amount"))
+                 + " and the expected shortfall beyond it is " + _money(result.get("cvar_amount"))
+                 + "; the estimate describes the declared history, not a guarantee about the future.")
+    return lines
+
+
+def _fx_lines(row, inputs, result):
+    lines = ["At a declared spot rate of " + _fmt_exact(inputs.get("spot_rate")) + " and declared interest rates "
+             "of " + _pct(inputs.get("domestic_rate")) + "% and " + _pct(inputs.get("foreign_rate"))
+             + "%, interest-rate parity implies a forward rate of " + _money(result.get("interest_rate_parity_forward"))
+             + ", and the declared inflation rates imply " + _money(result.get("ppp_expected_spot"))
+             + " under purchasing-power parity."]
+    if result.get("forward_rate") not in (None, ""):
+        lines.append("The parity forward of " + _money(result.get("forward_rate"))
+                     + " stands " + _pct(result.get("forward_premium")) + "% away from the declared spot rate.")
+    lines.append("Both rates are arithmetic on the declared inputs; neither is a forecast of the spot rate.")
+    return lines
+
+
+def _convert_lines(row, inputs, result):
+    lines = ["Converting a declared " + _money(result.get("amount_from")) + " "
+             + str(inputs.get("from_currency")) + " at the declared rate of "
+             + _fmt_exact(result.get("rate")) + " gives " + _money(result.get("amount")) + " "
+             + str(inputs.get("to_currency")) + "."]
+    provenance = str(inputs.get("rate_provenance") or "")
+    lines.append("The rate is the student's declared figure"
+                 + (" (provenance: " + provenance + ")" if provenance else "")
+                 + "; the paper retrieves no exchange rate and no date is implied beyond the one declared.")
+    return lines
+
+
 CAPABILITY_LINES.update({
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
@@ -2389,6 +2494,14 @@ CAPABILITY_LINES.update({
     "channel_economics": _channel_lines,
     "attribution_split": _attribution_lines,
     "line_balancing": _line_lines,
+    "dupont_analysis": _dupont_lines,
+    "trend_analysis": _trend_lines,
+    "working_capital": _working_capital_lines,
+    "scenario_analysis": _scenario_lines,
+    "risk_metrics": _risk_lines,
+    "fx_parity": _fx_lines,
+    "currency_convert": _convert_lines,
+    "ols_robust": _ols_lines,
 })
 
 
