@@ -2765,6 +2765,22 @@ SUBJECT_DEFS = [
         "label": "Accounting",
         "icon": "accounting",
         "summary": "Ledger, statements, ratios and the cost-volume-profit questions built on them.",
+        "guidance": ("Work from the accounting question. If you already have a journal and a trial balance, start by "
+                     "checking them against each other. If you are building the records, start with the management "
+                     "accounts: the chart, the opening balances and the entries. Then read the statements with the "
+                     "ratios and the common-size trend, and use the cost tools when the question is about volume, "
+                     "activity or a sales variance."),
+        "start_steps": [
+            "Check what you already have: a journal and a trial balance go to Check a trial balance; a blank set of books goes to Management accounts.",
+            "Build or read the statements: period, currency, chart of accounts, opening balances and entries; then confirm the account mapping.",
+            "Read the statements with Financial statement ratios and Common-size and trend.",
+            "For a cost question, use Cost-volume-profit, Activity-based costing or Sales variances.",
+        ],
+        "does_not": [
+            "It does not file a tax return or apply a jurisdiction's tax law; tax is a declared-rate calculation.",
+            "It does not choose the accounting policy, audit the figures or certify the statements.",
+            "It does not invent a missing balance or plug an unbalanced trial balance.",
+        ],
         "disciplines": ["finance, accounting and managerial economics"],
         "cross_cutting": False,
         "tools": ["accounts", "tbcheck", "ratios", "scv", "abc", "salesvar",
@@ -2777,6 +2793,23 @@ SUBJECT_DEFS = [
         "label": "Finance",
         "icon": "finance",
         "summary": "Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs.",
+        "guidance": ("Start with the question, not the tool. For one cash flow or one instrument, use time value, a "
+                     "loan or a bond. For a project, use NPV, IRR and discounted payback, then rank it. For a company, "
+                     "use WACC and DCF, then bridge to equity. For an investment or a risk question, use CAPM, the "
+                     "portfolio, risk and options tools. For an international question, use the parity and currency "
+                     "tools. Every rate, price and cash flow is yours to declare."),
+        "start_steps": [
+            "One cash flow or instrument: Time value of money, Loan amortization or Bond price and duration.",
+            "A project: NPV, IRR and Discounted payback, then Project ranking metrics and Scenario analysis.",
+            "A company: WACC, DCF valuation, the Equity bridge and Comparable multiples.",
+            "An investment or risk question: CAPM, Portfolio return and risk, Value at risk and Option pricing.",
+            "An international question: FX and interest parity, then Currency conversion.",
+        ],
+        "does_not": [
+            "It does not retrieve market prices, yields, exchange rates or peer multiples; you declare them.",
+            "It does not choose the discount rate, the peer set or the risk appetite for you.",
+            "It does not model tax, American exercise, liquidity risk or a full portfolio optimisation.",
+        ],
         "disciplines": ["finance, accounting and managerial economics", "decision analysis and risk quantification"],
         "cross_cutting": False,
         "tools": ["tvm", "loan", "dupont", "trendanalysis", "workingcapital", "ratios", "breakeven",
@@ -2800,6 +2833,23 @@ SUBJECT_DEFS = [
         "label": "Economics",
         "icon": "economics",
         "summary": "The quantitative economics core: micro, macro, welfare, international, development, behavioural, game theory and impact evaluation.",
+        "guidance": ("Start with the level you are working at. Intro tools cover the first principles: demand and supply, "
+                     "elasticity, tax incidence, price controls and market concentration. Intermediate tools cover "
+                     "welfare, policy, international trade and behavioural questions. Advanced tools are econometrics "
+                     "and game theory; use them only when you have the data and the design. Every curve, rate and "
+                     "income is one you declare."),
+        "start_steps": [
+            "A market question: Market equilibrium, then Elasticity, Tax incidence or Price ceilings and floors.",
+            "A national or policy question: GDP and national income, Inflation and real interest, Unemployment and participation, then the money or fiscal multiplier.",
+            "A welfare or inequality question: Externalities and Pigouvian tax, Public goods, Social welfare, Gini coefficient and Poverty measures.",
+            "An international question: Comparative advantage, Tariff welfare, Purchasing-power parity and Interest-rate parity.",
+            "An evidence question: use the Advanced econometrics tools only when the data and design are declared.",
+        ],
+        "does_not": [
+            "It does not retrieve GDP, CPI, market or household data; you declare every input.",
+            "It does not estimate a demand curve, a model or a causal effect from raw data.",
+            "It does not make a policy recommendation or prove that one policy is better.",
+        ],
         "disciplines": ["microeconomics", "macroeconomics", "welfare and public economics",
                         "international economics", "development economics", "behavioural economics",
                         "industrial organization", "labour economics",
@@ -2829,6 +2879,17 @@ SUBJECT_DEFS = [
                      "audit: you supply the evidence, the worksheet places it and names the gaps, and nothing is scored. "
                      "The records below are the frameworks and methods that have no worksheet yet, followed by the "
                      "theories to read alongside the analysis. Those theories are reading lenses, not templates to fill in."),
+        "start_steps": [
+            "Choose the worksheet that matches the question: Five Forces, PESTEL, SWOT, Value Chain or a canvas.",
+            "Write the evidence you have, one item per line, and label it as your evidence, sourced or an assumption.",
+            "Read the gaps and the evidence audit: what is missing stays missing.",
+            "Compare the options with the decision tools or the weighted matrix.",
+        ],
+        "does_not": [
+            "It does not generate evidence or fill a blank quadrant or cell.",
+            "It does not score or rank the frameworks.",
+            "It does not choose the strategy for you.",
+        ],
         "disciplines": ["strategy", "change and organization", "supporting theory"],
         "cross_cutting": False,
         "tools": ["case_decision"],
@@ -2892,6 +2953,17 @@ SUBJECT_DEFS = [
                      "break-even, plan the cash and the capital you must raise, then appraise the return. Each tile "
                      "opens one frozen method; nothing is calculated until you supply and confirm your own figures, "
                      "and every result can be exported as an assignment submission."),
+        "start_steps": [
+            "Start with the business plan: market size, price and break-even.",
+            "Plan the cash and capital: start-up capital, cash runway and loan.",
+            "Appraise the return: NPV, IRR, payback and the scenario range.",
+            "Test the venture model with Unit economics and the canvas worksheets.",
+        ],
+        "does_not": [
+            "It does not invent a market size, price, cost or growth rate.",
+            "It does not raise the capital, validate the idea or guarantee a return.",
+            "It does not replace a customer interview or a real market test.",
+        ],
         "disciplines": ["strategy", "marketing and customers"],
         "cross_cutting": False,
         "tools": ["marketsize", "forecast", "demandcurve", "purchaseintent", "funnel", "cohort",
@@ -2913,6 +2985,20 @@ SUBJECT_DEFS = [
         "label": "Operations management",
         "icon": "operations",
         "summary": "Cost-volume-profit, process evidence and the statistics used to inspect a process.",
+        "guidance": ("Start with the process question: cost, capacity, flow, quality or inventory. The shelf is a set "
+                     "of declared-input calculations, not a plant simulation. Choose the tool that matches the "
+                     "question, enter the figures you have, and read the checks and limits before you use the answer."),
+        "start_steps": [
+            "Cost and volume: Break-even point or Multi-product break-even.",
+            "Capacity and flow: Capacity and utilisation, Queueing, or Line balancing.",
+            "Inventory: Inventory and EOQ, with the Trend forecast for demand.",
+            "Quality: OEE or Statistical process control; use the statistics tools to test a process change.",
+        ],
+        "does_not": [
+            "It does not retrieve production, time or quality data; you declare it.",
+            "It does not optimise a full schedule, a shift plan or a stochastic process.",
+            "It does not replace a plant visit or a direct process observation.",
+        ],
         "disciplines": ["operations and supply chain", "operations, logistics and optimization"],
         "cross_cutting": False,
         "tools": ["breakeven", "multibreakeven", "unitecon", "forecast",
@@ -2926,6 +3012,20 @@ SUBJECT_DEFS = [
         "label": "Supply chain & logistics",
         "icon": "supply-chain",
         "summary": "The same evidence tools as Operations, with the inventory and network gaps stated plainly.",
+        "guidance": ("This shelf is deliberately narrower than Operations. Start with inventory and the forecast, then "
+                     "use capacity and queueing for a bottleneck or service-level question. The network design, "
+                     "routing and supplier-retrieval gaps are stated rather than filled."),
+        "start_steps": [
+            "Inventory: Inventory and EOQ, with the Trend forecast for demand.",
+            "Capacity and service: Capacity and utilisation, or Queueing.",
+            "Cost of a supply option: Break-even point and Unit economics.",
+            "Incomplete data: Missing-data bounds, so the gap is named rather than guessed.",
+        ],
+        "does_not": [
+            "It does not design a network, optimise routing or select a supplier.",
+            "It does not retrieve freight, tariff or supplier data.",
+            "It does not model disruption, multi-echelon inventory or a full logistics simulation.",
+        ],
         "disciplines": ["operations and supply chain", "operations, logistics and optimization"],
         "cross_cutting": False,
         "tools": ["breakeven", "multibreakeven", "unitecon", "forecast", "inventory", "queue", "capacity", "missing"],
@@ -2944,6 +3044,18 @@ SUBJECT_DEFS = [
                      "you supply and confirm; the engine computes the arithmetic, runs its checks and states what "
                      "it cannot tell you. It does not connect to an ad platform, estimate a missing number or "
                      "recommend a budget."),
+        "start_steps": [
+            "Size the market: Market size and Market share.",
+            "Check demand: Demand curve, Elasticity and Purchase intent.",
+            "Test customer economics: Unit economics, Cohort, RFM and CLV.",
+            "Measure the funnel and channels: Funnel, Campaign, Attribution, Channel economics and the channel tools.",
+            "Test a change: A/B test, Reliability (alpha), Chi-square and Power.",
+        ],
+        "does_not": [
+            "It does not connect to an ad platform or retrieve campaign data.",
+            "It does not recommend a budget, a bid or a segment.",
+            "It does not estimate a missing number or invent a customer.",
+        ],
         "disciplines": ["marketing and customers", "market and customer analytics", "digital marketing"],
         "cross_cutting": False,
         "tools": ["marketsize", "marketshare", "demandcurve", "elasticity", "purchaseintent", "forecast",
@@ -2958,6 +3070,20 @@ SUBJECT_DEFS = [
         "label": "People & organisation",
         "icon": "people",
         "summary": "Survey reliability, weighted summaries and group comparisons on people data.",
+        "guidance": ("Start with the people or survey question: is the measure reliable, do groups differ, or are two "
+                     "variables associated? The tools are declared-input statistics; they do not administer a survey "
+                     "or retrieve HR data."),
+        "start_steps": [
+            "Check the measure: Reliability (alpha) and Descriptive statistics.",
+            "Compare groups: Chi-square, or a t-test or ANOVA from Research & statistics.",
+            "Summarise weighted responses: Weighted summary.",
+            "Relate two numeric variables: Pearson correlation or Linear regression.",
+        ],
+        "does_not": [
+            "It does not administer a survey or retrieve HR, payroll or personnel data.",
+            "It does not establish causality from an association or a group difference.",
+            "It does not replace a qualitative interview or a policy review.",
+        ],
         "disciplines": ["people and learning", "change and organization"],
         "cross_cutting": False,
         "tools": ["alpha", "weighted", "descriptive", "chi_square", "power", "pearson", "ols"],
@@ -2969,6 +3095,20 @@ SUBJECT_DEFS = [
         "label": "Research & statistics",
         "icon": "research",
         "summary": "The cross-cutting method shelf: every statistical method the engine can run, linked from every subject.",
+        "guidance": ("This is the cross-cutting method shelf. Start with the design and the data shape, then choose the "
+                     "test. Every output states its assumptions, its checks and what it cannot establish; a "
+                     "significant result is not a causal claim."),
+        "start_steps": [
+            "Describe the data: Descriptive statistics.",
+            "Compare groups: Welch two-sample t-test, Mann-Whitney U, One-way ANOVA or Kruskal-Wallis.",
+            "Relate variables: Pearson or Spearman correlation, Linear regression or Logistic regression.",
+            "Check the design: Power and sample size, Multiple-comparison correction and Missing-data bounds.",
+        ],
+        "does_not": [
+            "It does not design the study, choose the hypothesis or clean the data for you.",
+            "It does not prove causality from observational data.",
+            "It does not replace a statistician for a complex or clustered design.",
+        ],
         "disciplines": ["statistics and empirical research", "supporting theory"],
         "cross_cutting": True,
         "tools": ["descriptive", "pearson", "spearman", "ols", "ols_robust", "welch",

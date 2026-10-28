@@ -399,6 +399,49 @@ def clear_cache():
         _CACHE.clear()
 
 
+QUERY_STOP = set("a an the and or of to in on for with by at from as is are was were be been it its this that these those "
+                  "study studies paper article analysis research evidence review case effect effects impact impacts role "
+                  "using based toward towards new global".split())
+MEDICAL = {"cancer", "clinical", "patient", "patients", "disease", "depression", "anxiety", "biosensor",
+           "transplant", "therapy", "medical", "health", "childhood", "intervention", "trial"}
+
+
+def _stem(word):
+    word = word.lower()
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 4 and word.endswith("s"):
+        return word[:-1]
+    return word
+
+
+def _query_terms(query, limit=8):
+    words = [_stem(word) for word in re.findall(r"[a-z][a-z0-9'-]+", (query or "").lower())]
+    out = []
+    for word in words:
+        if len(word) < 3 or word in QUERY_STOP or word in out:
+            continue
+        out.append(word)
+    return out[:limit]
+
+
+def _query_match(query, item):
+    terms = _query_terms(query)
+    if not terms:
+        return True
+    title = (item.get("title") or "").lower()
+    text = title + " " + (item.get("abstract") or item.get("description") or "").lower()
+    words = {_stem(word) for word in re.findall(r"[a-z][a-z0-9'-]+", text)}
+    hits = len(set(terms) & words)
+    required = 2 if len(terms) >= 3 else 1
+    if hits < required:
+        return False
+    query_words = {_stem(word) for word in re.findall(r"[a-z][a-z0-9'-]+", (query or "").lower())}
+    if any(word in text for word in MEDICAL) and not (query_words & MEDICAL):
+        return False
+    return True
+
+
 def search_academic(query, databases=None, limit=20, year_from=None):
     """Search the selected academic databases and return one merged, deduped list.
 
@@ -442,6 +485,7 @@ def search_academic(query, databases=None, limit=20, year_from=None):
             errors.append(failure)
         elif failure:
             skipped.append(failure)
+    results = [item for item in results if _query_match(text, item)]
     deduped = {}
     for item in results:
         key = item["doi"] or re.sub(r"[^a-z0-9]+", "", item["title"].lower())[:90]

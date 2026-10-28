@@ -286,6 +286,9 @@ class ServedUiContractTest(unittest.TestCase):
         # Student orientation: a first-run explainer and structured table editors.
         self.assertIn("How it works", self.html)
         self.assertIn("Start here", self.html)
+        self.assertIn("Which one do I need?", self.html)
+        self.assertIn("Student guide", self.html)
+        self.assertIn("Guided paper", self.html)
         self.assertIn("Before you start", self.html)
         self.assertIn('data-rows="', self.html)
         self.assertIn("function rowsEditor", self.html)
@@ -301,6 +304,21 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("data-mcda", self.html)
         # Solid text: secondary and tertiary copy use the primary ink, not grey.
         self.assertIn("--text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;", self.html)
+
+    def test_the_business_case_tile_has_a_template_editor_and_the_calculator_delegates_to_it(self):
+        """`case_decision` is a template, not a frozen method, so the generic
+        schema form used to say "no inputs" and drop the student's alternatives.
+        The page must carry the dedicated facts/alternatives editor instead."""
+        for marker in ("function caseDecisionForm", "function readCaseDecision",
+                       "data-casedecision", "data-addcasefact", "data-addcasealt",
+                       "data-casecashflows", "data-caserule"):
+            self.assertIn(marker, self.html)
+        self.assertIn('if (tool.method === "case_decision") { openTool(tool); return; }', self.html)
+
+    def test_the_schema_form_uses_choices_and_comma_lists_where_the_method_declares_them(self):
+        self.assertIn('data-type="enum"', self.html)
+        self.assertIn('type === "value_list"', self.html)
+        self.assertIn('type === "value_matrix"', self.html)
 
     def test_frameworks_come_before_computation_and_too_many_get_a_picker(self):
         """The page puts no-computation worksheets first, then computed tools, and

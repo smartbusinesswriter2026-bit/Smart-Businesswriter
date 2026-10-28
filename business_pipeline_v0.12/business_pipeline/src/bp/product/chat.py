@@ -48,12 +48,38 @@ FIVE_DIMENSIONS = [
     ("suppliers", "Supplier power", "supplier vendor input procurement bargaining", "economic"),
 ]
 
+#: The nine activities of Porter's value chain: five primary, four support.
+VALUE_DIMENSIONS = [
+    ("inbound", "Inbound logistics", "inbound logistics supplier receiving storage inventory handling", None),
+    ("operations", "Operations", "operations production manufacturing assembly process quality", None),
+    ("outbound", "Outbound logistics", "outbound distribution delivery warehousing order fulfilment", None),
+    ("marketing", "Marketing and sales", "marketing sales branding pricing channel advertising customers", "economic"),
+    ("service", "Service", "service support warranty installation maintenance after-sales", None),
+    ("procurement", "Procurement", "procurement purchasing sourcing supplier contracts", "economic"),
+    ("technology", "Technology development", "technology research development innovation automation digital", None),
+    ("human", "Human resource management", "human resources training recruitment skills labour", "social"),
+    ("infrastructure", "Firm infrastructure", "management finance planning legal quality governance", "legal"),
+]
+
+#: The four growth options of the Ansoff matrix.
+ANSOFF_DIMENSIONS = [
+    ("penetration", "Market penetration", "market share promotion pricing existing customers frequency", "economic"),
+    ("development", "Market development", "new market export new segment expansion distribution", "economic"),
+    ("product", "Product development", "new product innovation research development feature", None),
+    ("diversification", "Diversification", "diversification new business acquisition unrelated", None),
+]
+
 FRAMEWORKS = {
     "pestel": {"label": "PESTEL", "dimensions": DIMENSIONS, "internal": False},
     "swot": {"label": "SWOT", "dimensions": SWOT_DIMENSIONS, "internal": True},
     "pestel_swot": {"label": "PESTEL + SWOT", "dimensions": DIMENSIONS, "internal": True},
     "five_forces": {"label": "Five Forces", "dimensions": FIVE_DIMENSIONS, "internal": False},
     "five_forces_breakeven": {"label": "Five Forces + Break-even", "dimensions": FIVE_DIMENSIONS, "internal": False},
+    "value_chain": {"label": "Value Chain", "dimensions": VALUE_DIMENSIONS, "internal": False},
+    "ansoff": {"label": "Ansoff Growth Matrix", "dimensions": ANSOFF_DIMENSIONS, "internal": False},
+    "vrio": {"label": "VRIO", "dimensions": [], "internal": True, "evidence": False,
+             "inputs": ["resources", "valuable", "rare", "costly", "organized"]},
+    "breakeven": {"label": "Break-even", "dimensions": [], "internal": False, "evidence": False},
 }
 
 QUESTIONS = [
@@ -125,9 +151,83 @@ FIVE_QUESTIONS = [
      "type": "number", "allow_skip": True, "default": ""},
 ]
 
+_GEOGRAPHY = {"id": "geography", "prompt": "Which market or region should the evidence cover?",
+              "why": "Value-chain and growth evidence is country-specific.",
+              "type": "choice", "choices": ["Global", "US", "Europe", "Middle East", "China"], "default": "Global"}
+_PERIOD = {"id": "period", "prompt": "How recent should the evidence be?",
+           "why": "A current analysis needs dated evidence, not undated generalities.",
+           "type": "choice", "choices": [["2", "Last 2 years"], ["5", "Last 5 years"],
+                                         ["10", "Last 10 years"], ["0", "No limit"]], "default": "10"}
+_STYLE = {"id": "style", "prompt": "Which citation style should the paper use?",
+          "why": "The paper has to match the style your course requires.",
+          "type": "choice", "choices": [["apa", "APA 7"], ["harvard", "Harvard"]], "default": "apa"}
+
+VALUE_QUESTIONS = [
+    {"id": "decision", "prompt": "What decision should this value-chain analysis support?",
+     "why": "The analysis should serve a decision, not describe the firm for its own sake.",
+     "type": "text", "allow_skip": True, "default": ""},
+    {"id": "firm", "prompt": "Which firm or offer is being analysed?",
+     "why": "A value chain belongs to one firm and one offer.",
+     "type": "text", "default": ""},
+    _GEOGRAPHY, _PERIOD, _STYLE,
+]
+
+ANSOFF_QUESTIONS = [
+    {"id": "decision", "prompt": "What growth decision should this Ansoff analysis support?",
+     "why": "The matrix is a way to compare growth options, not a forecast.",
+     "type": "text", "allow_skip": True, "default": ""},
+    {"id": "firm", "prompt": "Which firm or product line is considering growth?",
+     "why": "The four options are defined relative to a current product and market.",
+     "type": "text", "default": ""},
+    _GEOGRAPHY, _PERIOD, _STYLE,
+]
+
+VRIO_QUESTIONS = [
+    {"id": "decision", "prompt": "What decision should this VRIO analysis support?",
+     "why": "A resource is only an advantage relative to a decision.",
+     "type": "text", "allow_skip": True, "default": ""},
+    {"id": "resources", "prompt": "Which resources or capabilities are you assessing? Separate items with semicolons.",
+     "why": "The resources are facts about the firm; the system will not invent them.",
+     "type": "items", "default": ""},
+    {"id": "valuable", "prompt": "Which of them pass the valuable test, and why? One item per resource.",
+     "why": "Value is your judgment; the system records it, it does not make it.",
+     "type": "items", "allow_skip": True, "default": ""},
+    {"id": "rare", "prompt": "Which of them pass the rare test, and why? One item per resource.",
+     "why": "Rarity is a claim about competitors that you must support.",
+     "type": "items", "allow_skip": True, "default": ""},
+    {"id": "costly", "prompt": "Which of them are costly to imitate, and why? One item per resource.",
+     "why": "Imitation cost is your judgment, not a measured quantity.",
+     "type": "items", "allow_skip": True, "default": ""},
+    {"id": "organized", "prompt": "Which of them is the firm organised to exploit, and why? One item per resource.",
+     "why": "An advantage needs the organisation to capture it.",
+     "type": "items", "allow_skip": True, "default": ""},
+    _STYLE,
+]
+
+BREAKEVEN_QUESTIONS = [
+    {"id": "decision", "prompt": "What decision should this break-even analysis support?",
+     "why": "The calculation should answer a stated question.",
+     "type": "text", "allow_skip": True, "default": ""},
+    {"id": "fixed", "prompt": "What is the declared total fixed cost?",
+     "why": "Break-even needs a declared fixed cost; the system will not invent one.",
+     "type": "number", "default": ""},
+    {"id": "price", "prompt": "What is the declared price per unit?",
+     "why": "The contribution margin depends on the selling price.",
+     "type": "number", "default": ""},
+    {"id": "variable", "prompt": "What is the declared variable cost per unit?",
+     "why": "The contribution margin depends on the variable cost.",
+     "type": "number", "default": ""},
+    {"id": "expected", "prompt": "What is the expected sales volume? (optional)",
+     "why": "Expected volume gives the margin of safety.",
+     "type": "number", "allow_skip": True, "default": ""},
+    _STYLE,
+]
+
 FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
                        "five_forces": [q for q in FIVE_QUESTIONS if q["id"] != "expected"],
-                       "five_forces_breakeven": FIVE_QUESTIONS}
+                       "five_forces_breakeven": FIVE_QUESTIONS,
+                       "value_chain": VALUE_QUESTIONS, "ansoff": ANSOFF_QUESTIONS,
+                       "vrio": VRIO_QUESTIONS, "breakeven": BREAKEVEN_QUESTIONS}
 
 # ---------- business-plan profile (B-121) ----------
 #: A paper profile is not a framework.  It composes sections of four kinds:
@@ -278,6 +378,9 @@ def _clean(value, limit=2000):
 
 def _fit(brief, framework="pestel"):
     text = (brief or "").lower()
+    if framework in ("breakeven", "vrio"):
+        # A computation and an internal-resource audit need no external evidence.
+        return True, None
     if any(hint in text for hint in COMPUTATION_HINTS) and not any(hint in text for hint in EXTERNAL_HINTS):
         return False, ("This looks like an accounting or finance computation, not a strategic analysis. "
                        "Use the Accounting or Finance shelf instead.")
@@ -302,10 +405,18 @@ def _infer_framework(brief):
         if "break-even" in text or "breakeven" in text or "break even" in text:
             return "five_forces_breakeven"
         return "five_forces"
+    if "value chain" in text:
+        return "value_chain"
+    if "vrio" in text or "resource-based" in text:
+        return "vrio"
+    if "ansoff" in text or "growth matrix" in text:
+        return "ansoff"
     if "swot" in text and "pestel" in text:
         return "pestel_swot"
     if "swot" in text:
         return "swot"
+    if "break-even" in text or "breakeven" in text or "break even" in text:
+        return "breakeven"
     return "pestel"
 
 
@@ -337,19 +448,25 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
         return _start_plan(brief, subject, level, mode)
     framework = (framework or "").strip().lower() or _infer_framework(brief)
     if framework not in FRAMEWORKS:
-        raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, or Five Forces + Break-even.")
+        raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
     fits, message = guard.subject_fit(brief, subject or "management")
+    if not fits and framework in ("breakeven", "vrio"):
+        # A break-even paper and a resource audit are not management briefs; the
+        # framework is explicit, so the subject guard would refuse a legitimate paper.
+        fits, message = True, None
     if fits:
         fits, message = _fit(brief, framework)
     questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
     if FRAMEWORKS[framework]["internal"]:
         answers.update({"strengths": [], "weaknesses": []})
+    for key in FRAMEWORKS[framework].get("inputs") or []:
+        answers.setdefault(key, [])
     state = {"format": FORMAT, "subject": subject or "management", "framework": framework, "brief": brief,
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
-             "draft": None}
+             "computation": None, "draft": None}
     if not fits:
         state.update({"stage": "not_supported", "message": message, "questions": [], "question_index": 0})
     return state
@@ -430,6 +547,14 @@ def _plan(state):
                         "buyer power and supplier power."),
         "five_forces_breakeven": ("Five Forces assesses the industry; break-even then tests whether the declared cost "
                                   "structure can support entry at the declared price."),
+        "value_chain": ("The value chain separates the activities that create the offer, so each one can be examined "
+                        "for the cost and the value it adds."),
+        "ansoff": ("Ansoff places each growth option on the product and market it uses, so the risks of the four "
+                   "options can be compared on one page."),
+        "vrio": ("VRIO tests each resource you name against value, rarity, imitation cost and organisation, so a claim "
+                 "of advantage rests on four explicit judgments."),
+        "breakeven": ("Break-even tests whether the declared price covers the declared fixed and variable costs, and "
+                      "how much volume that needs."),
     }[framework]
     misses = {
         "pestel": ("It does not assess internal capabilities, competitors, costs, financial feasibility or a "
@@ -442,6 +567,14 @@ def _plan(state):
                         "feasibility or a recommended action; add a computation or a decision framework."),
         "five_forces_breakeven": ("The break-even result depends on the declared fixed cost, price and variable cost; it "
                                   "does not forecast demand or prove that the expected volume will be reached."),
+        "value_chain": ("It maps activities but does not cost them, benchmark them against rivals or prove that any "
+                        "one activity is a source of advantage."),
+        "ansoff": ("It classifies options but does not size the market, estimate the risk or choose between them; the "
+                   "evidence can support or undermine an option, not rank them."),
+        "vrio": ("It records your four judgments; it does not test them, measure imitation cost or show that an "
+                 "advantage is durable."),
+        "breakeven": ("It does not forecast demand, apply tax or financing, or prove that the expected volume will be "
+                      "reached; every input is yours."),
     }[framework]
     output = {
         "pestel": "A PESTEL paper with an introduction, six dimensions, a discussion with implications and limitations, a conclusion and one reference list.",
@@ -451,6 +584,14 @@ def _plan(state):
         "five_forces": "A Five Forces paper with five industry dimensions, a discussion, a conclusion and one reference list.",
         "five_forces_breakeven": ("A combined paper with the five industry forces, a break-even analysis from your "
                                   "declared figures, a discussion, a conclusion and one reference list."),
+        "value_chain": ("A value-chain paper with the five primary and four support activities, your declared firm, a "
+                        "discussion with limitations, a conclusion and one reference list."),
+        "ansoff": ("An Ansoff paper with the four growth options, the evidence for each, a discussion with limitations, "
+                   "a conclusion and one reference list."),
+        "vrio": ("A VRIO paper with your resources and the four judgments you supply, a discussion with limitations and "
+                 "a conclusion; no external evidence is retrieved."),
+        "breakeven": ("A feasibility paper with a break-even analysis from your declared figures, a discussion with "
+                      "limitations and a conclusion; no external evidence is retrieved."),
     }[framework]
     return {
         "framework": config["label"],
@@ -464,9 +605,12 @@ def _plan(state):
         "style": answers.get("style") or "apa",
         "dimensions": dimensions,
         "internal": config["internal"],
+        "evidence": config.get("evidence", True),
+        "inputs": list(config.get("inputs") or []),
         "swot": framework in ("swot", "pestel_swot"),
         "output": output,
-        "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"],
+        "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"]
+        if config.get("evidence", True) else ["Confirm this plan", "Review your inputs", "Review the drafted section"],
     }
 
 
@@ -497,6 +641,46 @@ def confirm_plan(state):
         raise ChatError("There is no plan waiting for confirmation.")
     state["stage"] = "research_ready"
     state["plan_confirmed_at"] = _now()
+    state["updated_at"] = _now()
+    return state
+
+
+def attach_computation(state, key="breakeven", values=None):
+    """Attach a frozen computation to any framework paper.  The core must accept the inputs."""
+    if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
+        raise ChatError("A business plan carries its own computation blocks; attach nothing to it here.")
+    if (key or "breakeven").strip().lower() != "breakeven":
+        raise ChatError("Only break-even can be attached to a framework paper today.")
+    if state.get("framework") == "five_forces_breakeven":
+        raise ChatError("This paper already carries the break-even analysis.")
+    if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "draft"):
+        raise ChatError("Finish the questions before attaching a computation.")
+    values = values if isinstance(values, dict) else {}
+    inputs = {}
+    for name in ("fixed", "price", "variable"):
+        text = _clean(str(values.get(name, "")), 40)
+        if not text:
+            raise ChatError("Declare the " + name + " for the break-even analysis.")
+        try:
+            number = Decimal(text)
+        except (InvalidOperation, ValueError):
+            raise ChatError("The break-even inputs must be numbers.")
+        if number < 0:
+            raise ChatError("A price or cost cannot be negative.")
+        inputs[name] = str(number)
+    expected = _clean(str(values.get("expected", "")), 40)
+    if expected:
+        try:
+            inputs["expected_units"] = str(Decimal(expected))
+        except (InvalidOperation, ValueError):
+            raise ChatError("Expected volume must be a number.")
+    if COMPUTE is None:
+        raise ChatError("The break-even engine is not attached; no figure is computed in the product layer.")
+    try:
+        COMPUTE(dict(inputs))
+    except Exception as error:
+        raise ChatError("Break-even refused the declared figures: " + str(error)[:200])
+    state["computation"] = {"key": "breakeven", "inputs": inputs}
     state["updated_at"] = _now()
     return state
 
@@ -1394,8 +1578,12 @@ def draft(state, accepted_ids=None, implications="", style=None):
     period = answers.get("period") or "10"
     period_text = "the last " + period + " years" if period not in ("0", "") else "all available years"
     position = _clean(implications, 1200)
-    intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper examines " + geography
-             + " over " + period_text + " and uses " + label + " to organise the evidence and the firm's position.")
+    if framework in ("breakeven", "vrio"):
+        intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper uses " + label
+                 + " and the inputs you supplied; no external evidence is retrieved for this framework.")
+    else:
+        intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper examines " + geography
+                 + " over " + period_text + " and uses " + label + " to organise the evidence and the firm's position.")
     if position:
         intro += " The paper argues that " + position.rstrip(".") + "."
     sections = [paper.section("Introduction", paper.H1, [intro])]
@@ -1427,9 +1615,35 @@ def draft(state, accepted_ids=None, implications="", style=None):
         for dimension in FIVE_DIMENSIONS:
             lines = _dimension_lines(dimension, evidence, by_id, style)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+    if framework == "value_chain":
+        sections.append(paper.section("Value Chain", paper.H1))
+        for dimension in VALUE_DIMENSIONS:
+            lines = _dimension_lines(dimension, evidence, by_id, style)
+            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+    if framework == "ansoff":
+        sections.append(paper.section("Ansoff Growth Matrix", paper.H1))
+        for dimension in ANSOFF_DIMENSIONS:
+            lines = _dimension_lines(dimension, evidence, by_id, style)
+            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+    if framework == "vrio":
+        sections.append(paper.section("VRIO", paper.H1))
+        sections.append(paper.section("Resources", paper.H2,
+                                      [paper.paragraph(_internal_lines(answers, "resources", "Resources"))]))
+        for key, heading in (("valuable", "Valuable"), ("rare", "Rare"),
+                             ("costly", "Costly to imitate"), ("organized", "Organised to capture value")):
+            sections.append(paper.section(heading, paper.H2,
+                                          [paper.paragraph(_internal_lines(answers, key, heading))]))
+    if framework == "breakeven":
+        sections.append(paper.section("Financial Feasibility", paper.H1))
+        sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
     if framework == "five_forces_breakeven":
         sections.append(paper.section("Financial Feasibility", paper.H1))
         sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+    attached = state.get("computation") or {}
+    if attached.get("key") == "breakeven" and framework != "five_forces_breakeven":
+        sections.append(paper.section("Financial Feasibility", paper.H1))
+        sections.append(paper.section("Break-even Analysis", paper.H2,
+                                      [paper.paragraph(_break_even_lines(attached.get("inputs") or {}))]))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
         integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
@@ -1446,6 +1660,12 @@ def draft(state, accepted_ids=None, implications="", style=None):
                        "useful if the expected volume can be reached under those pressures. The implications below state "
                        "the resulting judgment.")
         sections.append(paper.section("Industry Attractiveness and Financial Feasibility", paper.H2, [integration]))
+    elif attached.get("key") == "breakeven":
+        integration = ("The framework above organises the case; the break-even calculation tests whether the declared "
+                       "cost structure can support the declared price. Read together, the analysis qualifies the "
+                       "financial result: a break-even volume is only useful if the volume the case expects can be "
+                       "reached. The implications below state the resulting judgment.")
+        sections.append(paper.section("Framework and Financial Feasibility", paper.H2, [integration]))
     if position:
         sections.append(paper.section("Implications", paper.H2, [position]))
     gaps = [gap["label"] for gap in state.get("gaps") or []]
@@ -1454,7 +1674,13 @@ def draft(state, accepted_ids=None, implications="", style=None):
         limits.append("No evidence was retrieved for: " + ", ".join(gaps) + ".")
     if framework in ("swot", "pestel_swot"):
         limits.append("Strengths and weaknesses are the student's input; the system did not verify them.")
+    if framework == "vrio":
+        limits.append("The resources and the four judgments are the student's input; the system did not verify them "
+                      "and measured no imitation cost.")
     if framework == "five_forces_breakeven":
+        limits.append("The break-even result depends on the declared fixed cost, price and variable cost; it does not "
+                      "forecast demand or prove that the expected volume will be reached.")
+    if attached.get("key") == "breakeven" and framework != "five_forces_breakeven":
         limits.append("The break-even result depends on the declared fixed cost, price and variable cost; it does not "
                       "forecast demand or prove that the expected volume will be reached.")
     if framework == "pestel_swot":
@@ -1465,7 +1691,9 @@ def draft(state, accepted_ids=None, implications="", style=None):
                                               "a threat and are not shown in the SWOT block.")
     limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
                "The paper quotes sources; it does not verify the claims inside them.",
-               "No financial figure is computed in this paper.",
+               "No financial figure is computed in this paper."
+               if framework not in ("breakeven", "five_forces_breakeven") and attached.get("key") != "breakeven"
+               else "The only financial figure is the break-even result, computed by the frozen method from declared inputs.",
                state.get("notes")[0] if state.get("notes") else "The search may be incomplete."]
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
     if position:
@@ -1486,7 +1714,8 @@ def draft(state, accepted_ids=None, implications="", style=None):
         references.append(_reference(source, style))
     heading = "References" if style == "apa" else "Bibliography"
     sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
-    state["draft"] = {"title": label + " analysis: " + _clean(decision, 180),
+    title_label = label + (" and break-even" if attached.get("key") == "breakeven" and framework != "five_forces_breakeven" else "")
+    state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
                       "accepted": sorted(accepted), "implications": position,

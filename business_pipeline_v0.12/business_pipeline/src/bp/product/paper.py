@@ -55,6 +55,16 @@ def missing(state, implications=""):
             required.append("at least one strength")
         if not (answers.get("weaknesses") or []):
             required.append("at least one weakness")
+    if framework == "vrio":
+        if not (answers.get("resources") or []):
+            required.append("at least one resource")
+        if not (answers.get("valuable") or []):
+            required.append("at least one value judgment")
+    attached = state.get("computation") or {}
+    if attached.get("key") == "breakeven":
+        inputs = attached.get("inputs") or {}
+        if not all(str(inputs.get(name, "")).strip() for name in ("fixed", "price", "variable")):
+            required.append("the break-even inputs")
     return required
 
 

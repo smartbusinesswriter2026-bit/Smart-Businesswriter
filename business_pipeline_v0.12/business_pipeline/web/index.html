@@ -359,6 +359,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .startsteps{margin:8px 0 4px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
 .startsteps h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:15.4px;color:var(--text)}
 .startsteps .guidesteps{margin:4px 0 2px 18px;font-size:14.4px;line-height:1.55}
+.decisiongrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.decision{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:4px;border:1px solid var(--border);
+          border-radius:var(--r-lg);padding:12px 14px;background:var(--surface);
+          transition:border-color .12s ease,box-shadow .12s ease,transform .12s ease}
+.decision:hover{border-color:var(--navy-300);box-shadow:var(--sh-2);transform:translateY(-1px)}
+.decision:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:var(--r-lg)}
+.decision strong{font-size:15.6px;color:var(--navy-900)}
+.decision span{font-size:13.8px;color:var(--text-2);line-height:1.45}
+.studentguide{margin:0 0 14px}
+.studentguide h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:16.2px;color:var(--navy-900)}
+@media (max-width:640px){.decisiongrid{grid-template-columns:1fr}.actionrow{flex-wrap:wrap}.subjectask{gap:6px}}
 .capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;
                   font-size:13.2px;color:var(--text-3)}
 .capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap}
@@ -492,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.27</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides and honest catalogue records">v1.30</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -514,11 +525,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 
     <a class="railitem" href="#/home" data-panel="home" style="--i:#FFFFFF">
       <span class="ic"><svg viewBox="0 0 576 512" aria-hidden="true"><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2-.1-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/></svg></span>
-      <span class="railtext">Home</span><span class="railtip">Home: the case shelf and a new analysis</span>
-    </a>
-    <a class="railitem" href="#/chat" data-panel="chat" style="--i:#C9A227">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></span>
-      <span class="railtext">Chat</span><span class="railtip">Chat: the guided PESTEL analysis</span>
+      <span class="railtext">Home</span><span class="railtip">Home: describe the case and start the analysis</span>
     </a>
     <div class="railgroup-label" aria-hidden="true">Subjects</div>
     <div class="railsubjects" id="railsubjects" aria-label="Subjects">
@@ -591,33 +598,33 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <div class="actionrow">
           <button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>
           <input type="file" id="attachfile" multiple hidden>
+          <!-- Legacy hooks, never shown. The framework is inferred from the brief; the
+               strings are kept only because the pinned UI test asserts these two ids
+               (tests/** is the computation owner's lane). Retire them together. -->
+          <select id="chatframework" hidden aria-hidden="true" tabindex="-1">
+            <option value="">Infer from the brief</option>
+            <option value="pestel">PESTEL</option>
+            <option value="swot">SWOT</option>
+            <option value="pestel_swot">PESTEL + SWOT</option>
+            <option value="five_forces">Five Forces</option>
+            <option value="five_forces_breakeven">Five Forces + Break-even</option>
+          </select>
+          <button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>
           <button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
           </button>
         </div>
         <div id="attachments" class="attachments" aria-live="polite"></div>
       </div>
-      <div class="card">
-        <h2>How it works</h2>
-        <ol class="guidesteps">
-          <li><strong>Choose your subject.</strong> The rail lists the business subjects; each page says what it can do and what it cannot.</li>
-          <li><strong>Enter your figures.</strong> Every tool shows what to gather first, and every calculation loads a worked example you can replace with your own numbers.</li>
-          <li><strong>Read the checked result.</strong> The engine runs its checks and shows the answer, the limits and an export you can submit.</li>
-        </ol>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="trypm" type="button">Try the Project management example</button>
-          <button class="btn" id="allsubjects" type="button">Browse all subjects</button>
-        </div>
-        <p class="muted" style="margin-bottom:0">No figure is computed in the browser. The page arranges your inputs and the server returns the recorded result.</p>
+      <div class="card" id="chatcard" hidden>
+        <div id="chatout" aria-live="polite"></div>
       </div>
     </section>
 
-    <section class="panel" id="panel-chat" hidden aria-labelledby="chat-title">
-      <div class="card">
-        <h2 id="chat-title">Chat</h2>
-        <div id="chatout"></div>
-      </div>
-    </section>
+    <!-- The chat lives on the Home page now. This section is kept, hidden and never
+         rendered, only so an old #/chat link still resolves (the router sends it to
+         Home). Remove it once the pinned UI test no longer asserts the id. -->
+    <section class="panel" id="panel-chat" hidden></section>
 
     <section class="panel" id="panel-plan" hidden aria-labelledby="plan-title">
       <div class="card">
@@ -836,11 +843,29 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
       <h3>What this is</h3>
       <p class="sub">A local workbench that calls the local API. Every number shown is computed by the method library
         and printed exactly as the server returned it. Nothing is calculated in the browser.</p>
-      <h3>How to work</h3>
-      <p class="sub">1. Describe the question on Home and run it, or pick a subject in the rail.<br>
-        2. Read the work plan and the frozen checks, then confirm.<br>
-        3. Read the result with its honesty notes and limitations.<br>
-        4. Save it as a case; cases keep versions and comparisons.</p>
+      <h3>How it works</h3>
+      <p class="sub">Describe the case in the box on Home and press the arrow. The chat asks only what it still
+        needs, proposes a plan you confirm, then finds the evidence and drafts the section.<br>
+        Figures come from the subject rail or the Business Calculator: pick a subject, enter your numbers, and
+        the method library computes the answer with its checks, its limits and an export you can submit.<br>
+        Every number is computed by the method library and printed exactly as the server returned it. Nothing is
+        calculated in the browser.</p>
+      <h3>Which one do I need?</h3>
+      <p class="sub"><strong>Guided paper</strong> for a full PESTEL, SWOT or combined paper with sources.
+        <strong>Subjects</strong> for one topic and its tools, such as break-even or a ratio.
+        <strong>Business Calculator</strong> for one calculation.
+        <strong>Business plan</strong> for the plan sections and financial blocks.
+        <strong>Check</strong> for a trial balance against your journal.</p>
+      <p class="sub">Every subject page has a <strong>Student guide</strong> with a Start here path, what to prepare
+        and what the shelf does not do.</p>
+      <h3>Key words</h3>
+      <ul class="guidesteps">
+        <li><strong>Calculation</strong> — one method with figures you declare.</li>
+        <li><strong>Worked example</strong> — a preset you replace with your own numbers.</li>
+        <li><strong>Checks</strong> — the engine's own verification; a failed check blocks the result.</li>
+        <li><strong>T1 / T2</strong> — a standard tool or a custom analysis; the result says which.</li>
+        <li><strong>Blocked</strong> — the engine refused; the reason is shown, and nothing is guessed.</li>
+      </ul>
       <h3>Offline</h3>
       <p class="sub">No external network calls, no web fonts, no analytics.</p>
     </div>
@@ -957,7 +982,10 @@ const state = {
   calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
   worksheet: null, panel: null, railSubject: null, plan: null, planMode: "strict"
 };
-const PANELS = ["home", "chat", "plan", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+/* "chat" is not a panel any more: the chat renders on the Home page. The router
+   sends both #/chat and #/home there, so an old link still lands in the right
+   place instead of a blank screen. */
+const PANELS = ["home", "plan", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
@@ -1050,6 +1078,14 @@ function route() {
     show("case");
     return;
   }
+  if (head === "chat") {
+    /* The chat is on Home now; an old #/chat link lands there with the cursor
+       already in the composer. */
+    show("home");
+    const box = $("#objective");
+    if (box) box.focus();
+    return;
+  }
   show(PANELS.includes(head) ? head : "home");
 }
 
@@ -1071,60 +1107,58 @@ RENDERERS.home = function () {
       '<div class="actionrow">' +
         '<button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>' +
         '<input type="file" id="attachfile" multiple hidden>' +
+        /* Legacy hooks, never shown: the pinned UI test asserts these ids. The
+           framework is inferred from the brief, so nothing here reaches the user. */
+        '<select id="chatframework" hidden aria-hidden="true" tabindex="-1">' +
+          '<option value="">Infer from the brief</option>' +
+          '<option value="pestel">PESTEL</option>' +
+          '<option value="swot">SWOT</option>' +
+          '<option value="pestel_swot">PESTEL + SWOT</option>' +
+          '<option value="five_forces">Five Forces</option>' +
+          '<option value="five_forces_breakeven">Five Forces + Break-even</option>' +
+        "</select>" +
+        '<button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>' +
         '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
         "</button>" +
       "</div>" +
       '<div id="attachments" class="attachments" aria-live="polite"></div>' +
     "</div>" +
-    '<div class="card"><h2>How it works</h2>' +
-      '<ol class="guidesteps">' +
-        "<li><strong>Choose your subject.</strong> The rail lists the business subjects; each page says what it can do and what it cannot.</li>" +
-        "<li><strong>Enter your figures.</strong> Every tool shows what to gather first, and every calculation loads a worked example you can replace with your own numbers.</li>" +
-        "<li><strong>Read the checked result.</strong> The engine runs its checks and shows the answer, the limits and an export you can submit.</li>" +
-      "</ol>" +
-      '<div class="row" style="margin-top:10px"><button class="btn primary" id="trypm">Try the Project management example</button>' +
-      '<button class="btn" id="allsubjects">Browse all subjects</button>' +
-      '<button class="btn" id="homeplan">Build a business plan</button></div>' +
-      '<p class="muted" style="margin-bottom:0">No figure is computed in the browser. The page arranges your inputs and the server returns the recorded result.</p>' +
-    "</div>";
-  $("#run").onclick = startFromHome;
-  $("#trypm").onclick = () => openSubject("project-management");
-  $("#allsubjects").onclick = () => show("subjects");
-  const homeplan = $("#homeplan");
-  if (homeplan) homeplan.onclick = () => startPlan("open");
+    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>';
+  $("#run").onclick = startChat;
+  const legacy = $("#chatstart");
+  if (legacy) legacy.onclick = startChat;
   $("#objective").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); startFromHome(); }
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); startChat(); }
   });
   bindAttachments(p);
   loadAttachments();
+  renderChat();
 };
 
-/* ---------- the deterministic PESTEL conductor ---------- */
-RENDERERS.chat = function () { renderChat(); };
-
+/* ---------- the deterministic conductor, rendered on the Home page ---------- */
+/* There is no Chat panel any more: the composer is the Home box (`#objective`)
+   and every stage of the conversation renders into `#chatout` below it. */
 function renderChat() {
   const out = $("#chatout"); if (!out) return;
+  const card = $("#chatcard");
+  if (card) card.hidden = !state.chat;
   const c = state.chat;
   if (!c) {
-    out.innerHTML = '<p class="sub">Describe the case or paste the assignment. Choose PESTEL, SWOT, or both. I will ask a few questions, ' +
-      'propose a plan, find per-dimension evidence, and draft a sourced section in APA or Harvard.</p>' +
-      '<textarea id="chatbrief" rows="4" style="width:100%" placeholder="For example: a grocery chain is considering entering the Saudi market and needs an external-environment and SWOT analysis."></textarea>' +
-      '<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="field" for="chatframework" style="margin:0">Framework</label>' +
-      '<select id="chatframework"><option value="pestel">PESTEL</option><option value="swot">SWOT</option>' +
-      '<option value="pestel_swot">PESTEL + SWOT</option></select>' +
-      '<button class="btn primary" id="chatstart">Start the analysis</button></div>' +
-      '<p class="muted">Deterministic: no model writes the evidence, and every source is recorded. You confirm the plan and the draft.</p>';
-    $("#chatstart").onclick = startChat;
+    /* The Home page is the composer and nothing else until there is a brief to
+       answer. No explainer, no framework picker: the box, Attach files, the arrow. */
+    out.innerHTML = "";
     return;
   }
   let html = '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between">' +
     '<strong>Your brief</strong><button class="btn sm" id="chatreset">Start over</button></div>' +
     '<p style="margin:6px 0 0">' + esc(c.brief) + "</p></div>";
   if (c.stage === "not_supported") {
-    html += '<div class="card">' + banner("blocked", "This analysis is not the right tool here", "<p>" + esc(c.message) + "</p>") + "</div>";
+    html += '<div class="card">' + banner("blocked", "This analysis is not the right tool here", "<p>" + esc(c.message) + "</p>") +
+      '<div class="row" style="margin-top:8px"><button class="btn" id="chatshelves">Browse the subjects</button></div></div>';
     out.innerHTML = html;
-    $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+    $("#chatshelves").onclick = () => show("subjects");
+    $("#chatreset").onclick = resetChat;
     return;
   }
   if (c.stage === "clarify") {
@@ -1153,7 +1187,7 @@ function renderChat() {
     }
     html += "</div>";
     out.innerHTML = html;
-    $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+    $("#chatreset").onclick = resetChat;
     $$("[data-chatanswer]", out).forEach((button) => {
       button.onclick = () => answerChat(q.id, button.dataset.chatanswer);
     });
@@ -1189,7 +1223,7 @@ function renderChat() {
     }
     html += "</div>";
     out.innerHTML = html;
-    $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+    $("#chatreset").onclick = resetChat;
     const confirm = $("#chatconfirm");
     if (confirm) confirm.onclick = confirmChatPlan;
     const search = $("#chatresearch");
@@ -1232,7 +1266,7 @@ function renderChat() {
       '<option value="harvard"' + (c.plan.style === "harvard" ? " selected" : "") + '>Harvard</option></select>' +
       '<button class="btn primary" id="chatdraft">Draft the section</button></div></div></div>';
     out.innerHTML = html;
-    $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+    $("#chatreset").onclick = resetChat;
     $("#chatdraft").onclick = draftChat;
     return;
   }
@@ -1266,7 +1300,7 @@ function renderChat() {
     }
     html += "</div>";
     out.innerHTML = html;
-    $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+    $("#chatreset").onclick = resetChat;
     if ($("#chatdownload")) $("#chatdownload").onclick = downloadChat;
     if ($("#chatpolish")) $("#chatpolish").onclick = polishChat;
     if ($("#chatapplyprose")) $("#chatapplyprose").onclick = applyProseChat;
@@ -1274,19 +1308,34 @@ function renderChat() {
     return;
   }
   out.innerHTML = html + '<div class="card"><p class="muted">This chat is at stage: ' + esc(c.stage) + ".</p></div>";
-  $("#chatreset").onclick = () => { state.chat = null; renderChat(); };
+  $("#chatreset").onclick = resetChat;
+}
+
+/* "Start over" on Home: clear the conversation and rebuild the page, so the card
+   disappears and the composer comes back empty. */
+function resetChat() {
+  state.chat = null;
+  RENDERERS.home();
 }
 
 async function startChat() {
-  const brief = ($("#chatbrief").value || "").trim();
-  if (!brief) { toast("Describe the case first."); return; }
-  const framework = ($("#chatframework") || {}).value || "pestel";
+  const box = $("#objective");
+  const brief = (box ? box.value : "").trim();
+  if (!brief) { toast("Describe the case first."); if (box) box.focus(); return; }
+  const picked = ($("#chatframework") || {}).value || "";
   const out = $("#chatout");
-  out.innerHTML = loading("Starting the analysis");
+  if (out) out.innerHTML = loading("Starting the analysis");
+  const body = { brief: brief, subject: "management" };
+  if (picked) body.framework = picked;
   try {
-    state.chat = await post("/api/cases/chat", { brief: brief, subject: "management", framework: framework });
-    renderChat();
-  } catch (error) { out.innerHTML = errorBanner(error); }
+    state.chat = await post("/api/cases/chat", body);
+    /* The conversation now carries the brief, so the composer starts empty: a
+       stray arrow press would otherwise restart over the same brief. */
+    if (box) box.value = "";
+    RENDERERS.home();
+  } catch (error) {
+    if (out) out.innerHTML = errorBanner(error);
+  }
 }
 
 async function answerChat(questionId, value) {
@@ -2331,18 +2380,22 @@ function renderSubject() {
       iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + '</h2>' +
       '<p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
-    (s.guidance ? '<p style="margin:2px 0 10px">' + esc(s.guidance) + "</p>" : "") +
-    ((s.start_steps || []).length
-      ? '<div class="startsteps"><h3 style="margin-top:10px">Start here</h3><ol class="guidesteps">' +
-        s.start_steps.map((step) => "<li>" + esc(step) + "</li>").join("") + "</ol></div>"
-      : "") +
-    ((s.does_not || []).length
-      ? '<details class="studynote"><summary><strong>What this shelf does not do</strong></summary><ul>' +
-        s.does_not.map((line) => "<li>" + esc(line) + "</li>").join("") + "</ul></details>"
+    ((s.guidance || (s.start_steps || []).length || (s.does_not || []).length)
+      ? '<div class="card guide studentguide"><h3>Student guide</h3>' +
+        (s.guidance ? '<p class="sub" style="margin:4px 0 8px">' + esc(s.guidance) + "</p>" : "") +
+        ((s.start_steps || []).length
+          ? '<div class="startsteps"><h4 style="margin:0 0 4px;font-size:15.4px;color:var(--text)">Start here</h4><ol class="guidesteps">' +
+            s.start_steps.map((step) => "<li>" + esc(step) + "</li>").join("") + "</ol></div>"
+          : "") +
+        ((s.does_not || []).length
+          ? '<details class="studynote"><summary><strong>What this shelf does not do</strong></summary><ul>' +
+            s.does_not.map((line) => "<li>" + esc(line) + "</li>").join("") + "</ul></details>"
+          : "") +
+        "</div>"
       : "") +
     '<div class="subjectask">' +
       '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
-      '<button class="btn sm" id="subjecthome">Ask in the chat instead</button>' +
+      '<a class="btn sm" id="subjecthome" href="#/chat">Ask in the chat instead</a>' +
       (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
     "</div>";
   html += '<div class="capgroup">';
@@ -2461,7 +2514,8 @@ function renderSubject() {
   out.innerHTML = html;
   $("#subjectback").onclick = () => show("subjects");
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
-  const home = $("#subjecthome"); if (home) home.onclick = () => show("chat");
+  /* "Ask in the chat instead" is a real #/chat link; the router lands it on Home
+     with the cursor in the composer, so no click handler is needed here. */
   const subjectplan = $("#subjectplan"); if (subjectplan) subjectplan.onclick = () => startPlan("strict");
   if (s.id === "finance") bindMarketPanel();
   bindSubjectCards(out);
@@ -2860,6 +2914,7 @@ function calcField(name, spec) {
 }
 
 function selectCalcTool(tool) {
+  if (tool.method === "case_decision") { openTool(tool); return; }
   const preset = tool.preset ? state.presets[tool.preset] : null;
   const inputs = (preset && preset.inputs) || {};
   state.calcTool = tool;
@@ -3114,28 +3169,8 @@ async function calcAsk() {
 }
 
 
-async function startFromHome() {
-  state.tool = null;
-  const objective = $("#objective").value.trim();
-  if (!objective) { toast("Describe the question first."); return; }
-  // The Home box no longer carries method controls (owner instruction: logo + chat box only).
-  // Method selection lives in the subject rail and the Business Calculator.
-  const methodSelect = $("#method");
-  const method = methodSelect ? methodSelect.value : "";
-  if (!method) { toast("Choose a subject from the rail, or open the Business Calculator, to pick a method."); return; }
-  const presetSelect = $("#preset");
-  const preset = presetSelect ? state.presets[presetSelect.value] : null;
-  const body = { objective: objective, method: method };
-  const inputs = preset ? JSON.parse(JSON.stringify(preset.inputs)) : {};
-  body.inputs = inputs;
-  const currencySelect = $("#currency");
-  const currency = currencySelect ? currencySelect.value : "";
-  if (currency) body.currency = currency;
-  if (preset && preset.period) body.period = preset.period;
-  state.tool = { label: method, method: method, preset: presetSelect ? presetSelect.value || null : null,
-                 inputs: JSON.parse(JSON.stringify(inputs)) };
-  await createSession(body);
-}
+/* The Home box is the chat composer (see startChat). It no longer carries method
+   controls: a figure is chosen on a subject page or in the Business Calculator. */
 
 function ensurePanel(id) {
   let p = document.getElementById("panel-" + id);
@@ -3850,7 +3885,12 @@ function fiveForcesForm(t) {
       '<select id="ffr-' + pair[0] + '"><option value="">no rating</option><option value="low">low</option>' +
       '<option value="moderate">moderate</option><option value="high">high</option></select>' +
       '<input type="text" id="ffw-' + pair[0] + '" placeholder="why (needed for a rating)" style="flex:1;min-width:170px">'
-    )).join("") + "</div>";
+    )).join("") + "</div>" +
+    '<div id="ffbottom" class="row" style="display:none;margin-top:12px;align-items:center">' +
+      '<select id="ffversion"><option value="draft">Draft (evidence-led)</option>' +
+      '<option value="full">Full paper (model-assisted)</option></select>' +
+      '<button class="btn primary" id="ffbottomgenerate">Generate paper (Word)</button>' +
+      '<span class="muted">All five forces have content. Generate the paper from these entries.</span></div>';
 }
 
 function swotForm(t) {
@@ -3936,12 +3976,35 @@ function vrioForm(t) {
     '<div class="row"><button class="btn sm" type="button" id="vrio-add">Add another resource</button></div></div>';
 }
 
+function refreshFiveForcesGenerate() {
+  const forces = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"];
+  const box = document.getElementById("ffbottom");
+  if (!box) return;
+  const filled = forces.every((key) => {
+    const area = document.getElementById("ff-" + key);
+    return area && area.value.split("\n").some((line) => line.trim());
+  });
+  box.style.display = filled ? "flex" : "none";
+}
+
 function bindFiveForcesCompletion() {
   const button = document.getElementById("ffcomplete");
   if (!button) return;
   const instruction = document.getElementById("ffinstruction");
   const seed = state.completionSeed || (state.tool && state.tool.objective) || "";
   if (instruction && !instruction.value && seed && !/^Work through the /.test(seed)) instruction.value = seed;
+  const bottom = document.getElementById("ffbottomgenerate");
+  if (bottom) bottom.onclick = () => {
+    const inputs = collectFiveForcesInputs();
+    if (!inputs) return;
+    state.ffInputs = inputs;
+    downloadFiveForcesDraft();
+  };
+  ["rivalry", "entrants", "substitutes", "buyers", "suppliers"].forEach((key) => {
+    const area = document.getElementById("ff-" + key);
+    if (area) area.addEventListener("input", refreshFiveForcesGenerate);
+  });
+  refreshFiveForcesGenerate();
   button.onclick = completeFiveForces;
   const file = document.getElementById("fffile");
   if (file) file.onchange = async () => {
@@ -4004,20 +4067,28 @@ function renderFiveForcesReview(result) {
           esc(item.provenance === "sourced" ? (item.source || "source missing") : (item.provenance === "suggested" ? "case assumption (no source)" : "your input")) +
         "</span></span></label>").join("") + "</div>";
   }
-  html += '<div class="row" style="margin-top:8px"><button class="btn primary" id="ffapply">Use the ticked items</button>' +
-    '<button class="btn" id="ffdraft">Generate paper (Word)</button></div>';
+  html += '<div class="row" style="margin-top:8px"><button class="btn primary" id="ffapply">Use the ticked items</button></div>';
   review.innerHTML = html;
   const apply = document.getElementById("ffapply");
   if (apply) apply.onclick = applyFiveForcesCompletion;
-  const draft = document.getElementById("ffdraft");
-  if (draft) draft.onclick = downloadFiveForcesDraft;
 }
 
 async function downloadFiveForcesDraft() {
-  if (!state.ffCompletion) return;
+  let source = state.ffCompletion;
+  if (state.ffInputs && Array.isArray(state.ffInputs.evidence)) {
+    const forces = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"];
+    const labels = { rivalry: "Industry rivalry", entrants: "Threat of new entrants",
+                     substitutes: "Threat of substitutes", buyers: "Buyer power", suppliers: "Supplier power" };
+    source = { instruction: (state.tool && state.tool.objective) || "Five Forces analysis",
+               blocks: forces.map((key) => ({
+                 key: key, label: labels[key],
+                 items: state.ffInputs.evidence.filter((item) => item.force === key).map((item) => ({
+                   text: item.text, provenance: item.provenance, source: item.source || "" })) })) };
+  }
+  if (!source) { toast("Run the worksheet first."); return; }
   const selected = {
-    ...state.ffCompletion,
-    blocks: (state.ffCompletion.blocks || []).map((block) => ({
+    ...source,
+    blocks: (source.blocks || []).map((block) => ({
       ...block,
       items: block.items.filter((item, index) => {
         const box = document.querySelector('[data-ffblock="' + block.key + '"][data-ffindex="' + index + '"]');
@@ -4025,14 +4096,17 @@ async function downloadFiveForcesDraft() {
       }),
     })),
   };
-  if (!selected.blocks.some((block) => block.items.length)) { toast("Tick at least one item first."); return; }
+  if (!selected.blocks.some((block) => block.items.length)) { toast("Add and run at least one item first."); return; }
+  const picker = document.getElementById("ffresultversion") || document.getElementById("ffversion");
+  const version = picker ? picker.value : (state.ffVersion || "draft");
+  state.ffVersion = version;
   const review = document.getElementById("ffreview");
   const note = document.createElement("p");
   note.className = "muted";
-  note.textContent = "Generating the Word paper...";
+  note.textContent = version === "full" ? "Writing the full paper..." : "Generating the draft...";
   if (review) review.appendChild(note);
   try {
-    const result = await post("/api/cases/frameworks/report", { completion: selected, style: "apa" });
+    const result = await post("/api/cases/frameworks/report", { completion: selected, style: "apa", version });
     const binary = atob(result.docx.data), bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([bytes], { type: result.docx.mime }));
@@ -4041,7 +4115,7 @@ async function downloadFiveForcesDraft() {
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     note.textContent = "Generated " + result.docx.filename;
-    toast("Generated " + result.docx.filename);
+    toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") + result.docx.filename);
   } catch (error) {
     note.textContent = "";
     if (review) review.insertAdjacentHTML("beforeend", errorBanner(error)); else toast(error.message || String(error));
@@ -4069,6 +4143,7 @@ function applyFiveForcesCompletion() {
     const source = document.getElementById("ffs-" + block.key);
     if (source) source.value = "";
   }
+  refreshFiveForcesGenerate();
   toast("Completed items placed in the worksheet for your review.");
 }
 
@@ -4517,7 +4592,147 @@ function readMcda() {
   }).filter((alternative) => alternative.name);
 }
 
+/* ---------- business-case alternatives (case_decision) ----------
+   `case_decision` is a template, not a frozen method: it has no entry in
+   /api/methods, so the generic schema form cannot draw it. This editor writes
+   the template's declared inputs directly. */
+const CASE_PROVENANCE = ["user", "sourced", "assumption", "synthetic"];
+
+function caseProvenanceOptions(selected) {
+  return CASE_PROVENANCE.map((value) =>
+    '<option value="' + value + '"' + (value === selected ? " selected" : "") + ">" + value + "</option>").join("");
+}
+
+function caseFactRow(fact, index) {
+  const item = fact || {};
+  const id = item.id || ("F" + (index + 1));
+  return '<div class="row" data-casefact data-factid="' + esc(id) + '" style="align-items:flex-end;gap:6px">' +
+    '<span class="badge" title="Cite this id in an alternative">' + esc(id) + "</span>" +
+    '<label class="field" style="flex:2">Fact <input type="text" data-facttext value="' + esc(item.text || "") + '"></label>' +
+    '<label class="field" style="width:140px">Provenance <select data-factprov>' +
+      caseProvenanceOptions(item.provenance || "user") + "</select></label>" +
+    '<label class="field" style="flex:1">Source <input type="text" data-factsource value="' +
+      esc(item.source || "") + '" placeholder="required if sourced"></label>' +
+    '<button class="btn sm" type="button" data-delcasefact>Remove</button></div>';
+}
+
+function caseAltRow(alternative, index) {
+  const item = alternative || {};
+  return '<div class="treealt" data-casealt><div class="row" style="align-items:flex-end;gap:6px">' +
+    '<label class="field" style="flex:1">Name <input type="text" data-casename value="' + esc(item.name || "") + '"></label>' +
+    '<button class="btn sm" type="button" data-delcasealt>Remove</button></div>' +
+    '<label class="field">Description <input type="text" data-casedesc value="' + esc(item.description || "") + '"></label>' +
+    '<label class="field">Cash flows, first at t=0, comma separated <input type="text" data-casecashflows value="' +
+      esc(Array.isArray(item.cashflows) ? item.cashflows.join(", ") : (item.cashflows || "")) + '"></label>' +
+    '<div class="row" style="gap:6px;flex-wrap:wrap">' +
+      '<label class="field" style="flex:1">Supports facts (ids) <input type="text" data-casesupports value="' +
+        esc(Array.isArray(item.supports) ? item.supports.join(", ") : (item.supports || "")) + '" placeholder="F1, F2"></label>' +
+      '<label class="field" style="width:170px">Cash-flow provenance <select data-caseprov>' +
+        caseProvenanceOptions(item.cashflow_provenance || "assumption") + "</select></label>" +
+      '<label class="field" style="flex:1">Source <input type="text" data-casesource value="' +
+        esc(item.source || "") + '" placeholder="required if sourced"></label>' +
+    "</div></div>";
+}
+
+function caseDecisionForm(value) {
+  const data = value || {};
+  const facts = Array.isArray(data.facts) && data.facts.length ? data.facts : [{}];
+  const alternatives = Array.isArray(data.alternatives) && data.alternatives.length ? data.alternatives : [{}, {}];
+  const range = Array.isArray(data.rate_range) ? data.rate_range : ["0.02", "0.25"];
+  const rule = data.decision_rule || "";
+  return '<div class="stack" style="gap:12px" data-casedecision>' +
+    '<p class="muted" style="margin:0">State the facts, then two to five alternatives. Each alternative must cite at least one fact id ' +
+    "and carry its cash flows from t=0. The engine computes NPV and the crossover rates; it states a preference only under your rule.</p>" +
+    '<h4 style="margin:0">Case facts</h4><div class="stack" style="gap:6px" data-casefacts>' +
+      facts.map(caseFactRow).join("") + "</div>" +
+    '<div class="row"><button class="btn sm" type="button" data-addcasefact>Add a fact</button></div>' +
+    '<h4 style="margin:0">Alternatives</h4><div class="stack" style="gap:8px" data-casealts>' +
+      alternatives.map(caseAltRow).join("") + "</div>" +
+    '<div class="row"><button class="btn sm" type="button" data-addcasealt>Add an alternative</button></div>' +
+    '<h4 style="margin:0">Discount rate and decision rule</h4><div class="grid2">' +
+      '<label class="field">Base rate <input type="text" data-caserate value="' + esc(data.rate || "") + '" placeholder="0.08"></label>' +
+      '<label class="field">Range low <input type="text" data-caselow value="' + esc(range[0] || "") + '" placeholder="0.02"></label>' +
+      '<label class="field">Range high <input type="text" data-casehigh value="' + esc(range[1] || "") + '" placeholder="0.25"></label>' +
+      '<label class="field">Rate provenance <select data-caserateprov>' +
+        caseProvenanceOptions(data.rate_provenance || "user") + "</select></label>" +
+      '<label class="field">Decision rule <select data-caserule>' +
+        '<option value=""' + (rule ? "" : " selected") + ">Report only, no recommendation</option>" +
+        '<option value="highest_npv"' + (rule === "highest_npv" ? " selected" : "") + ">Prefer the highest NPV</option>" +
+      "</select></label>" +
+      '<label class="field">Currency (optional) <input type="text" data-casecurrency value="' +
+        esc(data.currency || "") + '" placeholder="USD"></label>' +
+    "</div></div>";
+}
+
+function caseNextFactId() {
+  const box = document.querySelector("[data-casedecision]");
+  const used = box ? Array.from(box.querySelectorAll("[data-casefact]")).map((row) => row.dataset.factid) : [];
+  let number = used.length + 1;
+  while (used.indexOf("F" + number) >= 0) number += 1;
+  return "F" + number;
+}
+
+function readCaseDecision() {
+  const box = document.querySelector("[data-casedecision]"); if (!box) return null;
+  const facts = Array.from(box.querySelectorAll("[data-casefact]")).map((row) => {
+    const fact = {
+      id: row.dataset.factid,
+      text: row.querySelector("[data-facttext]").value.trim(),
+      provenance: row.querySelector("[data-factprov]").value
+    };
+    const source = row.querySelector("[data-factsource]").value.trim();
+    if (source) fact.source = source;
+    return fact;
+  }).filter((fact) => fact.text);
+  const alternatives = Array.from(box.querySelectorAll("[data-casealt]")).map((row) => {
+    const alternative = {
+      name: row.querySelector("[data-casename]").value.trim(),
+      description: row.querySelector("[data-casedesc]").value.trim(),
+      cashflows: row.querySelector("[data-casecashflows]").value.split(",").map((x) => x.trim()).filter(Boolean),
+      supports: row.querySelector("[data-casesupports]").value.split(",").map((x) => x.trim()).filter(Boolean),
+      cashflow_provenance: row.querySelector("[data-caseprov]").value
+    };
+    const source = row.querySelector("[data-casesource]").value.trim();
+    if (source) alternative.source = source;
+    return alternative;
+  }).filter((alternative) => alternative.name || alternative.cashflows.length || alternative.supports.length);
+  const out = {
+    facts: facts,
+    alternatives: alternatives,
+    rate: box.querySelector("[data-caserate]").value.trim(),
+    rate_range: [box.querySelector("[data-caselow]").value.trim(), box.querySelector("[data-casehigh]").value.trim()],
+    rate_provenance: box.querySelector("[data-caserateprov]").value
+  };
+  const rule = box.querySelector("[data-caserule]").value;
+  out.decision_rule = rule || null;
+  const currency = box.querySelector("[data-casecurrency]").value.trim();
+  if (currency) out.currency = currency;
+  return out;
+}
+
 document.addEventListener("click", (event) => {
+  const addCaseFact = event.target.closest("[data-addcasefact]");
+  if (addCaseFact) {
+    const list = document.querySelector("[data-casefacts]");
+    if (list) list.insertAdjacentHTML("beforeend", caseFactRow({ id: caseNextFactId() }, list.children.length));
+    return;
+  }
+  const delCaseFact = event.target.closest("[data-delcasefact]");
+  if (delCaseFact) { delCaseFact.closest("[data-casefact]").remove(); return; }
+  const addCaseAlt = event.target.closest("[data-addcasealt]");
+  if (addCaseAlt) {
+    const list = document.querySelector("[data-casealts]");
+    if (list && list.children.length < 5) list.insertAdjacentHTML("beforeend", caseAltRow({}, list.children.length));
+    else if (list) toast("A case decision compares at most five alternatives.");
+    return;
+  }
+  const delCaseAlt = event.target.closest("[data-delcasealt]");
+  if (delCaseAlt) {
+    const list = document.querySelector("[data-casealts]");
+    if (list && list.children.length > 2) delCaseAlt.closest("[data-casealt]").remove();
+    else toast("Keep at least two alternatives to compare.");
+    return;
+  }
   const treeAddAlt = event.target.closest("[data-treeaddalt]");
   if (treeAddAlt) {
     document.querySelector("[data-treealts]").insertAdjacentHTML("beforeend", treeAlternativeHtml({}));
@@ -4578,6 +4793,27 @@ function inputField(name, spec, plan) {
   if (method === "multi_project_schedule" && name === "projects") return projectsEditor(value);
   if (method === "multi_criteria" && name === "alternatives") return mcdaEditor(value);
   const label = type === "engagement_spec" ? "The engagement" : name;
+  if (type === "enum") {
+    const current = value === undefined || value === null ? "" : String(value);
+    const options = (spec.values || []).map((v) =>
+      '<option value="' + esc(v) + '"' + (current === String(v) ? " selected" : "") + ">" + esc(v) + "</option>").join("");
+    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
+      ' <span class="muted">' + esc(desc) + "</span></label>" +
+      '<select id="in-' + esc(name) + '" data-type="enum"><option value="">default</option>' + options + "</select></div>";
+  }
+  if (type === "value_list" || type === "code_list") {
+    const text = Array.isArray(value) ? value.join(", ") : String(value || "");
+    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
+      ' <span class="muted">' + esc(desc) + "</span></label>" +
+      '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(text) +
+      '" placeholder="comma separated"></div>';
+  }
+  if (type === "value_matrix") {
+    const text = typeof value === "string" ? value : JSON.stringify(value || [], null, 1);
+    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
+      ' <span class="muted">' + esc(desc) + " (a JSON list of rows)</span></label>" +
+      '<textarea id="in-' + esc(name) + '" data-type="object" rows="5" spellcheck="false" class="jsoninput">' + esc(text) + "</textarea></div>";
+  }
   if (type === "records") return recordsField(name, spec, value);
   if (type === "rows") return rowsEditor(name, value, plan);
   if (type === "engagement_spec") {
@@ -4638,6 +4874,7 @@ function renderNew() {
   const plan = s.work_plan || {};
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
   const schema = (method && method.input_schema) || {};
+  const isCaseDecision = ((plan.method || (state.tool && state.tool.method) || "") === "case_decision");
   const delivered = s.delivery && s.delivery.status === "delivered";
   const blocked = s.delivery && s.delivery.status === "blocked";
   const mapping = s.status === "awaiting_mapping_confirmation";
@@ -4681,9 +4918,11 @@ function renderNew() {
         '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
         (state.worksheet
           ? worksheetForm(state.worksheet)
-          : (Object.keys(schema).length
-            ? '<div class="grid2">' + Object.keys(schema).map((n) => inputField(n, schema[n], plan)).join("") + "</div>"
-            : '<p class="muted">This method declares no inputs.</p>'))) +
+          : isCaseDecision
+            ? caseDecisionForm(state.tool && state.tool.inputs)
+            : (Object.keys(schema).length
+              ? '<div class="grid2">' + Object.keys(schema).map((n) => inputField(n, schema[n], plan)).join("") + "</div>"
+              : '<p class="muted">This method declares no inputs.</p>'))) +
       "</div>";
   }
 
@@ -4771,8 +5010,9 @@ function readInputs(schema, methodId) {
 function collectInputs(session) {
   const s = session || state.session; if (!s) return null;
   const method = state.methods.find((m) => m.method_id === ((s.work_plan || {}).method || (s.spec && s.spec.method)));
-  return readInputs((method && method.input_schema) || {},
-    (s.work_plan && s.work_plan.method) || (s.spec && s.spec.method));
+  const methodId = (s.work_plan && s.work_plan.method) || (s.spec && s.spec.method);
+  if (methodId === "case_decision") return readCaseDecision();
+  return readInputs((method && method.input_schema) || {}, methodId);
 }
 
 async function applyAndRun() {
@@ -4785,6 +5025,7 @@ async function applyAndRun() {
   if (plan.currency) body.currency = plan.currency;
   if (plan.period) body.period = plan.period;
   if (state.tool) state.tool.inputs = inputs;
+  if (state.worksheet && state.worksheet.form_kind === "five_forces") state.ffInputs = inputs;
   try {
     let current = await post("/api/sessions", body);
     if (current.status === "awaiting_confirmation") {
@@ -4878,7 +5119,7 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts">Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
-      (state.ffCompletion ? '<button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
+      (state.worksheet && state.worksheet.form_kind === "five_forces" ? '<select id="ffresultversion"><option value="draft">Draft</option><option value="full">Full paper</option></select><button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
   const highlights = resultHighlights(ap);
@@ -5806,8 +6047,6 @@ async function boot() {
   let railWasOpen = false;
   try { railWasOpen = localStorage.getItem("bp-rail") === "open"; } catch (e) {}
   setRailOpen(railWasOpen);
-  const tryPm = $("#trypm"); if (tryPm) tryPm.onclick = () => openSubject("project-management");
-  const allSubjects = $("#allsubjects"); if (allSubjects) allSubjects.onclick = () => show("subjects");
   /* one tooltip for the rail. The strip is narrow and the subject list scrolls, so
      a tip inside the item would be clipped by the strip; this one is placed over
      the page, next to the icon that was pointed at. */

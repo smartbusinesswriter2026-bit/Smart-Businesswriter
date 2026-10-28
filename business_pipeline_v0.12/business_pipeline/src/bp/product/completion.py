@@ -13,13 +13,17 @@ import re
 from . import docx, guard, paper, prose, sources as source_finder
 from . import writing
 
+NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
+CITATION = re.compile(r"\([^()]{1,140}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
+URL = re.compile(r"https?://|doi:", re.I)
+
 TEMPLATE = "template_five_forces"
 
 FORCES = [
-    ("rivalry", "Industry rivalry", "competition rival market share price war"),
+    ("rivalry", "Industry rivalry", "competition competitive rival market share price war"),
     ("entrants", "Threat of new entrants", "market entry barriers capital licence"),
     ("substitutes", "Threat of substitutes", "substitute alternative switching"),
-    ("buyers", "Buyer power", "buyer customer bargaining concentration"),
+    ("buyers", "Buyer power", "buyer customer consumer bargaining concentration"),
     ("suppliers", "Supplier power", "supplier vendor procurement input"),
 ]
 
@@ -89,17 +93,27 @@ def _first_sentence(source):
 
 
 def _rank(item, cues, country, context):
-    text = (_clean(item.get("title"), 300) + " " + _clean(item.get("abstract") or item.get("description"), 900)).lower()
+    title = _clean(item.get("title"), 300).lower()
+    text = (title + " " + _clean(item.get("abstract") or item.get("description"), 900)).lower()
     words = set(re.findall(r"[a-z][a-z0-9'-]+", text))
-    cue_hits = len(set(cues.split()) & words)
-    context_hits = len(set(context) & words)
-    if context and not context_hits:
+    title_words = {word.rstrip("s") if len(word) > 4 else word
+                   for word in re.findall(r"[a-z][a-z0-9'-]+", title)}
+    cue_words = {word.rstrip("s") if len(word) > 4 else word for word in cues.split()}
+    context_words = {word.rstrip("s") if len(word) > 4 else word for word in (context or [])}
+    cue_hits = len(cue_words & {word.rstrip("s") if len(word) > 4 else word for word in words})
+    title_cues = len(cue_words & title_words)
+    title_context = len(context_words & title_words)
+    if context_words and not title_context:
         return -1
-    if cue_hits == 0:
+    if cue_hits == 0 or title_cues == 0:
+        return -1
+    if any(word in title for word in ("biosensor", "patients", "clinical", "depressive", "anxiety",
+                                      "athletes", "food contaminant", "intervention", "childhood",
+                                      "therapy")) and "health" not in (context or []):
         return -1
     geo = 2 if country and country.lower() in text else 0
     tier = 2 if item.get("tier") in ("official", "data") else 1 if item.get("database") else 0
-    return cue_hits * 2 + geo + tier + (item.get("credibility") or 0) / 100
+    return title_cues * 3 + cue_hits * 2 + geo + tier + (item.get("credibility") or 0) / 100
 
 
 def _source_text(item):
@@ -230,15 +244,82 @@ def complete(template, instruction, region=None, student_items=None, industry=No
             "country": country, "region": region, "blocks": blocks, "notes": notes,
             "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
 
-def draft(result, style="apa"):
+def _model_sections(result, style="apa"):
+    """Ask the prose model for a coherent draft, keeping every citation marker."""
+    try:
+        from . import prose as editor
+        if not editor.available():
+            return None
+    except Exception:
+        return None
+    blocks = result.get("blocks") or []
+    markers, forces = {}, []
+    index = 0
+    for block in blocks:
+        items = []
+        for item in block.get("items") or []:
+            text = _clean(item.get("text"), 600)
+            if item.get("provenance") == "sourced" and item.get("citation"):
+                index += 1
+                marker = "[[CITE:%d]]" % index
+                markers[marker] = item["citation"]
+                items.append({"text": text, "kind": "sourced", "marker": marker})
+            elif item.get("provenance") == "sourced":
+                items.append({"text": text, "kind": "sourced", "marker": ""})
+            else:
+                items.append({"text": text, "kind": "assumption", "marker": ""})
+        forces.append({"key": block.get("key"), "label": block.get("label"), "items": items})
+    if not forces:
+        return None
+    system = ("You are an academic editor writing a short Porter's Five Forces paper. Use ONLY the supplied "
+              "instruction and force items. Keep every [[CITE:n]] marker exactly once, immediately after the "
+              "sentence that uses that source. Do not write any parenthetical citation; use only the markers. Do not add a source, citation, number, percentage, link or named "
+              "fact that is not in the items. Treat assumption items as case assumptions, not evidence. Do not "
+              "recommend a decision. Return ONLY JSON with this shape: "
+              '{"introduction":"...", "forces":{"rivalry":"...", "...":"..."}, "discussion":"...", '
+              '"conclusion":"..."}. Each force value is one coherent paragraph. No headings, markdown or bullets.')
+    user = json.dumps({"instruction": result.get("instruction"), "forces": forces}, ensure_ascii=False)
+    try:
+        raw = editor._call([{"role": "system", "content": system}, {"role": "user", "content": user}],
+                           timeout=90)
+        data = editor._parse(raw)
+    except Exception:
+        return None
+    text = " ".join(str(data.get("introduction", "")) + " " +
+                    " ".join(str(value) for value in (data.get("forces") or {}).values()) + " " +
+                    str(data.get("discussion", "")) + " " + str(data.get("conclusion", "")))
+    if not data.get("introduction") or not data.get("conclusion"):
+        return None
+    for marker, citation in markers.items():
+        if marker not in text and citation not in text:
+            return None
+    for marker, citation in markers.items():
+        text = text.replace(marker, citation)
+    allowed_citations = set(markers.values())
+    if not set(CITATION.findall(text)) <= allowed_citations:
+        return None
+    if URL.search(text):
+        return None
+    allowed_numbers = set(NUMBER.findall(" ".join(_clean(item.get("text"), 600) for block in blocks
+                                                   for item in block.get("items") or [])))
+    allowed_numbers |= set(NUMBER.findall(" ".join(markers.values())))
+    if not set(NUMBER.findall(text)) <= allowed_numbers:
+        return None
+    return (data, text, markers)
+
+
+def draft(result, style="apa", version="draft"):
     """A Word-ready draft from a completion result; no new facts or ratings."""
     style = "harvard" if str(style or "").lower().startswith("harv") else "apa"
     instruction = _clean(result.get("instruction"), 500)
     blocks = result.get("blocks") or []
+    generated = _model_sections(result, style) if version == "full" else None
+    model = generated[0] if generated else None
     sections = [paper.section("Introduction", 1, [
-        "This draft responds to: " + instruction + ". It uses Porter's Five Forces to organise the industry evidence. "
-        "Sourced items are cited; case assumptions are labelled; a force with no source is a named gap. The draft does "
-        "not assign ratings or recommend a decision."
+        (model.get("introduction") if model and model.get("introduction") else
+         "This draft responds to: " + instruction + ". It uses Porter's Five Forces to organise the industry evidence. "
+         "Sourced items are cited; case assumptions are labelled; a force with no source is a named gap. The draft does "
+         "not assign ratings or recommend a decision.")
     ]), paper.section("Five Forces", 1)]
     sourced, assumptions, gaps = 0, 0, 0
     references, seen = [], set()
@@ -262,25 +343,33 @@ def draft(result, style="apa"):
         if not lines:
             lines = [block.get("gap") or "No evidence was found for this force."]
             gaps += 1
-        sections.append(paper.section(block.get("label") or block.get("key"), 2, [" ".join(lines)]))
+        model_text = ((model.get("forces") or {}).get(block.get("key")) if model else None)
+        sections.append(paper.section(block.get("label") or block.get("key"), 2,
+                                      [model_text if model_text else " ".join(lines)]))
     sections += [
         paper.section("Discussion", 1),
         paper.section("What the evidence shows", 2, [
-            "The five forces returned " + str(sourced + assumptions) + " item(s): " + str(sourced) +
-            " sourced item(s), " + str(assumptions) + " case assumption(s) and " + str(gaps) + " named gap(s). "
-            "The sourced items carry a citation; the assumptions are starting points for the student's own case, not evidence."
+            (model.get("discussion") if model and model.get("discussion") else
+             "The five forces returned " + str(sourced + assumptions) + " item(s): " + str(sourced) +
+             " sourced item(s), " + str(assumptions) + " case assumption(s) and " + str(gaps) + " named gap(s). "
+             "The sourced items carry a citation; the assumptions are starting points for the student's own case, not evidence.")
         ]),
         paper.section("Limitations", 2, [
             "The draft does not rate the forces, compute an overall attractiveness score or recommend a decision. "
             "A case assumption is not a source, and a gap is not a finding. The student must verify every assumption "
             "and add the judgment before submission."
         ]),
+        paper.section("Conclusion", 1, [
+            (model.get("conclusion") if model and model.get("conclusion") else
+             "The draft sets out the five forces; the decision and its justification remain the student's.")
+        ]),
         paper.section("References" if style == "apa" else "Bibliography", 1, references or ["No sources were used."]),
     ]
     title = "Porter's Five Forces: " + _clean(instruction, 120)
-    return {"title": title, "sections": sections, "style": style}
+    return {"title": title, "sections": sections, "style": style, "version": version,
+            "model_used": bool(model)}
 
 
-def draft_bytes(result, style="apa"):
-    report = draft(result, style)
+def draft_bytes(result, style="apa", report=None, version="draft"):
+    report = report or draft(result, style, version)
     return docx.render_academic(report["title"], report["sections"], report["style"])

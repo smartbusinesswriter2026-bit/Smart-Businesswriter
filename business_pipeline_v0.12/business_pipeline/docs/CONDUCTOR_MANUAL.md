@@ -172,9 +172,10 @@ auto-completion.
    worksheet may use, then applies it.
 7. The worksheet input accepts per-line `text || source`, so one block can carry
    several citations without losing them.
-8. **Download the draft (Word)** produces a paper-shaped draft from the completion
-   before or after the worksheet run; the draft keeps citations, labels case
-   assumptions and names gaps.
+8. **Generate paper (Word)** stays hidden until all five forces have content, then
+   appears at the bottom of the worksheet. It is also available on the results page
+   after a run. It produces a paper-shaped draft from the accepted items; the draft
+   keeps citations, labels case assumptions and names gaps.
 
 The model may not add a number, source, citation, link or named fact. A
 suggestion that fails validation is dropped and the block remains a gap.

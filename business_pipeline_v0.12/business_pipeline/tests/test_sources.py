@@ -100,7 +100,7 @@ class SearchTest(unittest.TestCase):
     @mock.patch("bp.product.sources._get_json", side_effect=fake_json)
     def test_academic_search_merges_and_dedupes_by_doi(self, _getter):
         with mock.patch.dict(os.environ, {}, clear=False):
-            result = sources.search_academic("firm strategy", limit=10)
+            result = sources.search_academic("firm strategy trust online", limit=10)
         dois = [item["doi"] for item in result["results"]]
         self.assertEqual(dois.count("10.1/shared"), 1)
         self.assertIn("10.2/trust", dois)
@@ -124,6 +124,16 @@ class SearchTest(unittest.TestCase):
             result = sources.search_academic("strategy", databases=["openalex", "crossref"], limit=5)
         self.assertTrue(result["results"])
         self.assertTrue(any(error["database"] == "openalex" for error in result["errors"]))
+
+    def test_query_match_drops_fruit_and_medical_noise(self):
+        self.assertTrue(sources._query_match("smartphone competition Iran",
+                                              {"title": "Smartphone competition in Iran",
+                                               "abstract": "The market is competitive."}))
+        self.assertFalse(sources._query_match("smartphone competition Iran",
+                                              {"title": "Apple orchard soil microbes", "abstract": "Soil carbon."}))
+        self.assertFalse(sources._query_match("smartphone competition Iran",
+                                              {"title": "Smartphone intervention for depression",
+                                               "abstract": "A clinical trial."}))
 
     def test_empty_query_returns_nothing_and_no_error(self):
         result = sources.search_academic("   ")

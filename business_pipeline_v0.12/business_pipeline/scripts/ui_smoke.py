@@ -15,7 +15,7 @@ import urllib.error
 import urllib.request
 
 MARKERS = ("worksheetForm", "matrixForm", "bp-ws-draft-", "Download the worksheet (Word)",
-           "not teacher-approved", "renderPlan", "Business plan")
+           "not teacher-approved", "renderPlan", "Business plan", "caseDecisionForm", "readCaseDecision")
 ABSENT = ("Reviewer name", "Sign-off", "Review status", "pending_named_reviewer")
 RAIL_MARKERS = ("markCurrentRailItem", "SUBJECT_WORKSPACE", "railSubject")
 SUBJECTS = ("accounting", "finance", "economics", "management", "project-management",

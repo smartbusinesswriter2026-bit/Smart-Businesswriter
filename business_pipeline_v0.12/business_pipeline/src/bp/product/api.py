@@ -307,6 +307,8 @@ def handle(method, path, body=None):
                 state = chat_conductor.answer(state, data.get("question_id"), data.get("value"))
             elif action == "plan":
                 state = chat_conductor.confirm_plan(state)
+            elif action == "computation":
+                state = chat_conductor.attach_computation(state, data.get("key") or "breakeven", data)
             elif action == "customise":
                 state = chat_conductor.customise(state, data)
             elif action == "inputs":
@@ -350,7 +352,8 @@ def handle(method, path, body=None):
             return _error("a completion object is required")
         try:
             return 200, framework_completion.complete(body.get("template"), body.get("instruction"),
-                                                      body.get("region"), body.get("student_items"))
+                                                      body.get("region"), body.get("student_items"),
+                                                      body.get("industry"))
         except ValueError as error:
             return _error(error)
 
@@ -359,9 +362,12 @@ def handle(method, path, body=None):
             return 405, {"error": "method %s is not allowed on framework reporting" % verb}
         if not isinstance(body, dict) or not isinstance(body.get("completion"), dict):
             return _error("a completion object is required")
+        version = body.get("version") or "draft"
+        if version not in ("draft", "full"):
+            return _error("version must be draft or full")
         try:
-            report = framework_completion.draft(body["completion"], body.get("style"))
-            data = framework_completion.draft_bytes(body["completion"], body.get("style"))
+            report = framework_completion.draft(body["completion"], body.get("style"), version)
+            data = framework_completion.draft_bytes(body["completion"], body.get("style"), report=report)
         except ValueError as error:
             return _error(error)
         return 200, {"report": report, "docx": {

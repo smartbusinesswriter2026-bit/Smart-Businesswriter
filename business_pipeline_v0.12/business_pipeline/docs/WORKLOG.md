@@ -1,5 +1,18 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [design] The last unusable Entrepreneurship tile gets its editor, and schema forms get controls
+
+**Ask.** "How about the other features of the entrepreneurship subject? Have we built the UI?"
+
+**Did.** Checked every one of the 46 tiles in Chromium. Forty-five launched a real method; **Compare strategic options (`case_decision`)** did not, because it is a template rather than a frozen method. The generic form looked up `/api/methods`, found nothing, said "This method declares no inputs", and Apply dropped the preset; the engine then refused with "`facts` must be a non-empty list". (1) Added a dedicated **case facts and alternatives editor** to the tool screen: facts with stable `F1..Fn` ids, provenance and source; two to five alternatives with name, description, cash flows from t=0, supported fact ids, cash-flow provenance and source; base rate, range, rate provenance, decision rule and currency; bounded add/remove rows. `collectInputs` reads it, `applyAndRun` posts the normal session and confirm pair, and the delivered result uses the existing result page. (2) The **Business Calculator** now delegates `case_decision` to that editor instead of showing an empty pad. (3) The generic schema form now renders `enum` inputs as dropdowns, `value_list`/`code_list` as comma-separated fields and `value_matrix` as an explicit JSON row editor; records, tables and maps keep their existing editors. (4) Added static page guards for the editor, the calculator delegation and the new input types.
+
+**Verified.** Chromium on the served page: the case tile rendered 2 facts and 2 alternatives with the worked example; Apply delivered USD 2,586.47 for Expand the shop and USD 2,136.83 for Office catering with a 10.16% crossover; add/remove produced 3 facts and 3 alternatives, then 2 alternatives. The proforma tile showed `1200000, 1500000, 1800000` instead of JSON and delivered revenue 4,500,000 and net income 360,000. The depreciation method was a real `SELECT` with `straight_line` selected. The calculator's case tool opened the same editor. No console errors. `node --check` clean; full suite 1540; CI 3/3.
+
+**Files.** `web/index.html`, `scripts/ui_smoke.py`, `tests/test_product_subjects.py`, `docs/CHANGELOG.md`, `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md`, `WORKLOG.md`.
+
+**Open/next.** The remaining standalone JSON surfaces are records, tables and maps, which already have editors or intentional JSON; no tile is schema-less now.
+
+
 ## 2026-10-28 — [computation/product] A business plan is a paper profile, with all its computations
 
 **Ask.** Add a complete business-plan capability: every computation a plan needs, brief upload, customisation, and an entry point from both the Entrepreneurship page (strict convention) and Home (open composition), without inventing a fact, a source or a number.
