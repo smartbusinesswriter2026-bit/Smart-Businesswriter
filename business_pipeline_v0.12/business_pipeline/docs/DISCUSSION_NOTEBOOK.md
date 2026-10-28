@@ -14,7 +14,22 @@
 
 ---
 
-## 2026-10-27 — [product] Home reduced to the logo, the unchanged slogan and the chat box
+## 2026-10-28 — [product/design] The "easy business calculator": a keypad-shaped launcher, and a chat that knows what it is not
+
+**What was asked.** The owner wants the Business Calculator to be *the* easy way in — "a UI similar to a typical calculator where users can calculate whatever business computation they want" — plus a chat ("ask it to calculate") that is explicitly scoped, because users will ask it to do computation unrelated to business.
+
+**What was produced.** A design proposal (`docs/proposals/BUSINESS_CALCULATOR_DESIGN.md`) and a clickable mockup (`mockup/business-calculator.html`). No served UI, route, method or test changed.
+
+**The design, in one line.** *One sentence, two keyboards.* The keypad and the chat build the same sentence — a business question plus its figures — which becomes a draft method plan, is confirmed, and only then runs through the existing session/confirm path. The engine still answers; the panel still computes nothing.
+
+**The fork the owner should look at first.** "Typical calculator" means, to most people, that `=` evaluates an expression. That is exactly the parked decision in §N: bare arithmetic would be a second arithmetic path, and making it real needs a frozen `arithmetic` method and an unfreeze of B-079. So the proposal names **Mode A** (keypad types into the chosen method's declared inputs; ships with no backend change) and **Mode B** (keypad evaluates; needs the unfreeze), recommends A first, and — the important part — puts the limit **on the display**: typing `15% of 84,000` gets "bare arithmetic, not enabled" and the nearest business method, rather than silence. §N warned that a narrower-than-expected calculator must say so on its own surface; this is where that warning is paid.
+
+**The chat, and its scope.** Five declared outcomes: run it / need one more figure / which of these did you mean / business but not built (tax, market prices) / **not a business calculation**. The last one is stated once, with a reason and a door back in — no number, no lecture. The gate is a versioned vocabulary over the 38 tools, not a model's opinion, and it prefers asking over refusing. The router would live in the product layer (`src/bp/product/calc_router.py`) and be tested in the Python suite, because a classifier written in the browser would be the one part of this feature no test could fail.
+
+**Also recorded:** the calculator cannot be "all business calculations" — it is 36 methods and 38 tools, and the proposal says so in the panel, including the four things users will look for and not find (tax, market data, standalone depreciation schedules, free-form arithmetic).
+
+**Where this could be wrong.** (1) If the owner's "typical calculator" simply means a keypad that computes, Mode A will feel broken no matter how well it is built — that is decision D1 and it should be answered before any polish. (2) The gate is a heuristic: it will refuse some real business questions and wave through some nonsense; the mitigations (ask when unsure, always offer a method, show the reason) reduce but do not remove that. (3) The scope boundary risks becoming paternalistic if the copy grows. (4) No browser exists here, so the mockup is reasoned, not observed — the layout, focus order and disabled-pad states need human eyes. (5) The most likely future break is a contributor "just computing it" when no method matches, which would undo the whole design; the proposal's acceptance criteria exist to make that line fail loudly.
+
 
 **What was asked.** After seeing build 0.69 the owner said the version had regressed and added "a lot of shit"; Home should be clean and contain only the chat box and its logo, the side rail is already fine, the slogan must not be changed, and nothing may be done without permission. In the confirmation question the owner chose: remove the preset/method/currency dropdowns too; the chat box is only the text area and up arrow.
 

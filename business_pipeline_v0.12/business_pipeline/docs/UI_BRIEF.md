@@ -51,6 +51,8 @@ Rail items are the website's real capabilities (final labels, icon choice and co
 
 **Rename note (build 0.74, 2026-10-28):** the rail launcher, its panel heading, the subject-page button, the tool-page button, the search label and the honesty banner now read **Business Calculator** (owner instruction). The route `/api/cases/calculator`, the format `bp-calculator/1`, the panel id `panel-calculator` and the `#/calculator` hash were deliberately left alone; a future design pass should keep the visible name and the identifier distinct rather than "fixing" the mismatch.
 
+**Next shape (proposal, not built):** [`proposals/BUSINESS_CALCULATOR_DESIGN.md`](proposals/BUSINESS_CALCULATOR_DESIGN.md) redesigns this panel as a calculator-shaped launcher — display, keypad, `=` — plus a scoped chat, with a clickable mockup at `mockup/business-calculator.html`. Read it before changing the panel: it fixes what `=` may do (nothing local), where the keypad stops (fit classes A/B/C) and how a non-business request is refused. Its D1 (free-form arithmetic) needs an owner answer.
+
 ## 5. Fonts
 
 - **UI text: a sans-serif system stack only** — e.g. `system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`. No remote/web fonts (the product is offline), no more than two families.

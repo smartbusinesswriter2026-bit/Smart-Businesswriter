@@ -1,5 +1,19 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-28 — [design] Business Calculator UI + chat scope: proposal and clickable mockup (no build change)
+
+**Ask:** "I want this feature to be the easy business calculator which uses all the calculation capabilities of the pipeline. First, think of a UI similar to a typical calculator where users [can] calculate whatever business computation they want. I'm also thinking of a chat feature where users can ask it to calculate using chat. But you have to scope it as user may ask it to do computation not related to business."
+
+**Did:** wrote `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md` and built a clickable mockup at `mockup/business-calculator.html`. The design's spine is that the keypad and the chat build the **same sentence**, which becomes a draft method plan, is confirmed, and only then runs through the existing `POST /api/sessions` → `/confirm` path. Nothing computes in the browser. The chat answers five ways (run / need a figure / which one / business-but-not-built / not a business calculation) and the scope gate is a declared vocabulary over the 38 tools, not a model's judgement.
+
+**Why the fork matters.** "A typical calculator" implies free-form arithmetic (`2 + 2`, `15% of 84,000`), which §N of `DISCUSSION_NOTEBOOK.md` records as a parked owner decision: it would be a second arithmetic path and would need a frozen `arithmetic` method plus an unfreeze of B-079. The proposal therefore describes **Mode A** (the keypad types into a method's declared inputs — ships with no backend change) and **Mode B** (the keypad evaluates — needs the unfreeze), recommends A first, and makes the limit visible on the display instead of hiding it in docs.
+
+**Files:** `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md` (new), `mockup/business-calculator.html` (new), `docs/DISCUSSION_NOTEBOOK.md` (new dated entry at the top), this entry.
+
+**Verified:** no served-UI, route, method, fixture or test changed, so the build stays 0.74 and the suite is still 754 tests OK. The mockup's script passes `node --check`, the page is one balanced `<script>`/`<body>`/`<div>` set, and the script was executed under a stub DOM (boot, keypad, `=`, and all four chat reply paths run without error). **No browser was available**, so the visual result is reasoned, not observed — the owner should open the file before anything is built from it.
+
+**Open/next:** the proposal's D1–D7 are owner decisions; D1 (free-form arithmetic) decides whether the keypad can compute. The router (P2) is computation-lane work and is not written. Nothing in `src/` was touched.
+
 ## 2026-10-28 — [product/design] The calculator feature checked and renamed "Business Calculator" (build 0.74)
 
 **Ask:** "check the calculator feature. change the name to 'Business Calculator'."
