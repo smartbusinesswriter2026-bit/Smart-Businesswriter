@@ -19,7 +19,7 @@
   --teal:#0E8C8C; --indigo:#3A5BA0; --forest:#147A4E; --ochre:#9A6A16;
   --violet:#6B4E9B; --slate:#4A5A6A; --moss:#4E7A2E;
   --canvas:#FCFCFC; --surface:#FFFFFF; --sunken:#F5F7F9; --border:#E4E8EC; --border-2:#EFF2F5;
-  --text:#0C243E; --text-2:#55636F; --text-3:#7A8894;
+  --text:#0C243E; --text-2:#223447; --text-3:#3E5165;
   --amber:#B26A00; --amber-bg:#FFF7E8; --amber-line:#F0D9AE;
   --red:#A32C2C; --red-bg:#FDEFEF; --red-line:#F2C9C9;
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
@@ -97,13 +97,14 @@ body.rail-open .railtoggle .rt-collapse{display:block}
           padding:0 12px 0 var(--rail-ic-pad);border-radius:var(--r-md);
           color:var(--navy-700);position:relative;white-space:nowrap;z-index:1}
 .railitem:hover{background:rgba(255,255,255,.14)}
-body.rail-open .railitem:hover{background:var(--sunken)}
+body.rail-open .railitem:hover{background:transparent}
 .railitem[aria-current=page]{background:rgba(255,255,255,.16)}
 body.rail-open .railitem[aria-current=page]{background:transparent}
 /* real icons with colour: the subject's solid glyph straight on the strip, in the
    bright sibling of its product tone - no tile, no outline */
 .railitem .ic{flex:0 0 var(--rail-ic-w);width:var(--rail-ic-w);height:var(--rail-ic-w);
-              display:inline-flex;align-items:center;justify-content:center}
+              display:inline-flex;align-items:center;justify-content:center;
+              position:relative;z-index:1}
 .railitem .ic svg{flex:0 0 auto;width:19px;height:19px;fill:var(--i,#FFFFFF);stroke:none}
 .railitem .railtext{font-size:15.6px;opacity:0;transform:translateX(-8px);
                     transition:opacity .2s ease,transform .34s cubic-bezier(.32,.72,0,1)}
@@ -112,9 +113,25 @@ body.rail-open .railitem .railtext{opacity:1;transform:none}
 body:not(.rail-open) .railitem .railtext{pointer-events:none}
 .railitem[aria-current=page]{color:var(--navy-900);font-weight:600}
 .railitem[aria-current=page] .ic svg{filter:drop-shadow(0 0 3px rgba(255,255,255,.85))}
-body.rail-open .railitem[aria-current=page] .railtext{position:relative;z-index:1}
+body.rail-open .railitem .railtext{position:relative;z-index:1}
 body.rail-open .railitem[aria-current=page] .railtext::before{content:"";position:absolute;left:0;right:-12px;
                  top:-4px;bottom:-4px;background:var(--green-100);border-radius:8px;z-index:-1}
+/* Option 1 - the icon and its word are marked together. In the open rail the
+   row's highlight is ONE bar that crosses the seam between the green strip and
+   the white label column, and the active icon sits on a white plate instead of
+   glowing. Nothing moves: the geometry above is untouched. The collapsed rail
+   keeps the strip it has. */
+body.rail-open .railitem::before{content:"";position:absolute;left:calc(var(--rail-w) - var(--rail-pad));
+          right:0;top:0;bottom:0;background:var(--sunken);opacity:0;
+          border-radius:0 var(--r-md) var(--r-md) 0;z-index:0;transition:opacity .15s ease-out}
+body.rail-open .railitem::after{content:"";position:absolute;left:0;width:calc(var(--rail-w) - var(--rail-pad));
+          top:0;bottom:0;background:rgba(255,255,255,.14);opacity:0;
+          border-radius:var(--r-md) 0 0 var(--r-md);z-index:0;transition:opacity .15s ease-out}
+body.rail-open .railitem:hover::before,body.rail-open .railitem:hover::after,
+body.rail-open .railitem[aria-current=page]::after{opacity:1}
+body.rail-open .railitem[aria-current=page] .ic::before{content:"";position:absolute;inset:0;
+          background:#fff;border-radius:8px;z-index:-1}
+body.rail-open .railitem[aria-current=page] .ic svg{fill:var(--green-900);filter:none}
 .railsep{height:1px;margin:6px 12px;
           background:linear-gradient(90deg,rgba(255,255,255,.40) 0 calc(var(--rail-w) - 10px),
                       var(--border) calc(var(--rail-w) - 10px) 100%)}
@@ -392,7 +409,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, free market-data lookups and PDF text reading">v0.85</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, global market data, PDF text and local OCR">v0.87</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
