@@ -1,5 +1,15 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 - A Portfolio Lab values a dated portfolio and exports the report
+
+**Ask.** "start with the build. we will do the manual later when its done" - a portfolio workspace, paper mode first, global by default, aligned to what students actually do.
+
+**Did.** (1) New frozen T1 method `portfolio_valuation` in `methods.py`, category `portfolio`, metric `nav`: declared holdings and cash in one base currency produce NAV, invested value, cash, cash share, holding count, top weight, top-three concentration and HHI, plus a `value_<SYM>` / `weight_<SYM>` pair per holding. Six declared checks (float second route, NAV identity, weights plus cash equal one, price linearity, cash unit response, bounded concentration) and refusals for an empty book, a blank or duplicate symbol, non-positive shares or prices and negative cash. Weights are value / NAV, so cash is inside the denominator. (2) `bp.product.portfolios` stores one directory per portfolio with atomic writes, path-traversal refusal and an immutable snapshot per date; a price is refused unless the symbol is already a holding. (3) `bp.server` routes `GET/POST /api/portfolios`, `PATCH/DELETE /api/portfolios/{id}`, `POST/DELETE .../holdings`, `POST .../prices`, `GET .../snapshots`, `POST .../snapshot` and `POST .../export`; the snapshot route accepts the prices and cash in the body, runs the frozen method and refuses on a missing price or a failed check. (4) `bp.product.portfolio_docx` formats the stored snapshot only. (5) The served page gains a fourteenth rail item, **Portfolio**, above the Business Calculator, a landing page, a paper creation form and a three-tab workspace (overview, holdings, prices and snapshot) with a Home entry. No browser arithmetic. (6) Preset `portfolioval`, the finance tool list and calculator group, the study note, the calculator synonyms and both committed slices are updated; the frozen fixture is regenerated at 141 methods and 143 presets.
+
+**Verified.** `tests/test_portfolio_valuation.py` (6) covers the numbers, the declared checks, linearity and the refusals. `tests/test_product_portfolios.py` (4) covers create/add/price/snapshot/export/delete, the unknown-holding price refusal, the full HTTP route path and the missing-price refusal. `tests/test_product_subjects.py` adds the rail and panel presence guard. `node --check` on the served script is clean. Full suite 1670 tests green.
+
+**Files.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/product/subjects.py`, `src/bp/product/portfolios.py`, `src/bp/product/portfolio_docx.py`, `src/bp/product/calc_router.py`, `src/bp/product/data/*.json`, `web/index.html`, `tests/test_portfolio_valuation.py`, `tests/test_product_portfolios.py`, `tests/test_product_subjects.py`, `tests/fixtures/frozen_contract.json`.
+
 ## 2026-10-29 — The computation explainer travels with the paper
 
 **Ask.** "when something in the paper has computation, the explainer will automatically accompany it" and "its file name will be title-explainer_format."

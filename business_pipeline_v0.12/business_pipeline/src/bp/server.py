@@ -6,7 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata
+from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
 
@@ -479,6 +479,10 @@ PRESETS = {
                                  "cost_of_sales": ["600", "650", "710", "760"], "operating_expenses": ["200", "220", "240", "260"],
                                  "net_income": ["120", "140", "160", "190"], "total_assets": ["2000", "2100", "2250", "2400"],
                                  "equity": ["900", "980", "1080", "1200"]}},
+    "portfolioval": {"objective": "What is this portfolio worth today?", "method": "portfolio_valuation", "currency": "USD", "period": "point in time",
+                     "inputs": {"holdings": [{"symbol": "AAPL", "shares": "10", "price": "200"},
+                                                {"symbol": "MSFT", "shares": "5", "price": "400"}], "cash": "1000"}},
+
 }
 
 class H(BaseHTTPRequestHandler):
@@ -544,6 +548,7 @@ class H(BaseHTTPRequestHandler):
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("GET", self.path))
+            if self.path.startswith("/api/portfolios"): return self._portfolios("GET")
             u = urlparse(self.path); qs = parse_qs(u.query)
             if u.path == "/api/market/fx":
                 try: return self._send(200, product_marketdata.fx_rate((qs.get("base") or [""])[0], (qs.get("quote") or [""])[0], (qs.get("date") or [None])[0]))
@@ -621,6 +626,7 @@ class H(BaseHTTPRequestHandler):
                 n = int(self.headers.get("Content-Length") or 0)
                 if n > MAXBODY: raise ValueError("body too large")
                 return self._send(*product_api.handle("POST", self.path, json.loads(self.rfile.read(n) or b"{}")))
+            if self.path.startswith("/api/portfolios"): return self._portfolios("POST")
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             if self.path == "/api/assist": return self._assist(self._body())
             if self.path == "/api/intake": return self._intake_upload(self._body(INGEST_MAXBODY))
@@ -652,8 +658,115 @@ class H(BaseHTTPRequestHandler):
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path.startswith(product_api.CASE_ROUTE): return self._send(*product_api.handle("DELETE", self.path))
+            if self.path.startswith("/api/portfolios"): return self._portfolios("DELETE")
             self._send(404, {"error": "not found"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
+    def _portfolios(self, verb):
+        """Portfolio Lab storage routes; the snapshot route calls the frozen method library."""
+        path = urlparse(self.path).path
+        parts = [part for part in path.split("/") if part]
+        body = self._body() if verb in ("POST", "PATCH") else None
+        try:
+            if len(parts) == 2 and parts[1] == "portfolios":
+                if verb == "GET": return self._send(200, {"portfolios": product_portfolios.summaries()})
+                if verb == "POST":
+                    if not isinstance(body, dict): raise ValueError("body must be an object")
+                    doc = product_portfolios.create(body.get("name"), body.get("base_currency", "USD"),
+                                                    body.get("benchmark", ""), body.get("mode", "paper"))
+                    return self._send(201, doc)
+            if len(parts) < 3 or parts[1] != "portfolios": return self._send(404, {"error": "not found"})
+            portfolio_id = parts[2]
+            if len(parts) == 3:
+                if verb == "GET": return self._send(200, product_portfolios.load(portfolio_id))
+                if verb == "PATCH": return self._send(200, product_portfolios.update(portfolio_id, body or {}))
+                if verb == "DELETE":
+                    product_portfolios.delete(portfolio_id)
+                    return self._send(200, {"deleted": portfolio_id})
+            action = parts[3]
+            if action == "holdings" and verb == "POST":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                rows = product_portfolios.add_holding(portfolio_id, body.get("symbol"), body.get("shares"),
+                                                       body.get("cost_basis", "0"))
+                return self._send(200, {"holdings": rows})
+            if action == "holdings" and verb == "DELETE" and len(parts) == 5:
+                rows = product_portfolios.remove_holding(portfolio_id, parts[4])
+                return self._send(200, {"holdings": rows})
+            if action == "prices" and verb == "POST":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                document = product_portfolios.set_price(portfolio_id, body.get("symbol"), body.get("date"),
+                                                        body.get("price"), body.get("source", "user"))
+                return self._send(200, document)
+            if action == "snapshots" and verb == "GET":
+                return self._send(200, product_portfolios.load(portfolio_id)["snapshots"])
+            if action == "snapshot" and verb == "POST":
+                return self._portfolio_snapshot(portfolio_id, body or {})
+            if action == "export" and verb == "POST":
+                return self._portfolio_export(portfolio_id, body or {})
+            return self._send(404, {"error": "not found"})
+        except product_portfolios.PortfolioNotFound as error:
+            return self._send(404, {"error": str(error)})
+        except (product_portfolios.PortfolioError, ValueError, TypeError) as error:
+            return self._send(422, {"error": str(error)})
+
+    def _portfolio_snapshot(self, portfolio_id, body):
+        bundle = product_portfolios.load(portfolio_id)
+        holdings = bundle["holdings"]
+        if not holdings:
+            return self._send(422, {"error": "add at least one holding before the snapshot"})
+        day = str(body.get("date") or "").strip()
+        if not day:
+            return self._send(422, {"error": "a snapshot date is required (YYYY-MM-DD)"})
+        supplied = body.get("prices") or {}
+        if isinstance(supplied, dict):
+            for symbol, point in supplied.items():
+                value = point.get("price") if isinstance(point, dict) else point
+                source = point.get("source", "user") if isinstance(point, dict) else "user"
+                product_portfolios.set_price(portfolio_id, symbol, day, value, source)
+        try:
+            prices = product_portfolios.prices(portfolio_id, day)["prices"]
+        except product_portfolios.PortfolioNotFound:
+            prices = {}
+        missing = [row["symbol"] for row in holdings if row["symbol"] not in prices]
+        if missing:
+            return self._send(422, {"error": "missing prices for " + ", ".join(missing), "missing": missing})
+        inputs = {"holdings": [{"symbol": row["symbol"], "shares": str(row["shares"]),
+                                "price": str(prices[row["symbol"]]["price"])} for row in holdings],
+                  "cash": str(body.get("cash", "0") or "0")}
+        method = methods.LIBRARY["portfolio_valuation"]
+        issues = methods.validate_inputs(method, inputs) + method.profile(inputs)
+        if issues:
+            return self._send(422, {"error": "; ".join(issues)})
+        results = method.tests(inputs, method.impl)
+        failed = [name for name, ok in results if not ok]
+        if failed:
+            return self._send(422, {"error": "the valuation checks failed: " + ", ".join(failed)})
+        outputs = method.impl(inputs)
+        appendix = outputs.pop("_appendix", {})
+        outputs.pop("_checks", None)
+        snapshot = {
+            "date": day, "inputs": inputs,
+            "outputs": {key: str(value) for key, value in outputs.items()},
+            "positions": appendix.get("positions", []),
+            "conventions": appendix.get("conventions", ""),
+            "prices": {symbol: {"price": str(point["price"]), "source": point.get("source", ""),
+                                "as_of": point.get("as_of", day)}
+                       for symbol, point in prices.items() if symbol in {row["symbol"] for row in holdings}},
+            "checks": [{"name": name, "ok": bool(ok)} for name, ok in results],
+            "method": "portfolio_valuation", "version": method.version,
+        }
+        return self._send(201, product_portfolios.save_snapshot(portfolio_id, snapshot))
+
+    def _portfolio_export(self, portfolio_id, body):
+        bundle = product_portfolios.load(portfolio_id)
+        snapshots = bundle["snapshots"]
+        if not snapshots:
+            return self._send(422, {"error": "create a snapshot before exporting"})
+        date = str(body.get("date") or max(row["date"] for row in snapshots))
+        snapshot = product_portfolios.snapshot(portfolio_id, date)
+        data, filename = product_portfolio_docx.render(bundle["portfolio"], snapshot)
+        return self._send(200, {"filename": filename, "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "data": base64.b64encode(data).decode("ascii")})
+
     def _assist(self, b):
         if not isinstance(b, dict): raise ValueError("body must be an object")
         if not MODELS or not MODELS.config.enabled: return self._send(503, {"error": "model assistance is not configured on this server"})

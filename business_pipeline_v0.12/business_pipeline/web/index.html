@@ -503,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations">v1.35</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab">v1.36</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -577,6 +577,10 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
 
     <div class="railfoot">
       <div class="railsep"></div>
+      <a class="railitem" href="#/portfolio" data-panel="portfolio" style="--i:#F5C451">
+        <span class="ic"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M320 32c0-17.7-14.3-32-32-32H224c-17.7 0-32 14.3-32 32v32H96c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H416c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H320V32zM96 128H416V448H96V128zM224 64h64V96H224V64z"/></svg></span>
+        <span class="railtext">Portfolio</span><span class="railtip">Portfolio: value a paper portfolio or run a mock fund</span>
+      </a>
       <a class="railitem" href="#/calculator" data-panel="calculator" style="--i:#DDD6FE">
         <span class="ic"><svg viewBox="0 0 384 512" aria-hidden="true"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM96 64H288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg></span>
         <span class="railtext">Business Calculator</span><span class="railtip">Business Calculator: launch any financial or business calculation the engine supports</span>
@@ -647,6 +651,10 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <h2 id="subject-title">Subject</h2>
         <div id="subjectout"></div>
       </div>
+    </section>
+
+    <section class="panel" id="panel-portfolio" hidden aria-labelledby="portfolio-title">
+      <div id="portfolioout"></div>
     </section>
 
     <section class="panel" id="panel-calculator" hidden aria-labelledby="calculator-title">
@@ -855,6 +863,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
         <strong>Subjects</strong> for one topic and its tools, such as break-even or a ratio.
         <strong>Business Calculator</strong> for one calculation.
         <strong>Business plan</strong> for the plan sections and financial blocks.
+        <strong>Portfolio</strong> for a dated valuation of your holdings and prices.
         <strong>Check</strong> for a trial balance against your journal.</p>
       <p class="sub">Every subject page has a <strong>Student guide</strong> with a Start here path, what to prepare
         and what the shelf does not do.</p>
@@ -985,7 +994,7 @@ const state = {
 /* "chat" is not a panel any more: the chat renders on the Home page. The router
    sends both #/chat and #/home there, so an old link still lands in the right
    place instead of a blank screen. */
-const PANELS = ["home", "plan", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
@@ -1055,7 +1064,9 @@ function activate(id) {
     ? "#/subject/" + encodeURIComponent(state.subjectId)
     : (id === "case" && state.caseId)
       ? "#/case/" + encodeURIComponent(state.caseId)
-      : "#/" + id;
+      : (id === "portfolio" && state.portfolioId)
+        ? "#/portfolio/" + encodeURIComponent(state.portfolioId)
+        : "#/" + id;
   if (location.hash !== target) history.replaceState(null, "", target);
 }
 function show(id) {
@@ -1078,6 +1089,11 @@ function route() {
     show("case");
     return;
   }
+  if (head === "portfolio" && parts[1]) {
+    state.portfolioId = decodeURIComponent(parts[1]);
+    show("portfolio");
+    return;
+  }
   if (head === "chat") {
     /* The chat is on Home now; an old #/chat link lands there with the cursor
        already in the composer. */
@@ -1091,6 +1107,240 @@ function route() {
 
 /* ---------- panels ---------- */
 const RENDERERS = {};
+
+RENDERERS.portfolio = function () { loadPortfolioPage(); };
+
+async function loadPortfolioPage() {
+  const out = $("#portfolioout"); if (!out) return;
+  out.innerHTML = '<div class="card">' + loading("Reading the portfolio store") + "</div>";
+  try {
+    if (state.portfolioId) {
+      const bundle = await api("/api/portfolios/" + encodeURIComponent(state.portfolioId));
+      state.portfolioBundle = bundle;
+      const latest = (bundle.snapshots || []).slice(-1)[0];
+      state.portfolioSnapshot = latest
+        ? await api("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/snapshot/" + encodeURIComponent(latest.date))
+        : null;
+      renderPortfolioWorkspace();
+    } else {
+      const data = await api("/api/portfolios");
+      state.portfolioBundle = null;
+      state.portfolioSnapshot = null;
+      renderPortfolioLanding((data && data.portfolios) || []);
+    }
+  } catch (error) {
+    out.innerHTML = '<div class="card">' + errorBanner(error) + "</div>";
+  }
+}
+
+function renderPortfolioLanding(rows) {
+  const out = $("#portfolioout");
+  let html = '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
+    '<div><h2 style="margin:0">Portfolio</h2><p class="sub" style="margin:4px 0 0">' +
+    "Value a paper portfolio from your own holdings and prices. Every figure comes from the frozen method; the app stores the dated snapshot and exports the report.</p></div></div>" +
+    '<div class="decisiongrid" style="margin-top:14px">' +
+      '<button class="decision" type="button" id="pfnewpaper"><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span></button>' +
+      '<button class="decision" type="button" id="pfnewfund" disabled><strong>Mock fund journal</strong><span>Coming next: weekly snapshots, reviews and a term-long journal.</span></button>' +
+    "</div></div>";
+  html += '<div class="card"><h3>Create a paper portfolio</h3>' +
+    '<div class="grid2"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks">' +
+    '<label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3">' +
+    '<label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500">' +
+    "</div><div class=\"row\" style=\"margin-top:12px\"><button class=\"btn primary\" id=\"pfcreate\" type=\"button\">Create portfolio</button>" +
+    '<span class="muted">A paper portfolio starts with one valuation date; no weekly review is required.</span></div><div id="pfmsg"></div></div>';
+  html += '<div class="card"><h3>Your portfolios</h3>';
+  if (!rows.length) {
+    html += '<p class="muted">No portfolio yet. Create one above; it stays local on this machine.</p>';
+  } else {
+    html += '<div class="tablewrap"><table><caption>Stored portfolios</caption><thead><tr>' +
+      "<th>Name</th><th>Mode</th><th>Currency</th><th>Holdings</th><th>Snapshots</th><th>Updated</th><th></th></tr></thead><tbody>" +
+      rows.map((row) => row.corrupt
+        ? '<tr class="row-warn"><td colspan="6">A stored portfolio is unreadable: ' + esc(row.id) + "</td><td></td></tr>"
+        : "<tr><td>" + esc(row.name) + "</td><td>" + esc(row.mode) + "</td><td>" + esc(row.base_currency) +
+          "</td><td>" + esc(row.n_holdings) + "</td><td>" + esc(row.n_snapshots) + "</td><td>" + esc(row.updated_at) +
+          '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) + '">Open</button></td></tr>').join("") +
+      "</tbody></table></div>";
+  }
+  html += "</div>";
+  out.innerHTML = html;
+  $("#pfnewpaper").onclick = () => { $("#pfname").focus(); $("#pfname").scrollIntoView({ block: "center", behavior: "smooth" }); };
+  $("#pfcreate").onclick = createPortfolio;
+  $$("[data-pfopen]", out).forEach((button) => { button.onclick = () => openPortfolio(button.dataset.pfopen); });
+}
+
+async function createPortfolio() {
+  const message = $("#pfmsg");
+  const name = ($("#pfname").value || "").trim();
+  if (!name) { message.innerHTML = banner("blocked", "A name is required", "Enter a portfolio name."); return; }
+  message.innerHTML = loading("Creating the portfolio");
+  try {
+    const portfolio = await post("/api/portfolios", {
+      name: name,
+      base_currency: ($("#pfcurrency").value || "USD").trim().toUpperCase(),
+      benchmark: ($("#pfbenchmark").value || "").trim(),
+      mode: "paper",
+    });
+    state.portfolioId = portfolio.id;
+    show("portfolio");
+  } catch (error) {
+    message.innerHTML = errorBanner(error);
+  }
+}
+
+function openPortfolio(id) {
+  state.portfolioId = id;
+  show("portfolio");
+}
+
+function renderPortfolioWorkspace() {
+  const out = $("#portfolioout");
+  const bundle = state.portfolioBundle;
+  if (!bundle) { loadPortfolioPage(); return; }
+  const p = bundle.portfolio;
+  const holdings = bundle.holdings || [];
+  const snapshots = bundle.snapshots || [];
+  const latest = snapshots.slice(-1)[0];
+  const snapshot = state.portfolioSnapshot;
+  const tab = state.portfolioTab || "overview";
+  let html = '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
+    '<div><h2 style="margin:0">' + esc(p.name) + "</h2>" +
+    '<p class="sub" style="margin:4px 0 0">' + esc(p.mode) + " · " + esc(p.base_currency) +
+    (p.benchmark ? " · benchmark " + esc(p.benchmark) : "") + " · " + esc(p.status) + "</p></div>" +
+    '<div class="row"><button class="btn sm" type="button" id="pfall">All portfolios</button>' +
+    '<button class="btn sm" type="button" id="pfexport"' + (snapshot ? "" : " disabled") + ">Export the report</button></div></div>" +
+    '<div class="tabs" role="tablist">' +
+      ["overview", "holdings", "data"].map((key) =>
+        '<button class="tab" type="button" data-pftab="' + key + '" aria-selected="' + (tab === key) + '">' +
+        ({ overview: "Overview", holdings: "Holdings", data: "Prices and snapshot" })[key] + "</button>").join("") +
+    "</div>";
+  if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot);
+  if (tab === "holdings") html += pfHoldings(holdings);
+  if (tab === "data") html += pfData(holdings, latest, snapshot);
+  html += "</div>";
+  out.innerHTML = html;
+  $("#pfall").onclick = () => { state.portfolioId = null; show("portfolio"); };
+  const exportButton = $("#pfexport"); if (exportButton) exportButton.onclick = exportPortfolio;
+  const exportButton2 = $("#pfexport2"); if (exportButton2) exportButton2.onclick = exportPortfolio;
+  $$("[data-pftab]").forEach((button) => { button.onclick = () => { state.portfolioTab = button.dataset.pftab; renderPortfolioWorkspace(); }; });
+  const add = $("#pfaddholding"); if (add) add.onclick = addHolding;
+  const snap = $("#pfsnapshot"); if (snap) snap.onclick = createSnapshot;
+  $$("[data-pfremove]", out).forEach((button) => { button.onclick = () => removeHolding(button.dataset.pfremove); });
+}
+
+function pfOverview(p, holdings, latest, snapshot) {
+  let html = '<div class="grid2" style="margin-top:14px"><div class="card" style="margin:0"><h3>Progress</h3><ul>' +
+    "<li>Holdings: <strong>" + holdings.length + "</strong>" + (holdings.length ? "" : " — add at least one") + "</li>" +
+    "<li>Dated snapshots: <strong>" + (latest ? 1 : 0) + "</strong>" + (latest ? " (latest " + esc(latest.date) + ")" : " — set prices and create one") + "</li>" +
+    "<li>Export: <strong>" + (snapshot ? "ready" : "blocked until a snapshot exists") + "</strong></li></ul>" +
+    '<p class="muted">Prices are the values you declare on the snapshot date; the app does not fetch them silently.</p></div>';
+  html += '<div class="card" style="margin:0"><h3>Latest valuation</h3>';
+  if (latest && snapshot) {
+    html += '<p style="font-size:24px;margin:6px 0"><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + "</strong></p>" +
+      '<p class="muted">Invested ' + esc(snapshot.outputs.invested_value) + " · cash " + esc(snapshot.outputs.cash) +
+      " · top three " + esc(snapshot.outputs.top3_concentration) + " of NAV</p>" +
+      '<p class="muted">Snapshot ' + esc(snapshot.date) + " · method " + esc(snapshot.method || "portfolio_valuation") + "</p>";
+  } else {
+    html += '<p class="muted">No snapshot yet. Add holdings, enter their prices on one date, then create the snapshot.</p>';
+  }
+  html += "</div></div>";
+  html += '<div class="card"><h3>What this does not do</h3><p class="muted">No FX conversion, fees, tax, dividends, forecast or recommendation. One base currency; long-only holdings; the snapshot is a valuation, not a sale price.</p></div>';
+  return html;
+}
+
+function pfHoldings(holdings) {
+  let html = '<div class="card" style="margin-top:14px"><h3>Holdings</h3>';
+  if (holdings.length) {
+    html += '<div class="tablewrap"><table><caption>Declared holdings</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Cost basis</th><th></th></tr></thead><tbody>' +
+      holdings.map((row) => "<tr><td>" + esc(row.symbol) + "</td><td>" + esc(row.shares) + "</td><td>" + esc(row.cost_basis) +
+        '</td><td><button class="btn sm" type="button" data-pfremove="' + esc(row.symbol) + '">Remove</button></td></tr>').join("") +
+      "</tbody></table></div>";
+  } else {
+    html += '<p class="muted">No holdings yet. Add one to begin.</p>';
+  }
+  html += '<div class="grid3" style="margin-top:12px"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL">' +
+    '<label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10">' +
+    '<label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0">' +
+    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div><div id="pfmsg"></div></div>';
+  return html;
+}
+
+function pfData(holdings, latest, snapshot) {
+  const today = new Date().toISOString().slice(0, 10);
+  let html = '<div class="card" style="margin-top:14px"><h3>Prices and snapshot</h3>' +
+    '<p class="muted">Enter one price per holding for the snapshot date. Every price is stored with its date and source; a missing price blocks the snapshot.</p>' +
+    '<div class="grid2"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(today) + '">' +
+    '<label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div>' +
+    '<div class="tablewrap" style="margin-top:12px"><table><caption>Declared prices</caption><thead><tr><th>Symbol</th><th>Price</th></tr></thead><tbody>';
+  if (!holdings.length) html += '<tr><td colspan="2">Add a holding first.</td></tr>';
+  holdings.forEach((row) => {
+    html += "<tr><td>" + esc(row.symbol) + '</td><td><input type="text" data-pfprice="' + esc(row.symbol) + '" placeholder="price"></td></tr>';
+  });
+  html += "</tbody></table></div>" +
+    '<div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="pfsnapshot"' + (holdings.length ? "" : " disabled") + ">Create the snapshot</button></div><div id=\"pfmsg\"></div></div>";
+  if (snapshot) {
+    html += '<div class="card"><h3>Snapshot ' + esc(snapshot.date) + "</h3>" +
+      '<div class="tablewrap"><table><caption>Valuation</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Price</th><th>Value</th><th>Weight of NAV</th></tr></thead><tbody>' +
+      (snapshot.positions || []).map((row) => "<tr><td>" + esc(row.symbol) + "</td><td>" + esc(row.shares) + "</td><td>" +
+        esc(row.price) + "</td><td>" + esc(row.value) + "</td><td>" + esc(row.weight) + "</td></tr>").join("") +
+      "</tbody></table></div>" +
+      '<p style="margin-top:10px"><strong>NAV ' + esc(snapshot.outputs.nav) + "</strong> · invested " + esc(snapshot.outputs.invested_value) +
+      " · cash " + esc(snapshot.outputs.cash) + " · top three " + esc(snapshot.outputs.top3_concentration) + "</p>" +
+      '<div class="row"><button class="btn" type="button" id="pfexport2">Download the report (.docx)</button></div></div>';
+  }
+  return html;
+}
+
+async function addHolding() {
+  const message = $("#pfmsg");
+  const symbol = ($("#pfhsym").value || "").trim().toUpperCase();
+  const shares = ($("#pfhshares").value || "").trim();
+  if (!symbol || !shares) { message.innerHTML = banner("blocked", "Two fields are needed", "Enter a symbol and the number of shares."); return; }
+  message.innerHTML = loading("Adding the holding");
+  try {
+    await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings", { symbol: symbol, shares: shares, cost_basis: ($("#pfhcost").value || "0").trim() });
+    await loadPortfolioPage();
+  } catch (error) { message.innerHTML = errorBanner(error); }
+}
+
+async function removeHolding(symbol) {
+  try {
+    await api("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings/" + encodeURIComponent(symbol), { method: "DELETE" });
+    await loadPortfolioPage();
+  } catch (error) { toast(error.message || String(error)); }
+}
+
+async function createSnapshot() {
+  const message = $("#pfmsg");
+  const date = ($("#pfdate").value || "").trim();
+  const cash = ($("#pfcash").value || "0").trim();
+  const prices = {};
+  $$("[data-pfprice]").forEach((input) => { if (input.value.trim()) prices[input.dataset.pfprice] = { price: input.value.trim(), source: "user" }; });
+  if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the snapshot date."); return; }
+  message.innerHTML = loading("Valuing the portfolio");
+  try {
+    state.portfolioSnapshot = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/snapshot",
+      { date: date, cash: cash, prices: prices });
+    state.portfolioTab = "data";
+    await loadPortfolioPage();
+  } catch (error) { message.innerHTML = errorBanner(error); }
+}
+
+async function exportPortfolio() {
+  if (!state.portfolioSnapshot) { toast("Create a snapshot before exporting."); return; }
+  try {
+    const result = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/export",
+      { format: "docx", date: state.portfolioSnapshot.date });
+    const binary = atob(result.data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: result.mime }));
+    const link = document.createElement("a");
+    link.href = url; link.download = result.filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Report saved: " + result.filename);
+  } catch (error) { toast(error.message || String(error)); }
+}
 
 RENDERERS.home = function () {
   const p = $("#panel-home");

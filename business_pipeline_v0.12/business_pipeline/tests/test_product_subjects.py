@@ -277,6 +277,23 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('const id = "wb-" + b.key', self.html)
         self.assertIn('id="wlinks"', self.html)
 
+    def test_the_rail_carries_the_portfolio_lab_above_the_calculator(self):
+        """The Portfolio Lab is the fourteenth rail item and sits above the Calculator.
+
+        The rail order is contract: Portfolio is a workspace of its own, not a
+        subject, so it lives in the rail foot with the Calculator and the other
+        cross-cutting tools.
+        """
+        self.assertIn('data-panel="portfolio"', self.html)
+        self.assertIn('href="#/portfolio"', self.html)
+        self.assertIn('<span class="railtext">Portfolio</span>', self.html)
+        self.assertIn('id="panel-portfolio"', self.html)
+        self.assertIn("RENDERERS.portfolio", self.html)
+        self.assertIn('"portfolio"', self.html.split("const PANELS = ")[1].split("];")[0])
+        self.assertLess(self.html.index('data-panel="portfolio"'), self.html.index('data-panel="calculator"'))
+        self.assertIn('/api/portfolios', self.html)
+        self.assertIn("<strong>Portfolio</strong> for a dated valuation", self.html)
+
     def test_no_reviewer_surface_remains_in_the_served_page(self):
         for gone in ('data-tab="signoff"', "Reviewer name", "Sign-off", "Review status", "pending_named_reviewer"):
             self.assertNotIn(gone, self.html, "reviewer surface still present: " + gone)

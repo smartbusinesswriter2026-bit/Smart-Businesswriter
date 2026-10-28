@@ -5551,6 +5551,59 @@
    "unsupported_use": "Choosing the assets, the weights or the benchmark; multi-asset optimisation; the efficient frontier; risk-free lending and borrowing; forecasting returns.",
    "version": "1.0.0"
   },
+  "portfolio_valuation": {
+   "assumptions": [
+    "The prices are the owner's dated values for the same date.",
+    "Shares, prices and cash are in one base currency.",
+    "The portfolio is long-only and fully paid."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "All prices and cash are in one base currency; no FX conversion is applied.",
+     "impact": "A foreign holding must be converted before entry, or the NAV mixes currencies.",
+     "question": "Which currency?"
+    },
+    {
+     "default_chosen": "Value / NAV, so holding weights plus the cash share equal one; concentration is over NAV.",
+     "impact": "Weights over invested capital alone would ignore cash and sum to one even with a large cash balance.",
+     "question": "How are weights measured?"
+    }
+   ],
+   "inputs": {
+    "cash": {
+     "desc": "cash in the base currency; default zero and never negative",
+     "required": false,
+     "type": "decimal"
+    },
+    "holdings": {
+     "desc": "one row per holding: symbol, shares and price in the base currency",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "intended_use": "Value a dated portfolio snapshot from declared holdings, prices and cash: NAV, invested value, cash share, holding weights and concentration.",
+   "limitations": [
+    "No FX conversion, fees, tax, dividends or corporate actions.",
+    "No forecast or recommendation; a snapshot is a valuation, not a sale price.",
+    "Short positions, margin and derivatives are not represented."
+   ],
+   "method_id": "portfolio_valuation",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "nav_equals_invested_plus_cash",
+    "holding_weights_and_cash_sum_to_one",
+    "doubling_every_price_doubles_invested_value",
+    "adding_one_unit_of_cash_raises_nav_by_one",
+    "concentration_is_bounded"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Retrieving prices or FX; converting currencies; fees, tax or dividends; forecasting returns; short positions, margin or derivatives; a recommendation.",
+   "version": "1.0.0"
+  },
   "posthoc_pairwise": {
    "assumptions": [
     "Groups are independent and each observation belongs to one group.",

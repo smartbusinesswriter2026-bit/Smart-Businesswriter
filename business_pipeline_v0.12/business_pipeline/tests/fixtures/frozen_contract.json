@@ -1786,6 +1786,25 @@
         "weight_a"
       ]
     },
+    "portfolio_valuation": {
+      "tier": "T1",
+      "metric": "nav",
+      "unit": "currency",
+      "test_names": [
+        "second_implementation_agrees",
+        "nav_equals_invested_plus_cash",
+        "holding_weights_and_cash_sum_to_one",
+        "doubling_every_price_doubles_invested_value",
+        "adding_one_unit_of_cash_raises_nav_by_one",
+        "concentration_is_bounded"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "portfolio",
+      "inputs": [
+        "cash",
+        "holdings"
+      ]
+    },
     "posthoc_pairwise": {
       "tier": "T1",
       "metric": "n_rejected",
@@ -3010,6 +3029,7 @@
     "panel",
     "pearson",
     "portfolio",
+    "portfolioval",
     "posthoc",
     "poverty",
     "power",

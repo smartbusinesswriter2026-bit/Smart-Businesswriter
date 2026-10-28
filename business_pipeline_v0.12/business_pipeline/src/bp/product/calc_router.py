@@ -114,6 +114,8 @@ SYNONYMS = {
     "workingcapital": ["working capital", "cash conversion cycle", "working capital cycle"],
     "portfolio": ["portfolio return", "portfolio risk", "portfolio standard deviation",
                   "two asset portfolio"],
+    "portfolioval": ["portfolio valuation", "value my portfolio", "portfolio value",
+                     "net asset value", "nav", "value holdings"],
     "projectmetrics": ["project ranking", "mirr", "profitability index",
                        "modified internal rate"],
     "options": ["option pricing", "black scholes", "call option", "put option"],

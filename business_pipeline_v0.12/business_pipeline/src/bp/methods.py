@@ -14478,6 +14478,131 @@ def sensitivity_table_template(out, P, th):
             "; the table reports profit for each declared price and volume change.")
 
 
+# ---------- Portfolio valuation (B-???): the first Portfolio Lab method ----------
+# A dated snapshot of declared holdings and prices.  The product stores the snapshot; this
+# method computes NAV and weights.  No FX, fees, tax or forecast: prices are in the base currency.
+
+def _pv_key(symbol):
+    key = re.sub(r"[^A-Z0-9]+", "_", str(symbol).upper()).strip("_")
+    if not key:
+        raise DataError("a holding symbol must contain at least one letter or digit")
+    return key
+
+def portfolio_valuation_impl(inp):
+    holdings = inp.get("holdings") or []
+    if not holdings: raise DataError("at least one holding is required")
+    cash = _optnum(inp, "cash")
+    cash = D(0) if cash is None else cash
+    if cash < 0: raise DataError("cash must be non-negative")
+    rows, seen, total = [], set(), D(0)
+    for row in holdings:
+        symbol = str(row.get("symbol") or "").strip().upper()
+        if not symbol: raise DataError("every holding needs a symbol")
+        key = _pv_key(symbol)
+        if key in seen: raise DataError("holding symbols must be unique: " + symbol)
+        seen.add(key)
+        try:
+            shares, price = D(str(row["shares"])), D(str(row["price"]))
+        except (KeyError, InvalidOperation, ValueError):
+            raise DataError("holding " + symbol + " needs numeric shares and price")
+        if shares <= 0: raise DataError("shares must be positive for " + symbol)
+        if price <= 0: raise DataError("price must be positive for " + symbol)
+        value = shares * price
+        total += value
+        rows.append({"symbol": symbol, "key": key, "shares": shares, "price": price, "value": value})
+    if total <= 0: raise DataError("the invested value must be positive")
+    nav = total + cash
+    for row in rows:
+        row["weight"] = row["value"] / nav
+        row["weight_of_invested"] = row["value"] / total
+    ordered = sorted((row["weight"] for row in rows), reverse=True)
+    top_weight = ordered[0]
+    top3 = sum(ordered[:3], D(0))
+    hhi = sum((w * w for w in ordered), D(0))
+    out = {"nav": nav, "invested_value": total, "cash": cash, "cash_pct": cash / nav,
+           "n_holdings": D(len(rows)), "top_weight": top_weight,
+           "top3_concentration": top3, "hhi": hhi}
+    for row in rows:
+        out["value_" + row["key"]] = row["value"]
+        out["weight_" + row["key"]] = row["weight"]
+    appendix = {
+        "positions": [{"symbol": r["symbol"], "shares": str(r["shares"]), "price": str(r["price"]),
+                       "value": str(r["value"]), "weight": str(r["weight"]),
+                       "weight_of_invested": str(r["weight_of_invested"])} for r in rows],
+        "conventions": ("Prices are declared in the portfolio's base currency; there is no FX conversion, "
+                        "fee, tax or forecast. Weights are value / NAV, so the holding weights plus cash "
+                        "equal one. Concentration is measured over NAV; a single holding is the top weight."),
+        "inputs": {"holdings": [{"symbol": r["symbol"], "shares": str(r["shares"]),
+                                 "price": str(r["price"])} for r in rows], "cash": str(cash)},
+    }
+    checks = [
+        ("second_implementation_agrees", _pv_second_agrees(inp, nav, rows), "float route agrees with the Decimal route"),
+        ("nav_equals_invested_plus_cash", _close(nav, total + cash), "NAV is the market value of holdings plus cash"),
+        ("holding_weights_and_cash_sum_to_one", _close(sum((r["weight"] for r in rows), D(0)) + cash / nav, D(1)), "every weight is value / NAV, and cash is part of NAV"),
+        ("doubling_every_price_doubles_invested_value", _pv_scaled(inp, "2") == 2 * total, "the invested value is linear in the declared prices"),
+        ("adding_one_unit_of_cash_raises_nav_by_one", _pv_with_cash(inp, cash + 1) == nav + 1, "cash enters NAV one for one"),
+        ("concentration_is_bounded", top_weight <= top3 <= D(1) and D(0) < hhi <= D(1), "the top holding is inside the top three, both inside one, and HHI is positive"),
+    ]
+    return {**out, "_appendix": appendix, "_checks": checks}
+
+def _pv_second_agrees(inp, nav, rows):
+    try:
+        f_total = sum(float(D(str(r["shares"]))) * float(D(str(r["price"]))) for r in inp["holdings"])
+        f_cash = float(_optnum(inp, "cash") or 0)
+        return abs(float(nav) - (f_total + f_cash)) <= 1e-8 * max(1.0, abs(f_total + f_cash))
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return False
+
+def _pv_scaled(inp, factor):
+    return sum((D(str(r["shares"])) * D(str(r["price"])) * D(str(factor)) for r in inp["holdings"]), D(0))
+
+def _pv_with_cash(inp, cash):
+    return sum((D(str(r["shares"])) * D(str(r["price"])) for r in inp["holdings"]), D(0)) + D(str(cash))
+
+def _pv_tests(inp, impl):
+    return [(name, ok) for name, ok, _detail in impl(inp)["_checks"]]
+
+def _pv_profile(inp):
+    try:
+        holdings = inp.get("holdings") or []
+        if not holdings: return ["at least one holding is required"]
+        seen, errs = set(), []
+        for row in holdings:
+            symbol = str(row.get("symbol") or "").strip().upper()
+            if not symbol: errs.append("a holding has no symbol"); continue
+            key = _pv_key(symbol)
+            if key in seen: errs.append("duplicate holding symbol: " + symbol)
+            seen.add(key)
+            try:
+                if D(str(row["shares"])) <= 0: errs.append("shares must be positive for " + symbol)
+                if D(str(row["price"])) <= 0: errs.append("price must be positive for " + symbol)
+            except (KeyError, InvalidOperation, ValueError):
+                errs.append("holding " + symbol + " needs numeric shares and price")
+        cash = _optnum(inp, "cash")
+        if cash is not None and cash < 0: errs.append("cash must be non-negative")
+        return errs
+    except (AttributeError, TypeError):
+        return ["holdings must be a list of objects"]
+
+def _pv_typing(metric):
+    if metric == "n_holdings": return ("count", 0)
+    if metric.startswith("value_") or metric in ("nav", "invested_value", "cash"): return ("currency", 2)
+    return ("ratio", 4)
+
+def _pv_caveats(out, th):
+    return ["Prices are the dated values the owner declared; the snapshot is only as current as its price date.",
+            "One base currency only: there is no FX conversion, so a holding quoted in another currency must be converted before entry.",
+            "No fees, tax or forecast; NAV is a valuation, not a sale price or a recommendation.",
+            "Weights are value / NAV, so the holding weights plus cash equal one; concentration is measured over NAV."]
+
+def _pv_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The portfolio's net asset value is " + tok("nav") + ", with " + tok("invested_value") +
+            " invested across " + tok("n_holdings") + " holdings and " + tok("cash") + " in cash. "
+            "The largest holding is " + tok("top_weight") + " of NAV, the top three are " + tok("top3_concentration") +
+            ", and the cash share is " + tok("cash_pct") + ". The values are computed from the declared prices and cash.")
+
+
 LIBRARY = {
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
@@ -16881,6 +17006,27 @@ LIBRARY = {
                   limitations=("No cost changes, demand response or probabilities.", "One product and one period.", "The table is descriptive; it does not choose a scenario."),
                   default_period="annual", caveats=sensitivity_table_caveats, template=sensitivity_table_template,
                   claim_ceiling="descriptive", typing=_sens_typing),
+
+    "portfolio_valuation": Method("portfolio_valuation", "T1", portfolio_valuation_impl, _pv_tests, _pv_profile,
+                  "nav", "currency", None,
+                  ("second_implementation_agrees", "nav_equals_invested_plus_cash",
+                   "holding_weights_and_cash_sum_to_one", "doubling_every_price_doubles_invested_value",
+                   "adding_one_unit_of_cash_raises_nav_by_one", "concentration_is_bounded"),
+                  category="portfolio",
+                  intended_use="Value a dated portfolio snapshot from declared holdings, prices and cash: NAV, invested value, cash share, holding weights and concentration.",
+                  unsupported_use="Retrieving prices or FX; converting currencies; fees, tax or dividends; forecasting returns; short positions, margin or derivatives; a recommendation.",
+                  input_schema={
+                      "holdings": {"type": "records", "min_items": 1,
+                                   "fields": {"symbol": "text", "shares": "decimal", "price": "decimal"},
+                                   "desc": "one row per holding: symbol, shares and price in the base currency"},
+                      "cash": {"type": "decimal", "required": False,
+                               "desc": "cash in the base currency; default zero and never negative"}},
+                  defaults=({"question": "Which currency?", "default_chosen": "All prices and cash are in one base currency; no FX conversion is applied.", "impact": "A foreign holding must be converted before entry, or the NAV mixes currencies."},
+                            {"question": "How are weights measured?", "default_chosen": "Value / NAV, so holding weights plus the cash share equal one; concentration is over NAV.", "impact": "Weights over invested capital alone would ignore cash and sum to one even with a large cash balance."}),
+                  assumptions=("The prices are the owner's dated values for the same date.", "Shares, prices and cash are in one base currency.", "The portfolio is long-only and fully paid."),
+                  limitations=("No FX conversion, fees, tax, dividends or corporate actions.", "No forecast or recommendation; a snapshot is a valuation, not a sale price.", "Short positions, margin and derivatives are not represented."),
+                  default_period="point in time", caveats=_pv_caveats, template=_pv_template,
+                  claim_ceiling="descriptive", typing=_pv_typing),
 
 }
 

@@ -2328,6 +2328,22 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "portfolio_valuation": {
+   "inputs": {
+    "cash": {
+     "desc": "cash in the base currency; default zero and never negative",
+     "required": false,
+     "type": "decimal"
+    },
+    "holdings": {
+     "desc": "one row per holding: symbol, shares and price in the base currency",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "posthoc_pairwise": {
    "inputs": {
     "adjust": {

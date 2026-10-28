@@ -476,3 +476,22 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **A companion is produced only when the paper carries a delivered computation.** A framework-only paper keeps the plain single-file download. A selected but refused or incomplete computation is blocked by the export gate, so no partial ZIP exists.
 - **PDF is print-to-PDF, not a server renderer.** The companion is .docx by default and print-ready .html when the paper is HTML; the browser prints the HTML to PDF. There is no stdlib PDF writer.
 - **The companion is not the assignment.** It is a study and defence aid; the paper remains the submitted record. It carries no new source, citation, recommendation or number.
+
+## Added with the Portfolio Lab (B-154)
+- **Paper mode only in this build.** A portfolio has one valuation date and one snapshot; the weekly
+  mock-fund journal (cadence, reviews, team roster) is deferred to the second increment.
+- **Prices are declared, never fetched.** Manual entry and paste/CSV are the default; the optional free
+  US weekly feed is not wired yet, and the core has no network access. A missing price blocks the
+  snapshot rather than being estimated.
+- **One base currency, no FX.** Every price and the cash balance must already be in the portfolio's base
+  currency; the valuation does not convert. A holding quoted elsewhere is entered after conversion, and
+  the snapshot records that convention.
+- **Long-only cash plus equities/ETFs.** Short positions, margin, derivatives, fees, tax, dividends and
+  corporate actions are not represented; NAV is a valuation, not a sale price.
+- **No forecast, target price or recommendation.** The method reports weights and concentration from the
+  declared book. It does not rank holdings, score them or suggest a trade; the student authors the
+  decision and the rationale.
+- **The report is a formatter.** The DOCX reads the stored snapshot; it performs no arithmetic and adds
+  no figure that is not in the snapshot. Edits to a holding or price after a snapshot do not change that
+  snapshot; a new date creates a new one.
+- **Deletion is permanent.** There is no undo or trash for a portfolio; the store removes the directory.
