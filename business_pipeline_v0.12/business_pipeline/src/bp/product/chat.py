@@ -489,7 +489,9 @@ def _fill_capability_inputs(selection):
         row["inputs_required"] = [name for name, spec in schema.items() if spec.get("required", True)]
         row["inputs"] = {name: {"desc": spec.get("desc") or name,
                                 "type": spec.get("type") or "",
-                                "required": bool(spec.get("required", True))}
+                                "required": bool(spec.get("required", True)),
+                                "fields": spec.get("fields") or {},
+                                "min_items": spec.get("min_items") or 1}
                          for name, spec in schema.items()}
         if METHOD_DESCRIBE is not None and row.get("method"):
             try:
@@ -774,6 +776,31 @@ def _capability_inputs(entry_row, values):
         desc = spec.get("desc") or name
         raw = values.get(name, "")
         kind = str(spec.get("type") or "")
+        if kind == "records":
+            rows = raw if isinstance(raw, list) else []
+            fields = spec.get("fields") or {}
+            parsed_rows = []
+            for index, row in enumerate(rows, start=1):
+                if not isinstance(row, dict):
+                    return {}, "Row " + str(index) + " of the " + desc + " must be a set of values."
+                parsed_row = {}
+                for field, field_type in fields.items():
+                    value = _clean(str(row.get(field, "")), 80)
+                    if not value:
+                        return {}, ("Row " + str(index) + " of the " + desc + " needs a " + field
+                                    + ".")
+                    if field_type == "decimal":
+                        try:
+                            value = str(Decimal(value))
+                        except (InvalidOperation, ValueError):
+                            return {}, ("Row " + str(index) + ": the " + field + " must be a number.")
+                    parsed_row[field] = value
+                parsed_rows.append(parsed_row)
+            minimum = int(spec.get("min_items") or 1)
+            if len(parsed_rows) < minimum:
+                return {}, "Declare at least " + str(minimum) + " rows for the " + desc + "."
+            inputs[name] = parsed_rows
+            continue
         if kind.endswith("_list"):
             items = raw if isinstance(raw, list) else re.split(r"[\n,;]+", str(raw or ""))
             cleaned = [_clean(str(item), 40) for item in items if str(item).strip()]
@@ -1476,6 +1503,184 @@ def _npv_lines(row, inputs, result):
                  "negative one means they do not. The figure is arithmetic on the declared flows and the "
                  "declared rate, not a forecast.")
     return lines
+
+
+def _pct(value):
+    """A declared rate or ratio as a percentage, without inventing precision."""
+    try:
+        return _fmt_exact(Decimal(str(value)) * 100)
+    except (InvalidOperation, ValueError):
+        return str(value)
+
+
+def _money(value):
+    try:
+        return _fmt_number(value)
+    except (InvalidOperation, ValueError):
+        return str(value)
+
+
+def _irr_lines(row, inputs, result):
+    flows = inputs.get("cashflows") or []
+    roots = result.get("n_roots")
+    lines = ["At the declared cash flows (" + "; ".join(_fmt_exact(value) for value in flows)
+             + "), the internal rate of return is " + _pct(result.get("irr"))
+             + " - the rate at which the declared flows have a net present value of zero (here "
+             + _money(result.get("npv_at_irr")) + ")."]
+    if roots is not None and str(roots) != "1":
+        lines.append("The declared flows change sign " + str(roots)
+                     + " times, so the rate is not unique; the figure is the rate the method reports.")
+    lines.append("It is the rate the declared flows earn, not a forecast of what they will earn.")
+    return lines
+
+
+def _payback_lines(row, inputs, result):
+    rate = Decimal(str(inputs.get("rate", "0")))
+    flows = inputs.get("cashflows") or []
+    period = result.get("discounted_payback")
+    lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared cash flows ("
+             + "; ".join(_fmt_exact(value) for value in flows) + ") recover the outlay in "
+             + _fmt_exact(period) + " periods (inside period "
+             + _fmt_exact(result.get("recovered_in_period")) + ")."]
+    lines.append("The figure is arithmetic on the declared flows and rate; it says nothing about flows "
+                 "beyond the ones declared.")
+    return lines
+
+
+def _project_metrics_lines(row, inputs, result):
+    rate = Decimal(str(inputs.get("rate", "0")))
+    lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared project has a net "
+             "present value of " + _money(result.get("npv")) + ", a profitability index of "
+             + _fmt_exact(result.get("profitability_index")) + ", a modified internal rate of return of "
+             + _pct(result.get("mirr")) + " and an equivalent annual annuity of "
+             + _money(result.get("equivalent_annual_annuity")) + "."]
+    lines.append("Each figure is the frozen method's output for the declared flows and rate; none of them is a "
+                 "forecast.")
+    return lines
+
+
+def _unit_economics_lines(row, inputs, result):
+    margin = _money(result.get("unit_margin"))
+    lines = ["At a declared price of " + _money(inputs.get("price")) + " and a variable cost of "
+             + _money(inputs.get("variable_cost")) + ", the unit margin is " + margin + " ("
+             + _pct(result.get("margin_pct")) + "% of the price)."]
+    if result.get("payback_periods") not in (None, ""):
+        lines.append("The declared acquisition cost of " + _money(inputs.get("acquisition_cost"))
+                     + " is covered after " + _fmt_exact(result.get("payback_periods"))
+                     + " periods of that margin.")
+    else:
+        lines.append("No payback period is reported: the declared margin cannot recover the declared "
+                     "acquisition cost.")
+    return lines
+
+
+def _wacc_lines(row, inputs, result):
+    lines = ["With declared equity of " + _money(inputs.get("equity_value")) + " (weight "
+             + _pct(result.get("weight_equity")) + "%) and debt of " + _money(inputs.get("debt_value"))
+             + " (weight " + _pct(result.get("weight_debt")) + "%), the weighted average cost of capital is "
+             + _pct(result.get("wacc")) + "%, from a declared cost of equity of "
+             + _pct(result.get("cost_of_equity")) + "% and an after-tax cost of debt of "
+             + _pct(result.get("cost_of_debt_after_tax")) + "%."]
+    lines.append("Every rate is the student's declaration; the method weights them and does not estimate them.")
+    return lines
+
+
+def _cash_runway_lines(row, inputs, result):
+    monthly = Decimal(str(inputs.get("monthly_net_cash_flow", "0")))
+    opening = inputs.get("opening_cash")
+    runway = result.get("runway_months")
+    if runway in (None, ""):
+        lines = ["With declared opening cash of " + _money(opening) + " and a monthly net cash flow of "
+                 + _money(monthly) + ", the declared cash does not run out."]
+    else:
+        lines = ["With declared opening cash of " + _money(opening) + " and a monthly net cash flow of "
+                 + _money(monthly) + ", the cash runway is " + _fmt_exact(runway) + " months."]
+    if result.get("funding_gap") not in (None, ""):
+        lines.append("At the declared target, the cash balance is " + _money(result.get("cash_at_target_month"))
+                     + " and the funding gap is " + _money(result.get("funding_gap")) + ".")
+    lines.append("The projection holds the declared monthly flow constant; it is not a forecast.")
+    return lines
+
+
+def _market_sizing_lines(row, inputs, result):
+    lines = ["From a declared target population of " + _money(inputs.get("target_population"))
+             + ", an annual spend per customer of " + _money(inputs.get("annual_spend_per_customer"))
+             + " and declared shares of " + _pct(inputs.get("serviceable_share")) + "% and "
+             + _pct(inputs.get("obtainable_share")) + "%, the total addressable market is "
+             + _money(result.get("total_addressable_market")) + ", the serviceable available market is "
+             + _money(result.get("serviceable_available_market")) + " and the serviceable obtainable market is "
+             + _money(result.get("serviceable_obtainable_market")) + "."]
+    lines.append("The three sizes are arithmetic on the declared population, spend and shares; the shares are "
+                 "the student's assumption, not a retrieved estimate.")
+    return lines
+
+
+def _market_share_lines(row, inputs, result):
+    lines = ["With declared firm sales of " + _money(inputs.get("firm_sales")) + " in a declared market of "
+             + _money(inputs.get("market_sales")) + ", the market share is "
+             + _pct(result.get("market_share")) + "%."]
+    lines.append("The figure is the declared sales as a share of the declared market; neither number is retrieved.")
+    return lines
+
+
+def _clv_lines(row, inputs, result):
+    lines = ["At a declared margin of " + _money(inputs.get("margin_per_period")) + " per period and a declared "
+             "churn rate of " + _pct(inputs.get("churn_rate")) + "% per period, the undiscounted lifetime value is "
+             + _money(result.get("clv_undiscounted")) + "."]
+    if result.get("clv_discounted") not in (None, ""):
+        lines.append("Discounted at the declared rate over the declared horizon, the lifetime value is "
+                     + _money(result.get("clv_discounted")) + ".")
+    lines.append("The figure follows from the declared margin and churn; the method does not estimate either.")
+    return lines
+
+
+def _earned_value_lines(row, inputs, result):
+    lines = ["Against a declared planned value of " + _money(inputs.get("planned_value")) + " and an actual cost "
+             "of " + _money(inputs.get("actual_cost")) + ", the declared earned value of "
+             + _money(inputs.get("earned_value")) + " gives a schedule variance of "
+             + _money(result.get("schedule_variance")) + " and a cost variance of "
+             + _money(result.get("cost_variance")) + "."]
+    lines.append("The schedule performance index is " + _fmt_exact(result.get("spi"))
+                 + " and the cost performance index is " + _fmt_exact(result.get("cpi"))
+                 + "; the estimate at completion is " + _money(result.get("estimate_at_completion")) + ".")
+    lines.append("Every figure is computed from the declared values; none is measured or forecast.")
+    return lines
+
+
+def _multi_breakeven_lines(row, inputs, result):
+    products = inputs.get("products") or []
+    described = "; ".join(
+        str(product.get("name", "")) + " at " + _money(product.get("price")) + " with a variable cost of "
+        + _money(product.get("variable_cost")) + " and a mix of " + _fmt_exact(product.get("mix_units"))
+        for product in products)
+    lines = ["With declared fixed costs of " + _money(inputs.get("fixed_costs")) + " and "
+             + str(len(products)) + " products (" + described + "), the weighted contribution is "
+             + _money(result.get("weighted_contribution")) + " per unit of the mix."]
+    units = []
+    for product in products:
+        value = result.get("units_" + str(product.get("name", "")))
+        if value not in (None, ""):
+            units.append(_fmt_number(value) + " of " + str(product.get("name", "")))
+    lines.append("Break-even is " + _fmt_number(result.get("breakeven_total_units")) + " units in total"
+                 + (" (" + ", ".join(units) + ")" if units else "") + ", for revenue of "
+                 + _money(result.get("breakeven_revenue")) + ".")
+    lines.append("The mix is the student's declaration; the method does not forecast demand for any product.")
+    return lines
+
+
+CAPABILITY_LINES.update({
+    "irr": _irr_lines,
+    "discounted_payback": _payback_lines,
+    "project_metrics": _project_metrics_lines,
+    "unit_economics": _unit_economics_lines,
+    "wacc": _wacc_lines,
+    "cash_runway": _cash_runway_lines,
+    "market_sizing": _market_sizing_lines,
+    "market_share": _market_share_lines,
+    "clv_model": _clv_lines,
+    "earned_value": _earned_value_lines,
+    "multi_product_breakeven": _multi_breakeven_lines,
+})
 
 
 def _fmt_exact(value):

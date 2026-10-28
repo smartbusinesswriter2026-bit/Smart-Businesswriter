@@ -549,6 +549,16 @@ server-side; a letter in the list is refused with the field named. NPV has a
 bespoke paragraph; the others use the generic one. One `intent` group means a
 brief that names NPV and IRR selects NPV and leaves IRR addable.
 
+Wave 3 adds eleven more capabilities (`time_value`, `loan_amortization`,
+`leverage_analysis`, `inventory_policy`, `purchase_intent`, `sales_projection`,
+`sales_from_market`, `depreciation_schedule`, `tax_declared`, `equity_bridge`,
+`multi_product_breakeven`), ten bespoke formatters (IRR, payback, project
+metrics, unit economics, WACC, runway, market sizing, market share, CLV, earned
+value) and the `records` input: multi-product break-even renders one typed row
+per product, with the schema's own columns, an *Add row* button, and row-numbered
+refusals. `tests/test_capabilities.py` (new) carries the five-row matrix for the
+model itself.
+
 Verification: on the served page a brief that asks whether a branch pays for
 itself selects break-even, the form asks only the frozen inputs, the recorded
 result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries

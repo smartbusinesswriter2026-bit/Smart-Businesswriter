@@ -131,6 +131,41 @@ ENTRIES = dict([
     _row("cap_table_round", "cap_table_round", "Cap table", "ownership",
          [r"cap table", r"equity split", r"dilution"],
          ("Ownership", "Cap Table"), priority=12),
+    _row("time_value", "time_value", "Time value of money", "time_value",
+         [r"time value", r"future value", r"present value of (?:a )?(?:single|lump)"],
+         ("Financial Feasibility", "Time Value of Money"), priority=12),
+    _row("loan_amortization", "loan_amortization", "Loan amortization", "debt_service",
+         [r"loan (?:amorti[sz]ation|payment|schedule)", r"monthly payment", r"amorti[sz]"],
+         ("Financial Feasibility", "Loan Amortization"), priority=12),
+    _row("leverage_analysis", "leverage_analysis", "Financial leverage", "leverage",
+         [r"financial leverage", r"degree of financial leverage", r"interest cover"],
+         ("Financial Feasibility", "Financial Leverage"), priority=10),
+    _row("inventory_policy", "inventory_policy", "Inventory policy", "inventory",
+         [r"economic order quantity", r"\beoq\b", r"inventory policy", r"reorder point"],
+         ("Operations", "Inventory Policy"), priority=12),
+    _row("purchase_intent", "purchase_intent", "Purchase intent", "demand_signal",
+         [r"purchase intent", r"intent to (?:buy|purchase)"],
+         ("Customer Evidence", "Purchase Intent"), priority=12),
+    _row("sales_projection", "sales_projection", "Sales projection", "sales_plan",
+         [r"sales projection", r"project the sales", r"projected units"],
+         ("Financial Feasibility", "Sales Projection"), priority=12),
+    _row("sales_from_market", "sales_from_market", "Target sales from the market", "sales_plan",
+         [r"target (?:sales|revenue)", r"revenue target", r"market share target"],
+         ("Financial Feasibility", "Target Sales from the Market"), priority=14),
+    _row("depreciation_schedule", "depreciation_schedule", "Depreciation", "depreciation",
+         [r"depreciation"],
+         ("Financial Feasibility", "Depreciation"), priority=12),
+    _row("tax_declared", "tax_declared", "Declared income tax", "tax_charge",
+         [r"income tax on", r"after-?tax income", r"tax on the declared"],
+         ("Financial Feasibility", "Declared Income Tax"), priority=10),
+    _row("equity_bridge", "equity_bridge", "Equity bridge", "valuation",
+         [r"equity bridge", r"equity value", r"enterprise value"],
+         ("Financial Feasibility", "Equity Bridge"), priority=12),
+    _row("multi_product_breakeven", "multi_product_breakeven", "Multi-product break-even",
+         "cost_cover",
+         [r"multi-?product (?:break[\s-]?even|cost)", r"product mix", r"break[\s-]?even.*\bmix\b"],
+         ("Financial Feasibility", "Multi-product Break-even"),
+         needs_any=[r"products?", r"\bmix\b"], priority=25),
 ])
 
 
@@ -228,16 +263,20 @@ def resolve(brief, framework, answers=None):
             ambiguous.append((entry_row, quote))
             continue
         selected.append(_selected(entry_row, "cue:" + entry_row["intent"], quote))
-    # one capability per intent; the strongest priority wins, the rest are named
-    seen = {}
+    # one capability per intent: the strongest priority wins, the rest are named
+    by_intent = {}
     for row in selected:
         intent = ENTRY_INTENT[row["key"]]
-        if intent in seen:
-            not_included.append({"key": row["key"], "label": row["label"],
-                                 "reason": "another capability already answers this question"})
+        current = by_intent.get(intent)
+        if current is None:
+            by_intent[intent] = row
             continue
-        seen[intent] = row
-    ordered = sorted(seen.values(), key=lambda row: (-ENTRY_PRIORITY[row["key"]], row["key"]))
+        loser = row if ENTRY_PRIORITY[row["key"]] <= ENTRY_PRIORITY[current["key"]] else current
+        winner = current if loser is row else row
+        by_intent[intent] = winner
+        not_included.append({"key": loser["key"], "label": loser["label"],
+                             "reason": "another capability already answers this question"})
+    ordered = sorted(by_intent.values(), key=lambda row: (-ENTRY_PRIORITY[row["key"]], row["key"]))
     for row in ordered[MAX_COMPUTATIONS:]:
         not_included.append({"key": row["key"], "label": row["label"],
                              "reason": "the paper carries at most %d computations" % MAX_COMPUTATIONS})

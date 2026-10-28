@@ -1372,6 +1372,18 @@ function capabilityPanel(c, plan) {
         const spec = cap.inputs[name] || {};
         const raw = (recorded.inputs || {})[name];
         const id = "cap_" + cap.key + "_" + name;
+        if (spec.type === "records") {
+          const cols = Object.keys(spec.fields || {});
+          const rows = Array.isArray(raw) && raw.length ? raw : [{}];
+          return '<div class="field" style="grid-column:1 / -1"><span>' + esc(spec.desc || name) + "</span>" +
+            '<div data-caprows="' + esc(cap.key + ":" + name) + '">' + rows.map((row, index) =>
+              '<div class="row" data-caprow="' + index + '" style="margin:2px 0">' + cols.map((col) =>
+                '<input style="flex:1;min-width:90px" placeholder="' + esc(col.replace(/_/g, " ")) +
+                '" data-capfield="' + esc(cap.key + ":" + name + ":" + index + ":" + col) +
+                '" value="' + esc((row || {})[col] || "") + '">').join("") + "</div>").join("") +
+            '<button class="btn sm" type="button" data-capaddrow="' + esc(cap.key + ":" + name) +
+            '">Add row</button></div>';
+        }
         const isList = /_list$/.test(spec.type || "");
         const shown = isList ? (Array.isArray(raw) ? raw.join("\n") : "") : (raw || "");
         const control = isList
@@ -1407,6 +1419,27 @@ function bindCapabilityControls(root) {
   $$("[data-caprun]", root).forEach((button) => {
     button.onclick = () => runCapability(button.dataset.caprun);
   });
+  $$("[data-capaddrow]", root).forEach((button) => {
+    button.onclick = () => {
+      const holder = root.querySelector('[data-caprows="' + button.dataset.capaddrow + '"]');
+      if (!holder) return;
+      const first = holder.querySelector("[data-capfield]");
+      if (!first) return;
+      const parts = first.dataset.capfield.split(":");
+      const index = holder.querySelectorAll(".row[data-caprow]").length;
+      const row = document.createElement("div");
+      row.className = "row";
+      row.dataset.caprow = String(index);
+      row.style.margin = "2px 0";
+      const columns = $$("[data-capfield]", holder)
+        .filter((box) => box.dataset.capfield.split(":")[2] === "0")
+        .map((box) => box.dataset.capfield.split(":")[3]);
+      row.innerHTML = columns.map((col) =>
+        '<input style="flex:1;min-width:90px" placeholder="' + esc(col.replace(/_/g, " ")) +
+        '" data-capfield="' + esc(parts[0] + ":" + parts[1] + ":" + index + ":" + col) + '" value="">').join("");
+      holder.insertBefore(row, button);
+    };
+  });
   const add = $("#capaddgo", root);
   if (add) add.onclick = () => { const pick = $("#capadd", root); if (pick) setCapability(pick.value, true); };
 }
@@ -1430,6 +1463,16 @@ async function runCapability(key) {
       ? box.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
       : box.value;
   });
+  const rows = {};
+  $$("[data-capfield]").forEach((box) => {
+    const parts = String(box.dataset.capfield || "").split(":");
+    if (parts[0] !== key) return;
+    const name = parts[1], index = parts[2], column = parts[3];
+    rows[name] = rows[name] || {};
+    rows[name][index] = rows[name][index] || {};
+    rows[name][index][column] = box.value;
+  });
+  Object.keys(rows).forEach((name) => { values[name] = Object.values(rows[name]); });
   const out = $("#chatout");
   out.innerHTML = loading("Validating the declared figures");
   try {

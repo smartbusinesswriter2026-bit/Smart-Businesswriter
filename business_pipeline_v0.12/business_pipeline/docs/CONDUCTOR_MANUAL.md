@@ -267,6 +267,17 @@ answer selects or excludes the capability with a stated reason.
 | `tax_incidence` | who bears a declared tax | Policy Impact / Tax Incidence |
 | `pricing_decision` | a declared-cost price under a declared markup | Pricing / Pricing Decision |
 | `cap_table_round` | the post-round ownership split | Ownership / Cap Table |
+| `time_value` | future or present value of one declared amount | Financial Feasibility / Time Value of Money |
+| `loan_amortization` | payment, interest and amortisation of a declared loan | Financial Feasibility / Loan Amortization |
+| `leverage_analysis` | EPS, degree of financial leverage and interest cover | Financial Feasibility / Financial Leverage |
+| `inventory_policy` | EOQ and the order policy for declared demand | Operations / Inventory Policy |
+| `purchase_intent` | the declared intent rate from a survey split | Customer Evidence / Purchase Intent |
+| `sales_projection` | units, revenue and profit per period from a declared start | Financial Feasibility / Sales Projection |
+| `sales_from_market` | target revenue and units from a declared market share | Financial Feasibility / Target Sales from the Market |
+| `depreciation_schedule` | the depreciation charge and carrying amount | Financial Feasibility / Depreciation |
+| `tax_declared` | income tax at a declared rate | Financial Feasibility / Declared Income Tax |
+| `equity_bridge` | equity value from a declared enterprise value | Financial Feasibility / Equity Bridge |
+| `multi_product_breakeven` | break-even for two or more declared products | Financial Feasibility / Multi-product Break-even |
 
 Every entry is scalar: no table editor is needed to declare it. The **licence**
 (`intended_use`) and the **limitation** (`unsupported_use`) are read from
@@ -274,15 +285,25 @@ Every entry is scalar: no table editor is needed to declare it. The **licence**
 its method by hand in the product layer.
 
 The appraisal family (`npv`, `irr`, `discounted_payback`, `project_metrics`)
-shares one `intent` group, so a question that names two of them selects one (NPV
-by priority) and the others stay addable from the plan. They take a declared
-series: `decimal_list` renders as one number per line (period 0 first) and is
-parsed and validated server-side, so a list can never arrive as prose.
+shares one `intent` group, so a question that names two of them selects one (the
+highest priority, NPV) and the others stay addable from the plan. The same rule
+puts `multi_product_breakeven` above `breakeven` when the brief says "product
+mix".
 
-Methods whose inputs include `records` (multi-product break-even, CPM, leveling,
-Monte Carlo, regression and friends) are **not registered**: they need a typed
-table editor in the chat first, and registering them behind a text box would
-break the "no invented input" rule.
+Declared shapes the panel can take, all validated server-side against the frozen
+schema:
+
+| Schema type | What the student sees | Refusal |
+|---|---|---|
+| `decimal`, `integer` | one field | the field's own description names the missing value |
+| `decimal_list`, `value_list` | one number per line, period 0 first | "Every value of the cash flows ... must be a number." |
+| `records` | one typed row per item, with the schema's own columns and an *Add row* button | "Row 2 of the products needs a price." / "Declare at least 2 rows ..." |
+
+Methods whose schema needs an **either/or pair or an auxiliary series** stay
+unregistered until that input path is designed: `capm` (a beta, or two return
+series), `bond_analysis` (a price or a yield, not both), `ratio_analysis` (a
+statement object). Registering them behind one text box would break the
+"no invented input" rule.
 
 Formatting: `CAPABILITY_LINES` holds a bespoke formatter per capability where the
 prose matters (break-even today). Everything else uses `_generic_lines`, which
