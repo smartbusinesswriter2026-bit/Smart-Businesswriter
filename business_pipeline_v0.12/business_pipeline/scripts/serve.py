@@ -75,10 +75,13 @@ def main(argv=None):
               "sandbox": options["sandbox"], "project_root": root,
               "case_store": str(ops.case_store.cases_dir()), "state_dir": str(ops.state_dir()),
               "request_log": str(ops.request_log_path()) if ops.request_log_path() else None,
-              "web_search": {"primary": "brave", "fallback": "firecrawl",
+              "web_search": {"order": ["opengo", "deepseek", "brave", "firecrawl"],
+                             "opengo": web["opengo"], "deepseek": web["deepseek"],
                              "brave": web["brave"],
                              "firecrawl": web["firecrawl"] or web["firecrawl_keyless"],
                              "credentials_from": web["path"], "loaded": web["loaded"]},
+              "model": {"provider": "opencode-go", "model": web["model"],
+                        "configured": web["opengo_key"]},
               "academic_search": {"semantic_scholar": web["semantic_scholar"]},
               "python": sys.version.split()[0]}
     if options["check"]:

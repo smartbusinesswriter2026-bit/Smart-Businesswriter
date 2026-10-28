@@ -395,6 +395,25 @@ def _relevance(item, topic_words, cue_words, geo_words, specific_words):
     return score, geo_hits, cue_hits, specific_hits
 
 
+def _rank(item, score, cue_words, specific_words):
+    """Precision ranking: relevance, title match, source tier and recency."""
+    title = _clean(item.get("title"), 400).lower()
+    title_words = set(re.findall(r"[a-z][a-z0-9'-]+", title))
+    title_cues = len(cue_words & title_words)
+    title_specific = len(specific_words & title_words)
+    year = item.get("year") or 0
+    current = datetime.datetime.now(datetime.timezone.utc).year
+    recency = 2 if year >= current - 2 else (1 if year >= current - 5 else 0)
+    tier = item.get("tier") or ""
+    if tier in ("official", "data"):
+        source = 3
+    elif item.get("database") in ("OpenAlex", "Semantic Scholar", "DOAJ", "Crossref"):
+        source = 2
+    else:
+        source = 1
+    return score + 2 * title_cues + 2 * title_specific + recency + source + (item.get("credibility") or 0) / 100
+
+
 def _research_one(state, dimension):
     from . import sources as source_finder
     started = time.perf_counter()
@@ -404,16 +423,23 @@ def _research_one(state, dimension):
     cue_words = set((dimension.get("cues") or "").split())
     geography = state["answers"].get("geography") or "Global"
     geo_words = _geo_words(geography)
-    # Academic and curated-web retrieval are independent: run them together so a
-    # slow web fallback cannot add its latency to the academic indexes.
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        academic_future = pool.submit(source_finder.search_academic, query,
-                                      databases=["openalex", "semanticscholar", "doaj"],
-                                      limit=4, year_from=_year_from(state))
-        web_future = pool.submit(source_finder.search_web, query,
-                                 geography, 3, dimension.get("category"))
-        results = academic_future.result()
-        web = web_future.result()
+    # Academic and curated-web retrieval are independent.  A slow web provider
+    # must not hold back the academic evidence for the dimension.
+    platform_pool = ThreadPoolExecutor(max_workers=2)
+    academic_future = platform_pool.submit(source_finder.search_academic, query,
+                                           databases=["openalex", "semanticscholar", "doaj"],
+                                           limit=4, year_from=_year_from(state))
+    fast = os.environ.get("BP_OPENGO_RESEARCH", "0") != "1"
+    web_future = platform_pool.submit(source_finder.search_web, query,
+                                      geography, 3, dimension.get("category"), fast)
+    results = academic_future.result()
+    try:
+        web = web_future.result(timeout=9)
+    except TimeoutError:
+        web = {"results": [], "provider": None,
+               "notice": "Web search timed out; the academic evidence for this dimension was kept."}
+        web_future.cancel()
+    platform_pool.shutdown(wait=False, cancel_futures=True)
     found = list(results.get("results") or [])
     for item in web.get("results") or []:
         found.append({"title": item.get("title"), "abstract": item.get("description"),
@@ -431,7 +457,7 @@ def _research_one(state, dimension):
         if geography != "Global" and geo_hits == 0:
             continue
         if score >= 3:
-            scored.append((score, item))
+            scored.append((_rank(item, score, cue_words, specific_words), item))
     scored.sort(key=lambda pair: -pair[0])
     web_notice = web.get("notice")
     if not web_notice and web.get("provider"):

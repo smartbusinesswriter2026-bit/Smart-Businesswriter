@@ -23,6 +23,9 @@ class LauncherTest(unittest.TestCase):
                            "BP_REQUEST_LOG": "",
                            "BP_SOURCE_ENV": credentials}
             environment.pop("BP_BRAVE_API_KEY", None)
+            environment.pop("BP_DEEPSEEK_API_KEY", None)
+            environment.pop("BP_OPENGO_API_KEY", None)
+            environment.pop("BP_OPENGO_SEARCH_URL", None)
             result = subprocess.run([sys.executable, SCRIPT, "--check"], capture_output=True, text=True,
                                     env=environment, cwd=ROOT, timeout=120)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -32,9 +35,9 @@ class LauncherTest(unittest.TestCase):
             self.assertIsNone(config["request_log"])
             self.assertEqual(config["case_store"], os.path.join(folder, "cases"))
             self.assertEqual(config["state_dir"], os.path.join(folder, "state"))
-            self.assertEqual(config["web_search"]["primary"], "brave")
-            self.assertEqual(config["web_search"]["fallback"], "firecrawl")
+            self.assertEqual(config["web_search"]["order"], ["opengo", "deepseek", "brave", "firecrawl"])
             self.assertTrue(config["web_search"]["brave"])
+            self.assertFalse(config["web_search"]["deepseek"])
             self.assertIn("BP_BRAVE_API_KEY", config["web_search"]["loaded"])
             self.assertNotIn("launcher-secret", result.stdout)
             self.assertIn("semantic_scholar", config["academic_search"])

@@ -19,6 +19,9 @@ class LoadTest(unittest.TestCase):
             stream.write("# comment\n"
                          "BRAVE_API_KEY=brave-secret-value\n"
                          "FIRECRAWL_API_KEY='firecrawl-secret-value'\n"
+                         "DEEPSEEK_API_KEY=deepseek-secret-value\n"
+                         "OPENCODE_API_KEY=opengo-secret-value\n"
+                         "OPENGO_SEARCH_URL=https://opengo.example/search\n"
                          "SEMANTIC_SCHOLAR_API_KEY=s2-secret-value\n"
                          "OPENALEX_EMAIL=research@example.org\n"
                          "CROSSREF_MAILTO=research@example.org\n"
@@ -34,6 +37,9 @@ class LoadTest(unittest.TestCase):
             report = source_env.load_web_credentials(self.path)
             self.assertEqual(os.environ["BP_BRAVE_API_KEY"], "brave-secret-value")
             self.assertEqual(os.environ["BP_FIRECRAWL_API_KEY"], "firecrawl-secret-value")
+            self.assertEqual(os.environ["BP_DEEPSEEK_API_KEY"], "deepseek-secret-value")
+            self.assertEqual(os.environ["BP_OPENGO_API_KEY"], "opengo-secret-value")
+            self.assertEqual(os.environ["BP_OPENGO_SEARCH_URL"], "https://opengo.example/search")
             self.assertEqual(os.environ["BP_SEMANTIC_SCHOLAR_KEY"], "s2-secret-value")
             self.assertEqual(os.environ["BP_OPENALEX_EMAIL"], "research@example.org")
             self.assertEqual(os.environ["BP_CROSSREF_MAILTO"], "research@example.org")
@@ -41,19 +47,22 @@ class LoadTest(unittest.TestCase):
             self.assertNotIn("GOOGLE_API_KEY", os.environ)
             self.assertNotIn("UNRELATED", os.environ)
         self.assertEqual(sorted(report["loaded"]),
-                         ["BP_BRAVE_API_KEY", "BP_CROSSREF_MAILTO",
-                          "BP_FIRECRAWL_API_KEY", "BP_FIRECRAWL_KEYLESS",
-                          "BP_OPENALEX_EMAIL", "BP_SEMANTIC_SCHOLAR_KEY"])
+                         ["BP_BRAVE_API_KEY", "BP_CROSSREF_MAILTO", "BP_DEEPSEEK_API_KEY",
+                          "BP_FIRECRAWL_API_KEY", "BP_FIRECRAWL_KEYLESS", "BP_OPENALEX_EMAIL",
+                          "BP_OPENGO_API_KEY", "BP_OPENGO_SEARCH_URL", "BP_SEMANTIC_SCHOLAR_KEY"])
         self.assertTrue(report["brave"])
         self.assertTrue(report["firecrawl"])
         self.assertTrue(report["semantic_scholar"])
+        self.assertTrue(report["deepseek"])
+        self.assertTrue(report["opengo_key"])
         self.assertNotIn("core", report)
 
     def test_the_report_never_contains_a_secret_value(self):
         with mock.patch.dict(os.environ, {}, clear=True):
             report = source_env.load_web_credentials(self.path)
         text = repr(report)
-        for secret in ("brave-secret-value", "firecrawl-secret-value", "s2-secret-value"):
+        for secret in ("brave-secret-value", "firecrawl-secret-value", "s2-secret-value",
+                    "deepseek-secret-value", "opengo-secret-value"):
             self.assertNotIn(secret, text)
         self.assertEqual(report["path"], self.path)
 
@@ -62,6 +71,9 @@ class LoadTest(unittest.TestCase):
             report = source_env.load_web_credentials(self.path)
             self.assertEqual(os.environ["BP_BRAVE_API_KEY"], "already-set")
             self.assertEqual(os.environ["BP_FIRECRAWL_API_KEY"], "firecrawl-secret-value")
+            self.assertEqual(os.environ["BP_DEEPSEEK_API_KEY"], "deepseek-secret-value")
+            self.assertEqual(os.environ["BP_OPENGO_API_KEY"], "opengo-secret-value")
+            self.assertEqual(os.environ["BP_OPENGO_SEARCH_URL"], "https://opengo.example/search")
         self.assertNotIn("BP_BRAVE_API_KEY", report["loaded"])
 
     def test_an_empty_value_in_the_file_is_not_loaded(self):
@@ -100,8 +112,10 @@ class StatusTest(unittest.TestCase):
         from bp.product import sources
         with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "brave-secret-value", "BP_FIRECRAWL_KEYLESS": "0"}, clear=True):
             status = sources.web_status()
-        self.assertEqual((status["primary"], status["fallback"]), ("brave", "firecrawl"))
+        self.assertEqual(status["order"], ["opengo", "deepseek", "brave", "firecrawl"])
         self.assertTrue(status["brave"])
+        self.assertFalse(status["deepseek"])
+        self.assertFalse(status["opengo"])
         self.assertFalse(status["firecrawl"])
         self.assertNotIn("brave-secret-value", repr(status))
 

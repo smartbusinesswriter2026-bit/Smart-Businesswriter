@@ -15,6 +15,7 @@ file still works.
 """
 
 import os
+import shutil
 from pathlib import Path
 
 #: The product's own credential file.
@@ -25,7 +26,11 @@ ALLOWED = {
     "FIRECRAWL_API_KEY": "BP_FIRECRAWL_API_KEY",
     "DEEPSEEK_API_KEY": "BP_DEEPSEEK_API_KEY",
     "OPENCODE_API_KEY": "BP_OPENGO_API_KEY",
+    "OPENCODE_GO_MODEL": "BP_LLM_MODEL",
     "OPENGO_SEARCH_URL": "BP_OPENGO_SEARCH_URL",
+    "OPENGO_WEBSEARCH": "BP_OPENGO_WEBSEARCH",
+    "OPENGO_RESEARCH": "BP_OPENGO_RESEARCH",
+    "OPENGO_TIMEOUT": "BP_OPENGO_TIMEOUT",
     "SEMANTIC_SCHOLAR_API_KEY": "BP_SEMANTIC_SCHOLAR_KEY",
     "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
     "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
@@ -55,7 +60,9 @@ def _status():
     return {"brave": bool(os.environ.get("BP_BRAVE_API_KEY")),
             "firecrawl": bool(os.environ.get("BP_FIRECRAWL_API_KEY")),
             "deepseek": bool(os.environ.get("BP_DEEPSEEK_API_KEY")),
-            "opengo": bool(os.environ.get("BP_OPENGO_SEARCH_URL") and os.environ.get("BP_OPENGO_API_KEY")),
+            "opengo": bool(shutil.which("opencode")) and os.environ.get("BP_OPENGO_WEBSEARCH", "0") == "1",
+            "opengo_key": bool(os.environ.get("BP_OPENGO_API_KEY")),
+            "model": os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY")),
             "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"}
 

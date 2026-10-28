@@ -264,6 +264,18 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("function collectWorksheetInputs", self.html)
         self.assertIn('const id = "wb-" + b.key', self.html)
         self.assertIn('id="wlinks"', self.html)
+
+    def test_no_reviewer_surface_remains_in_the_served_page(self):
+        for gone in ('data-tab="signoff"', "Reviewer name", "Sign-off", "Review status", "pending_named_reviewer"):
+            self.assertNotIn(gone, self.html, "reviewer surface still present: " + gone)
+        self.assertIn("not teacher-approved", self.html)
+
+    def test_worksheet_drafts_and_the_worksheet_export_are_present(self):
+        self.assertIn("bp-ws-draft-", self.html)
+        self.assertIn("discardWorksheetDraft", self.html)
+        self.assertIn("Download the worksheet (Word)", self.html)
+        self.assertIn("saveWorksheetDraft", self.html)
+        self.assertIn("restoreWorksheetDraft", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         self.assertIn("font-size:16.8px", self.html)
         # Solid text: secondary and tertiary copy use the primary ink, not grey.

@@ -16,7 +16,10 @@ Rules:
 import copy
 import json
 import os
+import queue
 import re
+import shutil
+import subprocess
 import threading
 import time
 import urllib.error
@@ -24,6 +27,7 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from pathlib import Path
 
 TIMEOUT = 12
 USER_AGENT = "SmartBusinessWriter/1.0 (mailto:%s)" % (
@@ -472,9 +476,13 @@ def _web_item(result, sites):
     site = next((s for s in sites if host == s["domain"] or host.endswith("." + s["domain"])), None)
     if not site:
         return None
+    date = _text(result.get("date"), 40)
+    year = int(date[:4]) if len(date) >= 4 and date[:4].isdigit() else None
     return {"title": _text(result.get("title"), 300), "url": url,
-            "description": _text(result.get("description") or result.get("snippet"), 500),
-            "site": site["label"], "domain": host, "region": site["region"], "tier": site["tier"]}
+            "description": _text(result.get("description") or result.get("snippet") or result.get("summary"), 500),
+            "site": site["label"], "domain": host, "region": site["region"], "tier": site["tier"],
+            "year": year, "authority": result.get("authority"),
+            "search_score": result.get("rerank_score")}
 
 
 def _brave_web(text, sites, limit):
@@ -525,43 +533,172 @@ def _firecrawl_web(text, sites, limit):
     return out, {"provider": "firecrawl", "n": len(out)}
 
 
-def search_web(query, region="Global", limit=10, category=None):
-    """Search the curated domains: Brave first, Firecrawl as the fallback.
+def _site_query(text, sites, max_domains=4):
+    domains = [site["domain"] for site in sites if site["tier"] in ("official", "data", "research")]
+    for count in range(min(max_domains, len(domains)), 0, -1):
+        query = text + " (" + " OR ".join("site:" + domain for domain in domains[:count]) + ")"
+        if len(query) <= 128:
+            return query
+    return text
 
-    Nothing outside the curated list can leave this function.  If neither
-    provider returns a curated result, the directory is returned with a reason.
+
+def _opencode_exe():
+    found = shutil.which("opencode")
+    if not found:
+        return None
+    path = Path(found)
+    candidate = path.parent / "node_modules" / "opencode-ai" / "bin" / "opencode.exe"
+    return str(candidate) if candidate.exists() else found
+
+
+def _parse_opencode_results(stdout, sites, limit):
+    out, seen = [], set()
+    for line in (stdout or "").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        part = event.get("part") or {}
+        if event.get("type") != "tool_use" or part.get("tool") != "websearch":
+            continue
+        output = (part.get("state") or {}).get("output") or ""
+        for block in re.split(r"\n\s*---\s*\n", output):
+            title = re.search(r"^Title:\s*(.+)$", block, re.M)
+            url = re.search(r"^URL:\s*(https?://\S+)", block, re.M)
+            if not url:
+                continue
+            highlight = re.search(r"Highlights:\s*(.*)", block, re.S)
+            item = _web_item({"title": title.group(1).strip() if title else "",
+                              "url": url.group(1).strip(),
+                              "summary": highlight.group(1).strip() if highlight else ""}, sites)
+            if item and item["url"] not in seen:
+                seen.add(item["url"])
+                out.append(item)
+    return out[:max(1, limit)]
+
+
+def _opengo_web(text, sites, limit):
+    """Run a headless OpenCode session and use its websearch tool.
+
+    No OpenCode window is needed: `opencode run` starts its own headless
+    server, uses the configured websearch provider, and exits.  The model is
+    DeepSeek V4.1 Flash unless BP_LLM_MODEL overrides it.
+    """
+    if os.environ.get("BP_OPENGO_WEBSEARCH", "0") != "1":
+        return [], {"provider": "opengo", "skipped": "BP_OPENGO_WEBSEARCH is not 1"}
+    executable = _opencode_exe()
+    if not executable:
+        return [], {"provider": "opengo", "skipped": "opencode is not on PATH"}
+    model = os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash")
+    count = min(max(limit * 3, 5), 10)
+    prompt = ("Use the websearch tool with the query: %s. Return the top %d results. "
+              "Do not answer from memory. Do not add commentary." % (text, count))
+    try:
+        timeout = max(10, int(os.environ.get("BP_OPENGO_TIMEOUT", "12")))
+    except (TypeError, ValueError):
+        timeout = 12
+    try:
+        process = subprocess.Popen(
+            [executable, "run", "-m", "opencode-go/" + model, "--format", "json", "--auto", prompt],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            text=True, encoding="utf-8", errors="replace", bufsize=1,
+            cwd=str(Path(__file__).resolve().parents[5]))
+    except Exception as error:
+        return [], {"provider": "opengo", "error": str(error)[:160]}
+    lines = []
+    lines_queue = queue.Queue()
+
+    def read_lines():
+        for line in process.stdout:
+            lines_queue.put(line)
+        lines_queue.put(None)
+
+    threading.Thread(target=read_lines, daemon=True).start()
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            line = lines_queue.get(timeout=0.5)
+        except queue.Empty:
+            if process.poll() is not None:
+                break
+            continue
+        if line is None:
+            break
+        lines.append(line)
+        if '"tool_use"' in line and '"websearch"' in line:
+            break
+    try:
+        process.terminate()
+        process.wait(timeout=3)
+    except Exception:
+        try:
+            process.kill()
+        except Exception:
+            pass
+    out = _parse_opencode_results("".join(lines), sites, limit * 3)
+    if not out:
+        return [], {"provider": "opengo", "n": 0, "model": model,
+                    "error": "no curated websearch result"}
+    return out, {"provider": "opengo", "n": len(out), "model": model}
+
+
+def _deepseek_web(text, sites, limit):
+    """DeepSeek Search API ($0.75 per 1,000 successful searches)."""
+    key = os.environ.get("BP_DEEPSEEK_API_KEY")
+    if not key:
+        return [], {"provider": "deepseek", "skipped": "BP_DEEPSEEK_API_KEY is not set"}
+    payload = {"query": _site_query(text, sites), "count": min(max(limit * 3, 5), 20),
+               "need_content": False}
+    try:
+        data = _post_json("https://api.deepseek.com/v1/tools/search", payload,
+                          headers={"Authorization": "Bearer " + key}, timeout=12)
+    except urllib.error.HTTPError as error:
+        return [], {"provider": "deepseek", "error": "HTTP %s" % error.code}
+    except Exception as error:
+        return [], {"provider": "deepseek", "error": str(error)[:160]}
+    rows = data.get("results") or []
+    out = [item for item in (_web_item(result, sites) for result in rows if isinstance(result, dict)) if item]
+    return out, {"provider": "deepseek", "n": len(out), "billable": bool(rows)}
+
+
+def search_web(query, region="Global", limit=10, category=None, fast=False):
+    """Search curated domains: OpenGo, DeepSeek, Brave, Firecrawl.
+
+    `fast` skips the headless OpenGo agent for multi-dimension research, where
+    its 13-15 s model latency would stall the pass; DeepSeek Search is then first.
     """
     text = (query or "").strip()
     if not text:
         return {"query": text, "results": [], "notice": "A search query is required.", "sites": []}
     sites = vetted_sites(region, category=category)
+    filter_sites = vetted_sites(category=category)
     key = ("web", text, region, limit, category)
     cached = _cache_get(key)
     if cached is not None:
         cached["cached"] = True
         return cached
     attempts, results = [], []
-    brave, brave_attempt = _brave_web(text, sites, limit)
-    attempts.append(brave_attempt)
-    results.extend(brave)
-    seen = {item["url"] for item in results}
-    # Fallback only when Brave returned nothing: a thin Brave answer is still an
-    # answer, and a second provider would only add latency.
-    if not results:
-        firecrawl, firecrawl_attempt = _firecrawl_web(text, sites, limit)
-        attempts.append(firecrawl_attempt)
-        for item in firecrawl:
+    seen = set()
+    order = (("opengo", _opengo_web), ("deepseek", _deepseek_web),
+             ("brave", _brave_web), ("firecrawl", _firecrawl_web))
+    if fast:
+        order = order[1:]
+    for _name, provider in order:
+        found, attempt = provider(text, filter_sites, limit)
+        attempts.append(attempt)
+        for item in found:
             if item["url"] not in seen:
                 seen.add(item["url"])
                 results.append(item)
+        if results:
+            break
     results = results[:max(1, limit)]
-    providers = [item.get("provider") for item in attempts
-                 if item.get("n") and item.get("provider") in ("brave", "firecrawl")]
+    providers = [item.get("provider") for item in attempts if item.get("n")]
     provider = "+".join(dict.fromkeys(providers)) if providers else None
     notice = None
     if not results:
-        notice = ("No curated web result came back. Brave and Firecrawl were both unavailable or empty; "
-                  "the vetted-site directory is below.")
+        notice = ("No curated web result came back. OpenGo, DeepSeek, Brave and Firecrawl were "
+                  "unavailable or empty; the vetted-site directory is below.")
     payload = {"query": text, "results": results, "sites": sites, "provider": provider,
                "attempts": attempts, "notice": notice, "cached": False}
     _cache_put(key, payload)
@@ -571,7 +708,10 @@ def search_web(query, region="Global", limit=10, category=None):
 def web_status():
     """Which web providers are usable, without exposing any key."""
     keyless = os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"
-    return {"primary": "brave", "fallback": "firecrawl",
+    return {"order": ["opengo", "deepseek", "brave", "firecrawl"],
+            "opengo": bool(shutil.which("opencode")) and os.environ.get("BP_OPENGO_WEBSEARCH", "0") == "1",
+            "opengo_research": os.environ.get("BP_OPENGO_RESEARCH", "0") == "1",
+            "deepseek": bool(os.environ.get("BP_DEEPSEEK_API_KEY")),
             "brave": bool(os.environ.get("BP_BRAVE_API_KEY")),
             "firecrawl": bool(os.environ.get("BP_FIRECRAWL_API_KEY")) or keyless,
             "firecrawl_keyless": keyless}

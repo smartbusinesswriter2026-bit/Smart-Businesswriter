@@ -26,6 +26,7 @@ BLOCK_LABELS = {
     "citation": "How this was produced",
     "headline": "Headline figures",
     "artifact_table": "Recorded values",
+    "report": "Report",
 }
 
 PROFILES = {
@@ -43,6 +44,14 @@ PROFILES = {
         "blocks": ["statements", "artifact_table", "citation"],
         "formats": ["xlsx", "spreadsheetml", "csv"],
         "default": "xlsx",
+        "available": True,
+    },
+    "worksheet": {
+        "label": "Worksheet submission",
+        "audience": "A marker reading a completed framework and its evidence audit.",
+        "blocks": ["report", "checks", "limitations", "citation"],
+        "formats": ["docx", "html"],
+        "default": "docx",
         "available": True,
     },
     "presentation": {
@@ -121,6 +130,10 @@ def block(bundle, name):
     """One block, assembled from the stored bundle. Returns a list of lines; never computes."""
     appendix = _appendix(bundle) or {}
     accounts = _accounts(bundle)
+    if name == "report":
+        delivery = bundle.get("delivery") if isinstance(bundle, dict) else None
+        value = delivery.get("report") if isinstance(delivery, dict) else None
+        return _lines(value) if isinstance(value, str) else []
     if name == "statements":
         value = accounts.get("statements_export")
         if isinstance(value, str):

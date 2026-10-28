@@ -464,6 +464,10 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   .actionrow{flex-direction:column;align-items:stretch}
   .runbtn{align-self:flex-end;margin-left:0}
   .drawer{width:100%}
+  .subjectgrid,.capgrid,.grid2{grid-template-columns:1fr}
+  .wsheet .wmeta{flex-direction:column;align-items:stretch}
+  .wsheet .wmeta input[type=text]{min-width:0;width:100%}
+  .wsheet textarea.wtext{min-height:96px}
 }
 
 </style>
@@ -480,7 +484,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.11</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.12</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -700,7 +704,6 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
           <button class="tab" role="tab" data-tab="report" aria-selected="true">Report</button>
           <button class="tab" role="tab" data-tab="versions" aria-selected="false">Versions</button>
           <button class="tab" role="tab" data-tab="comparison" aria-selected="false">Comparison</button>
-          <button class="tab" role="tab" data-tab="signoff" aria-selected="false">Sign-off</button>
         </div>
       </div>
     </section>
@@ -809,7 +812,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
       <p class="sub">1. Describe the question on Home and run it, or pick a subject in the rail.<br>
         2. Read the work plan and the frozen checks, then confirm.<br>
         3. Read the result with its honesty notes and limitations.<br>
-        4. Save it as a case; cases keep versions, comparisons and sign-offs.</p>
+        4. Save it as a case; cases keep versions and comparisons.</p>
       <h3>Offline</h3>
       <p class="sub">No external network calls, no web fonts, no analytics.</p>
     </div>
@@ -924,9 +927,13 @@ const state = {
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
   calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
-  worksheet: null
+  worksheet: null, panel: null, railSubject: null
 };
 const PANELS = ["home", "chat", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+/* The panels a subject hands off to. A tool or worksheet opened from a subject
+   page lands here, and that subject keeps its place in the rail while the work
+   runs, so the highlight does not vanish the moment a subsection is opened. */
+const SUBJECT_WORKSPACE = ["new", "results", "deliver"];
 
 /* ---------- language ---------- */
 const LOCALES = {
@@ -966,12 +973,27 @@ function kv(pairs) {
 }
 
 /* ---------- router ---------- */
+/* The rail marks where the user is. A subject stays marked while the user works
+   inside that subject's own workspace - the tool, the worksheet, the run it
+   produced - so the green highlight on the rail text survives opening a
+   subsection. Anything else (home, chat, the calculator, a saved case) takes the
+   mark back. */
+function markCurrentRailItem() {
+  const id = state.panel;
+  $$(".railitem").forEach((a) => {
+    const exact = a.dataset.panel === id && (id !== "subject" || a.dataset.subject === state.subjectId);
+    const viaSubject = a.dataset.panel === "subject" && SUBJECT_WORKSPACE.indexOf(id) !== -1
+      && a.dataset.subject === state.railSubject;
+    if (exact || viaSubject) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+}
 function activate(id) {
   PANELS.forEach((p) => { const el = document.getElementById("panel-" + p); if (el) el.hidden = p !== id; });
-  $$(".railitem").forEach((a) => {
-    const on = a.dataset.panel === id && (id !== "subject" || a.dataset.subject === state.subjectId);
-    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
-  });
+  state.panel = id;
+  if (id === "subject") state.railSubject = state.subjectId;
+  else if (SUBJECT_WORKSPACE.indexOf(id) === -1) state.railSubject = null;
+  markCurrentRailItem();
   document.title = "Smart BusinessWriter - " + (id === "subject" && state.subjectId ? state.subjectId : id);
   const target = (id === "subject" && state.subjectId)
     ? "#/subject/" + encodeURIComponent(state.subjectId)
@@ -1469,10 +1491,7 @@ function renderRailSubjects() {
         (row.theory_count ? ", " + esc(row.theory_count) + " theory lenses" : "") + "</span>" +
     "</a>").join("");
   // show() is not re-run here, so set the current marker for an already-open subject
-  $$(".railitem").forEach((a) => {
-    const on = a.dataset.panel === "subject" && a.dataset.subject === state.subjectId;
-    if (on) a.setAttribute("aria-current", "page");
-  });
+  markCurrentRailItem();
 }
 
 function loadRailSubjects() {
@@ -2301,7 +2320,7 @@ function calcFitOf(tool) {
   const listy = keys.some((k) => {
     const t = (schema[k] || {}).type;
     return t === "decimal_list" || t === "value_list" || t === "records" || t === "rows" ||
-      t === "object" || t === "array" || t === "engagement_spec";
+      t === "column_map" || t === "count_table" || t === "object" || t === "array" || t === "engagement_spec";
   });
   if (listy || keys.length > 6) return "B";
   return "A";
@@ -2377,7 +2396,8 @@ function calcField(name, spec) {
       '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(value) +
       '" placeholder="comma separated"></div>';
   }
-  if (type === "object" || type === "array" || type === "records" || type === "rows" || type === "engagement_spec") {
+  if (type === "object" || type === "array" || type === "records" || type === "rows" ||
+      type === "column_map" || type === "count_table" || type === "engagement_spec") {
     return '<div class="stack" style="gap:4px">' + label +
       '<textarea id="in-' + esc(name) + '" data-type="' + esc(type) + '" rows="3" placeholder="{}">' + esc(value) + "</textarea></div>";
   }
@@ -3459,7 +3479,50 @@ function bindWorksheetForm(t) {
     append();
     if (add) add.onclick = append;
   }
+  restoreWorksheetDraft();
 }
+
+/* Worksheet drafts: a half-filled canvas or a long researched worksheet survives a reload.
+   The draft is keyed by template id, restored after the form renders and cleared on a delivered run. */
+const WS_DRAFT = "bp-ws-draft-";
+let wsDraftTimer = null;
+function wsDraftKey() { return state.worksheet ? WS_DRAFT + state.worksheet.id : null; }
+function saveWorksheetDraft() {
+  const key = wsDraftKey(); if (!key) return;
+  const data = {};
+  document.querySelectorAll("#panel-new input, #panel-new textarea, #panel-new select").forEach((el) => {
+    if (el.id) data[el.id] = el.value;
+  });
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) { /* storage full or blocked */ }
+}
+function restoreWorksheetDraft() {
+  const key = wsDraftKey(); if (!key) return;
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) { data = null; }
+  if (!data || typeof data !== "object") return;
+  Object.keys(data).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && typeof data[id] === "string" && !el.value) el.value = data[id];
+  });
+}
+function clearWorksheetDraft() {
+  const key = wsDraftKey(); if (!key) return;
+  try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+}
+function discardWorksheetDraft() {
+  clearWorksheetDraft();
+  toast("Draft discarded.");
+  renderNew();
+}
+document.addEventListener("input", (event) => {
+  if (!state.worksheet || !event.target || !event.target.closest || !event.target.closest("#panel-new")) return;
+  clearTimeout(wsDraftTimer);
+  wsDraftTimer = setTimeout(saveWorksheetDraft, 250);
+});
+document.addEventListener("change", (event) => {
+  if (!state.worksheet || !event.target || !event.target.closest || !event.target.closest("#panel-new")) return;
+  saveWorksheetDraft();
+});
 
 function worksheetForm(t) {
   if (t.form_kind === "swot") return swotForm(t);
@@ -3688,12 +3751,14 @@ function renderNew() {
         '<button class="btn sm" id="toolcalc">Business Calculator</button></div></div>' +
       '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
       '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
-      '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button></div>' +
+      '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button>' +
+      '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>' +
       worksheetForm(t) + "</div>";
     bindWorksheetForm(t);
     const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
     const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
     const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
+    const disc = $("#wsdiscard"); if (disc) disc.onclick = discardWorksheetDraft;
     return;
   }
   if (!s) { $("#panel-new").innerHTML = '<div class="empty">No session yet.</div>'; return; }
@@ -3742,7 +3807,7 @@ function renderNew() {
 
   html += '<div class="card"><h2>Method</h2>' +
     kv([["Method", (method && method.method_id) || plan.method], ["Version", method && method.version],
-        ["Tier", plan.tier], ["Review status", method && method.review_status],
+        ["Tier", plan.tier], ["Verification", "checks run and limitations stated; not teacher-approved"],
         ["Intended use", method && method.intended_use], ["Unsupported use", method && method.unsupported_use]]) +
     "</div>";
   if (s.spec) {
@@ -3771,6 +3836,7 @@ function renderNew() {
       esc(JSON.stringify(s.events, null, 1)) + "</pre></details></div>";
   }
   $("#panel-new").innerHTML = html;
+  if (state.worksheet) bindWorksheetForm(state.worksheet);
   if (document.getElementById("eng")) engBind();
   Object.keys(state.recSpecs || {}).forEach((n) => bindRecords(n));
   const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
@@ -3789,7 +3855,8 @@ function readInputs(schema) {
     const raw = el.value.trim(); if (!raw) continue;
     if (type === "decimal_list" || type === "value_list" || type === "code_list") {
       inputs[name] = raw.split(",").map((x) => x.trim()).filter((x) => x.length);
-    } else if (type === "object" || type === "records" || type === "rows" || type === "engagement_spec") {
+    } else if (type === "object" || type === "records" || type === "rows" ||
+               type === "column_map" || type === "count_table" || type === "engagement_spec") {
       try { inputs[name] = JSON.parse(raw); } catch (e) { toast("That field is not valid JSON."); return null; }
     } else inputs[name] = raw;
   }
@@ -3819,7 +3886,10 @@ async function applyAndRun() {
     }
     state.session = current;
     state.delivery = current.delivery || null;
-    if (current.delivery && current.delivery.status === "delivered") { show("results"); renderResults(); }
+    if (current.delivery && current.delivery.status === "delivered") {
+      if (state.worksheet) clearWorksheetDraft();
+      show("results"); renderResults();
+    }
     else { renderNew(); window.scrollTo(0, 0); }
   } catch (e) { $("#panel-new").insertAdjacentHTML("afterbegin", errorBanner(e)); }
 }
@@ -4024,8 +4094,6 @@ async function openCase(id) {
     state.caseBundle = await api("/api/cases/" + id);
     const versions = await api("/api/cases/" + id + "/versions");
     state.versions = versions.versions || [];
-    const signoffs = await api("/api/cases/" + id + "/signoff");
-    state.signoffs = signoffs.signoffs || [];
     renderCase();
   } catch (e) { p.innerHTML = '<div class="card">' + errorBanner(e) + "</div>"; }
 }
@@ -4033,6 +4101,7 @@ async function openCase(id) {
 function renderCase() {
   const b = state.caseBundle; if (!b) return;
   const d = b.delivery || {}; const ap = d.appendix || {};
+  const isSheet = !!ap.template;
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
@@ -4041,14 +4110,15 @@ function renderCase() {
     '<div class="row"><span class="muted">Case ' + esc(b.id) + " - " + esc(txt(b.created_at)) + " - " + esc(txt(b.method)) + "</span>" +
     '<span class="grow"></span><button class="btn sm danger" id="delcase">Delete case</button></div>' +
     '<div class="tabs" role="tablist">' +
-      ["report", "versions", "comparison", "signoff"].map((t) =>
+      ["report", "versions", "comparison"].map((t) =>
         '<button class="tab" role="tab" data-tab="' + t + '" aria-selected="' + (state.tab === t) + '">' +
-        ({ report: "Report", versions: "Versions", comparison: "Comparison", signoff: "Sign-off" })[t] + "</button>").join("") +
+        ({ report: "Report", versions: "Versions", comparison: "Comparison" })[t] + "</button>").join("") +
     "</div>";
   html += '<div class="tabpanel" data-panel="report"' + (state.tab === "report" ? "" : " hidden") + ">" +
     '<div class="row" style="margin:12px 0"><button class="btn primary" id="dlxlsx" type="button">Download the figures (Excel)</button>' +
     '<button class="btn" id="dlword" type="button">Download the submission (Word)</button>' +
     '<button class="btn" id="dlhtml" type="button">Download it as HTML (prints to PDF)</button>' +
+    (isSheet ? '<button class="btn" id="dlws" type="button">Download the worksheet (Word)</button>' : '') +
     '<span class="muted" id="dlmsg"></span></div>' +
     '<div class="report">' + esc(d.report) + "</div>" +
     (ap.accounts ? accountingBlocks(ap.accounts) : "") +
@@ -4075,13 +4145,6 @@ function renderCase() {
   html += '<div class="tabpanel" data-panel="comparison"' + (state.tab === "comparison" ? "" : " hidden") + ">" +
     '<div class="row"><button class="btn" id="cmp">Compare the selected versions</button><span class="muted" id="cmpnote"></span></div>' +
     '<div id="cmpout"></div></div>';
-  html += '<div class="tabpanel" data-panel="signoff"' + (state.tab === "signoff" ? "" : " hidden") + ">" +
-    '<div class="grid2"><div class="stack"><label class="field" for="sgnrev">Reviewer name</label><input type="text" id="sgnrev">' +
-    '<label class="field" for="sgnrole">Role</label><input type="text" id="sgnrole">' +
-    '<label class="field" for="sgnscope">Scope</label><input type="text" id="sgnscope" value="the case bundle and its disclosed limitations">' +
-    '<label class="field" for="sgnver">Version</label><input type="text" id="sgnver" value="1">' +
-    '<button class="btn primary" id="sgnsave">Record sign-off</button></div>' +
-    '<div id="sgnlist"></div></div></div>';
   html += "</div>";
   $("#panel-case").innerHTML = html;
   $$("[data-tab]").forEach((t) => { t.onclick = () => { state.tab = t.dataset.tab; renderCase(); }; });
@@ -4100,15 +4163,14 @@ function renderCase() {
       if (msg) msg.textContent = "Saved " + r.filename + (r.credits && r.credits.charged ? " (1 credit)" : " (free)");
     } catch (e) { if (msg) msg.textContent = e.message; }
   };
-  const x = $("#dlxlsx"), w = $("#dlword"), h = $("#dlhtml");
+  const x = $("#dlxlsx"), w = $("#dlword"), h = $("#dlhtml"), ws = $("#dlws");
   if (x) x.onclick = download("xlsx", "workpapers");
   if (w) w.onclick = download("docx", "submission");
   if (h) h.onclick = download("html", "submission");
+  if (ws) ws.onclick = download("docx", "worksheet");
   const nv = $("#newver"); if (nv) nv.onclick = newVersion;
   const cm = $("#cmp"); if (cm) cm.onclick = compareVersions;
-  const sv = $("#sgnsave"); if (sv) sv.onclick = recordSignoff;
   $$("[data-ver]").forEach((btn) => { btn.onclick = () => openVersion(Number(btn.dataset.ver)); });
-  renderSignoffs();
   window.scrollTo(0, 0);
 }
 
@@ -4159,25 +4221,8 @@ async function compareVersions() {
   } catch (e) { out.innerHTML = errorBanner(e); }
 }
 
-function renderSignoffs() {
-  const box = $("#sgnlist"); if (!box) return;
-  if (!state.signoffs.length) { box.innerHTML = '<p class="muted">No sign-off recorded for this case yet.</p>'; return; }
-  box.innerHTML = state.signoffs.map((s) => '<div class="card"><h3>Version ' + esc(txt(s.version)) + "</h3>" +
-    kv([["Reviewer", s.reviewer && s.reviewer.name], ["Role", s.reviewer && s.reviewer.role],
-        ["Scope", s.scope], ["Decision", s.decision], ["Signed at", s.signed_at],
-        ["Bundle hash", s.bundle_hash]]) +
-    (s.signature_text ? '<p class="muted">' + esc(s.signature_text) + "</p>" : "") + "</div>").join("");
-}
-
-async function recordSignoff() {
-  const body = { version: Number($("#sgnver").value), reviewer: $("#sgnrev").value, role: $("#sgnrole").value,
-                 scope: $("#sgnscope").value, decision: "reviewed" };
-  try { await post("/api/cases/" + state.caseId + "/signoff", body); toast("Sign-off recorded."); openCase(state.caseId); }
-  catch (e) { $("#panel-case").insertAdjacentHTML("afterbegin", errorBanner(e)); }
-}
-
 function confirmDelete(id) {
-  openModal("Delete this case?", "<p>The stored bundle, its versions and its sign-offs are removed from the local case store.</p>",
+  openModal("Delete this case?", "<p>The stored bundle and its versions are removed from the local case store.</p>",
     "Delete", async () => {
       try { await api("/api/cases/" + id, { method: "DELETE" }); toast("Case deleted."); show("cases"); }
       catch (e) { toast(e.message); }
@@ -4591,7 +4636,6 @@ RENDERERS.status = function () {
       kv([["Checked at", h.checked_at], ["Sandbox", h.sandbox], ["Model assistance configured", h.model_assistance],
           ["Case store directory", h.case_store && h.case_store.dir],
           ["Cases", h.case_store && h.case_store.cases], ["Versions", h.case_store && h.case_store.versions],
-          ["Sign-offs", h.case_store && h.case_store.signoffs],
           ["Request log", h.request_log && h.request_log.enabled ? h.request_log.path : "disabled"]]) +
       (h.problems && h.problems.length ? banner("blocked", "Problems", "<ul>" + h.problems.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>") : "") +
       "<h3>Checks</h3><pre class=\"json\">" + esc(JSON.stringify(h.checks, null, 1)) + "</pre></div>";

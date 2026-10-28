@@ -145,6 +145,29 @@ class SearchTest(unittest.TestCase):
         self.assertEqual(set(result["timings"]), {"openalex", "doaj"})
         self.assertTrue(all(value >= 0 for value in result["timings"].values()))
 
+    @mock.patch("bp.product.sources._brave_web")
+    @mock.patch("bp.product.sources._deepseek_web")
+    def test_deepseek_is_tried_before_brave(self, deepseek, brave):
+        one = {"title": "SEC filing", "url": "https://www.sec.gov/x", "description": "A filing",
+               "site": "U.S. SEC EDGAR", "domain": "sec.gov", "region": "US", "tier": "official"}
+        deepseek.return_value = ([one], {"provider": "deepseek", "n": 1, "billable": True})
+        result = sources.search_web("sec filing", "US")
+        self.assertEqual(result["provider"], "deepseek")
+        self.assertFalse(brave.called)
+        self.assertEqual(result["attempts"][0]["provider"], "opengo")
+        self.assertIn("skipped", result["attempts"][0])
+
+    @mock.patch("bp.product.sources._brave_web")
+    @mock.patch("bp.product.sources._deepseek_web")
+    def test_deepseek_failure_falls_through_to_brave(self, deepseek, brave):
+        one = {"title": "SEC filing", "url": "https://www.sec.gov/x", "description": "A filing",
+               "site": "U.S. SEC EDGAR", "domain": "sec.gov", "region": "US", "tier": "official"}
+        deepseek.return_value = ([], {"provider": "deepseek", "error": "HTTP 500"})
+        brave.return_value = ([one], {"provider": "brave", "n": 1})
+        result = sources.search_web("sec filing", "US")
+        self.assertEqual(result["provider"], "brave")
+        self.assertTrue(any(item.get("provider") == "deepseek" and item.get("error") for item in result["attempts"]))
+
     def test_a_thin_brave_answer_does_not_wait_for_the_fallback(self):
         one = {"title": "SEC filing", "url": "https://www.sec.gov/x", "description": "A filing",
                "site": "U.S. SEC EDGAR", "domain": "sec.gov", "region": "US", "tier": "official"}
@@ -155,7 +178,7 @@ class SearchTest(unittest.TestCase):
         self.assertFalse(firecrawl.called)
 
     def test_web_search_without_a_key_returns_the_directory_not_invented_results(self):
-        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "", "BP_FIRECRAWL_KEYLESS": "0"}, clear=False):
+        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "", "BP_FIRECRAWL_KEYLESS": "0", "BP_DEEPSEEK_API_KEY": ""}, clear=False):
             result = sources.search_web("strategy", "US")
         self.assertEqual(result["results"], [])
         self.assertIn("No curated web result", result["notice"])
@@ -163,14 +186,14 @@ class SearchTest(unittest.TestCase):
 
     @mock.patch("bp.product.sources._get_json", side_effect=fake_json)
     def test_web_search_keeps_only_curated_domains(self, _getter):
-        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "0"}, clear=False):
+        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "0", "BP_DEEPSEEK_API_KEY": ""}, clear=False):
             result = sources.search_web("sec filing", "US")
         self.assertEqual([item["domain"] for item in result["results"]], ["sec.gov", "congress.gov"])
         self.assertEqual(result["results"][0]["tier"], "official")
 
     @mock.patch("bp.product.sources._get_json", side_effect=fake_json)
     def test_web_search_category_limits_the_domains(self, _getter):
-        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "0"}, clear=False):
+        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "0", "BP_DEEPSEEK_API_KEY": ""}, clear=False):
             result = sources.search_web("legislation", "US", category="legal")
         self.assertTrue(all(item["domain"] in {site["domain"] for site in sources.vetted_sites(category="legal")}
                             for item in result["results"]))
@@ -183,7 +206,7 @@ class SearchTest(unittest.TestCase):
         post.return_value = {"data": {"web": [
             {"title": "Congress bill", "url": "https://www.congress.gov/bill/example", "description": "A bill"},
             {"title": "Unvetted", "url": "https://example.com/post", "description": "Not vetted"}]}}
-        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "1"}, clear=False):
+        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "1", "BP_DEEPSEEK_API_KEY": ""}, clear=False):
             result = sources.search_web("legislation", "US", category="legal")
         self.assertEqual(result["provider"], "firecrawl")
         self.assertEqual([item["domain"] for item in result["results"]], ["congress.gov"])

@@ -31,7 +31,7 @@ def academic(query, databases=None, limit=20, year_from=None):
     }], "errors": [], "skipped": []}
 
 
-def web(query, region="Global", limit=10, category=None):
+def web(query, region="Global", limit=10, category=None, fast=False):
     return {"results": [], "notice": "Web search is not configured.", "sites": []}
 
 
@@ -241,6 +241,16 @@ class SwotTest(unittest.TestCase):
         queries = [dimension["query"] for dimension in state["plan"]["dimensions"]]
         self.assertTrue(all(query.startswith("Iran ") for query in queries))
         self.assertTrue(all("Apple" not in query for query in queries))
+
+
+    def test_precision_ranking_prefers_a_title_match_and_recency(self):
+        cues = {"water"}
+        specific = {"iran"}
+        older = {"title": "Iran economy", "abstract": "water", "year": 2015,
+                 "credibility": 50, "database": "OpenAlex"}
+        better = {"title": "Iran water crisis", "abstract": "water", "year": 2025,
+                  "credibility": 50, "database": "OpenAlex"}
+        self.assertGreater(chat._rank(better, 4, cues, specific), chat._rank(older, 4, cues, specific))
 
 
 class CombinedTest(unittest.TestCase):
