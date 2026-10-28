@@ -80,6 +80,31 @@ class CompletionTest(unittest.TestCase):
                                 "apple considering for an entry in iran")
         self.assertIn("industry", str(refused.exception).lower())
 
+    @mock.patch("bp.product.completion._model_sections")
+    def test_the_full_version_uses_model_prose_and_keeps_citations(self, model):
+        model.return_value = (
+            {"introduction": "This paper examines the industry.", "forces": {"rivalry": "Competition is intense."},
+             "discussion": "The force shapes the entry context.", "conclusion": "The analysis is limited."},
+            "text", {"rivalry": ["(Lovelace, 2024)"]})
+        result = {"instruction": "A case in Saudi Arabia.",
+                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                              "items": [{"text": "Competition is intense.", "provenance": "sourced",
+                                         "source": "Lovelace, A. (2024). Retail competition.",
+                                         "citation": "(Lovelace, 2024)"}]}]}
+        report = completion.draft(result, "apa", "full")
+        self.assertTrue(report["model_used"])
+        rivalry = next(section for section in report["sections"] if section["heading"] == "Industry rivalry")
+        self.assertIn("(Lovelace, 2024)", rivalry["lines"][0])
+
+    def test_student_items_stay_student_evidence_not_assumptions(self):
+        result = {"instruction": "A grocery chain considers a cold-chain acquisition in Saudi Arabia.",
+                  "blocks": [{"key": "buyers", "label": "Buyer power",
+                              "items": [{"text": "Buyers negotiate on price.", "provenance": "user"}]}]}
+        report = completion.draft(result, "apa", "draft")
+        buyers = next(section for section in report["sections"] if section["heading"] == "Buyer power")
+        self.assertEqual(buyers["lines"][0], "Buyers negotiate on price.")
+        self.assertNotIn("Case assumption", buyers["lines"][0])
+
     def test_another_template_is_refused(self):
         with self.assertRaises(ValueError):
             completion.complete("template_swot", "A grocery chain is entering Saudi Arabia.")

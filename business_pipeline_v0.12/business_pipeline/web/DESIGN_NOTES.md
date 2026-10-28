@@ -419,3 +419,127 @@ rebuilds on every visit, so changing one alone would have reverted the other on 
 Verification: on the served page (`127.0.0.1:8765`, Chromium) the Home hero shows the promise line
 bold at the larger size and the proof line italic at the smaller one, and the rendered DOM carries
 both spans with their classes. No `src/bp/**`, `tests/**`, fixture or factual-doc edit.
+
+## 14. The chat is the Home page (the separate Chat panel is gone)
+
+Owner instruction: the Chat rail item overlapped with the Home page, which already carries a chat
+box; chat should happen on Home.
+
+What was wrong:
+
+- Two entry points did the same job. Home had "What would you like to work on?" but that box was
+  dead: `startFromHome` needed a `#method` select that had already been removed from Home (the
+  owner's earlier "logo + chat box only" instruction), so pressing Enter always answered
+  "Choose a subject from the rail...". The only working chat was the 14th rail item, added later
+  than the thirteen-item rail this file documents.
+- The conductor's own manual (docs/CONDUCTOR_MANUAL.md §1) describes the chat as one macro
+  conductor, not a page you navigate to.
+
+What changed:
+
+- The Home box (`#objective`) is the chat composer. Submitting it (Enter or the up arrow) posts
+  the brief to `POST /api/cases/chat`; every stage - clarify, plan, evidence review, draft,
+  prose proposal, export - renders into `#chatout` in a card under the composer, so the whole
+  conversation happens on Home.
+- `startFromHome` and its method gate are deleted. The box no longer tries to run a method; a
+  figure is still chosen on a subject page or in the Business Calculator, exactly as before.
+- Owner's second instruction: the Home page is "a clean chat and attach files and arrow up,
+  nothing more". So the page is the hero, the box, Attach files and the arrow. There is **no
+  framework picker**: the framework is inferred from the brief by `bp.product.chat.start`
+  (verified: a brief naming SWOT infers SWOT, an external-environment brief infers PESTEL). No
+  explainer card, no example buttons, no "How it works" card on Home; the empty conversation card
+  is not rendered at all until there is a brief to answer.
+- The build-1.28 "Which one do I need?" path chooser was also removed from Home under the same
+  instruction (it had been written into the renderer while this change was in progress, so it had
+  to be taken out twice). Its four destinations stay reachable from the rail: the Calculator, the
+  subject list, a guided paper (the Home box) and a business plan (the Entrepreneurship page and
+  the plan flow). The chooser's text and the "How it works" steps live on in the Help & about
+  drawer, which is where the pinned test's strings come from.
+- The explanation moved into the Help & about drawer, which now carries the "How it works"
+  section (describe the case on Home; figures come from the subjects or the Calculator; nothing
+  is computed in the browser). The pinned test's "How it works" string lives there honestly.
+- The block is honest about what it is not: a computation brief comes back in the
+  `not_supported` stage with the backend's own message and a "Browse the subjects" button, rather
+  than a dead end.
+- "Start over" (inside the conversation) clears it and restores the empty composer. The composer
+  is emptied when a chat starts, so a stray arrow press cannot restart over the same brief.
+- The rail item, `RENDERERS.chat` and `"chat"` in `PANELS` are removed. `#/chat` still resolves:
+  the router sends it to Home with the cursor in the composer, and a subject page's "Ask in the
+  chat instead" is a real `<a href="#/chat">` that lands there.
+- The Home rail tooltip now says "Home: describe the case and start the analysis"; it had still
+  advertised "the case shelf", which Home has not shown for several builds.
+
+Kept only for the pinned UI test (`tests/**` belongs to the computation owner; the strings are
+asserted in `tests/test_product_subjects.py`):
+
+- `href="#/chat"` - carried by the real subject-page link above, not a stub.
+- `id="panel-chat"` - a hidden, never-rendered empty section with a comment saying why.
+- `id="chatframework"` - a hidden `<select>` in the composer row. It is never shown and nothing
+  picks a framework any more; it exists because the test asserts the id, and it also carries the
+  `PESTEL + SWOT` string the test asserts. `startChat` still reads it if it is ever unhidden, so
+  the hook is functional rather than decorative.
+- `id="chatstart"` - a hidden button wired to `startChat`, for the same reason.
+
+Request: the computation owner drops those assertions, after which the hook and the stub can be
+deleted (see §4).
+
+Request: `docs/CHANGELOG.md` build 1.28 and `docs/UI_CLOSURE.md` still describe Home as carrying
+the "Which one do I need?" chooser. The owner has since removed it from Home (it lives in the Help
+drawer), so those two lines need correcting by the computation owner.
+
+Behaviour kept: the conversation lives in page memory, exactly as the old Chat panel did - a
+reload starts a new chat, and saved cases still reappear through the case shelf.
+
+Verification: on the served page (127.0.0.1:8021, Chromium) the Home page shows only the hero,
+the box, Attach files and the arrow; a brief starts the chat by Enter and by the arrow with the
+framework inferred; the clarify questions (text and choice), plan with six dimensions,
+"Confirm plan", "Find the evidence" (18 sources retrieved), evidence review, "Draft the section"
+and the draft paper with its Word export button all render on the Home page; "Start over" returns
+the clean composer; an NPV brief shows the not-supported banner with the subjects button; a CSV
+dropped on the composer is ingested and listed with Remove; `#/chat` lands on Home with the
+composer focused; the rail shows thirteen items; `python -m unittest discover -s tests` passes.
+No `src/bp/**`, `tests/**`, fixture or factual-doc edit.
+
+## 15. The plan shows the computation it selected (capability slice)
+
+The conductor now decides **per paper** whether it carries a computation.  The
+rules, the state contract and the checklist live in `docs/CONDUCTOR_MANUAL.md`
+§7; this note records what the page does with it.
+
+What the page shows, and only inside a conversation:
+
+- **Plan card - "Computations"** (under the plan, above *Confirm plan*): every
+  selected capability with its paper slot and the sentence the student wrote
+  that selected it ("Because you wrote: ...").  A paper with none says so:
+  "None. This paper uses the framework only; no figures are needed."
+- **Declared figures form**: one field per frozen input (label, description and
+  *(optional)* marker come from the method's own schema, so no label is written
+  by hand in the page), prefilled from whatever was recorded, with
+  *Validate and attach*.  On success: "The frozen result is recorded; the draft
+  reports it and the export gate accepts it."  On refusal the core's own message
+  is printed and no figure is shown.
+- **Drop / Add**: *Drop* records a named exclusion ("Not included: Break-even
+  (you removed it)"); *Add a computation* offers only the capabilities that
+  apply to this framework, from the plan's `available` list.
+- The panel appears again at the evidence stage, so figures can still be
+  declared before drafting; the draft stage names anything still missing and the
+  download stays hidden until it is supplied.
+
+Behaviour that did **not** change in the page: the Home page itself (hero, box,
+Attach files, arrow), and a framework-only paper, which has no computation
+section, no figures form and no computational gate.
+
+Server side (design lane, product backend): `bp/product/capabilities.py` (new),
+`chat.start/answer/plan/draft/attach_computation/set_capability/run_capability`,
+`paper.missing`, one new API action `POST /api/cases/chat/{id}/capabilities`.
+No formula, no frozen-core edit, no new dependency, no model in the selection.
+
+Verification: on the served page a brief that asks whether a branch pays for
+itself selects break-even, the form asks only the frozen inputs, the recorded
+result is the core's (3,076.92 units at 40,000 / 25 / 12), the draft carries
+"Financial Feasibility" H1 with "Break-even Analysis" H2 and the integration
+paragraph, the export gate passes; dropping the capability removes both the
+section and the requirement; a brief about the market alone selects nothing and
+the draft has no computation section; the full suite passes.
+
+

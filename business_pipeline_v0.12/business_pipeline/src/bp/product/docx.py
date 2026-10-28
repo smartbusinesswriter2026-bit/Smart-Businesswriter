@@ -132,17 +132,24 @@ def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None, 
             % (props, rpr, escape(text or "")))
 
 
-def academic_document_xml(title, sections, style="apa"):
-    """An APA/Harvard-style student paper: title page, double spacing, hanging references."""
+def academic_document_xml(title, sections, style="apa", byline=()):
+    """An APA/Harvard-style student paper: title page, double spacing, hanging references.
+
+    `byline` is a list of the student's own title-page lines (name, institution,
+    course, instructor).  Empty lines are dropped, and nothing is invented: a
+    paper never carries a placeholder such as "[your name]".
+    """
     import datetime
+    lines = [line for line in (byline or []) if str(line or "").strip()]
     parts = [
         _academic_para("", after=0),
         _academic_para(title, bold=True, align="center", after=240),
-        _academic_para("Author: [your name]", align="center"),
-        _academic_para("Institution: [your institution]", align="center"),
+    ]
+    parts.extend(_academic_para(str(line).strip(), align="center") for line in lines)
+    parts.extend([
         _academic_para(datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"), align="center"),
         '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
-    ]
+    ])
     for item in sections:
         if isinstance(item, dict):
             heading = item.get("heading", "")
@@ -176,9 +183,9 @@ def academic_document_xml(title, sections, style="apa"):
             "<w:body>" + "".join(parts) + "</w:body></w:document>")
 
 
-def render_academic(title, sections, style="apa"):
+def render_academic(title, sections, style="apa", byline=()):
     """The whole academic .docx as bytes, deterministic for the same input."""
-    body = academic_document_xml(title, sections, style)
+    body = academic_document_xml(title, sections, style, byline=byline)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for name, text in (("[Content_Types].xml", ACADEMIC_CONTENT_TYPES),

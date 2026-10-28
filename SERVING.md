@@ -10,7 +10,7 @@ to prove their own work still existed. Do not repeat that.
 | | |
 |---|---|
 | **URL** | http://127.0.0.1:8021/ |
-| **Build** | **v1.11** (page shows a `v1.11` pill in the header) |
+| **Build** | **v1.27** (page shows a `v1.27` pill in the header) |
 | **Repository** | `D:\SMART BUSINESSWRITER` |
 | **Branch** | **`design/v0.73-rail`** — this is the checked-out default |
 | **Layout** | Subjects in the side rail: Home · Accounting · Finance · Economics · Management & strategy · Project management · Entrepreneurship · Operations management · Supply chain & logistics · Marketing & customers · People & organisation · Research & statistics · Business Calculator |

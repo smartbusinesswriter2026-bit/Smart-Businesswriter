@@ -233,6 +233,13 @@ class CatalogueHonestyTest(unittest.TestCase):
                 self.assertEqual(record["form"], "read_only", record["id"])
                 self.assertIn("read-only record", record["implementation_status"], record["id"])
 
+    def test_every_subject_carries_a_student_guide(self):
+        for row in subjects.catalogue()["subjects"]:
+            page = subjects.detail(row["id"])
+            self.assertTrue(page.get("guidance"), row["id"])
+            self.assertGreaterEqual(len(page.get("start_steps") or []), 3, row["id"])
+            self.assertGreaterEqual(len(page.get("does_not") or []), 2, row["id"])
+
 
 class ServedUiContractTest(unittest.TestCase):
     """The served page must carry the subject rail and the Enter affordance.

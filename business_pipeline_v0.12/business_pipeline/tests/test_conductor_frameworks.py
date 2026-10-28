@@ -12,10 +12,12 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, "src")
-from bp.methods import breakeven as core_breakeven  # noqa: E402
+from bp import methods  # noqa: E402
+from bp.methods import LIBRARY, breakeven as core_breakeven  # noqa: E402
 from bp.product import api, chat  # noqa: E402
 
 chat.set_compute(core_breakeven)
+chat.set_method_compute(lambda name, inputs: LIBRARY[name].impl(inputs), methods.describe)
 
 BRIEF = ("A grocery chain is considering entering the Saudi market and needs to assess the "
          "political, economic, social, technological, environmental and legal context.")
@@ -173,7 +175,7 @@ class Drafts(unittest.TestCase):
         text = body(state)
         self.assertIn("Cold-chain fleet; Store locations", text)
         self.assertIn("Fleet - yes: it serves chilled goods", text)
-        self.assertIn("No costly to imitate were supplied; this is a gap, not a finding.", text)
+        self.assertIn("No imitation-cost judgments were supplied; this is a gap, not a finding.", text)
 
     def test_a_break_even_paper_reports_only_the_core_result(self):
         state = answer_all(chat.start(BRIEF, framework="breakeven"), {
@@ -187,7 +189,7 @@ class Drafts(unittest.TestCase):
         text = body(state)
         self.assertIn("166,666.67", text)
         self.assertIn("6,666,666.67", text)
-        self.assertIn("only financial figure is the break-even result", text)
+        self.assertIn("Every financial figure is the frozen method's result", text)
         self.assertNotIn("No financial figure is computed", text)
 
     def test_a_missing_dimension_is_a_named_gap_not_prose(self):
@@ -208,18 +210,21 @@ class AttachedComputation(unittest.TestCase):
         return chat.confirm_plan(state)
 
     def test_break_even_can_be_attached_to_any_framework(self):
-        state = self.pestel()
+        brief = (BRIEF.rstrip(".") + ", and a break-even analysis at the declared price.")
+        state = answer_all(chat.start(brief, framework="pestel"), {"decision": "Should the chain enter?"})
+        state = chat.confirm_plan(state)
+        self.assertTrue(chat.capabilities.carries(state.get("selection"), "breakeven"))
         state = chat.attach_computation(state, "breakeven",
                                         {"fixed": "2000000", "price": "40", "variable": "28", "expected": "250000"})
         self.assertEqual(state["computation"]["key"], "breakeven")
+        self.assertIn("breakeven", state["computations"])
         state = research(state)
         state = chat.draft(state, implications="Entry is viable only above break-even.")
         found = levels(state)
         self.assertEqual(found["Financial Feasibility"], 1)
         self.assertEqual(found["Break-even Analysis"], 2)
         self.assertEqual(found["Framework and Financial Feasibility"], 2)
-        text = body(state)
-        self.assertIn("166,666.67", text)
+        self.assertIn("166,666.67", body(state))
         self.assertIn("and break-even analysis", state["draft"]["title"])
 
     def test_it_is_refused_on_the_combo_that_already_carries_it(self):
@@ -252,25 +257,26 @@ class ExportGate(unittest.TestCase):
         self.assertIn("at least one resource", state["draft"]["missing"])
         self.assertIn("at least one value judgment", state["draft"]["missing"])
 
-    def test_an_attached_computation_is_listed_when_its_inputs_are_missing(self):
+    def test_an_attached_computation_is_listed_when_its_figures_are_missing(self):
         from bp.product import paper
-        state = answer_all(chat.start(BRIEF, framework="pestel"), {})
+        brief = (BRIEF.rstrip(".") + ", and a break-even analysis at the declared price.")
+        state = answer_all(chat.start(brief, framework="pestel"), {"decision": "Should the chain enter?"})
         state = chat.confirm_plan(state)
+        self.assertIn("the break-even figures", paper.missing(state, "A position."))
         state = chat.attach_computation(state, "breakeven", {"fixed": "1", "price": "2", "variable": "1"})
-        state["computation"]["inputs"] = {}
-        self.assertIn("the break-even inputs", paper.missing(state, "A position."))
+        self.assertNotIn("the break-even figures", paper.missing(state, "A position."))
 
 
 class ApiRoute(unittest.TestCase):
     def test_the_computation_action_is_served(self):
-        status, state = api.handle("POST", "/api/cases/chat",
-                                   {"brief": BRIEF, "framework": "pestel"})
+        brief = (BRIEF.rstrip(".") + ", and a break-even analysis at the declared price.")
+        status, state = api.handle("POST", "/api/cases/chat", {"brief": brief, "framework": "pestel"})
         self.assertEqual(status, 201)
         while chat.current_question(state):
             question = chat.current_question(state)
+            value = "Should the chain enter?" if question["id"] == "decision" else (question.get("default") or "1")
             status, state = api.handle("POST", "/api/cases/chat/" + state["id"] + "/answer",
-                                       {"question_id": question["id"],
-                                        "value": question.get("default") or "x"})
+                                       {"question_id": question["id"], "value": value})
             self.assertEqual(status, 200)
         status, state = api.handle("POST", "/api/cases/chat/" + state["id"] + "/plan", {})
         self.assertEqual(status, 200)

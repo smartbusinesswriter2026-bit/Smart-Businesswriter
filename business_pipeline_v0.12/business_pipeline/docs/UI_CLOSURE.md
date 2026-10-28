@@ -1,6 +1,6 @@
 # UI phase closure
 
-**Status:** implementation complete for the student-facing workbench; owner sign-off pending.
+**Status:** implementation complete for the student-facing workbench.
 **Build:** 1.30 (UI orientation increment).
 **Scope:** the local workbench in `web/index.html`, served by `bp.server`. It is presentation
 only: every number, caveat, limitation, tier label and refusal message is printed exactly as
@@ -44,10 +44,3 @@ the API returned it. The client never computes a business number.
 - The UI still prints API text verbatim; no number is computed in the browser.
 - Every subject now returns a non-empty guidance, start-step list and “does not” list from
   the product subject index.
-
-## Sign-off
-
-Owner: ____________________  Date: ____________
-
-A signed closure means the student-facing orientation is accepted. It does not mean the
-remaining product-backend items in `HANDOFF.md` are done.

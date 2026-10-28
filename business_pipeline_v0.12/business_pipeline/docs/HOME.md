@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.30**, **1560 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.33**, **1575 tests**, 2026-10-28. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -114,6 +114,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`FINANCE_STUDENT_GUIDE.md`](FINANCE_STUDENT_GUIDE.md) | Living student guide | Update when the Finance shelf, its conventions or its worked examples change |
 | [`MARKETING_STUDENT_GUIDE.md`](MARKETING_STUDENT_GUIDE.md) | Living student guide | Update when the Marketing & customers shelf, its conventions or its worked examples change |
 | [`OPERATIONS_STUDENT_GUIDE.md`](OPERATIONS_STUDENT_GUIDE.md) | Living student guide | Update when the Operations or Supply chain shelf, its conventions or its worked examples change |
+| [`SAMPLE_PAPERS.md`](SAMPLE_PAPERS.md) | Living note on the generated samples | Update when a sample is regenerated, a framework is added or the byline rule changes |
 | [`PROJECT_MANAGEMENT_STUDENT_GUIDE.md`](PROJECT_MANAGEMENT_STUDENT_GUIDE.md) | Living student guide | Update when the Project management shelf, its conventions or its worked examples change |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |
 | [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) | Living backlog | Status changes only with verification + commit |
@@ -122,7 +123,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`SOURCE_INVENTORY.md`](SOURCE_INVENTORY.md) | Historical snapshot — which supplied documents had been read, at the time | Never rewrite; it records that point in time, not the current inventory |
 | [`proposals/`](proposals/) | Draft proposals for owner review (not authority) | Marked DRAFT; never cite as a decision, and never as the computation owner's advice |
 | [`UI_BRIEF.md`](UI_BRIEF.md) | Owner instruction for the website UI phase (design owner) | Plan-mode first; keep the frozen contract, compute nothing in the UI, no invented content |
-| [`UI_CLOSURE.md`](UI_CLOSURE.md) | Living UI-phase closure checklist | Sign off when the student-facing workbench is accepted; do not claim the backend product items |
+| [`UI_CLOSURE.md`](UI_CLOSURE.md) | Living UI-phase closure checklist | Update when the student-facing workbench changes; do not claim the backend product items |
 | [`DISCUSSION_NOTEBOOK.md`](DISCUSSION_NOTEBOOK.md) | Living, append-only owner-review and design-discussion record; newest entry at the top | Never rewrite an old entry; supersede it; every entry must end with where it could be wrong |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** — never edit; amend via decisions |
 

@@ -6,6 +6,8 @@ level 2.  It also defines what must be present before a Word file may leave the
 system, so a submitted paper never contains template instructions.
 """
 
+from . import capabilities
+
 H1, H2, H3 = 1, 2, 3
 
 META = (
@@ -60,11 +62,19 @@ def missing(state, implications=""):
             required.append("at least one resource")
         if not (answers.get("valuable") or []):
             required.append("at least one value judgment")
+    recorded = state.get("computations") or {}
+    for row in (state.get("selection") or {}).get("selected") or []:
+        data = recorded.get(row.get("key")) or {}
+        if not data.get("ok"):
+            required.append("the " + str(row.get("label") or row.get("key")).lower() + " figures")
+    # Legacy: a case saved before capabilities carries `computation` and no selection.
     attached = state.get("computation") or {}
-    if attached.get("key") == "breakeven":
-        inputs = attached.get("inputs") or {}
-        if not all(str(inputs.get(name, "")).strip() for name in ("fixed", "price", "variable")):
-            required.append("the break-even inputs")
+    if attached.get("key") and not (attached.get("inputs") or {}):
+        try:
+            label = capabilities.entry(attached["key"])["label"].lower()
+        except KeyError:
+            label = str(attached["key"]).replace("_", " ")
+        required.append("the " + label + " inputs")
     return required
 
 

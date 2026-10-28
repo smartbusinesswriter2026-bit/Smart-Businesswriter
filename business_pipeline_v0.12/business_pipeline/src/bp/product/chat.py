@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import docx, guard, paper, prose, writing
+from . import capabilities, docx, guard, paper, prose, writing
 
 FORMAT = "bp-chat/1"
 
@@ -466,10 +466,38 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
-             "computation": None, "draft": None}
+             "computation": None, "draft": None,
+             "selection": None, "computations": {}}
+    # Which capabilities this paper carries is decided from the brief, not from a
+    # fixed list: a framework-only brief selects nothing and the paper runs as before.
+    selection = capabilities.resolve(brief, framework, answers)
+    _fill_capability_inputs(selection)
+    state["selection"] = selection
+    if selection.get("question") and fits:
+        questions.insert(0, dict(selection["question"]))
+        state["question_quote"] = selection.get("question_quote") or ""
     if not fits:
         state.update({"stage": "not_supported", "message": message, "questions": [], "question_index": 0})
     return state
+
+
+def _fill_capability_inputs(selection):
+    """Name the frozen inputs each selected capability needs, and quote the method
+    library's own licence and limitation.  Nothing is restated by hand here."""
+    for row in (selection or {}).get("selected") or []:
+        schema = _schema_for(row.get("method") or "")
+        row["inputs_required"] = [name for name, spec in schema.items() if spec.get("required", True)]
+        row["inputs"] = {name: {"desc": spec.get("desc") or name,
+                                "required": bool(spec.get("required", True))}
+                         for name, spec in schema.items()}
+        if METHOD_DESCRIBE is not None and row.get("method"):
+            try:
+                info = METHOD_DESCRIBE(row["method"]) or {}
+            except Exception:
+                info = {}
+            row["licenses"] = str(info.get("intended_use") or row.get("licenses") or "").strip()
+            row["not"] = str(info.get("unsupported_use") or row.get("not") or "").strip()
+    return selection
 
 
 def current_question(state):
@@ -488,6 +516,12 @@ def answer(state, question_id, value):
         if value not in allowed:
             raise ChatError("Choose one of: " + ", ".join(allowed))
         state["answers"][question_id] = value
+        # The one ambiguity question decides whether the paper carries a
+        # computation; the answer is recorded, and the plan explains it.
+        if str(question_id).startswith("capability:"):
+            state["selection"] = capabilities.apply_answer(state.get("selection") or {},
+                                                           question_id, value)
+            _fill_capability_inputs(state["selection"])
     elif question["type"] == "items":
         items = _items(value)
         if not items and not question.get("allow_skip"):
@@ -593,6 +627,11 @@ def _plan(state):
         "breakeven": ("A feasibility paper with a break-even analysis from your declared figures, a discussion with "
                       "limitations and a conclusion; no external evidence is retrieved."),
     }[framework]
+    selection = state.get("selection") or {}
+    selected = selection.get("selected") or []
+    if selected:
+        output = output + " The paper also carries " + ", ".join(
+            row["label"].lower() for row in selected) + " from the figures you declare."
     return {
         "framework": config["label"],
         "framework_id": framework,
@@ -609,6 +648,17 @@ def _plan(state):
         "inputs": list(config.get("inputs") or []),
         "swot": framework in ("swot", "pestel_swot"),
         "output": output,
+        "capabilities": [{"key": row["key"], "label": row["label"], "slot": row.get("slot"),
+                          "because": row.get("because"), "inputs_required": row.get("inputs_required") or [],
+                          "inputs": row.get("inputs") or {},
+                          "licenses": row.get("licenses"), "not": row.get("not"),
+                          "status": _capability_status(state, row)} for row in selected],
+        "available": [{"key": row["key"], "label": row["label"], "because": row.get("because"),
+                       "slot": row.get("slot")}
+                      for row in _available_capabilities(framework, selected)],
+        "not_included": list(selection.get("not_included") or []),
+        "selection_hash": selection.get("hash"),
+        "catalogue_version": selection.get("catalogue_version"),
         "checkpoints": ["Confirm this plan", "Review the retrieved evidence", "Review the drafted section"]
         if config.get("evidence", True) else ["Confirm this plan", "Review your inputs", "Review the drafted section"],
     }
@@ -646,43 +696,139 @@ def confirm_plan(state):
 
 
 def attach_computation(state, key="breakeven", values=None):
-    """Attach a frozen computation to any framework paper.  The core must accept the inputs."""
+    """Declare the figures for a capability the paper already carries (API action)."""
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
         raise ChatError("A business plan carries its own computation blocks; attach nothing to it here.")
-    if (key or "breakeven").strip().lower() != "breakeven":
-        raise ChatError("Only break-even can be attached to a framework paper today.")
-    if state.get("framework") == "five_forces_breakeven":
+    if state.get("framework") in ("breakeven", "five_forces_breakeven"):
         raise ChatError("This paper already carries the break-even analysis.")
+    wanted = str(key or "breakeven").strip().lower()
+    if not capabilities.carries(state.get("selection"), wanted):
+        # Declaring figures through this action is the student adding the
+        # capability: the plan records it, and the paper then carries it.
+        state = set_capability(state, wanted, True, "the figures were declared")
+    return run_capability(state, wanted, values)
+
+
+def run_capability(state, key, values):
+    """Validate declared figures against the frozen schema, then run the core once.
+
+    The product layer never computes: it checks that every required input is
+    declared, calls the frozen method and stores its result unchanged.  A refusal
+    is stored with the core's own message so the paper can name the gap instead
+    of reporting a figure.
+    """
+    entry_row = capabilities.entry(key)
     if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "draft"):
-        raise ChatError("Finish the questions before attaching a computation.")
+        raise ChatError("Finish the questions before declaring the figures.")
     values = values if isinstance(values, dict) else {}
+    if isinstance(values.get("values"), dict):
+        values = values["values"]
+    inputs, problem = _capability_inputs(entry_row, values)
+    if problem:
+        raise ChatError(problem)
+    store = state.setdefault("computations", {})
+    if METHOD_RUN is None:
+        store[entry_row["key"]] = {"ok": False, "method": entry_row["method"], "inputs": inputs,
+                                   "error": "the frozen core is not attached"}
+        raise ChatError("The frozen core is not attached; no figure is computed in the product layer.")
+    try:
+        output = METHOD_RUN(entry_row["method"], inputs)
+    except Exception as error:
+        store[entry_row["key"]] = {"ok": False, "method": entry_row["method"], "inputs": inputs,
+                                   "error": str(error)[:500]}
+        raise ChatError(entry_row["label"] + " refused the declared figures: " + str(error)[:200])
+    store[entry_row["key"]] = {"ok": True, "method": entry_row["method"], "inputs": inputs,
+                               "result": {str(name): str(value) for name, value in dict(output).items()}}
+    state["computation"] = {"key": entry_row["key"], "inputs": inputs}
+    if state.get("draft"):
+        # The paper changed; the old draft would report the previous figures.
+        state["draft"] = None
+        if state.get("stage") == "draft":
+            state["stage"] = "evidence"
+    if state.get("stage") != "clarify":
+        state["plan"] = _plan(state)
+    state["updated_at"] = _now()
+    return state
+
+
+def _capability_inputs(entry_row, values):
+    """Read the declared figures through the frozen schema; no default is invented."""
+    schema = _schema_for(entry_row["method"])
+    if not schema:
+        return {}, ("The declared inputs for " + entry_row["label"].lower()
+                    + " are not available; the frozen core is not attached.")
     inputs = {}
-    for name in ("fixed", "price", "variable"):
-        text = _clean(str(values.get(name, "")), 40)
+    for name, spec in schema.items():
+        required = spec.get("required", True)
+        raw = values.get(name, "")
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+            raw = str(raw)
+        text = _clean(str(raw), 40) if raw is not None else ""
         if not text:
-            raise ChatError("Declare the " + name + " for the break-even analysis.")
+            if required:
+                return {}, "Declare the " + (spec.get("desc") or name) + "."
+            continue
         try:
             number = Decimal(text)
         except (InvalidOperation, ValueError):
-            raise ChatError("The break-even inputs must be numbers.")
-        if number < 0:
-            raise ChatError("A price or cost cannot be negative.")
+            return {}, "The " + (spec.get("desc") or name) + " must be a number."
         inputs[name] = str(number)
-    expected = _clean(str(values.get("expected", "")), 40)
-    if expected:
-        try:
-            inputs["expected_units"] = str(Decimal(expected))
-        except (InvalidOperation, ValueError):
-            raise ChatError("Expected volume must be a number.")
-    if COMPUTE is None:
-        raise ChatError("The break-even engine is not attached; no figure is computed in the product layer.")
+    if entry_row.get("domain") == "breakeven":
+        for name in ("fixed", "price", "variable"):
+            if name in inputs and Decimal(inputs[name]) < 0:
+                return {}, "A price or cost cannot be negative."
+    return inputs, None
+
+
+def set_capability(state, key, enabled=True, reason=""):
+    """Add or drop one capability at the plan stage, recording the student's decision."""
+    if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
+        raise ChatError("A business plan carries its own computation blocks.")
+    framework = state.get("framework") or "pestel"
+    if framework in ("breakeven", "five_forces_breakeven"):
+        raise ChatError("This paper already carries the break-even analysis.")
     try:
-        COMPUTE(dict(inputs))
-    except Exception as error:
-        raise ChatError("Break-even refused the declared figures: " + str(error)[:200])
-    state["computation"] = {"key": "breakeven", "inputs": inputs}
+        selection = capabilities.set_enabled(state.get("selection") or {}, framework, key,
+                                             bool(enabled), reason)
+    except KeyError:
+        raise ChatError("Unknown computation: " + str(key))
+    except ValueError as error:
+        raise ChatError(str(error))
+    state["selection"] = selection
+    _fill_capability_inputs(selection)
+    if not capabilities.carries(selection, key):
+        state.setdefault("computations", {}).pop(key, None)
+        if (state.get("computation") or {}).get("key") == key:
+            state["computation"] = None
+        if state.get("draft"):
+            state["draft"] = None
+            if state.get("stage") == "draft":
+                state["stage"] = "evidence"
+    if state.get("stage") != "clarify":
+        state["plan"] = _plan(state)
     state["updated_at"] = _now()
     return state
+
+
+def _capability_status(state, row):
+    recorded = (state.get("computations") or {}).get(row["key"]) or {}
+    if recorded.get("ok"):
+        return "recorded"
+    if recorded.get("error"):
+        return "refused"
+    return "needed"
+
+
+def _available_capabilities(framework, selected):
+    """Capabilities the student may still add to this paper (never the embedded ones)."""
+    chosen = {row["key"] for row in selected or []}
+    rows = []
+    for key, row in capabilities.ENTRIES.items():
+        if key in chosen or framework not in row["applies_to"]:
+            continue
+        rows.append({"key": key, "label": row["label"], "slot": list(row["slot"]),
+                     "because": {"rule": "student:added", "quote": ""}})
+    return sorted(rows, key=lambda row: row["key"])
 
 
 # ---------- business-plan profile: plan, inputs and computation ----------
@@ -1177,11 +1323,12 @@ def _dimension_lines(dimension, evidence, by_id, style):
     return lines
 
 
-def _internal_lines(answers, key, label):
+def _internal_lines(answers, key, label, noun=None):
     items = answers.get(key) or []
+    thing = noun or label.lower()
     if not items:
-        return ["No " + label.lower() + " were supplied; this is a gap, not a finding."]
-    return ["The case identifies the following " + label.lower() + ": " + "; ".join(items) + "."]
+        return ["No " + thing + " were supplied; this is a gap, not a finding."]
+    return ["The case identifies the following " + thing + ": " + "; ".join(items) + "."]
 
 
 POSITIVE = {"growth", "demand", "innovation", "investment", "digital", "expansion", "reform",
@@ -1279,6 +1426,59 @@ def _break_even_lines(answers, result=None):
         lines.append("At the declared expected volume, the margin of safety is "
                      + _fmt_number(result["margin_of_safety_units"]) + " units.")
     return lines
+
+
+#: One deterministic formatter per capability: it reads the frozen result and
+#: prints it.  No capability branch, no formula and no default lives in `draft`.
+#: A capability without a bespoke formatter falls back to `_generic_lines`, which
+#: quotes the recorded output and claims nothing beyond it.
+CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result)}
+
+
+def _fmt_exact(value):
+    """Print a recorded value without inventing precision or losing it."""
+    text = str(value)
+    try:
+        number = Decimal(text)
+    except (InvalidOperation, ValueError):
+        return text
+    if number == number.to_integral():
+        return "{:,.0f}".format(number)
+    if abs(number) >= 1 and number.as_tuple().exponent >= -2:
+        return "{:,.2f}".format(number)
+    return text
+
+
+def _generic_lines(row, inputs, result):
+    """The honest fallback: the declared inputs and the recorded output, in prose."""
+    declared = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
+                         for name, value in (inputs or {}).items())
+    produced = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
+                         for name, value in (result or {}).items())
+    lines = []
+    if declared:
+        lines.append("From the declared inputs (" + declared + "), the frozen " + row["label"].lower()
+                     + " method returns: " + produced + ".")
+    else:
+        lines.append("The frozen " + row["label"].lower() + " method returns: " + produced + ".")
+    lines.append("The figures are the method's recorded output; they are not a forecast and they "
+                 "hold only for the inputs the student declared.")
+    return lines
+
+
+def _capability_lines(row, recorded):
+    """Format one recorded capability for the draft; a gap is named, never filled."""
+    key = row["key"]
+    if recorded.get("ok"):
+        formatter = CAPABILITY_LINES.get(key)
+        if formatter is None:
+            return _generic_lines(row, recorded.get("inputs") or {}, recorded.get("result") or {})
+        return formatter(row, recorded.get("inputs") or {}, recorded.get("result") or {})
+    if recorded.get("error"):
+        return ["The " + row["label"].lower() + " analysis was refused: " + str(recorded["error"])
+                + " No figure is reported."]
+    return ["The " + row["label"].lower() + " analysis has not been run, so no figure is reported; "
+            "this is a named gap, not a result."]
 
 
 def _plan_input(state, key):
@@ -1578,11 +1778,13 @@ def draft(state, accepted_ids=None, implications="", style=None):
     period = answers.get("period") or "10"
     period_text = "the last " + period + " years" if period not in ("0", "") else "all available years"
     position = _clean(implications, 1200)
+    decision_text = _clean(decision, 500).rstrip(" .?!")
     if framework in ("breakeven", "vrio"):
-        intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper uses " + label
+        intro = ("The decision under analysis is: " + decision_text + ". The paper uses " + label
                  + " and the inputs you supplied; no external evidence is retrieved for this framework.")
     else:
-        intro = ("The decision under analysis is: " + _clean(decision, 500) + ". The paper examines " + geography
+        geo_text = geography if geography in ("Global", "") else "the " + geography
+        intro = ("The decision under analysis is: " + decision_text + ". The paper examines " + geo_text
                  + " over " + period_text + " and uses " + label + " to organise the evidence and the firm's position.")
     if position:
         intro += " The paper argues that " + position.rstrip(".") + "."
@@ -1629,21 +1831,31 @@ def draft(state, accepted_ids=None, implications="", style=None):
         sections.append(paper.section("VRIO", paper.H1))
         sections.append(paper.section("Resources", paper.H2,
                                       [paper.paragraph(_internal_lines(answers, "resources", "Resources"))]))
-        for key, heading in (("valuable", "Valuable"), ("rare", "Rare"),
-                             ("costly", "Costly to imitate"), ("organized", "Organised to capture value")):
+        for key, heading, noun in (("valuable", "Valuable", "value judgments"),
+                                   ("rare", "Rare", "rarity judgments"),
+                                   ("costly", "Costly to imitate", "imitation-cost judgments"),
+                                   ("organized", "Organised to capture value", "organisational judgments")):
             sections.append(paper.section(heading, paper.H2,
-                                          [paper.paragraph(_internal_lines(answers, key, heading))]))
+                                          [paper.paragraph(_internal_lines(answers, key, heading, noun))]))
     if framework == "breakeven":
         sections.append(paper.section("Financial Feasibility", paper.H1))
         sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
     if framework == "five_forces_breakeven":
         sections.append(paper.section("Financial Feasibility", paper.H1))
         sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
-    attached = state.get("computation") or {}
-    if attached.get("key") == "breakeven" and framework != "five_forces_breakeven":
-        sections.append(paper.section("Financial Feasibility", paper.H1))
-        sections.append(paper.section("Break-even Analysis", paper.H2,
-                                      [paper.paragraph(_break_even_lines(attached.get("inputs") or {}))]))
+    recorded = state.get("computations") or {}
+    selected_caps = (state.get("selection") or {}).get("selected") or []
+    rendered_sections = set()
+    for row in selected_caps:
+        slot = list(row.get("slot") or ["Computation", row.get("label") or row["key"]])[:2]
+        while len(slot) < 2:
+            slot.append(row.get("label") or row["key"])
+        heading, subheading = slot
+        if heading not in rendered_sections:
+            sections.append(paper.section(heading, paper.H1))
+            rendered_sections.add(heading)
+        sections.append(paper.section(subheading, paper.H2,
+                                      [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
         integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
@@ -1660,12 +1872,15 @@ def draft(state, accepted_ids=None, implications="", style=None):
                        "useful if the expected volume can be reached under those pressures. The implications below state "
                        "the resulting judgment.")
         sections.append(paper.section("Industry Attractiveness and Financial Feasibility", paper.H2, [integration]))
-    elif attached.get("key") == "breakeven":
-        integration = ("The framework above organises the case; the break-even calculation tests whether the declared "
-                       "cost structure can support the declared price. Read together, the analysis qualifies the "
-                       "financial result: a break-even volume is only useful if the volume the case expects can be "
-                       "reached. The implications below state the resulting judgment.")
-        sections.append(paper.section("Framework and Financial Feasibility", paper.H2, [integration]))
+    elif selected_caps:
+        names = ", ".join(row["label"].lower() for row in selected_caps)
+        integration = ("The framework above organises the case; the " + names + " analysis tests the declared "
+                       "figures through the frozen method. Read together, the analysis qualifies the result: a "
+                       "computed figure holds only for the inputs the student declared, and it does not prove "
+                       "that the expected volume or price will be reached. The implications below state the "
+                       "resulting judgment.")
+        heading = selected_caps[0].get("integration") or "Framework and Declared Figures"
+        sections.append(paper.section(heading, paper.H2, [integration]))
     if position:
         sections.append(paper.section("Implications", paper.H2, [position]))
     gaps = [gap["label"] for gap in state.get("gaps") or []]
@@ -1680,9 +1895,9 @@ def draft(state, accepted_ids=None, implications="", style=None):
     if framework == "five_forces_breakeven":
         limits.append("The break-even result depends on the declared fixed cost, price and variable cost; it does not "
                       "forecast demand or prove that the expected volume will be reached.")
-    if attached.get("key") == "breakeven" and framework != "five_forces_breakeven":
-        limits.append("The break-even result depends on the declared fixed cost, price and variable cost; it does not "
-                      "forecast demand or prove that the expected volume will be reached.")
+    if selected_caps:
+        for row in selected_caps:
+            limits.append(row["label"] + ": " + str(row.get("not") or "") + ".")
     if framework == "pestel_swot":
         limits.append("Opportunities and threats are mapped from the accepted PESTEL evidence by keyword; the "
                       "mapping is stated in each item.")
@@ -1692,9 +1907,11 @@ def draft(state, accepted_ids=None, implications="", style=None):
     limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
                "The paper quotes sources; it does not verify the claims inside them.",
                "No financial figure is computed in this paper."
-               if framework not in ("breakeven", "five_forces_breakeven") and attached.get("key") != "breakeven"
-               else "The only financial figure is the break-even result, computed by the frozen method from declared inputs.",
-               state.get("notes")[0] if state.get("notes") else "The search may be incomplete."]
+               if framework not in ("breakeven", "five_forces_breakeven") and not selected_caps
+               else "Every financial figure is the frozen method's result from the inputs the student declared.",
+               state.get("notes")[0] if state.get("notes")
+               else ("The search may be incomplete." if (state.get("plan") or {}).get("evidence", True)
+                     else "No search was run for this paper.")]
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
     if position:
         conclusion = ("The paper set out to address: " + _clean(decision, 500) + ". The evidence and the implications "
@@ -1714,7 +1931,12 @@ def draft(state, accepted_ids=None, implications="", style=None):
         references.append(_reference(source, style))
     heading = "References" if style == "apa" else "Bibliography"
     sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
-    title_label = label + (" and break-even" if attached.get("key") == "breakeven" and framework != "five_forces_breakeven" else "")
+    title_label = label
+    if selected_caps:
+        title_label = label + " and " + " and ".join(row["label"].lower() for row in selected_caps)
+    elif (state.get("computation") or {}).get("key") == "breakeven" \
+            and framework != "five_forces_breakeven":
+        title_label = label + " and break-even"
     state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
@@ -1725,7 +1947,7 @@ def draft(state, accepted_ids=None, implications="", style=None):
     return state
 
 
-def docx_bytes(state):
+def docx_bytes(state, byline=None):
     """The drafted paper as a Word document (APA or Harvard)."""
     draft = state.get("draft")
     if not draft:
@@ -1738,7 +1960,8 @@ def docx_bytes(state):
                          draft.get("implications", ""), state.get("answers") or {}, state=state)
     if not report["pass"]:
         raise ExportBlocked([issue["detail"] for issue in report["issues"] if issue["severity"] == "high"])
-    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"))
+    lines = byline if byline is not None else state.get("byline") or ()
+    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"), byline=lines)
 
 
 def polish(state):
@@ -1777,6 +2000,7 @@ def summary(state):
     return {"id": state.get("id"), "stage": state.get("stage"), "brief": state.get("brief"),
             "profile": state.get("profile"), "level": state.get("level"), "mode": state.get("mode"),
             "answers": state.get("answers"), "question": question, "plan": state.get("plan"),
+            "selection": state.get("selection"),
             "computations": state.get("computations"), "missing_inputs": _missing_fields(state)
             if state.get("profile") == PROFILE_BUSINESS_PLAN else [],
             "sources": state.get("sources"), "evidence": state.get("evidence"),

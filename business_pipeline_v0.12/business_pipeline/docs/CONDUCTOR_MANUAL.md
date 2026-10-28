@@ -16,11 +16,11 @@ The current working model is deliberately narrow:
 
 | Area | Working now |
 |---|---|
-| Frameworks | PESTEL, SWOT, PESTEL + SWOT, Five Forces, Five Forces + Break-even |
+| Frameworks | PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, Break-even, and Five Forces + Break-even |
 | Paper profiles | Business plan (SHS core; college adds tax, cap table and impact) |
-| Computation | Break-even in the framework stack; five plan blocks at SHS and eight at college, through the frozen core |
+| Computation | A **capability selected per paper** by the resolver in `bp/product/capabilities.py`. Break-even is the only registered capability today, so a framework paper carries it only when the brief needs it; a framework-only brief runs no computation. Five plan blocks at SHS and eight at college, through the frozen core |
 | Output | APA 7 or Harvard `.docx`, hierarchy enforced |
-| Evidence | Curated academic databases and vetted web domains |
+| Evidence | Curated academic databases and vetted web domains; VRIO and Break-even retrieve none by design |
 | Model prose | Optional, proposal only, DeepSeek V4.1 Flash by default |
 | Framework completion | Porter's Five Forces pilot: instruction box, research per force, sourced/suggested/gap provenance |
 
@@ -70,6 +70,12 @@ inside the writer.
 | H2 | Strengths, Weaknesses, Opportunities, Threats |
 | H1 | Five Forces |
 | H2 | Industry rivalry, Threat of new entrants, Threat of substitutes, Buyer power, Supplier power |
+| H1 | Value Chain |
+| H2 | Inbound logistics, Operations, Outbound logistics, Marketing and sales, Service, Procurement, Technology development, Human resource management, Firm infrastructure |
+| H1 | Ansoff Growth Matrix |
+| H2 | Market penetration, Market development, Product development, Diversification |
+| H1 | VRIO |
+| H2 | Resources, Valuable, Rare, Costly to imitate, Organised to capture value |
 | H1 | Financial Feasibility |
 | H2 | Break-even Analysis (or the named computation) |
 | H1 | Discussion |
@@ -145,7 +151,9 @@ refusal is named in the export gate; the product never plugs a difference.
 6. Add the draft branch: H1 framework, H2 dimensions, each dimension one
    paragraph from accepted evidence.
 7. Add the Discussion integration when the framework is combined with another.
-8. Add the framework to the Chat selector.
+8. Nothing to add to a UI selector: the framework is inferred from the brief
+   (`_infer_framework`); the chat has no framework picker.
+   Add the cues `_infer_framework` needs so a student's words reach it.
 9. Add tests: questions, plan, research with mocks, hierarchy, draft, export.
 10. Add one APA and one Harvard sample built from the same structure.
 11. Record the decision and changelog entry.
@@ -174,8 +182,24 @@ auto-completion.
    several citations without losing them.
 8. **Generate paper (Word)** stays hidden until all five forces have content, then
    appears at the bottom of the worksheet. It is also available on the results page
-   after a run. It produces a paper-shaped draft from the accepted items; the draft
-   keeps citations, labels case assumptions and names gaps.
+   after a run.
+   - **Draft (evidence-led)** is deterministic: it quotes the accepted items, labels
+     assumptions and names gaps.
+   - **Full paper (model-assisted)** sends the same structured items to DeepSeek
+     V4.1 Flash. The model writes the introduction, one paragraph per force, the
+     discussion and the conclusion; the system appends the real citations
+     afterwards. It may not add a citation, source, URL, number, percentage,
+     named condition, actor, technology or country that is not in the items; an
+     inference must read as an inference ("this suggests", "this implies"). A
+     validator checks citations, links, numbers and mid-sentence proper nouns,
+     retries once, and then refuses. **A failed full paper is never downloaded:**
+     the page says the run failed and asks the student to choose Draft
+     explicitly. Full is the default selection.
+   - Generation reads the case instruction typed at the top of the worksheet. A
+     missing instruction, or the worksheet's own tool title, is refused rather
+     than written into the title and introduction.
+   - An item the student supplied as their own evidence stays student evidence.
+     Only assumption-flagged items are labelled "Case assumption".
 
 The model may not add a number, source, citation, link or named fact. A
 suggestion that fails validation is dropped and the block remains a gap.
@@ -185,19 +209,73 @@ other frameworks until the same behaviour has been reviewed for that framework.
 
 ## 7. Adding a computation (checklist)
 
-1. Confirm the method exists in the frozen core and has a declared input schema.
-2. Add the numeric questions to the framework's question bank.
-3. Call the frozen function. Do not copy the formula into the product layer.
-4. Record the inputs and the core result in the draft, for audit.
-5. Render one H1 feasibility section and one H2 method section.
-6. State the assumptions in Limitations: declared inputs, no demand forecast,
-   no tax, financing or synergies unless the core method supports them.
-7. Test a valid case and a refused case (for example price ≤ variable cost).
-8. Never describe the computed result as a forecast or a recommendation.
+A computation is a **capability**, not a step. The paper carries one only when
+the brief asks a question that computation answers; a framework-only brief
+selects nothing, asks for no figures and has no computation section.
+`bp/product/capabilities.py` holds the catalogue and the resolver.
 
-Break-even is the reference implementation: `bp.methods.breakeven` is called
-from `bp/product/chat.py`; the product formats the result but does not recompute
-it. A plan block follows the same route: `chat.compute` calls the attached core,
+1. Confirm the method exists in the frozen core and has a declared input schema
+   (`bp.methods.describe(method)["input_schema"]`); the product reads that
+   schema, it never restates it.
+2. Add one entry to `ENTRIES` in `bp/product/capabilities.py`:
+   - `intent` — one group per question kind (for example `cost_cover`); at most
+     one capability from a group is selected;
+   - `any_of` — the intent cues in the student's words;
+   - `needs_any` — at least one of the quantities the method needs. A bare
+     "cost" must never start a computation;
+   - `applies_to` — the frameworks it may ride on (do not include a framework
+     that already carries the same analysis: `breakeven`,
+     `five_forces_breakeven` are excluded from `applies_to`);
+   - `slot` — the H1 and H2 it takes when selected; `integration` — the H2 of
+     the Discussion paragraph that reads it against the framework;
+   - `licenses` / `not` — the claim it supports and its own `unsupported_use`;
+   - `domain` — the key of a domain check in `chat._capability_inputs` when the
+     method needs one beyond the schema (break-even refuses negatives).
+3. Register its formatter in `chat.CAPABILITY_LINES`, next to
+   `_break_even_lines`. It reads the recorded core result and prints it; it
+   must not compute, round or re-derive anything.
+4. Nothing else: the draft, the gate and the plan are generic. Do not add a
+   branch to `draft`, `paper.missing` or the UI for one method.
+5. Test the five rows of the matrix (below) plus one APA and one Harvard sample.
+
+The resolver is deterministic and must stay so: no model, no retrieval, no
+clock. Ambiguity gets exactly one recorded question (`capability:<key>`) and the
+answer selects or excludes the capability with a stated reason.
+
+### 7.1 The capability state (what every later step reads)
+
+```
+selection: {format, catalogue_version, hash, frameworks[], selected[], not_included[], question}
+  selected row: {key, method, label, subject, slot, integration, inputs_required,
+                 inputs{name:{desc,required}}, licenses, not,
+                 because{rule, quote}}
+computations: {key: {ok, method, inputs, result, error}}
+```
+
+- `resolve()` runs once in `chat.start`. The rules that fired and the sentence
+  they matched are stored, and the selection is hashed, so a paper can be
+  re-derived against the catalogue version it used.
+- `set_capability()` is the student's add/drop from the plan; a drop is a named
+  exclusion, never a silent change.
+- `run_capability()` is the only caller of the frozen method for a paper: it
+  validates the declared figure through the schema, calls the core, stores the
+  result unchanged, and stores a refusal with the core's own message.
+- `paper.missing` requires the figures of a selected capability and nothing
+  once it is recorded; dropping it removes the requirement.
+
+### 7.2 Test matrix (one row per capability, not one file per method)
+
+| Row | Expectation |
+|---|---|
+| not selected | brief without the cue → `selected: []`, no computation H1/H2, gate asks no figures |
+| selected, valid | selected; figures run through the core; the draft prints the core's numbers; gate passes |
+| selected, refused | price ≤ variable cost (break-even) → refusal stored, no figure in the paper, gate blocks |
+| selected, no figures | gate requires "the <label> figures"; nothing is estimated |
+| ambiguity | cue without quantities → one question; "yes" selects, "no" excludes with the reason |
+
+The reference implementation is break-even: `bp.methods.breakeven` is called from
+`chat.run_capability`; the product formats the result but does not recompute it.
+A plan block follows the same route: `chat.compute` calls the attached core,
 stores the declared inputs and the core result, and `_block_lines` formats them.
 Adding a plan block means adding the method to `COMPUTATION_BLOCKS`, declaring
 its level and section, and letting the core run it — never writing its formula
@@ -272,17 +350,29 @@ A new model or session should:
   conductor contract.
 - `tests/test_business_plan_profile.py` — the plan profile, brief readers and
   export gate.
-- `samples/` — the current APA/Harvard examples.
+- `samples/` — the current APA/Harvard examples, including the four generated by `scripts/build_conductor_samples.py` (see `docs/SAMPLE_PAPERS.md`).
 
 ## 13. Current limits
 
-- Five Forces + Break-even is the only non-PESTEL/SWOT combination.
+- Eight single frameworks and two combinations: PESTEL + SWOT, and Five Forces + Break-even. Any other pairing of two frameworks is refused rather than approximated.
+- A **paper carries a computation only when the brief needs one.** The catalogue
+  in `bp/product/capabilities.py` resolves the brief at `chat.start`; a
+  framework-only brief selects nothing and has no computation section. Only
+  break-even is registered today, so a PESTEL/SWOT/Five Forces/Value Chain/
+  Ansoff/VRIO paper can carry a break-even analysis
+  (`POST /api/cases/chat/{id}/computation`, validated by the frozen
+  `breakeven` method). Registering the next capability is the §7 checklist, not
+  a new branch in the draft.
 - Framework auto-completion is enabled for Porter's Five Forces only; other worksheets are still manual.
 - Other frameworks are refused, not silently replaced.
+- VRIO and Break-even retrieve **no external evidence**: VRIO records the student's resources and four judgments, and Break-even runs the declared figures. Their papers say so.
+- Value Chain and Ansoff dimensions are supported by retrieved evidence placed by keyword; they do not collect internal cost data or benchmark activities against rivals.
 - The business plan is the only paper profile; it is not a framework and cannot be combined with one.
 - Plan-level methods use annual periods, one product and one currency; they do not forecast demand, apply a jurisdiction's tax law or model disposals.
 - Open composition changes which optional sections appear, not the facts, figures or the export gate.
 - OpenGo search is opt-in and slow; DeepSeek Search is the fast default.
 - Model prose is linking prose, not a full rewrite.
+- APA and Harvard sample papers for the four frameworks added in B-151 are generated by `scripts/build_conductor_samples.py` (see `docs/SAMPLE_PAPERS.md`); PESTEL and SWOT keep their earlier samples.
+- The title page byline is the student's own list of lines and is omitted when empty; the product does not invent a name or an institution.
 - The sample papers demonstrate the target; the live conductor can still show
   named gaps when the sources are thin.

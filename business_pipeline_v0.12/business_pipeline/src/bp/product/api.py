@@ -309,6 +309,10 @@ def handle(method, path, body=None):
                 state = chat_conductor.confirm_plan(state)
             elif action == "computation":
                 state = chat_conductor.attach_computation(state, data.get("key") or "breakeven", data)
+            elif action == "capabilities":
+                state = chat_conductor.set_capability(state, data.get("key") or "",
+                                                      data.get("enabled", True),
+                                                      data.get("reason") or "")
             elif action == "customise":
                 state = chat_conductor.customise(state, data)
             elif action == "inputs":

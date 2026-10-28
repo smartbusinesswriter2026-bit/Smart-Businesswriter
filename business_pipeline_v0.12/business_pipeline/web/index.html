@@ -503,7 +503,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides and honest catalogue records">v1.30</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations">v1.33</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -1215,7 +1215,8 @@ function renderChat() {
       "</tbody></table></div>" +
       (plan.internal ? '<p class="muted">Strengths and weaknesses are supplied by you; the source finder retrieves only the external evidence.</p>' : "") +
       (plan.framework_id === "pestel_swot" ? '<p class="muted">The six PESTEL dimensions are researched; opportunities and threats are mapped from the accepted evidence by keyword.</p>' : "") +
-      '<p class="muted">' + esc(plan.output) + "</p>";
+      '<p class="muted">' + esc(plan.output) + "</p>" +
+      capabilityPanel(c, plan);
     if (c.stage === "plan") {
       html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatconfirm">Confirm plan</button></div>';
     } else {
@@ -1223,6 +1224,8 @@ function renderChat() {
     }
     html += "</div>";
     out.innerHTML = html;
+    $("#chatreset").onclick = resetChat;
+    bindCapabilityControls(out);
     $("#chatreset").onclick = resetChat;
     const confirm = $("#chatconfirm");
     if (confirm) confirm.onclick = confirmChatPlan;
@@ -1264,13 +1267,15 @@ function renderChat() {
       '<div class="row"><label class="field" for="chatstyle" style="margin:0">Citation style</label>' +
       '<select id="chatstyle"><option value="apa"' + (c.plan.style === "apa" ? " selected" : "") + '>APA 7</option>' +
       '<option value="harvard"' + (c.plan.style === "harvard" ? " selected" : "") + '>Harvard</option></select>' +
-      '<button class="btn primary" id="chatdraft">Draft the section</button></div></div></div>';
+      '<button class="btn primary" id="chatdraft">Draft the section</button></div></div>' +
+      capabilityPanel(c, c.plan) + "</div>";
     out.innerHTML = html;
     $("#chatreset").onclick = resetChat;
+    bindCapabilityControls(out);
     $("#chatdraft").onclick = draftChat;
     return;
   }
-  if (c.stage === "draft") {
+  if (c.stage === "draft" && c.draft) {
     const outline = c.draft.outline || (c.draft.sections || []).map((section) => ({ heading: section[0], level: 1, lines: section[1] || [] }));
     html += '<div class="card"><h3>Draft paper</h3>' +
       '<p class="muted">' + esc(c.draft.style === "harvard" ? "Harvard" : "APA 7") +
@@ -1335,6 +1340,98 @@ async function startChat() {
     RENDERERS.home();
   } catch (error) {
     if (out) out.innerHTML = errorBanner(error);
+  }
+}
+
+/* ---- capabilities: what the paper carries, and the figures for it ---- */
+function capabilityPanel(c, plan) {
+  plan = plan || {};
+  const caps = plan.capabilities || [];
+  const excluded = plan.not_included || [];
+  const available = plan.available || [];
+  if (!caps.length && !excluded.length && !available.length) return "";
+  let html = '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+    '<h4 class="levelhead" style="margin-top:0">Computations</h4>';
+  if (!caps.length) {
+    html += '<p class="muted">None. This paper uses the framework only; no figures are needed.</p>';
+  }
+  caps.forEach((cap) => {
+    const recorded = (c.computations || {})[cap.key] || {};
+    const quote = cap.because && cap.because.quote ? ' <span class="muted">(' + esc(cap.because.quote) + ")</span>" : "";
+    html += '<div class="wblock"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
+      "<div><strong>" + esc(cap.label) + "</strong> - " + esc((cap.slot || []).join(" / ")) + quote + "</div>" +
+      '<button class="btn sm" type="button" data-capdrop="' + esc(cap.key) + '">Drop</button></div>';
+    if (recorded.ok) {
+      html += '<p class="muted" style="margin:6px 0 0">The frozen result is recorded; the draft reports it and the export gate accepts it.</p>';
+    } else if (recorded.error) {
+      html += '<p class="muted" style="margin:6px 0 0">Refused: ' + esc(recorded.error) + " No figure is reported.</p>";
+    }
+    const fields = Object.keys(cap.inputs || {});
+    if (fields.length) {
+      html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
+        const spec = cap.inputs[name] || {};
+        const value = (recorded.inputs || {})[name] || "";
+        const id = "cap_" + cap.key + "_" + name;
+        return '<label class="field" for="' + esc(id) + '">' + esc(spec.desc || name) +
+          (spec.required === false ? ' <span class="muted">(optional)</span>' : "") +
+          '<input id="' + esc(id) + '" data-capinput="' + esc(cap.key + ":" + name) + '" value="' + esc(value) + '"></label>';
+      }).join("") + "</div>" +
+      '<div class="row" style="margin-top:8px"><button class="btn primary sm" type="button" data-caprun="' +
+      esc(cap.key) + '">Validate and attach</button></div>';
+    }
+    html += "</div>";
+  });
+  if (excluded.length) {
+    html += '<p class="muted">Not included: ' + excluded.map((row) =>
+      esc(row.label) + " (" + esc(row.reason) + ")").join("; ") + ".</p>";
+  }
+  if (available.length) {
+    html += '<div class="row" style="margin-top:10px;flex-wrap:wrap"><label class="field" for="capadd" style="margin:0">Add a computation</label>' +
+      '<select id="capadd">' + available.map((row) =>
+        '<option value="' + esc(row.key) + '">' + esc(row.label) + "</option>").join("") + "</select>" +
+      '<button class="btn sm" type="button" id="capaddgo">Add</button></div>';
+  }
+  html += "</div>";
+  return html;
+}
+
+function bindCapabilityControls(root) {
+  $$("[data-capdrop]", root).forEach((button) => {
+    button.onclick = () => setCapability(button.dataset.capdrop, false);
+  });
+  $$("[data-caprun]", root).forEach((button) => {
+    button.onclick = () => runCapability(button.dataset.caprun);
+  });
+  const add = $("#capaddgo", root);
+  if (add) add.onclick = () => { const pick = $("#capadd", root); if (pick) setCapability(pick.value, true); };
+}
+
+async function setCapability(key, enabled) {
+  const out = $("#chatout");
+  out.innerHTML = loading(enabled ? "Adding the computation" : "Removing the computation");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/capabilities",
+      { key: key, enabled: enabled });
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function runCapability(key) {
+  const values = {};
+  $$("[data-capinput]").forEach((box) => {
+    const parts = String(box.dataset.capinput || "").split(":");
+    if (parts[0] === key) values[parts[1]] = box.value;
+  });
+  const out = $("#chatout");
+  out.innerHTML = loading("Validating the declared figures");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/computation",
+      Object.assign({ key: key }, values));
+    renderChat();
+  } catch (error) {
+    renderChat();
+    const again = $("#chatout");
+    if (again) again.insertAdjacentHTML("afterbegin", errorBanner(error));
   }
 }
 
@@ -3888,7 +3985,7 @@ function fiveForcesForm(t) {
     )).join("") + "</div>" +
     '<div id="ffbottom" class="row" style="display:none;margin-top:12px;align-items:center">' +
       '<select id="ffversion"><option value="draft">Draft (evidence-led)</option>' +
-      '<option value="full">Full paper (model-assisted)</option></select>' +
+      '<option value="full" selected>Full paper (model-assisted)</option></select>' +
       '<button class="btn primary" id="ffbottomgenerate">Generate paper (Word)</button>' +
       '<span class="muted">All five forces have content. Generate the paper from these entries.</span></div>';
 }
@@ -4075,11 +4172,18 @@ function renderFiveForcesReview(result) {
 
 async function downloadFiveForcesDraft() {
   let source = state.ffCompletion;
+  let fromWorksheet = false;
   if (state.ffInputs && Array.isArray(state.ffInputs.evidence)) {
+    fromWorksheet = true;
     const forces = ["rivalry", "entrants", "substitutes", "buyers", "suppliers"];
     const labels = { rivalry: "Industry rivalry", entrants: "Threat of new entrants",
                      substitutes: "Threat of substitutes", buyers: "Buyer power", suppliers: "Supplier power" };
-    source = { instruction: (state.tool && state.tool.objective) || "Five Forces analysis",
+    const typed = ((document.getElementById("ffinstruction") || {}).value || "").trim();
+    if (!typed || /^Work through the /i.test(typed)) {
+      toast("Paste the case instruction at the top of the worksheet first.");
+      return;
+    }
+    source = { instruction: typed,
                blocks: forces.map((key) => ({
                  key: key, label: labels[key],
                  items: state.ffInputs.evidence.filter((item) => item.force === key).map((item) => ({
@@ -4090,7 +4194,7 @@ async function downloadFiveForcesDraft() {
     ...source,
     blocks: (source.blocks || []).map((block) => ({
       ...block,
-      items: block.items.filter((item, index) => {
+      items: fromWorksheet ? block.items : block.items.filter((item, index) => {
         const box = document.querySelector('[data-ffblock="' + block.key + '"][data-ffindex="' + index + '"]');
         return !box || box.checked;
       }),
@@ -4098,15 +4202,24 @@ async function downloadFiveForcesDraft() {
   };
   if (!selected.blocks.some((block) => block.items.length)) { toast("Add and run at least one item first."); return; }
   const picker = document.getElementById("ffresultversion") || document.getElementById("ffversion");
-  const version = picker ? picker.value : (state.ffVersion || "draft");
+  const version = picker ? picker.value : (state.ffVersion || "full");
   state.ffVersion = version;
   const review = document.getElementById("ffreview");
+  const trigger = document.getElementById("ffbottomgenerate") || document.getElementById("ffresultdraft");
+  if (trigger) { trigger.disabled = true; trigger.dataset.old = trigger.textContent; trigger.textContent = "Writing..."; }
+  if (review) Array.from(review.querySelectorAll("p.ffnote")).forEach((old) => old.remove());
   const note = document.createElement("p");
-  note.className = "muted";
-  note.textContent = version === "full" ? "Writing the full paper..." : "Generating the draft...";
+  note.className = "muted ffnote";
+  note.textContent = version === "full" ? "Writing the full paper. This runs the model and can take up to half a minute." : "Generating the draft...";
+  if (version === "full") toast("Writing the full paper. This runs the model, so it takes a little while.");
   if (review) review.appendChild(note);
   try {
     const result = await post("/api/cases/frameworks/report", { completion: selected, style: "apa", version });
+    if (version === "full" && !result.report.model_used) {
+      note.textContent = "The model did not return a valid full paper, so nothing was downloaded. Choose Draft (evidence-led) to use the deterministic version.";
+      toast("Full paper failed validation; no file was downloaded.");
+      return;
+    }
     const binary = atob(result.docx.data), bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([bytes], { type: result.docx.mime }));
@@ -4119,6 +4232,8 @@ async function downloadFiveForcesDraft() {
   } catch (error) {
     note.textContent = "";
     if (review) review.insertAdjacentHTML("beforeend", errorBanner(error)); else toast(error.message || String(error));
+  } finally {
+    if (trigger) { trigger.disabled = false; trigger.textContent = trigger.dataset.old || "Generate paper (Word)"; }
   }
 }
 
@@ -5119,7 +5234,7 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts">Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
-      (state.worksheet && state.worksheet.form_kind === "five_forces" ? '<select id="ffresultversion"><option value="draft">Draft</option><option value="full">Full paper</option></select><button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
+      (state.worksheet && state.worksheet.form_kind === "five_forces" ? '<select id="ffresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><button class="btn" id="ffresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
   const highlights = resultHighlights(ap);

@@ -45,6 +45,13 @@
 - The PM **groups, glossary, guidance and student guide are teaching and presentation material**; they do not
   choose the project, validate an estimate or turn a read-only framework into a computed answer.
 
+## Added with the conductor frameworks (B-151)
+- **Value Chain and Ansoff place retrieved evidence by keyword** on nine and four dimensions; they do not collect activity costs, benchmark against rivals, size a market or rank the options. A dimension with no retrieved source is a named gap.
+- **VRIO retrieves no external evidence.** The resources and the four judgments are the student's; the paper says so, and the export gate blocks until resources and at least one value judgment are supplied.
+- **Break-even retrieves no external evidence** and reports only the frozen core's result from declared fixed cost, price and variable cost. It does not forecast demand or prove the expected volume.
+- **Only break-even can be attached to a framework paper today** (`/api/cases/chat/{id}/computation`). Two-framework combinations remain limited to PESTEL + SWOT and Five Forces + Break-even.
+- **Sample papers are generated, not written** (B-152): `scripts/build_conductor_samples.py` builds Ansoff, Value Chain, VRIO and Break-even papers through the conductor and renders them with `render_academic`. Their evidence is a frozen set of sources already cited in this repository; VRIO and Break-even use none and say so. A value-chain sample names its unsupported activity as a gap rather than filling it.
+- **The title page has no invented author.** The byline is an optional list of the student's own lines; when it is empty the title page simply omits it, and the product never prints a placeholder.
 ## Added with the digital marketing lane (B-117, B-121, B-133)
 - The seven digital methods are **arithmetic on declared counts**. Nothing reads Google Analytics, Google Ads, Meta, TikTok or an email platform: the counts, the conversion definition and the attribution window are the student's, and the report says so.
 - **Attribution credit is not causation.** `attribution_split` compares first-click, last-click and linear shares from counts you supply; it does not process touchpoint logs, and no holdout, incrementality or lift test exists.
