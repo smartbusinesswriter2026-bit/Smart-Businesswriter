@@ -95,6 +95,17 @@ class LengthTest(unittest.TestCase):
         with self.assertRaises(chat.ChatError):
             chat.start(BRIEF + " Write " + str(chat.MAX_WORDS + 1) + " words.", "management", "pestel")
 
+    def test_the_home_composer_box_sets_the_length(self):
+        state = chat.start(BRIEF, "management", "pestel", words="2500")
+        self.assertEqual(state["answers"]["length"], "2500")
+        # The box is part of start, so the plan carries it before any question.
+        self.assertEqual(chat.target_words(state), 2500)
+
+    def test_the_home_box_floor_is_enforced(self):
+        with self.assertRaises(chat.ChatError) as raised:
+            chat.start(BRIEF, "management", "pestel", words="900")
+        self.assertIn(str(chat.MIN_WORDS), str(raised.exception))
+
     def test_the_count_is_read_with_a_comma(self):
         state = chat.start(BRIEF + " Write 2,500 words.", "management", "pestel")
         self.assertEqual(state["answers"]["length"], "2500")
@@ -231,6 +242,16 @@ class LengthRouteTest(unittest.TestCase):
                                              "value": answers.get(question["id"], "")})
             self.assertEqual(status, 200)
         return state
+
+    def test_the_start_route_takes_the_length_from_the_home_box(self):
+        status, state = self.api.handle("POST", "/api/cases/chat",
+                                        {"brief": BRIEF, "framework": "pestel", "words": "2500"})
+        self.assertEqual(status, 201)
+        self.assertEqual(state["answers"]["length"], "2500")
+        status, payload = self.api.handle("POST", "/api/cases/chat",
+                                          {"brief": BRIEF, "framework": "pestel", "words": "900"})
+        self.assertEqual(status, 422)
+        self.assertIn(str(chat.MIN_WORDS), payload["error"])
 
     def test_the_route_sets_a_length_and_refuses_below_the_floor(self):
         state = self._case()

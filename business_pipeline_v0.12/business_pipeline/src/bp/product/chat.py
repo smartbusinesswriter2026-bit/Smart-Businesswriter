@@ -492,7 +492,8 @@ def _defaults(brief):
     return {"decision": _clean(brief, 500), "geography": geography, "period": period, "style": style}
 
 
-def start(brief, subject="management", framework=None, profile=None, level="shs", mode="strict"):
+def start(brief, subject="management", framework=None, profile=None, level="shs", mode="strict",
+          words=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed."""
     brief = _clean(brief, 2000)
     if len(brief) < 15:
@@ -533,6 +534,10 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     requested = parse_word_target(brief)
     if requested is not None:
         answers["length"] = str(check_word_target(str(requested)))
+    # The Home composer's word box overrides the brief: what the student typed in
+    # the box is the most recent statement of the length.
+    if words not in (None, ""):
+        answers["length"] = str(check_word_target(words))
     if FRAMEWORKS[framework]["internal"]:
         answers.update({"strengths": [], "weaknesses": []})
     for key in FRAMEWORKS[framework].get("inputs") or []:

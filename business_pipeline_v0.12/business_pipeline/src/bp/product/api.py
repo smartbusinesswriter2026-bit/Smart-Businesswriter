@@ -286,7 +286,8 @@ def handle(method, path, body=None):
                 state = chat_conductor.start(body.get("brief"), body.get("subject"),
                                              body.get("framework"), profile=body.get("profile"),
                                              level=body.get("level") or "shs",
-                                             mode=body.get("mode") or "strict")
+                                             mode=body.get("mode") or "strict",
+                                             words=body.get("words"))
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)

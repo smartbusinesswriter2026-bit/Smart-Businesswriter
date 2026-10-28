@@ -799,9 +799,9 @@ computation explainer, and a sample that does not show that is a sample of the w
 built by the product's own path (`scripts/build_home_sample.py`) and exported the way a student exports:
 `chat.docx_bytes`. Its companion, `…-explainer.docx`, is `explain.paper_document` over the same recorded
 case. The same case is also built as a **full report** (`…-full.docx`, planned at 2,500 words) with its own
-explainer: the length is asked for in the brief ("write about 2500 words") or in the **Report length** box on the
-plan card (a number input with the 1,500-word floor and the length currently planned, posted to
-`/api/cases/chat/{id}/length`), the floor is 1,500 words, and
+explainer: the length is asked for in the **Report length** box under the Home composer (a number input with the
+1,500-word floor, sent as `words` with the start request), in the brief itself, or in the box on the plan
+card (`/api/cases/chat/{id}/length`); the floor is 1,500 words, and
 the full version adds scope and method, a reading per dimension, the evidence base, the discussion, the
 method's assumptions, what would change the answer, a recommendation and the appendix. Four Word files
 rather than a ZIP: a ZIP downloads but a student then has to find the paper inside it, while Word files open
