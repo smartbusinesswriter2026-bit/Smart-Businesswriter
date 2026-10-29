@@ -28,6 +28,22 @@
 
 **Open/next.** No `docs/CHANGELOG.md` entry, for the same reason as the earlier design increments: the build number is in flight in the concurrent lane, and the changelog's newest build is tied by a test to the build string in `HOME.md` and `HANDOFF.md`.
 
+## 2026-10-29 — [design] The collapsed rail shows its icons in full
+
+**Ask.** "recheck the side rails when they are collapsed. the icons are not fully showing. adjust their width so that icons can still be seen in full even when collapsed".
+
+**Did.** The defect was in the collapsed rail's geometry, not in the icons. The subject list scrolls inside the rail, and a vertical scrollbar takes the scrollport's right edge: with the list scrolling, the scrollport ended at x = 30 instead of x = 40. The icon column is right-packed inside the green strip (design note 10), so every glyph sat at x = 18.5 -> 37.5 - under the scrollbar's column - and was cut at x = 30. The Accounting glyph measured 10 px of ink instead of its own 17 px: the book was cut in half. It was window-height dependent (the list only scrolls when the rail is shorter than the list), which is why a measurement at 1400x900 showed a whole glyph and hid the fault.
+
+The fix is the width the owner asked for: the collapsed rail is now the strip plus a column for the scrollbar. `--rail-sb:16px` and `--rail-w-collapsed:calc(var(--rail-w) + var(--rail-sb))`, applied by `body:not(.rail-open) .rail{width:var(--rail-w-collapsed)}` - 61 px in the wide layout, 60 px in the narrow one (`--rail-w:44px` there). The green strip keeps its own width (`.railaccent` is still `--rail-w`), so the open rail is untouched and the new column is the white one the labels start in; the scrollbar lands there instead of on the icons. `--rail-ic-pad` did not change, so the icons did not move: the glyph is still at 18.5 -> 37.5. The collapsed toggle now hugs the strip (41 px) rather than the whole rail, and its chevron is walked back onto the icon column by hand (`translateX(calc(var(--rail-ic-pad) + var(--rail-ic-w) / 2 - (var(--rail-w) - var(--rail-pad)) / 2))`, 3.5 px), so it still sits over the icons.
+
+**Recorded.** The owner instruction sets a geometry convention - the collapsed rail is the strip plus the scrollbar's column - so it is recorded as B-165.
+
+**Verified.** On the served page (`127.0.0.1:8765`, Chrome, device pixel ratio 1): collapsed with the list scrolling (1400x700) the rail is 61 px, the scrollport is 4 -> 46 and the glyph 18.5 -> 37.5, fully visible - the ink of every glyph is its full width (19 px; the Accounting glyph 17 px, the shape's own width), against 10-11 px before. Collapsed in the narrow layout (760x700): rail 60 px, strip 44 px, scrollport 4 -> 45, glyph unchanged and fully visible. Open (1400x900): unchanged - strip 0 -> 45 px, glyph 18.5 -> 37.5 px, the label column and the "SUBJECTS" heading both at 55 px. `scripts/ui_smoke.py` carries the new rail-geometry markers so the column cannot be silently dropped, and passes against the served page. The full suite passes. No `src/bp/**`, `tests/**`, fixture, number, claim or endpoint changed.
+
+**Files.** `web/index.html`, `web/DESIGN_NOTES.md` (section 17), `scripts/ui_smoke.py`, `docs/DECISIONS.md` (B-165 added), `docs/WORKLOG.md`.
+
+**Open/next.** No `docs/CHANGELOG.md` entry, for the same reason as the earlier design increments: the build number is in flight in the concurrent lane, and the changelog's newest build is tied by a test to the build string in `HOME.md` and `HANDOFF.md`.
+
 ## 2026-10-29 - Pricing wired to PayPal, with the credits left open
 
 **Ask.** Wire Smart BusinessWriter's pricing to PayPal at Starter $14.99, Pro $29.99, Studio $49.99 and a fourth tier at $99.99, with an annual plan cheaper than monthly, make a payment actually go through, and build the design so credit allowances can be added later — the owner does not know them yet.
