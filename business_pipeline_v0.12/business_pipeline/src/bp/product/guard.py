@@ -58,13 +58,26 @@ def industry_in(text):
     return next((item for item in sorted(INDUSTRIES, key=len, reverse=True) if item in lower), "")
 
 
-def subject_fit(text, subject="management"):
-    """Return (ok, message).  The message names the subject the brief belongs to."""
+def computation_boundary(text, subject="management"):
+    """Refuse a computation brief on a framework shelf, with the shelf to use.
+
+    The boundary is separate from the subject vocabulary: a worksheet is already
+    on the right shelf, but a trial balance still cannot be completed by PESTEL.
+    """
     lower = (text or "").lower()
-    words = _words(text)
     if any(hint in lower for hint in COMPUTATION) and subject not in ("accounting", "finance"):
         return False, ("This looks like an accounting or finance computation. Use the Accounting or Finance "
                        "shelf; the management chat would not answer it.")
+    return True, None
+
+
+def subject_fit(text, subject="management"):
+    """Return (ok, message).  The message names the subject the brief belongs to."""
+    ok, message = computation_boundary(text, subject)
+    if not ok:
+        return ok, message
+    lower = (text or "").lower()
+    words = _words(text)
     subject = subject or "management"
     if subject == "management":
         if not (words & SUBJECT_HINTS["management"]) and not any(word in lower for word in

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My account — Smart BusinessWriter</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<meta name="theme-color" content="#02284C">
+<!--
+  Smart BusinessWriter — "My account".
+
+  Curated for this product, and deliberately not a copy of any hosted account page.
+  What that means here, so a later change does not undo it on autopilot:
+
+  * No sign-in, password, e-mail address, sign-up or sign-out. This product runs as
+    a single local user on one machine; there is no identity to authenticate.
+  * No analytics, tag manager, tracker or remote font. The workbench makes no
+    external network calls, and neither does this page: no font is fetched, no
+    script leaves the machine, and every value below is read from this machine's
+    own API.
+  * No subscription, card, top-up or payment history. The pricing tiers shown are
+    read from the local billing catalogue; checkout happens in the workbench's Pricing
+    dialog, inside PayPal, and this server never holds a card or a payment instrument.
+  * No schema.org / OpenGraph metadata. There is no public URL to point at and no
+    verified organisation to claim, so none is asserted.
+  * No invented numbers. Every count, path, price and rule on this page is read
+    from the local API or is stated verbatim by the code that owns it.
+-->
+<style>
+:root{
+  --navy-900:#02284C; --navy-700:#0C243E; --navy-500:#143E68; --navy-300:#9DB2C6; --navy-100:#E7EDF3;
+  --green-600:#02A15E; --green-700:#076B41; --green-900:#0A4632; --green-100:#E2F4EC;
+  --teal:#0E8C8C; --indigo:#3A5BA0; --forest:#147A4E; --ochre:#9A6A16;
+  --canvas:#FCFCFC; --surface:#FFFFFF; --sunken:#F5F7F9; --border:#E4E8EC; --border-2:#EFF2F5;
+  --text:#0C243E; --text-2:#0C243E;
+  --amber:#B26A00; --amber-bg:#FFF7E8; --amber-line:#F0D9AE;
+  --red:#A32C2C; --red-bg:#FDEFEF; --red-line:#F2C9C9;
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);font-size:16px;line-height:1.5;background:var(--canvas);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:var(--navy-500)}
+h1,h2,h3{margin:0}
+code,.mono{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,monospace;font-size:.92em}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
+  padding:0 24px;height:60px;background:rgba(252,252,252,.92);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border)}
+.topbar img{height:30px;width:auto;display:block}
+.topbar .name{font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--navy-900)}
+.topbar .name span{color:var(--green-600)}
+.topbar .spacer{flex:1}
+.topbar a.back{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-pill);
+  border:1px solid var(--border);background:var(--surface);color:var(--navy-700);text-decoration:none;
+  font-size:14px;font-weight:600}
+.topbar a.back:hover{border-color:var(--navy-300);background:var(--sunken)}
+
+/* page */
+.page{max-width:1080px;margin:0 auto;padding:36px 24px 72px}
+.head{margin:8px 0 22px}
+.head h1{font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--navy-900)}
+.head p{margin:8px 0 0;max-width:76ch;color:var(--text-2);opacity:.78;font-size:16px}
+
+/* the honest notice */
+.notice{display:flex;gap:14px;align-items:flex-start;background:var(--green-100);border:1px solid #BFE3D1;
+  border-radius:var(--r-lg);padding:18px 20px;margin-bottom:24px}
+.notice .dot{width:10px;height:10px;border-radius:50%;background:var(--green-600);flex:0 0 auto;margin-top:7px}
+.notice p{margin:0;font-size:15px;color:var(--green-900)}
+.notice strong{font-weight:700}
+
+/* grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);overflow:hidden}
+.card>header{display:flex;align-items:center;gap:10px;padding:18px 22px 0}
+.card>header h2{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-700)}
+.card>header .ico{width:26px;height:26px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
+.card>header .ico svg{width:15px;height:15px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.card>.body{padding:16px 22px 22px}
+.card>.body>p{margin:0 0 12px;font-size:14.5px;color:var(--text-2);opacity:.8}
+
+/* key/value rows */
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:11px 0;border-bottom:1px solid var(--border-2)}
+.row:last-child{border-bottom:none}
+.row .k{font-size:14px;color:var(--navy-700);opacity:.72;flex:0 0 auto}
+.row .v{font-size:14.5px;font-weight:600;color:var(--navy-900);text-align:right;word-break:break-word}
+.row .v.dim{font-weight:400;opacity:.7;font-size:13.5px}
+
+/* credit balance */
+.balance{text-align:center;padding:6px 0 14px}
+.balance .num{font-size:54px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--green-700)}
+.balance .cap{font-size:14px;color:var(--text-2);opacity:.75;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-pill);
+  border:1px solid var(--border);background:var(--sunken);font-size:13px;color:var(--navy-700)}
+.chip b{font-weight:700}
+.chip.free{border-color:#BFE3D1;background:var(--green-100);color:var(--green-900)}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--navy-700);
+  opacity:.6;text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 10px;border-bottom:1px solid var(--border-2);vertical-align:middle;color:var(--text-2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.title{font-weight:600;color:var(--navy-900)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:var(--r-pill);font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.badge.t{background:var(--navy-100);color:var(--navy-700);border:1px solid var(--border)}
+.badge.warn{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line)}
+.badge.bad{background:var(--red-bg);color:var(--red);border:1px solid var(--red-line)}
+.empty{padding:26px 6px;text-align:center;color:var(--navy-700);opacity:.6;font-size:14.5px}
+
+/* pricing */
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-bottom:12px}
+@media(max-width:520px){.tiers{grid-template-columns:1fr 1fr}}
+.tier{border:1px solid var(--border);border-radius:var(--r-md);padding:14px;text-align:center;background:var(--sunken)}
+.tier .t{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-700);opacity:.7}
+.tier .p{font-size:22px;font-weight:700;color:var(--navy-900);margin-top:6px}
+.tier .a{font-size:12px;color:var(--navy-700);opacity:.65;margin-top:2px}
+.tier.on{background:var(--green-100);border-color:#BFE3D1}
+
+/* plain list */
+.list{margin:0;padding-left:18px;font-size:14.5px;color:var(--text-2)}
+.list li{margin-bottom:7px}
+.list li:last-child{margin-bottom:0}
+.list b{color:var(--navy-900)}
+
+.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:13px;color:var(--navy-700);opacity:.65;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.offline{display:none;background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);
+  border-radius:var(--r-md);padding:12px 16px;font-size:14px;margin-bottom:20px}
+.offline.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="assets/mark.png" alt="">
+  <span class="name">Smart Business<span>Writer</span></span>
+  <span class="spacer"></span>
+  <a class="back" href="/">← Open the workbench</a>
+</div>
+
+<div class="page">
+
+  <div class="head">
+    <h1>My account</h1>
+    <p>Smart BusinessWriter runs as a single local user on this machine. There is no account to sign
+      in to, so this page shows what is actually yours: the work stored on this machine, the wallet
+      that meters your exports, and the engine waiting behind them.</p>
+  </div>
+
+  <div class="notice">
+    <span class="dot"></span>
+    <p><strong>No account, no login, no password.</strong> This product runs as a single local user on
+      this machine. No account, login or password is required or stored — and there is nothing to sign
+      out of, because nothing about you was ever collected.</p>
+  </div>
+
+  <div class="offline" id="offline">
+    The local API did not answer, so the live figures below are unavailable. If you opened this file
+    directly, open it from the running workbench instead — the page and the API share one server.
+  </div>
+
+  <div class="grid">
+
+    <!-- 1. this machine -->
+    <section class="card full">
+      <header>
+        <span class="ico" style="background:var(--navy-100);color:var(--navy-700)">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6"/><path d="M5 10v9"/><path d="M19 10v9"/><path d="M9 19v-5h6v5"/></svg>
+        </span>
+        <h2>This machine</h2>
+      </header>
+      <div class="body">
+        <div class="rows">
+          <div class="row"><span class="k">Mode</span><span class="v">Local single-user</span></div>
+          <div class="row"><span class="k">Identity stored</span><span class="v">None — nothing about you is collected</span></div>
+          <div class="row"><span class="k">Served build</span><span class="v dim" id="v-build">—</span></div>
+          <div class="row"><span class="k">Server</span><span class="v dim" id="v-server">—</span></div>
+          <div class="row"><span class="k">Checked at</span><span class="v dim" id="v-checked">—</span></div>
+          <div class="row"><span class="k">Case store</span><span class="v dim mono" id="v-casedir">—</span></div>
+          <div class="row"><span class="k">State directory</span><span class="v dim mono" id="v-statedir">—</span></div>
+          <div class="row"><span class="k">Sandbox</span><span class="v dim" id="v-sandbox">—</span></div>
+          <div class="row"><span class="k">Model assistance</span><span class="v dim" id="v-model">—</span></div>
+          <div class="row"><span class="k">Network</span><span class="v dim">No external calls, no analytics, no web fonts</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. your work -->
+    <section class="card">
+      <header>
+        <span class="ico" style="background:var(--green-100);color:var(--green-700)">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+        </span>
+        <h2>Your work</h2>
+      </header>
+      <div class="body">
+        <div class="rows" style="margin-bottom:14px">
+          <div class="row"><span class="k">Saved cases</span><span class="v" id="v-cases">—</span></div>
+          <div class="row"><span class="k">Stored versions</span><span class="v" id="v-versions">—</span></div>
+          <div class="row"><span class="k">Chats written here</span><span class="v" id="v-chats">—</span></div>
+        </div>
+        <p>Every case is a file in the case store above. Deleting one in the workbench deletes the file.
+          Nothing is uploaded, and nothing leaves this machine.</p>
+        <table class="tbl" id="cases-table" hidden>
+          <thead><tr><th>Case</th><th>Method</th><th>Tier</th><th>Saved</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty" id="cases-empty" hidden>No cases stored yet.</div>
+      </div>
+    </section>
+
+    <!-- 3. the wallet -->
+    <section class="card">
+      <header>
+        <span class="ico" style="background:var(--green-100);color:var(--green-700)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M15 9.5h-4.5a1.5 1.5 0 0 0 0 3h3a1.5 1.5 0 0 1 0 3H9"/></svg>
+        </span>
+        <h2>Your credit wallet</h2>
+      </header>
+      <div class="body">
+        <div class="balance">
+          <div class="num" id="v-balance">—</div>
+          <div class="cap">credits left for exports on this machine</div>
+        </div>
+        <div class="chips" id="v-prices"></div>
+        <p id="v-wallet-note">The first export of any report is free, whatever its format. The balance is
+          the sum of a local ledger, never a stored figure, so it cannot drift from the ledger that
+          explains it.</p>        <div class="rows" id="v-ledger"></div>
+      </div>
+    </section>
+
+    <!-- 4. the engine -->
+    <section class="card">
+      <header>
+        <span class="ico" style="background:var(--navy-100);color:var(--navy-700)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/></svg>
+        </span>
+        <h2>The engine</h2>
+      </header>
+      <div class="body">
+        <div class="rows">
+          <div class="row"><span class="k">Methods in the catalogue</span><span class="v" id="v-methods">—</span></div>
+          <div class="row"><span class="k">Worksheets and templates</span><span class="v" id="v-templates">—</span></div>
+          <div class="row"><span class="k">Subject shelves</span><span class="v" id="v-shelves">—</span></div>
+          <div class="row"><span class="k">Ready-made presets</span><span class="v" id="v-presets">—</span></div>
+          <div class="row"><span class="k">Currencies</span><span class="v" id="v-currencies">—</span></div>
+        </div>
+        <p style="margin-top:12px">Nothing here is metered, capped or rate-limited for you. Every number
+          the engine shows is computed by the frozen core and printed exactly as the server returned it.</p>
+      </div>
+    </section>
+
+    <!-- 5. pricing -->
+    <section class="card">
+      <header>
+        <span class="ico" style="background:var(--amber-bg);color:var(--amber)">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 10h16"/><path d="M8 15h3"/></svg>
+        </span>
+        <h2>Pricing</h2>
+      </header>
+      <div class="body">
+        <div class="tiers" id="tiers">
+          <div class="tier"><div class="t">Loading…</div></div>
+        </div>
+        <div class="rows" id="plan-state"></div>
+        <p style="margin-top:12px"><a href="/">Choose a plan in the workbench →</a> — the Pricing
+          button in the top bar opens it.</p>
+        <p>Checkout runs through PayPal in US dollars and can be cancelled at any time; the period
+          already paid for stays active. Credit allowances per tier are not set yet, so each plan
+          reports its allowance as <strong>to be confirmed</strong> rather than a number nobody has
+          decided.</p>
+      </div>
+    </section>
+
+    <!-- 6. what this page has no -->
+    <section class="card full">
+      <header>
+        <span class="ico" style="background:var(--sunken);color:var(--navy-700)">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+        </span>
+        <h2>Deliberately not here</h2>
+      </header>
+      <div class="body">
+        <ul class="list">
+          <li><b>No sign-in, password, e-mail address or sign-out.</b> There is no identity to
+            authenticate and no profile to log out of.</li>
+          <li><b>No card details.</b> A subscription is bought on the pricing page and paid inside
+            PayPal; this server never sees a card number and stores no payment instrument.</li>
+          <li><b>No credits to buy separately.</b> The wallet above is a local ledger that meters
+            exports on this machine, granted on first use — not a currency you purchase. What a
+            subscription grants is still to be confirmed.</li>
+          <li><b>No cloud storage, no sync, no cross-device access.</b> Every case, chat, draft and ledger
+            entry stays in files on this machine.</li>
+          <li><b>No analytics, tag manager, tracker or third-party script.</b> This page loads no remote
+            font, no tag and no remote asset, and reads only this machine's own API.</li>
+          <li><b>No support inbox.</b> There is one user, and it is the person at this keyboard.</li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="foot">
+    <span>Smart BusinessWriter — local single-user build.</span>
+    <span>Every figure on this page is read from this machine.</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  function set(sel, value) {
+    var el = $(sel);
+    if (el) el.textContent = value;
+  }
+
+  function get(path) {
+    return fetch(path, { cache: "no-store" }).then(function (res) {
+      if (!res.ok) throw new Error(path + " -> HTTP " + res.status);
+      return res.json();
+    });
+  }
+
+  function stamp(value) {
+    if (!value) return "—";
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return String(value);
+    return d.toLocaleString();
+  }
+
+  function count(value) {
+    return Array.isArray(value) ? value.length : 0;
+  }
+
+  function showOffline() {
+    var el = $("#offline");
+    if (el) el.classList.add("show");
+  }
+
+  /* --- this machine ------------------------------------------------------ */
+
+  get("/api/health").then(function (h) {
+    var cs = h.case_store || {};
+    var product = h.product || {};
+    set("#v-server", h.status ? "Running — " + (h.format || "local API") : "Not answering");
+    set("#v-checked", stamp(h.checked_at));
+    set("#v-casedir", cs.dir || "—");
+    set("#v-statedir", product.state_dir || "—");
+    set("#v-sandbox", h.sandbox ? "On" : "Off");
+    set("#v-model", h.model_assistance
+      ? "Available"
+      : "Off — every number is computed by the frozen core, not by a model");
+    if (cs.cases !== undefined) set("#v-cases", String(cs.cases));
+    if (cs.versions !== undefined) set("#v-versions", String(cs.versions));
+  }).catch(function () { set("#v-server", "Not answering"); showOffline(); });
+
+  /* The served build lives in the workbench's own build pill. */
+  fetch("/", { cache: "no-store" }).then(function (res) { return res.text(); }).then(function (html) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var pill = doc.getElementById("buildpill");
+    if (pill) set("#v-build", pill.textContent.trim());
+  }).catch(function () { /* the build stays unknown; that is honest */ });
+
+  /* --- your work --------------------------------------------------------- */
+
+  get("/api/cases").then(function (data) {
+    var rows = (data && data.cases) || [];
+    var table = $("#cases-table");
+    var empty = $("#cases-empty");
+    var tbody = table ? table.querySelector("tbody") : null;
+    if (!rows.length) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    var recent = rows.slice().sort(function (a, b) {
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    }).slice(0, 8);
+    recent.forEach(function (row) {
+      var tr = document.createElement("tr");
+      var title = document.createElement("td");
+      title.className = "title";
+      title.textContent = row.title || row.id;
+      if (row.corrupt) {
+        var flag = document.createElement("span");
+        flag.className = "badge bad";
+        flag.style.marginLeft = "8px";
+        flag.textContent = "unreadable";
+        title.appendChild(flag);
+      }
+      var method = document.createElement("td");
+      method.textContent = row.method || "—";
+      var tier = document.createElement("td");
+      var badge = document.createElement("span");
+      badge.className = "badge t";
+      badge.textContent = row.tier || "—";
+      tier.appendChild(badge);
+      var saved = document.createElement("td");
+      saved.textContent = stamp(row.created_at);
+      tr.appendChild(title);
+      tr.appendChild(method);
+      tr.appendChild(tier);
+      tr.appendChild(saved);
+      tbody.appendChild(tr);
+    });
+    if (table) table.hidden = false;
+  }).catch(function () { showOffline(); });
+
+  get("/api/cases/chat").then(function (data) {
+    var rows = (data && (data.chats || data.cases)) || [];
+    set("#v-chats", String(count(rows)));
+  }).catch(function () { set("#v-chats", "—"); });
+
+  /* --- the wallet -------------------------------------------------------- */
+
+  get("/api/cases/credits").then(function (w) {
+    set("#v-balance", String(w.balance === undefined ? "—" : w.balance));
+    if (w.included_first === false) {
+      set("#v-wallet-note", "Every export is charged at the price above. The balance is the sum of a " +
+        "local ledger, never a stored figure, so it cannot drift from the ledger that explains it.");
+    }
+    var chips = $("#v-prices");
+    var prices = w.prices || {};
+    Object.keys(prices).forEach(function (kind) {
+      var chip = document.createElement("span");
+      chip.className = "chip" + (Number(prices[kind]) === 0 ? " free" : "");
+      var label = document.createElement("span");
+      label.textContent = kind;
+      var value = document.createElement("b");
+      value.textContent = Number(prices[kind]) === 0 ? "free" : prices[kind] + " credit" + (Number(prices[kind]) === 1 ? "" : "s");
+      chip.appendChild(label);
+      chip.appendChild(value);
+      chips.appendChild(chip);
+    });
+    var ledger = $("#v-ledger");
+    (w.entries || []).slice().reverse().slice(0, 6).forEach(function (entry) {
+      var row = document.createElement("div");
+      row.className = "row";
+      var k = document.createElement("span");
+      k.className = "k";
+      if (entry.kind === "grant") k.textContent = "Free tier granted";
+      else if (entry.kind === "refund") k.textContent = "Refund" + (entry.format ? " of " + entry.format : "");
+      else k.textContent = "Export" + (entry.format ? " as " + entry.format : "");
+      var v = document.createElement("span");
+      v.className = "v";
+      var amount = Number(entry.amount);
+      v.textContent = (amount > 0 ? "+" + amount : amount === 0 ? "free" : String(amount)) + " · " + stamp(entry.at);
+      row.appendChild(k);
+      row.appendChild(v);
+      ledger.appendChild(row);
+    });
+  }).catch(function () { set("#v-balance", "—"); showOffline(); });
+
+  /* --- the plan ---------------------------------------------------------- */
+
+  get("/api/billing/plans").then(function (data) {
+    var host = $("#tiers");
+    if (!host) return;
+    host.innerHTML = "";
+    (data.tiers || []).forEach(function (card) {
+      var cell = document.createElement("div");
+      cell.className = "tier";
+      var name = document.createElement("div");
+      name.className = "t";
+      name.textContent = card.name;
+      var price = document.createElement("div");
+      price.className = "p";
+      price.textContent = "$" + card.monthly.amount;
+      var annual = document.createElement("div");
+      annual.className = "a";
+      annual.textContent = "or $" + card.annual.amount + "/yr";
+      cell.appendChild(name);
+      cell.appendChild(price);
+      cell.appendChild(annual);
+      host.appendChild(cell);
+    });
+  }).catch(function () { set("#v-balance", "—"); });
+
+  get("/api/billing/status").then(function (data) {
+    var rows = $("#plan-state");
+    if (!rows) return;
+    var cur = (data && data.current) || {};
+    rows.innerHTML = "";
+    function row(key, value) {
+      var line = document.createElement("div");
+      line.className = "row";
+      var k = document.createElement("span");
+      k.className = "k";
+      k.textContent = key;
+      var v = document.createElement("span");
+      v.className = "v";
+      v.textContent = value;
+      line.appendChild(k);
+      line.appendChild(v);
+      rows.appendChild(line);
+    }
+    if (!cur.has_subscription) {
+      row("Current plan", "Free (no subscription)");
+      row("Credits", cur.credits === null ? "To be confirmed" : String(cur.credits));
+      return;
+    }
+    row("Current plan", cur.name || cur.tier);
+    row("Billed", cur.cycle === "annual" ? "Yearly" : "Monthly");
+    row("Status", cur.status);
+    row("Credits", cur.credits === null ? "To be confirmed" : String(cur.credits));
+    if (cur.period && cur.period.next_billing) row("Next payment", stamp(cur.period.next_billing));
+    Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (cell) {
+      var label = cell.querySelector(".t");
+      if (label && label.textContent === (cur.name || "")) cell.classList.add("on");
+    });
+  }).catch(function () {});
+
+  /* --- the engine -------------------------------------------------------- */
+
+  get("/api/methods").then(function (d) { set("#v-methods", String(count(d))); }).catch(function () {});
+  get("/api/templates").then(function (d) { set("#v-templates", String(count(d))); }).catch(function () {});
+  get("/api/cases/subjects").then(function (d) { set("#v-shelves", String(count(d && d.subjects))); }).catch(function () {});
+  get("/api/presets").then(function (d) { set("#v-presets", String(count(d && Object.keys(d)))); }).catch(function () {});
+  get("/api/currencies").then(function (d) { set("#v-currencies", String(count(d && d.currencies))); }).catch(function () {});
+})();
+</script>
+</body>
+</html>

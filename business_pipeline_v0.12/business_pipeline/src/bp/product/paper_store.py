@@ -15,6 +15,7 @@ import json
 import os
 import re
 import time
+import zipfile
 
 MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ZIP_MIME = "application/zip"
@@ -111,6 +112,24 @@ def save(data, filename, title, framework="Five Forces", version="draft", words=
     return record
 
 
+def _docx_words(path):
+    """Words in the body of a .docx, stopping before the reference list."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8", "ignore")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return 0
+    total = 0
+    for paragraph in re.findall(r"<w:p[ >].*?</w:p>", xml, re.S):
+        text = "".join(re.findall(r"<w:t[^>]*>(.*?)</w:t>", paragraph, re.S))
+        text = (text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", '"').replace("&#x27;", "'").strip())
+        if text in ("References", "Bibliography"):
+            break
+        total += len(text.split())
+    return total
+
+
 def _samples():
     rows = []
     try:
@@ -132,7 +151,7 @@ def _samples():
             name, (re.sub(r"[-_]+", " ", os.path.splitext(name)[0]).strip().title(), "Sample", "Sample"))
         doc_id = "sample-" + re.sub(r"[^a-z0-9]+", "-", os.path.splitext(name)[0].lower()).strip("-")
         rows.append({"id": doc_id, "title": title, "framework": framework, "version": version,
-                     "created": created, "size": size, "words": 0, "filename": name,
+                     "created": created, "size": size, "words": _docx_words(path), "filename": name,
                      "download": "/api/cases/documents/" + doc_id, "sample": True, "mime": mime})
     return rows
 

@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.45**, **1782 tests**, 2026-10-29. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.47**, **1847 tests**, 2026-10-29. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -8,6 +8,7 @@
 |---|---|
 | **Use** the system | [`../README.md`](../README.md) — commands, workbench, API routes |
 | **Build or extend the chat/paper** | [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) — the goal, paper model, framework/computation rules and checklist |
+| **Add the next completing framework** | [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) — what is built, the one-dict recipe, and the traps |
 | **Change** the system safely | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the rules any model or person must follow |
 | **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) — every B-xxx with status |
 | **Know what is broken or absent** | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) + [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) |
@@ -100,6 +101,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) | Living — how to work here | Update when a rule changes |
 | [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) | Living — how the chat builds a paper | Read before adding a framework, computation or model-assisted step |
 | [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
+| [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff — completing the remaining frameworks | Read before adding a framework profile; it holds the one-dict recipe and the restart rule |
 | [`HOME.md`](HOME.md) | Living — this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living — parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |

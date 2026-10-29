@@ -7,6 +7,7 @@ from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx
+from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
 
@@ -487,6 +488,15 @@ PRESETS = {
 
 }
 
+def _template_payload(template_id):
+    """A template description plus the completion profile, when it has one."""
+    payload = templates.describe(template_id)
+    extra = product_profiles.describe_extra(template_id)
+    if extra:
+        payload["completion"] = extra
+    return payload
+
+
 class H(BaseHTTPRequestHandler):
     def _send(self, code, body, ctype="application/json", filename=None):
         b = body if isinstance(body, bytes) else json.dumps(body).encode()
@@ -537,10 +547,18 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/health":
                 return self._send(200, product_ops.health({"sandbox": "on" if SANDBOX_ENABLED else "off (development)",
                                                           "model_assistance": bool(MODELS)}))
-            if self.path == "/":
+            if urlparse(self.path).path == "/":
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/account.html":
                 with open(os.path.join(WEB, "account.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
+            if self.path == "/pricing.html":
+                # Pricing is a dialog in the workbench, not a page of its own. The old URL stays
+                # alive as a hop so a bookmark or a typed address still lands on the plans.
+                return self._send(200, b'<!doctype html><meta charset="utf-8"><title>Pricing - Smart BusinessWriter</title>'
+                                       b'<meta http-equiv="refresh" content="0;url=/?pricing=1">'
+                                       b'<p style="font-family:system-ui;padding:24px">Opening the pricing dialog. '
+                                       b'<a href="/?pricing=1">Continue</a></p>',
+                                  "text/html; charset=utf-8")
             if self.path.startswith("/assets/"):
                 return self._asset(self.path[len("/assets/"):].split("?")[0])
             if self.path == "/api/presets": return self._send(200, PRESETS)
@@ -558,6 +576,8 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.load(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            if self.path.startswith(product_api.BILLING_ROUTE):
+                return self._send(*product_api.handle("GET", self.path))
             if self.path.startswith(product_api.CASE_ROUTE):
                 result = product_api.handle("GET", self.path)
                 if len(result) == 4:
@@ -625,11 +645,11 @@ class H(BaseHTTPRequestHandler):
                 except literature.SourceError as e: return self._send(502, {"error": str(e)})
                 return self._send(200, {"enabled": True, "format": literature.LOG_FORMAT, "entries": entries,
                                         "notice": "Local append-only retrieval log: source, UTC time, response SHA-256. Entries are not evidence that the metadata is correct."})
-            if u.path == "/api/templates": return self._send(200, [templates.describe(k) for k in templates.TEMPLATES])
+            if u.path == "/api/templates": return self._send(200, [_template_payload(k) for k in templates.TEMPLATES])
             tm = re.fullmatch(r"/api/templates/(\w+)", u.path)
             if tm:
                 if tm[1] not in templates.TEMPLATES: return self._send(404, {"error": "unknown template"})
-                return self._send(200, templates.describe(tm[1]))
+                return self._send(200, _template_payload(tm[1]))
             if self.path == "/api/methods": return self._send(200, methods.list_methods())
             m = re.fullmatch(r"/api/sessions/(\w+)", self.path)
             if m: return self._send(200, M.get(m[1]).to_dict())
@@ -638,6 +658,8 @@ class H(BaseHTTPRequestHandler):
     def do_POST(self):
         self._started = time.monotonic()
         try:
+            if self.path.startswith(product_api.BILLING_ROUTE):
+                return self._send(*product_api.handle("POST", self.path, self._body()))
             if self.path.startswith(product_api.CASE_ROUTE):
                 n = int(self.headers.get("Content-Length") or 0)
                 if n > MAXBODY: raise ValueError("body too large")

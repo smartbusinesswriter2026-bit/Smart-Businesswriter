@@ -7,9 +7,18 @@ a stored bundle.
 
 The computation owner wired the `/api/cases` prefix into `src/bp/server.py`
 (done: B-085), so routes added here are reachable without another core edit.
+The `/api/billing` family is wired the same way and is dispatched before the
+case routes.
 
 Routes:
 
+    GET    /api/billing                          -> 200 catalogue, payment config and current plan
+    GET    /api/billing/plans                    -> 200 the four tiers and their prices
+    GET    /api/billing/config                   -> 200 whether checkout can run (public client id only)
+    GET    /api/billing/status                   -> 200 the plan this machine is on
+    POST   /api/billing/subscribe                -> 201 a PayPal subscription id to approve
+    POST   /api/billing/confirm                  -> 200 verified against PayPal, then recorded
+    POST   /api/billing/cancel                   -> 200 PayPal stops billing; the paid period stays
     GET    /api/cases                            -> 200 {"cases": [summary, ...]}
     GET    /api/cases?subject=<id>               -> 200 {"cases": [summary, ...]}
     GET    /api/cases/subjects                   -> 200 subject gallery
@@ -54,12 +63,14 @@ import os
 import re
 
 from . import calc_router
+from . import billing as billing_module
 from . import cases as case_store
 from . import chat as chat_conductor
 from . import chat_store
 from . import charts as chart_renderer
 from . import compare as comparator
 from . import completion as framework_completion
+from .completion import Incomplete as FrameworkIncomplete
 from . import diagrams as diagram_renderer
 from . import export as case_export
 from . import ops
@@ -89,6 +100,7 @@ def attach_methods(run, describe=None):
 
 
 CASE_ROUTE = "/api/cases"
+BILLING_ROUTE = "/api/billing"
 
 #: file extension and MIME type per export kind, for the download path
 _SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml", "xlsx": "xlsx"}
@@ -133,10 +145,127 @@ def _error(error):
     return 422, {"error": str(error)}
 
 
+def _billing_unconfigured(error):
+    """A missing PayPal credential is a 503 that names the variable, never a 500 or a fake success."""
+    return 503, {"error": str(error), "configured": False, "missing": list(error.missing)}
+
+
+def billing(verb, route, body):
+    """The `/api/billing` family: the catalogue, checkout and the subscription ledger.
+
+    Nothing here computes money beyond the declared prices; PayPal is the only party that can say a
+    payment happened, and `confirm` asks it rather than trusting the browser.
+    """
+    from . import paypal as paypal_client
+
+    segments = [part for part in route[len(BILLING_ROUTE):].split("/") if part]
+    if not segments:
+        if verb == "GET":
+            return 200, {"plans": billing_module.catalogue(), "paypal": paypal_client.config(),
+                         "current": billing_module.current()}
+        return 405, {"error": "method %s is not allowed on %s" % (verb, BILLING_ROUTE)}
+
+    if segments == ["plans"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on the plan catalogue" % verb}
+        return 200, billing_module.catalogue()
+
+    if segments == ["config"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on the payment configuration" % verb}
+        return 200, paypal_client.config()
+
+    if segments == ["status"]:
+        if verb != "GET":
+            return 405, {"error": "method %s is not allowed on the subscription status" % verb}
+        return 200, {"current": billing_module.current(), "paypal": paypal_client.config()}
+
+    if segments == ["subscribe"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on subscribe" % verb}
+        if not isinstance(body, dict):
+            return 422, {"error": "a request object is required"}
+        tier = str(body.get("tier") or "").strip().lower()
+        cycle = str(body.get("cycle") or body.get("billing_cycle") or "monthly").strip().lower()
+        try:
+            result = paypal_client.create_subscription(tier, cycle)
+        except paypal_client.PayPalNotConfigured as error:
+            return _billing_unconfigured(error)
+        except paypal_client.PayPalError as error:
+            return 502, {"error": str(error), "configured": True}
+        except billing_module.BillingError as error:
+            return _error(error)
+        result["price"] = {"amount": billing_module.price(tier, cycle), "cycle": cycle,
+                           "currency": billing_module.CURRENCY}
+        result["environment"] = paypal_client._env_name()
+        return 201, result
+
+    if segments == ["confirm"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on confirm" % verb}
+        subscription_id = (body or {}).get("subscription_id") if isinstance(body, dict) else None
+        if not subscription_id:
+            return 422, {"error": "subscription_id is required"}
+        try:
+            remote = paypal_client.get_subscription(subscription_id)
+        except paypal_client.PayPalNotConfigured as error:
+            return _billing_unconfigured(error)
+        except paypal_client.PayPalError as error:
+            return 502, {"error": str(error), "configured": True}
+        except billing_module.BillingError as error:
+            return _error(error)
+        status = (remote.get("status") or "").upper()
+        if status != "ACTIVE":
+            return 409, {"error": "PayPal reports this subscription as %s, not ACTIVE; nothing was "
+                                  "activated" % (status or "unknown"),
+                         "status": status, "subscription_id": subscription_id}
+        custom = (remote.get("custom_id") or "").split(":")
+        if len(custom) != 2 or custom[0] not in billing_module.PLANS or custom[1] not in billing_module.CYCLES:
+            return 422, {"error": "the subscription does not carry the tier and cycle this product "
+                                  "created (%r); refusing to guess a plan" % (remote.get("custom_id"),)}
+        tier, cycle = custom
+        try:
+            recorded = billing_module.activate(tier, cycle, subscription_id,
+                                               payer_email=remote.get("payer_email"),
+                                               period=remote.get("period"), status=status)
+        except billing_module.BillingError as error:
+            return _error(error)
+        return 200, {"active": True, "recorded": recorded["recorded"], "reused": recorded["reused"],
+                     "current": recorded["current"],
+                     "credits": billing_module.grant_for(tier, cycle, subscription_id),
+                     "paypal": {"status": status, "plan_id": remote.get("plan_id"),
+                                "period": remote.get("period")}}
+
+    if segments == ["cancel"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on cancel" % verb}
+        current = billing_module.current()
+        subscription_id = (body or {}).get("subscription_id") if isinstance(body, dict) else None
+        subscription_id = subscription_id or current.get("subscription_id")
+        if not subscription_id:
+            return 404, {"error": "this machine has no subscription to cancel"}
+        try:
+            paypal_client.cancel_subscription(subscription_id)
+        except paypal_client.PayPalNotConfigured as error:
+            return _billing_unconfigured(error)
+        except paypal_client.PayPalError as error:
+            return 502, {"error": str(error), "configured": True}
+        try:
+            recorded = billing_module.cancel(subscription_id)
+        except billing_module.BillingError as error:
+            return _error(error)
+        return 200, {"cancelled": True, "recorded": recorded["recorded"],
+                     "current": recorded["current"]}
+
+    return 404, {"error": "unknown route %s" % route}
+
+
 def handle(method, path, body=None):
     """Dispatch one request. Returns `(status_code, payload)`."""
     verb = (method or "").upper()
     route = _clean_path(path)
+    if route == BILLING_ROUTE or route.startswith(BILLING_ROUTE + "/"):
+        return billing(verb, route, body)
     segments = _segments(route)
     query = _query(path)
     if segments is None:
@@ -409,7 +538,7 @@ def handle(method, path, body=None):
         try:
             return 200, framework_completion.complete(body.get("template"), body.get("instruction"),
                                                       body.get("region"), body.get("student_items"),
-                                                      body.get("industry"))
+                                                      body.get("industry"), body.get("country"))
         except ValueError as error:
             return _error(error)
 
@@ -421,13 +550,24 @@ def handle(method, path, body=None):
         version = body.get("version") or "draft"
         if version not in ("draft", "full"):
             return _error("version must be draft or full")
+        length = str(body.get("length") or "mid").lower()
+        if length not in ("short", "mid", "long"):
+            return _error("length must be short, mid or long")
         try:
-            report = framework_completion.draft(body["completion"], body.get("style"), version)
-            data = framework_completion.draft_bytes(body["completion"], body.get("style"), report=report)
+            # The button is not the gate: a paper cannot be written while a
+            # dimension carries neither evidence nor an acknowledged gap.
+            absent = framework_completion.missing(body["completion"])
+            if absent:
+                raise FrameworkIncomplete(absent)
+            report = framework_completion.draft(body["completion"], body.get("style"), version, length)
+            data = framework_completion.draft_bytes(body["completion"], body.get("style"),
+                                                    report=report, length=length)
             document = paper_store.save(data, writing.filename(report), report.get("title"),
-                                            "Five Forces",
+                                            report.get("framework") or "Five Forces",
                                             "Full paper" if version == "full" else "Draft",
-                                            report.get("words"))
+                                            report.get("words"), report.get("length_label") or "")
+        except FrameworkIncomplete as error:
+            return 409, {"error": str(error), "missing": error.missing}
         except ValueError as error:
             return _error(error)
         return 200, {"report": report, "document": document, "docx": {

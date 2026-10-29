@@ -42,13 +42,24 @@ def _names(source):
 ORG_WORDS = {"bank", "commission", "institute", "bureau", "department", "agency", "council",
              "center", "centre", "university", "ministry", "office", "committee", "authority",
              "fund", "association", "union", "nations", "organization", "organisation",
-             "administration", "edgar", "sec", "wipo", "unctad", "unesco", "oecd", "imf", "court"}
+             "administration", "edgar", "sec", "wipo", "unctad", "unesco", "oecd", "imf", "court",
+             "review", "press", "times", "magazine", "research", "intelligence", "media", "news",
+             "group", "partners", "consulting", "consultants", "analytics", "insights", "wire",
+             "journal", "publishing", "publishers", "books", "reports", "data", "statista", "idc",
+             "gartner", "forrester", "mckinsey", "canalys", "counterpoint", "gsma"}
 
 
 def _split_name(name):
     name = _clean(name, 160)
     if not name:
         return "", ""
+    # A site or agency label ("FRED (St. Louis Fed)", "World Bank Group") is an
+    # organisation, not a person: initials invented from a parenthetical produced
+    # references such as "Fed), F. (. L.".
+    if re.search(r"[()]", name) or any(word in name.lower() for word in
+                                       (" inc", " ltd", " llc", " plc", " group", " bank",
+                                        " organisation", " organization")):
+        return name, ""
     if "," in name:
         family, given = name.split(",", 1)
         return family.strip(), given.strip()

@@ -36,6 +36,10 @@ ALLOWED = {
     "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
     "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
     "FIRECRAWL_KEYLESS": "BP_FIRECRAWL_KEYLESS",
+    # Payments. The client id is public (the browser SDK loads it); the secret never leaves the server.
+    "PAYPAL_CLIENT_ID": "BP_PAYPAL_CLIENT_ID",
+    "PAYPAL_CLIENT_SECRET": "BP_PAYPAL_CLIENT_SECRET",
+    "PAYPAL_ENV": "BP_PAYPAL_ENV",
 }
 DEFAULT_PATHS = (str(PROJECT_ENV), r"D:\AA\Backend\.env", r"D:\AA\AcademicSources\Backend\.env")
 
@@ -90,3 +94,25 @@ def load_web_credentials(path=None):
         os.environ[target] = value
         loaded.append(target)
     return {"path": chosen, "loaded": loaded, **_status()}
+
+
+def load_selected(names, path=None):
+    """Load only the named entries from the first existing credential file.
+
+    The launcher loads the whole allowlist at startup; a module that needs one credential and may be
+    reached from a server started another way (``python -m bp.server``) uses this so the names it
+    depends on are resolved without touching anything else. Values are never returned.
+    """
+    wanted = [name for name in names if name in ALLOWED]
+    candidates = [path] if path else ([os.environ["BP_SOURCE_ENV"]] if os.environ.get("BP_SOURCE_ENV") else []) + list(DEFAULT_PATHS)
+    for candidate in candidates:
+        if candidate and os.path.exists(candidate):
+            values = _parse(candidate)
+            loaded = []
+            for name in wanted:
+                value = values.get(name)
+                if value and not os.environ.get(ALLOWED[name]):
+                    os.environ[ALLOWED[name]] = value
+                    loaded.append(ALLOWED[name])
+            return {"path": candidate, "loaded": loaded}
+    return {"path": None, "loaded": []}

@@ -511,3 +511,25 @@ If an assignment needs one of these, say so in the limitations and show the meth
   no figure that is not in the snapshot. Edits to a holding or price after a snapshot do not change that
   snapshot; a new date creates a new one.
 - **Deletion is permanent.** There is no undo or trash for a portfolio; the store removes the directory.
+
+## Added with pricing and PayPal (B-163)
+- **Live checkout needs an HTTPS origin.** PayPal's live JS SDK generally refuses to render on
+  `http://127.0.0.1:8000`. The code does not depend on the origin; a tunnel (or any HTTPS host) is
+  enough. The pricing page says so instead of showing a button that cannot work.
+- **No webhook.** PayPal cannot reach a machine at 127.0.0.1, so a renewal, a failed payment or a
+  cancellation made inside PayPal is not pushed to this server. Activation is verified against
+  PayPal at approval, `GET /api/billing/status` is a read of the local ledger, and a subscription
+  changed elsewhere shows as stale until it is re-read. A hosted deployment needs a webhook and its
+  signature verification; neither is built.
+- **Credit allowances are unset.** Every tier's `credits` is `null` and the page says "to be
+  confirmed". `billing.grant_for()` is the wired hook and appends nothing until an allowance exists;
+  no export balance is affected by a subscription today.
+- **Cancelling is immediate at PayPal and local thereafter.** PayPal stops billing at once and this
+  machine keeps the plan and its recorded period, so the paid period is not cut short. There is no
+  proration, refund or dunning logic.
+- **The subscription is per machine, not per person.** There is still no identity: the ledger records
+  the payer e-mail PayPal reports for reference, and the "current plan" is whatever this machine
+  last activated.
+- **The secret is only as safe as the file.** `PAYPAL_CLIENT_SECRET` sits in `Backend/.env`, which
+  git ignores; it is never returned by an API, logged or printed, but it is readable by anyone who
+  can read that file on this machine.

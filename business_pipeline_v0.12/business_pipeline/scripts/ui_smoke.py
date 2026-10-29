@@ -14,10 +14,14 @@ import sys
 import urllib.error
 import urllib.request
 
-MARKERS = ("worksheetForm", "matrixForm", "bp-ws-draft-", "Download the worksheet (Word)",
-           "not teacher-approved", "renderPlan", "Business plan", "caseDecisionForm", "readCaseDecision")
+MARKERS = ("worksheetForm", "evidenceWorksheetForm", "matrixForm", "bp-ws-draft-",
+           "Download the worksheet (Word)", "not teacher-approved", "renderPlan", "Business plan",
+           "caseDecisionForm", "readCaseDecision")
 ABSENT = ("Reviewer name", "Sign-off", "Review status", "pending_named_reviewer")
 RAIL_MARKERS = ("markCurrentRailItem", "SUBJECT_WORKSPACE", "railSubject")
+# The collapsed rail carries a column for the subject list's scrollbar, so the
+# scrollbar can never land on the icon column and cut a glyph.
+RAIL_GEOMETRY = ("--rail-sb", "--rail-w-collapsed", "body:not(.rail-open) .rail")
 SUBJECTS = ("accounting", "finance", "economics", "management", "project-management",
             "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research")
 FORMS = {"template_business_model_canvas": "canvas", "template_pestel": "canvas",
@@ -55,7 +59,33 @@ def main():
         check("no reviewer surface in the page", not any(m in page for m in ABSENT))
         check("the rail keeps the subject marked while its workspace is open",
               all(m in page for m in RAIL_MARKERS))
+        check("the collapsed rail carries the scrollbar's column",
+              all(m in page for m in RAIL_GEOMETRY))
         check("page has a title", "<title>" in page)
+
+        account = _get(base, "/account.html").decode("utf-8", "replace")
+        check("the account page is served", "<title>My account" in account)
+        check("the account page reaches no remote asset",
+              "http://" not in account and "https://" not in account)
+        wallet = json.loads(_get(base, "/api/cases/credits").decode())
+        check("the export wallet is readable", isinstance(wallet.get("balance"), int) and bool(wallet.get("prices")))
+
+        # Pricing is a dialog over the workbench, not a page: the four plans arrive from
+        # /api/billing/plans, so the markup never holds a tier name (checked case-sensitively,
+        # because the CSS carries a lowercase data-tier selector).
+        check("the workbench carries the pricing dialog",
+              all(marker in page for marker in ('id="pricing"', "pmOpen", "/api/billing/plans")))
+        check("the pricing dialog does not type its own tier names", "Agency" not in page)
+        plans = json.loads(_get(base, "/api/billing/plans").decode())
+        tiers = plans.get("tiers") or []
+        check("four tiers are priced", len(tiers) == 4, str([row.get("tier") for row in tiers]))
+        check("every annual plan is cheaper than twelve monthly payments",
+              all(float(row["annual"]["amount"]) < float(row["monthly"]["amount"]) * 12 for row in tiers))
+        check("a credit allowance is not invented", all(row.get("credits") is None for row in tiers))
+        config = json.loads(_get(base, "/api/billing/config").decode())
+        check("checkout reports whether it is configured", isinstance(config.get("configured"), bool))
+        check("the payment secret is never served",
+              not any("secret" in str(key).lower() for key in config))
 
         subjects = json.loads(_get(base, "/api/cases/subjects").decode())
         ids = [row["id"] for row in subjects.get("subjects", [])]
@@ -65,6 +95,19 @@ def main():
             payload = json.loads(_get(base, "/api/templates/" + template).decode())
             check("template %s uses the %s form" % (template, form), payload.get("form_kind") == form,
                   str(payload.get("form_kind")))
+
+        # The two frameworks with a completion profile carry the same payload
+        # shape, so one page function renders both.
+        for template, field, blocks in (("template_pestel", "country", 6),
+                                        ("template_five_forces", "industry", 5)):
+            payload = json.loads(_get(base, "/api/templates/" + template).decode())
+            completion = payload.get("completion") or {}
+            check("template %s carries a completion profile" % template, bool(completion), str(completion)[:120])
+            check("template %s declares its unit of analysis" % template,
+                  (completion.get("unit") or {}).get("field") == field, str(completion.get("unit")))
+            check("template %s declares %d blocks" % (template, blocks),
+                  len(completion.get("blocks") or []) == blocks,
+                  str(len(completion.get("blocks") or [])))
 
         bmc = json.loads(_get(base, "/api/templates/template_business_model_canvas").decode())
         request = bmc["example_request"]
@@ -108,7 +151,14 @@ def main():
         check("business plan drafts with no missing input", plan.get("draft", {}).get("missing") == [],
               str(plan.get("draft", {}).get("missing")))
         export = _post(base, "/api/cases/chat/" + plan["id"] + "/export", {})
-        check("business plan exports Word bytes", bool(export.get("data")) and export.get("mime", "").endswith("wordprocessingml.document"))
+        # A paper that carries a computation exports as one ZIP (the submission and
+        # its computation companion, build 1.34); a paper without one exports as
+        # the plain Word file. Either is a delivered submission.
+        mime = export.get("mime", "")
+        check("business plan exports its submission",
+              bool(export.get("data")) and (mime == "application/zip"
+                                            or mime.endswith("wordprocessingml.document")),
+              str(mime))
     except (urllib.error.URLError, urllib.error.HTTPError, KeyError, ValueError) as error:
         print("FAIL  smoke run raised %r" % (error,))
         failures.append("exception")

@@ -22,7 +22,7 @@ The current working model is deliberately narrow:
 | Output | APA 7 or Harvard `.docx`, hierarchy enforced |
 | Evidence | Curated academic databases and vetted web domains; VRIO and Break-even retrieve none by design |
 | Model prose | Optional, proposal only, DeepSeek V4.1 Flash by default |
-| Framework completion | Porter's Five Forces pilot: instruction box, research per force, sourced/suggested/gap provenance |
+| Framework completion | Two frameworks, one engine: Five Forces (needs an industry) and PESTEL (needs a country or **Global**). Same profile, same retriever, same paper path |
 
 Other frameworks and computations are being strengthened in the backend. They
 must be wired into the chat one at a time, following this manual, not improvised
@@ -166,78 +166,107 @@ only renders what the chat plan supplies.
 
 ## 6. Completing a framework from an instruction
 
-The Five Forces pilot is the reference behaviour for future framework
-auto-completion.
+Completion is an interface, not a feature of one framework. Five Forces and
+PESTEL both run on it; they differ only in the data their profile supplies.
 
-1. On the subject page, the student describes the case in **Describe your case or paste the instruction**; the matcher opens the suggested worksheet with that description already in the completion box. The subject-level source finder has been removed; research happens inside the worksheet.
-2. `bp.product.completion` extracts the country and case context, builds one
-   short query per force, retrieves academic and vetted web sources, and ranks
-   them.
-3. A force with sources gets one to three sourced items. Each item carries the
-   citation in the form `text || reference`.
-4. A force with no evidence gets a **suggested case assumption** from the model,
-   labelled `suggested`, with no citation. It is not evidence and must be
-   ticked by the student.
-5. A force with neither gets a **named gap**.
-6. The review lists every block and every item. The student ticks what the
-   worksheet may use, then applies it.
-7. The worksheet input accepts per-line `text || source`, so one block can carry
-   several citations without losing them.
-8. **Generate paper (Word)** stays hidden until all five forces have content, then
-   appears at the bottom of the worksheet. It is also available on the results page
-   after a run.
-   - **Draft (evidence-led)** is deterministic: it quotes the accepted items, labels
-     assumptions and names gaps.
-   - **Full paper (model-assisted)** sends the same structured items to DeepSeek
-     V4.1 Flash. One call writes the introduction, the thesis and the case
-     context; seven calls then run in parallel for the five forces, the
-     discussion with implications, and the limitations with the conclusion. The
-     system appends the real citations afterwards. It may not add a citation,
-     source, URL, number, percentage, named condition, actor, technology or
-     country that is not in the items; an inference must read as an inference
-     ("this suggests", "this implies"). A validator checks citations, links,
-     numbers and mid-sentence proper nouns, retries once, and then refuses.
-     **A failed full paper is never downloaded:** the page says the run failed
-     and asks the student to choose Draft explicitly. Full is the default
-     selection. A run takes 40-70 seconds and the button is disabled until it
-     finishes.
-   - Generation reads the case instruction typed at the top of the worksheet. A
-     missing instruction, or the worksheet's own tool title, is refused rather
-     than written into the title and introduction.
-   - An item the student supplied as their own evidence stays student evidence.
-     Only assumption-flagged items are labelled "Case assumption".
-9. **Every paper is a full outline**, not a set of one-line sections. H1:
-   Introduction, Five Forces, Discussion, Conclusion, References. H2: Case and
-   industry context, the five forces, What the evidence shows, Implications for
-   the decision, Limitations. The full version targets 1,800-2,200 words; word
-   floors are enforced in code (introduction 150, each force 140, discussion
-   130, implications 150, conclusion 110, total 1,400), and a paper below them is
-   retried once and then refused. The deterministic Draft uses the same outline
-   and is about 1,200 words.
-10. **The title page is its own section and is centred vertically on the page**
-   (section `vAlign=center`). The student's name, institution, course and
-   instructor follow (four fields on the worksheet, remembered in the browser),
-   then the date. The body is a second section, so it starts on a new page and is
-   not centred; the title is repeated at the top of the first page of text. The
-   title drops the raw instruction's trailing period. No placeholder such as
-   `[your name]` is ever printed. The reference list starts on its own page, and
-   the reported word count excludes it.
-11. **The DOCX carries real Word structure**: `styles.xml` defines Heading 1/2/3
-   with outline levels, body text is Times New Roman 12 double spaced with 1-inch
-   margins, references hang, and the page number sits in the header, top right
-   (APA 7), not the footer.
-12. **Documents on Home.** Every generated paper is stored with its metadata and
-   listed in the Documents card on Home beside the shipped samples, with title,
-   framework, Draft/Full, words, size, date and a Download link. `GET
-   /api/cases/documents` lists them; `GET /api/cases/documents/{id}` returns the
-   Word bytes. Ids are validated and path traversal is refused. Nothing is
-   recomputed on download: the stored bytes are served.
+### 6.1 The parts
 
-The model may not add a number, source, citation, link or named fact. A
-suggestion that fails validation is dropped and the block remains a gap.
+| Part | Where | What it knows |
+|---|---|---|
+| Profile | `bp/product/framework_profiles.py` | the dimensions, their cue words, one search phrase each, the unit of analysis, whether ratings apply, the interpretive prose, the outline, the prompt slots |
+| Engine | `bp/product/retrieval.py` | queries, academic and curated-web retrieval, the relevance gate, ranking, cross-dimension de-duplication |
+| Pipeline | `bp/product/completion.py` | intake, the unit check, per-dimension fill, provenance, gaps, the Draft and Full paper, the document |
+| Page | `web/index.html` | one form, `evidenceWorksheetForm`, rendered from the profile payload |
 
-The pilot is deliberately limited to `template_five_forces`. Do not enable
-other frameworks until the same behaviour has been reviewed for that framework.
+There is one retriever. `bp.product.chat` calls the same `retrieval.retrieve` with
+the same gate, so the same framework, brief, unit and region return the same
+sources on both surfaces. `tests/test_pestel_completion.py::SameEvidenceTest`
+holds that invariant.
+
+### 6.2 The behaviour
+
+1. On the subject page, the student describes the case in **Describe your case or paste the instruction**; the matcher opens the suggested worksheet with that description already in the completion box.
+2. `completion.complete(template, instruction, ...)` reads the profile, checks the
+   **unit of analysis** (Five Forces: an industry; PESTEL: a country, or the word
+   `Global`), refuses an accounting or finance computation brief, and runs the
+   dimensions in parallel under one deadline (20 s, `BP_RESEARCH_DEADLINE`).
+3. Each dimension is searched with its profile phrase, qualified by the country
+   when the brief names one. A candidate must carry a dimension cue and, when the
+   unit is a country, the country. Five Forces additionally requires a force word
+   **and** the industry in the title — the precision rule the pilot was tuned on;
+   PESTEL requires neither in the title, because its unit is a country and the
+   country rule is what keeps the evidence local (this is also the gate the chat
+   has always used for PESTEL). The difference is declared in the profile.
+4. A dimension with accepted sources gets **one to three** sourced items, each
+   with its citation. The same source cannot fill two dimensions.
+5. Empty dimensions differ by profile, and this difference is deliberate:
+   - Five Forces (`assumption: "case"`) asks the model for a labelled **case
+     assumption** — a reading of competitive dynamics drawn from the instruction,
+     never evidence, never cited, and it must be ticked.
+   - PESTEL (`assumption: "probe"`) writes a **named gap plus a probe** ("what to
+     look for"). It never asks the model for a country fact, because that would be
+     invented evidence.
+6. The review lists every dimension and every item with its provenance. The
+   student ticks what the worksheet may use, then applies it. Per-line
+   `text || source` lets one block carry several citations.
+7. **Generate paper (Word)** appears only when every dimension carries an item —
+   or, on a probe profile, when the student has ticked "record it as a named
+   gap". It is also available on the results page after a run. The server refuses
+   what the button hides: `POST /api/cases/frameworks/report` returns **409** with
+   the missing dimension labels.
+8. Two papers from the same items:
+   - **Draft (evidence-led)** is deterministic; it quotes the accepted items and
+     the profile's own interpretation of each dimension.
+   - **Full paper (model-assisted)** sends the items to DeepSeek V4.1 Flash: one
+     call writes the introduction, the thesis and the context, then one call per
+     dimension plus the discussion/implications and limitations/conclusion run in
+     parallel. The system appends the real citations afterwards. It may not add a
+     citation, source, URL, number, named condition, actor, technology or country
+     that is not in the items. A validator checks citations, links, numbers and
+     mid-sentence proper nouns, retries once, then refuses. **A failed full paper
+     is never downloaded.** Full is the default selection; a run takes 40-70 s.
+9. Every paper is a full outline. Five Forces: Introduction, Five Forces,
+   Discussion, Conclusion, References, with Case and industry context, the five
+   forces, What the evidence shows, Implications for the decision, Limitations.
+   PESTEL: the same shape with **Case and country context** and the six
+   dimensions. Word floors are enforced in code and a thin paper is retried once
+   then refused; the length band (Short/Mid/Long) is the **Full** paper's target,
+   and a Draft reports its own word count.
+10. The title page is its own section, centred vertically, with the student's
+    name, institution, course and instructor (remembered in the browser; submitted
+    from state, so a paper generated from the results page keeps them), then the
+    date. The body starts on a new page and repeats the title. The title drops a
+    trailing period. No `[your name]` placeholder is ever printed.
+11. The DOCX carries real Word structure: Heading 1/2/3 with outline levels, Times
+    New Roman 12 double spaced, 1-inch margins, hanging references, page number in
+    the header.
+12. Every generated paper is stored and listed under **Documents** on Home with
+    its framework, Draft/Full, words, size, date and a Download link.
+
+### 6.3 Adding a framework (checklist)
+
+1. Add one dict to `PROFILES` in `framework_profiles.py`. Each block needs
+   `key`, `label`, `prompt`, `cues`, `queries` (one phrase), and a `notes` entry
+   with `analysis`, `qualify`, `short`, plus `probe` when the gap mode is probe.
+2. Declare the unit of analysis (`industry` or `country`) and its refusal
+   message.
+3. Declare the gate: `title_context`, `title_cue`, `require_geography`.
+   Five Forces keeps the pilot's precision rule in the title; a framework whose
+   unit is a country starts with the country requirement and no title rule, as
+   PESTEL does. Change a gate only against a live run, and record it.
+4. Write the outline and the `voice` slots. The safety rules in the prompts are
+   shared and must not be restated per framework.
+5. Add the worksheet to `WORKSHEETS` in `subjects.py` with `draftable: True`.
+6. Nothing in `completion.py`, `api.py` or `web/index.html` changes.
+7. Add tests: six-or-n blocks, a named gap, the unit refusal, the subject
+   boundary, no invented number or name, the outline, the byline, the 409 gate,
+   and the chat/worksheet evidence invariant.
+8. Record the decision, the changelog entry and (when the framework ships) one
+   APA and one Harvard sample.
+
+A profile that is incomplete is refused by `profile_for`, so the framework falls
+back to its plain worksheet rather than producing a generic paper with the
+framework's name on it. Do not bypass that refusal.
 
 ## 7. Adding a computation (checklist)
 
@@ -769,7 +798,7 @@ A new model or session should:
   (`POST /api/cases/chat/{id}/computation`, validated by the frozen
   `breakeven` method). Registering the next capability is the §7 checklist, not
   a new branch in the draft.
-- Framework auto-completion is enabled for Porter's Five Forces only; other worksheets are still manual.
+- Framework auto-completion runs for **Porter's Five Forces and PESTEL** on one engine. Every other worksheet is still manual: its profile is missing, not its code. The next framework is a profile entry (§6.3).
 - Other frameworks are refused, not silently replaced.
 - VRIO and Break-even retrieve **no external evidence**: VRIO records the student's resources and four judgments, and Break-even runs the declared figures. Their papers say so.
 - Value Chain and Ansoff dimensions are supported by retrieved evidence placed by keyword; they do not collect internal cost data or benchmark activities against rivals.

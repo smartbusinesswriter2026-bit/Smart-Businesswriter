@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, council, docx, guard, paper, prose, verify, writing
+from . import capabilities, council, docx, framework_profiles, guard, paper, prose, retrieval, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -430,20 +430,12 @@ COMPUTATION_BLOCKS = [
 
 #: Short, targeted search phrases.  Long cue lists return few results in the
 #: scholarly indexes; these keep the query specific to the dimension.
+#: Search phrases for the conductor frameworks that have no worksheet profile yet.
+#: A framework with a profile reads its phrases from `framework_profiles` instead,
+#: so the worksheet and the chat cannot drift apart (PESTEL and Five Forces do).
 SEARCH_TERMS = {
-    "political": "sanctions policy government",
-    "economic": "economy inflation currency",
-    "social": "population youth internet",
-    "technological": "digital technology internet",
-    "environmental": "water climate drought",
-    "legal": "sanctions law compliance",
     "opportunities": "market growth digital consumers",
     "threats": "sanctions conflict restrictions",
-    "rivalry": "grocery retail competition market",
-    "entrants": "grocery market entry barriers",
-    "substitutes": "grocery substitutes consumer choice",
-    "buyers": "grocery buyer power consumers",
-    "suppliers": "cold chain suppliers logistics",
 }
 
 EXTERNAL_HINTS = {
@@ -975,13 +967,13 @@ def _query(state, key, cues):
     answers = state["answers"]
     geography = answers.get("geography") or "Global"
     geography = "" if geography == "Global" else geography
-    country = _country(answers.get("decision") or "") or _country(state["brief"])
+    country = retrieval.country(answers.get("decision") or "") or retrieval.country(state["brief"])
     industry = _clean(answers.get("industry"), 80)
     topic = " ".join(part for part in (country, industry) if part) or " ".join(_topic(answers.get("decision") or state["brief"]))
     if not topic:
         topic = _clean(state["brief"], 120)
-    search = SEARCH_TERMS.get(key, " ".join(cues.split()[:3]))
-    return _clean(" ".join(part for part in (topic, search, geography) if part), 300)
+    search = framework_profiles.phrase(key) or SEARCH_TERMS.get(key) or " ".join(cues.split()[:3])
+    return retrieval.build_query(search, topic, geography)
 
 
 def _source_note(category):
@@ -1734,150 +1726,55 @@ def _year_from(state):
 
 
 def _first_sentence(source):
-    abstract = _clean(source.get("abstract") or source.get("description"), 1200)
-    if not abstract:
-        return ""
-    return re.split(r"(?<=[.!?])\s+", abstract)[0][:500]
+    """The quote used as one evidence item (one sentence, as the conductor records it)."""
+    return retrieval.first_sentence(source, sentences=1, limit=500)
 
 
-GEO_WORDS = {
-    "US": {"united states", "u.s.", "america", "american", "federal", "washington"},
-    "Europe": {"europe", "european", "eu", "eurozone", "uk", "britain", "germany", "france",
-               "italy", "spain", "netherlands", "poland"},
-    "Middle East": {"middle east", "gulf", "gcc", "saudi", "saudi arabia", "uae", "emirates",
-                    "qatar", "kuwait", "bahrain", "oman", "israel", "turkey", "egypt", "jordan",
-                    "lebanon", "iraq", "iran"},
-    "China": {"china", "chinese", "prc", "beijing", "shanghai", "shenzhen"},
-}
-
-COUNTRIES = [
-    ("Iran", ("iran", "iranian")),
-    ("Saudi Arabia", ("saudi arabia", "saudi")),
-    ("United Arab Emirates", ("united arab emirates", "uae", "emirates", "dubai", "abu dhabi")),
-    ("Qatar", ("qatar", "qatari")),
-    ("China", ("china", "chinese")),
-    ("United States", ("united states", "u.s.", "american")),
-    ("United Kingdom", ("united kingdom", "uk", "britain", "british")),
-    ("Germany", ("germany", "german")),
-    ("France", ("france", "french")),
-    ("Israel", ("israel", "israeli")),
-    ("Turkey", ("turkey", "turkish")),
-    ("Egypt", ("egypt", "egyptian")),
-]
-
-
-def _country(text):
-    lower = (text or "").lower()
-    for name, aliases in COUNTRIES:
-        for alias in aliases:
-            if re.search(r"\b" + re.escape(alias) + r"\b", lower):
-                return name
-    return ""
-
-
-def _geo_words(geography):
-    return set(GEO_WORDS.get(geography, set()))
-
-
-GENERIC_TOPIC = {"market", "markets", "business", "company", "firm", "firms", "entry", "enter",
-                 "product", "products", "service", "services", "industry", "global", "international"}
-
-
-def _specific_words(topic_words):
-    out = set()
-    for word in topic_words - GENERIC_TOPIC:
-        out.add(word)
-        if word.endswith("ian") and len(word) > 4:
-            out.add(word[:-3])
-    return out
-
-
-def _relevance(item, topic_words, cue_words, geo_words, specific_words):
-    text = _clean((item.get("title") or "") + " " + (item.get("abstract") or item.get("description") or ""), 2000)
-    words = set(re.findall(r"[a-z][a-z0-9'-]+", text.lower()))
-    lower = text.lower()
-    geo_hits = sum(1 for phrase in geo_words if phrase in lower)
-    cue_hits = len(cue_words & words)
-    specific_hits = len(specific_words & words)
-    score = 2 * cue_hits + 2 * (1 if geo_hits else 0) + specific_hits
-    return score, geo_hits, cue_hits, specific_hits
-
-
-def _rank(item, score, cue_words, specific_words):
-    """Precision ranking: relevance, title match, source tier and recency."""
-    title = _clean(item.get("title"), 400).lower()
-    title_words = set(re.findall(r"[a-z][a-z0-9'-]+", title))
-    title_cues = len(cue_words & title_words)
-    title_specific = len(specific_words & title_words)
-    year = item.get("year") or 0
-    current = datetime.datetime.now(datetime.timezone.utc).year
-    recency = 2 if year >= current - 2 else (1 if year >= current - 5 else 0)
-    tier = item.get("tier") or ""
-    if tier in ("official", "data"):
-        source = 3
-    elif item.get("database") in ("OpenAlex", "Semantic Scholar", "DOAJ", "Crossref"):
-        source = 2
-    else:
-        source = 1
-    return score + 2 * title_cues + 2 * title_specific + recency + source + (item.get("credibility") or 0) / 100
+#: The ranking and the country list live in the shared engine; these names stay
+#: for callers that read them, so there is one implementation, not two.
+_rank = retrieval.rank_item
+_specific_words = retrieval.specific_words
+_geo_words = retrieval.geo_words
+_country = retrieval.country
 
 
 def _research_one(state, dimension):
-    from . import sources as source_finder
-    started = time.perf_counter()
-    query = dimension["query"]
+    """One dimension, through the shared retrieval engine.
+
+    The worksheet completion calls the same function with the same gate, so the
+    same brief returns the same evidence on both surfaces.
+    """
+    import time as _time
+    started = _time.perf_counter()
     topic_words = set(_topic(state["answers"].get("decision") or state["brief"]))
-    country = _country(state["answers"].get("decision") or "") or _country(state["brief"])
-    specific_words = set(country.lower().split()) if country else _specific_words(topic_words)
-    cue_words = set((dimension.get("cues") or "").split())
+    country = retrieval.country(state["answers"].get("decision") or "") or retrieval.country(state["brief"])
+    context = set(country.lower().split()) if country else retrieval.specific_words(topic_words)
     geography = state["answers"].get("geography") or "Global"
-    geo_words = _geo_words(geography)
-    # Academic and curated-web retrieval are independent.  A slow web provider
-    # must not hold back the academic evidence for the dimension.
-    platform_pool = ThreadPoolExecutor(max_workers=2)
-    academic_future = platform_pool.submit(source_finder.search_academic, query,
-                                           databases=["openalex", "semanticscholar", "doaj"],
-                                           limit=4, year_from=_year_from(state))
-    fast = os.environ.get("BP_OPENGO_RESEARCH", "0") != "1"
-    web_future = platform_pool.submit(source_finder.search_web, query,
-                                      geography, 3, dimension.get("category"), fast)
-    results = academic_future.result()
-    try:
-        web = web_future.result(timeout=9)
-    except TimeoutError:
-        web = {"results": [], "provider": None,
-               "notice": "Web search timed out; the academic evidence for this dimension was kept."}
-        web_future.cancel()
-    platform_pool.shutdown(wait=False, cancel_futures=True)
-    found = list(results.get("results") or [])
-    for item in web.get("results") or []:
-        found.append({"title": item.get("title"), "abstract": item.get("description"),
-                      "authors": item.get("site"), "authors_list": [item.get("site")],
-                      "year": None, "venue": item.get("site"), "doi": None, "url": item.get("url"),
-                      "database": "vetted web", "item_type": "webpage", "kind": "web",
-                      "retrieved_at": _now()})
-    scored = []
-    for item in found:
-        score, geo_hits, cue_hits, specific_hits = _relevance(item, topic_words, cue_words, geo_words, specific_words)
-        if cue_hits == 0:
-            continue
-        if specific_words and specific_hits == 0:
-            continue
-        if geography != "Global" and geo_hits == 0:
-            continue
-        if score >= 3:
-            scored.append((_rank(item, score, cue_words, specific_words), item))
-    scored.sort(key=lambda pair: -pair[0])
-    web_notice = web.get("notice")
-    if not web_notice and web.get("provider"):
-        web_notice = "Web search used " + str(web["provider"]) + "."
-    return {"dimension": dimension, "found": [item for _score, item in scored],
-            "errors": results.get("errors") or [], "skipped": results.get("skipped") or [],
-            "notice": web_notice, "dropped": len(found) - len(scored),
-            "elapsed": round(time.perf_counter() - started, 2),
-            "academic_cached": bool(results.get("cached")),
-            "web_cached": bool(web.get("cached")),
-            "database_timings": results.get("timings") or {}}
+    gate = _gate_for(state)
+    found = retrieval.retrieve(
+        key=dimension["key"], cues=dimension.get("cues") or "", queries=[dimension["query"]],
+        context=sorted(context), geography=geography, year_from=_year_from(state),
+        category=dimension.get("category"), gate=gate, max_items=3, academic_limit=4, web_limit=3)
+    notice = "; ".join(found.get("notices") or []) or None
+    return {"dimension": dimension, "found": found.get("items") or [],
+            "errors": found.get("errors") or [], "skipped": found.get("skipped") or [],
+            "notice": notice, "dropped": found.get("dropped") or 0,
+            "elapsed": round(_time.perf_counter() - started, 2),
+            "academic_cached": bool(found.get("academic_cached")),
+            "web_cached": bool(found.get("web_cached")),
+            "database_timings": found.get("database_timings") or {}}
+
+
+#: The conductor's framework keys that own a profile, so the chat uses the same
+#: gate as the worksheet instead of a second copy of the rules.
+PROFILE_FOR = {"pestel": "template_pestel", "pestel_swot": "template_pestel",
+               "five_forces": "template_five_forces",
+               "five_forces_breakeven": "template_five_forces"}
+
+
+def _gate_for(state):
+    profile = framework_profiles.get(PROFILE_FOR.get(state.get("framework") or ""))
+    return profile.get("gate") if profile else None
 
 
 def research(state):

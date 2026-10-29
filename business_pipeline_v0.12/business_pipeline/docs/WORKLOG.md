@@ -1,5 +1,43 @@
 # Worklog — append-only record of what was done
 
+## 2026-10-29 — [design] The Home slogan loses its final period
+
+**Ask.** "REMOVE THE PERIOD AFTER ASSISTANT".
+
+**Did.** One character, in the Home hero: the lead now reads "Your reliable business writing assistant", with no full stop, in both places it lives - the static markup and the `RENDERERS.home` rebuild - so the first paint and the re-render agree. Nothing else moves: the claim stays in the bold 19.8 px lead, the three proofs stay in the italic 15 px line under it with their own full stops, and the line break between them is still what separates them. The effect to look at: the lead now reads as a phrase rather than a finished sentence, with the weight step and the line break carrying the emphasis instead of the punctuation.
+
+**Recorded.** The entry above (same day) says "the slogan is untouched" and cites B-094's clause "the slogan must not be changed" and B-162's clause "the slogan stays". Both were the owner's own guard against unasked-for edits, and the owner has now asked for this edit, so both clauses are revised rather than quietly broken: **B-164** records the change and both earlier rows point at it. The wording of the slogan is otherwise exactly as the owner wrote it.
+
+**Verified.** On the served page the lead reads "Your reliable business writing assistant" with no trailing full stop, in the first paint and in a re-render; the proof line is unchanged. The inline script parses (`node --check`) and the full suite passes. No `src/bp/**`, `tests/**`, fixture, number, claim or endpoint changed.
+
+**Files.** `web/index.html`, `web/DESIGN_NOTES.md` (section 22; section 3's live-copy note), `docs/DECISIONS.md` (B-094 and B-162 status cells, B-164 added), `docs/WORKLOG.md`.
+
+**Open/next.** No `docs/CHANGELOG.md` entry, for the same reason as the earlier design increments: the build number is in flight in the concurrent lane, and the changelog's newest build is tied by a test to the build string in `HOME.md` and `HANDOFF.md`.
+
+## 2026-10-29 — [design] Home drops its subject tagline
+
+**Ask.** "DELETE THIS FROM THE HOME PAGE: BUSINESS | ACCOUNTING | ECONOMICS | FINANCE".
+
+**Did.** The `BUSINESS | ACCOUNTING | ECONOMICS | FINANCE` line is gone from the Home hero. It lived in two places - the static markup and the `RENDERERS.home` rebuild - and both were changed, so the first paint and the re-render agree. The hero now reads logo, wordmark, slogan. The slogan is untouched ("Your reliable business writing assistant." / "Real computation. Real research. Verifiable."), so the other half of B-094 - the slogan must not be changed - still stands. The CSS that only served the line went with it (`.tagline`, `.hero .tagline`, and the narrow-layout `.topbar .tagline`, which had no other user in the page); the hero's own spacing is unchanged, so the block tightens by one line and nothing else moves.
+
+**Recorded.** B-094 pinned that tagline ("exactly as written"). The owner set it and has now reversed it, so B-094 is marked superseded on that line and the reversal is recorded as B-162 rather than made silently.
+
+**Verified.** The tagline text is absent from the served document, from the inline script and from the rendered hero, in the first paint and in a re-render; the slogan is still there, unchanged. The inline script parses (`node --check`) and the full suite passes. No `src/bp/**`, `tests/**`, fixture, number, claim or endpoint changed.
+
+**Files.** `web/index.html`, `web/DESIGN_NOTES.md` (section 20), `docs/DECISIONS.md` (B-094 superseded, B-162 added), `docs/WORKLOG.md`.
+
+**Open/next.** No `docs/CHANGELOG.md` entry, for the same reason as the earlier design increments: the build number is in flight in the concurrent lane, and the changelog's newest build is tied by a test to the build string in `HOME.md` and `HANDOFF.md`.
+
+## 2026-10-29 - Pricing wired to PayPal, with the credits left open
+
+**Ask.** Wire Smart BusinessWriter's pricing to PayPal at Starter $14.99, Pro $29.99, Studio $49.99 and a fourth tier at $99.99, with an annual plan cheaper than monthly, make a payment actually go through, and build the design so credit allowances can be added later — the owner does not know them yet.
+
+**Did.** `bp/product/billing.py` is the one catalogue: monthly prices are written, the annual price is 12 months less a declared 20% (`143.90 / 287.90 / 479.90 / 959.90`), and every tier's `credits` is `None` so the API returns `null` and the page prints "to be confirmed" instead of inventing a number. The fourth tier is **Agency**, chosen so Starter / Pro / Studio / Agency read as one ladder of work-scale nouns. `bp/product/paypal.py` talks to PayPal with the standard library only: token, product and plan creation cached against a hash of the prices, subscription create, read-back and cancel. Routes `GET /api/billing/plans|config|status` and `POST /api/billing/subscribe|confirm|cancel`; `confirm` verifies against PayPal and refuses anything not ACTIVE, and the ledger is append-only and idempotent per subscription id. Pricing is a centred dialog inside `web/index.html`, opened by the Pricing pill, rendered from the API with no browser arithmetic; there is no separate pricing page, so the checkout exists once. `account.html` shows the real tiers and points at the dialog, and its illustrative-tier copy is corrected.
+
+**Verified.** `tests/test_product_billing.py` (33 tests) covers the catalogue arithmetic, the annual discount, credits staying `null`, the fail-closed 503 naming the variable, the config never returning the secret, activation idempotency, the cancel keeping the paid plan, the plan cache being reused and invalidated on a price change, and a refusal surfacing rather than being swallowed. Full suite 1846 tests pass. Live, against the owner's credentials in `Backend/.env`: PayPal issued a real access token (97 characters, value never printed), the product and two plans were created for real (`PROD-5DW44156Y8351981T`, Starter monthly `P-3JX15996X3823631BNLRI7FA`, Starter annual `P-4JM98145VU694664VNLRI7FI`), and the live JS SDK rendered its buttons on `http://127.0.0.1` - so the HTTPS worry recorded in the changelog did not materialise on localhost. What remains unverified is an approved payment: no subscription was approved and nothing was charged.
+
+**Files.** `src/bp/product/billing.py`, `src/bp/product/paypal.py`, `src/bp/product/api.py`, `src/bp/product/source_env.py`, `src/bp/server.py`, `web/index.html`, `web/account.html`, `Backend/.env.example`, `tests/test_product_billing.py`, `docs/*`.
+
 ## 2026-10-29 - Aligned Portfolio forms and a generated sample report
 
 **Ask.** The create form paired a label with the next field's input; and a sample report with the fixed checks.

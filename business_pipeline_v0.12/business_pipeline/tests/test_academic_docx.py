@@ -31,18 +31,31 @@ class AcademicDocxTest(unittest.TestCase):
         title = "Porter's Five Forces: A Case"
         self.assertEqual(texts.count(title), 2)  # title page and first page of text
         first = texts.index(title)
-        self.assertEqual(texts[:first], ["", "", ""])  # title begins three lines down
         self.assertEqual(texts[first + 2:first + 6],
                          ["A Student", "Example University", "BUS301", "Dr A Instructor"])
         self.assertEqual(texts[first + 6],
                          datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"))
 
-    def test_the_title_page_is_followed_by_a_page_break(self):
+    def test_the_title_page_is_vertically_centred_in_its_own_section(self):
         body = self.parts["word/document.xml"]
-        self.assertIn('<w:br w:type="page"/>', body)
-        break_at = body.index('<w:br w:type="page"/>')
-        self.assertLess(body.index("Dr A Instructor"), break_at)
-        self.assertGreater(body.index("Introduction"), break_at)
+        self.assertIn('<w:vAlign w:val="center"/>', body)
+        centre = body.index('<w:vAlign w:val="center"/>')
+        self.assertGreater(body.index("Dr A Instructor"), centre - 4000)
+        # the body is a second section, so it starts on a new page uncentred
+        self.assertEqual(body.count("<w:sectPr>"), 2)
+        self.assertNotIn('<w:vAlign w:val="center"/></w:sectPr>', body)
+
+    def test_the_reference_list_starts_on_its_own_page(self):
+        body = self.parts["word/document.xml"]
+        start = body.rindex("<w:p>", 0, body.index(">References<"))
+        paragraph = body[start:body.index(">References<")]
+        self.assertIn("<w:pageBreakBefore/>", paragraph)
+
+    def test_the_title_page_section_ends_before_the_body(self):
+        body = self.parts["word/document.xml"]
+        centre = body.index('<w:vAlign w:val="center"/>')
+        self.assertLess(body.index("Dr A Instructor"), centre)
+        self.assertLess(centre, body.index("Introduction"))
 
     def test_headings_use_real_word_styles(self):
         body = self.parts["word/document.xml"]

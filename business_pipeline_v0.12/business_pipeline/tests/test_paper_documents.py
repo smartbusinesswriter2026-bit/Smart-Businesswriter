@@ -119,9 +119,14 @@ class DocumentRouteTest(unittest.TestCase):
     def test_generating_a_paper_saves_it_to_the_store(self, completion):
         completion.draft.return_value = {"title": "A Paper", "sections": [], "style": "apa",
                                          "version": "full", "model_used": True, "words": 2000,
-                                         "byline": []}
+                                         "framework": "Five Forces", "byline": []}
         completion.draft_bytes.return_value = b"docx-bytes"
-        body = {"completion": {"instruction": "A case."}, "style": "apa", "version": "full"}
+        completion.missing.return_value = []
+        body = {"completion": {"instruction": "A case.", "template": "template_five_forces",
+                               "blocks": [{"key": key, "label": key, "items": [
+                                   {"text": "Evidence.", "provenance": "user"}]}
+                                   for key in ("rivalry", "entrants", "substitutes", "buyers", "suppliers")]},
+                "style": "apa", "version": "full"}
         code, payload = api.handle("POST", "/api/cases/frameworks/report", body)
         self.assertEqual(code, 200)
         self.assertEqual(payload["document"]["title"], "A Paper")

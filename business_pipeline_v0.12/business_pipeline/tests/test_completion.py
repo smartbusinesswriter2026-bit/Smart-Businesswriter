@@ -19,8 +19,9 @@ def academic(query, databases=None, limit=10, year_from=None):
     }], "errors": [], "skipped": []}
 
 
-def web(query, region="Global", limit=10, category=None, fast=False):
-    return {"results": [], "notice": "No web result.", "sites": []}
+def web(query, region="Global", limit=10, category=None, fast=False, sites=None, providers=None):
+    """A stand-in for sources.search_web; the real signature has grown twice."""
+    return {"results": [], "notice": "No web result.", "sites": list(sites or [])}
 
 
 def _paper_data():
@@ -145,6 +146,25 @@ class CompletionTest(unittest.TestCase):
                          "Conclusion", "References"):
             self.assertIn(required, headings)
         self.assertGreaterEqual(report["words"], 700)
+
+    def test_length_changes_the_draft_and_is_reported(self):
+        result = {"instruction": "A grocery chain considers a cold-chain acquisition in Saudi Arabia.",
+                  "blocks": [{"key": key, "label": label, "items": [
+                      {"text": "Evidence for " + label + ". " * 3, "provenance": "user"}]}
+                      for key, label, _ in completion.FORCES]}
+        short = completion.draft(result, "apa", "draft", "short")
+        mid = completion.draft(result, "apa", "draft", "mid")
+        self.assertEqual(short["length_label"], "Short")
+        self.assertEqual(mid["length_label"], "Mid")
+        self.assertLess(short["words"], mid["words"])
+        self.assertEqual(short["length_range"], "600-1,200")
+
+    def test_an_unknown_length_falls_back_to_mid(self):
+        result = {"instruction": "A case.", "blocks": [
+            {"key": "buyers", "label": "Buyer power",
+             "items": [{"text": "Buyers negotiate.", "provenance": "user"}]}]}
+        report = completion.draft(result, "apa", "draft", "enormous")
+        self.assertEqual(report["length"], "mid")
 
     def test_student_items_stay_student_evidence_not_assumptions(self):
         result = {"instruction": "A grocery chain considers a cold-chain acquisition in Saudi Arabia.",

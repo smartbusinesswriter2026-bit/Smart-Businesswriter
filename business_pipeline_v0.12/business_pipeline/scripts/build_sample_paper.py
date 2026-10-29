@@ -13,7 +13,7 @@ STYLE = (sys.argv[1] if len(sys.argv) > 1 else "apa").lower()
 if STYLE not in ("apa", "harvard"):
     raise SystemExit("style must be apa or harvard")
 TITLE = "Apple's Prospective Entry into Iran: A PESTEL Analysis"
-OUT = str(Path(__file__).resolve().parents[3] / "samples" / ("apple-iran-pestel-%s.docx" % STYLE))
+OUT = str(Path(__file__).resolve().parents[3] / "samples" / ("apple-iran-pestel-%s.docx" % ("apa7" if STYLE == "apa" else STYLE)))
 
 SECTIONS = [
     ("", [
@@ -265,8 +265,6 @@ def main():
 
     add_page_number(section.header.paragraphs[0])
 
-    for _ in range(3):
-        double(document.add_paragraph())
     title = document.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     double(title)
@@ -284,7 +282,15 @@ def main():
         run.font.name = "Times New Roman"
         run.font.size = Pt(12)
 
-    document.add_page_break()
+    # the title page is its own section, centred vertically on the page
+    from docx.enum.section import WD_SECTION
+    document.add_section(WD_SECTION.NEW_PAGE)
+    first, body_section = document.sections[0], document.sections[1]
+    centre = OxmlElement("w:vAlign")
+    centre.set(qn("w:val"), "center")
+    first._sectPr.append(centre)
+    for element in body_section._sectPr.findall(qn("w:vAlign")):
+        body_section._sectPr.remove(element)
 
     title = document.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER

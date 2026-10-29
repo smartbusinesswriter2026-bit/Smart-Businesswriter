@@ -705,18 +705,43 @@ def _deepseek_web(text, sites, limit):
     return out, {"provider": "deepseek", "n": len(out), "billable": bool(rows)}
 
 
-def search_web(query, region="Global", limit=10, category=None, fast=False):
+INDUSTRY_SITES = [
+    {"domain": "mckinsey.com", "label": "McKinsey", "tier": "research", "region": "Global"},
+    {"domain": "hbr.org", "label": "Harvard Business Review", "tier": "research", "region": "Global"},
+    {"domain": "statista.com", "label": "Statista", "tier": "data", "region": "Global"},
+    {"domain": "reuters.com", "label": "Reuters", "tier": "news", "region": "Global"},
+    {"domain": "ft.com", "label": "Financial Times", "tier": "news", "region": "Global"},
+    {"domain": "economist.com", "label": "The Economist", "tier": "news", "region": "Global"},
+    {"domain": "gartner.com", "label": "Gartner", "tier": "research", "region": "Global"},
+    {"domain": "idc.com", "label": "IDC", "tier": "data", "region": "Global"},
+    {"domain": "counterpointresearch.com", "label": "Counterpoint Research", "tier": "data", "region": "Global"},
+    {"domain": "canalys.com", "label": "Canalys", "tier": "data", "region": "Global"},
+    {"domain": "gsmaintelligence.com", "label": "GSMA Intelligence", "tier": "data", "region": "Global"},
+    {"domain": "oecd.org", "label": "OECD", "tier": "official", "region": "Global"},
+    {"domain": "worldbank.org", "label": "World Bank", "tier": "official", "region": "Global"},
+]
+
+
+def search_web(query, region="Global", limit=10, category=None, fast=False, sites=None, providers=None):
     """Search curated domains: OpenGo, DeepSeek, Brave, Firecrawl.
 
     `fast` skips the headless OpenGo agent for multi-dimension research, where
     its 13-15 s model latency would stall the pass; DeepSeek Search is then first.
+    `sites` overrides the vetted registry (framework research uses INDUSTRY_SITES)
+    and `providers` fixes the order, because a general engine returns better
+    industry articles than a site-filtered one.
     """
     text = (query or "").strip()
     if not text:
         return {"query": text, "results": [], "notice": "A search query is required.", "sites": []}
-    sites = vetted_sites(region, category=category)
-    filter_sites = vetted_sites(category=category)
-    key = ("web", text, region, limit, category)
+    custom = sites is not None
+    site_list = sites if custom else vetted_sites(region, category=category)
+    filter_sites = sites if custom else vetted_sites(category=category)
+    # Two custom site lists must not share a cached answer, so the directory is
+    # part of the key rather than only the word "custom".
+    directory = tuple((site.get("domain") or site.get("id") or str(site))
+                      if isinstance(site, dict) else str(site) for site in site_list)
+    key = ("web", text, region, limit, category, "custom" if custom else "", directory)
     cached = _cache_get(key)
     if cached is not None:
         cached["cached"] = True
@@ -725,7 +750,10 @@ def search_web(query, region="Global", limit=10, category=None, fast=False):
     seen = set()
     order = (("opengo", _opengo_web), ("deepseek", _deepseek_web),
              ("brave", _brave_web), ("firecrawl", _firecrawl_web))
-    if fast:
+    if providers:
+        lookup = dict(order)
+        order = tuple((name, lookup[name]) for name in providers if name in lookup)
+    elif fast:
         order = order[1:]
     for _name, provider in order:
         found, attempt = provider(text, filter_sites, limit)
@@ -743,7 +771,7 @@ def search_web(query, region="Global", limit=10, category=None, fast=False):
     if not results:
         notice = ("No curated web result came back. OpenGo, DeepSeek, Brave and Firecrawl were "
                   "unavailable or empty; the vetted-site directory is below.")
-    payload = {"query": text, "results": results, "sites": sites, "provider": provider,
+    payload = {"query": text, "results": results, "sites": site_list, "provider": provider,
                "attempts": attempts, "notice": notice, "cached": False}
     _cache_put(key, payload)
     return copy.deepcopy(payload)

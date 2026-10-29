@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.45 (see docs/CHANGELOG.md)
-Tests        : 1782 tests, all passing
+Build        : 1.47 (see docs/CHANGELOG.md)
+Tests        : 1847 tests, all passing
 ```
 
 ```powershell
@@ -46,6 +46,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 - **Ingestion**: CSV/TSV + XLSX â†’ typed table with provenance; XLSX sheet selection by exact name or 1-based number, and merged cells refused by default (declared `top_left` expansion recorded when chosen) — B-076; PDF/scan/OCR/SPSS refused explicitly.
 - **Model boundary**: DeepSeek/OpenAI-compatible/Anthropic adapters, proposals-only validation, held-out evaluation scaffold (synthetic fixtures only).
 - **Research & Evidence Workflow (REW)**: living manual ratified as authority (R11) with stages R0–R8 **proposed**, none built.
+- **Pricing and PayPal (B-163)**: four tiers - Starter 14.99, Pro 29.99, Studio 49.99, Agency 99.99 - in `bp/product/billing.py`, where the annual price is 12 months less a declared 20% (143.90 / 287.90 / 479.90 / 959.90) and every tier's `credits` is `None` (returned as `null`, printed "to be confirmed"; `grant_for()` is the wired hook and appends nothing yet). `bp/product/paypal.py` is a stdlib client over PayPal subscriptions: one product and one plan per tier and cycle created on first use and cached in `state/paypal_plans.json` under a hash of the prices, plus create/read/cancel. Routes `GET /api/billing/plans|config|status`, `POST /api/billing/subscribe|confirm|cancel`; `confirm` re-reads the subscription from PayPal, refuses anything not ACTIVE (409) or a foreign `custom_id` (422), and appends to an idempotent `state/subscriptions.jsonl`. Credentials are `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV` in `Backend/.env`; a missing one is a 503 naming it. Pricing is a centred dialog inside `web/index.html` (the Pricing pill), rendered from the API; there is no separate pricing page. **No webhook** (PayPal cannot reach 127.0.0.1, so renewals are re-read on demand) and live checkout generally needs an HTTPS origin. The live credentials are in `Backend/.env` and a token, the product and two plans were proved against PayPal; the one step never taken is an approved payment, so a real charge is untested.
 - **Documentation spine**: CONTRIBUTORS, HOME, WORKLOG, DECISIONS (B-001…B-080, incl. B-075 the parked queue, B-079 the frozen core, B-080 the product-backend lane), CHANGELOG, KNOWN_LIMITATIONS, PRODUCT_GAP_MAP, **PARKED_QUEUE** (frontier-model work, do not start un-invited), **BACKEND_CONTRACT** (frozen surface + unfreeze policy; read before touching `src/bp/**`).
 
 ## 4. Owner decisions that gate work (ask before building)
@@ -60,7 +61,7 @@ python -m bp.literature drift retrieval_log.jsonl 20
 
 Do not invent answers to these. If the owner says "go", build only what is listed below as unblocked.
 
-**Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 1782 tests).
+**Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 1783 tests).
 
 ## 5. The work left, in priority order, with acceptance criteria
 

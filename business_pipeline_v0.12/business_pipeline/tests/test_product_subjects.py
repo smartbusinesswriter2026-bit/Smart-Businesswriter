@@ -254,6 +254,10 @@ class ServedUiContractTest(unittest.TestCase):
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             self.html = stream.read()
 
+    def test_a_worksheet_still_renders_without_a_session(self):
+        self.assertIn("if (state.session || state.worksheet) { panel.hidden = false; renderNew(); return; }", self.html)
+        self.assertIn('ensurePanel("new")', self.html)
+
     def test_a_reload_cannot_land_on_a_dead_session_page(self):
         self.assertNotIn("No session yet", self.html)
         self.assertIn("SESSION_ROUTES", self.html)
@@ -415,7 +419,7 @@ class ServedUiContractTest(unittest.TestCase):
         """A student fills a guided form; the page never exposes the input object."""
         self.assertNotIn("Worksheet inputs (JSON)", self.html)
         self.assertNotIn('id="ws-json"', self.html)
-        for function in ("fiveForcesForm", "swotForm", "matrixForm", "vrioForm", "bindWorksheetForm"):
+        for function in ("evidenceWorksheetForm", "swotForm", "matrixForm", "vrioForm", "bindWorksheetForm"):
             self.assertIn("function " + function, self.html)
         self.assertIn("Build the grid", self.html)
         self.assertIn("Add another resource", self.html)

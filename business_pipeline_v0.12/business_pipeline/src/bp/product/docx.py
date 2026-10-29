@@ -147,8 +147,10 @@ STYLES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 
 def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None,
-                   hanging=None, italic=False, style=None, keep_next=False):
+                   hanging=None, italic=False, style=None, keep_next=False, break_before=False):
     ppr = []
+    if break_before:
+        ppr.append("<w:pageBreakBefore/>")
     if style:
         ppr.append('<w:pStyle w:val="%s"/>' % style)
     if align:
@@ -178,21 +180,28 @@ def academic_document_xml(title, sections, style="apa", byline=()):
     `byline` is the student's own title-page lines (name, institution, course,
     instructor).  Empty lines are dropped, and nothing is invented: a paper never
     carries a placeholder such as "[your name]".
+
+    The title page is its own section, vertically centred as APA 7 asks; the body
+    is a second section, so it starts on a new page and is not centred. The
+    reference list starts on its own page.
     """
     import datetime
     lines = [str(line).strip() for line in (byline or []) if str(line or "").strip()]
     title = str(title or "").strip()
-    # APA 7 student title page: the title begins three double-spaced lines below
-    # the top margin, then one blank line, then the student's own details.
-    parts = [_academic_para("", after=0) for _ in range(3)]
-    parts.append(_academic_para(title, bold=True, align="center", after=0, keep_next=True))
+    section = ('<w:headerReference w:type="default" r:id="rId1"/>'
+               '<w:pgSz w:w="12240" w:h="15840"/>'
+               '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" '
+               'w:header="720" w:footer="720" w:gutter="0"/>')
+    parts = [_academic_para(title, bold=True, align="center", after=0, keep_next=True)]
     if lines:
         parts.append(_academic_para("", after=0))
         parts.extend(_academic_para(line, align="center") for line in lines)
     parts.append(_academic_para(
         datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"), align="center"))
-    parts.append(_page_break())
-    # The title is repeated at the top of the first page of text (APA 7).
+    # end the title-page section: centred vertically, page numbered like the rest
+    parts.append('<w:p><w:pPr><w:sectPr><w:vAlign w:val="center"/>' + section + '</w:sectPr>'
+                 '</w:pPr></w:p>')
+    # the title is repeated at the top of the first page of text (APA 7)
     parts.append(_academic_para(title, bold=True, align="center", after=240, keep_next=True))
     for item in sections:
         if isinstance(item, dict):
@@ -211,20 +220,16 @@ def academic_document_xml(title, sections, style="apa", byline=()):
                                         style="Heading2", keep_next=True))
         else:
             parts.append(_academic_para(heading, bold=True, align="center", after=120,
-                                        style="Heading1"))
+                                        style="Heading1", break_before=is_reference))
         for line in lines:
             text = line if isinstance(line, str) else str(line)
-            if text.startswith("•") or text.startswith("-"):
+            if text.startswith("\u2022") or text.startswith("-"):
                 parts.append(_academic_para(text, indent=None))
             elif is_reference:
                 parts.append(_academic_para(text, indent=None, hanging=720))
             else:
                 parts.append(_academic_para(text, indent=720))
-    parts.append(
-        '<w:sectPr><w:headerReference w:type="default" r:id="rId1"/>'
-        '<w:pgSz w:w="12240" w:h="15840"/>'
-        '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" '
-        'w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>')
+    parts.append('<w:sectPr>' + section + '</w:sectPr>')
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
             'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
