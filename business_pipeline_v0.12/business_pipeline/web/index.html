@@ -24,6 +24,11 @@
   --text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;
   --amber:#B26A00; --amber-bg:#FFF7E8; --amber-line:#F0D9AE;
   --red:#A32C2C; --red-bg:#FDEFEF; --red-line:#F2C9C9;
+  /* A completed framework speaks in three states: researched, taken from the
+     student's own brief, and left for the student to state. They are colour-
+     coded here once so no page invents a fourth. */
+  --you:#8A5A08; --you-bg:#FFF3DC; --you-line:#F0DDB4;
+  --ops-tint:#E8EDF7;
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
   --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08); --sh-3:0 18px 48px rgba(2,40,76,.14);
   --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
@@ -98,6 +103,40 @@ label.field{display:block;font-size:14.4px;color:var(--text-2);margin:0 0 4px}
 .wsheet .wmeta select,.wsheet .wmeta input[type=text]{font-size:14.6px;color:var(--text);background:#fff}
 .wsheet .whint{font-size:13.8px;color:var(--text-2);font-variant-numeric:tabular-nums}
 .wsheet .wlinks{border-bottom:0}
+
+/* ---------- a framework that completes itself ---------- */
+.stepbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.stepbar .step{display:inline-flex;align-items:center;gap:7px;font-size:14.6px;color:var(--text-2);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:6px 12px}
+.stepbar .step b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;
+  background:var(--sunken);color:var(--text);font-size:12.4px;font-weight:700}
+.stepbar .step.on{border-color:var(--green-600);background:var(--green-100)}
+.stepbar .step.on b{background:var(--green-600);color:#fff}
+.fillhint{margin-top:8px;font-size:14.2px;line-height:1.5;color:var(--text-2)}
+.fillhint::before{content:"\\2192  ";color:var(--green-700);font-weight:700}
+.reviewhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:10px 0 4px;padding-top:12px;border-top:1px solid var(--border)}
+.partcard{border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);
+  padding:12px 14px;margin:10px 0}
+.partcard.empty{background:var(--amber-bg);border-color:var(--amber-line)}
+.parthead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.parthead strong{font-size:15.6px;color:var(--navy-900)}
+.fillbadge{display:inline-flex;align-items:center;font-size:12.8px;font-weight:650;letter-spacing:.01em;
+  border-radius:var(--r-pill);padding:2px 9px;white-space:nowrap}
+.gapnote{margin:0 0 6px;font-size:14.4px;line-height:1.5;color:var(--text)}
+.tickrow{display:flex;gap:9px;align-items:flex-start;margin:3px 0;min-height:44px;padding:6px 4px;
+  border-radius:var(--r-sm);cursor:pointer}
+.tickrow:hover{background:var(--sunken)}
+.tickrow input{margin-top:5px;flex:0 0 auto}
+.tickrow>span{display:flex;flex-direction:column;gap:2px;font-size:14.6px;line-height:1.45}
+.tickrow .muted{font-size:13.4px}
+.details.manual summary{cursor:pointer;font-size:15.2px;color:var(--navy-900);min-height:44px;display:flex;align-items:center}
+.mapcard svg{width:100%;height:auto;display:block;margin-top:6px;border:1px solid var(--border);border-radius:var(--r-md);background:#fdfdfb}
+.stickybar{position:sticky;bottom:0;z-index:12;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  margin-top:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md) var(--r-md) 0 0;box-shadow:0 -6px 20px rgba(2,40,76,.07)}
+@media (max-width:640px){.stickybar{position:static;border-radius:var(--r-md)}}
+@media (prefers-reduced-motion:reduce){.capcard{transition:none}}
 .locale{display:flex;align-items:center;gap:6px}
 .locale select{padding:5px 8px;font-size:14.4px}
 
@@ -2011,10 +2050,18 @@ function renderChat() {
     '<strong>Your brief</strong><button class="btn sm" id="chatreset">Start over</button></div>' +
     '<p style="margin:6px 0 0">' + esc(c.brief) + "</p></div>";
   if (c.stage === "not_supported") {
+    const detected = c.subject_detected;
+    const shelfBtn = detected
+      ? '<div class="row" style="margin-top:8px"><button class="btn" id="chatshelf">Open the ' + esc(detected.label) + ' shelf</button></div>'
+      : '<div class="row" style="margin-top:8px"><button class="btn" id="chatshelves">Browse the subjects</button></div>';
     html += '<div class="card">' + banner("blocked", "This analysis is not the right tool here", "<p>" + esc(c.message) + "</p>") +
-      '<div class="row" style="margin-top:8px"><button class="btn" id="chatshelves">Browse the subjects</button></div></div>';
+      shelfBtn + '</div>';
     out.innerHTML = html;
-    $("#chatshelves").onclick = () => show("subjects");
+    if (detected) {
+      $("#chatshelf").onclick = () => openSubject(detected.id);
+    } else {
+      $("#chatshelves").onclick = () => show("subjects");
+    }
     $("#chatreset").onclick = resetChat;
     return;
   }
@@ -2062,6 +2109,7 @@ function renderChat() {
     const plan = c.plan;
     html += '<div class="card"><h3>Proposed plan</h3>' +
       '<p><strong>' + esc(plan.framework) + ".</strong> " + esc(plan.why) + "</p>" +
+      (c.subject_detected ? '<p class="muted">Read as: ' + esc(c.subject_detected.label) + ' (detected from your brief)</p>' : "") +
       '<p><strong>What it misses.</strong> ' + esc(plan.misses) + "</p>" +
       '<p class="muted">Decision: ' + esc(plan.decision) + " · Region: " + esc(plan.geography) +
         " · Period: " + esc(plan.period) + " · Citation style: " + esc(plan.style) + "</p>" +
@@ -2195,7 +2243,7 @@ async function startChat() {
   const picked = ($("#chatframework") || {}).value || "";
   const out = $("#chatout");
   if (out) out.innerHTML = loading("Starting the analysis");
-  const body = { brief: brief, subject: "management" };
+  const body = { brief: brief, subject: "any" };
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
@@ -3292,19 +3340,23 @@ function capabilityCard(item, kind) {
   const need = (!isSheet && item.need)
     ? '<span class="capneed">You will need: ' + esc(item.need) + "</span>" : "";
   const source = isSheet ? "Worksheet" : (item.preset ? "Worked example" : "Your figures");
+  /* The period badge says what the number covers, so a student can tell an
+     annual return from a per-observation summary before they run anything. */
+  const period = (!isSheet && item.period) ? '<span class="lvl">' + esc(item.period) + "</span>" : "";
   return '<button class="capcard" type="button" ' + attrs + ">" +
     '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' + iconSvg(toolIcon(isSheet ? { kind: "worksheet" } : item)) + "</span>" +
-      "<strong>" + esc(item.label) + "</strong></span>" +
+      "<strong>" + esc(item.label) + "</strong>" + period + "</span>" +
     '<span class="capdesc">' + esc(item.what) + "</span>" + need +
     '<span class="capfoot"><span>' + esc(source) + '</span><span class="capgo">' +
       (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
   "</button>";
 }
 
-function frameworkCard(row, kind, domain) {
+function frameworkCard(row, kind, domain, actionOverride) {
   const theory = kind === "theory";
   const method = kind === "method";
-  const action = theory ? "Read the lens" : (method ? "Read the method record" : "Read the framework");
+  const action = actionOverride
+    || (theory ? "Read the lens" : (method ? "Read the method record" : "Read the framework"));
   const description = theory
     ? "Explains behaviour or relationships; use it to interpret evidence, not as a template."
     : txt(row.structures);
@@ -3314,6 +3366,66 @@ function frameworkCard(row, kind, domain) {
     '<span class="capdesc">' + esc(description) + "</span>" +
     '<span class="capfoot"><span>' + esc(domain) + '</span><span class="capgo">' + esc(action) + " &rarr;</span></span>" +
   "</button>";
+}
+
+/* A subject that declares its tiles shows them in the order a student meets
+   them.  Each tile says what it covers and what the student needs before
+   starting.  A tile with nothing in it is still shown and says why, because a
+   gap in a shelf is named rather than hidden; a catalogue-only framework is
+   shown as something to read and cite, never as a button that cannot work. */
+function subjectTiles(s) {
+  const tiles = s.tiles || [];
+  let html = '<h3 style="margin-top:0">The tiles</h3>' +
+    '<p class="muted">Work down the tiles in the order the decision comes. A worksheet fills itself from your brief and the ' +
+    "evidence it can cite; a catalogue-only framework is something to read and cite until the owner builds one; a calculator " +
+    "runs a frozen method on the figures you declare.</p>";
+  const placed = new Set();
+  tiles.forEach((tile) => {
+    const sheets = tile.worksheets || [];
+    const rows = tile.records || [];
+    const tools = tile.tools || [];
+    rows.forEach((row) => placed.add(row.id));
+    html += '<h4 class="levelhead">' + esc(tile.label) + "</h4>";
+    html += '<p class="muted" style="margin:2px 0 6px">' + esc(tile.what) + "</p>";
+    if (tile.need) {
+      html += '<p class="muted" style="margin:0 0 8px"><strong>Before you start:</strong> ' + esc(tile.need) + "</p>";
+    }
+    if (!sheets.length && !rows.length && !tools.length) {
+      html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
+      return;
+    }
+    if (tile.note) html += '<p class="muted" style="margin:0 0 10px">' + esc(tile.note) + "</p>";
+    if (sheets.length) {
+      html += '<p class="muted" style="margin:0 0 6px">Worksheets: name the case and the framework fills itself.</p>' +
+        '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
+    }
+    if (rows.length) {
+      html += '<p class="muted" style="margin:12px 0 6px">Catalogued frameworks with no worksheet yet: read and cite them, ' +
+        "and check what each one would need.</p>" +
+        '<div class="capgrid">' + rows.map((row) => frameworkCard(row, "framework", tile.label,
+          "Read and cite - no worksheet yet")).join("") + "</div>";
+    }
+    if (tools.length) {
+      html += '<p class="muted" style="margin:12px 0 6px">Calculators: supply the figures and confirm; the server computes ' +
+        "the result and its checks.</p>" +
+        '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+    }
+  });
+  /* Nothing is dropped: a record no tile claimed is still shown. */
+  const left = (s.records || []).filter((row) => !placed.has(row.id));
+  if (left.length) {
+    html += '<h4 class="levelhead">Other catalogued frameworks - ' + left.length + "</h4>" +
+      '<div class="capgrid">' + left.map((row) => frameworkCard(row, "framework", row.discipline_label || "Other",
+        "Read and cite - no worksheet yet")).join("") + "</div>";
+  }
+  const theories = s.theories || [];
+  if (theories.length) {
+    html += '<h4 class="levelhead">Reading lenses - ' + theories.length + "</h4>" +
+      '<p class="muted">A theory explains behaviour or relationships; it does not prescribe a template. Read it to interpret ' +
+      "the evidence, retrieve the original research, cite it, and state its limits.</p>" +
+      '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
+  }
+  return html;
 }
 
 function frameworkPicker(s, groups) {
@@ -3706,11 +3818,24 @@ function renderSubject() {
   });
   const hasGroups = tools.length && tools.every((t) => t.group);
   const hasLevels = tools.length && tools.every((t) => t.level);
+  if ((s.tiles || []).length) {
+    html += subjectTiles(s);
+  } else {
   if (sheets.length) html += caseBriefBox();
   if (sheets.length || frameworks.length || theories.length) {
-    html += '<h3 style="margin-top:0">Frameworks without computation</h3>' +
-      '<p class="muted">Each worksheet organizes evidence you supply. It computes nothing, scores nothing and adds no facts; ' +
-      "empty blocks and cells are named, not filled. The records beside it are catalogued frameworks with no worksheet yet.</p>";
+    // A shelf with worksheets leads with them: they complete themselves from the
+    // brief, so they are the first thing a student should meet, not the last.
+    html += sheets.length
+      ? '<h3 style="margin-top:0">Complete a framework</h3>' +
+        '<p class="muted">Name the case in your own words and the worksheet fills itself: the parts a source can support ' +
+        "are researched with their citations, the parts you already described are taken from your brief verbatim, and a " +
+        "part only you can state stays a named gap. Nothing is invented and nothing is scored.</p>"
+      : '<h3 style="margin-top:0">Frameworks without computation</h3>' +
+        '<p class="muted">Each worksheet organizes evidence you supply. It computes nothing, scores nothing and adds no facts; ' +
+        "empty blocks and cells are named, not filled. The records beside it are catalogued frameworks with no worksheet yet.</p>";
+    if (sheets.length) {
+      html += '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
+    }
     const frameworkGroups = [];
     frameworks.forEach((row) => {
       const label = row.discipline_label || ((row.disciplines && row.disciplines.length) ? row.disciplines[0] : "Other");
@@ -3718,10 +3843,8 @@ function renderSubject() {
       if (!group) { group = { label: label, rows: [] }; frameworkGroups.push(group); }
       group.rows.push(row);
     });
-    html += frameworkPicker(s, frameworkGroups);
-    if (sheets.length) {
-      html += '<h4 class="levelhead">Worksheets - ' + sheets.length + '</h4><div class="capgrid">' +
-        sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
+    if (frameworks.length || theories.length) {
+      html += frameworkPicker(s, frameworkGroups);
     }
     frameworkGroups.forEach((group) => {
       html += '<h4 class="levelhead">' + esc(group.label) + ' - ' + group.rows.length + '</h4>' +
@@ -3760,6 +3883,7 @@ function renderSubject() {
   }
   if (!tools.length && !sheets.length && !records.length && !theories.length) {
     html += '<p class="muted">No capability is assigned to this subject yet.</p>';
+  }
   }
   html += "</div>";
   if (computedRecords.length) {
@@ -4476,7 +4600,13 @@ async function createSession(body) {
   const p = ensurePanel("new");
   state.session = null;
   p.innerHTML = "<div class=\"card\">" + loading("Creating the session") + "</div>";
-  show("new");
+  /* The panel is activated, not shown: `show` also runs the renderer, and the
+     no-session renderer sends a student who has no session yet back to the last
+     durable screen.  That bounced a tool opened from a subject page straight
+     back to that page, the re-render pushed the scroll to the top, and the tool
+     opened into a hidden panel.  The card above is what the student should see
+     while the session is created, so the panel is shown directly. */
+  activate("new");
   try {
     state.session = await post("/api/sessions", body);
     state.delivery = state.session.delivery || null;
@@ -5166,9 +5296,14 @@ function evidenceBlocks(t) {
 function evidenceBlockHtml(t, b) {
   const p = evidenceProfile(t) || {};
   const key = b.key;
+  const fills = { research: "Researched from external evidence.",
+                  quote: "Taken from your own words in the instruction.",
+                  gap: "Only you can state this part. It is never filled for you." };
+  const fill = b.fill || "research";
   return '<div class="wblock">' +
     '<label class="field" for="ev-' + key + '"><strong class="wtitle">' + esc(b.label) + "</strong>" +
-      '<span class="wprompt">' + esc(b.prompt || "What evidence shows this dimension?") + "</span></label>" +
+      '<span class="wprompt">' + esc(b.prompt || "What evidence shows this dimension?") + "</span>" +
+      (fills[fill] ? '<span class="muted">' + esc(fills[fill]) + "</span>" : "") + "</label>" +
     '<textarea class="wtext" id="ev-' + key + '" rows="3" placeholder="One item per line"></textarea>' +
     '<div class="wmeta">' +
       '<select id="evp-' + key + '">' + provOptions() + "</select>" +
@@ -5179,11 +5314,18 @@ function evidenceBlockHtml(t, b) {
           '<input type="text" id="evw-' + key + '" placeholder="why (needed for a rating)" style="flex:1;min-width:170px">'
         : "") +
     "</div>" +
-    (p.assumption === "probe"
+    (p.assumption === "probe" && !backgroundProfile(p)
       ? '<label class="muted" style="display:block;margin-top:6px"><input type="checkbox" id="evgap-' + key +
-        '"> No evidence for this dimension - record it as a named gap</label>'
+        '"> ' + (fill === "gap"
+          ? "I will state this part myself, or record it as a named gap"
+          : "No evidence for this dimension - record it as a named gap") + "</label>"
       : "") +
     "</div>";
+}
+
+function backgroundProfile(p) {
+  return Boolean(p && p.assumption === "probe" && (p.blocks || []).length &&
+    (p.blocks || []).every((b) => (b.fill || "research") === "research"));
 }
 
 function evidenceWorksheetForm(t) {
@@ -5193,30 +5335,45 @@ function evidenceWorksheetForm(t) {
                                 { key: "mid", label: "Mid (1,200-2,500 words)" },
                                 { key: "long", label: "Long (2,500-5,000 words)" }];
   const styles = p.styles || ["apa", "harvard"];
-  return '<div class="card" id="evcompletion" style="margin-bottom:14px"><h3 style="margin-top:0">Complete this framework</h3>' +
-    '<p class="muted">Paste the case instruction. The pipeline researches each part of ' + esc(p.label || t.name) +
-      " and returns sourced items; a part with no evidence is a named gap. Nothing is invented.</p>" +
-    '<textarea id="evinstr" rows="3" style="width:100%" placeholder="' +
-      esc("For example: a mid-sized grocery chain is considering acquiring a cold-chain logistics provider in Saudi Arabia. Complete the analysis for the board.") + '"></textarea>' +
-    '<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="field" for="evunit" style="margin:0">' +
-      esc(unit.label || "Unit of analysis") + "</label>" +
-      '<input id="evunit" type="text" placeholder="' + esc(unit.example || "") + '" style="flex:1;min-width:220px">' +
-      (unit.help ? '<span class="muted">' + esc(unit.help) + "</span>" : "") + "</div>" +
-    '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
-      '<input id="evname" placeholder="Your name" style="flex:1;min-width:150px">' +
-      '<input id="evinstitution" placeholder="Institution" style="flex:1;min-width:150px">' +
-      '<input id="evcourse" placeholder="Course code and name" style="flex:1;min-width:150px">' +
-      '<input id="evinstructor" placeholder="Instructor" style="flex:1;min-width:150px">' +
+  const parts = evidenceBlocks(t);
+  return '<div class="stepbar" aria-label="How this works">' +
+      '<span class="step on"><b>1</b> ' + esc(unit.label || "Name the case") + "</span>" +
+      '<span class="step"><b>2</b> Write the case</span>' +
+      '<span class="step"><b>3</b> Review and generate</span>' +
     "</div>" +
-    '<p class="muted" style="margin:4px 0 0">These four lines appear on the title page. Leave them blank and it carries the title and date only.</p>' +
-    '<div class="row" style="margin-top:8px;flex-wrap:wrap"><input type="file" id="evfile" accept=".txt,.md">' +
-    '<button class="btn primary" id="evcomplete">Complete this framework</button><span class="muted" id="evcompletenote"></span></div>' +
-    '<div id="evreview"></div></div>' +
-    '<div class="wsheet"><p class="wintro">Write one item per line for each part. A line can carry its own source as ' +
-      "<code>text || citation</code>, or provenance as <code>text || assumption</code>; otherwise the block selection applies." +
-      (p.ratings ? " A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score." : "") +
-      "</p>" + evidenceBlocks(t).map((b) => evidenceBlockHtml(t, b)).join("") + "</div>" +
-    '<div id="evbottom" class="row" style="display:none;margin-top:12px;align-items:center">' +
+    '<div class="card" id="evcompletion">' +
+      '<h3 style="margin-top:0">' + esc(unit.label || "Name the case") + "</h3>" +
+      '<p class="muted">' + esc(unit.help || "Name the unit this framework analyses.") + "</p>" +
+      '<input id="evunit" type="text" placeholder="' + esc(unit.example || "") + '" style="width:100%">' +
+      (p.unit_examples ? "" : "") +
+    "</div>" +
+    '<div class="card">' +
+      '<h3 style="margin-top:0">Write the case in your own words</h3>' +
+      '<p class="muted">The pipeline researches each part of ' + esc(p.label || t.name) +
+        ", takes what you already said straight from this text, and leaves a part only you can state as a named gap. " +
+        "Nothing is invented.</p>" +
+      '<textarea id="evinstr" rows="4" style="width:100%" placeholder="' +
+        esc((t.before || "") + " Describe the case in a few sentences.") + '"></textarea>' +
+      '<div class="fillhint">A good brief covers: ' +
+        parts.map((b) => esc(String(b.prompt || b.label || "").replace(/\.$/, "").toLowerCase())).join(" &middot; ") + "</div>" +
+      '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
+        '<input id="evname" placeholder="Your name" style="flex:1;min-width:150px">' +
+        '<input id="evinstitution" placeholder="Institution" style="flex:1;min-width:150px">' +
+        '<input id="evcourse" placeholder="Course code and name" style="flex:1;min-width:150px">' +
+        '<input id="evinstructor" placeholder="Instructor" style="flex:1;min-width:150px">' +
+      "</div>" +
+      '<p class="muted" style="margin:4px 0 0">These four lines appear on the title page. Leave them blank and it carries the title and date only.</p>' +
+      '<div class="row" style="margin-top:10px;flex-wrap:wrap"><input type="file" id="evfile" accept=".txt,.md">' +
+      '<button class="btn primary" id="evcomplete">Complete this framework</button><span class="muted" id="evcompletenote"></span></div>' +
+      '<div id="evreview"></div>' +
+    "</div>" +
+    '<div id="evmap"></div>' +
+    '<details class="card manual"><summary><strong>Adjust any part by hand</strong></summary>' +
+      '<p class="wintro">Write one item per line for each part. A line can carry its own source as ' +
+        "<code>text || citation</code>, or provenance as <code>text || assumption</code>; otherwise the block selection applies." +
+        (p.ratings ? " A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score." : "") +
+      "</p>" + evidenceBlocks(t).map((b) => evidenceBlockHtml(t, b)).join("") + "</details>" +
+    '<div id="evbottom" class="stickybar" style="display:none">' +
       '<select id="evversion"><option value="draft">Draft (evidence-led)</option>' +
       '<option value="full" selected>Full paper (model-assisted)</option></select>' +
       '<select id="evlength">' + lengths.map((o) =>
@@ -5312,23 +5469,62 @@ function vrioForm(t) {
 }
 
 function evidenceGateOpen(t) {
+  // Owner instruction: not every field needs a source.  On a probe profile a
+  // field without one is written as general background by the full paper and as
+  // a named gap by the draft, so nothing blocks.  A student-supplied profile
+  // keeps its acknowledgement gate.
   const profile = evidenceProfile(t) || {};
-  return evidenceBlocks(t).every((b) => {
+  const blocks = evidenceBlocks(t);
+  if (profile.assumption === "probe" && blocks.every((b) => (b.fill || "research") === "research")) return true;
+  return blocks.every((b) => {
     const area = document.getElementById("ev-" + b.key);
     const filled = area && area.value.split("\n").some((line) => line.trim());
     if (filled) return true;
     const gap = document.getElementById("evgap-" + b.key);
-    return Boolean(profile.assumption === "probe" && gap && gap.checked);
+    return Boolean(gap && gap.checked);
   });
+}
+
+function evidenceWaiting(t) {
+  const reviewed = ((state.evCompletion || {}).blocks) || [];
+  return evidenceBlocks(t).filter((b) => {
+    const area = document.getElementById("ev-" + b.key);
+    if (area && area.value.split("\n").some((line) => line.trim())) return false;
+    const gap = document.getElementById("evgap-" + b.key);
+    if (gap && gap.checked) return false;
+    // A part the review has items for is not a gap; it is waiting to be applied.
+    const part = reviewed.find((item) => item.key === b.key);
+    if (part && (part.items || []).length) return false;
+    return true;
+  }).map((b) => b.label);
 }
 
 function refreshEvidenceGenerate(t) {
   const box = document.getElementById("evbottom");
   if (!box || !t) return false;
   const open = evidenceGateOpen(t);
-  box.style.display = open ? "flex" : "none";
+  // The row is never hidden: a hidden button with a hidden reason is how
+  // "there is no Generate paper button" happened.  It stays on screen and is
+  // disabled, with the open parts named beside it.
+  box.style.display = "flex";
+  const waiting = evidenceWaiting(t);
+  const generate = document.getElementById("evbottomgenerate");
+  if (generate) generate.disabled = !open;
   const gate = document.getElementById("evgate");
-  if (gate) gate.textContent = open ? "Every part has content or an acknowledged gap. Generate the paper from these entries." : "";
+  const probe = (evidenceProfile(t) || {}).assumption === "probe";
+  const backgroundMode = probe && evidenceBlocks(t).every((b) => (b.fill || "research") === "research");
+  if (gate) gate.textContent = waiting.length
+    ? (backgroundMode
+        ? "No source for " + waiting.join(", ") + ". The full paper writes general background for it (uncited); the draft names the gap."
+        : "Still open: " + waiting.join(", ") + ". Add an item, or tick its 'record it as a named gap' box.")
+    : "Every part has content or an acknowledged gap. Generate the paper from these entries.";
+  const note = document.getElementById("evcompletenote");
+  if (note && !open) {
+    note.textContent = "Still open: " + waiting.join(", ") +
+      ". Add an item, or tick 'record it as a named gap' for each part with no evidence.";
+  } else if (note && note.textContent.indexOf("Still open:") === 0) {
+    note.textContent = "";
+  }
   return open;
 }
 
@@ -5402,7 +5598,12 @@ async function completeEvidenceFramework(t) {
   if (!inputs) { note.textContent = ""; return; }
   const body = { template: t.id, instruction: instruction, student_items: inputs.evidence,
                  region: (($("#sourceregion") || {}).value || "") };
-  if (unit.field === "country") body.country = evidenceUnitValue(); else body.industry = evidenceUnitValue();
+  // The unit of analysis is the profile's own: a country, an industry, or the
+  // process a SIPOC or a value stream map bounds. The pipeline refuses it when
+  // it is missing rather than detecting one.
+  if (unit.field === "country") body.country = evidenceUnitValue();
+  else if (unit.field === "industry") body.industry = evidenceUnitValue();
+  else body.unit = evidenceUnitValue();
   try {
     const result = await post("/api/cases/frameworks/complete", body);
     state.evCompletion = result;
@@ -5414,33 +5615,72 @@ async function completeEvidenceFramework(t) {
   }
 }
 
+function fillBadge(block) {
+  const fill = (block && block.fill) || "research";
+  const map = {
+    research: ["Researched", "var(--green-100)", "var(--green-700)"],
+    auto: ["Researched or your brief", "var(--green-100)", "var(--green-700)"],
+    quote: ["From your brief", "var(--you-100)", "var(--you-700)"],
+    gap: ["You state this", "var(--amber-bg)", "var(--amber)"]
+  };
+  const found = map[fill] || map.research;
+  return '<span class="fillbadge" style="background:' + found[1] + ";color:" + found[2] + '">' + esc(found[0]) + "</span>";
+}
+
 function renderEvidenceReview(t, result) {
   const review = document.getElementById("evreview");
   if (!review) return;
-  let html = '<h4 style="margin-bottom:6px">Completion review</h4>' +
-    '<p class="muted">Tick what the paper may use. Sourced items carry a citation; a gap stays a gap. Nothing is written into the worksheet until you apply it.</p>';
-  for (const block of result.blocks || []) {
-    html += "<h4>" + esc(block.label) + "</h4>";
+  const summary = result.summary || {};
+  const blocks = result.blocks || [];
+  let html = '<div class="reviewhead"><h4 style="margin:0">Review</h4><span class="muted">' +
+    esc(String((summary.filled !== undefined ? summary.filled : blocks.filter((b) => (b.items || []).length).length)) +
+      " of " + (summary.parts || blocks.length) + " parts have content") +
+    ((summary.gaps || 0) > 0 ? " - " + esc(String(summary.gaps) + " gap(s) to acknowledge") : "") + "</span></div>" +
+    '<p class="muted">Tick what the paper may use. A researched item carries its citation; a gap stays a gap. ' +
+      "Nothing is written into the worksheet until you apply it.</p>";
+  for (const block of blocks) {
+    html += '<div class="partcard' + (block.items.length ? "" : " empty") + '">' +
+      '<div class="parthead"><strong>' + esc(block.label) + "</strong>" + fillBadge(block) + "</div>";
     if (!block.items.length) {
-      html += '<p class="muted">' + esc(block.gap || "No evidence found.") + "</p>";
+      if (backgroundProfile(evidenceProfile(t))) {
+        html += '<p class="gapnote">No source - this part is written from general background (uncited).</p></div>';
+        continue;
+      }
+      const target = document.getElementById("evgap-" + block.key);
+      html += '<p class="gapnote">' + esc(block.gap || "No evidence found.") + "</p>" +
+        '<label class="tickrow"><input type="checkbox" data-reviewgap="' + esc(block.key) + '"' +
+          (target && target.checked ? " checked" : "") + "> <span>Record this part as a named gap</span></label>" +
+        "</div>";
       continue;
     }
     html += '<div class="stack" style="gap:6px">' + block.items.map((item, index) =>
-      '<label style="display:flex;gap:8px;align-items:flex-start;margin:3px 0">' +
-        '<input type="checkbox" data-evblock="' + esc(block.key) + '" data-evindex="' + index + '" checked style="margin-top:4px">' +
-        '<span><strong>' + esc(item.text) + '</strong><br><span class="muted">' +
+      '<label class="tickrow">' +
+        '<input type="checkbox" data-evblock="' + esc(block.key) + '" data-evindex="' + index + '" checked>' +
+        "<span><strong>" + esc(item.text) + "</strong>" +
+          '<span class="muted">' +
           esc(item.provenance === "sourced" ? (item.source || "source missing")
-            : (item.provenance === "suggested" ? "case assumption (no source)"
-              : (item.provenance === "student" ? "your input" : "your input"))) +
-        "</span></span></label>").join("") + "</div>";
+            : (item.provenance === "suggested" ? "case assumption - no source"
+              : (item.provenance === "background" ? "general background (uncited)"
+                : (block.fill === "quote" ? "your own words" : "your input")))) +
+          "</span></span></label>").join("") + "</div></div>";
   }
   if ((result.notes || []).length) {
     html += '<p class="muted" style="margin-top:8px">' + esc(result.notes.join(" ")) + "</p>";
   }
-  html += '<div class="row" style="margin-top:8px"><button class="btn primary" id="evapply">Use the ticked items</button></div>';
+  html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="evapply">Use the ticked items</button></div>';
   review.innerHTML = html;
   const apply = document.getElementById("evapply");
   if (apply) apply.onclick = () => applyEvidenceCompletion(t);
+  // The gap is acknowledged here, next to the reason, and the worksheet's own
+  // tick follows, so the student never has to hunt for it below the fold.
+  $$("[data-reviewgap]").forEach((box) => {
+    box.onchange = () => {
+      const target = document.getElementById("evgap-" + box.dataset.reviewgap);
+      if (target) target.checked = box.checked;
+      refreshEvidenceGenerate(t);
+    };
+  });
+  refreshEvidenceGenerate(t);
 }
 
 /* A worksheet line is one line of at most 400 characters (the template's own
@@ -5476,12 +5716,27 @@ function applyEvidenceItems(t, items, message) {
       }).join("\n");
     }
     const gap = document.getElementById("evgap-" + b.key);
-    // An empty dimension stays open until the student ticks the acknowledgement:
-    // the system never records a gap on the student's behalf.
     if (gap && rows.length) gap.checked = false;
   }
+  // Applying is the student's decision: a part with no evidence is recorded as a
+  // named gap here, so the paper can be generated instead of a disabled button.
+  const recorded = [];
+  for (const b of evidenceBlocks(t)) {
+    const area = document.getElementById("ev-" + b.key);
+    const gap = document.getElementById("evgap-" + b.key);
+    if (!gap) continue;
+    const filled = area && area.value.split("\n").some((line) => line.trim());
+    if (!filled && !gap.checked) { gap.checked = true; recorded.push(b.label); }
+  }
   refreshEvidenceGenerate(t);
-  toast(message || "Completed items placed in the worksheet for your review.");
+  const waiting = evidenceWaiting(t);
+  if (recorded.length) {
+    toast("Recorded as named gaps: " + recorded.join(", ") + ". Generate paper is now available.");
+  } else {
+    toast(waiting.length
+      ? "Items placed. Still open: " + waiting.join(", ") + ". Tick its 'record it as a named gap' box to enable Generate paper."
+      : (message || "Completed items placed in the worksheet for your review."));
+  }
 }
 
 function applyEvidenceCompletion(t) {
@@ -5497,6 +5752,37 @@ function applyEvidenceCompletion(t) {
     });
   }
   applyEvidenceItems(t, items, "Completed items placed in the worksheet for your review.");
+  renderEvidenceMap(t);
+}
+
+/* The drawing is built by the server from the labels the student applied; the
+   page only inserts the returned SVG. A line carrying a number is left out and
+   the caption says how many, so a shorter picture is never read as complete. */
+async function renderEvidenceMap(t) {
+  const box = document.getElementById("evmap");
+  if (!box) return;
+  const result = state.evCompletion;
+  if (!result || !result.template) return;
+  const blocks = (result.blocks || []).map((block) => ({
+    key: block.key, label: block.label,
+    items: block.items.filter((item) => {
+      const area = document.getElementById("ev-" + block.key);
+      return area && area.value.includes(item.text);
+    })
+  }));
+  try {
+    const map = await post("/api/cases/worksheets/map", {
+      completion: { template: result.template, unit: result.unit, blocks: blocks }
+    });
+    if (!map.drawn) { box.innerHTML = ""; return; }
+    box.innerHTML = '<div class="card mapcard"><h3 style="margin-top:0">Your map, as you declared it</h3>' +
+      '<p class="muted">' + esc(map.process ? "Process: " + map.process + ". " : "") +
+        "The parts and lines you supplied, in the order you supplied them. No step was timed, placed or computed." +
+        (map.omitted ? " " + esc(String(map.omitted)) + " line(s) left out of the picture because they carry a number." : "") +
+      "</p>" + map.svg + "</div>";
+  } catch (error) {
+    box.innerHTML = "";
+  }
 }
 
 function evidencePicked(id) {
@@ -5520,8 +5806,14 @@ async function generateEvidencePaper(t, trigger, collected) {
   }));
   const completion = { template: t.id, instruction: typed, blocks: blocks,
                        acknowledged_gaps: worksheetInputs.acknowledged_gaps || [],
-                       byline: ["evname", "evinstitution", "evcourse", "evinstructor"]
-                         .map((id) => ((state.byline || {})[id] || "").trim()).filter(Boolean) };
+                       byline: [["Name", "evname"], ["Institution", "evinstitution"],
+                                ["Course", "evcourse"], ["Instructor", "evinstructor"]]
+                         .map(([label, id]) => {
+                           const value = ((state.byline || {})[id] || "").trim();
+                           // The label is a guide the student edits in Word; an
+                           // empty field is shown as "Name:" rather than omitted.
+                           return value || label + ":";
+                         }) };
   const version = evidencePicked("evresultversion") || evidencePicked("evversion") || "full";
   const length = evidencePicked("evresultlength") || evidencePicked("evlength") || "mid";
   const style = evidencePicked("evresultstyle") || evidencePicked("evstyle") || "apa";
@@ -5535,9 +5827,7 @@ async function generateEvidencePaper(t, trigger, collected) {
     const result = await post("/api/cases/frameworks/report",
       { completion: completion, style: style, version: version, length: length });
     if (version === "full" && !result.report.model_used) {
-      if (note) note.textContent = "The model did not return a valid full paper, so nothing was downloaded. Choose Draft (evidence-led).";
-      toast("Full paper failed validation; no file was downloaded.");
-      return;
+      toast("The full paper could not be written; the evidence-led Draft was generated instead.");
     }
     const binary = atob(result.docx.data), bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -5665,7 +5955,16 @@ function collectEvidenceInputs(t, allowEmpty) {
       if (parts.length >= 3) {
         text = parts[0]; itemProvenance = parts[1]; itemSource = parts.slice(2).join(" || ");
       } else if (parts.length === 2) {
-        text = parts[0]; itemProvenance = "sourced"; itemSource = parts[1];
+        text = parts[0];
+        // "text || assumption" is an assumption, not a source named
+        // "assumption".  Two-part lines used to be read as sourced, so a case
+        // assumption reached the reference list.
+        if (["user", "student", "sourced", "assumption", "synthetic"].indexOf(parts[1].toLowerCase()) >= 0) {
+          itemProvenance = parts[1].toLowerCase();
+          itemSource = "";
+        } else {
+          itemProvenance = "sourced"; itemSource = parts[1];
+        }
       }
       if (!text) continue;
       if (itemProvenance === "sourced" && !itemSource) {
@@ -6299,15 +6598,21 @@ function renderNew() {
   const s = state.session;
   if (!s && state.worksheet) {
     const t = state.worksheet;
+    const completing = !!t.completion;
     $("#panel-new").innerHTML = '<div class="card"><h2>' + esc(state.tool && state.tool.label ? state.tool.label : t.name) + "</h2>" +
+      (completing ? '<p class="pill ok" style="margin:6px 0 0"><span class="dot"></span>Completes itself from your brief</p>' : "") +
       '<p class="sub">' + esc(state.tool && state.tool.objective ? state.tool.objective : "") + "</p>" +
       '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
         '<button class="btn sm" id="toolcalc">Business Calculator</button></div></div>' +
-      '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
-      '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
-      '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button>' +
-      '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>' +
-      worksheetForm(t) + "</div>";
+      (completing
+        ? '<div id="figures">' + worksheetForm(t) + "</div>" +
+          '<div class="row" style="margin-top:10px"><button class="btn" id="apply">Run the worksheet</button>' +
+          '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>'
+        : '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
+          '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
+          '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button>' +
+          '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>' +
+          worksheetForm(t) + "</div>");
     bindWorksheetForm(t);
     const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
     const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
@@ -6320,6 +6625,18 @@ function renderNew() {
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
   const schema = (method && method.input_schema) || {};
   const isCaseDecision = ((plan.method || (state.tool && state.tool.method) || "") === "case_decision");
+  /* The figures panel must describe what the engine will actually take. Only
+     management accounts have an engagement - a period, a chart, opening
+     balances, entries and schedules. Every other method takes the figures
+     listed on the form, so the panel says that instead. */
+  function figuresCopy(plan) {
+    const methodId = (plan.method || (state.tool && state.tool.method) || "");
+    if (methodId === "management_accounts") {
+      return "These are the figures the engine will post. The engagement is declared once: the period, the chart, " +
+        "the opening balances, the entries and any schedules. Change a figure, then run it.";
+    }
+    return "These are the figures the engine will post, exactly as you enter them. Change a figure, then run it.";
+  }
   const delivered = s.delivery && s.delivery.status === "delivered";
   const blocked = s.delivery && s.delivery.status === "blocked";
   const mapping = s.status === "awaiting_mapping_confirmation";
@@ -6355,8 +6672,7 @@ function renderNew() {
       : '<h2>' + (state.worksheet ? "Fill in the worksheet" : "Enter the figures") + "</h2>" +
         '<p class="sub">' + (state.worksheet
           ? "This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts."
-          : "These are the figures the engine will post. The engagement is declared once: the period, the chart, " +
-            "the opening balances, the entries and any schedules. Change a figure, then run it.") + "</p>" +
+          : figuresCopy(plan)) + "</p>" +
         '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="apply">' +
         (state.worksheet ? "Run the worksheet" : "Apply figures and calculate") + "</button>" +
         '<button class="btn" id="reject">Reject</button></div>' +

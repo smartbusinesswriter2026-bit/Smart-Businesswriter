@@ -562,13 +562,21 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
                 framework = chosen[0]
     if framework not in FRAMEWORKS:
         raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
-    fits, message = guard.subject_fit(brief, subject or "management")
-    if not fits and framework in ("breakeven", "vrio"):
-        # A break-even paper and a resource audit are not management briefs; the
-        # framework is explicit, so the subject guard would refuse a legitimate paper.
+    open_mode = guard.is_open(subject)
+    detected_id = ""
+    detected_cue = ""
+    if open_mode:
+        detected_id, detected_cue = guard.detect_subject(brief)
+    if not open_mode:
+        fits, message = guard.subject_fit(brief, subject or "management")
+        if not fits and framework in ("breakeven", "vrio"):
+            # A break-even paper and a resource audit are not management briefs; the
+            # framework is explicit, so the subject guard would refuse a legitimate paper.
+            fits, message = True, None
+        if fits:
+            fits, message = _fit(brief, framework)
+    else:
         fits, message = True, None
-    if fits:
-        fits, message = _fit(brief, framework)
     questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
     # A brief may name the option ("mid-length report") or give a count; either is
@@ -587,12 +595,29 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
         answers.update({"strengths": [], "weaknesses": []})
     for key in FRAMEWORKS[framework].get("inputs") or []:
         answers.setdefault(key, [])
-    state = {"format": FORMAT, "subject": subject or "management", "framework": framework, "brief": brief,
+    detected_label = ""
+    if detected_id:
+        try:
+            from . import subjects as subject_index
+            for definition in subject_index.SUBJECT_DEFS:
+                if definition.get("id") == detected_id:
+                    detected_label = definition.get("label") or detected_id
+                    break
+        except Exception:
+            detected_label = detected_id
+    state_subject = (detected_id if open_mode else (subject or "management"))
+    if open_mode and not detected_id:
+        state_subject = ""
+    state = {"format": FORMAT, "subject": state_subject, "framework": framework, "brief": brief,
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computation": None, "draft": None,
              "selection": None, "computations": {}}
+    if open_mode:
+        state["subject_requested"] = "any"
+        state["subject_detected"] = ({"id": detected_id, "label": detected_label, "cue": detected_cue}
+                                    if detected_id else None)
     # Which capabilities this paper carries is decided from the brief, not from a
     # fixed list: a framework-only brief selects nothing and the paper runs as before.
     if council_result and council_result.get("reading"):
@@ -612,6 +637,19 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
                          "rejected": council_result.get("rejected") if council_result else [],
                          "verdict": council_result.get("verdict") if council_result else None}
                         if council_result else ({"note": council_note} if council_note else None))
+    if open_mode and fits:
+        lower_brief = brief.lower()
+        pure_comp = any(hint in lower_brief for hint in COMPUTATION_HINTS)
+        no_cap = not (selection.get("selected") or [])
+        no_fw = (framework == "pestel")
+        if pure_comp and no_cap and no_fw:
+            if detected_id == "finance":
+                message = ("This looks like a finance computation. Use the Finance shelf and its tools; "
+                           "see GET /api/cases/subjects/finance.")
+            else:
+                message = ("This looks like an accounting computation. Use the Accounting shelf and its "
+                           "ledger, trial-balance and check tools; see GET /api/cases/subjects/accounting.")
+            fits = False
     if selection.get("question") and fits:
         questions.insert(0, dict(selection["question"]))
         state["question_quote"] = selection.get("question_quote") or ""

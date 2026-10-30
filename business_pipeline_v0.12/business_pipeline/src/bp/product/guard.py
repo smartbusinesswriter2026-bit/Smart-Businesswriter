@@ -8,7 +8,13 @@ never rewrites the brief.
 
 import re
 
+SUBJECT_OPEN = "any"
+
+
+def is_open(subject):
+    return (subject or "").strip().lower() == SUBJECT_OPEN
 SUBJECT_HINTS = {
+
     "management": {"strategy", "market", "industry", "competition", "entry", "acquisition", "firm",
                    "company", "business", "organization", "organisation", "growth", "expansion",
                    "product", "service", "competitive", "positioning", "merger", "stakeholder", "acquire",
@@ -65,6 +71,8 @@ def computation_boundary(text, subject="management"):
     on the right shelf, but a trial balance still cannot be completed by PESTEL.
     """
     lower = (text or "").lower()
+    if is_open(subject):
+        return True, None
     if any(hint in lower for hint in COMPUTATION) and subject not in ("accounting", "finance"):
         return False, ("This looks like an accounting or finance computation. Use the Accounting or Finance "
                        "shelf; the management chat would not answer it.")
@@ -79,6 +87,8 @@ def subject_fit(text, subject="management"):
     lower = (text or "").lower()
     words = _words(text)
     subject = subject or "management"
+    if is_open(subject):
+        return True, None
     if subject == "management":
         if not (words & SUBJECT_HINTS["management"]) and not any(word in lower for word in
                                                                  ("business", "company", "market", "industry",
@@ -103,3 +113,31 @@ def five_forces_fit(text, industry=""):
         return False, ("Porter's Five Forces analyses an industry, not a company on its own. Name the industry or "
                        "market (for example smartphones, grocery retail or banking).")
     return True, industry
+def detect_subject(text):
+    """Score the brief's words against every subject's hints.
+
+    Returns (subject_id, cue_word) for the best match, or ("", "") when
+    nothing matches.  Ties are broken by the fixed key order of
+    SUBJECT_HINTS.
+    """
+    words = _words(text)
+    lower = (text or "").lower()
+    best_id = ""
+    best_cue = ""
+    best_score = 0
+    for subject_id, hints in SUBJECT_HINTS.items():
+        matched = words & set(hints)
+        score = len(matched)
+        if score > best_score:
+            best_score = score
+            best_id = subject_id
+            positions = []
+            for hint in matched:
+                idx = lower.find(hint)
+                positions.append((idx if idx >= 0 else len(lower), hint))
+            positions.sort()
+            best_cue = positions[0][1] if positions else ""
+    if best_score <= 0:
+        return "", ""
+    return best_id, best_cue
+
