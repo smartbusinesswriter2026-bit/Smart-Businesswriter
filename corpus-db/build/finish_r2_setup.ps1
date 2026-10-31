@@ -55,18 +55,21 @@ if (-not $Bucket) { $Bucket = $described.bucket }
 $destination = '{0}:{1}/pdfs' -f $Remote, $Bucket
 
 Write-Output '--- 2. the bucket ---'
-$existing = & $rclone 'lsd' ("{0}:" -f $Remote) 2>&1
-if ($LASTEXITCODE -ne 0) {
-  Write-Output ("the bucket list could not be read: {0}" -f ($existing -join ' '))
-  exit 1
-}
-if ($existing -match [regex]::Escape($Bucket)) {
-  Write-Output ("the bucket {0} already exists." -f $Bucket)
-} else {
+# The token is scoped to one bucket, so ListBuckets is denied: probe the
+# bucket itself rather than the account.
+$probe = & $rclone 'lsjson' ("{0}:{1}" -f $Remote, $Bucket) 2>&1
+if ($LASTEXITCODE -eq 0) {
+  Write-Output ("the bucket {0} exists and is reachable." -f $Bucket)
+} elseif (($probe -join ' ') -match 'NoSuchBucket|not found|404') {
   Write-Output ("creating the bucket {0}..." -f $Bucket)
   & $rclone 'mkdir' ("{0}:{1}" -f $Remote, $Bucket)
   if ($LASTEXITCODE -ne 0) { Write-Output 'the bucket could not be created.'; exit 1 }
   Write-Output ("bucket {0} created." -f $Bucket)
+} else {
+  Write-Output ("the bucket {0} could not be reached with this token:" -f $Bucket)
+  Write-Output ($probe -join [Environment]::NewLine)
+  Write-Output 'Check that the token is scoped to this bucket and has Object Read & Write.'
+  exit 1
 }
 
 Write-Output '--- 3. the sync ---'

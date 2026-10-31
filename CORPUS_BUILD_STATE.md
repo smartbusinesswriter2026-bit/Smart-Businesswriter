@@ -639,6 +639,26 @@ Read of the owner's first real report (\`bulk_ingest_report.csv\`):
   holds 6,608 pages. The live index was not emptied: that is the owner's call. And two Meilisearch
   instances are listening on 127.0.0.1:7700 (`corpus-db/meili` holds the index, `corpus-state/meili`
   holds none) — the restore test uses port 7701 and cannot disturb either.
-- **Next:** owner does the two dashboard steps, puts the two credential values into
-  `corpus-db/build/_secrets/rclone_corpus.env` (**not** in a chat), then runs the two commands in
-  `R2_SETUP.md`. The sync uploads 625 MB and writes the object keys; the restore test then proves it.
+- **R2 is enabled, the bucket is live, the bytes are in it, and the restore passed.**
+  - The owner enabled R2 and created the bucket **`smart-business-writer-corpus`** (location APAC, storage
+    class Standard). Privacy was **checked, not assumed**: the `r2.dev` managed domain reads
+    `enabled: false` and there are no custom domains. The bucket is reached only through the S3
+    endpoint with a bucket-scoped **Object Read & Write** token.
+  - Two facts worth keeping: the connected Cloudflare app holds R2 **read** but not **write** scope, so
+    it cannot create a bucket; and a bucket-scoped token cannot `ListBuckets` (403 `AccessDenied`), so
+    every check probes the bucket itself.
+  - **The sync ran for real**: 19 documents, 624.663 MiB, uploaded in 22 s at ~29 MiB/s; the mirror
+    check reported 19 objects for 19 documents, none missing, no size mismatch; `documents.r2_key`
+    was written for all 19.
+  - **The test restore passed against the real bucket**: 19 of 19 restored files match
+    `documents.sha256`; the index rebuilt from the restored record (port 7701, its own data directory,
+    the live index untouched) answers the known phrase with the page the record names
+    (`bk-11289bf8c3b8`, page 7), and the live index answers the same. Report:
+    `corpus-db/test_restore/restore_report.md`.
+  - The nightly job (`SmartBusinessWriter Corpus R2 Sync`, 02:00) now has real credentials and runs
+    unattended.
+  - **Security note, and it is the owner's to act on**: the Access Key ID and Secret Access Key were
+    pasted into a chat window. The secrets file is gitignored and the key was never committed, but a
+    key that has been in a transcript must be treated as exposed — mint a replacement token, put it in
+    `corpus-db/build/_secrets/rclone_corpus.env`, and revoke the pasted one in the dashboard. The
+    nightly job fails loudly if the old key is revoked and the file is not updated.
