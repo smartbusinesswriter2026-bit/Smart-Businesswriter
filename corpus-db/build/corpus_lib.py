@@ -255,7 +255,8 @@ def register_functions(connection):
 #: CREATE TABLE IF NOT EXISTS, so an existing database keeps its old shape and
 #: a new column has to be added to it.
 MIGRATIONS = {
-    "documents": {"work_key": "TEXT"},
+    "documents": {"work_key": "TEXT", "added_by": "TEXT", "enrichen_at": "TEXT",
+                  "owner_approved_at": "TEXT"},
     "candidates": {"work_key": "TEXT"},
     "ingest_log": {"reason": "TEXT"},
 }
@@ -514,7 +515,8 @@ def record_refusal(connection, digest, doc_id, reason):
     connection.commit()
 
 
-def ingest_pdf(connection, raw, meta, local_path=None, filename=None, pages=None):
+def ingest_pdf(connection, raw, meta, local_path=None, filename=None, pages=None,
+               added_by="owner"):
     """Put one PDF into the corpus. Returns (status, doc_id, message).
 
     status is 'ingested', 'duplicate' or 'failed'. A file that is already in
@@ -522,6 +524,11 @@ def ingest_pdf(connection, raw, meta, local_path=None, filename=None, pages=None
     corpus already holds: the re-ingest policy (Q-15) is still open, so this
     refuses rather than guessing. A refused file is written to the ingest log
     with the reason, and no copy of it is written to disk.
+
+    `added_by` is 'owner' (immediately citable), 'student' (awaits owner
+    approval before it can be cited) or 'harvest' (immediately citable).
+    Student uploads carry `added_by = 'student'` with `enrichen_at` and
+    `owner_approved_at` NULL until the owner approves them in the admin UI.
 
     `pages` may carry pages that were extracted already, by a caller reading
     several PDFs at once. Reading a scanned page is the slow part of an import,
@@ -552,19 +559,26 @@ def ingest_pdf(connection, raw, meta, local_path=None, filename=None, pages=None
     method = "ocr" if any(page[2] == "ocr" for page in pages) else "pdf_text_layer"
     if local_path is None and filename:
         local_path = save_pdf(raw, filename)
+    # Student uploads are private and not citable until the owner approves them.
+    enrichen_at = None
+    owner_approved_at = None
+    if added_by in ("owner", "harvest"):
+        enrichen_at = now()
+        owner_approved_at = now()
     connection.execute(
         "INSERT INTO documents (doc_id, title, authors, year, publisher, edition, isbn, doi, venue,"
         " volume, issue, source_kind, subject, local_path, r2_key, source_url, sha256, pages_total,"
         " text_method, licence, licence_verified, metadata_source, metadata_verified, added_at,"
-        " work_key)"
-        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        " work_key, added_by, enrichen_at, owner_approved_at)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (doc_id, meta.get("title") or "Untitled", meta.get("authors") or "",
          meta.get("year"), meta.get("publisher"), meta.get("edition"), meta.get("isbn"),
          meta.get("doi"), meta.get("venue"), meta.get("volume"), meta.get("issue"), kind,
          meta.get("subject"), local_path or meta.get("local_path") or "", None,
          meta.get("source_url"), digest, len(pages), method, meta.get("licence"),
          1 if meta.get("licence_verified") else 0, meta.get("metadata_source") or "manual",
-         1 if meta.get("metadata_verified") else 0, now(), work_key_for(meta)))
+         1 if meta.get("metadata_verified") else 0, now(), work_key_for(meta),
+         added_by, enrichen_at, owner_approved_at))
     connection.executemany(
         "INSERT INTO pages (doc_id, doc_version, pdf_page, printed_page, section_path, text,"
         " text_sha256, chars, text_method) VALUES (?,?,?,?,?,?,?,?,?)",
@@ -688,6 +702,7 @@ def index_pages(connection, rebuild=False):
         "       d.title, d.authors, d.year, d.publisher, d.edition, d.doi, d.venue, d.volume,"
         "       d.issue, d.subject, d.source_kind, d.source_url"
         "  FROM pages p JOIN documents d ON d.doc_id = p.doc_id"
+        " WHERE d.enrichen_at IS NOT NULL"
         " ORDER BY d.doc_id, p.pdf_page").fetchall()
     if not rows:
         return 0

@@ -44,7 +44,10 @@ CREATE TABLE IF NOT EXISTS documents (
   metadata_source  TEXT,                  -- 'openlibrary' | 'crossref' | 'manual'
   metadata_verified INTEGER NOT NULL DEFAULT 0,
   added_at         TEXT NOT NULL,         -- ISO-8601 UTC
-  work_key         TEXT                   -- the identity of the WORK, not the file; see the end of this file
+  work_key         TEXT,                  -- the identity of the WORK, not the file; see the end of this file
+  added_by         TEXT,                  -- who uploaded it: 'owner' | 'student' | 'harvest'; NULL for pre-v1 rows
+  enrichen_at      TEXT,                  -- when the owner approved it as citable; NULL = not yet citable
+  owner_approved_at TEXT                  -- when the owner approved it as citable; NULL = not yet citable
 );
 
 CREATE TABLE IF NOT EXISTS pages (

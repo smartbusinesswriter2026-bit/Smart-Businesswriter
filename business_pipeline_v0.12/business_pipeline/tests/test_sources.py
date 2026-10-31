@@ -10,7 +10,7 @@ from unittest import mock
 import sys
 sys.path.insert(0, "src")
 
-from bp.product import api, sources  # noqa: E402
+from bp.product import api, sources, retrieval  # noqa: E402
 
 
 def fake_json(url, headers=None, timeout=None):
@@ -221,6 +221,40 @@ class SearchTest(unittest.TestCase):
         self.assertEqual(result["provider"], "firecrawl")
         self.assertEqual([item["domain"] for item in result["results"]], ["congress.gov"])
         self.assertTrue(any(attempt.get("provider") == "brave" and attempt.get("error") for attempt in result["attempts"]))
+
+
+class CorpusAdapterTest(unittest.TestCase):
+    """The proprietary corpus adapter: registered, fails open, and returns page items."""
+
+    def test_corpus_is_registered_in_adapters_and_databases(self):
+        self.assertIn("corpus", sources.ADAPTERS)
+        self.assertTrue(callable(sources.ADAPTERS["corpus"]))
+        self.assertTrue(any(d["id"] == "corpus" for d in sources.DATABASES))
+        corpus_db = next(d for d in sources.DATABASES if d["id"] == "corpus")
+        self.assertEqual(corpus_db["access"], "local")
+        self.assertTrue(corpus_db["enabled"])
+
+    def test_corpus_fails_open_when_meilisearch_is_down(self):
+        with mock.patch("urllib.request.urlopen") as urlopen:
+            urlopen.side_effect = OSError("connection refused")
+            items = sources._corpus("anything", 5, None)
+            self.assertEqual(items, [])
+
+    def test_key_of_prefers_corpus_key_over_doi_and_title(self):
+        self.assertEqual(retrieval.key_of({"corpus_key": "corpus:bk-1:5"}),
+                         "corpus:bk-1:5")
+        self.assertEqual(retrieval.key_of({"doi": "10.1/x"}), "10.1/x")
+        self.assertEqual(retrieval.key_of({"title": "Firm Strategy"}), "firm strategy")
+        # No identity at all -> empty string
+        self.assertEqual(retrieval.key_of({}), "")
+
+    def test_dedup_does_not_overwrite_existing_credibility(self):
+        item = {"corpus_key": "corpus:bk-1:1", "title": "T", "abstract": "x" * 100,
+                "year": 2025, "venue": "J", "url": "https://doi.org/10.1/x"}
+        item["credibility"] = 99
+        copied = dict(item)
+        copied.setdefault("credibility", sources._credibility(copied))
+        self.assertEqual(copied["credibility"], 99)
 
 
 class RouteTest(unittest.TestCase):

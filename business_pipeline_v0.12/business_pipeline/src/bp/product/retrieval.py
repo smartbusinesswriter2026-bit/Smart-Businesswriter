@@ -15,8 +15,12 @@ is dropped and counted, never returned as if it were evidence.
 """
 
 import datetime
+import json
+import os
 import re
 import time
+import urllib.error
+import urllib.request
 
 from . import sources as source_finder
 
@@ -297,7 +301,8 @@ def _recency(item):
 def _source_weight(item):
     if item.get("tier") in ("official", "data"):
         return 3
-    if item.get("database") in ("OpenAlex", "Semantic Scholar", "DOAJ", "Crossref"):
+    if item.get("database") in ("OpenAlex", "Semantic Scholar", "DOAJ", "Crossref",
+                                "Proprietary corpus"):
         return 2
     return 1
 
@@ -408,9 +413,12 @@ def _accept(item, cue_words, context_set, geography, gate):
     seen = relevance(item, cue_words, context_set, geography)
     if not seen["cue_hits"]:
         return None
-    # A cue in the title, or the same cue three times, is what separates a paper
-    # about this dimension from one that mentions it in passing.
-    if gate["title_cue"] and not seen["title_cues"] and seen["cue_hits"] < 3:
+    # Trap 1: a full-text source (the corpus) is judged on the passage it
+    # quotes, not on the book's title.  One cue hit in the body is enough, and
+    # the title alone is never sufficient.  Abstract-only sources keep the
+    # title rule exactly as it is (D-10 / B-168).
+    full_text = item.get("database") == "Proprietary corpus"
+    if not full_text and gate["title_cue"] and not seen["title_cues"] and seen["cue_hits"] < 3:
         return None
     if context_set:
         if gate["title_context"] and not seen["title_context"]:
@@ -433,7 +441,12 @@ def _accept(item, cue_words, context_set, geography, gate):
 
 
 def key_of(item):
-    """The identity of a source: its DOI when it has one, its title otherwise."""
+    """The identity of a source: its corpus page key when it has one, its DOI
+    otherwise, its title as a last resort.  A corpus page key is unique per
+    page, so two pages of the same book do not collapse into one (trap 2)."""
+    corpus_key = item.get("corpus_key")
+    if corpus_key:
+        return corpus_key
     return (clean(item.get("doi"), 80).lower() or clean(item.get("title"), 160).lower())
 
 
@@ -441,15 +454,56 @@ def _key(item):
     return key_of(item)
 
 
+#: Where the corpus admin service listens.  Fail-soft: never block a paper run.
+LEARNING_LOG_URL = os.environ.get("CORPUS_LEARNING_LOG_URL",
+                                  "http://127.0.0.1:7710/api/corpus/log")
+
+
+def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,
+                  live_hits=0, sources=None):
+    """Write one retrieval to the corpus learning log.  Fail-soft: never raise.
+
+    The pipeline writes through one HTTP route on the admin service (D-23),
+    never by importing corpus_lib across the repo boundary.  A one-second
+    timeout keeps a stopped container from stalling a paper run.
+    """
+    payload = {
+        "query": query or "",
+        "subject": subject,
+        "dimension": dimension,
+        "case_id": None,
+        "corpus_hits": int(corpus_hits or 0),
+        "live_hits": int(live_hits or 0),
+        "corpus_status": "ok",
+        "sources": sources or [],
+    }
+    body = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        LEARNING_LOG_URL, data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=1.0):
+            pass
+    except Exception:
+        # The learning log is a signal, not evidence.  A failure here is
+        # swallowed and never reaches the page.
+        pass
+
+
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
-             academic_limit=4, web_limit=3):
+             academic_limit=4, corpus_limit=4, web_limit=3):
     """Retrieve, gate and rank the evidence for one dimension.
 
     `queries` is one to three phrases; the academic databases are searched with
     every one of them, and the curated web with the first only, because a second
     web query costs seconds and returns the same kind of article.  An accepted
     item's key is added to `exclude`, so a source cannot fill two dimensions.
+
+    The corpus is layer 1: it is searched first with its own limit, and its
+    items are placed ahead of the live academic results so the corpus answers
+    first (D-09 / B-168).
     """
     gate = gate_of(gate)
     exclude = exclude if exclude is not None else set()
@@ -460,6 +514,14 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     queries = [query for query in queries or [] if query]
     academic_cached, web_cached, timings = False, False, {}
     for index, query in enumerate(queries):
+        # corpus first (layer 1), then the live academic APIs (layer 2)
+        try:
+            corpus = source_finder.search_academic(query, databases=["corpus"],
+                                                   limit=corpus_limit, year_from=year_from)
+        except Exception as error:  # a corpus outage is a notice, never a failure
+            notices.append("corpus search unavailable: %s" % str(error)[:160])
+            corpus = {}
+        found.extend(corpus.get("results") or [])
         try:
             academic = source_finder.search_academic(query, databases=DATABASES,
                                                      limit=academic_limit, year_from=year_from)
@@ -503,6 +565,22 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     for _score, item in scored[:max(1, int(max_items))]:
         exclude.add(_key(item))
         items.append(item)
+    # Learning hook: record this retrieval so the corpus can learn what it is
+    # missing. Fail-soft: a learning-log outage must never break a paper run.
+    _log_learning(
+        query=" || ".join(queries) if queries else "",
+        subject=geography if geography not in ("Global", "") else None,
+        dimension=key,
+        corpus_hits=sum(1 for item in items if item.get("corpus_key")),
+        live_hits=sum(1 for item in items if not item.get("corpus_key")),
+        sources=[{
+            "title": item.get("title"),
+            "doi": item.get("doi"),
+            "url": item.get("url"),
+            "database": item.get("database"),
+            "source_kind": item.get("source_kind"),
+        } for item in items],
+    )
     return {"key": key, "items": items, "queries": queries, "dropped": dropped,
             "errors": errors, "skipped": skipped, "notices": notices,
             "academic_cached": academic_cached, "web_cached": web_cached,

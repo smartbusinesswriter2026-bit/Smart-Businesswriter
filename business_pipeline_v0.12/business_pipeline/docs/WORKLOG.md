@@ -1,6 +1,62 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
+## 2026-10-31 — [code] Proprietary corpus wired as pipeline layer 1 (B-172)
+
+**Ask.** Wire the corpus database (5 documents, 96 pages, indexed in Meilisearch on :7700) into the
+pipeline's retrieval engine so corpus pages can be cited as evidence, fixing the five traps that silently
+discarded corpus results.
+
+**Did.** Changes in `bp/product/sources.py` and `bp/product/retrieval.py`:
+1. `_corpus()` adapter added — reads Meilisearch over stdlib `urllib`, fails open when down, returns
+   page items with `corpus_key`, `database: "Proprietary corpus"`, `kind: "proprietary"`. Registered in
+   `ADAPTERS`; `corpus` entry added to `DATABASES` (access: local).
+2. Trap 1 — title gate no longer applies to full-text sources; one cue hit in the quoted passage is
+   enough, title never sufficient alone (D-10 / B-168).
+3. Trap 2 — dedup key prefers `corpus_key`; two pages of one book no longer collapse (Q-02).
+4. Trap 3 — corpus items score source weight 2, equal to OpenAlex/DOAJ/Crossref (Q-03).
+5. Trap 4 — `_credibility()` never overwritten when the adapter set a score; corpus branch added.
+6. Trap 5 — corpus searched separately and prepended first in `retrieve()` (layer 1 before layer 2).
+
+**Verified.** All 26 tests in `tests/test_sources.py` pass (6 new corpus tests). Live run against the
+seeded corpus: corpus items reach the `items` list first; abstract-only results unchanged. No method,
+preset, input, check or frozen-core entry changed.
+
+**Files.** `src/bp/product/sources.py`, `src/bp/product/retrieval.py`, `tests/test_sources.py`,
+`docs/DECISIONS.md` (B-172), `docs/CHANGELOG.md`, `docs/WORKLOG.md
+
+## 2026-10-31 — [code] Corpus learning hook + student-upload path (B-173)
+
+**Ask.** Add the learning hook so the corpus learns what searches it could not answer, and build the
+student-upload path with owner-mediated approval before a student upload can be cited (D-18, D-19,
+D-22, D-23, Q-19).
+
+**Did.** Changes across `src/bp/product/retrieval.py`, `corpus-db/build/corpus_lib.py`,
+`corpus-db/build/schema.sql`, `corpus-db/build/corpus_service.py`:
+
+1. **Learning hook.** `retrieve()` POSTs each retrieval to `POST /api/corpus/log` on the corpus admin
+   service (fail-soft, 1-second timeout). The learning log is a signal, not evidence: a failure there
+   never breaks a paper run. The pipeline never imports `corpus_lib` across the repo boundary.
+
+2. **Student-upload path.** `ingest_pdf()` gains `added_by` (`owner` | `student` | `harvest`). Student
+   uploads (`added_by = 'student'`) are ingested as private with `enrichen_at` and
+   `owner_approved_at` NULL — not citable until the owner approves them in the admin UI.
+   `corpus_service.py` gains `POST /api/corpus/upload/student`, `POST /api/corpus/documents/approve`
+   and `GET /api/corpus/documents/pending`. `index_pages()` only indexes documents with
+   `enrichen_at IS NOT NULL`, so unapproved uploads never reach the search index. `documents` gains
+   `added_by`, `enrichen_at`, `owner_approved_at` columns (schema.sql + migration). Student uploads
+   carry `licence = NULL` and `licence_verified = 0` by default; the owner's approval is the copyright
+   check (Q-19).
+
+**Verified.** 26/26 tests in `tests/test_sources.py` pass. 55/55 corpus build tests pass. No method,
+preset, input, check or frozen-core entry changed.
+
+**Files.** `src/bp/product/retrieval.py`, `corpus-db/build/corpus_lib.py`,
+`corpus-db/build/schema.sql`, `corpus-db/build/corpus_service.py`, `docs/DECISIONS.md` (B-173),
+`docs/CHANGELOG.md`, `docs/WORKLOG.md`.`.
+
+
+
 # Worklog — append-only record of what was done
 
 ## 2026-10-30 — [design] The evidence rules relaxed, and the orientation set made free and topical

@@ -158,7 +158,8 @@ def handle(verb, path, body):
                         reason = reason + "; its file was put back"
                 lib.record_upload(connection, filename, digest, len(raw), "duplicate", existing, reason)
                 return 200, {"status": "duplicate", "doc_id": existing, "message": reason}
-            status, doc_id, message = lib.ingest_pdf(connection, raw, meta, filename=filename)
+            status, doc_id, message = lib.ingest_pdf(connection, raw, meta, filename=filename,
+                                                      added_by="owner")
             lib.record_upload(connection, filename, digest, len(raw), status, doc_id, message)
             if status == "ingested":
                 try:
@@ -166,6 +167,69 @@ def handle(verb, path, body):
                 except Exception:
                     pass
             return 200, {"status": status, "doc_id": doc_id, "message": message}
+
+        if parts == ["upload", "student"] and verb == "POST":
+            # Student upload: ingested as private, not citable until the owner
+            # approves it in the admin UI (added_by = 'student').
+            body = body or {}
+            encoded = body.get("data")
+            filename = body.get("filename") or "upload.pdf"
+            if not isinstance(encoded, str) or not encoded.strip():
+                return 422, {"error": "attach the file as base64 'data'"}
+            try:
+                raw = base64.b64decode(encoded, validate=True)
+            except Exception:
+                return 422, {"error": "the file could not be decoded"}
+            if not raw.startswith(b"%PDF"):
+                return 422, {"error": "that file is not a PDF"}
+            meta = {
+                "title": body.get("title") or filename,
+                "authors": body.get("authors") or "",
+                "year": body.get("year"), "publisher": body.get("publisher"),
+                "edition": body.get("edition"), "isbn": body.get("isbn"),
+                "doi": body.get("doi"), "venue": body.get("venue"),
+                "volume": body.get("volume"), "issue": body.get("issue"),
+                "kind": body.get("kind") or "book",
+                "subject": body.get("subject"), "licence": body.get("licence"),
+                "source_url": body.get("source_url"), "metadata_source": "manual",
+            }
+            digest = lib.sha256_bytes(raw)
+            existing, reason, kind = lib.find_duplicate(connection, digest, meta)
+            if existing:
+                lib.record_upload(connection, filename, digest, len(raw), "duplicate",
+                                  existing, reason)
+                return 200, {"status": "duplicate", "doc_id": existing, "message": reason}
+            status, doc_id, message = lib.ingest_pdf(connection, raw, meta, filename=filename,
+                                                     added_by="student")
+            lib.record_upload(connection, filename, digest, len(raw), status, doc_id, message)
+            return 200, {"status": status, "doc_id": doc_id, "message": message}
+
+        if parts == ["documents", "approve"] and verb == "POST":
+            # Owner approves a student-uploaded document, making it citable.
+            document_id = (body or {}).get("doc_id")
+            row = connection.execute(
+                "SELECT doc_id, enrichen_at FROM documents WHERE doc_id = ?", (document_id,)).fetchone()
+            if not row:
+                return 404, {"error": "no such document"}
+            if row["enrichen_at"] is not None:
+                return 200, {"status": "already approved", "doc_id": document_id}
+            connection.execute(
+                "UPDATE documents SET enrichen_at = ?, owner_approved_at = ? WHERE doc_id = ?",
+                (now(), now(), document_id))
+            connection.commit()
+            try:
+                lib.index_pages(connection)
+            except Exception:
+                pass
+            return 200, {"status": "approved", "doc_id": document_id}
+
+        if parts == ["documents", "pending"] and verb == "GET":
+            # Student uploads awaiting owner approval (not yet citable).
+            rows = connection.execute(
+                "SELECT doc_id, title, authors, year, subject, added_by, enrichen_at,"
+                " owner_approved_at, added_at FROM documents"
+                " WHERE enrichen_at IS NULL ORDER BY added_at DESC").fetchall()
+            return 200, {"pending": [dict(row) for row in rows]}
 
         if parts == ["uploads"] and verb == "GET":
             rows = connection.execute(

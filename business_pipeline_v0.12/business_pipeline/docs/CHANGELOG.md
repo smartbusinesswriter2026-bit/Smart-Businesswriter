@@ -16,6 +16,39 @@
 - `tests/test_manual_docx.py` pins both. Documentation and tooling only: no product behaviour, number,
   claim, endpoint or frozen-core change.
 
+## Proprietary corpus wired as layer 1 (B-172)
+
+- **Corpus adapter.** `_corpus()` in `bp/product/sources.py` reads Meilisearch over stdlib `urllib`,
+  fails open when the index is down, and returns page items in the `_item()` shape. Each item carries a
+  unique `corpus_key` (`corpus:<doc_id>:<pdf_page>`), `database` of `Proprietary corpus`, and `kind` of
+  `proprietary`. Registered in `ADAPTERS` and added to `DATABASES` (access: local, enabled).
+- **Five retrieval traps fixed** (each silently discarded corpus results before):
+  1. Title gate no longer applies to full-text sources — one cue hit in the quoted passage is enough,
+     the title is never sufficient on its own (D-10 / B-168).
+  2. Dedup key prefers `corpus_key`, so two pages of the same book do not collapse into one (Q-02).
+  3. Corpus items score source weight 2, equal to OpenAlex/DOAJ/Crossref (Q-03).
+  4. `_credibility()` is never overwritten when the adapter already set a score; a corpus branch earns
+     a DOI's worth of signal.
+  5. The corpus is searched separately and prepended first in `retrieve()`, so layer 1 answers before
+     the live academic APIs (DATABASE.md §8 trap 5).
+- **Live run verified:** corpus items reach the `items` list first; abstract-only results unchanged.
+  No method, preset, input, check or frozen-core entry changed.
+
+## Corpus learning hook + student-upload path (B-173)
+
+- **Learning hook.** `bp/product/retrieval.py` now POSTs each retrieval to
+  `POST /api/corpus/log` on the corpus admin service (fail-soft, 1-second timeout) so the corpus
+  learns what searches it could not answer (D-19, D-22, D-23). The learning log is a signal, not
+  evidence: a failure there never breaks a paper run.
+- **Student-upload path.** `corpus_lib.ingest_pdf()` gains an `added_by` parameter (`owner` |
+  `student` | `harvest`). Student uploads (`added_by = 'student'`) are ingested as private with
+  `enrichen_at` and `owner_approved_at` NULL — not citable until the owner approves them in the admin
+  UI. `corpus_service.py` gains `POST /api/corpus/upload/student`, `POST /api/corpus/documents/approve`
+  and `GET /api/corpus/documents/pending`. `index_pages()` only indexes documents with
+  `enrichen_at IS NOT NULL`, so unapproved uploads never reach the search index. `documents` gains
+  `added_by`, `enrichen_at`, `owner_approved_at` columns (schema.sql + migration).
+- `corpus-db/build/test_corpus_build.py`: 55 tests pass, including the new settings/schema pins.
+
 [product]
 
 # Changelog (build)

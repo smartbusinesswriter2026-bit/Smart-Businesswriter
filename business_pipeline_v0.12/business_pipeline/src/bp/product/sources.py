@@ -49,6 +49,9 @@ DATABASES = [
     {"id": "doaj", "label": "DOAJ", "kind": "academic", "access": "free",
      "regions": ["Global"], "disciplines": ["business", "economics", "management", "finance"],
      "note": "Open-access journals only; every result has a free full text.", "enabled": True},
+    {"id": "corpus", "label": "Proprietary corpus", "kind": "proprietary", "access": "local",
+     "regions": ["Global"], "disciplines": ["business", "economics", "management", "finance", "marketing"],
+     "note": "Local page-exact evidence from the owned corpus; layer 1, searched first; fails open when down.", "enabled": True},
     # Present but off by default: paid or not business-specific.
     {"id": "scopus", "label": "Scopus", "kind": "academic", "access": "subscription",
      "regions": ["Global"], "disciplines": ["business", "economics", "management"],
@@ -225,6 +228,8 @@ def _credibility(item):
     score = 20
     if item.get("doi"):
         score += 30
+    if item.get("database") == "Proprietary corpus":
+        score += 25   # a curated corpus page earns a DOI's worth of signal
     if len(item.get("abstract") or "") >= 80:
         score += 20
     if item.get("year") and int(item["year"]) >= datetime.now(timezone.utc).year - 10:
@@ -361,8 +366,64 @@ def _doaj(query, limit, year_from):
     return out
 
 
+# ── the proprietary corpus adapter ──────────────────────────────────────────
+
+#: Meilisearch connection details.  Stdlib urllib only — no Meilisearch SDK.
+CORPUS_MEILI_URL = os.environ.get("CORPUS_MEILI_URL", "http://127.0.0.1:7700").rstrip("/")
+CORPUS_MEILI_KEY = os.environ.get("CORPUS_MEILI_KEY", "")
+CORPUS_INDEX = os.environ.get("CORPUS_INDEX", "pages")
+
+
+def _corpus(query, limit, year_from):
+    """The proprietary corpus: page-exact evidence from the local index.
+
+    Fails open.  A corpus outage is a notice, never a failed run: an empty
+    list means the live layers answer alone.
+    """
+    body = json.dumps({"q": query, "limit": limit}).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if CORPUS_MEILI_KEY:
+        headers["Authorization"] = "Bearer " + CORPUS_MEILI_KEY
+    request = urllib.request.Request(
+        "%s/indexes/%s/search" % (CORPUS_MEILI_URL, CORPUS_INDEX),
+        data=body, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=2.0) as response:
+            hits = json.loads(response.read().decode("utf-8")).get("hits", [])
+    except Exception:
+        return []
+    items = []
+    for hit in hits:
+        if year_from and (hit.get("year") or 0) < year_from:
+            continue
+        authors = [name.strip() for name in (hit.get("authors") or "").split(";") if name.strip()]
+        item = _item(
+            title=hit.get("title") or "",
+            authors="; ".join(authors),
+            authors_list=authors,
+            year=hit.get("year"),
+            abstract=hit.get("text") or "",       # the page text lives here
+            doi=hit.get("doi"),
+            url=hit.get("url"),
+            venue=hit.get("venue") or "",
+            database="Proprietary corpus",
+            kind="proprietary",
+            volume=hit.get("volume") or "",
+            issue=hit.get("issue") or "",
+            pages=hit.get("printed_page") or "",
+            publisher=hit.get("publisher") or "",
+            item_type="book" if hit.get("source_kind") == "book" else "journalArticle")
+        # The unique page key.  Both dedup sites must prefer it (trap 2).
+        item["corpus_key"] = "corpus:%s:%d" % (hit.get("doc_id"), hit.get("pdf_page"))
+        item["source_kind"] = hit.get("source_kind")
+        item["pdf_page"] = hit.get("pdf_page")
+        item["subject"] = hit.get("subject")
+        items.append(item)
+    return items
+
+
 ADAPTERS = {"openalex": _openalex, "crossref": _crossref, "semanticscholar": _semanticscholar,
-            "doaj": _doaj}
+            "doaj": _doaj, "corpus": _corpus}
 
 #: At most this many outbound source requests at once, across every dimension.
 _NETWORK = threading.Semaphore(int(os.environ.get("BP_SOURCE_CONCURRENCY", "8")))
@@ -493,9 +554,13 @@ def search_academic(query, databases=None, limit=20, year_from=None):
     results = [item for item in results if _query_match(text, item)]
     deduped = {}
     for item in results:
-        key = item["doi"] or re.sub(r"[^a-z0-9]+", "", item["title"].lower())[:90]
+        # Trap 2: a corpus page carries a unique corpus_key, so two pages of the
+        # same book do not collapse into one.  Fall back to DOI, then title.
+        key = item.get("corpus_key") or item["doi"] or re.sub(r"[^a-z0-9]+", "", item["title"].lower())[:90]
         if key and key not in deduped:
-            item["credibility"] = _credibility(item)
+            # Trap 4: never overwrite a credibility the adapter already set.
+            # A corpus page has a stable identifier and earns its own score.
+            item.setdefault("credibility", _credibility(item))
             deduped[key] = item
     merged = sorted(deduped.values(), key=lambda item: (-item["credibility"], -(item.get("year") or 0)))
     payload = {"query": text, "results": merged[:limit], "errors": errors, "skipped": skipped,
