@@ -944,14 +944,23 @@ SUBJECT_HINTS = {
     "accounting": ["accounting", "ledger", "journal entry", "depreciation", "gaap", "ifrs"],
     "finance": ["finance", "valuation", "wacc", "capital budget", "portfolio", "derivatives"],
     "economics": ["economics", "elasticity", "gdp", "monetary", "fiscal", "inflation"],
-    "management": ["strategy", "management", "governance", "leadership", "organisational"],
-    "marketing": ["marketing", "brand", "consumer behaviour", "segmentation", "pricing"],
+    "management": ["strategy", "strategic", "management", "governance", "leadership",
+                   "organisational", "porter", "five forces", "competitive advantage",
+                   "competitive strategy", "swot", "industry analysis", "firm performance",
+                   "business model", "case study"],
+    "marketing": ["marketing", "brand", "consumer behaviour", "consumer behavior",
+                  "segmentation", "pricing", "advertising", "customer", "retail", "promotion"],
     "operations": ["operations", "supply chain", "inventory", "logistics", "lean", "quality"],
-    "research": ["research", "method", "study", "analysis", "theory"],
-    "entrepreneurship": ["entrepreneur", "venture", "startup", "business model"],
-    "people": ["human resource", "organisational behaviour", "leadership", "motivation"],
-    "supply-chain": ["supply chain", "procurement", "supplier"],
-    "project-management": ["project", "pmbok", "schedule", "risk register"],
+    # `research` used to own "analysis", "study", "method" and "theory", which appear
+    # in almost every academic title and therefore pulled every paper into this shelf.
+    # It now holds only words that name research *as a subject*.
+    "research": ["research design", "research method", "methodology", "literature review",
+                 "systematic review", "meta-analysis", "bibliometric"],
+    "entrepreneurship": ["entrepreneur", "venture", "startup", "msme", "sme"],
+    "people": ["human resource", "organisational behaviour", "organizational behavior",
+               "motivation", "employee", "workforce"],
+    "supply-chain": ["supply chain", "procurement", "supplier", "logistics"],
+    "project-management": ["project management", "pmbok", "project schedule", "risk register"],
 }
 
 

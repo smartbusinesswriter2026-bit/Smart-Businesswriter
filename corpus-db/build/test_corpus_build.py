@@ -785,6 +785,78 @@ class BulkIngestTest(TempCorpusTest):
         self.assertEqual(len(calls), 1,
                          "the index is rebuilt once for the run, not once per file")
 
+    def test_a_journal_article_is_not_recorded_as_a_book(self):
+        """A book and an article are shaped differently in a citation.
+
+        The owner's exported names carry the DOI with its '/' mangled to '-',
+        because a file name cannot contain '/'. That still proves it is an
+        article; it does not license storing the mangled form as the DOI.
+        """
+        kind, doi, where = bulk_ingest.resolve_kind(
+            "Moneta_2026_industry-structure_10.2139-ssrn.7556958.pdf", None, "auto")
+        self.assertEqual(kind, "journal-article")
+        self.assertIsNone(doi, "a repaired identifier is not the identifier")
+        self.assertEqual(where, "filename-hint")
+
+    def test_a_doi_written_properly_in_the_name_is_stored(self):
+        """A name string can contain '/', so this is the clean case."""
+        kind, doi, where = bulk_ingest.resolve_kind(
+            "Paper_2026_some-title_10.1000/abc.1.pdf", None, "auto")
+        self.assertEqual((kind, doi, where), ("journal-article", "10.1000/abc.1", "filename"))
+
+    def test_a_doi_printed_on_the_first_page_decides_it_and_is_stored(self):
+        kind, doi, where = bulk_ingest.resolve_kind(
+            "Some Article.pdf",
+            [(1, "Journal of Strategy 12(3) https://doi.org/10.1000/XYZ.1 body text", "x")],
+            "auto")
+        self.assertEqual(kind, "journal-article")
+        self.assertEqual(doi, "10.1000/xyz.1")
+        self.assertEqual(where, "page-text")
+
+    def test_a_document_with_no_doi_anywhere_stays_a_book(self):
+        kind, doi, _where = bulk_ingest.resolve_kind(
+            "Porter_1980_competitive-strategy.pdf", [(1, "no identifier here", "x")], "auto")
+        self.assertEqual((kind, doi), ("book", None))
+
+    def test_an_explicit_kind_is_never_overridden(self):
+        kind, _doi, _where = bulk_ingest.resolve_kind(
+            "Something_10.1000-abc.pdf", None, "book")
+        self.assertEqual(kind, "book", "what the caller asked for wins")
+
+    def test_a_doi_carrying_file_is_stored_as_an_article(self):
+        self.drop("Paper_2026_some-title_10.1000-abc.1.pdf")
+        bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+        row = self.connection.execute("SELECT * FROM documents").fetchone()
+        self.assertEqual(row["source_kind"], "journal-article")
+        self.assertTrue(row["doc_id"].startswith("ja-"),
+                        "the id prefix follows the kind, so a book id would give it away")
+        self.assertIsNone(row["doi"], "the mangled name form is not stored as the DOI")
+
+
+class SubjectHintTest(unittest.TestCase):
+    """The subject is a hint, but it must not be a misleading one.
+
+    These are real titles from the owner's library that were all filed under
+    'research', because that shelf owned the word 'analysis'.
+    """
+
+    def test_a_swot_paper_is_management(self):
+        self.assertEqual(lib.classify_subject(
+            "A SWOT analysis of ChatGPT Implications for educational practice and research"),
+            "management")
+
+    def test_a_porter_paper_is_management(self):
+        self.assertEqual(lib.classify_subject(
+            "Porter s five forces and competitive advantage a study on banana chips msmes in"),
+            "management")
+        self.assertEqual(lib.classify_subject(
+            "Porter s five forces analysis of the organic farming in laguna province"),
+            "management")
+
+    def test_a_methodology_paper_is_still_research(self):
+        self.assertEqual(lib.classify_subject(
+            "A systematic review of research design in management studies"), "research")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

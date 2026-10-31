@@ -51,6 +51,61 @@ SUBJECTS = ("accounting", "finance", "economics", "management", "project-managem
 
 YEAR_RE = re.compile(r"^(19|20)\d{2}$")
 
+#: A DOI as it is printed in a document or a file name.
+DOI_RE = re.compile(r"10\.\d{4,9}/[-._;()/:A-Za-z0-9]+")
+
+#: A DOI whose "/" was replaced by a file-name sanitiser: '10.2139-ssrn.7556958'.
+#: This is enough to prove the document is an article, but the mangled form is
+#: NOT stored as the identifier, because it is not the identifier.
+DOI_MANGLED_RE = re.compile(r"10\.\d{4,9}[-_][-._;()/:A-Za-z0-9]+")
+
+
+def _doi_in(text):
+    """The first DOI printed in `text`, in the corpus's canonical form, or None.
+
+    A file extension is not part of a DOI, but the pattern would swallow it
+    ('10.1000/abc.1.pdf'), so it is stripped before the value is kept.
+    """
+    match = DOI_RE.search(text or "")
+    if not match:
+        return None
+    value = re.sub(r"\.(?:pdf|html?|txt|docx?)$", "", match.group(0), flags=re.IGNORECASE)
+    return lib.norm_doi(value.rstrip(".,;"))
+
+
+def resolve_kind(name, pages, wanted):
+    """(kind, doi, where the kind was decided) for one file.
+
+    `wanted` is what the run asked for. 'auto' decides from the document:
+
+        1. a DOI written properly in the file name      -> article, that DOI
+        2. a DOI printed on the first page               -> article, that DOI
+        3. a DOI in the name with its '/' mangled to '-' -> article, no DOI stored
+        4. nothing                                       -> book
+
+    A journal article and a book are shaped differently in a citation, so
+    recording an article as a book produces a wrong reference. Case 3 matters
+    because a file name cannot contain '/', so the owner's exported names carry
+    '10.2139-ssrn.7556958' where the article says '10.2139/ssrn.7556958'. That is
+    enough to know it is an article, and not enough to state the DOI: the page
+    text still gets the chance to supply the real one, and if it does not, the
+    field stays empty rather than carrying a repaired identifier as if read.
+    """
+    if wanted != "auto":
+        return wanted, None, "asked-for"
+    doi = _doi_in(name)
+    if doi:
+        return "journal-article", doi, "filename"
+    if pages:
+        doi = _doi_in((pages[0][1] or "")[:800])
+        if doi:
+            return "journal-article", doi, "page-text"
+    if DOI_MANGLED_RE.search(os.path.basename(name or "")):
+        return "journal-article", None, "filename-hint"
+    return "book", None, None
+
+
+
 #: A rough cost, used only by `--estimate`. A page with a text layer is nearly
 #: free; a scanned page is the expensive one. Measured on a normal laptop CPU,
 #: and deliberately pessimistic so the estimate is not a promise it cannot keep.
@@ -207,9 +262,9 @@ def _prepare(path):
         return path, raw, None, "the PDF could not be read (%s)" % type(error).__name__
 
 
-def import_folder(connection, folder, subject=None, kind="book", default_year=None,
+def import_folder(connection, folder, subject=None, kind="auto", default_year=None,
                   dry_run=False, threads=1, limit=None, report_path=None, progress=None,
-                  index=False):
+                  index=False, index_rebuild=False):
     """Import every PDF in a folder. Returns the report rows.
 
     `index` pushes the whole corpus into Meilisearch once at the end, which is
@@ -225,6 +280,14 @@ def import_folder(connection, folder, subject=None, kind="book", default_year=No
         meta = parse_name(path)
         meta.update({"kind": kind, "metadata_source": "filename", "metadata_verified": 0,
                      "local_path": path})
+        file_kind, found_doi, doi_from = resolve_kind(os.path.basename(path), pages, kind)
+        meta["kind"] = file_kind
+        if found_doi and not meta.get("doi"):
+            meta["doi"] = found_doi
+            # Say where each fact came from: the DOI was read out of the document,
+            # not inferred, and nothing here is verified against a catalogue.
+            meta["metadata_source"] = ("filename+%s" % doi_from
+                                       if doi_from == "page-text" else "filename")
         if default_year and not meta["year"]:
             meta["year"] = default_year
         guessed = subject or lib.classify_subject(meta["title"])
@@ -238,6 +301,7 @@ def import_folder(connection, folder, subject=None, kind="book", default_year=No
             status, doc_id, message = lib.ingest_pdf(
                 connection, raw, meta, local_path=path, pages=pages)
         rows.append({"file": os.path.basename(path), "status": status, "doc_id": doc_id or "",
+                     "kind": meta["kind"], "doi": meta.get("doi") or "",
                      "pages": len(pages) if pages else 0, "subject": meta["subject"] or "",
                      "year": meta["year"] or "", "title": meta["title"],
                      "message": message})
@@ -247,7 +311,7 @@ def import_folder(connection, folder, subject=None, kind="book", default_year=No
         write_report(report_path, rows)
     if index and not dry_run:
         try:
-            lib.index_pages(connection)
+            lib.index_pages(connection, rebuild=index_rebuild)
         except Exception as error:
             # The pages are in the database, which is the truth; only the copy
             # is missing. Say so rather than failing the import.
@@ -257,7 +321,8 @@ def import_folder(connection, folder, subject=None, kind="book", default_year=No
 
 
 def write_report(path, rows):
-    fields = ["file", "status", "doc_id", "pages", "subject", "year", "title", "message"]
+    fields = ["file", "status", "doc_id", "kind", "doi", "pages", "subject", "year", "title",
+              "message"]
     with open(path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
@@ -276,7 +341,9 @@ def main():
     parser = argparse.ArgumentParser(description="Import a folder of PDFs into the corpus.")
     parser.add_argument("folder", help="the folder to walk for .pdf files")
     parser.add_argument("--subject", choices=SUBJECTS, help="default subject (else guessed)")
-    parser.add_argument("--kind", choices=sorted(lib.KIND_PREFIX), default="book")
+    parser.add_argument("--kind", choices=["auto"] + sorted(lib.KIND_PREFIX), default="auto",
+                        help="auto (the default) reads a DOI from the file name or the first "
+                             "page: a DOI means journal-article, none means book")
     parser.add_argument("--year", type=int, help="year to use when the name has none")
     parser.add_argument("--limit", type=int, help="stop after this many files")
     parser.add_argument("--threads", type=int, default=1,
@@ -289,6 +356,9 @@ def main():
                         help="with --estimate: measure only the first N files and scale up")
     parser.add_argument("--no-index", action="store_true",
                         help="do not push the pages into Meilisearch after importing")
+    parser.add_argument("--rebuild-index", action="store_true",
+                        help="empty the search index before filling it, so it holds exactly "
+                             "the pages the database holds and no stale ones")
     parser.add_argument("--report", default=os.path.join(lib.CORPUS_DIR, "bulk_ingest_report.csv"))
     args = parser.parse_args()
 
@@ -321,7 +391,7 @@ def main():
         connection, args.folder, subject=args.subject, kind=args.kind, default_year=args.year,
         dry_run=args.dry_run, threads=args.threads, limit=args.limit, report_path=args.report,
         progress=lambda done, total: print("  %d/%d" % (done, total)),
-        index=not args.no_index)
+        index=not args.no_index, index_rebuild=args.rebuild_index)
     connection.close()
 
     print("")

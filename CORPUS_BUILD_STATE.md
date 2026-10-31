@@ -573,3 +573,29 @@ Each entry: what was done, what it proved, what is next. Append, never rewrite.
   `index`, so it shadowed the new `index` parameter and the count of files (2) made the condition
   true - it indexed even when told not to. Renamed the loop variable to `position`.
 - 46 tests pass with the pypdf stand-in; 9 remain environmental without it.
+
+### 2026-10-31 - the first 5 imported records were wrong in three ways; all three fixed
+Read of the owner's first real report (\`bulk_ingest_report.csv\`):
+
+1. **Subjects collapsed into `research`.** \`SUBJECT_HINTS["research"]\` owned "analysis",
+   "study", "method", "theory" - words in nearly every academic title - so a SWOT paper and two
+   Porter's Five Forces papers were all filed as *research*. Fixed: `research` now holds only
+   terms that name research as a subject (research design, systematic review, meta-analysis...),
+   and management/marketing gained the strategy vocabulary (porter, five forces, competitive
+   advantage, swot, strategic, industry analysis; advertising, customer, retail, promotion).
+2. **Every file was recorded as a BOOK** - `bk-` ids for journal articles. A book and an article
+   are shaped differently in a citation (publisher vs journal/volume/issue), so all 148 would have
+   produced wrong references. Fixed with `--kind auto` (now the default): a DOI in the file name,
+   else a DOI printed on page 1, else a **mangled** DOI in the name (the owner's exported names
+   carry `10.2139-ssrn.7556958` because a file name cannot contain '/'), else book.
+   A mangled DOI proves the kind but is **not stored as the DOI** - the field stays empty rather
+   than carrying a repaired identifier as if it had been read.
+3. Titles lose apostrophes (`Porter s five forces`) because the file name did.
+- Added `--rebuild-index` (empties the index first) because a record whose kind changes also
+  changes its `doc_id`, which would otherwise leave stale pages in Meilisearch.
+- Bugs of mine caught by the new tests: the DOI pattern swallowed the `.pdf` extension; the loop
+  variable shadowed the `index` parameter (fixed earlier the same day).
+- **55 tests pass** with the pypdf stand-in.
+- **The 4 documents already imported are wrong** (book + research). Because duplicates are refused,
+  they cannot simply be re-ingested: delete `corpus.sqlite` (empty-ish, rebuilt in seconds),
+  restart with a clean index, re-run. Recorded the exact sequence for the owner.
