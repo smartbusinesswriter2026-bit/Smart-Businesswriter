@@ -2642,3 +2642,31 @@ Earlier work predates this log. The full ordered record is `docs/CHANGELOG.md` (
 **Did.** Added open subject `any`; guard.detect_subject; chat.start open mode; web sends subject:any. Shelf boundary preserved.
 
 Drafted B-170 decision text: owner instruction to make Home the open entry point accepting any subject brief and routing deterministically; changes guard/chat/web as above; does not change capabilities, frozen core, cues, or shelf refusals.
+
+## 2026-10-31 - [docs] The manual builder stops breaking its own content
+
+**Ask.** Owner instruction: update `DATABASE.md` and `DATABASE.docx`, make the corpus database
+self-enriching, and hand back an understandable walkthrough for building it.
+
+**Did.** Rebuilt `DATABASE.docx` from `DATABASE.md` through `scripts/build_manual_docx.py`, and found
+two renderer defects by rendering the result and looking at the pages: table columns were sized in
+proportion to the column's total character count, so a short-label column was squeezed and Word broke
+its content mid-word (`sources.py:4` / `96`); and the inline pattern required a non-space before the
+opening `*`, so `*why*` printed its asterisks instead of being emphasis. Both are fixed in the builder
+and pinned by `tests/test_manual_docx.py` (B-171).
+
+**Files:** `scripts/build_manual_docx.py`, `tests/test_manual_docx.py`, `docs/DECISIONS.md`,
+`docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+
+**Decisions:** B-171. B-170 was drafted by the Home-chat increment in the worklog above and is left
+to it; this entry takes the next free number so the log stays unique.
+
+**Verified:** `python -m unittest tests.test_manual_docx` (10 tests). The corpus manual was rendered
+to PDF through Word and the pages were inspected: the eight-table and the five-traps tables now keep
+their identifiers whole. Coverage re-checked at 452/452 source blocks matched in order.
+
+**Open/next:** the corpus walkthrough (`corpus-db/WALKTHROUGH.md`) and the rebuild of `DATABASE.docx`
+onto its real path, which is still held open by the owner's Word.
+
+---
+

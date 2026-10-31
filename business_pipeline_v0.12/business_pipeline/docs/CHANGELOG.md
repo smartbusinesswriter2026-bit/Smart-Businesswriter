@@ -3,6 +3,19 @@
 - Registered 32 orphan framework profiles as worksheets; added 8 new framework profiles (BMC, Lean Canvas, VPC, charter, WBS, risk register, stakeholder plan, lessons learned).
 - Added catalogue records CHG-15, STR-19, STR-20.
 
+## Manual builder: a table column is never too narrow for its own words (B-171)
+
+- **Table columns.** `table_xml` sized every column in proportion to the total character count of the
+  column, so a column of short labels beside a column of prose was squeezed to the floor and Word broke
+  its content mid-word (`sources.py:4` / `96`, `document` / `s`). `_column_widths` now gives every
+  column the width its longest single word needs - measured in the font that word is set in - and shares
+  the rest of the page in proportion to how much text the column holds.
+- **Italics.** The inline pattern required a non-space before the opening `*`, so `*why*` standing
+  after a space printed its asterisks instead of being emphasis. The rule now follows the usual
+  convention: the opening `*` is followed by a non-space and the closing `*` preceded by a non-space.
+- `tests/test_manual_docx.py` pins both. Documentation and tooling only: no product behaviour, number,
+  claim, endpoint or frozen-core change.
+
 [product]
 
 # Changelog (build)

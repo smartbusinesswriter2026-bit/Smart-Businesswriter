@@ -25,3 +25,23 @@ business_pipeline_v0.12/business_pipeline/cases/
 business_pipeline_v0.12/business_pipeline/state/
 business_pipeline_v0.12/business_pipeline/retrieval_log.jsonl
 business_pipeline_v0.12/business_pipeline/portfolios/
+
+# The corpus: the owner's PDF library is a working collection, not source.
+# It is 1.7 GB; the corpus records each document's path, hash and pages in
+# corpus.sqlite, and that record is the thing that belongs in git.
+DATABASE/
+
+# Corpus runtime state: the database is rebuilt from the PDFs, the working
+# copies are the PDFs, and the search index is disposable.
+corpus-db/corpus.sqlite
+corpus-db/pdfs/
+corpus-db/meili/
+
+# Word lock files
+~$*.docx
+
+# Scratch from a build session: one-off scripts and rendered page images
+/_tmp_*.py
+/_tmp_*.ps1
+/_tmp_*.pdf
+/page-*.png

@@ -1,0 +1,48 @@
+SURVIVING TAIL OF A LATER REVISION OF corpus-db/CORPUS_DB.md
+=========================================================
+
+Provenance
+----------
+This is the verbatim surviving fragment of a LATER (764-line) revision of
+CORPUS_DB.md that was destroyed before it was committed to git.
+
+- The on-disk file was overwritten at 2026-10-31 03:02:11 +0800 with a
+  730-byte payload that contained ONLY this fragment, re-rendered with
+  line-number prefixes.
+- The revision is NOT in git: `git rev-list --all --objects` lists only two
+  CORPUS_DB.md blobs (a168c438 = 58,191 bytes / 496 lines;
+  a97402ee = 69,327 bytes / 677 lines).
+- It is NOT in VS Code local history (C:\Users\Roderick\AppData\Roaming\Code\User\History).
+- It is NOT in the Cline session logs (C:\Users\Roderick\.cline\data\sessions\*).
+- The read tool's cached line metadata independently confirms the file had
+  764 lines before the overwrite.
+
+Verbatim fragment (as it was rendered in the destroyed file)
+-----------------------------------------------------------
+755:    `added_by` is cleared or anonymised, and the document enters the public Meilisearch index.
+756: 2. **Explicit owner tag:** the owner, reviewing the ingest log, marks the upload as citable
+757:    (`enrichen_at` timestamp set, `owner_approved_at` populated). Same flip.
+758:
+759: **What is still open (Q-19):** whether an upload that is accepted *for use in a paper* but is
+760: *not* a model-answer-tagged paper still qualifies for enrichment, and what copyright check
+761: is performed before a cross-student reuse (G-07 protects the R2 bucket, but the licence of a
+762: student-uploaded PDF is rarely recoverable - `licence` is `NULL` and `licence_verified = 0`
+763: by default).
+764:
+
+What this fragment tells us (and nothing more is claimed)
+---------------------------------------------------------
+The destroyed revision added at least two schema columns beyond the restored
+677-line schema: `enrichen_at` and `owner_approved_at`. Together with
+`added_by` (named in CONTINUATION_NOTE.md) these form the
+owner-mediated-enrichment state machine: a student upload stays private
+(added_by cleared/anonymised, absent from the public Meilisearch index)
+until it is flipped to citable either by model-answer tagging or by an
+explicit owner tag.
+
+DECISIONS D-17 AND D-18 ARE NOT RECOVERABLE IN FULL.
+Only their one-line summaries survive, in
+business_pipeline_v0.12/business_pipeline/docs/CONTINUATION_NOTE.md line 7:
+  D-17 (sha256+DOI dedup), D-18 (student-upload private / owner-mediated enrichment)
+Do not invent the rest of D-17 / D-18. Read CONTINUATION_NOTE.md and this
+fragment, and treat the decision text itself as an open item.

@@ -20,7 +20,7 @@ The current working model is deliberately narrow:
 | Paper profiles | Business plan (SHS core; college adds tax, cap table and impact) |
 | Computation | A **capability selected per paper** by the resolver in `bp/product/capabilities.py`. Break-even is the only registered capability today, so a framework paper carries it only when the brief needs it; a framework-only brief runs no computation. Five plan blocks at SHS and eight at college, through the frozen core |
 | Output | APA 7 or Harvard `.docx`, hierarchy enforced |
-| Evidence | Curated academic databases and vetted web domains; VRIO and Break-even retrieve none by design |
+| Evidence | The local corpus first, then curated academic databases and vetted web domains; VRIO and Break-even retrieve none by design |
 | Model prose | Optional, proposal only, DeepSeek V4.1 Flash by default |
 | Framework completion | Two frameworks, one engine: Five Forces (needs an industry) and PESTEL (needs a country or **Global**). Same profile, same retriever, same paper path |
 
@@ -57,10 +57,28 @@ inside the writer.
 ### Model prose may only edit linking prose
 
 - introduction, one linking sentence per dimension, integration and conclusion;
-- never evidence paragraphs, references, numbers, citations or student
-  implications;
+- never references, numbers, citations or student implications;
+- **evidence paragraphs may be written and paraphrased** from the recorded items.
+  The model may put the claim in the paper's own words, as long as the claim is
+  supported by an item it was given, the source stays the one already recorded,
+  and it introduces no number, name, condition, actor, technology, country,
+  citation or link that is not in the items. A direct quote is preferred where
+  the source states the claim exactly, but a paraphrase is not a lesser kind of
+  evidence and is not a gap;
 - every proposal is validated and stored; the student accepts or discards it;
 - the deterministic draft remains the fallback.
+
+### Locators are added only when they earn their place
+
+- APA 7 and Harvard citations carry **no page or chapter locator by default**. A
+  book is cited as `Author (Year). Title. Publisher.`; a journal article as
+  `Author (Year). Title. Journal, volume(issue), pages.` — an article's page
+  range is its extent, not a locator.
+- A page or chapter locator is added **only** when the student asks for one, or
+  when the pipeline decides the claim needs one — a direct quotation, a disputed
+  figure, a passage the student must go and check. That decision is recorded.
+- The page a claim came from is kept in the record either way, so a locator can
+  be produced on request without searching again.
 
 ## 3. Paper hierarchy (Option A)
 
@@ -125,15 +143,27 @@ refusal is named in the export gate; the product never plugs a difference.
 
 ## 4. Non-negotiable rules
 
-1. **No invented evidence.** Every external claim is quoted or paraphrased from a
-   retrieved source, with the source recorded. No invented source, number,
-   citation or study.
-2. **Gaps are named, never filled.** A dimension without evidence says it is a
-   gap.
+1. **No invented evidence.** Every external claim comes from a retrieved source,
+   with the source recorded. No invented source, number, citation or study. A
+   claim may be quoted or **paraphrased** from its source, as long as the
+   paraphrase does not exceed what the source says. What is forbidden is a claim
+   with no source behind it, or a source that says something else.
+2. **Gaps are named, never filled — and only a substantive gap is printed.** A
+   **substantive gap** — a dimension with no evidence at all — is named in the
+   paper, because the student must know the paper is thin there. A **metadata
+   gap** — a missing printed page number, a missing edition, an unknown ISBN, an
+   unknown publication date — is recorded as `NULL` in the record and does not
+   appear in the paper; the source is cited as it stands. Nothing is ever filled
+   by invention, and nothing is hidden: every gap is recorded whether or not it
+   is printed.
 3. **Student inputs stay student inputs.** Strengths, weaknesses, implications,
    declared costs and expected volume are supplied by the student.
-4. **No silent framework substitution.** If a brief names a framework that is
-   not wired, refuse and say so. Never default to PESTEL and ignore the request.
+4. **No silent framework substitution.** A framework may be substituted for a
+   closer fit only when the substitution is **declared to the student and
+   recorded** in the run: the paper says which framework it applied and why it
+   departed from the one the brief named. A brief that names a framework that is
+   not wired is refused unless a declared, recorded substitute fits it. PESTEL
+   is never the silent default.
 5. **Computations come from the frozen core.** Call the method; do not
    reimplement or re-round it in the product layer.
 6. **A paper never contains instructions.** No `(your analysis)`, “Not supplied
@@ -197,6 +227,20 @@ holds that invariant.
    PESTEL requires neither in the title, because its unit is a country and the
    country rule is what keeps the evidence local (this is also the gate the chat
    has always used for PESTEL). The difference is declared in the profile.
+
+   **A full-text source is never rejected for lacking the cue in its title.** The
+   title rule is a rule about *abstract-only* records: where a record carries a
+   title and an abstract and nothing else, the title is the only signal that says
+   what the source is about, so the cue must appear there. A source that carries
+   its own text — a book page, a chapter, a full-text article — is judged on that
+   text instead. Such a source is accepted when the dimension cue appears in the
+   **passage that will be quoted**, the context word appears in the text, and the
+   geography rule still holds. The title is never sufficient on its own for a
+   full-text source: the cue must be in the passage, not in the book's name. One
+   occurrence in the passage is enough, because the passage is the evidence. This
+   is the corpus rule (B-168); it discards the title rejection for books and for
+   any other full-text source, and it changes nothing for the abstract-only
+   databases, which keep the title rule exactly as it is.
 4. A dimension with accepted sources gets **one to three** sourced items, each
    with its citation. The same source cannot fill two dimensions.
 5. Empty dimensions differ by profile, and this difference is deliberate:
@@ -254,6 +298,11 @@ holds that invariant.
    Five Forces keeps the pilot's precision rule in the title; a framework whose
    unit is a country starts with the country requirement and no title rule, as
    PESTEL does. Change a gate only against a live run, and record it.
+   A framework that reads a full-text source declares the **full-text rule**
+   instead of the title rule: the cue must appear in the passage that is quoted,
+   the title is never sufficient on its own, and the context and geography rules
+   still hold (B-168). The title rule and the full-text rule are alternatives
+   chosen by the kind of source, not two weakenings of one rule.
 4. Write the outline and the `voice` slots. The safety rules in the prompts are
    shared and must not be restated per framework.
 5. Add the worksheet to `WORKSHEETS` in `subjects.py` with `draftable: True`.
@@ -736,12 +785,50 @@ Coherence expectations for every paper:
 
 ## 9. Sources and search order
 
-- Academic: OpenAlex, Semantic Scholar, DOAJ; Crossref only as metadata.
-- Web order: OpenGo (headless OpenCode, opt-in because it is slow), DeepSeek
+The evidence base is **layered**, and no layer replaces another. The local corpus
+is searched first because it is owned, page-exact and instant; the live academic
+APIs still answer every question the corpus does not; the curated web still
+supplies what neither can.
+
+- **Layer 1 — the local corpus**: the owner's own books and selected journals,
+  held page by page (R2 for the bytes, SQLite as the system of record,
+  Meilisearch as the search index). It is searched first and it is **not yet
+  wired**; the order below applies from the build that lands it. The design
+  record is `corpus-db/CORPUS_DB.md`.
+- **Layer 2 — academic**: OpenAlex, Semantic Scholar, DOAJ; Crossref only as metadata.
+- **Layer 3 — web order**: OpenGo (headless OpenCode, opt-in because it is slow), DeepSeek
   Search, Brave, Firecrawl.
 - Only the curated registry may return a web source.
 - Search results are precision-ranked (relevance, title cue, country anchor,
   source tier, recency, credibility) before placement.
+- A **full-text source** is judged on the passage it quotes, not on its title
+  (§6.2.3). An abstract-only source keeps the title rule.
+- An **orientation pass** may read reputable practice and business-press sources
+  before retrieval, to widen the vocabulary and the framing of the brief. It is
+  **advisory only**: it never enters the evidence list, never carries a citation
+  and is never quoted. Its failure is a notice, not a gap in the paper, and it
+  may never delay the retrieval pass (B-168).
+  - The source set is **chosen by the brief's topic**, not fixed. Harvard
+    Business Review is one candidate among several, and it is a weak anchor
+    because most of it is paywalled. Prefer sources that are **free, fast and
+    open**: strategy and operations practice (McKinsey Insights, BCG
+    Perspectives, Bain Insights), technology and venture reporting (Sifted,
+    TechCrunch), and the open policy and think-tank literature (Brookings, PIIE,
+    CEPR, VoxEU, Bruegel, and the World Bank, IMF, OECD, ECB, BIS and Federal
+    Reserve working-paper series). Choose by topic: a marketing brief reads the
+    marketing set, an operations brief the operations set, a macro brief the
+    economics and policy set.
+  - The **citable full-text corpus is free too**, and does not need a paywall:
+    open-access articles harvested from the OpenAlex content API
+    (`has_content.pdf:true`, CC-BY and CC-BY-NC-SA licences), DOAJ, and the
+    NBER, SSRN and RePEc working-paper series; plus peer-reviewed open textbooks
+    — OpenStax covers accounting, finance, economics, management, marketing,
+    business ethics, business law, entrepreneurship and organisational behaviour
+    with free PDF downloads under an open licence. **Check the licence per
+    title before ingesting**; OpenStax titles carry CC BY or CC BY-NC-SA
+    depending on the book. CORE is a further open-access full-text source, but
+    its systematic PDF harvesting needs permission and its commercial terms need
+    checking.
 
 ## 10. Model configuration
 
@@ -817,3 +904,19 @@ A new model or session should:
   companion is printed to PDF in the browser.
 - The sample papers demonstrate the target; the live conductor can still show
   named gaps when the sources are thin.
+- The local corpus layer (§9) is **not yet wired**. The manual records the
+  source order, the full-text gate rule, the topic-dependent orientation set and
+  the open-access harvest; the code that implements them lands with the corpus
+  build (`corpus-db/CORPUS_DB.md`). Until that build ships, the academic and web
+  layers answer alone, and the full-text rule is a declared convention rather
+  than a behaviour of the running product.
+- Two of the §4 relaxations are already true of the running product; two are
+  not. The **paraphrase permission** is already true: §6.2.8 has the
+  model-assisted full paper write one call per dimension from the items, and the
+  validator already refuses a number, citation, link or mid-sentence proper noun
+  that is not in the items — the old §2 wording was stricter than the code. The
+  **metadata-gap rule** is already true of the reference list, which renders a
+  missing year as `n.d.` and does not print a missing edition or ISBN. Still
+  owed in code: the **declared** framework substitution (the refusal path is
+  unchanged), the on-request locator, and the report line that says the report
+  quotes titles and abstracts, which becomes false once full text is retrieved.
