@@ -54,6 +54,15 @@
 - **One corpus document may not supply every dimension of a paper.** `bp/product/retrieval.py` gains `corpus_doc_cap` (default 3) and `corpus_doc_counts` (shared dict threaded across dimensions) on `retrieve()`. When accepting a corpus item, the cap is checked against `corpus_doc_counts[doc_id]`; at the cap, additional pages from the same document are dropped and counted in `dropped`. Live academic and web sources are not capped. `bp/product/sources.py` adds `doc_id` to corpus items so the cap can be keyed per document. `bp/product/completion.py` and `bp/product/chat.py` each create one shared `corpus_doc_counts = {}` per paper and pass it to every dimension's retrieval, so the cap holds per-paper, not per-call. No method, preset, input, check or frozen-core entry changed.
 - `tests/test_sources.py`: 2 new Q-16 cap tests. 28/28 tests pass.
 
+## Corpus seed: 20 documents across 10 subjects (B-175)
+
+- **Step 11 complete.** Seeded 20 documents from `D:\SMART BUSINESSWRITER\DATABASE` into the local corpus database, covering accounting, economics, finance, management, marketing, operations, people, research, entrepreneurship and supply-chain.
+- 15 books + 5 journal-articles; 9 OCR'd/scanned (including OpenStax Principles of Accounting Vol 1 at 973 pages), 11 born-digital text layer.
+- Licences recorded where known (CC BY, CC BY-NC-SA); unknown licences are NULL per C-05.
+- DATABASE.md step 11 acceptance met: 20 documents, 10 subjects (≥2 deep), ≥1 scanned book, ≥1 born-digital.
+- Step 12 (VPS with master key) and step 13 (R2 mirror) are next, per DATABASE.md ordering — no bulk harvest before the seed is complete (§15).
+- `corpus-db/build/test_corpus_build.py`: 55 tests pass.
+
 [product]
 
 # Changelog (build)

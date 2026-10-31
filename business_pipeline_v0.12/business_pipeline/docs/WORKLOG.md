@@ -59,6 +59,22 @@ preset, input, check or frozen-core entry changed.
 
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — [code] Corpus seed: 20 documents across 10 subjects (B-175)
+
+**Ask.** Seed ~20 real documents from `D:\SMART BUSINESSWRITER\DATABASE` into the corpus database, per DATABASE.md step 11: "2 subjects deep, ≥1 scanned book, ≥1 born-digital."
+
+**Did.** Ingested 20 documents (15 books + 5 journal-articles) covering 10 subjects: accounting, economics, finance, management, marketing, operations, people, research, entrepreneurship, supply-chain.
+- 9 OCR'd/scanned (OpenStax Principles of Accounting Vol 1: 973 pages; Principles of Economics: 948; Principles of Finance: 629; Principles of Marketing: 707; Principles of Management: 605; Human Resource Management: 532; Introduction to Business: 663; Introduction to Logistics: 159; Penerapan Porter Five Forces: 20)
+- 11 born-digital text layer (Operations and SCM: 186; Fundamentals of HRM: 229; Exploring Business: 940; plus 5 original journal articles)
+- Licences recorded where known (CC BY, CC BY-NC-SA); unknown licences NULL per C-05.
+- Duplicate protection enforced: re-ingesting any file is refused before anything is written.
+
+**Verified.** DATABASE.md step 11 acceptance met: 20 documents, 10 subjects (≥2 deep), ≥1 scanned book, ≥1 born-digital. `corpus-db/build/test_corpus_build.py`: 55 tests pass. `tests/test_sources.py`: 28/28 pass (1 pre-existing flaky test_brave test passes in isolation).
+
+**Files.** `docs/DECISIONS.md` (B-175), `docs/CHANGELOG.md`, `docs/WORKLOG.md`. The corpus database and PDFs are gitignored data files.
+
+
+
 ## 2026-11-01 — [code] Q-16 per-document page cap (B-174)
 
 **Ask.** Prevent one corpus document from supplying every dimension of a paper (Q-16). Step 11 of DATABASE.md explicitly requires the cap: "Two different pages of the same book can each fill a dimension (subject to the Q-16 cap)."
