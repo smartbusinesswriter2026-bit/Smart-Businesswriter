@@ -386,6 +386,7 @@ def main():
         return 0
 
     connection = lib.connect()
+    lib.apply_schema(connection)
     started = time.time()
     rows = import_folder(
         connection, args.folder, subject=args.subject, kind=args.kind, default_year=args.year,
