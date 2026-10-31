@@ -1,3 +1,6 @@
+[product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
+
+
 # Worklog — append-only record of what was done
 
 ## 2026-10-30 — [design] The evidence rules relaxed, and the orientation set made free and topical

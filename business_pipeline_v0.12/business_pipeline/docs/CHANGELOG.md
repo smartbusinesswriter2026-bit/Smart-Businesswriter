@@ -1,3 +1,10 @@
+## Worksheet registration (WO-2/WO-3)
+
+- Registered 32 orphan framework profiles as worksheets; added 8 new framework profiles (BMC, Lean Canvas, VPC, charter, WBS, risk register, stakeholder plan, lessons learned).
+- Added catalogue records CHG-15, STR-19, STR-20.
+
+[product]
+
 # Changelog (build)
 - 1.55 (2026-10-30): **Home chat accepts a brief from any subject.** The open composer no longer hard-codes the management subject; `guard.detect_subject` routes the brief, recorded as a routing hint only (never in the paper). Shelf boundary preserved. 2455 tests pass (pre-existing framework-completion failures unchanged).
 
