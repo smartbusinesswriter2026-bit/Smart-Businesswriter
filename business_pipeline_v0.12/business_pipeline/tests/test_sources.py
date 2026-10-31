@@ -256,6 +256,100 @@ class CorpusAdapterTest(unittest.TestCase):
         copied.setdefault("credibility", sources._credibility(copied))
         self.assertEqual(copied["credibility"], 99)
 
+    def test_corpus_doc_cap_limits_pages_per_document(self):
+        # Q-16: one document may not supply every dimension of a paper.
+        # Mock search_academic to return corpus pages for the corpus database.
+        corpus_pages = [{
+            "id": "ja-896de4d5b457-%d" % p, "doc_id": "ja-896de4d5b457",
+            "pdf_page": p, "printed_page": None, "section_path": "Chapter 1",
+            "text": "Five forces shape industry rivalry on page %d." % p,
+            "abstract": "Five forces shape industry rivalry on page %d." % p,
+            "text_method": "pdf_text_layer",
+            "title": "Porter's Five Forces page %d" % p, "authors": "Porter, M. E.",
+            "year": 2025, "publisher": "Free Press", "edition": None, "doi": None,
+            "venue": None, "volume": None, "issue": None,
+            "source_kind": "journal-article", "subject": "management",
+            "source_url": None,
+            "corpus_key": "corpus:ja-896de4d5b457:%d" % p,
+            "database": "Proprietary corpus",
+        } for p in (1, 2, 3)]
+
+        def fake_search(query, databases=None, limit=20, year_from=None):
+            if databases == ["corpus"]:
+                return {"results": corpus_pages, "errors": [], "skipped": [],
+                        "databases": ["corpus"], "timings": {}, "cached": False}
+            return {"results": [], "errors": [], "skipped": [],
+                    "databases": databases or [], "timings": {}, "cached": False}
+
+        counts = {}
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search):
+            r1 = retrieval.retrieve(
+                key="d1", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global",
+                academic_limit=4, corpus_limit=4, web_limit=3,
+                corpus_doc_cap=2, corpus_doc_counts=counts)
+            corpus_items = [it for it in r1["items"]
+                            if it.get("database") == "Proprietary corpus"]
+            self.assertEqual(len(corpus_items), 2)
+            self.assertEqual(counts, {"ja-896de4d5b457": 2})
+
+            # Second dimension: cap exhausted for this doc_id
+            r2 = retrieval.retrieve(
+                key="d2", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global",
+                academic_limit=4, corpus_limit=4, web_limit=3,
+                corpus_doc_cap=2, corpus_doc_counts=counts)
+            corpus_items_2 = [it for it in r2["items"]
+                              if it.get("database") == "Proprietary corpus"
+                              and it.get("doc_id") == "ja-896de4d5b457"]
+            self.assertEqual(len(corpus_items_2), 0)
+            self.assertEqual(counts, {"ja-896de4d5b457": 2})
+
+    def test_live_sources_are_not_capped_by_corpus_doc_cap(self):
+        # Q-16 cap applies to corpus only; live sources are uncapped.
+        corpus_pages = [{
+            "id": "ja-896de4d5b457-1", "doc_id": "ja-896de4d5b457",
+            "pdf_page": 1, "printed_page": None, "section_path": "Chapter 1",
+            "text": "Five forces shape industry rivalry.", "text_method": "pdf_text_layer",
+            "abstract": "Five forces shape industry rivalry.",
+            "title": "Porter's Five Forces page 1", "authors": "Porter, M. E.", "year": 2025,
+            "publisher": "Free Press", "edition": None, "doi": None, "venue": None,
+            "volume": None, "issue": None, "source_kind": "journal-article",
+            "subject": "management", "source_url": None,
+            "corpus_key": "corpus:ja-896de4d5b457:1",
+            "database": "Proprietary corpus",
+        }]
+        live_pages = [{
+            "title": "Live Paper on Five Forces", "authors": "Author, A.", "year": 2025,
+            "abstract": "Five forces shape industry rivalry in modern markets.",
+            "database": "OpenAlex", "kind": "academic", "doi": "10.1/live",
+            "item_type": "journalArticle",
+            "credibility": 50,
+        }]
+
+        def fake_search(query, databases=None, limit=20, year_from=None):
+            if databases == ["corpus"] or ("corpus" in (databases or [])):
+                return {"results": corpus_pages, "errors": [], "skipped": [],
+                        "databases": ["corpus"], "timings": {}, "cached": False}
+            return {"results": live_pages, "errors": [], "skipped": [],
+                    "databases": databases or [], "timings": {}, "cached": False}
+
+        counts = {}
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search):
+            r = retrieval.retrieve(
+                key="d1", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global",
+                academic_limit=4, corpus_limit=4, web_limit=3,
+                corpus_doc_cap=1, corpus_doc_counts=counts)
+            # One corpus page accepted (cap=1), live sources not subject to cap.
+            corpus_items = [it for it in r["items"]
+                            if it.get("database") == "Proprietary corpus"]
+            live_items = [it for it in r["items"]
+                          if it.get("database") not in (None, "Proprietary corpus")]
+            self.assertEqual(len(corpus_items), 1)
+            self.assertEqual(len(live_items), 1)
+            self.assertEqual(counts, {"ja-896de4d5b457": 1})
+
 
 class RouteTest(unittest.TestCase):
     def test_database_and_site_routes(self):

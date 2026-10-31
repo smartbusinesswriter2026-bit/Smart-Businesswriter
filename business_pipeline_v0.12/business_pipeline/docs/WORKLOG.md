@@ -59,6 +59,24 @@ preset, input, check or frozen-core entry changed.
 
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — [code] Q-16 per-document page cap (B-174)
+
+**Ask.** Prevent one corpus document from supplying every dimension of a paper (Q-16). Step 11 of DATABASE.md explicitly requires the cap: "Two different pages of the same book can each fill a dimension (subject to the Q-16 cap)."
+
+**Did.** Changes across `src/bp/product/retrieval.py`, `src/bp/product/sources.py`, `src/bp/product/completion.py`, `src/bp/product/chat.py`:
+
+1. **Per-document page cap.** `retrieve()` gains `corpus_doc_cap` (default 3) and `corpus_doc_counts` (shared dict threaded across dimensions). When accepting a corpus item, the cap is checked against `corpus_doc_counts[doc_id]`; at the cap, additional pages from the same document are dropped and counted in `dropped`. Live academic and web sources are not capped.
+
+2. **`doc_id` on corpus items.** `sources._corpus()` now sets `doc_id` on each corpus item so the cap can be keyed per document.
+
+3. **Shared counter per paper.** Both `completion.complete()` and `chat.py` create one `corpus_doc_counts = {}` per paper and pass it to every dimension's retrieval, so the cap holds per-paper, not per-call.
+
+**Verified.** 28/28 tests in `tests/test_sources.py` pass (2 new Q-16 cap tests). 55/55 corpus build tests pass. Live verification: dimension 1 gets 2 pages from one doc (cap=2), dimension 2 gets 0 pages from that doc (cap exhausted). No method, preset, input, check or frozen-core entry changed.
+
+**Files.** `src/bp/product/retrieval.py`, `src/bp/product/sources.py`, `src/bp/product/completion.py`, `src/bp/product/chat.py`, `tests/test_sources.py`, `docs/DECISIONS.md` (B-174), `docs/CHANGELOG.md`, `docs/WORKLOG.md`.
+
+
+
 ## 2026-10-30 — [design] The evidence rules relaxed, and the orientation set made free and topical
 
 **Ask.** "we ahve to relax these rules becus ethey will suffocate the pipeline: The corpus must obey the pipeline's non-negotiables (CONDUCTOR_MANUAL.md §4): No invented evidence — every claim traces to a recorded source. Gaps are named, never filled — a missing page number is NULL, never guessed. No silent framework substitution. update teh manual with what we are discusing. you were told not to do fixes because that might mess up the system. on this: the HBR, expand it to include other sources similar to HBR depending on topic. HBR cannot cover everything. or propose alternative to hbr that is free and fast. on page numbers, its apa and harvard, no need to mention chapter or page number unless customers ask or if its needed whcih pipeline decides."

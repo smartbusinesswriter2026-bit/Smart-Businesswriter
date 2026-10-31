@@ -139,13 +139,27 @@ full command, with every argument spelled out, is in `DATABASE.md`.
 
 ### Step A — Start the search engine
 
-*You do:* run Meilisearch in Docker, with its data directory inside `corpus-db\meili\`.
+*You do:* run Meilisearch, with its data directory inside `corpus-db\meili\`. Either way works:
+
+```powershell
+# the Windows binary, already on this machine
+D:\SMART BUSINESSWRITER\corpus-db\meilisearch.exe --db-path D:\SMART BUSINESSWRITER\corpus-db\meili --http-addr 127.0.0.1:7700
+
+# or Docker
+docker run -it --rm -v D:\SMART BUSINESSWRITER\corpus-db\meili:/meili_data `
+  -p 7700:7700 getmeili/meilisearch:v1.15
+```
 
 *You see:* `{"status":"available"}` from `http://127.0.0.1:7700/health`.
 
 *It means:* the index is up and local. If the port is ever reachable from anywhere but your
 machine, set a master key and treat it as a secret. An open index on a public VPS exposes
 copyrighted text.
+
+*One version note, and it matters:* `typoTolerance.disableOnNumbers` — the setting that stops a
+search for `2024` matching `2025` — needs **Meilisearch v1.15** (June 2025). On an older server
+the corpus still indexes, but it prints that the protection is off, and a search for a year may
+drift to another year. Check what you are running with `http://127.0.0.1:7700/version`.
 
 ### Step B — Create the database
 
@@ -187,14 +201,16 @@ document row stays the one document it always was.
 
 ### Step D — Load the pages into the index
 
-*You do:* run `corpus_lib.index_pages()`. It runs automatically after each ingest; run it by hand
-after a bulk load.
+*You do:* `python corpus-db\build\corpus_lib.py --index`. It runs automatically after each ingest;
+run it by hand after a bulk load.
 
-*You see:* `212 pages indexed`.
+*You see:* `indexed 74 pages`.
 
 *It means:* the pages are now findable. Note the order of operations inside: **settings first,
 then documents**, because changing the searchable attributes, stop words, synonyms or typo
-tolerance triggers a full reindex of every document.
+tolerance triggers a full reindex of every document. The index is also **emptied first**, so it
+holds exactly the pages the database holds — an index that kept a page the corpus no longer has
+could return the same page twice.
 
 *Done when:* searching for a phrase you know is on a particular page returns that page first,
 with the right `pdf_page`.

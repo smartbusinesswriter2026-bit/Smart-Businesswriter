@@ -49,6 +49,11 @@
   `added_by`, `enrichen_at`, `owner_approved_at` columns (schema.sql + migration).
 - `corpus-db/build/test_corpus_build.py`: 55 tests pass, including the new settings/schema pins.
 
+## Q-16 per-document page cap (B-174)
+
+- **One corpus document may not supply every dimension of a paper.** `bp/product/retrieval.py` gains `corpus_doc_cap` (default 3) and `corpus_doc_counts` (shared dict threaded across dimensions) on `retrieve()`. When accepting a corpus item, the cap is checked against `corpus_doc_counts[doc_id]`; at the cap, additional pages from the same document are dropped and counted in `dropped`. Live academic and web sources are not capped. `bp/product/sources.py` adds `doc_id` to corpus items so the cap can be keyed per document. `bp/product/completion.py` and `bp/product/chat.py` each create one shared `corpus_doc_counts = {}` per paper and pass it to every dimension's retrieval, so the cap holds per-paper, not per-call. No method, preset, input, check or frozen-core entry changed.
+- `tests/test_sources.py`: 2 new Q-16 cap tests. 28/28 tests pass.
+
 [product]
 
 # Changelog (build)

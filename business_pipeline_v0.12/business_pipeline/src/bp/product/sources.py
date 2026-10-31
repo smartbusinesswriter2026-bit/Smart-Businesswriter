@@ -415,6 +415,7 @@ def _corpus(query, limit, year_from):
             item_type="book" if hit.get("source_kind") == "book" else "journalArticle")
         # The unique page key.  Both dedup sites must prefer it (trap 2).
         item["corpus_key"] = "corpus:%s:%d" % (hit.get("doc_id"), hit.get("pdf_page"))
+        item["doc_id"] = hit.get("doc_id")
         item["source_kind"] = hit.get("source_kind")
         item["pdf_page"] = hit.get("pdf_page")
         item["subject"] = hit.get("subject")

@@ -1771,7 +1771,7 @@ _geo_words = retrieval.geo_words
 _country = retrieval.country
 
 
-def _research_one(state, dimension):
+def _research_one(state, dimension, corpus_doc_counts=None):
     """One dimension, through the shared retrieval engine.
 
     The worksheet completion calls the same function with the same gate, so the
@@ -1787,7 +1787,8 @@ def _research_one(state, dimension):
     found = retrieval.retrieve(
         key=dimension["key"], cues=dimension.get("cues") or "", queries=[dimension["query"]],
         context=sorted(context), geography=geography, year_from=_year_from(state),
-        category=dimension.get("category"), gate=gate, max_items=3, academic_limit=4, web_limit=3)
+        category=dimension.get("category"), gate=gate, max_items=3, academic_limit=4, web_limit=3,
+        corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts)
     notice = "; ".join(found.get("notices") or []) or None
     return {"dimension": dimension, "found": found.get("items") or [],
             "errors": found.get("errors") or [], "skipped": found.get("skipped") or [],
@@ -1820,8 +1821,11 @@ def research(state):
     dropped = 0
     started = time.perf_counter()
 
+    # Q-16: one corpus document may not supply every dimension of a paper.
+    # corpus_doc_counts is shared across dimensions so the cap holds per-paper.
+    corpus_doc_counts = {}
     pool = ThreadPoolExecutor(max_workers=max(1, len(state["plan"]["dimensions"])))
-    futures = {pool.submit(_research_one, state, dimension): dimension
+    futures = {pool.submit(_research_one, state, dimension, corpus_doc_counts): dimension
                for dimension in state["plan"]["dimensions"]}
     done, pending = wait(futures, timeout=RESEARCH_DEADLINE)
     for future in pending:

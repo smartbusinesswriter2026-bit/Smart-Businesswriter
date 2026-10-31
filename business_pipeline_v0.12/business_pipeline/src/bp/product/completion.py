@@ -207,14 +207,15 @@ def _queries(block, context, region, country=""):
     return [retrieval.build_query(phrase, query_context, region) for phrase in block.get("queries") or []]
 
 
-def _one_block(profile, block, context, region, year_from, country=""):
+def _one_block(profile, block, context, region, year_from, country="", corpus_doc_counts=None):
     """Retrieve one dimension; failures are reported, never raised into the page."""
     try:
         found = retrieval.retrieve(
             key=block["key"], cues=block.get("cues"), queries=_queries(block, context, region, country),
             context=retrieval.context_words(context), geography=region, year_from=year_from,
             category=block.get("category"), gate=profile.get("gate"),
-            sites=_sites(profile), providers=profile.get("providers"))
+            sites=_sites(profile), providers=profile.get("providers"),
+            corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts)
     except Exception as error:
         found = {"items": [], "queries": _queries(block, context, region, country), "dropped": 0,
                  "errors": [{"database": "retrieval", "error": str(error)[:160]}],
@@ -287,9 +288,13 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     # cannot observe in findings it cannot support.
     researched = [block for block in profile["blocks"]
                   if framework_profiles.fill_of(block) in ("research", "auto")]
+    # Q-16: one corpus document may not supply every dimension of a paper.
+    # corpus_doc_counts is shared across dimensions so the cap holds per-paper.
+    corpus_doc_counts = {}
     with ThreadPoolExecutor(max_workers=max(1, len(researched))) as pool:
         for block in researched:
-            jobs[block["key"]] = pool.submit(_one_block, profile, block, context, region, year_from, country)
+            jobs[block["key"]] = pool.submit(_one_block, profile, block, context, region,
+                                             year_from, country, corpus_doc_counts)
         done, pending = wait(jobs.values(), timeout=RESEARCH_DEADLINE) if jobs else (set(), set())
         results, timed_out = [], set()
         for block in profile["blocks"]:

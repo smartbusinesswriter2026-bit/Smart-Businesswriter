@@ -493,7 +493,8 @@ def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,
 
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
-             academic_limit=4, corpus_limit=4, web_limit=3):
+             academic_limit=4, corpus_limit=4, web_limit=3, corpus_doc_cap=3,
+             corpus_doc_counts=None):
     """Retrieve, gate and rank the evidence for one dimension.
 
     `queries` is one to three phrases; the academic databases are searched with
@@ -504,9 +505,15 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     The corpus is layer 1: it is searched first with its own limit, and its
     items are placed ahead of the live academic results so the corpus answers
     first (D-09 / B-168).
+
+    `corpus_doc_cap` limits how many pages one corpus document may contribute
+    to a single paper (Q-16).  `corpus_doc_counts` is a shared dict mapping
+    doc_id to accepted count, threaded across dimensions so the cap holds
+    per-paper, not per-call.
     """
     gate = gate_of(gate)
     exclude = exclude if exclude is not None else set()
+    corpus_doc_counts = corpus_doc_counts if corpus_doc_counts is not None else {}
     cue_words = {word for word in clean(cues, 400).split() if word}
     context_set = {word for word in context or [] if word}
     started = time.perf_counter()
@@ -563,8 +570,18 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     scored.sort(key=lambda pair: -pair[0])
     items = []
     for _score, item in scored[:max(1, int(max_items))]:
+        # Q-16: one document may not supply every dimension of a paper.
+        # Cap corpus pages per doc_id; live sources are not capped.
+        if item.get("database") == "Proprietary corpus":
+            doc_id = item.get("doc_id")
+            if doc_id and corpus_doc_counts.get(doc_id, 0) >= corpus_doc_cap:
+                dropped += 1
+                continue
         exclude.add(_key(item))
         items.append(item)
+        if item.get("database") == "Proprietary corpus":
+            doc_id = item.get("doc_id")
+            corpus_doc_counts[doc_id] = corpus_doc_counts.get(doc_id, 0) + 1
     # Learning hook: record this retrieval so the corpus can learn what it is
     # missing. Fail-soft: a learning-log outage must never break a paper run.
     _log_learning(
