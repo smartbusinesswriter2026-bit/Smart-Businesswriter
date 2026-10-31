@@ -753,6 +753,21 @@ class BulkIngestTest(TempCorpusTest):
         self.assertEqual(
             self.connection.execute("SELECT COUNT(*) FROM documents").fetchone()[0], 0)
 
+    def test_a_sample_is_scaled_up_and_labelled_as_one(self):
+        real = bulk_ingest.probe
+        bulk_ingest.probe = lambda path: (10, 0)
+        try:
+            for name in ("a_2020_one.pdf", "b_2020_two.pdf",
+                         "c_2020_three.pdf", "d_2020_four.pdf"):
+                self.drop(name)
+            result = bulk_ingest.estimate(self.folder, sample=2)
+        finally:
+            bulk_ingest.probe = real
+        self.assertEqual(result["files"], 4)
+        self.assertEqual(result["measured"], 2)
+        self.assertTrue(result["sampled"], "a scaled answer must say it was scaled")
+        self.assertEqual(result["text_pages"], 40, "2 files x 10 pages, scaled to 4 files")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

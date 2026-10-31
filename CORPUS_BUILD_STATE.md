@@ -540,3 +540,22 @@ Each entry: what was done, what it proved, what is next. Append, never rewrite.
 - **Next:** owner checks out `corpus/merge-v1`, deletes the empty `corpus.sqlite` (the schema did
   not change, so this is optional), then runs `bulk_ingest.py --estimate` on
   `D:\SMART BUSINESSWRITER\DATABASE`.
+
+### 2026-10-31 — the first real measurement of the owner's library
+- `bulk_ingest.py --estimate` on `D:\SMART BUSINESSWRITER\DATABASE` **completed**:
+  - **148 PDF files** (not 294 — that figure counts every file in the collection, not the PDFs)
+  - **26,897 pages with a text layer** (fast: fractions of a second each)
+  - **1,484 pages needing OCR** (5.2% of pages) — the only slow part
+  - **roughly 1.0 hour on one core**, and the estimate is deliberately pessimistic
+- **Conclusion: OCR is not the schedule risk here that G-06 warns about.** 95% of the library is
+  born-digital. The whole library is about an hour of machine time, not days.
+- The run looked like a hang because pypdf printed `Ignoring wrong pointing object N 0 (offset 0)`
+  hundreds of times — a recoverable warning about a malformed cross-reference table in some of the
+  scanned PDFs, not an error.
+- **Fixed:** `bulk_ingest.py` now sets `logging.getLogger("pypdf")` to ERROR, prints progress every
+  ten files during `--estimate`, and offers `--sample N` (measure N files and scale up, labelled as
+  a sample) so a full measurement is never needed to answer the question.
+- One new test (`test_a_sample_is_scaled_up_and_labelled_as_one`). **45 tests pass** with the
+  pypdf stand-in; the same 9 remain environmental without it.
+- **Open question for the owner:** the collection holds ~146 files that are **not PDF**. The corpus
+  reads PDF only, so those cannot be ingested — what are they (EPUB, DJVU, notes)?

@@ -27,6 +27,7 @@ Nothing here is imported by the pipeline. It is a build-time tool, so it may use
 
 import argparse
 import csv
+import logging
 import os
 import re
 import sys
@@ -36,6 +37,11 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import corpus_lib as lib
+
+#: Some PDFs carry a broken cross-reference table and pypdf says so, once per bad
+#: pointer - hundreds of lines that bury the result and make the tool look stuck.
+#: They are recoverable warnings about the file, not errors in the run.
+logging.getLogger("pypdf").setLevel(logging.ERROR)
 
 #: The pipeline's own subject ids (CORPUS_DB.md C-08). A build that invents a
 #: twelfth subject would need a mapping table forever, so it is refused here.
@@ -126,11 +132,24 @@ def find_pdfs(folder):
     return found
 
 
-def estimate(folder):
-    """How much work the folder really is, before doing it."""
+def estimate(folder, sample=None, progress=None):
+    """How much work the folder really is, before doing it.
+
+    `sample` measures only the first N files and scales the answer up. A full
+    measurement of a large library is itself an hour of reading, which defeats
+    the point of measuring before you commit; a sample of 15 files answers the
+    same question in a minute and is labelled as a sample.
+
+    `progress` is called every ten files, because a tool that prints nothing for
+    ten minutes is indistinguishable from one that has hung.
+    """
     files = find_pdfs(folder)
+    if not files:
+        return {"files": 0, "measured": 0, "text_pages": 0, "ocr_pages": 0,
+                "unreadable": 0, "seconds": 0.0, "sampled": False}
+    measured = files[:sample] if sample else files
     text_pages = ocr_pages = unreadable = 0
-    for path in files:
+    for index, path in enumerate(measured, start=1):
         try:
             total, needs_ocr = probe(path)
         except Exception:
@@ -138,9 +157,15 @@ def estimate(folder):
             continue
         ocr_pages += needs_ocr
         text_pages += total - needs_ocr
-    seconds = text_pages * SECONDS_PER_TEXT_PAGE + ocr_pages * SECONDS_PER_OCR_PAGE
-    return {"files": len(files), "text_pages": text_pages, "ocr_pages": ocr_pages,
-            "unreadable": unreadable, "seconds": seconds}
+        if progress and index % 10 == 0:
+            progress(index, len(measured))
+    scale = float(len(files)) / len(measured)
+    seconds = (text_pages * SECONDS_PER_TEXT_PAGE
+               + ocr_pages * SECONDS_PER_OCR_PAGE) * scale
+    return {"files": len(files), "measured": len(measured),
+            "text_pages": int(text_pages * scale), "ocr_pages": int(ocr_pages * scale),
+            "unreadable": unreadable, "seconds": seconds, "sampled": bool(sample)}
+
 
 
 
@@ -245,6 +270,8 @@ def main():
                         help="read the names and report, write nothing")
     parser.add_argument("--estimate", action="store_true",
                         help="measure pages and OCR need, then stop")
+    parser.add_argument("--sample", type=int,
+                        help="with --estimate: measure only the first N files and scale up")
     parser.add_argument("--report", default=os.path.join(lib.CORPUS_DIR, "bulk_ingest_report.csv"))
     args = parser.parse_args()
 
@@ -253,8 +280,14 @@ def main():
         return 2
 
     if args.estimate:
-        result = estimate(args.folder)
+        print("reading %d file(s); progress prints every 10" % args.sample
+              if args.sample else "reading every PDF; progress prints every 10")
+        result = estimate(args.folder, sample=args.sample,
+                          progress=lambda done, total: print("  %d/%d" % (done, total)))
         hours = result["seconds"] / 3600.0
+        if result["sampled"]:
+            print("measured          : %d of %d files (a sample, scaled up)"
+                  % (result["measured"], result["files"]))
         print("files             : %d" % result["files"])
         print("pages with text   : %d (fast)" % result["text_pages"])
         print("pages needing OCR : %d (slow)" % result["ocr_pages"])
