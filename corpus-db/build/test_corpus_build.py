@@ -768,6 +768,23 @@ class BulkIngestTest(TempCorpusTest):
         self.assertTrue(result["sampled"], "a scaled answer must say it was scaled")
         self.assertEqual(result["text_pages"], 40, "2 files x 10 pages, scaled to 4 files")
 
+    def test_the_pages_are_pushed_to_search_once_at_the_end(self):
+        """Without this the documents exist and nothing can find them."""
+        self.drop("Smith_2021_first-book.pdf")
+        self.drop("Jones_2020_second-book.pdf")
+        calls = []
+        real = lib.index_pages
+        lib.index_pages = lambda connection, **kw: calls.append(1) or 0
+        try:
+            bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+            self.assertEqual(calls, [], "importing alone must not index")
+            bulk_ingest.import_folder(self.connection, self.folder, subject="management",
+                                      index=True)
+        finally:
+            lib.index_pages = real
+        self.assertEqual(len(calls), 1,
+                         "the index is rebuilt once for the run, not once per file")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

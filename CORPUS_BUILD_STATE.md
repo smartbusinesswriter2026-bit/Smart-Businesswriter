@@ -559,3 +559,17 @@ Each entry: what was done, what it proved, what is next. Append, never rewrite.
   pypdf stand-in; the same 9 remain environmental without it.
 - **Open question for the owner:** the collection holds ~146 files that are **not PDF**. The corpus
   reads PDF only, so those cannot be ingested — what are they (EPUB, DJVU, notes)?
+
+### 2026-10-31 - first real import: 4 documents in, 1 duplicate, and a gap I had left
+- The owner ran `bulk_ingest.py --limit 5 --threads 2`: **4 ingested, 1 duplicate, 5.1 s**.
+  The duplicate on a first run means two of those five files are one work: the guard works on
+  real data, not only in tests.
+- **Gap found in `bulk_ingest.py`: it never pushed pages to Meilisearch.** `ingest.py` does
+  (`index_pages`), the bulk tool did not, so the documents existed and nothing could find them.
+  Fixed: `import_folder(..., index=True)` pushes the whole corpus **once at the end of a run**,
+  not once per file (the index is rebuilt from the database, so per-file pushes would repeat the
+  same work). Failure is a warning, never a failed import: the database is the truth.
+- **A bug of mine, caught by the new test:** the loop variable in `import_folder` was also called
+  `index`, so it shadowed the new `index` parameter and the count of files (2) made the condition
+  true - it indexed even when told not to. Renamed the loop variable to `position`.
+- 46 tests pass with the pypdf stand-in; 9 remain environmental without it.

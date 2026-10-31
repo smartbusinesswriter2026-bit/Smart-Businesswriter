@@ -208,13 +208,20 @@ def _prepare(path):
 
 
 def import_folder(connection, folder, subject=None, kind="book", default_year=None,
-                  dry_run=False, threads=1, limit=None, report_path=None, progress=None):
-    """Import every PDF in a folder. Returns the report rows."""
+                  dry_run=False, threads=1, limit=None, report_path=None, progress=None,
+                  index=False):
+    """Import every PDF in a folder. Returns the report rows.
+
+    `index` pushes the whole corpus into Meilisearch once at the end, which is
+    what makes the imported pages findable. It is done once for the run rather
+    than once per file: the index is rebuilt from the database, so a hundred
+    separate pushes would do the same work a hundred times.
+    """
     files = find_pdfs(folder)
     if limit:
         files = files[:limit]
     rows = []
-    for index, (path, raw, pages, error) in enumerate(_iter_prepared(files, threads), start=1):
+    for position, (path, raw, pages, error) in enumerate(_iter_prepared(files, threads), start=1):
         meta = parse_name(path)
         meta.update({"kind": kind, "metadata_source": "filename", "metadata_verified": 0,
                      "local_path": path})
@@ -234,10 +241,18 @@ def import_folder(connection, folder, subject=None, kind="book", default_year=No
                      "pages": len(pages) if pages else 0, "subject": meta["subject"] or "",
                      "year": meta["year"] or "", "title": meta["title"],
                      "message": message})
-        if progress and index % 10 == 0:
-            progress(index, len(files))
+        if progress and position % 10 == 0:
+            progress(position, len(files))
     if report_path and not dry_run:
         write_report(report_path, rows)
+    if index and not dry_run:
+        try:
+            lib.index_pages(connection)
+        except Exception as error:
+            # The pages are in the database, which is the truth; only the copy
+            # is missing. Say so rather than failing the import.
+            print("WARNING: the pages were ingested but not indexed (%s)" % error,
+                  file=sys.stderr)
     return rows
 
 
@@ -272,6 +287,8 @@ def main():
                         help="measure pages and OCR need, then stop")
     parser.add_argument("--sample", type=int,
                         help="with --estimate: measure only the first N files and scale up")
+    parser.add_argument("--no-index", action="store_true",
+                        help="do not push the pages into Meilisearch after importing")
     parser.add_argument("--report", default=os.path.join(lib.CORPUS_DIR, "bulk_ingest_report.csv"))
     args = parser.parse_args()
 
@@ -303,7 +320,8 @@ def main():
     rows = import_folder(
         connection, args.folder, subject=args.subject, kind=args.kind, default_year=args.year,
         dry_run=args.dry_run, threads=args.threads, limit=args.limit, report_path=args.report,
-        progress=lambda done, total: print("  %d/%d" % (done, total)))
+        progress=lambda done, total: print("  %d/%d" % (done, total)),
+        index=not args.no_index)
     connection.close()
 
     print("")
@@ -316,6 +334,8 @@ def main():
         print("  (dry run: nothing was written)")
     else:
         print("report: %s" % args.report)
+        print("index : %s" % ("skipped (--no-index)" if args.no_index
+                              else "pushed to Meilisearch"))
     return 0
 
 
