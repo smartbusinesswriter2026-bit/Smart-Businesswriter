@@ -45,3 +45,8 @@ corpus-db/meili/
 /_tmp_*.ps1
 /_tmp_*.pdf
 /page-*.png
+
+# The Meilisearch program itself: a downloaded binary (114 MB), not source.
+# GitHub refuses any file over 100 MB, and nothing needs it from git.
+corpus-db/meilisearch.exe
+corpus-db/*.exe

@@ -49,6 +49,7 @@ sys.path.insert(0, HERE)
 import corpus_lib as lib
 import corpus_service as service
 import enrich
+import bulk_ingest
 
 
 class TempCorpusTest(unittest.TestCase):
@@ -599,6 +600,158 @@ class SettingsTest(TempCorpusTest):
                 lib.apply_settings(self.settings())
         finally:
             lib.meili_call = original
+
+
+class IsbnIdentityTest(TempCorpusTest):
+    """An ISBN names a book, so two scans of one book are one document.
+
+    The title rule cannot do this: the same book scanned twice can come back
+    with its subtitle typed differently, and then the two keys differ and the
+    second copy is ingested. The checksum is verified, so a mistyped number
+    names nothing rather than naming the wrong book.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self._real_extract = lib.extract_pages
+        # The PDF reader is a build-time package and is not installed everywhere;
+        # these tests are about identity, not parsing.
+        lib.extract_pages = lambda raw: [(1, "page one", "pdf_text_layer")]
+        self._real_pdf_dir = lib.PDF_DIR
+        lib.PDF_DIR = os.path.join(self.directory, "pdfs")
+
+    def tearDown(self):
+        lib.extract_pages = self._real_extract
+        lib.PDF_DIR = self._real_pdf_dir
+        super().tearDown()
+
+    def test_an_isbn10_and_the_same_book_as_isbn13_name_one_identity(self):
+        self.assertEqual(lib.norm_isbn("0132350882"), "9780132350884")
+        self.assertEqual(lib.norm_isbn("978-0-13-235088-4"), "9780132350884")
+
+    def test_an_isbn_that_fails_its_checksum_names_nothing(self):
+        self.assertEqual(lib.norm_isbn("9780132350885"), "",
+                         "one wrong digit is not a different book, it is no book")
+        self.assertEqual(lib.norm_isbn("a page range 143-158"), "")
+
+    def test_the_key_prefers_the_isbn_over_the_title(self):
+        self.assertEqual(
+            lib.work_key_for({"title": "Whatever the scanner typed",
+                              "isbn": "0132350882"}),
+            "isbn:9780132350884")
+
+    def test_a_doi_still_wins_over_an_isbn(self):
+        self.assertEqual(lib.work_key_for({"doi": "10.1000/ABC", "isbn": "0132350882"}),
+                         "doi:10.1000/abc")
+
+    def test_the_same_book_scanned_twice_under_different_titles_is_refused(self):
+        first = lib.ingest_pdf(
+            self.connection, b"%PDF-1.4 scan one",
+            {"title": "Competitive Strategy", "authors": "Porter, Michael", "year": 1980,
+             "kind": "book", "isbn": "0132350882"})
+        second = lib.ingest_pdf(
+            self.connection, b"%PDF-1.4 scan two, different bytes",
+            {"title": "Competitive Strategy: Techniques for Analysing Industries",
+             "authors": "Porter, Michael", "year": 1980, "kind": "book",
+             "isbn": "978-0-13-235088-4"})
+        self.assertEqual(first[0], "ingested")
+        self.assertEqual(second[0], "duplicate")
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM documents").fetchone()[0], 1)
+
+    def test_two_books_with_different_isbns_are_two_documents(self):
+        first = lib.ingest_pdf(self.connection, b"%PDF-1.4 a",
+                               {"title": "One", "isbn": "0132350882", "kind": "book"})
+        second = lib.ingest_pdf(self.connection, b"%PDF-1.4 b",
+                                {"title": "Two", "isbn": "9780306406157", "kind": "book"})
+        self.assertEqual((first[0], second[0]), ("ingested", "ingested"))
+
+    def test_a_row_keyed_by_title_is_rekeyed_by_its_isbn(self):
+        """A row written under the old rule must not keep the weaker key."""
+        self.connection.execute(
+            "INSERT INTO documents (doc_id, title, authors, source_kind, local_path, sha256,"
+            " text_method, licence_verified, metadata_verified, added_at, isbn, work_key)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            ("bk-old", "Old Title", "Porter, Michael", "book", "", "aa", "pdf_text_layer",
+             0, 0, lib.now(), "0132350882", "t:old title|porter|1980"))
+        self.connection.commit()
+        lib.apply_schema(self.connection)
+        row = self.connection.execute(
+            "SELECT work_key FROM documents WHERE doc_id = 'bk-old'").fetchone()
+        self.assertEqual(row["work_key"], "isbn:9780132350884")
+
+
+class BulkIngestTest(TempCorpusTest):
+    """Importing a folder reads each PDF once, and never doubles the library."""
+
+    def setUp(self):
+        super().setUp()
+        self.extractions = 0
+        self._real_extract = lib.extract_pages
+
+        def counting(raw):
+            self.extractions += 1
+            return [(1, "alpha", "pdf_text_layer"), (2, "beta", "pdf_text_layer")]
+
+        lib.extract_pages = counting
+        self._real_pdf_dir = lib.PDF_DIR
+        lib.PDF_DIR = os.path.join(self.directory, "pdfs")
+        self.folder = os.path.join(self.directory, "library")
+        os.makedirs(self.folder)
+
+    def tearDown(self):
+        lib.extract_pages = self._real_extract
+        lib.PDF_DIR = self._real_pdf_dir
+        super().tearDown()
+
+    def drop(self, name):
+        with open(os.path.join(self.folder, name), "wb") as handle:
+            handle.write(b"%PDF-1.4 " + name.encode("utf-8"))
+
+    def test_the_name_gives_the_year_and_a_readable_title(self):
+        meta = bulk_ingest.parse_name(
+            "A.-Bonini_2024_the-relationship-between-leadership-and-performance.pdf")
+        self.assertEqual(meta["year"], 2024)
+        self.assertEqual(meta["authors"], "Bonini", "initials are dropped, not guessed")
+        self.assertTrue(meta["title"].startswith("The relationship between leadership"))
+
+    def test_no_year_in_the_name_stays_empty(self):
+        self.assertIsNone(bulk_ingest.parse_name("some-undated-report.pdf")["year"])
+
+    def test_an_isbn_in_the_name_is_used_only_when_it_is_a_real_one(self):
+        found = bulk_ingest.parse_name("Porter_1980_competitive-strategy_0132350882.pdf")
+        self.assertEqual(found["isbn"], "9780132350884")
+        self.assertIsNone(bulk_ingest.parse_name("Porter_1980_pages-143-158.pdf")["isbn"])
+
+    def test_each_pdf_is_read_once(self):
+        self.drop("Smith_2021_first-book.pdf")
+        bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+        self.assertEqual(self.extractions, 1,
+                         "pages already read must not be read a second time")
+
+    def test_running_it_twice_imports_nothing_the_second_time(self):
+        self.drop("Smith_2021_first-book.pdf")
+        first = bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+        second = bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+        self.assertEqual(bulk_ingest.summarise(first), {"ingested": 1})
+        self.assertEqual(bulk_ingest.summarise(second), {"duplicate": 1})
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM documents").fetchone()[0], 1)
+
+    def test_metadata_from_a_file_name_is_recorded_as_unverified(self):
+        self.drop("Smith_2021_first-book.pdf")
+        bulk_ingest.import_folder(self.connection, self.folder, subject="management")
+        row = self.connection.execute("SELECT * FROM documents").fetchone()
+        self.assertEqual(row["metadata_source"], "filename")
+        self.assertEqual(row["metadata_verified"], 0)
+
+    def test_a_dry_run_writes_nothing(self):
+        self.drop("Smith_2021_first-book.pdf")
+        rows = bulk_ingest.import_folder(self.connection, self.folder, subject="management",
+                                         dry_run=True)
+        self.assertEqual(rows[0]["status"], "would_ingest")
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM documents").fetchone()[0], 0)
 
 
 if __name__ == "__main__":

@@ -146,10 +146,53 @@ def first_author_key(authors):
     return norm_title(words[-1]) if words else ""
 
 
+def _isbn13_check(core12):
+    """The 13th digit of an ISBN-13, from its first twelve."""
+    total = sum(int(digit) * (1 if index % 2 == 0 else 3)
+                for index, digit in enumerate(core12))
+    return str((10 - total % 10) % 10)
+
+
+def _isbn13_ok(digits):
+    return len(digits) == 13 and digits.isdigit() and digits[-1] == _isbn13_check(digits[:12])
+
+
+def _isbn10_ok(digits):
+    if len(digits) != 10 or not digits[:9].isdigit():
+        return False
+    total = sum((10 - index) * (10 if ch in "Xx" else int(ch))
+                for index, ch in enumerate(digits))
+    return total % 11 == 0
+
+
+def norm_isbn(value):
+    """One ISBN-13 for one book, from either the ISBN-10 or the ISBN-13 spelling.
+
+    '978-0-13-235088-4' and '0132350882' name the same book, so both become
+    '9780132350884' and a second scan of that book is recognised as the same
+    work even when its title was typed differently.
+
+    The checksum is verified, and anything that fails it returns '' — because a
+    key built on a mistyped number would refuse a genuinely different book,
+    which is worse than failing to notice a duplicate. An unknown ISBN is a gap,
+    not a guess.
+    """
+    digits = re.sub(r"[^0-9Xx]", "", value or "").upper()
+    if len(digits) == 13:
+        return digits if _isbn13_ok(digits) else ""
+    if len(digits) == 10 and _isbn10_ok(digits):
+        core = "978" + digits[:9]
+        return core + _isbn13_check(core)
+    return ""
+
+
 def work_key_for(meta):
     """The identity of a WORK, or None when the metadata cannot name one.
 
     A DOI is the strongest name a work has, so it wins when it is known.
+    An ISBN is the strongest name a *book* has, so it is second: two scans of
+    one book then match even when their titles were typed differently, which the
+    title rule cannot do.
     Otherwise the key is the title, the first author's family name and the
     year. A work with too little to tell it apart from another work is given
     no key at all: a key that is too weak would merge two different books and
@@ -158,6 +201,9 @@ def work_key_for(meta):
     doi = norm_doi(meta.get("doi"))
     if doi:
         return "doi:" + doi
+    isbn = norm_isbn(meta.get("isbn"))
+    if isbn:
+        return "isbn:" + isbn
     title = norm_title(meta.get("title"))
     if len(title) < 12:
         return None
@@ -236,18 +282,34 @@ def migrate(connection):
 
 
 def backfill_work_keys(connection):
-    """Give the rows that predate the work key one."""
+    """Give every row the key the current rule would give it.
+
+    Not only the rows that predate the column: when the rule itself improves
+    (an ISBN now names a book, where before only the title could), a row keyed
+    under the old rule would keep a key that no longer matches the rule, and the
+    better identity would never be used for it. Re-keying is therefore done
+    whenever the stored key differs from the computed one.
+
+    Two documents that now look like one work are **not** merged. Merging would
+    destroy one of them; the second is left without a key instead, which makes it
+    fall back to the file check and leaves the decision to the owner.
+    """
     tables = {row["name"] for row in
               connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     if "documents" in tables:
         rows = connection.execute(
-            "SELECT doc_id, title, authors, year, doi FROM documents WHERE work_key IS NULL").fetchall()
+            "SELECT doc_id, title, authors, year, doi, isbn, work_key FROM documents").fetchall()
         for row in rows:
             key = work_key_for({"title": row["title"], "authors": row["authors"],
-                                "year": row["year"], "doi": row["doi"]})
-            if key:
+                                "year": row["year"], "doi": row["doi"], "isbn": row["isbn"]})
+            if key == row["work_key"]:
+                continue
+            try:
                 connection.execute("UPDATE documents SET work_key = ? WHERE doc_id = ?",
                                    (key, row["doc_id"]))
+            except sqlite3.IntegrityError:
+                connection.execute("UPDATE documents SET work_key = NULL WHERE doc_id = ?",
+                                   (row["doc_id"],))
     if "candidates" in tables:
         rows = connection.execute(
             "SELECT candidate_id, title, doi, url, year FROM candidates WHERE work_key IS NULL").fetchall()
@@ -452,7 +514,7 @@ def record_refusal(connection, digest, doc_id, reason):
     connection.commit()
 
 
-def ingest_pdf(connection, raw, meta, local_path=None, filename=None):
+def ingest_pdf(connection, raw, meta, local_path=None, filename=None, pages=None):
     """Put one PDF into the corpus. Returns (status, doc_id, message).
 
     status is 'ingested', 'duplicate' or 'failed'. A file that is already in
@@ -460,6 +522,11 @@ def ingest_pdf(connection, raw, meta, local_path=None, filename=None):
     corpus already holds: the re-ingest policy (Q-15) is still open, so this
     refuses rather than guessing. A refused file is written to the ingest log
     with the reason, and no copy of it is written to disk.
+
+    `pages` may carry pages that were extracted already, by a caller reading
+    several PDFs at once. Reading a scanned page is the slow part of an import,
+    so a bulk importer does it in parallel and passes the result in; the
+    database itself is still written by one connection, in order.
     """
     digest = sha256_bytes(raw)
     existing, reason, kind = find_duplicate(connection, digest, meta)
@@ -475,10 +542,11 @@ def ingest_pdf(connection, raw, meta, local_path=None, filename=None):
         return "duplicate", existing, reason
     kind = meta.get("kind") or meta.get("source_kind") or "book"
     doc_id = doc_id_for(kind, digest)
-    try:
-        pages = extract_pages(raw)
-    except Exception as error:
-        return "failed", None, "the PDF could not be read (%s)" % type(error).__name__
+    if pages is None:
+        try:
+            pages = extract_pages(raw)
+        except Exception as error:
+            return "failed", None, "the PDF could not be read (%s)" % type(error).__name__
     if not pages:
         return "failed", None, "the PDF has no pages"
     method = "ocr" if any(page[2] == "ocr" for page in pages) else "pdf_text_layer"
