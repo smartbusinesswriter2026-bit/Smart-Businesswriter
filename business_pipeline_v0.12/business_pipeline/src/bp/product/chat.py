@@ -477,9 +477,6 @@ def _fit(brief, framework="pestel"):
     if framework in ("breakeven", "vrio"):
         # A computation and an internal-resource audit need no external evidence.
         return True, None
-    if any(hint in text for hint in COMPUTATION_HINTS) and not any(hint in text for hint in EXTERNAL_HINTS):
-        return False, ("This looks like an accounting or finance computation, not a strategic analysis. "
-                       "Use the Accounting or Finance shelf instead.")
     if framework == "pestel" and not any(hint in text for hint in EXTERNAL_HINTS):
         return False, ("This brief does not yet name an external question. Add the market, industry, country "
                        "or decision the analysis should support.")
@@ -650,11 +647,9 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
                 message = ("This looks like an accounting computation. Use the Accounting shelf and its "
                            "ledger, trial-balance and check tools; see GET /api/cases/subjects/accounting.")
             fits = False
-    if selection.get("question") and fits:
+    if selection.get("question"):
         questions.insert(0, dict(selection["question"]))
         state["question_quote"] = selection.get("question_quote") or ""
-    if not fits:
-        state.update({"stage": "not_supported", "message": message, "questions": [], "question_index": 0})
     return state
 
 

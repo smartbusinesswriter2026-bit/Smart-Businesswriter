@@ -17,6 +17,18 @@ schedule the work.
 | Inventory and planning | How much stock, when to order, what it costs | Order quantity and reorder point, trend forecast, missing-data bounds, descriptive statistics |
 | Quality and evidence | Is the process in control and capable, and is the evidence distinguishable from noise? | Overall equipment effectiveness, control chart and capability, chi-square association, power and sample size |
 
+Two worksheets come with the shelf: the **SIPOC process map** (`OPS-02`) and the **value stream map**
+(`OPS-03`). Both complete themselves from what you write. The steps, outputs and customers are taken
+from your own words in the brief, the supplier and input evidence is researched, and a part only you
+can state is named as a gap instead of being filled for you. See
+[Completing an operations framework](#completing-an-operations-framework).
+
+**Theory of Constraints** (`OPS-06`), **A3 problem solving** (`OPS-05`), **SCOR** (`OPS-01`), **5S**
+(`OPS-04`), **root cause analysis** (`OPS-07`), **FMEA** (`OPS-08`), **Kraljic** (`OPS-10`), **S&OP**
+(`OPS-11`) and **PDCA** (`OPS-12`) are worksheets too, and they complete themselves the same way: a
+block is researched first, then taken from your own words, and only then left as a named gap. Every
+operations framework on the shelf works this way; none has to be filled in by hand.
+
 **Supply chain** carries the same process tools with the inventory-and-network, demand-and-planning and
 cost-and-mix groups, because a distribution problem is an inventory and capacity problem first.
 
@@ -42,11 +54,37 @@ cost-and-mix groups, because a distribution problem is an inventory and capacity
 | How many stations does the line need? | `line_balancing` | each task's time and predecessors, and the cycle time |
 | How long do customers wait? | `queue_analysis` | the average arrival rate and the single server's rate |
 | How much should we order, and when? | `inventory_policy` | annual demand, order cost, holding cost, lead time and, optionally, variability and a service level |
-| How much stock and cash does working capital tie up? | `working_capital` | revenue, cost of sales, inventory, receivables, payables |
+| How much stock and cash does working capital tie up? | `working_capital` (on the **Accounting** shelf) | revenue, cost of sales, inventory, receivables, payables |
 | What does a product contribute, and where is break-even? | `breakeven`, `multi_product_breakeven`, `unit_economics` | fixed and variable costs, prices and mix |
 | What is the trend in demand? | `trend_forecast` | a series in period order |
 | Is the line effective, and is the process in control? | `oee_analysis`, `process_control` | planned time, downtime, cycle time and counts; or observations with optional specification limits |
 | Is the difference between two groups real? | `chi_square`, `power_analysis` | your counts or the effect you want to detect |
+| Bound one process: suppliers, inputs, steps, output, customer | `template_sipoc` (SIPOC worksheet) | the process name and the case in your own words; the rest is researched or quoted back to you |
+| Follow one flow and find where it waits | `template_value_stream_map` (value stream worksheet) | the process name, the steps and the times you observed or were given |
+
+## Completing an operations framework
+
+Both worksheets complete themselves from a written brief. You do not fill the blocks by hand.
+
+1. **Name the process.** SIPOC and the value stream map bound one process, so the page asks for it
+   in a few words — the lunch service at the meal counter, the returns process at the warehouse. The
+   pipeline will not detect a process for you: without a name it refuses and says so.
+2. **Write the case in your own words.** Describe what happens, who supplies it and who receives it.
+   The steps, the outputs and the customers are taken **verbatim** from that description, so a part
+   your brief already states is never typed twice. Nothing is paraphrased or guessed.
+3. **Let it research what research can answer.** Suppliers and inputs are looked up in the academic
+   databases, with their citations, in parallel under one deadline. A search that finds nothing
+   returns a named gap and a probe telling you what to look for; it never returns a substitute.
+4. **State what only you can state.** The value-added judgement and your improvement proposals are
+   yours. The worksheet says what each needs and leaves the part empty until you give it, because a
+   judgement about your own process cannot be researched and must not be invented.
+5. **Review, then generate.** Tick the items the paper may use, then produce the Draft or Full paper.
+   The gate refuses the paper while any part has neither an item nor an acknowledged gap.
+
+**What the completion cannot do.** It does not observe your process, time a step, measure capacity or
+read a machine. A cycle time in the paper is a time you declared, with the provenance that shows it
+is yours. To turn a declared time into a computed figure — capacity, utilisation, waiting time, OEE —
+put the same numbers through the matching tile, which is the only place a number is calculated.
 
 ## Worked examples
 
@@ -154,5 +192,9 @@ bound is the only proof of how few stations could ever be needed.
 - **No quantity discounts, variable lead times or multi-item inventory optimisation.**
 - **No forecasting beyond a declared linear trend**, and no seasonality or causal demand model.
 - **No facility location, routing or transport optimisation.**
+- **No observed process.** The worksheets organise what you state and what is researched for you; they
+  observe nothing, time no step and fill no part only the process owner can state. Every operations
+  framework now has a worksheet, and none of them measures your line: the numbers still come only from
+  the computation tiles.
 
 If your assignment needs one of these, state it in the limitations and show the method you used by hand.

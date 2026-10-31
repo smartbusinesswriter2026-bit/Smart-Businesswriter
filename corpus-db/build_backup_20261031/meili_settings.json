@@ -1,0 +1,12 @@
+{
+  "searchableAttributes": ["text", "section_path", "title", "authors"],
+  "filterableAttributes": ["doc_id", "authors", "year", "publisher", "edition",
+                            "venue", "subject", "source_kind", "pdf_page",
+                            "printed_page", "text_method"],
+  "sortableAttributes": ["year", "title", "authors"],
+  "typoTolerance": {
+    "enabled": true,
+    "disableOnNumbers": true
+  },
+  "pagination": { "maxTotalHits": 1000 }
+}

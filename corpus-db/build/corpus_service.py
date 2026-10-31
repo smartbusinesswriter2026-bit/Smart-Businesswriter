@@ -142,14 +142,24 @@ def handle(verb, path, body):
                 "subject": body.get("subject"), "licence": body.get("licence"),
                 "source_url": body.get("source_url"), "metadata_source": "manual",
             }
-            path = lib.save_pdf(raw, filename)
-            status, doc_id, message = lib.ingest_pdf(connection, raw, meta, local_path=path)
-            connection.execute(
-                "INSERT INTO uploads (upload_id, uploaded_at, filename, sha256, bytes, status,"
-                " doc_id, message) VALUES (?,?,?,?,?,?,?,?)",
-                (lib.sha256_text(filename + lib.now())[:16], lib.now(), filename,
-                 lib.sha256_bytes(raw), len(raw), status, doc_id, message))
-            connection.commit()
+            digest = lib.sha256_bytes(raw)
+            # The duplicate check comes first. A file the corpus already holds
+            # is refused before anything is written: no copy on disk, no second
+            # document, no second row in the corpus.
+            existing, reason, kind = lib.find_duplicate(connection, digest, meta)
+            if existing:
+                # The file is already in the corpus. Nothing is ingested a
+                # second time. If the document's own file has been lost, this
+                # is the file that puts it back.
+                restored = None
+                if kind == "file":
+                    restored = lib.restore_missing_file(connection, existing, raw, filename)
+                    if restored:
+                        reason = reason + "; its file was put back"
+                lib.record_upload(connection, filename, digest, len(raw), "duplicate", existing, reason)
+                return 200, {"status": "duplicate", "doc_id": existing, "message": reason}
+            status, doc_id, message = lib.ingest_pdf(connection, raw, meta, filename=filename)
+            lib.record_upload(connection, filename, digest, len(raw), status, doc_id, message)
             if status == "ingested":
                 try:
                     lib.index_pages(connection)

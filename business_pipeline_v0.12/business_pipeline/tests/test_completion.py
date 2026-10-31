@@ -75,16 +75,16 @@ class CompletionTest(unittest.TestCase):
 
     def test_the_draft_has_a_hierarchy_and_only_sourced_references(self):
         result = {"instruction": "A grocery chain is considering a cold-chain acquisition in Saudi Arabia.",
-                  "blocks": [{"key": "rivalry", "label": "Industry rivalry", "gap": None,
+                  "blocks": [{"key": "rivalry", "label": "Industry Rivalry", "gap": None,
                               "items": [{"text": "Competition is intense.", "provenance": "sourced",
                                          "source": "Lovelace, A. (2024). Retail competition. Journal, 1(1), 1-2.",
                                          "citation": "(Lovelace, 2024)"}]},
-                             {"key": "entrants", "label": "Threat of new entrants", "gap": "No source found.",
+                             {"key": "entrants", "label": "Threat of New Entrants", "gap": "No source found.",
                               "items": []}]}
         report = completion.draft(result)
         levels = {section["heading"]: section["level"] for section in report["sections"]}
         self.assertEqual(levels["Five Forces"], 1)
-        self.assertEqual(levels["Industry rivalry"], 2)
+        self.assertEqual(levels["Industry Rivalry"], 2)
         self.assertEqual(levels["Limitations"], 2)
         self.assertIn("Lovelace", " ".join(report["sections"][-1]["lines"]))
         data = completion.draft_bytes(result)
@@ -100,27 +100,29 @@ class CompletionTest(unittest.TestCase):
     def test_the_full_version_uses_model_prose_and_keeps_citations(self, model):
         model.return_value = (_paper_data(), {"rivalry": ["(Lovelace, 2024)"]})
         result = {"instruction": "A case in Saudi Arabia.",
-                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                  "blocks": [{"key": "rivalry", "label": "Industry Rivalry",
                               "items": [{"text": "Competition is intense.", "provenance": "sourced",
                                          "source": "Lovelace, A. (2024). Retail competition.",
                                          "citation": "(Lovelace, 2024)"}]}]}
         report = completion.draft(result, "apa", "full")
         self.assertTrue(report["model_used"])
-        rivalry = next(section for section in report["sections"] if section["heading"] == "Industry rivalry")
+        rivalry = next(section for section in report["sections"] if section["heading"] == "Industry Rivalry")
         self.assertIn("(Lovelace, 2024)", rivalry["lines"][0])
 
     @mock.patch("bp.product.completion._model_sections")
-    def test_a_failed_full_paper_is_refused_not_downloaded(self, model):
+    def test_a_failed_full_paper_falls_back_to_the_evidence_led_draft(self, model):
         model.return_value = None
         result = {"instruction": "A case in Saudi Arabia.",
-                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                  "blocks": [{"key": "rivalry", "label": "Industry Rivalry",
                               "items": [{"text": "Competition is intense.", "provenance": "user"}]}]}
-        with self.assertRaises(ValueError):
-            completion.draft(result, "apa", "full")
+        report = completion.draft(result, "apa", "full")
+        self.assertFalse(report["model_used"])
+        self.assertEqual(report["fallback"], "draft")
+        self.assertTrue(report["sections"])
 
     def test_the_title_drops_the_trailing_period(self):
         result = {"instruction": "Apple is considering market entry in Iran.",
-                  "blocks": [{"key": "rivalry", "label": "Industry rivalry",
+                  "blocks": [{"key": "rivalry", "label": "Industry Rivalry",
                               "items": [{"text": "Competition is intense.", "provenance": "user"}]}]}
         report = completion.draft(result, "apa", "draft")
         self.assertFalse(report["title"].endswith("."))
@@ -129,7 +131,7 @@ class CompletionTest(unittest.TestCase):
     def test_the_draft_carries_the_student_byline_to_the_title_page(self):
         result = {"instruction": "A grocery chain in Saudi Arabia.",
                   "byline": ["A Student", "Example University"],
-                  "blocks": [{"key": "buyers", "label": "Buyer power",
+                  "blocks": [{"key": "buyers", "label": "Buyer Power",
                               "items": [{"text": "Buyers negotiate on price.", "provenance": "user"}]}]}
         report = completion.draft(result, "apa", "draft")
         self.assertEqual(report["byline"], ["A Student", "Example University"])
@@ -141,8 +143,8 @@ class CompletionTest(unittest.TestCase):
                       for key, label, _ in completion.FORCES]}
         report = completion.draft(result, "apa", "draft")
         headings = [section["heading"] for section in report["sections"]]
-        for required in ("Introduction", "Case and industry context", "Five Forces", "Discussion",
-                         "What the evidence shows", "Implications for the decision", "Limitations",
+        for required in ("Introduction", "Case and Industry Context", "Five Forces", "Discussion",
+                         "What the Evidence Shows", "Implications for the Decision", "Limitations",
                          "Conclusion", "References"):
             self.assertIn(required, headings)
         self.assertGreaterEqual(report["words"], 700)
@@ -161,23 +163,23 @@ class CompletionTest(unittest.TestCase):
 
     def test_an_unknown_length_falls_back_to_mid(self):
         result = {"instruction": "A case.", "blocks": [
-            {"key": "buyers", "label": "Buyer power",
+            {"key": "buyers", "label": "Buyer Power",
              "items": [{"text": "Buyers negotiate.", "provenance": "user"}]}]}
         report = completion.draft(result, "apa", "draft", "enormous")
         self.assertEqual(report["length"], "mid")
 
     def test_student_items_stay_student_evidence_not_assumptions(self):
         result = {"instruction": "A grocery chain considers a cold-chain acquisition in Saudi Arabia.",
-                  "blocks": [{"key": "buyers", "label": "Buyer power",
+                  "blocks": [{"key": "buyers", "label": "Buyer Power",
                               "items": [{"text": "Buyers negotiate on price.", "provenance": "user"}]}]}
         report = completion.draft(result, "apa", "draft")
-        buyers = next(section for section in report["sections"] if section["heading"] == "Buyer power")
+        buyers = next(section for section in report["sections"] if section["heading"] == "Buyer Power")
         self.assertEqual(buyers["lines"][0], "Buyers negotiate on price.")
         self.assertNotIn("Case assumption", buyers["lines"][0])
 
     def test_another_template_is_refused(self):
         with self.assertRaises(ValueError):
-            completion.complete("template_swot", "A grocery chain is entering Saudi Arabia.")
+            completion.complete("template_customer_journey", "A grocery chain is entering Saudi Arabia.")
 
     @mock.patch("bp.product.completion.complete")
     def test_the_route_returns_the_completion(self, complete):

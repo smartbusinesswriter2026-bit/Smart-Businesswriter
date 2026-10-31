@@ -1,0 +1,43 @@
+import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { join } from 'node:path';
+
+export async function start(context) {
+  const clientEntry = await readFile(join(context.pluginRoot, 'miniapp/client/index.html'));
+  const server = createServer((request, response) => {
+    const url = new URL(request.url ?? '/', 'http://miniapp.local');
+    if (request.method === 'GET' && url.pathname === '/dashboard') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(clientEntry);
+      return;
+    }
+    response.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ error: 'not_found' }));
+  });
+
+  await new Promise((resolve, reject) => {
+    const onError = (error) => reject(error);
+    server.once('error', onError);
+    server.listen(context.listen.port, context.listen.host, () => {
+      server.off('error', onError);
+      resolve();
+    });
+  });
+
+  let disposal;
+  const dispose = () => {
+    if (disposal) return disposal;
+    context.signal.removeEventListener('abort', onAbort);
+    disposal = new Promise((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+    return disposal;
+  };
+  const onAbort = () => {
+    void dispose().catch(() => undefined);
+  };
+  context.signal.addEventListener('abort', onAbort, { once: true });
+  if (context.signal.aborted) await dispose();
+
+  return { dispose };
+}

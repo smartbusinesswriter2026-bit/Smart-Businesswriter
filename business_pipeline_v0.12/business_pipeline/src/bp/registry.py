@@ -182,17 +182,21 @@ METHOD_LINK_RULES = [
      "a declared linear trend with an interval and an out-of-sample check is implemented; seasonal, causal and "
      "driver-based forecasts are not implemented"),
     (r"^Queueing models", ["queue_analysis", "capacity_analysis"],
-     "a single-server M/M/1 queue and steady-state resource capacity with its bottleneck are implemented; "
-     "multi-server queues, priorities, scheduling and simulation are not implemented"),
+     "a single-server M/M/1 queue and the multi-server M/M/c queue, with steady-state resource capacity and its "
+     "bottleneck, are implemented; priorities, abandonment, scheduling and simulation are not implemented"),
     (r"^Throughput and constraint analysis", ["capacity_analysis", "queue_analysis"],
      "the bottleneck resource, its utilisation and the capacity gap are implemented; drum-buffer-rope scheduling "
      "and buffer management are not implemented"),
     (r"^Critical Path Method \(CPM\)", ["cpm_schedule"],
      "critical-path dates, total float, the critical path and a PERT expected duration with its variance are "
-     "implemented; resource levelling, calendars and simulation are not implemented"),
+     "implemented; simulation is not implemented, and resource levelling, crashing and calendars are separate "
+     "methods (`resource_leveling`, `project_crashing`, `calendar_schedule`) rather than part of this one"),
     (r"^Overall Equipment Effectiveness \(OEE\)", ["oee_analysis", "process_control"],
      "OEE from declared time and counts, an I-MR control chart and Cp/Cpk capability are implemented; the six big "
      "losses, subgroup charts, EWMA/CUSUM and measurement-system analysis are not implemented"),
+    (r"common-cause and special-cause process variation", ["process_control"],
+     "an I-MR control chart and Cp/Cpk capability are implemented; subgroup charts (X-bar/R, p, c, u), EWMA, "
+     "CUSUM and measurement-system analysis are not implemented"),
 ]
 
 TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces",
@@ -207,7 +211,37 @@ TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01"
                   "PM-15": "template_stakeholder_plan", "PM-16": "template_lessons_learned",
                   "MKT-04": "template_customer_journey", "MKT-06": "template_kano",
                   "MKT-07": "template_servqual", "MKT-15": "template_paid_media_plan",
-                  "MKT-18": "template_measurement_plan"}
+                  "MKT-18": "template_measurement_plan",
+                  "OPS-02": "template_sipoc", "OPS-03": "template_value_stream_map",
+                  "OPS-05": "template_a3", "OPS-06": "template_toc",
+                  "OPS-01": "template_scor", "OPS-04": "template_5s",
+                  "OPS-07": "template_root_cause", "OPS-08": "template_fmea",
+                  "OPS-10": "template_kraljic", "OPS-11": "template_sop",
+                  "OPS-12": "template_pdca",
+                  "PPL-03": "template_job_characteristics", "PPL-02": "template_kirkpatrick",
+                  "PPL-01": "template_amo", "PPL-05": "template_tuckman",
+                  "PPL-04": "template_nine_box",
+                  "CHG-01": "template_kotter", "CHG-12": "template_competing_values",
+                  "CHG-11": "template_org_design",
+                  # The change, strategy and marketing worksheets.  Each one was
+                  # written for the catalogue id it is linked to here.
+                  "CHG-02": "template_adkar", "CHG-03": "template_lewin",
+                  "CHG-04": "template_mckinsey_7s", "CHG-05": "template_burke_litwin",
+                  "CHG-06": "template_galbraith_star", "CHG-07": "template_theory_of_change",
+                  "CHG-08": "template_logic_model", "CHG-09": "template_pdsa",
+                  "CHG-10": "template_dmaic", "CHG-13": "template_mintzberg",
+                  "CHG-15": "template_change_organization",
+                  "STR-02": "template_generic_strategies", "STR-05": "template_porters_diamond",
+                  "STR-10": "template_bcg", "STR-11": "template_ge_mckinsey",
+                  "STR-19": "template_strategic_positioning", "STR-20": "template_strategy_4",
+                  "MKT-01": "template_stp", "MKT-03": "template_aida",
+                  "MKT-05": "template_funnel", "MKT-08": "template_rfm",
+                  "MKT-09": "template_tam", "MKT-10": "template_utaut",
+                  "MKT-11": "template_brand_equity", "MKT-12": "template_stp_evidence",
+                  "MKT-13": "template_digital_mix", "MKT-14": "template_seo_content",
+                  "MKT-16": "template_email_crm", "MKT-17": "template_social_media",
+                  "MKT-19": "template_attribution", "MKT-20": "template_cro",
+                  "MKT-21": "template_marketing_automation"}
 
 #: What the product can do with a record today.  Kept separate from the
 #: catalogue's evidence vocabulary (all 140 records are still `unreviewed`):
@@ -228,12 +262,23 @@ def form(r):
 
 
 def _implementation_status(r):
-    """One honest sentence: what the product can do with this record today."""
+    """One honest sentence: what the product can do with this record today.
+
+    A record can carry both a worksheet and a runnable method.  When it does,
+    the sentence has to name both: saying only "partial" hides a worksheet the
+    student can actually use, and saying only "worksheet" hides a method the
+    student can actually run.
+    """
     if r["type"] == "T":
         return "supporting theory: an interpretive lens, not a worksheet by design"
-    if r.get("linked_methods"):
-        return "partial: " + r["linked_methods"][0]["note"]
-    if r.get("template"):
+    worksheet = r.get("template")
+    methods = r.get("linked_methods")
+    if worksheet and methods:
+        return ("worksheet available: structure and evidence audit only; the evidence is yours. "
+                "A computed method is also registered for this record: " + methods[0]["note"])
+    if methods:
+        return "partial: " + methods[0]["note"]
+    if worksheet:
         return "worksheet available: structure and evidence audit only; the evidence is yours"
     if r["type"] == "Q":
         return "not implemented"

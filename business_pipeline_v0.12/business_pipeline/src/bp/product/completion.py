@@ -75,6 +75,8 @@ def _kind(item):
     provenance = str(item.get("provenance") or "").lower()
     if provenance == "sourced":
         return "sourced"
+    if provenance == "background":
+        return "background"
     if provenance in ("student", "user", "own"):
         return "student"
     return "assumption"
@@ -89,9 +91,25 @@ def _facts(blocks):
 
 def _source_text(item):
     try:
-        return writing.reference(item, "apa")
+        text = writing.reference(item, "apa")
     except Exception:
-        return _clean(item.get("url") or item.get("doi") or item.get("title"), 300)
+        text = _clean(item.get("url") or item.get("doi") or item.get("title"), 300)
+    # A scraped page carries its own furniture; it is not part of a citation.
+    text = re.split(r"\s*(?:Title|Date Range|Table Data)\s*[-|]", str(text or ""))[0]
+    return re.sub(r"(?:\.\.\.|\u2026)+\s*", " ", text).strip()
+
+
+def _cite_from_source(source):
+    """An in-text citation from a reference string, for items that arrive without one.
+
+    The worksheet sends text, provenance and source; it has no citation field, so
+    a paper generated from the page had references but no in-text citations.
+    """
+    text = str(source or "").strip()
+    year = re.search(r"\((n\.d\.|\d{4})\)", text)
+    year = year.group(1) if year else "n.d."
+    author = re.split(r"\s*[,(]", text)[0].strip()
+    return "(%s, %s)" % (author, year) if author else ""
 
 
 def _source_cite(item):
@@ -112,6 +130,15 @@ def _unit(profile, instruction, unit_value):
         if not ok:
             raise ValueError(profile["unit"]["refuse"])
         return {"field": field, "value": industry, "context": industry}
+    # A process: named by the student, never detected and never guessed.  The
+    # context is the process plus the words the brief uses about it, because a
+    # search for supplier or input evidence has to know what it is about.
+    if field == "process":
+        if not value:
+            raise ValueError(profile["unit"]["refuse"])
+        context = " ".join(part for part in (value, " ".join(retrieval.topic_words(instruction)[:3])) if part)
+        return {"field": field, "value": value, "context": context,
+                "region": _region(_country(instruction))}
     # A country or market: named, or explicitly Global.  Never guessed.
     if not value:
         value = _country(instruction)
@@ -123,6 +150,53 @@ def _unit(profile, instruction, unit_value):
     country = _country(value) or value
     return {"field": field, "value": country, "country": country, "region": _region(country),
             "context": country}
+
+
+#: A sentence boundary that keeps "90 seconds" and "Pte. Ltd." whole enough for a
+#: quoted line: the quote is the student's own sentence, not a paraphrase.
+_SENTENCE = re.compile(r"(?<=[.!?;])\s+")
+
+
+#: At most this many of the student's own sentences are quoted into one part;
+#: a block that needs more can be typed into the worksheet after the review.
+QUOTE_ITEMS = 3
+
+
+def _quote_block(profile, block, instruction):
+    """The student's own sentences that describe this part of the process.
+
+    A `quote` block takes the instruction word for word, so a student who has
+    already written "the order is taken, the meal is assembled and packed" does
+    not retype it into the worksheet.  Nothing is paraphrased, reworded or
+    inferred: a sentence that does not mention the block's cues is not borrowed
+    for it, and a part with no matching sentence is a named gap.
+    """
+    cues = set(str(block.get("cues") or "").lower().split())
+    items = []
+    for sentence in _SENTENCE.split(instruction):
+        text = _clean(sentence, 600)
+        if len(text) < 8:
+            continue
+        if cues & set(re.findall(r"[a-z][a-z0-9'-]*", text.lower())):
+            items.append({"text": text, "provenance": "student", "source": None})
+        if len(items) >= QUOTE_ITEMS:
+            break
+    return items
+
+
+def _gap_note(profile, block):
+    notes = (profile.get("notes") or {}).get(block["key"]) or {}
+    probe = notes.get("probe") or block.get("probe")
+    fill = framework_profiles.fill_of(block)
+    if fill == "gap":
+        return ("This part is a judgement or a proposal only you can state, so it is left for you and never "
+                "filled by the pipeline.")
+    background = (profile.get("assumption") == "probe"
+                  and all(framework_profiles.fill_of(item) == "research" for item in profile["blocks"]))
+    if background:
+        return "No source was found for this part; it is written from general background and is not cited."
+    return ("No evidence was found for this part, and the instruction does not describe it."
+            + ((" What to state: " + probe + ".") if probe else ""))
 
 
 def _queries(block, context, region, country=""):
@@ -163,8 +237,16 @@ def _sites(profile):
     return None
 
 
-def complete(template, instruction, region=None, student_items=None, industry=None, country=None):
-    """Fill a framework from the instruction.  Returns blocks with provenance."""
+def complete(template, instruction, region=None, student_items=None, industry=None, country=None,
+             unit_value=None):
+    """Fill a framework from the instruction.  Returns blocks with provenance.
+
+    Each part is completed the way its profile says: researched where external
+    evidence can exist, quoted from the student's own words where the fact is
+    theirs, and returned as a named gap where only the owner of the process can
+    state it.  The pipeline never observes the case, times a step or reads a
+    machine, so nothing here is measured.
+    """
     if not framework_profiles.has(template):
         raise ValueError("Framework completion is not enabled for this worksheet. It runs for "
                          + " and ".join(sorted(p["label"] for p in framework_profiles.PROFILES.values()))
@@ -173,10 +255,12 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     instruction = _clean(instruction, 2000)
     if len(instruction) < 15:
         raise ValueError("Describe the case in at least one sentence.")
-    ok, message = guard.computation_boundary(instruction, "management")
+    ok, message = guard.computation_boundary(instruction, profile.get("subject") or "management")
     if not ok:
         raise ValueError(message)
-    declared = industry if (profile["unit"] or {}).get("field") == "industry" else country
+    unit_field = (profile["unit"] or {}).get("field") or "industry"
+    declared = unit_value if unit_value not in (None, "") else (
+        industry if unit_field == "industry" else country)
     unit = _unit(profile, instruction, declared)
     region = region or unit.get("region") or _region(_country(instruction))
     context = unit.get("context") or ""
@@ -197,12 +281,22 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     jobs, notes = {}, []
     started = datetime.datetime.now(datetime.timezone.utc)
     country = _country(instruction)
-    with ThreadPoolExecutor(max_workers=max(1, len(profile["blocks"]))) as pool:
-        for block in profile["blocks"]:
+    # Only a `research` block is sent to the databases.  A `quote` block takes
+    # the student's own words and a `gap` block is stated only by the student:
+    # searching outside evidence for either would dress a process the pipeline
+    # cannot observe in findings it cannot support.
+    researched = [block for block in profile["blocks"]
+                  if framework_profiles.fill_of(block) in ("research", "auto")]
+    with ThreadPoolExecutor(max_workers=max(1, len(researched))) as pool:
+        for block in researched:
             jobs[block["key"]] = pool.submit(_one_block, profile, block, context, region, year_from, country)
-        done, pending = wait(jobs.values(), timeout=RESEARCH_DEADLINE)
+        done, pending = wait(jobs.values(), timeout=RESEARCH_DEADLINE) if jobs else (set(), set())
         results, timed_out = [], set()
         for block in profile["blocks"]:
+            if block["key"] not in jobs:
+                results.append({"block": block, "items": [], "found": {
+                    "queries": [], "notices": [], "errors": [], "skipped": [], "dropped": 0}})
+                continue
             future = jobs[block["key"]]
             if future in pending:
                 timed_out.add(block["key"])
@@ -220,21 +314,52 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     for result in results:
         block, found = result["block"], result["found"]
         items = list(supplied.get(block["key"], []))
+        # A source is deduplicated across the whole framework: one paper must
+        # not cite the same study twice.  A quoted sentence is deduplicated
+        # inside its own block only, because the same sentence of the brief can
+        # honestly describe two parts of a process map, and dropping it from
+        # the second would leave that part a gap the student had already
+        # filled in words.
+        block_seen = set()
         for item in result["items"]:
             key = retrieval.key_of({"doi": None, "title": item.get("title")}) or item.get("text", "")[:80]
             if key in seen:
                 continue
             seen.add(key)
             items.append(item)
+        if not items and framework_profiles.fill_of(block) in ("quote", "auto"):
+            quoted = _quote_block(profile, block, instruction)
+            for item in quoted:
+                key = item["text"][:80]
+                if key in block_seen:
+                    continue
+                block_seen.add(key)
+                items.append(item)
+            if quoted:
+                notes.append(block["label"] + ": " + str(len(quoted)) + " item(s) taken from your own words.")
         if not items:
-            gap = ("No evidence was found for this dimension before the research deadline."
-                   if block["key"] in timed_out else
-                   "No evidence was found for this dimension. It is returned as a gap, not filled.")
+            background = (framework_profiles.fill_of(block) == "research"
+                          and profile.get("assumption") == "probe"
+                          and all(framework_profiles.fill_of(item) == "research"
+                                  for item in profile["blocks"]))
+            notes_for_block = (profile.get("notes") or {}).get(block["key"]) or {}
+            filler = _clean(notes_for_block.get("analysis"), 700) if background else ""
+            if filler:
+                # A part with no source is filled with the framework's own general
+                # background (uncited), never left as a notice (owner instruction).
+                items = [{"text": filler, "provenance": "background", "source": ""}]
+        if not items:
+            gap = ("No evidence was found for this part before the research deadline."
+                   if block["key"] in timed_out else _gap_note(profile, block))
         else:
             gap = None
-        if profile.get("assumption") == "probe" and gap:
+        background = (profile.get("assumption") == "probe"
+                      and all(framework_profiles.fill_of(item) == "research" for item in profile["blocks"]))
+        if (not background and framework_profiles.fill_of(block) in ("research", "auto")
+                and profile.get("assumption") == "probe" and gap):
             gap = gap + " " + _probe(profile, block)
         blocks.append({"key": block["key"], "label": block["label"], "items": items, "gap": gap,
+                       "fill": framework_profiles.fill_of(block),
                        "query": (found.get("queries") or [""])[0],
                        "dropped": found.get("dropped") or 0})
         if result["items"]:
@@ -251,10 +376,15 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                 block["gap"] = "No source was found; a case assumption is proposed for your review."
                 notes.append(block["label"] + ": suggested case assumption.")
     elapsed = (datetime.datetime.now(datetime.timezone.utc) - started).total_seconds()
+    # The counts the page shows are computed here, on the server: the client
+    # never counts, sums or works out a progress figure of its own.
+    filled = [block for block in blocks if block["items"]]
     return {"format": "bp-framework-completion/1", "template": template,
             "framework": profile["label"], "unit": {k: v for k, v in unit.items() if k != "context"},
             "instruction": instruction, "country": _country(instruction), "region": region,
             "blocks": blocks, "notes": notes, "elapsed_s": round(elapsed, 2),
+            "summary": {"parts": len(blocks), "filled": len(filled),
+                        "gaps": len(blocks) - len(filled)},
             "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
 
 
@@ -302,14 +432,18 @@ def _suggest(profile, gaps, instruction, unit, blocks):
 
 
 def missing(completion, profile=None):
-    """The dimensions that carry neither evidence nor an acknowledged gap.
+    """The dimensions that still block a paper.
 
-    A paper is refused while any dimension is unaccounted for: silence is not an
-    empty finding.  Porter's worksheet can always offer an assumption, so a force
-    without an item stays missing until the student accepts one; PESTEL's probe
-    cannot invent a country fact, so an empty dimension must be ticked as a gap.
+    Owner instruction (2026-10-29): not every field has to be cited.  On a probe
+    profile (PESTEL, Value Chain) a field with no accepted evidence is written by
+    the Full paper as general background, with no citation, and by the Draft with
+    its named-gap wording, so nothing blocks.  A student-supplied profile keeps the
+    acknowledgement gate: those fields are the student's own words, not background.
     """
     profile = profile or _profile((completion or {}).get("template"))
+    if (profile.get("assumption") == "probe"
+            and all(framework_profiles.fill_of(block) == "research" for block in profile["blocks"])):
+        return []
     acknowledged = set((completion or {}).get("acknowledged_gaps") or [])
     labels = []
     for block in (completion or {}).get("blocks") or []:
@@ -400,7 +534,9 @@ HEAD_SYSTEM = (
 
 SECTION_SYSTEM = (
     "You are writing one {block_singular} of a {name} analysis. The {block_singular} is {label}. Use only the case "
-    "instruction, the thesis and the {block_plural} items. Write in formal academic English, third person, with no "
+    "instruction, the thesis and the {block_plural} items. If no items are supplied for this {block_singular}, write "
+    "a general academic paragraph about it from background knowledge: cite nothing, name no source and add no "
+    "figures. Write in formal academic English, third person, with no "
     "contractions, no first or second person, and no reference to this paper or the analysis. Write {section} "
     "words. {layout} Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a "
     "decision. Return only JSON: {\"paragraphs\":[\"...\"]}.")
@@ -432,6 +568,15 @@ TAIL_SYSTEM = (
     "items. Return only JSON: {\"limitations\":[\"...\"], \"conclusion\":[\"...\"]}.")
 
 
+#: One rule, in every prompt.  The proper-noun guard refuses a capitalised word
+#: that is not in the items, and a model that writes "Big Data" or "Net Zero" for
+#: a generic term is refused on both attempts (2026-10-29: "name Big; name Net").
+#: Lower-case generic terms fix that at the source; the guard itself stays as
+#: strict as it was.
+CASE_RULE = (" Write generic terms in lower case (for example big data, net zero, supply chain) and capitalise "
+             "only a name that appears in the items.")
+
+
 def _system(template, length_profile, framework):
     """Fill the shared prompt with the framework's words and the length band."""
     voice = framework.get("voice") or {}
@@ -453,7 +598,12 @@ def _system(template, length_profile, framework):
     }
     for key, value in slots.items():
         out = out.replace("{" + key + "}", value)
-    return out
+    # The JSON contract stays the last instruction the model reads.
+    marker = " Return only JSON:"
+    if marker in out:
+        head, tail = out.split(marker, 1)
+        return head + CASE_RULE + marker + tail
+    return out + CASE_RULE
 
 
 def _ask(system, payload, timeout=180, attempts=2):
@@ -511,6 +661,34 @@ def _shape(raw, keys):
             "conclusion": _as_list(raw.get("conclusion"))}
 
 
+def _has_name(text, names):
+    return any(re.search(r"\b" + re.escape(name) + r"\b", str(text or "")) for name in names)
+
+
+def _without_names(data, result, length, problems):
+    """Replace the sections that carry an unlisted name with the deterministic reading.
+
+    A student will legitimately write "net zero" and a model will sometimes
+    capitalise it; refusing the whole paper for that frustrates the student and
+    banning the word corrupts a valid sentence.  The paper is kept: only the
+    paragraphs that carry a name the items do not have are replaced with the
+    profile's own evidence-led prose, which cannot invent an entity.
+    """
+    names = [problem.split(" ", 1)[1] for problem in problems if problem.startswith("name ")]
+    fallback = _draft_data(result, length)
+    out = dict(data)
+    for field in ("introduction", "context", "discussion", "implications", "limitations", "conclusion"):
+        if any(_has_name(part, names) for part in data.get(field) or []):
+            out[field] = list(fallback.get(field) or [])
+    out["groups"] = {}
+    for key, parts in (data.get("groups") or {}).items():
+        if any(_has_name(part, names) for part in parts):
+            out["groups"][key] = list((fallback.get("groups") or {}).get(key) or [])
+        else:
+            out["groups"][key] = list(parts)
+    return out
+
+
 def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
     """A thesis call, then one call per dimension and two more, in parallel."""
     global LAST_REJECT
@@ -534,20 +712,20 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
     hint = ""
     if note:
         hint = (" The previous attempt was rejected for this reason: " + note[:300] +
-                ". Correct exactly that, keep the same evidence, and add no facts, names, numbers, sources or "
-                "citations.")
+                " Any word named there is not in the accepted items: do not introduce a policy instrument, "
+                "technology, organisation or place that the items do not name; rewrite that sentence without the "
+                "unsupported reference. Keep the same evidence and add no facts, numbers, sources or citations.")
     elif attempt:
         hint = (" The previous attempt exceeded the length or register limits; stay strictly within the word "
                 "counts given and keep the academic register.")
-    try:
-        head = _ask(_system(HEAD_SYSTEM, profile, framework) + hint, base)
-    except Exception as error:
-        return _retry(result, style, attempt, "head: " + str(error)[:140])
-    thesis = str((head or {}).get("thesis") or "").strip()
-    if not thesis:
-        return _retry(result, style, attempt, "no thesis")
+    # The opening runs in parallel with the sections.  The thesis the sections
+    # use comes from the profile, so no call has to finish before another starts:
+    # that serial round was the 60-120 s wait.
+    thesis = ("The analysis examines " +
+              (voice.get("thesis_question") or "whether the evidence supports the decision") + ".")
     payload = dict(base, thesis=thesis)
-    jobs = {"mid": lambda: _ask(_system(MID_SYSTEM, profile, framework) + hint, payload),
+    jobs = {"head": lambda: _ask(_system(HEAD_SYSTEM, profile, framework) + hint, base),
+            "mid": lambda: _ask(_system(MID_SYSTEM, profile, framework) + hint, payload),
             "tail": lambda: _ask(_system(TAIL_SYSTEM, profile, framework) + hint, payload)}
     for block in blocks:
         label = block.get("label") or block.get("key")
@@ -558,13 +736,17 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
             lambda label=label, sp=section_payload:
             _ask_section(label, sp, _system(SECTION_SYSTEM, profile, framework).replace("{label}", label), attempt))
     answers = {}
-    try:
-        with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
-            running = {pool.submit(job): name for name, job in jobs.items()}
-            for future in wait(running).done:
-                answers[running[future]] = future.result()
-    except Exception as error:
-        return _retry(result, style, attempt, "call: " + str(error)[:140])
+    with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
+        running = {pool.submit(job): name for name, job in jobs.items()}
+        for future in wait(running).done:
+            name = running[future]
+            try:
+                answers[name] = future.result()
+            except Exception:
+                # One failed part must not cancel the others; the validator
+                # decides whether the paper is complete.
+                answers[name] = {}
+    head = answers.get("head") or {}
     merged = {"introduction": (head or {}).get("introduction") or [],
               "thesis": thesis,
               "context": (head or {}).get("context") or [],
@@ -586,9 +768,22 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
         cites = [item.get("citation") for item in block.get("items") or []
                  if item.get("provenance") == "sourced" and item.get("citation")]
         citations_by_key[block.get("key")] = list(dict.fromkeys(cite for cite in cites if cite))
+    # A field with no accepted evidence is written from general background (owner
+    # instruction): its names are not checked against items it does not have, but
+    # numbers, links and citations still are.
+    background = any(not (block.get("items") or []) for block in blocks)
     problems = _problems(data, facts, instruction, length, keys,
-                         allow=_allowed_names(framework, result))
+                         allow=_allowed_names(framework, result), skip_names=background)
     if problems:
+        if attempt and all(problem.startswith("name ") for problem in problems):
+            # The model keeps naming something the items do not carry.  Keep the
+            # paper and replace those paragraphs with the deterministic reading;
+            # never refuse the student over a word, and never ship the name.
+            patched = _without_names(data, result, length, problems)
+            problems = _problems(patched, facts, instruction, length, keys,
+                                 allow=_allowed_names(framework, result), skip_names=background)
+            if not problems:
+                return (patched, citations_by_key)
         return _retry(result, style, attempt, "; ".join(problems[:3]))
     return (data, citations_by_key)
 
@@ -613,6 +808,11 @@ def _allowed_names(profile, result):
     search used ("European" for a Europe brief).
     """
     words = set()
+    # The framework's own name is not an invented fact: a paper that says
+    # "Porter's Value Chain" is naming the method, not a new source.  The
+    # profile carries the name, so every framework gets this without a branch.
+    for field in ("label", "title_prefix"):
+        words.update(re.findall(r"[a-z]{3,}", str(profile.get(field) or "").lower()))
     for block in profile.get("blocks") or []:
         words.update(re.findall(r"[a-z]{3,}", str(block.get("label") or "").lower()))
     unit = result.get("unit") or {}
@@ -624,7 +824,7 @@ def _allowed_names(profile, result):
     return words
 
 
-def _problems(data, facts, instruction="", length="mid", keys=None, allow=None):
+def _problems(data, facts, instruction="", length="mid", keys=None, allow=None, skip_names=False):
     profile = _length(length)
     keys = list(keys or FORCE_KEYS)
     allowed = {str(word).lower() for word in (allow or set())}
@@ -673,6 +873,8 @@ def _problems(data, facts, instruction="", length="mid", keys=None, allow=None):
         problems.append("number " + ",".join(sorted(extra)))
     supplied = (str(instruction or "") + " " + supplied_items).lower()
     supplied_words = set(re.findall(r"[a-z]{4,}", supplied))
+    if skip_names:
+        return problems
     for name in set(PROPER.findall(text)):
         low = name.lower()
         if low in supplied_words or low in FRAMEWORK_WORDS or low in allowed:
@@ -689,15 +891,75 @@ def _retry(result, style, attempt, reason, length="mid"):
     return _reject(reason)
 
 
-def _title(instruction, profile=None):
+#: Where a case instruction stops being the case and starts being a wish list
+#: ("... and needs the political, economic, social...").  Cutting mid-clause is
+#: what produced "…and needs the political" as a paper title (2026-10-29).
+TITLE_BREAKS = (" and needs", " and requires", " and wants", " and must", " and should",
+                " and is", " and where", " and how", " and what", " before ", " because ",
+                " so that ", " in order to ", " while ")
+
+
+#: APA 7 title case: capitalise major words; keep articles, coordinating
+#: conjunctions and prepositions of three letters or fewer lower case; always
+#: capitalise the first word and the first word after a colon.
+TITLE_SMALL = {"a", "an", "and", "as", "at", "but", "by", "for", "in", "nor",
+               "of", "on", "or", "per", "so", "the", "to", "up", "via", "yet"}
+
+
+def _title_word(word):
+    """One word in title case, including hyphenated compounds (Solar-Panel)."""
+    built = []
+    for index, part in enumerate(str(word).split("-")):
+        letters = part.strip("()[]{}.,;:!?\"'\u201c\u201d\u2019")
+        if not letters:
+            built.append(part)
+            continue
+        if index > 0 and letters.lower() in TITLE_SMALL:
+            built.append(part)
+        elif letters[:1].isupper():
+            built.append(part)
+        else:
+            position = part.find(letters)
+            built.append(part[:position] + letters[:1].upper() + letters[1:])
+    return "-".join(built)
+
+
+def _apa_title(text):
+    words = str(text or "").split(" ")
+    out = []
+    for index, word in enumerate(words):
+        first = index == 0
+        after_colon = index > 0 and words[index - 1].endswith(":")
+        last = index == len(words) - 1
+        core = word.strip("()[]{}.,;:!?\"'\u201c\u201d\u2019").lower()
+        if not first and not after_colon and not last and core in TITLE_SMALL:
+            out.append(word[:1].lower() + word[1:] if word[:1].isupper() else word)
+        else:
+            out.append(_title_word(word))
+    return " ".join(out)
+
+
+def _title(instruction, profile=None, unit=""):
     profile = profile or DEFAULT_PROFILE
-    text = _clean(instruction, 160).strip()
-    text = text.rstrip(" .,;:!?")
+    text = _clean(instruction, 300).strip()
+    if ". " in text:
+        text = text.split(". ", 1)[0]
+    text = text.strip().rstrip(" .,;:!?")
+    lower = text.lower()
+    cuts = [lower.find(marker) for marker in TITLE_BREAKS] + [lower.find(", ")]
+    cuts = [index for index in cuts if 30 <= index <= 110]
+    if cuts:
+        text = text[:min(cuts)].strip().rstrip(" .,;:!?")
+        if len(text) < 20:
+            # The cut left a stub; name the unit rather than a fragment.
+            text = _clean(unit, 80).strip().rstrip(" .,;:!?") or text
     if len(text) > 110:
-        text = text[:110].rsplit(" ", 1)[0].rstrip(" .,;:!?")
+        # No clause ends inside the band: name the unit of analysis rather
+        # than print a truncated sentence as a title.
+        text = _clean(unit, 80).strip().rstrip(" .,;:!?") or text
     if text and text[0].islower():
         text = text[0].upper() + text[1:]
-    return profile["title_prefix"] + ": " + text
+    return _apa_title(profile["title_prefix"] + ": " + text)
 
 
 def _draft_data(result, length="mid"):
@@ -736,6 +998,9 @@ def _draft_data(result, length="mid"):
     weakest = labels[counts.index(min(counts))] if counts else "none of the dimensions"
     plural = voice.get("block_plural") or "dimensions"
     singular = plural.rstrip("s")
+    interaction = (voice.get("interaction") or "").strip()
+    if not interaction.lower().startswith("read together"):
+        interaction = ("Read together, the documented " + plural + " " + interaction).strip()
     data = {
         "introduction": [
             ("The decision under examination is whether to proceed with the course of action set out in the "
@@ -762,9 +1027,9 @@ def _draft_data(result, length="mid"):
              ": " + str(sourced) + " sourced items, " + str(student) + " items of the student's own evidence and " +
              str(assumptions) + " case assumptions. The " + plural + " carrying evidence are " + listed + ", while " +
              str(gaps) + " " + singular + "(s) are recorded as gaps."),
-            ("Read together, the documented " + plural + " " + (voice.get("interaction") or "") + " A " + singular +
-             " without evidence carries no weight in the assessment, because a gap is not a finding and cannot be "
-             "read as either a strength or a weakness."),
+            (interaction +
+             " A " + singular + " without evidence carries no weight in the assessment, because a gap is not a "
+             "finding and cannot be read as either a strength or a weakness."),
         ],
         "implications": [
             ("The combined reading bears on the decision: the documented conditions must be answered by the "
@@ -799,15 +1064,22 @@ def _draft_data(result, length="mid"):
                 lines.append(text + (" " + cite if cite else ""))
             elif kind == "student":
                 lines.append(text)
+            elif kind == "background":
+                lines.append(text)
             elif str(item.get("provenance") or "").lower() == "synthetic":
                 lines.append("Illustrative: " + text)
             else:
                 lines.append("Case assumption: " + text
                              if not text.lower().startswith("case assumption") else text)
         note = notes.get(key) or {}
+        has_background = any(_kind(item) == "background" for item in block.get("items") or [])
         first = (" ".join(lines) if lines else
                  (block.get("gap") or "No evidence was found for this " + singular + ", so it is recorded as a gap."))
-        if name == "short":
+        if has_background:
+            # The item is already the general background paragraph; adding the
+            # note again printed the same paragraph twice.
+            paragraphs = [first]
+        elif name == "short":
             paragraphs = [first + " " + (note.get("short") or "")]
         elif name == "long":
             paragraphs = [first, note.get("analysis") or "", note.get("qualify") or ""]
@@ -843,6 +1115,11 @@ def _sections(data, blocks, style, citations, result):
         if not paragraphs:
             paragraphs = [block.get("gap") or "No evidence was found for this " + singular + "."]
         cites = citations.get(key) or []
+        if not cites:
+            cites = [item.get("citation") or _cite_from_source(item.get("source"))
+                     for item in block.get("items") or []
+                     if _kind(item) == "sourced" and item.get("source")]
+        cites = list(dict.fromkeys(cite for cite in cites if cite))
         if cites and paragraphs:
             paragraphs[0] = paragraphs[0].rstrip() + " " + " ".join(cites)
         sections.append(paper.section(block.get("label") or key, 2, paragraphs))
@@ -857,7 +1134,7 @@ def _sections(data, blocks, style, citations, result):
                       ("References" if style == "apa" else "Bibliography"), 1,
                       references or ["No sources were used."]),
     ]
-    return sections
+    return [dict(section, heading=_apa_title(section.get("heading"))) for section in sections]
 
 
 def draft(result, style="apa", version="draft", length="mid"):
@@ -865,14 +1142,20 @@ def draft(result, style="apa", version="draft", length="mid"):
     style = "harvard" if str(style or "").lower().startswith("harv") else "apa"
     blocks = result.get("blocks") or []
     model_used = False
+    fallback = ""
     citations = {}
     if version == "full":
         generated = _model_sections(result, style, length=length)
-        if not generated:
-            raise ValueError("The model did not return a valid paper. Nothing was downloaded; choose Draft "
-                             "(evidence-led) or try again.")
-        data, citations = generated
-        model_used = True
+        if generated:
+            data, citations = generated
+            model_used = True
+        else:
+            # A model that cannot produce a valid paper must not cost the student
+            # the work: the same evidence-led draft they could have chosen is
+            # generated instead, and the report says so.  Nothing model-written is
+            # shipped unvalidated.
+            data = _draft_data(result, length)
+            fallback = "draft"
     else:
         data = _draft_data(result, length)
     profile = _profile(result.get("template"))
@@ -882,8 +1165,10 @@ def draft(result, style="apa", version="draft", length="mid"):
     sections = _sections(data, blocks, style, citations, result)
     words = sum(_words(" ".join(section.get("lines") or [])) for section in sections
                 if section.get("heading") not in ("References", "Bibliography"))
-    return {"title": _title(result.get("instruction"), profile), "sections": sections, "style": style,
-            "version": version, "model_used": model_used, "words": words,
+    return {"title": _title(result.get("instruction"), profile,
+                            (result.get("unit") or {}).get("value") or result.get("country") or ""),
+            "sections": sections, "style": style,
+            "version": version, "model_used": model_used, "fallback": fallback, "words": words,
             "framework": profile["label"], "template": profile["template"],
             "length": _length_name(length), "length_label": _length(length)["label"],
             "length_range": _length(length)["range"],

@@ -5,7 +5,7 @@
 Stdlib only, and no test may touch the real corpus database or the network:
 every test builds its own throwaway SQLite file in a temporary directory.
 
-Four defects are pinned here. Each was found by running the code, not by
+Five defects are pinned here. Each was found by running the code, not by
 reading it, and each failed silently rather than loudly:
 
     1. `days_ago()` raised NameError, because `timedelta` was never imported.
@@ -19,8 +19,16 @@ reading it, and each failed silently rather than loudly:
     4. The admin service dropped the query string, so `?status=all` and
        `?limit=` were ignored and the enrichment queue showed only 'new'.
     5. `stats()["bytes"]` returned a page count, not bytes.
+
+Ten more pin the no-duplication guarantees (D-25): the same file twice, another
+copy of the same work, a different book not refused, one refusal recorded once,
+the database itself refusing a second row with the same bytes, the same paper
+seen with a DOI and with only a URL staying one candidate, a candidate for a
+work already held not being downloaded, a lost file being put back, and a work
+that returns in a later year remaining its own document.
 """
 
+import io
 import json
 import os
 import shutil
@@ -30,6 +38,7 @@ import tempfile
 import threading
 import time
 import unittest
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.server import ThreadingHTTPServer
@@ -267,6 +276,329 @@ class AdminServiceTest(unittest.TestCase):
                 "SELECT COUNT(*) FROM web_sources").fetchone()[0], 1)
         finally:
             connection.close()
+
+
+class NoDuplicationTest(TempCorpusTest):
+    """The corpus must not hold the same file, or the same work, twice.
+
+    These are the guarantees the owner asked for: an upload or an addition
+    that repeats something the corpus already holds is refused, and nothing
+    is written.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.original_pdf_dir = lib.PDF_DIR
+        lib.PDF_DIR = os.path.join(self.directory, "pdfs")
+
+    def tearDown(self):
+        lib.PDF_DIR = self.original_pdf_dir
+        super().tearDown()
+
+    def minimal_pdf(self, marker=""):
+        """A one-page PDF, built by hand so the tests stay stdlib-only.
+
+        Two calls with different markers are two files with different bytes
+        and the same content: another copy of the same work.
+        """
+        stream = "BT /F1 12 Tf 20 100 Td (Corpus test page) Tj ET"
+        objects = [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R "
+            "/Resources << /Font << /F1 5 0 R >> >> >>",
+            "<< /Length %d >>\nstream\n%s\nendstream" % (len(stream), stream),
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        ]
+        out = "%PDF-1.4\n%% " + marker + "\n"
+        offsets = []
+        for number, body in enumerate(objects, start=1):
+            offsets.append(len(out))
+            out += "%d 0 obj\n%s\nendobj\n" % (number, body)
+        start = len(out)
+        out += "xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+        for offset in offsets:
+            out += "%010d 00000 n \n" % offset
+        out += "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (
+            len(objects) + 1, start)
+        return out.encode("latin-1")
+
+    def book(self, title="A Book About Leadership", author="Nguyen, Tuan", year=2024):
+        return {"title": title, "authors": author, "year": year, "kind": "book"}
+
+    def count(self, table):
+        return self.connection.execute("SELECT COUNT(*) FROM %s" % table).fetchone()[0]
+
+    def test_the_same_file_is_not_ingested_twice(self):
+        raw = self.minimal_pdf("one copy")
+        status, doc_id, message = lib.ingest_pdf(self.connection, raw, self.book())
+        self.assertEqual("ingested", status)
+
+        status, again, message = lib.ingest_pdf(self.connection, raw, self.book())
+        self.assertEqual("duplicate", status)
+        self.assertEqual(doc_id, again)
+        self.assertIn("same file", message)
+        self.assertEqual(1, self.count("documents"))
+        self.assertEqual(1, self.count("pages"), "the pages must not be written twice")
+
+    def test_another_copy_of_the_same_work_is_refused(self):
+        first = self.minimal_pdf("first copy")
+        second = self.minimal_pdf("second copy")
+        self.assertNotEqual(lib.sha256_bytes(first), lib.sha256_bytes(second))
+
+        self.assertEqual("ingested", lib.ingest_pdf(self.connection, first, self.book())[0])
+        status, doc_id, message = lib.ingest_pdf(self.connection, second, self.book())
+        self.assertEqual("duplicate", status)
+        self.assertIn("same work", message)
+        self.assertEqual(1, self.count("documents"))
+
+    def test_a_different_book_is_not_refused(self):
+        self.assertEqual("ingested", lib.ingest_pdf(
+            self.connection, self.minimal_pdf("one"), self.book())[0])
+        self.assertEqual("ingested", lib.ingest_pdf(
+            self.connection, self.minimal_pdf("two"),
+            self.book(title="A Book About Marketing"))[0])
+        self.assertEqual(2, self.count("documents"))
+
+    def test_a_refused_file_is_recorded_once_in_the_log(self):
+        raw = self.minimal_pdf("one copy")
+        lib.ingest_pdf(self.connection, raw, self.book())
+        lib.ingest_pdf(self.connection, raw, self.book())
+        lib.ingest_pdf(self.connection, raw, self.book())
+        skipped = self.connection.execute(
+            "SELECT COUNT(*) FROM ingest_log WHERE status = 'skipped'").fetchone()[0]
+        self.assertEqual(1, skipped, "a refusal is recorded once, not once per attempt")
+        reason = self.connection.execute(
+            "SELECT reason FROM ingest_log WHERE status = 'skipped'").fetchone()["reason"]
+        self.assertIn("already in the corpus", reason)
+
+    def test_the_database_refuses_a_second_row_with_the_same_bytes(self):
+        raw = self.minimal_pdf("one copy")
+        lib.ingest_pdf(self.connection, raw, self.book())
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.connection.execute(
+                "INSERT INTO documents (doc_id, title, authors, source_kind, local_path, sha256,"
+                " text_method, added_at) VALUES"
+                " ('bk-second', 'T', 'A', 'book', 'p', ?, 'pdf_text_layer', ?)",
+                (lib.sha256_bytes(raw), lib.now()))
+
+    def test_the_same_paper_seen_with_a_doi_and_with_only_a_url_is_one_candidate(self):
+        first = {"title": "Leadership in Complex Disease Outbreak Management",
+                 "doi": "https://doi.org/10.1000/abc", "url": "https://example.org/a",
+                 "year": 2024, "source": "openalex"}
+        second = {"title": "Leadership in Complex Disease Outbreak Management",
+                  "url": "https://example.org/a", "year": 2024, "source": "crossref"}
+        one = lib.upsert_candidate(self.connection, first)
+        two = lib.upsert_candidate(self.connection, second)
+        self.assertEqual(one, two)
+        self.assertEqual(1, self.count("candidates"))
+        row = self.connection.execute("SELECT seen_count, doi FROM candidates").fetchone()
+        self.assertEqual(2, row["seen_count"])
+        self.assertEqual("10.1000/abc", row["doi"], "the DOI is kept when it arrives")
+
+    def test_a_candidate_for_a_work_the_corpus_holds_is_not_fetched_again(self):
+        raw = self.minimal_pdf("one copy")
+        meta = self.book(title="Leadership in Complex Disease Outbreak Management")
+        meta.update({"doi": "10.1000/abc", "kind": "journal-article", "authors": "Tran, Binh"})
+        lib.ingest_pdf(self.connection, raw, meta)
+
+        self.connection.execute(
+            "INSERT INTO candidates (candidate_id, first_seen_at, last_seen_at, title, doi, url,"
+            " source, year, venue, seen_count, priority, status, reason)"
+            " VALUES ('c1', ?, ?, ?, ?, ?, 'openalex', 2024, 'V', 1, 0, 'new', '')",
+            (lib.now(), lib.now(), meta["title"], meta["doi"], "https://doi.org/" + meta["doi"]))
+        self.connection.commit()
+        row = self.connection.execute("SELECT * FROM candidates WHERE candidate_id = 'c1'").fetchone()
+
+        called = []
+
+        def refuse_to_download(url):
+            called.append(url)
+            raise AssertionError("a work the corpus already holds must not be downloaded")
+
+        original = enrich._get_bytes
+        enrich._get_bytes = refuse_to_download
+        try:
+            outcome = enrich.fetch_one(self.connection, row)
+        finally:
+            enrich._get_bytes = original
+        self.assertEqual("duplicate", outcome)
+        self.assertEqual([], called, "nothing may be downloaded for a work already held")
+        after = self.connection.execute(
+            "SELECT status, doc_id FROM candidates WHERE candidate_id = 'c1'").fetchone()
+        self.assertEqual("ingested", after["status"])
+        self.assertIsNotNone(after["doc_id"])
+
+    def test_a_duplicate_puts_a_lost_file_back(self):
+        raw = self.minimal_pdf("one copy")
+        status, doc_id, message = lib.ingest_pdf(self.connection, raw, self.book(),
+                                                 filename="the-book.pdf")
+        self.assertEqual("ingested", status)
+        path = self.connection.execute(
+            "SELECT local_path FROM documents WHERE doc_id = ?", (doc_id,)).fetchone()["local_path"]
+        self.assertTrue(os.path.exists(path))
+        os.remove(path)          # the document's own file is lost
+
+        status, again, message = lib.ingest_pdf(self.connection, raw, self.book(),
+                                                filename="the-book.pdf")
+        self.assertEqual("duplicate", status)
+        self.assertIn("put back", message)
+        restored = self.connection.execute(
+            "SELECT local_path FROM documents WHERE doc_id = ?", (doc_id,)).fetchone()["local_path"]
+        self.assertTrue(os.path.exists(restored), "the file must be put back")
+        self.assertEqual(1, self.count("documents"), "and still only one document")
+
+    def test_a_work_that_comes_back_in_another_year_is_its_own_document(self):
+        # The re-ingest policy (Q-15) is still open. A work that comes back in a
+        # later year is a separate document today. This pins that rule, so the
+        # behaviour is a decision and not an accident.
+        self.assertEqual("ingested", lib.ingest_pdf(
+            self.connection, self.minimal_pdf("one"), self.book(year=2024))[0])
+        self.assertEqual("ingested", lib.ingest_pdf(
+            self.connection, self.minimal_pdf("two"), self.book(year=2025))[0])
+        self.assertEqual(2, self.count("documents"))
+
+
+class OwnerUploadTest(unittest.TestCase):
+    """The owner's upload path: the same file twice must not become two documents."""
+
+    def setUp(self):
+        self.directory = tempfile.mkdtemp(prefix="corpus-upload-")
+        self.original_db = lib.DB_PATH
+        self.original_pdf_dir = lib.PDF_DIR
+        lib.DB_PATH = os.path.join(self.directory, "corpus.sqlite")
+        lib.PDF_DIR = os.path.join(self.directory, "pdfs")
+        connection = lib.connect(lib.DB_PATH)
+        lib.apply_schema(connection)
+        connection.close()
+
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), service.Handler)
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        time.sleep(0.2)
+
+    def tearDown(self):
+        self.server.shutdown()
+        lib.DB_PATH = self.original_db
+        lib.PDF_DIR = self.original_pdf_dir
+        shutil.rmtree(self.directory, ignore_errors=True)
+
+    def upload(self, raw, filename="the-book.pdf", title="A Book About Leadership"):
+        import base64
+        payload = {"filename": filename, "title": title, "authors": "Nguyen, Tuan",
+                   "year": 2024, "data": base64.b64encode(raw).decode("ascii")}
+        request = urllib.request.Request(
+            "http://127.0.0.1:%d/api/corpus/upload" % self.port,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+    def test_uploading_the_same_file_twice_keeps_one_document(self):
+        raw = NoDuplicationTest.minimal_pdf(self, "one copy")
+        first = self.upload(raw)
+        self.assertEqual("ingested", first["status"])
+
+        second = self.upload(raw)
+        self.assertEqual("duplicate", second["status"])
+        self.assertEqual(first["doc_id"], second["doc_id"])
+
+        connection = lib.connect(lib.DB_PATH)
+        try:
+            self.assertEqual(1, connection.execute(
+                "SELECT COUNT(*) FROM documents").fetchone()[0])
+            self.assertEqual(1, connection.execute(
+                "SELECT COUNT(*) FROM uploads").fetchone()[0],
+                "the same file uploaded twice is one row in the upload log")
+            row = connection.execute("SELECT status FROM uploads").fetchone()
+            self.assertEqual("duplicate", row["status"])
+        finally:
+            connection.close()
+
+        written = os.listdir(lib.PDF_DIR) if os.path.isdir(lib.PDF_DIR) else []
+        self.assertEqual(1, len(written), "no second copy of the file may be written")
+
+
+class SettingsTest(TempCorpusTest):
+    """The index settings must be fields Meilisearch actually accepts.
+
+    The settings file once carried three fields that no current Meilisearch
+    accepts, and the whole patch was refused with HTTP 400 - so the corpus
+    could never be indexed at all. The defect was silent: the ingest looked
+    successful and the index stayed empty.
+    """
+
+    #: The fields a Meilisearch settings patch accepts, as the server itself
+    #: reports them ("expected one of ...").
+    ACCEPTED = {
+        "displayedAttributes", "searchableAttributes", "filterableAttributes",
+        "sortableAttributes", "rankingRules", "stopWords", "nonSeparatorTokens",
+        "separatorTokens", "dictionary", "synonyms", "distinctAttribute",
+        "proximityPrecision", "typoTolerance", "faceting", "pagination",
+        "embedders", "searchCutoffMs", "localizedAttributes", "facetSearch",
+        "prefixSearch",
+    }
+
+    def settings(self):
+        with open(lib.SETTINGS_PATH, encoding="utf-8") as handle:
+            return json.load(handle)
+
+    def test_every_settings_field_is_one_meilisearch_accepts(self):
+        unknown = set(self.settings()) - self.ACCEPTED
+        self.assertEqual(set(), unknown,
+                         "Meilisearch refuses the whole patch when it meets a field it does "
+                         "not know, so the corpus would never index")
+
+    def test_the_primary_key_is_not_patched(self):
+        self.assertNotIn("primaryKey", self.settings(),
+                         "the primary key belongs to the index, not to its settings")
+
+    def test_the_page_identifier_is_one_meilisearch_accepts(self):
+        # A document identifier may hold alphanumerics, a hyphen and an
+        # underscore - and nothing else. A colon is refused.
+        row = {"doc_id": "ja-5ccf4308e484", "pdf_page": 1}
+        identifier = "%s-%d" % (row["doc_id"], row["pdf_page"])
+        self.assertTrue(identifier.replace("-", "").replace("_", "").isalnum())
+
+    def test_an_older_server_loses_only_the_numbers_setting(self):
+        calls = []
+
+        def fake_call(method, path, payload=None, timeout=60):
+            calls.append(payload)
+            if payload and "disableOnNumbers" in json.dumps(payload):
+                raise urllib.error.HTTPError(
+                    "http://localhost", 400, "Bad Request", {},
+                    io.BytesIO(json.dumps(
+                        {"message": "Unknown field `disableOnNumbers` inside `.typoTolerance`"}
+                    ).encode("utf-8")))
+            return {"taskUid": 1}
+
+        original = lib.meili_call
+        lib.meili_call = fake_call
+        try:
+            applied, warning = lib.apply_settings(self.settings())
+        finally:
+            lib.meili_call = original
+        self.assertNotIn("disableOnNumbers", applied["typoTolerance"])
+        self.assertIn("v1.15", warning, "the loss must be named, not accepted quietly")
+        self.assertEqual(2, len(calls))
+
+    def test_a_refusal_for_another_reason_is_not_swallowed(self):
+        def fake_call(method, path, payload=None, timeout=60):
+            raise urllib.error.HTTPError(
+                "http://localhost", 400, "Bad Request", {},
+                io.BytesIO(json.dumps(
+                    {"message": "Unknown field `maxQueryTerms`"}
+                ).encode("utf-8")))
+
+        original = lib.meili_call
+        lib.meili_call = fake_call
+        try:
+            with self.assertRaises(urllib.error.HTTPError):
+                lib.apply_settings(self.settings())
+        finally:
+            lib.meili_call = original
 
 
 if __name__ == "__main__":

@@ -1,0 +1,326 @@
+﻿python : ...................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: 
+ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+At line:1 char:96
++ ... v:PYTHONPATH="src"; python -m unittest discover -s tests 2>&1 | Out-F ...
++                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (..................\\__init__.py'>:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\registry.py:101: ResourceWarning: unclosed 
+file <_io.TextIOWrapper name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' 
+encoding='utf-8'>
+  raw = json.load(open(path, encoding="utf-8")); recs = raw["records"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Py
+thon314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning 
+up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning 
+up <HTTPError 503: 'Service Unavailable'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: 
+ResourceWarning: Implicitly cleaning up <HTTPError 401: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.......................................................................................................................
+.......................................................................................................................
+...................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: 
+ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_frozen_contract.py:28: ResourceWarning: 
+unclosed file <_io.TextIOWrapper name='src\\bp\\server.py' mode='r' encoding='utf-8'>
+  src = open(os.path.join("src", "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................................................................................................................
+........................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: 
+ResourceWarning: Implicitly cleaning up <HTTPError 404: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.......................................................................................................................
+......D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_boundary.py:142: 
+ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\cases.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(PRODUCT_DIR, "cases.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly 
+cleaning up <HTTPError 429: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.........................D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_charts.py:91: ResourceWarning: unclosed 
+file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpz9718uqo\\case.html' mode='r' 
+encoding='utf-8'>
+  document = open(target, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.........D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_compare.py:89: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-compare-test-o2tkd5eh\\comparison.html' mode='r' encoding='utf-8'>
+  document = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_diagrams.py:59: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpenzj0_sn\\diagram.svg' mode='r' encoding='utf-8'>
+  self.assertTrue(open(path, encoding="utf-8").read().startswith("<svg"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............................D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:98: ResourceWarning: unclosed file 
+<_io.BufferedWriter name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-epo6b3fk\\broken.zip'>
+  open(path, "wb").write(b"not a zip")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+........D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:49: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-ibz9xjzs\\state\\requests.jsonl' mode='r' 
+encoding='utf-8'>
+  line = json.loads(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:54: ResourceWarning: 
+unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-ibz9xjzs\\state\\requests.jsonl' mode='r' 
+encoding='utf-8'>
+  self.assertEqual(len(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip().splitlines()), 2)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..........D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_server.py:110: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-server-cases-yj_r6fji\\state\\requests.jsonl' mode='r' 
+encoding='utf-8'>
+  text = open(log, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:69: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-_wxopi75\\f777084f01a4\\v001.json' mode='r' 
+encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:71: ResourceWarning: 
+unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-_wxopi75\\f777084f01a4\\v001.json' mode='w' 
+encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:50: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-okg6k9na\\7c1ff2126f6e\\signoff\\v001-001.json' 
+mode='r' encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:52: ResourceWarning: 
+unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-okg6k9na\\7c1ff2126f6e\\signoff\\v001-001.json' 
+mode='r' encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:57: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpm24g1dbq\\artifacts.csv' mode='r' encoding='utf-8'>
+  self.assertIn("50.00", open(csv_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:58: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpm24g1dbq\\case.xml' mode='r' encoding='utf-8'>
+  ET.fromstring(open(xml_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............................D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:81: ResourceWarning: unclosed 
+file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-errmh64w\\0bf7c9193a1c\\v001.json' mode='r' 
+encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:83: ResourceWarning: 
+unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-errmh64w\\0bf7c9193a1c\\v001.json' mode='w' 
+encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:56: 
+ResourceWarning: unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-jz8mdqcb\\7a12c9943a42\\v001.json' mode='r' 
+encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:58: ResourceWarning: 
+unclosed file <_io.TextIOWrapper 
+name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-jz8mdqcb\\7a12c9943a42\\v001.json' mode='r' 
+encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............................D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:28: ResourceWarning: unclosed file 
+<_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\docs\\sources\\Business_
+Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md' mode='r' encoding='utf-8'>
+  ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if 
+re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:27: ResourceWarning: 
+unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\docs\\sou
+rces\\Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:13: ResourceWarning: unclosed 
+file <_io.TextIOWrapper name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' 
+encoding='utf-8'>
+  fresh = CI.import_catalogue(CAT); shipped = json.load(open(R.DATA, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:27: ResourceWarning: 
+unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmphly249yg\\catalogue_crlf.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:94: ResourceWarning: 
+unclosed file <_io.TextIOWrapper name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\tests\\fixtures\\framework_requests.json' mode='r' 
+encoding='cp1252'>
+  meta = json.load(open(os.path.join(ROOT, "tests", "fixtures", "framework_requests.json"))); 
+self.assertEqual(meta["expert_review"], "pending")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.................................................................................D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:141: ResourceWarning: unclosed file 
+<_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpwxefuh11\\b.json' mode='w' encoding='cp1252'>
+  f = os.path.join(td, "b.json"); json.dump(self.d.appendix["reperform"], open(f, "w"), default=str)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:144: ResourceWarning: unclosed 
+file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpwxefuh11\\b.json' mode='r' 
+encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:144: ResourceWarning: unclosed 
+file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpwxefuh11\\b.json' mode='w' 
+encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\case.py:615: ResourceWarning: unclosed 
+<socket.socket fd=1972, family=2, type=1, proto=0, laddr=('127.0.0.1', 49626)>
+  result = method()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................................................................................................................
+.....
+----------------------------------------------------------------------
+Ran 1063 tests in 38.294s
+
+OK

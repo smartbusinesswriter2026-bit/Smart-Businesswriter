@@ -302,6 +302,67 @@ def _source_weight(item):
     return 1
 
 
+def _stem(word):
+    """A crude English stem, so a cue matches the inflection a title uses.
+
+    The cue says "sustain"; the paper says "sustaining".  Without a stem the
+    gate cannot see that the source is on the dimension, and refuses it.
+    """
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"
+    if word.endswith("es") and len(word) > 4 and word[-3] in "sxzo":
+        return word[:-2]
+    if word.endswith("s") and not word.endswith("ss") and len(word) > 3:
+        return word[:-1]
+    if word.endswith("ing") and len(word) > 5:
+        base = word[:-3]
+        if len(base) > 3 and base[-1] == base[-2]:
+            base = base[:-1]
+        elif base.endswith("z"):
+            base += "e"
+        return base
+    if word.endswith("ed") and len(word) > 4:
+        base = word[:-2]
+        if len(base) > 3 and base[-1] == base[-2]:
+            base = base[:-1]
+        return base
+    return word
+
+
+def _expand(words):
+    """Every form of a word the gate should see: itself, its stem, its parts.
+
+    A hyphenated title word carries the cue it is built from: a title that says
+    "costly-to-imitate" holds the cue "costly" and the cue "imitate".  The
+    parts are only added when they are long enough to be a word in their own
+    right, so "to" does not become a cue of its own.
+    """
+    out = set()
+    for word in words:
+        out.add(word)
+        out.add(_stem(word))
+        if "-" in word:
+            for part in word.split("-"):
+                if len(part) >= 3:
+                    out.add(part)
+                    out.add(_stem(part))
+    return out
+
+
+def _is_health_context(context_set):
+    """True when the unit of analysis is a health context.
+
+    The blocked-word list refuses clinical and consumer-behaviour papers so
+    they cannot fill a block about something else.  A health-sector brief must
+    keep its own evidence, so the exception covers "healthcare" and "health
+    care" as well as "health".
+    """
+    for word in context_set or ():
+        if word == "health" or word.startswith("health"):
+            return True
+    return False
+
+
 def relevance(item, cue_words, context_set, geography="Global", limit=2000):
     """Score one candidate, or None when the gate refuses it.
 
@@ -310,10 +371,10 @@ def relevance(item, cue_words, context_set, geography="Global", limit=2000):
     """
     title = clean(item.get("title"), 400).lower()
     body = title + " " + clean(item.get("abstract") or item.get("description"), limit).lower()
-    words = set(re.findall(r"[a-z][a-z0-9'-]+", body))
-    title_words = set(re.findall(r"[a-z][a-z0-9'-]+", title))
-    cues = {word for word in (cue_words or set()) if word}
-    context = {word for word in (context_set or set()) if word}
+    words = _expand(set(re.findall(r"[a-z][a-z0-9'-]+", body)))
+    title_words = _expand(set(re.findall(r"[a-z][a-z0-9'-]+", title)))
+    cues = _expand({word for word in (cue_words or set()) if word})
+    context = _expand({word for word in (context_set or set()) if word})
     cue_hits = len(cues & words)
     title_cues = len(cues & title_words)
     context_hits = len(context & words)
@@ -327,9 +388,9 @@ def relevance(item, cue_words, context_set, geography="Global", limit=2000):
 def rank_item(item, score, cue_words, context_set):
     """Precision ranking: relevance, title match, specificity, source tier, recency."""
     title = clean(item.get("title"), 400).lower()
-    title_words = set(re.findall(r"[a-z][a-z0-9'-]+", title))
-    cues = {word for word in (cue_words or set()) if word}
-    context = {word for word in (context_set or set()) if word}
+    title_words = _expand(set(re.findall(r"[a-z][a-z0-9'-]+", title)))
+    cues = _expand({word for word in (cue_words or set()) if word})
+    context = _expand({word for word in (context_set or set()) if word})
     return (score + 2 * len(cues & title_words) + 2 * len(context & title_words)
             + _recency(item) + _source_weight(item) + (item.get("credibility") or 0) / 100)
 
@@ -360,7 +421,8 @@ def _accept(item, cue_words, context_set, geography, gate):
         return None
     title = clean(item.get("title"), 400).lower()
     blocked = gate.get("blocked") or ()
-    if any(word in title for word in blocked) and "health" not in context_set:
+    if (any(word in title for word in blocked)
+            and not _is_health_context(context_set)):
         return None
     score = (2 * seen["cue_hits"] + 2 * (1 if seen["geo_hits"] else 0) + seen["context_hits"]
              + 2 * seen["title_cues"] + 2 * seen["title_context"])

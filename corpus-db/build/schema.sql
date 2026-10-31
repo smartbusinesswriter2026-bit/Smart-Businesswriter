@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS documents (
   licence_verified INTEGER NOT NULL DEFAULT 0,
   metadata_source  TEXT,                  -- 'openlibrary' | 'crossref' | 'manual'
   metadata_verified INTEGER NOT NULL DEFAULT 0,
-  added_at         TEXT NOT NULL          -- ISO-8601 UTC
+  added_at         TEXT NOT NULL,         -- ISO-8601 UTC
+  work_key         TEXT                   -- the identity of the WORK, not the file; see the end of this file
 );
 
 CREATE TABLE IF NOT EXISTS pages (
@@ -67,7 +68,8 @@ CREATE TABLE IF NOT EXISTS ingest_log (
   sha256      TEXT NOT NULL,
   method      TEXT NOT NULL,
   pages       INTEGER NOT NULL,
-  status      TEXT NOT NULL               -- 'ok' | 'ocr' | 'failed' | 'skipped'
+  status      TEXT NOT NULL,              -- 'ok' | 'ocr' | 'failed' | 'skipped'
+  reason      TEXT                        -- why a file was skipped: it was already in the corpus
 );
 
 -- ── the learning loop ───────────────────────────────────────────────────────
@@ -124,7 +126,8 @@ CREATE TABLE IF NOT EXISTS candidates (
   priority      INTEGER NOT NULL DEFAULT 0,  -- seen_count x subject need
   status        TEXT NOT NULL DEFAULT 'new',  -- new | fetching | fetched | ingested | rejected | needs_decision
   reason        TEXT,
-  doc_id        TEXT
+  doc_id        TEXT,
+  work_key      TEXT                     -- the identity of the WORK; see the end of this file
 );
 CREATE INDEX IF NOT EXISTS idx_cand_status ON candidates(status, priority);
 
@@ -153,3 +156,24 @@ CREATE TABLE IF NOT EXISTS web_sources (
   seen_count    INTEGER NOT NULL DEFAULT 1,
   snapshot      TEXT
 );
+
+-- ── no-duplication guarantees ───────────────────────────────────────────────
+--
+-- The corpus must never hold the same file twice, and never hold two copies of
+-- the same work. These constraints enforce that in the database itself, so two
+-- uploads arriving at the same moment cannot both pass a check that only the
+-- application made.
+--
+-- sha256 identifies the FILE. work_key identifies the WORK: the DOI when there
+-- is one, otherwise the title, the first author's family name and the year.
+-- A row whose work_key is NULL is a row written before the key existed, and
+-- NULLs are distinct to a unique index, so an old database is not blocked by
+-- these constraints.
+--
+-- corpus_lib.migrate() adds the work_key and reason columns to a database
+-- that was built before them, and gives the old rows a key, before this
+-- script runs.
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_sha256 ON documents(sha256);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_work_key ON documents(work_key);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_candidates_work_key ON candidates(work_key);

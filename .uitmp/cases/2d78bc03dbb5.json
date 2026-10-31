@@ -1,0 +1,1905 @@
+{
+  "title": "Owner INITIAL TEST - B2 NPV",
+  "method": "npv",
+  "tier": "T1",
+  "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+  "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654",
+  "session": {
+    "id": "e46738420435",
+    "status": "delivered",
+    "work_plan": {
+      "objective": "Should we invest in the B2 project?",
+      "task_family": "Quantitative business analysis",
+      "method": "npv",
+      "tier": "T1",
+      "tier_label": "standard method; expert review pending",
+      "stages": [
+        "intake",
+        "formalization",
+        "method_selection",
+        "test_planning",
+        "execution",
+        "verification",
+        "sensitivity",
+        "drafting",
+        "draft_audit",
+        "delivery"
+      ],
+      "planned_checks": [
+        "second_implementation_agrees",
+        "boundary_zero_rate_equals_sum",
+        "t0_cash_flow_shifts_npv_one_for_one"
+      ],
+      "inputs": {
+        "rate": {
+          "value": "0.10",
+          "provenance": "user"
+        },
+        "cashflows": {
+          "value": "['-100000', '40000', '40000', '40000', '40000']",
+          "provenance": "user"
+        }
+      },
+      "assumptions": [],
+      "ambiguities": [
+        {
+          "question": "Timing and rate convention",
+          "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+          "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+        }
+      ],
+      "method_version": "1.0.0",
+      "review_status": "pending_named_reviewer",
+      "intended_use": "Value a stream of cash flows at a user-supplied discount rate.",
+      "unsupported_use": "Choosing the discount rate; ranking mutually exclusive projects of unequal scale or life; unequal period lengths.",
+      "limitations": [
+        "Single constant discount rate."
+      ],
+      "assumption_checks": [],
+      "fallbacks": {},
+      "thresholds": {},
+      "sensitivity": {},
+      "expected_outputs": [
+        "report (numbers by reference)",
+        "provenance appendix",
+        "run log"
+      ],
+      "confirmation_required": "Confirm the Problem Spec before anything is computed.",
+      "framework_suggestions": {
+        "frameworks": [],
+        "quantitative": [
+          {
+            "id": "IMP-07",
+            "name": "Social Return on Investment (SROI)",
+            "type": "Q",
+            "type_label": "quantitative method",
+            "secondary_types": [],
+            "disciplines": [
+              "public, nonprofit and impact evaluation"
+            ],
+            "structures": "Estimate social value relative to investment",
+            "evidence_needs": "Attribution, deadweight, displacement, drop-off and monetization assumptions; results are assumption-sensitive",
+            "evidence_status": "unreviewed",
+            "pipeline_status": "catalogued",
+            "implementation_status": "not implemented",
+            "template": null,
+            "linked_methods": [],
+            "also_listed_as": [],
+            "verify_edition_and_permissions": false,
+            "limitations": [],
+            "score": "12.79",
+            "matched_terms": [
+              "invest"
+            ],
+            "why": "Suggested because your request mentions invest, which this quantitative method addresses: Estimate social value relative to investment",
+            "status": "suggested"
+          },
+          {
+            "id": "QNT-FIN-01",
+            "name": "Capital budgeting",
+            "type": "Q",
+            "type_label": "quantitative method",
+            "secondary_types": [],
+            "disciplines": [
+              "finance, accounting and managerial economics"
+            ],
+            "structures": "Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.",
+            "evidence_needs": "",
+            "evidence_status": "unreviewed",
+            "pipeline_status": "catalogued",
+            "implementation_status": "partial: NPV only; IRR, profitability index and payback are not implemented",
+            "template": null,
+            "linked_methods": [
+              {
+                "method_id": "npv",
+                "coverage": "partial",
+                "note": "NPV only; IRR, profitability index and payback are not implemented"
+              }
+            ],
+            "also_listed_as": [],
+            "verify_edition_and_permissions": false,
+            "limitations": [],
+            "score": "12.79",
+            "matched_terms": [
+              "invest"
+            ],
+            "why": "Suggested because your request mentions invest, which this quantitative method addresses: Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.",
+            "status": "suggested"
+          }
+        ],
+        "theories": [],
+        "named": [],
+        "none_reason": null,
+        "policy": {
+          "status": "PROVISIONAL",
+          "max_framework_suggestions": 4,
+          "max_quant_suggestions": 2,
+          "max_theory_suggestions": 2,
+          "max_selected": 6,
+          "min_score": "6.0",
+          "min_concepts": 2,
+          "q_single_min": "12.0",
+          "relative_cutoff": "0.5",
+          "weights": {
+            "name": "3.0",
+            "structures": "2.0",
+            "discipline": "1.0",
+            "evidence": "1.0"
+          }
+        },
+        "registry": {
+          "version": "0.1.0",
+          "catalogue_version": "0.2",
+          "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+        }
+      }
+    },
+    "account_mapping": null,
+    "spec": {
+      "objective": "Should we invest in the B2 project?",
+      "method": "npv",
+      "claims": [
+        {
+          "id": "c1",
+          "text": "result",
+          "type": "descriptive"
+        },
+        {
+          "id": "c2",
+          "text": "decision",
+          "type": "prescriptive"
+        }
+      ],
+      "inputs": {
+        "rate": {
+          "value": "0.10",
+          "provenance": "user"
+        },
+        "cashflows": {
+          "value": "['-100000', '40000', '40000', '40000', '40000']",
+          "provenance": "user"
+        }
+      },
+      "assumptions": [],
+      "sensitivity": {},
+      "thresholds": {},
+      "ambiguity_register": [
+        {
+          "question": "Timing and rate convention",
+          "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+          "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+        }
+      ],
+      "decision_context": {},
+      "checks": [
+        "second_implementation_agrees",
+        "boundary_zero_rate_equals_sum",
+        "t0_cash_flow_shifts_npv_one_for_one"
+      ],
+      "data_manifest": [],
+      "user_values": [],
+      "framework": null,
+      "fallbacks": {},
+      "frameworks_selected": [],
+      "registry": {
+        "version": "0.1.0",
+        "catalogue_version": "0.2",
+        "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+      },
+      "model_assistance": [],
+      "version": 1,
+      "hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627"
+    },
+    "stage_states": {
+      "intake": "passed",
+      "formalization": "passed",
+      "method_selection": "passed",
+      "test_planning": "passed",
+      "execution": "passed",
+      "verification": "passed",
+      "sensitivity": "not_run",
+      "drafting": "passed",
+      "draft_audit": "passed",
+      "delivery": "passed"
+    },
+    "events": [
+      {
+        "stage": "intake",
+        "status": "done",
+        "anomalies": []
+      },
+      {
+        "stage": "formalization",
+        "status": "awaiting_confirmation"
+      },
+      {
+        "stage": "formalization",
+        "status": "frozen",
+        "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627"
+      },
+      {
+        "stage": "method_selection",
+        "status": "selected",
+        "method": "npv",
+        "version": "1.0.0",
+        "tier": "T1",
+        "review_status": "pending_named_reviewer"
+      },
+      {
+        "stage": "test_planning",
+        "status": "frozen",
+        "tests": [
+          "second_implementation_agrees",
+          "boundary_zero_rate_equals_sum",
+          "t0_cash_flow_shifts_npv_one_for_one"
+        ],
+        "plan_hash": "f9461a7a3e02cf4ddeed3d4857fef4361edbdeb2d10ff632bda5ab4b4ebcac9e"
+      },
+      {
+        "stage": "verification",
+        "status": "pass",
+        "failed": [],
+        "amendments": 0,
+        "sandboxed": true
+      },
+      {
+        "stage": "execution",
+        "status": "artifact",
+        "ids": [
+          "result"
+        ],
+        "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+        "run_id": "7340da61bfc3"
+      },
+      {
+        "stage": "sensitivity",
+        "status": "skipped",
+        "reason": "no pre-declared range or no decision rule"
+      },
+      {
+        "stage": "drafting",
+        "status": "done"
+      },
+      {
+        "stage": "draft_audit",
+        "status": "pass"
+      },
+      {
+        "stage": "delivery",
+        "status": "delivered"
+      }
+    ],
+    "delivery": {
+      "status": "delivered",
+      "tier": "T1",
+      "report": "Under the stated assumptions, the npv is PHP 26,794.62. The result is positive, so the investment clears the hurdle under these inputs.",
+      "blocked_reason": "",
+      "appendix": {
+        "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+        "tier": "T1",
+        "method": {
+          "id": "npv",
+          "version": "1.0.0",
+          "category": "capital budgeting",
+          "review_status": "pending_named_reviewer"
+        },
+        "run_id": "7340da61bfc3",
+        "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+        "fallback_used": null,
+        "thresholds": {},
+        "frameworks_selected": [],
+        "registry": {
+          "version": "0.1.0",
+          "catalogue_version": "0.2",
+          "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+        },
+        "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+        "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+        "sandbox": {
+          "network": "blocked",
+          "process_spawn": "blocked",
+          "writes": "work directory only",
+          "seed": 0,
+          "memory_limit_mb": null,
+          "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+        },
+        "environment": {
+          "python": "3.14.2",
+          "implementation": "CPython",
+          "system": "Windows",
+          "machine": "AMD64",
+          "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+          "third_party_packages": [],
+          "hashseed": "0"
+        },
+        "tests": [
+          "second_implementation_agrees",
+          "boundary_zero_rate_equals_sum",
+          "t0_cash_flow_shifts_npv_one_for_one"
+        ],
+        "amendments": 0,
+        "assumptions": [
+          "Cash flows are certain given the inputs."
+        ],
+        "ambiguities": [
+          {
+            "question": "Timing and rate convention",
+            "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+            "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+          }
+        ],
+        "limitations": [
+          "Single constant discount rate."
+        ],
+        "artifacts": [
+          [
+            "result",
+            [
+              "npv",
+              "annual",
+              "entity",
+              "base"
+            ],
+            "npv(inputs).npv"
+          ]
+        ],
+        "honesty": {
+          "missing_data": null,
+          "multiple_comparisons": null,
+          "power": null,
+          "weights_and_clusters": null
+        },
+        "reperform": {
+          "format": "bp-reperform/1",
+          "method": {
+            "id": "npv",
+            "version": "1.0.0"
+          },
+          "inputs": {
+            "rate": "0.10",
+            "cashflows": [
+              "-100000",
+              "40000",
+              "40000",
+              "40000",
+              "40000"
+            ]
+          },
+          "sensitivity": {},
+          "outputs": {
+            "npv": "26794.617853971723242947886073355645106208592309268"
+          },
+          "flip": null,
+          "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+          "fingerprint": {
+            "python": "3.14.2",
+            "implementation": "CPython",
+            "system": "Windows",
+            "machine": "AMD64",
+            "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+            "third_party_packages": [],
+            "hashseed": "0"
+          },
+          "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+          "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+        }
+      }
+    }
+  },
+  "delivery": {
+    "report": "Under the stated assumptions, the npv is PHP 26,794.62. The result is positive, so the investment clears the hurdle under these inputs.",
+    "appendix": {
+      "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+      "tier": "T1",
+      "method": {
+        "id": "npv",
+        "version": "1.0.0",
+        "category": "capital budgeting",
+        "review_status": "pending_named_reviewer"
+      },
+      "run_id": "7340da61bfc3",
+      "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+      "fallback_used": null,
+      "thresholds": {},
+      "frameworks_selected": [],
+      "registry": {
+        "version": "0.1.0",
+        "catalogue_version": "0.2",
+        "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+      },
+      "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+      "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+      "sandbox": {
+        "network": "blocked",
+        "process_spawn": "blocked",
+        "writes": "work directory only",
+        "seed": 0,
+        "memory_limit_mb": null,
+        "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+      },
+      "environment": {
+        "python": "3.14.2",
+        "implementation": "CPython",
+        "system": "Windows",
+        "machine": "AMD64",
+        "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+        "third_party_packages": [],
+        "hashseed": "0"
+      },
+      "tests": [
+        "second_implementation_agrees",
+        "boundary_zero_rate_equals_sum",
+        "t0_cash_flow_shifts_npv_one_for_one"
+      ],
+      "amendments": 0,
+      "assumptions": [
+        "Cash flows are certain given the inputs."
+      ],
+      "ambiguities": [
+        {
+          "question": "Timing and rate convention",
+          "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+          "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+        }
+      ],
+      "limitations": [
+        "Single constant discount rate."
+      ],
+      "artifacts": [
+        [
+          "result",
+          [
+            "npv",
+            "annual",
+            "entity",
+            "base"
+          ],
+          "npv(inputs).npv"
+        ]
+      ],
+      "honesty": {
+        "missing_data": null,
+        "multiple_comparisons": null,
+        "power": null,
+        "weights_and_clusters": null
+      },
+      "reperform": {
+        "format": "bp-reperform/1",
+        "method": {
+          "id": "npv",
+          "version": "1.0.0"
+        },
+        "inputs": {
+          "rate": "0.10",
+          "cashflows": [
+            "-100000",
+            "40000",
+            "40000",
+            "40000",
+            "40000"
+          ]
+        },
+        "sensitivity": {},
+        "outputs": {
+          "npv": "26794.617853971723242947886073355645106208592309268"
+        },
+        "flip": null,
+        "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+        "fingerprint": {
+          "python": "3.14.2",
+          "implementation": "CPython",
+          "system": "Windows",
+          "machine": "AMD64",
+          "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+          "third_party_packages": [],
+          "hashseed": "0"
+        },
+        "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+        "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+      }
+    }
+  },
+  "reperform": {
+    "format": "bp-reperform/1",
+    "method": {
+      "id": "npv",
+      "version": "1.0.0"
+    },
+    "inputs": {
+      "rate": "0.10",
+      "cashflows": [
+        "-100000",
+        "40000",
+        "40000",
+        "40000",
+        "40000"
+      ]
+    },
+    "sensitivity": {},
+    "outputs": {
+      "npv": "26794.617853971723242947886073355645106208592309268"
+    },
+    "flip": null,
+    "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+    "fingerprint": {
+      "python": "3.14.2",
+      "implementation": "CPython",
+      "system": "Windows",
+      "machine": "AMD64",
+      "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+      "third_party_packages": [],
+      "hashseed": "0"
+    },
+    "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+    "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+  },
+  "shell": false,
+  "format": "bp-case/1",
+  "id": "2d78bc03dbb5",
+  "created_at": "2026-10-26T20:06:40.820792+00:00",
+  "documents": [
+    {
+      "filename": "1.docx",
+      "kind": "word",
+      "bytes": 16803,
+      "sha256": "sha256:0832815ea57ca9c02c0fa3020aff8bc6ee6c36a8fbbec25a4ed60434c50226a8",
+      "text": "I can't generate or host a downloadable `.zip` file directly — I don't have file-creation or download capabilities. But here's a complete, copy-paste-ready problem set you can save as a `.txt` or paste into Word/Google Docs and zip yourself. Answer key is at the end.---# BUSINESS COMPUTATION PROBLEM SET## A. ACCOUNTING PROBLEMS**A1. Trial Balance / Owner's Equity**A sole proprietor's ledger shows: Cash ₱50,000; Accounts Receivable ₱30,000; Supplies ₱5,000; Equipment ₱100,000; Accumulated Depreciation ₱20,000; Accounts Payable ₱15,000; Notes Payable ₱40,000. Compute total assets, total liabilities, and owner's equity.**A2. Depreciation Methods**Equipment costs ₱120,000, has a salvage value of ₱20,000 and a 5-year life. Compute (a) annual straight-line depreciation, and (b) double-declining-balance depreciation for Years 1 and 2.**A3. Accrual Adjustments**At year-end, the following are unrecorded: revenue earned but not yet billed ₱8,000; wages accrued ₱3,000; expired prepaid insurance ₱1,200. What is the net effect on net income?## B. FINANCE PROBLEMS**B1. Present Value**What is the present value of ₱50,000 to be received in 5 years if the discount rate is 8%?**B2. Net Present Value**A project requires an initial outlay of ₱100,000 and generates ₱40,000 per year for 4 years. The cost of capital is 10%. Compute the NPV and decide whether to accept.**B3. Loan Amortization**A ₱200,000 loan is repaid in 5 equal annual installments at 6% annual interest. Compute the annual payment.## C. ECONOMICS PROBLEMS**C1. Price Elasticity of Demand**When price falls from ₱10 to ₱8, quantity demanded rises from 100 to 140 units. Compute the midpoint (arc) price elasticity of demand and classify it.**C2. Profit Maximization / Break-Even**Total cost is TC = 500 + 20Q and the market price is ₱30. (a) What is the break-even quantity? (b) What is profit at Q = 100?**C3. Market Equilibrium**Demand: Qd = 100 − 2P. Supply: Qs = 20 + 2P. Find the equilibrium price and quantity.## D. OTHER BUSINESS ASPECTS**D1. Marketing — Campaign ROI**A campaign costs ₱20,000 and generates ₱80,000 in revenue at a 30% gross margin. Compute the gross profit, net gain, and ROI.**D2. Operations — EOQ**Annual demand is 10,000 units, ordering cost is ₱50 per order, and holding cost is ₱4 per unit per year. Compute the Economic Order Quantity.**D3. Human Resources — Turnover Cost**A company with an average of 100 employees had 20 separations. Average salary is ₱40,000 and replacement cost is 50% of salary. Compute the turnover rate and total turnover cost.**D4. Decision Analysis — Expected Value**Project A: 30% chance of ₱50,000, 50% chance of ₱20,000, 20% chance of −₱10,000.Project B: 30% chance of ₱80,000, 50% chance of ₱10,000, 20% chance of −₱20,000.Compute the expected value of each and recommend one.**D5. Supply Chain — Reorder Point**Daily demand is 200 units, lead time is 7 days, and safety stock is 500 units. Compute the reorder point.**D6. Entrepreneurship — Break-Even**Fixed costs are ₱60,000, selling price is ₱25, and variable cost is ₱15 per unit. Compute the break-even quantity and break-even revenue.---# ANSWER KEY**A1.** Assets = 50,000 + 30,000 + 5,000 + 100,000 − 20,000 = **₱165,000**. Liabilities = 15,000 + 40,000 = **₱55,000**. Equity = **₱110,000**.**A2.** (a) (120,000 − 20,000) ÷ 5 = **₱20,000/yr**. (b) Rate = 40%. Year 1 = 120,000 × 0.40 = **₱48,000**; Year 2 = (120,000 − 48,000) × 0.40 = **₱28,800**.**A3.** +8,000 − 3,000 − 1,200 = **+₱3,800 increase** in net income.**B1.** 50,000 ÷ 1.08⁵ = 50,000 ÷ 1.46933 = **₱34,029.10**.**B2.** PV of annuity = 40,000 × 3.16987 = ₱126,794.60. NPV = 126,794.60 − 100,000 = **₱26,794.60 → accept**.**B3.** Payment = 200,000 × [0.06 ÷ (1 − 1.06⁻⁵)] = **₱47,479.28**.**C1.** %ΔQ = 40 ÷ 120 = 33.33%; %ΔP = −2 ÷ 9 = −22.22%. Elasticity = 33.33 ÷ 22.22 = **1.5 → elastic**.**C2.** (a) 30Q = 500 + 20Q → Q = **50 units**. (b) TR = 3,000; TC = 500 + 2,000 = 2,500; Profit = **₱500**.**C3.** 100 − 2P = 20 + 2P → P = **₱20**; Q = **60 units**.**D1.** Gross profit = 80,000 × 0.30 = ₱24,000. Net gain = 24,000 − 20,000 = ₱4,000. ROI = 4,000 ÷ 20,000 = **20%**.**D2.** EOQ = √(2 × 10,000 × 50 ÷ 4) = √250,000 = **500 units**.**D3.** Turnover rate = 20 ÷ 100 = **20%**. Cost per separation = 40,000 × 0.50 = ₱20,000. Total = 20 × 20,000 = **₱400,000**.**D4.** A = 15,000 + 10,000 − 2,000 = **₱23,000**. B = 24,000 + 5,000 − 4,000 = **₱25,000 → choose Project B**.**D5.** ROP = (200 × 7) + 500 = **1,900 units**.**D6.** CM = 25 − 15 = ₱10. BE quantity = 60,000 ÷ 10 = **6,000 units**. BE revenue = **₱150,000**.---**To make your zip:** paste everything above into Notepad and save as `business_problems.txt`, or into Word and save as `.docx`, then right-click the file → \"Send to → Compressed (zipped) folder.\" Want me to expand any section (e.g., more problems per topic, or a version without the answer key)?",
+      "text_chars": 4873,
+      "provenance": "unverified_extracted_text",
+      "provenance_note": "Machine-extracted from the file you uploaded. It has not been checked by a person. Confirm any figure you use before it enters your analysis.",
+      "warnings": [],
+      "attached_at": "2026-10-26T20:06:40.829237+00:00"
+    }
+  ],
+  "data_files": [
+    {
+      "filename": "b2.csv",
+      "sha256": "ef23ef04567dfdda2746391c1e786bed99cc16cc42ff5d31c0599fce29b93538",
+      "bytes": null,
+      "attached_at": "2026-10-26T20:06:40.841411+00:00",
+      "table": {
+        "filename": "b2.csv",
+        "kind": "csv",
+        "sha256": "ef23ef04567dfdda2746391c1e786bed99cc16cc42ff5d31c0599fce29b93538",
+        "delimiter": ",",
+        "n_rows": 5,
+        "n_cols": 1,
+        "columns": [
+          {
+            "name": "amount",
+            "type": "number",
+            "n_missing": 0,
+            "n_present": 5,
+            "sample": [
+              "-100000",
+              "40000",
+              "40000",
+              "40000",
+              "40000"
+            ]
+          }
+        ],
+        "rows": [
+          [
+            "-100000"
+          ],
+          [
+            "40000"
+          ],
+          [
+            "40000"
+          ],
+          [
+            "40000"
+          ],
+          [
+            "40000"
+          ]
+        ],
+        "provenance": {
+          "kind": "sourced",
+          "file": "b2.csv",
+          "sha256": "ef23ef04567dfdda2746391c1e786bed99cc16cc42ff5d31c0599fce29b93538",
+          "locator": "data row i, column j (1-based, header row excluded)",
+          "note": "Every value is taken from the named file at that locator; nothing is imputed or retyped."
+        },
+        "not_read_as": "PDF, scans, images and SPSS .sav files are not ingested; no OCR or PDF text extraction is implemented."
+      }
+    }
+  ],
+  "runs": [
+    {
+      "title": "Summarise the cash flows of the B2 project",
+      "method": "descriptive_stats",
+      "tier": "T1",
+      "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+      "outputs_hash": "824389594d9617cec1ea45af2728b34f57c24028e81a3a097958107e3215586c",
+      "session": {
+        "id": "04c61cd33e89",
+        "status": "delivered",
+        "work_plan": {
+          "objective": "Summarise the cash flows of the B2 project",
+          "task_family": "Descriptive statistics",
+          "method": "descriptive_stats",
+          "tier": "T1",
+          "tier_label": "standard method; expert review pending",
+          "stages": [
+            "intake",
+            "formalization",
+            "method_selection",
+            "test_planning",
+            "execution",
+            "verification",
+            "sensitivity",
+            "drafting",
+            "draft_audit",
+            "delivery"
+          ],
+          "planned_checks": [
+            "second_implementation_agrees",
+            "shift_moves_location_not_spread",
+            "scale_scales_spread",
+            "permutation_invariant",
+            "missing_entries_excluded_not_valued",
+            "order_statistics_bounded"
+          ],
+          "inputs": {
+            "values": {
+              "value": "['-100000', '40000', '40000', '40000', '40000']",
+              "provenance": "user"
+            }
+          },
+          "assumptions": [],
+          "ambiguities": [
+            {
+              "question": "Missing-value handling",
+              "default_chosen": "Blank, null and user-defined missing codes are excluded from every statistic (listwise for one variable) and counted.",
+              "impact": "Including codes as values would distort every statistic."
+            },
+            {
+              "question": "Median and spread definitions",
+              "default_chosen": "Median averages the two middle values for even n; variance and SD use n-1 (sample).",
+              "impact": "Population SD (n) is smaller; packages differ on quartile definitions, which are not reported."
+            },
+            {
+              "question": "Small-sample threshold",
+              "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].",
+              "impact": "Changes only the wording, not the numbers."
+            }
+          ],
+          "method_version": "1.0.0",
+          "review_status": "pending_named_reviewer",
+          "intended_use": "Summarize one numeric variable in a dataset (n, missing, mean, median, range, sample SD).",
+          "unsupported_use": "Inference (intervals, tests, effect sizes), weighted or clustered survey data, grouped summaries, quartiles.",
+          "limitations": [
+            "Descriptive claims only; no inference.",
+            "Float reference comparison tolerance is 1e-9 relative."
+          ],
+          "assumption_checks": [],
+          "fallbacks": {},
+          "thresholds": {
+            "small_sample_n": "30"
+          },
+          "sensitivity": {},
+          "expected_outputs": [
+            "report (numbers by reference)",
+            "provenance appendix",
+            "run log"
+          ],
+          "confirmation_required": "Confirm the Problem Spec before anything is computed.",
+          "framework_suggestions": {
+            "frameworks": [],
+            "quantitative": [],
+            "theories": [],
+            "named": [],
+            "none_reason": "No catalogued framework or method fits this request well enough to suggest one. Proceed without a named framework, or search the library.",
+            "policy": {
+              "status": "PROVISIONAL",
+              "max_framework_suggestions": 4,
+              "max_quant_suggestions": 2,
+              "max_theory_suggestions": 2,
+              "max_selected": 6,
+              "min_score": "6.0",
+              "min_concepts": 2,
+              "q_single_min": "12.0",
+              "relative_cutoff": "0.5",
+              "weights": {
+                "name": "3.0",
+                "structures": "2.0",
+                "discipline": "1.0",
+                "evidence": "1.0"
+              }
+            },
+            "registry": {
+              "version": "0.1.0",
+              "catalogue_version": "0.2",
+              "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+            }
+          }
+        },
+        "account_mapping": null,
+        "spec": {
+          "objective": "Summarise the cash flows of the B2 project",
+          "method": "descriptive_stats",
+          "claims": [
+            {
+              "id": "c1",
+              "text": "result",
+              "type": "descriptive"
+            }
+          ],
+          "inputs": {
+            "values": {
+              "value": "['-100000', '40000', '40000', '40000', '40000']",
+              "provenance": "user"
+            }
+          },
+          "assumptions": [],
+          "sensitivity": {},
+          "thresholds": {
+            "small_sample_n": "30"
+          },
+          "ambiguity_register": [
+            {
+              "question": "Missing-value handling",
+              "default_chosen": "Blank, null and user-defined missing codes are excluded from every statistic (listwise for one variable) and counted.",
+              "impact": "Including codes as values would distort every statistic."
+            },
+            {
+              "question": "Median and spread definitions",
+              "default_chosen": "Median averages the two middle values for even n; variance and SD use n-1 (sample).",
+              "impact": "Population SD (n) is smaller; packages differ on quartile definitions, which are not reported."
+            },
+            {
+              "question": "Small-sample threshold",
+              "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].",
+              "impact": "Changes only the wording, not the numbers."
+            }
+          ],
+          "decision_context": {},
+          "checks": [
+            "second_implementation_agrees",
+            "shift_moves_location_not_spread",
+            "scale_scales_spread",
+            "permutation_invariant",
+            "missing_entries_excluded_not_valued",
+            "order_statistics_bounded"
+          ],
+          "data_manifest": [],
+          "user_values": [],
+          "framework": null,
+          "fallbacks": {},
+          "frameworks_selected": [],
+          "registry": {
+            "version": "0.1.0",
+            "catalogue_version": "0.2",
+            "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+          },
+          "model_assistance": [],
+          "version": 1,
+          "hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa"
+        },
+        "stage_states": {
+          "intake": "passed",
+          "formalization": "passed",
+          "method_selection": "passed",
+          "test_planning": "passed",
+          "execution": "passed",
+          "verification": "passed",
+          "sensitivity": "not_run",
+          "drafting": "passed",
+          "draft_audit": "passed",
+          "delivery": "passed"
+        },
+        "events": [
+          {
+            "stage": "intake",
+            "status": "done",
+            "anomalies": []
+          },
+          {
+            "stage": "formalization",
+            "status": "awaiting_confirmation"
+          },
+          {
+            "stage": "formalization",
+            "status": "frozen",
+            "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa"
+          },
+          {
+            "stage": "method_selection",
+            "status": "selected",
+            "method": "descriptive_stats",
+            "version": "1.0.0",
+            "tier": "T1",
+            "review_status": "pending_named_reviewer"
+          },
+          {
+            "stage": "test_planning",
+            "status": "frozen",
+            "tests": [
+              "second_implementation_agrees",
+              "shift_moves_location_not_spread",
+              "scale_scales_spread",
+              "permutation_invariant",
+              "missing_entries_excluded_not_valued",
+              "order_statistics_bounded"
+            ],
+            "plan_hash": "d07d4d012200893d04a88d2b4c27714d14875061870892f5220025640c6c6018"
+          },
+          {
+            "stage": "verification",
+            "status": "pass",
+            "failed": [],
+            "amendments": 0,
+            "sandboxed": true
+          },
+          {
+            "stage": "execution",
+            "status": "artifact",
+            "ids": [
+              "n",
+              "n_missing",
+              "mean",
+              "median",
+              "minimum",
+              "maximum",
+              "variance",
+              "sd"
+            ],
+            "code_hash": "859fdda248e3fcf0b75fb8eb426e2f1ed6f4f3a54d0cdeb7a0d4215340306f26",
+            "run_id": "134bab725955"
+          },
+          {
+            "stage": "sensitivity",
+            "status": "skipped",
+            "reason": "no pre-declared range or no decision rule"
+          },
+          {
+            "stage": "drafting",
+            "status": "done"
+          },
+          {
+            "stage": "draft_audit",
+            "status": "pass"
+          },
+          {
+            "stage": "delivery",
+            "status": "delivered"
+          }
+        ],
+        "delivery": {
+          "status": "delivered",
+          "tier": "T1",
+          "report": "The dataset contains 5 valid observations, with 0 excluded as missing. The mean is PHP 12,000.00 and the median is PHP 40,000.00. Values range from PHP (100,000.00) to PHP 40,000.00. The sample standard deviation is PHP 62,609.90. Caution: the sample is small, so these values are unstable and should be described, not generalized. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.",
+          "blocked_reason": "",
+          "appendix": {
+            "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+            "tier": "T1",
+            "method": {
+              "id": "descriptive_stats",
+              "version": "1.0.0",
+              "category": "descriptive statistics",
+              "review_status": "pending_named_reviewer"
+            },
+            "run_id": "134bab725955",
+            "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+            "fallback_used": null,
+            "thresholds": {
+              "small_sample_n": "30"
+            },
+            "frameworks_selected": [],
+            "registry": {
+              "version": "0.1.0",
+              "catalogue_version": "0.2",
+              "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+            },
+            "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+            "code_hash": "859fdda248e3fcf0b75fb8eb426e2f1ed6f4f3a54d0cdeb7a0d4215340306f26",
+            "sandbox": {
+              "network": "blocked",
+              "process_spawn": "blocked",
+              "writes": "work directory only",
+              "seed": 0,
+              "memory_limit_mb": null,
+              "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+            },
+            "environment": {
+              "python": "3.14.2",
+              "implementation": "CPython",
+              "system": "Windows",
+              "machine": "AMD64",
+              "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+              "third_party_packages": [],
+              "hashseed": "0"
+            },
+            "tests": [
+              "second_implementation_agrees",
+              "shift_moves_location_not_spread",
+              "scale_scales_spread",
+              "permutation_invariant",
+              "missing_entries_excluded_not_valued",
+              "order_statistics_bounded"
+            ],
+            "amendments": 0,
+            "assumptions": [
+              "Observations are numeric and the listed codes fully identify missing values."
+            ],
+            "ambiguities": [
+              {
+                "question": "Missing-value handling",
+                "default_chosen": "Blank, null and user-defined missing codes are excluded from every statistic (listwise for one variable) and counted.",
+                "impact": "Including codes as values would distort every statistic."
+              },
+              {
+                "question": "Median and spread definitions",
+                "default_chosen": "Median averages the two middle values for even n; variance and SD use n-1 (sample).",
+                "impact": "Population SD (n) is smaller; packages differ on quartile definitions, which are not reported."
+              },
+              {
+                "question": "Small-sample threshold",
+                "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].",
+                "impact": "Changes only the wording, not the numbers."
+              }
+            ],
+            "limitations": [
+              "Descriptive claims only; no inference.",
+              "Float reference comparison tolerance is 1e-9 relative."
+            ],
+            "artifacts": [
+              [
+                "n",
+                [
+                  "n",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).n"
+              ],
+              [
+                "n_missing",
+                [
+                  "n_missing",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).n_missing"
+              ],
+              [
+                "mean",
+                [
+                  "mean",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).mean"
+              ],
+              [
+                "median",
+                [
+                  "median",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).median"
+              ],
+              [
+                "minimum",
+                [
+                  "minimum",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).minimum"
+              ],
+              [
+                "maximum",
+                [
+                  "maximum",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).maximum"
+              ],
+              [
+                "variance",
+                [
+                  "variance",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).variance"
+              ],
+              [
+                "sd",
+                [
+                  "sd",
+                  "cross_section",
+                  "entity",
+                  "base"
+                ],
+                "descriptive_stats(inputs).sd"
+              ]
+            ],
+            "honesty": {
+              "missing_data": "Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.",
+              "multiple_comparisons": null,
+              "power": null,
+              "weights_and_clusters": null
+            },
+            "reperform": {
+              "format": "bp-reperform/1",
+              "method": {
+                "id": "descriptive_stats",
+                "version": "1.0.0"
+              },
+              "inputs": {
+                "values": [
+                  "-100000",
+                  "40000",
+                  "40000",
+                  "40000",
+                  "40000"
+                ]
+              },
+              "sensitivity": {},
+              "outputs": {
+                "n": "5",
+                "n_missing": "0",
+                "mean": "12000",
+                "median": "40000",
+                "minimum": "-100000",
+                "maximum": "40000",
+                "variance": "3920000000",
+                "sd": "62609.903369994111499456862724475734592337314069123"
+              },
+              "flip": null,
+              "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+              "fingerprint": {
+                "python": "3.14.2",
+                "implementation": "CPython",
+                "system": "Windows",
+                "machine": "AMD64",
+                "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+                "third_party_packages": [],
+                "hashseed": "0"
+              },
+              "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+              "outputs_hash": "824389594d9617cec1ea45af2728b34f57c24028e81a3a097958107e3215586c"
+            }
+          }
+        }
+      },
+      "delivery": {
+        "report": "The dataset contains 5 valid observations, with 0 excluded as missing. The mean is PHP 12,000.00 and the median is PHP 40,000.00. Values range from PHP (100,000.00) to PHP 40,000.00. The sample standard deviation is PHP 62,609.90. Caution: the sample is small, so these values are unstable and should be described, not generalized. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.",
+        "appendix": {
+          "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+          "tier": "T1",
+          "method": {
+            "id": "descriptive_stats",
+            "version": "1.0.0",
+            "category": "descriptive statistics",
+            "review_status": "pending_named_reviewer"
+          },
+          "run_id": "134bab725955",
+          "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+          "fallback_used": null,
+          "thresholds": {
+            "small_sample_n": "30"
+          },
+          "frameworks_selected": [],
+          "registry": {
+            "version": "0.1.0",
+            "catalogue_version": "0.2",
+            "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+          },
+          "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+          "code_hash": "859fdda248e3fcf0b75fb8eb426e2f1ed6f4f3a54d0cdeb7a0d4215340306f26",
+          "sandbox": {
+            "network": "blocked",
+            "process_spawn": "blocked",
+            "writes": "work directory only",
+            "seed": 0,
+            "memory_limit_mb": null,
+            "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+          },
+          "environment": {
+            "python": "3.14.2",
+            "implementation": "CPython",
+            "system": "Windows",
+            "machine": "AMD64",
+            "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+            "third_party_packages": [],
+            "hashseed": "0"
+          },
+          "tests": [
+            "second_implementation_agrees",
+            "shift_moves_location_not_spread",
+            "scale_scales_spread",
+            "permutation_invariant",
+            "missing_entries_excluded_not_valued",
+            "order_statistics_bounded"
+          ],
+          "amendments": 0,
+          "assumptions": [
+            "Observations are numeric and the listed codes fully identify missing values."
+          ],
+          "ambiguities": [
+            {
+              "question": "Missing-value handling",
+              "default_chosen": "Blank, null and user-defined missing codes are excluded from every statistic (listwise for one variable) and counted.",
+              "impact": "Including codes as values would distort every statistic."
+            },
+            {
+              "question": "Median and spread definitions",
+              "default_chosen": "Median averages the two middle values for even n; variance and SD use n-1 (sample).",
+              "impact": "Population SD (n) is smaller; packages differ on quartile definitions, which are not reported."
+            },
+            {
+              "question": "Small-sample threshold",
+              "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].",
+              "impact": "Changes only the wording, not the numbers."
+            }
+          ],
+          "limitations": [
+            "Descriptive claims only; no inference.",
+            "Float reference comparison tolerance is 1e-9 relative."
+          ],
+          "artifacts": [
+            [
+              "n",
+              [
+                "n",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).n"
+            ],
+            [
+              "n_missing",
+              [
+                "n_missing",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).n_missing"
+            ],
+            [
+              "mean",
+              [
+                "mean",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).mean"
+            ],
+            [
+              "median",
+              [
+                "median",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).median"
+            ],
+            [
+              "minimum",
+              [
+                "minimum",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).minimum"
+            ],
+            [
+              "maximum",
+              [
+                "maximum",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).maximum"
+            ],
+            [
+              "variance",
+              [
+                "variance",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).variance"
+            ],
+            [
+              "sd",
+              [
+                "sd",
+                "cross_section",
+                "entity",
+                "base"
+              ],
+              "descriptive_stats(inputs).sd"
+            ]
+          ],
+          "honesty": {
+            "missing_data": "Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.",
+            "multiple_comparisons": null,
+            "power": null,
+            "weights_and_clusters": null
+          },
+          "reperform": {
+            "format": "bp-reperform/1",
+            "method": {
+              "id": "descriptive_stats",
+              "version": "1.0.0"
+            },
+            "inputs": {
+              "values": [
+                "-100000",
+                "40000",
+                "40000",
+                "40000",
+                "40000"
+              ]
+            },
+            "sensitivity": {},
+            "outputs": {
+              "n": "5",
+              "n_missing": "0",
+              "mean": "12000",
+              "median": "40000",
+              "minimum": "-100000",
+              "maximum": "40000",
+              "variance": "3920000000",
+              "sd": "62609.903369994111499456862724475734592337314069123"
+            },
+            "flip": null,
+            "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+            "fingerprint": {
+              "python": "3.14.2",
+              "implementation": "CPython",
+              "system": "Windows",
+              "machine": "AMD64",
+              "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+              "third_party_packages": [],
+              "hashseed": "0"
+            },
+            "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+            "outputs_hash": "824389594d9617cec1ea45af2728b34f57c24028e81a3a097958107e3215586c"
+          }
+        }
+      },
+      "reperform": {
+        "format": "bp-reperform/1",
+        "method": {
+          "id": "descriptive_stats",
+          "version": "1.0.0"
+        },
+        "inputs": {
+          "values": [
+            "-100000",
+            "40000",
+            "40000",
+            "40000",
+            "40000"
+          ]
+        },
+        "sensitivity": {},
+        "outputs": {
+          "n": "5",
+          "n_missing": "0",
+          "mean": "12000",
+          "median": "40000",
+          "minimum": "-100000",
+          "maximum": "40000",
+          "variance": "3920000000",
+          "sd": "62609.903369994111499456862724475734592337314069123"
+        },
+        "flip": null,
+        "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+        "fingerprint": {
+          "python": "3.14.2",
+          "implementation": "CPython",
+          "system": "Windows",
+          "machine": "AMD64",
+          "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+          "third_party_packages": [],
+          "hashseed": "0"
+        },
+        "spec_hash": "2dfe3f3a2645e16eca7f771b909df8be8bf43b2a025241c082d3650f909973fa",
+        "outputs_hash": "824389594d9617cec1ea45af2728b34f57c24028e81a3a097958107e3215586c"
+      },
+      "recorded_at": "2026-10-26T20:06:41.028053+00:00"
+    },
+    {
+      "title": "Should we invest in the B2 project?",
+      "method": "npv",
+      "tier": "T1",
+      "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+      "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654",
+      "session": {
+        "id": "e46738420435",
+        "status": "delivered",
+        "work_plan": {
+          "objective": "Should we invest in the B2 project?",
+          "task_family": "Quantitative business analysis",
+          "method": "npv",
+          "tier": "T1",
+          "tier_label": "standard method; expert review pending",
+          "stages": [
+            "intake",
+            "formalization",
+            "method_selection",
+            "test_planning",
+            "execution",
+            "verification",
+            "sensitivity",
+            "drafting",
+            "draft_audit",
+            "delivery"
+          ],
+          "planned_checks": [
+            "second_implementation_agrees",
+            "boundary_zero_rate_equals_sum",
+            "t0_cash_flow_shifts_npv_one_for_one"
+          ],
+          "inputs": {
+            "rate": {
+              "value": "0.10",
+              "provenance": "user"
+            },
+            "cashflows": {
+              "value": "['-100000', '40000', '40000', '40000', '40000']",
+              "provenance": "user"
+            }
+          },
+          "assumptions": [],
+          "ambiguities": [
+            {
+              "question": "Timing and rate convention",
+              "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+              "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+            }
+          ],
+          "method_version": "1.0.0",
+          "review_status": "pending_named_reviewer",
+          "intended_use": "Value a stream of cash flows at a user-supplied discount rate.",
+          "unsupported_use": "Choosing the discount rate; ranking mutually exclusive projects of unequal scale or life; unequal period lengths.",
+          "limitations": [
+            "Single constant discount rate."
+          ],
+          "assumption_checks": [],
+          "fallbacks": {},
+          "thresholds": {},
+          "sensitivity": {},
+          "expected_outputs": [
+            "report (numbers by reference)",
+            "provenance appendix",
+            "run log"
+          ],
+          "confirmation_required": "Confirm the Problem Spec before anything is computed.",
+          "framework_suggestions": {
+            "frameworks": [],
+            "quantitative": [
+              {
+                "id": "IMP-07",
+                "name": "Social Return on Investment (SROI)",
+                "type": "Q",
+                "type_label": "quantitative method",
+                "secondary_types": [],
+                "disciplines": [
+                  "public, nonprofit and impact evaluation"
+                ],
+                "structures": "Estimate social value relative to investment",
+                "evidence_needs": "Attribution, deadweight, displacement, drop-off and monetization assumptions; results are assumption-sensitive",
+                "evidence_status": "unreviewed",
+                "pipeline_status": "catalogued",
+                "implementation_status": "not implemented",
+                "template": null,
+                "linked_methods": [],
+                "also_listed_as": [],
+                "verify_edition_and_permissions": false,
+                "limitations": [],
+                "score": "12.79",
+                "matched_terms": [
+                  "invest"
+                ],
+                "why": "Suggested because your request mentions invest, which this quantitative method addresses: Estimate social value relative to investment",
+                "status": "suggested"
+              },
+              {
+                "id": "QNT-FIN-01",
+                "name": "Capital budgeting",
+                "type": "Q",
+                "type_label": "quantitative method",
+                "secondary_types": [],
+                "disciplines": [
+                  "finance, accounting and managerial economics"
+                ],
+                "structures": "Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.",
+                "evidence_needs": "",
+                "evidence_status": "unreviewed",
+                "pipeline_status": "catalogued",
+                "implementation_status": "partial: NPV only; IRR, profitability index and payback are not implemented",
+                "template": null,
+                "linked_methods": [
+                  {
+                    "method_id": "npv",
+                    "coverage": "partial",
+                    "note": "NPV only; IRR, profitability index and payback are not implemented"
+                  }
+                ],
+                "also_listed_as": [],
+                "verify_edition_and_permissions": false,
+                "limitations": [],
+                "score": "12.79",
+                "matched_terms": [
+                  "invest"
+                ],
+                "why": "Suggested because your request mentions invest, which this quantitative method addresses: Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.",
+                "status": "suggested"
+              }
+            ],
+            "theories": [],
+            "named": [],
+            "none_reason": null,
+            "policy": {
+              "status": "PROVISIONAL",
+              "max_framework_suggestions": 4,
+              "max_quant_suggestions": 2,
+              "max_theory_suggestions": 2,
+              "max_selected": 6,
+              "min_score": "6.0",
+              "min_concepts": 2,
+              "q_single_min": "12.0",
+              "relative_cutoff": "0.5",
+              "weights": {
+                "name": "3.0",
+                "structures": "2.0",
+                "discipline": "1.0",
+                "evidence": "1.0"
+              }
+            },
+            "registry": {
+              "version": "0.1.0",
+              "catalogue_version": "0.2",
+              "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+            }
+          }
+        },
+        "account_mapping": null,
+        "spec": {
+          "objective": "Should we invest in the B2 project?",
+          "method": "npv",
+          "claims": [
+            {
+              "id": "c1",
+              "text": "result",
+              "type": "descriptive"
+            },
+            {
+              "id": "c2",
+              "text": "decision",
+              "type": "prescriptive"
+            }
+          ],
+          "inputs": {
+            "rate": {
+              "value": "0.10",
+              "provenance": "user"
+            },
+            "cashflows": {
+              "value": "['-100000', '40000', '40000', '40000', '40000']",
+              "provenance": "user"
+            }
+          },
+          "assumptions": [],
+          "sensitivity": {},
+          "thresholds": {},
+          "ambiguity_register": [
+            {
+              "question": "Timing and rate convention",
+              "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+              "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+            }
+          ],
+          "decision_context": {},
+          "checks": [
+            "second_implementation_agrees",
+            "boundary_zero_rate_equals_sum",
+            "t0_cash_flow_shifts_npv_one_for_one"
+          ],
+          "data_manifest": [],
+          "user_values": [],
+          "framework": null,
+          "fallbacks": {},
+          "frameworks_selected": [],
+          "registry": {
+            "version": "0.1.0",
+            "catalogue_version": "0.2",
+            "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+          },
+          "model_assistance": [],
+          "version": 1,
+          "hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627"
+        },
+        "stage_states": {
+          "intake": "passed",
+          "formalization": "passed",
+          "method_selection": "passed",
+          "test_planning": "passed",
+          "execution": "passed",
+          "verification": "passed",
+          "sensitivity": "not_run",
+          "drafting": "passed",
+          "draft_audit": "passed",
+          "delivery": "passed"
+        },
+        "events": [
+          {
+            "stage": "intake",
+            "status": "done",
+            "anomalies": []
+          },
+          {
+            "stage": "formalization",
+            "status": "awaiting_confirmation"
+          },
+          {
+            "stage": "formalization",
+            "status": "frozen",
+            "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627"
+          },
+          {
+            "stage": "method_selection",
+            "status": "selected",
+            "method": "npv",
+            "version": "1.0.0",
+            "tier": "T1",
+            "review_status": "pending_named_reviewer"
+          },
+          {
+            "stage": "test_planning",
+            "status": "frozen",
+            "tests": [
+              "second_implementation_agrees",
+              "boundary_zero_rate_equals_sum",
+              "t0_cash_flow_shifts_npv_one_for_one"
+            ],
+            "plan_hash": "f9461a7a3e02cf4ddeed3d4857fef4361edbdeb2d10ff632bda5ab4b4ebcac9e"
+          },
+          {
+            "stage": "verification",
+            "status": "pass",
+            "failed": [],
+            "amendments": 0,
+            "sandboxed": true
+          },
+          {
+            "stage": "execution",
+            "status": "artifact",
+            "ids": [
+              "result"
+            ],
+            "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+            "run_id": "7340da61bfc3"
+          },
+          {
+            "stage": "sensitivity",
+            "status": "skipped",
+            "reason": "no pre-declared range or no decision rule"
+          },
+          {
+            "stage": "drafting",
+            "status": "done"
+          },
+          {
+            "stage": "draft_audit",
+            "status": "pass"
+          },
+          {
+            "stage": "delivery",
+            "status": "delivered"
+          }
+        ],
+        "delivery": {
+          "status": "delivered",
+          "tier": "T1",
+          "report": "Under the stated assumptions, the npv is PHP 26,794.62. The result is positive, so the investment clears the hurdle under these inputs.",
+          "blocked_reason": "",
+          "appendix": {
+            "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+            "tier": "T1",
+            "method": {
+              "id": "npv",
+              "version": "1.0.0",
+              "category": "capital budgeting",
+              "review_status": "pending_named_reviewer"
+            },
+            "run_id": "7340da61bfc3",
+            "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+            "fallback_used": null,
+            "thresholds": {},
+            "frameworks_selected": [],
+            "registry": {
+              "version": "0.1.0",
+              "catalogue_version": "0.2",
+              "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+            },
+            "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+            "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+            "sandbox": {
+              "network": "blocked",
+              "process_spawn": "blocked",
+              "writes": "work directory only",
+              "seed": 0,
+              "memory_limit_mb": null,
+              "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+            },
+            "environment": {
+              "python": "3.14.2",
+              "implementation": "CPython",
+              "system": "Windows",
+              "machine": "AMD64",
+              "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+              "third_party_packages": [],
+              "hashseed": "0"
+            },
+            "tests": [
+              "second_implementation_agrees",
+              "boundary_zero_rate_equals_sum",
+              "t0_cash_flow_shifts_npv_one_for_one"
+            ],
+            "amendments": 0,
+            "assumptions": [
+              "Cash flows are certain given the inputs."
+            ],
+            "ambiguities": [
+              {
+                "question": "Timing and rate convention",
+                "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+                "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+              }
+            ],
+            "limitations": [
+              "Single constant discount rate."
+            ],
+            "artifacts": [
+              [
+                "result",
+                [
+                  "npv",
+                  "annual",
+                  "entity",
+                  "base"
+                ],
+                "npv(inputs).npv"
+              ]
+            ],
+            "honesty": {
+              "missing_data": null,
+              "multiple_comparisons": null,
+              "power": null,
+              "weights_and_clusters": null
+            },
+            "reperform": {
+              "format": "bp-reperform/1",
+              "method": {
+                "id": "npv",
+                "version": "1.0.0"
+              },
+              "inputs": {
+                "rate": "0.10",
+                "cashflows": [
+                  "-100000",
+                  "40000",
+                  "40000",
+                  "40000",
+                  "40000"
+                ]
+              },
+              "sensitivity": {},
+              "outputs": {
+                "npv": "26794.617853971723242947886073355645106208592309268"
+              },
+              "flip": null,
+              "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+              "fingerprint": {
+                "python": "3.14.2",
+                "implementation": "CPython",
+                "system": "Windows",
+                "machine": "AMD64",
+                "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+                "third_party_packages": [],
+                "hashseed": "0"
+              },
+              "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+              "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+            }
+          }
+        }
+      },
+      "delivery": {
+        "report": "Under the stated assumptions, the npv is PHP 26,794.62. The result is positive, so the investment clears the hurdle under these inputs.",
+        "appendix": {
+          "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+          "tier": "T1",
+          "method": {
+            "id": "npv",
+            "version": "1.0.0",
+            "category": "capital budgeting",
+            "review_status": "pending_named_reviewer"
+          },
+          "run_id": "7340da61bfc3",
+          "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+          "fallback_used": null,
+          "thresholds": {},
+          "frameworks_selected": [],
+          "registry": {
+            "version": "0.1.0",
+            "catalogue_version": "0.2",
+            "hash": "eda2292babba3aab6be068712141a5eb7f267e8cce0bf6b3efa6a16f5deeffee"
+          },
+          "frameworks_note": "Selected frameworks are recorded in the frozen spec; framework templates are not implemented, so they did not change the computation.",
+          "code_hash": "ebe63f11af342e92e12804954abf88f8deb4998eaf8f173c7d5717d24951b7ba",
+          "sandbox": {
+            "network": "blocked",
+            "process_spawn": "blocked",
+            "writes": "work directory only",
+            "seed": 0,
+            "memory_limit_mb": null,
+            "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+          },
+          "environment": {
+            "python": "3.14.2",
+            "implementation": "CPython",
+            "system": "Windows",
+            "machine": "AMD64",
+            "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+            "third_party_packages": [],
+            "hashseed": "0"
+          },
+          "tests": [
+            "second_implementation_agrees",
+            "boundary_zero_rate_equals_sum",
+            "t0_cash_flow_shifts_npv_one_for_one"
+          ],
+          "amendments": 0,
+          "assumptions": [
+            "Cash flows are certain given the inputs."
+          ],
+          "ambiguities": [
+            {
+              "question": "Timing and rate convention",
+              "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+              "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+            }
+          ],
+          "limitations": [
+            "Single constant discount rate."
+          ],
+          "artifacts": [
+            [
+              "result",
+              [
+                "npv",
+                "annual",
+                "entity",
+                "base"
+              ],
+              "npv(inputs).npv"
+            ]
+          ],
+          "honesty": {
+            "missing_data": null,
+            "multiple_comparisons": null,
+            "power": null,
+            "weights_and_clusters": null
+          },
+          "reperform": {
+            "format": "bp-reperform/1",
+            "method": {
+              "id": "npv",
+              "version": "1.0.0"
+            },
+            "inputs": {
+              "rate": "0.10",
+              "cashflows": [
+                "-100000",
+                "40000",
+                "40000",
+                "40000",
+                "40000"
+              ]
+            },
+            "sensitivity": {},
+            "outputs": {
+              "npv": "26794.617853971723242947886073355645106208592309268"
+            },
+            "flip": null,
+            "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+            "fingerprint": {
+              "python": "3.14.2",
+              "implementation": "CPython",
+              "system": "Windows",
+              "machine": "AMD64",
+              "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+              "third_party_packages": [],
+              "hashseed": "0"
+            },
+            "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+            "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+          }
+        }
+      },
+      "reperform": {
+        "format": "bp-reperform/1",
+        "method": {
+          "id": "npv",
+          "version": "1.0.0"
+        },
+        "inputs": {
+          "rate": "0.10",
+          "cashflows": [
+            "-100000",
+            "40000",
+            "40000",
+            "40000",
+            "40000"
+          ]
+        },
+        "sensitivity": {},
+        "outputs": {
+          "npv": "26794.617853971723242947886073355645106208592309268"
+        },
+        "flip": null,
+        "env_hash": "0e987b9c9a51d3dab80c43ac2aa4c8e65905f8f818cb570489b7279b2e798101",
+        "fingerprint": {
+          "python": "3.14.2",
+          "implementation": "CPython",
+          "system": "Windows",
+          "machine": "AMD64",
+          "bp_source": "34dd7f7517772e59e27ab238e39d2c5c5bc4c9f2a3e4c3e5c61da330e2363b88",
+          "third_party_packages": [],
+          "hashseed": "0"
+        },
+        "spec_hash": "5d06aadc0ad97ec78b07ad051f3f0cabc12b1372cfd6fb0525e20fb92c82a627",
+        "outputs_hash": "a536440e99aae8857bc02ecab9be1e326b60a487e754f5917e833637f5c43654"
+      },
+      "recorded_at": "2026-10-26T20:06:41.213415+00:00"
+    }
+  ]
+}

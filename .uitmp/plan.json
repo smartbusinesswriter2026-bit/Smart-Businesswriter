@@ -1,0 +1,192 @@
+{
+ "case_id": "e1d8c6648530",
+ "plan": {
+  "objective": "Decide whether to proceed with the new plant investment.",
+  "rubric": [
+   {
+    "id": "r1",
+    "text": "Evaluate the proposed new plant investment.",
+    "origin": "derived"
+   },
+   {
+    "id": "r2",
+    "text": "Compute the NPV and IRR of the cash flows.",
+    "origin": "derived"
+   },
+   {
+    "id": "r3",
+    "text": "Recommend whether to proceed and explain the risks.",
+    "origin": "derived"
+   }
+  ],
+  "analyses": [
+   {
+    "id": "a1",
+    "rubric_id": "r2",
+    "rubric_text": "Compute the NPV and IRR of the cash flows.",
+    "method": "irr",
+    "method_label": "irr",
+    "category": "capital budgeting",
+    "tier": "T1",
+    "why": "the wording of this item matches what this analysis is for",
+    "will_produce": "the computed result with its derivation and the checks that ran",
+    "inputs": [
+     {
+      "name": "cashflows",
+      "type": "decimal_list",
+      "desc": "cash flows, first at t=0 (normally the negative outlay)",
+      "required": true,
+      "min_items": 2,
+      "source": "student"
+     }
+    ],
+    "missing": [
+     "cashflows"
+    ],
+    "status": "needs_input",
+    "alternatives": [
+     {
+      "method": "npv",
+      "method_label": "npv",
+      "category": "capital budgeting"
+     },
+     {
+      "method": "dcf_valuation",
+      "method_label": "dcf valuation",
+      "category": "valuation"
+     },
+     {
+      "method": "discounted_payback",
+      "method_label": "discounted payback",
+      "category": "capital budgeting"
+     }
+    ],
+    "intended_use": "The discount rate at which a declared stream of cash flows has a net present value of zero (the IRR, for conventional cash flows).",
+    "unsupported_use": "Ranking or choosing between projects; non-conventional cash flows (more than one sign change) where several IRRs can exist; comparing IRRs of projects of unequal scale or life; choosing or assuming a reinvestment rate.",
+    "limitations": [
+     "Single constant rate; IRR ignores project scale and can mislead when comparing projects.",
+     "The root is found numerically in the range -99.99% to 1000%; a root outside that range is treated as absent.",
+     "Several sign changes block instead of choosing a root."
+    ],
+    "declared_defaults": [
+     {
+      "question": "Root and timing convention",
+      "default_chosen": "End-of-period cash flows with the first at t=0, exactly as in npv. The cash flows must change sign once, giving one IRR; several sign changes are refused rather than resolved.",
+      "impact": "Non-conventional cash flows have multiple IRRs, so any single answer would be a choice."
+     }
+    ],
+    "engine_check": {
+     "ok": false,
+     "anomalies": [
+      "missing required input 'cashflows' (cash flows, first at t=0 (normally the negative outlay))"
+     ]
+    }
+   }
+  ],
+  "structures": [
+   {
+    "id": "s1",
+    "rubric_id": "r1",
+    "rubric_text": "Evaluate the proposed new plant investment.",
+    "status": "structure_only",
+    "structure": {
+     "id": "RSK-07",
+     "name": "Red-Team / Premortem Review",
+     "summary": "",
+     "implementation_status": "not implemented"
+    },
+    "why": "no analysis in the engine can compute this one. It can give you the structure, built from your own evidence, and flag the gaps in that evidence.",
+    "note": "The engine builds the structure and audits your evidence. It cannot compute a recommendation for you, and it will not pretend to."
+   },
+   {
+    "id": "s2",
+    "rubric_id": "r3",
+    "rubric_text": "Recommend whether to proceed and explain the risks.",
+    "status": "structure_only",
+    "structure": {
+     "id": "PPL-01",
+     "name": "Ability\u2013Motivation\u2013Opportunity (AMO) Framework",
+     "summary": "",
+     "implementation_status": "not implemented"
+    },
+    "why": "no analysis in the engine can compute this one. It can give you the structure, built from your own evidence, and flag the gaps in that evidence.",
+    "note": "The engine builds the structure and audits your evidence. It cannot compute a recommendation for you, and it will not pretend to."
+   }
+  ],
+  "unsupported": [],
+  "questions": [
+   {
+    "id": "q-a1-cashflows",
+    "analysis_id": "a1",
+    "method": "irr",
+    "input": "cashflows",
+    "question": "Where does cashflows come from?",
+    "detail": "cash flows, first at t=0 (normally the negative outlay)",
+    "impact": "The engine will not run irr until this input is supplied.",
+    "default_chosen": null,
+    "answered": false,
+    "candidate_sources": [
+     "case",
+     "student",
+     "derived",
+     "default"
+    ],
+    "status": "open"
+   }
+  ],
+  "angle": {
+   "text": "The company should proceed because the new plant lowers unit cost.",
+   "status": "student",
+   "note": "Your position is recorded. It shapes the emphasis and may add analyses, but it cannot remove an analysis the rubric needs.",
+   "options": []
+  },
+  "gates": [
+   {
+    "gate": "rubric_coverage",
+    "ok": true,
+    "detail": "every rubric item is answered by an analysis or a structure"
+   },
+   {
+    "gate": "method_exists",
+    "ok": true,
+    "detail": "every analysis names a method the engine declares"
+   },
+   {
+    "gate": "inputs_ready",
+    "ok": false,
+    "detail": "0 of 1 analyses have every input they need"
+   }
+  ],
+  "uncovered": [],
+  "item_status": {
+   "r2": "needs_input",
+   "r1": "structure",
+   "r3": "structure"
+  },
+  "coverage": {
+   "items": 3,
+   "computed": 0,
+   "needs_input": 1,
+   "structure_only": 2,
+   "unsupported": 0,
+   "uncovered": 0,
+   "open_questions": 1
+  },
+  "model": {
+   "enabled": false,
+   "provider": "none",
+   "model": "",
+   "loop": 1,
+   "max_loops": 2,
+   "debate": []
+  },
+  "log": [
+   {
+    "stage": "fallback",
+    "note": "the analysis set was matched by keyword over the engine's catalogue, not argued"
+   }
+  ],
+  "status": "proposed",
+  "notice": "This is a proposal. Nothing is computed until you confirm it, and every number in the result comes from the engine."
+ }
+}

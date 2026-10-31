@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "rail-label-options",
+  "displayName": "Rail label options",
+  "version": "1.0.0",
+  "description": "Design review board for the Smart BusinessWriter navigation rail: measured icon-to-label geometry and four harmonisation options for the labels beside the icons.",
+  "author": "User",
+  "icon": "icon.png",
+  "category": "Other",
+  "exampleQueries": [
+    "Open the rail label options board.",
+    "Show me the options for the navigation rail labels."
+  ],
+  "apps": [],
+  "mcpServers": [],
+  "skills": []
+}

@@ -1,0 +1,405 @@
+ORPHAN PROFILES: 32
+
+template_adkar                     -> CHG-02
+   profile label : ADKAR
+   profile title : ADKAR Change Analysis
+   profile subj  : change   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : awareness='Awareness', desire='Desire', knowledge='Knowledge', ability='Ability', reinforcement='Reinforcement'
+   catalogue name: ADKAR  (type M)
+   catalogue summ: Individual change readiness/barriers: Awareness, Desire, Knowledge, Ability, Reinforcement
+   evidence_needs: Employee input or structured assessment; avoid treating self-report scores as objective facts
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_aida                      -> MKT-03
+   profile label : AIDA
+   profile title : AIDA Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : attention='Attention', interest='Interest', desire='Desire', action='Action'
+   catalogue name: AIDA  (type M)
+   catalogue summ: Attention, Interest, Desire, Action as a simplified communication journey
+   evidence_needs: Funnel/conversion data if available; avoid assuming all customers move linearly through stages
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_attribution               -> MKT-19
+   profile label : Attribution and Campaign Measurement
+   profile title : Attribution Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : touchpoints='Touchpoints', model='Attribution Model', credit='Credit Assignment', reporting='Reporting'
+   catalogue name: Attribution and campaign measurement  (type Q)
+   catalogue summ: Which touchpoints receive credit, under which rule, and what the campaign changed
+   evidence_needs: UTM discipline, touchpoint logs, conversion definitions, a declared attribution model and, for causality, a holdout or experiment
+   disciplines   : ['digital marketing']
+   linked_methods: ['attribution_split']
+
+template_bcg                       -> STR-10
+   profile label : BCG Growth-Share Matrix
+   profile title : BCG Growth-Share Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : stars='Stars', cash_cows='Cash Cows', question_marks='Question Marks', dogs='Dogs'
+   catalogue name: BCG Growth-Share Matrix  (type M)
+   catalogue summ: Portfolio positioning using market growth and relative market share
+   evidence_needs: Definitions and estimates of market growth and relative share; disclose boundaries and limitations
+   disciplines   : ['strategy']
+   linked_methods: []
+
+template_brand_equity              -> MKT-11
+   profile label : Brand Equity
+   profile title : Brand Equity Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : awareness='Brand Awareness', associations='Brand Associations', perceived_quality='Perceived Quality', loyalty='Brand Loyalty'
+   catalogue name: Brand Equity Assessment  (type M)
+   catalogue summ: Selected dimensions of brand knowledge, associations, perceived quality and loyalty
+   evidence_needs: Customer research and clearly defined measurement; choose a specified model rather than mixing variants
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_burke_litwin              -> CHG-05
+   profile label : Burke-Litwin
+   profile title : Burke-Litwin Analysis
+   profile subj  : change   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : external_environment='External Environment', mission_strategy='Mission and Strategy', leadership='Leadership', culture='Culture', structure='Structure', management_practices='Management Practices', systems='Systems and Policies', work_unit_climate='Work Unit Climate', task_requirements='Task and Individual Skills', motivation='Motivation', individual_values='Individual Needs and Values', performance='Individual and Organisational Performance'
+   catalogue name: Burke–Litwin Organizational Performance and Change Model  (type M)
+   catalogue summ: Relationships among external environment, leadership, mission/strategy, culture, systems and performance
+   evidence_needs: Organizational data and stakeholder evidence; causal relationships require caution
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_change_organization       -> CHG-15
+   profile label : Change and Organization
+   profile title : Change and Organization Analysis
+   profile subj  : change   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : change_type='Change Type', readiness='Readiness', resistance='Resistance', support='Support'
+   catalogue     : *** NO RECORD ***
+
+template_cro                       -> MKT-20
+   profile label : Conversion Rate Optimisation
+   profile title : CRO Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : hypothesis='Hypothesis', variants='Variants', metrics='Metrics', results='Results'
+   catalogue name: Conversion-rate optimisation and landing-page testing  (type Q)
+   catalogue summ: The page or step to change, the hypothesis and the test that decides it
+   evidence_needs: Baseline conversion counts, traffic split, test duration and a declared minimum detectable effect
+   disciplines   : ['digital marketing']
+   linked_methods: ['ab_test_two_proportion', 'power_analysis']
+
+template_digital_mix               -> MKT-13
+   profile label : Digital Marketing Mix
+   profile title : Digital Mix Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : owned='Owned Channels', earned='Earned Channels', paid='Paid Channels'
+   catalogue name: Digital marketing mix: owned, earned and paid channels  (type F)
+   catalogue summ: The channels you control, the channels others create and the channels you pay for, with the role and budget of each
+   evidence_needs: Channel inventory, audience and reach evidence, cost data and a declared objective for each channel
+   disciplines   : ['digital marketing']
+   linked_methods: []
+
+template_dmaic                     -> CHG-10
+   profile label : DMAIC
+   profile title : DMAIC Analysis
+   profile subj  : quality   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : define='Define', measure='Measure', analyze='Analyze', improve='Improve', control='Control'
+   catalogue name: DMAIC  (type F)
+   catalogue summ: Define, Measure, Analyze, Improve, Control for process/problem improvement
+   evidence_needs: Baseline data, valid measures, root-cause evidence and control measures
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_email_crm                 -> MKT-16
+   profile label : Email CRM and Lifecycle
+   profile title : Email CRM Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : list='List', segments='Segments', campaigns='Campaigns', automation='Automation'
+   catalogue name: Email, CRM and lifecycle marketing  (type M)
+   catalogue summ: List growth, segmentation, journey stages and the message sent at each stage
+   evidence_needs: List and consent records, send/open/click counts, unsubscribe and bounce counts, revenue by journey
+   disciplines   : ['digital marketing']
+   linked_methods: []
+
+template_funnel                    -> MKT-05
+   profile label : Funnel
+   profile title : Funnel Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : awareness='Awareness', interest='Interest', consideration='Consideration', intent='Intent', evaluation='Evaluation', purchase='Purchase'
+   catalogue name: Marketing / Sales Funnel  (type M)
+   catalogue summ: Conversion through defined stages
+   evidence_needs: Stage definitions, conversion rates, cohort/time windows, leakage analysis
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_galbraith_star            -> CHG-06
+   profile label : Galbraith Star
+   profile title : Galbraith Star Analysis
+   profile subj  : management   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : strategy='Strategy', structure='Structure', processes='Processes', rewards='Rewards', people='People'
+   catalogue name: Galbraith Star Model  (type F)
+   catalogue summ: Alignment of strategy, structure, processes, rewards and people practices
+   evidence_needs: Operating model, roles, process and reward evidence
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_ge_mckinsey               -> STR-11
+   profile label : GE-McKinsey Matrix
+   profile title : GE-McKinsey Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : high_high='High/High', high_medium='High/Medium', high_low='High/Low', medium_high='Medium/High', medium_medium='Medium/Medium', medium_low='Medium/Low', low_high='Low/High', low_medium='Low/Medium', low_low='Low/Low'
+   catalogue name: GE–McKinsey Portfolio Matrix  (type M)
+   catalogue summ: Portfolio assessment using industry attractiveness and business strength
+   evidence_needs: Explicit criteria and weights; sensitivity to scoring and weight changes
+   disciplines   : ['strategy']
+   linked_methods: []
+
+template_generic_strategies        -> STR-02
+   profile label : Generic Strategies
+   profile title : Generic Strategy Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : low_cost='Low-Cost', differentiation='Differentiation', focus_low_cost='Focused Low-Cost', focus_differentiation='Focused Differentiation'
+   catalogue name: Porter's Generic Strategies  (type F)
+   catalogue summ: Cost leadership, differentiation, and focus choices
+   evidence_needs: Cost position, willingness to pay, segment economics, evidence of trade-offs
+   disciplines   : ['strategy']
+   linked_methods: []
+
+template_lewin                     -> CHG-03
+   profile label : Lewin
+   profile title : Lewin Change Analysis
+   profile subj  : change   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : unfreeze='Unfreeze', change='Change', refreeze='Refreeze'
+   catalogue name: Lewin's Three-Stage Model  (type F)
+   catalogue summ: Unfreezing, changing and stabilizing new practices
+   evidence_needs: Diagnosis of current norms, transition actions, reinforcement measures; use as a simplifying lens, not a universal law
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_logic_model               -> CHG-08
+   profile label : Logic Model
+   profile title : Logic Model Analysis
+   profile subj  : management   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : inputs='Inputs', activities='Activities', outputs='Outputs', outcomes='Outcomes'
+   catalogue name: Logic Model  (type F)
+   catalogue summ: Inputs, activities, outputs, outcomes and impact
+   evidence_needs: Measurable indicators, data sources, time horizons; distinguish activities from outcomes
+   disciplines   : ['change and organization', 'public, nonprofit and impact evaluation']
+   linked_methods: []
+
+template_marketing_automation      -> MKT-21
+   profile label : Marketing Automation
+   profile title : Marketing Automation Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : triggers='Triggers', flows='Flows', scoring='Lead Scoring', nurture='Nurture'
+   catalogue name: Marketing automation and lead scoring  (type F)
+   catalogue summ: The rules that move a lead between stages and the score that qualifies it
+   evidence_needs: Lead-source and behaviour data, stage definitions (MQL/SQL), sales feedback and score validation
+   disciplines   : ['digital marketing']
+   linked_methods: []
+
+template_mckinsey_7s               -> CHG-04
+   profile label : McKinsey 7S
+   profile title : McKinsey 7S Analysis
+   profile subj  : management   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : strategy='Strategy', structure='Structure', systems='Systems', shared_values='Shared Values', style='Style', staff='Staff', skills='Skills'
+   catalogue name: McKinsey 7-S  (type F)
+   catalogue summ: Alignment among strategy, structure, systems, shared values, skills, style and staff
+   evidence_needs: Evidence across the seven dimensions and their alignment; no single score is inherently authoritative
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_mintzberg                 -> CHG-13
+   profile label : Mintzberg
+   profile title : Mintzberg Analysis
+   profile subj  : management   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : strategic_apex='Strategic Apex', middle_line='Middle Line', operating_core='Operating Core', technostructure='Technostructure', support_staff='Support Staff'
+   catalogue name: Mintzberg Organizational Configurations  (type M)
+   catalogue summ: Compare organizational structure/configuration patterns
+   evidence_needs: Evidence about coordination, key parts, decision authority and context
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_pdsa                      -> CHG-09
+   profile label : PDSA
+   profile title : PDSA Cycle Analysis
+   profile subj  : quality   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : plan='Plan', do='Do', study='Study', act='Act'
+   catalogue name: Plan–Do–Study–Act (PDSA)  (type F)
+   catalogue summ: Small, iterative tests of change
+   evidence_needs: Baseline, defined prediction, measures, results, and decision for the next cycle
+   disciplines   : ['change and organization']
+   linked_methods: []
+
+template_porters_diamond           -> STR-05
+   profile label : Porters Diamond
+   profile title : Porter Diamond Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : factor_conditions='Factor Conditions', demand_conditions='Demand Conditions', related_industries='Related and Supporting Industries', firm_strategy='Firm Strategy, Structure and Rivalry', government='Government', chance='Chance'
+   catalogue name: Porter's Diamond  (type F)
+   catalogue summ: National/industry competitiveness through factor conditions, demand conditions, related industries, and firm rivalry/context
+   evidence_needs: Industry, trade, workforce, supplier, demand and policy data where relevant
+   disciplines   : ['strategy']
+   linked_methods: []
+
+template_rfm                       -> MKT-08
+   profile label : RFM
+   profile title : RFM Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : recency='Recency', frequency='Frequency', monetary='Monetary'
+   catalogue name: RFM Segmentation  (type Q)
+   catalogue summ: Customer groups based on recency, frequency and monetary value
+   evidence_needs: Transaction data, window definitions, scoring method and checks for biased segments
+   disciplines   : ['marketing and customers', 'market and customer analytics']
+   linked_methods: ['rfm_scoring']
+
+template_seo_content               -> MKT-14
+   profile label : SEO and Content
+   profile title : SEO and Content Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : keywords='Keywords', content='Content', technical='Technical SEO', links='Links'
+   catalogue name: SEO and content marketing plan  (type F)
+   catalogue summ: The content that answers a search or customer question, the keywords it targets and the page that carries it
+   evidence_needs: Keyword and search-demand evidence, page inventory, content calendar, ranking and traffic data
+   disciplines   : ['digital marketing']
+   linked_methods: []
+
+template_social_media              -> MKT-17
+   profile label : Social Media and Influencer
+   profile title : Social Media Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : platforms='Platforms', content='Content', engagement='Engagement', influencers='Influencers'
+   catalogue name: Social media and influencer marketing  (type M)
+   catalogue summ: Owned posts, community activity and creator partnerships, with the metric each is judged on
+   evidence_needs: Reach, engagement and follower data; creator terms, fees and disclosure requirements
+   disciplines   : ['digital marketing']
+   linked_methods: []
+
+template_stp                       -> MKT-01
+   profile label : STP
+   profile title : STP Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : segmentation='Segmentation', targeting='Targeting', positioning='Positioning'
+   catalogue name: Segmentation–Targeting–Positioning (STP)  (type F)
+   catalogue summ: Customer segments, target selection, and desired market position
+   evidence_needs: Segment size/profitability, needs and fit, competition, segment-selection criteria
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_stp_evidence              -> MKT-12
+   profile label : STP Evidence Check
+   profile title : STP Evidence Check Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : segmentation_evidence='Segmentation Evidence', targeting_evidence='Targeting Evidence', positioning_evidence='Positioning Evidence'
+   catalogue name: STP-to-positioning evidence check  (type F)
+   catalogue summ: Check that target choice, customer evidence and positioning claim align
+   evidence_needs: Research on target segments and competitive alternatives
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_strategic_positioning     -> STR-19
+   profile label : Strategic Positioning
+   profile title : Strategic Positioning Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : position='Position', differentiation='Differentiation', value_proposition='Value Proposition', target_segment='Target Segment'
+   catalogue     : *** NO RECORD ***
+
+template_strategy_4                -> STR-20
+   profile label : Strategy 4
+   profile title : Strategy 4 Analysis
+   profile subj  : strategy   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : perspective='Perspective', position='Position', plan='Plan', pattern='Pattern'
+   catalogue     : *** NO RECORD ***
+
+template_tam                       -> MKT-09
+   profile label : Technology Acceptance Model
+   profile title : TAM Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : perceived_usefulness='Perceived Usefulness', perceived_ease_of_use='Perceived Ease of Use', attitude='Attitude', behavioral_intention='Behavioral Intention'
+   catalogue name: Technology Acceptance Model (TAM)  (type M)
+   catalogue summ: Perceived usefulness/ease of use and related technology-acceptance constructs
+   evidence_needs: Validated scales and appropriate study design if used for empirical assessment
+   disciplines   : ['marketing and customers']
+   linked_methods: []
+
+template_theory_of_change          -> CHG-07
+   profile label : Theory of Change
+   profile title : Theory of Change Analysis
+   profile subj  : change   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : inputs='Inputs', activities='Activities', outputs='Outputs', outcomes='Outcomes'
+   catalogue name: Theory of Change  (type F)
+   catalogue summ: Causal pathway from activities to outputs, outcomes and impact, including assumptions
+   evidence_needs: Outcome indicators, assumptions, contextual evidence, and evaluation design; links are hypotheses to test
+   disciplines   : ['change and organization', 'public, nonprofit and impact evaluation']
+   linked_methods: []
+
+template_utaut                     -> MKT-10
+   profile label : UTAUT
+   profile title : UTAUT Analysis
+   profile subj  : marketing   assumption=probe  ratings=False  sites=industry
+   profile unit  : {"example": "smartphones, grocery retail, banking", "field": "industry", "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.", "label": "Industry or market", "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."}
+   profile gate  : {"require_geography": false, "title_context": true, "title_cue": true}
+   blocks        : performance_expectancy='Performance Expectancy', effort_expectancy='Effort Expectancy', social_influence='Social Influence', facilitating_conditions='Facilitating Conditions'
+   catalogue name: UTAUT  (type M)
+   catalogue summ: Structured constructs associated with technology acceptance and use
+   evidence_needs: Validated measurement scales and research design; not a generic checklist for all adoption problems
+   disciplines   : ['marketing and customers']
+   linked_methods: []

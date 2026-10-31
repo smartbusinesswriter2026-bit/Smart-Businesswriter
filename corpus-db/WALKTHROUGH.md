@@ -174,6 +174,17 @@ book**. The easy case proves the extractor; the scanned book proves the page mod
 *Done when:* the page count matches the PDF, the first pages show real text, the stored hash
 matches `Get-FileHash` of the file, and the ingest log shows `ok` or `ocr` — never silence.
 
+*If you already have the file:* the shelf refuses it. The corpus holds **one document per work**,
+so a file whose bytes are already there is refused by its `sha256`, and another copy of a book or
+paper already in the shelf is refused by the work itself — its DOI, or its title, first author and
+year. The refusal happens before anything is written: no second document, no second copy of the
+file on disk, and one line in the ingest log naming what it repeats. Ingest the same file twice
+and you get the same document back, not two of them.
+
+*One repair worth knowing:* if a document is in the shelf but its PDF has been lost from disk, and
+that exact file arrives again, the shelf **puts the file back** instead of refusing it. The
+document row stays the one document it always was.
+
 ### Step D — Load the pages into the index
 
 *You do:* run `corpus_lib.index_pages()`. It runs automatically after each ingest; run it by hand
@@ -300,6 +311,10 @@ trusted when it should not be.
 - **It does not replace the live APIs.** The pipeline is designed to work with the corpus absent.
 - **It does not decide what is true.** It stores what you gave it and what it fetched under a
   licence that permits it. The reading, the argument and the claim are still the paper's job.
+- **It does not know that two editions are one book.** The shelf refuses the same file twice, and
+  refuses another copy of a work it already holds — but a reissue in a **later year** is a
+  different work key, so it becomes a second document. That is the open re-ingest policy (Q-15),
+  and it is a decision for you rather than a guess for the code.
 
 ## 8. How you know it is working
 

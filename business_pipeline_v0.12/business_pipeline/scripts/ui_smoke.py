@@ -22,6 +22,10 @@ RAIL_MARKERS = ("markCurrentRailItem", "SUBJECT_WORKSPACE", "railSubject")
 # The collapsed rail carries a column for the subject list's scrollbar, so the
 # scrollbar can never land on the icon column and cut a glyph.
 RAIL_GEOMETRY = ("--rail-sb", "--rail-w-collapsed", "body:not(.rail-open) .rail")
+# A tile that names a tool must open that tool. While the session is created the
+# panel is activated, not shown, so the no-session renderer cannot send the
+# student back to the shelf they clicked from.
+TOOL_ROUTING = "async function createSession(body) {"
 SUBJECTS = ("accounting", "finance", "economics", "management", "project-management",
             "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research")
 FORMS = {"template_business_model_canvas": "canvas", "template_pestel": "canvas",
@@ -61,6 +65,9 @@ def main():
               all(m in page for m in RAIL_MARKERS))
         check("the collapsed rail carries the scrollbar's column",
               all(m in page for m in RAIL_GEOMETRY))
+        creator = page.split(TOOL_ROUTING, 1)[-1].split("RENDERERS.new = function", 1)[0]
+        check("a tile that names a tool opens that tool",
+              'activate("new")' in creator and 'show("new")' not in creator)
         check("page has a title", "<title>" in page)
 
         account = _get(base, "/account.html").decode("utf-8", "replace")

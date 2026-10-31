@@ -1,0 +1,166 @@
+templates.py:430-        "evidence": ("Evidence", "Records, incidents, change requests or data behind the lesson"),
+templates.py:431-    },
+templates.py:432:    "template_job_characteristics": {
+templates.py:433-        "skill_variety": ("Skill variety", "The range of skills and knowledge the role draws on"),
+templates.py:434-        "task_identity": ("Task identity", "Whether the role produces a whole, identifiable piece of work"),
+--
+templates.py:437-        "feedback": ("Feedback", "How the person finds out how well the work is going"),
+templates.py:438-    },
+templates.py:439:    "template_kirkpatrick": {
+templates.py:440-        "reaction": ("Reaction", "What participants thought of the training and whether they valued it"),
+templates.py:441-        "learning": ("Learning", "What participants learned, and what they can show they learned it"),
+--
+templates.py:443-        "results": ("Results", "What the organisation gained from the training"),
+templates.py:444-    },
+templates.py:445:    "template_amo": {
+templates.py:446-        "ability": ("Ability", "Whether the person has the skill and knowledge to do the work"),
+templates.py:447-        "motivation": ("Motivation", "Whether the person wants to do the work, and sees the reason to"),
+templates.py:448-        "opportunity": ("Opportunity", "Whether the person is allowed and equipped to do the work"),
+templates.py:449-    },
+templates.py:450:    "template_tuckman": {
+templates.py:451-        "forming": ("Forming", "The stage where the team is orienting itself to the task and to each other"),
+templates.py:452-        "storming": ("Storming", "The stage where roles, boundaries and ways of working are contested"),
+--
+templates.py:455-        "adjourning": ("Adjourning", "The stage where the team closes down, or changes shape"),
+templates.py:456-    },
+templates.py:457:    "template_nine_box": {
+templates.py:458-        "performance_criteria": ("Performance criteria", "How performance is judged, the criteria you use, and the evidence for each"),
+templates.py:459-        "potential_criteria": ("Potential criteria", "How potential is judged, the criteria you use, and the evidence for each"),
+--
+templates.py:461-        "development_actions": ("Development actions", "What the placements require you to do for each group"),
+templates.py:462-    },
+templates.py:463:    "template_kotter": {
+templates.py:464-        "urgency": ("Create urgency", "The case for change, and the evidence that it cannot wait"),
+templates.py:465-        "coalition": ("Form a powerful coalition", "Who must lead the change, and why that group"),
+--
+templates.py:471-        "institutionalize": ("Institutionalize new approaches", "What anchors the change in how the organisation works day to day"),
+templates.py:472-    },
+templates.py:473:    "template_competing_values": {
+templates.py:474-        "clan": ("Clan culture", "The orientation that puts people, commitment and development first"),
+templates.py:475-        "adhocracy": ("Adhocracy culture", "The orientation that puts experimentation, innovation and outside challenge first"),
+--
+templates.py:477-        "hierarchy": ("Hierarchy culture", "The orientation that puts structure, control and predictability first"),
+templates.py:478-    },
+templates.py:479:    "template_org_design": {
+templates.py:480-        "strategy": ("Strategy", "What the organisation is trying to achieve"),
+templates.py:481-        "decision_rights": ("Decision rights", "Who decides what, and who is accountable for it"),
+--
+templates.py:651-        "extra_help": "links: optional list of {from, to} item ids, normally a step to the step it feeds. A cycle or lead time you enter is a declared observation with its own provenance; the worksheet computes no total, no average and no takt.",
+templates.py:652-    },
+templates.py:653:    "template_job_characteristics": {
+templates.py:654-        "name": "Job Characteristics Model with an evidence audit", "short": "Job Characteristics Model", "registry_ids": ["PPL-03"],
+templates.py:655-        "intended_use": "Record the five job characteristics the model names - skill variety, task identity, task significance, autonomy and feedback - for the role, with the evidence for each, and name the characteristics you cannot evidence.",
+--
+templates.py:657-        "extra_help": "A characteristic with no evidence is named as a gap. The worksheet computes no score, validates no measure and infers nothing about the person in the role.",
+templates.py:658-    },
+templates.py:659:    "template_kirkpatrick": {
+templates.py:660-        "name": "Kirkpatrick training evaluation with an evidence audit", "short": "Kirkpatrick", "registry_ids": ["PPL-02"],
+templates.py:661-        "intended_use": "Record the evaluation at the four levels the model names - reaction, learning, behaviour and results - with the baseline, the measure and the follow-up interval for each.",
+--
+templates.py:663-        "extra_help": "The levels run from what participants thought to what the organisation gained. A high reaction score is not evidence of learning, behaviour or results.",
+templates.py:664-    },
+templates.py:665:    "template_amo": {
+templates.py:666-        "name": "AMO performance diagnosis with an evidence audit", "short": "AMO", "registry_ids": ["PPL-01"],
+templates.py:667-        "intended_use": "Diagnose whether the performance constraint lies in the person's ability, their motivation or the opportunity they are given, with the evidence for each, and name the constraint you cannot evidence.",
+--
+templates.py:669-        "extra_help": "A category with no evidence is named. The worksheet judges nothing, ranks no category and proposes no intervention.",
+templates.py:670-    },
+templates.py:671:    "template_tuckman": {
+templates.py:672-        "name": "Team development review using Tuckman's stages", "short": "Tuckman's stages", "registry_ids": ["PPL-05"],
+templates.py:673-        "intended_use": "Organise a discussion of where the team is and what it may need, using the five stages the model names, with the evidence you observe for each.",
+--
+templates.py:675-        "extra_help": "Not every team passes through the stages in order and many move back and forth. A stage with no evidence is named, and no person is assigned to a stage.",
+templates.py:676-    },
+templates.py:677:    "template_nine_box": {
+templates.py:678-        "name": "Nine-box talent grid with an evidence audit", "short": "Nine-box", "registry_ids": ["PPL-04"],
+templates.py:679-        "intended_use": "Declare the criteria you use for performance and for potential, record who you place and why, and state the action the placements require.",
+--
+templates.py:681-        "extra_help": "The grid places people on two declared axes. It carries no score and no ranking, and the bias safeguards and consistent criteria are yours to state.",
+templates.py:682-    },
+templates.py:683:    "template_kotter": {
+templates.py:684-        "name": "Kotter's eight-step change model with an evidence audit", "short": "Kotter's 8 steps", "registry_ids": ["CHG-01"],
+templates.py:685-        "intended_use": "Record the eight steps the model names in order - urgency, coalition, vision, communication, empowerment, short-term wins, consolidation and institutionalisation - with the evidence and the progress measure for each.",
+--
+templates.py:687-        "extra_help": "A step with no evidence is named as a gap. The worksheet computes no adoption rate and no outcome indicator.",
+templates.py:688-    },
+templates.py:689:    "template_competing_values": {
+templates.py:690-        "name": "Competing Values Framework with an evidence audit", "short": "Competing Values", "registry_ids": ["CHG-12"],
+templates.py:691-        "intended_use": "Read the organisation's culture through the four competing orientations the model names - clan, adhocracy, market and hierarchy - with the survey or observation evidence behind each.",
+--
+templates.py:693-        "extra_help": "An orientation with no evidence is named. The worksheet assigns no type, computes no score and draws no profile.",
+templates.py:694-    },
+templates.py:695:    "template_org_design": {
+templates.py:696-        "name": "Organisational design star and fit review", "short": "org design review", "registry_ids": ["CHG-11"],
+templates.py:697-        "intended_use": "Check the fit between strategy, decision rights, structure, processes, people and incentives, and record where the fit breaks.",
+--
+templates.py:746-                     "financial_plan": "FP", "decisions": "DC"},
+templates.py:747-    "template_pdca": {"plan": "PL", "do": "DO", "check": "CK", "act": "AC"},
+templates.py:748:    "template_job_characteristics": {"skill_variety": "SV", "task_identity": "TI", "task_significance": "TS",
+templates.py:749-                                     "autonomy": "AU", "feedback": "FB"},
+templates.py:750:    "template_kirkpatrick": {"reaction": "RE", "learning": "LE", "behavior": "BE", "results": "RS"},
+templates.py:751:    "template_amo": {"ability": "AB", "motivation": "MO", "opportunity": "OP"},
+templates.py:752:    "template_tuckman": {"forming": "FO", "storming": "ST", "norming": "NO", "performing": "PE", "adjourning": "AJ"},
+templates.py:753:    "template_nine_box": {"performance_criteria": "PC", "potential_criteria": "PO", "placements": "PL",
+templates.py:754-                          "development_actions": "DA"},
+templates.py:755:    "template_kotter": {"urgency": "UR", "coalition": "CO", "vision": "VI", "communicate": "CM", "empower": "EM",
+templates.py:756-                        "wins": "SW", "consolidate": "CG", "institutionalize": "IN"},
+templates.py:757:    "template_competing_values": {"clan": "CL", "adhocracy": "AD", "market": "MK", "hierarchy": "HI"},
+templates.py:758:    "template_org_design": {"strategy": "ST", "decision_rights": "DR", "structure": "SC", "processes": "PR",
+templates.py:759-                            "people_capability": "PC", "incentives": "IN"},
+templates.py:760-}
+--
+templates.py:1426-
+templates.py:1427-
+templates.py:1428:TEMPLATES = {
+templates.py:1429-    "template_swot": {"id": "template_swot", "version": "0.1.0", "name": "SWOT with evidence-to-action audit", "registry_ids": ["STR-07", "STR-18"], "build": build_swot, "render": render_swot, "tests": tests_swot,
+templates.py:1430-        "test_names": ("each_item_placed_exactly_once", "counts_agree_with_independent_recount", "listing_reproduces_every_input_text_verbatim", "analysis_contains_only_supplied_text", "scopes_match_framework_definition",
+--
+templates.py:1524-    }
+templates.py:1525-
+templates.py:1526:TEMPLATES["template_vrio"] = {
+templates.py:1527-    "id": "template_vrio", "version": "0.1.0", "tier": "T4", "name": "VRIO with an evidence audit",
+templates.py:1528-    "registry_ids": ["STR-08"], "build": build_vrio, "render": render_vrio, "tests": tests_vrio,
+--
+templates.py:1896-            "check": [{"text": "The queue was timed at noon for ten days", "provenance": "synthetic"}],
+templates.py:1897-            "act": []}}},
+templates.py:1898:    "template_job_characteristics": {"objective": "Review the role of the kitchen supervisor", "method": "template_job_characteristics", "inputs": {
+templates.py:1899-        "blocks": {
+templates.py:1900-            "skill_variety": [{"text": "The role covers ordering, rota planning and stock checks", "provenance": "synthetic"}],
+--
+templates.py:1902-            "autonomy": [{"text": "The supervisor sets the prep order without asking the head chef", "provenance": "synthetic"}],
+templates.py:1903-            "feedback": []}}},
+templates.py:1904:    "template_kirkpatrick": {"objective": "Evaluate the food-safety training for kitchen staff", "method": "template_kirkpatrick", "inputs": {
+templates.py:1905-        "blocks": {
+templates.py:1906-            "reaction": [{"text": "Staff rated the session useful at the end of the day", "provenance": "synthetic"}],
+templates.py:1907-            "learning": [{"text": "The quiz was retaken until every pass was recorded", "provenance": "synthetic"}],
+templates.py:1908-            "behavior": [], "results": []}}},
+templates.py:1909:    "template_amo": {"objective": "Diagnose why the new starters are slow on the counter", "method": "template_amo", "inputs": {
+templates.py:1910-        "blocks": {
+templates.py:1911-            "ability": [{"text": "New starters were not shown the card machine before their first shift", "provenance": "synthetic"}],
+templates.py:1912-            "motivation": [{"text": "The shift pays the same whether the till is quick or slow", "provenance": "synthetic"}],
+templates.py:1913-            "opportunity": []}}},
+templates.py:1914:    "template_tuckman": {"objective": "Review the tray assembly team's development", "method": "template_tuckman", "inputs": {
+templates.py:1915-        "blocks": {
+templates.py:1916-            "forming": [], "storming": [],
+--
+templates.py:1918-            "performing": [{"text": "The team clears a hundred and twenty trays in the twenty minute service", "provenance": "synthetic"}],
+templates.py:1919-            "adjourning": []}}},
+templates.py:1920:    "template_nine_box": {"objective": "Discuss the counter team's performance and potential", "method": "template_nine_box", "inputs": {
+templates.py:1921-        "blocks": {
+templates.py:1922-            "performance_criteria": [{"text": "Performance is judged on speed and on tray accuracy", "provenance": "synthetic"}],
+templates.py:1923-            "potential_criteria": [{"text": "Potential is judged on covering the counter on a Sunday", "provenance": "synthetic"}],
+templates.py:1924-            "placements": [], "development_actions": []}}},
+templates.py:1925:    "template_kotter": {"objective": "Plan the change to the campus meal card", "method": "template_kotter", "inputs": {
+templates.py:1926-        "blocks": {
+templates.py:1927-            "urgency": [{"text": "Queues at noon now run past ten minutes", "provenance": "synthetic"}],
+--
+templates.py:1929-            "vision": [], "communicate": [], "empower": [], "wins": [], "consolidate": [],
+templates.py:1930-            "institutionalize": []}}},
+templates.py:1931:    "template_competing_values": {"objective": "Read the campus catering team's culture", "method": "template_competing_values", "inputs": {
+templates.py:1932-        "blocks": {
+templates.py:1933-            "clan": [{"text": "The team shares a shift meal and covers each other's breaks", "provenance": "synthetic"}],
+templates.py:1934-            "adhocracy": [{"text": "The team tried a new grab-and-go line without asking for approval", "provenance": "synthetic"}],
+templates.py:1935-            "market": [], "hierarchy": []}}},
+templates.py:1936:    "template_org_design": {"objective": "Check the fit of the catering organisation's design", "method": "template_org_design", "inputs": {
+templates.py:1937-        "blocks": {
+templates.py:1938-            "strategy": [{"text": "The unit is to widen catering to the science faculty", "provenance": "synthetic"}],

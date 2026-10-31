@@ -1,0 +1,187 @@
+<task_output status="succeeded">
+<task_output_cursor next_offset="16213" truncated="false" />
+I'll start by mapping the repo structure and the key files under audit.
+Repo confirmed on branch `design/v0.73-rail` with a large uncommitted diff. Now reading the proposal and the source-of-truth files.
+Now let me pull the eight template definitions and the profiles file.
+The template ids didn't match my pattern — let me inspect the actual structure of `templates.py` and search the repo for these ids.
+`CANVAS_BLOCKS` is at templates.py:206 and maps kind → {key: (label, prompt)}. Let me read it.
+All eight templates found so far. Continuing through the rest of `CANVAS_BLOCKS`.
+CANVAS_BLOCKS is one of several mappings in `templates.py`. Let me identify each dict and count entries precisely.
+Let me read the rest of `framework_profiles.py` and then count everything programmatically (read-only import).
+Key finding forming: `PROFILES` at framework_profiles.py:310 contains only **two** profiles. Let me locate where the eight People profiles actually live.
+`framework_profiles.py` is unmodified from HEAD with only 2 profiles. Let me find where profiles are actually registered and count everything programmatically.
+Counts confirmed. Now examining `drafting.py` — the schemas that the eight People frameworks actually use.
+Now let me machine-compare template block keys/labels against the drafting schemas for all eight.
+All eight drafting schemas match template keys/labels exactly. Now the registry links and the `people` subject worksheets.
+All eight WORKSHEETS entries exist with `draftable: True`. Now verifying the `people` subject def actually lists them and check the tiles.
+Now checking the tile assignments for each of the eight.
+Tile mapping confirmed at subjects.py:2611-2616. Now the test file.
+Critical finding emerging. Let me examine `completion.py` — how it resolves profiles for these templates and whether the diff is generic or per-framework.
+Let me confirm `fill_of` does not exist and inspect the completion.py diff for generic vs. per-framework code.
+Now the core architectural question: checking for per-framework special-casing in the engine and page.
+Now let me verify at runtime — running the test suites with caching disabled so nothing is written.
+Now running the three relevant test files to capture runtime evidence.
+Hard runtime evidence obtained. Let me characterize the blast radius and verify the remaining claims.
+Quantifying total blast radius across the full suite, and checking the People page + drafting path directly.
+Let me determine which failures are pre-existing vs. introduced by this diff.
+Unexpected result — `has('template_sipoc')` returned True. Let me verify which module is actually being imported.
+The file changed mid-audit. Let me re-verify the current on-disk state.
+The file was rewritten at 22:29:07 (mid-audit) — a sibling writer is active. Let me re-verify the eight People profiles against the current tree.
+Let me capture the current file states and re-run the full suite for an accurate snapshot.
+The tree is being actively repaired. Let me capture the current failure set with root causes.
+Let me verify the exact API contract the People tests require against the now-current `framework_profiles.py`.
+Let me run a consolidated re-verification of all six parts against the current tree and enumerate the test methods.
+Let me definitively settle the "one engine, no per-framework branching" question.
+Final verification batch: confirming the no-branching rule and the end-to-end runtime behaviour for the eight.
+Taking a final snapshot to ensure my findings reflect the current tree.
+The line count differs between tools — let me resolve this before citing line numbers.
+The file has mixed CRLF/bare-CR line endings. Let me resolve the canonical line numbering and check the other audited files.
+Audit complete. The tree was being edited concurrently (see "Tree changed mid-audit" below); all findings are re-verified against the final state.
+
+---
+
+# People & Organisation Coverage — Audit Report
+
+**Repo:** `D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline`
+**Branch:** `design/v0.73-rail` @ `0059062` (all work uncommitted)
+**Snapshot:** 2026-10-29 ~22:38 (PST) · **Read-only** — no file was created, edited or deleted.
+
+> ⚠️ **The tree changed during this audit.** `src/bp/product/framework_profiles.py` was rewritten at **22:29:07** by a concurrent writer (399 lines / 2 profiles → 2530 lines / 20 profiles). Before that rewrite the diff broke 16 pre-existing tests (`AttributeError: module 'bp.product.framework_profiles' has no attribute 'fill_of'`); the rewrite fixed them. Every finding below was **re-verified after** that write.
+
+## 1. Per-framework verification
+
+| # | Framework (id) | (a) Template | (b) Profile | (c) Worksheet | (d) Registry link | (e) Drafting schema | (f) Test |
+|---|---|---|---|---|---|---|---|
+| 1 | Job Characteristics Model `template_job_characteristics` (PPL-03, 5 blk, Resourcing) | **PASS** templates.py:432-438 | **FAIL** | **PASS** subjects.py:2976-2979 | **PASS** registry.py:221 | **PASS** drafting.py:158-164 | **FAIL** |
+| 2 | Kirkpatrick `template_kirkpatrick` (PPL-02, 4 blk, Development) | **PASS** templates.py:439-444 | **FAIL** | **PASS** subjects.py:2980-2983 | **PASS** registry.py:221 | **PASS** drafting.py:165-170 | **FAIL** |
+| 3 | AMO `template_amo` (PPL-01, 3 blk, Engagement & culture) | **PASS** templates.py:445-449 | **FAIL** | **PASS** subjects.py:2984-2987 | **PASS** registry.py:222 | **PASS** drafting.py:171-175 | **FAIL** |
+| 4 | Tuckman `template_tuckman` (PPL-05, 5 blk, Development) | **PASS** templates.py:450-456 | **FAIL** | **PASS** subjects.py:2988-2991 | **PASS** registry.py:222 | **PASS** drafting.py:176-182 | **FAIL** |
+| 5 | Nine-Box `template_nine_box` (PPL-04, 4 blk, Resourcing) | **PASS** templates.py:457-462 | **FAIL** | **PASS** subjects.py:2992-2995 | **PASS** registry.py:223 | **PASS** drafting.py:183-188 | **FAIL** |
+| 6 | Kotter `template_kotter` (CHG-01, 8 blk, Strategy & design) | **PASS** templates.py:463-472 | **FAIL** | **PASS** subjects.py:2996-2999 | **PASS** registry.py:224 | **PASS** drafting.py:189-198 | **FAIL** |
+| 7 | Competing Values `template_competing_values` (CHG-12, 4 blk, Engagement & culture) | **PASS** templates.py:473-478 | **FAIL** | **PASS** subjects.py:3000-3003 | **PASS** registry.py:224 | **PASS** drafting.py:199-204 | **FAIL** |
+| 8 | Org Design `template_org_design` (CHG-11, 6 blk, Strategy & design) | **PASS** templates.py:479-486 | **FAIL** | **PASS** subjects.py:3004-3007 | **PASS** registry.py:225 | **PASS** drafting.py:205-212 | **FAIL** |
+
+**Claim (a) — block counts:** all eight match exactly (5/4/3/5/4/8/4/6). Every template also has a `CANVAS_META` entry (templates.py:653-701) and a `TEMPLATES` registry entry with `tier: "T4"` and `registry_ids: [cid]`.
+
+**Claim (c) — tiles:** `PEOPLE_WORKSHEET_GROUPS` (subjects.py:2611-2616) matches the proposal's tile for all eight exactly; `PEOPLE_TILES` labels confirmed at subjects.py:2585-2606.
+
+**Claim (e) — schema↔template consistency:** I compared `CANVAS_BLOCKS[kind]` keys **and** labels against `drafting.SCHEMAS[kind]` programmatically for all eight: **key order identical, key sets identical, zero label mismatches**. (Note: the label class the task flagged is a *profile*-vs-*template* mismatch; with no profile for the eight, that comparison is unrunnable — the drafting schema is the only surviving label carrier and it is clean.)
+
+---
+
+## 2. Discrepancies found
+
+### D1 — **(b) MISSING for all eight: no `framework_profiles.py` profile.** (blocking)
+
+`src/bp/product/framework_profiles.py:2408-2411`:
+
+```python
+PROFILES = {profile["template"]: profile
+            for profile in (FIVE_FORCES, PESTEL, VALUE_CHAIN, SWOT, ANSOFF, ERRC, ACTIVITY_SYSTEM,
+                            SCENARIO, STRATEGIC_GROUP, SIPOC, VALUE_STREAM_MAP, TOC, A3, SCOR, FIVE_S,
+                            ROOT_CAUSE, FMEA, KRALJIC, SALES_AND_OPERATIONS, PDCA)}
+```
+
+20 profiles. **None of the eight People templates is present.** Confirmed at runtime:
+
+```
+PROFILES keys: template_5s, template_a3, template_activity_system_fit, template_ansoff,
+template_blue_ocean_errc, template_five_forces, template_fmea, template_kraljic, template_pdca,
+template_pestel, template_root_cause, template_scenario_planning, template_scor, template_sipoc,
+template_sop, template_strategic_group_map, template_swot, template_toc, template_value_chain,
+template_value_stream_map
+People profiles present: NONE
+```
+
+Runtime consequence — the frameworks cannot complete:
+
+```
+completion.complete('template_kotter', ...) ->
+ValueError: Framework completion is not enabled for this worksheet. It runs for 5S and A3 problem
+solving and Ansoff Growth Matrix and ... and Value stream mapping.
+```
+
+(raised at `src/bp/product/completion.py:250-253`)
+
+Sub-keys the People test demands but which no profile supplies, since the profile itself is absent:
+`profile["subject"] == "people"`, `profile["unit"]["field"] == "process"`, `notes[block]["probe"]`,
+`notes[block]["analysis"/"qualify"/"short"]`, `fill_of(block) == "research"` for every block, and
+`describe_extra(kind)["fills"]` / `["blocks"][i]["fill"]`.
+
+### D2 — **(f) The People test file cannot be collected — zero tests execute.**
+
+`tests/test_people_frameworks.py:67-69` (module level):
+
+```python
+CUE_BLOB = " ".join(sorted({word for kind in NEW
+                            for block in framework_profiles.get(kind)["blocks"]
+                            for word in block["cues"].split()}))
+```
+
+`framework_profiles.get(kind)` returns `None` for all eight → `TypeError: 'NoneType' object is not subscriptable`:
+
+```
+ERROR tests/test_people_frameworks.py - TypeError: 'NoneType' object is not subscriptable
+1 error in 0.94s
+```
+
+**Answer to "name the test methods per framework": there are none.** The file is entirely data-driven over a single `NEW` dict (lines 34-59); every test loops over all eight. The 5 classes / 29 methods are:
+
+- `RegistrationTest` (:112) — `test_every_new_worksheet_is_t4_and_links_its_record` (:115), `…declares_the_form_the_page_renders` (:124), `…describes_its_limits_and_unsupported_use` (:128), `test_the_registry_accepts_the_new_template_links` (:138), `test_every_worksheet_can_be_drafted_from_the_sources_it_retrieves` (:141)
+- `ProfileTest` (:147) — `test_the_profiles_carry_every_block_of_their_canvas` (:150), `…are_declared_as_people_frameworks` (:160), `test_every_part_is_a_research_block_and_carries_a_query` (:165), `…carries_a_probe_and_a_background_paragraph_without_a_figure` (:174), `test_the_page_is_told_which_parts_it_may_complete` (:182)
+- `PeoplePageTest` (:190) — 9 methods, :196–:247
+- `CompletionTest` (:254) — 13 methods, :257–:371
+- `ExampleTest` (:378) / `PageTest` (:407) — :381, :388, :398, :410, :416
+
+All five `ProfileTest` methods and every `CompletionTest` method fail at D1.
+
+### D3 — **"28 profiles" is false; the real count is 20.**
+
+Verified: `len(PROFILES) == 20`. `bp.templates` `TEMPLATES` == **45** — that half of the claim is **correct**. Note `20 + 8 = 28`: the proposal's figure equals the current20 profiles **plus the eight People profiles that were never written**, i.e. it counts the intended end state, not the code.
+
+### D4 — **`framework_profiles.py` has mixed line endings** (minor, but it will bite editors and diffs).
+
+```
+src/bp/product/framework_profiles.py   CRLF=2529  bareLF=0  bareCR=2529
+```
+Every other audited file is uniform (`templates.py` LF, `subjects.py` CRLF, `registry.py` LF, `drafting.py` LF, `completion.py` LF, `api.py` LF, `web/index.html` LF, `test_people_frameworks.py` LF). Note this also makes line numbering ambiguous: the file is 2530 lines under CRLF/LF splitting but 5058 under `splitlines()`. The line numbers I cite use the CRLF convention (what the `read` tool and editors show): `PROFILES` at **2408**, `fill_of` at **2468**.
+
+### D5 — **Suite state (context for the verdict).**
+
+`python -m pytest tests -q --continue-on-collection-errors` → **10 failed, 1915 passed, 1 error, 102 subtests passed**.
+
+The 1 error is the People file (D2). The 10 failures are **not** People:3 in `test_ansoff_completion.py`, 6 in `test_value_chain_completion.py`, 1 in `test_docs_sync.py` (`docs/HOME.md says 1961 tests, but the suite holds 1926 tests`). Earlier in the session the same suite was **67 failed** — the 22:29 rewrite of `framework_profiles.py` repaired 57 of those. The 10 remaining are pre-existing to this People work.
+
+---
+
+## 3. Is the engine generic (no per-framework branching)?
+
+**Yes — the "one engine, no per-framework branching" rule is honoured.** I grepped all three files for every one of the eight template ids and framework names:
+
+- `src/bp/product/completion.py` — **no match** for any of the eight.
+- `src/bp/product/api.py` — **no match** for any of the eight.
+- `web/index.html` — **no match** for any of the eight. (The only template-id literals in the page are the pre-existing `template_strategic_group_map`, `template_raci`, `template_risk_register` layout specials at index.html:5385-5386, 5422-5423, 6016.)
+
+The +397-line `completion.py` diff is **generic mechanism**, not per-framework branching. The additions are:
+
+- a **fill taxonomy** read from the profile — `src/bp/product/completion.py:289`: `if framework_profiles.fill_of(block) in ("research", "auto")]:`, `:330` `("quote", "auto")`, `:191` `if fill == "gap":`
+- a **quote block type** — `completion.py:165` `def _quote_block(profile, block, instruction):`
+- the **background-paragraph fallback** — `completion.py:346-350`:
+  ```python
+  filler = _clean(notes_for_block.get("analysis"), 700) if background else ""
+  if filler:
+      items = [{"text": filler, "provenance": "background", "source": ""}]
+  ```
+- a **generic `process` unit field** — `completion.py:136` `if field == "process":`
+- `api.py`'s diff adds one generic route (`/api/worksheets/map` → `mapsheet.build`) and a `unit` parameter — no per-framework branch.
+
+**But the generic engine cannot reach the eight.** The gate at `completion.py:250-253` requires `framework_profiles.has(template)`; with no profile the eight are refused before any research, which is exactly D1. The `research`-block machinery the proposal describes (`FILL` / `fill_of` at framework_profiles.py:2465-2479, `describe_extra["fills"]` at :2525-2528) is **in place**; only the eight profile records are absent.
+
+---
+
+## 4. Verdict
+
+**The claim under audit is false as written: five of the six parts exist for all eight frameworks; the profile part does not exist for any of them.** Template, worksheet, registry link, drafting schema and tile are all present and correct for each of the eight, and I found **no key or label mismatch** between the templates and the drafting schemas — the specific bug class I was asked to hunt is absent. But `src/bp/product/framework_profiles.py` contains 20 profiles and none of them is a People framework, so all eight frameworks are refused by the completion engine at `completion.py:250-253` and `tests/test_people_frameworks.py` dies at import with `TypeError: 'NoneType' object is not subscriptable` — **not one of the eight has an executable test**. The proposal's "28 profiles" is a count of the intended end state (20 +8), not of the code; its "45 templates" is accurate. The architectural rule is intact — `completion.py`, `api.py` and `web/index.html` contain no per-framework branches, and the `completion.py` growth is generic fill-taxonomy / quote / background-fallback mechanism — so the fix is additive and in the right place: write the eight profiles into `framework_profiles.py` (each with `subject: "people"`, `unit.field: "process"`, `assumption: "probe"`, per-block `cues`/`queries`/`fill: "research"`, `notes[block]` carrying `analysis`/`qualify`/`short`/`probe`, block keys and labels matching `CANVAS_BLOCKS` exactly, and the seven required `outline` fields), then register them in the `PROFILES` tuple at `framework_profiles.py:2408-2411`.
+
+**Caveat on freshness:** the working tree is being edited concurrently. `framework_profiles.py` changed at 22:29:07 mid-audit. Re-verify before acting on this report.
+</task_output>

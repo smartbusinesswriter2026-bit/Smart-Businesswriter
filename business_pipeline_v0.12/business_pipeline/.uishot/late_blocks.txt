@@ -1,0 +1,23 @@
+    "template_mckinsey_7s": {
+        "strategy": ("Strategy", "The plan for competing and the choices that shape the firm"),
+        "structure": ("Structure", "How the firm is organized and who reports to whom"),
+        "systems": ("Systems", "The processes, procedures and routines that run the firm"),
+        "shared_values": ("Shared Values", "The core values and culture that guide behaviour"),
+        "style": ("Style", "The leadership style and how decisions are made"),
+        "staff": ("Staff", "The people, their skills and how they are developed"),
+        "skills": ("Skills", "The distinctive capabilities the firm possesses"),
+    },
+    "template_raci": {
+        "responsible": ("Responsible", "Who does the work and is accountable for getting it done"),
+        "accountable": ("Accountable", "Who owns the outcome and has the final say"),
+        "consulted": ("Consulted", "Who is asked for input before the decision is made"),
+        "informed": ("Informed", "Who is told after the decision is made"),
+    },
+    "template_porters_diamond": {
+        "factor_conditions": ("Factor Conditions", "The nations endowment of natural, human, capital and infrastructure resources"),
+        "demand_conditions": ("Demand Conditions", "The nature of domestic demand and how it shapes competitive advantage"),
+        "related_industries": ("Related and Supporting Industries", "The presence of supplier and related industries that are internationally competitive"),
+        "firm_strategy": ("Firm Strategy, Structure and Rivalry", "How firms are created, organized and managed, and the nature of domestic rivalry"),
+        "government": ("Government", "The role of government in shaping the diamond"),
+        "chance": ("Chance", "The role of chance events in shaping competitive advantage"),
+    },

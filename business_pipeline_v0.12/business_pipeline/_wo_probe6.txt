@@ -1,0 +1,146 @@
+
+### template_adkar  (ADKAR)
+    1.00  CHG-02   ADKAR                                                type=M   form=read_only  overlap=['adkar']
+
+### template_aida  (AIDA)
+    1.00  MKT-03   AIDA                                                 type=M   form=read_only  overlap=['aida']
+
+### template_attribution  (Attribution and Campaign Measurement)
+    1.00  MKT-19   Attribution and campaign measurement                 type=Q   form=computed   overlap=['and', 'attribution', 'campaign', 'measurement']
+    0.50  QNT-OPS-07 SPC and measurement-system checks where data assumptions are satisfied type=Q   form=read_only  overlap=['and', 'measurement']
+    0.50  QNT-MKT-08 Campaign performance and media efficiency            type=Q   form=computed   overlap=['and', 'campaign']
+    0.50  QNT-EVL-05 SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions type=Q   form=read_only  overlap=['and', 'attribution']
+
+### template_bcg  (BCG Growth-Share Matrix)
+    1.00  STR-10   BCG Growth-Share Matrix                              type=M   form=read_only  overlap=['bcg', 'growth', 'matrix', 'share']
+    0.50  QNT-MKT-02 Market share, growth rates, penetration, conversion rates and funnel leakage type=Q   form=computed   overlap=['growth', 'share']
+    0.25  STR-11   GE–McKinsey Portfolio Matrix                         type=M   form=read_only  overlap=['matrix']
+    0.25  STR-09   Ansoff Matrix                                        type=F   form=worksheet  overlap=['matrix']
+
+### template_brand_equity  (Brand Equity)
+    1.00  MKT-11   Brand Equity Assessment                              type=M   form=read_only  overlap=['brand', 'equity']
+
+### template_burke_litwin  (Burke-Litwin)
+    1.00  CHG-05   Burke–Litwin Organizational Performance and Change Model type=M   form=read_only  overlap=['burke', 'litwin']
+
+### template_change_organization  (Change and Organization)
+    0.67  CHG-05   Burke–Litwin Organizational Performance and Change Model type=M   form=read_only  overlap=['and', 'change']
+    0.33  QNT-STA-10 Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit type=Q   form=read_only  overlap=['and']
+    0.33  QNT-STA-09 Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics type=Q   form=read_only  overlap=['and']
+    0.33  QNT-STA-08 Clustering, classification and segmentation with suitable validation type=Q   form=read_only  overlap=['and']
+
+### template_cro  (Conversion Rate Optimisation)
+    1.00  MKT-20   Conversion-rate optimisation and landing-page testing type=Q   form=computed   overlap=['conversion', 'optimisation', 'rate']
+    0.33  QNT-MKT-14 Web traffic and conversion by channel                type=Q   form=computed   overlap=['conversion']
+    0.33  QNT-MKT-03 Cohort retention, churn, repeat-purchase rate and customer lifetime analysis type=Q   form=computed   overlap=['rate']
+    0.33  QNT-MKT-02 Market share, growth rates, penetration, conversion rates and funnel leakage type=Q   form=computed   overlap=['conversion']
+
+### template_digital_mix  (Digital Marketing Mix)
+    1.00  MKT-13   Digital marketing mix: owned, earned and paid channels type=F   form=read_only  overlap=['digital', 'marketing', 'mix']
+    0.67  MKT-02   Marketing Mix: 4Ps / Services Mix: 7Ps               type=F   form=worksheet  overlap=['marketing', 'mix']
+    0.33  OPS-01   SCOR Digital Standard                                type=F   form=worksheet  overlap=['digital']
+    0.33  MKT-21   Marketing automation and lead scoring                type=F   form=read_only  overlap=['marketing']
+
+### template_dmaic  (DMAIC)
+    1.00  CHG-10   DMAIC                                                type=F   form=read_only  overlap=['dmaic']
+
+### template_email_crm  (Email CRM and Lifecycle)
+    1.00  MKT-16   Email, CRM and lifecycle marketing                   type=M   form=read_only  overlap=['and', 'crm', 'email', 'lifecycle']
+    0.75  QNT-MKT-12 Email list health and lifecycle performance          type=Q   form=computed   overlap=['and', 'email', 'lifecycle']
+    0.25  QNT-STA-10 Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit type=Q   form=read_only  overlap=['and']
+    0.25  QNT-STA-09 Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics type=Q   form=read_only  overlap=['and']
+
+### template_funnel  (Funnel)
+    1.00  QNT-MKT-02 Market share, growth rates, penetration, conversion rates and funnel leakage type=Q   form=computed   overlap=['funnel']
+    1.00  MKT-05   Marketing / Sales Funnel                             type=M   form=read_only  overlap=['funnel']
+
+### template_galbraith_star  (Galbraith Star)
+    1.00  CHG-06   Galbraith Star Model                                 type=F   form=read_only  overlap=['galbraith', 'star']
+    0.50  CHG-11   Organizational Design: Star/fit review               type=F   form=worksheet  overlap=['star']
+
+### template_ge_mckinsey  (GE-McKinsey Matrix)
+    1.00  STR-11   GE–McKinsey Portfolio Matrix                         type=M   form=read_only  overlap=['matrix', 'mckinsey']
+    0.50  STR-10   BCG Growth-Share Matrix                              type=M   form=read_only  overlap=['matrix']
+    0.50  STR-09   Ansoff Matrix                                        type=F   form=worksheet  overlap=['matrix']
+    0.50  RSK-05   Stakeholder Analysis / Power–Interest Matrix         type=F   form=read_only  overlap=['matrix']
+
+### template_generic_strategies  (Generic Strategies)
+    1.00  STR-02   Porter's Generic Strategies                          type=F   form=read_only  overlap=['generic', 'strategies']
+
+### template_lewin  (Lewin)
+    1.00  CHG-03   Lewin's Three-Stage Model                            type=F   form=read_only  overlap=['lewin']
+
+### template_logic_model  (Logic Model)
+    1.00  CHG-08   Logic Model                                          type=F   form=read_only  overlap=['logic', 'model']
+    0.50  STR-15   Business Model Canvas                                type=F   form=worksheet  overlap=['model']
+    0.50  QNT-STA-10 Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit type=Q   form=read_only  overlap=['model']
+    0.50  QNT-DEC-04 Monte Carlo simulation with documented distributions, dependence assumptions and model validation type=Q   form=read_only  overlap=['model']
+
+### template_marketing_automation  (Marketing Automation)
+    1.00  MKT-21   Marketing automation and lead scoring                type=F   form=read_only  overlap=['automation', 'marketing']
+    0.50  MKT-17   Social media and influencer marketing                type=M   form=read_only  overlap=['marketing']
+    0.50  MKT-16   Email, CRM and lifecycle marketing                   type=M   form=read_only  overlap=['marketing']
+    0.50  MKT-14   SEO and content marketing plan                       type=F   form=read_only  overlap=['marketing']
+
+### template_mckinsey_7s  (McKinsey 7S)
+    1.00  STR-11   GE–McKinsey Portfolio Matrix                         type=M   form=read_only  overlap=['mckinsey']
+    1.00  CHG-04   McKinsey 7-S                                         type=F   form=read_only  overlap=['mckinsey']
+
+### template_mintzberg  (Mintzberg)
+    1.00  CHG-13   Mintzberg Organizational Configurations              type=M   form=read_only  overlap=['mintzberg']
+
+### template_pdsa  (PDSA)
+    1.00  OPS-12   PDCA / PDSA                                          type=F   form=worksheet  overlap=['pdsa']
+    1.00  CHG-09   Plan–Do–Study–Act (PDSA)                             type=F   form=read_only  overlap=['pdsa']
+
+### template_porters_diamond  (Porters Diamond)
+    0.50  STR-05   Porter's Diamond                                     type=F   form=read_only  overlap=['diamond']
+
+### template_rfm  (RFM)
+    1.00  MKT-08   RFM Segmentation                                     type=Q   form=computed   overlap=['rfm']
+
+### template_seo_content  (SEO and Content)
+    1.00  MKT-14   SEO and content marketing plan                       type=F   form=read_only  overlap=['and', 'content', 'seo']
+    0.33  QNT-STA-10 Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit type=Q   form=read_only  overlap=['and']
+    0.33  QNT-STA-09 Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics type=Q   form=read_only  overlap=['and']
+    0.33  QNT-STA-08 Clustering, classification and segmentation with suitable validation type=Q   form=read_only  overlap=['and']
+
+### template_social_media  (Social Media and Influencer)
+    1.00  MKT-17   Social media and influencer marketing                type=M   form=read_only  overlap=['and', 'influencer', 'media', 'social']
+    0.75  MKT-15   Paid media plan: search, social and display          type=F   form=worksheet  overlap=['and', 'media', 'social']
+    0.50  QNT-MKT-13 Social engagement and audience growth                type=Q   form=computed   overlap=['and', 'social']
+    0.50  QNT-MKT-08 Campaign performance and media efficiency            type=Q   form=computed   overlap=['and', 'media']
+
+### template_stp  (STP)
+    1.00  MKT-12   STP-to-positioning evidence check                    type=F   form=read_only  overlap=['stp']
+    1.00  MKT-01   Segmentation–Targeting–Positioning (STP)             type=F   form=read_only  overlap=['stp']
+
+### template_stp_evidence  (STP Evidence Check)
+    1.00  MKT-12   STP-to-positioning evidence check                    type=F   form=read_only  overlap=['check', 'evidence', 'stp']
+    0.33  STR-18   SWOT evidence-to-action review                       type=F   form=worksheet  overlap=['evidence']
+    0.33  MKT-01   Segmentation–Targeting–Positioning (STP)             type=F   form=read_only  overlap=['stp']
+
+### template_strategic_positioning  (Strategic Positioning)
+    1.00  STR-04   Porter's Strategic Positioning / Activity-System Fit type=F   form=worksheet  overlap=['positioning', 'strategic']
+    0.50  STR-12   Strategic Group Mapping                              type=M   form=worksheet  overlap=['strategic']
+    0.50  MKT-12   STP-to-positioning evidence check                    type=F   form=read_only  overlap=['positioning']
+    0.50  MKT-01   Segmentation–Targeting–Positioning (STP)             type=F   form=read_only  overlap=['positioning']
+
+### template_strategy_4  (Strategy 4)
+    1.00  STR-13   Blue Ocean Strategy Canvas / ERRC Grid               type=F   form=worksheet  overlap=['strategy']
+    1.00  PM-02    Strategy Map                                         type=F   form=read_only  overlap=['strategy']
+
+### template_tam  (Technology Acceptance Model)
+    1.00  MKT-09   Technology Acceptance Model (TAM)                    type=M   form=read_only  overlap=['acceptance', 'model', 'technology']
+    0.33  STR-15   Business Model Canvas                                type=F   form=worksheet  overlap=['model']
+    0.33  QNT-STA-10 Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit type=Q   form=read_only  overlap=['model']
+    0.33  QNT-DEC-04 Monte Carlo simulation with documented distributions, dependence assumptions and model validation type=Q   form=read_only  overlap=['model']
+
+### template_theory_of_change  (Theory of Change)
+    1.00  CHG-07   Theory of Change                                     type=F   form=read_only  overlap=['change', 'theory']
+    0.50  OPS-06   Theory of Constraints — Five Focusing Steps          type=F   form=worksheet  overlap=['theory']
+    0.50  CHG-05   Burke–Litwin Organizational Performance and Change Model type=M   form=read_only  overlap=['change']
+    0.50  CHG-01   Kotter's 8-Step Change Model                         type=F   form=worksheet  overlap=['change']
+
+### template_utaut  (UTAUT)
+    1.00  MKT-10   UTAUT                                                type=M   form=read_only  overlap=['utaut']

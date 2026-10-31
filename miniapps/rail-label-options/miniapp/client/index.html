@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rail label options — Smart BusinessWriter</title>
+<style>
+/* ---------- page chrome (MiniMax Code baseline) ---------- */
+:root{
+  --mcode-bg:#ffffff; --mcode-bg-secondary:#f5f5f5; --mcode-surface:#ffffff;
+  --mcode-surface-muted:#fafafa; --mcode-text:#171717; --mcode-text-muted:#666666;
+  --mcode-text-subtle:#adadad; --mcode-border:#0a0a0a14; --mcode-border-strong:#0a0a0af2;
+  --mcode-accent:#0094fc; --mcode-success:#04b54b; --mcode-warning:#f56811; --mcode-danger:#f73646;
+  --mcode-primary-action-bg:#171717; --mcode-primary-action-text:#ffffff;
+  /* the product palette being reviewed (sampled from the owner's logo PNG) */
+  --sbw-navy-900:#02284C; --sbw-navy-700:#0C243E; --sbw-green-900:#0A4632;
+  --sbw-green-100:#E2F4EC; --sbw-green-600:#02A15E;
+  --sbw-border:#E4E8EC; --sbw-sunken:#F5F7F9; --sbw-canvas:#FCFCFC;
+  --r-card:12px; --r-ctl:8px;
+}
+[data-theme="dark"]{
+  --mcode-bg:#171717; --mcode-bg-secondary:#1c1c1c; --mcode-surface:#262626;
+  --mcode-surface-muted:#262626; --mcode-text:#ededed; --mcode-text-muted:#949494;
+  --mcode-text-subtle:#666666; --mcode-border:#ffffff14; --mcode-border-strong:#fffffff2;
+  --mcode-accent:#0077d9; --mcode-success:#009c3d; --mcode-warning:#e25507; --mcode-danger:#e31937;
+  --mcode-primary-action-bg:#ffffff; --mcode-primary-action-text:#171717;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--mcode-bg);color:var(--mcode-text);
+  font:14px/1.55 ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.skip{position:absolute;left:-999px;top:0;background:var(--mcode-text);color:var(--mcode-bg);padding:8px 12px;z-index:60}
+.skip:focus{left:8px;top:8px}
+code,pre{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font-size:12.5px;background:var(--mcode-surface-muted);border:1px solid var(--mcode-border);
+  border-radius:4px;padding:1px 5px}
+
+header.top{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+  padding:20px 20px 14px;border-bottom:1px solid var(--mcode-border)}
+header.top h1{margin:0;font-size:18px;line-height:1.5;font-weight:600;letter-spacing:-.01em}
+header.top .sub{margin:4px 0 0;font-size:12.5px;line-height:1.6;color:var(--mcode-text-muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;font-size:12px;font-weight:500;
+  border:1px solid var(--mcode-border);background:var(--mcode-surface-muted);color:var(--mcode-text-muted);
+  border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--mcode-success)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;
+  border-bottom:1px solid var(--mcode-border);background:var(--mcode-bg-secondary);position:sticky;top:0;z-index:10}
+.seg{display:inline-flex;background:var(--mcode-surface-muted);border:1px solid var(--mcode-border);
+  border-radius:var(--r-ctl);padding:2px;gap:2px}
+.seg button{all:unset;cursor:pointer;font:inherit;font-size:13px;padding:5px 12px;border-radius:6px;
+  color:var(--mcode-text-muted);line-height:1.4}
+.seg button[aria-checked="true"]{background:var(--mcode-surface);color:var(--mcode-text);
+  box-shadow:0 1px 2px rgb(10 10 10 / 8%);font-weight:500}
+.seg button:focus-visible,.switch:focus-within{outline:2px solid var(--mcode-accent);outline-offset:2px}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mcode-text);cursor:pointer;
+  border:1px solid var(--mcode-border);background:var(--mcode-surface);border-radius:var(--r-ctl);padding:5px 10px}
+.switch input{accent-color:var(--mcode-accent);margin:0;width:14px;height:14px}
+.hint{font-size:12px;color:var(--mcode-text-subtle)}
+
+main{padding:20px;max-width:900px;margin:0 auto}
+section{margin:0 0 28px}
+h2{font-size:16px;line-height:24px;font-weight:500;margin:0 0 6px}
+h3{font-size:14px;line-height:20px;font-weight:600;margin:0 0 2px}
+.lead{margin:0 0 14px;color:var(--mcode-text-muted);font-size:13.5px;max-width:70ch}
+.card{background:var(--mcode-surface);border:1px solid var(--mcode-border);border-radius:var(--r-card);
+  padding:16px;margin:0 0 16px}
+.card > header{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:0 0 4px}
+.tag{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;
+  border-radius:6px;background:var(--mcode-primary-action-bg);color:var(--mcode-primary-action-text);
+  font-size:12px;font-weight:600;letter-spacing:.02em}
+.tag.ghost{background:var(--mcode-surface-muted);color:var(--mcode-text-muted);font-weight:500;
+  border:1px solid var(--mcode-border)}
+.card .idea{margin:0 0 12px;font-size:13.5px;color:var(--mcode-text-muted);max-width:74ch}
+.metric{margin-left:auto;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;
+  border:1px solid var(--mcode-border);background:var(--mcode-surface-muted);color:var(--mcode-text);white-space:nowrap}
+.metric .from{color:var(--mcode-text-subtle);font-weight:400}
+.metric .arrow{color:var(--mcode-text-subtle);padding:0 3px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+caption{text-align:left;font-size:12.5px;color:var(--mcode-text-muted);padding:0 0 8px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--mcode-border);vertical-align:top}
+thead th{font-size:12px;font-weight:600;color:var(--mcode-text-muted);text-transform:none;
+  background:var(--mcode-surface-muted)}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+td.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;color:var(--mcode-text-muted)}
+.scroll-x{overflow-x:auto}
+
+.note{font-size:12.5px;line-height:1.6;color:var(--mcode-text-muted);margin:12px 0 0;
+  border-left:2px solid var(--mcode-border);padding:2px 0 2px 12px}
+.note strong{color:var(--mcode-text);font-weight:600}
+pre{margin:0;background:var(--mcode-surface-muted);border:1px solid var(--mcode-border);border-radius:var(--r-ctl);
+  padding:10px 12px;overflow-x:auto;font-size:12px;line-height:1.65;color:var(--mcode-text)}
+pre .c{color:var(--mcode-text-subtle)}
+pre .k{color:var(--mcode-accent)}
+.grid2{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:720px){.grid2{grid-template-columns:1fr 1fr}}
+.kv{display:grid;grid-template-columns:74px 1fr;gap:4px 10px;font-size:12.5px;margin:10px 0 0}
+.kv dt{color:var(--mcode-text-subtle)}
+.kv dd{margin:0;color:var(--mcode-text-muted)}
+ul.tight{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--mcode-text-muted)}
+ul.tight li{margin:0 0 4px}
+ol.steps{margin:10px 0 0;padding-left:20px;font-size:13.5px}
+ol.steps li{margin:0 0 10px}
+ol.steps b{font-weight:600}
+footer.foot{border-top:1px solid var(--mcode-border);margin-top:8px;padding:16px 0 40px;
+  font-size:12px;color:var(--mcode-text-subtle)}
+
+/* ---------- the rail replica (product palette, faithful geometry) ---------- */
+.stage{display:flex;align-items:stretch;gap:0;border:1px solid var(--mcode-border);border-radius:var(--r-ctl);
+  background:var(--mcode-canvas);overflow:hidden;margin:0 0 12px}
+.railmock{--stripW:var(--o-stripW);--pad:var(--o-pad);--icw:var(--o-icw);--icpad:var(--o-icpad);
+  --textx:var(--o-textx);--railw:272px;
+  position:relative;flex:0 0 auto;width:var(--railw);background:var(--sbw-surface,#fff);
+  border-right:1px solid var(--sbw-border);padding:12px var(--pad);box-sizing:border-box;
+  transition:width .3s ease-out}
+.railmock.collapsed{--stripW:var(--c-stripW);--pad:var(--c-pad);--icpad:var(--c-icpad);
+  --railw:var(--c-stripW)}
+.railmock .accent{position:absolute;left:0;top:0;bottom:0;width:var(--stripW);background:var(--sbw-green-900);
+  pointer-events:none;z-index:0}
+.railmock .col{position:relative;z-index:1;display:flex;flex-direction:column;gap:6px}
+.railmock .rtoggle{height:36px;display:flex;align-items:center;justify-content:flex-end;
+  color:var(--sbw-navy-700);flex:0 0 auto}
+.railmock .rtoggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.railmock.collapsed .rtoggle{justify-content:center;width:var(--stripW);margin-left:calc(-1 * var(--pad));
+  color:#fff}
+.railmock .rsep{height:1px;margin:6px 12px;background:var(--sbw-border);flex:0 0 auto}
+.railmock .ritem{display:flex;align-items:center;gap:var(--textgap);height:42px;
+  padding:0 12px 0 var(--icpad);border-radius:10px;box-sizing:border-box;position:relative;
+  white-space:nowrap;color:var(--labelcol);font-size:var(--fs);font-weight:var(--fw);line-height:1.5;
+  text-decoration:none;background:none;border:0;cursor:default}
+.railmock .ric{flex:0 0 var(--icw);width:var(--icw);height:var(--icw);position:relative;z-index:1;
+  display:inline-flex;align-items:center;justify-content:center}
+.railmock .ric svg{flex:0 0 auto;width:19px;height:19px;fill:var(--i,#fff);stroke:none}
+.railmock .rtxt{position:relative;z-index:2}
+.railmock .rgroup{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--sbw-text-3,#7A8894);padding:8px 12px 2px calc(var(--textx) - var(--pad));white-space:nowrap}
+.railmock.collapsed .rtxt,.railmock.collapsed .rgroup{display:none}
+.railmock.collapsed .ritem{gap:0}
+
+/* the real page's active row: mint pill on the word only */
+.railmock.v-now .ritem[aria-current="page"] .rtxt::before{content:"";position:absolute;left:0;right:-12px;
+  top:-4px;bottom:-4px;background:var(--sbw-green-100);border-radius:8px;z-index:-1}
+.railmock.v-now .ritem[aria-current="page"] .ric svg{filter:drop-shadow(0 0 3px rgba(255,255,255,.85))}
+.railmock.v-now .ritem[aria-current="page"]{color:var(--sbw-navy-900);font-weight:600}
+.railmock.v-now .ritem:hover{background:var(--sbw-sunken)}
+
+/* Options 1, 2 and 3: the row is ONE highlight that crosses the seam between the
+   green strip and the white label column. The strip half is translucent white on
+   green; the label half is the sunken tone on white. */
+.railmock.v-opt1 .ritem::before,.railmock.v-opt2 .ritem::before,
+.railmock.v-opt3 .ritem::before{content:"";position:absolute;
+  left:calc(var(--stripW) - var(--pad));right:0;top:0;bottom:0;border-radius:0 10px 10px 0;
+  background:var(--sbw-sunken);opacity:0;transition:opacity .15s ease-out}
+.railmock.v-opt1 .ritem::after,.railmock.v-opt2 .ritem::after,
+.railmock.v-opt3 .ritem::after{content:"";position:absolute;
+  left:calc(-1 * var(--pad));width:var(--stripW);top:0;bottom:0;border-radius:10px 0 0 10px;
+  background:rgba(255,255,255,.14);opacity:0;transition:opacity .15s ease-out}
+.railmock.v-opt1 .ritem:hover::before,.railmock.v-opt2 .ritem:hover::before,
+.railmock.v-opt3 .ritem:hover::before,
+.railmock.v-opt1 .ritem:hover::after,.railmock.v-opt2 .ritem:hover::after,
+.railmock.v-opt3 .ritem:hover::after{opacity:1}
+.railmock.v-opt1 .ritem[aria-current="page"] .ric::before,
+.railmock.v-opt2 .ritem[aria-current="page"] .ric::before{content:"";position:absolute;inset:0;
+  background:#fff;border-radius:8px}
+.railmock.v-opt1 .ritem[aria-current="page"] .ric svg,
+.railmock.v-opt2 .ritem[aria-current="page"] .ric svg{fill:var(--sbw-green-900)}
+.railmock.v-opt1 .ritem[aria-current="page"] .rtxt::before,
+.railmock.v-opt2 .ritem[aria-current="page"] .rtxt::before{content:"";position:absolute;left:0;right:-12px;
+  top:-4px;bottom:-4px;background:var(--sbw-green-100);border-radius:8px;z-index:-1}
+.railmock.v-opt1 .ritem[aria-current="page"],.railmock.v-opt2 .ritem[aria-current="page"]{
+  color:var(--sbw-navy-900);font-weight:600}
+
+/* Option 3: a hard-edged tile around every glyph */
+.railmock.v-opt3 .ric{background:rgba(255,255,255,.14);border-radius:8px}
+.railmock.v-opt3 .ritem[aria-current="page"] .ric{background:var(--i);border-radius:8px}
+.railmock.v-opt3 .ritem[aria-current="page"] .ric svg{fill:#fff}
+.railmock.v-opt3 .ritem[aria-current="page"] .rtxt::before{content:"";position:absolute;left:0;right:-12px;
+  top:-4px;bottom:-4px;background:var(--sbw-green-100);border-radius:8px;z-index:-1}
+.railmock.v-opt3 .ritem[aria-current="page"]{color:var(--sbw-navy-900);font-weight:600}
+
+/* Option 4: no spine, icon and word on one surface */
+.railmock.v-opt4{background:var(--sbw-surface,#fff);border-right:1px solid var(--sbw-border)}
+.railmock.v-opt4 .accent{display:none}
+.railmock.v-opt4.collapsed .accent{display:block}
+.railmock.v-opt4 .ric{background:var(--tile);border-radius:8px}
+.railmock.v-opt4.collapsed .ric{background:transparent}
+.railmock.v-opt4 .ritem[aria-current="page"] .ric{background:var(--i)}
+.railmock.v-opt4.collapsed .ritem[aria-current="page"] .ric{background:var(--i)}
+.railmock.v-opt4 .ritem[aria-current="page"] .ric svg{fill:#fff}
+.railmock.v-opt4 .ritem[aria-current="page"] .rtxt::before{content:"";position:absolute;left:0;right:-12px;
+  top:-4px;bottom:-4px;background:var(--sbw-green-100);border-radius:8px;z-index:-1}
+.railmock.v-opt4 .ritem[aria-current="page"]{color:var(--sbw-navy-900);font-weight:600}
+.railmock.v-opt4 .ritem:hover{background:var(--sbw-sunken)}
+.railmock.v-opt4 .ritem:hover .ric{background:var(--i)}
+.railmock.v-opt4.collapsed .ritem:hover .ric{background:transparent}
+.railmock.v-opt4 .ritem:hover .ric svg{fill:#fff}
+
+/* the collapsed rail keeps bare glyphs, like the shipped strip */
+.railmock.v-opt3.collapsed .ric{background:transparent}
+.railmock.v-opt3.collapsed .ritem[aria-current="page"] .ric{background:var(--i)}
+.railmock.v-opt3.collapsed .ritem:hover .ric{background:rgba(255,255,255,.14)}
+
+/* measurement overlay */
+.meas{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .15s ease-out}
+.meas.on{opacity:1}
+.meas .ml{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed rgba(2,40,76,.55)}
+.meas .ml.strip{border-left-color:rgba(2,40,76,.75)}
+.meas .band{position:absolute;height:16px;top:25px;background:rgba(0,148,252,.18);
+  border-left:1px solid rgba(0,148,252,.8);border-right:1px solid rgba(0,148,252,.8)}
+.meas .chip{position:absolute;font-size:9.5px;line-height:1;padding:3px 5px;border-radius:4px;
+  background:var(--mcode-text);color:#fff;white-space:nowrap;transform:translateX(-50%);font-weight:500;
+  z-index:2;min-width:14px;text-align:center}
+.meas .chip.blue{background:var(--mcode-accent)}
+.meas .chip.low{bottom:3px;top:auto}
+.meas .chip.stripchip{background:rgba(2,40,76,.85)}
+.legend{display:none;margin:8px 0 0;font-size:12px;color:var(--mcode-text-subtle);line-height:1.6}
+body.meas-on .legend{display:block}
+body.meas-on .railmock.collapsed .meas{opacity:0}
+
+/* page peek next to the rail, for context */
+.peek{flex:1 1 auto;min-width:0;background:var(--sbw-canvas,#fcfcfc);padding:16px 14px;overflow:hidden}
+.peek .h{height:11px;border-radius:3px;background:#E9EDF1;margin:0 0 8px}
+.peek .h.w1{width:62%}.peek .h.w2{width:88%}.peek .h.w3{width:44%}
+.peek .box{height:54px;border-radius:8px;background:#fff;border:1px solid var(--sbw-border,#E4E8EC);margin:14px 0 8px}
+.peek .ln{height:7px;border-radius:3px;background:#EEF1F4;margin:0 0 7px}
+.peek .ln.w1{width:92%}.peek .ln.w2{width:76%}.peek .ln.w3{width:58%}
+
+footer.foot code{font-size:11.5px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div>
+    <h1>Rail labels vs icons — harmonisation options</h1>
+    <p class="sub">Smart BusinessWriter · <code>business_pipeline/web/index.html</code> · measured on the served page at <code>127.0.0.1:8021</code> · <strong>nothing applied</strong></p>
+  </div>
+  <span class="pill"><span class="dot"></span>Read-only review</span>
+</header>
+
+<div class="toolbar" role="group" aria-label="View controls">
+  <div class="seg" role="radiogroup" aria-label="Rail state">
+    <button type="button" role="radio" aria-checked="true" data-state="open">Rail open</button>
+    <button type="button" role="radio" aria-checked="false" data-state="collapsed">Rail collapsed</button>
+  </div>
+  <label class="switch"><input type="checkbox" id="meas"><span>Measurements</span></label>
+  <span class="hint">Hover a row in any replica to feel its state.</span>
+</div>
+
+<main id="main">
+
+<section aria-labelledby="h-read">
+  <h2 id="h-read">1 · What the rail is actually doing</h2>
+  <p class="lead">The labels are not misaligned vertically — they are too far away horizontally, and they
+    are marked separately from their icons. These are the numbers behind that, taken from the served page
+    (Chrome, 1280×720) and from the CSS that draws it.</p>
+  <div class="card scroll-x">
+  <table>
+    <caption>Geometry of the open rail, in CSS pixels from the left edge of the strip</caption>
+    <thead><tr><th scope="col">Element</th><th scope="col">Measured</th><th scope="col">Reading</th></tr></thead>
+    <tbody>
+      <tr><td>Green strip</td><td class="num">0 → 49 px</td><td>The icons live on green; the words live on white.</td></tr>
+      <tr><td>Icon glyph</td><td class="num">≈ 15 → 34 px</td><td>Centred in the strip, so 15 px of empty green sits to its right.</td></tr>
+      <tr><td>Label column</td><td class="num">starts at 67 px</td><td>18 px clear of the strip (<code>--rail-gap:18px</code>).</td></tr>
+      <tr><td><strong>Glyph → word gap</strong></td><td class="num">33 px</td><td><strong>The problem.</strong> The word is not beside its icon; it is a second column.</td></tr>
+      <tr><td>Active row</td><td class="num">pill at 67 → 123 px</td><td>The mint pill wraps the <em>word only</em>. The active icon is not marked at all — it just gets a white glow.</td></tr>
+      <tr><td>Vertical</td><td class="num">≈ 1 px apart</td><td>Icon centre and cap centre agree. <strong>Vertical alignment is fine.</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note"><strong>The one-line cause.</strong> The rail is built as two columns, not one list: the icon
+    sits on a dark green strip, the word sits on white, and 33 px of nothing sits between them. Every state
+    that should tie the pair together — active, hover — touches only the word, so the pairing breaks exactly
+    where you look. The three CSS levers are <code>--rail-gap</code> (line 29), <code>--rail-ic-pad</code>
+    (line 34) and the <code>.railtext::before</code> highlight (lines 116–117).</p>
+  <p class="note"><strong>Geometry cannot be fixed by the gutter alone.</strong> The distance from glyph to word
+    is <em>gutter + the green left to the right of the glyph</em>. To reach a 16 px gap you have to shrink
+    <em>both</em>: either the word moves left, or the icons lean toward the word. That is the fork in the road
+    below.</p>
+</section>
+
+<section aria-labelledby="h-base">
+  <h2 id="h-base">2 · The baseline, reproduced</h2>
+  <article class="card">
+    <header>
+      <span class="tag ghost">Now</span>
+      <h3>As shipped</h3>
+      <span class="metric"><span class="from">gap</span> 33 px</span>
+    </header>
+    <p class="idea">The live rail, for comparison. Note the active row: the mint pill hugs “Home”, while the
+      white house glyph sits alone on the green, 33 px away.</p>
+    <div class="mock-slot" data-variant="now"></div>
+    <div class="grid2">
+      <div>
+        <h3>What is already right</h3>
+        <ul class="tight">
+          <li>Vertical centring of glyph and word.</li>
+          <li>Every word on the same x (67 px), including “Subjects”.</li>
+          <li>The collapsed strip is clean and the toggle hugs its chevron.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What reads off</h3>
+        <ul class="tight">
+          <li>33 px of dead space between every icon and its own name.</li>
+          <li>The active icon is marked by a glow, the active word by a pill — two different languages.</li>
+          <li>The hover band is painted by <code>.railitem</code> (lines 99–100), which spans the icon
+            column as well, so it prints a near-white rounded band over the green behind the hovered
+            glyph. <strong>Hover a row in the “Now” replica below to see it.</strong></li>
+        </ul>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section aria-labelledby="h-opts">
+  <h2 id="h-opts">3 · Four options</h2>
+  <p class="lead">Each replica below is the same markup with different geometry and different state rules.
+    Nothing here has been applied to the site.</p>
+
+  <article class="card">
+    <header>
+      <span class="tag">1</span>
+      <h3>One item, one highlight</h3>
+      <span class="metric">gap stays <span class="from">33</span> px</span>
+    </header>
+    <p class="idea">Keep every pixel where it is; fix the <em>states</em> so the icon and the word are always
+      marked together. The active icon gets a white plate on the green (its glyph flips to green-900) and the
+      word keeps the mint pill; the hover band crosses the seam instead of stopping at it.</p>
+    <div class="mock-slot" data-variant="opt1"></div>
+    <div class="grid2">
+      <div>
+        <h3>What changes</h3>
+        <pre><code><span class="c">/* one highlight bar, crossing the seam */</span>
+<span class="k">.railitem</span>::before{left:calc(var(--rail-w) - var(--rail-pad));
+  right:0;top:0;bottom:0;background:var(--sunken)}
+<span class="k">.railitem</span>::after{left:calc(-1 * var(--rail-pad));
+  width:var(--rail-w);top:0;bottom:0;
+  background:rgba(255,255,255,.14)}
+<span class="k">.railitem</span>[aria-current=page] .ic::before{
+  content:"";position:absolute;inset:0;background:#fff;
+  border-radius:8px}
+<span class="k">.railitem</span>[aria-current=page] .ic svg{fill:var(--green-900)}
+<span class="c">/* and the white glow on the active icon goes */</span></code></pre>
+      </div>
+      <div>
+        <h3>Effect and trade-off</h3>
+        <dl class="kv">
+          <dt>Pairing</dt><dd>Explicit, not closer. The row now changes in two places at once.</dd>
+          <dt>Risk</dt><dd>Low — CSS only, ~15 lines, no geometry change.</dd>
+          <dt>Cost</dt><dd>The 33 px gap stays. The eye is told “these belong together”, but they are still far apart.</dd>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header>
+      <span class="tag">2</span>
+      <h3>Lean in</h3>
+      <span class="metric"><span class="from">gap</span> 33 <span class="arrow">→</span> 17.5 px</span>
+    </header>
+    <p class="idea">Move the word toward its icon <em>and</em> let the icon lean toward the word. The gutter
+      shrinks and the icon column is right-packed inside the green instead of centred in it, so the two move
+      toward each other from both sides.</p>
+    <div class="mock-slot" data-variant="opt2"></div>
+    <div class="grid2">
+      <div>
+        <h3>What changes</h3>
+        <pre><code>:root{
+  <span class="k">--rail-w</span>:45px;      <span class="c">/* was 49px */</span>
+  <span class="k">--rail-gap</span>:10px;   <span class="c">/* was 18px */</span>
+  <span class="k">--rail-pad</span>:8px;    <span class="c">/* was 10px */</span>
+}
+<span class="c">/* icon column right-packed instead of centred */</span>
+<span class="k">.railitem</span>{padding-left:7px}   <span class="c">/* was var(--rail-ic-pad) */</span>
+<span class="c">/* --rail-text-off must move in step: 57px → 47px */</span></code></pre>
+      </div>
+      <div>
+        <h3>Effect and trade-off</h3>
+        <dl class="kv">
+          <dt>Word lands at</dt><dd>55 px instead of 67 px; the glyph ends at 37.5 px.</dd>
+          <dt>Cost</dt><dd>In the collapsed rail the icons shift right ~6 px and the strip is 4 px narrower. That asymmetry is the price of pointing the icons at their words.</dd>
+          <dt>Risk</dt><dd>Medium — “Subjects” must move with the words or it desynchronises.</dd>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header>
+      <span class="tag">3</span>
+      <h3>Tile</h3>
+      <span class="metric"><span class="from">gap</span> 33 <span class="arrow">→</span> 14 px <span class="from">to the tile</span></span>
+    </header>
+    <p class="idea">Option 2's geometry, plus a hard-edged 26 px tile around every glyph. A tile gives the eye
+      something definite to anchor on, so the word at 14 px from the tile's edge reads as the tile's caption
+      rather than as a gap. The active row's tile fills with the subject's own colour.</p>
+    <div class="mock-slot" data-variant="opt3"></div>
+    <div class="grid2">
+      <div>
+        <h3>What changes</h3>
+        <pre><code><span class="c">/* Option 2's geometry, plus: */</span>
+<span class="k">.railitem</span> .ic{
+  background:rgba(255,255,255,.14);
+  border-radius:8px}
+<span class="k">.railitem</span>[aria-current=page] .ic{
+  background:var(--i)}
+<span class="k">.railitem</span>[aria-current=page] .ic svg{fill:#fff}</code></pre>
+      </div>
+      <div>
+        <h3>Effect and trade-off</h3>
+        <dl class="kv">
+          <dt>Pairing</dt><dd>The strongest of the options that keep the green spine.</dd>
+          <dt>Cost</dt><dd>The strip gains a texture of tiles — more light on the green than today. The collapsed rail keeps bare glyphs, so the two states differ more than they do now.</dd>
+          <dt>Risk</dt><dd>Medium — ~20 lines and a small markup change.</dd>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header>
+      <span class="tag">4</span>
+      <h3>One column, no spine</h3>
+      <span class="metric"><span class="from">gap</span> 33 <span class="arrow">→</span> 12 px</span>
+    </header>
+    <p class="idea">Stop splitting the rail into two surfaces. The open rail loses the green spine; every subject
+      gets a tinted 26 px tile with the glyph in its full tone, and the word starts 12 px later — the ordinary
+      sidebar rhythm, on a single background. The green survives as the brand accent: the active wash, the
+      focus ring, and the collapsed strip.</p>
+    <div class="mock-slot" data-variant="opt4"></div>
+    <div class="grid2">
+      <div>
+        <h3>What changes</h3>
+        <pre><code><span class="c">/* the open rail has no accent; the tile carries the colour */</span>
+<span class="k">body.rail-open</span> .railaccent{display:none}
+<span class="k">.railitem</span> .ic{
+  background:var(--tile);border-radius:8px}
+<span class="k">.railitem</span>{padding-left:10px;gap:12px}
+<span class="c">/* --rail-text-x becomes 48px; --rail-text-off 38px */</span></code></pre>
+      </div>
+      <div>
+        <h3>Effect and trade-off</h3>
+        <dl class="kv">
+          <dt>Pairing</dt><dd>Genuine — icon and word share one background, one rhythm, one object.</dd>
+          <dt>Cost</dt><dd>The open rail loses the green spine the current design is built around, and the collapsed→open transition has to morph.</dd>
+          <dt>Risk</dt><dd>High — ~40 lines, plus a re-look at the toggle and the strip.</dd>
+        </dl>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section aria-labelledby="h-type">
+  <h2 id="h-type">4 · The type pass — applies to every option</h2>
+  <div class="card">
+    <p class="idea">Independently of the geometry, the word is currently the quietest thing on the row while
+      the icon is the loudest. A 15.6 px regular word in navy-700 next to a 19 px saturated solid glyph on dark
+      green reads as an afterthought.</p>
+    <pre><code><span class="k">.railitem</span> .railtext{
+  font-size:15px;        <span class="c">/* was 15.6px */</span>
+  font-weight:500;       <span class="c">/* was 400 */</span>
+  color:rgba(2,40,76,.88);
+  letter-spacing:-.005em;}
+<span class="c">/* leave the vertical centring alone — it is already right */</span></code></pre>
+    <ul class="tight">
+      <li>Active rows keep weight 600 and navy-900 — a weight step, not a colour step, so the state survives greyscale.</li>
+      <li>The label size change moves the cap centre by well under a pixel, so the glyph/word centring stays put.</li>
+    </ul>
+  </div>
+</section>
+
+<section aria-labelledby="h-rec">
+  <h2 id="h-rec">5 · Recommendation</h2>
+  <div class="card">
+    <ol class="steps">
+      <li><b>Safe first move — Option 1 + the type pass.</b> Nothing moves, the active row finally reads as one
+        item, and it is about 15 lines of CSS in one file. Lowest risk, immediate improvement.</li>
+      <li><b>If the words must actually sit with their icons — Option 3.</b> Option 2 is the same idea in
+        geometry only; the tile is what makes 17 px read as a pairing rather than a gap. Choose Option 2 if
+        you would rather not add any light to the green.</li>
+      <li><b>Option 4 only if you are willing to give up the green spine in the open state.</b> It is the only
+        one that makes the icon and the word the same object — but it rebuilds the rail rather than tuning it.</li>
+    </ol>
+    <p class="note"><strong>Whatever you pick:</strong> move <code>--rail-text-off</code> together with
+      <code>--rail-text-x</code>. The “Subjects” heading shares the label column's x, and the last rail repair
+      (DESIGN_NOTES §8) was exactly that heading desynchronising. Keep all six geometry variables in step and
+      the rail stays honest.</p>
+  </div>
+</section>
+
+<footer class="foot">
+  This board is a separate Mini App package under <code>miniapps/rail-label-options/</code>. It reads the
+  served page and its CSS; it does not modify them. The page on port 8021 is untouched.
+</footer>
+
+</main>
+
+<script>
+/* Rail icons: Font Awesome Free 6.5.2 solid glyphs (CC BY 4.0), the same set the
+   product uses, so the replicas are pixel-faithful rather than approximations. */
+const ICONS = {
+  "home": '<svg viewBox="0 0 576 512" aria-hidden="true"><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2-.1-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9.1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/></svg>',
+  "accounting": '<svg viewBox="0 0 448 512" aria-hidden="true"><path d="M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>',
+  "finance": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V400c0 44.2 35.8 80 80 80H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H80c-8.8 0-16-7.2-16-16V64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"/></svg>',
+  "economics": '<svg viewBox="0 0 640 512" aria-hidden="true"><path d="M384 32H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H398.4c-5.2 25.8-22.9 47.1-46.4 57.3V448H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H320 128c-17.7 0-32-14.3-32-32s14.3-32 32-32H288V153.3c-23.5-10.3-41.2-31.6-46.4-57.3H128c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c14.6-19.4 37.8-32 64-32s49.4 12.6 64 32zm55.6 288H584.4L512 195.8 439.6 320zM512 416c-62.9 0-115.2-34-126-78.9-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C627.2 382 574.9 416 512 416zM126.8 195.8L54.4 320H199.3L126.8 195.8zM.9 337.1c-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C242 382 189.7 416 126.8 416S11.7 382 .9 337.1z"/></svg>',
+  "management": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>',
+  "entrepreneurship": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-14.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>',
+  "operations": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2c-6.1-11-11.4-22.4-15.8-34.3l-4.7-8.1c-6.6-11-14-21.4-22.1-31.2c-5.9-7.2-15.7-9.6-24.5-6.8l-55.7 17.7c-13.4-10.3-28.2-18.9-44-25.4l-12.5-57.1c-2-9.1-9-16.3-18.2-17.8c-13.8-2.3-28-3.5-42.5-3.5s-28.7 1.2-42.5 3.5c-9.2 1.5-16.2 8.7-18.2 17.8l-12.5 57.1c-15.8 6.5-30.6 15.1-44 25.4L64 256c0-8.9.6-17.1 1.7-25.4l-43.3-39.4c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8c13.8-2.3 28-3.5 42.5-3.5s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l56.5-39.4c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2c6.1 11 11.4 22.4 15.8 34.3l4.7 8.1c6.6 11 14 21.4 22.1 31.2c5.9 7.2 15.7 9.6 24.5 6.8l55.7-17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8c13.8-2.3 28-3.5 42.5-3.5s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4L471 233.2zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>',
+  "supply-chain": '<svg viewBox="0 0 640 512" aria-hidden="true"><path d="M48 0C21.5 0 0 21.5 0 48V368c0 26.5 21.5 48 48 48H64c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H48zM416 160h50.7L544 237.3V256H416V160zM112 416a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm368-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>',
+  "marketing": '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M480 32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9L381.7 53c-48 48-113.1 75-181 75H192 160 64c-35.3 0-64 28.7-64 64v96c0 35.3 28.7 64 64 64l0 128c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V352l8.7 0c67.9 0 133 27 181 75l43.6 43.6c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6V300.4c18.6-8.8 32-32.5 32-60.4s-13.4-51.6-32-60.4V32zm-64 76.7V240 371.3C357.2 317.8 280.5 288 200.7 288H192V192h8.7c79.8 0 156.5-29.8 215.3-83.3z"/></svg>',
+  "people": '<svg viewBox="0 0 640 512" aria-hidden="true"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160 80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h42.7c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0H21.3C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7h42.7C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3H405.3zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352H378.7C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7H154.7c-14.7 0-26.7-11.9-26.7-26.7z"/></svg>',
+  "research": '<svg viewBox="0 0 448 512" aria-hidden="true"><path d="M288 0H160 128C110.3 0 96 14.3 96 32s14.3 32 32 32V196.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6C0 480.9 31.1 512 69.4 512H378.6c38.3 0 69.4-31.1 69.4-69.4c0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H288zM192 196.8V64h64V196.8c0 23.7 6.6 46.9 19 67.1L309.5 320h-171L173 263.9c12.4-20.2 19-43.4 19-67.1z"/></svg>',
+  "calculator": '<svg viewBox="0 0 384 512" aria-hidden="true"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM96 64H288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zm128-160a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1-64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1-64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg>'
+};
+const TONES = {
+  "home":"#FFFFFF","accounting":"#4D9BFF","finance":"#3DDC84","economics":"#2BD9D9",
+  "management":"#B388FF","entrepreneurship":"#FFC542","operations":"#7AA7FF",
+  "supply-chain":"#38E0C8","marketing":"#FF7A6B","people":"#C3CEDA","research":"#8E9BFF",
+  "calculator":"#DDD6FE"
+};
+const ROWS = [
+  {id:"home",label:"Home",current:true},
+  {id:"accounting",label:"Accounting"},
+  {id:"finance",label:"Finance"},
+  {id:"economics",label:"Economics"},
+  {id:"management",label:"Management & strategy"},
+  {id:"operations",label:"Operations management"},
+  {id:"supply-chain",label:"Supply chain & logistics"},
+  {id:"marketing",label:"Marketing & customers"},
+  {id:"people",label:"People & organisation"},
+  {id:"research",label:"Research & statistics"},
+  {id:"calculator",label:"Calculator"}
+];
+
+/* Geometry per variant, mirrored from the product's own CSS variables. */
+const VARIANTS = {
+  now: {
+    cls:"v-now",
+    o:{stripW:"49px",pad:"10px",icw:"26px",icpad:"1.5px",textx:"67px"},
+    c:{stripW:"49px",pad:"10px",icpad:"1.5px"},
+    textgap:"29.5px", fs:"15.6px", fw:"400", labelcol:"#0C243E",
+    glyphEnd:34, bandLabel:"33 px to the word",
+    legend:"Dashed line on the left = where the green strip ends (49 px). Dashed line on the right = where the word column starts (67 px). The blue bar between them is the gap the eye has to cross: 33 px."
+  },
+  opt1: {
+    cls:"v-opt1",
+    o:{stripW:"49px",pad:"10px",icw:"26px",icpad:"1.5px",textx:"67px"},
+    c:{stripW:"49px",pad:"10px",icpad:"1.5px"},
+    textgap:"29.5px", fs:"15px", fw:"500", labelcol:"rgba(2,40,76,.88)",
+    glyphEnd:34, bandLabel:"33 px to the word",
+    legend:"Same geometry as shipped — 49 px strip, word at 67 px, gap still 33 px. Only the active and hover states change, so the pair is marked together."
+  },
+  opt2: {
+    cls:"v-opt2",
+    o:{stripW:"45px",pad:"8px",icw:"26px",icpad:"7px",textx:"55px"},
+    c:{stripW:"45px",pad:"8px",icpad:"7px"},
+    textgap:"14px", fs:"15px", fw:"500", labelcol:"rgba(2,40,76,.88)",
+    glyphEnd:37.5, bandLabel:"17.5 px to the word",
+    legend:"Strip 45 px, icons right-packed inside it, word column at 55 px. The blue bar is now 17.5 px instead of 33 px."
+  },
+  opt3: {
+    cls:"v-opt3",
+    o:{stripW:"45px",pad:"8px",icw:"26px",icpad:"7px",textx:"55px"},
+    c:{stripW:"45px",pad:"8px",icpad:"7px"},
+    textgap:"14px", fs:"15px", fw:"500", labelcol:"rgba(2,40,76,.88)",
+    glyphEnd:41, bandLabel:"14 px to the tile edge",
+    legend:"Option 2's geometry plus a 26 px tile on every glyph. The blue bar measures from the tile's edge to the word: 14 px."
+  },
+  opt4: {
+    cls:"v-opt4",
+    o:{stripW:"0px",pad:"10px",icw:"26px",icpad:"0px",textx:"48px"},
+    c:{stripW:"49px",pad:"10px",icpad:"1.5px"},
+    textgap:"12px", fs:"15px", fw:"500", labelcol:"rgba(2,40,76,.88)",
+    glyphEnd:36, bandLabel:"12 px to the tile edge",
+    legend:"No green spine in the open state. Icon tile and word sit on one white surface, 12 px apart. Collapsing brings back the green strip with bare glyphs, as shipped."
+  }
+};
+
+function tint(hex, pct){
+  const n = parseInt(hex.slice(1),16);
+  const r = n>>16 & 255, g = n>>8 & 255, b = n & 255;
+  const mix = c => Math.round(c + (255-c)*pct);
+  return '#' + [mix(r),mix(g),mix(b)].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+function buildMock(id){
+  const v = VARIANTS[id];
+  const style = [
+    '--o-stripW:'+v.o.stripW,'--o-pad:'+v.o.pad,'--o-icw:'+v.o.icw,
+    '--o-icpad:'+v.o.icpad,'--o-textx:'+v.o.textx,
+    '--c-stripW:'+v.c.stripW,'--c-pad:'+v.c.pad,'--c-icpad:'+v.c.icpad,
+    '--textgap:'+v.textgap,'--fs:'+v.fs,'--fw:'+v.fw,'--labelcol:'+v.labelcol
+  ].join(';');
+
+  const item = r => {
+    const tone = TONES[r.id];
+    const cur = r.current ? ' aria-current="page"' : '';
+    const tile = id === 'opt4' ? ' style="--tile:'+tint(tone,0.15)+'"' : '';
+    return '<a class="ritem" href="#"'+cur+'>'+
+      '<span class="ric"'+tile+' style="--i:'+tone+'">'+ICONS[r.id]+'</span>'+
+      '<span class="rtxt">'+r.label+'</span></a>';
+  };
+
+  const home = item(ROWS[0]);
+  const subjects = ROWS.slice(1, ROWS.length-1).map(item).join('');
+  const calc = item(ROWS[ROWS.length-1]);
+
+  const chevron = '<div class="rtoggle" aria-hidden="true">'+
+    '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></div>';
+
+  const group = '<div class="rgroup">Subjects</div>';
+  const sep = '<div class="rsep" aria-hidden="true"></div>';
+
+  const bandW = parseFloat(v.o.textx) - v.glyphEnd;
+  const meas =
+    '<div class="meas" aria-hidden="true">'+
+      '<span class="ml strip" style="left:'+v.o.stripW+'"></span>'+
+      '<span class="ml" style="left:'+v.o.textx+'"></span>'+
+      '<span class="band" style="left:'+v.glyphEnd+'px;width:'+bandW+'px"></span>'+
+      '<span class="chip blue" style="left:'+(v.glyphEnd+bandW/2)+'px;top:25px">'+
+        (Math.round(bandW*10)/10)+' px</span>'+
+      (parseFloat(v.o.stripW)>0
+        ? '<span class="chip stripchip" style="left:'+v.o.stripW+';top:2px">'+
+          parseFloat(v.o.stripW)+'</span>'
+        : '')+
+      '<span class="chip low" style="left:'+v.o.textx+'">'+parseFloat(v.o.textx)+'</span>'+
+    '</div>';
+
+  return '<div class="stage">'+
+      '<div class="railmock '+v.cls+'" data-v="'+id+'" style="'+style+'">'+
+        '<span class="accent" aria-hidden="true"></span>'+
+        '<nav class="col" aria-label="Rail replica">'+
+          chevron+home+group+subjects+sep+calc+
+        '</nav>'+
+        meas+
+      '</div>'+
+      '<div class="peek" aria-hidden="true">'+
+        '<div class="h w1"></div><div class="h w2"></div><div class="h w3"></div>'+
+        '<div class="box"></div>'+
+        '<div class="ln w1"></div><div class="ln w2"></div><div class="ln w3"></div>'+
+      '</div>'+
+    '</div>'+
+    '<p class="legend">'+v.legend+'</p>';
+}
+
+document.querySelectorAll('.mock-slot').forEach(slot => {
+  slot.innerHTML = buildMock(slot.dataset.variant);
+});
+
+/* the replicas are pictures of links, not links */
+document.addEventListener('click', e => {
+  if (e.target.closest('.ritem')) e.preventDefault();
+});
+
+/* view controls */
+const seg = document.querySelector('.seg');
+seg.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-state]');
+  if (!btn) return;
+  seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b === btn)));
+  const collapsed = btn.dataset.state === 'collapsed';
+  document.querySelectorAll('.railmock').forEach(m => m.classList.toggle('collapsed', collapsed));
+});
+seg.querySelectorAll('button').forEach(b => b.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const list = [...seg.querySelectorAll('button')];
+  const i = list.indexOf(e.target);
+  const next = list[(i + (e.key === 'ArrowRight' ? 1 : list.length - 1)) % list.length];
+  next.focus();
+  next.click();
+}));
+
+const measBox = document.getElementById('meas');
+function applyMeas(){
+  const on = measBox.checked;
+  document.body.classList.toggle('meas-on', on);
+  document.querySelectorAll('.meas').forEach(m => m.classList.toggle('on', on));
+}
+measBox.addEventListener('change', applyMeas);
+applyMeas();
+</script>
+</body>
+</html>

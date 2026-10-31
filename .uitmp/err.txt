@@ -1,0 +1,1 @@
+[1028/022639.024:ERROR:chrome\app\chrome_main.cc:204] Multiple targets are not supported in headless mode.

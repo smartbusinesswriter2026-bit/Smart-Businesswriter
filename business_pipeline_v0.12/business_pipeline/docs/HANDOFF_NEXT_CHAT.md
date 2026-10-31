@@ -84,8 +84,8 @@ project management. Do them **one at a time, each verified live**, not in batche
 ## 4. Traps that already bit
 
 - **Docs counts.** `tests/test_docs_sync.py` compares `docs/HOME.md`, `HANDOFF.md` and
-  `CONTRIBUTORS.md` with the collected test count (now **1847**) and the build in
-  `CHANGELOG.md` (now **1.47**). Adding a test means updating those numbers.
+  `CONTRIBUTORS.md` with the collected test count (now **1913**) and the build in
+  `CHANGELOG.md` (now **1.52**). Adding a test means updating those numbers.
 - **Never rewrite a doc with a global regex.** A `**\d+ tests pass.**` replacement
   destroyed the historical counts of nine changelog entries, and restoring from git
   deleted a **1.48 entry that another editor had written**. If you touch the changelog,

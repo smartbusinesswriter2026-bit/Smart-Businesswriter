@@ -66,6 +66,10 @@ These come from the project's non-negotiables. Breaking one is worse than shippi
 9. **The owner decides what enters the corpus.** An automatic pass may ingest only a licence
    that needs no decision. Everything else waits in the admin queue for the owner to approve or
    reject. The system proposes; the owner disposes.
+10. **The corpus never holds the same thing twice.** One document per work. A file that repeats
+    something already in the corpus — the same bytes, or another copy of a book or paper already
+    there — is refused before anything is written, and the refusal is recorded with its reason.
+    It is never ingested twice, and it never becomes a second document.
 
 ## 2. Where things live
 
@@ -250,6 +254,43 @@ bulk work (Q-14): the easy case proves the extractor, the scanned book proves th
 - `SELECT sha256 FROM documents;` matches `Get-FileHash` of the PDF.
 - `SELECT * FROM ingest_log;` shows the ingest as `ok` or `ocr`, never a silent failure.
 
+### The corpus never takes the same thing twice
+
+The corpus holds **one document per work**. Before anything is written, an ingest asks two
+questions:
+
+| Question | The key that answers it | What it catches |
+|---|---|---|
+| Is this the same file? | the `sha256` of the bytes | the same PDF, twice |
+| Is this the same work? | the DOI, or the title + the first author's family name + the year | another copy of a book or paper already in the corpus |
+
+A "yes" to either one is a **refusal**, and the refusal happens before anything is written:
+
+- no second row in `documents`, and no second set of rows in `pages`;
+- no second copy of the file in `corpus-db\pdfs\`;
+- one row in `ingest_log` with `status = 'skipped'` and the reason, recorded **once** however
+  many times the file arrives;
+- one row in `uploads`, naming the `doc_id` of the document it repeats.
+
+The database enforces this too, not only the code: `UNIQUE` on `documents.sha256`,
+`documents.work_key` and `candidates.work_key`, in `corpus-db/build/schema.sql`. Two uploads that
+arrive at the same moment cannot both get in.
+
+**The one case that is not a refusal.** If the corpus already holds the work *and* that document's
+own file has been lost, the same file arriving again **puts the file back** — one document, one
+file, no second row. That is `restore_missing_file()`.
+
+**What is still open.** This does not close Q-15 (the re-ingest policy). A work that comes back in
+a **later year** — a reissue, a new edition — is still a separate document today, because the year
+is part of the work key. If the owner wants a reissue to replace the old one, that is a decision to
+make and record, not a guess to make in code.
+
+To check what the corpus already holds before you ingest:
+
+```powershell
+python D:\SMART BUSINESSWRITER\corpus-db\build\corpus_lib.py --status
+```
+
 ## 8. Step 4 — Meilisearch settings
 
 `corpus-db/build/meili_settings.json` holds the settings (verbatim from `CORPUS_DB.md` §4.3):
@@ -265,10 +306,20 @@ bulk work (Q-14): the easy case proves the extractor, the scanned book proves th
     "enabled": true,
     "disableOnNumbers": true
   },
-  "maxQueryTerms": 64,
   "pagination": { "maxTotalHits": 1000 }
 }
 ```
+
+**Three fields this payload once carried are gone, and one is version-dependent.** A settings
+patch is refused **in full** when it meets a field the server does not know, so one wrong field
+means the corpus never indexes at all — and the failure looks like a success, because the ingest
+still reports its page count.
+
+| Field | Status | Why |
+|---|---|---|
+| `disableOnNumbers` | **v1.15+ only** | Added in Meilisearch v1.15 (June 2025). A v1.12 server refuses the patch. `corpus_lib.apply_settings()` drops **that one field** on an older server and prints that the protection is off. |
+| `maxQueryTerms` | **removed** | Not an index setting in any current Meilisearch. Exact-quote verification uses a phrase query. |
+| `primaryKey` | **not a setting** | The primary key belongs to the index. It is set when the index is created, never patched. |
 
 Two things to understand, because they look like mistakes and are not:
 
@@ -276,20 +327,29 @@ Two things to understand, because they look like mistakes and are not:
   Meilisearch would reward a book whose **title** matches over the page whose **passage** matches —
   backwards for a page-exact evidence index.
 - `disableOnNumbers: true` **stops the year** `1974` matching `1971`, and stops an ISBN's digits
-  transposing. That is citation integrity, not a preference.
+  transposing. That is citation integrity, not a preference. **On a server older than v1.15 it
+  cannot be set**, and the corpus says so in the build output rather than dropping it silently.
 
 **Settings before documents.** Changing searchable/filterable/sortable attributes, stop words,
 synonyms or typo tolerance triggers a **full reindex** of every document. Set them first.
 
 ## 9. Step 5 — Load the pages into Meilisearch
 
-This is `corpus_lib.index_pages()`. It reads every page from SQLite, applies the settings to an
-empty index, then pushes the documents in batches of 500. It is called automatically by
-`ingest.py` and by the admin service; run it by hand after a bulk ingest:
+This is `corpus_lib.index_pages()`. It creates the index if it is not there, applies the settings,
+then pushes the documents in batches of 500 and waits for each batch to land. It is called
+automatically by `ingest.py` and by the admin service; run it by hand after a bulk ingest:
 
 ```powershell
-python -c "import sys; sys.path.insert(0,r'D:\SMART BUSINESSWRITER\corpus-db\build'); import corpus_lib as lib; c=lib.connect(); print(lib.index_pages(c), 'pages indexed'); c.close()"
+python D:\SMART BUSINESSWRITER\corpus-db\build\corpus_lib.py --index
 ```
+
+`--index` **empties the index first**, so the index holds exactly the pages the database holds
+and cannot return a page the corpus no longer has. That is the "no duplicates" rule applied to
+the search side as well as the database side.
+
+A **document identifier** may hold alphanumerics, a hyphen and an underscore, and nothing else —
+so the page identifier is `<doc_id>-<pdf_page>` (`ja-612e409fc587-10`), not a colon. A refused
+document means that page is silently missing from the index.
 
 **Done when:** searching Meilisearch for a phrase you know is on a specific page returns that
 page first, with the right `pdf_page`.
@@ -355,7 +415,9 @@ What the page gives the owner:
 
 - **Upload a document** — drop a PDF, fill in what you know (title, authors, year, kind,
   subject, publisher, edition, ISBN, DOI, licence), and it is ingested and indexed immediately.
-  A duplicate upload is refused by SHA-256 with the existing `doc_id` named, not ingested twice.
+  A duplicate is refused by SHA-256 **or** by the work it names (the DOI, or the title + first
+  author + year), with the existing `doc_id` named, not ingested twice. The refusal happens
+  before the file is written, so a repeat upload leaves no second copy on disk.
 - **The enrichment queue** — candidates ranked by how often they were asked for and how thin
   their subject is, each with an **Approve** and a **Reject** button. Approve fetches the full
   text; Reject records the reason and closes it.

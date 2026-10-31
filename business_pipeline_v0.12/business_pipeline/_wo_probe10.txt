@@ -1,0 +1,78 @@
+=== accounting (Accounting) ===
+  disciplines   : ['finance, accounting and managerial economics']
+  worksheets    : []
+  catalogue_ids : ['QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-05']
+
+=== finance (Finance) ===
+  disciplines   : ['finance, accounting and managerial economics', 'decision analysis and risk quantification']
+  worksheets    : []
+  catalogue_ids : ['QNT-FIN-01', 'QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-04', 'QNT-FIN-05', 'QNT-FIN-06', 'QNT-FIN-07', 'QNT-DEC-01', 'QNT-DEC-02', 'QNT-DEC-03', 'QNT-DEC-04', 'QNT-DEC-05', 'QNT-DEC-06', 'QNT-DEC-07', 'RSK-01', 'RSK-02', 'RSK-03', 'RSK-04', 'RSK-05', 'RSK-06', 'RSK-07', 'RSK-08', 'RSK-09']
+
+=== economics (Economics) ===
+  disciplines   : ['microeconomics', 'macroeconomics', 'welfare and public economics', 'international economics', 'development economics', 'behavioural economics', 'industrial organization', 'labour economics', 'public, nonprofit and impact evaluation', 'program and impact evaluation']
+  worksheets    : []
+  catalogue_ids : ['QNT-FIN-07', 'QNT-EVL-01', 'QNT-EVL-02', 'QNT-EVL-03', 'QNT-EVL-04', 'QNT-EVL-05', 'IMP-03', 'IMP-04', 'IMP-05', 'IMP-06', 'IMP-07']
+
+=== management (Management & strategy) ===
+  disciplines   : ['strategy', 'change and organization', 'supporting theory']
+  worksheets    : ['STR-01', 'STR-06', 'STR-03', 'STR-08', 'STR-09', 'STR-13', 'STR-14', 'STR-12', 'STR-04', 'STR-07', 'STR-18', 'STR-15', 'STR-16', 'STR-17', 'CHG-01', 'CHG-11', 'CHG-12']
+  catalogue_ids : ['STR-02', 'STR-03', 'STR-04', 'STR-05', 'STR-06', 'STR-08', 'STR-09', 'STR-10', 'STR-11', 'STR-12', 'STR-13', 'STR-14', 'STR-15', 'STR-16', 'STR-17', 'CHG-01', 'CHG-02', 'CHG-03', 'CHG-04', 'CHG-05', 'CHG-06', 'CHG-07', 'CHG-08', 'CHG-09', 'CHG-10', 'CHG-11', 'CHG-12', 'CHG-13', 'CHG-14', 'THE-01', 'THE-02', 'THE-03', 'THE-04', 'THE-05', 'THE-06', 'THE-07']
+
+=== project-management (Project management) ===
+  disciplines   : ['performance, projects and technology governance']
+  worksheets    : ['PM-05', 'PM-09', 'PM-10', 'PM-06', 'PM-15', 'PM-16']
+  catalogue_ids : ['PM-01', 'PM-02', 'PM-03', 'PM-04', 'PM-05', 'PM-06', 'PM-07', 'PM-08', 'PM-09', 'PM-10', 'PM-11', 'PM-12', 'PM-13', 'PM-14', 'PM-15', 'PM-16']
+
+=== entrepreneurship (Entrepreneurship) ===
+  disciplines   : ['strategy', 'marketing and customers']
+  worksheets    : ['STR-15', 'STR-16', 'STR-17', 'STR-18', 'STR-13', 'MKT-02']
+  catalogue_ids : ['STR-15', 'STR-16', 'STR-17', 'STR-13', 'THE-06', 'QNT-MKT-01', 'QNT-MKT-02', 'QNT-MKT-03', 'QNT-FIN-06', 'QNT-FIN-07', 'QNT-DEC-02', 'MKT-02']
+
+=== operations (Operations management) ===
+  disciplines   : ['operations and supply chain', 'operations, logistics and optimization']
+  worksheets    : ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+  catalogue_ids : ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-09', 'OPS-10', 'OPS-11', 'OPS-12', 'QNT-OPS-01', 'QNT-OPS-02', 'QNT-OPS-03', 'QNT-OPS-04', 'QNT-OPS-05', 'QNT-OPS-06', 'QNT-OPS-07', 'QNT-OPS-08']
+
+=== supply-chain (Supply chain & logistics) ===
+  disciplines   : ['operations and supply chain', 'operations, logistics and optimization']
+  worksheets    : ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+  catalogue_ids : ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-09', 'OPS-10', 'OPS-11', 'OPS-12', 'QNT-OPS-01', 'QNT-OPS-02', 'QNT-OPS-03', 'QNT-OPS-04', 'QNT-OPS-05', 'QNT-OPS-06', 'QNT-OPS-07', 'QNT-OPS-08']
+
+=== marketing (Marketing & customers) ===
+  disciplines   : ['marketing and customers', 'market and customer analytics', 'digital marketing']
+  worksheets    : ['MKT-02', 'MKT-04', 'MKT-06', 'MKT-07', 'MKT-15', 'MKT-18']
+  catalogue_ids : ['MKT-01', 'MKT-02', 'MKT-03', 'MKT-04', 'MKT-05', 'MKT-06', 'MKT-07', 'MKT-08', 'MKT-09', 'MKT-10', 'MKT-11', 'MKT-12', 'MKT-13', 'MKT-14', 'MKT-15', 'MKT-16', 'MKT-17', 'MKT-18', 'MKT-19', 'MKT-20', 'MKT-21', 'QNT-MKT-01', 'QNT-MKT-02', 'QNT-MKT-03', 'QNT-MKT-05', 'QNT-MKT-06', 'QNT-MKT-07', 'QNT-MKT-08', 'QNT-MKT-09', 'QNT-MKT-10', 'QNT-MKT-11', 'QNT-MKT-12', 'QNT-MKT-13', 'QNT-MKT-14', 'QNT-MKT-15']
+
+=== people (People & organisation) ===
+  disciplines   : ['people and learning', 'change and organization']
+  worksheets    : ['PPL-03', 'PPL-02', 'PPL-01', 'PPL-05', 'PPL-04', 'CHG-01', 'CHG-12', 'CHG-11']
+  catalogue_ids : ['PPL-01', 'PPL-02', 'PPL-03', 'PPL-04', 'PPL-05', 'CHG-01', 'CHG-02', 'CHG-03', 'CHG-04', 'CHG-05', 'CHG-06', 'CHG-07', 'CHG-08', 'CHG-09', 'CHG-10', 'CHG-11', 'CHG-12', 'CHG-13', 'CHG-14', 'THE-02']
+
+=== research (Research & statistics) ===
+  disciplines   : ['statistics and empirical research', 'supporting theory']
+  worksheets    : []
+  catalogue_ids : ['QNT-STA-01', 'QNT-STA-02', 'QNT-STA-03', 'QNT-STA-04', 'QNT-STA-05', 'QNT-STA-06', 'QNT-STA-07', 'QNT-STA-08', 'QNT-STA-09', 'QNT-STA-10', 'THE-01', 'THE-02', 'THE-03', 'THE-04', 'THE-05', 'THE-06', 'THE-07']
+
+=== current worksheet order per subject page ===
+  accounting           worksheets: []
+                       records  : ['QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-05']
+  finance              worksheets: []
+                       records  : ['QNT-FIN-01', 'QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-04', 'QNT-FIN-05', 'QNT-FIN-06', 'QNT-FIN-07', 'QNT-DEC-01', 'QNT-DEC-02', 'QNT-DEC-03', 'QNT-DEC-04', 'QNT-DEC-05', 'QNT-DEC-06', 'QNT-DEC-07', 'RSK-01', 'RSK-02', 'RSK-03', 'RSK-04', 'RSK-05', 'RSK-06', 'RSK-07', 'RSK-08', 'RSK-09']
+  economics            worksheets: []
+                       records  : ['QNT-FIN-07', 'QNT-EVL-01', 'QNT-EVL-02', 'QNT-EVL-03', 'QNT-EVL-04', 'QNT-EVL-05', 'IMP-03', 'IMP-04', 'IMP-05', 'IMP-06', 'IMP-07']
+  management           worksheets: ['STR-01', 'STR-06', 'STR-03', 'STR-08', 'STR-09', 'STR-13', 'STR-14', 'STR-12', 'STR-04', 'STR-07', 'STR-18', 'STR-15', 'STR-16', 'STR-17', 'CHG-01', 'CHG-11', 'CHG-12']
+                       records  : ['STR-02', 'STR-05', 'STR-10', 'STR-11', 'CHG-02', 'CHG-03', 'CHG-04', 'CHG-05', 'CHG-06', 'CHG-07', 'CHG-08', 'CHG-09', 'CHG-10', 'CHG-13', 'CHG-14']
+  project-management   worksheets: ['PM-05', 'PM-09', 'PM-10', 'PM-06', 'PM-15', 'PM-16']
+                       records  : ['PM-01', 'PM-02', 'PM-03', 'PM-04', 'PM-07', 'PM-08', 'PM-11', 'PM-12', 'PM-13', 'PM-14']
+  entrepreneurship     worksheets: ['STR-15', 'STR-16', 'STR-17', 'STR-18', 'STR-13', 'MKT-02']
+                       records  : ['QNT-MKT-01', 'QNT-MKT-02', 'QNT-MKT-03', 'QNT-FIN-06', 'QNT-FIN-07', 'QNT-DEC-02']
+  operations           worksheets: ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+                       records  : ['OPS-09', 'QNT-OPS-01', 'QNT-OPS-02', 'QNT-OPS-03', 'QNT-OPS-04', 'QNT-OPS-05', 'QNT-OPS-06', 'QNT-OPS-07', 'QNT-OPS-08']
+  supply-chain         worksheets: ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+                       records  : ['OPS-09', 'QNT-OPS-01', 'QNT-OPS-02', 'QNT-OPS-03', 'QNT-OPS-04', 'QNT-OPS-05', 'QNT-OPS-06', 'QNT-OPS-07', 'QNT-OPS-08']
+  marketing            worksheets: ['MKT-02', 'MKT-04', 'MKT-06', 'MKT-07', 'MKT-15', 'MKT-18']
+                       records  : ['MKT-01', 'MKT-03', 'MKT-05', 'MKT-08', 'MKT-09', 'MKT-10', 'MKT-11', 'MKT-12', 'MKT-13', 'MKT-14', 'MKT-16', 'MKT-17', 'MKT-19', 'MKT-20', 'MKT-21', 'QNT-MKT-01', 'QNT-MKT-02', 'QNT-MKT-03', 'QNT-MKT-05', 'QNT-MKT-06', 'QNT-MKT-07', 'QNT-MKT-08', 'QNT-MKT-09', 'QNT-MKT-10', 'QNT-MKT-11', 'QNT-MKT-12', 'QNT-MKT-13', 'QNT-MKT-14', 'QNT-MKT-15']
+  people               worksheets: ['PPL-03', 'PPL-02', 'PPL-01', 'PPL-05', 'PPL-04', 'CHG-01', 'CHG-12', 'CHG-11']
+                       records  : ['CHG-02', 'CHG-03', 'CHG-04', 'CHG-05', 'CHG-06', 'CHG-07', 'CHG-08', 'CHG-09', 'CHG-10', 'CHG-13', 'CHG-14']
+  research             worksheets: []
+                       records  : ['QNT-STA-01', 'QNT-STA-02', 'QNT-STA-03', 'QNT-STA-04', 'QNT-STA-05', 'QNT-STA-06', 'QNT-STA-07', 'QNT-STA-08', 'QNT-STA-09', 'QNT-STA-10']

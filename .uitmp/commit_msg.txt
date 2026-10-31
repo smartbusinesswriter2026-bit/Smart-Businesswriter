@@ -1,0 +1,34 @@
+Design: the collapsed rail shows its icons in full, and two Home copy edits
+
+The three design increments of this morning are in the tree already - a concurrent
+lane's commits swept them in while their copy of the tree was in flight. This
+commit closes the record: it restores the worklog entry that lane's commit of
+docs/WORKLOG.md had overwritten, and records the rail geometry as B-165.
+
+What the three increments were:
+
+- The collapsed rail shows its icons in full (web/index.html, section 17 of the
+  design notes). The subject list scrolls inside the rail and a vertical
+  scrollbar takes the scrollport's right edge, so with the 45 px strip the
+  scrollport ended at x = 30 while every glyph sits at x = 18.5 -> 37.5 - under
+  the scrollbar's column and cut in half. The collapsed rail is now the strip
+  plus a column for the scrollbar: --rail-sb:16px and
+  --rail-w-collapsed:calc(var(--rail-w) + var(--rail-sb)), applied by
+  body:not(.rail-open) .rail{width:var(--rail-w-collapsed)} - 61 px in the wide
+  layout, 60 px in the narrow one. The green strip keeps its own width, so the
+  open rail is untouched, and the icons do not move: the glyph is still at
+  18.5 -> 37.5. scripts/ui_smoke.py carries the geometry markers so the column
+  cannot be silently dropped.
+- The Home hero drops the "BUSINESS | ACCOUNTING | ECONOMICS | FINANCE"
+  tagline (section 20, B-162): removed from the static markup and from the
+  RENDERERS.home rebuild, with the CSS that only served it.
+- The Home slogan loses the full stop after "assistant" (section 22, B-164):
+  one character, in the same two places, with the three proofs and their own
+  full stops untouched.
+
+Verified: 1847 tests OK. On the served page (Chrome, device pixel ratio 1):
+collapsed with the list scrolling (1400x700) the scrollport is 4 -> 46 and every
+glyph shows its full ink - 19 px, against 10-11 px before the fix; narrow layout
+(760x700) scrollport 4 -> 45; open (1400x900) unchanged, strip 0 -> 45 and the
+label column at 55. The tagline and the trailing period are absent from the
+served document and from the rendered hero, in the first paint and in a re-render.

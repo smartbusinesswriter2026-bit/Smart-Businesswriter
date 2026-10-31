@@ -8,6 +8,5 @@
     "enabled": true,
     "disableOnNumbers": true
   },
-  "maxQueryTerms": 64,
   "pagination": { "maxTotalHits": 1000 }
 }

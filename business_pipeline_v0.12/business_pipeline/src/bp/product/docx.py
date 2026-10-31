@@ -197,7 +197,7 @@ def academic_document_xml(title, sections, style="apa", byline=()):
         parts.append(_academic_para("", after=0))
         parts.extend(_academic_para(line, align="center") for line in lines)
     parts.append(_academic_para(
-        datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"), align="center"))
+        datetime.datetime.now(datetime.timezone.utc).strftime("%B %d, %Y"), align="center"))
     # end the title-page section: centred vertically, page numbered like the rest
     parts.append('<w:p><w:pPr><w:sectPr><w:vAlign w:val="center"/>' + section + '</w:sectPr>'
                  '</w:pPr></w:p>')

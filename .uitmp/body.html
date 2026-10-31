@@ -1,0 +1,245 @@
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="#/home" aria-label="Smart Business Writer home">
+    <img src="__LOGO__" alt="">
+    <span class="wordmark">Smart Business <span class="g">Writer</span></span>
+  </a>
+  <span class="spacer"></span>
+  <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
+  <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
+  <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
+  <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
+  <label class="locale"><span class="visually-hidden">Language</span>
+    <select id="locale">
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="en-CA">English (Canada)</option>
+      <option value="en-AU">English (Australia)</option>
+    </select>
+  </label>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Primary">
+    <button class="railtoggle" id="railtoggle" type="button" aria-expanded="false" aria-controls="rail" title="Expand navigation">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+
+    <a class="railitem" href="#/home" data-panel="home" style="--i:var(--navy-900)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+      <span class="railtext">Your cases</span><span class="railtip">Your cases: the shelf of work</span>
+    </a>
+    <a class="railitem" href="#/case" data-panel="case" style="--i:var(--green-600)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h5l2 2h11v10H3z"/><path d="M3 7V5.5h4l2 2H20"/></svg></span>
+      <span class="railtext">The open case</span><span class="railtip">The open case: documents, data, arguments, runs, charts</span>
+    </a>
+    <a class="railitem" href="#/data" data-panel="data" style="--i:var(--teal)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg></span>
+      <span class="railtext">Data</span><span class="railtip">Data: read a spreadsheet and use its columns as the inputs of a run</span>
+    </a>
+    <a class="railitem" href="#/refs" data-panel="refs" style="--i:var(--indigo)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 4v16"/></svg></span>
+      <span class="railtext">References</span><span class="railtip">References: verify a DOI, cite it, read the audit log</span>
+    </a>
+    <a class="railitem" href="#/deliver" data-panel="deliver" style="--i:var(--forest)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></span>
+      <span class="railtext">Deliverables</span><span class="railtip">Deliverables: report, charts, spreadsheet, backup</span>
+    </a>
+    <a class="railitem" href="#/accounts" data-panel="accounts" style="--i:var(--ochre)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h13v16H8a3 3 0 0 1-3-3z"/><path d="M9 4v16"/></svg></span>
+      <span class="railtext">Accounts</span><span class="railtip">Accounts: management accounts engagement</span>
+    </a>
+    <a class="railitem" href="#/frames" data-panel="frames" style="--i:var(--violet)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/></svg></span>
+      <span class="railtext">Frameworks &amp; templates</span><span class="railtip">Frameworks and templates: SWOT, Five Forces, case decision</span>
+    </a>
+    <a class="railitem" href="#/assistant" data-panel="assistant" style="--i:var(--slate)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/></svg></span>
+      <span class="railtext">Assistant</span><span class="railtip">Assistant: read the facts, propose alternatives, critique the argument</span>
+    </a>
+    <a class="railitem" href="#/status" data-panel="status" style="--i:var(--moss)">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg></span>
+      <span class="railtext">Status</span><span class="railtip">Status: local health, version, request log</span>
+    </a>
+  </nav>
+
+  <main id="main">
+    <section class="panel" id="panel-home" aria-labelledby="home-title">
+      <div class="hero">
+        <h1 id="home-title">Smart Business <span class="g">Writer</span></h1>
+        <p class="tagline">BUSINESS | ACCOUNTING | ECONOMICS | FINANCE</p>
+        <p class="sub" id="hero-sub">Every figure computed by code, never by the model.</p>
+      </div>
+      <div class="card"><h2>Your cases</h2><div id="shelf"><p class="muted">Reading the case store...</p></div></div>
+      <div class="card"><h2>Start a new case</h2>
+        <div class="row"><input type="text" id="newcasetitle" placeholder="Name this case" size="40">
+        <button class="btn primary" id="newcase" type="button">Create case</button></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-new" hidden aria-labelledby="new-title">
+      <div class="card">
+        <h2 id="new-title">New analysis</h2>
+        <button class="btn primary" id="draft" type="button">Draft work plan</button>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-results" hidden aria-labelledby="results-title">
+      <div class="card">
+        <h2 id="results-title">Result</h2>
+        <div class="report"></div>
+        <div class="row">
+          <button class="btn primary" id="savecase" type="button">Save as case</button>
+          <button class="btn" id="tocharts" type="button">Charts and exports</button>
+          <button class="btn" id="tostats" type="button">Download financial statements</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-case" hidden aria-labelledby="case-title">
+      <div class="card">
+        <h2 id="case-title">Case</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" data-tab="documents" aria-selected="true">Documents</button>
+          <button class="tab" role="tab" data-tab="data" aria-selected="false">Data</button>
+          <button class="tab" role="tab" data-tab="arguments" aria-selected="false">Arguments</button>
+          <button class="tab" role="tab" data-tab="runs" aria-selected="false">Runs</button>
+          <button class="tab" role="tab" data-tab="versions" aria-selected="false">Versions</button>
+          <button class="tab" role="tab" data-tab="signoff" aria-selected="false">Sign-off</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-data" hidden aria-labelledby="data-title">
+      <div class="card">
+        <h2 id="data-title">Data ingestion (structured files)</h2>
+        <p class="sub">Read a CSV/TSV or XLSX file into a typed table with a provenance pointer. PDF, scans and SPSS
+        files are refused by this route: <strong>no PDF text extraction or OCR</strong> happens here. A case document
+        is read for its text on the Documents tab, where a scanned page needs an OCR engine on this machine and then
+        carries the label <code>unverified_ocr_text</code>. The file belongs to a case: open one and the data is
+        attached to it, and its columns can become the inputs of a run.</p>
+        <div id="datacase"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-refs" hidden aria-labelledby="refs-title">
+      <div class="card">
+        <h2 id="refs-title">References (optional)</h2>
+        <p class="sub">The title and DOI are sent to the selected bibliographic API
+        (<code>/api/literature/sources</code>). No case text is sent.</p>
+        <div class="row">
+          <input type="text" id="refdoi" placeholder="DOI (optional, e.g. 10.1000/example)">
+          <input type="text" id="reftitle" placeholder="Title">
+          <select id="refsrc"><option value="auto">auto</option></select>
+          <button class="btn primary" id="verify" type="button">Verify reference</button>
+          <label class="field" style="margin:0">Citation style
+          <select id="refstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select>
+          </label>
+          <button class="btn" id="cite" type="button">Get citation</button>
+        </div>
+        <div id="refout"></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="showlog" type="button">Show retrieval log</button>
+          <button class="btn" id="drift" type="button">Check drift</button>
+        </div>
+        <div id="reflog"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-deliver" hidden aria-labelledby="deliver-title">
+      <div class="card">
+        <h2 id="deliver-title">Deliverables</h2>
+        <div id="delout"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-accounts" hidden aria-labelledby="accounts-title">
+      <div class="card">
+        <h2 id="accounts-title">Accounts</h2>
+        <div id="acctout"></div>
+      </div>
+      <div class="card">
+        <h2>Account mapping</h2>
+        <div id="acctmap" class="muted">No mapping yet.</div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-frames" hidden aria-labelledby="frames-title">
+      <div class="card">
+        <h2 id="frames-title">Frameworks &amp; templates</h2>
+        <div id="fout"></div>
+        <div id="tout"></div>
+      </div>
+      <div class="card">
+        <h3>Frameworks, models and methods</h3>
+        <p class="sub">The catalogue below is what the server recorded. Nothing is applied unless ticked: a framework or
+        template is only used when you confirm it in the frozen spec.</p>
+        <div class="tablewrap"><table><caption>Method catalogue</caption><thead><tr>
+        <th>Method</th><th>Category</th><th>Tier</th><th>Review status</th><th>Intended use</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-assistant" hidden aria-labelledby="assistant-title">
+      <div class="card">
+        <h2 id="assistant-title">Assistant (optional)</h2>
+        <div id="asstcfg" class="sub">Checking the local configuration...</div>
+        <p class="sub">The model proposes; the code validates and computes.
+        <strong>The model writes no numbers.</strong> Nothing here is verified computation, and no API key ever
+        reaches the browser.</p>
+        <div id="asstcase"></div>
+        <div class="row">
+          <button class="btn primary" id="asstfacts" type="button">Read the facts from the case</button>
+          <button class="btn" id="asstalts" type="button">Propose alternatives</button>
+          <button class="btn" id="asstcrit" type="button">Challenge my analysis</button>
+        </div>
+        <div id="asstout"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-status" hidden aria-labelledby="status-title">
+      <div class="card">
+        <h2 id="status-title">Status</h2>
+        <div id="statusout"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<button class="chatbtn" id="chatbtn" type="button" aria-label="Assistant and help">
+  <img src="__LOGO__" alt="">
+</button>
+
+<aside class="drawer" id="drawer" hidden aria-labelledby="drawer-title">
+  <header>
+    <h2 id="drawer-title" style="margin:0;font-size:15px">Assistant &amp; help</h2>
+    <span class="grow"></span>
+    <button class="btn sm ghost" id="drawerclose" type="button">Close</button>
+  </header>
+  <div class="dtabs" role="tablist" style="padding:0 12px">
+    <button class="dtab" role="tab" data-dtab="assistant" aria-selected="true">Assistant</button>
+    <button class="dtab" role="tab" data-dtab="help" aria-selected="false">Help &amp; about</button>
+  </div>
+  <div class="body">
+    <div class="dpanel" data-dpanel="assistant" id="dassist"></div>
+    <div class="dpanel" data-dpanel="help" id="dhelp" hidden>
+      <h3>What this is</h3>
+      <p class="sub">A local workbench that calls the local API. Every number shown is computed by the method library
+      and printed exactly as the server returned it. Nothing is calculated in the browser.</p>
+      <h3>How to work</h3>
+      <p class="sub">1. Name the case and open it. The case holds the case study, the spreadsheet, the argument and every run.<br>
+      2. Attach the case study to the case, and add the spreadsheet under Data.<br>
+      3. Use the columns of the spreadsheet as the inputs of a run, then read the result and its honesty notes.<br>
+      4. Keep the facts and alternatives you agree with; the assistant proposes, you decide.<br>
+      5. Charts are drawn by the server from the values that were recorded.</p>
+      <h3>Offline</h3>
+      <p class="sub">No external network calls, no web fonts, no analytics. Model assistance is off unless the server
+      was started with a provider configured.</p>
+    </div>
+  </div>
+</aside>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modaltitle"></div>

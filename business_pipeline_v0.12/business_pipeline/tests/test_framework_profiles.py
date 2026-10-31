@@ -61,7 +61,9 @@ class ProfileTest(unittest.TestCase):
         banned = ("grocery", "retail", "smartphone", "cold chain", "bakery")
         for profile in framework_profiles.PROFILES.values():
             for block in profile["blocks"]:
-                for phrase in block["queries"]:
+                # A block that is quoted from the student or left as a gap is
+                # never searched, so it carries no phrase to check.
+                for phrase in block.get("queries") or []:
                     self.assertFalse([word for word in banned if word in phrase.lower()],
                                      "%s/%s hard-codes %r" % (profile["label"], block["key"], phrase))
 
@@ -75,8 +77,10 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("political", str(refused.exception))
 
     def test_a_framework_without_a_profile_has_no_extension(self):
-        self.assertIsNone(framework_profiles.describe_extra("template_swot"))
-        self.assertFalse(framework_profiles.has("template_swot"))
+        # A template with no profile yet: the customer journey is catalogued but
+        # not built, so it must fall back to its plain worksheet.
+        self.assertIsNone(framework_profiles.describe_extra("template_customer_journey"))
+        self.assertFalse(framework_profiles.has("template_customer_journey"))
 
     def test_the_served_extension_names_the_unit_and_the_blocks(self):
         extra = framework_profiles.describe_extra("template_pestel")
@@ -92,7 +96,10 @@ class ProfileTest(unittest.TestCase):
     def test_the_label_is_the_profiles_not_a_literal(self):
         self.assertEqual(framework_profiles.label_for("template_pestel"), "PESTEL")
         self.assertEqual(framework_profiles.label_for("template_five_forces"), "Porter's Five Forces")
-        self.assertEqual(framework_profiles.label_for("template_swot"), "Porter's Five Forces")
+        # A template with no profile of its own falls back to the default
+        # profile's label; it never borrows another framework's name.
+        self.assertEqual(framework_profiles.label_for("template_customer_journey"),
+                         "Porter's Five Forces")
 
 
 if __name__ == "__main__":

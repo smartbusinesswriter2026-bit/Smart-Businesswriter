@@ -65,6 +65,8 @@ A theory can inform a framework without becoming a separate operational template
 | STR-16 | Lean Canvas | F | Startup problem, customer, value proposition, solution, channels, revenue/cost, metrics and advantage assumptions | Customer validation, unit economics, explicit hypotheses |
 | STR-17 | Value Proposition Canvas | F | Customer jobs, pains and gains compared with pain relievers and gain creators | Customer interviews/observations and validation; a canvas is a hypothesis, not proof of product-market fit |
 | STR-18 | SWOT evidence-to-action review | F | Audit each SWOT item for evidence, materiality, and resulting strategic options | Evidence traceability and prioritization; use as a quality layer on SWOT/TOWS, not a separate theory |
+| STR-19 | Strategic positioning review | F | The place claimed in the market, the difference it rests on, the value promised and the segment it is aimed at | Evidence that the difference is valued by the segment and that the segment is reachable; a positioning claim is a hypothesis to test |
+| STR-20 | Strategy framework: perspective, position, plan and pattern | F | A strategy read through its perspective, the position it claims, the plan that delivers it and the pattern of behaviour it creates | Evidence that the plan produces the intended pattern and that the position holds in the market; a strategy is read, not scored |
 
 **Notes:** Porter's frameworks should be kept as separate entries because they answer different questions. SWOT, Five Forces, and the Value Chain should not be merged into one generic “strategy analysis.” A user may need one, several, or none of them.
 
@@ -88,6 +90,7 @@ A theory can inform a framework without becoming a separate operational template
 | CHG-12 | Competing Values Framework | M | Organizational culture through competing value orientations | Survey/observation evidence; treat profiles as diagnostic, not immutable types |
 | CHG-13 | Mintzberg Organizational Configurations | M | Compare organizational structure/configuration patterns | Evidence about coordination, key parts, decision authority and context |
 | CHG-14 | RACI responsibility matrix | F | Responsible, Accountable, Consulted and Informed roles | Role clarity and stakeholder confirmation; usually no calculations required |
+| CHG-15 | Change and organization review | F | The kind of change, the readiness of the organization, the points of resistance and the support the change needs | Evidence about readiness and resistance from the people affected and from comparable changes; no readiness score is computed |
 
 **Scope note:** Theories about how people experience change (for example, Bridges' transition model) can be used as explanatory lenses when useful. They need not be separate core entries unless we define a reproducible diagnostic or intervention protocol around them.
 

@@ -85,17 +85,18 @@ class PestelCompletionTest(unittest.TestCase):
         self.assertEqual(legal["items"][0]["text"], "The 2024 licensing rule applies.")
         self.assertEqual(legal["items"][0]["provenance"], "student")
 
-    def test_no_evidence_is_a_gap_with_a_probe_and_no_invented_fact(self):
+    def test_no_evidence_is_written_from_general_background(self):
         with mock.patch("bp.product.sources.search_academic", return_value={"results": [], "errors": [], "skipped": []}), \
                 mock.patch("bp.product.sources.search_web", side_effect=web), \
                 mock.patch("bp.product.prose._call", side_effect=AssertionError("the model must not run")):
             result = completion.complete("template_pestel", BRIEF)
         self.assertEqual(len(result["blocks"]), 6)
         for block in result["blocks"]:
-            self.assertFalse(block["items"], block["key"])
-            self.assertIn("What to look for", block["gap"], block["key"])
-            self.assertFalse(any(char.isdigit() for char in block["gap"]),
-                             "a probe must not carry a figure: " + block["gap"])
+            self.assertEqual(len(block["items"]), 1, block["key"])
+            self.assertEqual(block["items"][0]["provenance"], "background", block["key"])
+            self.assertFalse(block["items"][0]["source"], block["key"])
+            self.assertFalse(block["gap"], block["key"])
+            self.assertFalse(any(char.isdigit() for char in block["items"][0]["text"]), block["key"])
 
     def test_a_source_cannot_fill_two_dimensions(self):
         def everything(query, databases=None, limit=10, year_from=None):
@@ -110,17 +111,17 @@ class PestelCompletionTest(unittest.TestCase):
         with mock.patch("bp.product.sources.search_academic", side_effect=everything), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
             result = completion.complete("template_pestel", BRIEF)
-        with_items = [block for block in result["blocks"] if block["items"]]
-        self.assertEqual(len(with_items), 1)
-        self.assertEqual(sum(1 for block in result["blocks"] if block["gap"]), 5)
+        sourced = [block for block in result["blocks"]
+                   if any(item["provenance"] == "sourced" for item in block["items"])]
+        self.assertEqual(len(sourced), 1)
 
     def test_the_paper_has_the_pestel_outline_and_a_pestel_title(self):
         result = complete()
         report = completion.draft(result, "apa", "draft", "mid")
         headings = [section["heading"] for section in report["sections"]]
-        for required in ("Introduction", "Case and country context", "PESTEL", "Political", "Economic",
+        for required in ("Introduction", "Case and Country Context", "PESTEL", "Political", "Economic",
                          "Social", "Technological", "Environmental", "Legal", "Discussion",
-                         "What the evidence shows", "Implications for the decision", "Limitations",
+                         "What the Evidence Shows", "Implications for the Decision", "Limitations",
                          "Conclusion", "References"):
             self.assertIn(required, headings)
         self.assertTrue(report["title"].startswith("PESTEL Analysis: "))
@@ -140,12 +141,14 @@ class PestelCompletionTest(unittest.TestCase):
         self.assertEqual(report["length_label"], "Long")
         self.assertEqual(report["length_applies_to"], "full")
 
-    def test_the_full_paper_is_refused_rather_than_thinned(self):
+    def test_a_failed_full_paper_falls_back_to_the_evidence_led_draft(self):
         result = complete()
         with mock.patch("bp.product.completion._model_sections", return_value=None):
-            with self.assertRaises(ValueError) as refused:
-                completion.draft(result, "apa", "full")
-        self.assertIn("Nothing was downloaded", str(refused.exception))
+            report = completion.draft(result, "apa", "full")
+        self.assertFalse(report["model_used"])
+        self.assertEqual(report["fallback"], "draft")
+        self.assertTrue(report["sections"])
+        self.assertGreaterEqual(report["words"], 700)
 
     def test_the_model_prompt_speaks_pestel_and_keeps_the_safety_rules(self):
         profile = dict(completion.LENGTHS["mid"])
@@ -156,21 +159,18 @@ class PestelCompletionTest(unittest.TestCase):
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
         self.assertIn("country", system)
 
-    def test_an_empty_dimension_needs_an_acknowledged_gap_before_the_paper(self):
+    def test_an_empty_dimension_does_not_block_the_paper(self):
         result = complete()
         result["blocks"] = [block for block in result["blocks"] if block["key"] != "environmental"]
         result["blocks"].append({"key": "environmental", "label": "Environmental", "items": [], "gap": "No evidence."})
-        self.assertEqual(completion.missing(result), ["Environmental"])
-        result["acknowledged_gaps"] = ["environmental"]
         self.assertEqual(completion.missing(result), [])
 
-    def test_the_route_refuses_an_incomplete_paper_with_409_and_the_missing_labels(self):
+    def test_the_route_generates_a_paper_with_an_empty_dimension(self):
         result = complete()
         result["blocks"] = [block for block in result["blocks"] if block["key"] != "legal"]
         status, payload = api.handle("POST", "/api/cases/frameworks/report",
                                      {"completion": result, "version": "draft"})
-        self.assertEqual(status, 409)
-        self.assertIn("Legal", payload["missing"])
+        self.assertEqual(status, 200, payload)
 
     def test_the_route_returns_a_pestel_completion(self):
         with mock.patch("bp.product.completion.complete") as fake:
@@ -183,8 +183,10 @@ class PestelCompletionTest(unittest.TestCase):
         self.assertEqual(payload["template"], "template_pestel")
 
     def test_a_framework_without_a_profile_is_refused_and_names_the_real_options(self):
+        # The customer journey is catalogued but has no profile yet, so it is
+        # refused and the message names the frameworks that do run.
         with self.assertRaises(ValueError) as refused:
-            completion.complete("template_swot", BRIEF)
+            completion.complete("template_customer_journey", BRIEF)
         self.assertIn("PESTEL", str(refused.exception))
         self.assertIn("Porter's Five Forces", str(refused.exception))
 

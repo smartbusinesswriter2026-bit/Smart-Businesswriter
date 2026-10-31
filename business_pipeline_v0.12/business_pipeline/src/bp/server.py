@@ -1073,7 +1073,13 @@ def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     SANDBOX_ENABLED = bool(sandbox)
     print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})")
     print("Health: /api/health | cases: /api/cases | request log: " + (str(product_ops.request_log_path()) if product_ops.request_log_path() else "disabled"))
-    ThreadingHTTPServer((host, port), H).serve_forever()
+    class _Reusable(ThreadingHTTPServer):
+        allow_reuse_address = True
+    try:
+        _Reusable((host, port), H).serve_forever()
+    except OSError as e:
+        print(f"server: cannot bind {host}:{port}: {e}")
+        raise
 
 if __name__ == "__main__":
     _load_local_keys()

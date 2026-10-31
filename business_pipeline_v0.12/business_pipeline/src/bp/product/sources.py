@@ -258,7 +258,12 @@ def _item(title, authors="", year=None, abstract="", doi=None, url=None, venue="
 
 
 def _openalex(query, limit, year_from):
-    params = {"search": query, "per-page": str(limit), "sort": "relevance_score:desc"}
+    # OpenAlex grants the polite pool (and avoids shared-IP 429s) only when the
+    # request carries a contact address.
+    params = {"search": query, "per-page": str(limit), "sort": "relevance_score:desc",
+              "mailto": os.environ.get("BP_OPENALEX_EMAIL") or "research@example.com"}
+    if os.environ.get("BP_OPENALEX_API_KEY"):
+        params["api_key"] = os.environ["BP_OPENALEX_API_KEY"]
     if year_from:
         params["filter"] = "publication_year:%d-" % int(year_from)
     data = _get_json("https://api.openalex.org/works?" + urllib.parse.urlencode(params))
@@ -522,8 +527,15 @@ def _web_item(result, sites):
         return None
     date = _text(result.get("date"), 40)
     year = int(date[:4]) if len(date) >= 4 and date[:4].isdigit() else None
-    return {"title": _text(result.get("title"), 300), "url": url,
-            "description": _text(result.get("description") or result.get("snippet") or result.get("summary"), 500),
+    title = _text(result.get("title"), 300)
+    title = re.sub(r"^(?:Table Data|Title|Data)\s*[-:|]\s*", "", title, flags=re.I).strip()
+    title = title.split(" | ")[0].strip()
+    description = _text(result.get("description") or result.get("snippet") or result.get("summary"), 500)
+    # Scraped pages carry their own furniture ("Table Data -", "Title | ...",
+    # "Date Range | ..."); it is not evidence and must not reach a citation.
+    description = re.split(r"\s*(?:Title|Date Range|Table Data)\s*\|", description)[0].strip()
+    description = re.sub(r"(?:\.\.\.|\u2026)+\s*$", "", description).strip()
+    return {"title": title, "url": url, "description": description,
             "site": site["label"], "domain": host, "region": site["region"], "tier": site["tier"],
             "year": year, "authority": result.get("authority"),
             "search_score": result.get("rerank_score")}

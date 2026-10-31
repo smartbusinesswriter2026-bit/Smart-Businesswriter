@@ -264,6 +264,33 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("lastDurableRoute", self.html)
         self.assertIn("rememberRoute", self.html)
 
+    def test_opening_a_tool_does_not_bounce_back_to_the_page_it_came_from(self):
+        """A computation tile must open the tool, not loop the student to the top.
+
+        createSession() used to call show("new") before the session existed.
+        The no-session renderer sends a student who has no session back to the
+        last durable screen, so a tool opened from a subject page was sent back
+        to that page, the re-render threw the scroll to the top and the tool
+        opened into a hidden panel. The panel is activated directly instead.
+        """
+        body = self.html.split("async function createSession(body) {", 1)[1]
+        body = body.split("RENDERERS.new = function", 1)[0]
+        self.assertIn('activate("new")', body)
+        self.assertNotIn('show("new")', body)
+
+    def test_the_figures_panel_describes_the_method_actually_on_screen(self):
+        """Only management accounts have an engagement.
+
+        The panel told every method that the engagement is declared once - the
+        period, the chart, the opening balances, the entries and any schedules.
+        That is false for NPV, IRR and the case comparison, so the wording now
+        follows the method.
+        """
+        self.assertIn("function figuresCopy(plan)", self.html)
+        self.assertIn('methodId === "management_accounts"', self.html)
+        self.assertIn(': figuresCopy(plan)) + "</p>" +', self.html)
+        self.assertEqual(self.html.count("the chart, the opening balances"), 1)
+
     def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
         for subject_id in ["accounting", "finance", "economics", "management", "project-management",
                            "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research"]:

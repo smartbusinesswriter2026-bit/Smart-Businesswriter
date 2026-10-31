@@ -34,7 +34,7 @@ class AcademicDocxTest(unittest.TestCase):
         self.assertEqual(texts[first + 2:first + 6],
                          ["A Student", "Example University", "BUS301", "Dr A Instructor"])
         self.assertEqual(texts[first + 6],
-                         datetime.datetime.now(datetime.timezone.utc).strftime("%d %B %Y"))
+                         datetime.datetime.now(datetime.timezone.utc).strftime("%B %d, %Y"))
 
     def test_the_title_page_is_vertically_centred_in_its_own_section(self):
         body = self.parts["word/document.xml"]

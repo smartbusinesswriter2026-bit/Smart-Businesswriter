@@ -335,6 +335,91 @@ CANVAS_BLOCKS = {
         "owners": ("Communication owner", "Who is responsible for each message or channel"),
         "risks": ("Communication risks", "What could make the communication fail, and the response"),
     },
+    "template_sipoc": {
+        "suppliers": ("Suppliers", "Who supplies the process, and what each supplier provides"),
+        "inputs": ("Inputs", "What the process consumes: materials, information, people, equipment, licences"),
+        "process": ("Process steps", "The steps of the process in order, from the request to the delivery"),
+        "outputs": ("Outputs", "What the process produces: the product, service or document it hands on"),
+        "customers": ("Customers", "Who receives the output, inside or outside the organisation"),
+    },
+    "template_value_stream_map": {
+        "process_steps": ("Process steps", "Each step of the flow, in order, with what it does"),
+        "cycle_and_lead_times": ("Cycle and lead times", "The time each step takes and the time the whole flow takes"),
+        "inventory_wip": ("Inventory and work in progress", "What waits between steps, and how much of it"),
+        "waits_delays": ("Waits and delays", "Where the flow stops: queues, batches, hand-offs and approvals"),
+        "value_added": ("Value-added assessment", "Which steps the customer would pay for, and which they would not"),
+        "improvements": ("Improvement opportunities", "The changes you propose, and the measure that would show the effect"),
+    },
+    "template_toc": {
+        "identify": ("Identify the constraint", "The resource or step that limits the whole system, and how you know"),
+        "exploit": ("Exploit the constraint", "How the constraint is kept working on what only it can do"),
+        "subordinate": ("Subordinate everything else", "How the other steps are paced to the constraint rather than to their own capacity"),
+        "elevate": ("Elevate the constraint", "The capacity you add, and the evidence that it raises the system's output"),
+        "reassess": ("Reassess", "Where the constraint moved once the change took hold, and the next constraint"),
+    },
+    "template_a3": {
+        "problem": ("Problem", "The problem, stated with the gap between what happens and what should"),
+        "current_condition": ("Current condition", "What actually happens now, and the evidence for it"),
+        "target": ("Target condition", "What success looks like, and the measure that shows it"),
+        "causes": ("Root causes", "The causes you can evidence, not the symptoms"),
+        "countermeasures": ("Countermeasures", "The specific changes proposed against each evidenced cause"),
+        "plan": ("Plan and owners", "Who does what, by when, and what each step depends on"),
+        "follow_up": ("Follow-up", "When the effect is checked, on what measure, and what would trigger a rethink"),
+    },
+    "template_scor": {
+        "plan": ("Plan", "How demand and supply are balanced: the plan the chain runs on"),
+        "source": ("Source", "How inputs and goods are procured, and from whom"),
+        "make": ("Make", "How the product or service is produced"),
+        "deliver": ("Deliver", "How the finished offer reaches the customer"),
+        "return": ("Return", "How returns, defects and reverse flows are handled"),
+        "enable": ("Enable", "The rules, data, contracts and people that make the other five work"),
+    },
+    "template_5s": {
+        "sort": ("Sort", "What is removed from the workplace because it is not needed"),
+        "set_in_order": ("Set in order", "Where each thing belongs, and how that place is marked"),
+        "shine": ("Shine", "What is cleaned, inspected and restored, and how often"),
+        "standardize": ("Standardize", "The standard that keeps the first three in place"),
+        "sustain": ("Sustain", "The audit, habit and owner that keep the standard alive"),
+    },
+    "template_root_cause": {
+        "problem": ("Problem", "The effect, stated with where and when it happens"),
+        "people": ("People", "Causes rooted in skills, staffing, training or behaviour"),
+        "process": ("Process / method", "Causes rooted in the way the work is designed"),
+        "equipment": ("Equipment", "Causes rooted in machines, tools or maintenance"),
+        "materials": ("Materials", "Causes rooted in inputs, specifications or supply"),
+        "measurement": ("Measurement", "Causes rooted in how the work is measured or judged"),
+        "environment": ("Environment", "Causes rooted in the surroundings: layout, light, heat, noise"),
+        "root_cause": ("Root cause", "The cause the evidence supports, and the test that showed it"),
+    },
+    "template_fmea": {
+        "failure_modes": ("Failure modes", "The ways the process or product can fail"),
+        "effects": ("Effects", "What each failure does to the customer or the next step"),
+        "causes": ("Causes", "Why each failure mode happens"),
+        "controls": ("Current controls", "What already detects or prevents it"),
+        "actions": ("Recommended actions", "The change proposed for the highest-risk modes"),
+        "owners": ("Owners and review", "Who acts, by when, and when the risk is reviewed again"),
+    },
+    "template_kraljic": {
+        "criteria": ("Criteria", "How you judge profit impact and supply risk, and the cut-offs you use"),
+        "strategic": ("Strategic items", "High impact, high risk: what they are and how they are managed"),
+        "leverage": ("Leverage items", "High impact, low risk: what they are and how they are managed"),
+        "bottleneck": ("Bottleneck items", "Low impact, high risk: what they are and how they are managed"),
+        "non_critical": ("Non-critical items", "Low impact, low risk: what they are and how they are managed"),
+    },
+    "template_sop": {
+        "demand_plan": ("Demand plan", "The demand the chain is planning for, and its basis"),
+        "supply_plan": ("Supply plan", "What supply can deliver, and the constraints on it"),
+        "inventory_plan": ("Inventory plan", "The stock the plan holds, and why"),
+        "capacity_plan": ("Capacity plan", "The capacity the plan assumes, and where it binds"),
+        "financial_plan": ("Financial plan", "The revenue, cost and margin the plan implies"),
+        "decisions": ("Gaps and decisions", "Where the plans disagree, and the decision taken"),
+    },
+    "template_pdca": {
+        "plan": ("Plan", "The problem, the target and the change you will try"),
+        "do": ("Do", "What was actually done, on what scale, and when"),
+        "check": ("Check", "What the measure showed, against the target"),
+        "act": ("Act", "What is standardised, changed or abandoned, and what happens next"),
+    },
     "template_lessons_learned": {
         "went_well": ("What went well", "Practices, decisions or behaviours that worked and should be repeated"),
         "went_poorly": ("What did not go well", "What failed, slipped or caused avoidable cost"),
@@ -343,6 +428,288 @@ CANVAS_BLOCKS = {
         "actions": ("Actions and owners", "Who will make the change, and by when"),
         "share": ("Who should see this", "The teams or roles that need the lesson"),
         "evidence": ("Evidence", "Records, incidents, change requests or data behind the lesson"),
+    },
+    "template_job_characteristics": {
+        "skill_variety": ("Skill variety", "The range of skills and knowledge the role draws on"),
+        "task_identity": ("Task identity", "Whether the role produces a whole, identifiable piece of work"),
+        "task_significance": ("Task significance", "Whether the role's contribution is visible and consequential"),
+        "autonomy": ("Autonomy", "The discretion the person has over how the work is done"),
+        "feedback": ("Feedback", "How the person finds out how well the work is going"),
+    },
+    "template_kirkpatrick": {
+        "reaction": ("Reaction", "What participants thought of the training and whether they valued it"),
+        "learning": ("Learning", "What participants learned, and what they can show they learned it"),
+        "behavior": ("Behaviour", "What participants did differently at work afterwards"),
+        "results": ("Results", "What the organisation gained from the training"),
+    },
+    "template_amo": {
+        "ability": ("Ability", "Whether the person has the skill and knowledge to do the work"),
+        "motivation": ("Motivation", "Whether the person wants to do the work, and sees the reason to"),
+        "opportunity": ("Opportunity", "Whether the person is allowed and equipped to do the work"),
+    },
+    "template_tuckman": {
+        "forming": ("Forming", "The stage where the team is orienting itself to the task and to each other"),
+        "storming": ("Storming", "The stage where roles, boundaries and ways of working are contested"),
+        "norming": ("Norming", "The stage where the team settles on how it will work together"),
+        "performing": ("Performing", "The stage where the team works together on the task"),
+        "adjourning": ("Adjourning", "The stage where the team closes down, or changes shape"),
+    },
+    "template_nine_box": {
+        "performance_criteria": ("Performance criteria", "How performance is judged, the criteria you use, and the evidence for each"),
+        "potential_criteria": ("Potential criteria", "How potential is judged, the criteria you use, and the evidence for each"),
+        "placements": ("Placements", "Where each person you name sits in the nine boxes, and why"),
+        "development_actions": ("Development actions", "What the placements require you to do for each group"),
+    },
+    "template_kotter": {
+        "urgency": ("Create urgency", "The case for change, and the evidence that it cannot wait"),
+        "coalition": ("Form a powerful coalition", "Who must lead the change, and why that group"),
+        "vision": ("Create a vision for change", "What the organisation is aiming at once the change is made"),
+        "communicate": ("Communicate the vision", "How the vision reaches people, and what they are told"),
+        "empower": ("Empower others to act", "What removes the barriers that stop people acting"),
+        "wins": ("Plan for and create short-term wins", "The early results that show the change is working"),
+        "consolidate": ("Consolidate gains and produce more change", "How the early wins are used to go further"),
+        "institutionalize": ("Institutionalize new approaches", "What anchors the change in how the organisation works day to day"),
+    },
+    "template_competing_values": {
+        "clan": ("Clan culture", "The orientation that puts people, commitment and development first"),
+        "adhocracy": ("Adhocracy culture", "The orientation that puts experimentation, innovation and outside challenge first"),
+        "market": ("Market culture", "The orientation that puts achievement, competition and the customer first"),
+        "hierarchy": ("Hierarchy culture", "The orientation that puts structure, control and predictability first"),
+    },
+    "template_org_design": {
+        "strategy": ("Strategy", "What the organisation is trying to achieve"),
+        "decision_rights": ("Decision rights", "Who decides what, and who is accountable for it"),
+        "structure": ("Structure", "How the roles and the work are grouped"),
+        "processes": ("Processes", "How the work is actually done and governed"),
+        "people_capability": ("People and capability", "The skills, roles and capacity the design needs"),
+        "incentives": ("Incentives", "What the design rewards people for doing"),
+    },
+    "template_galbraith_star": {
+        "strategy": ("Strategy", "What the organisation is trying to achieve"),
+        "structure": ("Structure", "How work and authority are organised"),
+        "processes": ("Processes", "How decisions are made and work flows"),
+        "rewards": ("Rewards", "What the organisation pays people for"),
+        "people": ("People", "The skills, mindsets and capabilities needed"),
+    },
+    "template_mintzberg": {
+        "strategic_apex": ("Strategic Apex", "Those who define the mission and strategy"),
+        "middle_line": ("Middle Line", "Those who translate strategy into action"),
+        "operating_core": ("Operating Core", "Those who do the basic work of the organisation"),
+        "technostructure": ("Technostructure", "Those who design and control the work"),
+        "support_staff": ("Support Staff", "Those who provide indirect support"),
+    },
+    "template_logic_model": {
+        "inputs": ("Inputs", "The resources and conditions brought to the effort"),
+        "activities": ("Activities", "The actions and interventions carried out"),
+        "outputs": ("Outputs", "The direct products of the activities"),
+        "outcomes": ("Outcomes", "The short, medium and long-term results achieved"),
+    },
+    "template_mckinsey_7s": {
+        "strategy": ("Strategy", "The plan for competing and the choices that shape the firm"),
+        "structure": ("Structure", "How the firm is organized and who reports to whom"),
+        "systems": ("Systems", "The processes, procedures and routines that run the firm"),
+        "shared_values": ("Shared Values", "The core values and culture that guide behaviour"),
+        "style": ("Style", "The leadership style and how decisions are made"),
+        "staff": ("Staff", "The people, their skills and how they are developed"),
+        "skills": ("Skills", "The distinctive capabilities the firm possesses"),
+    },
+    "template_porters_diamond": {
+        "factor_conditions": ("Factor Conditions", "The nations endowment of natural, human, capital and infrastructure resources"),
+        "demand_conditions": ("Demand Conditions", "The nature of domestic demand and how it shapes competitive advantage"),
+        "related_industries": ("Related and Supporting Industries", "The presence of supplier and related industries that are internationally competitive"),
+        "firm_strategy": ("Firm Strategy, Structure and Rivalry", "How firms are created, organized and managed, and the nature of domestic rivalry"),
+        "government": ("Government", "The role of government in shaping the diamond"),
+        "chance": ("Chance", "The role of chance events in shaping competitive advantage"),
+    },
+
+    "template_strategic_positioning": {
+        "position": ("Position", "Where the firm sits relative to competitors and customers"),
+        "differentiation": ("Differentiation", "What makes the firm distinct from competitors"),
+        "value_proposition": ("Value Proposition", "The value the firm delivers to customers"),
+        "target_segment": ("Target Segment", "The customers the firm chooses to serve"),
+    },
+    "template_strategy_4": {
+        "perspective": ("Perspective", "How the organisation sees the world and its place in it"),
+        "position": ("Position", "Where the organisation stands relative to competitors"),
+        "plan": ("Plan", "The intended course of action to reach the desired position"),
+        "pattern": ("Pattern", "The realised behaviour that emerges over time"),
+    },
+    "template_change_organization": {
+        "change_type": ("Change Type", "The kind of change being made and its scope"),
+        "readiness": ("Readiness", "Whether the organisation is ready for the change"),
+        "resistance": ("Resistance", "What pushes back against the change"),
+        "support": ("Support", "What enables and sustains the change"),
+    },
+    "template_stp": {
+        "segmentation": ("Segmentation", "How the market is divided into segments"),
+        "targeting": ("Targeting", "Which segments are chosen and why"),
+        "positioning": ("Positioning", "How the offer is positioned in the market"),
+    },
+    "template_aida": {
+        "attention": ("Attention", "How awareness is captured"),
+        "interest": ("Interest", "How interest is sustained"),
+        "desire": ("Desire", "How desire is created"),
+        "action": ("Action", "How action is triggered"),
+    },
+    "template_customer_journey": {
+        "awareness": ("Awareness", "How customers first learn about the offer"),
+        "consideration": ("Consideration", "How customers evaluate the offer"),
+        "purchase": ("Purchase", "How customers buy the offer"),
+        "retention": ("Retention", "How customers are kept after purchase"),
+        "advocacy": ("Advocacy", "How customers recommend the offer"),
+    },
+    "template_funnel": {
+        "awareness": ("Awareness", "How prospects enter the funnel"),
+        "interest": ("Interest", "How interest is captured"),
+        "consideration": ("Consideration", "How prospects evaluate"),
+        "intent": ("Intent", "How intent is formed"),
+        "evaluation": ("Evaluation", "How the final decision is made"),
+        "purchase": ("Purchase", "How the purchase happens"),
+    },
+    "template_servqual": {
+        "tangibles": ("Tangibles", "Physical facilities, equipment and appearance"),
+        "reliability": ("Reliability", "Ability to perform the promised service dependably"),
+        "responsiveness": ("Responsiveness", "Willingness to help customers and provide prompt service"),
+        "assurance": ("Assurance", "Knowledge and courtesy of employees and their ability to inspire trust"),
+        "empathy": ("Empathy", "Caring, individualised attention the firm provides its customers"),
+    },
+    "template_rfm": {
+        "recency": ("Recency", "How recently the customer purchased"),
+        "frequency": ("Frequency", "How often the customer purchases"),
+        "monetary": ("Monetary", "How much the customer spends"),
+    },
+    "template_tam": {
+        "perceived_usefulness": ("Perceived Usefulness", "How useful the technology is perceived to be"),
+        "perceived_ease_of_use": ("Perceived Ease of Use", "How easy the technology is perceived to be"),
+        "attitude": ("Attitude", "The attitude towards using the technology"),
+        "behavioral_intention": ("Behavioral Intention", "The intention to use the technology"),
+    },
+    "template_utaut": {
+        "performance_expectancy": ("Performance Expectancy", "How much the technology helps performance"),
+        "effort_expectancy": ("Effort Expectancy", "How easy the technology is to use"),
+        "social_influence": ("Social Influence", "How others influence adoption"),
+        "facilitating_conditions": ("Facilitating Conditions", "The resources and support available"),
+    },
+    "template_brand_equity": {
+        "awareness": ("Brand Awareness", "How well customers know the brand"),
+        "associations": ("Brand Associations", "What customers associate with the brand"),
+        "perceived_quality": ("Perceived Quality", "How customers perceive the quality"),
+        "loyalty": ("Brand Loyalty", "How loyal customers are to the brand"),
+    },
+    "template_digital_mix": {
+        "owned": ("Owned Channels", "Channels the brand controls"),
+        "earned": ("Earned Channels", "Channels gained through PR and word of mouth"),
+        "paid": ("Paid Channels", "Channels paid for advertising"),
+    },
+    "template_seo_content": {
+        "keywords": ("Keywords", "The search terms targeted"),
+        "content": ("Content", "The content created for search"),
+        "technical": ("Technical SEO", "The technical optimisation of the site"),
+        "links": ("Links", "The link building strategy"),
+    },
+    "template_email_crm": {
+        "list": ("List", "The email list and its health"),
+        "segments": ("Segments", "How the list is segmented"),
+        "campaigns": ("Campaigns", "The email campaigns sent"),
+        "automation": ("Automation", "The automated email flows"),
+    },
+    "template_social_media": {
+        "platforms": ("Platforms", "Which social platforms are used"),
+        "content": ("Content", "The content posted on social media"),
+        "engagement": ("Engagement", "How audiences engage with the content"),
+        "influencers": ("Influencers", "The influencers and partners used"),
+    },
+    "template_attribution": {
+        "touchpoints": ("Touchpoints", "The customer touchpoints tracked"),
+        "model": ("Attribution Model", "The model used to assign credit"),
+        "credit": ("Credit Assignment", "How credit is assigned across touchpoints"),
+        "reporting": ("Reporting", "How attribution is reported"),
+    },
+    "template_cro": {
+        "hypothesis": ("Hypothesis", "The hypothesis being tested"),
+        "variants": ("Variants", "The variants being tested"),
+        "metrics": ("Metrics", "The metrics being tracked"),
+        "results": ("Results", "The results of the test"),
+    },
+    "template_marketing_automation": {
+        "triggers": ("Triggers", "What triggers automated actions"),
+        "flows": ("Flows", "The automated marketing flows"),
+        "scoring": ("Lead Scoring", "How leads are scored"),
+        "nurture": ("Nurture", "How leads are nurtured"),
+    },
+    "template_stp_evidence": {
+        "segmentation_evidence": ("Segmentation Evidence", "Evidence for the segmentation"),
+        "targeting_evidence": ("Targeting Evidence", "Evidence for the targeting"),
+        "positioning_evidence": ("Positioning Evidence", "Evidence for the positioning"),
+    },
+
+    "template_adkar": {
+        "awareness": ("Awareness", "Why the change is needed and why now"),
+        "desire": ("Desire", "Why change matters and what people gain"),
+        "knowledge": ("Knowledge", "What people need to know and how they are taught"),
+        "ability": ("Ability", "What people must do differently"),
+        "reinforcement": ("Reinforcement", "What makes the change stick"),
+    },
+    "template_bcg": {
+        "stars": ("Stars", "High growth, high market share - invest to grow"),
+        "cash_cows": ("Cash Cows", "Low growth, high market share - harvest for cash"),
+        "question_marks": ("Question Marks", "High growth, low market share - invest or divest"),
+        "dogs": ("Dogs", "Low growth, low market share - divest or harvest"),
+    },
+    "template_burke_litwin": {
+        "external_environment": ("External Environment", "The external forces that shape the organisation"),
+        "mission_strategy": ("Mission and Strategy", "What the organisation is trying to achieve and how"),
+        "leadership": ("Leadership", "The style and behaviour of those who lead"),
+        "culture": ("Culture", "The shared values, beliefs and assumptions"),
+        "structure": ("Structure", "How work is organised and authority is distributed"),
+        "management_practices": ("Management Practices", "How managers actually behave and the systems they use"),
+        "systems": ("Systems and Policies", "The formal procedures, policies and reward systems"),
+        "work_unit_climate": ("Work Unit Climate", "The atmosphere and morale within teams"),
+        "task_requirements": ("Task and Individual Skills", "The skills, abilities and motivation of individuals"),
+        "motivation": ("Motivation", "What drives people to perform"),
+        "individual_values": ("Individual Needs and Values", "What individuals want and value"),
+        "performance": ("Individual and Organisational Performance", "The results the organisation achieves"),
+    },
+    "template_dmaic": {
+        "define": ("Define", "The problem, the scope and the goal of the improvement"),
+        "measure": ("Measure", "The baseline, the current performance and the data collected"),
+        "analyze": ("Analyze", "The root causes and the evidence behind them"),
+        "improve": ("Improve", "The changes tested and the results they produced"),
+        "control": ("Control", "How the improvement is held in place going forward"),
+    },
+    "template_ge_mckinsey": {
+        "high_high": ("High/High", "High industry attractiveness, high business strength - invest/grow"),
+        "high_medium": ("High/Medium", "High industry attractiveness, medium business strength - invest/selectively"),
+        "high_low": ("High/Low", "High industry attractiveness, low business strength - protect/selectively"),
+        "medium_high": ("Medium/High", "Medium industry attractiveness, high business strength - invest/selectively"),
+        "medium_medium": ("Medium/Medium", "Medium industry attractiveness, medium business strength - selectivity/earnings"),
+        "medium_low": ("Medium/Low", "Medium industry attractiveness, low business strength - harvest/divest"),
+        "low_high": ("Low/High", "Low industry attractiveness, high business strength - protect/earnings"),
+        "low_medium": ("Low/Medium", "Low industry attractiveness, medium business strength - harvest/divest"),
+        "low_low": ("Low/Low", "Low industry attractiveness, low business strength - divest/liquidate"),
+    },
+    "template_generic_strategies": {
+        "low_cost": ("Low-Cost", "Aims to be the cheapest producer"),
+        "differentiation": ("Differentiation", "Focuses on unique product features customers value"),
+        "focus_low_cost": ("Focused Low-Cost", "Low cost within a narrow market segment"),
+        "focus_differentiation": ("Focused Differentiation", "Unique value within a narrow market segment"),
+    },
+    "template_lewin": {
+        "unfreeze": ("Unfreeze", "Prepare the organisation for change by undermining the existing status quo"),
+        "change": ("Change", "Move the organisation to a new state through the steps the change requires"),
+        "refreeze": ("Refreeze", "Anchor the new state in daily routines so the change sticks"),
+    },
+    "template_pdsa": {
+        "plan": ("Plan", "What change is planned and what will be measured"),
+        "do": ("Do", "What was carried out and on what scale"),
+        "study": ("Study", "What the results show and what was learned"),
+        "act": ("Act", "What is adopted, adapted or abandoned as a result"),
+    },
+    "template_theory_of_change": {
+        "inputs": ("Inputs", "The resources and conditions brought to the change effort"),
+        "activities": ("Activities", "The actions and interventions the change will carry out"),
+        "outputs": ("Outputs", "The direct products of the activities, in expected quantity"),
+        "outcomes": ("Outcomes", "The short, medium and long-term results the change aims to achieve"),
     },
 }
 
@@ -438,11 +805,318 @@ CANVAS_META = {
         "unsupported_use": "Inventing stakeholders, interests, influence, messages or owners; scoring stakeholders; choosing an engagement strategy for you; guaranteeing that a stakeholder will be satisfied.",
         "extra_help": "The influence and impact entries are labels you declare with their evidence, not a computed power-interest score. A stakeholder with no owner or channel is shown as a gap.",
     },
+    "template_toc": {
+        "name": "Theory of Constraints: five focusing steps with an evidence audit", "short": "theory of constraints", "registry_ids": ["OPS-06"],
+        "intended_use": "Record the system constraint you identified and, for each focusing step, what you are doing about it and the evidence behind the claim; the empty steps are named.",
+        "unsupported_use": "Observing the line, measuring throughput or buffer sizes, scheduling with drum-buffer-rope, or deciding the constraint for you; an empty step is a gap, not a finding.",
+        "extra_help": "The constraint and each step are yours. A step with no entry is named in the audit; the worksheet computes no throughput, buffer or saving.",
+    },
+    "template_a3": {
+        "name": "A3 problem solving with an evidence audit", "short": "A3", "registry_ids": ["OPS-05"],
+        "intended_use": "Work one problem through the A3 sections: problem, current condition, target, evidenced causes, countermeasures, the plan with owners, and the follow-up that tests the effect.",
+        "unsupported_use": "Observing the process, timing a step or measuring a defect rate; inventing a cause without evidence; writing a countermeasure with no owner; computing a saving; judging whether the A3 is complete. Empty sections are named.",
+        "extra_help": "A countermeasure with no owner, or a follow-up with no measure, is named as a gap. The worksheet records causes you can evidence and infers no motive.",
+    },
+    "template_scor": {
+        "name": "SCOR supply-chain map with an evidence audit", "short": "SCOR", "registry_ids": ["OPS-01"],
+        "intended_use": "Lay out the six SCOR processes - plan, source, make, deliver, return and enable - with the evidence for each, and name the processes you cannot evidence.",
+        "unsupported_use": "Observing the chain, measuring SCOR metrics, benchmarking against a standard, computing a maturity score or deciding the network design; the worksheet organises declared evidence and computes nothing.",
+        "extra_help": "Each process is described from your evidence. Empty processes are named in the audit; no metric, benchmark or maturity level is derived.",
+    },
+    "template_5s": {
+        "name": "5S workplace audit with an evidence audit", "short": "5S", "registry_ids": ["OPS-04"],
+        "intended_use": "Record what was done for each of the five S's - sort, set in order, shine, standardize and sustain - with the evidence and the owner, and name the steps still empty.",
+        "unsupported_use": "Observing the workplace, scoring the audit, computing a 5S maturity level or assigning owners for you; an empty step is a gap, not a finding.",
+        "extra_help": "A step with no evidence stays empty and is named. The worksheet computes no score and judges no workplace.",
+    },
+    "template_root_cause": {
+        "name": "Root cause analysis: 5 Whys and fishbone with an evidence audit", "short": "root cause analysis", "registry_ids": ["OPS-07"],
+        "intended_use": "State the problem, gather the candidate causes under the fishbone categories, and record the root cause the evidence supports and the test that showed it.",
+        "unsupported_use": "Observing the process, declaring a cause without evidence, treating a diagram as proof of cause, or investigating the problem for you; candidate causes are yours and an unevidenced cause is flagged.",
+        "extra_help": "A cause with no evidence is shown as a hypothesis, not a finding. The worksheet derives no cause and no priority.",
+    },
+    "template_fmea": {
+        "name": "Failure mode and effects analysis with an evidence audit", "short": "FMEA", "registry_ids": ["OPS-08"],
+        "intended_use": "List the failure modes, their effects and causes, the controls already in place, the actions proposed for the highest-risk modes, and who owns the review.",
+        "unsupported_use": "Observing the process, computing a risk priority number, multiplying severity, occurrence and detection into a score, or ranking the modes for you; the labels you declare are recorded, not combined.",
+        "extra_help": "Severity, occurrence and detection are labels you declare with their evidence; the worksheet multiplies nothing and produces no RPN.",
+    },
+    "template_kraljic": {
+        "name": "Kraljic purchasing portfolio with an evidence audit", "short": "Kraljic", "registry_ids": ["OPS-10"],
+        "intended_use": "Declare the criteria you use for profit impact and supply risk, then place each item in the strategic, leverage, bottleneck or non-critical quadrant with its evidence.",
+        "unsupported_use": "Observing purchasing, scoring suppliers, computing a spend figure, or deciding the sourcing strategy for you; the criteria and the placements are yours and the empty quadrants are named.",
+        "extra_help": "The two axes are declared, not measured. A quadrant with no item is named; no total spend, score or recommendation is produced.",
+    },
+    "template_sop": {
+        "name": "Sales and operations plan with an evidence audit", "short": "S&OP", "registry_ids": ["OPS-11"],
+        "intended_use": "Set the demand, supply, inventory, capacity and financial plans beside one another, name where they disagree, and record the decision taken.",
+        "unsupported_use": "Observing the plans, forecasting demand, computing a capacity plan or balancing the plans for you; the figures are yours and the disagreements are named rather than resolved.",
+        "extra_help": "The plans are declared. A plan with no entry is named, and a disagreement between plans is recorded with the decision you took.",
+    },
+    "template_pdca": {
+        "name": "PDCA improvement cycle with an evidence audit", "short": "PDCA", "registry_ids": ["OPS-12"],
+        "intended_use": "Record the plan, what was actually done, what the measure showed against the target, and what is standardised or changed as a result.",
+        "unsupported_use": "Observing the trial, running the experiment, computing the improvement or deciding what to standardise for you; the cycle records what happened and what you decided.",
+        "extra_help": "Each stage is recorded as declared. A stage with no entry is named; the worksheet computes no improvement and takes no decision.",
+    },
     "template_lessons_learned": {
         "name": "Lessons learned with a cause and action audit", "short": "lessons learned", "registry_ids": ["PM-16"],
         "intended_use": "Record what went well and what did not, the cause you can evidence, the specific change for the next project, who owns it and who should see the lesson.",
         "unsupported_use": "Assigning blame, scoring the project, inventing a cause without evidence, or writing an action with no owner; turning a lesson into a claim about a person.",
         "extra_help": "A lesson without an action is named as a gap; an action without an owner is named too. The worksheet records causes you can evidence and does not infer motive.",
+    },
+    "template_sipoc": {
+        "name": "SIPOC process map with an evidence audit", "short": "SIPOC", "registry_ids": ["OPS-02"],
+        "intended_use": "Bound one process: who supplies it, what it consumes, the steps in order, what it hands on and who receives it. Every entry is yours, and each block you leave empty is named.",
+        "unsupported_use": "Observing, timing or mapping the real process; measuring capacity, cycle time or quality; deciding which supplier or customer the process should serve; judging whether the map is correct.",
+        "extra_help": "links: optional list of {from, to} item ids, normally an input to the process step that uses it or a step to its output. A link records a declared dependency; the worksheet draws no diagram, times no step and derives no sequence order.",
+    },
+    "template_value_stream_map": {
+        "name": "Value stream map with an evidence audit", "short": "value stream map", "registry_ids": ["OPS-03"],
+        "intended_use": "Record the steps of a flow, the times you observed or were given for each, what waits between them, which steps the customer would pay for, and the improvements you propose with the measure that would show the effect.",
+        "unsupported_use": "Observing the flow or measuring a step yourself; computing takt time, throughput, bottleneck capacity or an improvement saving; classifying a step as value-added for you; claiming an improvement has been achieved.",
+        "extra_help": "links: optional list of {from, to} item ids, normally a step to the step it feeds. A cycle or lead time you enter is a declared observation with its own provenance; the worksheet computes no total, no average and no takt.",
+    },
+    "template_job_characteristics": {
+        "name": "Job Characteristics Model with an evidence audit", "short": "Job Characteristics Model", "registry_ids": ["PPL-03"],
+        "intended_use": "Record the five job characteristics the model names - skill variety, task identity, task significance, autonomy and feedback - for the role, with the evidence for each, and name the characteristics you cannot evidence.",
+        "unsupported_use": "Designing or redesigning the role, scoring the characteristics, validating the measures, or judging whether a job is well designed; the characteristics are yours to state and the empty ones are named.",
+        "extra_help": "A characteristic with no evidence is named as a gap. The worksheet computes no score, validates no measure and infers nothing about the person in the role.",
+    },
+    "template_kirkpatrick": {
+        "name": "Kirkpatrick training evaluation with an evidence audit", "short": "Kirkpatrick", "registry_ids": ["PPL-02"],
+        "intended_use": "Record the evaluation at the four levels the model names - reaction, learning, behaviour and results - with the baseline, the measure and the follow-up interval for each.",
+        "unsupported_use": "Running the evaluation, administering the survey, scoring the levels, or treating satisfaction as learning; a level with no measure is named and the worksheet computes nothing.",
+        "extra_help": "The levels run from what participants thought to what the organisation gained. A high reaction score is not evidence of learning, behaviour or results.",
+    },
+    "template_amo": {
+        "name": "AMO performance diagnosis with an evidence audit", "short": "AMO", "registry_ids": ["PPL-01"],
+        "intended_use": "Diagnose whether the performance constraint lies in the person's ability, their motivation or the opportunity they are given, with the evidence for each, and name the constraint you cannot evidence.",
+        "unsupported_use": "Measuring motivation, scoring the diagnosis, choosing the intervention for you, or claiming a cause; the categories lead to testable interventions that are yours to decide.",
+        "extra_help": "A category with no evidence is named. The worksheet judges nothing, ranks no category and proposes no intervention.",
+    },
+    "template_tuckman": {
+        "name": "Team development review using Tuckman's stages", "short": "Tuckman's stages", "registry_ids": ["PPL-05"],
+        "intended_use": "Organise a discussion of where the team is and what it may need, using the five stages the model names, with the evidence you observe for each.",
+        "unsupported_use": "Diagnosing the team, observing it for you, assigning people to a stage, or treating the stages as a sequence every team must pass through; the stages are a reflective heuristic.",
+        "extra_help": "Not every team passes through the stages in order and many move back and forth. A stage with no evidence is named, and no person is assigned to a stage.",
+    },
+    "template_nine_box": {
+        "name": "Nine-box talent grid with an evidence audit", "short": "Nine-box", "registry_ids": ["PPL-04"],
+        "intended_use": "Declare the criteria you use for performance and for potential, record who you place and why, and state the action the placements require.",
+        "unsupported_use": "Predicting future success, scoring or ranking people, calibrating on your behalf, or treating the grid as an objective measure; the placements are yours to defend and the criteria must be consistent.",
+        "extra_help": "The grid places people on two declared axes. It carries no score and no ranking, and the bias safeguards and consistent criteria are yours to state.",
+    },
+    "template_kotter": {
+        "name": "Kotter's eight-step change model with an evidence audit", "short": "Kotter's 8 steps", "registry_ids": ["CHG-01"],
+        "intended_use": "Record the eight steps the model names in order - urgency, coalition, vision, communication, empowerment, short-term wins, consolidation and institutionalisation - with the evidence and the progress measure for each.",
+        "unsupported_use": "Running the change, measuring adoption or outcome for you, or deciding the sequence for your organisation; the steps are recorded as evidence and the empty ones are named.",
+        "extra_help": "A step with no evidence is named as a gap. The worksheet computes no adoption rate and no outcome indicator.",
+    },
+    "template_competing_values": {
+        "name": "Competing Values Framework with an evidence audit", "short": "Competing Values", "registry_ids": ["CHG-12"],
+        "intended_use": "Read the organisation's culture through the four competing orientations the model names - clan, adhocracy, market and hierarchy - with the survey or observation evidence behind each.",
+        "unsupported_use": "Administering the survey, assigning a type to the organisation, or treating a profile as fixed; profiles are diagnostic and are read against the evidence rather than asserted.",
+        "extra_help": "An orientation with no evidence is named. The worksheet assigns no type, computes no score and draws no profile.",
+    },
+    "template_org_design": {
+        "name": "Organisational design star and fit review", "short": "org design review", "registry_ids": ["CHG-11"],
+        "intended_use": "Check the fit between strategy, decision rights, structure, processes, people and incentives, and record where the fit breaks.",
+        "unsupported_use": "Reorganising the organisation, deciding who decides what, or computing an alignment score; the review names the breaks and the design changes are yours to propose.",
+        "extra_help": "The six elements are the ones the review names. A gap between two elements is recorded, not scored; the worksheet computes no alignment.",
+    },
+
+    "template_adkar": {
+        "name": "ADKAR readiness review with an evidence audit", "short": "ADKAR review", "registry_ids": ["CHG-02"],
+        "intended_use": "Read the evidence behind each of the five ADKAR elements for one change programme, and audit the elements that have no evidence behind them.",
+        "unsupported_use": "Scoring readiness, diagnosing individual employees, or deciding what a person thinks; the elements describe the change and the evidence is yours.",
+        "extra_help": "The five elements are the ones ADKAR names. An element with no evidence is named and left empty; the worksheet computes no readiness index.",
+    },
+    "template_aida": {
+        "name": "AIDA journey with an evidence audit", "short": "AIDA journey", "registry_ids": ["MKT-03"],
+        "intended_use": "Read the evidence at each stage of one communication journey and audit the stage the evidence cannot settle.",
+        "unsupported_use": "Treating the journey as a rule, filling a stage, or deciding what to spend next; the stages are a simplified lens and the evidence is yours.",
+        "extra_help": "The four stages are the ones AIDA names. A stage with no evidence is named and left empty; the worksheet computes no conversion rate.",
+    },
+    "template_attribution": {
+        "name": "Attribution and campaign measurement with an evidence audit", "short": "attribution", "registry_ids": ["MKT-19"],
+        "intended_use": "Record the touchpoints, the attribution rule and the credit it gives for one campaign, and audit the part the evidence cannot settle.",
+        "unsupported_use": "Claiming what the campaign caused, choosing the model for you, or deriving a budget split; the rule is yours and no causal claim follows from it.",
+        "extra_help": "The four parts are the ones the measurement frame names. A part with no evidence is named and left empty; the worksheet computes no share and derives no effect.",
+    },
+    "template_bcg": {
+        "name": "BCG growth-share matrix with an evidence audit", "short": "BCG matrix", "registry_ids": ["STR-10"],
+        "intended_use": "Read the evidence that places each business unit in a quadrant, and audit the placement the growth or share estimate cannot support.",
+        "unsupported_use": "Deciding what to invest in or divest, ranking the units, or computing a portfolio plan; the quadrants record a placement and the decision is yours.",
+        "extra_help": "The quadrants are the ones the matrix names. A quadrant with no evidence is named and left empty; the worksheet computes no growth rate and no share.",
+    },
+    "template_brand_equity": {
+        "name": "Brand equity assessment with an evidence audit", "short": "brand equity", "registry_ids": ["MKT-11"],
+        "intended_use": "Read the evidence behind the selected dimensions of one brand and audit the dimension the evidence cannot settle.",
+        "unsupported_use": "Mixing variants of brand equity, inventing customer research, or scoring the brand; the measurement and the model are yours to name.",
+        "extra_help": "The dimensions are the ones the selected model names. A dimension with no evidence is named and left empty; the worksheet computes no index.",
+    },
+    "template_burke_litwin": {
+        "name": "Burke-Litwin organisational change review with an evidence audit", "short": "Burke-Litwin review", "registry_ids": ["CHG-05"],
+        "intended_use": "Trace one change through the twelve elements of one organisation and audit the element the evidence cannot settle.",
+        "unsupported_use": "Claiming a causal link between the elements, diagnosing the organisation, or prescribing the change; the elements are traced and the cause is yours to argue.",
+        "extra_help": "The twelve elements are the ones the model names. An element with no evidence is named and left empty; the worksheet derives no causal claim.",
+    },
+    "template_change_organization": {
+        "name": "Change and organisation review with an evidence audit", "short": "change and organisation review", "registry_ids": ["CHG-15"],
+        "intended_use": "Read one programme of change against the organisation that has to carry it, and audit the element the evidence cannot settle.",
+        "unsupported_use": "Predicting whether the change will succeed, diagnosing individual attitudes, or prescribing the intervention; the four elements are read and the plan is yours.",
+        "extra_help": "The four elements are the ones the review names. An element with no evidence is named and left empty; the worksheet computes no readiness score.",
+    },
+    "template_cro": {
+        "name": "Conversion-rate optimisation with an evidence audit", "short": "conversion test", "registry_ids": ["MKT-20"],
+        "intended_use": "Record the hypothesis, the variants, the measures and the result of one conversion test, and audit the part the evidence cannot settle.",
+        "unsupported_use": "Computing significance, recommending a winning variant, or reading a causal effect from a split; the test is yours and the worksheet derives no verdict.",
+        "extra_help": "The four parts are the ones the test names. A part with no evidence is named and left empty; the worksheet computes no test and derives no winner.",
+    },
+    "template_digital_mix": {
+        "name": "Digital marketing mix with an evidence audit", "short": "digital mix", "registry_ids": ["MKT-13"],
+        "intended_use": "Record the role, the objective and the evidence for each kind of digital channel in one market, and audit the channel the evidence cannot settle.",
+        "unsupported_use": "Allocating a budget, predicting reach, or choosing which channel to use; the roles and the amounts are yours and the worksheet allocates nothing.",
+        "extra_help": "The three kinds of channel are the ones the mix names. A channel with no evidence is named and left empty; the worksheet computes no spend and derives no reach.",
+    },
+    "template_dmaic": {
+        "name": "DMAIC improvement cycle with an evidence audit", "short": "DMAIC cycle", "registry_ids": ["CHG-10"],
+        "intended_use": "Walk one process improvement through the five steps of DMAIC and audit the step the evidence cannot settle.",
+        "unsupported_use": "Asserting a root cause without measurement, scoring the improvement, or certifying that the process is now controlled; the steps are recorded and the judgement is yours.",
+        "extra_help": "The five steps are the ones DMAIC names. A step with no evidence is named and left empty; the worksheet derives no cause and computes no capability figure.",
+    },
+    "template_email_crm": {
+        "name": "Email, CRM and lifecycle marketing with an evidence audit", "short": "email and CRM plan", "registry_ids": ["MKT-16"],
+        "intended_use": "Record the list, the segments, the campaigns and the automation for one lifecycle programme, and audit the element the evidence cannot settle.",
+        "unsupported_use": "Computing open or click rates, inventing consent, or claiming revenue from a send; the records are yours and the worksheet derives no figure.",
+        "extra_help": "The four elements are the ones the programme names. An element with no evidence is named and left empty; the worksheet counts nothing and derives no engagement rate.",
+    },
+    "template_funnel": {
+        "name": "Marketing funnel with an evidence audit", "short": "marketing funnel", "registry_ids": ["MKT-05"],
+        "intended_use": "Read the stage definitions and the evidence at each stage of one funnel, and audit the stage with the largest unexplained drop.",
+        "unsupported_use": "Setting the stage definitions for you, inventing conversion rates, or recommending where to spend; the stages and the rates are yours.",
+        "extra_help": "The stages are the ones the funnel names. A stage with no evidence is named and left empty; the worksheet computes no conversion rate and derives no leak.",
+    },
+    "template_galbraith_star": {
+        "name": "Galbraith star operating model review with an evidence audit", "short": "star model review", "registry_ids": ["CHG-06"],
+        "intended_use": "Read the evidence across the five elements of one operating model and audit the element that does not hold the others up.",
+        "unsupported_use": "Reorganising the organisation, choosing the shape of the model, or scoring how well the points of the star fit; the elements are read and the redesign is yours.",
+        "extra_help": "The five elements are the ones the model names. An element with no evidence is named and left empty; the worksheet computes no fit score.",
+    },
+    "template_ge_mckinsey": {
+        "name": "GE-McKinsey portfolio matrix with an evidence audit", "short": "GE-McKinsey matrix", "registry_ids": ["STR-11"],
+        "intended_use": "Read the scores and weights that place each business unit in a cell, and audit the cell the evidence cannot support.",
+        "unsupported_use": "Fixing the criteria or the weights, deriving a portfolio plan, or recommending an allocation; the worksheet records your judgments and derives no plan.",
+        "extra_help": "The nine cells are the ones the matrix names. A cell with no evidence is named and left empty; the worksheet computes no score and applies no weighting.",
+    },
+    "template_generic_strategies": {
+        "name": "Porter's generic strategies with an evidence audit", "short": "generic strategies", "registry_ids": ["STR-02"],
+        "intended_use": "Read the evidence for where a firm sits against cost leadership and differentiation, and audit the choice the evidence cannot settle.",
+        "unsupported_use": "Choosing a strategy for the firm, scoring the trade-off, or claiming the firm can hold both; the types are a lens and the choice is yours.",
+        "extra_help": "The four types are the ones the model names. A type with no evidence is named and left empty; the worksheet computes no trade-off score.",
+    },
+    "template_lewin": {
+        "name": "Lewin's three-stage change review with an evidence audit", "short": "Lewin review", "registry_ids": ["CHG-03"],
+        "intended_use": "Read the evidence for the three stages of one change programme and audit the stage the evidence cannot settle.",
+        "unsupported_use": "Claiming a change has succeeded, skipping a stage, or deciding how an organisation should feel; the stages are a lens and the evidence is yours.",
+        "extra_help": "The three stages are the ones Lewin names. A stage with no evidence is named and left empty; the worksheet advances no programme and derives no verdict.",
+    },
+    "template_logic_model": {
+        "name": "Logic model with an evidence audit", "short": "logic model", "registry_ids": ["CHG-08"],
+        "intended_use": "Lay the inputs, activities, outputs and outcomes of one programme beside each other and audit the element the evidence cannot settle.",
+        "unsupported_use": "Measuring the outcomes, proving the programme worked, or filling an empty element; the worksheet distinguishes what is counted from what is achieved.",
+        "extra_help": "Activities are what the programme does and outputs are what it produces directly; outcomes are the changes it aims to cause. The worksheet keeps them apart and computes no indicator.",
+    },
+    "template_marketing_automation": {
+        "name": "Marketing automation and lead scoring with an evidence audit", "short": "marketing automation", "registry_ids": ["MKT-21"],
+        "intended_use": "Record the triggers, the flows, the score and the nurture for one automation set, and audit the element the evidence cannot settle.",
+        "unsupported_use": "Validating a score, inventing lead data, or deriving revenue from a flow; the rules are yours and the worksheet derives no figure.",
+        "extra_help": "The four elements are the ones the automation set names. An element with no evidence is named and left empty; the worksheet scores nothing and derives no revenue.",
+    },
+    "template_mckinsey_7s": {
+        "name": "McKinsey 7-S alignment review with an evidence audit", "short": "7-S review", "registry_ids": ["CHG-04"],
+        "intended_use": "Read the evidence across the seven elements of one organisation and record where the elements do not fit each other.",
+        "unsupported_use": "Scoring alignment, ranking the elements, or redesigning the organisation; the review names the mismatch and the redesign is yours to propose.",
+        "extra_help": "The seven elements are the ones the model names. No single score is authoritative, so the worksheet computes none.",
+    },
+    "template_mintzberg": {
+        "name": "Mintzberg configuration review with an evidence audit", "short": "configuration review", "registry_ids": ["CHG-13"],
+        "intended_use": "Read how one organisation is actually put together, part by part, and audit the part the evidence cannot settle.",
+        "unsupported_use": "Assigning a configuration type, redesigning the organisation, or deciding which shape it should have; the parts are read and the diagnosis is yours.",
+        "extra_help": "The five parts are the ones the model names. A part with no evidence is named and left empty; the worksheet assigns no type and computes no fit.",
+    },
+    "template_pdsa": {
+        "name": "PDSA improvement cycle with an evidence audit", "short": "PDSA cycle", "registry_ids": ["CHG-09"],
+        "intended_use": "Record one cycle of a small test of change, from the plan and the prediction to what was studied and what was adopted.",
+        "unsupported_use": "Claiming the cycle succeeded, generalising from one cycle, or choosing what to adopt next; the worksheet records the cycle and the decision is yours.",
+        "extra_help": "The four steps are the ones PDSA names. A step with no evidence is named and left empty; the worksheet computes no significance and derives no verdict.",
+    },
+    "template_porters_diamond": {
+        "name": "Porter's Diamond with an evidence audit", "short": "Porter's Diamond", "registry_ids": ["STR-05"],
+        "intended_use": "Read the conditions that shape one industry in its country and audit the determinant the evidence cannot settle.",
+        "unsupported_use": "Attributing an advantage to a country, predicting a national outcome, or deciding where to locate; the determinants are read and the conclusion is yours.",
+        "extra_help": "The determinants are the ones the model names. A determinant with no evidence is named and left empty; the worksheet derives no competitive verdict.",
+    },
+    "template_rfm": {
+        "name": "RFM segmentation with an evidence audit", "short": "RFM segmentation", "registry_ids": ["MKT-08"],
+        "intended_use": "Read the window, the scoring method and the evidence behind each RFM dimension for one customer list.",
+        "unsupported_use": "Setting the window or the scoring bands, inventing customer data, or deriving lifetime value; the grouping is yours and the worksheet computes no segment.",
+        "extra_help": "The three dimensions are the ones RFM names. A dimension with no evidence is named and left empty; the worksheet scores nothing and derives no segment.",
+    },
+    "template_seo_content": {
+        "name": "SEO and content plan with an evidence audit", "short": "SEO and content plan", "registry_ids": ["MKT-14"],
+        "intended_use": "Read the search demand, the page, the technical base and the links for one content plan, and audit the part the evidence cannot settle.",
+        "unsupported_use": "Predicting traffic or a ranking, choosing the keywords for you, or writing the content; the demand and the pages are yours and the worksheet forecasts nothing.",
+        "extra_help": "The four parts are the ones the plan names. A part with no evidence is named and left empty; the worksheet computes no search volume and derives no position.",
+    },
+    "template_social_media": {
+        "name": "Social media and influencer marketing with an evidence audit", "short": "social and influencer plan", "registry_ids": ["MKT-17"],
+        "intended_use": "Record the platforms, the content, the engagement measures and the creator terms for one plan, and audit the part the evidence cannot settle.",
+        "unsupported_use": "Computing engagement rates, inventing creator terms, or recommending a platform; the plan and the terms are yours and the worksheet derives no figure.",
+        "extra_help": "The four parts are the ones the plan names. A part with no evidence is named and left empty; the worksheet computes no reach and derives no rate.",
+    },
+    "template_stp": {
+        "name": "Segmentation, targeting and positioning with an evidence audit", "short": "STP", "registry_ids": ["MKT-01"],
+        "intended_use": "Lay the segmentation, the target choice and the positioning claim side by side for one market and audit the decision the evidence cannot settle.",
+        "unsupported_use": "Choosing a segment for you, inventing customers or competitors, or scoring the fit; the three decisions are yours and the evidence is what you supply.",
+        "extra_help": "The three elements are the ones STP names. An element with no evidence is named and left empty; the worksheet computes no market size and derives no position.",
+    },
+    "template_stp_evidence": {
+        "name": "STP evidence-to-action check with an evidence audit", "short": "STP evidence check", "registry_ids": ["MKT-12"],
+        "intended_use": "Audit each STP claim against the research behind it and name the claim that rests on nothing.",
+        "unsupported_use": "Filling a gap with general background, scoring the evidence, or dropping a claim for you; the check names what is missing and the action is yours.",
+        "extra_help": "This is a quality layer on an STP decision, not a second STP. Each claim is read against the research that supports it; the worksheet derives no option.",
+    },
+    "template_strategic_positioning": {
+        "name": "Strategic positioning with an evidence audit", "short": "strategic positioning", "registry_ids": ["STR-19"],
+        "intended_use": "Read one positioning claim from its four sides and audit the side the evidence cannot settle.",
+        "unsupported_use": "Choosing the segment or the position, scoring the fit, or deciding whether the claim holds; the claim is read and the choice is yours.",
+        "extra_help": "The four elements are the ones the review names. An element with no evidence is named and left empty; the worksheet derives no verdict on the position.",
+    },
+    "template_strategy_4": {
+        "name": "Strategy framework with an evidence audit", "short": "strategy framework", "registry_ids": ["STR-20"],
+        "intended_use": "Read one strategy from its perspective, position, plan and pattern, and audit the element the evidence cannot settle.",
+        "unsupported_use": "Writing the strategy, choosing the position, or scoring how coherent it is; the elements are read and the strategy is yours.",
+        "extra_help": "The four elements are the ones the framework names. An element with no evidence is named and left empty; the worksheet derives no coherence score.",
+    },
+    "template_tam": {
+        "name": "Technology Acceptance Model with an evidence audit", "short": "acceptance model", "registry_ids": ["MKT-09"],
+        "intended_use": "Read the evidence behind the constructs of one acceptance model for the users of a system, and audit the construct the evidence cannot settle.",
+        "unsupported_use": "Administering a survey, treating the constructs as a checklist for any adoption problem, or claiming the model predicts use; the evidence is yours.",
+        "extra_help": "The constructs are the ones the model names. A construct with no evidence is named and left empty; the worksheet computes no scale and derives no intention.",
+    },
+    "template_theory_of_change": {
+        "name": "Theory of change with an evidence audit", "short": "theory of change", "registry_ids": ["CHG-07"],
+        "intended_use": "Lay the causal links from inputs through activities and outputs to outcomes for one programme, and audit the links that rest on assumptions.",
+        "unsupported_use": "Claiming the causal pathway holds, proving impact, or filling a missing link; the links are hypotheses to test and the evidence is yours.",
+        "extra_help": "Each link is a hypothesis. An assumption is flagged and left as it is; the worksheet derives no impact estimate.",
+    },
+    "template_utaut": {
+        "name": "UTAUT with an evidence audit", "short": "UTAUT", "registry_ids": ["MKT-10"],
+        "intended_use": "Read the evidence behind the constructs of one adoption model for the users of a system, and audit the construct the evidence cannot settle.",
+        "unsupported_use": "Administering a survey, treating the constructs as a checklist for any adoption problem, or claiming the model predicts use; the evidence is yours.",
+        "extra_help": "The constructs are the ones the model names. A construct with no evidence is named and left empty; the worksheet computes no scale and derives no intention.",
     },
 }
 CANVAS_MAX_ITEMS_PER_BLOCK = 20
@@ -474,6 +1148,81 @@ CANVAS_PREFIXES = {
                                  "creative_variants": "CRE", "conversion_definition": "CONV", "measurement": "MSR"},
     "template_measurement_plan": {"questions": "QUE", "metrics": "MET", "events_dimensions": "EVT",
                                   "data_quality": "DQ", "governance": "GOV"},
+    "template_sipoc": {"suppliers": "SUP", "inputs": "IN", "process": "P", "outputs": "OUT", "customers": "C"},
+    "template_value_stream_map": {"process_steps": "ST", "cycle_and_lead_times": "TM", "inventory_wip": "WIP",
+                                  "waits_delays": "DL", "value_added": "VA", "improvements": "IM"},
+    "template_toc": {"identify": "ID", "exploit": "EX", "subordinate": "SUB", "elevate": "EL", "reassess": "RE"},
+    "template_a3": {"problem": "PR", "current_condition": "CC", "target": "TG", "causes": "CA",
+                    "countermeasures": "CM", "plan": "PL", "follow_up": "FU"},
+    "template_scor": {"plan": "PL", "source": "SR", "make": "MK", "deliver": "DL", "return": "RT", "enable": "EN"},
+    "template_5s": {"sort": "S1", "set_in_order": "S2", "shine": "S3", "standardize": "S4", "sustain": "S5"},
+    "template_root_cause": {"problem": "PB", "people": "PE", "process": "PR", "equipment": "EQ",
+                            "materials": "MA", "measurement": "ME", "environment": "EV", "root_cause": "RC"},
+    "template_fmea": {"failure_modes": "FM", "effects": "EF", "causes": "CA", "controls": "CT",
+                      "actions": "AC", "owners": "OW"},
+    "template_kraljic": {"criteria": "CR", "strategic": "ST", "leverage": "LV", "bottleneck": "BN",
+                         "non_critical": "NC"},
+    "template_sop": {"demand_plan": "DM", "supply_plan": "SP", "inventory_plan": "IN", "capacity_plan": "CP",
+                     "financial_plan": "FP", "decisions": "DC"},
+    "template_pdca": {"plan": "PL", "do": "DO", "check": "CK", "act": "AC"},
+    "template_job_characteristics": {"skill_variety": "SV", "task_identity": "TI", "task_significance": "TS",
+                                     "autonomy": "AU", "feedback": "FB"},
+    "template_kirkpatrick": {"reaction": "RE", "learning": "LE", "behavior": "BE", "results": "RS"},
+    "template_amo": {"ability": "AB", "motivation": "MO", "opportunity": "OP"},
+    "template_tuckman": {"forming": "FO", "storming": "ST", "norming": "NO", "performing": "PE", "adjourning": "AJ"},
+    "template_nine_box": {"performance_criteria": "PC", "potential_criteria": "PO", "placements": "PL",
+                          "development_actions": "DA"},
+    "template_kotter": {"urgency": "UR", "coalition": "CO", "vision": "VI", "communicate": "CM", "empower": "EM",
+                        "wins": "SW", "consolidate": "CG", "institutionalize": "IN"},
+    "template_competing_values": {"clan": "CL", "adhocracy": "AD", "market": "MK", "hierarchy": "HI"},
+    "template_org_design": {"strategy": "ST", "decision_rights": "DR", "structure": "SC", "processes": "PR",
+                            "people_capability": "PC", "incentives": "IN"},
+
+    "template_adkar": {"awareness": "AW", "desire": "DE", "knowledge": "KN", "ability": "AB", "reinforcement": "RE"},
+    "template_aida": {"attention": "AT", "interest": "IN", "desire": "DE", "action": "AC"},
+    "template_attribution": {"touchpoints": "TP", "model": "MD", "credit": "CR", "reporting": "RP"},
+    "template_bcg": {"stars": "ST", "cash_cows": "CC", "question_marks": "QM", "dogs": "DG"},
+    "template_brand_equity": {"awareness": "AW", "associations": "AS", "perceived_quality": "PQ", "loyalty": "LY"},
+    "template_burke_litwin": {"external_environment": "EE", "mission_strategy": "MS", "leadership": "LD",
+                               "culture": "CU", "structure": "SC", "management_practices": "MP", "systems": "SY",
+                               "work_unit_climate": "WC", "task_requirements": "TR", "motivation": "MO",
+                               "individual_values": "IV", "performance": "PF"},
+    "template_change_organization": {"change_type": "CT", "readiness": "RD", "resistance": "RS", "support": "SU"},
+    "template_cro": {"hypothesis": "HY", "variants": "VA", "metrics": "ME", "results": "RS"},
+    "template_digital_mix": {"owned": "OW", "earned": "EA", "paid": "PD"},
+    "template_dmaic": {"define": "DE", "measure": "ME", "analyze": "AN", "improve": "IM", "control": "CO"},
+    "template_email_crm": {"list": "LI", "segments": "SG", "campaigns": "CA", "automation": "AU"},
+    "template_funnel": {"awareness": "AW", "interest": "IN", "consideration": "CO", "intent": "IT", "evaluation": "EV",
+                         "purchase": "PU"},
+    "template_galbraith_star": {"strategy": "ST", "structure": "SC", "processes": "PR", "rewards": "RW", "people": "PE"},
+    "template_ge_mckinsey": {"high_high": "HH", "high_medium": "HM", "high_low": "HL", "medium_high": "MH",
+                              "medium_medium": "MM", "medium_low": "ML", "low_high": "LH", "low_medium": "LM",
+                              "low_low": "LL"},
+    "template_generic_strategies": {"low_cost": "LC", "differentiation": "DF", "focus_low_cost": "FL",
+                                     "focus_differentiation": "FD"},
+    "template_lewin": {"unfreeze": "UN", "change": "CH", "refreeze": "RF"},
+    "template_logic_model": {"inputs": "IN", "activities": "AC", "outputs": "OU", "outcomes": "OC"},
+    "template_marketing_automation": {"triggers": "TR", "flows": "FL", "scoring": "SC", "nurture": "NU"},
+    "template_mckinsey_7s": {"strategy": "SG", "structure": "SC", "systems": "SY", "shared_values": "VA", "style": "ST",
+                              "staff": "SF", "skills": "SK"},
+    "template_mintzberg": {"strategic_apex": "SA", "middle_line": "ML", "operating_core": "OC", "technostructure": "TS",
+                            "support_staff": "SS"},
+    "template_pdsa": {"plan": "PL", "do": "DO", "study": "SY", "act": "AC"},
+    "template_porters_diamond": {"factor_conditions": "FC", "demand_conditions": "DC", "related_industries": "RI",
+                                  "firm_strategy": "FS", "government": "GV", "chance": "CH"},
+    "template_rfm": {"recency": "RE", "frequency": "FR", "monetary": "MO"},
+    "template_seo_content": {"keywords": "KW", "content": "CN", "technical": "TC", "links": "LK"},
+    "template_social_media": {"platforms": "PF", "content": "CN", "engagement": "EN", "influencers": "IN"},
+    "template_stp": {"segmentation": "SG", "targeting": "TG", "positioning": "PO"},
+    "template_stp_evidence": {"segmentation_evidence": "SE", "targeting_evidence": "TE", "positioning_evidence": "PE"},
+    "template_strategic_positioning": {"position": "PO", "differentiation": "DF", "value_proposition": "VP",
+                                        "target_segment": "TS"},
+    "template_strategy_4": {"perspective": "PE", "position": "PO", "plan": "PL", "pattern": "PA"},
+    "template_tam": {"perceived_usefulness": "PU", "perceived_ease_of_use": "PE", "attitude": "AT",
+                      "behavioral_intention": "BI"},
+    "template_theory_of_change": {"inputs": "IN", "activities": "AC", "outputs": "OU", "outcomes": "OC"},
+    "template_utaut": {"performance_expectancy": "PE", "effort_expectancy": "EE", "social_influence": "SI",
+                        "facilitating_conditions": "FC"},
 }
 
 
@@ -1528,6 +2277,253 @@ EXAMPLES = {
             "actions": [{"text": "Project lead adds a permit milestone to the next charter", "provenance": "synthetic"}],
             "share": [{"text": "The next campus food project team", "provenance": "synthetic"}],
             "evidence": [{"text": "The permit log and the change request", "provenance": "synthetic"}]}}},
+
+    "template_adkar": {"objective": "Read the readiness evidence for the move to a contactless meal card", "method": "template_adkar", "inputs": {
+        "blocks": {
+            "awareness": [{"text": "The change is announced in the same email that closes the old card", "provenance": "synthetic"}],
+            "desire": [{"text": "Counter staff have asked for the change because the old card is slow to load", "provenance": "synthetic"}],
+            "knowledge": [{"text": "Nobody has written the steps for loading a new balance", "provenance": "assumption"}],
+            "ability": [{"text": "Training for the new card is a single session at the counter", "provenance": "synthetic"}]
+        }
+}},
+    "template_aida": {"objective": "Read the communication journey for the campus meal service", "method": "template_aida", "inputs": {
+        "blocks": {
+            "attention": [{"text": "A poster in the corridor where class groups wait", "provenance": "synthetic"}],
+            "interest": [{"text": "The opening offer was posted in the class chat of the subject with the longest queue", "provenance": "synthetic"}],
+            "desire": [{"text": "The price of the first meal card is lower than the walk-up price", "provenance": "synthetic"}],
+            "action": [{"text": "The meal card can be bought at the counter without a queue", "provenance": "synthetic"}]
+        }
+}},
+    "template_attribution": {"objective": "Record how credit is given for the campus meal campaign", "method": "template_attribution", "inputs": {
+        "blocks": {
+            "touchpoints": [{"text": "The corridor poster, the class chat and the counter are the three recorded touchpoints", "provenance": "synthetic"}],
+            "model": [{"text": "The last recorded touchpoint before a meal card is bought gets the credit", "provenance": "synthetic"}],
+            "credit": [{"text": "The counter is credited for most of the new meal cards", "provenance": "assumption"}]
+        }
+}},
+    "template_bcg": {"objective": "Place the campus food lines on the growth-share matrix", "method": "template_bcg", "inputs": {
+        "blocks": {
+            "stars": [{"text": "The hot meal line grows with the student population and holds the largest share of campus meals", "provenance": "synthetic"}],
+            "cash_cows": [{"text": "The drinks counter has a high share of campus spending and no growth", "provenance": "synthetic"}],
+            "question_marks": [{"text": "Breakfast packs are growing but hold a small share", "provenance": "assumption"}]
+        }
+}},
+    "template_brand_equity": {"objective": "Read the brand equity of the campus meal service", "method": "template_brand_equity", "inputs": {
+        "blocks": {
+            "awareness": [{"text": "A short survey asked students whether they had heard of the counter", "provenance": "synthetic"}],
+            "associations": [{"text": "The same survey asked what students associate the counter with", "provenance": "synthetic"}],
+            "perceived_quality": [{"text": "Perceived quality was not asked in the survey", "provenance": "assumption"}]
+        }
+}},
+    "template_burke_litwin": {"objective": "Trace the catering reorganisation through the organisation it affects", "method": "template_burke_litwin", "inputs": {
+        "blocks": {
+            "external_environment": [{"text": "The university is moving food concessions to a single supplier next year", "provenance": "synthetic"}],
+            "mission_strategy": [{"text": "The canteen intends to keep its own cooking team", "provenance": "synthetic"}],
+            "leadership": [{"text": "The canteen manager sets the rota and approves all leave personally", "provenance": "synthetic"}],
+            "culture": [{"text": "The team has always been told the menu is fixed and cannot be argued with", "provenance": "synthetic"}],
+            "structure": [{"text": "Cooking and counter service sit in two separate line-management structures", "provenance": "synthetic"}],
+            "management_practices": [{"text": "The kitchen and the counter do not hold a shared daily meeting", "provenance": "assumption"}]
+        }
+}},
+    "template_change_organization": {"objective": "Read the organisation behind the contactless meal card change", "method": "template_change_organization", "inputs": {
+        "blocks": {
+            "change_type": [{"text": "The change alters how students pay, not how the kitchen works", "provenance": "synthetic"}],
+            "readiness": [{"text": "Counter staff asked for the change after the old card became unreliable", "provenance": "synthetic"}],
+            "resistance": [{"text": "Students who pay in cash at the counter have not been considered", "provenance": "assumption"}],
+            "support": [{"text": "A short session is planned for counter staff", "provenance": "synthetic"}]
+        }
+}},
+    "template_cro": {"objective": "Record the first conversion test on the campus meal page", "method": "template_cro", "inputs": {
+        "blocks": {
+            "hypothesis": [{"text": "Putting the price before the menu will raise the number of meal cards bought", "provenance": "synthetic"}],
+            "variants": [{"text": "The menu first and the price first are the two versions", "provenance": "synthetic"}],
+            "metrics": [{"text": "Meal cards bought per visitor over one week", "provenance": "synthetic"}],
+            "results": [{"text": "The test has not run yet", "provenance": "assumption"}]
+        }
+}},
+    "template_digital_mix": {"objective": "Record the digital channel mix for the campus meal service", "method": "template_digital_mix", "inputs": {
+        "blocks": {
+            "owned": [{"text": "The class group and the counter page, both posted by the counter team", "provenance": "synthetic"}],
+            "earned": [{"text": "A student food blog mentioned the counter once", "provenance": "synthetic"}],
+            "paid": [{"text": "No paid channel has been used", "provenance": "assumption"}]
+        }
+}},
+    "template_dmaic": {"objective": "Walk the campus meal card service through a DMAIC cycle", "method": "template_dmaic", "inputs": {
+        "blocks": {
+            "define": [{"text": "Students give up on lunch when the queue at the counter is long", "provenance": "synthetic"}],
+            "measure": [{"text": "The wait at the counter was timed on a sheet for one week", "provenance": "synthetic"}],
+            "analyze": [{"text": "Most of the wait comes from meals cooked to order rather than from serving", "provenance": "assumption"}],
+            "improve": [{"text": "Two meals are cooked in advance and held for the rush", "provenance": "synthetic"}],
+            "control": [{"text": "Nothing is in place to hold the change once the test ends", "provenance": "assumption"}]
+        }
+}},
+    "template_email_crm": {"objective": "Record the lifecycle programme for the campus meal service", "method": "template_email_crm", "inputs": {
+        "blocks": {
+            "list": [{"text": "Students sign up at the counter and the list is kept in a spreadsheet", "provenance": "synthetic"}],
+            "segments": [{"text": "Students are split by whether they have bought a meal card", "provenance": "synthetic"}],
+            "campaigns": [{"text": "A welcome email goes out when a student signs up", "provenance": "synthetic"}],
+            "automation": [{"text": "Nothing is sent automatically and no reminder is set", "provenance": "assumption"}]
+        }
+}},
+    "template_funnel": {"objective": "Read the funnel for the campus meal service", "method": "template_funnel", "inputs": {
+        "blocks": {
+            "awareness": [{"text": "Posters in the corridor and a mention in the class chat", "provenance": "synthetic"}],
+            "interest": [{"text": "A sample plate is shown at the counter during the first week", "provenance": "synthetic"}],
+            "consideration": [{"text": "The menu is posted at the counter and on the class page", "provenance": "synthetic"}],
+            "purchase": [{"text": "Most students pay cash at the counter rather than buying a meal card", "provenance": "assumption"}]
+        }
+}},
+    "template_galbraith_star": {"objective": "Read the operating model of the campus catering service", "method": "template_galbraith_star", "inputs": {
+        "blocks": {
+            "strategy": [{"text": "The service aims to be the fastest student-priced hot meal on campus", "provenance": "synthetic"}],
+            "structure": [{"text": "One kitchen line and one counter, with the counter team reporting to the estate office", "provenance": "synthetic"}],
+            "processes": [{"text": "Orders are taken by phone and cooked to order at the counter", "provenance": "synthetic"}],
+            "rewards": [{"text": "Staff are rewarded for meals sold rather than for queue time", "provenance": "assumption"}],
+            "people": [{"text": "The counter team is three part-time students and one supervisor", "provenance": "synthetic"}]
+        }
+}},
+    "template_ge_mckinsey": {"objective": "Place the campus food lines on the GE-McKinsey matrix", "method": "template_ge_mckinsey", "inputs": {
+        "blocks": {
+            "high_high": [{"text": "The hot meal line sits in a growing segment and holds the strongest position", "provenance": "synthetic"}],
+            "medium_medium": [{"text": "The drinks counter sits in a slow segment with a middling position", "provenance": "assumption"}]
+        }
+}},
+    "template_generic_strategies": {"objective": "Read the competitive range of the campus meal service", "method": "template_generic_strategies", "inputs": {
+        "blocks": {
+            "low_cost": [{"text": "Ingredients are bought at the wholesale market and cooked in one batch", "provenance": "synthetic"}],
+            "differentiation": [{"text": "Meals are cooked to order from a menu that changes each week", "provenance": "synthetic"}],
+            "focus_low_cost": [{"text": "The service is positioned as the cheapest hot meal for students on campus", "provenance": "synthetic"}]
+        }
+}},
+    "template_lewin": {"objective": "Read where the contactless meal card change stands", "method": "template_lewin", "inputs": {
+        "blocks": {
+            "unfreeze": [{"text": "The old card is kept live for one more term, so nothing has been given up yet", "provenance": "synthetic"}],
+            "change": [{"text": "The new card is loaded at the counter and staff take payment on a second device", "provenance": "synthetic"}],
+            "refreeze": [{"text": "The new card is still a temporary arrangement at the counter", "provenance": "assumption"}]
+        }
+}},
+    "template_logic_model": {"objective": "Lay out the logic of the campus mentoring programme", "method": "template_logic_model", "inputs": {
+        "blocks": {
+            "inputs": [{"text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
+            "activities": [{"text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
+            "outputs": [{"text": "A session record is kept for each group", "provenance": "synthetic"}],
+            "outcomes": [{"text": "No measure of student retention has been agreed yet", "provenance": "assumption"}]
+        }
+}},
+    "template_marketing_automation": {"objective": "Record the automation behind the campus meal enquiry", "method": "template_marketing_automation", "inputs": {
+        "blocks": {
+            "triggers": [{"text": "A form on the counter page starts the sequence", "provenance": "synthetic"}],
+            "flows": [{"text": "Enquiry, sample offered, meal card sold", "provenance": "synthetic"}],
+            "scoring": [{"text": "The score counts form visits and has never been checked against sales", "provenance": "assumption"}],
+            "nurture": [{"text": "One email a week for a month, then the contact is left alone", "provenance": "synthetic"}]
+        }
+}},
+    "template_mckinsey_7s": {"objective": "Check the fit of the seven elements for the campus catering service", "method": "template_mckinsey_7s", "inputs": {
+        "blocks": {
+            "strategy": [{"text": "The service aims to be the fastest student-priced hot meal on campus", "provenance": "synthetic"}],
+            "structure": [{"text": "One kitchen line and one counter, with the counter team reporting to the estate office", "provenance": "synthetic"}],
+            "systems": [{"text": "Ordering is by phone, and no record is kept of what was ordered", "provenance": "assumption"}],
+            "shared_values": [{"text": "The team treats the queue as the problem to be hidden rather than removed", "provenance": "synthetic"}],
+            "skills": [{"text": "Two of the four counter staff have run the kitchen before", "provenance": "synthetic"}]
+        }
+}},
+    "template_mintzberg": {"objective": "Read how the campus catering service is actually put together", "method": "template_mintzberg", "inputs": {
+        "blocks": {
+            "strategic_apex": [{"text": "The estate office decides the concession and sets the rent", "provenance": "synthetic"}],
+            "middle_line": [{"text": "The canteen manager sits between the estate office and the kitchen", "provenance": "synthetic"}],
+            "operating_core": [{"text": "The kitchen and the counter teams cook and serve", "provenance": "synthetic"}],
+            "technostructure": [{"text": "Nobody writes the food-handling procedure the kitchen follows", "provenance": "assumption"}]
+        }
+}},
+    "template_pdsa": {"objective": "Record the first cycle of the contactless meal card trial", "method": "template_pdsa", "inputs": {
+        "blocks": {
+            "plan": [{"text": "Test a pre-order shelf for ten minutes at the counter, and record the wait at the counter", "provenance": "synthetic"}],
+            "do": [{"text": "The shelf was run at the counter on four days", "provenance": "synthetic"}],
+            "study": [{"text": "Wait times were noted on a sheet but the count was never totalled", "provenance": "assumption"}]
+        }
+}},
+    "template_porters_diamond": {"objective": "Read the conditions shaping the campus food industry", "method": "template_porters_diamond", "inputs": {
+        "blocks": {
+            "factor_conditions": [{"text": "Vegetables are bought from a market a few hours from campus", "provenance": "synthetic"}],
+            "demand_conditions": [{"text": "Most students eat on campus between classes", "provenance": "synthetic"}],
+            "related_industries": [{"text": "A printing shop on the same street supplies menus and flyers", "provenance": "synthetic"}],
+            "firm_strategy": [{"text": "Two counters compete on price and one competes on variety", "provenance": "synthetic"}]
+        }
+}},
+    "template_rfm": {"objective": "Read the RFM grouping of the campus meal customers", "method": "template_rfm", "inputs": {
+        "blocks": {
+            "recency": [{"text": "Recency is measured from the last meal card top-up in the register", "provenance": "synthetic"}],
+            "frequency": [{"text": "Frequency is the number of meals bought in the term", "provenance": "synthetic"}],
+            "monetary": [{"text": "The window is a term, and students who left are not in the list", "provenance": "assumption"}]
+        }
+}},
+    "template_seo_content": {"objective": "Record the search and content plan for the campus meal service", "method": "template_seo_content", "inputs": {
+        "blocks": {
+            "keywords": [{"text": "Students search for cheap meals near campus during a short break", "provenance": "synthetic"}],
+            "content": [{"text": "A page listing the meal times and the fixed price", "provenance": "synthetic"}],
+            "technical": [{"text": "The page loads slowly on a phone", "provenance": "assumption"}]
+        }
+}},
+    "template_social_media": {"objective": "Record the social and influencer plan for the campus meal service", "method": "template_social_media", "inputs": {
+        "blocks": {
+            "platforms": [{"text": "The counter posts in the campus student group", "provenance": "synthetic"}],
+            "content": [{"text": "A daily post of the day's menu", "provenance": "synthetic"}],
+            "engagement": [{"text": "Reach is read by eye from the group and is not recorded", "provenance": "assumption"}],
+            "influencers": [{"text": "One student creator posts once in return for a free meal card", "provenance": "synthetic"}]
+        }
+}},
+    "template_stp": {"objective": "Lay out the STP decisions for the campus meal market", "method": "template_stp", "inputs": {
+        "blocks": {
+            "segmentation": [{"text": "Students are divided by the length of the break between their classes", "provenance": "synthetic"}],
+            "targeting": [{"text": "First- and second-year students with a short midday break", "provenance": "synthetic"}],
+            "positioning": [{"text": "The fastest student-priced hot meal beside the gate", "provenance": "synthetic"}]
+        }
+}},
+    "template_stp_evidence": {"objective": "Audit the evidence behind the STP decisions for the campus meal market", "method": "template_stp_evidence", "inputs": {
+        "blocks": {
+            "segmentation_evidence": [{"text": "Break lengths were taken from the published timetable", "provenance": "synthetic"}],
+            "targeting_evidence": [{"text": "The chosen segment has not been surveyed for how often it eats on campus", "provenance": "assumption"}],
+            "positioning_evidence": [{"text": "A count of the wait at the two counters was kept for a week", "provenance": "synthetic"}]
+        }
+}},
+    "template_strategic_positioning": {"objective": "Read the positioning claim of the campus meal service", "method": "template_strategic_positioning", "inputs": {
+        "blocks": {
+            "position": [{"text": "The fastest student-priced hot meal on campus", "provenance": "synthetic"}],
+            "differentiation": [{"text": "Meals are ready within ten minutes because they are cooked in advance", "provenance": "synthetic"}],
+            "value_proposition": [{"text": "A hot meal you can eat between classes without leaving the gate", "provenance": "synthetic"}],
+            "target_segment": [{"text": "Students with a short break between classes", "provenance": "synthetic"}]
+        }
+}},
+    "template_strategy_4": {"objective": "Read the strategy of the campus meal service", "method": "template_strategy_4", "inputs": {
+        "blocks": {
+            "perspective": [{"text": "Students will pay more for a meal they can eat without waiting in a queue", "provenance": "assumption"}],
+            "position": [{"text": "The fastest student-priced hot meal on campus", "provenance": "synthetic"}],
+            "plan": [{"text": "Cook in advance, sell at one counter beside the gate and keep the menu fixed", "provenance": "synthetic"}],
+            "pattern": [{"text": "The kitchen, the counter and the supplier all work to the same fixed menu", "provenance": "synthetic"}]
+        }
+}},
+    "template_tam": {"objective": "Read the acceptance evidence for the meal card ordering system", "method": "template_tam", "inputs": {
+        "blocks": {
+            "perceived_usefulness": [{"text": "Students were asked whether pre-ordering saves their break", "provenance": "synthetic"}],
+            "perceived_ease_of_use": [{"text": "No question asked whether ordering by phone is easy", "provenance": "assumption"}],
+            "attitude": [{"text": "The survey closed before the attitude questions were asked", "provenance": "assumption"}]
+        }
+}},
+    "template_theory_of_change": {"objective": "Set out the causal pathway for the campus mentoring programme", "method": "template_theory_of_change", "inputs": {
+        "blocks": {
+            "inputs": [{"text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
+            "activities": [{"text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
+            "outputs": [{"text": "A record of the sessions held and the students who attended", "provenance": "synthetic"}],
+            "outcomes": [{"text": "Students report that they know where to ask for help", "provenance": "assumption"}]
+        }
+}},
+    "template_utaut": {"objective": "Read the adoption evidence for the meal card ordering system", "method": "template_utaut", "inputs": {
+        "blocks": {
+            "performance_expectancy": [{"text": "Students were asked whether pre-ordering saves their break", "provenance": "synthetic"}],
+            "effort_expectancy": [{"text": "No question asked whether ordering by phone is easy", "provenance": "assumption"}],
+            "facilitating_conditions": [{"text": "The counter has one phone that staff cannot leave unattended", "provenance": "synthetic"}]
+        }
+}},
 }
 
 

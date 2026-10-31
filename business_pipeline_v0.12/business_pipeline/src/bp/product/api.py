@@ -82,6 +82,7 @@ from . import deliverables
 from . import documents
 from . import paper_store
 from . import drafting
+from . import mapsheet
 from . import explain
 from . import sources as source_finder
 from . import subjects as subject_index
@@ -538,7 +539,8 @@ def handle(method, path, body=None):
         try:
             return 200, framework_completion.complete(body.get("template"), body.get("instruction"),
                                                       body.get("region"), body.get("student_items"),
-                                                      body.get("industry"), body.get("country"))
+                                                      body.get("industry"), body.get("country"),
+                                                      body.get("unit"))
         except ValueError as error:
             return _error(error)
 
@@ -574,6 +576,16 @@ def handle(method, path, body=None):
             "filename": writing.filename(report), "mime": _MIME["docx"],
             "data": base64.b64encode(data).decode("ascii"),
             "sha256": hashlib.sha256(data).hexdigest()}}
+
+    if segments == ["worksheets", "map"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on the worksheet map" % verb}
+        if not isinstance(body, dict):
+            return _error("a completion object is required")
+        try:
+            return 200, mapsheet.build(body.get("completion"))
+        except ValueError as error:
+            return _error(error)
 
     if segments == ["worksheets", "draft"]:
         if verb != "POST":

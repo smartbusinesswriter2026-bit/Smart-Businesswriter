@@ -444,6 +444,17 @@
 - `abc_costing` allocates every pool in full over the declared drivers; no idle/unused-capacity adjustment, activity hierarchy or time-driven ABC.
 - `sales_variances` values mix and yield at budgeted prices with the budget mix as the standard. No market-size or market-share variance, and no explanation of why the movements occurred.
 
+## Added with the operations frameworks (SIPOC and value stream map)
+- The two worksheets **organise what you state and what is researched for you**. They observe no process, time no step, measure no capacity and read no machine. A cycle time in the paper is a time you declared, carried with the provenance that shows it is yours.
+- Completion takes the steps, outputs and customers **verbatim** from your own brief: it never paraphrases, infers a step you did not write or guesses a process you did not name. A part with no matching sentence and no evidence is a named gap.
+- The **supplier** and **input** parts are researched in the academic databases. A search that finds nothing returns a named gap and a probe; it never substitutes a nearby finding for the missing one.
+- The **value-added judgement** and the **improvement proposals** are yours by design. The worksheet states what each needs and stays empty until you give it; no pipeline may judge which of your steps a customer pays for, because that is a claim about your customer.
+- A **process** is never detected. Without the process you name in the unit field, completion refuses rather than inferring one from the brief.
+- The paper computes nothing. A figure that needs arithmetic — capacity, utilisation, waiting time, OEE, takt, a saving — belongs to the matching operations tile, which is the only place a number is calculated.
+- The **Theory of Constraints**, **A3**, **SCOR**, **5S**, **root cause**, **FMEA**, **Kraljic**, **S&OP** and **PDCA** worksheets complete themselves the same way as the SIPOC: a block is researched first, then taken from your own words, then left as a named gap. The research is evidence *about* the declared process or its industry, cited; it never measures your line.
+- **No aggregate judgement is derived by any of them.** FMEA computes no risk priority number and ranks no mode; Kraljic computes no spend and recommends no strategy; 5S scores nothing; S&OP does not balance the plans; root cause does not declare a cause; PDCA and A3 compute no improvement. Each records the labels and decisions you supply.
+- An **A3 countermeasure, owner, date or follow-up** that the brief does not state is a named gap. The pipeline proposes none of them, because a remedy aimed at a cause nobody evidenced is a guess dressed as a method.
+
 ## Needed by some students but deliberately not built (B-120)
 These are not oversights and they are not approximations waiting to be shipped. Each would need a convention the app does not have the right to invent, or is infrastructure rather than a calculation.
 

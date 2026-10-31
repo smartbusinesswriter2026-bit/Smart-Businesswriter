@@ -187,6 +187,18 @@ def fetch(connection, limit=10):
 def fetch_one(connection, candidate):
     candidate_id = candidate["candidate_id"]
     doi = candidate["doi"]
+    # A work the corpus already holds is not fetched again. The corpus is the
+    # citation unit: the same paper held twice would be cited twice for one
+    # source, and the download is wasted either way.
+    existing = lib.find_document_for(connection, doi=doi, url=candidate["url"],
+                                      title=candidate["title"], year=candidate["year"])
+    if existing:
+        message = "the corpus already holds this work as %s" % existing
+        connection.execute(
+            "UPDATE candidates SET status = 'ingested', doc_id = ?, reason = ? WHERE candidate_id = ?",
+            (existing, message, candidate_id))
+        connection.commit()
+        return "duplicate"
     work = work_by_doi(doi) if doi else None
     pdf_url, licence = open_access_pdf(work)
     if not pdf_url:
@@ -231,8 +243,10 @@ def fetch_one(connection, candidate):
         "source_url": candidate["url"],
         "metadata_source": "openalex", "metadata_verified": 1,
     }
-    path = lib.save_pdf(raw, "%s.pdf" % (doi or candidate_id))
-    status, doc_id, message = lib.ingest_pdf(connection, raw, meta, local_path=path)
+    # The file is written only once the duplicate check has passed, so a
+    # refused download leaves nothing behind.
+    status, doc_id, message = lib.ingest_pdf(connection, raw, meta,
+                                             filename="%s.pdf" % (doi or candidate_id))
     if status == "ingested":
         connection.execute(
             "UPDATE candidates SET status = 'ingested', doc_id = ?, reason = ? WHERE candidate_id = ?",

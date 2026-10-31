@@ -1,0 +1,1944 @@
+{
+ "orphans": {
+  "template_adkar": {
+   "catalogue_id": "CHG-02",
+   "label": "ADKAR",
+   "title_prefix": "ADKAR Change Analysis",
+   "subject": "change",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "awareness",
+     "label": "Awareness",
+     "prompt": "Why the change is needed and why now",
+     "cues": "awareness change needed why now",
+     "fill": "research"
+    },
+    {
+     "key": "desire",
+     "label": "Desire",
+     "prompt": "Why change matters and what people gain",
+     "cues": "desire benefit gain adopt",
+     "fill": "research"
+    },
+    {
+     "key": "knowledge",
+     "label": "Knowledge",
+     "prompt": "What people need to know and how they are taught",
+     "cues": "knowledge know how taught training",
+     "fill": "research"
+    },
+    {
+     "key": "ability",
+     "label": "Ability",
+     "prompt": "What people must do differently",
+     "cues": "ability do differently skills enable",
+     "fill": "research"
+    },
+    {
+     "key": "reinforcement",
+     "label": "Reinforcement",
+     "prompt": "What makes the change stick",
+     "cues": "reinforcement sustain change stick",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_lewin": {
+   "catalogue_id": "CHG-03",
+   "label": "Lewin",
+   "title_prefix": "Lewin Change Analysis",
+   "subject": "change",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "unfreeze",
+     "label": "Unfreeze",
+     "prompt": "Prepare the organisation for change by undermining the existing status quo",
+     "cues": "unfreeze prepare change status quo",
+     "fill": "research"
+    },
+    {
+     "key": "change",
+     "label": "Change",
+     "prompt": "Move the organisation to a new state through the steps the change requires",
+     "cues": "change move new state transition",
+     "fill": "research"
+    },
+    {
+     "key": "refreeze",
+     "label": "Refreeze",
+     "prompt": "Anchor the new state in daily routines so the change sticks",
+     "cues": "refreeze anchor routine sustain",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_mckinsey_7s": {
+   "catalogue_id": "CHG-04",
+   "label": "McKinsey 7S",
+   "title_prefix": "McKinsey 7S Analysis",
+   "subject": "management",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "strategy",
+     "label": "Strategy",
+     "prompt": "The plan for competing",
+     "cues": "strategy plan compete",
+     "fill": "research"
+    },
+    {
+     "key": "structure",
+     "label": "Structure",
+     "prompt": "How the firm is organized",
+     "cues": "structure organization reporting",
+     "fill": "research"
+    },
+    {
+     "key": "systems",
+     "label": "Systems",
+     "prompt": "The processes and routines that run the firm",
+     "cues": "systems processes routines",
+     "fill": "research"
+    },
+    {
+     "key": "shared_values",
+     "label": "Shared Values",
+     "prompt": "The core values and culture",
+     "cues": "shared values culture core",
+     "fill": "research"
+    },
+    {
+     "key": "style",
+     "label": "Style",
+     "prompt": "The leadership style and how decisions are made",
+     "cues": "style leadership decisions",
+     "fill": "research"
+    },
+    {
+     "key": "staff",
+     "label": "Staff",
+     "prompt": "The people, their skills and how they are developed",
+     "cues": "staff people skills development",
+     "fill": "research"
+    },
+    {
+     "key": "skills",
+     "label": "Skills",
+     "prompt": "The distinctive capabilities the firm possesses",
+     "cues": "skills capabilities distinctive",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_burke_litwin": {
+   "catalogue_id": "CHG-05",
+   "label": "Burke-Litwin",
+   "title_prefix": "Burke-Litwin Analysis",
+   "subject": "change",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "external_environment",
+     "label": "External Environment",
+     "prompt": "The external forces that shape the organisation",
+     "cues": "external environment forces",
+     "fill": "research"
+    },
+    {
+     "key": "mission_strategy",
+     "label": "Mission and Strategy",
+     "prompt": "What the organisation is trying to achieve and how",
+     "cues": "mission strategy goals",
+     "fill": "research"
+    },
+    {
+     "key": "leadership",
+     "label": "Leadership",
+     "prompt": "The style and behaviour of those who lead",
+     "cues": "leadership style behaviour",
+     "fill": "research"
+    },
+    {
+     "key": "culture",
+     "label": "Culture",
+     "prompt": "The shared values, beliefs and assumptions",
+     "cues": "culture values beliefs assumptions",
+     "fill": "research"
+    },
+    {
+     "key": "structure",
+     "label": "Structure",
+     "prompt": "How work is organised and authority is distributed",
+     "cues": "structure organisation authority",
+     "fill": "research"
+    },
+    {
+     "key": "management_practices",
+     "label": "Management Practices",
+     "prompt": "How managers actually behave and the systems they use",
+     "cues": "management practices behaviour systems",
+     "fill": "research"
+    },
+    {
+     "key": "systems",
+     "label": "Systems and Policies",
+     "prompt": "The formal procedures, policies and reward systems",
+     "cues": "systems policies procedures rewards",
+     "fill": "research"
+    },
+    {
+     "key": "work_unit_climate",
+     "label": "Work Unit Climate",
+     "prompt": "The atmosphere and morale within teams",
+     "cues": "work unit climate morale atmosphere",
+     "fill": "research"
+    },
+    {
+     "key": "task_requirements",
+     "label": "Task and Individual Skills",
+     "prompt": "The skills, abilities and motivation of individuals",
+     "cues": "task skills abilities motivation",
+     "fill": "research"
+    },
+    {
+     "key": "motivation",
+     "label": "Motivation",
+     "prompt": "What drives people to perform",
+     "cues": "motivation drivers performance",
+     "fill": "research"
+    },
+    {
+     "key": "individual_values",
+     "label": "Individual Needs and Values",
+     "prompt": "What individuals want and value",
+     "cues": "individual needs values wants",
+     "fill": "research"
+    },
+    {
+     "key": "performance",
+     "label": "Individual and Organisational Performance",
+     "prompt": "The results the organisation achieves",
+     "cues": "performance results outcomes",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_galbraith_star": {
+   "catalogue_id": "CHG-06",
+   "label": "Galbraith Star",
+   "title_prefix": "Galbraith Star Analysis",
+   "subject": "management",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "strategy",
+     "label": "Strategy",
+     "prompt": "What the organisation is trying to achieve",
+     "cues": "strategy goals aims",
+     "fill": "research"
+    },
+    {
+     "key": "structure",
+     "label": "Structure",
+     "prompt": "How work and authority are organised",
+     "cues": "structure organisation authority",
+     "fill": "research"
+    },
+    {
+     "key": "processes",
+     "label": "Processes",
+     "prompt": "How decisions are made and work flows",
+     "cues": "processes decisions workflows",
+     "fill": "research"
+    },
+    {
+     "key": "rewards",
+     "label": "Rewards",
+     "prompt": "What the organisation pays people for",
+     "cues": "rewards pay incentives",
+     "fill": "research"
+    },
+    {
+     "key": "people",
+     "label": "People",
+     "prompt": "The skills, mindsets and capabilities needed",
+     "cues": "people skills mindsets capabilities",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_theory_of_change": {
+   "catalogue_id": "CHG-07",
+   "label": "Theory of Change",
+   "title_prefix": "Theory of Change Analysis",
+   "subject": "change",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "inputs",
+     "label": "Inputs",
+     "prompt": "The resources and conditions brought to the change effort",
+     "cues": "inputs resources conditions change effort",
+     "fill": "research"
+    },
+    {
+     "key": "activities",
+     "label": "Activities",
+     "prompt": "The actions and interventions the change will carry out",
+     "cues": "activities actions interventions change",
+     "fill": "research"
+    },
+    {
+     "key": "outputs",
+     "label": "Outputs",
+     "prompt": "The direct products of the activities, in expected quantity",
+     "cues": "outputs products quantity results",
+     "fill": "research"
+    },
+    {
+     "key": "outcomes",
+     "label": "Outcomes",
+     "prompt": "The short, medium and long-term results the change aims to achieve",
+     "cues": "outcomes results impact change",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_logic_model": {
+   "catalogue_id": "CHG-08",
+   "label": "Logic Model",
+   "title_prefix": "Logic Model Analysis",
+   "subject": "management",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "inputs",
+     "label": "Inputs",
+     "prompt": "The resources and conditions brought to the effort",
+     "cues": "inputs resources conditions",
+     "fill": "research"
+    },
+    {
+     "key": "activities",
+     "label": "Activities",
+     "prompt": "The actions and interventions carried out",
+     "cues": "activities actions interventions",
+     "fill": "research"
+    },
+    {
+     "key": "outputs",
+     "label": "Outputs",
+     "prompt": "The direct products of the activities",
+     "cues": "outputs products results",
+     "fill": "research"
+    },
+    {
+     "key": "outcomes",
+     "label": "Outcomes",
+     "prompt": "The short, medium and long-term results achieved",
+     "cues": "outcomes results impact",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_pdsa": {
+   "catalogue_id": "CHG-09",
+   "label": "PDSA",
+   "title_prefix": "PDSA Cycle Analysis",
+   "subject": "quality",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "plan",
+     "label": "Plan",
+     "prompt": "What change is planned and what will be measured",
+     "cues": "plan change measure predict",
+     "fill": "research"
+    },
+    {
+     "key": "do",
+     "label": "Do",
+     "prompt": "What was carried out and on what scale",
+     "cues": "do carry out implement scale",
+     "fill": "research"
+    },
+    {
+     "key": "study",
+     "label": "Study",
+     "prompt": "What the results show and what was learned",
+     "cues": "study results learn measure",
+     "fill": "research"
+    },
+    {
+     "key": "act",
+     "label": "Act",
+     "prompt": "What is adopted, adapted or abandoned as a result",
+     "cues": "act adopt adapt abandon",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_dmaic": {
+   "catalogue_id": "CHG-10",
+   "label": "DMAIC",
+   "title_prefix": "DMAIC Analysis",
+   "subject": "quality",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "define",
+     "label": "Define",
+     "prompt": "The problem, the scope and the goal of the improvement",
+     "cues": "define problem scope goal improvement",
+     "fill": "research"
+    },
+    {
+     "key": "measure",
+     "label": "Measure",
+     "prompt": "The baseline, the current performance and the data collected",
+     "cues": "measure baseline current performance data",
+     "fill": "research"
+    },
+    {
+     "key": "analyze",
+     "label": "Analyze",
+     "prompt": "The root causes and the evidence behind them",
+     "cues": "analyze root cause evidence",
+     "fill": "research"
+    },
+    {
+     "key": "improve",
+     "label": "Improve",
+     "prompt": "The changes tested and the results they produced",
+     "cues": "improve changes tested results",
+     "fill": "research"
+    },
+    {
+     "key": "control",
+     "label": "Control",
+     "prompt": "How the improvement is held in place going forward",
+     "cues": "control sustain hold improvement",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_mintzberg": {
+   "catalogue_id": "CHG-13",
+   "label": "Mintzberg",
+   "title_prefix": "Mintzberg Analysis",
+   "subject": "management",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "strategic_apex",
+     "label": "Strategic Apex",
+     "prompt": "Those who define the mission and strategy",
+     "cues": "strategic apex leadership mission",
+     "fill": "research"
+    },
+    {
+     "key": "middle_line",
+     "label": "Middle Line",
+     "prompt": "Those who translate strategy into action",
+     "cues": "middle line managers translate",
+     "fill": "research"
+    },
+    {
+     "key": "operating_core",
+     "label": "Operating Core",
+     "prompt": "Those who do the basic work of the organisation",
+     "cues": "operating core basic work",
+     "fill": "research"
+    },
+    {
+     "key": "technostructure",
+     "label": "Technostructure",
+     "prompt": "Those who design and control the work",
+     "cues": "technostructure design control",
+     "fill": "research"
+    },
+    {
+     "key": "support_staff",
+     "label": "Support Staff",
+     "prompt": "Those who provide indirect support",
+     "cues": "support staff indirect support",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_generic_strategies": {
+   "catalogue_id": "STR-02",
+   "label": "Generic Strategies",
+   "title_prefix": "Generic Strategy Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "low_cost",
+     "label": "Low-Cost",
+     "prompt": "Aims to be the cheapest producer",
+     "cues": "low cost cost leadership cheapest",
+     "fill": "research"
+    },
+    {
+     "key": "differentiation",
+     "label": "Differentiation",
+     "prompt": "Focuses on unique product features customers value",
+     "cues": "differentiation unique features premium",
+     "fill": "research"
+    },
+    {
+     "key": "focus_low_cost",
+     "label": "Focused Low-Cost",
+     "prompt": "Low cost within a narrow market segment",
+     "cues": "focused low cost narrow segment",
+     "fill": "research"
+    },
+    {
+     "key": "focus_differentiation",
+     "label": "Focused Differentiation",
+     "prompt": "Unique value within a narrow market segment",
+     "cues": "focused differentiation unique value narrow",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_porters_diamond": {
+   "catalogue_id": "STR-05",
+   "label": "Porters Diamond",
+   "title_prefix": "Porter Diamond Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "factor_conditions",
+     "label": "Factor Conditions",
+     "prompt": "The nations endowment of natural, human, capital and infrastructure resources",
+     "cues": "factor conditions resources endowment",
+     "fill": "research"
+    },
+    {
+     "key": "demand_conditions",
+     "label": "Demand Conditions",
+     "prompt": "The nature of domestic demand and how it shapes competitive advantage",
+     "cues": "demand conditions domestic market",
+     "fill": "research"
+    },
+    {
+     "key": "related_industries",
+     "label": "Related and Supporting Industries",
+     "prompt": "The presence of supplier and related industries that are internationally competitive",
+     "cues": "related industries supporting suppliers",
+     "fill": "research"
+    },
+    {
+     "key": "firm_strategy",
+     "label": "Firm Strategy, Structure and Rivalry",
+     "prompt": "How firms are created, organized and managed, and the nature of domestic rivalry",
+     "cues": "firm strategy structure rivalry",
+     "fill": "research"
+    },
+    {
+     "key": "government",
+     "label": "Government",
+     "prompt": "The role of government in shaping the diamond",
+     "cues": "government policy role",
+     "fill": "research"
+    },
+    {
+     "key": "chance",
+     "label": "Chance",
+     "prompt": "The role of chance events in shaping competitive advantage",
+     "cues": "chance events random",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_bcg": {
+   "catalogue_id": "STR-10",
+   "label": "BCG Growth-Share Matrix",
+   "title_prefix": "BCG Growth-Share Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "stars",
+     "label": "Stars",
+     "prompt": "High growth, high market share - invest to grow",
+     "cues": "stars high growth high share invest",
+     "fill": "research"
+    },
+    {
+     "key": "cash_cows",
+     "label": "Cash Cows",
+     "prompt": "Low growth, high market share - harvest for cash",
+     "cues": "cash cows low growth high share harvest",
+     "fill": "research"
+    },
+    {
+     "key": "question_marks",
+     "label": "Question Marks",
+     "prompt": "High growth, low market share - invest or divest",
+     "cues": "question marks high growth low share invest divest",
+     "fill": "research"
+    },
+    {
+     "key": "dogs",
+     "label": "Dogs",
+     "prompt": "Low growth, low market share - divest or harvest",
+     "cues": "dogs low growth low share divest",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_ge_mckinsey": {
+   "catalogue_id": "STR-11",
+   "label": "GE-McKinsey Matrix",
+   "title_prefix": "GE-McKinsey Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "high_high",
+     "label": "High/High",
+     "prompt": "High industry attractiveness, high business strength - invest/grow",
+     "cues": "high high invest grow",
+     "fill": "research"
+    },
+    {
+     "key": "high_medium",
+     "label": "High/Medium",
+     "prompt": "High industry attractiveness, medium business strength - invest/selectively",
+     "cues": "high medium invest selectively",
+     "fill": "research"
+    },
+    {
+     "key": "high_low",
+     "label": "High/Low",
+     "prompt": "High industry attractiveness, low business strength - protect/selectively",
+     "cues": "high low protect selectively",
+     "fill": "research"
+    },
+    {
+     "key": "medium_high",
+     "label": "Medium/High",
+     "prompt": "Medium industry attractiveness, high business strength - invest/selectively",
+     "cues": "medium high invest selectively",
+     "fill": "research"
+    },
+    {
+     "key": "medium_medium",
+     "label": "Medium/Medium",
+     "prompt": "Medium industry attractiveness, medium business strength - selectivity/earnings",
+     "cues": "medium medium selectivity earnings",
+     "fill": "research"
+    },
+    {
+     "key": "medium_low",
+     "label": "Medium/Low",
+     "prompt": "Medium industry attractiveness, low business strength - harvest/divest",
+     "cues": "medium low harvest divest",
+     "fill": "research"
+    },
+    {
+     "key": "low_high",
+     "label": "Low/High",
+     "prompt": "Low industry attractiveness, high business strength - protect/earnings",
+     "cues": "low high protect earnings",
+     "fill": "research"
+    },
+    {
+     "key": "low_medium",
+     "label": "Low/Medium",
+     "prompt": "Low industry attractiveness, medium business strength - harvest/divest",
+     "cues": "low medium harvest divest",
+     "fill": "research"
+    },
+    {
+     "key": "low_low",
+     "label": "Low/Low",
+     "prompt": "Low industry attractiveness, low business strength - divest/liquidate",
+     "cues": "low low divest liquidate",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_stp": {
+   "catalogue_id": "MKT-01",
+   "label": "STP",
+   "title_prefix": "STP Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "segmentation",
+     "label": "Segmentation",
+     "prompt": "How the market is divided into segments",
+     "cues": "segmentation market divide",
+     "fill": "research"
+    },
+    {
+     "key": "targeting",
+     "label": "Targeting",
+     "prompt": "Which segments are chosen and why",
+     "cues": "targeting segments chosen",
+     "fill": "research"
+    },
+    {
+     "key": "positioning",
+     "label": "Positioning",
+     "prompt": "How the offer is positioned in the market",
+     "cues": "positioning offer market",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_aida": {
+   "catalogue_id": "MKT-03",
+   "label": "AIDA",
+   "title_prefix": "AIDA Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "attention",
+     "label": "Attention",
+     "prompt": "How awareness is captured",
+     "cues": "attention awareness capture",
+     "fill": "research"
+    },
+    {
+     "key": "interest",
+     "label": "Interest",
+     "prompt": "How interest is sustained",
+     "cues": "interest sustain engage",
+     "fill": "research"
+    },
+    {
+     "key": "desire",
+     "label": "Desire",
+     "prompt": "How desire is created",
+     "cues": "desire create want",
+     "fill": "research"
+    },
+    {
+     "key": "action",
+     "label": "Action",
+     "prompt": "How action is triggered",
+     "cues": "action trigger convert",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_funnel": {
+   "catalogue_id": "MKT-05",
+   "label": "Funnel",
+   "title_prefix": "Funnel Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "awareness",
+     "label": "Awareness",
+     "prompt": "How prospects enter the funnel",
+     "cues": "awareness enter funnel",
+     "fill": "research"
+    },
+    {
+     "key": "interest",
+     "label": "Interest",
+     "prompt": "How interest is captured",
+     "cues": "interest capture engage",
+     "fill": "research"
+    },
+    {
+     "key": "consideration",
+     "label": "Consideration",
+     "prompt": "How prospects evaluate",
+     "cues": "consideration evaluate",
+     "fill": "research"
+    },
+    {
+     "key": "intent",
+     "label": "Intent",
+     "prompt": "How intent is formed",
+     "cues": "intent form decide",
+     "fill": "research"
+    },
+    {
+     "key": "evaluation",
+     "label": "Evaluation",
+     "prompt": "How the final decision is made",
+     "cues": "evaluation decision final",
+     "fill": "research"
+    },
+    {
+     "key": "purchase",
+     "label": "Purchase",
+     "prompt": "How the purchase happens",
+     "cues": "purchase buy convert",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_rfm": {
+   "catalogue_id": "MKT-08",
+   "label": "RFM",
+   "title_prefix": "RFM Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "recency",
+     "label": "Recency",
+     "prompt": "How recently the customer purchased",
+     "cues": "recency recent purchase",
+     "fill": "research"
+    },
+    {
+     "key": "frequency",
+     "label": "Frequency",
+     "prompt": "How often the customer purchases",
+     "cues": "frequency often repeat",
+     "fill": "research"
+    },
+    {
+     "key": "monetary",
+     "label": "Monetary",
+     "prompt": "How much the customer spends",
+     "cues": "monetary spend value",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_tam": {
+   "catalogue_id": "MKT-09",
+   "label": "Technology Acceptance Model",
+   "title_prefix": "TAM Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "perceived_usefulness",
+     "label": "Perceived Usefulness",
+     "prompt": "How useful the technology is perceived to be",
+     "cues": "perceived usefulness useful",
+     "fill": "research"
+    },
+    {
+     "key": "perceived_ease_of_use",
+     "label": "Perceived Ease of Use",
+     "prompt": "How easy the technology is perceived to be",
+     "cues": "perceived ease of use easy",
+     "fill": "research"
+    },
+    {
+     "key": "attitude",
+     "label": "Attitude",
+     "prompt": "The attitude towards using the technology",
+     "cues": "attitude towards using",
+     "fill": "research"
+    },
+    {
+     "key": "behavioral_intention",
+     "label": "Behavioral Intention",
+     "prompt": "The intention to use the technology",
+     "cues": "behavioral intention use",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_utaut": {
+   "catalogue_id": "MKT-10",
+   "label": "UTAUT",
+   "title_prefix": "UTAUT Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "performance_expectancy",
+     "label": "Performance Expectancy",
+     "prompt": "How much the technology helps performance",
+     "cues": "performance expectancy help",
+     "fill": "research"
+    },
+    {
+     "key": "effort_expectancy",
+     "label": "Effort Expectancy",
+     "prompt": "How easy the technology is to use",
+     "cues": "effort expectancy easy use",
+     "fill": "research"
+    },
+    {
+     "key": "social_influence",
+     "label": "Social Influence",
+     "prompt": "How others influence adoption",
+     "cues": "social influence others",
+     "fill": "research"
+    },
+    {
+     "key": "facilitating_conditions",
+     "label": "Facilitating Conditions",
+     "prompt": "The resources and support available",
+     "cues": "facilitating conditions resources support",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_brand_equity": {
+   "catalogue_id": "MKT-11",
+   "label": "Brand Equity",
+   "title_prefix": "Brand Equity Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "awareness",
+     "label": "Brand Awareness",
+     "prompt": "How well customers know the brand",
+     "cues": "brand awareness know",
+     "fill": "research"
+    },
+    {
+     "key": "associations",
+     "label": "Brand Associations",
+     "prompt": "What customers associate with the brand",
+     "cues": "brand associations associate",
+     "fill": "research"
+    },
+    {
+     "key": "perceived_quality",
+     "label": "Perceived Quality",
+     "prompt": "How customers perceive the quality",
+     "cues": "perceived quality",
+     "fill": "research"
+    },
+    {
+     "key": "loyalty",
+     "label": "Brand Loyalty",
+     "prompt": "How loyal customers are to the brand",
+     "cues": "brand loyalty loyal",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_stp_evidence": {
+   "catalogue_id": "MKT-12",
+   "label": "STP Evidence Check",
+   "title_prefix": "STP Evidence Check Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "segmentation_evidence",
+     "label": "Segmentation Evidence",
+     "prompt": "Evidence for the segmentation",
+     "cues": "segmentation evidence",
+     "fill": "research"
+    },
+    {
+     "key": "targeting_evidence",
+     "label": "Targeting Evidence",
+     "prompt": "Evidence for the targeting",
+     "cues": "targeting evidence",
+     "fill": "research"
+    },
+    {
+     "key": "positioning_evidence",
+     "label": "Positioning Evidence",
+     "prompt": "Evidence for the positioning",
+     "cues": "positioning evidence",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_digital_mix": {
+   "catalogue_id": "MKT-13",
+   "label": "Digital Marketing Mix",
+   "title_prefix": "Digital Mix Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "owned",
+     "label": "Owned Channels",
+     "prompt": "Channels the brand controls",
+     "cues": "owned channels control",
+     "fill": "research"
+    },
+    {
+     "key": "earned",
+     "label": "Earned Channels",
+     "prompt": "Channels gained through PR and word of mouth",
+     "cues": "earned channels PR word of mouth",
+     "fill": "research"
+    },
+    {
+     "key": "paid",
+     "label": "Paid Channels",
+     "prompt": "Channels paid for advertising",
+     "cues": "paid channels advertising",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_seo_content": {
+   "catalogue_id": "MKT-14",
+   "label": "SEO and Content",
+   "title_prefix": "SEO and Content Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "keywords",
+     "label": "Keywords",
+     "prompt": "The search terms targeted",
+     "cues": "keywords search terms",
+     "fill": "research"
+    },
+    {
+     "key": "content",
+     "label": "Content",
+     "prompt": "The content created for search",
+     "cues": "content created search",
+     "fill": "research"
+    },
+    {
+     "key": "technical",
+     "label": "Technical SEO",
+     "prompt": "The technical optimisation of the site",
+     "cues": "technical SEO optimisation",
+     "fill": "research"
+    },
+    {
+     "key": "links",
+     "label": "Links",
+     "prompt": "The link building strategy",
+     "cues": "links link building",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_email_crm": {
+   "catalogue_id": "MKT-16",
+   "label": "Email CRM and Lifecycle",
+   "title_prefix": "Email CRM Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "list",
+     "label": "List",
+     "prompt": "The email list and its health",
+     "cues": "email list health",
+     "fill": "research"
+    },
+    {
+     "key": "segments",
+     "label": "Segments",
+     "prompt": "How the list is segmented",
+     "cues": "segments segmentation",
+     "fill": "research"
+    },
+    {
+     "key": "campaigns",
+     "label": "Campaigns",
+     "prompt": "The email campaigns sent",
+     "cues": "campaigns email sent",
+     "fill": "research"
+    },
+    {
+     "key": "automation",
+     "label": "Automation",
+     "prompt": "The automated email flows",
+     "cues": "automation flows automated",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_social_media": {
+   "catalogue_id": "MKT-17",
+   "label": "Social Media and Influencer",
+   "title_prefix": "Social Media Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "platforms",
+     "label": "Platforms",
+     "prompt": "Which social platforms are used",
+     "cues": "platforms social used",
+     "fill": "research"
+    },
+    {
+     "key": "content",
+     "label": "Content",
+     "prompt": "The content posted on social media",
+     "cues": "content posted social",
+     "fill": "research"
+    },
+    {
+     "key": "engagement",
+     "label": "Engagement",
+     "prompt": "How audiences engage with the content",
+     "cues": "engagement audience interact",
+     "fill": "research"
+    },
+    {
+     "key": "influencers",
+     "label": "Influencers",
+     "prompt": "The influencers and partners used",
+     "cues": "influencers partners",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_attribution": {
+   "catalogue_id": "MKT-19",
+   "label": "Attribution and Campaign Measurement",
+   "title_prefix": "Attribution Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "touchpoints",
+     "label": "Touchpoints",
+     "prompt": "The customer touchpoints tracked",
+     "cues": "touchpoints tracked",
+     "fill": "research"
+    },
+    {
+     "key": "model",
+     "label": "Attribution Model",
+     "prompt": "The model used to assign credit",
+     "cues": "attribution model credit",
+     "fill": "research"
+    },
+    {
+     "key": "credit",
+     "label": "Credit Assignment",
+     "prompt": "How credit is assigned across touchpoints",
+     "cues": "credit assignment",
+     "fill": "research"
+    },
+    {
+     "key": "reporting",
+     "label": "Reporting",
+     "prompt": "How attribution is reported",
+     "cues": "reporting attribution",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_cro": {
+   "catalogue_id": "MKT-20",
+   "label": "Conversion Rate Optimisation",
+   "title_prefix": "CRO Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "hypothesis",
+     "label": "Hypothesis",
+     "prompt": "The hypothesis being tested",
+     "cues": "hypothesis testing",
+     "fill": "research"
+    },
+    {
+     "key": "variants",
+     "label": "Variants",
+     "prompt": "The variants being tested",
+     "cues": "variants testing",
+     "fill": "research"
+    },
+    {
+     "key": "metrics",
+     "label": "Metrics",
+     "prompt": "The metrics being tracked",
+     "cues": "metrics tracking",
+     "fill": "research"
+    },
+    {
+     "key": "results",
+     "label": "Results",
+     "prompt": "The results of the test",
+     "cues": "results test outcome",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_marketing_automation": {
+   "catalogue_id": "MKT-21",
+   "label": "Marketing Automation",
+   "title_prefix": "Marketing Automation Analysis",
+   "subject": "marketing",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "triggers",
+     "label": "Triggers",
+     "prompt": "What triggers automated actions",
+     "cues": "triggers automated actions",
+     "fill": "research"
+    },
+    {
+     "key": "flows",
+     "label": "Flows",
+     "prompt": "The automated marketing flows",
+     "cues": "flows automated marketing",
+     "fill": "research"
+    },
+    {
+     "key": "scoring",
+     "label": "Lead Scoring",
+     "prompt": "How leads are scored",
+     "cues": "lead scoring",
+     "fill": "research"
+    },
+    {
+     "key": "nurture",
+     "label": "Nurture",
+     "prompt": "How leads are nurtured",
+     "cues": "nurture leads",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_change_organization": {
+   "catalogue_id": "CHG-15",
+   "label": "Change and Organization",
+   "title_prefix": "Change and Organization Analysis",
+   "subject": "change",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "change_type",
+     "label": "Change Type",
+     "prompt": "The kind of change being made and its scope",
+     "cues": "change type scope",
+     "fill": "research"
+    },
+    {
+     "key": "readiness",
+     "label": "Readiness",
+     "prompt": "Whether the organisation is ready for the change",
+     "cues": "readiness preparedness",
+     "fill": "research"
+    },
+    {
+     "key": "resistance",
+     "label": "Resistance",
+     "prompt": "What pushes back against the change",
+     "cues": "resistance pushback opposition",
+     "fill": "research"
+    },
+    {
+     "key": "support",
+     "label": "Support",
+     "prompt": "What enables and sustains the change",
+     "cues": "support enable sustain",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_strategic_positioning": {
+   "catalogue_id": "STR-19",
+   "label": "Strategic Positioning",
+   "title_prefix": "Strategic Positioning Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "position",
+     "label": "Position",
+     "prompt": "Where the firm sits relative to competitors and customers",
+     "cues": "position competitive market",
+     "fill": "research"
+    },
+    {
+     "key": "differentiation",
+     "label": "Differentiation",
+     "prompt": "What makes the firm distinct from competitors",
+     "cues": "differentiation distinct unique",
+     "fill": "research"
+    },
+    {
+     "key": "value_proposition",
+     "label": "Value Proposition",
+     "prompt": "The value the firm delivers to customers",
+     "cues": "value proposition customer value",
+     "fill": "research"
+    },
+    {
+     "key": "target_segment",
+     "label": "Target Segment",
+     "prompt": "The customers the firm chooses to serve",
+     "cues": "target segment customers serve",
+     "fill": "research"
+    }
+   ]
+  },
+  "template_strategy_4": {
+   "catalogue_id": "STR-20",
+   "label": "Strategy 4",
+   "title_prefix": "Strategy 4 Analysis",
+   "subject": "strategy",
+   "ratings": false,
+   "unit": {
+    "example": "smartphones, grocery retail, banking",
+    "field": "industry",
+    "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+    "label": "Industry or market",
+    "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+   },
+   "blocks": [
+    {
+     "key": "perspective",
+     "label": "Perspective",
+     "prompt": "How the organisation sees the world and its place in it",
+     "cues": "perspective worldview identity",
+     "fill": "research"
+    },
+    {
+     "key": "position",
+     "label": "Position",
+     "prompt": "Where the organisation stands relative to competitors",
+     "cues": "position competitive standing",
+     "fill": "research"
+    },
+    {
+     "key": "plan",
+     "label": "Plan",
+     "prompt": "The intended course of action to reach the desired position",
+     "cues": "plan course of action",
+     "fill": "research"
+    },
+    {
+     "key": "pattern",
+     "label": "Pattern",
+     "prompt": "The realised behaviour that emerges over time",
+     "cues": "pattern behaviour realised",
+     "fill": "research"
+    }
+   ]
+  }
+ },
+ "wo3": {
+  "template_business_model_canvas": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "key_partners",
+     "label": "Key partners",
+     "prompt": "Who you depend on, and what each partner supplies"
+    },
+    {
+     "key": "key_activities",
+     "label": "Key activities",
+     "prompt": "The few things the business must do well to deliver the value"
+    },
+    {
+     "key": "key_resources",
+     "label": "Key resources",
+     "prompt": "What it needs to do those activities: people, equipment, cash, licences"
+    },
+    {
+     "key": "value_propositions",
+     "label": "Value propositions",
+     "prompt": "The value you promise each segment, in the customer's words"
+    },
+    {
+     "key": "customer_relationships",
+     "label": "Customer relationships",
+     "prompt": "How you win a customer, keep them and grow the relationship"
+    },
+    {
+     "key": "channels",
+     "label": "Channels",
+     "prompt": "How the value reaches the customer, from first contact to delivery"
+    },
+    {
+     "key": "customer_segments",
+     "label": "Customer segments",
+     "prompt": "Who you serve, described by need and behaviour, not demographics alone"
+    },
+    {
+     "key": "cost_structure",
+     "label": "Cost structure",
+     "prompt": "The main fixed and variable costs the model creates"
+    },
+    {
+     "key": "revenue_streams",
+     "label": "Revenue streams",
+     "prompt": "How the business earns, and what the customer pays for"
+    }
+   ],
+   "meta": {
+    "name": "Business Model Canvas with an evidence audit",
+    "short": "business model canvas",
+    "registry_ids": [
+     "STR-15"
+    ],
+    "intended_use": "Lay your own evidence into the nine business-model blocks, link items that depend on each other, and audit which blocks are still empty or rest on assumptions.",
+    "unsupported_use": "Inventing customers, partners, costs, revenue or value propositions; scoring or ranking business models; deciding whether the model will work.",
+    "extra_help": "links: optional list of {from, to} item ids; a link records a declared dependency between two items and derives no direction, weight or score."
+   }
+  },
+  "template_lean_canvas": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "problem",
+     "label": "Problem",
+     "prompt": "The top problems you are solving"
+    },
+    {
+     "key": "customer_segments",
+     "label": "Customer segments",
+     "prompt": "Who has those problems"
+    },
+    {
+     "key": "unique_value_proposition",
+     "label": "Unique value proposition",
+     "prompt": "Why you are different and worth attention"
+    },
+    {
+     "key": "solution",
+     "label": "Solution",
+     "prompt": "The smallest thing that solves the problem"
+    },
+    {
+     "key": "channels",
+     "label": "Channels",
+     "prompt": "The route to customers"
+    },
+    {
+     "key": "revenue_streams",
+     "label": "Revenue streams",
+     "prompt": "How you earn"
+    },
+    {
+     "key": "cost_structure",
+     "label": "Cost structure",
+     "prompt": "The main costs"
+    },
+    {
+     "key": "key_metrics",
+     "label": "Key metrics",
+     "prompt": "The few numbers that show it is working"
+    },
+    {
+     "key": "unfair_advantage",
+     "label": "Unfair advantage",
+     "prompt": "What cannot easily be copied"
+    }
+   ],
+   "meta": {
+    "name": "Lean Canvas with an evidence audit",
+    "short": "lean canvas",
+    "registry_ids": [
+     "STR-16"
+    ],
+    "intended_use": "Lay your own evidence into the nine lean-canvas blocks, state the problem and the unfair advantage, link related items and audit what is still missing.",
+    "unsupported_use": "Inventing a problem, solution, metric or advantage; scoring or ranking; deciding product-market fit.",
+    "extra_help": "links: optional list of {from, to} item ids; a link records a declared dependency between two items and derives no direction, weight or score."
+   }
+  },
+  "template_value_proposition_canvas": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "customer_jobs",
+     "label": "Customer jobs",
+     "prompt": "What the customer is trying to get done"
+    },
+    {
+     "key": "customer_pains",
+     "label": "Pains",
+     "prompt": "What is costly, risky or annoying"
+    },
+    {
+     "key": "customer_gains",
+     "label": "Gains",
+     "prompt": "What the customer wants to gain"
+    },
+    {
+     "key": "products_services",
+     "label": "Products and services",
+     "prompt": "What you offer"
+    },
+    {
+     "key": "pain_relievers",
+     "label": "Pain relievers",
+     "prompt": "How you remove a stated pain"
+    },
+    {
+     "key": "gain_creators",
+     "label": "Gain creators",
+     "prompt": "How you create a stated gain"
+    }
+   ],
+   "meta": {
+    "name": "Value Proposition Canvas with an evidence audit",
+    "short": "value proposition canvas",
+    "registry_ids": [
+     "STR-17"
+    ],
+    "intended_use": "Lay your customer jobs, pains and gains beside your products, pain relievers and gain creators, link each relief to the pain it addresses, and audit the fit you have evidence for.",
+    "unsupported_use": "Inventing customer jobs, pains or gains; claiming fit without evidence; scoring fit or ranking propositions.",
+    "extra_help": "links: optional list of {from, to} item ids (for example a pain reliever to the pain it addresses); a link is a declared claim, not a tested fit."
+   }
+  },
+  "template_project_charter": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "objective",
+     "label": "Objective",
+     "prompt": "The outcome the project exists to deliver, in one testable statement"
+    },
+    {
+     "key": "scope_in",
+     "label": "In scope",
+     "prompt": "What the project will deliver and cover"
+    },
+    {
+     "key": "scope_out",
+     "label": "Out of scope",
+     "prompt": "What the project deliberately will not do"
+    },
+    {
+     "key": "deliverables",
+     "label": "Deliverables",
+     "prompt": "The verifiable outputs you will hand over"
+    },
+    {
+     "key": "governance",
+     "label": "Sponsor and governance",
+     "prompt": "Who authorises the project, who decides, and how change is controlled"
+    },
+    {
+     "key": "budget",
+     "label": "Budget and funding",
+     "prompt": "The declared budget, its source and the spending authority"
+    },
+    {
+     "key": "milestones",
+     "label": "Milestones",
+     "prompt": "The dated checkpoints and decisions, including the end date"
+    },
+    {
+     "key": "success_measures",
+     "label": "Success measures",
+     "prompt": "How completion and benefit will be judged, with baselines and targets"
+    },
+    {
+     "key": "assumptions",
+     "label": "Assumptions",
+     "prompt": "What must hold for the plan to work, marked as assumptions"
+    },
+    {
+     "key": "constraints",
+     "label": "Constraints and dependencies",
+     "prompt": "Fixed dates, resources, contracts or dependencies outside the project's control"
+    }
+   ],
+   "meta": {
+    "name": "Project charter with an authorisation and scope audit",
+    "short": "project charter",
+    "registry_ids": [
+     "PM-05"
+    ],
+    "intended_use": "Write the authorisation for the project: objective, scope in and out, deliverables, sponsor and governance, budget, milestones, success measures, assumptions and constraints. Empty blocks are named, not filled.",
+    "unsupported_use": "Choosing the objective, budget or sponsor for you; inventing a benefit, a date or an approval; calculating a business case; replacing the sponsor's decision.",
+    "extra_help": "The charter records what you have agreed and what is still assumption. A benefit in the success measures is your claim, not a forecast, and the worksheet does not compute a business case."
+   }
+  },
+  "template_wbs": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "deliverables",
+     "label": "Level 1 deliverables",
+     "prompt": "The major deliverables the project must produce"
+    },
+    {
+     "key": "work_packages",
+     "label": "Work packages",
+     "prompt": "The smallest pieces of work, each with an owner and a completion test"
+    },
+    {
+     "key": "acceptance",
+     "label": "Acceptance criteria",
+     "prompt": "The test that shows a deliverable or work package is complete"
+    },
+    {
+     "key": "exclusions",
+     "label": "Exclusions",
+     "prompt": "Work the WBS deliberately leaves out"
+    }
+   ],
+   "meta": {
+    "name": "Work breakdown structure with a scope and acceptance audit",
+    "short": "WBS",
+    "registry_ids": [
+     "PM-09"
+    ],
+    "intended_use": "Break the declared scope into deliverables and work packages, give each a completion test, record what is excluded, and link each work package to the deliverable it belongs to.",
+    "unsupported_use": "Inventing deliverables or acceptance criteria; estimating effort or cost for you; drawing a tree or Gantt; computing a total, a duration or a critical path; deciding the decomposition is complete.",
+    "extra_help": "links: optional list of {from, to} item ids, normally a work package to its deliverable. The worksheet records the hierarchy you declare; it does not draw a tree, sum estimates or prove that the breakdown is mutually exclusive and complete."
+   }
+  },
+  "template_risk_register": {
+   "kind": "matrix",
+   "meta": {
+    "name": "Risk register with a declared-response audit",
+    "short": "risk register",
+    "registry_ids": [
+     "PM-06"
+    ],
+    "row_label": "risk",
+    "column_label": "field",
+    "min_rows": 2,
+    "max_rows": 30,
+    "min_columns": 4,
+    "max_columns": 4,
+    "require_groups": false,
+    "require_rationale": false,
+    "intended_use": "List each risk, then record the likelihood and impact labels you declare, the response you will take and the owner. Audit which cells are still empty.",
+    "unsupported_use": "Assigning probabilities, computing an expected loss or a risk score, ranking risks for you, or inventing a response or owner.",
+    "extra_help": "Declare exactly four fields: Likelihood (your label), Impact (your label), Response and Owner. No probability, expected value or risk score is computed; an empty cell is named and stays empty."
+   },
+   "columns": null
+  },
+  "template_stakeholder_plan": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "stakeholders",
+     "label": "Stakeholders",
+     "prompt": "Who is affected by the project or can affect it"
+    },
+    {
+     "key": "interests",
+     "label": "Interests and concerns",
+     "prompt": "What each stakeholder wants, fears or needs from the project"
+    },
+    {
+     "key": "influence",
+     "label": "Influence and impact",
+     "prompt": "The influence and impact labels you assign, with the evidence for them"
+    },
+    {
+     "key": "engagement",
+     "label": "Engagement approach",
+     "prompt": "How you will engage: inform, consult, involve or collaborate"
+    },
+    {
+     "key": "messages",
+     "label": "Key messages",
+     "prompt": "What each stakeholder needs to hear, in plain terms"
+    },
+    {
+     "key": "channels",
+     "label": "Channels",
+     "prompt": "The route the message takes: meeting, email, notice, report or one-to-one"
+    },
+    {
+     "key": "frequency",
+     "label": "Timing and frequency",
+     "prompt": "When and how often the communication happens, tied to milestones"
+    },
+    {
+     "key": "owners",
+     "label": "Communication owner",
+     "prompt": "Who is responsible for each message or channel"
+    },
+    {
+     "key": "risks",
+     "label": "Communication risks",
+     "prompt": "What could make the communication fail, and the response"
+    }
+   ],
+   "meta": {
+    "name": "Stakeholder engagement and communication plan with an evidence audit",
+    "short": "stakeholder and communication plan",
+    "registry_ids": [
+     "PM-15"
+    ],
+    "intended_use": "List the stakeholders, their interests and the influence you can evidence, then record how you will engage them, what you will say, through which channel, how often and who owns it. Empty blocks are named.",
+    "unsupported_use": "Inventing stakeholders, interests, influence, messages or owners; scoring stakeholders; choosing an engagement strategy for you; guaranteeing that a stakeholder will be satisfied.",
+    "extra_help": "The influence and impact entries are labels you declare with their evidence, not a computed power-interest score. A stakeholder with no owner or channel is shown as a gap."
+   }
+  },
+  "template_lessons_learned": {
+   "kind": "canvas",
+   "blocks": [
+    {
+     "key": "went_well",
+     "label": "What went well",
+     "prompt": "Practices, decisions or behaviours that worked and should be repeated"
+    },
+    {
+     "key": "went_poorly",
+     "label": "What did not go well",
+     "prompt": "What failed, slipped or caused avoidable cost"
+    },
+    {
+     "key": "causes",
+     "label": "Why it happened",
+     "prompt": "The cause you can evidence, not blame"
+    },
+    {
+     "key": "changes",
+     "label": "What to change next time",
+     "prompt": "The specific change the next project should make"
+    },
+    {
+     "key": "actions",
+     "label": "Actions and owners",
+     "prompt": "Who will make the change, and by when"
+    },
+    {
+     "key": "share",
+     "label": "Who should see this",
+     "prompt": "The teams or roles that need the lesson"
+    },
+    {
+     "key": "evidence",
+     "label": "Evidence",
+     "prompt": "Records, incidents, change requests or data behind the lesson"
+    }
+   ],
+   "meta": {
+    "name": "Lessons learned with a cause and action audit",
+    "short": "lessons learned",
+    "registry_ids": [
+     "PM-16"
+    ],
+    "intended_use": "Record what went well and what did not, the cause you can evidence, the specific change for the next project, who owns it and who should see the lesson.",
+    "unsupported_use": "Assigning blame, scoring the project, inventing a cause without evidence, or writing an action with no owner; turning a lesson into a claim about a person.",
+    "extra_help": "A lesson without an action is named as a gap; an action without an owner is named too. The worksheet records causes you can evidence and does not infer motive."
+   }
+  }
+ }
+}

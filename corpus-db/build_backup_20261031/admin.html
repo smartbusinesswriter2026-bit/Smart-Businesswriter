@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corpus admin — Smart Business Writer</title>
+<style>
+  :root {
+    --bg: #0f1319;
+    --panel: #161b23;
+    --panel-2: #1c222c;
+    --line: #2a323e;
+    --ink: #e8ecf2;
+    --ink-dim: #98a3b3;
+    --ink-faint: #6b7686;
+    --accent: #5aa9ff;
+    --accent-ink: #08111c;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --radius: 10px;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7f9; --panel: #ffffff; --panel-2: #f0f2f5; --line: #dde1e7;
+      --ink: #1b2028; --ink-dim: #5a6472; --ink-faint: #8b95a3;
+      --accent: #1668c4; --accent-ink: #ffffff;
+      --ok: #15803d; --warn: #a16207; --bad: #b91c1c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  header {
+    padding: 22px 28px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.01em; }
+  header .sub { color: var(--ink-faint); font-size: 13px; }
+  main { padding: 24px 28px 64px; max-width: 1240px; }
+  .strip { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 16px; min-width: 132px;
+  }
+  .stat .n { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); }
+  .stat .n.bad { color: var(--bad); } .stat .n.ok { color: var(--ok); }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 20px; overflow: hidden;
+  }
+  section > h2 {
+    margin: 0; padding: 13px 18px; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim);
+    border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px;
+  }
+  section > h2 .hint { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); }
+  .body { padding: 18px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-weight: 600; color: var(--ink-faint); font-size: 11.5px;
+       text-transform: uppercase; letter-spacing: 0.06em; padding: 9px 10px;
+       border-bottom: 1px solid var(--line); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.t { color: var(--ink); } td.dim { color: var(--ink-dim); }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  button {
+    font: inherit; font-size: 13px; padding: 6px 13px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { filter: brightness(1.08); color: var(--accent-ink); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  input, select {
+    font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); width: 100%;
+  }
+  label { display: block; font-size: 12px; color: var(--ink-dim); margin-bottom: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 14px; }
+  .grid .wide { grid-column: 1 / -1; }
+  #drop {
+    border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 26px;
+    text-align: center; color: var(--ink-dim); background: var(--panel-2); cursor: pointer;
+  }
+  #drop.over { border-color: var(--accent); color: var(--accent); }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11.5px;
+          border: 1px solid var(--line); color: var(--ink-dim); }
+  .pill.new { color: var(--warn); border-color: var(--warn); }
+  .pill.ingested, .pill.ok { color: var(--ok); border-color: var(--ok); }
+  .pill.rejected, .pill.failed { color: var(--bad); border-color: var(--bad); }
+  .pill.needs_decision { color: var(--warn); border-color: var(--warn); }
+  .bar { height: 5px; background: var(--panel-2); border-radius: 99px; overflow: hidden; min-width: 70px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); }
+  .note { font-size: 13px; color: var(--ink-dim); margin: 0 0 14px; }
+  .actions { display: flex; gap: 7px; flex-wrap: wrap; }
+  .empty { color: var(--ink-faint); font-size: 13.5px; padding: 8px 0; }
+  #flash { position: fixed; right: 20px; bottom: 20px; background: var(--panel);
+           border: 1px solid var(--line); border-left: 3px solid var(--accent);
+           padding: 12px 16px; border-radius: 8px; font-size: 13.5px; max-width: 420px;
+           display: none; box-shadow: 0 8px 28px rgba(0,0,0,.32); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Corpus admin</h1>
+  <span class="sub" id="where">connecting…</span>
+  <span class="sub" style="margin-left:auto"><button id="refresh">Refresh</button></span>
+</header>
+
+<main>
+  <div class="strip" id="stats"></div>
+
+  <section>
+    <h2>Upload a document <span class="hint">drop a PDF, or choose a file — it is ingested and indexed immediately</span></h2>
+    <div class="body">
+      <div class="cols">
+        <div>
+          <div id="drop">Drop a PDF here, or click to choose</div>
+          <input type="file" id="file" accept="application/pdf" hidden>
+          <p class="note" style="margin-top:12px">
+            Anything not filled in is stored as <span class="mono">NULL</span>. Nothing is guessed.
+            You can edit the metadata after the fact by re-uploading with a different title — the
+            PDF itself is recognised by its hash and is never stored twice.
+          </p>
+          <div class="actions">
+            <button class="primary" id="upload" disabled>Upload and ingest</button>
+            <button id="enrich">Run one enrichment pass</button>
+          </div>
+        </div>
+        <div>
+          <div class="grid">
+            <div class="wide"><label for="title">Title</label><input id="title" placeholder="Financial Accounting"></div>
+            <div class="wide"><label for="authors">Authors (semicolon separated, family first)</label><input id="authors" placeholder="Weygandt; Kimmel"></div>
+            <div><label for="year">Year</label><input id="year" inputmode="numeric" placeholder="2019"></div>
+            <div><label for="kind">Kind</label><select id="kind"><option value="book">Book</option><option value="journal-article">Journal article</option></select></div>
+            <div class="wide"><label for="subject">Subject</label><select id="subject"></select></div>
+            <div><label for="publisher">Publisher</label><input id="publisher"></div>
+            <div><label for="edition">Edition</label><input id="edition" placeholder="9th"></div>
+            <div><label for="isbn">ISBN</label><input id="isbn"></div>
+            <div><label for="doi">DOI</label><input id="doi"></div>
+            <div class="wide"><label for="licence">Licence</label><input id="licence" placeholder="CC BY 4.0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Enrichment queue <span class="hint">ranked by how often it was asked for and how thin that subject is</span></h2>
+    <div class="body"><table id="candidates"></table></div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>What the pipeline asked for</h2>
+      <div class="body"><table id="searches"></table></div>
+    </section>
+    <section>
+      <h2>Gaps <span class="hint">questions the corpus could not answer</span></h2>
+      <div class="body"><table id="gaps"></table></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Uploads</h2>
+    <div class="body"><table id="uploads"></table></div>
+  </section>
+</main>
+
+<div id="flash"></div>
+
+<script>
+const SUBJECTS = ["accounting","finance","economics","management","marketing","operations",
+                   "research","entrepreneurship","people","supply-chain","project-management"];
+const $ = (id) => document.getElementById(id);
+
+function flash(text, bad) {
+  const box = $("flash");
+  box.textContent = text;
+  box.style.borderLeftColor = bad ? "var(--bad)" : "var(--accent)";
+  box.style.display = "block";
+  clearTimeout(box._t);
+  box._t = setTimeout(() => { box.style.display = "none"; }, 4200);
+}
+
+async function api(path, options) {
+  const response = await fetch(path, options);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || ("HTTP " + response.status));
+  return payload;
+}
+
+function cell(row, text, cls) {
+  const td = document.createElement("td");
+  td.textContent = text == null ? "—" : text;
+  if (cls) td.className = cls;
+  row.appendChild(td);
+  return td;
+}
+
+function renderStats(data) {
+  const box = $("stats");
+  box.innerHTML = "";
+  const rate = data.hit_rate == null ? null : Math.round(data.hit_rate * 100) + "%";
+  const items = [
+    ["Documents", data.documents, ""],
+    ["Pages", data.pages, ""],
+    ["Candidates waiting", data.candidates, data.candidates ? "bad" : ""],
+    ["Searches answered", rate, rate == null ? "" : (data.hit_rate >= 0.5 ? "ok" : "bad")],
+    ["Meilisearch", data.meili ? "up" : "down", data.meili ? "ok" : "bad"],
+  ];
+  for (const [key, value, cls] of items) {
+    const card = document.createElement("div");
+    card.className = "stat";
+    const n = document.createElement("div");
+    n.className = "n " + cls;
+    n.textContent = value;
+    const k = document.createElement("div");
+    k.className = "k";
+    k.textContent = key;
+    card.append(n, k);
+    box.appendChild(card);
+  }
+  $("where").textContent = data.database + (data.meili ? "" : "  ·  search index unreachable");
+}
+
+function renderCandidates(rows) {
+  const table = $("candidates");
+  table.innerHTML = "";
+  if (!rows.length) {
+    table.innerHTML = '<tr><td class="empty">Nothing waiting. Run an enrichment pass, or upload a document.</td></tr>';
+    return;
+  }
+  const head = table.insertRow();
+  for (const label of ["Title", "Seen", "Priority", "Status", ""]) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  for (const item of rows) {
+    const row = table.insertRow();
+    cell(row, item.title || item.doi || item.url, "t");
+    cell(row, item.seen_count, "dim");
+    const pr = cell(row, "", "dim");
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("i");
+    fill.style.width = Math.min(100, item.priority / 10) + "%";
+    bar.appendChild(fill);
+    pr.appendChild(bar);
+    const st = cell(row, "", "");
+    const pill = document.createElement("span");
+    pill.className = "pill " + item.status;
+    pill.textContent = item.status.replace("_", " ");
+    st.appendChild(pill);
+    if (item.reason) { const small = document.createElement("div"); small.className = "dim"; small.style.fontSize = "12px"; small.textContent = item.reason; st.appendChild(small); }
+    const actions = cell(row, "", "");
+    const box = document.createElement("div");
+    box.className = "actions";
+    if (item.status === "new" || item.status === "needs_decision") {
+      const approve = document.createElement("button");
+      approve.textContent = "Fetch & ingest";
+      approve.onclick = () => act("/api/corpus/candidates/approve", item.candidate_id, "Fetching…");
+      box.appendChild(approve);
+    }
+    if (item.status !== "ingested" && item.status !== "rejected") {
+      const reject = document.createElement("button");
+      reject.textContent = "Reject";
+      reject.onclick = () => act("/api/corpus/candidates/reject", item.candidate_id, "Rejected");
+      box.appendChild(reject);
+    }
+    actions.appendChild(box);
+  }
+}
+
+function renderSearches(rows) {
+  const table = $("searches");
+  table.innerHTML = "";
+  if (!rows.length) {
+    table.innerHTML = '<tr><td class="empty">No searches recorded yet. The pipeline writes here once the corpus adapter is wired in.</td></tr>';
+    return;
+  }
+  const head = table.insertRow();
+  for (const label of ["When", "Query", "Corpus", "Live"]) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  for (const item of rows) {
+    const row = table.insertRow();
+    cell(row, (item.searched_at || "").replace("T", " ").replace("+00:00", "Z"), "dim");
+    cell(row, item.query, "t");
+    cell(row, item.corpus_hits + (item.corpus_status === "down" ? " (index down)" : ""), "dim");
+    cell(row, item.live_hits, "dim");
+  }
+}
+
+function renderGaps(data) {
+  const table = $("gaps");
+  table.innerHTML = "";
+  const rows = data.unanswered || [];
+  if (!rows.length) {
+    table.innerHTML = '<tr><td class="empty">No unanswered questions. The corpus is answering everything.</td></tr>';
+    return;
+  }
+  const head = table.insertRow();
+  for (const label of ["Question", "Subject", "Times"]) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  for (const item of rows) {
+    const row = table.insertRow();
+    cell(row, item.query, "t");
+    cell(row, item.subject, "dim");
+    cell(row, item.times, "dim");
+  }
+}
+
+function renderUploads(rows) {
+  const table = $("uploads");
+  table.innerHTML = "";
+  if (!rows.length) {
+    table.innerHTML = '<tr><td class="empty">No uploads yet.</td></tr>';
+    return;
+  }
+  const head = table.insertRow();
+  for (const label of ["When", "File", "Status", "Note"]) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  for (const item of rows) {
+    const row = table.insertRow();
+    cell(row, (item.uploaded_at || "").replace("T", " ").replace("+00:00", "Z"), "dim");
+    cell(row, item.filename, "t");
+    const st = cell(row, "", "");
+    const pill = document.createElement("span");
+    pill.className = "pill " + (item.status === "ingested" ? "ok" : item.status === "duplicate" ? "new" : "rejected");
+    pill.textContent = item.status;
+    st.appendChild(pill);
+    cell(row, item.message, "dim");
+  }
+}
+
+async function refresh() {
+  try {
+    const [stats, candidates, searches, gaps, uploads] = await Promise.all([
+      api("/api/corpus/stats"),
+      api("/api/corpus/candidates?status=all"),
+      api("/api/corpus/searches?limit=40"),
+      api("/api/corpus/gaps"),
+      api("/api/corpus/uploads"),
+    ]);
+    renderStats(stats);
+    renderCandidates(candidates.candidates || []);
+    renderSearches(searches.searches || []);
+    renderGaps(gaps);
+    renderUploads(uploads.uploads || []);
+  } catch (error) {
+    $("where").textContent = "the corpus service is not answering (" + error.message + ")";
+  }
+}
+
+async function act(path, candidate_id, message) {
+  try {
+    const result = await api(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ candidate_id }),
+    });
+    flash(message + " → " + (result.status || "done"));
+  } catch (error) {
+    flash("Failed: " + error.message, true);
+  }
+  refresh();
+}
+
+let chosen = null;
+
+function filePicked(file) {
+  chosen = file;
+  $("drop").textContent = file.name + "  ·  " + (file.size / 1048576).toFixed(1) + " MB";
+  $("upload").disabled = false;
+  if (!$("title").value) $("title").value = file.name.replace(/\.pdf$/i, "");
+}
+
+$("drop").onclick = () => $("file").click();
+$("file").onchange = (event) => { if (event.target.files[0]) filePicked(event.target.files[0]); };
+$("drop").ondragover = (event) => { event.preventDefault(); $("drop").classList.add("over"); };
+$("drop").ondragleave = () => $("drop").classList.remove("over");
+$("drop").ondrop = (event) => {
+  event.preventDefault();
+  $("drop").classList.remove("over");
+  const file = event.dataTransfer.files[0];
+  if (file) filePicked(file);
+};
+
+$("upload").onclick = async () => {
+  if (!chosen) return;
+  $("upload").disabled = true;
+  try {
+    const data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(",").pop());
+      reader.onerror = () => reject(new Error("the file could not be read"));
+      reader.readAsDataURL(chosen);
+    });
+    const payload = {
+      filename: chosen.name, data,
+      title: $("title").value, authors: $("authors").value,
+      year: $("year").value ? Number($("year").value) : null,
+      kind: $("kind").value, subject: $("subject").value,
+      publisher: $("publisher").value, edition: $("edition").value,
+      isbn: $("isbn").value, doi: $("doi").value, licence: $("licence").value,
+    };
+    const result = await api("/api/corpus/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    flash("Ingested: " + (result.message || result.status));
+    chosen = null;
+    $("drop").textContent = "Drop a PDF here, or click to choose";
+  } catch (error) {
+    flash("Upload failed: " + error.message, true);
+  }
+  $("upload").disabled = true;
+  refresh();
+};
+
+$("enrich").onclick = async () => {
+  $("enrich").disabled = true;
+  flash("Enrichment pass running…");
+  try {
+    const result = await api("/api/corpus/enrich", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ limit: 5 }),
+    });
+    flash("Enriched: " + (result.fetched ? Object.entries(result.fetched).map(([k, v]) => k + " " + v).join(", ") : "nothing to do"));
+  } catch (error) {
+    flash("Enrichment failed: " + error.message, true);
+  }
+  $("enrich").disabled = false;
+  refresh();
+};
+
+$("refresh").onclick = refresh;
+
+const subjectSelect = $("subject");
+for (const subject of SUBJECTS) {
+  const option = document.createElement("option");
+  option.value = subject;
+  option.textContent = subject;
+  subjectSelect.appendChild(option);
+}
+
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

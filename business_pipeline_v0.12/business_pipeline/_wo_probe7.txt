@@ -1,0 +1,483 @@
+=== all CHG-* and STR-* and PM-* records ===
+  STR-01   type=F   form=worksheet  tpl=template_five_forces         Porter's Five Forces
+           summary: Industry rivalry, threat of entrants and substitutes, buyer power, supplier power
+           aliases: ['5 forces']   also_listed_as: []
+  STR-02   type=F   form=read_only  tpl=None                         Porter's Generic Strategies
+           summary: Cost leadership, differentiation, and focus choices
+           aliases: []   also_listed_as: []
+  STR-03   type=F   form=worksheet  tpl=template_value_chain         Porter's Value Chain
+           summary: How primary and support activities contribute to cost or differentiation
+           aliases: []   also_listed_as: []
+  STR-04   type=F   form=worksheet  tpl=template_activity_system_fit Porter's Strategic Positioning / Activity-System Fit
+           summary: The chosen position and fit among the activities supporting it
+           aliases: ["Porter's Strategic Positioning", 'Activity-System Fit']   also_listed_as: []
+  STR-05   type=F   form=read_only  tpl=None                         Porter's Diamond
+           summary: National/industry competitiveness through factor conditions, demand conditions, related industries, and firm rivalry/context
+           aliases: []   also_listed_as: []
+  STR-06   type=F   form=worksheet  tpl=template_pestel              PESTEL
+           summary: Political, economic, social, technological, environmental and legal context
+           aliases: ['PESTEL']   also_listed_as: []
+  STR-07   type=F   form=worksheet  tpl=template_swot                SWOT / TOWS
+           summary: Internal strengths/weaknesses and external opportunities/threats; TOWS turns them into options
+           aliases: ['SWOT', 'TOWS']   also_listed_as: []
+  STR-08   type=M   form=worksheet  tpl=template_vrio                VRIO
+           summary: Whether a resource/capability is valuable, rare, hard to imitate, and organizationally supported
+           aliases: ['VRIO']   also_listed_as: []
+  STR-09   type=F   form=worksheet  tpl=template_ansoff              Ansoff Matrix
+           summary: Market penetration, market development, product development, diversification
+           aliases: []   also_listed_as: []
+  STR-10   type=M   form=read_only  tpl=None                         BCG Growth-Share Matrix
+           summary: Portfolio positioning using market growth and relative market share
+           aliases: ['BCG']   also_listed_as: []
+  STR-11   type=M   form=read_only  tpl=None                         GE–McKinsey Portfolio Matrix
+           summary: Portfolio assessment using industry attractiveness and business strength
+           aliases: []   also_listed_as: []
+  STR-12   type=M   form=worksheet  tpl=template_strategic_group_map Strategic Group Mapping
+           summary: Competitor groups by selected strategic dimensions
+           aliases: []   also_listed_as: []
+  STR-13   type=F   form=worksheet  tpl=template_blue_ocean_errc     Blue Ocean Strategy Canvas / ERRC Grid
+           summary: Current competitive factors and possible eliminate-reduce-raise-create choices
+           aliases: ['Blue Ocean Strategy Canvas', 'ERRC Grid']   also_listed_as: []
+  STR-14   type=F   form=worksheet  tpl=template_scenario_planning   Scenario Planning
+           summary: Several plausible futures, their drivers, implications, and robust choices
+           aliases: []   also_listed_as: []
+  STR-15   type=F   form=worksheet  tpl=template_business_model_canvas Business Model Canvas
+           summary: Nine connected business-model blocks covering customers, value, delivery, resources, activities, partners, costs and revenue
+           aliases: []   also_listed_as: []
+  STR-16   type=F   form=worksheet  tpl=template_lean_canvas         Lean Canvas
+           summary: Startup problem, customer, value proposition, solution, channels, revenue/cost, metrics and advantage assumptions
+           aliases: []   also_listed_as: []
+  STR-17   type=F   form=worksheet  tpl=template_value_proposition_canvas Value Proposition Canvas
+           summary: Customer jobs, pains and gains compared with pain relievers and gain creators
+           aliases: []   also_listed_as: []
+  STR-18   type=F   form=worksheet  tpl=template_swot                SWOT evidence-to-action review
+           summary: Audit each SWOT item for evidence, materiality, and resulting strategic options
+           aliases: ['SWOT']   also_listed_as: []
+  CHG-01   type=F   form=worksheet  tpl=template_kotter              Kotter's 8-Step Change Model
+           summary: A sequence for mobilizing, implementing and sustaining organizational change
+           aliases: []   also_listed_as: []
+  CHG-02   type=M   form=read_only  tpl=None                         ADKAR
+           summary: Individual change readiness/barriers: Awareness, Desire, Knowledge, Ability, Reinforcement
+           aliases: ['ADKAR']   also_listed_as: []
+  CHG-03   type=F   form=read_only  tpl=None                         Lewin's Three-Stage Model
+           summary: Unfreezing, changing and stabilizing new practices
+           aliases: []   also_listed_as: []
+  CHG-04   type=F   form=read_only  tpl=None                         McKinsey 7-S
+           summary: Alignment among strategy, structure, systems, shared values, skills, style and staff
+           aliases: []   also_listed_as: []
+  CHG-05   type=M   form=read_only  tpl=None                         Burke–Litwin Organizational Performance and Change Model
+           summary: Relationships among external environment, leadership, mission/strategy, culture, systems and performance
+           aliases: []   also_listed_as: []
+  CHG-06   type=F   form=read_only  tpl=None                         Galbraith Star Model
+           summary: Alignment of strategy, structure, processes, rewards and people practices
+           aliases: []   also_listed_as: []
+  CHG-07   type=F   form=read_only  tpl=None                         Theory of Change
+           summary: Causal pathway from activities to outputs, outcomes and impact, including assumptions
+           aliases: []   also_listed_as: ['IMP-01']
+  CHG-08   type=F   form=read_only  tpl=None                         Logic Model
+           summary: Inputs, activities, outputs, outcomes and impact
+           aliases: []   also_listed_as: ['IMP-02']
+  CHG-09   type=F   form=read_only  tpl=None                         Plan–Do–Study–Act (PDSA)
+           summary: Small, iterative tests of change
+           aliases: ['PDSA']   also_listed_as: []
+  CHG-10   type=F   form=read_only  tpl=None                         DMAIC
+           summary: Define, Measure, Analyze, Improve, Control for process/problem improvement
+           aliases: ['DMAIC']   also_listed_as: []
+  CHG-11   type=F   form=worksheet  tpl=template_org_design          Organizational Design: Star/fit review
+           summary: Check alignment among strategy, decision rights, structure, processes, people and incentives
+           aliases: ['Organizational Design: Star', 'fit review']   also_listed_as: []
+  CHG-12   type=M   form=worksheet  tpl=template_competing_values    Competing Values Framework
+           summary: Organizational culture through competing value orientations
+           aliases: []   also_listed_as: []
+  CHG-13   type=M   form=read_only  tpl=None                         Mintzberg Organizational Configurations
+           summary: Compare organizational structure/configuration patterns
+           aliases: []   also_listed_as: []
+  CHG-14   type=F   form=read_only  tpl=None                         RACI responsibility matrix
+           summary: Responsible, Accountable, Consulted and Informed roles
+           aliases: ['RACI']   also_listed_as: []
+  PM-01    type=F   form=read_only  tpl=None                         Balanced Scorecard
+           summary: Objectives and measures across financial, customer/stakeholder, internal-process and organizational-capacity perspectives
+           aliases: []   also_listed_as: []
+  PM-02    type=F   form=read_only  tpl=None                         Strategy Map
+           summary: Hypothesized links among strategic objectives and outcomes
+           aliases: []   also_listed_as: []
+  PM-03    type=F   form=read_only  tpl=None                         KPI Tree / Driver Tree
+           summary: Link a top-level outcome to measurable drivers and sub-drivers
+           aliases: ['KPI Tree', 'Driver Tree', 'KPI']   also_listed_as: []
+  PM-04    type=F   form=read_only  tpl=None                         Objectives and Key Results (OKRs)
+           summary: Objectives and measurable key results over a defined period
+           aliases: ['OKRs']   also_listed_as: []
+  PM-05    type=F   form=worksheet  tpl=template_project_charter     PRINCE2
+           summary: Project governance, roles, stages, business justification, controls and tailoring
+           aliases: []   also_listed_as: []
+  PM-06    type=F   form=worksheet  tpl=template_risk_register       PMBOK / PMI project management standards
+           summary: Project-management knowledge areas, principles and performance domains depending on edition
+           aliases: ['PMBOK', 'PMI project management standards']   also_listed_as: []
+  PM-07    type=F   form=read_only  tpl=None                         Scrum
+           summary: Defined accountabilities, events, artifacts and empirical product-development cycle
+           aliases: []   also_listed_as: []
+  PM-08    type=F   form=read_only  tpl=None                         Kanban Method
+           summary: Visualize workflow, manage work in progress, control flow and improve delivery
+           aliases: []   also_listed_as: []
+  PM-09    type=F   form=worksheet  tpl=template_wbs                 Work Breakdown Structure (WBS)
+           summary: Break down project scope into manageable deliverables/work packages
+           aliases: ['WBS']   also_listed_as: []
+  PM-10    type=F   form=worksheet  tpl=template_raci                RACI / responsibility assignment
+           summary: Clarify responsibility and accountability
+           aliases: ['RACI', 'responsibility assignment']   also_listed_as: []
+  PM-11    type=F   form=read_only  tpl=None                         COBIT
+           summary: Governance and management of enterprise information and technology
+           aliases: ['COBIT']   also_listed_as: []
+  PM-12    type=F   form=read_only  tpl=None                         ITIL
+           summary: IT service management practices and service value system
+           aliases: ['ITIL']   also_listed_as: []
+  PM-13    type=M   form=read_only  tpl=None                         DeLone–McLean IS Success Model
+           summary: Relationships among system quality, information quality, use, satisfaction and net benefits
+           aliases: []   also_listed_as: []
+  PM-14    type=F   form=read_only  tpl=None                         Technology-Organization-Environment (TOE) Framework
+           summary: Technology, organizational and environmental context for adoption decisions
+           aliases: ['TOE']   also_listed_as: []
+  PM-15    type=F   form=worksheet  tpl=template_stakeholder_plan    Stakeholder engagement and communication plan
+           summary: Who is affected, what each stakeholder needs, and how, when and by whom the project will communicate with them
+           aliases: []   also_listed_as: []
+  PM-16    type=F   form=worksheet  tpl=template_lessons_learned     Lessons learned
+           summary: What worked, what did not, why, and what the next project should change
+           aliases: []   also_listed_as: []
+
+=== hunt: Strategy 4 (perspective/position/plan/pattern) ===
+
+=== hunt: change readiness/resistance ===
+  CHG-02   type=M   form=read_only  ADKAR
+           hit: ['readiness'] | summary: Individual change readiness/barriers: Awareness, Desire, Knowledge, Ability, Reinforcement
+
+=== hunt: strategic positioning ===
+
+=== hunt: literal 'strategy 4' ===
+  STR-01   type=F   form=worksheet  Porter's Five Forces
+           hit: [] | summary: Industry rivalry, threat of entrants and substitutes, buyer power, supplier power
+  STR-02   type=F   form=read_only  Porter's Generic Strategies
+           hit: [] | summary: Cost leadership, differentiation, and focus choices
+  STR-03   type=F   form=worksheet  Porter's Value Chain
+           hit: [] | summary: How primary and support activities contribute to cost or differentiation
+  STR-04   type=F   form=worksheet  Porter's Strategic Positioning / Activity-System Fit
+           hit: [] | summary: The chosen position and fit among the activities supporting it
+  STR-05   type=F   form=read_only  Porter's Diamond
+           hit: [] | summary: National/industry competitiveness through factor conditions, demand conditions, related industries, and firm rivalry/context
+  STR-06   type=F   form=worksheet  PESTEL
+           hit: [] | summary: Political, economic, social, technological, environmental and legal context
+  STR-07   type=F   form=worksheet  SWOT / TOWS
+           hit: [] | summary: Internal strengths/weaknesses and external opportunities/threats; TOWS turns them into options
+  STR-08   type=M   form=worksheet  VRIO
+           hit: [] | summary: Whether a resource/capability is valuable, rare, hard to imitate, and organizationally supported
+  STR-09   type=F   form=worksheet  Ansoff Matrix
+           hit: [] | summary: Market penetration, market development, product development, diversification
+  STR-10   type=M   form=read_only  BCG Growth-Share Matrix
+           hit: [] | summary: Portfolio positioning using market growth and relative market share
+  STR-11   type=M   form=read_only  GE–McKinsey Portfolio Matrix
+           hit: [] | summary: Portfolio assessment using industry attractiveness and business strength
+  STR-12   type=M   form=worksheet  Strategic Group Mapping
+           hit: [] | summary: Competitor groups by selected strategic dimensions
+  STR-13   type=F   form=worksheet  Blue Ocean Strategy Canvas / ERRC Grid
+           hit: [] | summary: Current competitive factors and possible eliminate-reduce-raise-create choices
+  STR-14   type=F   form=worksheet  Scenario Planning
+           hit: [] | summary: Several plausible futures, their drivers, implications, and robust choices
+  STR-15   type=F   form=worksheet  Business Model Canvas
+           hit: [] | summary: Nine connected business-model blocks covering customers, value, delivery, resources, activities, partners, costs and revenue
+  STR-16   type=F   form=worksheet  Lean Canvas
+           hit: [] | summary: Startup problem, customer, value proposition, solution, channels, revenue/cost, metrics and advantage assumptions
+  STR-17   type=F   form=worksheet  Value Proposition Canvas
+           hit: [] | summary: Customer jobs, pains and gains compared with pain relievers and gain creators
+  STR-18   type=F   form=worksheet  SWOT evidence-to-action review
+           hit: [] | summary: Audit each SWOT item for evidence, materiality, and resulting strategic options
+  CHG-01   type=F   form=worksheet  Kotter's 8-Step Change Model
+           hit: [] | summary: A sequence for mobilizing, implementing and sustaining organizational change
+  CHG-02   type=M   form=read_only  ADKAR
+           hit: [] | summary: Individual change readiness/barriers: Awareness, Desire, Knowledge, Ability, Reinforcement
+  CHG-03   type=F   form=read_only  Lewin's Three-Stage Model
+           hit: [] | summary: Unfreezing, changing and stabilizing new practices
+  CHG-04   type=F   form=read_only  McKinsey 7-S
+           hit: [] | summary: Alignment among strategy, structure, systems, shared values, skills, style and staff
+  CHG-05   type=M   form=read_only  Burke–Litwin Organizational Performance and Change Model
+           hit: [] | summary: Relationships among external environment, leadership, mission/strategy, culture, systems and performance
+  CHG-06   type=F   form=read_only  Galbraith Star Model
+           hit: [] | summary: Alignment of strategy, structure, processes, rewards and people practices
+  CHG-07   type=F   form=read_only  Theory of Change
+           hit: [] | summary: Causal pathway from activities to outputs, outcomes and impact, including assumptions
+  CHG-08   type=F   form=read_only  Logic Model
+           hit: [] | summary: Inputs, activities, outputs, outcomes and impact
+  CHG-09   type=F   form=read_only  Plan–Do–Study–Act (PDSA)
+           hit: [] | summary: Small, iterative tests of change
+  CHG-10   type=F   form=read_only  DMAIC
+           hit: [] | summary: Define, Measure, Analyze, Improve, Control for process/problem improvement
+  CHG-11   type=F   form=worksheet  Organizational Design: Star/fit review
+           hit: [] | summary: Check alignment among strategy, decision rights, structure, processes, people and incentives
+  CHG-12   type=M   form=worksheet  Competing Values Framework
+           hit: [] | summary: Organizational culture through competing value orientations
+  CHG-13   type=M   form=read_only  Mintzberg Organizational Configurations
+           hit: [] | summary: Compare organizational structure/configuration patterns
+  CHG-14   type=F   form=read_only  RACI responsibility matrix
+           hit: [] | summary: Responsible, Accountable, Consulted and Informed roles
+  MKT-01   type=F   form=read_only  Segmentation–Targeting–Positioning (STP)
+           hit: [] | summary: Customer segments, target selection, and desired market position
+  MKT-02   type=F   form=worksheet  Marketing Mix: 4Ps / Services Mix: 7Ps
+           hit: [] | summary: Product, Price, Place, Promotion; services add People, Process and Physical Evidence
+  MKT-03   type=M   form=read_only  AIDA
+           hit: [] | summary: Attention, Interest, Desire, Action as a simplified communication journey
+  MKT-04   type=F   form=worksheet  Customer Journey Mapping
+           hit: [] | summary: Customer goals, actions, touchpoints, experiences, pain points and opportunities
+  MKT-05   type=M   form=read_only  Marketing / Sales Funnel
+           hit: [] | summary: Conversion through defined stages
+  MKT-06   type=M   form=worksheet  Kano Model
+           hit: [] | summary: Product/service attributes by their relationship to customer satisfaction
+  MKT-07   type=M   form=worksheet  SERVQUAL
+           hit: [] | summary: Service-quality assessment using defined dimensions and perception/expectation measures
+  MKT-08   type=Q   form=computed   RFM Segmentation
+           hit: [] | summary: Customer groups based on recency, frequency and monetary value
+  MKT-09   type=M   form=read_only  Technology Acceptance Model (TAM)
+           hit: [] | summary: Perceived usefulness/ease of use and related technology-acceptance constructs
+  MKT-10   type=M   form=read_only  UTAUT
+           hit: [] | summary: Structured constructs associated with technology acceptance and use
+  MKT-11   type=M   form=read_only  Brand Equity Assessment
+           hit: [] | summary: Selected dimensions of brand knowledge, associations, perceived quality and loyalty
+  MKT-12   type=F   form=read_only  STP-to-positioning evidence check
+           hit: [] | summary: Check that target choice, customer evidence and positioning claim align
+  MKT-13   type=F   form=read_only  Digital marketing mix: owned, earned and paid channels
+           hit: [] | summary: The channels you control, the channels others create and the channels you pay for, with the role and budget of each
+  MKT-14   type=F   form=read_only  SEO and content marketing plan
+           hit: [] | summary: The content that answers a search or customer question, the keywords it targets and the page that carries it
+  MKT-15   type=F   form=worksheet  Paid media plan: search, social and display
+           hit: [] | summary: Campaign objective, audience, placement, budget and bid, by paid channel
+  MKT-16   type=M   form=read_only  Email, CRM and lifecycle marketing
+           hit: [] | summary: List growth, segmentation, journey stages and the message sent at each stage
+  MKT-17   type=M   form=read_only  Social media and influencer marketing
+           hit: [] | summary: Owned posts, community activity and creator partnerships, with the metric each is judged on
+  MKT-18   type=F   form=worksheet  Web and app analytics measurement plan
+           hit: [] | summary: The events, metrics and dimensions that make a journey measurable, and the question each answers
+  MKT-19   type=Q   form=computed   Attribution and campaign measurement
+           hit: [] | summary: Which touchpoints receive credit, under which rule, and what the campaign changed
+  MKT-20   type=Q   form=computed   Conversion-rate optimisation and landing-page testing
+           hit: [] | summary: The page or step to change, the hypothesis and the test that decides it
+  MKT-21   type=F   form=read_only  Marketing automation and lead scoring
+           hit: [] | summary: The rules that move a lead between stages and the score that qualifies it
+  OPS-01   type=F   form=worksheet  SCOR Digital Standard
+           hit: [] | summary: Supply-chain processes, capabilities and performance measures
+  OPS-02   type=F   form=worksheet  SIPOC
+           hit: [] | summary: Suppliers, Inputs, Process, Outputs, Customers
+  OPS-03   type=F   form=worksheet  Value Stream Mapping
+           hit: [] | summary: Material/information flow, delay, work-in-progress and value-adding/non-value-adding steps
+  OPS-04   type=F   form=worksheet  5S
+           hit: [] | summary: Sort, Set in order, Shine, Standardize, Sustain
+  OPS-05   type=F   form=worksheet  Lean problem-solving / A3
+           hit: [] | summary: Problem, current condition, target, cause, countermeasures, implementation and follow-up
+  OPS-06   type=F   form=worksheet  Theory of Constraints — Five Focusing Steps
+           hit: [] | summary: Identify, exploit, subordinate, elevate and reassess the system constraint
+  OPS-07   type=F   form=worksheet  Root Cause Analysis: 5 Whys / Fishbone
+           hit: [] | summary: Organize candidate causes and investigate contributing factors
+  OPS-08   type=M   form=worksheet  Failure Mode and Effects Analysis (FMEA)
+           hit: [] | summary: Potential failure modes, effects, causes and controls
+  OPS-09   type=Q   form=computed   Statistical Process Control (SPC)
+           hit: [] | summary: Distinguish common-cause and special-cause process variation
+  OPS-10   type=M   form=worksheet  Kraljic Purchasing Portfolio Matrix
+           hit: [] | summary: Supplier categories based on supply risk and profit/impact
+  OPS-11   type=F   form=worksheet  Sales and Operations Planning (S&OP)
+           hit: [] | summary: Reconcile demand, supply, inventory, capacity and financial plans
+  OPS-12   type=F   form=worksheet  PDCA / PDSA
+           hit: [] | summary: Iterative improvement cycle
+  RSK-01   type=F   form=read_only  ISO 31000 Risk Management Process
+           hit: [] | summary: Establish context; identify, analyze, evaluate, treat, monitor and communicate risk
+  RSK-02   type=F   form=read_only  COSO Enterprise Risk Management
+           hit: [] | summary: Integrate risk with governance, strategy, performance and review
+  RSK-03   type=F   form=read_only  Bow-Tie Analysis
+           hit: [] | summary: Threats, preventive controls, top event, consequences and mitigative controls
+  RSK-04   type=Q   form=read_only  Fault Tree Analysis
+           hit: [] | summary: Logical combinations of failures that can lead to a top event
+  RSK-05   type=F   form=read_only  Stakeholder Analysis / Power–Interest Matrix
+           hit: [] | summary: Identify stakeholders, interests, influence, impacts and engagement response
+  RSK-06   type=F   form=read_only  Materiality Assessment
+           hit: [] | summary: Prioritize issues by their importance to affected stakeholders and/or enterprise impacts
+  RSK-07   type=F   form=read_only  Red-Team / Premortem Review
+           hit: [] | summary: Challenge a proposed plan and identify how it could fail
+  RSK-08   type=F   form=read_only  Dialectical Inquiry / Devil's Advocate
+           hit: [] | summary: Deliberately develop and test competing interpretations or strategies
+  RSK-09   type=F   form=read_only  Multi-Criteria Decision Analysis (MCDA)
+           hit: [] | summary: Compare options against criteria and explicit weights
+  PM-01    type=F   form=read_only  Balanced Scorecard
+           hit: [] | summary: Objectives and measures across financial, customer/stakeholder, internal-process and organizational-capacity perspectives
+  PM-02    type=F   form=read_only  Strategy Map
+           hit: [] | summary: Hypothesized links among strategic objectives and outcomes
+  PM-03    type=F   form=read_only  KPI Tree / Driver Tree
+           hit: [] | summary: Link a top-level outcome to measurable drivers and sub-drivers
+  PM-04    type=F   form=read_only  Objectives and Key Results (OKRs)
+           hit: [] | summary: Objectives and measurable key results over a defined period
+  PM-05    type=F   form=worksheet  PRINCE2
+           hit: [] | summary: Project governance, roles, stages, business justification, controls and tailoring
+  PM-06    type=F   form=worksheet  PMBOK / PMI project management standards
+           hit: [] | summary: Project-management knowledge areas, principles and performance domains depending on edition
+  PM-07    type=F   form=read_only  Scrum
+           hit: [] | summary: Defined accountabilities, events, artifacts and empirical product-development cycle
+  PM-08    type=F   form=read_only  Kanban Method
+           hit: [] | summary: Visualize workflow, manage work in progress, control flow and improve delivery
+  PM-09    type=F   form=worksheet  Work Breakdown Structure (WBS)
+           hit: [] | summary: Break down project scope into manageable deliverables/work packages
+  PM-10    type=F   form=worksheet  RACI / responsibility assignment
+           hit: [] | summary: Clarify responsibility and accountability
+  PM-11    type=F   form=read_only  COBIT
+           hit: [] | summary: Governance and management of enterprise information and technology
+  PM-12    type=F   form=read_only  ITIL
+           hit: [] | summary: IT service management practices and service value system
+  PM-13    type=M   form=read_only  DeLone–McLean IS Success Model
+           hit: [] | summary: Relationships among system quality, information quality, use, satisfaction and net benefits
+  PM-14    type=F   form=read_only  Technology-Organization-Environment (TOE) Framework
+           hit: [] | summary: Technology, organizational and environmental context for adoption decisions
+  PM-15    type=F   form=worksheet  Stakeholder engagement and communication plan
+           hit: [] | summary: Who is affected, what each stakeholder needs, and how, when and by whom the project will communicate with them
+  PM-16    type=F   form=worksheet  Lessons learned
+           hit: [] | summary: What worked, what did not, why, and what the next project should change
+  PPL-01   type=F   form=worksheet  Ability–Motivation–Opportunity (AMO) Framework
+           hit: [] | summary: Diagnose whether performance constraints relate to ability, motivation or opportunity to contribute
+  PPL-02   type=M   form=worksheet  Kirkpatrick Training Evaluation Model
+           hit: [] | summary: Training evaluation across reaction, learning, behavior and results
+  PPL-03   type=M   form=worksheet  Job Characteristics Model
+           hit: [] | summary: Job design through skill variety, task identity, task significance, autonomy and feedback
+  PPL-04   type=M   form=worksheet  Nine-Box Talent Grid
+           hit: [] | summary: Structured discussion of performance and potential
+  PPL-05   type=M   form=worksheet  Team development review using Tuckman's stages
+           hit: [] | summary: Organize discussion of team development and possible needs
+  IMP-03   type=F   form=read_only  Results-Based Management
+           hit: [] | summary: Objectives, indicators, monitoring, reporting and learning
+  IMP-04   type=F   form=read_only  Evaluation design matrix
+           hit: [] | summary: Evaluation questions, indicators, sources, methods, timing and responsibilities
+  IMP-05   type=Q   form=read_only  Cost–Benefit Analysis (CBA)
+           hit: [] | summary: Compare monetized benefits and costs over a defined horizon
+  IMP-06   type=Q   form=read_only  Cost-Effectiveness Analysis (CEA)
+           hit: [] | summary: Compare costs per unit of defined outcome
+  IMP-07   type=Q   form=read_only  Social Return on Investment (SROI)
+           hit: [] | summary: Estimate social value relative to investment
+  QNT-FIN-01 type=Q   form=computed   Capital budgeting
+           hit: [] | summary: Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.
+  QNT-FIN-02 type=Q   form=computed   Cost and profitability
+           hit: [] | summary: Cost and profitability: cost–volume–profit analysis, break-even, contribution margin, operating leverage, relevant-cost analysis, make-or-buy analysis.
+  QNT-FIN-03 type=Q   form=computed   Financial performance
+           hit: [] | summary: Financial performance: liquidity/leverage/profitability/activity ratios, common-size analysis, trend analysis, DuPont decomposition, cash conversion cycle, working-capital analysis.
+  QNT-FIN-04 type=Q   form=computed   Valuation and financing
+           hit: [] | summary: Valuation and financing: WACC, CAPM, debt capacity, valuation scenarios; these require explicit model assumptions and appropriate domain review.
+  QNT-FIN-05 type=Q   form=computed   Management accounting
+           hit: [] | summary: Management accounting: standard-cost variance analysis, activity-based costing, target costing, life-cycle costing, budget variance and responsibility accounting.
+  QNT-FIN-06 type=Q   form=computed   Unit economics
+           hit: [] | summary: Unit economics: customer acquisition cost (CAC), customer lifetime value (CLV/LTV), contribution per customer/order, payback on acquisition, retention/cohort economics.
+  QNT-FIN-07 type=Q   form=computed   Pricing and demand
+           hit: [] | summary: Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.
+  QNT-MKT-01 type=Q   form=computed   Market sizing (TAM/SAM/SOM) with source-backed inputs and clearly labeled assumptions
+           hit: [] | summary: Market sizing (TAM/SAM/SOM) with source-backed inputs and clearly labeled assumptions.
+  QNT-MKT-02 type=Q   form=computed   Market share, growth rates, penetration, conversion rates and funnel leakage
+           hit: [] | summary: Market share, growth rates, penetration, conversion rates and funnel leakage.
+  QNT-MKT-03 type=Q   form=computed   Cohort retention, churn, repeat-purchase rate and customer lifetime analysis
+           hit: [] | summary: Cohort retention, churn, repeat-purchase rate and customer lifetime analysis.
+  QNT-MKT-05 type=Q   form=computed   Demand forecasting and forecast error measures
+           hit: [] | summary: Demand forecasting and forecast error measures; compare with a naive baseline.
+  QNT-MKT-06 type=Q   form=computed   A/B test design, sample-size/power calculations, confidence intervals and effect sizes
+           hit: [] | summary: A/B test design, sample-size/power calculations, confidence intervals and effect sizes.
+  QNT-MKT-07 type=Q   form=computed   Customer profitability and contribution analysis by segment, product, channel or cohort
+           hit: [] | summary: Customer profitability and contribution analysis by segment, product, channel or cohort.
+  QNT-MKT-08 type=Q   form=computed   Campaign performance and media efficiency
+           hit: [] | summary: Campaign performance and media efficiency: spend, impressions, clicks, conversions and revenue by campaign, with click-through rate, cost per click, cost per thousand impressions, cost per acquisition, return on ad spend, advertising cost of sales and break-even return on ad spend; declare the attribution rule.
+  QNT-MKT-09 type=Q   form=computed   Channel CAC, LTV and payback
+           hit: [] | summary: Channel CAC, LTV and payback: acquisition cost, contribution margin and churn by channel, with blended CAC and the LTV/CAC ratio; cross-channel incrementality is not implied.
+  QNT-MKT-10 type=Q   form=computed   Attribution credit across touchpoints
+           hit: [] | summary: Attribution credit across touchpoints: first-click, last-click, linear and position-based credit from declared touchpoint logs; credit allocation is not causation.
+  QNT-MKT-11 type=Q   form=computed   Two-proportion A/B test
+           hit: [] | summary: Two-proportion A/B test: conversion counts for two arms, absolute and relative lift, a pooled test, an interval and the sample needed for a declared effect; one test at a time.
+  QNT-MKT-12 type=Q   form=computed   Email list health and lifecycle performance
+           hit: [] | summary: Email list health and lifecycle performance: list growth, unsubscribe and bounce rates, open and click rates, engaged-list size and revenue per subscriber.
+  QNT-MKT-13 type=Q   form=computed   Social engagement and audience growth
+           hit: [] | summary: Social engagement and audience growth: reach, frequency, engagement rate, cost per engagement and follower growth from declared platform counts.
+  QNT-MKT-14 type=Q   form=computed   Web traffic and conversion by channel
+           hit: [] | summary: Web traffic and conversion by channel: sessions, conversions and revenue by acquisition channel, with channel share, conversion rate, revenue per session and organic-search click-through.
+  QNT-MKT-15 type=Q   form=computed   Media planning
+           hit: [] | summary: Media planning: reach, average frequency, gross impressions, gross rating points, cost per rating point and a net-reach estimate under random duplication; declare the target population and each vehicle's reach, insertions and cost.
+  QNT-STA-01 type=Q   form=computed   Data profiling, descriptive statistics, cross-tabulation and visualization
+           hit: [] | summary: Data profiling, descriptive statistics, cross-tabulation and visualization.
+  QNT-STA-02 type=Q   form=read_only  Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision analysis
+           hit: [] | summary: Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision analysis.
+  QNT-STA-03 type=Q   form=computed   Chi-square tests, t-tests, ANOVA/ANCOVA and appropriate nonparametric alternatives
+           hit: [] | summary: Chi-square tests, t-tests, ANOVA/ANCOVA and appropriate nonparametric alternatives.
+  QNT-STA-04 type=Q   form=computed   Correlation and regression (linear, logistic and related models), with diagnostics
+           hit: [] | summary: Correlation and regression (linear, logistic and related models), with diagnostics.
+  QNT-STA-05 type=Q   form=read_only  Reliability assessment and factor analysis for instruments when the data and sample support them
+           hit: [] | summary: Reliability assessment and factor analysis for instruments when the data and sample support them.
+  QNT-STA-06 type=Q   form=read_only  Multiple-comparison correction, missing-data analysis and sensitivity checks
+           hit: [] | summary: Multiple-comparison correction, missing-data analysis and sensitivity checks.
+  QNT-STA-07 type=Q   form=read_only  Time-series forecasting, backtesting, forecast intervals, drift and structural-break checks
+           hit: [] | summary: Time-series forecasting, backtesting, forecast intervals, drift and structural-break checks.
+  QNT-STA-08 type=Q   form=read_only  Clustering, classification and segmentation with suitable validation
+           hit: [] | summary: Clustering, classification and segmentation with suitable validation.
+  QNT-STA-09 type=Q   form=read_only  Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics
+           hit: [] | summary: Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, instrumental variables and matching/weighting—only with explicit identification assumptions and diagnostics.
+  QNT-STA-10 type=Q   form=read_only  Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit
+           hit: [] | summary: Mediation/moderation and structural equation modeling where appropriate, with model assumptions and sample-size limitations made explicit.
+  QNT-OPS-01 type=Q   form=computed   EOQ, reorder point, safety stock and inventory-service-level calculations
+           hit: [] | summary: EOQ, reorder point, safety stock and inventory-service-level calculations.
+  QNT-OPS-02 type=Q   form=computed   Demand/lead-time forecasts
+           hit: [] | summary: Demand/lead-time forecasts; inventory turns, stockout rates and service levels.
+  QNT-OPS-03 type=Q   form=read_only  Linear programming, integer optimization, scheduling and network optimization
+           hit: [] | summary: Linear programming, integer optimization, scheduling and network optimization.
+  QNT-OPS-04 type=Q   form=computed   Queueing models, throughput, cycle/lead time, utilization and capacity analysis
+           hit: [] | summary: Queueing models, throughput, cycle/lead time, utilization and capacity analysis.
+  QNT-OPS-05 type=Q   form=computed   Critical Path Method (CPM), PERT estimates and schedule-risk analysis
+           hit: [] | summary: Critical Path Method (CPM), PERT estimates and schedule-risk analysis.
+  QNT-OPS-06 type=Q   form=computed   Overall Equipment Effectiveness (OEE), process capability and control charts
+           hit: [] | summary: Overall Equipment Effectiveness (OEE), process capability and control charts.
+  QNT-OPS-07 type=Q   form=read_only  SPC and measurement-system checks where data assumptions are satisfied
+           hit: [] | summary: SPC and measurement-system checks where data assumptions are satisfied.
+  QNT-OPS-08 type=Q   form=computed   Throughput and constraint analysis
+           hit: [] | summary: Throughput and constraint analysis; process time, work-in-progress and bottleneck calculations.
+  QNT-DEC-01 type=Q   form=read_only  Decision trees, expected value and expected utility
+           hit: [] | summary: Decision trees, expected value and expected utility; show probabilities and whose utility is represented.
+  QNT-DEC-02 type=Q   form=computed   Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis
+           hit: [] | summary: Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis.
+  QNT-DEC-03 type=Q   form=read_only  Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified
+           hit: [] | summary: Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified. Show criteria, weights, scales, normalization and rank sensitivity.
+  QNT-DEC-04 type=Q   form=read_only  Monte Carlo simulation with documented distributions, dependence assumptions and model validation
+           hit: [] | summary: Monte Carlo simulation with documented distributions, dependence assumptions and model validation.
+  QNT-DEC-05 type=Q   form=read_only  Expected loss, risk exposure and scenario-based stress testing
+           hit: [] | summary: Expected loss, risk exposure and scenario-based stress testing.
+  QNT-DEC-06 type=Q   form=read_only  Fault-tree probability calculations when component probabilities and logical relationships are defensible
+           hit: [] | summary: Fault-tree probability calculations when component probabilities and logical relationships are defensible.
+  QNT-DEC-07 type=Q   form=read_only  FMEA prioritization scores
+           hit: [] | summary: FMEA prioritization scores; do not interpret a Risk Priority Number as a calibrated probability unless validated.
+  QNT-EVL-01 type=Q   form=read_only  Cost–benefit and cost-effectiveness calculations
+           hit: [] | summary: Cost–benefit and cost-effectiveness calculations.
+  QNT-EVL-02 type=Q   form=read_only  Discounting of costs and benefits, sensitivity to valuation assumptions
+           hit: [] | summary: Discounting of costs and benefits, sensitivity to valuation assumptions.
+  QNT-EVL-03 type=Q   form=read_only  Difference-in-differences and other impact-estimation methods when assumptions and data support them
+           hit: [] | summary: Difference-in-differences and other impact-estimation methods when assumptions and data support them.
+  QNT-EVL-04 type=Q   form=read_only  Outcome rates, reach, adoption, completion and drop-off measures
+           hit: [] | summary: Outcome rates, reach, adoption, completion and drop-off measures.
+  QNT-EVL-05 type=Q   form=read_only  SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions
+           hit: [] | summary: SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions.
+  THE-01   type=T   form=theory     Transformational, transactional, servant and authentic leadership
+           hit: [] | summary: Transformational, transactional, servant and authentic leadership theories.
+  THE-02   type=T   form=theory     Maslow, Herzberg, McClelland, expectancy theory, equity theory and self-determination theory
+           hit: [] | summary: Maslow, Herzberg, McClelland, expectancy theory, equity theory and self-determination theory.
+  THE-03   type=T   form=theory     Resource-Based View and Dynamic Capabilities Theory
+           hit: [] | summary: Resource-Based View and Dynamic Capabilities Theory (with VRIO and capability assessment as operational tools where appropriate).
+  THE-04   type=T   form=theory     Agency Theory, Stewardship Theory, Stakeholder Theory, Resource Dependence Theory and Transaction Cost Economics
+           hit: [] | summary: Agency Theory, Stewardship Theory, Stakeholder Theory, Resource Dependence Theory and Transaction Cost Economics.
+  THE-05   type=T   form=theory     Institutional Theory, Organizational Ecology, Social Identity Theory, Social Exchange Theory and Psychological Contract Theory
+           hit: [] | summary: Institutional Theory, Organizational Ecology, Social Identity Theory, Social Exchange Theory and Psychological Contract Theory.
+  THE-06   type=T   form=theory     Diffusion of Innovations Theory, Disruptive Innovation Theory
+           hit: [] | summary: Diffusion of Innovations Theory, Disruptive Innovation Theory and other explanatory accounts of innovation.
+  THE-07   type=T   form=theory     Prospect Theory
+           hit: [] | summary: Prospect Theory and other behavioral-economics theories, when relevant to a decision problem.
+
+=== hunt: Johnson & Scholes ===
+
+=== records whose name mentions organization/organisation ===
+  CHG-05   Burke–Litwin Organizational Performance and Change Model
+  CHG-11   Organizational Design: Star/fit review
+  CHG-13   Mintzberg Organizational Configurations
+  PM-14    Technology-Organization-Environment (TOE) Framework
+  THE-05   Institutional Theory, Organizational Ecology, Social Identity Theory, Social Exchange Theory and Psychological Contract Theory
+
+=== registry record key list (what keys exist per record) ===
+['aliases', 'also_listed_as', 'catalogue_version', 'disciplines', 'evidence_needs', 'evidence_status', 'form', 'id', 'implementation_status', 'licensing_review', 'limitations', 'linked_methods', 'members', 'name', 'pipeline_status', 'related', 'secondary_types', 'source_ref', 'structures', 'summary', 'template', 'type', 'type_note', 'verify_edition_and_permissions', 'version', 'when_not_to_use']

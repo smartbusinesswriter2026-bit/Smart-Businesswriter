@@ -80,30 +80,9 @@ def computation_boundary(text, subject="management"):
 
 
 def subject_fit(text, subject="management"):
-    """Return (ok, message).  The message names the subject the brief belongs to."""
-    ok, message = computation_boundary(text, subject)
-    if not ok:
-        return ok, message
-    lower = (text or "").lower()
-    words = _words(text)
-    subject = subject or "management"
-    if is_open(subject):
-        return True, None
-    if subject == "management":
-        if not (words & SUBJECT_HINTS["management"]) and not any(word in lower for word in
-                                                                 ("business", "company", "market", "industry",
-                                                                  "five forces", "porter")):
-            return False, ("This does not look like a management or strategy instruction. Name the firm, market, "
-                           "industry or decision you want to analyse.")
-        return True, None
-    if words & SUBJECT_HINTS.get(subject, set()):
-        return True, None
-    for name, hints in SUBJECT_HINTS.items():
-        if name != subject and words & hints:
-            return False, ("This instruction looks like " + name.replace("-", " ") + ", not " +
-                           subject.replace("-", " ") + ". Choose the matching subject in the rail.")
-    return False, ("This does not name a " + subject.replace("-", " ") + " question. Add the concept, method "
-                   "or decision you want to work on.")
+    """Return (ok, message).  Home is the macro conductor: it accepts any subject
+    and any combination of framework + computation; the subject field is advisory."""
+    return True, None
 
 
 def five_forces_fit(text, industry=""):
