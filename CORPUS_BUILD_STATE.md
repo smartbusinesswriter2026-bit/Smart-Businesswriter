@@ -599,3 +599,46 @@ Read of the owner's first real report (\`bulk_ingest_report.csv\`):
 - **The 4 documents already imported are wrong** (book + research). Because duplicates are refused,
   they cannot simply be re-ingested: delete `corpus.sqlite` (empty-ish, rebuilt in seconds),
   restart with a clean index, re-run. Recorded the exact sequence for the owner.
+
+### 2026-11-01 — Step 13 (the R2 off-site copy) is built and proven; the bucket itself waits on the owner
+- **What was asked:** Step 13 of `DATABASE.md` — a private Cloudflare R2 bucket holding the corpus PDF
+  bytes, a nightly `rclone sync`, and a test restore that reproduces the database and rebuilds the index.
+- **What was built** (all under `corpus-db/build/`, none of it inside the pipeline repo):
+  - `r2_plan.py` — reads the corpus record, builds the sync list, verifies SHA-256, repairs a path
+    whose spelling differs from the file on disk, writes `documents.r2_key`, picks the acceptance
+    phrase, and compares two search indexes.
+  - `rclone_sync.ps1` — the nightly job: plan → `rclone sync` → check the bucket holds exactly the
+    record → write the object keys → log to `corpus-db/build/_logs/rclone_sync.log`.
+  - `rclone_restore_test.ps1` — the test restore: copy the record → restore the bytes → hash them →
+    rebuild an index on port 7701 in its own data directory → ask both indexes the same question →
+    write `corpus-db/test_restore/restore_report.md`.
+  - `r2_credentials.py`, `rclone_corpus.env.example`, `register_r2_sync_task.ps1`, `R2_SETUP.md`.
+- **rclone v1.75.2** installed at `corpus-db/build/tools/rclone.exe`, checksum checked against rclone's
+  published `SHA256SUMS` before it was unpacked. Gitignored — a downloaded program is not source.
+- **The nightly task is registered on this machine**: `SmartBusinessWriter Corpus R2 Sync`, daily at
+  02:00, running `rclone_sync.ps1`. It stops with a named line until the credentials exist; it never
+  half-finishes.
+- **A defect the run found (and the record now names).** `documents.local_path` for `bk-3861b611f0e0`
+  read `Exploring_business.pdf`; the file on disk is `exploring_business.pdf`. Windows hides that
+  difference, rclone's filter does not: the first sync moved **18 of 19** documents and said nothing
+  about the nineteenth. The plan now resolves the on-disk name, the sync repairs the record's spelling
+  and logs it, and the record has been corrected in place.
+- **The test restore passed end to end** against a local mirror of the bucket: **19 of 19** restored
+  files match `documents.sha256`; the index rebuilt from the restored record answers a known phrase
+  with the page the record names (`bk-11289bf8c3b8`, page 7), and the live index answers the same.
+  Report: `corpus-db/test_restore/restore_report.md`.
+- **Why the R2 leg is not done.** Cloudflare answers every R2 call on this account with
+  `10042 NotEntitled` — "enable R2 through the Cloudflare Dashboard". There is no API route for that,
+  the connected Cloudflare app is an OAuth connection without the billing or token scopes, and the
+  in-app browser cannot pass Cloudflare's bot challenge. Enabling R2, creating the bucket
+  `smart-business-writer-corpus` (private, **no `r2.dev` subdomain**) and creating a bucket-scoped
+  `Object Read & Write` token are the owner's steps; they are written out in `R2_SETUP.md`.
+- **Two gaps, named not filled.** The live index holds 6,705 documents against the record's 6,704
+  pages: the extra 97 are the 96 pages of five documents not currently marked `enrichen_at`, plus
+  `bk-722dae144926` page 1 — a document the record does not have at all. A rebuild from the record
+  holds 6,608 pages. The live index was not emptied: that is the owner's call. And two Meilisearch
+  instances are listening on 127.0.0.1:7700 (`corpus-db/meili` holds the index, `corpus-state/meili`
+  holds none) — the restore test uses port 7701 and cannot disturb either.
+- **Next:** owner does the two dashboard steps, puts the two credential values into
+  `corpus-db/build/_secrets/rclone_corpus.env` (**not** in a chat), then runs the two commands in
+  `R2_SETUP.md`. The sync uploads 625 MB and writes the object keys; the restore test then proves it.

@@ -50,3 +50,13 @@ corpus-db/meili/
 # GitHub refuses any file over 100 MB, and nothing needs it from git.
 corpus-db/meilisearch.exe
 corpus-db/*.exe
+
+# The rclone program (downloaded binary) and the R2 credentials it uses.
+# Credentials are secrets: they live here and never in git.
+corpus-db/build/tools/
+corpus-db/build/_secrets/
+corpus-db/build/_logs/
+
+# The restore test's working set: a copy of the record, the restored bytes
+# (1.2 GB) and a second Meilisearch data directory. Runtime, rebuildable.
+corpus-db/test_restore/
