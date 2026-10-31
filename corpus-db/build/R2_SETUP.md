@@ -16,13 +16,19 @@ answers, and the bucket list is empty.
   holds R2 **read** but not **write** scope, so the bucket-create call is
   refused with "not granted a scope this endpoint accepts".
 
-**2. The API token.** R2 → **Manage R2 API Tokens → Create Account API token**:
+**2. The API token.** On the **R2 overview** page (not the bucket list), scroll
+to the **Account Details** section in the right-hand column — it can sit below
+the fold on a small window. There, next to the row **API Tokens**, click
+**Manage**:
 
-| Setting | Value |
-|---|---|
-| Permission | **Object Read & Write** |
-| Bucket | `smart-business-writer-corpus` only |
-| TTL | the longest you are comfortable with |
+| Step | Where | What you click |
+|---|---|---|
+| 1 | R2 overview | <https://dash.cloudflare.com/127515e9310b9d256df686b85a889907/r2/overview> |
+| 2 | right-hand column, **Account Details** | **Manage** next to **API Tokens** |
+| 3 | the tokens page | **Create Account API token** (older UI: **Create API token**) |
+| 4 | the token form | permission **Object Read & Write**, bucket **smart-business-writer-corpus** only, longest TTL |
+
+Direct link to step 3: <https://dash.cloudflare.com/profile/r2/api-tokens>
 
 The dashboard shows an **Access Key ID** and a **Secret Access Key**.
 
