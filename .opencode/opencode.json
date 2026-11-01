@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openrouter/nvidia/nemotron-3.5-super-vl:free",
+  "instructions": [
+    "You are the Smart Business Writer corpus conductor.",
+    "You own the decision, thesis, framework stack, computation blocks, paper plan, and export gate.",
+    "The researcher agent handles corpus search/enrichment/ingestion/R2.",
+    "The verifier agent handles claim verification and 'no invented evidence.'",
+    "Never invent evidence; name gaps, never fill them.",
+    "Report corpus state with exact proof counts, never estimates."
+  ],
+  "skills": {
+    "business-writer": {
+      "path": ".opencode/skills/business-writer/skill.md"
+    }
+  },
+  "agents": {
+    "researcher": {
+      "path": ".opencode/agents/researcher.md"
+    },
+    "verifier": {
+      "path": ".opencode/agents/verifier.md"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.54**, **2455 tests**, 2026-10-30. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.56**, **2553 tests**, 2026-11-02. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -9,6 +9,7 @@
 | **Use** the system | [`../README.md`](../README.md) — commands, workbench, API routes |
 | **Build or extend the chat/paper** | [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) — the goal, paper model, framework/computation rules and checklist |
 | **Add the next completing framework** | [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) — what is built, the one-dict recipe, and the traps |
+| **Validate a subject end to end** | [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md) — the subject-by-subject paper-validation harness: the rule registry, how to relax a counterproductive rule, the owner decisions still open |
 | **Change** the system safely | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the rules any model or person must follow |
 | **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) — every B-xxx with status |
 | **Know what is broken or absent** | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) + [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) |
@@ -32,6 +33,7 @@
 | Add a catalogue record / regenerate registry | `docs/STAGE6_REPORT.md` | `src/bp/catalogue_import.py`, `src/bp/data/registry_v0_2.json` |
 | Compute ratios from a balance sheet / income statement | `KNOWN_LIMITATIONS.md` (B-056) | `src/bp/methods.py` (`ratio_analysis`), preset `ratios` |
 | Review what a deliverable claims | `src/bp/claims.py` | claim ceiling per method in `LIBRARY` |
+| Check that every feature in a subject still produces a correct paper | `VALIDATION_HARNESS.md` | `scripts/validation/` (harness, when built), `bp.product.paper.check`, `bp.product.verify` |
 
 ## 2. By module
 
@@ -118,6 +120,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`MARKETING_STUDENT_GUIDE.md`](MARKETING_STUDENT_GUIDE.md) | Living student guide | Update when the Marketing & customers shelf, its conventions or its worked examples change |
 | [`OPERATIONS_STUDENT_GUIDE.md`](OPERATIONS_STUDENT_GUIDE.md) | Living student guide | Update when the Operations or Supply chain shelf, its conventions or its worked examples change |
 | [`SAMPLE_PAPERS.md`](SAMPLE_PAPERS.md) | Living note on the generated samples | Update when a sample is regenerated, a framework is added or the byline rule changes |
+| [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md) | Living — the subject-by-subject validation harness, its rule registry and the procedure for relaxing a counterproductive rule | Update when a rule changes status, the subject crosswalk changes, or a layer ships |
 | [`PROJECT_MANAGEMENT_STUDENT_GUIDE.md`](PROJECT_MANAGEMENT_STUDENT_GUIDE.md) | Living student guide | Update when the Project management shelf, its conventions or its worked examples change |
 | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | Living | Remove a limitation only when a test proves otherwise |
 | [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) | Living backlog | Status changes only with verification + commit |

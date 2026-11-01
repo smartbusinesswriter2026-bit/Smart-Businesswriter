@@ -1,4 +1,4 @@
-"""People & organisation: the eight frameworks the shelf now completes.
+"""People & organisation: the eighteen frameworks the shelf now completes.
 
 The tests are the behaviour the Five Forces and PESTEL pilots proved, applied to
 the People shelf.  Every framework here is a T4 structure-and-evidence worksheet
@@ -6,6 +6,14 @@ on its own canvas, and every part of it is a `research` block: the pipeline
 retrieves what a source can support, and where nothing is found it writes the
 framework's own general background paragraph as an uncited item, so a part is
 never a notice, never a blank and never a gate.
+
+The shelf grew in two waves.  The first eight were the People frameworks that
+already had a worksheet behind them.  The ten added here are the change and
+organisation frameworks the catalogue listed as read-only records: ADKAR, Lewin,
+McKinsey 7S, Burke-Litwin, Galbraith Star, Theory of Change, Logic Model, PDSA,
+DMAIC and Mintzberg.  A record that said "no worksheet yet" became a worksheet
+only when the catalogue, the shelf, the drafting schema and the profile all
+agreed; a record left half-wired would be a button that cannot work.
 
 Nothing here designs a role, runs a training, chooses an intervention, scores a
 person or predicts who will succeed.  The frameworks record and evidence a
@@ -31,7 +39,7 @@ def _PATH(*parts):
 
 
 #: template -> (catalogue id, number of blocks, the unit the student names, the brief).
-NEW = {
+SHELF = {
     "template_job_characteristics": (
         "PPL-03", 5, "the kitchen supervisor",
         "The role of the kitchen supervisor needs reviewing before the pay round."),
@@ -56,6 +64,45 @@ NEW = {
     "template_org_design": (
         "CHG-11", 6, "the catering unit of the university",
         "The catering unit of the university is being reorganised and the design has to be checked."),
+    # --- the ten the catalogue listed as read-only records until now ----------
+    "template_adkar": (
+        "CHG-02", 5, "moving the campus meal card to a contactless system",
+        "The campus meal card is moving to a contactless system and the readiness of the kitchen staff "
+        "has to be reviewed before it goes live."),
+    "template_lewin": (
+        "CHG-03", 3, "moving the campus meal card to a contactless system",
+        "The campus meal card is moving to a contactless system and the change has to be carried through "
+        "the organisation in stages."),
+    "template_mckinsey_7s": (
+        "CHG-04", 7, "the campus catering team",
+        "The campus catering team has to be brought into line with the strategy before the service is "
+        "changed next year."),
+    "template_burke_litwin": (
+        "CHG-05", 12, "the campus catering team",
+        "The campus catering team is not performing as it should and the cause has to be found before "
+        "anything is changed."),
+    "template_galbraith_star": (
+        "CHG-06", 5, "the campus catering team",
+        "The campus catering team is being reorganised and its operating model has to be checked before "
+        "the move is made."),
+    "template_theory_of_change": (
+        "CHG-07", 6, "the campus mentoring programme",
+        "The campus mentoring programme has to be set out and the links in its causal chain examined "
+        "before it is extended."),
+    "template_logic_model": (
+        "CHG-08", 5, "the campus mentoring programme",
+        "The campus mentoring programme has to be laid out beside the evidence before it is extended."),
+    "template_pdsa": (
+        "CHG-09", 4, "the new triage order in the ward",
+        "A new triage order is being tried on one ward and the cycle has to be run and judged before it "
+        "is rolled out."),
+    "template_dmaic": (
+        "CHG-10", 5, "the campus meal card service",
+        "The campus meal card service is slow at peak and the process has to be improved against the "
+        "evidence available."),
+    "template_mintzberg": (
+        "CHG-13", 5, "the campus catering team",
+        "The campus catering team has to be understood as a configuration before the service is changed."),
 }
 
 #: Words a section heading may keep in lower case.
@@ -64,13 +111,13 @@ STOP_WORDS = {"a", "an", "and", "as", "at", "but", "by", "for", "from", "in", "o
 
 #: Every cue word of every People framework, so one source can be made to match
 #: every part: the gate then has to refuse to let it fill more than one.
-CUE_BLOB = " ".join(sorted({word for kind in NEW
+CUE_BLOB = " ".join(sorted({word for kind in SHELF
                             for block in framework_profiles.get(kind)["blocks"]
                             for word in block["cues"].split()}))
 
 #: Every unit the student may name, so one fixed title can carry the unit words
 #: each framework's gate looks for.
-UNIT_BLOB = " ".join(sorted({word for _cid, _count, unit, _brief in NEW.values()
+UNIT_BLOB = " ".join(sorted({word for _cid, _count, unit, _brief in SHELF.values()
                              for word in unit.split()}))
 
 
@@ -91,7 +138,7 @@ def web(query, region="Global", limit=10, category=None, fast=False):
 
 def complete(kind, unit=None, instruction=None, **kwargs):
     """One completion with the searches mocked, so the tests read the engine's behaviour."""
-    _cid, _count, default_unit, brief = NEW[kind]
+    _cid, _count, default_unit, brief = SHELF[kind]
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete(kind, instruction or brief,
@@ -100,7 +147,7 @@ def complete(kind, unit=None, instruction=None, **kwargs):
 
 def quiet_complete(kind, unit=None, instruction=None):
     """A completion with no source at all: every part must fall back to the background."""
-    _cid, _count, default_unit, brief = NEW[kind]
+    _cid, _count, default_unit, brief = SHELF[kind]
     with mock.patch("bp.product.sources.search_academic",
                     return_value={"results": [], "errors": [], "skipped": []}), \
             mock.patch("bp.product.sources.search_web", side_effect=web), \
@@ -113,7 +160,7 @@ class RegistrationTest(unittest.TestCase):
     """Each framework is a T4 worksheet on its own canvas, linked to its record."""
 
     def test_every_new_worksheet_is_t4_and_links_its_record(self):
-        for kind, (cid, count, _unit, _brief) in NEW.items():
+        for kind, (cid, count, _unit, _brief) in SHELF.items():
             template = T.TEMPLATES[kind]
             self.assertEqual(template["tier"], "T4", kind)
             self.assertEqual(template["registry_ids"], [cid], kind)
@@ -122,11 +169,11 @@ class RegistrationTest(unittest.TestCase):
             self.assertEqual(len(T.CANVAS_BLOCKS[kind]), count, kind)
 
     def test_every_new_worksheet_declares_the_form_the_page_renders(self):
-        for kind in NEW:
+        for kind in SHELF:
             self.assertEqual(T.describe(kind)["form_kind"], "canvas", kind)
 
     def test_every_new_worksheet_describes_its_limits_and_unsupported_use(self):
-        for kind in NEW:
+        for kind in SHELF:
             described = T.describe(kind)
             self.assertTrue(described["intended_use"], kind)
             self.assertTrue(described["unsupported_use"], kind)
@@ -140,15 +187,23 @@ class RegistrationTest(unittest.TestCase):
 
     def test_every_worksheet_can_be_drafted_from_the_sources_it_retrieves(self):
         """A draftable worksheet must have a drafting schema: no button that can only 422."""
-        for kind in NEW:
+        for kind in SHELF:
             self.assertTrue(drafting.supported(kind), kind)
+
+    def test_the_catalogue_agrees_with_the_registry_about_every_worksheet(self):
+        """A record that is a worksheet in the registry is a worksheet in the catalogue too."""
+        for kind, (cid, _count, _unit, _brief) in SHELF.items():
+            row = subjects.CATALOGUE[cid]
+            self.assertEqual(row["form"], "worksheet", cid)
+            self.assertEqual(row["template"], kind, cid)
+            self.assertEqual(row["status_short"], "Worksheet", cid)
 
 
 class ProfileTest(unittest.TestCase):
     """The profile says how each part may be completed; the engine obeys it."""
 
     def test_the_profiles_carry_every_block_of_their_canvas(self):
-        for kind, (_cid, count, _unit, _brief) in NEW.items():
+        for kind, (_cid, count, _unit, _brief) in SHELF.items():
             profile = framework_profiles.profile_for(kind)
             self.assertEqual(profile["template"], kind, kind)
             self.assertEqual(len(profile["blocks"]), count, kind)
@@ -158,13 +213,13 @@ class ProfileTest(unittest.TestCase):
                                  "%s: %s" % (kind, block["key"]))
 
     def test_the_profiles_are_declared_as_people_frameworks(self):
-        for kind in NEW:
+        for kind in SHELF:
             self.assertEqual(framework_profiles.get(kind)["subject"], "people", kind)
             self.assertEqual(framework_profiles.get(kind)["unit"]["field"], "process", kind)
 
     def test_every_part_is_a_research_block_and_carries_a_query(self):
         """A People framework researches each part: none of them is the student's to fill."""
-        for kind in NEW:
+        for kind in SHELF:
             for block in framework_profiles.get(kind)["blocks"]:
                 self.assertEqual(framework_profiles.fill_of(block), "research",
                                  "%s: %s" % (kind, block["key"]))
@@ -172,7 +227,7 @@ class ProfileTest(unittest.TestCase):
                 self.assertTrue(block["cues"], "%s: %s" % (kind, block["key"]))
 
     def test_every_part_carries_a_probe_and_a_background_paragraph_without_a_figure(self):
-        for kind in NEW:
+        for kind in SHELF:
             for block in framework_profiles.get(kind)["blocks"]:
                 notes = framework_profiles.get(kind)["notes"][block["key"]]
                 self.assertTrue(notes["probe"], "%s: %s" % (kind, block["key"]))
@@ -180,11 +235,22 @@ class ProfileTest(unittest.TestCase):
                                  "%s: %s states a figure" % (kind, block["key"]))
 
     def test_the_page_is_told_which_parts_it_may_complete(self):
-        for kind in NEW:
+        for kind in SHELF:
             described = framework_profiles.describe_extra(kind)
             fills = {block["key"]: block["fill"] for block in described["blocks"]}
             self.assertEqual(set(fills.values()), {"research"}, kind)
             self.assertTrue(described["fills"], kind)
+
+    def test_the_theory_of_change_reaches_the_impact_and_names_its_assumptions(self):
+        """The chain is not complete at outcomes: it carries the longer-term change and
+        the conditions each link depends on."""
+        for kind in ("template_theory_of_change", "template_logic_model"):
+            blocks = [block["key"] for block in framework_profiles.get(kind)["blocks"]]
+            self.assertIn("impact", blocks, kind)
+            self.assertIn("impact", T.CANVAS_BLOCKS[kind], kind)
+        toc = [block["key"] for block in framework_profiles.get("template_theory_of_change")["blocks"]]
+        self.assertIn("assumptions", toc)
+        self.assertIn("assumptions", T.CANVAS_BLOCKS["template_theory_of_change"])
 
 
 class PeoplePageTest(unittest.TestCase):
@@ -195,7 +261,7 @@ class PeoplePageTest(unittest.TestCase):
 
     def test_the_page_offers_every_framework_as_a_draftable_worksheet(self):
         offered = {sheet["catalogue_id"]: sheet for sheet in self.page["worksheets"]}
-        for kind, (cid, _count, _unit, _brief) in NEW.items():
+        for kind, (cid, _count, _unit, _brief) in SHELF.items():
             self.assertIn(cid, offered, cid)
             self.assertEqual(offered[cid]["template"], kind, cid)
             self.assertTrue(offered[cid]["draftable"], cid)
@@ -223,6 +289,13 @@ class PeoplePageTest(unittest.TestCase):
                 placed.add(row["id"])
         self.assertEqual(placed, {sheet["catalogue_id"] for sheet in self.page["worksheets"]}
                          | {row["id"] for row in self.page["records"]})
+
+    def test_every_worksheet_is_placed_in_exactly_one_tile(self):
+        placed = []
+        for tile in self.page["tiles"]:
+            for sheet in tile["worksheets"]:
+                placed.append(sheet["catalogue_id"])
+        self.assertEqual(len(placed), len(set(placed)))
 
     def test_the_reward_tile_is_empty_and_says_why(self):
         """A gap in the shelf is named, not hidden and not faked."""
@@ -255,7 +328,7 @@ class CompletionTest(unittest.TestCase):
     """The brief completes the framework, and the paper says what it can and cannot settle."""
 
     def test_every_block_carries_an_item(self):
-        for kind, (_cid, count, _unit, _brief) in NEW.items():
+        for kind, (_cid, count, _unit, _brief) in SHELF.items():
             result = complete(kind)
             self.assertEqual(len(result["blocks"]), count, kind)
             for block in result["blocks"]:
@@ -266,14 +339,14 @@ class CompletionTest(unittest.TestCase):
                         self.assertTrue(item["citation"], "%s: %s" % (kind, block["key"]))
 
     def test_the_unit_is_named_by_the_student_and_never_guessed(self):
-        for kind, (_cid, _count, _unit, brief) in NEW.items():
+        for kind, (_cid, _count, _unit, brief) in SHELF.items():
             with self.assertRaises(ValueError) as refused:
                 completion.complete(kind, brief, unit_value="")
             self.assertIn("Name", str(refused.exception))
-            self.assertEqual(complete(kind)["unit"]["value"], NEW[kind][2], kind)
+            self.assertEqual(complete(kind)["unit"]["value"], SHELF[kind][2], kind)
 
     def test_a_no_source_run_gives_one_background_item_per_block(self):
-        for kind in NEW:
+        for kind in SHELF:
             result = quiet_complete(kind)
             for block in result["blocks"]:
                 self.assertEqual(len(block["items"]), 1, "%s: %s" % (kind, block["key"]))
@@ -285,7 +358,7 @@ class CompletionTest(unittest.TestCase):
                                  "%s: %s states a figure" % (kind, block["key"]))
 
     def test_a_no_source_run_never_gates_the_paper(self):
-        for kind in NEW:
+        for kind in SHELF:
             self.assertEqual(completion.missing(quiet_complete(kind)), [], kind)
 
     def test_one_source_cannot_fill_two_blocks(self):
@@ -297,16 +370,16 @@ class CompletionTest(unittest.TestCase):
                 "venue": "Journal", "doi": "10.1/same", "url": "https://doi.org/10.1/same",
                 "database": "OpenAlex"}], "errors": [], "skipped": []}
 
-        for kind in NEW:
+        for kind in SHELF:
             with mock.patch("bp.product.sources.search_academic", side_effect=everything), \
                     mock.patch("bp.product.sources.search_web", side_effect=web):
-                result = completion.complete(kind, NEW[kind][3], unit_value=NEW[kind][2])
+                result = completion.complete(kind, SHELF[kind][3], unit_value=SHELF[kind][2])
             sourced = [block for block in result["blocks"]
                        if any(item["provenance"] == "sourced" for item in block["items"])]
             self.assertEqual(len(sourced), 1, kind)
 
     def test_the_outline_headings_are_title_cased(self):
-        for kind, (_cid, _count, _unit, _brief) in NEW.items():
+        for kind, (_cid, _count, _unit, _brief) in SHELF.items():
             report = completion.draft(complete(kind), "apa", "draft")
             headings = [section["heading"] for section in report["sections"]]
             for required in ("Introduction", "Discussion", "What the Evidence Shows",
@@ -320,16 +393,16 @@ class CompletionTest(unittest.TestCase):
                                     "%s: %s is not title cased" % (kind, heading))
 
     def test_the_title_carries_the_framework_prefix_and_drops_the_trailing_period(self):
-        for kind in NEW:
+        for kind in SHELF:
             profile = framework_profiles.get(kind)
-            result = complete(kind, instruction=NEW[kind][3] + ".")
+            result = complete(kind, instruction=SHELF[kind][3] + ".")
             report = completion.draft(result, "apa", "draft")
             self.assertTrue(report["title"].startswith(profile["title_prefix"] + ": "), kind)
             self.assertFalse(report["title"].endswith("."), kind)
             self.assertEqual(report["framework"], profile["label"], kind)
 
     def test_the_byline_reaches_the_title_page_and_the_length_is_reported(self):
-        for kind in NEW:
+        for kind in SHELF:
             result = dict(complete(kind), byline=["A Student", "Example University"])
             report = completion.draft(result, "apa", "draft", "long")
             self.assertEqual(report["byline"], ["A Student", "Example University"], kind)
@@ -337,7 +410,7 @@ class CompletionTest(unittest.TestCase):
             self.assertEqual(report["length_label"], "Long", kind)
 
     def test_the_paper_generates_with_an_empty_block(self):
-        for kind in NEW:
+        for kind in SHELF:
             result = complete(kind)
             key = result["blocks"][0]["key"]
             result["blocks"] = [block for block in result["blocks"] if block["key"] != key]
@@ -346,17 +419,17 @@ class CompletionTest(unittest.TestCase):
 
     def test_the_route_returns_a_completion(self):
         from bp.product import api
-        for kind in NEW:
+        for kind in SHELF:
             with mock.patch("bp.product.completion.complete") as fake:
                 fake.return_value = {"format": "bp-framework-completion/1", "template": kind, "blocks": []}
                 status, payload = api.handle("POST", "/api/cases/frameworks/complete",
-                                             {"template": kind, "instruction": NEW[kind][3],
-                                              "unit": NEW[kind][2]})
+                                             {"template": kind, "instruction": SHELF[kind][3],
+                                              "unit": SHELF[kind][2]})
             self.assertEqual(status, 200, kind)
             self.assertEqual(payload["template"], kind, kind)
 
     def test_the_prompt_names_the_framework_and_keeps_the_safety_rules(self):
-        for kind in NEW:
+        for kind in SHELF:
             profile = dict(completion.LENGTHS["mid"])
             system = completion._system(completion.HEAD_SYSTEM, profile,
                                         completion._profile(kind))
@@ -364,14 +437,14 @@ class CompletionTest(unittest.TestCase):
             self.assertIn("Do not add facts, numbers, names, sources or citations", system, kind)
 
     def test_a_short_instruction_is_refused_before_any_research(self):
-        for kind in NEW:
+        for kind in SHELF:
             with self.assertRaises(ValueError):
                 complete(kind, instruction="Review it")
 
     def test_an_accounting_brief_is_refused_on_a_people_framework(self):
-        for kind in NEW:
+        for kind in SHELF:
             with self.assertRaises(ValueError) as refused:
-                complete(kind, instruction=NEW[kind][3] + " The trial balance and the journal entries are attached.")
+                complete(kind, instruction=SHELF[kind][3] + " The trial balance and the journal entries are attached.")
             self.assertIn("Accounting", str(refused.exception), kind)
 
 
@@ -379,24 +452,31 @@ class ExampleTest(unittest.TestCase):
     """Every example runs, passes its own checks and never scores anybody."""
 
     def test_every_example_runs_and_passes_its_own_checks(self):
-        for kind in NEW:
+        for kind in SHELF:
             request = copy.deepcopy(T.EXAMPLES[kind])
             out = T.run_template(kind, request["inputs"])
             checks = {name: ok for name, ok in out["results"]}
             self.assertTrue(all(checks.values()), "%s: %s" % (kind, checks))
 
     def test_an_empty_block_is_named_and_never_filled(self):
-        for kind in NEW:
+        for kind in SHELF:
             request = copy.deepcopy(T.EXAMPLES[kind])
             key = list(request["inputs"]["blocks"])[0]
             request["inputs"]["blocks"][key] = []
+            # A link cannot cite an item that is no longer supplied, so the links
+            # into the emptied block go with it: the worksheet keeps the links it
+            # can keep and drops the ones it cannot.
+            supplied = {item["id"] for block in request["inputs"]["blocks"].values()
+                        for item in block if item.get("id")}
+            request["inputs"]["links"] = [link for link in request["inputs"].get("links", [])
+                                          if link["from"] in supplied and link["to"] in supplied]
             out = T.run_template(kind, request["inputs"])
             checks = {name: ok for name, ok in out["results"]}
             self.assertIn(key, out["analysis"]["audit"]["empty_blocks"], kind)
             self.assertTrue(checks["empty_blocks_reported_not_filled"], kind)
 
     def test_no_score_ranking_or_verdict_is_derived(self):
-        for kind in NEW:
+        for kind in SHELF:
             out = T.run_template(kind, copy.deepcopy(T.EXAMPLES[kind])["inputs"])
             analysis = out["analysis"]
             for forbidden in ("score", "overall", "verdict", "ranking", "rank"):

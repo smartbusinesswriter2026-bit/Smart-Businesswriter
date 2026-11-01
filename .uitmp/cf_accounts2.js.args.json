@@ -1,0 +1,1 @@
+{"code": "async () => {\n  const res = await cloudflare.request({ method: \"GET\", path: \"/accounts\" });\n  return { success: res.success, status: res.status, result: res.result, errors: res.errors };\n}\n"}

@@ -339,6 +339,237 @@ FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_
 #: runs the computations; this profile only decides which blocks a plan needs.
 PROFILE_BUSINESS_PLAN = "business_plan"
 
+# ---------- feasibility-study profile (B-122) ----------
+PROFILE_FEASIBILITY_STUDY = "feasibility_study"
+
+# ---------- marketing-plan profile (B-123) ----------
+PROFILE_MARKETING_PLAN = "marketing_plan"
+
+# ---------- project-proposal profile (B-124) ----------
+PROFILE_PROJECT_PROPOSAL = "project_proposal"
+
+PROJECT_LEVELS = {"shs": "Senior high school", "college": "College"}
+PROJECT_MODES = {"strict": "Project-proposal convention", "open": "Open composition"}
+
+PROJECT_DIMENSIONS = [
+    ("problem", "Problem and Need", "problem need issue gap", None),
+    ("objectives", "Objectives", "objective goal outcome", None),
+    ("activities", "Activities and Work Plan", "activity task schedule", None),
+    ("budget", "Budget", "budget cost resource", "economic"),
+    ("monitoring", "Monitoring and Evaluation", "indicator baseline target", None),
+]
+
+PROJECT_FIELDS = {
+    "project_description": [
+        ("project_title", "the project title", "text", True),
+        ("problem_statement", "the problem statement", "text", True),
+        ("objectives", "the project objectives", "text", True),
+        ("location", "where the project is located", "text", True),
+        ("proponents", "who is proposing the project", "text", True),
+    ],
+    "work_plan": [
+        ("activities", "the project activities", "text", True),
+        ("timeline", "the project timeline", "text", True),
+        ("deliverables", "the expected deliverables", "text", False),
+    ],
+    "budget": [
+        ("total_budget", "the total budget", "text", True),
+        ("budget_breakdown", "the budget breakdown", "text", True),
+        ("funding_source", "the funding source", "text", False),
+    ],
+    "monitoring_evaluation": [
+        ("indicators", "the success indicators", "text", True),
+        ("baseline", "the baseline data", "text", False),
+        ("targets", "the targets", "text", True),
+    ],
+    "risk": [
+        ("risks", "at least one named risk", "items", True),
+    ],
+}
+
+PROJECT_SECTIONS = [
+    {"key": "executive_summary", "heading": "Executive Summary", "kind": "integration", "level": 1},
+    {"key": "project_description", "heading": "Project Description", "kind": "input", "level": 1},
+    {"key": "work_plan", "heading": "Work Plan and Timeline", "kind": "input", "level": 1},
+    {"key": "budget", "heading": "Budget", "kind": "computation", "level": 1},
+    {"key": "monitoring_evaluation", "heading": "Monitoring and Evaluation", "kind": "input", "level": 1},
+    {"key": "risk", "heading": "Risk Analysis", "kind": "integration", "level": 1},
+    {"key": "conclusion", "heading": "Conclusion", "kind": "integration", "level": 1},
+    {"key": "references", "heading": "References", "kind": "references", "level": 1},
+]
+
+PROJECT_OPTIONAL = {"risk"}
+
+PROJECT_BLOCKS = [
+    {"key": "frommarket", "label": "Market Size and Target Sales", "method": "sales_from_market",
+     "section": "budget", "level": "shs", "required": True,
+     "what": "Target revenue and units from your declared market size, share and price."},
+    {"key": "breakeven", "label": "Break-even", "method": "breakeven",
+     "section": "budget", "level": "shs", "required": True,
+     "what": "The quantity and revenue at which the declared price covers the declared costs."},
+]
+
+PROJECT_DIMENSIONS_LIST = [
+    ("problem", "Problem and Need", "problem need issue gap", None),
+    ("objectives", "Objectives", "objective goal outcome", None),
+    ("activities", "Activities and Work Plan", "activity task schedule", None),
+    ("budget", "Budget", "budget cost resource", "economic"),
+    ("monitoring", "Monitoring and Evaluation", "indicator baseline target", None),
+]
+
+
+MARKETING_LEVELS = {"shs": "Senior high school", "college": "College"}
+MARKETING_MODES = {"strict": "Marketing-plan convention", "open": "Open composition"}
+
+MARKETING_DIMENSIONS = [
+    ("audience", "Target Audience", "customer segment demographics psychographics", "social"),
+    ("positioning", "Positioning", "positioning value proposition differentiation", None),
+    ("channels", "Channels", "channels media digital traditional", None),
+    ("budget", "Budget and ROI", "budget spend cac ltv roas", "economic"),
+]
+
+MARKETING_FIELDS = {
+    "business_context": [
+        ("business_name", "the business name", "text", True),
+        ("product", "what the business sells", "text", True),
+        ("customers", "who the customers are", "text", True),
+        ("location", "where the business operates", "text", True),
+    ],
+    "audience_positioning": [
+        ("target_audience", "the target audience", "text", True),
+        ("positioning_statement", "the positioning statement", "text", True),
+        ("value_proposition", "the value proposition", "text", True),
+    ],
+    "channels_tactics": [
+        ("channels", "the marketing channels", "text", True),
+        ("tactics", "the marketing tactics", "text", True),
+        ("content_plan", "the content plan", "text", False),
+    ],
+    "budget_measurement": [
+        ("budget", "the marketing budget", "text", True),
+        ("kpis", "the key performance indicators", "text", True),
+        ("measurement_plan", "the measurement plan", "text", False),
+    ],
+    "risk": [
+        ("risks", "at least one named risk", "items", True),
+    ],
+}
+
+MARKETING_SECTIONS = [
+    {"key": "executive_summary", "heading": "Executive Summary", "kind": "integration", "level": 1},
+    {"key": "business_context", "heading": "Business Context", "kind": "input", "level": 1},
+    {"key": "audience_positioning", "heading": "Audience and Positioning", "kind": "input", "level": 1},
+    {"key": "channels_tactics", "heading": "Channels and Tactics", "kind": "input", "level": 1},
+    {"key": "budget_measurement", "heading": "Budget and Measurement", "kind": "computation", "level": 1},
+    {"key": "risk", "heading": "Risk Analysis", "kind": "integration", "level": 1},
+    {"key": "conclusion", "heading": "Conclusion", "kind": "integration", "level": 1},
+    {"key": "references", "heading": "References", "kind": "references", "level": 1},
+]
+
+MARKETING_OPTIONAL = {"risk"}
+
+MARKETING_BLOCKS = [
+    {"key": "frommarket", "label": "Market Size and Target Sales", "method": "sales_from_market",
+     "section": "budget_measurement", "level": "shs", "required": True,
+     "what": "Target revenue and units from your declared market size, share and price."},
+    {"key": "breakeven", "label": "Break-even", "method": "breakeven",
+     "section": "budget_measurement", "level": "shs", "required": True,
+     "what": "The quantity and revenue at which the declared price covers the declared costs."},
+]
+
+MARKETING_DIMENSIONS_LIST = [
+    ("audience", "Target Audience", "customer segment demographics psychographics", "social"),
+    ("positioning", "Positioning", "positioning value proposition differentiation", None),
+    ("channels", "Channels", "channels media digital traditional", None),
+    ("budget", "Budget and ROI", "budget spend cac ltv roas", "economic"),
+]
+
+
+FEASIBILITY_LEVELS = {"shs": "Senior high school", "college": "College"}
+FEASIBILITY_MODES = {"strict": "Feasibility-study convention", "open": "Open composition"}
+
+FEASIBILITY_DIMENSIONS = [
+    ("market", "Market Feasibility", "market demand size growth competition", "economic"),
+    ("technical", "Technical Feasibility", "technology equipment capacity process", None),
+    ("management", "Management Feasibility", "team skills organisation capacity", None),
+    ("legal", "Legal and Regulatory Feasibility", "permits licenses regulation compliance", "legal"),
+    ("financial", "Financial Feasibility", "cost revenue funding cash flow", "economic"),
+]
+
+FEASIBILITY_FIELDS = {
+    "project_description": [
+        ("project_name", "the project name", "text", True),
+        ("project_description", "what the project is about", "text", True),
+        ("location", "where the project is located", "text", True),
+        ("proponents", "who is proposing the project", "text", True),
+    ],
+    "market_feasibility": [
+        ("target_market", "the target market", "text", True),
+        ("demand_estimate", "the estimated demand", "text", True),
+        ("competitors", "the competitors", "text", False),
+    ],
+    "technical_feasibility": [
+        ("technology", "the technology or method", "text", True),
+        ("capacity", "the capacity needed", "text", True),
+        ("inputs", "the inputs or resources needed", "text", False),
+    ],
+    "management_feasibility": [
+        ("team", "the management team", "text", True),
+        ("skills", "the skills available", "text", False),
+    ],
+    "legal_feasibility": [
+        ("permits", "the permits or licenses needed", "text", True),
+        ("regulations", "the regulations that apply", "text", False),
+    ],
+    "financial_feasibility": [
+        ("investment", "the total investment needed", "text", True),
+        ("revenue", "the expected revenue", "text", True),
+        ("costs", "the expected costs", "text", True),
+    ],
+    "risk": [
+        ("risks", "at least one named risk", "items", True),
+    ],
+}
+
+FEASIBILITY_SECTIONS = [
+    {"key": "executive_summary", "heading": "Executive Summary", "kind": "integration", "level": 1},
+    {"key": "project_description", "heading": "Project Description", "kind": "input", "level": 1},
+    {"key": "market_feasibility", "heading": "Market Feasibility", "kind": "input", "level": 1},
+    {"key": "technical_feasibility", "heading": "Technical Feasibility", "kind": "input", "level": 1},
+    {"key": "management_feasibility", "heading": "Management Feasibility", "kind": "input", "level": 1},
+    {"key": "legal_feasibility", "heading": "Legal and Regulatory Feasibility", "kind": "input", "level": 1},
+    {"key": "financial_feasibility", "heading": "Financial Feasibility", "kind": "computation", "level": 1},
+    {"key": "risk", "heading": "Risk Analysis", "kind": "integration", "level": 1},
+    {"key": "conclusion", "heading": "Conclusion", "kind": "integration", "level": 1},
+    {"key": "references", "heading": "References", "kind": "references", "level": 1},
+]
+
+FEASIBILITY_OPTIONAL = {"risk"}
+
+FEASIBILITY_BLOCKS = [
+    {"key": "frommarket", "label": "Market Size and Target Sales", "method": "sales_from_market",
+     "section": "financial_feasibility", "level": "shs", "required": True,
+     "what": "Target revenue and units from your declared market size, share and price."},
+    {"key": "breakeven", "label": "Break-even", "method": "breakeven",
+     "section": "financial_feasibility", "level": "shs", "required": True,
+     "what": "The quantity and revenue at which the declared price covers the declared costs."},
+    {"key": "proforma", "label": "Projected Financial Statements", "method": "proforma_statements",
+     "section": "financial_feasibility", "level": "shs", "required": True,
+     "what": "Projected income statement, cash flow and balance sheet from your declared drivers."},
+    {"key": "sensitivity", "label": "Sensitivity", "method": "sensitivity_table",
+     "section": "financial_feasibility", "level": "shs", "required": True,
+     "what": "Profit across declared price and volume changes."},
+]
+
+FEASIBILITY_DIMENSIONS_LIST = [
+    ("market", "Market Feasibility", "market demand size growth competition", "economic"),
+    ("technical", "Technical Feasibility", "technology equipment capacity process", None),
+    ("management", "Management Feasibility", "team skills organisation capacity", None),
+    ("legal", "Legal and Regulatory Feasibility", "permits licenses regulation compliance", "legal"),
+    ("financial", "Financial Feasibility", "cost revenue funding cash flow", "economic"),
+]
+
+
 PLAN_LEVELS = {"shs": "Senior high school", "college": "College"}
 PLAN_MODES = {"strict": "Business-plan convention", "open": "Open composition"}
 
@@ -540,6 +771,12 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
         return _start_plan(brief, subject, level, mode)
+    if wanted in (PROFILE_FEASIBILITY_STUDY, "feasibility_study", "feasibilitystudy", "feasibility"):
+        return _start_feasibility_study(brief, subject, level, mode)
+    if wanted in (PROFILE_MARKETING_PLAN, "marketing_plan", "marketingplan", "marketing"):
+        return _start_marketing_plan(brief, subject, level, mode)
+    if wanted in (PROFILE_PROJECT_PROPOSAL, "project_proposal", "projectproposal", "proposal"):
+        return _start_project_proposal(brief, subject, level, mode)
     framework = (framework or "").strip().lower() or _infer_framework(brief)
     council_result, council_note = None, None
     if council.available():
@@ -1553,10 +1790,19 @@ def _blocks_for(state_or_level):
     if isinstance(state_or_level, dict):
         level = state_or_level.get("level") or "shs"
         dropped = set(state_or_level.get("dropped_sections") or [])
+        profile = state_or_level.get("profile") or PROFILE_BUSINESS_PLAN
     else:
-        level, dropped = state_or_level, set()
+        level, dropped, profile = state_or_level, set(), PROFILE_BUSINESS_PLAN
+    if profile == PROFILE_FEASIBILITY_STUDY:
+        blocks_list = FEASIBILITY_BLOCKS
+    elif profile == PROFILE_MARKETING_PLAN:
+        blocks_list = MARKETING_BLOCKS
+    elif profile == PROFILE_PROJECT_PROPOSAL:
+        blocks_list = PROJECT_BLOCKS
+    else:
+        blocks_list = COMPUTATION_BLOCKS
     out = []
-    for block in COMPUTATION_BLOCKS:
+    for block in blocks_list:
         if block["section"] in dropped:
             continue
         if block["level"] == "shs" or level == "college":
@@ -1575,19 +1821,20 @@ def _sections_for(level, dropped=None):
 OPTIONAL_SECTIONS = {"marketing_plan", "operations_plan", "management", "risk", "impact"}
 
 
-def _start_plan(brief, subject, level, mode):
+def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
     if len(brief) < 15:
         raise ChatError("Describe the business and the plan in at least one sentence.")
     level = (level or "shs").strip().lower()
     mode = (mode or "strict").strip().lower()
     if not _level_ok(level):
         raise ChatError("Choose the senior-high-school or college level.")
-    if mode not in PLAN_MODES:
-        raise ChatError("Choose the strict business-plan convention or open composition.")
+    _modes = FEASIBILITY_MODES if profile == PROFILE_FEASIBILITY_STUDY else PLAN_MODES
+    if mode not in _modes:
+        raise ChatError("Choose the strict convention or open composition.")
     answers = _defaults(brief)
     answers["inputs"] = {}
     state = {"format": FORMAT, "subject": subject or "entrepreneurship", "framework": None,
-             "profile": PROFILE_BUSINESS_PLAN, "brief": brief, "created_at": _now(), "updated_at": _now(),
+             "profile": profile, "brief": brief, "created_at": _now(), "updated_at": _now(),
              "stage": "plan", "level": level, "mode": mode, "answers": answers, "questions": [],
              "question_index": 0, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computations": {}, "draft": None}
@@ -1595,42 +1842,117 @@ def _start_plan(brief, subject, level, mode):
     return state
 
 
+def _start_feasibility_study(brief, subject, level, mode):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_FEASIBILITY_STUDY)
+
+
+def _start_marketing_plan(brief, subject, level, mode):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_MARKETING_PLAN)
+
+
+def _start_project_proposal(brief, subject, level, mode):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PROPOSAL)
+
+
 def _plan_profile(state):
+    profile = state.get("profile") or PROFILE_BUSINESS_PLAN
+    if profile == PROFILE_FEASIBILITY_STUDY:
+        levels = FEASIBILITY_LEVELS
+        modes = FEASIBILITY_MODES
+        dimensions = FEASIBILITY_DIMENSIONS
+        fields = FEASIBILITY_FIELDS
+        sections_list = FEASIBILITY_SECTIONS
+        blocks_list = FEASIBILITY_BLOCKS
+        optional = FEASIBILITY_OPTIONAL
+        label = "Feasibility study"
+        why = ("The study tests whether the proposed project should proceed, across market, technical, management, "
+               "legal and financial dimensions, before any commitment is made.")
+        misses = ("It does not invent a market, a demand, a cost or a forecast. Every number comes from the "
+                  "declared inputs through the frozen core, and every gap is named.")
+        output = ("A feasibility study with an executive summary, project description, market, technical, management, "
+                  "legal and financial feasibility, risk analysis, a conclusion with a verdict and one reference list.")
+    elif profile == PROFILE_MARKETING_PLAN:
+        levels = MARKETING_LEVELS
+        modes = MARKETING_MODES
+        dimensions = MARKETING_DIMENSIONS
+        fields = MARKETING_FIELDS
+        sections_list = MARKETING_SECTIONS
+        blocks_list = MARKETING_BLOCKS
+        optional = MARKETING_OPTIONAL
+        label = "Marketing plan"
+        why = ("The plan composes your own description, the target audience, positioning, channels, tactics and "
+               "budget into a measurable marketing plan.")
+        misses = ("It does not invent a market, a customer, a cost or a forecast. Every number comes from the "
+                  "declared inputs through the frozen core, and every gap is named.")
+        output = ("A marketing plan with an executive summary, business context, audience and positioning, channels "
+                  "and tactics, budget and measurement, risk analysis and a conclusion.")
+    elif profile == PROFILE_PROJECT_PROPOSAL:
+        levels = PROJECT_LEVELS
+        modes = PROJECT_MODES
+        dimensions = PROJECT_DIMENSIONS
+        fields = PROJECT_FIELDS
+        sections_list = PROJECT_SECTIONS
+        blocks_list = PROJECT_BLOCKS
+        optional = PROJECT_OPTIONAL
+        label = "Project proposal"
+        why = ("The proposal presents a defined, time-bound project with a documented need, objectives, activities, "
+               "budget and measurable results.")
+        misses = ("It does not invent a need, an activity, a cost or a result. Every number comes from the "
+                  "declared inputs through the frozen core, and every gap is named.")
+        output = ("A project proposal with an executive summary, project description, work plan and timeline, budget, "
+                  "monitoring and evaluation, risk analysis and a conclusion.")
+    else:
+        levels = PLAN_LEVELS
+        modes = PLAN_MODES
+        dimensions = PLAN_DIMENSIONS
+        fields = PLAN_FIELDS
+        sections_list = PLAN_SECTIONS
+        blocks_list = COMPUTATION_BLOCKS
+        optional = OPTIONAL_SECTIONS
+        label = "Business plan"
+        why = ("The plan composes your own description, the retrieved market evidence and the plan-level "
+               "computations in the order a reader expects: the business, the market, how it operates, the "
+               "numbers, the risks and the conclusion.")
+        misses = ("It does not invent a market, a customer, a cost or a forecast. Every number comes from the "
+                  "declared inputs through the frozen core, and every gap is named.")
+        output = ("A business plan with an executive summary, business description, market analysis, marketing "
+                  "and operations plans, management, a Financial Plan with its computation blocks, a risk "
+                  "analysis, a conclusion and one reference list.")
     level = state.get("level") or "shs"
     dropped = state.get("dropped_sections") or []
-    blocks = _blocks_for(state)
+    blocks = [dict(b) for b in blocks_list
+              if (b["level"] == "shs" or level == "college")
+              and b["section"] not in dropped]
     for block in blocks:
         block["input_schema"] = _schema_for(block["method"])
-    fields = []
-    for section in _sections_for(level, dropped):
-        for key, label, kind, required in PLAN_FIELDS.get(section["key"], []):
-            fields.append({"key": key, "label": label, "section": section["key"], "type": kind,
+    secs = [dict(s) for s in sections_list
+            if (s.get("min_level") != "college" or level == "college")
+            and s["key"] not in dropped]
+    all_fields = []
+    for section in secs:
+        for key, lbl, kind, required in fields.get(section["key"], []):
+            all_fields.append({"key": key, "label": lbl, "section": section["key"], "type": kind,
                            "required": required})
     return {
-        "profile": PROFILE_BUSINESS_PLAN,
-        "label": "Business plan",
+        "profile": profile,
+        "label": label,
         "mode": state.get("mode") or "strict",
-        "mode_label": PLAN_MODES.get(state.get("mode") or "strict"),
+        "mode_label": modes.get(state.get("mode") or "strict"),
         "level": level,
-        "level_label": PLAN_LEVELS.get(level, level),
+        "level_label": levels.get(level, level),
         "decision": state["answers"].get("decision") or state["brief"],
         "geography": state["answers"].get("geography") or "Global",
         "period": state["answers"].get("period") or "10",
         "style": state["answers"].get("style") or "apa",
-        "sections": _sections_for(level, dropped),
+        "sections": secs,
         "blocks": blocks,
-        "fields": fields,
-        "dimensions": [{"key": key, "label": label, "query": _query(state, key, cues), "cues": cues,
+        "fields": all_fields,
+        "dimensions": [{"key": key, "label": lbl, "query": _query(state, key, cues), "cues": cues,
                         "category": category, "source_note": _source_note(category)}
-                       for key, label, cues, category in PLAN_DIMENSIONS],
-        "why": ("The plan composes your own description, the retrieved market evidence and the plan-level "
-                "computations in the order a reader expects: the business, the market, how it operates, the "
-                "numbers, the risks and the conclusion."),
-        "misses": ("It does not invent a market, a customer, a cost or a forecast. Every number comes from the "
-                   "declared inputs through the frozen core, and every gap is named."),
-        "output": ("A business plan with an executive summary, business description, market analysis, marketing "
-                   "and operations plans, management, a Financial Plan with its computation blocks, a risk "
-                   "analysis, a conclusion and one reference list."),
+                       for key, lbl, cues, category in dimensions],
+        "why": why,
+        "misses": misses,
+        "output": output,
         "checkpoints": ["Confirm this plan", "Supply your inputs and the declared figures",
                         "Review the retrieved evidence", "Review the drafted plan"],
     }
@@ -1651,8 +1973,8 @@ def customise(state, changes):
     Strict mode keeps the standard sections; open composition may drop an
     optional one.  Nothing here adds a framework or invents a section.
     """
-    if (state.get("profile") or "") != PROFILE_BUSINESS_PLAN:
-        raise ChatError("This case is not a business plan.")
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+        raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if state.get("stage") != "plan":
         raise ChatError("Customise the plan before confirming it.")
     if not isinstance(changes, dict):
@@ -1661,14 +1983,23 @@ def customise(state, changes):
     mode = changes.get("mode", state.get("mode") or "strict")
     if not _level_ok(level):
         raise ChatError("Choose the senior-high-school or college level.")
-    if mode not in PLAN_MODES:
-        raise ChatError("Choose the strict business-plan convention or open composition.")
+    modes = FEASIBILITY_MODES if state.get("profile") == PROFILE_FEASIBILITY_STUDY else PLAN_MODES
+    if mode not in modes:
+        raise ChatError("Choose the strict convention or open composition.")
     dropped = list(state.get("dropped_sections") or [])
     if "sections" in changes:
         wanted = changes.get("sections")
         if not isinstance(wanted, list):
             raise ChatError("sections must be a list of section keys to leave out.")
-        unknown = sorted(set(wanted) - OPTIONAL_SECTIONS)
+        if state.get("profile") == PROFILE_FEASIBILITY_STUDY:
+            optional = FEASIBILITY_OPTIONAL
+        elif state.get("profile") == PROFILE_MARKETING_PLAN:
+            optional = MARKETING_OPTIONAL
+        elif state.get("profile") == PROFILE_PROJECT_PROPOSAL:
+            optional = PROJECT_OPTIONAL
+        else:
+            optional = OPTIONAL_SECTIONS
+        unknown = sorted(set(wanted) - optional)
         if unknown:
             raise ChatError("These sections cannot be left out: " + ", ".join(unknown))
         if mode == "strict" and wanted:
@@ -1685,13 +2016,21 @@ def customise(state, changes):
 
 def set_inputs(state, values):
     """Store student-supplied plan text.  Unknown fields are refused, not ignored."""
-    if (state.get("profile") or "") != PROFILE_BUSINESS_PLAN:
-        raise ChatError("This case is not a business plan.")
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+        raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if state.get("stage") not in ("plan", "research_ready", "inputs", "evidence", "evidence_reviewed", "computed"):
         raise ChatError("The plan is not accepting inputs at this stage.")
     if not isinstance(values, dict):
         raise ChatError("Inputs must be an object of field names and values.")
-    allowed = {key: (label, kind) for section in PLAN_FIELDS.values()
+    if state.get("profile") == PROFILE_FEASIBILITY_STUDY:
+        _fields = FEASIBILITY_FIELDS
+    elif state.get("profile") == PROFILE_MARKETING_PLAN:
+        _fields = MARKETING_FIELDS
+    elif state.get("profile") == PROFILE_PROJECT_PROPOSAL:
+        _fields = PROJECT_FIELDS
+    else:
+        _fields = PLAN_FIELDS
+    allowed = {key: (label, kind) for section in _fields.values()
                for key, label, kind, _required in section}
     stored = dict(state["answers"].get("inputs") or {})
     for key, raw in values.items():
@@ -1717,11 +2056,26 @@ def _missing_fields(state):
     supplied = state["answers"].get("inputs") or {}
     missing = []
     level = state.get("level") or "shs"
-    keys = {section["key"] for section in _sections_for(level, state.get("dropped_sections") or [])}
-    for section_key, fields in PLAN_FIELDS.items():
+    profile = state.get("profile") or PROFILE_BUSINESS_PLAN
+    if profile == PROFILE_FEASIBILITY_STUDY:
+        sections_list = FEASIBILITY_SECTIONS
+        fields = FEASIBILITY_FIELDS
+    elif profile == PROFILE_MARKETING_PLAN:
+        sections_list = MARKETING_SECTIONS
+        fields = MARKETING_FIELDS
+    elif profile == PROFILE_PROJECT_PROPOSAL:
+        sections_list = PROJECT_SECTIONS
+        fields = PROJECT_FIELDS
+    else:
+        sections_list = PLAN_SECTIONS
+        fields = PLAN_FIELDS
+    keys = {section["key"] for section in sections_list
+            if (section.get("min_level") != "college" or level == "college")
+            and section["key"] not in (state.get("dropped_sections") or [])}
+    for section_key, flds in fields.items():
         if section_key not in keys:
             continue
-        for key, label, _kind, required in fields:
+        for key, label, _kind, required in flds:
             if required and not supplied.get(key):
                 missing.append(label)
     return missing
@@ -1733,8 +2087,8 @@ def compute(state, values):
     A block that refuses keeps its reason; the draft and the export gate then
     name it.  Nothing is computed in this module.
     """
-    if (state.get("profile") or "") != PROFILE_BUSINESS_PLAN:
-        raise ChatError("This case is not a business plan.")
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+        raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if not state.get("plan_confirmed_at"):
         raise ChatError("Confirm the plan before computing it.")
     if METHOD_RUN is None:
@@ -4031,6 +4385,400 @@ def _draft_plan(state, accepted_ids=None, style=None):
 
 
 
+def _draft_feasibility_study(state, accepted_ids=None, style=None):
+    """Compose the feasibility study from student inputs, accepted evidence and stored core results."""
+    if state.get("stage") not in ("evidence", "evidence_reviewed", "computed", "inputs", "draft"):
+        raise ChatError("Confirm the plan and supply its inputs before drafting.")
+    plan = state.get("plan") or {}
+    accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
+    evidence = [item for item in state["evidence"] if item["id"] in accepted]
+    by_id = {source["id"]: source for source in state["sources"]}
+    style = style or state["answers"].get("style") or "apa"
+    level = state.get("level") or "shs"
+    sections = []
+    name = _plan_input(state, "project_name")
+    desc = _plan_input(state, "project_description")
+    location = _plan_input(state, "location")
+    proponents = _plan_input(state, "proponents")
+
+    # -- executive summary (integration, from supplied facts and stored results)
+    intro = ["This feasibility study tests whether " + (name or "the proposed project") + " should proceed."]
+    if desc:
+        intro.append(desc)
+    if location:
+        intro.append("It is located in " + location + ".")
+    if proponents:
+        intro.append("It is proposed by " + proponents + ".")
+    sales = _plan_block(state, "frommarket")
+    if sales and sales.get("ok"):
+        result = sales["result"]
+        intro.append("From the declared market and share, target revenue is "
+                     + _fmt_number(result.get("target_revenue")) + " and target volume is "
+                     + _fmt_number(result.get("target_units")) + " units.")
+    proforma = _plan_block(state, "proforma")
+    if proforma and proforma.get("ok"):
+        intro.append("Across the projected periods, revenue totals "
+                     + _fmt_number(proforma.get("result", {}).get("total_revenue")) + ".")
+    sections.append(paper.section("Executive Summary", paper.H1, [paper.paragraph(intro)]))
+
+    # -- project description
+    lines = []
+    if name:
+        lines.append("Project: " + name + ".")
+    if desc:
+        lines.append(desc)
+    if location:
+        lines.append("Location: " + location + ".")
+    if proponents:
+        lines.append("Proponents: " + proponents + ".")
+    sections.append(paper.section("Project Description", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- market feasibility
+    target_market = _plan_input(state, "target_market")
+    demand = _plan_input(state, "demand_estimate")
+    competitors = _plan_input(state, "competitors")
+    lines = []
+    if target_market:
+        lines.append("Target market: " + target_market + ".")
+    if demand:
+        lines.append("Estimated demand: " + demand + ".")
+    if competitors:
+        lines.append("Competitors: " + competitors + ".")
+    sections.append(paper.section("Market Feasibility", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- technical feasibility
+    technology = _plan_input(state, "technology")
+    capacity = _plan_input(state, "capacity")
+    inputs = _plan_input(state, "inputs")
+    lines = []
+    if technology:
+        lines.append("Technology or method: " + technology + ".")
+    if capacity:
+        lines.append("Capacity needed: " + capacity + ".")
+    if inputs:
+        lines.append("Inputs or resources needed: " + inputs + ".")
+    sections.append(paper.section("Technical Feasibility", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- management feasibility
+    team = _plan_input(state, "team")
+    skills = _plan_input(state, "skills")
+    lines = []
+    if team:
+        lines.append("Management team: " + team + ".")
+    if skills:
+        lines.append("Skills available: " + skills + ".")
+    sections.append(paper.section("Management Feasibility", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- legal feasibility
+    permits = _plan_input(state, "permits")
+    regulations = _plan_input(state, "regulations")
+    lines = []
+    if permits:
+        lines.append("Permits or licenses needed: " + permits + ".")
+    if regulations:
+        lines.append("Regulations that apply: " + regulations + ".")
+    sections.append(paper.section("Legal and Regulatory Feasibility", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- financial feasibility (computation)
+    sections.append(paper.section("Financial Feasibility", paper.H1))
+    for block in plan.get("blocks") or []:
+        data = _plan_block(state, block["key"])
+        if not data:
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation has not been run, so no figure is reported."]))
+            continue
+        if not data.get("ok"):
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation was refused: " + str(data.get("error"))
+                                          + " No figure is reported."]))
+            continue
+        result = data.get("result") or {}
+        inputs_data = data.get("inputs") or {}
+        lines = [paper.paragraph([_declared_inputs_line(data)])] if _declared_inputs_line(data) else []
+        lines.append(paper.paragraph(_capability_lines(block, data)))
+        sections.append(paper.section(block["label"], paper.H2, lines))
+
+    # -- risk
+    risks = _plan_input(state, "risks")
+    if risks:
+        sections.append(paper.section("Risk Analysis", paper.H1, [paper.paragraph([risks])]))
+
+    # -- conclusion and verdict
+    verdict = "The feasibility of this project depends on the evidence and figures above."
+    sections.append(paper.section("Conclusion", paper.H1, [verdict]))
+
+    # -- references
+    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+
+    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
+def _declared_inputs_line(data):
+    """Format the declared inputs line for a computation block."""
+    inputs = data.get("inputs") or {}
+    if not inputs:
+        return ""
+    parts = []
+    for k, v in inputs.items():
+        parts.append(str(k) + ": " + str(v))
+    return "Declared inputs: " + "; ".join(parts) + "."
+
+
+def _capability_lines(block, data):
+    """Format the result lines for a computation block."""
+    result = data.get("result") or {}
+    lines = []
+    for k, v in result.items():
+        lines.append(str(k) + ": " + str(v))
+    return lines if lines else ["No result reported."]
+
+
+def _draft_marketing_plan(state, accepted_ids=None, style=None):
+    """Compose the marketing plan from student inputs, accepted evidence and stored core results."""
+    if state.get("stage") not in ("evidence", "evidence_reviewed", "computed", "inputs", "draft"):
+        raise ChatError("Confirm the plan and supply its inputs before drafting.")
+    plan = state.get("plan") or {}
+    accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
+    evidence = [item for item in state["evidence"] if item["id"] in accepted]
+    by_id = {source["id"]: source for source in state["sources"]}
+    style = style or state["answers"].get("style") or "apa"
+    level = state.get("level") or "shs"
+    sections = []
+    name = _plan_input(state, "business_name")
+    product = _plan_input(state, "product")
+    customers = _plan_input(state, "customers")
+    location = _plan_input(state, "location")
+
+    # -- executive summary
+    intro = ["This marketing plan sets out how " + (name or "the business") + " will reach its customers."]
+    if product:
+        intro.append("It sells " + product + ".")
+    if customers:
+        intro.append("Its customers are " + customers + ".")
+    if location:
+        intro.append("It operates in " + location + ".")
+    sales = _plan_block(state, "frommarket")
+    if sales and sales.get("ok"):
+        result = sales["result"]
+        intro.append("From the declared market and share, target revenue is "
+                     + _fmt_number(result.get("target_revenue")) + " and target volume is "
+                     + _fmt_number(result.get("target_units")) + " units.")
+    sections.append(paper.section("Executive Summary", paper.H1, [paper.paragraph(intro)]))
+
+    # -- business context
+    lines = []
+    if name:
+        lines.append("Business: " + name + ".")
+    if product:
+        lines.append("Product: " + product + ".")
+    if customers:
+        lines.append("Customers: " + customers + ".")
+    if location:
+        lines.append("Location: " + location + ".")
+    sections.append(paper.section("Business Context", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- audience and positioning
+    target_audience = _plan_input(state, "target_audience")
+    positioning = _plan_input(state, "positioning_statement")
+    value_prop = _plan_input(state, "value_proposition")
+    lines = []
+    if target_audience:
+        lines.append("Target audience: " + target_audience + ".")
+    if positioning:
+        lines.append("Positioning: " + positioning + ".")
+    if value_prop:
+        lines.append("Value proposition: " + value_prop + ".")
+    sections.append(paper.section("Audience and Positioning", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- channels and tactics
+    channels = _plan_input(state, "channels")
+    tactics = _plan_input(state, "tactics")
+    content_plan = _plan_input(state, "content_plan")
+    lines = []
+    if channels:
+        lines.append("Channels: " + channels + ".")
+    if tactics:
+        lines.append("Tactics: " + tactics + ".")
+    if content_plan:
+        lines.append("Content plan: " + content_plan + ".")
+    sections.append(paper.section("Channels and Tactics", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- budget and measurement
+    sections.append(paper.section("Budget and Measurement", paper.H1))
+    for block in plan.get("blocks") or []:
+        data = _plan_block(state, block["key"])
+        if not data:
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation has not been run, so no figure is reported."]))
+            continue
+        if not data.get("ok"):
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation was refused: " + str(data.get("error"))
+                                          + " No figure is reported."]))
+            continue
+        declared = _declared_inputs_line(data)
+        result_lines = ([paper.paragraph([declared])] if declared else []) + \
+                       [paper.paragraph(_capability_lines(block, data))]
+        sections.append(paper.section(block["label"], paper.H2, result_lines))
+
+    budget = _plan_input(state, "budget")
+    kpis = _plan_input(state, "kpis")
+    measurement = _plan_input(state, "measurement_plan")
+    lines = []
+    if budget:
+        lines.append("Budget: " + budget + ".")
+    if kpis:
+        lines.append("KPIs: " + kpis + ".")
+    if measurement:
+        lines.append("Measurement plan: " + measurement + ".")
+    if lines:
+        sections.append(paper.section("Budget Details", paper.H2, [paper.paragraph(lines)]))
+
+    # -- risk
+    risks = _plan_input(state, "risks")
+    if risks:
+        sections.append(paper.section("Risk Analysis", paper.H1, [paper.paragraph([risks])]))
+
+    # -- conclusion
+    sections.append(paper.section("Conclusion", paper.H1, ["The marketing plan above is based on the declared inputs and computations."]))
+
+    # -- references
+    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+
+    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
+
+def _draft_project_proposal(state, accepted_ids=None, style=None):
+    """Compose the project proposal from student inputs, accepted evidence and stored core results."""
+    if state.get("stage") not in ("evidence", "evidence_reviewed", "computed", "inputs", "draft"):
+        raise ChatError("Confirm the plan and supply its inputs before drafting.")
+    plan = state.get("plan") or {}
+    accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
+    evidence = [item for item in state["evidence"] if item["id"] in accepted]
+    by_id = {source["id"]: source for source in state["sources"]}
+    style = style or state["answers"].get("style") or "apa"
+    level = state.get("level") or "shs"
+    sections = []
+    title = _plan_input(state, "project_title")
+    problem = _plan_input(state, "problem_statement")
+    objectives = _plan_input(state, "objectives")
+    location = _plan_input(state, "location")
+    proponents = _plan_input(state, "proponents")
+
+    # -- executive summary
+    intro = ["This project proposal sets out " + (title or "a defined project") + "."]
+    if problem:
+        intro.append("The problem it addresses: " + problem + ".")
+    if objectives:
+        intro.append("Its objectives: " + objectives + ".")
+    if location:
+        intro.append("It will be implemented in " + location + ".")
+    if proponents:
+        intro.append("Proposed by " + proponents + ".")
+    sales = _plan_block(state, "frommarket")
+    if sales and sales.get("ok"):
+        result = sales["result"]
+        intro.append("From the declared market and share, target revenue is "
+                     + _fmt_number(result.get("target_revenue")) + " and target volume is "
+                     + _fmt_number(result.get("target_units")) + " units.")
+    sections.append(paper.section("Executive Summary", paper.H1, [paper.paragraph(intro)]))
+
+    # -- project description
+    lines = []
+    if title:
+        lines.append("Project title: " + title + ".")
+    if problem:
+        lines.append("Problem statement: " + problem + ".")
+    if objectives:
+        lines.append("Objectives: " + objectives + ".")
+    if location:
+        lines.append("Location: " + location + ".")
+    if proponents:
+        lines.append("Proponents: " + proponents + ".")
+    sections.append(paper.section("Project Description", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- work plan
+    activities = _plan_input(state, "activities")
+    timeline = _plan_input(state, "timeline")
+    deliverables = _plan_input(state, "deliverables")
+    lines = []
+    if activities:
+        lines.append("Activities: " + activities + ".")
+    if timeline:
+        lines.append("Timeline: " + timeline + ".")
+    if deliverables:
+        lines.append("Deliverables: " + deliverables + ".")
+    sections.append(paper.section("Work Plan and Timeline", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- budget
+    sections.append(paper.section("Budget", paper.H1))
+    for block in plan.get("blocks") or []:
+        data = _plan_block(state, block["key"])
+        if not data:
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation has not been run, so no figure is reported."]))
+            continue
+        if not data.get("ok"):
+            sections.append(paper.section(block["label"], paper.H2,
+                                         ["This computation was refused: " + str(data.get("error"))
+                                          + " No figure is reported."]))
+            continue
+        declared = _declared_inputs_line(data)
+        result_lines = ([paper.paragraph([declared])] if declared else []) + \
+                       [paper.paragraph(_capability_lines(block, data))]
+        sections.append(paper.section(block["label"], paper.H2, result_lines))
+
+    total_budget = _plan_input(state, "total_budget")
+    budget_breakdown = _plan_input(state, "budget_breakdown")
+    funding_source = _plan_input(state, "funding_source")
+    lines = []
+    if total_budget:
+        lines.append("Total budget: " + total_budget + ".")
+    if budget_breakdown:
+        lines.append("Budget breakdown: " + budget_breakdown + ".")
+    if funding_source:
+        lines.append("Funding source: " + funding_source + ".")
+    if lines:
+        sections.append(paper.section("Budget Details", paper.H2, [paper.paragraph(lines)]))
+
+    # -- monitoring and evaluation
+    indicators = _plan_input(state, "indicators")
+    baseline = _plan_input(state, "baseline")
+    targets = _plan_input(state, "targets")
+    lines = []
+    if indicators:
+        lines.append("Indicators: " + indicators + ".")
+    if baseline:
+        lines.append("Baseline: " + baseline + ".")
+    if targets:
+        lines.append("Targets: " + targets + ".")
+    sections.append(paper.section("Monitoring and Evaluation", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
+
+    # -- risk
+    risks = _plan_input(state, "risks")
+    if risks:
+        sections.append(paper.section("Risk Analysis", paper.H1, [paper.paragraph([risks])]))
+
+    # -- conclusion
+    sections.append(paper.section("Conclusion", paper.H1, ["The project proposal above is based on the declared inputs and computations."]))
+
+    # -- references
+    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+
+    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
+
 def _claim_scan(sections):
     """The paper's own sentences that claim more than any frozen method licenses.
 
@@ -4501,6 +5249,12 @@ def draft(state, accepted_ids=None, implications="", style=None):
     """Compose the paper from accepted evidence.  It invents nothing."""
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
         return _draft_plan(state, accepted_ids, style)
+    if (state.get("profile") or "") == PROFILE_FEASIBILITY_STUDY:
+        return _draft_feasibility_study(state, accepted_ids, style)
+    if (state.get("profile") or "") == PROFILE_MARKETING_PLAN:
+        return _draft_marketing_plan(state, accepted_ids, style)
+    if (state.get("profile") or "") == PROFILE_PROJECT_PROPOSAL:
+        return _draft_project_proposal(state, accepted_ids, style)
     if state.get("stage") not in ("evidence", "evidence_reviewed", "draft"):
         raise ChatError("Retrieve the evidence before drafting.")
     accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}

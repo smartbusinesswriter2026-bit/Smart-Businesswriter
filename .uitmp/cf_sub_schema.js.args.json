@@ -1,0 +1,1 @@
+{"code": "async () => {\n  const op = spec.paths[\"/accounts/{account_id}/subscriptions\"]?.post;\n  const list = spec.paths[\"/accounts/{account_id}/subscriptions\"]?.get;\n  return {\n    post_summary: op?.summary,\n    post_body: op?.requestBody,\n    post_params: op?.parameters,\n    get_summary: list?.summary,\n    get_params: list?.parameters,\n  };\n}\n"}

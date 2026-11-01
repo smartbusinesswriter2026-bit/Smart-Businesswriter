@@ -4265,7 +4265,7 @@ ADKAR = {'assumption': 'probe',
              'label': 'Awareness',
              'probe': 'state the evidence why the change is needed',
              'prompt': 'Why the change is needed and why now',
-             'queries': ['awareness and why the change is needed in this industry']},
+             'queries': ['awareness and why the change is needed']},
             {'category': None,
              'cues': 'desire benefit gain adopt',
              'fill': 'research',
@@ -4273,7 +4273,7 @@ ADKAR = {'assumption': 'probe',
              'label': 'Desire',
              'probe': 'state the evidence for desire',
              'prompt': 'Why change matters and what people gain',
-             'queries': ['desire and benefits of change in this industry']},
+             'queries': ['desire and benefits of change']},
             {'category': None,
              'cues': 'knowledge know how taught training',
              'fill': 'research',
@@ -4281,7 +4281,7 @@ ADKAR = {'assumption': 'probe',
              'label': 'Knowledge',
              'probe': 'state the evidence for knowledge',
              'prompt': 'What people need to know and how they are taught',
-             'queries': ['knowledge and skills needed for change in this industry']},
+             'queries': ['knowledge and skills needed for change']},
             {'category': None,
              'cues': 'ability do differently skills enable',
              'fill': 'research',
@@ -4289,7 +4289,7 @@ ADKAR = {'assumption': 'probe',
              'label': 'Ability',
              'probe': 'state the evidence for ability',
              'prompt': 'What people must do differently',
-             'queries': ['ability and enabling factors for change in this industry']},
+             'queries': ['ability and enabling factors for change']},
             {'category': None,
              'cues': 'reinforcement sustain change stick',
              'fill': 'research',
@@ -4297,43 +4297,66 @@ ADKAR = {'assumption': 'probe',
              'label': 'Reinforcement',
              'probe': 'state the evidence for reinforcement',
              'prompt': 'What makes the change stick',
-             'queries': ['reinforcement and sustainment for change in this industry']}],
+             'queries': ['reinforcement and sustainment for change']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'adkar',
  'label': 'ADKAR',
- 'notes': {'ability': {'analysis': 'Ability means the people affected have the skills and resources to do what is '
-                                   'required. The relevant question is whether the evidence shows it.',
-                       'probe': 'state the evidence for ability',
-                       'qualify': 'The evidence does not establish the enabling conditions, so ability is described '
-                                  'rather than measured.',
-                       'short': 'A change without ability is a proposal that people cannot implement.'},
-           'awareness': {'analysis': 'Awareness means the people affected understand why the change is needed. The '
-                                     'relevant question is whether the evidence shows it.',
-                         'probe': 'state the evidence for awareness',
-                         'qualify': 'The evidence does not establish the case for change, so awareness is described '
-                                    'rather than measured.',
-                         'short': 'A change without awareness is a proposal that people may resist.'},
-           'desire': {'analysis': 'Desire means the people affected want the change and see what they gain. The '
-                                  'relevant question is whether the evidence shows it.',
-                      'probe': 'state the evidence for desire',
-                      'qualify': 'The evidence does not establish the benefit, so desire is described rather than '
-                                 'measured.',
-                      'short': 'A change without desire is a proposal that people may reject.'},
-           'knowledge': {'analysis': 'Knowledge means the people affected know what to do and how. The relevant '
-                                     'question is whether the evidence shows it.',
-                         'probe': 'state the evidence for knowledge',
-                         'qualify': 'The evidence does not establish the training, so knowledge is described rather '
-                                    'than measured.',
-                         'short': 'A change without knowledge is a proposal that people cannot act on.'},
-           'reinforcement': {'analysis': 'Reinforcement means the change is held in place by accountability, '
-                                         'recognition and routine. The relevant question is whether the evidence shows '
-                                         'it.',
-                             'probe': 'state the evidence for reinforcement',
-                             'qualify': 'The evidence does not establish the reinforcement, so it is described rather '
-                                        'than measured.',
-                             'short': 'A change without reinforcement will drift back to the old way.'}},
+ 'notes': {
+           'ability': {
+                       'analysis': 'Ability is the practical capacity to do the new work: the time, the tools, the '
+                                   'authority and the resources it takes. A person can understand a change, support '
+                                   'it and still be unable to perform it. The relevant question is whether the '
+                                   'evidence shows that the people affected have the means to act.',
+                       'probe': 'state what people need in order to act and what they have',
+                       'qualify': 'The evidence does not establish what people are able to do, so ability is '
+                                  'described rather than measured.',
+                       'short': 'Willingness without capacity is a change that stalls on the first person asked to do '
+                                'it differently.'},
+           'awareness': {
+                         'analysis': 'Awareness is the point at which a person understands that a change is coming '
+                                     'and what it will mean for their own work. A programme that begins without it '
+                                     'produces resistance that is usually read as reluctance rather than as the '
+                                     'absence of understanding. The relevant question is whether the evidence shows '
+                                     'that people know the change is coming.',
+                         'probe': 'state what people have been told about the change and how they know',
+                         'qualify': 'The evidence does not establish what people have been told, so awareness is '
+                                    'described rather than tested.',
+                         'short': 'A change announced to people who were never told is not met with resistance; it is '
+                                  'met with indifference.'},
+           'desire': {
+                      'analysis': 'Desire is the willingness to support a change rather than to comply with it. '
+                                  'People will perform a new process they are obliged to follow and will not sustain '
+                                  'one they have no reason to support. The relevant question is whether the evidence '
+                                  'shows what the change offers the people who are affected.',
+                      'probe': 'state what the change offers the people affected and what they have said about it',
+                      'qualify': 'The evidence does not establish what people want from the change, so desire is '
+                                 'described rather than measured.',
+                      'short': 'Compliance is what a change gets when the people affected see nothing in it for '
+                               'themselves.'},
+           'knowledge': {
+                         'analysis': 'Knowledge is the command of what the new way of working requires. It is learned '
+                                     'before the change and it is lost when the people who hold it move on. The '
+                                     'relevant question is whether the evidence shows what people have been taught '
+                                     'and how well they can do it.',
+                         'probe': 'state what people have been taught about the new way of working and what they can '
+                                  'show',
+                         'qualify': 'The evidence does not establish what people have learned, so knowledge is '
+                                    'described rather than tested.',
+                         'short': 'A change taught once and never practised is a change waiting to fail at the first '
+                                  'difficulty.'},
+           'reinforcement': {
+                             'analysis': 'Reinforcement is what keeps the new practice in place after the programme '
+                                         'ends: the measures, the routines, the recognition and the consequences that '
+                                         'follow it. Without it the change depends on the attention of the people who '
+                                         'introduced it. The relevant question is whether the evidence shows what has '
+                                         'been written into the way the organisation works.',
+                             'probe': 'state what in the day-to-day working now carries the change',
+                             'qualify': 'The evidence does not establish which routines and measures have changed, so '
+                                        'reinforcement is described rather than confirmed.',
+                             'short': 'A change that lives in a programme team dies with the programme team.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The change and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'ADKAR',
              'implications': 'Implications for the decision',
@@ -4343,7 +4366,7 @@ ADKAR = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'change',
+ 'subject': 'people',
  'template': 'template_adkar',
  'title_prefix': 'ADKAR Change Analysis',
  'unit': {'field': 'process',
@@ -4380,7 +4403,7 @@ LEWIN = {'assumption': 'probe',
              'label': 'Unfreeze',
              'probe': 'state the evidence for unfreezing',
              'prompt': 'Prepare the organisation for change by undermining the existing status quo',
-             'queries': ['unfreezing and preparing for change in this industry']},
+             'queries': ['unfreezing and preparing for change']},
             {'category': None,
              'cues': 'change move new state transition',
              'fill': 'research',
@@ -4388,7 +4411,7 @@ LEWIN = {'assumption': 'probe',
              'label': 'Change',
              'probe': 'state the evidence for the change',
              'prompt': 'Move the organisation to a new state through the steps the change requires',
-             'queries': ['change and transition in this industry']},
+             'queries': ['change and transition']},
             {'category': None,
              'cues': 'refreeze anchor routine sustain',
              'fill': 'research',
@@ -4396,30 +4419,44 @@ LEWIN = {'assumption': 'probe',
              'label': 'Refreeze',
              'probe': 'state the evidence for refreezing',
              'prompt': 'Anchor the new state in daily routines so the change sticks',
-             'queries': ['refreezing and sustaining change in this industry']}],
+             'queries': ['refreezing and sustaining change']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'lewin',
  'label': 'Lewin',
- 'notes': {'change': {'analysis': 'Change means moving the organisation to a new state through the steps the change '
-                                  'requires. The relevant question is whether the evidence shows it.',
-                      'probe': 'state the evidence for the change',
+ 'notes': {
+           'change': {
+                      'analysis': 'Changing is the stage in which the organisation moves to the new state: the new '
+                                  'processes, roles, measures and behaviours are introduced while the old ones are '
+                                  'still in place. It is the least stable stage, because the organisation is carrying '
+                                  'two ways of working at once. The relevant question is whether the evidence shows '
+                                  'the transition.',
+                      'probe': 'state the evidence for the transition and how the two states were carried together',
                       'qualify': 'The evidence does not establish the transition, so the change is described rather '
                                  'than measured.',
                       'short': 'A change without a transition plan is a proposal that people cannot act on.'},
-           'refreeze': {'analysis': 'Refreeze means anchoring the new state in daily routines so the change sticks. '
-                                    'The relevant question is whether the evidence shows it.',
-                        'probe': 'state the evidence for refreezing',
+           'refreeze': {
+                        'analysis': 'Refreezing is the stage in which the new practice becomes the ordinary one: it '
+                                    'is written into routines, budgets, measures and standards, and stops being '
+                                    'described as new. A change that is not refrozen drifts back to the old practice. '
+                                    'The relevant question is whether the evidence shows what now carries the change.',
+                        'probe': 'state what anchors the new practice in daily routines',
                         'qualify': 'The evidence does not establish the reinforcement, so refreezing is described '
                                    'rather than measured.',
                         'short': 'A change without refreezing will drift back to the old way.'},
-           'unfreeze': {'analysis': 'Unfreeze means preparing the organisation for change by undermining the existing '
-                                    'status quo. The relevant question is whether the evidence shows it.',
-                        'probe': 'state the evidence for unfreezing',
-                        'qualify': 'The evidence does not establish the case for change, so unfreezing is described '
-                                   'rather than measured.',
-                        'short': 'A change without unfreezing is a proposal that people may resist.'}},
+           'unfreeze': {
+                        'analysis': 'Unfreezing is the stage in which the case for change is made and the existing '
+                                    'practice is questioned. It is the stage most often skipped, because the pressure '
+                                    'to move on to the new way of working makes the old one look settled. The '
+                                    'relevant question is whether the evidence shows why the existing practice has to '
+                                    'give way.',
+                        'probe': 'state the evidence for unfreezing and what is at stake',
+                        'qualify': 'The evidence does not establish what would be lost by not changing, so the case '
+                                   'for change is described rather than sized.',
+                        'short': 'A change that begins without unfreezing meets resistance at exactly the point where '
+                                 'it costs most.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The change and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Lewin',
              'implications': 'Implications for the decision',
@@ -4429,7 +4466,7 @@ LEWIN = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'change',
+ 'subject': 'people',
  'template': 'template_lewin',
  'title_prefix': 'Lewin Change Analysis',
  'unit': {'field': 'process',
@@ -4464,7 +4501,7 @@ THEORY_OF_CHANGE = {'assumption': 'probe',
              'label': 'Inputs',
              'probe': 'state the evidence for inputs',
              'prompt': 'The resources and conditions brought to the change effort',
-             'queries': ['inputs and resources for change in this industry']},
+             'queries': ['inputs and resources for change']},
             {'category': None,
              'cues': 'activities actions interventions change',
              'fill': 'research',
@@ -4472,7 +4509,7 @@ THEORY_OF_CHANGE = {'assumption': 'probe',
              'label': 'Activities',
              'probe': 'state the evidence for activities',
              'prompt': 'The actions and interventions the change will carry out',
-             'queries': ['activities and interventions for change in this industry']},
+             'queries': ['activities and interventions for change']},
             {'category': None,
              'cues': 'outputs products quantity results',
              'fill': 'research',
@@ -4480,7 +4517,7 @@ THEORY_OF_CHANGE = {'assumption': 'probe',
              'label': 'Outputs',
              'probe': 'state the evidence for outputs',
              'prompt': 'The direct products of the activities, in expected quantity',
-             'queries': ['outputs and results of change activities in this industry']},
+             'queries': ['outputs and results of change activities']},
             {'category': None,
              'cues': 'outcomes results impact change',
              'fill': 'research',
@@ -4488,36 +4525,93 @@ THEORY_OF_CHANGE = {'assumption': 'probe',
              'label': 'Outcomes',
              'probe': 'state the evidence for outcomes',
              'prompt': 'The short, medium and long-term results the change aims to achieve',
-             'queries': ['outcomes and impact of change in this industry']}],
+             'queries': ['outcomes and impact of change']},
+            {'category': None,
+             'cues': 'impact long term contribution legacy systems wellbeing sustainability',
+             'fill': 'research',
+             'key': 'impact',
+             'label': 'Impact',
+             'probe': 'state the longer-term change the programme contributes to and the evidence of its '
+                      'contribution',
+             'prompt': 'The longer-term change the programme is intended to contribute to',
+             'queries': ['impact and long term contribution of a change programme']},
+            {'category': None,
+             'cues': 'assumption condition dependency external factor preconditions if not',
+             'fill': 'research',
+             'key': 'assumptions',
+             'label': 'Assumptions',
+             'probe': 'state what has to be true for each link to hold and the evidence that it does',
+             'prompt': 'The conditions each link in the chain depends on',
+             'queries': ['assumptions and external conditions a change programme depends on']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'theory_of_change',
  'label': 'Theory of Change',
- 'notes': {'activities': {'analysis': 'Activities are the actions and interventions the change will carry out. The '
-                                      'relevant question is whether the evidence shows them.',
-                          'probe': 'state the evidence for activities',
-                          'qualify': 'The evidence does not establish the interventions, so activities are described '
-                                     'rather than measured.',
-                          'short': 'A change without activities is a proposal that cannot be executed.'},
-           'inputs': {'analysis': 'Inputs are the resources and conditions brought to the change effort. The relevant '
-                                  'question is whether the evidence shows them.',
-                      'probe': 'state the evidence for inputs',
-                      'qualify': 'The evidence does not establish the resources, so inputs are described rather than '
-                                 'measured.',
-                      'short': 'A change without inputs is a proposal that cannot be resourced.'},
-           'outcomes': {'analysis': 'Outcomes are the short, medium and long-term results the change aims to achieve. '
-                                    'The relevant question is whether the evidence shows them.',
-                        'probe': 'state the evidence for outcomes',
-                        'qualify': 'The evidence does not establish the results, so outcomes are described rather than '
-                                   'measured.',
-                        'short': 'A change without outcomes is a proposal that cannot be evaluated.'},
-           'outputs': {'analysis': 'Outputs are the direct products of the activities, in expected quantity. The '
-                                   'relevant question is whether the evidence shows them.',
-                       'probe': 'state the evidence for outputs',
-                       'qualify': 'The evidence does not establish the quantity, so outputs are described rather than '
-                                  'measured.',
-                       'short': 'A change without outputs is a proposal that cannot be tracked.'}},
+ 'notes': {
+           'activities': {
+                          'analysis': 'Activities are the actions the programme carries out: what is done, with whom '
+                                      'and how often. The relevant question is whether the evidence shows what is '
+                                      'done as planned.',
+                          'probe': 'state what the programme does, with whom and how often',
+                          'qualify': 'The evidence does not establish what the programme actually does, so the '
+                                     'pathway is described rather than assumed.',
+                          'short': 'The activity in the plan and the activity delivered are often different '
+                                   'activities with the same name.'},
+           'assumptions': {
+                           'analysis': 'Assumptions are the conditions that must hold for each link in the chain to '
+                                       'work: that the people reached are the ones who need the programme, that the '
+                                       'activity is delivered as designed, and that nothing else changes at the same '
+                                       'time. They are the part of a theory of change most often left unstated and '
+                                       'most often found to be false. The relevant question is whether the evidence '
+                                       'shows the conditions that have to hold.',
+                           'probe': 'state what has to be true for each link to hold and the evidence that it does',
+                           'qualify': 'The evidence does not establish whether the conditions hold, so each '
+                                      'assumption is named as a hypothesis rather than confirmed.',
+                           'short': 'An untested assumption is a link in the chain that has never been checked and '
+                                    'cannot fail loudly.'},
+           'impact': {
+                      'analysis': 'Impact is the longer-term change the programme is intended to contribute to, '
+                                  'beyond the period it runs for and beyond the people it reaches directly. It is the '
+                                  'part of the chain the programme has least control over. The relevant question is '
+                                  'whether the evidence shows the contribution being made towards it.',
+                      'probe': 'state the longer-term change the programme contributes to and the evidence of its '
+                               'contribution',
+                      'qualify': 'The evidence does not establish the contribution to the wider change, so impact is '
+                                 'described rather than attributed.',
+                      'short': 'A programme that claims the impact it can only contribute to will be judged on what '
+                               'it did not do alone.'},
+           'inputs': {
+                      'analysis': 'Inputs are the resources the programme commits: the people, the money, the time, '
+                                  'the partners and the premises it puts in. They say what the programme is willing '
+                                  'to commit before it produces anything. The relevant question is whether the '
+                                  'evidence shows what is actually committed.',
+                      'probe': 'state what the programme commits and what is actually in place',
+                      'qualify': 'The evidence does not establish what the programme has committed, so the pathway is '
+                                 'described rather than costed.',
+                      'short': 'An input that is assumed rather than committed is the first place a causal chain '
+                               'quietly fails.'},
+           'outcomes': {
+                        'analysis': 'Outcomes are the changes the outputs are meant to have produced in the people or '
+                                    'systems the programme touches: what is different for a participant, and how that '
+                                    'difference is measured. The relevant question is whether the evidence shows the '
+                                    'change and the measure that reads it.',
+                        'probe': 'state what is different for the people the programme touches and how that is '
+                                 'measured',
+                        'qualify': 'The evidence does not establish the change in behaviour or wellbeing, so the '
+                                   'outcome is described rather than claimed.',
+                        'short': 'An output that no participant noticed is not an outcome, however well it is '
+                                 'counted.'},
+           'outputs': {
+                       'analysis': 'Outputs are the things the activities produce and can count: sessions held, meals '
+                                   'served, referrals made. They are within the programme\'s control and they are not '
+                                   'yet changes in anyone\'s life. The relevant question is whether the evidence shows '
+                                   'the deliverables and whether they were counted.',
+                       'probe': 'state what the activities produced and whether it was counted',
+                       'qualify': 'The evidence does not establish what was produced, so the pathway is described '
+                                  'rather than reported.',
+                       'short': 'Outputs are what the programme controls; only what follows them is a result.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The programme and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Theory of Change',
              'implications': 'Implications for the decision',
@@ -4528,7 +4622,7 @@ THEORY_OF_CHANGE = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'change',
+ 'subject': 'people',
  'template': 'template_theory_of_change',
  'title_prefix': 'Theory of Change Analysis',
  'unit': {'field': 'process',
@@ -4565,7 +4659,7 @@ PDSA = {'assumption': 'probe',
              'label': 'Plan',
              'probe': 'state the evidence for the plan',
              'prompt': 'What change is planned and what will be measured',
-             'queries': ['planning a change and what to measure in this industry']},
+             'queries': ['planning a change and what to measure']},
             {'category': None,
              'cues': 'do carry out implement scale',
              'fill': 'research',
@@ -4573,7 +4667,7 @@ PDSA = {'assumption': 'probe',
              'label': 'Do',
              'probe': 'state the evidence for what was done',
              'prompt': 'What was carried out and on what scale',
-             'queries': ['implementing a change and on what scale in this industry']},
+             'queries': ['implementing a change and on what scale']},
             {'category': None,
              'cues': 'study results learn measure',
              'fill': 'research',
@@ -4581,7 +4675,7 @@ PDSA = {'assumption': 'probe',
              'label': 'Study',
              'probe': 'state the evidence for what was learned',
              'prompt': 'What the results show and what was learned',
-             'queries': ['studying results and learning from change in this industry']},
+             'queries': ['studying results and learning from change']},
             {'category': None,
              'cues': 'act adopt adapt abandon',
              'fill': 'research',
@@ -4589,35 +4683,52 @@ PDSA = {'assumption': 'probe',
              'label': 'Act',
              'probe': 'state the evidence for what was decided',
              'prompt': 'What is adopted, adapted or abandoned as a result',
-             'queries': ['acting on results and adopting or adapting in this industry']}],
+             'queries': ['acting on results and adopting or adapting']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'pdsa',
  'label': 'PDSA',
- 'notes': {'act': {'analysis': 'Act means what is adopted, adapted or abandoned as a result. The relevant question is '
-                               'whether the evidence shows it.',
-                   'probe': 'state the evidence for what was decided',
-                   'qualify': 'The evidence does not establish the decision, so what was decided is described rather '
-                              'than measured.',
-                   'short': 'An act without evidence is a decision made without learning.'},
-           'do': {'analysis': 'Do means what was carried out and on what scale. The relevant question is whether the '
-                              'evidence shows it.',
-                  'probe': 'state the evidence for what was done',
-                  'qualify': 'The evidence does not establish the execution, so what was done is described rather than '
-                             'measured.',
-                  'short': 'A change that was not carried out cannot be studied.'},
-           'plan': {'analysis': 'Plan means what change is planned and what will be measured. The relevant question is '
-                                'whether the evidence shows it.',
-                    'probe': 'state the evidence for the plan',
-                    'qualify': 'The evidence does not establish the plan, so it is described rather than measured.',
-                    'short': 'A plan without a measure is a hope, not a test.'},
-           'study': {'analysis': 'Study means what the results show and what was learned. The relevant question is '
-                                 'whether the evidence shows it.',
-                     'probe': 'state the evidence for what was learned',
-                     'qualify': 'The evidence does not establish the results, so what was learned is described rather '
-                                'than measured.',
-                     'short': 'A study without results is a plan that was never tested.'}},
+ 'notes': {
+           'act': {
+                   'analysis': 'Acting means adopting the change, adapting it and trying again, or abandoning it, and '
+                               'recording which was chosen so that the next cycle starts from a decision rather than '
+                               'from the same place. The relevant question is whether the evidence shows what was '
+                               'decided and what the next cycle will test.',
+                   'probe': 'state what was adopted, adapted or abandoned and what the next cycle will test',
+                   'qualify': 'The evidence does not establish what was decided after the cycle, so the action is '
+                              'described rather than confirmed.',
+                   'short': 'Without an act, a cycle ends where it began and the same test is run again next month.'},
+           'do': {
+                  'analysis': 'Doing the test means carrying it out as planned on a small scale, and recording what '
+                              'happened as it happened rather than reconstructing it afterwards. The relevant '
+                              'question is whether the evidence shows the test as it was actually run, including the '
+                              'parts that were altered on the way.',
+                  'probe': 'state how the test was run and what changed while it was running',
+                  'qualify': 'The evidence does not establish how the test was run, so the cycle is described rather '
+                             'than confirmed.',
+                  'short': 'A test that is quietly changed on the day is no longer the test that was planned.'},
+           'plan': {
+                    'analysis': 'Planning a test means writing down what will be changed, what will be measured, what '
+                                'result would count as an improvement and how long the test will run. A test with no '
+                                'stated expectation cannot be learned from, because any result can be read as '
+                                'success. The relevant question is whether the evidence shows the prediction that was '
+                                'made before the test began.',
+                    'probe': 'state what was to be changed, what was to be measured and what result was expected',
+                    'qualify': 'The evidence does not establish the prediction that was set before the test, so the '
+                               'cycle is described rather than judged.',
+                    'short': 'A test without a prediction before it starts cannot fail, and a test that cannot fail '
+                             'teaches nothing.'},
+           'study': {
+                     'analysis': 'Studying the results means comparing what happened with what was predicted, and '
+                                 'deciding whether the difference is the test or something else. The relevant '
+                                 'question is whether the evidence shows the comparison and whether the measures were '
+                                 'complete enough to support it.',
+                     'probe': 'state what was measured, what the prediction was and what the comparison shows',
+                     'qualify': 'The evidence does not establish the comparison or whether the measures were '
+                                'adequate, so the learning is described rather than claimed.',
+                     'short': 'A study that cannot tell a real result from a busy week is a record, not a learning.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The test and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'PDSA',
              'implications': 'Implications for the decision',
@@ -4627,7 +4738,7 @@ PDSA = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'quality',
+ 'subject': 'people',
  'template': 'template_pdsa',
  'title_prefix': 'PDSA Cycle Analysis',
  'unit': {'field': 'process',
@@ -4663,7 +4774,7 @@ DMAIC = {'assumption': 'probe',
              'label': 'Define',
              'probe': 'state the evidence for the problem definition',
              'prompt': 'The problem, the scope and the goal of the improvement',
-             'queries': ['defining the problem and scope for improvement in this industry']},
+             'queries': ['defining the problem and scope for improvement']},
             {'category': None,
              'cues': 'measure baseline current performance data',
              'fill': 'research',
@@ -4671,7 +4782,7 @@ DMAIC = {'assumption': 'probe',
              'label': 'Measure',
              'probe': 'state the evidence for the measurement',
              'prompt': 'The baseline, the current performance and the data collected',
-             'queries': ['measuring baseline and current performance in this industry']},
+             'queries': ['measuring baseline and current performance']},
             {'category': None,
              'cues': 'analyze root cause evidence',
              'fill': 'research',
@@ -4679,7 +4790,7 @@ DMAIC = {'assumption': 'probe',
              'label': 'Analyze',
              'probe': 'state the evidence for the analysis',
              'prompt': 'The root causes and the evidence behind them',
-             'queries': ['analyzing root causes in this industry']},
+             'queries': ['analyzing root causes']},
             {'category': None,
              'cues': 'improve changes tested results',
              'fill': 'research',
@@ -4687,7 +4798,7 @@ DMAIC = {'assumption': 'probe',
              'label': 'Improve',
              'probe': 'state the evidence for the improvement',
              'prompt': 'The changes tested and the results they produced',
-             'queries': ['improving and testing changes in this industry']},
+             'queries': ['improving and testing changes']},
             {'category': None,
              'cues': 'control sustain hold improvement',
              'fill': 'research',
@@ -4695,42 +4806,62 @@ DMAIC = {'assumption': 'probe',
              'label': 'Control',
              'probe': 'state the evidence for control',
              'prompt': 'How the improvement is held in place going forward',
-             'queries': ['controlling and sustaining improvement in this industry']}],
+             'queries': ['controlling and sustaining improvement']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'dmaic',
  'label': 'DMAIC',
- 'notes': {'analyze': {'analysis': 'Analyze means the root causes and the evidence behind them. The relevant question '
-                                   'is whether the evidence shows them.',
-                       'probe': 'state the evidence for the analysis',
-                       'qualify': 'The evidence does not establish the causes, so they are described rather than '
-                                  'measured.',
-                       'short': 'An improvement without analysis is a guess, not a fix.'},
-           'control': {'analysis': 'Control means how the improvement is held in place going forward. The relevant '
-                                   'question is whether the evidence shows it.',
-                       'probe': 'state the evidence for control',
-                       'qualify': 'The evidence does not establish the control, so it is described rather than '
-                                  'measured.',
-                       'short': 'An improvement without control will drift back to the old way.'},
-           'define': {'analysis': 'Define means the problem, the scope and the goal of the improvement. The relevant '
-                                  'question is whether the evidence shows them.',
-                      'probe': 'state the evidence for the problem definition',
-                      'qualify': 'The evidence does not establish the problem, so it is described rather than '
-                                 'measured.',
-                      'short': 'An improvement without a defined problem is a solution looking for a question.'},
-           'improve': {'analysis': 'Improve means the changes tested and the results they produced. The relevant '
-                                   'question is whether the evidence shows them.',
-                       'probe': 'state the evidence for the improvement',
-                       'qualify': 'The evidence does not establish the results, so the changes are described rather '
-                                  'than measured.',
-                       'short': 'An improvement without results is a plan, not an outcome.'},
-           'measure': {'analysis': 'Measure means the baseline, the current performance and the data collected. The '
-                                   'relevant question is whether the evidence shows them.',
-                       'probe': 'state the evidence for the measurement',
-                       'qualify': 'The evidence does not establish the baseline, so it is described rather than '
-                                  'measured.',
-                       'short': 'An improvement without a baseline cannot show progress.'}},
+ 'notes': {
+           'analyze': {
+                       'analysis': 'Analyzing means finding the cause behind the measurement, by separating what the '
+                                   'data shows from what is assumed about it. The relevant question is whether the '
+                                   'evidence shows the root cause and the reasoning that connects it to the '
+                                   'measurement.',
+                       'probe': 'state what causes the measured result and what evidence connects the cause to it',
+                       'qualify': 'The evidence does not establish the cause, so the analysis is described rather '
+                                  'than concluded.',
+                       'short': 'A cause that cannot explain the measurement is a story about the measurement.'},
+           'control': {
+                       'analysis': 'Controlling means putting the improved process in place and holding it: the '
+                                   'measures that watch it, the standard it is held to and the person who acts when '
+                                   'it drifts. The relevant question is whether the evidence shows what will hold the '
+                                   'improvement once the team has moved on.',
+                       'probe': 'state the measure, the standard and who acts when it drifts',
+                       'qualify': 'The evidence does not establish the control measures or who acts on them, so the '
+                                  'control is described rather than confirmed.',
+                       'short': 'An improvement without a control is a change that only lasts while the team is '
+                                'watching it.'},
+           'define': {
+                      'analysis': 'Defining the problem means stating what is wrong, where it is wrong, how big it is '
+                                  'and who it affects, and setting the boundary of the improvement. A problem stated '
+                                  'as a solution in disguise carries its own assumptions into every later step. The '
+                                  'relevant question is whether the evidence shows the problem as it has been stated.',
+                      'probe': 'state what is wrong, where, how much and for whom',
+                      'qualify': 'The evidence does not establish the problem or its boundary, so the cycle is '
+                                 'described rather than asserted.',
+                      'short': 'A problem written as a solution cannot be improved, only implemented.'},
+           'improve': {
+                       'analysis': 'Improving means designing and testing the change that addresses the cause, and '
+                                   'choosing between options on evidence rather than preference. The relevant '
+                                   'question is whether the evidence shows the options considered and the reasons for '
+                                   'the one chosen.',
+                       'probe': 'state the options considered and the evidence behind the one chosen',
+                       'qualify': 'The evidence does not establish the options considered, so the improvement is '
+                                  'described rather than defended.',
+                       'short': 'The strongest option is often the one that was tried, and the weakest the one that '
+                                'was.'},
+           'measure': {
+                       'analysis': 'Measuring means establishing what happens now, in a form that can be compared '
+                                   'later: the baseline, the definition of the measure and the conditions under which '
+                                   'it was taken. The relevant question is whether the evidence shows the baseline '
+                                   'and the measure it was taken from.',
+                       'probe': 'state the baseline, the measure and the conditions it was taken under',
+                       'qualify': 'The evidence does not establish the baseline or how it was measured, so the cycle '
+                                  'is described rather than quantified.',
+                       'short': 'An improvement measured against a baseline that was never recorded cannot be '
+                                'demonstrated.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The process and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'DMAIC',
              'implications': 'Implications for the decision',
@@ -4740,7 +4871,7 @@ DMAIC = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'quality',
+ 'subject': 'people',
  'template': 'template_dmaic',
  'title_prefix': 'DMAIC Analysis',
  'unit': {'field': 'process',
@@ -5144,7 +5275,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Strategy',
              'probe': 'state the evidence for strategy',
              'prompt': 'The plan for competing',
-             'queries': ['strategy and competitive choices in this industry']},
+             'queries': ['strategy and competitive choices']},
             {'category': None,
              'cues': 'structure organization reporting',
              'fill': 'research',
@@ -5152,7 +5283,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Structure',
              'probe': 'state the evidence for structure',
              'prompt': 'How the firm is organized',
-             'queries': ['organizational structure in this industry']},
+             'queries': ['organizational structure']},
             {'category': None,
              'cues': 'systems processes routines',
              'fill': 'research',
@@ -5160,7 +5291,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Systems',
              'probe': 'state the evidence for systems',
              'prompt': 'The processes and routines that run the firm',
-             'queries': ['systems and processes in this industry']},
+             'queries': ['systems and processes']},
             {'category': None,
              'cues': 'shared values culture core',
              'fill': 'research',
@@ -5168,7 +5299,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Shared Values',
              'probe': 'state the evidence for shared values',
              'prompt': 'The core values and culture',
-             'queries': ['shared values and culture in this industry']},
+             'queries': ['shared values and culture']},
             {'category': None,
              'cues': 'style leadership decisions',
              'fill': 'research',
@@ -5176,7 +5307,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Style',
              'probe': 'state the evidence for style',
              'prompt': 'The leadership style and how decisions are made',
-             'queries': ['leadership style and decision making in this industry']},
+             'queries': ['leadership style and decision making']},
             {'category': None,
              'cues': 'staff people skills development',
              'fill': 'research',
@@ -5184,7 +5315,7 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Staff',
              'probe': 'state the evidence for staff',
              'prompt': 'The people, their skills and how they are developed',
-             'queries': ['staff and skills development in this industry']},
+             'queries': ['staff and skills development']},
             {'category': None,
              'cues': 'skills capabilities distinctive',
              'fill': 'research',
@@ -5192,54 +5323,86 @@ MCKINSEY_7S = {'assumption': 'probe',
              'label': 'Skills',
              'probe': 'state the evidence for skills',
              'prompt': 'The distinctive capabilities the firm possesses',
-             'queries': ['distinctive skills and capabilities in this industry']}],
+             'queries': ['distinctive skills and capabilities']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'mckinsey_7s',
  'label': 'McKinsey 7S',
- 'notes': {'shared_values': {'analysis': 'This element describes an aspect of the firm. The relevant question is '
-                                         'whether the evidence shows it.',
-                             'probe': 'state the evidence for this element',
-                             'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                        'measured.',
-                             'short': 'An element without evidence is a claim without support.'},
-           'skills': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether the '
-                                  'evidence shows it.',
-                      'probe': 'state the evidence for this element',
-                      'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                 'measured.',
-                      'short': 'An element without evidence is a claim without support.'},
-           'staff': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether the '
-                                 'evidence shows it.',
-                     'probe': 'state the evidence for this element',
-                     'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                'measured.',
-                     'short': 'An element without evidence is a claim without support.'},
-           'strategy': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether '
-                                    'the evidence shows it.',
-                        'probe': 'state the evidence for this element',
-                        'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                   'measured.',
-                        'short': 'An element without evidence is a claim without support.'},
-           'structure': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether '
-                                     'the evidence shows it.',
-                         'probe': 'state the evidence for this element',
-                         'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                    'measured.',
-                         'short': 'An element without evidence is a claim without support.'},
-           'style': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether the '
-                                 'evidence shows it.',
-                     'probe': 'state the evidence for this element',
-                     'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                'measured.',
-                     'short': 'An element without evidence is a claim without support.'},
-           'systems': {'analysis': 'This element describes an aspect of the firm. The relevant question is whether the '
-                                   'evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'}},
+ 'notes': {
+           'shared_values': {
+                             'analysis': 'Shared values are the beliefs the organisation treats as settled: what '
+                                         'counts as good work, what is not negotiable and what its people believe the '
+                                         'organisation is for. They decide which changes are read as improvements and '
+                                         'which are read as violations. The relevant question is whether the evidence '
+                                         'shows the change being accepted by those values or resisted by them.',
+                             'probe': 'state the values the change has to live with and the evidence that they hold',
+                             'qualify': 'The evidence does not establish what the people of the organisation believe, '
+                                        'so alignment is described rather than judged.',
+                             'short': 'A change that contradicts what the organisation believes is good work will be '
+                                      'corrected quietly, without argument.'},
+           'skills': {
+                      'analysis': 'Skills are the capabilities the organisation actually has, as distinct from the '
+                                  'ones the strategy requires. It is the element that most often exposes the gap a '
+                                  'strategy has been written across. The relevant question is whether the evidence '
+                                  'shows the capability the change needs in the hands of the people who will carry '
+                                  'it.',
+                      'probe': 'state the capability the change requires and the evidence of what the people can do',
+                      'qualify': 'The evidence does not establish what the people can do, so alignment is described '
+                                 'rather than judged.',
+                      'short': 'A strategy that assumes a capability the organisation does not have will be '
+                               'implemented by people learning it under pressure.'},
+           'staff': {
+                     'analysis': 'Staff is the make-up of the organisation: the people in it, the roles they fill and '
+                                 'the way the organisation recruits, deploys and moves them. The relevant question is '
+                                 'whether the evidence shows the people who will carry the change, and whether the '
+                                 'change gives them a reason to stay.',
+                     'probe': 'state who works here, in what roles, and what the change asks of them',
+                     'qualify': 'The evidence does not establish who works here or on what terms, so alignment is '
+                                'described rather than judged.',
+                     'short': 'A change that depends on a group the organisation is losing will be carried by fewer '
+                              'people than the plan assumes.'},
+           'strategy': {
+                        'analysis': 'Strategy is the set of choices the organisation has made about where to compete '
+                                    'and how, and the first question is whether the evidence shows the change serving '
+                                    'those choices rather than a different set. A change that is not tied to the '
+                                    'choices already made has no test of whether it worked. The relevant question is '
+                                    'whether the alignment is visible in the evidence.',
+                        'probe': 'state the choices the change is meant to serve and the evidence for them',
+                        'qualify': 'The evidence does not establish which choices the organisation has made, so '
+                                   'alignment is described rather than judged.',
+                        'short': 'A change that cannot be traced to a choice cannot be assessed against one.'},
+           'structure': {
+                         'analysis': 'Structure is the arrangement of authority, work and accountability that people '
+                                     'work within. The relevant question is whether the evidence shows the structure '
+                                     'carrying the strategy or working against it, because a well-conceived change '
+                                     'implemented through a structure that does not support it will not take. The '
+                                     'relevant question is therefore whether the structure supports the change.',
+                         'probe': 'state how the work is organised and what that arrangement does to the change',
+                         'qualify': 'The evidence does not establish how the work is organised, so alignment is '
+                                    'described rather than judged.',
+                         'short': 'A change routed through a structure that was not designed for it will be reshaped '
+                                  'by the structure.'},
+           'style': {
+                     'analysis': 'Style is the leadership behaviour that sets the norms people work to: how decisions '
+                                 'are made, how much is delegated and what is tolerated. It is the element least '
+                                 'written down and most often decisive. The relevant question is whether the evidence '
+                                 'shows the leadership behaviour the change depends on.',
+                     'probe': 'state how leaders behave and what the change requires of them',
+                     'qualify': 'The evidence does not establish how decisions are actually made here, so alignment '
+                                'is described rather than judged.',
+                     'short': 'A change that needs leaders to behave differently will be delivered by leaders who '
+                              'behave as they always have.'},
+           'systems': {
+                       'analysis': 'Systems are the formal routines, measures, controls and information flows that '
+                                   'tell people what to do and what counts as good work. They are what makes a '
+                                   'practice repeatable rather than dependent on particular people. The relevant '
+                                   'question is whether the evidence shows the systems that will carry the change.',
+                       'probe': 'state the systems, measures and controls that will carry the change',
+                       'qualify': 'The evidence does not establish what the systems are or what they measure, so '
+                                  'alignment is described rather than judged.',
+                       'short': 'A new practice that the systems do not measure is a practice nobody can be held to.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The organisation and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'McKinsey 7S',
              'implications': 'Implications for the decision',
@@ -5250,7 +5413,7 @@ MCKINSEY_7S = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'management',
+ 'subject': 'people',
  'template': 'template_mckinsey_7s',
  'title_prefix': 'McKinsey 7S Analysis',
  'unit': {'field': 'process',
@@ -5510,7 +5673,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'External Environment',
              'probe': 'state the evidence for the external environment',
              'prompt': 'The external forces that shape the organisation',
-             'queries': ['external environment and forces shaping the organisation in this industry']},
+             'queries': ['external environment and forces shaping the organisation']},
             {'category': None,
              'cues': 'mission strategy goals',
              'fill': 'research',
@@ -5518,7 +5681,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Mission and Strategy',
              'probe': 'state the evidence for mission and strategy',
              'prompt': 'What the organisation is trying to achieve and how',
-             'queries': ['mission and strategy in this industry']},
+             'queries': ['mission and strategy']},
             {'category': None,
              'cues': 'leadership style behaviour',
              'fill': 'research',
@@ -5526,7 +5689,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Leadership',
              'probe': 'state the evidence for leadership',
              'prompt': 'The style and behaviour of those who lead',
-             'queries': ['leadership style and behaviour in this industry']},
+             'queries': ['leadership style and behaviour']},
             {'category': None,
              'cues': 'culture values beliefs assumptions',
              'fill': 'research',
@@ -5534,7 +5697,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Culture',
              'probe': 'state the evidence for culture',
              'prompt': 'The shared values, beliefs and assumptions',
-             'queries': ['culture and values in this industry']},
+             'queries': ['culture and values']},
             {'category': None,
              'cues': 'structure organisation authority',
              'fill': 'research',
@@ -5542,7 +5705,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Structure',
              'probe': 'state the evidence for structure',
              'prompt': 'How work is organised and authority is distributed',
-             'queries': ['organisational structure in this industry']},
+             'queries': ['organisational structure']},
             {'category': None,
              'cues': 'management practices behaviour systems',
              'fill': 'research',
@@ -5550,7 +5713,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Management Practices',
              'probe': 'state the evidence for management practices',
              'prompt': 'How managers actually behave and the systems they use',
-             'queries': ['management practices in this industry']},
+             'queries': ['management practices']},
             {'category': None,
              'cues': 'systems policies procedures rewards',
              'fill': 'research',
@@ -5558,7 +5721,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Systems and Policies',
              'probe': 'state the evidence for systems',
              'prompt': 'The formal procedures, policies and reward systems',
-             'queries': ['systems and policies in this industry']},
+             'queries': ['systems and policies']},
             {'category': None,
              'cues': 'work unit climate morale atmosphere',
              'fill': 'research',
@@ -5566,7 +5729,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Work Unit Climate',
              'probe': 'state the evidence for work unit climate',
              'prompt': 'The atmosphere and morale within teams',
-             'queries': ['work unit climate and morale in this industry']},
+             'queries': ['work unit climate and morale']},
             {'category': None,
              'cues': 'task skills abilities motivation',
              'fill': 'research',
@@ -5574,7 +5737,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Task and Individual Skills',
              'probe': 'state the evidence for task requirements',
              'prompt': 'The skills, abilities and motivation of individuals',
-             'queries': ['task requirements and individual skills in this industry']},
+             'queries': ['task requirements and individual skills']},
             {'category': None,
              'cues': 'motivation drivers performance',
              'fill': 'research',
@@ -5582,7 +5745,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Motivation',
              'probe': 'state the evidence for motivation',
              'prompt': 'What drives people to perform',
-             'queries': ['motivation and drivers of performance in this industry']},
+             'queries': ['motivation and drivers of performance']},
             {'category': None,
              'cues': 'individual needs values wants',
              'fill': 'research',
@@ -5590,7 +5753,7 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Individual Needs and Values',
              'probe': 'state the evidence for individual values',
              'prompt': 'What individuals want and value',
-             'queries': ['individual needs and values in this industry']},
+             'queries': ['individual needs and values']},
             {'category': None,
              'cues': 'performance results outcomes',
              'fill': 'research',
@@ -5598,84 +5761,146 @@ BURKE_LITWIN = {'assumption': 'probe',
              'label': 'Individual and Organisational Performance',
              'probe': 'state the evidence for performance',
              'prompt': 'The results the organisation achieves',
-             'queries': ['performance and results in this industry']}],
+             'queries': ['performance and results']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'burke_litwin',
  'label': 'Burke-Litwin',
- 'notes': {'culture': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                   'whether the evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'},
-           'external_environment': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                                'question is whether the evidence shows it.',
-                                    'probe': 'state the evidence for this element',
-                                    'qualify': 'The evidence does not establish this element, so it is described '
-                                               'rather than measured.',
-                                    'short': 'An element without evidence is a claim without support.'},
-           'individual_values': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                             'question is whether the evidence shows it.',
-                                 'probe': 'state the evidence for this element',
-                                 'qualify': 'The evidence does not establish this element, so it is described rather '
-                                            'than measured.',
-                                 'short': 'An element without evidence is a claim without support.'},
-           'leadership': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                      'whether the evidence shows it.',
-                          'probe': 'state the evidence for this element',
-                          'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                     'measured.',
-                          'short': 'An element without evidence is a claim without support.'},
-           'management_practices': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                                'question is whether the evidence shows it.',
-                                    'probe': 'state the evidence for this element',
-                                    'qualify': 'The evidence does not establish this element, so it is described '
-                                               'rather than measured.',
-                                    'short': 'An element without evidence is a claim without support.'},
-           'mission_strategy': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                            'question is whether the evidence shows it.',
-                                'probe': 'state the evidence for this element',
-                                'qualify': 'The evidence does not establish this element, so it is described rather '
-                                           'than measured.',
-                                'short': 'An element without evidence is a claim without support.'},
-           'motivation': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                      'whether the evidence shows it.',
-                          'probe': 'state the evidence for this element',
-                          'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                     'measured.',
-                          'short': 'An element without evidence is a claim without support.'},
-           'performance': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                       'whether the evidence shows it.',
-                           'probe': 'state the evidence for this element',
-                           'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                      'measured.',
-                           'short': 'An element without evidence is a claim without support.'},
-           'structure': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                     'whether the evidence shows it.',
-                         'probe': 'state the evidence for this element',
-                         'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                    'measured.',
-                         'short': 'An element without evidence is a claim without support.'},
-           'systems': {'analysis': 'This element describes an aspect of the organisation. The relevant question is '
-                                   'whether the evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'},
-           'task_requirements': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                             'question is whether the evidence shows it.',
-                                 'probe': 'state the evidence for this element',
-                                 'qualify': 'The evidence does not establish this element, so it is described rather '
-                                            'than measured.',
-                                 'short': 'An element without evidence is a claim without support.'},
-           'work_unit_climate': {'analysis': 'This element describes an aspect of the organisation. The relevant '
-                                             'question is whether the evidence shows it.',
-                                 'probe': 'state the evidence for this element',
-                                 'qualify': 'The evidence does not establish this element, so it is described rather '
-                                            'than measured.',
-                                 'short': 'An element without evidence is a claim without support.'}},
+ 'notes': {
+           'culture': {
+                       'analysis': 'Culture is the shared set of assumptions, values and norms that determine how '
+                                   'members of the organisation think and act. It shapes what is considered normal '
+                                   'and what is treated as deviation. The relevant question is whether the evidence '
+                                   'shows the culture as it is practised rather than as it is described.',
+                       'probe': 'state the norms that are actually followed and the evidence for them',
+                       'qualify': 'The evidence does not establish what the culture is in practice, so the diagnosis '
+                                  'is described rather than judged.',
+                       'short': 'The stated culture and the practised culture are often two different things, and '
+                                'only one of them produces results.'},
+           'external_environment': {
+                                    'analysis': 'The external environment is the set of pressures the organisation '
+                                                'does not control: the demand it serves, the rules it must meet, the '
+                                                'technology available to it and the expectations of those it answers '
+                                                'to. It is where change usually begins. The relevant question is '
+                                                'whether the evidence shows the pressures acting on this organisation '
+                                                'now.',
+                                    'probe': 'state the external pressures acting on this organisation and the '
+                                             'evidence for them',
+                                    'qualify': 'The evidence does not establish the pressures acting here, so the '
+                                               'diagnosis is described rather than asserted.',
+                                    'short': 'A change that answers a pressure the organisation does not face will '
+                                             'not be sustained by the urgency it was given.'},
+           'individual_values': {
+                                 'analysis': 'Individual needs and values are what each person brings and needs: '
+                                             'their own commitments, the reward they value and the balance they '
+                                             'strike between work and the rest of it. The relevant question is '
+                                             'whether the evidence shows how the change bears on what the people '
+                                             'affected value.',
+                                 'probe': 'state what the people affected value and what the change asks of them',
+                                 'qualify': 'The evidence does not establish what the individuals involved value, so '
+                                            'the diagnosis is described rather than judged.',
+                                 'short': 'A change that asks for a sacrifice nobody agreed to will be resisted '
+                                          'without argument.'},
+           'leadership': {
+                          'analysis': 'Leadership is the direction and climate set at the top of the organisation: '
+                                      'the priorities it endorses, the standards it applies and the example it sets. '
+                                      'In the model it is the connector between the external environment and the '
+                                      'internal system, because a strategy reaches the rest of the organisation only '
+                                      'through it. The relevant question is whether the evidence shows leadership '
+                                      'providing the direction the change depends on.',
+                          'probe': 'state what the leadership has prioritised and what it has modelled',
+                          'qualify': 'The evidence does not establish what leadership has actually endorsed, so the '
+                                     'diagnosis is described rather than judged.',
+                          'short': 'A strategy that the leadership does not carry personally reaches the organisation '
+                                   'as a document.'},
+           'management_practices': {
+                                    'analysis': 'Management practices are the routines by which managers plan, '
+                                                'monitor, coach and evaluate the work of their teams. They are the '
+                                                'mechanism through which a strategy becomes routine performance. The '
+                                                'relevant question is whether the evidence shows the practices that '
+                                                'will carry the change.',
+                                    'probe': 'state how managers plan, monitor and evaluate the work of their teams',
+                                    'qualify': 'The evidence does not establish how managers actually work here, so '
+                                               'the diagnosis is described rather than judged.',
+                                    'short': 'A strategy that reaches the work only through managers is only as '
+                                             'strong as those managers\' practice.'},
+           'mission_strategy': {
+                                'analysis': 'Mission and strategy are the organisation\'s statement of what it exists '
+                                            'to do and the choices it has made about how. In the model they sit '
+                                            'between the environment and the internal parts, because they are where '
+                                            'an external pressure is converted into a plan. The relevant question is '
+                                            'whether the evidence shows a mission and strategy that answer the '
+                                            'pressures identified.',
+                                'probe': 'state what the organisation exists to do and the choices it has made',
+                                'qualify': 'The evidence does not establish what the organisation has committed to, '
+                                           'so the diagnosis is described rather than judged.',
+                                'short': 'An organisation with a clear mission and no strategy has described the '
+                                         'purpose without answering the pressure.'},
+           'motivation': {
+                          'analysis': 'Motivation is the willingness to apply effort beyond what the role requires. '
+                                      'In the model it is where a performance gap is usually located. The relevant '
+                                      'question is whether the evidence shows what the people affected see in the '
+                                      'change.',
+                          'probe': 'state what the people affected gain or lose from the change',
+                          'qualify': 'The evidence does not establish what people are willing to give, so the '
+                                     'diagnosis is described rather than judged.',
+                          'short': 'People give more than they are asked for when they believe it is worth something '
+                                   'to them.'},
+           'performance': {
+                           'analysis': 'Individual and organisational performance is the outcome the model is trying '
+                                       'to explain: the results the organisation and its people produce. It is the '
+                                       'point at which the diagnosis is tested, because a model that cannot account '
+                                       'for the performance has not explained anything. The relevant question is '
+                                       'whether the evidence shows the performance and how it is measured.',
+                           'probe': 'state the performance and the measure it is read from',
+                           'qualify': 'The evidence does not establish the performance or how it is measured, so the '
+                                      'diagnosis is described rather than asserted.',
+                           'short': 'Performance is the only part of the model that is not an explanation; it is what '
+                                    'the explanation has to answer for.'},
+           'structure': {
+                         'analysis': 'Structure is the formal allocation of authority, roles and accountability. It '
+                                     'determines who decides, who carries out a decision and who is held to it. The '
+                                     'relevant question is whether the evidence shows the structure the strategy '
+                                     'needs, or a structure that works against it.',
+                         'probe': 'state who decides what and who carries it out',
+                         'qualify': 'The evidence does not establish how authority is allocated here, so the '
+                                    'diagnosis is described rather than judged.',
+                         'short': 'Where authority sits and where the work sits are rarely the same place, and the '
+                                  'gap is where change stalls.'},
+           'systems': {
+                       'analysis': 'Systems and policies are the formal structures of the organisation: the '
+                                   'procedures, rules, measures and information flows through which work is '
+                                   'controlled and coordinated. The relevant question is whether the evidence shows '
+                                   'the systems that will carry the change into everyday work.',
+                       'probe': 'state the procedures, rules and measures that govern the work',
+                       'qualify': 'The evidence does not establish what the systems require, so the diagnosis is '
+                                  'described rather than judged.',
+                       'short': 'A change that the systems do not measure is a change nobody can be held to.'},
+           'task_requirements': {
+                                 'analysis': 'Task requirements are the demands the work makes of the individual: the '
+                                             'skills, knowledge and effort the role needs and the standard it must '
+                                             'meet. The relevant question is whether the evidence shows what the work '
+                                             'now demands of the people doing it.',
+                                 'probe': 'state what the work demands of the people doing it',
+                                 'qualify': 'The evidence does not establish what the work demands here, so the '
+                                            'diagnosis is described rather than judged.',
+                                 'short': 'A change raises what the work demands of people without giving them the '
+                                          'means to meet it.'},
+           'work_unit_climate': {
+                                 'analysis': 'Work unit climate is the atmosphere of a particular unit: the trust, '
+                                             'the openness to raise problems and the sense of fairness within a '
+                                             'group, as distinct from the culture of the organisation as a whole. The '
+                                             'relevant question is whether the evidence shows a climate in which the '
+                                             'change can be discussed, because a change cannot be absorbed by a group '
+                                             'that will not say what is wrong.',
+                                 'probe': 'state how people in this unit talk about problems and whether they are '
+                                          'heard',
+                                 'qualify': 'The evidence does not establish the climate of this unit, so the '
+                                            'diagnosis is described rather than judged.',
+                                 'short': 'A change that cannot be questioned in the team where it lands will be '
+                                          'absorbed as compliance.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The organisation and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Burke-Litwin',
              'implications': 'Implications for the decision',
@@ -5686,7 +5911,7 @@ BURKE_LITWIN = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'change',
+ 'subject': 'people',
  'template': 'template_burke_litwin',
  'title_prefix': 'Burke-Litwin Analysis',
  'unit': {'field': 'process',
@@ -5723,7 +5948,7 @@ GALBRAITH_STAR = {'assumption': 'probe',
              'label': 'Strategy',
              'probe': 'state the evidence for strategy',
              'prompt': 'What the organisation is trying to achieve',
-             'queries': ['strategy and goals in this industry']},
+             'queries': ['strategy and goals']},
             {'category': None,
              'cues': 'structure organisation authority',
              'fill': 'research',
@@ -5731,7 +5956,7 @@ GALBRAITH_STAR = {'assumption': 'probe',
              'label': 'Structure',
              'probe': 'state the evidence for structure',
              'prompt': 'How work and authority are organised',
-             'queries': ['structure and organisation in this industry']},
+             'queries': ['structure and organisation']},
             {'category': None,
              'cues': 'processes decisions workflows',
              'fill': 'research',
@@ -5739,7 +5964,7 @@ GALBRAITH_STAR = {'assumption': 'probe',
              'label': 'Processes',
              'probe': 'state the evidence for processes',
              'prompt': 'How decisions are made and work flows',
-             'queries': ['processes and decision making in this industry']},
+             'queries': ['processes and decision making']},
             {'category': None,
              'cues': 'rewards pay incentives',
              'fill': 'research',
@@ -5747,7 +5972,7 @@ GALBRAITH_STAR = {'assumption': 'probe',
              'label': 'Rewards',
              'probe': 'state the evidence for rewards',
              'prompt': 'What the organisation pays people for',
-             'queries': ['rewards and incentives in this industry']},
+             'queries': ['rewards and incentives']},
             {'category': None,
              'cues': 'people skills mindsets capabilities',
              'fill': 'research',
@@ -5755,42 +5980,60 @@ GALBRAITH_STAR = {'assumption': 'probe',
              'label': 'People',
              'probe': 'state the evidence for people',
              'prompt': 'The skills, mindsets and capabilities needed',
-             'queries': ['people skills and capabilities in this industry']}],
+             'queries': ['people skills and capabilities']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'galbraith_star',
  'label': 'Galbraith Star',
- 'notes': {'people': {'analysis': 'This element describes an aspect of the star model. The relevant question is '
-                                  'whether the evidence shows it.',
-                      'probe': 'state the evidence for this element',
-                      'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                 'measured.',
-                      'short': 'An element without evidence is a claim without support.'},
-           'processes': {'analysis': 'This element describes an aspect of the star model. The relevant question is '
-                                     'whether the evidence shows it.',
-                         'probe': 'state the evidence for this element',
-                         'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                    'measured.',
-                         'short': 'An element without evidence is a claim without support.'},
-           'rewards': {'analysis': 'This element describes an aspect of the star model. The relevant question is '
-                                   'whether the evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'},
-           'strategy': {'analysis': 'This element describes an aspect of the star model. The relevant question is '
-                                    'whether the evidence shows it.',
-                        'probe': 'state the evidence for this element',
-                        'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                   'measured.',
-                        'short': 'An element without evidence is a claim without support.'},
-           'structure': {'analysis': 'This element describes an aspect of the star model. The relevant question is '
-                                     'whether the evidence shows it.',
-                         'probe': 'state the evidence for this element',
-                         'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                    'measured.',
-                         'short': 'An element without evidence is a claim without support.'}},
+ 'notes': {
+           'people': {
+                      'analysis': 'People is the capability the design rests on: the skills, roles, numbers and '
+                                  'experience the organisation has and needs. The relevant question is whether the '
+                                  'evidence shows the people who will make the design work.',
+                      'probe': 'state the skills, roles and experience the design needs and what exists',
+                      'qualify': 'The evidence does not establish what capability exists here, so alignment is '
+                                 'described rather than judged.',
+                      'short': 'A design that assumes a capability the organisation does not have will be reshaped by '
+                               'the people who do.'},
+           'processes': {
+                         'analysis': 'Processes are the routines that turn the strategy into work: how work is done, '
+                                     'handed on and controlled. The relevant question is whether the evidence shows '
+                                     'the processes that will deliver the strategy rather than preserve the old one.',
+                         'probe': 'state how the work is done, handed on and controlled',
+                         'qualify': 'The evidence does not establish how the work actually flows, so alignment is '
+                                    'described rather than judged.',
+                         'short': 'Most strategies fail in the process layer, where the daily routine quietly routes '
+                                  'around them.'},
+           'rewards': {
+                       'analysis': 'Rewards are the consequences the organisation attaches to behaviour: what is '
+                                   'paid, recognised, measured and praised. They tell people what the organisation '
+                                   'actually wants, which is often not what its strategy says. The relevant question '
+                                   'is whether the evidence shows what the design rewards people for.',
+                       'probe': 'state what people are paid, recognised and measured for',
+                       'qualify': 'The evidence does not establish what people are rewarded for, so alignment is '
+                                  'described rather than judged.',
+                       'short': 'People follow the reward, and the reward is the strategy the organisation actually '
+                                'has.'},
+           'strategy': {
+                        'analysis': 'Strategy is the direction the organisation has chosen, and the centre of the '
+                                    'star: every other element is judged by whether it serves it. The relevant '
+                                    'question is whether the evidence shows the choices the design has to serve.',
+                        'probe': 'state the direction the organisation has chosen and the evidence for it',
+                        'qualify': 'The evidence does not establish which choices the organisation has made, so '
+                                   'alignment is described rather than judged.',
+                        'short': 'An operating model designed around a strategy the organisation does not hold will '
+                                 'pull it back to the strategy it has.'},
+           'structure': {
+                         'analysis': 'Structure is the arrangement of roles, reporting lines and decision rights. The '
+                                     'relevant question is whether the evidence shows the structure carrying the '
+                                     'decisions the strategy needs.',
+                         'probe': 'state how roles, reporting lines and decisions are arranged',
+                         'qualify': 'The evidence does not establish how authority is arranged here, so alignment is '
+                                    'described rather than judged.',
+                         'short': 'A design that leaves the decisions where they already sit will be hollowed out by '
+                                  'the existing structure.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The organisation and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Galbraith Star',
              'implications': 'Implications for the decision',
@@ -5800,7 +6043,7 @@ GALBRAITH_STAR = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'management',
+ 'subject': 'people',
  'template': 'template_galbraith_star',
  'title_prefix': 'Galbraith Star Analysis',
  'unit': {'field': 'process',
@@ -5835,7 +6078,7 @@ MINTZBERG = {'assumption': 'probe',
              'label': 'Strategic Apex',
              'probe': 'state the evidence for the strategic apex',
              'prompt': 'Those who define the mission and strategy',
-             'queries': ['strategic apex and leadership in this industry']},
+             'queries': ['strategic apex and leadership']},
             {'category': None,
              'cues': 'middle line managers translate',
              'fill': 'research',
@@ -5843,7 +6086,7 @@ MINTZBERG = {'assumption': 'probe',
              'label': 'Middle Line',
              'probe': 'state the evidence for the middle line',
              'prompt': 'Those who translate strategy into action',
-             'queries': ['middle line management in this industry']},
+             'queries': ['middle line management']},
             {'category': None,
              'cues': 'operating core basic work',
              'fill': 'research',
@@ -5851,7 +6094,7 @@ MINTZBERG = {'assumption': 'probe',
              'label': 'Operating Core',
              'probe': 'state the evidence for the operating core',
              'prompt': 'Those who do the basic work of the organisation',
-             'queries': ['operating core and basic work in this industry']},
+             'queries': ['operating core and basic work']},
             {'category': None,
              'cues': 'technostructure design control',
              'fill': 'research',
@@ -5859,7 +6102,7 @@ MINTZBERG = {'assumption': 'probe',
              'label': 'Technostructure',
              'probe': 'state the evidence for the technostructure',
              'prompt': 'Those who design and control the work',
-             'queries': ['technostructure and work design in this industry']},
+             'queries': ['technostructure and work design']},
             {'category': None,
              'cues': 'support staff indirect support',
              'fill': 'research',
@@ -5867,42 +6110,73 @@ MINTZBERG = {'assumption': 'probe',
              'label': 'Support Staff',
              'probe': 'state the evidence for support staff',
              'prompt': 'Those who provide indirect support',
-             'queries': ['support staff and indirect support in this industry']}],
+             'queries': ['support staff and indirect support']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'mintzberg',
  'label': 'Mintzberg',
- 'notes': {'middle_line': {'analysis': 'This part of the organisation describes who does what. The relevant question '
-                                       'is whether the evidence shows it.',
-                           'probe': 'state the evidence for this part',
-                           'qualify': 'The evidence does not establish this part, so it is described rather than '
-                                      'measured.',
-                           'short': 'A part without evidence is a role without support.'},
-           'operating_core': {'analysis': 'This part of the organisation describes who does what. The relevant '
-                                          'question is whether the evidence shows it.',
-                              'probe': 'state the evidence for this part',
-                              'qualify': 'The evidence does not establish this part, so it is described rather than '
-                                         'measured.',
-                              'short': 'A part without evidence is a role without support.'},
-           'strategic_apex': {'analysis': 'This part of the organisation describes who does what. The relevant '
-                                          'question is whether the evidence shows it.',
-                              'probe': 'state the evidence for this part',
-                              'qualify': 'The evidence does not establish this part, so it is described rather than '
-                                         'measured.',
-                              'short': 'A part without evidence is a role without support.'},
-           'support_staff': {'analysis': 'This part of the organisation describes who does what. The relevant question '
-                                         'is whether the evidence shows it.',
-                             'probe': 'state the evidence for this part',
-                             'qualify': 'The evidence does not establish this part, so it is described rather than '
-                                        'measured.',
-                             'short': 'A part without evidence is a role without support.'},
-           'technostructure': {'analysis': 'This part of the organisation describes who does what. The relevant '
-                                           'question is whether the evidence shows it.',
-                               'probe': 'state the evidence for this part',
-                               'qualify': 'The evidence does not establish this part, so it is described rather than '
-                                          'measured.',
-                               'short': 'A part without evidence is a role without support.'}},
+ 'notes': {
+           'middle_line': {
+                           'analysis': 'The middle line is the chain of managers between the apex and the operating '
+                                       'core, and it exists to interpret the top\'s direction for the units below it. '
+                                       'Where that chain is long, the organisation coordinates through supervision; '
+                                       'where it is short, it coordinates through standardisation. The relevant '
+                                       'question is whether the evidence shows how many levels sit between the top '
+                                       'and the work.',
+                           'probe': 'state the levels between the top and the work and what each level decides',
+                           'qualify': 'The evidence does not establish how many levels exist here, so the '
+                                      'configuration is described rather than typed.',
+                           'short': 'The length of the line between the top and the work is the clearest clue to how '
+                                    'this organisation coordinates.'},
+           'operating_core': {
+                              'analysis': 'The operating core is the part of the organisation that carries out the '
+                                          'basic work the organisation exists to do. Its specialisation is the '
+                                          'strongest single clue to the configuration: a standardised, tightly '
+                                          'coupled operation and a professional one are built on different knowledge. '
+                                          'The relevant question is whether the evidence shows what the basic work is '
+                                          'and how specialised it is.',
+                              'probe': 'state what the basic work is and how specialised it is',
+                              'qualify': 'The evidence does not establish what the basic work is here, so the '
+                                         'configuration is described rather than typed.',
+                              'short': 'The basic work and its specialisation tell you more about how this '
+                                       'organisation is built than any stated strategy.'},
+           'strategic_apex': {
+                              'analysis': 'The strategic apex is the small group at the top of the organisation that '
+                                          'holds the overall direction and the decisions that commit the organisation '
+                                          'as a whole. Its size and composition are the clearest single clue to how '
+                                          'an organisation is actually configured. The relevant question is whether '
+                                          'the evidence shows who sits at the top and what they decide.',
+                              'probe': 'state who sits at the top and what decisions are taken there',
+                              'qualify': 'The evidence does not establish who holds the top decisions here, so the '
+                                         'configuration is described rather than typed.',
+                              'short': 'The size of the top tells you how much the organisation can decide at once, '
+                                       'and how much it must escalate.'},
+           'support_staff': {
+                             'analysis': 'The support staff are the parts of the organisation that serve the others '
+                                         'rather than carry out the basic work: finance, legal, estates, human '
+                                         'resources and the rest. Where they are large, the organisation is a '
+                                         'conglomerate of specialist units; where they are small, they are an '
+                                         'overhead on a single operation. The relevant question is whether the '
+                                         'evidence shows the support services and how large they are.',
+                             'probe': 'state what support services exist and how many people work in them',
+                             'qualify': 'The evidence does not establish what support exists here, so the '
+                                        'configuration is described rather than typed.',
+                             'short': 'The support services are where an organisation hides the cost of being an '
+                                      'organisation.'},
+           'technostructure': {
+                               'analysis': 'The technostructure is the part of the organisation that does not do the '
+                                           'basic work but shapes it: the systems, the methods, the standards and the '
+                                           'analysis that tell the others how the work is to be done. Where it is '
+                                           'strong, the organisation coordinates by standardisation rather than by '
+                                           'supervision. The relevant question is whether the evidence shows the '
+                                           'techniques that shape the work.',
+                               'probe': 'state who shapes the work and the standards and methods they use',
+                               'qualify': 'The evidence does not establish who shapes the work here, so the '
+                                          'configuration is described rather than typed.',
+                               'short': 'An organisation that has written down how the work is done coordinates '
+                                        'itself; one that has not coordinates through managers.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The organisation and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Mintzberg',
              'implications': 'Implications for the decision',
@@ -5913,7 +6187,7 @@ MINTZBERG = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'management',
+ 'subject': 'people',
  'template': 'template_mintzberg',
  'title_prefix': 'Mintzberg Analysis',
  'unit': {'field': 'process',
@@ -5950,7 +6224,7 @@ LOGIC_MODEL = {'assumption': 'probe',
              'label': 'Inputs',
              'probe': 'state the evidence for inputs',
              'prompt': 'The resources and conditions brought to the effort',
-             'queries': ['inputs and resources for change in this industry']},
+             'queries': ['inputs and resources for change']},
             {'category': None,
              'cues': 'activities actions interventions',
              'fill': 'research',
@@ -5958,7 +6232,7 @@ LOGIC_MODEL = {'assumption': 'probe',
              'label': 'Activities',
              'probe': 'state the evidence for activities',
              'prompt': 'The actions and interventions carried out',
-             'queries': ['activities and interventions in this industry']},
+             'queries': ['activities and interventions']},
             {'category': None,
              'cues': 'outputs products results',
              'fill': 'research',
@@ -5966,7 +6240,7 @@ LOGIC_MODEL = {'assumption': 'probe',
              'label': 'Outputs',
              'probe': 'state the evidence for outputs',
              'prompt': 'The direct products of the activities',
-             'queries': ['outputs and results in this industry']},
+             'queries': ['outputs and results']},
             {'category': None,
              'cues': 'outcomes results impact',
              'fill': 'research',
@@ -5974,36 +6248,67 @@ LOGIC_MODEL = {'assumption': 'probe',
              'label': 'Outcomes',
              'probe': 'state the evidence for outcomes',
              'prompt': 'The short, medium and long-term results achieved',
-             'queries': ['outcomes and impact in this industry']}],
+             'queries': ['outcomes and impact']},
+            {'category': None,
+             'cues': 'impact long term contribution legacy systems wellbeing sustainability',
+             'fill': 'research',
+             'key': 'impact',
+             'label': 'Impact',
+             'probe': 'state the long-term change contributed to and the time horizon claimed',
+             'prompt': 'The long-term change the programme is meant to contribute to',
+             'queries': ['impact and long term contribution of a programme']}],
  'gate': {'require_geography': False, 'title_context': False, 'title_cue': False},
  'key': 'logic_model',
  'label': 'Logic Model',
- 'notes': {'activities': {'analysis': 'This element describes a part of the logic model. The relevant question is '
-                                      'whether the evidence shows it.',
-                          'probe': 'state the evidence for this element',
-                          'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                     'measured.',
-                          'short': 'An element without evidence is a claim without support.'},
-           'inputs': {'analysis': 'This element describes a part of the logic model. The relevant question is whether '
-                                  'the evidence shows it.',
-                      'probe': 'state the evidence for this element',
-                      'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                 'measured.',
-                      'short': 'An element without evidence is a claim without support.'},
-           'outcomes': {'analysis': 'This element describes a part of the logic model. The relevant question is '
-                                    'whether the evidence shows it.',
-                        'probe': 'state the evidence for this element',
-                        'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                   'measured.',
-                        'short': 'An element without evidence is a claim without support.'},
-           'outputs': {'analysis': 'This element describes a part of the logic model. The relevant question is whether '
-                                   'the evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'}},
+ 'notes': {
+           'activities': {
+                          'analysis': 'Activities are the interventions the programme delivers. The relevant question '
+                                      'is whether the evidence shows what is delivered, to whom and with what '
+                                      'intensity, because intensity is what distinguishes one delivery from another.',
+                          'probe': 'state what is delivered, to whom and at what intensity',
+                          'qualify': 'The evidence does not establish what was delivered, so the model is described '
+                                     'rather than assumed.',
+                          'short': 'Two programmes can run the same activity and deliver very different things.'},
+           'impact': {
+                      'analysis': 'Impact is the long-term change the model is meant to contribute to, and the level '
+                                  'at which the programme cannot claim sole responsibility. The relevant question is '
+                                  'whether the evidence shows the contribution and the time horizon over which it is '
+                                  'claimed.',
+                      'probe': 'state the long-term change contributed to and the time horizon claimed',
+                      'qualify': 'The evidence does not establish the contribution to the wider change, so impact is '
+                                 'described rather than attributed.',
+                      'short': 'Impact is a contribution claimed over years; a programme that claims it as an outcome '
+                               'is claiming more than it can show.'},
+           'inputs': {
+                      'analysis': 'Inputs are the resources the programme commits: the people, the money, the time '
+                                  'and the premises. The relevant question is whether the evidence shows what the '
+                                  'programme commits and what it costs to commit it.',
+                      'probe': 'state what the programme commits and what it costs',
+                      'qualify': 'The evidence does not establish what the programme has committed, so the model is '
+                                 'described rather than costed.',
+                      'short': 'A model that begins with an input nobody has committed is a plan, not a logic.'},
+           'outcomes': {
+                        'analysis': 'Outcomes are the changes the outputs are intended to produce, and the point at '
+                                    'which the model must say who will change, in what way, over what period and how '
+                                    'that will be known. The relevant question is whether the evidence shows the '
+                                    'outcome and the measure that reads it.',
+                        'probe': 'state who will change in what way, over what period, and how that will be known',
+                        'qualify': 'The evidence does not establish the change in behaviour or wellbeing, so the '
+                                   'outcome is described rather than claimed.',
+                        'short': 'An outcome without a time horizon is a hope, not a measure.'},
+           'outputs': {
+                       'analysis': 'Outputs are the direct products of the activities: what the programme can count '
+                                   'as having delivered. The relevant question is whether the evidence shows the '
+                                   'outputs and the measure that counts them, and whether that measure was agreed '
+                                   'before delivery.',
+                       'probe': 'state what the activities produced and the measure that counts it',
+                       'qualify': 'The evidence does not establish what was produced, so the model is described '
+                                  'rather than reported.',
+                       'short': 'An output measured after the fact is a description; a measure agreed before delivery '
+                                'is a commitment.'}
+          },
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The programme and the decision',
              'discussion': 'What the evidence shows',
              'framework': 'Logic Model',
              'implications': 'Implications for the decision',
@@ -6013,7 +6318,7 @@ LOGIC_MODEL = {'assumption': 'probe',
  'providers': None,
  'ratings': False,
  'sites': None,
- 'subject': 'management',
+ 'subject': 'people',
  'template': 'template_logic_model',
  'title_prefix': 'Logic Model Analysis',
  'unit': {'field': 'process',

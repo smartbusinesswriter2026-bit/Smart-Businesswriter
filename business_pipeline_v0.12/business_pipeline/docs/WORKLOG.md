@@ -1,6 +1,83 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
+## 2026-11-02 — [design] Subject-by-subject paper validation: the harness design, and the rules that may be relaxed
+
+**Ask.** "The pipeline has too many features and very laborious for 1 person to validate. Investigate and propose a
+method or system on how I can automate the validation. What I require is that to have a complete paper for each
+feature where I will not manually test them feature by feature but rather subject by subject." Then, after the
+investigation: "Write them first in a handoff document named as you proposed so that future models can see them and
+this is easily discoverable. Make this a living document also allowing future improvement to the method, especially on
+relaxing some rules — some rules are counterproductive. Also, the model that should do this is OpenCode or
+OpenRouter, not the DeepSeek direct API, to save on cost."
+
+**Did.** Measured the surface: **364 distinct validation targets** (76 framework papers, 126 capability papers, 9
+conductor frameworks, 5 paper profiles, 148 compute-tool deliverables). Found that the production side already exists —
+`documents/` holds **1,781 generated `.docx` papers** from the test suite's own runs, but `paper_store.py:84` caps its
+index at 200 rows, so most of them have no durable record, nothing groups them by subject and nothing judges them.
+Proved both paper paths run unattended and in memory: Kano produced a 22,105-byte `.docx`; the conductor produced an
+18,784-byte PESTEL+NPV paper with the export gate returning `missing: []`. Found that **125 of 126 capabilities are
+already seedable from the existing `PRESETS`**, so no inputs need hand-writing. Found the blocker for "subject by
+subject": there is no single subject taxonomy — the subject pages use 11 names, the framework profiles use 7 (with
+`pestel` and `five_forces` carrying none), and the `subject` key is **empty for all 126 capabilities and all 158
+catalogue records**. Wrote [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md) as a living document: the
+three-layer architecture, a **20-rule registry** seeded from `CONDUCTOR_MANUAL.md` §4/§8 with each rule's status and
+its backing code, the **procedure for relaxing a counterproductive rule**, the subject crosswalk with its proposed
+defaults, the evidence-fixture plan, the output contract and the build order. Recorded the owner's model instruction
+and its consequence: OpenRouter is reachable today through the existing OpenAI-compatible provider with no code
+change, OpenCode is an agent harness rather than a provider, and **the harness needs no model at all** because the
+judgement layer is pure code over the deterministic Draft path.
+
+**Why it is built this way.** Three layers — produce, judge, roll up — because the owner's unit of review is the
+subject, not the feature: 31 of the 55 worksheets sit on two subject pages, so one paper serves both shelves. The
+judgement layer reuses the product's own functions (`paper.check`, `completion.missing`, `chat._recompute_guard`,
+`verify.overclaims`) so the harness cannot drift from the product's behaviour. The relaxation procedure is built on
+one principle — **relax the alarm, never the guarantee**: the harness's verdict is a report and downgrading a rule
+changes what the owner is shown, while the product's export gate stays untouched; a change to what the product asserts
+would be a computation-lane change and must be requested, not made here. The crosswalk lives in the harness's own
+`subject_map.json` rather than in `src/bp/product/capabilities.py`, so the whole proposal stays in the design lane
+(B-080) and touches no frozen module and no test.
+
+**State.** Nothing is built. The document is a proposal with its open questions listed in §12. Two findings are
+recorded for the owner rather than acted on: **22 of the 76 framework profiles are not reachable from any subject
+page**, and 12 profiles have a worksheet that is not marked `draftable`. The test baseline at the time of writing was
+**2553 tests → 84 failures + 12 errors**, the framework-completion slice being 566 tests → 55 failures + 7 errors;
+the dominant failure classes are already the paper rules the registry names (V-12 in ~11 frameworks, the prompt
+contract in ~13, the heading contract in ~5). No source file, frozen module, test or product document was changed.
+
+---
+
+## 2026-11-02 — [product] The People & organisation shelf: ten frameworks that said "no worksheet yet" now complete
+
+**Ask.** The People & organisation shelf listed ten change-and-organisation frameworks as read-only records and
+offered a student nothing to complete on them. Diagnose the gap, then make the ten into worksheets of the same
+kind the shelf already had.
+
+**Did.** The cause was a **stale committed catalogue slice**: `registry.TEMPLATE_LINKS` had already gained the
+ten links, so the engine could run every one of them, but `subjects.CATALOGUE` had been generated before that
+and still said `read_only` with no template - so the shelf, which is built from the catalogue, could not offer
+them. The catalogue rows for the ten now say `worksheet` and name their template; the People shelf lists them
+as worksheets and places each in the tile its catalogue record already had; the Management & strategy shelf
+lists them alongside the three change frameworks it already offered. Each of the ten gained a drafting schema
+and a profile to the People-shelf standard (subject `people`, unit `process`, researched parts, an
+interpretive note per part, an outline). Theory of Change and the Logic Model gained the **impact** part they
+were missing, and the chain of change gained **assumptions**. The eight frameworks the shelf already had
+gained worked examples, so every worksheet on the shelf runs and passes its own checks. The ten broken
+per-framework test modules were rewritten to the shelf's standard.
+
+**Why it is built this way.** The catalogue slice is generated data, so the fix was to regenerate it and
+correct the drift, not to hand-edit a shelf. Two things were left deliberately alone: the nineteen
+marketing and strategy rows whose templates have no drafting schema yet (offering them would put a button on
+a shelf that can only 422), and the corrupt registry slice, which was restored to the deterministic import of
+its authority catalogue because a double-encoded name is a defect and not a preference.
+
+**State.** The People shelf test module covers all eighteen frameworks and passes (39 tests). The ten
+per-framework modules pass (120 tests). Against a baseline worktree holding the state before this work, the
+full suite went from **195 failures and errors to 103**, with **no new failure**; the 19 catalogue rows named
+above are the one remaining disagreement between the slice and the registry, and they are recorded as an open
+issue rather than papered over. The frozen core was not touched, no number was invented and no test was
+weakened.
+
 ## 2026-11-01 — [design] Matrix figures: a grid framework reaches the paper as a grid (B-176)
 
 **Ask.** Eight matrix and canvas frameworks reached the Word paper as four or nine headings in a row, so a

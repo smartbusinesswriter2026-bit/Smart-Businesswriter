@@ -1,0 +1,1 @@
+{"code": "async () => {\n  const out = [];\n  for (const [path, methods] of Object.entries(spec.paths)) {\n    if (!/subscription|purchase|entitle/i.test(path)) continue;\n    for (const [method, op] of Object.entries(methods)) {\n      out.push({ method: method.toUpperCase(), path: path, summary: op?.summary, tags: op?.tags });\n    }\n  }\n  return out;\n}\n"}

@@ -1,9 +1,10 @@
-"""Burke-Litwin completion: growth options on a market, one cell at a time.
+"""Burke-Litwin completion: Burke-Litwin: the twelve elements one change passes through.
 
-The behaviour the Five Forces and PESTEL builds proved, applied to the Burke-Litwin
-Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+The behaviour the People & organisation shelf proves, applied to Burke-Litwin: the
+parts the framework names, each researched and each carrying a sourced item or a
+named gap, the unit of analysis named by the student, one paper, and a refusal
+rather than a thin paper.  The framework supplies the reading; the evidence is
+the student's and the engine never adds to it.
 """
 
 import unittest
@@ -14,19 +15,26 @@ sys.path.insert(0, "src")
 
 from bp.product import api, completion  # noqa: E402
 
-BRIEF = ("A healthcareer is reviewing growth options before deciding whether "
-         "to open a new store format or launch a private-label range.")
+TEMPLATE = "template_burke_litwin"
+LABEL = "Burke-Litwin"
 
-INDUSTRY = "healthcare"
+#: The unit of analysis is the thing the student names, never one the engine
+#: guesses: a organisation is not an industry.
+UNIT = "the campus catering team"
+
+#: The parts Burke-Litwin names, in the order the framework names them.
+BLOCKS = ["external_environment", "mission_strategy", "leadership", "culture", "structure", "management_practices", "systems", "work_unit_climate", "task_requirements", "motivation", "individual_values", "performance"]
+
+BRIEF = ("The campus catering team is not performing as it should and the cause has to be found before anything is changed.")
 
 
 def academic(query, databases=None, limit=10, year_from=None):
-    """A source whose title carries the query, so the cell gate can judge it."""
+    """A source whose title carries the query, so the block gate can judge it."""
     return {"results": [{
-        "title": "Grocery retail " + query[:70],
-        "abstract": "Evidence on the growth option named in the query. A second sentence follows it.",
+        "title": query[:70],
+        "abstract": "Evidence on the conditions named in the query. A second sentence follows it.",
         "authors": "Ada Lovelace", "authors_list": ["Ada Lovelace"], "year": 2024,
-        "venue": "Journal of Marketing", "doi": "10.1/" + str(abs(hash(query)) % 1000000),
+        "venue": "Journal of People Studies", "doi": "10.1/" + str(abs(hash(query)) % 1000000),
         "url": "https://doi.org/10.1/x", "database": "OpenAlex",
     }], "errors": [], "skipped": []}
 
@@ -35,27 +43,19 @@ def web(query, region="Global", limit=10, category=None, fast=False):
     return {"results": [], "notice": "Web search is not configured.", "sites": []}
 
 
-def blocks(result):
-    return {block["key"]: block for block in result["blocks"]}
-
-
 def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
-        return completion.complete("template_burke_litwin", kwargs.pop("instruction", BRIEF),
-                                   industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+        return completion.complete(TEMPLATE, kwargs.pop("instruction", BRIEF),
+                                   unit_value=kwargs.pop("unit", UNIT), **kwargs)
+
+
 class BurkeLitwinCompletionTest(unittest.TestCase):
-    def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
+    def test_every_part_carries_a_sourced_item_or_a_named_gap(self):
         result = complete()
-        self.assertEqual(result["template"], "template_burke_litwin")
-        self.assertEqual(result["framework"], "Burke-Litwin")
-        self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["external_environment", "mission_strategy",
-                          "leadership", "culture", "structure",
-                          "management_practices", "systems",
-                          "work_unit_climate", "task_requirements",
-                          "motivation", "individual_values",
-                          "performance"])
+        self.assertEqual(result["template"], TEMPLATE)
+        self.assertEqual(result["framework"], LABEL)
+        self.assertEqual([block["key"] for block in result["blocks"]], BLOCKS)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -63,103 +63,116 @@ class BurkeLitwinCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_unit_is_the_one_the_student_names(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "process")
+        self.assertEqual(result["unit"]["value"], UNIT)
+        self.assertTrue(result["blocks"][0]["query"].startswith(UNIT), result["blocks"][0]["query"])
 
-    def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
+    def test_a_brief_without_a_unit_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
-            complete(instruction="A firm is weighing growth options.", industry="")
-        self.assertIn("market", str(refused.exception).lower())
+            complete(unit="")
+        message = str(refused.exception)
+        self.assertIn("Name", message)
+        self.assertIn(UNIT, message)
 
-    def test_one_source_cannot_fill_two_cells(self):
-        result = complete()
-        sources = set()
-        for block in result["blocks"]:
-            for item in block["items"]:
-                if item.get("provenance") == "sourced":
-                    sources.add(item.get("source"))
-        self.assertEqual(len(sources), len(result["blocks"]))
+    def test_one_source_cannot_fill_two_parts(self):
+        """A single source that matches every part still fills one part only."""
+        def everything(query, databases=None, limit=10, year_from=None):
+            return {"results": [{
+                "title": UNIT + " " + " ".join(sorted({
+                    word for key in BLOCKS for word in key.split("_")})),
+                "abstract": "One source covers every part the framework names.",
+                "authors": "Ada Lovelace", "authors_list": ["Ada Lovelace"], "year": 2024,
+                "venue": "Journal", "doi": "10.1/same", "url": "https://doi.org/10.1/same",
+                "database": "OpenAlex"}], "errors": [], "skipped": []}
 
-    def test_no_source_run_fills_every_cell_with_background(self):
+        with mock.patch("bp.product.sources.search_academic", side_effect=everything), \
+                mock.patch("bp.product.sources.search_web", side_effect=web):
+            result = completion.complete(TEMPLATE, BRIEF, unit_value=UNIT)
+        sourced = [block for block in result["blocks"]
+                   if any(item["provenance"] == "sourced" for item in block["items"])]
+        self.assertEqual(len(sourced), 1, [block["key"] for block in sourced])
+
+    def test_a_no_source_run_fills_every_part_with_background(self):
         def empty_academic(query, databases=None, limit=10, year_from=None):
             return {"results": [], "errors": [], "skipped": []}
+
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_burke_litwin", BRIEF, industry=INDUSTRY)
+            result = completion.complete(TEMPLATE, BRIEF, unit_value=UNIT)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
-                self.assertEqual(item["provenance"], "background")
+                self.assertEqual(item["provenance"], "background", block["key"])
 
-    def test_outline_headings_are_present_and_title_cased(self):
-        profile = completion._profile("template_burke_litwin")
+    def test_the_outline_headings_are_present_and_title_cased(self):
+        profile = completion._profile(TEMPLATE)
         outline = profile["outline"]
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Burke-Litwin")
+        self.assertEqual(outline["framework"], LABEL)
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 
-    def test_byline_reaches_the_title_page(self):
+    def test_the_byline_reaches_the_title_page(self):
         result = dict(complete(), byline=["A Student", "Example University"])
         self.assertIn("byline", result)
         self.assertTrue(result["byline"])
 
-    def test_an_empty_cell_does_not_block_the_paper(self):
+    def test_an_empty_part_does_not_block_the_paper(self):
         result = complete()
         result["blocks"] = [block for block in result["blocks"]
-                            if block["key"] != "culture"]
-        result["blocks"].append({"key": "culture", "label": "Diversification",
+                            if block["key"] != BLOCKS[-1]]
+        result["blocks"].append({"key": BLOCKS[-1], "label": "Empty",
                                  "items": [], "gap": "No evidence."})
         self.assertEqual(completion.missing(result), [])
 
-    def test_the_route_generates_a_draft_with_an_empty_cell(self):
+    def test_the_route_generates_a_draft_with_an_empty_part(self):
         result = complete()
         result["blocks"] = [block for block in result["blocks"]
-                            if block["key"] != "leadership"]
-        result["blocks"].append({"key": "leadership", "label": "Product development",
+                            if block["key"] != BLOCKS[0]]
+        result["blocks"].append({"key": BLOCKS[0], "label": "Empty",
                                  "items": [], "gap": "No evidence."})
         status, payload = api.handle("POST", "/api/cases/frameworks/report",
                                      {"completion": result, "version": "draft"})
         self.assertEqual(status, 200, payload)
 
-    def test_the_route_returns_an_burke_litwin_completion(self):
+    def test_the_route_returns_a_completion(self):
         with mock.patch("bp.product.completion.complete") as fake:
             fake.return_value = {"format": "bp-framework-completion/1",
-                                 "template": "template_burke_litwin", "blocks": []}
+                                 "template": TEMPLATE, "blocks": []}
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
-                                         {"template": "template_burke_litwin",
+                                         {"template": TEMPLATE,
                                           "instruction": BRIEF,
-                                          "industry": INDUSTRY})
+                                          "unit": UNIT})
         self.assertEqual(status, 200)
-        self.assertEqual(payload["template"], "template_burke_litwin")
+        self.assertEqual(payload["template"], TEMPLATE)
 
-    def test_the_model_prompt_speaks_burke_litwin_and_keeps_the_safety_rules(self):
-        profile = dict(completion.LENGTHS["mid"])
-        system = completion._system(completion.HEAD_SYSTEM, profile,
-                                    completion._profile("template_burke_litwin"))
-        self.assertIn("Burke-Litwin", system)
-        self.assertNotIn("PESTEL", system)
+    def test_the_model_prompt_speaks_the_framework_and_keeps_the_safety_rules(self):
+        length_profile = dict(completion.LENGTHS["mid"])
+        system = completion._system(completion.HEAD_SYSTEM, length_profile,
+                                    completion._profile(TEMPLATE))
+        self.assertIn(LABEL, system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
-        self.assertIn("industry", system.lower())
+        self.assertIn("organisation", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
         facts = completion._facts([{
-            "key": "external_environment", "label": "Market penetration",
-            "items": [{"text": "A loyalty card lifts repeat visits.", "provenance": "user"}]}])
-        data = {"introduction": ["Burke-Litwin frames the decision for the market."], "context": [""],
-                "lead": "lead", "groups": {"external_environment": ["Market penetration matters."]},
+            "key": BLOCKS[0], "label": BLOCKS[0].replace("_", " ").title(),
+            "items": [{"text": "A short note about the case.", "provenance": "user"}]}])
+        data = {"introduction": ["Burke-Litwin frames the decision for this case."],
+                "context": [""], "lead": "lead",
+                "groups": {BLOCKS[0]: ["The first part matters here."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
-        allow = completion._allowed_names(completion._profile("template_burke_litwin"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
-        problems = completion._problems(data, facts, "A case in healthcare.", "short",
-                                        ["external_environment"], allow=allow)
-        self.assertFalse([p for p in problems if p.startswith("name Burke-Litwin")
-                          or p.startswith("name Growth") or p.startswith("name Matrix")], problems)
+        allow = completion._allowed_names(completion._profile(TEMPLATE),
+                                          {"unit": {"value": UNIT}, "region": "Global"})
+        problems = completion._problems(data, facts, "A case in this organisation.", "short",
+                                        [BLOCKS[0]], allow=allow)
+        self.assertFalse([p for p in problems
+                          if p.lower().startswith("name ") and LABEL.lower() in p.lower()],
+                         problems)
 
 
 if __name__ == "__main__":

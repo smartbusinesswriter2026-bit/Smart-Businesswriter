@@ -503,6 +503,7 @@ CANVAS_BLOCKS = {
         "activities": ("Activities", "The actions and interventions carried out"),
         "outputs": ("Outputs", "The direct products of the activities"),
         "outcomes": ("Outcomes", "The short, medium and long-term results achieved"),
+        "impact": ("Impact", "The long-term change the programme is meant to contribute to"),
     },
     "template_mckinsey_7s": {
         "strategy": ("Strategy", "The plan for competing and the choices that shape the firm"),
@@ -710,6 +711,8 @@ CANVAS_BLOCKS = {
         "activities": ("Activities", "The actions and interventions the change will carry out"),
         "outputs": ("Outputs", "The direct products of the activities, in expected quantity"),
         "outcomes": ("Outcomes", "The short, medium and long-term results the change aims to achieve"),
+        "impact": ("Impact", "The longer-term change the programme is intended to contribute to"),
+        "assumptions": ("Assumptions", "The conditions each link in the chain depends on"),
     },
 }
 
@@ -1024,9 +1027,9 @@ CANVAS_META = {
     },
     "template_logic_model": {
         "name": "Logic model with an evidence audit", "short": "logic model", "registry_ids": ["CHG-08"],
-        "intended_use": "Lay the inputs, activities, outputs and outcomes of one programme beside each other and audit the element the evidence cannot settle.",
+        "intended_use": "Lay the inputs, activities, outputs, outcomes and impact of one programme beside each other and audit the element the evidence cannot settle.",
         "unsupported_use": "Measuring the outcomes, proving the programme worked, or filling an empty element; the worksheet distinguishes what is counted from what is achieved.",
-        "extra_help": "Activities are what the programme does and outputs are what it produces directly; outcomes are the changes it aims to cause. The worksheet keeps them apart and computes no indicator.",
+        "extra_help": "Activities are what the programme does and outputs are what it produces directly; outcomes are the changes it aims to cause and impact is the longer-term change it contributes to. The worksheet keeps them apart and computes no indicator.",
     },
     "template_marketing_automation": {
         "name": "Marketing automation and lead scoring with an evidence audit", "short": "marketing automation", "registry_ids": ["MKT-21"],
@@ -1108,7 +1111,7 @@ CANVAS_META = {
     },
     "template_theory_of_change": {
         "name": "Theory of change with an evidence audit", "short": "theory of change", "registry_ids": ["CHG-07"],
-        "intended_use": "Lay the causal links from inputs through activities and outputs to outcomes for one programme, and audit the links that rest on assumptions.",
+        "intended_use": "Lay the causal links from inputs through activities and outputs to outcomes and impact for one programme, name the assumptions each link rests on, and audit the links that rest on them.",
         "unsupported_use": "Claiming the causal pathway holds, proving impact, or filling a missing link; the links are hypotheses to test and the evidence is yours.",
         "extra_help": "Each link is a hypothesis. An assumption is flagged and left as it is; the worksheet derives no impact estimate.",
     },
@@ -2294,6 +2297,13 @@ EXAMPLES = {
             "action": [{"text": "The meal card can be bought at the counter without a queue", "provenance": "synthetic"}]
         }
 }},
+    "template_amo": {"objective": "Read why service on the meal counter is slow", "method": "template_amo", "inputs": {
+        "blocks": {
+            "ability": [{"text": "Two of the four counter staff have worked the till before", "provenance": "synthetic"}],
+            "motivation": [{"text": "Counter staff have asked for the queue to be reduced before the next rota", "provenance": "synthetic"}],
+            "opportunity": [{"text": "The counter has one till, so the queue cannot be split", "provenance": "assumption"}]
+        }
+    }},
     "template_attribution": {"objective": "Record how credit is given for the campus meal campaign", "method": "template_attribution", "inputs": {
         "blocks": {
             "touchpoints": [{"text": "The corridor poster, the class chat and the counter are the three recorded touchpoints", "provenance": "synthetic"}],
@@ -2333,6 +2343,13 @@ EXAMPLES = {
             "support": [{"text": "A short session is planned for counter staff", "provenance": "synthetic"}]
         }
 }},
+    "template_competing_values": {"objective": "Read the culture of the campus catering team", "method": "template_competing_values", "inputs": {
+        "blocks": {
+            "clan": [{"text": "The team meets for ten minutes before service and talks through the day's problems", "provenance": "synthetic"}],
+            "adhocracy": [{"text": "Two counter staff ran a trial of a new tray layout without asking the manager", "provenance": "synthetic"}],
+            "hierarchy": [{"text": "Any change to the allergen procedure is signed off by the estate office before it is used", "provenance": "synthetic"}]
+        }
+    }},
     "template_cro": {"objective": "Record the first conversion test on the campus meal page", "method": "template_cro", "inputs": {
         "blocks": {
             "hypothesis": [{"text": "Putting the price before the menu will raise the number of meal cards bought", "provenance": "synthetic"}],
@@ -2395,6 +2412,29 @@ EXAMPLES = {
             "focus_low_cost": [{"text": "The service is positioned as the cheapest hot meal for students on campus", "provenance": "synthetic"}]
         }
 }},
+    "template_job_characteristics": {"objective": "Read the shape of the kitchen supervisor's role", "method": "template_job_characteristics", "inputs": {
+        "blocks": {
+            "skill_variety": [{"text": "The role covers ordering, the rota and the weekly stock count, so three kinds of skill are needed at once", "provenance": "synthetic"}],
+            "task_identity": [{"text": "The supervisor signs the weekly order and the rota is published under their name", "provenance": "synthetic"}],
+            "task_significance": [{"text": "The supervisor is not told when a meal line sells out, so the consequence of the role is invisible", "provenance": "assumption"}],
+            "autonomy": [{"text": "The supplier can be changed without asking the kitchen manager", "provenance": "synthetic"}]
+        }
+    }},
+    "template_kirkpatrick": {"objective": "Read the evidence from the food-safety induction for kitchen staff", "method": "template_kirkpatrick", "inputs": {
+        "blocks": {
+            "reaction": [{"text": "The induction was run twice, and the second session was better attended", "provenance": "synthetic"}],
+            "learning": [{"text": "Staff could name the three temperatures that have to be logged", "provenance": "synthetic"}],
+            "behavior": [{"text": "Nobody has checked whether the log is completed on a busy Saturday", "provenance": "assumption"}]
+        }
+    }},
+    "template_kotter": {"objective": "Read the eight steps of the move to a contactless meal card", "method": "template_kotter", "inputs": {
+        "blocks": {
+            "urgency": [{"text": "The card reader at the counter failed twice in the same week", "provenance": "synthetic"}],
+            "coalition": [{"text": "The estate office, the counter team and the students' union have to agree before the old card is withdrawn", "provenance": "synthetic"}],
+            "empower": [{"text": "Counter staff can order a second card reader without asking the estate office first", "provenance": "synthetic"}],
+            "wins": [{"text": "No result has been recorded, because the change has not started", "provenance": "assumption"}]
+        }
+    }},
     "template_lewin": {"objective": "Read where the contactless meal card change stands", "method": "template_lewin", "inputs": {
         "blocks": {
             "unfreeze": [{"text": "The old card is kept live for one more term, so nothing has been given up yet", "provenance": "synthetic"}],
@@ -2404,11 +2444,18 @@ EXAMPLES = {
 }},
     "template_logic_model": {"objective": "Lay out the logic of the campus mentoring programme", "method": "template_logic_model", "inputs": {
         "blocks": {
-            "inputs": [{"text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
-            "activities": [{"text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
-            "outputs": [{"text": "A session record is kept for each group", "provenance": "synthetic"}],
-            "outcomes": [{"text": "No measure of student retention has been agreed yet", "provenance": "assumption"}]
-        }
+            "inputs": [{"id": "I1", "text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
+            "activities": [{"id": "I2", "text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
+            "outputs": [{"id": "I3", "text": "A session record is kept for each group", "provenance": "synthetic"}],
+            "outcomes": [{"id": "I4", "text": "No measure of student retention has been agreed yet", "provenance": "assumption"}],
+            "impact": [{"id": "I5", "text": "Retention of first-year students in the years the programme has run", "provenance": "assumption"}]
+        },
+        "links": [
+            {"from": "I1", "to": "I2"},
+            {"from": "I2", "to": "I3"},
+            {"from": "I3", "to": "I4"},
+            {"from": "I4", "to": "I5"}
+        ]
 }},
     "template_marketing_automation": {"objective": "Record the automation behind the campus meal enquiry", "method": "template_marketing_automation", "inputs": {
         "blocks": {
@@ -2435,6 +2482,22 @@ EXAMPLES = {
             "technostructure": [{"text": "Nobody writes the food-handling procedure the kitchen follows", "provenance": "assumption"}]
         }
 }},
+    "template_nine_box": {"objective": "Record how the counter team is reviewed", "method": "template_nine_box", "inputs": {
+        "blocks": {
+            "performance_criteria": [{"text": "Performance is judged on the queue at the counter and on the complaints the cafe receives", "provenance": "synthetic"}],
+            "potential_criteria": [{"text": "Potential is judged on whether the person has run a shift on their own", "provenance": "synthetic"}],
+            "placements": [{"text": "The manager has placed two counter staff in the strong performance and strong potential cell, and two in the strong performance and developing potential cell, with the reason recorded for each", "provenance": "synthetic"}]
+        }
+    }},
+    "template_org_design": {"objective": "Read the design of the university catering unit", "method": "template_org_design", "inputs": {
+        "blocks": {
+            "strategy": [{"text": "The unit aims to run the same service across three sites with one kitchen team", "provenance": "synthetic"}],
+            "decision_rights": [{"text": "The estate office decides the budget and the kitchen manager decides the rota", "provenance": "synthetic"}],
+            "structure": [{"text": "One kitchen line and one counter, with the counter team reporting to the estate office", "provenance": "synthetic"}],
+            "processes": [{"text": "Nobody has written down how a stock count is passed from the counter to the kitchen", "provenance": "assumption"}],
+            "incentives": [{"text": "The kitchen team is measured on meals served, and not on the complaints the service produces", "provenance": "synthetic"}]
+        }
+    }},
     "template_pdsa": {"objective": "Record the first cycle of the contactless meal card trial", "method": "template_pdsa", "inputs": {
         "blocks": {
             "plan": [{"text": "Test a pre-order shelf for ten minutes at the counter, and record the wait at the counter", "provenance": "synthetic"}],
@@ -2511,12 +2574,28 @@ EXAMPLES = {
 }},
     "template_theory_of_change": {"objective": "Set out the causal pathway for the campus mentoring programme", "method": "template_theory_of_change", "inputs": {
         "blocks": {
-            "inputs": [{"text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
-            "activities": [{"text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
-            "outputs": [{"text": "A record of the sessions held and the students who attended", "provenance": "synthetic"}],
-            "outcomes": [{"text": "Students report that they know where to ask for help", "provenance": "assumption"}]
-        }
+            "inputs": [{"id": "I1", "text": "Two trained mentors and a room booked for one afternoon a week", "provenance": "synthetic"}],
+            "activities": [{"id": "I2", "text": "Each mentor sees a small group of first-year students for an hour", "provenance": "synthetic"}],
+            "outputs": [{"id": "I3", "text": "A record of the sessions held and the students who attended", "provenance": "synthetic"}],
+            "outcomes": [{"id": "I4", "text": "Students report that they know where to ask for help", "provenance": "assumption"}],
+            "impact": [{"id": "I5", "text": "The programme is kept in the induction timetable in the year after the funding ends", "provenance": "assumption"}],
+            "assumptions": [{"id": "A6", "text": "First-year students who join no society are the ones who find a mentor, and the mentors stay for a year", "provenance": "assumption"}]
+        },
+        "links": [
+            {"from": "I1", "to": "I2"},
+            {"from": "I2", "to": "I3"},
+            {"from": "I3", "to": "I4"},
+            {"from": "I4", "to": "I5"}
+        ]
 }},
+    "template_tuckman": {"objective": "Read how the tray assembly team is working together", "method": "template_tuckman", "inputs": {
+        "blocks": {
+            "forming": [{"text": "The tray assembly team was put together in the week the kitchen moved", "provenance": "synthetic"}],
+            "storming": [{"text": "Two members of the team disagreed about who took the orders", "provenance": "synthetic"}],
+            "norming": [{"text": "The team now sets up the trays in the same order every shift", "provenance": "synthetic"}],
+            "adjourning": [{"text": "The team will be split when the summer staff arrive", "provenance": "assumption"}]
+        }
+    }},
     "template_utaut": {"objective": "Read the adoption evidence for the meal card ordering system", "method": "template_utaut", "inputs": {
         "blocks": {
             "performance_expectancy": [{"text": "Students were asked whether pre-ordering saves their break", "provenance": "synthetic"}],

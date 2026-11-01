@@ -6,11 +6,78 @@
 
 **How to use it (for a model picking this up).**
 
-1. Read [`HOME.md`](HOME.md) first for the map, then [`CONTRIBUTORS.md`](../CONTRIBUTORS.md) for the rules, then this file.
+1. Read [`HOME.md`](HOME.md) first for the map, then [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for the rules, then this file.
 2. Read the most recent entry end to end before touching the thing it describes.
 3. If you change something an entry describes, write a **new** entry at the top and say what changed. Do not edit the old entry - a later model needs to see what was believed at the time.
 4. Every entry must end with **where this could be wrong**. If you cannot find a weakness in your own conclusion, you have not thought hard enough.
 5. If you disagree with an earlier entry, say so plainly and put your reasoning in the open. Do not quietly overwrite.
+
+---
+
+## 2026-11-02 - [validation] Validating subject by subject instead of feature by feature
+
+**What was asked.** "The pipeline has too many features and very laborious for 1 person to validate. Investigate and
+propose a method or system on how I can automate the validation. What I require is that to have a complete paper for
+each feature where I will not manually test them feature by feature but rather subject by subject." And then, after the
+investigation was reported back: write it down first, as a discoverable handoff; keep it alive so the method can be
+improved later, "especially on relaxing some rules — some rules are counterproductive"; and use **OpenCode or
+OpenRouter, not the DeepSeek direct API**, to keep the cost down.
+
+**What changed.** One new document, [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md), plus three pointers to it
+(`HOME.md`, `WORKLOG.md`, this notebook). No code, no test, no frozen module, no product document was touched.
+
+The substance: the pipeline has **364 distinct things to validate** (76 framework papers, 126 capability papers, 9
+conductor frameworks, 5 paper profiles, 148 compute-tool deliverables). The proposal is a **three-layer harness** —
+produce every paper through the real product path, judge each one against a registered rule set, roll the verdicts up
+into one report per subject. Two findings make this cheap rather than a new build. First, the papers are already being
+produced: `documents/` holds **1,781 generated `.docx` papers** from the test suite's own runs over the last five days,
+so the production side is a new *organisation* of an existing capability, not a new capability — and the reason the
+owner could not use them is that `paper_store.py:84` caps the index at 200 rows, so 1,581 of them had no durable
+record. Second, **125 of the 126 capabilities are already seedable from the existing `PRESETS`**, so no inputs have to
+be written by hand. Both paper paths were run unattended during the investigation to prove it: a 22,105-byte Kano
+paper and an 18,784-byte PESTEL+NPV paper with the export gate returning `missing: []`.
+
+The rule registry is seeded from the manual's own eight non-negotiables and coherence expectations, and each of the 20
+rules carries a status. That registry exists to make the owner's second instruction safe to act on. The principle
+written into the document is **relax the alarm, never the guarantee**: a rule can be downgraded so the owner is no
+longer shown noise, but the product's own gate — what a student may actually export — is untouched, and a change to
+what the product asserts is a computation-lane change that must be requested rather than made. Six rules are flagged
+as likely to be counterproductive, with the reasoning, and V-01, V-03, V-05, V-06, V-07 and V-08 may never be
+relaxed away, because those are the guarantees the verification rules protect.
+
+On the model instruction: OpenRouter is reachable **today with no code change** — the existing OpenAI-compatible
+provider takes a full endpoint URL and a key, so `BP_LLM_PROVIDER=openai` with `BP_LLM_BASE_URL` pointing at
+OpenRouter is configuration only. OpenCode is an agent harness rather than a model endpoint, so it is recorded as the
+thing that might *drive* the work rather than as a provider the pipeline can call. And the reassuring part: **the
+harness needs no model at all.** The judgement layer is pure code over the deterministic Draft paper, which is what
+the pipeline produces when no provider is configured — which is the case right now. The cost instruction therefore
+costs nothing and blocks nothing.
+
+**What is still missing.** Everything, in the sense that the harness is a design and not a build: there is no
+`scripts/validation/` yet. Six owner decisions are listed in §12 of the document and none is settled — where the
+subject crosswalk lives, which capability slots map to which shelves, one shared evidence pack or one per subject,
+APA only or APA and Harvard, which length band, and whether the model-written "Full" paper is in scope at all. The
+crosswalk is the real blocker: the subject pages use 11 names, the framework profiles use 7, and the `subject` key is
+empty for all 126 capabilities and all 158 catalogue records, so "subject by subject" cannot be derived from the
+product today. Two product findings are recorded rather than acted on: **22 of the 76 framework profiles are not
+reachable from any subject page**, and 12 profiles have a worksheet that is not marked `draftable` — a student sees
+no button for them.
+
+**Where this could be wrong.** The 364 figure counts things, not papers, and the two counts a reader would argue
+about are the capability papers (126) and the compute-tool deliverables (148): a capability might produce a paper
+that is really a section of a larger one, and a compute-tool deliverable might be a spreadsheet rather than something
+that reads like a paper at all. The claim that the harness is cheap rests on the papers already existing, and that
+holds only for the 43 frameworks the test suite happens to exercise — the other 33 have to be produced from scratch,
+and I have not yet shown that all 76 profiles complete unattended (I proved two). The whole design assumes live
+retrieval is replaced by frozen fixtures, which makes the papers deterministic and reviewable but also makes them
+unrealistic: a student reading a paper built from nine canned sources is not reading what a student with a live
+account would get, so a green harness could still coexist with a bad student experience. The rule-relaxation procedure
+is the piece I trust least, because it invites the wrong kind of editing: a rule demoted for being noisy is one step
+away from a rule demoted because it was inconvenient, and the document can only make that harder, not impossible. The
+paper-count arithmetic was wrong in the first report of this investigation — it omitted the 76 framework profiles from
+the total — and it was caught only by re-measuring, which is an argument for the harness's own premise. Finally, the
+model instruction was recorded as I understood it; if "OpenCode" was meant as something else entirely, §9 of the
+document is wrong, and it says so where it is wrong.
 
 ---
 

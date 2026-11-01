@@ -1,0 +1,924 @@
+﻿python : test_a_paper_without_a_byline_still_renders_a_clean_title_page 
+(test_academic_docx.AcademicDocxTest.test_a_paper_without_a_byline_still_renders_a_clean_title_page) ... ok
+At line:1 char:106
++ ... YTHONPATH="src"; python -m unittest discover -s tests -v 2>&1 | Out-F ...
++                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (test_a_paper_wi...le_page) ... ok:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+test_headings_use_real_word_styles (test_academic_docx.AcademicDocxTest.test_headings_use_real_word_styles) ... ok
+test_the_page_number_is_in_the_header_not_the_footer 
+(test_academic_docx.AcademicDocxTest.test_the_page_number_is_in_the_header_not_the_footer) ... ok
+test_the_reference_list_starts_on_its_own_page 
+(test_academic_docx.AcademicDocxTest.test_the_reference_list_starts_on_its_own_page) ... ok
+test_the_same_title_and_sections_render_identical_bytes 
+(test_academic_docx.AcademicDocxTest.test_the_same_title_and_sections_render_identical_bytes) ... ok
+test_the_title_page_carries_the_title_then_the_byline_then_the_date 
+(test_academic_docx.AcademicDocxTest.test_the_title_page_carries_the_title_then_the_byline_then_the_date) ... ok
+test_the_title_page_is_vertically_centred_in_its_own_section 
+(test_academic_docx.AcademicDocxTest.test_the_title_page_is_vertically_centred_in_its_own_section) ... ok
+test_the_title_page_section_ends_before_the_body 
+(test_academic_docx.AcademicDocxTest.test_the_title_page_section_ends_before_the_body) ... ok
+test_arithmetic (test_accounting_operations.CapacityAnalysis.test_arithmetic) ... ok
+test_checks_and_refusals (test_accounting_operations.CapacityAnalysis.test_checks_and_refusals) ... ok
+test_pipeline_delivers (test_accounting_operations.CapacityAnalysis.test_pipeline_delivers) ... D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file 
+<_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_arithmetic (test_accounting_operations.InventoryPolicy.test_arithmetic) ... ok
+test_checks_and_refusals (test_accounting_operations.InventoryPolicy.test_checks_and_refusals) ... ok
+test_pipeline_delivers (test_accounting_operations.InventoryPolicy.test_pipeline_delivers) ... ok
+test_without_variability_the_reorder_point_is_lead_time_demand 
+(test_accounting_operations.InventoryPolicy.test_without_variability_the_reorder_point_is_lead_time_demand) ... ok
+test_every_preset_delivers (test_accounting_operations.Presets.test_every_preset_delivers) ... ok
+test_arithmetic (test_accounting_operations.QueueAnalysis.test_arithmetic) ... ok
+test_checks_and_refusals (test_accounting_operations.QueueAnalysis.test_checks_and_refusals) ... ok
+test_pipeline_delivers (test_accounting_operations.QueueAnalysis.test_pipeline_delivers) ... ok
+test_accounting_page_is_a_course_not_a_list 
+(test_accounting_operations.ShelfWiring.test_accounting_page_is_a_course_not_a_list) ... ok
+test_operations_and_supply_chain_carry_the_process_tools 
+(test_accounting_operations.ShelfWiring.test_operations_and_supply_chain_carry_the_process_tools) ... ok
+test_the_catalogue_states_what_is_partial 
+(test_accounting_operations.ShelfWiring.test_the_catalogue_states_what_is_partial) ... ok
+test_arithmetic (test_accounting_operations.StandardCostVariances.test_arithmetic) ... ok
+test_checks_and_refusals (test_accounting_operations.StandardCostVariances.test_checks_and_refusals) ... ok
+test_material_and_labour_only_when_overhead_is_omitted 
+(test_accounting_operations.StandardCostVariances.test_material_and_labour_only_when_overhead_is_omitted) ... ok
+test_pipeline_delivers (test_accounting_operations.StandardCostVariances.test_pipeline_delivers) ... ok
+test_rebuilding_changes_nothing 
+(test_accounting_pipeline_integration.ItIsDeterministic.test_rebuilding_changes_nothing) ... ok
+test_the_same_specification_produces_identical_output 
+(test_accounting_pipeline_integration.ItIsDeterministic.test_the_same_specification_produces_identical_output) ... ok
+test_both_cash_flow_routes_agree 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_both_cash_flow_routes_agree) ... ok
+test_every_check_passes (test_accounting_pipeline_integration.TheWholePipelineHolds.test_every_check_passes) ... ok
+test_every_journal_entry_balances 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_every_journal_entry_balances) ... ok
+test_every_t_account_rolls_forward 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_every_t_account_rolls_forward) ... ok
+test_other_comprehensive_income_is_present_and_separate 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_other_comprehensive_income_is_present_and_separate) 
+... ok
+test_the_balance_sheet_balances 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_the_balance_sheet_balances) ... ok
+test_the_deferrals_and_the_allowance_clear 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_the_deferrals_and_the_allowance_clear) ... ok
+test_the_equity_statement_ties_to_the_balance_sheet 
+(test_accounting_pipeline_integration.TheWholePipelineHolds.test_the_equity_statement_ties_to_the_balance_sheet) ... ok
+test_every_check_passes_in_the_sandbox 
+(test_accounting_sandbox_parity.TheEngagementAgreesAcrossTheSandbox.test_every_check_passes_in_the_sandbox) ... ok
+test_every_scalar_matches_in_process 
+(test_accounting_sandbox_parity.TheEngagementAgreesAcrossTheSandbox.test_every_scalar_matches_in_process) ... ok
+test_the_check_results_match_in_process 
+(test_accounting_sandbox_parity.TheEngagementAgreesAcrossTheSandbox.test_the_check_results_match_in_process) ... ok
+test_the_delivered_scalars_are_all_present 
+(test_accounting_sandbox_parity.TheEngagementAgreesAcrossTheSandbox.test_the_delivered_scalars_are_all_present) ... ok
+test_deterministic (test_accounts.Build.test_deterministic) ... ok
+test_hand_checked_engagement (test_accounts.Build.test_hand_checked_engagement) ... ok
+test_prior_closing_mismatch_fails_the_check (test_accounts.Build.test_prior_closing_mismatch_fails_the_check) ... ok
+test_mapping_checks_catch_problems (test_accounts.MappingCheckpoint.test_mapping_checks_catch_problems) ... ok
+test_mapping_table_and_checks (test_accounts.MappingCheckpoint.test_mapping_table_and_checks) ... ok
+test_non_mapping_method_keeps_a_single_checkpoint 
+(test_accounts.MappingCheckpoint.test_non_mapping_method_keeps_a_single_checkpoint) ... ok
+test_rejecting_the_mapping_blocks (test_accounts.MappingCheckpoint.test_rejecting_the_mapping_blocks) ... D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\registry.py:292: ResourceWarning: unclosed file 
+<_io.TextIOWrapper name='D:\\SMART 
+BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' 
+encoding='utf-8'>
+  raw = json.load(open(path, encoding="utf-8")); recs = raw["records"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_session_pauses_for_the_mapping_and_resumes 
+(test_accounts.MappingCheckpoint.test_session_pauses_for_the_mapping_and_resumes) ... ok
+test_bad_spec_blocks_with_reason (test_accounts.PipelineFlow.test_bad_spec_blocks_with_reason) ... ok
+test_end_to_end_delivery (test_accounts.PipelineFlow.test_end_to_end_delivery) ... ok
+test_example_spec_builds_with_reconciliation (test_accounts.PipelineFlow.test_example_spec_builds_with_reconciliation) 
+... ok
+test_plan_shows_t2 (test_accounts.PipelineFlow.test_plan_shows_t2) ... ok
+test_prior_closing_mismatch_blocks_at_verification 
+(test_accounts.PipelineFlow.test_prior_closing_mismatch_blocks_at_verification) ... ok
+test_reconciliation_block_is_validated (test_accounts.PipelineFlow.test_reconciliation_block_is_validated) ... ok
+test_sandbox_path_matches_in_process (test_accounts.PipelineFlow.test_sandbox_path_matches_in_process) ... ok
+test_declared_change_is_applied_prospectively_and_disclosed 
+(test_accounts.PolicyChanges.test_declared_change_is_applied_prospectively_and_disclosed) ... ok
+test_disclosure_only_change_has_no_computation_effect 
+(test_accounts.PolicyChanges.test_disclosure_only_change_has_no_computation_effect) ... ok
+test_impossible_change_blocks_the_pipeline (test_accounts.PolicyChanges.test_impossible_change_blocks_the_pipeline) 
+... ok
+test_validation_traps (test_accounts.PolicyChanges.test_validation_traps) ... ok
+test_entry_outside_the_period_blocks (test_accounts.Validation.test_entry_outside_the_period_blocks) ... ok
+test_traps (test_accounts.Validation.test_traps) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason 
+(test_adkar_completion.ADKARCompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... 
+FAIL
+test_an_empty_cell_does_not_block_the_paper 
+(test_adkar_completion.ADKARCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ERROR
+test_byline_reaches_the_title_page (test_adkar_completion.ADKARCompletionTest.test_byline_reaches_the_title_page) ... 
+ERROR
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_adkar_completion.ADKARCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... ERROR
+test_no_source_run_fills_every_cell_with_background 
+(test_adkar_completion.ADKARCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ERROR
+test_one_source_cannot_fill_two_cells 
+(test_adkar_completion.ADKARCompletionTest.test_one_source_cannot_fill_two_cells) ... ERROR
+test_outline_headings_are_present_and_title_cased 
+(test_adkar_completion.ADKARCompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_adkar_completion.ADKARCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_adkar_completion.ADKARCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ERROR
+test_the_model_prompt_speaks_adkar_and_keeps_the_safety_rules 
+(test_adkar_completion.ADKARCompletionTest.test_the_model_prompt_speaks_adkar_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_adkar_completion.ADKARCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ERROR
+test_the_route_returns_an_adkar_completion 
+(test_adkar_completion.ADKARCompletionTest.test_the_route_returns_an_adkar_completion) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason 
+(test_aida_completion.AIDACompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... ok
+test_an_empty_cell_does_not_block_the_paper 
+(test_aida_completion.AIDACompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ok
+test_byline_reaches_the_title_page (test_aida_completion.AIDACompletionTest.test_byline_reaches_the_title_page) ... ok
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_aida_completion.AIDACompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... ok
+test_no_source_run_fills_every_cell_with_background 
+(test_aida_completion.AIDACompletionTest.test_no_source_run_fills_every_cell_with_background) ... ok
+test_one_source_cannot_fill_two_cells (test_aida_completion.AIDACompletionTest.test_one_source_cannot_fill_two_cells) 
+... ok
+test_outline_headings_are_present_and_title_cased 
+(test_aida_completion.AIDACompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_aida_completion.AIDACompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_aida_completion.AIDACompletionTest.test_the_industry_is_the_unit_of_analysis) ... ok
+test_the_model_prompt_speaks_aida_and_keeps_the_safety_rules 
+(test_aida_completion.AIDACompletionTest.test_the_model_prompt_speaks_aida_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_aida_completion.AIDACompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ok
+test_the_route_returns_an_aida_completion 
+(test_aida_completion.AIDACompletionTest.test_the_route_returns_an_aida_completion) ... ok
+test_anova_report (test_anova.EndToEnd.test_anova_report) ... ok
+test_declared_screen_limits_decide (test_anova.EndToEnd.test_declared_screen_limits_decide) ... ok
+test_effect_word_from_declared_thresholds (test_anova.EndToEnd.test_effect_word_from_declared_thresholds) ... ok
+test_levene_failure_switches_to_kruskal_wallis (test_anova.EndToEnd.test_levene_failure_switches_to_kruskal_wallis) 
+... ok
+test_missing_counted (test_anova.EndToEnd.test_missing_counted) ... ok
+test_not_significant_wording (test_anova.EndToEnd.test_not_significant_wording) ... ok
+test_plan_and_states (test_anova.EndToEnd.test_plan_and_states) ... ok
+test_skewed_groups_switch_to_kruskal_wallis_as_logged_amendment 
+(test_anova.EndToEnd.test_skewed_groups_switch_to_kruskal_wallis_as_logged_amendment) ... ok
+test_synthetic_label (test_anova.EndToEnd.test_synthetic_label) ... ok
+test_against_offline_scipy_references (test_anova.Golden.test_against_offline_scipy_references) ... ok
+test_group_with_one_valid_observation_blocks (test_anova.Inputs.test_group_with_one_valid_observation_blocks) ... ok
+test_schema_needs_three_groups_and_clean_names (test_anova.Inputs.test_schema_needs_three_groups_and_clean_names) ... 
+ok
+test_unequal_group_sizes_allowed (test_anova.Inputs.test_unequal_group_sizes_allowed) ... ok
+test_zero_within_group_variance_blocks (test_anova.Inputs.test_zero_within_group_variance_blocks) ... ok
+test_anova_bugs_blocked (test_anova.WrongImplementations.test_anova_bugs_blocked) ... ok
+test_discovery (test_anova.WrongImplementations.test_discovery) ... ok
+test_kruskal_bugs_blocked (test_anova.WrongImplementations.test_kruskal_bugs_blocked) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason 
+(test_ansoff_completion.AnsoffCompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) 
+... ok
+test_an_empty_cell_does_not_block_the_paper 
+(test_ansoff_completion.AnsoffCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ok
+test_byline_reaches_the_title_page (test_ansoff_completion.AnsoffCompletionTest.test_byline_reaches_the_title_page) 
+... ok
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_ansoff_completion.AnsoffCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... ok
+test_no_source_run_fills_every_cell_with_background 
+(test_ansoff_completion.AnsoffCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ok
+test_one_source_cannot_fill_two_cells 
+(test_ansoff_completion.AnsoffCompletionTest.test_one_source_cannot_fill_two_cells) ... ok
+test_outline_headings_are_present_and_title_cased 
+(test_ansoff_completion.AnsoffCompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_ansoff_completion.AnsoffCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_ansoff_completion.AnsoffCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ok
+test_the_model_prompt_speaks_ansoff_and_keeps_the_safety_rules 
+(test_ansoff_completion.AnsoffCompletionTest.test_the_model_prompt_speaks_ansoff_and_keeps_the_safety_rules) ... ok
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_ansoff_completion.AnsoffCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ok
+test_the_route_returns_an_ansoff_completion 
+(test_ansoff_completion.AnsoffCompletionTest.test_the_route_returns_an_ansoff_completion) ... ok
+test_checks_and_refusals (test_appraisal.CostBenefit.test_checks_and_refusals) ... ok
+test_pipeline_delivers (test_appraisal.CostBenefit.test_pipeline_delivers) ... ok
+test_present_values_against_an_independent_loop 
+(test_appraisal.CostBenefit.test_present_values_against_an_independent_loop) ... ok
+test_checks_and_refusals (test_appraisal.CostEffectiveness.test_checks_and_refusals) ... ok
+test_icer_and_dominance (test_appraisal.CostEffectiveness.test_icer_and_dominance) ... ok
+test_pipeline_delivers (test_appraisal.CostEffectiveness.test_pipeline_delivers) ... ok
+test_contracts_and_presets (test_appraisal.Registration.test_contracts_and_presets) ... ok
+test_deterministic (test_appraisal.Registration.test_deterministic) ... ok
+test_checks_and_refusals (test_appraisal.SocialReturn.test_checks_and_refusals) ... ok
+test_pipeline_delivers (test_appraisal.SocialReturn.test_pipeline_delivers) ... ok
+test_ratio_arithmetic (test_appraisal.SocialReturn.test_ratio_arithmetic) ... ok
+test_facts_and_objective_required (test_assist.Alternatives.test_facts_and_objective_required) ... ok
+test_fewer_than_two_fails_and_cap_is_five (test_assist.Alternatives.test_fewer_than_two_fails_and_cap_is_five) ... ok
+test_numbers_and_symbols_anywhere_are_rejected 
+(test_assist.Alternatives.test_numbers_and_symbols_anywhere_are_rejected) ... ok
+test_structure_and_reference_rules (test_assist.Alternatives.test_structure_and_reference_rules) ... ok
+test_valid_proposals_carry_no_numbers_and_no_cash_flows 
+(test_assist.Alternatives.test_valid_proposals_carry_no_numbers_and_no_cash_flows) ... ok
+test_errors_never_leak_the_key (test_assist.AnthropicAdapter.test_errors_never_leak_the_key) ... ok
+test_key_and_model_configuration (test_assist.AnthropicAdapter.test_key_and_model_configuration) ... ok
+test_request_construction_and_response_parsing 
+(test_assist.AnthropicAdapter.test_request_construction_and_response_parsing) ... ok
+test_budget_and_size_limits (test_assist.Controls.test_budget_and_size_limits) ... ok
+test_disabled_server (test_assist.Controls.test_disabled_server) ... ok
+test_log_stores_hashes_not_text_or_keys (test_assist.Controls.test_log_stores_hashes_not_text_or_keys) ... ok
+test_no_consent_means_no_call (test_assist.Controls.test_no_consent_means_no_call) ... ok
+test_pii_hints_require_acknowledgement (test_assist.Controls.test_pii_hints_require_acknowledgement) ... ok
+test_provider_errors_propagate_without_content (test_assist.Controls.test_provider_errors_propagate_without_content) 
+... ok
+test_reviewer_role_is_used_and_output_is_labelled_unverified 
+(test_assist.Critique.test_reviewer_role_is_used_and_output_is_labelled_unverified) ... ok
+test_rules (test_assist.Critique.test_rules) ... ok
+test_same_model_for_both_roles_is_disclosed (test_assist.Critique.test_same_model_for_both_roles_is_disclosed) ... ok
+test_documented_limit_text_inside_the_submitted_case_can_be_quoted_and_the_user_must_review_it 
+(test_assist.Facts.test_documented_limit_text_inside_the_submitted_case_can_be_quoted_and_the_user_must_review_it) ... 
+ok
+test_empty_text (test_assist.Facts.test_empty_text) ... ok
+test_exact_excerpts_are_accepted_and_tagged_as_proposals 
+(test_assist.Facts.test_exact_excerpts_are_accepted_and_tagged_as_proposals) ... ok
+test_fact_cap (test_assist.Facts.test_fact_cap) ... ok
+test_invented_paraphrased_duplicate_and_malformed_items_are_rejected 
+(test_assist.Facts.test_invented_paraphrased_duplicate_and_malformed_items_are_rejected) ... ok
+test_line_breaks_in_the_source_are_normalised_but_text_is_not_altered 
+(test_assist.Facts.test_line_breaks_in_the_source_are_normalised_but_text_is_not_altered) ... ok
+test_nothing_valid_fails_closed_with_reasons (test_assist.Facts.test_nothing_valid_fails_closed_with_reasons) ... ok
+test_prompt_injection_cannot_create_content_outside_the_text 
+(test_assist.Facts.test_prompt_injection_cannot_create_content_outside_the_text) ... ok
+test_reply_shape_rules (test_assist.Facts.test_reply_shape_rules) ... ok
+test_all_three_tasks_over_http (test_assist.Http.test_all_three_tasks_over_http) ... 
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_endpoint_rules_and_status_codes (test_assist.Http.test_endpoint_rules_and_status_codes) ... 
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_every_number_in_a_model_assisted_report_still_comes_from_the_user_or_computation 
+(test_assist.Http.test_every_number_in_a_model_assisted_report_still_comes_from_the_user_or_computation) ... 
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 401: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_off_by_default_and_config_never_shows_a_key (test_assist.Http.test_off_by_default_and_config_never_shows_a_key) 
+... C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly 
+cleaning up <HTTPError 503: 'Service Unavailable'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_run_ids_flow_into_the_frozen_spec_and_the_appendix 
+(test_assist.Http.test_run_ids_flow_into_the_frozen_spec_and_the_appendix) ... ok
+test_ui_has_help_drawer_and_no_assistant_panel (test_assist.Http.test_ui_has_help_drawer_and_no_assistant_panel) ... ok
+test_base_url_override_for_openai_compatible 
+(test_assist.OpenAICompatAdapter.test_base_url_override_for_openai_compatible) ... ok
+test_deepseek_request_construction_and_response_parsing 
+(test_assist.OpenAICompatAdapter.test_deepseek_request_construction_and_response_parsing) ... ok
+test_errors_never_leak_the_key (test_assist.OpenAICompatAdapter.test_errors_never_leak_the_key) ... ok
+test_key_and_model_configuration (test_assist.OpenAICompatAdapter.test_key_and_model_configuration) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason (test_attribution_completion.AttributionCompletio
+nTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... ok
+test_an_empty_cell_does_not_block_the_paper 
+(test_attribution_completion.AttributionCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ok
+test_byline_reaches_the_title_page 
+(test_attribution_completion.AttributionCompletionTest.test_byline_reaches_the_title_page) ... ok
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_attribution_completion.AttributionCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... 
+FAIL
+test_no_source_run_fills_every_cell_with_background 
+(test_attribution_completion.AttributionCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ok
+test_one_source_cannot_fill_two_cells 
+(test_attribution_completion.AttributionCompletionTest.test_one_source_cannot_fill_two_cells) ... ok
+test_outline_headings_are_present_and_title_cased 
+(test_attribution_completion.AttributionCompletionTest.test_outline_headings_are_present_and_title_cased) ... FAIL
+test_the_framework_name_is_not_an_invented_name 
+(test_attribution_completion.AttributionCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_attribution_completion.AttributionCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ok
+test_the_model_prompt_speaks_attribution_and_keeps_the_safety_rules (test_attribution_completion.AttributionCompletionT
+est.test_the_model_prompt_speaks_attribution_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_attribution_completion.AttributionCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ok
+test_the_route_returns_an_attribution_completion 
+(test_attribution_completion.AttributionCompletionTest.test_the_route_returns_an_attribution_completion) ... ok
+test_a_declared_charge_is_expensed_against_the_allowance 
+(test_bad_debt.ChargeMethod.test_a_declared_charge_is_expensed_against_the_allowance) ... ok
+test_a_zero_charge_posts_nothing (test_bad_debt.ChargeMethod.test_a_zero_charge_posts_nothing) ... ok
+test_the_allowance_reduces_net_receivables (test_bad_debt.ItBalances.test_the_allowance_reduces_net_receivables) ... ok
+test_the_statement_balances_with_an_allowance (test_bad_debt.ItBalances.test_the_statement_balances_with_an_allowance) 
+... ok
+test_the_target_is_measured_after_the_write_off 
+(test_bad_debt.OrderingTrap.test_the_target_is_measured_after_the_write_off)
+Measured before the write-off, the allowance would close at 400 instead of 500 - and every ... ok
+test_a_bad_date_is_refused (test_bad_debt.Refusals.test_a_bad_date_is_refused) ... ok
+test_both_target_and_charge_are_refused (test_bad_debt.Refusals.test_both_target_and_charge_are_refused) ... ok
+test_negative_amounts_are_refused (test_bad_debt.Refusals.test_negative_amounts_are_refused) ... ok
+test_neither_target_nor_charge_is_refused (test_bad_debt.Refusals.test_neither_target_nor_charge_is_refused) ... ok
+test_a_target_below_the_existing_balance_reverses_the_allowance 
+(test_bad_debt.TargetMethod.test_a_target_below_the_existing_balance_reverses_the_allowance) ... ok
+test_a_target_equal_to_the_existing_balance_posts_nothing 
+(test_bad_debt.TargetMethod.test_a_target_equal_to_the_existing_balance_posts_nothing) ... ok
+test_the_movement_reaches_the_wanted_closing_balance 
+(test_bad_debt.TargetMethod.test_the_movement_reaches_the_wanted_closing_balance) ... ok
+test_a_target_that_restores_the_allowance_makes_a_large_write_off_acceptable 
+(test_bad_debt.WriteOff.test_a_target_that_restores_the_allowance_makes_a_large_write_off_acceptable) ... ok
+test_a_write_off_beyond_the_allowance_is_refused_with_a_reason 
+(test_bad_debt.WriteOff.test_a_write_off_beyond_the_allowance_is_refused_with_a_reason)
+Writing off more than the allowance holds leaves it abnormal, and the closing step refuses ... ok
+test_a_write_off_clears_the_receivable_against_the_allowance 
+(test_bad_debt.WriteOff.test_a_write_off_clears_the_receivable_against_the_allowance) ... ok
+test_a_write_off_larger_than_the_receivables_is_refused 
+(test_bad_debt.WriteOff.test_a_write_off_larger_than_the_receivables_is_refused) ... ok
+test_an_unclassified_chart_renders_the_flat_statement 
+(test_balance_sheet_sections.FlatLayoutIsPreserved.test_an_unclassified_chart_renders_the_flat_statement) ... ok
+test_sections_and_subtotals_appear (test_balance_sheet_sections.TheSectionsAddUp.test_sections_and_subtotals_appear) 
+... ok
+test_the_statement_still_balances (test_balance_sheet_sections.TheSectionsAddUp.test_the_statement_still_balances) ... 
+ok
+test_the_subtotals_are_the_figures_they_claim 
+(test_balance_sheet_sections.TheSectionsAddUp.test_the_subtotals_are_the_figures_they_claim) ... ok
+test_total_assets_is_the_same_as_the_unclassified_statement 
+(test_balance_sheet_sections.TheSectionsAddUp.test_total_assets_is_the_same_as_the_unclassified_statement) ... ok
+test_reclassifying_moves_the_subtotals_but_not_the_totals 
+(test_balance_sheet_sections.TrapTest.test_reclassifying_moves_the_subtotals_but_not_the_totals) ... ok
+test_an_account_without_a_section_is_not_forced_into_one 
+(test_balance_sheet_sections.UnclassifiedIsExplicit.test_an_account_without_a_section_is_not_forced_into_one) ... ok
+test_total_assets_includes_the_unclassified_group 
+(test_balance_sheet_sections.UnclassifiedIsExplicit.test_total_assets_includes_the_unclassified_group) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason 
+(test_bcg_completion.BCGCompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... ok
+test_an_empty_cell_does_not_block_the_paper 
+(test_bcg_completion.BCGCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ok
+test_byline_reaches_the_title_page (test_bcg_completion.BCGCompletionTest.test_byline_reaches_the_title_page) ... ok
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_bcg_completion.BCGCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... ok
+test_no_source_run_fills_every_cell_with_background 
+(test_bcg_completion.BCGCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ok
+test_one_source_cannot_fill_two_cells (test_bcg_completion.BCGCompletionTest.test_one_source_cannot_fill_two_cells) 
+... ok
+test_outline_headings_are_present_and_title_cased 
+(test_bcg_completion.BCGCompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_bcg_completion.BCGCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_bcg_completion.BCGCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ok
+test_the_model_prompt_speaks_bcg_and_keeps_the_safety_rules 
+(test_bcg_completion.BCGCompletionTest.test_the_model_prompt_speaks_bcg_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_bcg_completion.BCGCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ok
+test_the_route_returns_an_bcg_completion 
+(test_bcg_completion.BCGCompletionTest.test_the_route_returns_an_bcg_completion) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason (test_brand_equity_completion.BrandEquityCompleti
+onTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... ok
+test_an_empty_cell_does_not_block_the_paper 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ok
+test_byline_reaches_the_title_page 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_byline_reaches_the_title_page) ... ok
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... 
+ok
+test_no_source_run_fills_every_cell_with_background 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ok
+test_one_source_cannot_fill_two_cells 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_one_source_cannot_fill_two_cells) ... ok
+test_outline_headings_are_present_and_title_cased 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ok
+test_the_model_prompt_speaks_brand_equity_and_keeps_the_safety_rules (test_brand_equity_completion.BrandEquityCompletio
+nTest.test_the_model_prompt_speaks_brand_equity_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ok
+test_the_route_returns_an_brand_equity_completion 
+(test_brand_equity_completion.BrandEquityCompletionTest.test_the_route_returns_an_brand_equity_completion) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason (test_burke_litwin_completion.BurkeLitwinCompleti
+onTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... FAIL
+test_an_empty_cell_does_not_block_the_paper 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... ERROR
+test_byline_reaches_the_title_page 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_byline_reaches_the_title_page) ... ERROR
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... 
+ERROR
+test_no_source_run_fills_every_cell_with_background 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_no_source_run_fills_every_cell_with_background) ... ERROR
+test_one_source_cannot_fill_two_cells 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_one_source_cannot_fill_two_cells) ... ERROR
+test_outline_headings_are_present_and_title_cased 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_the_framework_name_is_not_an_invented_name) ... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_the_industry_is_the_unit_of_analysis) ... ERROR
+test_the_model_prompt_speaks_burke_litwin_and_keeps_the_safety_rules (test_burke_litwin_completion.BurkeLitwinCompletio
+nTest.test_the_model_prompt_speaks_burke_litwin_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell) ... ERROR
+test_the_route_returns_an_burke_litwin_completion 
+(test_burke_litwin_completion.BurkeLitwinCompletionTest.test_the_route_returns_an_burke_litwin_completion) ... ok
+test_checks_and_refusals (test_business_plan_core.DepreciationSchedule.test_checks_and_refusals) ... ok
+test_declining_balance_plugs_the_final_period_to_salvage 
+(test_business_plan_core.DepreciationSchedule.test_declining_balance_plugs_the_final_period_to_salvage) ... ok
+test_pipeline_delivers_without_template_tokens 
+(test_business_plan_core.DepreciationSchedule.test_pipeline_delivers_without_template_tokens) ... ok
+test_straight_line_arithmetic (test_business_plan_core.DepreciationSchedule.test_straight_line_arithmetic) ... ok
+test_every_compute_tile_has_a_group_period_and_formula 
+(test_business_plan_core.PageWiring.test_every_compute_tile_has_a_group_period_and_formula) ... ok
+test_every_method_is_in_the_library_and_every_preset_points_at_one 
+(test_business_plan_core.PageWiring.test_every_method_is_in_the_library_and_every_preset_points_at_one) ... ok
+test_the_entrepreneurship_page_exposes_every_new_tile 
+(test_business_plan_core.PageWiring.test_the_entrepreneurship_page_exposes_every_new_tile) ... ok
+test_every_new_preset_delivers (test_business_plan_core.PresetDelivery.test_every_new_preset_delivers) ... ok
+test_an_opening_loan_supplies_the_interest_and_principal 
+(test_business_plan_core.ProformaStatements.test_an_opening_loan_supplies_the_interest_and_principal) ... ok
+test_an_unbalanced_opening_balance_is_refused_with_the_fix 
+(test_business_plan_core.ProformaStatements.test_an_unbalanced_opening_balance_is_refused_with_the_fix) ... ok
+test_checks_and_refusals (test_business_plan_core.ProformaStatements.test_checks_and_refusals) ... ok
+test_every_period_balances_and_rolls_forward 
+(test_business_plan_core.ProformaStatements.test_every_period_balances_and_rolls_forward) ... ok
+test_income_statement_arithmetic (test_business_plan_core.ProformaStatements.test_income_statement_arithmetic) ... ok
+test_loan_terms_and_declared_lists_are_never_mixed 
+(test_business_plan_core.ProformaStatements.test_loan_terms_and_declared_lists_are_never_mixed) ... ok
+test_pipeline_delivers_without_template_tokens 
+(test_business_plan_core.ProformaStatements.test_pipeline_delivers_without_template_tokens) ... ok
+test_repaying_more_loan_than_is_owed_is_refused 
+(test_business_plan_core.ProformaStatements.test_repaying_more_loan_than_is_owed_is_refused) ... ok
+test_arithmetic (test_business_plan_core.SalesFromMarket.test_arithmetic) ... ok
+test_checks_and_refusals (test_business_plan_core.SalesFromMarket.test_checks_and_refusals) ... ok
+test_pipeline_delivers_without_template_tokens 
+(test_business_plan_core.SalesFromMarket.test_pipeline_delivers_without_template_tokens) ... ok
+test_arithmetic (test_business_plan_core.SensitivityTable.test_arithmetic) ... ok
+test_checks_and_refusals (test_business_plan_core.SensitivityTable.test_checks_and_refusals) ... ok
+test_pipeline_delivers_without_template_tokens 
+(test_business_plan_core.SensitivityTable.test_pipeline_delivers_without_template_tokens) ... ok
+test_a_docx_without_a_document_part_is_refused 
+(test_business_plan_profile.BriefReaders.test_a_docx_without_a_document_part_is_refused) ... ok
+test_a_non_docx_is_refused (test_business_plan_profile.BriefReaders.test_a_non_docx_is_refused) ... ok
+test_docx_reads_paragraphs_in_order (test_business_plan_profile.BriefReaders.test_docx_reads_paragraphs_in_order) ... 
+ok
+test_extract_document_dispatches_by_extension 
+(test_business_plan_profile.BriefReaders.test_extract_document_dispatches_by_extension) ... ok
+test_txt_reads_utf8_and_windows_1252 (test_business_plan_profile.BriefReaders.test_txt_reads_utf8_and_windows_1252) 
+... ok
+test_txt_refuses_binary_and_empty_files 
+(test_business_plan_profile.BriefReaders.test_txt_refuses_binary_and_empty_files) ... ok
+test_a_level_change_rebuilds_the_blocks_and_fields 
+(test_business_plan_profile.Customisation.test_a_level_change_rebuilds_the_blocks_and_fields) ... ok
+test_a_plan_cannot_be_customised_after_confirmation 
+(test_business_plan_profile.Customisation.test_a_plan_cannot_be_customised_after_confirmation) ... ok
+test_leaving_out_an_impact_section_also_drops_its_block_and_field 
+(test_business_plan_profile.Customisation.test_leaving_out_an_impact_section_also_drops_its_block_and_field) ... ok
+test_open_composition_can_leave_out_an_optional_section 
+(test_business_plan_profile.Customisation.test_open_composition_can_leave_out_an_optional_section) ... ok
+test_strict_composition_keeps_the_standard_sections 
+(test_business_plan_profile.Customisation.test_strict_composition_keeps_the_standard_sections) ... ok
+test_a_complete_college_plan_exports_word_bytes 
+(test_business_plan_profile.DraftAndGate.test_a_complete_college_plan_exports_word_bytes) ... ok
+test_a_complete_plan_drafts_without_gaps 
+(test_business_plan_profile.DraftAndGate.test_a_complete_plan_drafts_without_gaps) ... ok
+test_a_missing_core_block_blocks_export 
+(test_business_plan_profile.DraftAndGate.test_a_missing_core_block_blocks_export) ... ok
+test_missing_student_fields_are_named_by_the_gate 
+(test_business_plan_profile.DraftAndGate.test_missing_student_fields_are_named_by_the_gate) ... ok
+test_no_template_text_reaches_the_plan 
+(test_business_plan_profile.DraftAndGate.test_no_template_text_reaches_the_plan) ... ok
+test_the_export_gate_reports_the_missing_list_to_the_route 
+(test_business_plan_profile.DraftAndGate.test_the_export_gate_reports_the_missing_list_to_the_route) ... ok
+test_the_plan_check_passes_core_structure_and_rejects_a_heading_jump 
+(test_business_plan_profile.DraftAndGate.test_the_plan_check_passes_core_structure_and_rejects_a_heading_jump) ... ok
+test_the_plan_keeps_the_students_words 
+(test_business_plan_profile.DraftAndGate.test_the_plan_keeps_the_students_words) ... ok
+test_an_unbalanced_opening_balance_is_a_hard_refusal_that_blocks_export (test_business_plan_profile.InputsAndComputatio
+n.test_an_unbalanced_opening_balance_is_a_hard_refusal_that_blocks_export) ... ok
+test_an_unknown_block_is_refused (test_business_plan_profile.InputsAndComputation.test_an_unknown_block_is_refused) 
+... ok
+test_computation_needs_a_confirmed_plan 
+(test_business_plan_profile.InputsAndComputation.test_computation_needs_a_confirmed_plan) ... ok
+test_inputs_keep_the_students_words_and_split_items 
+(test_business_plan_profile.InputsAndComputation.test_inputs_keep_the_students_words_and_split_items) ... ok
+test_saving_inputs_does_not_close_the_research_step 
+(test_business_plan_profile.InputsAndComputation.test_saving_inputs_does_not_close_the_research_step) ... ok
+test_the_core_result_is_stored_and_no_formula_is_recomputed 
+(test_business_plan_profile.InputsAndComputation.test_the_core_result_is_stored_and_no_formula_is_recomputed) ... ok
+test_the_financial_plan_states_the_core_results 
+(test_business_plan_profile.InputsAndComputation.test_the_financial_plan_states_the_core_results) ... ok
+test_unknown_input_fields_are_refused 
+(test_business_plan_profile.InputsAndComputation.test_unknown_input_fields_are_refused) ... ok
+test_an_export_before_the_plan_is_complete_returns_409_with_missing 
+(test_business_plan_profile.PlanRoutes.test_an_export_before_the_plan_is_complete_returns_409_with_missing) ... ok
+test_an_unbalanced_opening_balance_blocks_the_route 
+(test_business_plan_profile.PlanRoutes.test_an_unbalanced_opening_balance_blocks_the_route) ... ok
+test_customise_changes_the_level_through_the_route 
+(test_business_plan_profile.PlanRoutes.test_customise_changes_the_level_through_the_route) ... ok
+test_the_brief_route_reads_a_docx_attachment 
+(test_business_plan_profile.PlanRoutes.test_the_brief_route_reads_a_docx_attachment) ... ok
+test_the_brief_route_reads_a_txt_attachment 
+(test_business_plan_profile.PlanRoutes.test_the_brief_route_reads_a_txt_attachment) ... ok
+test_the_brief_route_reads_pasted_text (test_business_plan_profile.PlanRoutes.test_the_brief_route_reads_pasted_text) 
+... ok
+test_the_brief_route_refuses_bad_base64_and_unknown_types 
+(test_business_plan_profile.PlanRoutes.test_the_brief_route_refuses_bad_base64_and_unknown_types) ... ok
+test_the_whole_plan_flows_over_the_routes 
+(test_business_plan_profile.PlanRoutes.test_the_whole_plan_flows_over_the_routes) ... ok
+test_a_short_brief_is_refused (test_business_plan_profile.PlanShape.test_a_short_brief_is_refused) ... ok
+test_an_unknown_level_or_mode_is_refused 
+(test_business_plan_profile.PlanShape.test_an_unknown_level_or_mode_is_refused) ... ok
+test_college_plan_adds_tax_cap_table_and_impact 
+(test_business_plan_profile.PlanShape.test_college_plan_adds_tax_cap_table_and_impact) ... ok
+test_every_plan_block_is_a_declared_core_method 
+(test_business_plan_profile.PlanShape.test_every_plan_block_is_a_declared_core_method) ... ok
+test_shs_plan_has_the_standard_sections_and_core_blocks 
+(test_business_plan_profile.PlanShape.test_shs_plan_has_the_standard_sections_and_core_blocks) ... ok
+test_the_financial_plan_is_one_h1_with_computation_h2s 
+(test_business_plan_profile.PlanShape.test_the_financial_plan_is_one_h1_with_computation_h2s) ... ok
+test_api_responses_are_not_cacheable (test_cache_headers.CacheHeadersTest.test_api_responses_are_not_cacheable) ... ok
+test_the_workbench_document_is_not_cacheable 
+(test_cache_headers.CacheHeadersTest.test_the_workbench_document_is_not_cacheable) ... ok
+test_a_bespoke_formatter_reports_the_core_numbers_as_money 
+(test_capabilities.PaperTest.test_a_bespoke_formatter_reports_the_core_numbers_as_money) ... FAIL
+test_a_framework_only_paper_has_no_computation_section_and_no_figure_gate 
+(test_capabilities.PaperTest.test_a_framework_only_paper_has_no_computation_section_and_no_figure_gate) ... ok
+test_a_selected_capability_adds_its_section_and_its_gate 
+(test_capabilities.PaperTest.test_a_selected_capability_adds_its_section_and_its_gate) ... ok
+test_dropping_removes_the_section_and_the_requirement 
+(test_capabilities.PaperTest.test_dropping_removes_the_section_and_the_requirement) ... ok
+test_a_cost_question_selects_break_even (test_capabilities.ResolutionTest.test_a_cost_question_selects_break_even) ... 
+ok
+test_a_cue_without_figures_asks_exactly_one_question 
+(test_capabilities.ResolutionTest.test_a_cue_without_figures_asks_exactly_one_question) ... ok
+test_a_framework_only_brief_selects_nothing 
+(test_capabilities.ResolutionTest.test_a_framework_only_brief_selects_nothing) ... ok
+test_every_registered_entry_declares_what_the_checklist_requires 
+(test_capabilities.ResolutionTest.test_every_registered_entry_declares_what_the_checklist_requires) ... ok
+test_one_capability_per_intent_and_the_rest_are_named 
+(test_capabilities.ResolutionTest.test_one_capability_per_intent_and_the_rest_are_named) ... ok
+test_the_question_answer_is_recorded_both_ways 
+(test_capabilities.ResolutionTest.test_the_question_answer_is_recorded_both_ways) ... ok
+test_the_selection_is_hashed_and_reproducible 
+(test_capabilities.ResolutionTest.test_the_selection_is_hashed_and_reproducible) ... ok
+test_a_bad_series_item_is_named_not_guessed (test_capabilities.RunnerTest.test_a_bad_series_item_is_named_not_guessed) 
+... ok
+test_a_bond_takes_a_price_or_a_yield_but_not_neither 
+(test_capabilities.RunnerTest.test_a_bond_takes_a_price_or_a_yield_but_not_neither) ... ok
+test_a_capability_the_paper_does_not_carry_is_refused 
+(test_capabilities.RunnerTest.test_a_capability_the_paper_does_not_carry_is_refused) ... ok
+test_a_cohort_paper_takes_a_retention_matrix 
+(test_capabilities.RunnerTest.test_a_cohort_paper_takes_a_retention_matrix) ... FAIL
+test_a_currency_conversion_takes_codes_and_a_declared_rate 
+(test_capabilities.RunnerTest.test_a_currency_conversion_takes_codes_and_a_declared_rate) ... FAIL
+test_a_dcf_paper_reports_the_core_value (test_capabilities.RunnerTest.test_a_dcf_paper_reports_the_core_value) ... FAIL
+test_a_decision_tree_reports_the_best_expected_value 
+(test_capabilities.RunnerTest.test_a_decision_tree_reports_the_best_expected_value) ... FAIL
+test_a_finance_paper_reports_the_cash_conversion_cycle 
+(test_capabilities.RunnerTest.test_a_finance_paper_reports_the_cash_conversion_cycle) ... FAIL
+test_a_gini_paper_reports_inequality (test_capabilities.RunnerTest.test_a_gini_paper_reports_inequality) ... FAIL
+test_a_group_comparison_takes_named_columns (test_capabilities.RunnerTest.test_a_group_comparison_takes_named_columns) 
+... ok
+test_a_matrix_needs_one_score_per_criterion (test_capabilities.RunnerTest.test_a_matrix_needs_one_score_per_criterion) 
+... ok
+test_a_minimum_number_of_figures_is_required 
+(test_capabilities.RunnerTest.test_a_minimum_number_of_figures_is_required) ... ok
+test_a_panel_regression_is_not_also_plain_ols 
+(test_capabilities.RunnerTest.test_a_panel_regression_is_not_also_plain_ols) ... ok
+test_a_refused_figure_keeps_the_core_message_and_reports_no_number 
+(test_capabilities.RunnerTest.test_a_refused_figure_keeps_the_core_message_and_reports_no_number) ... ok
+test_a_regression_brief_is_not_refused_as_an_accounting_computation 
+(test_capabilities.RunnerTest.test_a_regression_brief_is_not_refused_as_an_accounting_computation) ... ok
+test_a_schedule_paper_names_the_critical_path 
+(test_capabilities.RunnerTest.test_a_schedule_paper_names_the_critical_path) ... FAIL
+test_a_statistical_paper_states_the_result_without_causation 
+(test_capabilities.RunnerTest.test_a_statistical_paper_states_the_result_without_causation) ... FAIL
+test_a_survey_reliability_paper_takes_named_columns 
+(test_capabilities.RunnerTest.test_a_survey_reliability_paper_takes_named_columns) ... FAIL
+test_a_weighted_matrix_ranks_the_alternatives 
+(test_capabilities.RunnerTest.test_a_weighted_matrix_ranks_the_alternatives) ... FAIL
+test_an_either_or_input_is_enforced (test_capabilities.RunnerTest.test_an_either_or_input_is_enforced) ... ok
+test_an_enum_input_is_required_and_checked (test_capabilities.RunnerTest.test_an_enum_input_is_required_and_checked) 
+... ok
+test_an_operations_paper_names_the_bottleneck 
+(test_capabilities.RunnerTest.test_an_operations_paper_names_the_bottleneck) ... FAIL
+test_decision_tree_branches_must_sum_to_one (test_capabilities.RunnerTest.test_decision_tree_branches_must_sum_to_one) 
+... ok
+test_ltv_cac_belongs_to_channel_economics_not_clv 
+(test_capabilities.RunnerTest.test_ltv_cac_belongs_to_channel_economics_not_clv) ... ok
+test_market_power_does_not_drag_cost_curves_or_pricing 
+(test_capabilities.RunnerTest.test_market_power_does_not_drag_cost_curves_or_pricing) ... ok
+test_real_wages_do_not_select_inflation (test_capabilities.RunnerTest.test_real_wages_do_not_select_inflation) ... ok
+test_records_rows_are_validated (test_capabilities.RunnerTest.test_records_rows_are_validated) ... ok
+test_social_return_is_not_plain_roi (test_capabilities.RunnerTest.test_social_return_is_not_plain_roi) ... ok
+test_the_core_result_is_stored_verbatim (test_capabilities.RunnerTest.test_the_core_result_is_stored_verbatim) ... ok
+test_the_declared_figures_are_validated_against_the_frozen_schema 
+(test_capabilities.RunnerTest.test_the_declared_figures_are_validated_against_the_frozen_schema) ... ok
+test_every_family_drafts_a_paper_that_passes_the_export_gate 
+(test_capability_papers.EveryFamilyTest.test_every_family_drafts_a_paper_that_passes_the_export_gate) ... ok
+test_every_registered_capability_has_a_formatter_or_the_generic_one 
+(test_capability_papers.EveryFamilyTest.test_every_registered_capability_has_a_formatter_or_the_generic_one) ... ok
+test_defective_builders_are_blocked (test_case_decision.Defects.test_defective_builders_are_blocked) ... ok
+test_recommendation_invented_without_a_rule_is_blocked 
+(test_case_decision.Defects.test_recommendation_invented_without_a_rule_is_blocked) ... ok
+test_changing_the_decision_rule_changes_the_frozen_spec 
+(test_case_decision.EndToEnd.test_changing_the_decision_rule_changes_the_frozen_spec) ... ok
+test_delivery_and_report (test_case_decision.EndToEnd.test_delivery_and_report) ... ok
+test_every_digit_in_the_narrative_comes_from_an_artifact 
+(test_case_decision.EndToEnd.test_every_digit_in_the_narrative_comes_from_an_artifact) ... ok
+test_negative_npv_flag_and_currency_formatting 
+(test_case_decision.EndToEnd.test_negative_npv_flag_and_currency_formatting) ... ok
+test_no_rule_means_no_recommendation_text (test_case_decision.EndToEnd.test_no_rule_means_no_recommendation_text) ... 
+ok
+test_session_plan_and_frozen_spec (test_case_decision.EndToEnd.test_session_plan_and_frozen_spec) ... ok
+test_user_names_with_digits_and_token_lookalikes_are_shown_not_executed 
+(test_case_decision.EndToEnd.test_user_names_with_digits_and_token_lookalikes_are_shown_not_executed) ... ok
+test_exact_tie_is_reported_as_a_tie (test_case_decision.Numbers.test_exact_tie_is_reported_as_a_tie) ... ok
+test_hand_checked_crossover_and_values (test_case_decision.Numbers.test_hand_checked_crossover_and_values) ... ok
+test_no_crossover_when_one_dominates (test_case_decision.Numbers.test_no_crossover_when_one_dominates) ... ok
+test_rule_controls_the_recommendation (test_case_decision.Numbers.test_rule_controls_the_recommendation) ... ok
+test_two_roots_are_both_found (test_case_decision.Numbers.test_two_roots_are_both_found) ... ok
+test_registered_and_described (test_case_decision.SandboxAndApi.test_registered_and_described) ... ok
+test_sandbox_equals_in_process_and_reperforms 
+(test_case_decision.SandboxAndApi.test_sandbox_equals_in_process_and_reperforms) ... ok
+test_bad_input_blocks_before_anything_runs (test_case_decision.Validation.test_bad_input_blocks_before_anything_runs) 
+... ok
+test_intake_errors_are_actionable (test_case_decision.Validation.test_intake_errors_are_actionable) ... ok
+test_cash_to_cash_transfer_is_flagged_without_totals 
+(test_cashflow.ClassificationFlags.test_cash_to_cash_transfer_is_flagged_without_totals) ... ok
+test_invalid_activity_tag_is_rejected (test_cashflow.ClassificationFlags.test_invalid_activity_tag_is_rejected) ... ok
+test_mixed_counterparts_are_flagged_and_classified_operating_first 
+(test_cashflow.ClassificationFlags.test_mixed_counterparts_are_flagged_and_classified_operating_first) ... ok
+test_random_journals_always_satisfy_the_two_route_agreement 
+(test_cashflow.Fuzz.test_random_journals_always_satisfy_the_two_route_agreement) ... ok
+test_collecting_a_receivable_and_paying_an_accrual_are_operating 
+(test_cashflow.TwoRoutes.test_collecting_a_receivable_and_paying_an_accrual_are_operating) ... ok
+test_corrupted_net_income_breaks_the_agreement 
+(test_cashflow.TwoRoutes.test_corrupted_net_income_breaks_the_agreement) ... ok
+test_hand_checked_split_and_agreement (test_cashflow.TwoRoutes.test_hand_checked_split_and_agreement) ... ok
+test_non_cash_entries_do_not_move_the_routes (test_cashflow.TwoRoutes.test_non_cash_entries_do_not_move_the_routes) 
+... ok
+test_opening_entries_are_excluded (test_cashflow.TwoRoutes.test_opening_entries_are_excluded) ... ok
+test_untagged_liability_defaults_to_financing (test_cashflow.TwoRoutes.test_untagged_liability_defaults_to_financing) 
+... ok
+test_accounting_records_claim_the_accounting_methods 
+(test_catalogue_truth.CatalogueDoesNotDenyWhatIsBuilt.test_accounting_records_claim_the_accounting_methods)
+The Accounting subject page must not deny the methods it is built on. ... ok
+test_finance_records_claim_the_finance_methods 
+(test_catalogue_truth.CatalogueDoesNotDenyWhatIsBuilt.test_finance_records_claim_the_finance_methods) ... ok
+test_no_record_claims_nothing_while_linking_methods 
+(test_catalogue_truth.CatalogueDoesNotDenyWhatIsBuilt.test_no_record_claims_nothing_while_linking_methods)
+'not implemented' with a linked method is a self-contradiction. ... ok
+test_statistics_regression_records_claim_what_is_built 
+(test_catalogue_truth.CatalogueDoesNotDenyWhatIsBuilt.test_statistics_regression_records_claim_what_is_built) ... ok
+test_every_linked_method_exists_in_the_library 
+(test_catalogue_truth.CatalogueLinksResolve.test_every_linked_method_exists_in_the_library)
+A link to a method id that does not exist is a dead end for the page. ... ok
+test_every_subject_tool_resolves_to_something_that_runs 
+(test_catalogue_truth.SubjectToolsResolve.test_every_subject_tool_resolves_to_something_that_runs)
+A subject tile must resolve either to a registered method or to a ... ok
+test_every_record_has_a_known_form (test_catalogue_truth.VerdictsAreHonest.test_every_record_has_a_known_form) ... ok
+test_no_read_only_framework_says_not_implemented 
+(test_catalogue_truth.VerdictsAreHonest.test_no_read_only_framework_says_not_implemented) ... ok
+test_no_theory_is_presented_as_an_unbuilt_worksheet 
+(test_catalogue_truth.VerdictsAreHonest.test_no_theory_is_presented_as_an_unbuilt_worksheet) ... ok
+test_a_brief_without_an_industry_is_refused_with_an_actionable_reason (test_change_organization_completion.ChangeOrgani
+zationCompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason) ... FAIL
+test_an_empty_cell_does_not_block_the_paper 
+(test_change_organization_completion.ChangeOrganizationCompletionTest.test_an_empty_cell_does_not_block_the_paper) ... 
+ERROR
+test_byline_reaches_the_title_page 
+(test_change_organization_completion.ChangeOrganizationCompletionTest.test_byline_reaches_the_title_page) ... ERROR
+test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_change_organization_completion.ChangeOrganizationComplet
+ionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap) ... ERROR
+test_no_source_run_fills_every_cell_with_background (test_change_organization_completion.ChangeOrganizationCompletionTe
+st.test_no_source_run_fills_every_cell_with_background) ... ERROR
+test_one_source_cannot_fill_two_cells 
+(test_change_organization_completion.ChangeOrganizationCompletionTest.test_one_source_cannot_fill_two_cells) ... ERROR
+test_outline_headings_are_present_and_title_cased (test_change_organization_completion.ChangeOrganizationCompletionTest
+.test_outline_headings_are_present_and_title_cased) ... ok
+test_the_framework_name_is_not_an_invented_name 
+(test_change_organization_completion.ChangeOrganizationCompletionTest.test_the_framework_name_is_not_an_invented_name) 
+... ok
+test_the_industry_is_the_unit_of_analysis 
+(test_change_organization_completion.ChangeOrganizationCompletionTest.test_the_industry_is_the_unit_of_analysis) ... 
+ERROR
+test_the_model_prompt_speaks_change_organization_and_keeps_the_safety_rules (test_change_organization_completion.Change
+OrganizationCompletionTest.test_the_model_prompt_speaks_change_organization_and_keeps_the_safety_rules) ... FAIL
+test_the_route_generates_a_draft_with_an_empty_cell (test_change_organization_completion.ChangeOrganizationCompletionTe
+st.test_the_route_generates_a_draft_with_an_empty_cell) ... ERROR
+test_the_route_returns_an_change_organization_completion (test_change_organization_completion.ChangeOrganizationComplet
+ionTest.test_the_route_returns_an_change_organization_completion) ... ok
+test_the_combined_draft_has_pestel_and_swot_sections 
+(test_chat.CombinedTest.test_the_combined_draft_has_pestel_and_swot_sections) ... ok
+test_the_combined_draft_maps_positive_evidence_to_opportunities 
+(test_chat.CombinedTest.test_the_combined_draft_maps_positive_evidence_to_opportunities) ... ok
+test_the_combined_plan_keeps_the_six_pestel_dimensions 
+(test_chat.CombinedTest.test_the_combined_plan_keeps_the_six_pestel_dimensions) ... ok
+test_a_gap_is_named_and_no_implication_is_invented 
+(test_chat.DraftTest.test_a_gap_is_named_and_no_implication_is_invented) ... ok
+test_export_is_blocked_without_implications (test_chat.DraftTest.test_export_is_blocked_without_implications) ... ok
+test_the_export_is_a_real_docx (test_chat.DraftTest.test_the_export_is_a_real_docx) ... ok
+test_the_paper_uses_h1_for_frameworks_and_h2_for_dimensions 
+(test_chat.DraftTest.test_the_paper_uses_h1_for_frameworks_and_h2_for_dimensions) ... ok
+test_the_same_evidence_produces_the_same_sections 
+(test_chat.DraftTest.test_the_same_evidence_produces_the_same_sections) ... ok
+test_the_section_quotes_the_evidence_and_uses_harvard 
+(test_chat.DraftTest.test_the_section_quotes_the_evidence_and_uses_harvard) ... ok
+test_a_price_below_variable_cost_is_refused (test_chat.FiveForcesTest.test_a_price_below_variable_cost_is_refused) ... 
+ok
+test_the_combination_asks_for_the_break_even_inputs 
+(test_chat.FiveForcesTest.test_the_combination_asks_for_the_break_even_inputs) ... ok
+test_the_draft_has_forces_and_a_core_break_even_result 
+(test_chat.FiveForcesTest.test_the_draft_has_forces_and_a_core_break_even_result) ... ok
+test_the_plan_lists_the_five_forces (test_chat.FiveForcesTest.test_the_plan_lists_the_five_forces) ... ok
+test_an_invalid_choice_is_refused (test_chat.PlanTest.test_an_invalid_choice_is_refused) ... ok
+test_the_plan_lists_the_six_dimensions_and_what_pestel_misses 
+(test_chat.PlanTest.test_the_plan_lists_the_six_dimensions_and_what_pestel_misses) ... ok
+test_a_dimension_with_no_evidence_is_a_gap (test_chat.ResearchTest.test_a_dimension_with_no_evidence_is_a_gap) ... ok
+test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking 
+(test_chat.ResearchTest.test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking) ... FAIL
+test_research_fills_six_dimensions_and_records_sources 
+(test_chat.ResearchTest.test_research_fills_six_dimensions_and_records_sources) ... ok
+test_research_requires_a_confirmed_plan (test_chat.ResearchTest.test_research_requires_a_confirmed_plan) ... ok
+test_the_chat_route_accepts_a_swot_framework (test_chat.RouteTest.test_the_chat_route_accepts_a_swot_framework) ... ok
+test_the_chat_route_creates_answers_and_exports (test_chat.RouteTest.test_the_chat_route_creates_answers_and_exports) 
+... ok
+test_a_computation_brief_is_refused_instead_of_forced_into_pestel 
+(test_chat.StartTest.test_a_computation_brief_is_refused_instead_of_forced_into_pestel) ... FAIL
+test_a_pestel_brief_starts_with_one_question_and_defaults_from_the_text 
+(test_chat.StartTest.test_a_pestel_brief_starts_with_one_question_and_defaults_from_the_text) ... ok
+test_a_too_short_brief_is_refused_with_a_reason (test_chat.StartTest.test_a_too_short_brief_is_refused_with_a_reason) 
+... ok
+test_a_country_brief_puts_the_country_into_every_query 
+(test_chat.SwotTest.test_a_country_brief_puts_the_country_into_every_query) ... ok
+test_precision_ranking_prefers_a_title_match_and_recency 
+(test_chat.SwotTest.test_precision_ranking_prefers_a_title_match_and_recency) ... ok
+test_swot_is_inferred_from_the_brief (test_chat.SwotTest.test_swot_is_inferred_from_the_brief) ... ok
+test_the_swot_draft_keeps_internal_input_and_cites_external_evidence 
+(test_chat.SwotTest.test_the_swot_draft_keeps_internal_input_and_cites_external_evidence) ... ok
+test_the_swot_plan_has_only_external_dimensions_and_says_what_it_misses 
+(test_chat.SwotTest.test_the_swot_plan_has_only_external_dimensions_and_says_what_it_misses) ... ok
+test_the_swot_questions_collect_internal_factors_as_lists 
+(test_chat.SwotTest.test_the_swot_questions_collect_internal_factors_as_lists) ... ok
+test_chi2_report (test_chisquare.EndToEnd.test_chi2_report) ... ok
+test_effect_word_from_declared_thresholds (test_chisquare.EndToEnd.test_effect_word_from_declared_thresholds) ... ok
+test_independent_table_wording (test_chisquare.EndToEnd.test_independent_table_wording) ... ok
+test_plan_and_states (test_chisquare.EndToEnd.test_plan_and_states) ... ok
+test_synthetic_label (test_chisquare.EndToEnd.test_synthetic_label) ... ok
+test_against_offline_scipy_references (test_chisquare.Golden.test_against_offline_scipy_references) ... ok
+test_empty_table_and_zero_column_block (test_chisquare.Inputs.test_empty_table_and_zero_column_block) ... ok
+test_large_expected_counts_delivered (test_chisquare.Inputs.test_large_expected_counts_delivered) ... ok
+test_schema (test_chisquare.Inputs.test_schema) ... ok
+test_small_expected_counts_block_fail_closed (test_chisquare.Inputs.test_small_expected_counts_block_fail_closed) ... 
+ok
+test_chi2_bugs_blocked (test_chisquare.WrongImplementations.test_chi2_bugs_blocked) ... ok
+test_discovery (test_chisquare.WrongImplementations.test_discovery) ... ok
+test_abnormal_balance_blocks_closing (test_closing.Closing.test_abnormal_balance_blocks_closing) ... ok
+test_closing_needs_a_retained_earnings_account (test_closing.Closing.test_closing_needs_a_retained_earnings_account) 
+... ok
+test_closing_zeroes_income_expense_and_rolls_forward 
+(test_closing.Closing.test_closing_zeroes_income_expense_and_rolls_forward) ... ok
+test_direct_retained_earnings_posting_is_included 
+(test_closing.Closing.test_direct_retained_earnings_posting_is_included) ... ok
+test_no_activity_closes_without_entries (test_closing.Closing.test_no_activity_closes_without_entries) ... ok
+test_rollforward_detects_tampering (test_closing.Closing.test_rollforward_detects_tampering) ... ok
+test_next_period_opens_from_prior_closing (test_closing.MultiPeriod.test_next_period_opens_from_prior_closing) ... ok
+test_opening_mismatch_is_detected (test_closing.MultiPeriod.test_opening_mismatch_is_detected) ... ok
+test_a_company_without_an_industry_is_refused 
+(test_completion.CompletionTest.test_a_company_without_an_industry_is_refused) ... ok
+test_a_failed_full_paper_falls_back_to_the_evidence_led_draft 
+(test_completion.CompletionTest.test_a_failed_full_paper_falls_back_to_the_evidence_led_draft) ... ok
+test_a_student_item_is_preserved (test_completion.CompletionTest.test_a_student_item_is_preserved) ... ok
+test_an_unknown_length_falls_back_to_mid (test_completion.CompletionTest.test_an_unknown_length_falls_back_to_mid) ... 
+ok
+test_another_template_is_refused (test_completion.CompletionTest.test_another_template_is_refused) ... 
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up 
+<HTTPError 429: ''>
+  _warnings.warn(self.warn_message, ResourceWarning)

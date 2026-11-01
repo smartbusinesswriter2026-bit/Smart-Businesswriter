@@ -1,0 +1,1 @@
+{"code": "async () => {\n  const res = await cloudflare.request({\n    method: \"GET\",\n    path: `/accounts/127515e9310b9d256df686b85a889907/r2/buckets`,\n  });\n  return { success: res.success, status: res.status, result: res.result, errors: res.errors };\n}\n", "account_id": "127515e9310b9d256df686b85a889907"}
