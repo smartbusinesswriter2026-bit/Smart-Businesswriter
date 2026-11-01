@@ -372,11 +372,24 @@ def complete(template, instruction, region=None, student_items=None, industry=No
         if block["key"] in timed_out:
             notes.append(block["label"] + ": research timed out; returned as a gap.")
     gaps = [block["key"] for block in blocks if block["gap"] and not block["items"]]
-    if gaps and profile.get("assumption") == "case":
-        suggestions = _suggest(profile, gaps, instruction, unit, blocks)
+    if gaps and profile.get("assumption") in ("case", "probe"):
+        question = profile.get("assumption") != "case"
+        suggestions = _suggest(profile, gaps, instruction, unit, blocks,
+                               mode="question" if question else "assumption")
         for block in blocks:
-            if block["key"] in suggestions:
-                block["items"] = block["items"] + [{"text": suggestions[block["key"]],
+            proposal = suggestions.get(block["key"])
+            if not proposal:
+                continue
+            if question:
+                # A question is not evidence.  It is recorded as a proposal on
+                # the block and folded into the named gap, so the cell reads as
+                # a gap with a way forward rather than as a finding, and the
+                # paper never presents it as a case assumption.
+                block["proposal"] = {"text": proposal, "provenance": "question"}
+                block["gap"] = block["gap"] + " A line of enquiry is proposed: " + proposal
+                notes.append(block["label"] + ": suggested line of enquiry.")
+            else:
+                block["items"] = block["items"] + [{"text": proposal,
                                                     "provenance": "suggested", "source": ""}]
                 block["gap"] = "No source was found; a case assumption is proposed for your review."
                 notes.append(block["label"] + ": suggested case assumption.")
@@ -399,13 +412,24 @@ def _probe(profile, block):
     return "What to look for: " + probe + "."
 
 
-def _suggest(profile, gaps, instruction, unit, blocks):
-    """One labelled case assumption per gap, only from the instruction.
+def _suggest(profile, gaps, instruction, unit, blocks, mode="assumption"):
+    """One proposal per gap, drawn only from the instruction and the unit.
 
-    Only frameworks whose gaps can be answered analytically use this: an
-    assumption about competitive dynamics is a reading of the case, while an
-    assumption about a country would be an invented fact, which is why PESTEL
-    returns a probe instead.
+    Two modes, two different promises:
+
+    - ``assumption`` writes one CASE ASSUMPTION for the gap.  Only frameworks
+      whose gaps can be answered analytically use this: an assumption about
+      competitive dynamics is a reading of the case, while an assumption about
+      a country would be an invented fact.
+    - ``question`` writes a LINE OF ENQUIRY: a sharp, case-specific question
+      the student can answer from their own position.  This is what a probe
+      profile gets, so a student who is unsure is asked rather than left with
+      an empty cell and no way forward.
+
+    A reply that carries a number, a link, a DOI or a parenthesis is refused:
+    a proposal may not introduce a fact of any kind.  In ``question`` mode a
+    reply must also end in a question mark, and in ``assumption`` mode it must
+    not be a question - each mode keeps its own promise.
     """
     if not gaps or os.environ.get("BP_FRAMEWORK_SUGGEST", "1") == "0":
         return {}
@@ -414,11 +438,7 @@ def _suggest(profile, gaps, instruction, unit, blocks):
         if not editor.available():
             return {}
         plural = (profile.get("voice") or {}).get("block_plural") or "dimensions"
-        system = ("You are a business case analyst. For each " + plural.rstrip("s") + ", write one specific CASE "
-                  "ASSUMPTION, in one or two sentences, that answers the question for this case, not a statement "
-                  "that the " + plural.rstrip("s") + " is relevant. Use only the instruction and the named unit of "
-                  "analysis. Do not add a source, citation, number, percentage, link or named fact not in the "
-                  "instruction. Return ONLY a JSON object mapping the key to the sentence. No markdown.")
+        system = _suggest_prompt(mode, plural)
         user = json.dumps({"instruction": instruction, "unit": unit.get("value"),
                            "blocks": gaps,
                            "sourced": {block["key"]: [item["text"] for item in block["items"]]
@@ -430,10 +450,31 @@ def _suggest(profile, gaps, instruction, unit, blocks):
             text = _clean(data.get(key), 700)
             if not text or re.search(r"\d|https?://|doi:|\(", text, re.I):
                 continue
+            question = text.endswith("?")
+            if question != (mode == "question"):
+                continue
             out[key] = text
         return out
     except Exception:
         return {}
+
+
+def _suggest_prompt(mode, plural):
+    """The system prompt for one proposal mode."""
+    noun = plural.rstrip("s")
+    if mode == "question":
+        return ("You are a business case tutor. For each " + noun + ", write ONE "
+                "specific question that the student can answer from their own position, using only the "
+                "instruction and the named unit of analysis. The question must be about THIS case and "
+                "must be answerable with a fact the student already has; it must not be a statement, a "
+                "conclusion, a recommendation or a fact about the firm. Do not add a source, citation, "
+                "number, percentage, link or named fact not in the instruction. Return ONLY a JSON "
+                "object mapping the key to the question. No markdown.")
+    return ("You are a business case analyst. For each " + noun + ", write one specific CASE "
+            "ASSUMPTION, in one or two sentences, that answers the question for this case, not a statement "
+            "that the " + noun + " is relevant. Use only the instruction and the named unit of "
+            "analysis. Do not add a source, citation, number, percentage, link or named fact not in the "
+            "instruction. Return ONLY a JSON object mapping the key to the sentence. No markdown.")
 
 
 def missing(completion, profile=None):
