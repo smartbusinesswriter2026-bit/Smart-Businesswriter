@@ -1,5 +1,26 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — The institutional Alpha Vantage key is wired to the product's own .env
+
+**Ask.** The owner checked the market-data wiring: a subscription exists on their side, but the
+code only read `BP_ALPHAVANTAGE_KEY` from the raw process environment and never from the product's
+`Backend/.env`. Owner instruction: one institutional key, shared by every user, free tier for now.
+
+**Did.** Added `ALPHAVANTAGE_API_KEY -> BP_ALPHAVANTAGE_KEY` to `source_env.ALLOWED`, so the
+startup loader (`scripts/serve.py`) now picks the key up from `Backend/.env`; added an
+`alpha_vantage` flag to the loader report and a `market_data` block to `serve.py --check`;
+documented the key in `Backend/.env.example`; and corrected the market-data status note and
+module docstring to say the key is the institution's, loaded from `Backend/.env`. The filled
+`.env` is git-ignored, so no secret is committed. A new `tests/test_source_env.py` case proves the
+mapping, the `alpha_vantage` flag and that no value appears in the report. End-to-end check: a key
+in the project file loads as `BP_ALPHAVANTAGE_KEY` and turns `marketdata.status().sources.equity`
+to true.
+
+**Left open.** The actual key value is not present in this checkout (no `.env`, no env var, never
+in git history), so nothing was invented: the owner pastes the real key into `Backend/.env`. The
+premium endpoints (`TIME_SERIES_DAILY_ADJUSTED`, `OVERVIEW`) remain unused until the paid tier is
+turned on.
+
 ## 2026-10-28 — The marketing shelf finishes its assignments
 
 **Ask.** After the RFM and media-planning increment, the owner asked what was still open for a marketing

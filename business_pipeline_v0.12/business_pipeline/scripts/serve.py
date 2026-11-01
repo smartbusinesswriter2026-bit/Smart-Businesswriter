@@ -84,6 +84,8 @@ def main(argv=None):
                         "prose_model": web["prose_model"],
                         "configured": web["opengo_key"]},
               "academic_search": {"semantic_scholar": web["semantic_scholar"]},
+              "market_data": {"alpha_vantage": web.get("alpha_vantage", False),
+                              "note": "one institutional key from Backend/.env, shared by every user"},
               "python": sys.version.split()[0]}
     if options["check"]:
         print(json.dumps(config, indent=2))

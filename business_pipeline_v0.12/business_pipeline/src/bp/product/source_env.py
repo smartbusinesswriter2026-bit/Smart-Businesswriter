@@ -36,6 +36,8 @@ ALLOWED = {
     "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
     "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
     "FIRECRAWL_KEYLESS": "BP_FIRECRAWL_KEYLESS",
+    # Market data: one institutional Alpha Vantage key shared by every student (free tier today).
+    "ALPHAVANTAGE_API_KEY": "BP_ALPHAVANTAGE_KEY",
 }
 DEFAULT_PATHS = (str(PROJECT_ENV), r"D:\AA\Backend\.env", r"D:\AA\AcademicSources\Backend\.env")
 
@@ -66,7 +68,8 @@ def _status():
             "model": os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "prose_model": os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY")),
-            "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"}
+            "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0",
+            "alpha_vantage": bool(os.environ.get("BP_ALPHAVANTAGE_KEY"))}
 
 
 def load_web_credentials(path=None):

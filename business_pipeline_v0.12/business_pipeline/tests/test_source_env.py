@@ -106,6 +106,18 @@ class LoadTest(unittest.TestCase):
         self.assertEqual(source_env.PROJECT_ENV.name, ".env")
         self.assertEqual(source_env.PROJECT_ENV.parent.name, "Backend")
 
+    def test_the_institutional_alpha_vantage_key_is_loaded_and_mapped(self):
+        path = os.path.join(self.folder.name, "alpha.env")
+        with open(path, "w", encoding="utf-8") as stream:
+            stream.write("ALPHAVANTAGE_API_KEY=alpha-secret-value\n")
+        with mock.patch.dict(os.environ, {}, clear=True):
+            report = source_env.load_web_credentials(path)
+            self.assertEqual(os.environ["BP_ALPHAVANTAGE_KEY"], "alpha-secret-value")
+        self.assertIn("BP_ALPHAVANTAGE_KEY", report["loaded"])
+        self.assertTrue(report["alpha_vantage"])
+        self.assertNotIn("alpha-secret-value", repr(report))
+        self.assertEqual(source_env.ALLOWED["ALPHAVANTAGE_API_KEY"], "BP_ALPHAVANTAGE_KEY")
+
 
 class StatusTest(unittest.TestCase):
     def test_web_status_reports_providers_without_a_key(self):

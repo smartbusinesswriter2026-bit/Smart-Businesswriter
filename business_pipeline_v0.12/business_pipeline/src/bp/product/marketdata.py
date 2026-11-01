@@ -6,8 +6,8 @@ Read-only services from a fixed allowlist of public sources:
   No API key, no quota, daily and historical.
 * **Risk-free yield** - the U.S. Treasury daily par yield curve CSV (``home.treasury.gov``).
   No API key.
-* **Equity quote and fundamentals** - Alpha Vantage (``www.alphavantage.co``) with the user's
-  own free key in ``BP_ALPHAVANTAGE_KEY``; 25 requests/day on the free tier.
+* **Equity quote** - Alpha Vantage (``www.alphavantage.co``) with the institution's own key in
+  ``BP_ALPHAVANTAGE_KEY`` (loaded from ``Backend/.env``); 25 requests/day on the free tier.
 * **Filings** - U.S. SEC EDGAR's public Atom feed (``www.sec.gov``). No key.
 * **Macro** - the World Bank Open Data API (``api.worldbank.org``), CC BY 4.0. No key.
 
@@ -268,9 +268,9 @@ def status():
             "sources": {"fx": True, "riskfree": True, "equity": key, "fundamentals": True,
                         "filings": True, "macro": True},
             "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
-            "note": ("Equity quotes use your own free Alpha Vantage key; fundamentals come from SEC EDGAR's "
-                     "XBRL facts (US registrants) and need no key. Uncovered markets (PSE, private companies) "
-                     "are manual entries.")}
+            "note": ("Equity quotes use the institution's Alpha Vantage key (loaded from Backend/.env); "
+                     "fundamentals come from SEC EDGAR's XBRL facts (US registrants) and need no key. "
+                     "Uncovered markets (PSE, private companies) are manual entries.")}
 
 
 def _alpha_key():
