@@ -1036,6 +1036,26 @@ def set_length(state, value):
     return state
 
 
+def accept_assist(state, key, text):
+    """The student's answer to a cell, entered from a model proposal or typed.
+
+    What is stored is the student's answer.  The model's wording is never
+    stored in place of it: an empty `text` dismisses the proposal and changes
+    nothing.
+    """
+    answers = state.setdefault("answers", {})
+    items = list(answers.get(key) or [])
+    text = str(text or "").strip()
+    if text:
+        items.append(text)
+        answers[key] = items
+    proposals = state.get("assist") or {}
+    if key in proposals:
+        proposals[key] = dict(proposals[key], accepted=text or None)
+        state["assist"] = proposals
+    return state
+
+
 def confirm_plan(state):
     if state.get("stage") != "plan":
         raise ChatError("There is no plan waiting for confirmation.")

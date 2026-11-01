@@ -1,13 +1,16 @@
 """The model helps a student who is unsure; it never invents the answer."""
 
 import json
+import os
+import shutil
+import tempfile
 import unittest
 from unittest import mock
 
 import sys
 sys.path.insert(0, "src")
 
-from bp.product import completion  # noqa: E402
+from bp.product import api, assist, chat, completion  # noqa: E402
 
 
 def _profile(mode="probe"):
@@ -129,6 +132,127 @@ class QuestionModeCompletionTest(unittest.TestCase):
         missing = completion.missing(self.result)
         self.assertIn("Value-added assessment", missing)
         self.assertIn("Improvement opportunities", missing)
+
+
+def _chat_state():
+    return {
+        "brief": "A bakery in Intramuros with three outlets and repeat customers.",
+        "answers": {"decision": "should the bakery open a fourth outlet",
+                    "strengths": []},
+        "framework": "swot",
+        "evidence": [],
+        "sources": [],
+        "profile": "academic",
+        "stage": "evidence",
+    }
+
+
+def propose(candidate, available=True):
+    state = _chat_state()
+    with mock.patch("bp.product.prose.available", return_value=available), \
+            mock.patch("bp.product.prose._call",
+                       return_value=json.dumps({"candidates": [candidate]})), \
+            mock.patch("bp.product.prose._parse", side_effect=json.loads):
+        return assist.propose(state, "strengths", "Strengths")
+
+
+class ChatAssistTest(unittest.TestCase):
+    def test_a_proposal_uses_only_the_students_own_words(self):
+        out = propose("The bakery already serves repeat customers in Intramuros.")
+        self.assertEqual(len(out["candidates"]), 1)
+        self.assertIn("repeat customers", out["candidates"][0])
+
+    def test_a_proposal_that_invents_a_number_is_refused(self):
+        self.assertEqual(propose("The bakery has 92% customer retention.")["candidates"], [])
+
+    def test_a_proposal_that_invents_a_name_is_refused(self):
+        self.assertEqual(propose("Almarai already dominates this district.")["candidates"], [])
+
+    def test_a_proposal_that_adds_a_link_is_refused(self):
+        self.assertEqual(
+            propose("See https://example.com/report for the data.")["candidates"], [])
+
+    def test_a_proposal_without_the_students_words_is_refused(self):
+        self.assertEqual(propose("Synergies will unlock shareholder value.")["candidates"], [])
+
+    def test_no_model_configured_returns_no_proposal_and_no_error(self):
+        self.assertEqual(propose("Three outlets in Intramuros.", available=False)["candidates"],
+                         [])
+
+    def test_the_proposal_records_which_cell_it_is_for(self):
+        out = propose("Three outlets in Intramuros.")
+        self.assertEqual(out["key"], "strengths")
+        self.assertEqual(out["label"], "Strengths")
+
+    def test_an_accepted_proposal_becomes_a_student_input(self):
+        state = _chat_state()
+        state["assist"] = {"strengths": {"candidates": ["Three outlets in Intramuros."]}}
+        chat.accept_assist(state, "strengths", "Three outlets in Intramuros.")
+        self.assertIn("Three outlets in Intramuros.",
+                      " ".join(state["answers"]["strengths"]))
+
+    def test_a_dismissed_proposal_is_not_added(self):
+        state = _chat_state()
+        state["assist"] = {"strengths": {"candidates": ["Three outlets in Intramuros."]}}
+        chat.accept_assist(state, "strengths", None)
+        self.assertEqual(state["answers"].get("strengths") or [], [])
+
+    def test_the_students_own_wording_is_what_is_stored(self):
+        state = _chat_state()
+        state["answers"]["strengths"] = ["We bake on site every morning."]
+        chat.accept_assist(state, "strengths", "Our bakers start before dawn.")
+        self.assertEqual(state["answers"]["strengths"],
+                         ["We bake on site every morning.", "Our bakers start before dawn."])
+
+
+class AssistRouteTest(unittest.TestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="bp-assist-")
+        self.previous = os.environ.get("BP_CASES_DIR")
+        os.environ["BP_CASES_DIR"] = self.root
+
+    def tearDown(self):
+        if self.previous is None:
+            os.environ.pop("BP_CASES_DIR", None)
+        else:
+            os.environ["BP_CASES_DIR"] = self.previous
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def _case(self):
+        status, state = api.handle("POST", "/api/cases/chat",
+                                   {"brief": "A bakery in Intramuros with three outlets "
+                                             "and repeat customers.",
+                                    "framework": "swot"})
+        self.assertEqual(status, 201, state)
+        return state["id"]
+
+    def test_the_route_offers_and_then_accepts_a_proposal(self):
+        case_id = self._case()
+        with mock.patch("bp.product.prose.available", return_value=True), \
+                mock.patch("bp.product.prose._call",
+                           return_value=json.dumps({"candidates": ["Three outlets in Intramuros."]})), \
+                mock.patch("bp.product.prose._parse", side_effect=json.loads):
+            status, offered = api.handle("POST", "/api/cases/chat/" + case_id + "/assist",
+                                         {"key": "strengths", "label": "Strengths"})
+            self.assertEqual(status, 200, offered)
+            self.assertEqual(offered["assist"]["strengths"]["candidates"],
+                             ["Three outlets in Intramuros."])
+            status, accepted = api.handle("POST", "/api/cases/chat/" + case_id + "/assist",
+                                          {"key": "strengths",
+                                           "text": "Three outlets in Intramuros."})
+        self.assertEqual(status, 200, accepted)
+        self.assertIn("Three outlets in Intramuros.", accepted["answers"]["strengths"])
+
+    def test_the_route_reports_a_missing_cell_key(self):
+        case_id = self._case()
+        status, body = api.handle("POST", "/api/cases/chat/" + case_id + "/assist", {})
+        self.assertEqual(status, 422, body)
+        self.assertIn("cell key", body["error"])
+
+    def test_the_route_refuses_an_unknown_case(self):
+        status, _body = api.handle("POST", "/api/cases/chat/000000000000/assist",
+                                   {"key": "strengths"})
+        self.assertEqual(status, 404)
 
 
 if __name__ == "__main__":

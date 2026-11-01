@@ -2087,7 +2087,12 @@ function renderChat() {
       html += '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
         '<input id="chatanswer" type="text" style="flex:1;min-width:260px" placeholder="' + esc(placeholder) + '" value="' + esc(Array.isArray(c.answers[q.id]) ? c.answers[q.id].join("; ") : (c.answers[q.id] || "")) + '">' +
         '<button class="btn primary" id="chatsend">Send</button>' +
-        (q.allow_skip ? '<button class="btn" id="chatskip">Skip</button>' : "") + "</div>";
+        (q.allow_skip ? '<button class="btn" id="chatskip">Skip</button>' : "") + "</div>" +
+        (q.type === "items"
+          ? '<div class="row" style="margin-top:6px"><button class="btn sm" id="chatassist" type="button">' +
+            "Not sure? Propose a line from my own words</button></div>" +
+            '<div class="row" id="chatassistlist" style="margin-top:6px;flex-wrap:wrap"></div>'
+          : "");
     }
     html += "</div>";
     out.innerHTML = html;
@@ -2103,6 +2108,8 @@ function renderChat() {
     });
     const skip = $("#chatskip");
     if (skip) skip.onclick = () => answerChat(q.id, "");
+    const help = $("#chatassist");
+    if (help) help.onclick = () => askAssist(q.id, q.prompt);
     return;
   }
   if (c.stage === "plan" || c.stage === "research_ready") {
@@ -2628,6 +2635,41 @@ async function answerChat(questionId, value) {
       { question_id: questionId, value: value });
     renderChat();
   } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+// The model may propose words for a cell, drawn only from what the student has
+// already written.  A proposal fills the box; the student still edits and sends,
+// so what the paper carries is the student's answer.
+async function askAssist(questionId, label) {
+  const list = $("#chatassistlist");
+  if (!list) return;
+  list.innerHTML = '<span class="muted">Looking for a proposal</span>';
+  let candidates = [];
+  try {
+    const reply = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/assist",
+      { key: questionId, label: label });
+    candidates = (reply && reply.assist && reply.assist[questionId] && reply.assist[questionId].candidates) || [];
+  } catch (error) {
+    list.innerHTML = '<span class="muted">No proposal was available; answer in your own words.</span>';
+    return;
+  }
+  if (!candidates.length) {
+    list.innerHTML = '<span class="muted">No proposal was available; answer in your own words.</span>';
+    return;
+  }
+  list.innerHTML = '<span class="muted">Click one to put it in the box, then edit it:</span>';
+  candidates.forEach((candidate) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn sm";
+    button.style.textAlign = "left";
+    button.textContent = candidate;
+    button.onclick = () => {
+      const input = $("#chatanswer");
+      if (input) { input.value = candidate; input.focus(); }
+    };
+    list.appendChild(button);
+  });
 }
 
 async function confirmChatPlan() {

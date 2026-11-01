@@ -39,6 +39,7 @@ Routes:
     POST   /api/cases/chat/{id}/answer           -> 200 the next question, or the plan
     POST   /api/cases/chat/{id}/plan             -> 200 the confirmed plan
     POST   /api/cases/chat/{id}/research         -> 200 per-dimension evidence and gaps
+    POST   /api/cases/chat/{id}/assist           -> 200 a proposal for one cell, or the answer accepted
     POST   /api/cases/chat/{id}/draft            -> 200 the drafted paper
     POST   /api/cases/chat/{id}/polish          -> 200 a prose proposal for confirmation
     POST   /api/cases/chat/{id}/apply-prose      -> 200 the paper with the accepted prose
@@ -62,6 +63,7 @@ import hashlib
 import os
 import re
 
+from . import assist
 from . import calc_router
 from . import billing as billing_module
 from . import cases as case_store
@@ -471,6 +473,16 @@ def handle(method, path, body=None):
                 if accepted is not None and not isinstance(accepted, list):
                     return _error("accepted must be a list of evidence ids")
                 state = chat_conductor.draft(state, accepted, data.get("implications"), data.get("style"))
+            elif action == "assist":
+                key = str(data.get("key") or "").strip()
+                if not key:
+                    return _error("a cell key is required")
+                if "text" in data:
+                    # The student's answer, entered from a proposal or typed.
+                    state = chat_conductor.accept_assist(state, key, data.get("text"))
+                else:
+                    proposal = assist.propose(state, key, str(data.get("label") or key))
+                    state.setdefault("assist", {})[key] = proposal
             elif action == "export":
                 draft = state.get("draft") or {}
                 if not draft:
