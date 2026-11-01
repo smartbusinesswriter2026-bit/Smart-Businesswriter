@@ -16,10 +16,10 @@ mapping, the `alpha_vantage` flag and that no value appears in the report. End-t
 in the project file loads as `BP_ALPHAVANTAGE_KEY` and turns `marketdata.status().sources.equity`
 to true.
 
-**Left open.** The actual key value is not present in this checkout (no `.env`, no env var, never
-in git history), so nothing was invented: the owner pastes the real key into `Backend/.env`. The
-premium endpoints (`TIME_SERIES_DAILY_ADJUSTED`, `OVERVIEW`) remain unused until the paid tier is
-turned on.
+**Validated.** The owner supplied the institutional key; pasted into the git-ignored `Backend/.env`
+it loads as `BP_ALPHAVANTAGE_KEY` and a live lookup returned IBM at 257.81 as of 2026-10-30 from
+Alpha Vantage (free tier). No secret is committed. The premium endpoints
+(`TIME_SERIES_DAILY_ADJUSTED`, `OVERVIEW`) remain unused until the paid tier is turned on.
 
 ## 2026-10-28 — The marketing shelf finishes its assignments
 
