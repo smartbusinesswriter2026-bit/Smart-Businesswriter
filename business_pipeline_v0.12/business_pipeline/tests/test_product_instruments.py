@@ -93,7 +93,22 @@ class StoreTest(unittest.TestCase):
         with self.assertRaises(instruments.InstrumentError):
             instruments.record(document["id"], fetch=boom)
 
-    def test_a_corrupt_file_is_refused(self):
+    def test_record_uses_the_selected_provider(self):
+        document = instruments.create("AAPL")
+        calls = {}
+        def fake_massive(symbol):
+            calls["symbol"] = symbol
+            return quote("200.00", "2026-10-05")
+        original = marketdata.massive_quote
+        marketdata.massive_quote = fake_massive
+        try:
+            recorded = instruments.record(document["id"], provider="massive")
+        finally:
+            marketdata.massive_quote = original
+        self.assertEqual(calls["symbol"], "AAPL")
+        self.assertEqual(recorded["snapshots"][0]["price"], "200.00")
+        with self.assertRaises(instruments.InstrumentError):
+            instruments.record(document["id"], provider="nonsense")
         document = instruments.create("AAPL")
         path = instruments.instruments_dir() / (document["id"] + ".json")
         path.write_text("{not json", encoding="utf-8")

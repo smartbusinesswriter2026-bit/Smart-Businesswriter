@@ -257,5 +257,54 @@ class StatusTest(unittest.TestCase):
 
 
 
+MASSIVE_JSON = (b'{"status":"OK","request_id":"r1","ticker":"AAPL","results":['
+                b'{"c":230.50,"h":231,"l":229,"o":230,"v":1000,"t":1793001600000},'
+                b'{"c":229.00,"h":230,"l":228,"o":229,"v":900,"t":1792915200000}],'
+                b'"resultsCount":2,"queryCount":2,"adjusted":true}')
+
+
+class MassiveQuoteTest(unittest.TestCase):
+    def setUp(self):
+        marketdata.clear_cache()
+        self.real = marketdata._fetch
+        self.previous = os.environ.get("BP_MASSIVE_API_KEY")
+        os.environ["BP_MASSIVE_API_KEY"] = "massive-secret"
+
+    def tearDown(self):
+        marketdata._fetch = self.real
+        if self.previous is None: os.environ.pop("BP_MASSIVE_API_KEY", None)
+        else: os.environ["BP_MASSIVE_API_KEY"] = self.previous
+        marketdata.clear_cache()
+
+    def test_a_massive_quote_records_close_previous_and_redacts_key(self):
+        marketdata._fetch = FakeFetch(
+            MASSIVE_JSON,
+            "https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/2026-10-20/2026-10-30"
+            "?adjusted=true&sort=desc&limit=2&apiKey=massive-secret")
+        out = marketdata.massive_quote("aapl")
+        self.assertEqual(Decimal(out["value"]), Decimal("230.5"))
+        self.assertEqual(out["symbol"], "AAPL")
+        self.assertEqual(out["provider"], "massive")
+        self.assertEqual(Decimal(out["previous_close"]), Decimal("229"))
+        import datetime as _dt
+        self.assertEqual(out["as_of"], _dt.datetime.fromtimestamp(1793001600, _dt.timezone.utc).date().isoformat())
+        self.assertNotIn("massive-secret", out["source_url"])
+        self.assertIn("apiKey=***", out["source_url"])
+
+    def test_massive_without_a_key_refuses_before_any_fetch(self):
+        os.environ.pop("BP_MASSIVE_API_KEY", None)
+        fake = FakeFetch(MASSIVE_JSON)
+        marketdata._fetch = fake
+        with self.assertRaises(marketdata.MarketDataError) as caught:
+            marketdata.massive_quote("AAPL")
+        self.assertIn("BP_MASSIVE_API_KEY", str(caught.exception))
+        self.assertEqual(fake.calls, 0)
+
+    def test_massive_refusal_status_is_not_read_as_data(self):
+        marketdata._fetch = FakeFetch(b'{"status":"ERROR","error":"invalid api key"}')
+        with self.assertRaises(marketdata.MarketDataError):
+            marketdata.massive_quote("AAPL")
+
+
 if __name__ == "__main__":
     unittest.main()

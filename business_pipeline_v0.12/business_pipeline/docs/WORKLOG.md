@@ -1,5 +1,26 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Massive wired as a second market-data provider
+
+**Ask.** After Alpha Vantage was wired, the owner said "also wire Massive as a second provider."
+Massive had no docs in the repo, so the REST docs were read first: base `https://api.massive.com`,
+auth via `?apiKey=` or `Authorization: Bearer`, and a daily-bars endpoint available on every
+stocks plan (including Basic).
+
+**Did.** `bp.product.marketdata` adds `MASSIVE`, `api.massive.com` to the allowlist and a
+`massive_quote(symbol)` that reads `/v2/aggs/ticker/{ticker}/range/1/day/{from}/{to}` with
+`sort=desc&limit=2` (latest close plus previous close), returning the same sourced payload shape
+(value, as-of, source URL, SHA-256, previous close, provider) with the `apiKey` redacted. The key
+is `MASSIVE_API_KEY` in `Backend/.env` → `BP_MASSIVE_API_KEY` (allowlist + loader report + status +
+`serve.py --check` + `.env.example`). The instrument store's `record` gained a `provider` argument
+and the record route passes `provider` through; an unknown provider fails closed. 5 new tests
+(massive quote parse/redaction/refusal, provider selection, credential mapping); the marketdata,
+instruments and source_env suites pass (40 tests).
+
+**Live.** AAPL 344.63 (previous close 348.91) as of 2026-10-30 from Massive; a route-level
+`provider: massive` record stored MSFT 521.91 through the instrument store. Keys remain in the
+git-ignored `Backend/.env`; no secret is committed.
+
 ## 2026-11-01 — Phase 1: a price-record store for tracked instruments
 
 **Ask.** The owner approved the suggestion/screening layer and said "go". Phase 1 is the

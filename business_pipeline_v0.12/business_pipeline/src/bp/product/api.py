@@ -206,8 +206,9 @@ def handle(method, path, body=None):
             return 405, {"error": "method %s is not allowed on an instrument action" % verb}
         if action == "record":
             quote = body.get("quote") if isinstance(body, dict) else None
+            provider = (body.get("provider") if isinstance(body, dict) else None) or "alphavantage"
             try:
-                document = instrument_store.record(instrument_id, quote=quote)
+                document = instrument_store.record(instrument_id, quote=quote, provider=provider)
             except instrument_store.InstrumentNotFound as error:
                 return 404, {"error": str(error)}
             except (instrument_store.InstrumentError, ValueError) as error:

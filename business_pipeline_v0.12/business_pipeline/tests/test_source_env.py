@@ -118,6 +118,18 @@ class LoadTest(unittest.TestCase):
         self.assertNotIn("alpha-secret-value", repr(report))
         self.assertEqual(source_env.ALLOWED["ALPHAVANTAGE_API_KEY"], "BP_ALPHAVANTAGE_KEY")
 
+    def test_the_institutional_massive_key_is_loaded_and_mapped(self):
+        path = os.path.join(self.folder.name, "massive.env")
+        with open(path, "w", encoding="utf-8") as stream:
+            stream.write("MASSIVE_API_KEY=massive-secret-value\n")
+        with mock.patch.dict(os.environ, {}, clear=True):
+            report = source_env.load_web_credentials(path)
+            self.assertEqual(os.environ["BP_MASSIVE_API_KEY"], "massive-secret-value")
+        self.assertIn("BP_MASSIVE_API_KEY", report["loaded"])
+        self.assertTrue(report["massive"])
+        self.assertNotIn("massive-secret-value", repr(report))
+        self.assertEqual(source_env.ALLOWED["MASSIVE_API_KEY"], "BP_MASSIVE_API_KEY")
+
 
 class StatusTest(unittest.TestCase):
     def test_web_status_reports_providers_without_a_key(self):

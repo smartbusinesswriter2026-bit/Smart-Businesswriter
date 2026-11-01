@@ -42,13 +42,14 @@ TREASURY = ("https://home.treasury.gov/resource-center/data-chart-center/interes
             "daily-treasury-rates.csv/{year}/all?type=daily_treasury_yield_curve"
             "&field_tdr_date_value={year}&page&_format=csv")
 ALPHAVANTAGE = "https://www.alphavantage.co/query"
+MASSIVE = "https://api.massive.com"
 SEC_EDGAR = ("https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&ticker={ticker}"
              "&type={form}&dateb=&owner=include&count={count}&output=atom")
 WORLDBANK = ("https://api.worldbank.org/v2/country/{country}/indicator/{indicator}"
              "?format=json&per_page={count}")
 
 ALLOWED_HOSTS = {"api.frankfurter.dev", "home.treasury.gov", "www.alphavantage.co",
-                 "www.sec.gov", "data.sec.gov", "api.worldbank.org"}
+                 "www.sec.gov", "data.sec.gov", "api.worldbank.org", "api.massive.com"}
 MAX_BYTES = 1_000_000
 TIMEOUT = 20
 CACHE_SECONDS = 300
@@ -264,13 +265,15 @@ def status():
     need nothing. The UI uses this to explain a disabled button before it is clicked.
     """
     key = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
+    massive = bool((os.environ.get("BP_MASSIVE_API_KEY") or "").strip())
     return {"format": FORMAT,
             "sources": {"fx": True, "riskfree": True, "equity": key, "fundamentals": True,
-                        "filings": True, "macro": True},
+                        "filings": True, "macro": True, "massive": massive},
             "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
-            "note": ("Equity quotes use the institution's Alpha Vantage key (loaded from Backend/.env); "
-                     "fundamentals come from SEC EDGAR's XBRL facts (US registrants) and need no key. "
-                     "Uncovered markets (PSE, private companies) are manual entries.")}
+            "massive_key_env": "BP_MASSIVE_API_KEY",
+            "note": ("Equity quotes use the institution's Alpha Vantage key (loaded from Backend/.env) or the "
+                     "Massive key when it is configured; fundamentals come from SEC EDGAR's XBRL facts "
+                     "(US registrants) and need no key. Uncovered markets (PSE, private companies) are manual entries.")}
 
 
 def _alpha_key():
@@ -320,6 +323,67 @@ def equity_quote(symbol):
                        {"symbol": symbol, "change_percent": str(quote.get("10. change percent") or "").strip(),
                         "volume": str(quote.get("06. volume") or "").strip(),
                         "previous_close": str(quote.get("08. previous close") or "").strip()})
+    _cache_put(cache_key, payload, DAY_SECONDS)
+    return payload
+
+
+def _massive_key():
+    key = (os.environ.get("BP_MASSIVE_API_KEY") or "").strip()
+    if not key:
+        raise MarketDataError("a Massive key is required for this provider: set BP_MASSIVE_API_KEY")
+    return key
+
+
+def massive_quote(symbol):
+    """Latest daily close for one symbol from Massive aggregate bars (Custom Bars).
+
+    Uses the daily-bar endpoint, which is available on every Massive stocks plan
+    (including Basic), so a quote needs no premium snapshot entitlement.  The
+    response is returned with its source, date, URL and SHA-256, like every other
+    lookup; nothing is written into a method automatically.
+    """
+    symbol = _symbol(symbol)
+    key = _massive_key()
+    cache_key = ("massive_quote", symbol)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    start = today - datetime.timedelta(days=10)
+    url = (MASSIVE + "/v2/aggs/ticker/" + urllib.parse.quote(symbol) +
+           "/range/1/day/" + start.isoformat() + "/" + today.isoformat() +
+           "?adjusted=true&sort=desc&limit=2&apiKey=" + urllib.parse.quote(key))
+    raw, final = _fetch(url)
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise MarketDataError("the Massive source returned a response this app cannot read")
+    if not isinstance(data, dict) or str(data.get("status") or "").upper() not in ("OK", "DELAYED"):
+        raise MarketDataError("the Massive source refused the request: " +
+                              str(data.get("error") or data.get("status") or "no status")[:300])
+    results = data.get("results") or []
+    if not results:
+        raise MarketDataError("the Massive source has no recent daily bar for " + symbol)
+    latest = results[0]
+    try:
+        price = Decimal(str(latest["c"]))
+    except (KeyError, InvalidOperation, TypeError):
+        raise MarketDataError("the Massive bar carries no usable close price")
+    as_of = ""
+    stamp = latest.get("t")
+    if isinstance(stamp, (int, float)):
+        as_of = datetime.datetime.fromtimestamp(stamp / 1000, datetime.timezone.utc).date().isoformat()
+    extra = {"symbol": symbol, "provider": "massive"}
+    if len(results) > 1:
+        try:
+            previous = Decimal(str(results[1]["c"]))
+            if previous > 0:
+                extra["previous_close"] = str(previous)
+        except (KeyError, InvalidOperation, TypeError):
+            pass
+    if latest.get("v") is not None:
+        extra["volume"] = str(latest.get("v"))
+    payload = _payload("quote", price, as_of, "Massive (api.massive.com)", _public_url(final), raw, extra)
     _cache_put(cache_key, payload, DAY_SECONDS)
     return payload
 

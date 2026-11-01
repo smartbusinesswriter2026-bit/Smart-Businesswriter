@@ -171,7 +171,19 @@ def load(instrument_id):
     return document
 
 
-def record(instrument_id, quote=None, fetch=None):
+#: Provider ids the store can fetch a quote from, mapped to their marketdata function.
+QUOTE_PROVIDERS = {"alphavantage": "equity_quote", "massive": "massive_quote"}
+
+
+def _quote_fetcher(provider):
+    name = (provider or "alphavantage").strip().lower()
+    if name not in QUOTE_PROVIDERS:
+        raise InstrumentError("unknown quote provider %r; choose one of: %s"
+                              % (provider, ", ".join(sorted(QUOTE_PROVIDERS))))
+    return getattr(marketdata, QUOTE_PROVIDERS[name])
+
+
+def record(instrument_id, quote=None, fetch=None, provider="alphavantage"):
     """Append (or update same-day) a price snapshot and return the document.
 
     When ``quote`` is omitted the instrument's live quote is fetched through the
@@ -180,7 +192,7 @@ def record(instrument_id, quote=None, fetch=None):
     """
     document = load(instrument_id)
     if quote is None:
-        fetcher = fetch or marketdata.equity_quote
+        fetcher = fetch or _quote_fetcher(provider)
         try:
             quote = fetcher(document["symbol"])
         except marketdata.MarketDataError as error:
