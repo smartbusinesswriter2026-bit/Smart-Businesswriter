@@ -1,0 +1,107 @@
+<script id="tile-close-shim">
+(function () {
+  if (window.__tileCloseShim) { return; }
+  window.__tileCloseShim = 3;
+  var css = document.createElement('style');
+  css.textContent = '.tilefoot{display:flex;justify-content:flex-end;align-items:center;gap:8px;' +
+    'margin:14px 0 2px;padding-top:2px}.tilefoot .btn{min-width:104px;background:#1a1e21;color:#fff;border:none;}' +
+    '.grouphit{outline:2px solid #9db4c9;outline-offset:6px;border-radius:6px}';
+  document.head.appendChild(css);
+  var back = null;
+  function textOf(head) {
+    if (!head) { return ''; }
+    var text = (head.textContent || '').split('\n').join(' ').split('\t').join(' ');
+    while (text.indexOf('  ') >= 0) { text = text.split('  ').join(' '); }
+    text = text.trim();
+    var dash = text.lastIndexOf(' - ');
+    if (dash > 0) {
+      var tail = text.slice(dash + 3);
+      if (tail.length && !isNaN(Number(tail))) { text = text.slice(0, dash); }
+    }
+    return text.trim();
+  }
+  function headOf(grid) {
+    var node = grid;
+    var depth = 0;
+    while (node && depth < 4) {
+      var sibling = node.previousElementSibling;
+      while (sibling) {
+        if (sibling.classList && sibling.classList.contains('levelhead')) { return sibling; }
+        if (sibling.tagName === 'H3' || sibling.tagName === 'H4') { return sibling; }
+        sibling = sibling.previousElementSibling;
+      }
+      node = node.parentElement;
+      depth += 1;
+    }
+    return null;
+  }
+  function subjectFromHash() {
+    var hash = location.hash || '';
+    var prefix = '#/subject/';
+    if (hash.indexOf(prefix) !== 0) { return null; }
+    var rest = hash.slice(prefix.length);
+    var cut = rest.indexOf('/');
+    if (cut >= 0) { rest = rest.slice(0, cut); }
+    cut = rest.indexOf('?');
+    if (cut >= 0) { rest = rest.slice(0, cut); }
+    try { return decodeURIComponent(rest); } catch (e) { return rest; }
+  }
+  document.addEventListener('click', function (event) {
+    var target = event.target;
+    if (!target || !target.closest) { return; }
+    var tile = target.closest('#subjectout .capgrid .capcard');
+    if (!tile) { return; }
+    back = { subject: subjectFromHash(), group: textOf(headOf(tile.closest('.capgrid'))) };
+  }, true);
+  function goBack() {
+    var subject = document.getElementById('panel-subject');
+    if (back && back.subject && subject && subject.querySelector('#subjectout .capcard')) {
+      var panels = document.querySelectorAll('.panel');
+      for (var i = 0; i < panels.length; i += 1) {
+        panels[i].hidden = panels[i].id !== 'panel-subject';
+      }
+      try { history.replaceState(null, '', '#/subject/' + encodeURIComponent(back.subject)); } catch (e) {}
+      if (back.group) {
+        var heads = subject.querySelectorAll('h4.levelhead, h3, h4');
+        var found = null;
+        for (var j = 0; j < heads.length; j += 1) {
+          if (!found && textOf(heads[j]) === back.group) { found = heads[j]; }
+        }
+        if (found) {
+          found.classList.add('grouphit');
+          try { found.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+          catch (e) { try { found.scrollIntoView(); } catch (err) {} }
+          setTimeout(function () { found.classList.remove('grouphit'); }, 5000);
+          return;
+        }
+      }
+      window.scrollTo(0, 0);
+      return;
+    }
+    location.hash = '#/subjects';
+  }
+  function decorate() {
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i += 1) {
+      var panel = panels[i];
+      if (panel.hidden) { continue; }
+      if (panel.id === 'panel-home' || panel.id === 'panel-subjects' || panel.id === 'panel-subject') { continue; }
+      if (panel.querySelector('#tileclose')) { continue; }
+      var row = document.createElement('div');
+      row.className = 'tilefoot';
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'tileclose';
+      button.className = 'btn';
+      button.textContent = 'Close';
+      button.onclick = goBack;
+      row.appendChild(button);
+      panel.appendChild(row);
+    }
+  }
+  setInterval(decorate, 200);
+  document.addEventListener('DOMContentLoaded', decorate);
+  decorate();
+  console.log('tile-close-shim v3 ready');
+})();
+</script>
