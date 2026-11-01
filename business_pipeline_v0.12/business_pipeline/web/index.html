@@ -938,7 +938,7 @@ const state = {
   worksheet: null, panel: null, railSubject: null,
   /* where a tile was opened from, so Close can put the student back in the
      group the tile belongs to: {subjectId, group} */
-  tileReturn: null, returnGroup: null
+  tileReturn: null, returnGroup: null, creatingSession: false
 };
 const PANELS = ["home", "chat", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
@@ -3035,13 +3035,18 @@ function ensurePanel(id) {
 async function createSession(body) {
   const p = ensurePanel("new");
   state.session = null;
+  /* the session is being created: hold the panel on the loading card so the
+     "No session yet" placeholder (and its Close) never flashes up first */
+  state.creatingSession = true;
   p.innerHTML = "<div class=\"card\">" + loading("Creating the session") + "</div>";
   show("new");
   try {
     state.session = await post("/api/sessions", body);
     state.delivery = state.session.delivery || null;
+    state.creatingSession = false;
     renderNew();
   } catch (e) {
+    state.creatingSession = false;
     p.innerHTML = "<div class=\"card\">" + errorBanner(e) + tileCloseRow() + "</div>";
     bindTileClose(p);
   }
@@ -3049,6 +3054,7 @@ async function createSession(body) {
 
 RENDERERS.new = function () {
   if (state.session) { renderNew(); return; }
+  if (state.creatingSession) return;
   const p = ensurePanel("new");
   p.hidden = false;
   p.innerHTML = '<div class="card"><h2>No session yet</h2>' +

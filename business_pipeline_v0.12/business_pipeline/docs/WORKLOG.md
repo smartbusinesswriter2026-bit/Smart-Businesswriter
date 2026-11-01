@@ -31,12 +31,17 @@ the last, `justify-content:flex-end` element of its panel, every Close returned 
 subject page with the address still on that subject, and the group heading was back inside
 the viewport with the highlight applied. Two consecutive full runs: 0 failures.
 
-**Honest limits.** There is still no browser test in `tests/`; the guard is static and the
-click path was proved by a one-off CDP run, not by the suite. The scroll uses
-`scrollIntoView({block:"center",behavior:"smooth"})`, so a browser with smooth scrolling
-disabled jumps instead of gliding — same destination, no animation. The tile's group is
-matched by heading text, so two groups with the same label in one subject would both match
-and the first would be used; no subject currently has duplicate labels.
+**Honest limits.** There is still no browser test in `tests/` — the suite must run with
+no browser, no server and no network — so the regression guard there is static
+(`test_every_tile_view_carries_a_close_button_back_to_its_group`). The click path is
+proved by `scripts/tile_close_browser_test.py`, which is checked in beside
+`scripts/ui_smoke.py` and drives Chromium over the DevTools Protocol with no third-party
+packages: run it after `scripts/serve.py` is up (`--url`, `--port`, `--subjects`), and it
+prints SKIP when no browser is available rather than failing a green suite. The scroll
+uses `scrollIntoView({block:"center",behavior:"smooth"})`, so a browser with smooth
+scrolling disabled jumps instead of gliding — same destination, no animation. The tile's
+group is matched by heading text, so two groups with the same label in one subject would
+both match and the first would be used; no subject currently has duplicate labels.
 
 ## 2026-11-01 — Non-US fundamentals fallback chain
 
