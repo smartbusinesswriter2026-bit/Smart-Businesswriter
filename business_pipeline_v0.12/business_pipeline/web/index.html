@@ -357,6 +357,14 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .capcard .lvl{margin-left:auto;font-size:11.4px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
               border:1px solid var(--border);border-radius:999px;padding:2px 7px;white-space:nowrap}
 .levelhead{margin:16px 0 2px;font-size:13.8px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+/* a tile opens into its own view (a tool, a worksheet, a catalogue record).
+   The way out sits at the bottom right of that view, where the student is
+   looking when they have finished with it. */
+.tilefoot{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:14px 0 2px;padding-top:2px}
+.tilefoot .btn{min-width:104px}
+/* the group a tile came from, marked for a moment while the page scrolls to it */
+.levelhead.grouphit{outline:2px solid var(--navy-300);outline-offset:6px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){.levelhead.grouphit{outline-color:transparent}}
 .studynote{border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin:8px 0;background:var(--surface)}
 .studynote summary{cursor:pointer;font-weight:650;color:var(--navy-900)}
 .studynote p,.studynote li{font-size:14.4px;color:var(--text-2);line-height:1.5}
@@ -484,7 +492,7 @@ figcaption{font-size:14.4px;color:var(--text-3);margin-top:6px}
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Pricing tiers (illustrative - not available in v1)">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets and honest catalogue records">v1.21</span>
+  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, honest catalogue records, and a Close button on every tile that returns to its group">v1.22</span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -927,7 +935,10 @@ const state = {
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
   subjects: null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
   calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
-  worksheet: null, panel: null, railSubject: null
+  worksheet: null, panel: null, railSubject: null,
+  /* where a tile was opened from, so Close can put the student back in the
+     group the tile belongs to: {subjectId, group} */
+  tileReturn: null, returnGroup: null
 };
 const PANELS = ["home", "chat", "subjects", "subject", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
@@ -1516,6 +1527,76 @@ function bindSubjectCards(root) {
   $$("[data-subject]", root).forEach((b) => { b.onclick = () => openSubject(b.dataset.subject); });
 }
 
+/* ---------- leaving a tile ----------------------------------------------
+   Every tile on a subject page opens into its own view: a computed tool, a
+   worksheet, or a catalogue record. Each of those views ends with a Close
+   button at the bottom right. Close puts the student back on the subject page,
+   scrolled to the group the tile belongs to (for example the Economics tool
+   "Market equilibrium" returns to the group that holds it), so leaving a tile
+   never loses the student's place on the shelf.
+   ------------------------------------------------------------------------ */
+function groupHeading(head) {
+  /* headings read "Worksheets - 5" or "Costs and pricing - 3"; the group is
+     the text without the trailing count */
+  return (head.textContent || "").replace(/\s+-\s+\d+\s*$/, "").trim();
+}
+
+function rememberTileGroup(el) {
+  state.tileReturn = null;
+  if (!state.subjectId) return;
+  const grid = el && el.closest ? el.closest(".capgrid") : null;
+  let group = "";
+  if (grid) {
+    let head = grid.previousElementSibling;
+    while (head && !(head.classList && head.classList.contains("levelhead"))) head = head.previousElementSibling;
+    if (head) group = groupHeading(head);
+  }
+  state.tileReturn = { subjectId: state.subjectId, group: group };
+}
+
+function closeTileView() {
+  const back = state.tileReturn || {};
+  const target = back.subjectId || state.subjectId;
+  state.tileReturn = null;
+  state.returnGroup = back.group || null;
+  if (!target) { show("subjects"); return; }
+  state.subjectId = target;
+  if (state.subject && state.subject.id === target) {
+    activate("subject");
+    renderSubject();
+  } else {
+    state.subject = null;
+    show("subject");
+  }
+  /* no group to return to: start the page at the top. The group case is
+     scrolled by restoreTileGroup, so jumping here would undo it. */
+  if (!back.group) window.scrollTo(0, 0);
+}
+
+/* Scroll the subject page to the group a tile came from and mark it briefly. */
+function restoreTileGroup(out) {
+  const label = state.returnGroup;
+  state.returnGroup = null;
+  if (!out || !label) return;
+  const heads = Array.prototype.slice.call(out.querySelectorAll("h4.levelhead"));
+  const head = heads.filter((h) => groupHeading(h) === label)[0];
+  if (!head) return;
+  head.classList.add("grouphit");
+  try { head.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  catch (e) { try { head.scrollIntoView(); } catch (err) {} }
+  setTimeout(() => head.classList.remove("grouphit"), 2200);
+}
+
+/* One builder for the way out, so every tile view ends the same way. */
+function tileCloseRow() {
+  return '<div class="tilefoot"><button class="btn" id="tileclose" type="button">Close</button></div>';
+}
+
+function bindTileClose(root) {
+  const close = (root || document).querySelector("#tileclose");
+  if (close) close.onclick = closeTileView;
+}
+
 /* One source of truth for the rail and the shelf: the product's subject index. */
 function ensureSubjects() {
   if (state.subjects && state.subjects.length) return Promise.resolve(state.subjects);
@@ -2070,15 +2151,16 @@ function renderSubject() {
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
     const tool = (s.tools || []).find((t) => t.key === b.dataset.tool);
-    b.onclick = () => { if (tool) openTool(tool); };
+    b.onclick = () => { rememberTileGroup(b); if (tool) openTool(tool); };
   });
   $$("[data-worksheet]", out).forEach((b) => {
-    b.onclick = () => openWorksheet(b.dataset.worksheet, b.dataset.wlabel);
+    b.onclick = () => { rememberTileGroup(b); openWorksheet(b.dataset.worksheet, b.dataset.wlabel); };
   });
   const frameworkpick = out.querySelector("#frameworkpick");
   if (frameworkpick) frameworkpick.onchange = () => {
     const value = frameworkpick.value;
     if (!value) return;
+    rememberTileGroup(frameworkpick);
     if (value.indexOf("w:") === 0) {
       const worksheet = (s.worksheets || [])[Number(value.slice(2))];
       if (worksheet) openWorksheet(worksheet.template, worksheet.label);
@@ -2089,7 +2171,7 @@ function renderSubject() {
   };
   $$("[data-framework]", out).forEach((button) => {
     const row = (s.records || []).concat(s.theories || []).find((r) => r.id === button.dataset.framework);
-    button.onclick = () => { if (row) openFramework(row); };
+    button.onclick = () => { rememberTileGroup(button); if (row) openFramework(row); };
   });
   const find = out.querySelector("#casefind");
   if (find) find.onclick = findFramework;
@@ -2100,6 +2182,8 @@ function renderSubject() {
   const sitesButton = out.querySelector("#sitesearch");
   if (sitesButton) sitesButton.onclick = browseVettedSources;
   loadSubjectCases(s);
+  /* Coming back from a tile: put the group it belongs to in view again. */
+  restoreTileGroup(out);
 }
 
 
@@ -2511,6 +2595,9 @@ async function openWorksheet(template, label, objective) {
 
 
 RENDERERS.calculator = function () {
+  /* The calculator is not a subject tile: a run started here must not carry a
+     stale "return to this group" from a tile opened earlier. */
+  state.tileReturn = null;
   const note = $("#calcnote"), out = $("#calcout");
   note.innerHTML = loading("Reading the frozen method list");
   out.innerHTML = "";
@@ -2954,7 +3041,10 @@ async function createSession(body) {
     state.session = await post("/api/sessions", body);
     state.delivery = state.session.delivery || null;
     renderNew();
-  } catch (e) { p.innerHTML = "<div class=\"card\">" + errorBanner(e) + "</div>"; }
+  } catch (e) {
+    p.innerHTML = "<div class=\"card\">" + errorBanner(e) + tileCloseRow() + "</div>";
+    bindTileClose(p);
+  }
 }
 
 RENDERERS.new = function () {
@@ -2964,9 +3054,10 @@ RENDERERS.new = function () {
   p.innerHTML = '<div class="card"><h2>No session yet</h2>' +
     '<p class="sub">A session lives in this browser tab. Reloading the page starts a fresh one, so this page has nothing to show.</p>' +
     '<div class="row"><button class="btn primary" id="newsession">Start from a subject</button>' +
-    '<button class="btn" id="newcases">Open a saved case</button></div></div>';
+    '<button class="btn" id="newcases">Open a saved case</button></div>' + tileCloseRow() + "</div>";
   const b = $("#newsession"); if (b) b.onclick = () => show("subjects");
   const c = $("#newcases"); if (c) c.onclick = () => show("cases");
+  bindTileClose(p);
 };
 
 function inputValue(name, spec, plan) {
@@ -3996,15 +4087,20 @@ function renderNew() {
       '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
       '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button>' +
       '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>' +
-      worksheetForm(t) + "</div>";
+      worksheetForm(t) + "</div>" + tileCloseRow();
     bindWorksheetForm(t);
     const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
     const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
     const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
     const disc = $("#wsdiscard"); if (disc) disc.onclick = discardWorksheetDraft;
+    bindTileClose($("#panel-new"));
     return;
   }
-  if (!s) { $("#panel-new").innerHTML = '<div class="empty">No session yet.</div>'; return; }
+  if (!s) {
+    $("#panel-new").innerHTML = '<div class="empty">No session yet.</div>' + tileCloseRow();
+    bindTileClose($("#panel-new"));
+    return;
+  }
   const plan = s.work_plan || {};
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
   const schema = (method && method.input_schema) || {};
@@ -4078,6 +4174,7 @@ function renderNew() {
       '<details><summary>The run events, verbatim</summary><pre class="json">' +
       esc(JSON.stringify(s.events, null, 1)) + "</pre></details></div>";
   }
+  html += tileCloseRow();
   $("#panel-new").innerHTML = html;
   if (state.worksheet) bindWorksheetForm(state.worksheet);
   if (document.getElementById("eng")) engBind();
@@ -4087,6 +4184,7 @@ function renderNew() {
   const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
   const rj = $("#reject"); if (rj) rj.onclick = () => confirmSession(true);
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
+  bindTileClose($("#panel-new"));
 }
 
 function readInputs(schema) {
@@ -4223,16 +4321,23 @@ function caseBundle(s) {
 function renderResults() {
   const s = state.session; const d = s && s.delivery;
   const p = $("#panel-results");
-  if (!d) { p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>'; return; }
-  if (d.status === "blocked") {
-    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") + "</div>";
+  if (!d) {
+    p.innerHTML = '<div class="empty"><h3>No result yet</h3><p>Run an analysis first.</p></div>' + tileCloseRow();
+    bindTileClose(p);
     return;
   }
-  p.innerHTML = resultBodyHtml(d, true);
+  if (d.status === "blocked") {
+    p.innerHTML = '<div class="card">' + banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>") +
+      tileCloseRow() + "</div>";
+    bindTileClose(p);
+    return;
+  }
+  p.innerHTML = resultBodyHtml(d, true) + tileCloseRow();
   $("#savecase").onclick = saveCase;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
   if (resultReport && state.draft) resultReport.onclick = () => downloadDraftReport(state.draft.draft, state.draft.worksheet);
+  bindTileClose(p);
   window.scrollTo(0, 0);
 }
 

@@ -1,5 +1,43 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — A tile's Close button returns to its group
+
+**Ask.** The owner reported that the Close button inside each tile is gone: it sat at the
+bottom right of the tile's view, and clicking it should exit the tile and revert to the
+group the tile belongs to — "Tool - Market equilibrium" under Economics, which the page
+groups under the "Intro" level heading, was the example. They asked for it on all tiles in
+all subjects, noting that a previous fix had deleted it and that earlier attempts to
+restore it had not stuck.
+
+**Did.** Made it one behaviour instead of a per-tile patch in `web/index.html`:
+`rememberTileGroup(el)` records the subject id and the `h4.levelhead` group of the tile
+that was clicked (tool, worksheet, framework picker, catalogue record);
+`tileCloseRow()` is the single builder for a right-aligned `Close` button at the bottom of
+the tile view; `bindTileClose(root)` binds it; `closeTileView()` returns to the subject
+page (from the cached subject when there is one, otherwise from the API) and
+`restoreTileGroup(out)` scrolls the group heading into view and marks it for a moment.
+The row is on the tool session view, the worksheet view, the "no session yet" view, the
+failed-session view and the result view, so a run that ends on the result can be left the
+same way. The calculator clears the recorded group so a run started there cannot jump to a
+stale subject. The existing top-left "Back to subjects" link is kept.
+
+**Verified.** One new served-page test, `test_every_tile_view_carries_a_close_button_back_to_its_group`
+(presence guard: the helper functions, the right-aligned row, the four recorded tile kinds,
+the restore call); the subject suite passes (45 tests) and the page passes the Node
+`--check` gate. Clicked in headless Chromium against `scripts/serve.py` over the Chrome
+DevTools Protocol: 33 tile views across all 11 subjects, plus Economics' Market equilibrium
+tool (group "Intro") and one catalogue record — every view opened with the Close button as
+the last, `justify-content:flex-end` element of its panel, every Close returned to the
+subject page with the address still on that subject, and the group heading was back inside
+the viewport with the highlight applied. Two consecutive full runs: 0 failures.
+
+**Honest limits.** There is still no browser test in `tests/`; the guard is static and the
+click path was proved by a one-off CDP run, not by the suite. The scroll uses
+`scrollIntoView({block:"center",behavior:"smooth"})`, so a browser with smooth scrolling
+disabled jumps instead of gliding — same destination, no animation. The tile's group is
+matched by heading text, so two groups with the same label in one subject would both match
+and the first would be used; no subject currently has duplicate labels.
+
 ## 2026-11-01 — Non-US fundamentals fallback chain
 
 **Ask.** The owner asked for a non-US fundamentals fallback after the free-tier derived P/E and ROE.

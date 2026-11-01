@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.21**, **1465 tests**, 2026-10-28. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.31**, **1464 tests**, 2026-11-01. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -98,6 +98,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | Document | Kind | Rule |
 |---|---|---|
 | [`CONTRIBUTORS.md`](CONTRIBUTORS.md) | Living — how to work here | Update when a rule changes |
+| [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) | Living — the goal, paper model, framework/computation rules and extension checklist | Read after HANDOFF; update when a product rule or the extension checklist changes |
 | [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
 | [`HOME.md`](HOME.md) | Living — this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
