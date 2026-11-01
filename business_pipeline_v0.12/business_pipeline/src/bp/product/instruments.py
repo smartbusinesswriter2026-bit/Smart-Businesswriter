@@ -286,6 +286,43 @@ def by_symbol():
     return index
 
 
+def seed(instrument_id, days=30, fetch=None):
+    """Fill an instrument's history from a provider's daily bars (default Massive).
+
+    Every bar becomes a dated snapshot (close price, source, URL, SHA), deduped by
+    as_of, so the return series is ready immediately instead of waiting for weeks of
+    manual recording.  No price is invented: the bars come from the provider, and a
+    provider failure is raised as ``InstrumentError``.
+    """
+    document = load(instrument_id)
+    fetcher = fetch or marketdata.massive_history
+    try:
+        history = fetcher(document["symbol"], days)
+    except marketdata.MarketDataError as error:
+        raise InstrumentError(str(error))
+    bars = (history or {}).get("bars") or []
+    if not bars:
+        raise InstrumentError("the history source returned no daily bars")
+    snapshots = {str(s.get("as_of")): s for s in document.get("snapshots", [])}
+    for bar in bars:
+        as_of = str(bar.get("as_of") or "").strip()
+        try:
+            price = Decimal(str(bar.get("close")))
+        except (InvalidOperation, TypeError):
+            continue
+        if not as_of or price <= 0:
+            continue
+        snapshots[as_of] = {"as_of": as_of, "price": str(price),
+                            "source": history.get("source") or "Massive (api.massive.com)",
+                            "source_url": history.get("source_url") or "",
+                            "response_sha256": history.get("response_sha256") or "",
+                            "recorded_at": _now_iso()}
+    document["snapshots"] = sorted(snapshots.values(), key=lambda s: str(s.get("as_of") or ""))
+    document["updated_at"] = _now_iso()
+    _write(_path(document["id"]), document)
+    return document
+
+
 def delete(instrument_id):
     """Remove an instrument record and return the deletion result."""
     path = _path(instrument_id)

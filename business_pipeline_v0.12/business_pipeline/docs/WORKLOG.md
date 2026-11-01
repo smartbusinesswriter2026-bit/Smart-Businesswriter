@@ -1,5 +1,30 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — History seeding and fundamentals for screening
+
+**Ask.** The owner asked for history seeding from Massive daily bars so `ready` flips immediately,
+and for fundamentals (Massive Ticker Overview / Alpha Vantage OVERVIEW) so screening can rank on
+P/E, ROE and market cap instead of naming them as gaps.
+
+**Did — seeding.** `marketdata.massive_history(symbol, days)` returns daily closes (Custom Bars,
+all plans). `instruments.seed(instrument_id, days)` turns those bars into dated snapshots (close,
+source, URL, SHA), deduped by as-of, so a new instrument is instantly `risk_ready`. Route
+`POST /api/cases/instruments/{id}/seed`; a **Seed** button per watch row.
+
+**Did — fundamentals.** `alpha_overview` (P/E, ROE, P/B, market cap; premium on the free tier and
+fails closed with a clear message), `massive_overview` (market cap, shares, name, sector; all
+plans) and a `fundamentals(symbol, provider)` dispatcher. `screener.screen` gained
+`include_fundamentals`/`fundamentals_provider`; it merges the metrics with source/date/SHA and
+names any a provider does not report. The screen route accepts the flags; the shortlist shows Mkt
+cap, P/E and ROE and sorts on them (Massive is the default fundamentals provider so market cap is
+populated on the free tier).
+
+**Verified.** 8 new tests; the marketdata/screen/instrument/subject suites pass (91 tests); the
+page passes the Node `--check` gate. Live: seeding AAPL gave 10 snapshots / 9 returns /
+`risk_ready: true`; `massive_overview` returned market cap 5,029,592,253,400; `alpha_overview`
+returned the premium refusal, and the screen named `pe_ratio` and `roe` as gaps (market cap
+present) — no number invented.
+
 ## 2026-11-01 — One-click prefill into the Business Calculator
 
 **Ask.** The owner said "yes, one-click prefill" after the Portfolio lab landed: make the prefill

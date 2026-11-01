@@ -306,5 +306,60 @@ class MassiveQuoteTest(unittest.TestCase):
             marketdata.massive_quote("AAPL")
 
 
+HISTORY_JSON = (b'{"status":"OK","ticker":"AAPL","results":['
+                b'{"c":100,"t":1792915200000},{"c":110,"t":1793001600000}]}')
+MASSIVE_OVERVIEW_JSON = (b'{"status":"OK","results":{"ticker":"AAPL","name":"Apple Inc.",'
+                         b'"market_cap":3500000000000,"weighted_shares_outstanding":16000000000,'
+                         b'"sic_description":"ELECTRONIC COMPUTERS","cik":"0000320193","currency_name":"usd"}}')
+
+
+class HistoryOverviewTest(unittest.TestCase):
+    def setUp(self):
+        marketdata.clear_cache()
+        self.real = marketdata._fetch
+        self.prev_m = os.environ.get("BP_MASSIVE_API_KEY")
+        self.prev_a = os.environ.get("BP_ALPHAVANTAGE_KEY")
+        os.environ["BP_MASSIVE_API_KEY"] = "massive-secret"
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "alpha-secret"
+
+    def tearDown(self):
+        marketdata._fetch = self.real
+        for name, prev in (("BP_MASSIVE_API_KEY", self.prev_m), ("BP_ALPHAVANTAGE_KEY", self.prev_a)):
+            if prev is None: os.environ.pop(name, None)
+            else: os.environ[name] = prev
+        marketdata.clear_cache()
+
+    def test_massive_history_returns_sorted_daily_closes(self):
+        marketdata._fetch = FakeFetch(HISTORY_JSON, "https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/x/y?apiKey=massive-secret")
+        out = marketdata.massive_history("aapl", days=5)
+        self.assertEqual(out["kind"], "history")
+        self.assertEqual(len(out["bars"]), 2)
+        self.assertEqual(Decimal(out["bars"][0]["close"]), Decimal("100"))
+        self.assertEqual(Decimal(out["bars"][1]["close"]), Decimal("110"))
+        self.assertNotIn("massive-secret", out["source_url"])
+
+    def test_alpha_overview_parses_ratios(self):
+        marketdata._fetch = FakeFetch(AV_OVERVIEW, "https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=alpha-secret")
+        out = marketdata.alpha_overview("aapl")
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("35.2"))
+        self.assertEqual(Decimal(out["roe"]), Decimal("1.50"))
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("3500000000000"))
+        self.assertNotIn("alpha-secret", out["source_url"])
+
+    def test_massive_overview_parses_market_cap(self):
+        marketdata._fetch = FakeFetch(MASSIVE_OVERVIEW_JSON, "https://api.massive.com/v3/reference/tickers/AAPL?apiKey=massive-secret")
+        out = marketdata.massive_overview("AAPL")
+        self.assertEqual(out["company"], "Apple Inc.")
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("3500000000000"))
+        self.assertEqual(out["provider"], "massive")
+
+    def test_fundamentals_dispatch_and_unknown_provider(self):
+        marketdata._fetch = FakeFetch(AV_OVERVIEW, "https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=alpha-secret")
+        out = marketdata.fundamentals("AAPL", "alphavantage")
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("35.2"))
+        with self.assertRaises(marketdata.MarketDataError):
+            marketdata.fundamentals("AAPL", "wibble")
+
+
 if __name__ == "__main__":
     unittest.main()

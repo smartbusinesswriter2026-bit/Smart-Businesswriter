@@ -2166,7 +2166,8 @@ function bindMarketPanel() {
 function portfolioLabPanel() {
   const providers = '<option value="alphavantage">Alpha Vantage</option><option value="massive">Massive</option>';
   const sorts = [["one_day_return", "one-day return"], ["mean_return", "mean return (needs history)"],
-    ["sharpe", "Sharpe (needs history)"], ["price", "price"]]
+    ["sharpe", "Sharpe (needs history)"], ["price", "price"],
+    ["market_cap", "market cap"], ["pe_ratio", "P/E"], ["roe", "ROE"]]
     .map((p) => '<option value="' + p[0] + '">' + p[1] + "</option>").join("");
   return '<div class="marketpanel" id="portfoliolab"><h3 style="margin-top:0">Portfolio lab: choose, track, evaluate</h3>' +
     '<p class="muted">Pick an instrument yourself, or ask for a sourced shortlist. Recording a price now builds the history over weeks; ' +
@@ -2180,6 +2181,8 @@ function portfolioLabPanel() {
     '<div class="marketrow">' +
       '<label>Candidate symbols <input id="plcands" value="AAPL, MSFT, JPM" size="26" aria-label="Candidate symbols, comma separated"></label>' +
       '<label>Sort by <select id="plsort" aria-label="Sort metric">' + sorts + '</select></label>' +
+      '<label><input type="checkbox" id="plfund" aria-label="Include fundamentals"> Include fundamentals</label>' +
+      '<label>Fundamentals <select id="plfundprov" aria-label="Fundamentals provider"><option value="massive">Massive</option><option value="alphavantage">Alpha Vantage (premium)</option></select></label>' +
       '<button class="btn sm" id="plscreen" type="button">Help me choose</button>' +
     '</div>' +
     '<div id="plscreenout" aria-live="polite"></div>' +
@@ -2220,26 +2223,38 @@ function plRenderWatch(data) {
     '</td><td>' + esc(r.returns) + '</td><td>' + (r.risk_ready ? "yes" : "not yet") + '</td><td>' +
     esc(r.last_price || "n/a") + ' <span class="muted">' + esc(r.last_as_of || "") + '</span></td><td class="muted">' +
     esc(r.id) + '</td><td><button class="btn sm" type="button" data-record="' + esc(r.id) + '">Record</button> ' +
+    '<button class="btn sm" type="button" data-seed="' + esc(r.id) + '" title="Seed 30 days of daily bars">Seed</button> ' +
     '<button class="btn sm" type="button" data-use="' + esc(r.id) + '">Use</button></td></tr>').join("");
   box.innerHTML = '<div class="tablewrap"><table><caption>Tracked instruments (' + items.length + ')</caption><thead><tr>' +
     '<th>Symbol</th><th>Snapshots</th><th>Returns</th><th>Ready</th><th>Last</th><th>Id</th><th></th></tr></thead><tbody>' +
     rows + '</tbody></table></div>';
   $$("[data-record]", box).forEach((b) => { b.onclick = () => plRecord(b.dataset.record); });
+  $$("[data-seed]", box).forEach((b) => { b.onclick = () => plSeed(b.dataset.seed); });
   $$("[data-use]", box).forEach((b) => { b.onclick = () => { const f = $("#plid"); if (f) f.value = b.dataset.use; }; });
 }
 
 function plRenderScreen(data) {
   const box = $("#plscreenout"); if (!box || !data || !data.rows) return;
-  const pct = (v) => (v === null || v === undefined) ? "n/a" : (Number(v) * 100).toFixed(2) + "%";
+  const pct = (v) => (v === null || v === undefined || v === "") ? "n/a" : (Number(v) * 100).toFixed(2) + "%";
+  const num = (v, d) => (v === null || v === undefined || v === "") ? "n/a" : Number(v).toFixed(d);
+  const mcap = (v) => {
+    if (v === null || v === undefined || v === "") return "n/a";
+    const n = Number(v); if (!isFinite(n)) return String(v);
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    return String(n);
+  };
   const rows = data.rows.map((r) => {
-    if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="6" class="muted">' + esc(r.error) + "</td></tr>";
+    if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="7" class="muted">' + esc(r.error) + "</td></tr>";
     return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.price || "n/a") + '</td><td>' +
-      esc(pct(r.one_day_return)) + '</td><td>' + esc(r.n_returns || 0) + '</td><td>' + esc(pct(r.mean_return)) +
-      '</td><td>' + esc(r.sharpe === null || r.sharpe === undefined ? "n/a" : Number(r.sharpe).toFixed(2)) +
+      esc(pct(r.one_day_return)) + '</td><td>' + esc(mcap(r.market_cap)) + '</td><td>' + esc(num(r.pe_ratio, 2)) +
+      '</td><td>' + esc(pct(r.roe)) + '</td><td>' +
+      esc(r.sharpe === null || r.sharpe === undefined ? "n/a" : Number(r.sharpe).toFixed(2)) +
       '</td><td class="muted">' + esc((r.gaps || []).join("; ")) + "</td></tr>";
   }).join("");
   box.innerHTML = '<div class="tablewrap"><table><caption>Shortlist (' + data.count + ') - sourced, not a recommendation</caption>' +
-    '<thead><tr><th>Symbol</th><th>Price</th><th>1-day</th><th>n</th><th>Mean</th><th>Sharpe</th><th>Gaps</th></tr></thead><tbody>' +
+    '<thead><tr><th>Symbol</th><th>Price</th><th>1-day</th><th>Mkt cap</th><th>P/E</th><th>ROE</th><th>Sharpe</th><th>Gaps</th></tr></thead><tbody>' +
     rows + '</tbody></table></div><p class="muted">' + esc(data.note) + "</p>";
 }
 
@@ -2300,6 +2315,11 @@ async function plRecord(id) {
   catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
 }
 
+async function plSeed(id) {
+  try { await post("/api/cases/instruments/" + id + "/seed", { days: 30 }); toast("Seeded 30 days of daily prices"); plLoadWatch(); }
+  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+}
+
 async function plScreen() {
   const box = $("#plscreenout"); if (!box) return;
   const symbols = (($("#plcands") || {}).value || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -2308,7 +2328,9 @@ async function plScreen() {
   try {
     plRenderScreen(await post("/api/cases/screen", {
       symbols: symbols, provider: plProvider(),
-      criteria: { sort: ($("#plsort") || {}).value || "one_day_return", order: "desc" }
+      criteria: { sort: ($("#plsort") || {}).value || "one_day_return", order: "desc" },
+      include_fundamentals: !!($("#plfund") || {}).checked,
+      fundamentals_provider: ($("#plfundprov") || {}).value || "alphavantage"
     }));
   } catch (e) { box.innerHTML = errorBanner(e); }
 }

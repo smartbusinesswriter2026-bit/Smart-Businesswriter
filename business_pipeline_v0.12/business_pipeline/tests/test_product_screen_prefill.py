@@ -79,6 +79,18 @@ class ScreenerTest(unittest.TestCase):
         self.assertIn("cumulative_return", row)
 
 
+    def test_screen_can_include_fundamentals(self):
+        def fund(symbol):
+            return {"source": "Alpha Vantage (OVERVIEW)", "as_of": "2026-06-30", "response_sha256": "f",
+                    "market_cap": "3000000000000", "pe_ratio": "30.5", "roe": "1.4", "price_to_book": "50"}
+        out = screener.screen(["AAA"], fetch=stub_quote, include_fundamentals=True, fetch_fundamentals=fund)
+        row = out["rows"][0]
+        self.assertEqual(Decimal(row["pe_ratio"]), Decimal("30.5"))
+        self.assertEqual(row["market_cap"], "3000000000000")
+        self.assertEqual(Decimal(row["roe"]), Decimal("1.4"))
+        self.assertFalse(any("fundamentals are not wired" in gap for gap in row["gaps"]))
+
+
 class PrefillTest(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()
@@ -122,6 +134,19 @@ class PrefillTest(unittest.TestCase):
         self.assertEqual(out["inputs"]["market_return"], "0.10")
 
 
+    def test_seed_fills_and_dedupes_history(self):
+        document = instruments.create("AAA")
+        def hist(symbol, days):
+            return {"kind": "history", "source": "Massive (api.massive.com)", "source_url": "u", "response_sha256": "h",
+                    "bars": [{"as_of": "2026-10-01", "close": "100"}, {"as_of": "2026-10-02", "close": "110"},
+                             {"as_of": "2026-10-03", "close": "121"}, {"as_of": "2026-10-04", "close": "133.1"}]}
+        seeded = instruments.seed(document["id"], days=5, fetch=hist)
+        self.assertEqual(len(seeded["snapshots"]), 4)
+        self.assertTrue(instruments.readiness(seeded)["risk_ready"])
+        again = instruments.seed(document["id"], days=5, fetch=hist)
+        self.assertEqual(len(again["snapshots"]), 4)
+
+
 class RouteTest(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()
@@ -152,6 +177,35 @@ class RouteTest(unittest.TestCase):
     def test_prefill_route_rejects_unknown_target(self):
         status, _payload = api.handle("POST", "/api/cases/prefill", {"target": "wibble"})
         self.assertEqual(status, 422)
+
+
+    def test_seed_route(self):
+        document = instruments.create("AAA")
+        original = marketdata.massive_history
+        marketdata.massive_history = lambda symbol, days: {
+            "bars": [{"as_of": "2026-10-01", "close": "100"}, {"as_of": "2026-10-02", "close": "110"},
+                     {"as_of": "2026-10-03", "close": "121"}, {"as_of": "2026-10-04", "close": "133.1"}],
+            "source": "Massive", "source_url": "u", "response_sha256": "h"}
+        try:
+            status, out = api.handle("POST", "/api/cases/instruments/%s/seed" % document["id"], {"days": 5})
+        finally:
+            marketdata.massive_history = original
+        self.assertEqual(status, 200)
+        self.assertEqual(out["readiness"]["snapshots"], 4)
+
+    def test_screen_route_with_fundamentals(self):
+        original_q, original_f = marketdata.equity_quote, marketdata.fundamentals
+        marketdata.equity_quote = stub_quote
+        marketdata.fundamentals = lambda symbol, provider="alphavantage": {
+            "source": "Alpha Vantage (OVERVIEW)", "as_of": "", "response_sha256": "f",
+            "market_cap": "1000", "pe_ratio": "20", "roe": "1.1"}
+        try:
+            status, out = api.handle("POST", "/api/cases/screen", {"symbols": ["AAA"], "include_fundamentals": True})
+        finally:
+            marketdata.equity_quote = original_q
+            marketdata.fundamentals = original_f
+        self.assertEqual(status, 200)
+        self.assertEqual(out["rows"][0]["pe_ratio"], "20")
 
 
 if __name__ == "__main__":

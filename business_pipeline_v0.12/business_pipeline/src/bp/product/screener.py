@@ -84,7 +84,6 @@ def _row(symbol, quote, tracked):
     else:
         row["n_returns"] = 0
         row["gaps"].append("no recorded price history yet; record snapshots to get mean, volatility and momentum")
-    row["gaps"].append("P/E, P/B, market cap and dividend yield are not available: fundamentals are not wired")
     return row
 
 
@@ -133,12 +132,31 @@ def _apply_sort(rows, sort_by, order):
     return sorted(rows, key=key)
 
 
-def screen(symbols, criteria=None, provider="alphavantage", fetch=None):
+def _merge_fundamentals(row, fund):
+    """Copy the sourced fundamentals metrics onto a row, naming any that are missing."""
+    for name in ("market_cap", "pe_ratio", "roe", "price_to_book", "profit_margin", "company", "sector"):
+        if fund.get(name) not in (None, ""):
+            row[name] = fund.get(name)
+    row["fundamentals_source"] = fund.get("source")
+    row["fundamentals_as_of"] = fund.get("as_of")
+    row["fundamentals_sha256"] = fund.get("response_sha256")
+    for name in ("market_cap", "pe_ratio", "roe"):
+        if row.get(name) in (None, ""):
+            row["gaps"].append("%s is not reported by the fundamentals provider" % name)
+    return row
+
+
+def screen(symbols, criteria=None, provider="alphavantage", fetch=None,
+           include_fundamentals=False, fundamentals_provider=None, fetch_fundamentals=None):
     """Fetch a quote per candidate symbol and return a ranked, sourced shortlist."""
     if not isinstance(symbols, (list, tuple)) or not symbols:
         raise ScreenerError("supply a list of candidate symbols")
     if len(symbols) > MAX_SYMBOLS:
         raise ScreenerError("at most %d symbols can be screened at once" % MAX_SYMBOLS)
+    criteria = criteria if isinstance(criteria, dict) else {}
+    want_fundamentals = bool(include_fundamentals or criteria.get("include_fundamentals"))
+    fund_provider = fundamentals_provider or criteria.get("fundamentals_provider") or "alphavantage"
+    fund_fetch = fetch_fundamentals or (lambda symbol: marketdata.fundamentals(symbol, fund_provider))
     fetcher = fetch or instruments._quote_fetcher(provider)
     tracked = instruments.by_symbol()
     rows = []
@@ -151,8 +169,15 @@ def screen(symbols, criteria=None, provider="alphavantage", fetch=None):
         except marketdata.MarketDataError as error:
             rows.append({"symbol": symbol, "error": str(error), "gaps": [str(error)]})
             continue
-        rows.append(_row(symbol, quote, tracked.get(symbol)))
-    criteria = criteria if isinstance(criteria, dict) else {}
+        row = _row(symbol, quote, tracked.get(symbol))
+        if want_fundamentals:
+            try:
+                _merge_fundamentals(row, fund_fetch(symbol))
+            except marketdata.MarketDataError as error:
+                row["gaps"].append("fundamentals unavailable: " + str(error))
+        else:
+            row["gaps"].append("fundamentals not requested; tick include fundamentals to rank on P/E, ROE and market cap")
+        rows.append(row)
     rows = _apply_filters(rows, criteria.get("filters"))
     rows = _apply_sort(rows, criteria.get("sort"), criteria.get("order"))
     return {"format": FORMAT, "provider": (provider or "alphavantage"), "criteria": criteria,

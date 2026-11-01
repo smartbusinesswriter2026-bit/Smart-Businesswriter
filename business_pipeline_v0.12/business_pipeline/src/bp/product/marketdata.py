@@ -388,6 +388,148 @@ def massive_quote(symbol):
     return payload
 
 
+def massive_history(symbol, days=30):
+    """Recent daily closes for one symbol from Massive aggregate bars (all plans)."""
+    symbol = _symbol(symbol)
+    key = _massive_key()
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        raise MarketDataError("days must be a whole number between 2 and 120")
+    if not (2 <= days <= 120):
+        raise MarketDataError("days must be between 2 and 120")
+    cache_key = ("massive_history", symbol, days)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    start = today - datetime.timedelta(days=days + 7)
+    url = (MASSIVE + "/v2/aggs/ticker/" + urllib.parse.quote(symbol) + "/range/1/day/" +
+           start.isoformat() + "/" + today.isoformat() +
+           "?adjusted=true&sort=asc&limit=120&apiKey=" + urllib.parse.quote(key))
+    raw, final = _fetch(url)
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise MarketDataError("the Massive source returned a response this app cannot read")
+    if not isinstance(data, dict) or str(data.get("status") or "").upper() not in ("OK", "DELAYED"):
+        raise MarketDataError("the Massive source refused the request: " +
+                              str(data.get("error") or data.get("status") or "no status")[:300])
+    bars = []
+    for bar in data.get("results") or []:
+        try:
+            close = Decimal(str(bar["c"]))
+        except (KeyError, InvalidOperation, TypeError):
+            continue
+        stamp = bar.get("t")
+        if not isinstance(stamp, (int, float)) or close <= 0:
+            continue
+        bars.append({"as_of": datetime.datetime.fromtimestamp(stamp / 1000, datetime.timezone.utc).date().isoformat(),
+                     "close": str(close)})
+    bars.sort(key=lambda b: b["as_of"])
+    bars = bars[-days:]
+    if len(bars) < 2:
+        raise MarketDataError("the Massive source returned fewer than two daily bars for " + symbol)
+    payload = _payload("history", Decimal(len(bars)), bars[-1]["as_of"],
+                       "Massive (api.massive.com)", _public_url(final), raw,
+                       {"symbol": symbol, "provider": "massive", "bars": bars})
+    _cache_put(cache_key, payload, DAY_SECONDS)
+    return payload
+
+
+#: Alpha Vantage OVERVIEW fields mapped to the names the screener uses.
+AV_OVERVIEW_FIELDS = {
+    "MarketCapitalization": "market_cap", "PERatio": "pe_ratio", "PEGRatio": "peg_ratio",
+    "PriceToBookRatio": "price_to_book", "EVToEBITDA": "ev_to_ebitda", "ProfitMargin": "profit_margin",
+    "ReturnOnEquity": "roe", "RevenueTTM": "revenue_ttm", "EBITDA": "ebitda",
+    "QuarterlyEarningsGrowthYOY": "earnings_growth_yoy", "Currency": "currency",
+    "LatestQuarter": "latest_quarter", "Name": "company", "Sector": "sector",
+}
+
+
+def alpha_overview(symbol):
+    """Company overview from Alpha Vantage OVERVIEW (P/E, ROE, P/B, market cap).
+
+    On the free tier this endpoint is premium and returns no data; the lookup then
+    fails closed with a clear message rather than inventing a ratio.
+    """
+    symbol = _symbol(symbol)
+    key = _alpha_key()
+    cache_key = ("av_overview", symbol)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    data, raw, final = _alpha_json("OVERVIEW", symbol, key)
+    if not isinstance(data, dict) or not data.get("Symbol"):
+        raise MarketDataError("Alpha Vantage returned no OVERVIEW for " + symbol +
+                              " (OVERVIEW is a premium endpoint; free tier returns nothing)")
+    out = {"symbol": str(data.get("Symbol") or symbol), "provider": "alphavantage"}
+    for source, target in AV_OVERVIEW_FIELDS.items():
+        value = data.get(source)
+        if value not in (None, "", "None", "-", "0"):
+            out[target] = str(value)
+    out = {k: v for k, v in out.items() if v not in (None, "")}
+    as_of = out.get("latest_quarter") or ""
+    try:
+        value = Decimal(str(out.get("market_cap") or "0"))
+    except InvalidOperation:
+        value = Decimal(0)
+    payload = _payload("fundamentals", value, as_of, "Alpha Vantage (OVERVIEW)", _public_url(final), raw, out)
+    _cache_put(cache_key, payload, DAY_SECONDS)
+    return payload
+
+
+def massive_overview(symbol):
+    """Ticker overview from Massive (market cap, shares outstanding, name, sector)."""
+    symbol = _symbol(symbol)
+    key = _massive_key()
+    cache_key = ("massive_overview", symbol)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    url = MASSIVE + "/v3/reference/tickers/" + urllib.parse.quote(symbol) + "?apiKey=" + urllib.parse.quote(key)
+    raw, final = _fetch(url)
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise MarketDataError("the Massive source returned a response this app cannot read")
+    if not isinstance(data, dict) or str(data.get("status") or "").upper() not in ("OK", "DELAYED"):
+        raise MarketDataError("the Massive source refused the request: " +
+                              str(data.get("error") or data.get("status") or "no status")[:300])
+    results = data.get("results") or {}
+    if not results:
+        raise MarketDataError("the Massive source returned no ticker overview for " + symbol)
+    out = {"symbol": results.get("ticker") or symbol, "provider": "massive",
+           "company": results.get("name"), "sector": results.get("sic_description"),
+           "cik": results.get("cik")}
+    if results.get("market_cap") is not None:
+        out["market_cap"] = str(results.get("market_cap"))
+    if results.get("weighted_shares_outstanding") is not None:
+        out["shares_outstanding"] = str(results.get("weighted_shares_outstanding"))
+    out = {k: v for k, v in out.items() if v not in (None, "")}
+    try:
+        value = Decimal(str(out.get("market_cap") or "0"))
+    except InvalidOperation:
+        value = Decimal(0)
+    payload = _payload("fundamentals", value, "", "Massive ticker overview (api.massive.com)",
+                       _public_url(final), raw, out)
+    _cache_put(cache_key, payload, DAY_SECONDS)
+    return payload
+
+
+#: Fundamentals provider id -> marketdata function name.
+FUNDAMENTALS_PROVIDERS = {"alphavantage": "alpha_overview", "massive": "massive_overview"}
+
+
+def fundamentals(symbol, provider="alphavantage"):
+    """Dispatch a fundamentals lookup to the chosen provider (Alpha Vantage or Massive)."""
+    name = (provider or "alphavantage").strip().lower()
+    if name not in FUNDAMENTALS_PROVIDERS:
+        raise MarketDataError("unknown fundamentals provider %r; choose one of: %s"
+                              % (provider, ", ".join(sorted(FUNDAMENTALS_PROVIDERS))))
+    return globals()[FUNDAMENTALS_PROVIDERS[name]](symbol)
+
+
 def _sec_concept(cik, tags):
     """The latest annual (10-K/FY) fact for the first available XBRL concept."""
     last_error = None

@@ -174,7 +174,9 @@ def handle(method, path, body=None):
             return _error("a screen object is required")
         try:
             return 200, screener.screen(body.get("symbols"), body.get("criteria"),
-                                        body.get("provider") or "alphavantage")
+                                        body.get("provider") or "alphavantage",
+                                        include_fundamentals=bool(body.get("include_fundamentals")),
+                                        fundamentals_provider=body.get("fundamentals_provider"))
         except (screener.ScreenerError, instrument_store.InstrumentError, ValueError) as error:
             return _error(error)
 
@@ -256,6 +258,17 @@ def handle(method, path, body=None):
             provider = (body.get("provider") if isinstance(body, dict) else None) or "alphavantage"
             try:
                 document = instrument_store.record(instrument_id, quote=quote, provider=provider)
+            except instrument_store.InstrumentNotFound as error:
+                return 404, {"error": str(error)}
+            except (instrument_store.InstrumentError, ValueError) as error:
+                return _error(error)
+            return 200, {"instrument": document,
+                         "returns": instrument_store.returns_series(document),
+                         "readiness": instrument_store.readiness(document)}
+        if action == "seed":
+            days = body.get("days") if isinstance(body, dict) else None
+            try:
+                document = instrument_store.seed(instrument_id, days=days or 30)
             except instrument_store.InstrumentNotFound as error:
                 return 404, {"error": str(error)}
             except (instrument_store.InstrumentError, ValueError) as error:
