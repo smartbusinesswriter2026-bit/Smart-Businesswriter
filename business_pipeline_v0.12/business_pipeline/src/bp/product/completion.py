@@ -22,7 +22,7 @@ import re
 
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import docx, framework_profiles, guard, paper, prose, retrieval, writing
+from . import docx, framework_profiles, guard, matrix, paper, prose, retrieval, writing
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
 FRAMEWORK_WORDS = {"porter", "forces", "five", "swot", "pestel", "break", "even", "analysis", "pestel analysis"}
@@ -1100,6 +1100,32 @@ def _draft_data(result, length="mid"):
     return data
 
 
+def _figure_cells(blocks):
+    """One cell per block: the block's own items, never a blank.
+
+    A cell carries the *identity* of each item - the source's title for a
+    retrieved item, the student's own sentence for their own - so the grid
+    reads as a summary and the prose below carries the full evidence.
+    """
+    cells = {}
+    for block in blocks or []:
+        bullets = []
+        for item in block.get("items") or []:
+            text = str(item.get("title") or item.get("text") or "").strip()
+            if not text:
+                continue
+            citation = str(item.get("citation") or "").strip()
+            if citation:
+                text = text + " " + citation
+            bullets.append(text)
+        cells[block.get("key")] = {
+            "label": block.get("label") or block.get("key"),
+            "bullets": bullets,
+            "gap": block.get("gap") or None,
+        }
+    return cells
+
+
 def _sections(data, blocks, style, citations, result):
     profile = _profile(result.get("template"))
     outline = profile.get("outline") or {}
@@ -1110,9 +1136,12 @@ def _sections(data, blocks, style, citations, result):
                 if item["source"] not in seen:
                     seen.add(item["source"])
                     references.append(item["source"])
+    figure = matrix.build(result.get("template"), _figure_cells(blocks),
+                          caption=profile.get("label"))
     sections = [paper.section("Introduction", 1, list(data["introduction"])),
                 paper.section(outline.get("context") or "Case and context", 2, list(data["context"])),
-                paper.section(outline.get("framework") or profile["label"], 1, [data["lead"]])]
+                paper.section(outline.get("framework") or profile["label"], 1, [data["lead"]],
+                              figure=figure)]
     singular = ((profile.get("voice") or {}).get("block_plural") or "dimensions").rstrip("s")
     for block in blocks:
         key = block.get("key")
