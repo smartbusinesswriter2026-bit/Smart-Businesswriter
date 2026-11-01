@@ -56,6 +56,7 @@ from . import charts as chart_renderer
 from . import compare as comparator
 from . import diagrams as diagram_renderer
 from . import export as case_export
+from . import instruments as instrument_store
 from . import ops
 from . import signoff as signoff_store
 from . import spreadsheets
@@ -163,6 +164,59 @@ def handle(method, path, body=None):
             return 200, calc_router.plan(text)
         except calc_router.PlanError as error:
             return _error(error)
+    # -- tracked instruments (price-record store, product layer) -------------
+    if segments and segments[0] == "instruments":
+        if len(segments) == 1:
+            if verb == "GET":
+                return 200, {"instruments": instrument_store.list_instruments()}
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on instruments" % verb}
+            if not isinstance(body, dict):
+                return _error("an instrument object is required")
+            try:
+                document = instrument_store.create(body.get("symbol"), body.get("label"),
+                                                   body.get("kind") or "equity", body.get("sector"))
+                if body.get("record"):
+                    document = instrument_store.record(document["id"])
+            except (instrument_store.InstrumentError, ValueError) as error:
+                return _error(error)
+            return 201, document
+        instrument_id = segments[1]
+        if len(segments) == 2:
+            if verb == "GET":
+                try:
+                    document = instrument_store.load(instrument_id)
+                except instrument_store.InstrumentNotFound as error:
+                    return 404, {"error": str(error)}
+                except (instrument_store.InstrumentCorrupt, ValueError) as error:
+                    return _error(error)
+                return 200, {"instrument": document,
+                             "returns": instrument_store.returns_series(document),
+                             "readiness": instrument_store.readiness(document)}
+            if verb == "DELETE":
+                try:
+                    return 200, instrument_store.delete(instrument_id)
+                except instrument_store.InstrumentNotFound as error:
+                    return 404, {"error": str(error)}
+                except ValueError as error:
+                    return _error(error)
+            return 405, {"error": "method %s is not allowed on an instrument" % verb}
+        action = segments[2]
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on an instrument action" % verb}
+        if action == "record":
+            quote = body.get("quote") if isinstance(body, dict) else None
+            try:
+                document = instrument_store.record(instrument_id, quote=quote)
+            except instrument_store.InstrumentNotFound as error:
+                return 404, {"error": str(error)}
+            except (instrument_store.InstrumentError, ValueError) as error:
+                return _error(error)
+            return 200, {"instrument": document,
+                         "returns": instrument_store.returns_series(document),
+                         "readiness": instrument_store.readiness(document)}
+        return 404, {"error": "unknown instrument action %r" % action}
+
     if segments == ["match"]:
         if verb != "POST":
             return 405, {"error": "method %s is not allowed on the matcher" % verb}

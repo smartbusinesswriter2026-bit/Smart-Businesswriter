@@ -1,5 +1,29 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Phase 1: a price-record store for tracked instruments
+
+**Ask.** The owner approved the suggestion/screening layer and said "go". Phase 1 is the
+foundation: let a student pick an instrument, record its current price from the already-wired
+Alpha Vantage source, and let the accumulated snapshots become the return series over weeks.
+
+**Did.** New `src/bp/product/instruments.py` writes one JSON document per instrument under
+`<case store>/instruments/` (atomic write, twelve-hex id, fail-closed like `cases.py`). A
+document is an append-only list of price snapshots (value, as-of, source, URL, response SHA-256,
+recorded time); snapshots dedupe by as-of date; consecutive prices yield simple returns; and
+`readiness` names the gaps until three returns exist. Added `list/create/read/record/delete`
+routes under `/api/cases/instruments`, dispatched by the existing `product_api.handle`, so no
+frozen-server edit was needed. `record` fetches the live quote through the wired key, but the
+`quote`/`fetch` seams keep the tests offline. `tests/test_product_instruments.py` adds 8 cases
+(create/persist, dedupe, returns, readiness, fail-closed, corrupt file, routes, 404).
+
+**Live.** A created `IBM` instrument recorded 257.81 on 2026-10-30 from Alpha Vantage, the same
+day re-recorded to one snapshot, and readiness correctly named the two gaps. The
+instrument/api/cases/routes/server/subjects/source_env/marketdata suites pass (126 tests).
+
+**Next.** Phase 3 (screening shortlist from investor parameters) and Phase 4 (prefill the frozen
+`portfolio_analysis`/`risk_metrics` inputs from a recorded series), then the premium
+`TIME_SERIES_DAILY_ADJUSTED`/`OVERVIEW` endpoints when the paid tier is turned on.
+
 ## 2026-11-01 — The institutional Alpha Vantage key is wired to the product's own .env
 
 **Ask.** The owner checked the market-data wiring: a subscription exists on their side, but the
