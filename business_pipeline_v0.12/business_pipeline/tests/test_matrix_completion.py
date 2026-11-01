@@ -1,6 +1,8 @@
 """The matrix frameworks reach the paper as a grid, not as a list of paragraphs."""
 
+import io
 import unittest
+import zipfile
 from unittest import mock
 
 import sys
@@ -96,7 +98,10 @@ class MatrixCompletionTest(unittest.TestCase):
     def test_the_word_paper_contains_the_table(self):
         result = complete("template_ansoff")
         data = completion.draft_bytes(result)
-        self.assertIn(b"<w:tbl>", data)
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            body = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("<w:tbl>", body)
+        self.assertIn("Ansoff Growth Matrix", body)
 
     def test_an_empty_cell_does_not_block_the_paper(self):
         result = complete("template_ansoff")

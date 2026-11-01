@@ -257,9 +257,13 @@ def _figure_grid_xml(grid):
         fractions = [1.0 / columns] * columns
     axis_y = grid.get("axis_y")
     axis_x = grid.get("axis_x")
-    # a vertical axis gets its own narrow column down the left-hand side
+    # a vertical axis gets its own narrow column down the left-hand side, and
+    # the content columns share what is left of the text width
+    axis_width = 0.13 if axis_y else 0.0
     if axis_y:
-        fractions = [0.13] + fractions
+        total = sum(fractions) or 1.0
+        fractions = [fraction / total * (1.0 - axis_width) for fraction in fractions]
+        fractions = [axis_width] + fractions
     scale = [int(FIGURE_WIDTH * float(fraction)) for fraction in fractions]
     scale[-1] += FIGURE_WIDTH - sum(scale)
     offset = 1 if axis_y else 0

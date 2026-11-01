@@ -1,6 +1,7 @@
 """The figure slot on a paper section and the Word table that draws it."""
 
 import io
+import re
 import unittest
 import zipfile
 
@@ -101,6 +102,17 @@ class FigureDocxTest(unittest.TestCase):
         second = docx.render_academic("SWOT analysis", [
             {"heading": "SWOT", "level": 1, "lines": [], "figure": FIGURE}], "apa")
         self.assertEqual(first, second)
+
+    def test_a_grid_with_a_vertical_axis_still_fits_the_text_column(self):
+        body = _body(docx.render_academic("Ansoff", [
+            {"heading": "Ansoff", "level": 1, "lines": [],
+             "figure": matrix.build("template_ansoff", {})}], "apa"))
+        widths = [int(width) for width in re.findall(r'<w:gridCol w:w="(\d+)"/>', body)]
+        self.assertEqual(sum(widths), docx.FIGURE_WIDTH)
+        # the axis column is narrow; the content columns are equal up to the
+        # twip that carries the rounding remainder
+        self.assertAlmostEqual(widths[1], widths[2], delta=4)
+        self.assertLess(widths[0], widths[1])
 
 
 class LayoutRegistryTest(unittest.TestCase):

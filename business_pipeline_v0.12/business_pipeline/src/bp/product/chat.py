@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, council, docx, framework_profiles, guard, paper, prose, retrieval, verify, writing
+from . import capabilities, council, docx, framework_profiles, guard, matrix, paper, prose, retrieval, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -1933,6 +1933,81 @@ def _internal_lines(answers, key, label, noun=None):
     if not items:
         return ["No " + thing + " were supplied; this is a gap, not a finding."]
     return ["The case identifies the following " + thing + ": " + "; ".join(items) + "."]
+
+
+def _figure_cells(answers, evidence, by_id, style, framework):
+    """One cell per framework cell: the student's own words and the sources.
+
+    An internal cell carries the student's own list entries.  An external cell
+    carries the source's title and its citation - the identity of the evidence,
+    not its prose, which the section below already quotes in full.
+    """
+    cells = {}
+    if framework in ("swot", "pestel_swot"):
+        for key, label in (("strengths", "Strengths"), ("weaknesses", "Weaknesses")):
+            items = answers.get(key) or []
+            cells[key] = {"label": label, "bullets": list(items),
+                          "gap": None if items else
+                          "No " + label.lower() + " were supplied; this is a gap, not a finding."}
+        if framework == "swot":
+            external = {"opportunities": [], "threats": []}
+            for item in evidence:
+                dimension = item.get("dimension")
+                if dimension in external:
+                    external[dimension].append(item)
+        else:
+            external, _unclassified = _classify_external(evidence)
+        for key, label in (("opportunities", "Opportunities"), ("threats", "Threats")):
+            bullets = []
+            for item in external.get(key) or []:
+                source = by_id.get(item.get("source_id"), {})
+                title = _clean(source.get("title"), 160) or _clean(item.get("quote"), 160)
+                if title:
+                    bullets.append(title + " " + _in_text(source, style) + ".")
+            cells[key] = {"label": label, "bullets": bullets,
+                          "gap": None if bullets else
+                          "The retrieved evidence did not cover this quadrant; this is a gap, "
+                          "not a finding."}
+    if framework == "ansoff":
+        for dimension in ANSOFF_DIMENSIONS:
+            key, label = dimension[0], dimension[1]
+            bullets = []
+            for item in evidence:
+                if item.get("dimension") != key:
+                    continue
+                source = by_id.get(item.get("source_id"), {})
+                title = _clean(source.get("title"), 160) or _clean(item.get("quote"), 160)
+                if title:
+                    bullets.append(title + " " + _in_text(source, style) + ".")
+            cells[key] = {"label": label, "bullets": bullets,
+                          "gap": None if bullets else
+                          "The retrieved evidence did not cover this option; this is a gap, "
+                          "not a finding."}
+    if framework == "value_chain":
+        for dimension in VALUE_DIMENSIONS:
+            key, label = dimension[0], dimension[1]
+            bullets = []
+            for item in evidence:
+                if item.get("dimension") != key:
+                    continue
+                source = by_id.get(item.get("source_id"), {})
+                title = _clean(source.get("title"), 160) or _clean(item.get("quote"), 160)
+                if title:
+                    bullets.append(title + " " + _in_text(source, style) + ".")
+            cells[key] = {"label": label, "bullets": bullets,
+                          "gap": None if bullets else
+                          "The retrieved evidence did not cover this activity; this is a gap, "
+                          "not a finding."}
+    if framework == "vrio":
+        for key, label, noun in (("valuable", "Valuable", "value judgments"),
+                                 ("rare", "Rare", "rarity judgments"),
+                                 ("costly", "Costly to imitate", "imitation-cost judgments"),
+                                 ("organized", "Organised to capture value", "organisational judgments")):
+            items = answers.get(key) or []
+            cells[key] = {"label": label, "bullets": list(items),
+                          "gap": None if items else
+                          "No " + noun + " were supplied; this is a gap, not a finding."}
+    return cells
 
 
 POSITIVE = {"growth", "demand", "innovation", "investment", "digital", "expansion", "reform",
@@ -4434,13 +4509,16 @@ def draft(state, accepted_ids=None, implications="", style=None):
     sections = [paper.section("Introduction", paper.H1, [intro])]
     if target >= MID_FLOOR:
         sections.append(_scope_section(state, evidence, target, style))
+    figure_cells = _figure_cells(answers, evidence, by_id, style, framework)
     if framework in ("pestel", "pestel_swot"):
         sections.append(paper.section("PESTEL", paper.H1))
         for dimension in DIMENSIONS:
             lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework in ("swot", "pestel_swot"):
-        sections.append(paper.section("SWOT", paper.H1))
+        sections.append(paper.section("SWOT", paper.H1,
+                                      figure=matrix.build("template_swot", figure_cells,
+                                                          caption="SWOT matrix")))
         sections.append(paper.section("Strengths", paper.H2,
                                       [paper.paragraph(_internal_lines(answers, "strengths", "Strengths"))]))
         sections.append(paper.section("Weaknesses", paper.H2,
@@ -4463,17 +4541,23 @@ def draft(state, accepted_ids=None, implications="", style=None):
             lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "value_chain":
-        sections.append(paper.section("Value Chain", paper.H1))
+        sections.append(paper.section("Value Chain", paper.H1,
+                                      figure=matrix.build("template_value_chain", figure_cells,
+                                                          caption="Porter's value chain")))
         for dimension in VALUE_DIMENSIONS:
             lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "ansoff":
-        sections.append(paper.section("Ansoff Growth Matrix", paper.H1))
+        sections.append(paper.section("Ansoff Growth Matrix", paper.H1,
+                                      figure=matrix.build("template_ansoff", figure_cells,
+                                                          caption="Ansoff growth matrix")))
         for dimension in ANSOFF_DIMENSIONS:
             lines = _dimension_lines(dimension, evidence, by_id, style, target)
             sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
     if framework == "vrio":
-        sections.append(paper.section("VRIO", paper.H1))
+        sections.append(paper.section("VRIO", paper.H1,
+                                      figure=matrix.build("template_vrio", figure_cells,
+                                                          caption="VRIO analysis")))
         sections.append(paper.section("Resources", paper.H2,
                                       [paper.paragraph(_internal_lines(answers, "resources", "Resources"))]))
         for key, heading, noun in (("valuable", "Valuable", "value judgments"),
