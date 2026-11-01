@@ -1,3 +1,34 @@
+## Matrix figures: a framework that is a grid reaches the paper as a grid (B-176)
+
+- **Eight frameworks now carry a figure in the Word paper**: SWOT, Ansoff, Porter's value chain, VRIO,
+  McKinsey 7S, BCG, GE/McKinsey and Blue Ocean's four actions. The figure sits under the H1 framework
+  heading; the H2 prose below it still carries the full evidence.
+- **The geometry is data.** New `bp/product/matrix.py` holds one layout per template - rows, axes, column
+  widths, a shared hub band, the canonical label of every cell - so adding a framework never means editing
+  the renderer. `matrix.build(template, cells, caption=None)` returns the figure or `None`.
+- **The renderer draws tables and nothing else.** `docx._figure_xml` writes a real Word table with borders,
+  a tinted label line per cell, axis rows and APA figure numbering ("Figure 1. ..."), a caption and a note.
+  A grid with a vertical axis rescales its content columns so the table always fits the 9360-twip text
+  column.
+- **A cell is never blank.** It carries the label plus the identity of each item - the student's own
+  sentence, or the source's title with its citation - and where there is nothing it prints the named gap
+  and the probe in italic. Nothing in a figure is a computed number.
+- **Template text in a figure blocks the export.** `paper.check()` scans every string a figure carries, so
+  a bullet that is still an instruction ("not supplied yet") fails the same gate as one in the prose.
+- **A probe cell now asks the student a question instead of sitting empty.** `completion._suggest` gained
+  `mode="question"`: a probe profile's gap keeps its own wording and gains a case-specific line of enquiry,
+  which is stored as a proposal on the block, not as an item, so the paper never presents a question as a
+  case assumption. A reply carrying a number, a link, a DOI or a parenthesis is refused.
+- **The chat offers a proposal drawn from the student's own words.** New `bp/product/proposals.py` proposes
+  up to three candidate statements for a cell using only the brief, the student's answers and the accepted
+  quotes; a candidate carrying a number, a name or a link the student did not write is refused.
+  `POST /api/cases/chat/{id}/assist` offers a proposal, and the same route with `text` records the
+  student's answer. The web chat shows a "Not sure? Propose a line from my own words" button on item
+  questions; a proposal fills the box and the student still edits and sends it.
+- `tests/test_matrix_figure.py`, `tests/test_matrix_completion.py`, `tests/test_matrix_chat.py` and
+  `tests/test_matrix_assist.py` pin the slot, the table, the layouts, both paper paths, the proposal guard
+  and the route. The frozen core was not touched and no test was weakened.
+
 ## Worksheet registration (WO-2/WO-3)
 
 - Registered 32 orphan framework profiles as worksheets; added 8 new framework profiles (BMC, Lean Canvas, VPC, charter, WBS, risk register, stakeholder plan, lessons learned).

@@ -10,7 +10,7 @@ from unittest import mock
 import sys
 sys.path.insert(0, "src")
 
-from bp.product import api, assist, chat, completion  # noqa: E402
+from bp.product import api, chat, completion, proposals  # noqa: E402
 
 
 def _profile(mode="probe"):
@@ -153,7 +153,7 @@ def propose(candidate, available=True):
             mock.patch("bp.product.prose._call",
                        return_value=json.dumps({"candidates": [candidate]})), \
             mock.patch("bp.product.prose._parse", side_effect=json.loads):
-        return assist.propose(state, "strengths", "Strengths")
+        return proposals.propose(state, "strengths", "Strengths")
 
 
 class ChatAssistTest(unittest.TestCase):

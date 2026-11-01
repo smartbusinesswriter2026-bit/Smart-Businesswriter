@@ -63,7 +63,6 @@ import hashlib
 import os
 import re
 
-from . import assist
 from . import calc_router
 from . import billing as billing_module
 from . import cases as case_store
@@ -83,6 +82,7 @@ from . import credits
 from . import deliverables
 from . import documents
 from . import paper_store
+from . import proposals
 from . import drafting
 from . import mapsheet
 from . import explain
@@ -481,7 +481,7 @@ def handle(method, path, body=None):
                     # The student's answer, entered from a proposal or typed.
                     state = chat_conductor.accept_assist(state, key, data.get("text"))
                 else:
-                    proposal = assist.propose(state, key, str(data.get("label") or key))
+                    proposal = proposals.propose(state, key, str(data.get("label") or key))
                     state.setdefault("assist", {})[key] = proposal
             elif action == "export":
                 draft = state.get("draft") or {}

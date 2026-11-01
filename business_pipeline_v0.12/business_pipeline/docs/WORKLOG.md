@@ -1,6 +1,30 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
+## 2026-11-01 — [design] Matrix figures: a grid framework reaches the paper as a grid (B-176)
+
+**Ask.** Eight matrix and canvas frameworks reached the Word paper as four or nine headings in a row, so a
+SWOT that should read as a two-by-two arrived as prose. The owner asked for the framework's own shape in the
+paper, drawn by the product, with no invented content in it.
+
+**Did.** New `src/bp/product/matrix.py` (a layout registry and a builder) and `src/bp/product/proposals.py`
+(the chat's cell proposals). Changed `paper.py` (a figure slot on a section, and `figure_text()` so the
+template-text gate sees the figure), `docx.py` (the Word table renderer, figure numbering and the column
+arithmetic), `completion.py` (the worksheet figure and the question mode of `_suggest`), `chat.py` (the chat
+figure and `accept_assist`), `api.py` (`POST /api/cases/chat/{id}/assist`) and `web/index.html` (the
+proposal affordance). `scripts/build_conductor_samples.py` regenerated the Ansoff, Value Chain and VRIO
+samples, which now carry their figures.
+
+**Why it is built this way.** The geometry is data, so a new framework never means editing the renderer -
+the same rule the writer and the renderer already live under. The builder writes no content: a cell carries
+the student's own words, a source's title with its citation, or the named gap and the probe. A question the
+model proposes is recorded as a proposal and folded into the gap, not added as an item, so a paper never
+presents a question as a case assumption. A proposal carrying a number, a name or a link the student did not
+write is refused.
+
+**State.** 4 new test modules (62 tests) pass; the full suite matches the recorded baseline with no new
+failure. The frozen core was not touched, no number was invented and no test was weakened.
+
 ## 2026-10-31 — [code] Proprietary corpus wired as pipeline layer 1 (B-172)
 
 **Ask.** Wire the corpus database (5 documents, 96 pages, indexed in Meilisearch on :7700) into the

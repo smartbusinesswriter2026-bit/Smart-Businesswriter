@@ -8,6 +8,27 @@
 - Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
 - Server is for local development, not production.
 
+## Added with the matrix figures (B-176)
+- **The matrix figures are Word tables, not pictures.** They carry the framework's structure, cells and axes
+  in academic styling; they do not reproduce the colour, icons or decoration of the slide templates in
+  `Matrix templates/`. A layout that is genuinely radial (the McKinsey 7S hexagon) is drawn as its hub band
+  between its two rows of elements, and a chain (Porter's value chain) as a support row above a primary row.
+- **Four of the eight layouts reach the chat path.** SWOT, Ansoff, the value chain and VRIO build a figure
+  from the chat's own answers and evidence; McKinsey 7S, BCG, GE/McKinsey and Blue Ocean ERRC build one on
+  the worksheet path only, because the chat does not ask for their cells.
+- **The figure is a summary, not the evidence.** A cell carries the identity of each item - the student's
+  sentence, or the source's title with its citation - so the reader can see which cell rests on what. The
+  prose below each heading carries the quotation and the interpretation; the figure alone cannot be cited
+  from.
+- **A proposed line of enquiry is not evidence.** `completion._suggest(mode="question")` and
+  `proposals.propose()` help a student who is unsure, but a proposal closes no gap: the cell keeps its named
+  gap, the block still counts as a gap, and the paper still asks the student to answer. A proposal carrying
+  a number, a name, a link or a DOI the student did not write is refused, so the model can restate the
+  student's own words and cannot add a fact.
+- **The proposal needs a configured model.** With no model key the assistant is silent: the button is
+  present, no candidate is offered, and the student answers in their own words. Nothing degrades and no
+  error is raised.
+
 ## Added with the Project management subject (B-116)
 - **Seven of the nine PM tiles are shared appraisal methods, and two are shared delivery methods.** NPV,
   IRR, discounted payback, project metrics, scenario analysis, business-case decision and trend forecast
