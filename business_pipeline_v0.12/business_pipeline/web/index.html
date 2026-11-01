@@ -1953,6 +1953,7 @@ function renderSubject() {
     "</div>";
   html += '<div class="capgroup">';
   if (s.id === "finance") html += marketPanel();
+  if (s.id === "finance") html += portfolioLabPanel();
   const tools = s.tools || [];
   const sheets = s.worksheets || [];
   const records = s.records || [];
@@ -2065,6 +2066,7 @@ function renderSubject() {
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
   const home = $("#subjecthome"); if (home) home.onclick = () => show("chat");
   if (s.id === "finance") bindMarketPanel();
+  if (s.id === "finance") bindPortfolioLab();
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
     const tool = (s.tools || []).find((t) => t.key === b.dataset.tool);
@@ -2103,7 +2105,7 @@ function renderSubject() {
 
 function marketPanel() {
   return '<div class="marketpanel"><h3 style="margin-top:0">Market data (retrieved, not verified)</h3>' +
-    '<p class="muted">FX and Treasury yields need no key; equity quotes and fundamentals use your own free Alpha Vantage key. ' +
+    '<p class="muted">FX and Treasury yields need no key; equity quotes use the configured provider (Alpha Vantage or Massive, set by the institution in Backend/.env). ' +
     'Every result shows its source, date and response hash. The app never fills a tool silently: read the value, confirm it, and type it in.</p>' +
     '<div class="marketrow">' +
       '<label>FX base <input id="fxbase" value="USD" maxlength="3" size="4" aria-label="FX base currency"></label>' +
@@ -2138,7 +2140,7 @@ function marketPanel() {
       '</select></label>' +
       '<button class="btn sm" id="wblookup" type="button">World Bank</button>' +
     '</div>' +
-    '<p class="muted">Equity quotes use your own free Alpha Vantage key (25 requests/day; fundamentals are premium there, so this app reads SEC XBRL instead). ' +
+    '<p class="muted">Equity quotes use the configured provider: Alpha Vantage or Massive, with one institutional key per provider set in Backend/.env. ' +
     'SEC EDGAR filings, SEC fundamentals and World Bank need no key. Every result shows its source, date and response hash; nothing is auto-filled. ' +
     'PSE and private companies are not covered: enter those figures manually.</p>' +
     '<div id="marketout" aria-live="polite"></div></div>';
@@ -2159,6 +2161,198 @@ function bindMarketPanel() {
       if (label) label.textContent = "Quote needs an Alpha Vantage key (BP_ALPHAVANTAGE_KEY); fundamentals still work via SEC";
     }
   }).catch(() => {});
+}
+
+function portfolioLabPanel() {
+  const providers = '<option value="alphavantage">Alpha Vantage</option><option value="massive">Massive</option>';
+  const sorts = [["one_day_return", "one-day return"], ["mean_return", "mean return (needs history)"],
+    ["sharpe", "Sharpe (needs history)"], ["price", "price"],
+    ["market_cap", "market cap"], ["pe_ratio", "P/E"], ["roe", "ROE"]]
+    .map((p) => '<option value="' + p[0] + '">' + p[1] + "</option>").join("");
+  return '<div class="marketpanel" id="portfoliolab"><h3 style="margin-top:0">Portfolio lab: choose, track, evaluate</h3>' +
+    '<p class="muted">Pick an instrument yourself, or ask for a sourced shortlist. Recording a price now builds the history over weeks; ' +
+    'a value the app cannot source stays a named gap, and the frozen calculators do the maths only after you confirm.</p>' +
+    '<div class="marketrow">' +
+      '<label>Symbol <input id="plsym" value="AAPL" maxlength="12" size="7" aria-label="Symbol to track"></label>' +
+      '<label>Provider <select id="plprovider" aria-label="Quote provider">' + providers + '</select></label>' +
+      '<button class="btn sm" id="pltrack" type="button">Track &amp; record price</button>' +
+      '<span id="plmsg" class="muted"></span>' +
+    '</div>' +
+    '<div class="marketrow">' +
+      '<label>Candidate symbols <input id="plcands" value="AAPL, MSFT, JPM" size="26" aria-label="Candidate symbols, comma separated"></label>' +
+      '<label>Sort by <select id="plsort" aria-label="Sort metric">' + sorts + '</select></label>' +
+      '<label><input type="checkbox" id="plfund" aria-label="Include fundamentals"> Include fundamentals</label>' +
+      '<label>Fundamentals <select id="plfundprov" aria-label="Fundamentals provider"><option value="derived">Derived (SEC + Massive)</option><option value="auto">Auto (US first, then Alpha Vantage intl)</option><option value="massive">Massive</option><option value="alphavantage">Alpha Vantage (premium)</option></select></label>' +
+      '<button class="btn sm" id="plscreen" type="button">Help me choose</button>' +
+    '</div>' +
+    '<div id="plscreenout" aria-live="polite"></div>' +
+    '<h4 class="levelhead">Watch list</h4>' +
+    '<div id="plwatch" aria-live="polite">' + loading("Reading tracked instruments") + '</div>' +
+    '<h4 class="levelhead">Evaluate a tracked series</h4>' +
+    '<div class="marketrow">' +
+      '<label>Instrument id <input id="plid" maxlength="12" size="12" aria-label="Instrument id"></label>' +
+      '<label>Risk-free (decimal) <input id="plrf" value="0.02" size="6" aria-label="Risk-free rate as a decimal"></label>' +
+      '<button class="btn sm" id="plrisk" type="button">Prefill single-asset risk</button>' +
+    '</div>' +
+    '<div class="marketrow">' +
+      '<label>A id <input id="plida" maxlength="12" size="12" aria-label="Asset A id"></label>' +
+      '<label>B id <input id="plidb" maxlength="12" size="12" aria-label="Asset B id"></label>' +
+      '<label>Benchmark id <input id="plidm" maxlength="12" size="12" aria-label="Benchmark id"></label>' +
+      '<button class="btn sm" id="plport" type="button">Prefill two-asset portfolio</button>' +
+    '</div>' +
+    '<div id="plprefillout" aria-live="polite"></div>' +
+  '</div>';
+}
+
+function bindPortfolioLab() {
+  const on = (id, fn) => { const el = $("#" + id); if (el) el.onclick = fn; };
+  on("pltrack", plTrack);
+  on("plscreen", plScreen);
+  on("plrisk", plPrefillRisk);
+  on("plport", plPrefillPort);
+  plLoadWatch();
+}
+
+function plProvider() { const el = $("#plprovider"); return el ? el.value : "alphavantage"; }
+
+function plRenderWatch(data) {
+  const box = $("#plwatch"); if (!box) return;
+  const items = (data && data.instruments) || [];
+  if (!items.length) { box.innerHTML = '<p class="muted">No instruments tracked yet. Track one above.</p>'; return; }
+  const rows = items.map((r) => '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.snapshots) +
+    '</td><td>' + esc(r.returns) + '</td><td>' + (r.risk_ready ? "yes" : "not yet") + '</td><td>' +
+    esc(r.last_price || "n/a") + ' <span class="muted">' + esc(r.last_as_of || "") + '</span></td><td class="muted">' +
+    esc(r.id) + '</td><td><button class="btn sm" type="button" data-record="' + esc(r.id) + '">Record</button> ' +
+    '<button class="btn sm" type="button" data-seed="' + esc(r.id) + '" title="Seed 30 days of daily bars">Seed</button> ' +
+    '<button class="btn sm" type="button" data-use="' + esc(r.id) + '">Use</button></td></tr>').join("");
+  box.innerHTML = '<div class="tablewrap"><table><caption>Tracked instruments (' + items.length + ')</caption><thead><tr>' +
+    '<th>Symbol</th><th>Snapshots</th><th>Returns</th><th>Ready</th><th>Last</th><th>Id</th><th></th></tr></thead><tbody>' +
+    rows + '</tbody></table></div>';
+  $$("[data-record]", box).forEach((b) => { b.onclick = () => plRecord(b.dataset.record); });
+  $$("[data-seed]", box).forEach((b) => { b.onclick = () => plSeed(b.dataset.seed); });
+  $$("[data-use]", box).forEach((b) => { b.onclick = () => { const f = $("#plid"); if (f) f.value = b.dataset.use; }; });
+}
+
+function plRenderScreen(data) {
+  const box = $("#plscreenout"); if (!box || !data || !data.rows) return;
+  const pct = (v) => (v === null || v === undefined || v === "") ? "n/a" : (Number(v) * 100).toFixed(2) + "%";
+  const num = (v, d) => (v === null || v === undefined || v === "") ? "n/a" : Number(v).toFixed(d);
+  const mcap = (v) => {
+    if (v === null || v === undefined || v === "") return "n/a";
+    const n = Number(v); if (!isFinite(n)) return String(v);
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    return String(n);
+  };
+  const rows = data.rows.map((r) => {
+    if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="7" class="muted">' + esc(r.error) + "</td></tr>";
+    return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.price || "n/a") + '</td><td>' +
+      esc(pct(r.one_day_return)) + '</td><td>' + esc(mcap(r.market_cap)) + '</td><td>' + esc(num(r.pe_ratio, 2)) +
+      '</td><td>' + esc(pct(r.roe)) + '</td><td>' +
+      esc(r.sharpe === null || r.sharpe === undefined ? "n/a" : Number(r.sharpe).toFixed(2)) +
+      '</td><td class="muted">' + esc((r.gaps || []).join("; ")) + "</td></tr>";
+  }).join("");
+  box.innerHTML = '<div class="tablewrap"><table><caption>Shortlist (' + data.count + ') - sourced, not a recommendation</caption>' +
+    '<thead><tr><th>Symbol</th><th>Price</th><th>1-day</th><th>Mkt cap</th><th>P/E</th><th>ROE</th><th>Sharpe</th><th>Gaps</th></tr></thead><tbody>' +
+    rows + '</tbody></table></div><p class="muted">' + esc(data.note) + "</p>";
+}
+
+let plLastPrefill = null;
+
+async function plOpenInCalc(data) {
+  data = data || plLastPrefill;
+  if (!data || !data.inputs) return;
+  try {
+    if (!state.calculator) state.calculator = await api("/api/cases/calculator");
+    let tool = null, groupId = null;
+    (state.calculator.groups || []).forEach((g) => {
+      (g.tools || []).forEach((t) => { if (!tool && t.method === data.method) { tool = t; groupId = g.id; } });
+    });
+    if (!tool) { toast("No Business Calculator tool matches " + data.method); return; }
+    state.calcGroup = groupId;
+    state.calcTool = tool;
+    state.calcValues = {};
+    Object.keys(data.inputs).forEach((k) => { state.calcValues[k] = calcValueText(data.inputs[k]); });
+    state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null; state.calcMode = "pad";
+    show("calculator");
+    toast("Inputs loaded into the calculator. Press = to run.");
+  } catch (e) { toast(e.message || String(e)); }
+}
+
+function plRenderPrefill(data) {
+  const box = $("#plprefillout"); if (!box) return;
+  plLastPrefill = data;
+  const gaps = (data.gaps || []).map((g) => "<li>" + esc(g) + "</li>").join("");
+  box.innerHTML = '<div class="banner ' + (data.ready ? "ok" : "blocked") + '"><strong>' +
+      (data.ready ? "Inputs ready to confirm" : "Not ready yet") + "</strong><div>Target " + esc(data.target) +
+      " (" + esc(data.method) + ")</div>" + (gaps ? '<ul class="muted">' + gaps + "</ul>" : "") + "</div>" +
+    (data.ready ? '<div class="row" style="margin:6px 0"><button class="btn primary" type="button" id="plopenincalc">Open in the Business Calculator</button></div>' : "") +
+    '<p class="muted">These are inputs only. Opening the calculator only fills the fields; you still press = to run it, and the app never fills or runs a method silently.</p>' +
+    '<div class="tablewrap"><pre style="white-space:pre-wrap;margin:0">' + esc(JSON.stringify(data.inputs, null, 2)) + "</pre></div>";
+  const open = $("#plopenincalc"); if (open) open.onclick = () => plOpenInCalc(data);
+}
+
+async function plLoadWatch() {
+  try { plRenderWatch(await api("/api/cases/instruments")); }
+  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+}
+
+async function plTrack() {
+  const symbol = (($("#plsym") || {}).value || "").trim();
+  const msg = $("#plmsg"); if (msg) msg.textContent = "";
+  if (!symbol) return;
+  try {
+    const created = await post("/api/cases/instruments", { symbol: symbol });
+    await post("/api/cases/instruments/" + created.id + "/record", { provider: plProvider() });
+    if (msg) msg.textContent = "Recorded " + created.symbol;
+    plLoadWatch();
+  } catch (e) { const box = $("#plscreenout"); if (box) box.innerHTML = errorBanner(e); }
+}
+
+async function plRecord(id) {
+  try { await post("/api/cases/instruments/" + id + "/record", { provider: plProvider() }); plLoadWatch(); }
+  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+}
+
+async function plSeed(id) {
+  try { await post("/api/cases/instruments/" + id + "/seed", { days: 30 }); toast("Seeded 30 days of daily prices"); plLoadWatch(); }
+  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+}
+
+async function plScreen() {
+  const box = $("#plscreenout"); if (!box) return;
+  const symbols = (($("#plcands") || {}).value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (!symbols.length) return;
+  box.innerHTML = loading("Screening " + symbols.length + " symbol(s)");
+  try {
+    plRenderScreen(await post("/api/cases/screen", {
+      symbols: symbols, provider: plProvider(),
+      criteria: { sort: ($("#plsort") || {}).value || "one_day_return", order: "desc" },
+      include_fundamentals: !!($("#plfund") || {}).checked,
+      fundamentals_provider: ($("#plfundprov") || {}).value || "alphavantage"
+    }));
+  } catch (e) { box.innerHTML = errorBanner(e); }
+}
+
+async function plPrefillRisk() {
+  const box = $("#plprefillout"); if (!box) return;
+  const id = (($("#plid") || {}).value || "").trim();
+  if (!id) { box.innerHTML = banner("blocked", "Instrument id needed", "<div>Enter a tracked instrument id from the watch list.</div>"); return; }
+  try { const data = await post("/api/cases/prefill", { target: "risk", id: id, confidence: "0.95" }); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
+  catch (e) { box.innerHTML = errorBanner(e); }
+}
+
+async function plPrefillPort() {
+  const box = $("#plprefillout"); if (!box) return;
+  const a = (($("#plida") || {}).value || "").trim();
+  const b = (($("#plidb") || {}).value || "").trim();
+  const m = (($("#plidm") || {}).value || "").trim();
+  if (!a || !b) { box.innerHTML = banner("blocked", "Two instruments needed", "<div>Enter ids for asset A and asset B.</div>"); return; }
+  const body = { target: "portfolio", ids: [a, b], weight_a: "0.5", risk_free_rate: (($("#plrf") || {}).value || "0.02") };
+  if (m) body.market_id = m;
+  try { const data = await post("/api/cases/prefill", body); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
+  catch (e) { box.innerHTML = errorBanner(e); }
 }
 
 function marketFoot(data) {

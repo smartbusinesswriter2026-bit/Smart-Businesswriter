@@ -1,5 +1,204 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Non-US fundamentals fallback chain
+
+**Ask.** The owner asked for a non-US fundamentals fallback after the free-tier derived P/E and ROE.
+
+**Did.** Added `marketdata.fundamentals_chain(symbol, providers=None)`: it tries `derived` →
+`alphavantage` → `massive`, merges each metric from the first provider that supplies it, records the
+supplier in `metric_sources`, aggregates a combined SHA and both source URLs, and appends a named gap
+for every provider that failed. Registered as the `auto`/`chain` provider; the Portfolio lab's
+fundamentals select gains "Auto (US first, then Alpha Vantage intl)". Alpha Vantage OVERVIEW accepts
+international exchange suffixes, so a non-US ticker is covered when that premium endpoint is
+available.
+
+**Verified.** 2 new tests (US merge that keeps the per-metric source and names the failed provider;
+non-US path that resolves through Alpha Vantage). The marketdata/screen/instrument/source_env suites
+pass (62 tests); the page passes the Node `--check` gate. Live: AAPL merged derived+massive —
+P/E 44.90, ROE 1.519, market cap 5.03T — with the Alpha Vantage premium refusal named as a gap;
+VOD.LON returned no data and reported, per source, why (SEC/Massive cover US only; AV premium).
+
+**Honest limits.** On today's free tier there is no non-US company-fundamentals source; the chain is
+wired and will supply non-US P/E/ROE/market cap through Alpha Vantage OVERVIEW once the premium tier
+is on, or through a dedicated non-US provider when a key exists. Until then a non-US ticker keeps
+these as named gaps while price, seeding and evaluation keep working.
+
+## 2026-11-01 — Free-tier P/E and ROE by derivation
+
+**Ask.** The owner said "go" on natively deriving P/E and ROE from data already fetched, so they
+work on the free tier without the premium Alpha Vantage OVERVIEW.
+
+**Did.** Added `marketdata.derived_ratios(symbol)`: ROE = SEC XBRL net income / SEC shareholders'
+equity; P/E = Massive market cap / SEC net income. Every input is a sourced value and the ratios are
+pure arithmetic on them; a missing input is a named gap. The payload carries a combined response
+SHA, both per-source URLs and the provider's own gaps. Registered as the `derived` fundamentals
+provider, and the Portfolio lab's fundamentals select defaults to "Derived (SEC + Massive)".
+`screener._merge_fundamentals` now also copies the provider's own gaps and de-duplicates them.
+
+**Verified.** 3 new tests (derived ratios, the no-market-cap gap path, and the derived screening
+path); the marketdata/screen/instrument/source_env suites pass (60 tests); the page passes the Node
+`--check` gate. Live on AAPL: net income 112,010,000,000 and equity 73,733,000,000 (SEC), market cap
+5,029,592,253,400 (Massive) → ROE 1.519 (151.9%), P/E 44.90, gaps [].
+
+**Honest limits.** SEC XBRL covers US registrants only, so a non-US ticker keeps ROE/P/E as gaps
+(name them manually). The derivation is 1 Massive + ~7 SEC requests per symbol the first time, then
+cached for the day.
+
+## 2026-11-01 — History seeding and fundamentals for screening
+
+**Ask.** The owner asked for history seeding from Massive daily bars so `ready` flips immediately,
+and for fundamentals (Massive Ticker Overview / Alpha Vantage OVERVIEW) so screening can rank on
+P/E, ROE and market cap instead of naming them as gaps.
+
+**Did — seeding.** `marketdata.massive_history(symbol, days)` returns daily closes (Custom Bars,
+all plans). `instruments.seed(instrument_id, days)` turns those bars into dated snapshots (close,
+source, URL, SHA), deduped by as-of, so a new instrument is instantly `risk_ready`. Route
+`POST /api/cases/instruments/{id}/seed`; a **Seed** button per watch row.
+
+**Did — fundamentals.** `alpha_overview` (P/E, ROE, P/B, market cap; premium on the free tier and
+fails closed with a clear message), `massive_overview` (market cap, shares, name, sector; all
+plans) and a `fundamentals(symbol, provider)` dispatcher. `screener.screen` gained
+`include_fundamentals`/`fundamentals_provider`; it merges the metrics with source/date/SHA and
+names any a provider does not report. The screen route accepts the flags; the shortlist shows Mkt
+cap, P/E and ROE and sorts on them (Massive is the default fundamentals provider so market cap is
+populated on the free tier).
+
+**Verified.** 8 new tests; the marketdata/screen/instrument/subject suites pass (91 tests); the
+page passes the Node `--check` gate. Live: seeding AAPL gave 10 snapshots / 9 returns /
+`risk_ready: true`; `massive_overview` returned market cap 5,029,592,253,400; `alpha_overview`
+returned the premium refusal, and the screen named `pe_ratio` and `roe` as gaps (market cap
+present) — no number invented.
+
+## 2026-11-01 — One-click prefill into the Business Calculator
+
+**Ask.** The owner said "yes, one-click prefill" after the Portfolio lab landed: make the prefill
+result open the calculator with the fields filled.
+
+**Did.** Added `plOpenInCalc` to `web/index.html`. When `POST /api/cases/prefill` returns
+`ready: true`, the lab finds the matching tool in the calculator's finance group (`group.tools`, by
+`method`) and sets `state.calcTool`, `state.calcGroup` and `state.calcValues` (arrays become the
+comma-separated strings the fields show), then opens the Calculator. The student still presses = to
+run it — nothing is executed silently. A not-ready prefill keeps the named gaps and does not
+navigate. Fixed a real bug found while wiring: calculator items live under `group.tools`, not
+`group.items`.
+
+**Verified.** Each target's inputs are a strict subset of the method's declared schema
+(portfolio_analysis 5 keys, risk_metrics 2, capm 3, all `ready: true`) so the fields render and
+`readInputs` parses the lists. Page passes the Node `--check` gate; the subject/screen/prefill
+suites pass (53 tests).
+
+## 2026-11-01 — The Portfolio lab is wired into the Finance page
+
+**Ask.** The owner said "do the UI wiring; also add the UI" after Phases 3 and 4 landed at the API
+layer.
+
+**Did.** Added a Portfolio lab panel to `web/index.html`, rendered only on the Finance subject page
+next to the market-data panel. It has four parts: **track** (symbol + provider select; one click
+POSTs `/api/cases/instruments` then `/record`), **Help me choose** (candidate symbols + sort metric →
+`POST /api/cases/screen`, rendered as a sourced shortlist table with price, one-day return, n, mean,
+Sharpe and per-row gaps), a **watch list** from `GET /api/cases/instruments` with per-row Record and
+Use buttons, and **prefill** buttons (single-asset risk, two-asset portfolio) that POST to
+`/api/cases/prefill` and show the ready/gaps banner plus the exact inputs JSON to confirm in the
+Business Calculator. The market-data copy was updated to name both providers and the institutional
+keys. No computation was added to the page: it only calls the product routes and renders their
+sourced payloads.
+
+**Verified.** The inline script passes the repo's Node `--check` page-syntax gate; the
+subject/screen/prefill/instrument/server suites pass (68 tests). A live HTTP smoke against
+`scripts/serve.py` returned 200 for the page and correct payloads for create/list/prefill (a new
+instrument with no snapshots correctly reports `ready: false` and the missing-return gap).
+
+## 2026-11-01 — Phases 3 and 4: sourced screening and a prefill bridge
+
+**Ask.** The owner said "go on 3 and 4" after the price-record store (Phase 1) and the two
+providers were wired: a screening shortlist from investor-style parameters (Phase 3) and a bridge
+that fills the frozen calculators from a recorded series (Phase 4).
+
+**Did — Phase 3.** New `bp.product.screener`: `screen(symbols, criteria, provider)` requests a
+quote per candidate symbol (the student names the list; no universe is invented) through Alpha
+Vantage or Massive, adds recorded-history statistics (n returns, mean, sd, Sharpe, cumulative
+return) when a tracked instrument exists for that symbol, applies declared min/max filters and a
+sort, and returns a ranked shortlist. Every row carries source, date and SHA plus named gaps (no
+P/E/market cap until fundamentals are wired; a per-symbol fetch error is a row, not a crash). The
+list is bounded to 25 symbols.
+
+**Did — Phase 4.** New `bp.product.prefill` builds the exact frozen input objects for
+`risk_metrics`, `portfolio_analysis` (two tracked assets plus an optional benchmark, aligned by
+shared as-of dates) and `capm`, returning `ready` and named gaps. It never runs the method or
+bypasses the confirm step; risk-free and market return stay declared inputs. Routes
+`POST /api/cases/screen` and `POST /api/cases/prefill` are additive under the existing product
+handler. `tests/test_product_screen_prefill.py` adds 9 cases; the touched suites pass (139 tests).
+
+**Live.** Screening AAPL 344.63 and MSFT 521.91 from Massive with computed one-day returns; a
+one-snapshot risk prefill correctly reported "record at least two price snapshots before a return
+exists" rather than inventing history.
+
+## 2026-11-01 — Massive wired as a second market-data provider
+
+**Ask.** After Alpha Vantage was wired, the owner said "also wire Massive as a second provider."
+Massive had no docs in the repo, so the REST docs were read first: base `https://api.massive.com`,
+auth via `?apiKey=` or `Authorization: Bearer`, and a daily-bars endpoint available on every
+stocks plan (including Basic).
+
+**Did.** `bp.product.marketdata` adds `MASSIVE`, `api.massive.com` to the allowlist and a
+`massive_quote(symbol)` that reads `/v2/aggs/ticker/{ticker}/range/1/day/{from}/{to}` with
+`sort=desc&limit=2` (latest close plus previous close), returning the same sourced payload shape
+(value, as-of, source URL, SHA-256, previous close, provider) with the `apiKey` redacted. The key
+is `MASSIVE_API_KEY` in `Backend/.env` → `BP_MASSIVE_API_KEY` (allowlist + loader report + status +
+`serve.py --check` + `.env.example`). The instrument store's `record` gained a `provider` argument
+and the record route passes `provider` through; an unknown provider fails closed. 5 new tests
+(massive quote parse/redaction/refusal, provider selection, credential mapping); the marketdata,
+instruments and source_env suites pass (40 tests).
+
+**Live.** AAPL 344.63 (previous close 348.91) as of 2026-10-30 from Massive; a route-level
+`provider: massive` record stored MSFT 521.91 through the instrument store. Keys remain in the
+git-ignored `Backend/.env`; no secret is committed.
+
+## 2026-11-01 — Phase 1: a price-record store for tracked instruments
+
+**Ask.** The owner approved the suggestion/screening layer and said "go". Phase 1 is the
+foundation: let a student pick an instrument, record its current price from the already-wired
+Alpha Vantage source, and let the accumulated snapshots become the return series over weeks.
+
+**Did.** New `src/bp/product/instruments.py` writes one JSON document per instrument under
+`<case store>/instruments/` (atomic write, twelve-hex id, fail-closed like `cases.py`). A
+document is an append-only list of price snapshots (value, as-of, source, URL, response SHA-256,
+recorded time); snapshots dedupe by as-of date; consecutive prices yield simple returns; and
+`readiness` names the gaps until three returns exist. Added `list/create/read/record/delete`
+routes under `/api/cases/instruments`, dispatched by the existing `product_api.handle`, so no
+frozen-server edit was needed. `record` fetches the live quote through the wired key, but the
+`quote`/`fetch` seams keep the tests offline. `tests/test_product_instruments.py` adds 8 cases
+(create/persist, dedupe, returns, readiness, fail-closed, corrupt file, routes, 404).
+
+**Live.** A created `IBM` instrument recorded 257.81 on 2026-10-30 from Alpha Vantage, the same
+day re-recorded to one snapshot, and readiness correctly named the two gaps. The
+instrument/api/cases/routes/server/subjects/source_env/marketdata suites pass (126 tests).
+
+**Next.** Phase 3 (screening shortlist from investor parameters) and Phase 4 (prefill the frozen
+`portfolio_analysis`/`risk_metrics` inputs from a recorded series), then the premium
+`TIME_SERIES_DAILY_ADJUSTED`/`OVERVIEW` endpoints when the paid tier is turned on.
+
+## 2026-11-01 — The institutional Alpha Vantage key is wired to the product's own .env
+
+**Ask.** The owner checked the market-data wiring: a subscription exists on their side, but the
+code only read `BP_ALPHAVANTAGE_KEY` from the raw process environment and never from the product's
+`Backend/.env`. Owner instruction: one institutional key, shared by every user, free tier for now.
+
+**Did.** Added `ALPHAVANTAGE_API_KEY -> BP_ALPHAVANTAGE_KEY` to `source_env.ALLOWED`, so the
+startup loader (`scripts/serve.py`) now picks the key up from `Backend/.env`; added an
+`alpha_vantage` flag to the loader report and a `market_data` block to `serve.py --check`;
+documented the key in `Backend/.env.example`; and corrected the market-data status note and
+module docstring to say the key is the institution's, loaded from `Backend/.env`. The filled
+`.env` is git-ignored, so no secret is committed. A new `tests/test_source_env.py` case proves the
+mapping, the `alpha_vantage` flag and that no value appears in the report. End-to-end check: a key
+in the project file loads as `BP_ALPHAVANTAGE_KEY` and turns `marketdata.status().sources.equity`
+to true.
+
+**Validated.** The owner supplied the institutional key; pasted into the git-ignored `Backend/.env`
+it loads as `BP_ALPHAVANTAGE_KEY` and a live lookup returned IBM at 257.81 as of 2026-10-30 from
+Alpha Vantage (free tier). No secret is committed. The premium endpoints
+(`TIME_SERIES_DAILY_ADJUSTED`, `OVERVIEW`) remain unused until the paid tier is turned on.
+
 ## 2026-10-28 — The marketing shelf finishes its assignments
 
 **Ask.** After the RFM and media-planning increment, the owner asked what was still open for a marketing
