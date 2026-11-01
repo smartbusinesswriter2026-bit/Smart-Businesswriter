@@ -281,6 +281,37 @@ class ServedUiContractTest(unittest.TestCase):
         # Solid text: secondary and tertiary copy use the primary ink, not grey.
         self.assertIn("--text:#0C243E; --text-2:#0C243E; --text-3:#0C243E;", self.html)
 
+    def test_every_tile_view_carries_a_close_button_back_to_its_group(self):
+        """Leaving a tile must never strand the student on the tile's page.
+
+        Each tile opens into its own view (a tool session, a worksheet, a
+        catalogue record). That view ends with one Close button at the bottom
+        right, and Close returns to the subject page scrolled to the group the
+        tile belongs to. The suite cannot click, so this guards the pieces the
+        client needs: the group remembered when a tile is opened, the one
+        builder for the exit row, the handler that returns to the group, and
+        the bindings on every tile kind.
+        """
+        self.assertIn("function rememberTileGroup", self.html)
+        self.assertIn("function closeTileView", self.html)
+        self.assertIn("function restoreTileGroup", self.html)
+        self.assertIn("function tileCloseRow", self.html)
+        self.assertIn("function bindTileClose", self.html)
+        # the exit row is right-aligned and is built once, not per tile
+        self.assertIn(".tilefoot{display:flex;justify-content:flex-end", self.html)
+        self.assertIn('id="tileclose"', self.html)
+        self.assertIn(">Close</button>", self.html)
+        # every tile kind records where it came from before it opens
+        for opener in ("rememberTileGroup(b); if (tool) openTool(tool)",
+                       "rememberTileGroup(b); openWorksheet(b.dataset.worksheet",
+                       "rememberTileGroup(button); if (row) openFramework(row)",
+                       "rememberTileGroup(frameworkpick)"):
+            self.assertIn(opener, self.html)
+        # the subject page restores the group after the tile view is left
+        self.assertIn("restoreTileGroup(out);", self.html)
+        # and the tile views are the panels that get the exit row
+        self.assertIn("tileCloseRow()", self.html)
+
     def test_frameworks_come_before_computation_and_too_many_get_a_picker(self):
         """The page puts no-computation worksheets first, then computed tools, and
         offers one picker across every framework when the shelf is long."""
