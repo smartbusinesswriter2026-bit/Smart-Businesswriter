@@ -1,5 +1,26 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — The Portfolio lab is wired into the Finance page
+
+**Ask.** The owner said "do the UI wiring; also add the UI" after Phases 3 and 4 landed at the API
+layer.
+
+**Did.** Added a Portfolio lab panel to `web/index.html`, rendered only on the Finance subject page
+next to the market-data panel. It has four parts: **track** (symbol + provider select; one click
+POSTs `/api/cases/instruments` then `/record`), **Help me choose** (candidate symbols + sort metric →
+`POST /api/cases/screen`, rendered as a sourced shortlist table with price, one-day return, n, mean,
+Sharpe and per-row gaps), a **watch list** from `GET /api/cases/instruments` with per-row Record and
+Use buttons, and **prefill** buttons (single-asset risk, two-asset portfolio) that POST to
+`/api/cases/prefill` and show the ready/gaps banner plus the exact inputs JSON to confirm in the
+Business Calculator. The market-data copy was updated to name both providers and the institutional
+keys. No computation was added to the page: it only calls the product routes and renders their
+sourced payloads.
+
+**Verified.** The inline script passes the repo's Node `--check` page-syntax gate; the
+subject/screen/prefill/instrument/server suites pass (68 tests). A live HTTP smoke against
+`scripts/serve.py` returned 200 for the page and correct payloads for create/list/prefill (a new
+instrument with no snapshots correctly reports `ready: false` and the missing-return gap).
+
 ## 2026-11-01 — Phases 3 and 4: sourced screening and a prefill bridge
 
 **Ask.** The owner said "go on 3 and 4" after the price-record store (Phase 1) and the two
