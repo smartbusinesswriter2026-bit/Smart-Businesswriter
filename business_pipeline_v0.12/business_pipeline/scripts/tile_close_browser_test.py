@@ -132,10 +132,14 @@ READY = ("(function(){var p=document.querySelector('#panel-new');"
          "if(!h || h.textContent.indexOf('No session yet')>=0) return 0;"
          "return p.querySelector('#tileclose') ? 1 : 0;})()")
 
-TILES = ("(function(){return Array.prototype.map.call("
+TILES = ("(function(){function head(grid){var node=grid,d=0;"
+         " while(node && d<4){var s=node.previousElementSibling;"
+         "  while(s){if(s.classList && s.classList.contains('levelhead')) return s;"
+         "   if(s.tagName==='H3'||s.tagName==='H4') return s; s=s.previousElementSibling;}"
+         "  node=node.parentElement; d+=1;} return null;}"
+         "return Array.prototype.map.call("
          "document.querySelectorAll('#subjectout .capgrid .capcard'), function(b, i){"
-         "  var h = b.closest('.capgrid').previousElementSibling;"
-         "  while (h && !(h.classList && h.classList.contains('levelhead'))) h = h.previousElementSibling;"
+         "  var h = head(b.closest('.capgrid'));"
          "  var kind = b.dataset.tool ? 'tool' : (b.dataset.worksheet ? 'worksheet' : 'framework');"
          "  return { i: i, kind: kind, label: (b.textContent||'').replace(/\\s+/g,' ').trim().slice(0,70),"
          "           group: h ? h.textContent.replace(/\\s+-\\s+\\d+\\s*$/,'').trim() : '' };"
@@ -150,14 +154,14 @@ VIEW = ("(function(){var p = document.querySelector('#panel-new');"
         "         justify: getComputedStyle(foot).justifyContent, last: p.lastElementChild === foot,"
         "         heading: ((p.querySelector('h2')||{}).textContent||'').trim() };})()")
 
-BACK = ("(function(){var hit = document.querySelector('#subjectout h4.levelhead.grouphit');"
+BACK = ("(function(){var hit = document.querySelector('#subjectout .grouphit');"
         "return { subjectOpen: !document.querySelector('#panel-subject').hidden,"
         "         newOpen: !document.querySelector('#panel-new').hidden, hash: location.hash,"
         "         group: hit ? hit.textContent.replace(/\\s+-\\s+\\d+\\s*$/,'').trim() : null,"
         "         groupVisible: hit ? (hit.getBoundingClientRect().top > -20 &&"
         "                              hit.getBoundingClientRect().top < window.innerHeight) : null };})()")
 
-GROUP_IN_VIEW = ("(function(){var h = document.querySelector('#subjectout h4.levelhead.grouphit');"
+GROUP_IN_VIEW = ("(function(){var h = document.querySelector('#subjectout .grouphit');"
                  "if (!h) return 0; var r = h.getBoundingClientRect();"
                  "return (r.top > -20 && r.top < window.innerHeight) ? 1 : 0;})()")
 
@@ -201,7 +205,8 @@ def run(browser, base):
               bool(state.get("subjectOpen")) and not state.get("newOpen")
               and state.get("group") == tile["group"], state)
 
-    # 1. the case the owner named
+    # 1. the case the owner named. The cache is disabled above, so this always
+    # loads the build on disk (a ?query buster would 404 on the real server).
     browser.call("Page.navigate", url=base + "/#/subject/economics")
     time.sleep(2.5)
     check("the Economics page lists its tiles",
@@ -278,6 +283,12 @@ def main():
         return 0
     browser.call("Page.enable")
     browser.call("Runtime.enable")
+    try:  # never grade a cached page: the build on disk is what gets tested
+        browser.call("Network.enable")
+        browser.call("Network.clearBrowserCache")
+        browser.call("Network.setCacheDisabled", cacheDisabled=True)
+    except RuntimeError:
+        pass
     return 1 if run(browser, args.url.rstrip("/")) else 0
 
 

@@ -1541,17 +1541,32 @@ function groupHeading(head) {
   return (head.textContent || "").replace(/\s+-\s+\d+\s*$/, "").trim();
 }
 
+/* The heading a tile sits under. Most shelves use `h4.levelhead`; a section
+   that groups worksheets under a plain `h3` (the "Complete a framework"
+   section) must work too, so both are accepted and the search climbs a few
+   wrappers before giving up. Nothing found is not an error: Close then returns
+   to the top of the subject page. */
+function tileGroupHeading(grid) {
+  let node = grid, depth = 0;
+  while (node && depth < 4) {
+    let sibling = node.previousElementSibling;
+    while (sibling) {
+      if (sibling.classList && sibling.classList.contains("levelhead")) return sibling;
+      if (sibling.tagName === "H3" || sibling.tagName === "H4") return sibling;
+      sibling = sibling.previousElementSibling;
+    }
+    node = node.parentElement;
+    depth += 1;
+  }
+  return null;
+}
+
 function rememberTileGroup(el) {
   state.tileReturn = null;
   if (!state.subjectId) return;
   const grid = el && el.closest ? el.closest(".capgrid") : null;
-  let group = "";
-  if (grid) {
-    let head = grid.previousElementSibling;
-    while (head && !(head.classList && head.classList.contains("levelhead"))) head = head.previousElementSibling;
-    if (head) group = groupHeading(head);
-  }
-  state.tileReturn = { subjectId: state.subjectId, group: group };
+  const head = grid ? tileGroupHeading(grid) : null;
+  state.tileReturn = { subjectId: state.subjectId, group: head ? groupHeading(head) : "" };
 }
 
 function closeTileView() {
@@ -1578,7 +1593,7 @@ function restoreTileGroup(out) {
   const label = state.returnGroup;
   state.returnGroup = null;
   if (!out || !label) return;
-  const heads = Array.prototype.slice.call(out.querySelectorAll("h4.levelhead"));
+  const heads = Array.prototype.slice.call(out.querySelectorAll("h4.levelhead, h3, h4"));
   const head = heads.filter((h) => groupHeading(h) === label)[0];
   if (!head) return;
   head.classList.add("grouphit");
