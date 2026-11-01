@@ -262,6 +262,30 @@ def list_instruments():
     return rows
 
 
+def all_documents():
+    """Every stored instrument document (corrupt files are skipped)."""
+    root = instruments_dir()
+    if not root.exists():
+        return []
+    documents = []
+    for path in sorted(root.glob("*.json")):
+        if not ID_RE.fullmatch(path.stem):
+            continue
+        try:
+            documents.append(load(path.stem))
+        except (InstrumentError, ValueError):
+            continue
+    return documents
+
+
+def by_symbol():
+    """An index of symbol -> instrument document (first match wins)."""
+    index = {}
+    for document in all_documents():
+        index.setdefault(document.get("symbol"), document)
+    return index
+
+
 def delete(instrument_id):
     """Remove an instrument record and return the deletion result."""
     path = _path(instrument_id)

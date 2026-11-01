@@ -57,6 +57,8 @@ from . import compare as comparator
 from . import diagrams as diagram_renderer
 from . import export as case_export
 from . import instruments as instrument_store
+from . import screener
+from . import prefill as prefill_builder
 from . import ops
 from . import signoff as signoff_store
 from . import spreadsheets
@@ -164,6 +166,51 @@ def handle(method, path, body=None):
             return 200, calc_router.plan(text)
         except calc_router.PlanError as error:
             return _error(error)
+    # -- screening a student's candidate list (product layer) ----------------
+    if segments == ["screen"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on the screen route" % verb}
+        if not isinstance(body, dict):
+            return _error("a screen object is required")
+        try:
+            return 200, screener.screen(body.get("symbols"), body.get("criteria"),
+                                        body.get("provider") or "alphavantage")
+        except (screener.ScreenerError, instrument_store.InstrumentError, ValueError) as error:
+            return _error(error)
+
+    # -- prefill frozen calculator inputs from a recorded series -------------
+    if segments == ["prefill"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on prefill" % verb}
+        if not isinstance(body, dict):
+            return _error("a prefill object is required")
+        target = (body.get("target") or "").strip().lower()
+        try:
+            if target == "risk":
+                document = instrument_store.load(body.get("id"))
+                return 200, prefill_builder.risk_inputs(
+                    document, body.get("confidence"), body.get("portfolio_value"),
+                    body.get("horizon_days"), body.get("stress_return"))
+            if target == "portfolio":
+                ids = body.get("ids") or []
+                if not isinstance(ids, list) or len(ids) < 2:
+                    return _error("portfolio prefill needs ids: [asset_a, asset_b]")
+                document_a = instrument_store.load(ids[0])
+                document_b = instrument_store.load(ids[1])
+                market = instrument_store.load(body.get("market_id")) if body.get("market_id") else None
+                return 200, prefill_builder.portfolio_inputs(
+                    document_a, document_b, market, body.get("weight_a"), body.get("risk_free_rate"))
+            if target == "capm":
+                document = instrument_store.load(body.get("id"))
+                market = instrument_store.load(body.get("market_id")) if body.get("market_id") else None
+                return 200, prefill_builder.capm_inputs(
+                    document, market, body.get("risk_free_rate"), body.get("market_return"), body.get("beta"))
+        except instrument_store.InstrumentNotFound as error:
+            return 404, {"error": str(error)}
+        except (instrument_store.InstrumentError, prefill_builder.PrefillError, ValueError) as error:
+            return _error(error)
+        return _error("target must be one of: risk, portfolio, capm")
+
     # -- tracked instruments (price-record store, product layer) -------------
     if segments and segments[0] == "instruments":
         if len(segments) == 1:

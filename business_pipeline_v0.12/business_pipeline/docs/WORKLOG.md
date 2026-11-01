@@ -1,5 +1,30 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Phases 3 and 4: sourced screening and a prefill bridge
+
+**Ask.** The owner said "go on 3 and 4" after the price-record store (Phase 1) and the two
+providers were wired: a screening shortlist from investor-style parameters (Phase 3) and a bridge
+that fills the frozen calculators from a recorded series (Phase 4).
+
+**Did — Phase 3.** New `bp.product.screener`: `screen(symbols, criteria, provider)` requests a
+quote per candidate symbol (the student names the list; no universe is invented) through Alpha
+Vantage or Massive, adds recorded-history statistics (n returns, mean, sd, Sharpe, cumulative
+return) when a tracked instrument exists for that symbol, applies declared min/max filters and a
+sort, and returns a ranked shortlist. Every row carries source, date and SHA plus named gaps (no
+P/E/market cap until fundamentals are wired; a per-symbol fetch error is a row, not a crash). The
+list is bounded to 25 symbols.
+
+**Did — Phase 4.** New `bp.product.prefill` builds the exact frozen input objects for
+`risk_metrics`, `portfolio_analysis` (two tracked assets plus an optional benchmark, aligned by
+shared as-of dates) and `capm`, returning `ready` and named gaps. It never runs the method or
+bypasses the confirm step; risk-free and market return stay declared inputs. Routes
+`POST /api/cases/screen` and `POST /api/cases/prefill` are additive under the existing product
+handler. `tests/test_product_screen_prefill.py` adds 9 cases; the touched suites pass (139 tests).
+
+**Live.** Screening AAPL 344.63 and MSFT 521.91 from Massive with computed one-day returns; a
+one-snapshot risk prefill correctly reported "record at least two price snapshots before a return
+exists" rather than inventing history.
+
 ## 2026-11-01 — Massive wired as a second market-data provider
 
 **Ask.** After Alpha Vantage was wired, the owner said "also wire Massive as a second provider."
