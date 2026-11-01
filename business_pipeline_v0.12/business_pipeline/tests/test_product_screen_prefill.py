@@ -91,6 +91,21 @@ class ScreenerTest(unittest.TestCase):
         self.assertFalse(any("fundamentals are not wired" in gap for gap in row["gaps"]))
 
 
+    def test_screen_derived_fundamentals(self):
+        original = marketdata.derived_ratios
+        marketdata.derived_ratios = lambda symbol: {
+            "source": "Derived: SEC XBRL and Massive", "as_of": "", "response_sha256": "d",
+            "market_cap": "20000", "pe_ratio": "20", "roe": "0.2", "gaps": []}
+        try:
+            out = screener.screen(["AAA"], fetch=stub_quote, include_fundamentals=True,
+                                  fundamentals_provider="derived")
+        finally:
+            marketdata.derived_ratios = original
+        row = out["rows"][0]
+        self.assertEqual(Decimal(row["pe_ratio"]), Decimal("20"))
+        self.assertEqual(Decimal(row["roe"]), Decimal("0.2"))
+
+
 class PrefillTest(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()

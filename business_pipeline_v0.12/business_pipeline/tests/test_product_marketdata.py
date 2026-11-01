@@ -361,5 +361,39 @@ class HistoryOverviewTest(unittest.TestCase):
             marketdata.fundamentals("AAPL", "wibble")
 
 
+    def test_derived_ratios_from_sec_and_massive(self):
+        orig_sec, orig_mas = marketdata.sec_fundamentals, marketdata.massive_overview
+        marketdata.sec_fundamentals = lambda ticker: {
+            "company": "Apple Inc.", "as_of": "2025-09-27", "source_url": "sec", "response_sha256": "s",
+            "values": {"Net income": "1000", "Shareholders' equity": "5000", "Diluted EPS": "2"}}
+        marketdata.massive_overview = lambda ticker: {
+            "market_cap": "20000", "company": "Apple Inc.", "sector": "Tech",
+            "source_url": "mas", "response_sha256": "m"}
+        try:
+            out = marketdata.derived_ratios("AAPL")
+        finally:
+            marketdata.sec_fundamentals, marketdata.massive_overview = orig_sec, orig_mas
+        self.assertEqual(out["provider"], "derived")
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.2"))
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("20"))
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("20000"))
+
+    def test_derived_ratios_names_gap_without_market_cap(self):
+        orig_sec, orig_mas = marketdata.sec_fundamentals, marketdata.massive_overview
+        marketdata.sec_fundamentals = lambda ticker: {
+            "company": "X", "as_of": "", "source_url": "sec", "response_sha256": "s",
+            "values": {"Net income": "1000", "Shareholders' equity": "4000"}}
+        def boom(ticker):
+            raise marketdata.MarketDataError("no massive key")
+        marketdata.massive_overview = boom
+        try:
+            out = marketdata.derived_ratios("X")
+        finally:
+            marketdata.sec_fundamentals, marketdata.massive_overview = orig_sec, orig_mas
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.25"))
+        self.assertNotIn("pe_ratio", out)
+        self.assertTrue(any("P/E needs" in gap for gap in out["gaps"]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,26 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Free-tier P/E and ROE by derivation
+
+**Ask.** The owner said "go" on natively deriving P/E and ROE from data already fetched, so they
+work on the free tier without the premium Alpha Vantage OVERVIEW.
+
+**Did.** Added `marketdata.derived_ratios(symbol)`: ROE = SEC XBRL net income / SEC shareholders'
+equity; P/E = Massive market cap / SEC net income. Every input is a sourced value and the ratios are
+pure arithmetic on them; a missing input is a named gap. The payload carries a combined response
+SHA, both per-source URLs and the provider's own gaps. Registered as the `derived` fundamentals
+provider, and the Portfolio lab's fundamentals select defaults to "Derived (SEC + Massive)".
+`screener._merge_fundamentals` now also copies the provider's own gaps and de-duplicates them.
+
+**Verified.** 3 new tests (derived ratios, the no-market-cap gap path, and the derived screening
+path); the marketdata/screen/instrument/source_env suites pass (60 tests); the page passes the Node
+`--check` gate. Live on AAPL: net income 112,010,000,000 and equity 73,733,000,000 (SEC), market cap
+5,029,592,253,400 (Massive) → ROE 1.519 (151.9%), P/E 44.90, gaps [].
+
+**Honest limits.** SEC XBRL covers US registrants only, so a non-US ticker keeps ROE/P/E as gaps
+(name them manually). The derivation is 1 Massive + ~7 SEC requests per symbol the first time, then
+cached for the day.
+
 ## 2026-11-01 — History seeding and fundamentals for screening
 
 **Ask.** The owner asked for history seeding from Massive daily bars so `ready` flips immediately,

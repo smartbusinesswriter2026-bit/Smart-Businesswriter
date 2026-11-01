@@ -518,7 +518,8 @@ def massive_overview(symbol):
 
 
 #: Fundamentals provider id -> marketdata function name.
-FUNDAMENTALS_PROVIDERS = {"alphavantage": "alpha_overview", "massive": "massive_overview"}
+FUNDAMENTALS_PROVIDERS = {"alphavantage": "alpha_overview", "massive": "massive_overview",
+                          "derived": "derived_ratios"}
 
 
 def fundamentals(symbol, provider="alphavantage"):
@@ -528,6 +529,81 @@ def fundamentals(symbol, provider="alphavantage"):
         raise MarketDataError("unknown fundamentals provider %r; choose one of: %s"
                               % (provider, ", ".join(sorted(FUNDAMENTALS_PROVIDERS))))
     return globals()[FUNDAMENTALS_PROVIDERS[name]](symbol)
+
+
+def _num(value):
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError):
+        return None
+
+
+def derived_ratios(symbol):
+    """Free-tier P/E and ROE derived from SEC XBRL facts and Massive market cap.
+
+    ROE = SEC net income / SEC shareholders' equity; P/E = Massive market cap / SEC
+    net income.  Every input is a sourced value and the ratios are pure arithmetic
+    on them; a missing input is a named gap, never an estimate.  SEC covers US
+    registrants only, so a non-US ticker keeps these as gaps.
+    """
+    symbol = _symbol(symbol)
+    cache_key = ("derived_ratios", symbol)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    gaps = []
+    facts, overview = {}, {}
+    try:
+        facts = sec_fundamentals(symbol)
+    except MarketDataError as error:
+        gaps.append("SEC fundamentals unavailable: " + str(error))
+    try:
+        overview = massive_overview(symbol)
+    except MarketDataError as error:
+        gaps.append("market cap unavailable: " + str(error))
+    if not facts and not overview:
+        raise MarketDataError("no SEC fundamentals and no Massive overview for " + symbol)
+    values = facts.get("values") or {}
+    net_income = _num(values.get("Net income"))
+    equity = _num(values.get("Shareholders' equity"))
+    eps = _num(values.get("Diluted EPS"))
+    market_cap = _num(overview.get("market_cap"))
+    out = {"symbol": symbol, "provider": "derived",
+           "company": facts.get("company") or overview.get("company"),
+           "sector": overview.get("sector")}
+    if market_cap is not None:
+        out["market_cap"] = str(market_cap)
+    if net_income is not None:
+        out["net_income"] = str(net_income)
+    if equity is not None:
+        out["shareholders_equity"] = str(equity)
+    if eps is not None:
+        out["diluted_eps"] = str(eps)
+    if net_income is not None and equity is not None and equity > 0:
+        out["roe"] = str(net_income / equity)
+    else:
+        gaps.append("ROE needs net income and positive shareholders' equity from SEC XBRL (US registrants)")
+    if market_cap is not None and net_income is not None and net_income > 0:
+        out["pe_ratio"] = str(market_cap / net_income)
+    else:
+        gaps.append("P/E needs market cap (Massive) and positive net income (SEC XBRL)")
+    out = {k: v for k, v in out.items() if v not in (None, "")}
+    combined = (str(facts.get("response_sha256") or "") + "|" +
+                str(overview.get("response_sha256") or "")).encode("utf-8")
+    payload = {"format": FORMAT, "kind": "fundamentals", "value": str(market_cap or net_income or 0),
+               "as_of": facts.get("as_of") or "",
+               "source": "Derived: SEC XBRL facts and Massive market cap (not independently verified)",
+               "source_url": facts.get("source_url") or overview.get("source_url") or "",
+               "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+               "response_sha256": hashlib.sha256(combined).hexdigest(),
+               "verification": "net income, equity and EPS are SEC XBRL facts; market cap is Massive's; "
+                               "the two ratios are arithmetic on them, not independently verified by this app",
+               "note": "Confirm these values; the app does not fill a method silently.",
+               "sources": {"sec": facts.get("source_url"), "massive": overview.get("source_url")},
+               "gaps": gaps}
+    payload.update(out)
+    _cache_put(cache_key, payload, DAY_SECONDS)
+    return payload
 
 
 def _sec_concept(cik, tags):

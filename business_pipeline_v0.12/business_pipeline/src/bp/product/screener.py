@@ -140,9 +140,14 @@ def _merge_fundamentals(row, fund):
     row["fundamentals_source"] = fund.get("source")
     row["fundamentals_as_of"] = fund.get("as_of")
     row["fundamentals_sha256"] = fund.get("response_sha256")
+    for gap in (fund.get("gaps") or []):
+        if gap not in row["gaps"]:
+            row["gaps"].append(gap)
     for name in ("market_cap", "pe_ratio", "roe"):
         if row.get(name) in (None, ""):
-            row["gaps"].append("%s is not reported by the fundamentals provider" % name)
+            note = "%s is not reported by the fundamentals provider" % name
+            if note not in row["gaps"]:
+                row["gaps"].append(note)
     return row
 
 
