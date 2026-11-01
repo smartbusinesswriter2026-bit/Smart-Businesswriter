@@ -24,8 +24,24 @@ class ExportBlocked(ValueError):
         super().__init__("Export blocked: " + "; ".join(self.missing))
 
 
-def section(heading, level, lines=None):
-    return {"heading": heading, "level": level, "lines": list(lines or [])}
+def section(heading, level, lines=None, figure=None):
+    return {"heading": heading, "level": level, "lines": list(lines or []),
+            "figure": figure or None}
+
+
+def figure_text(figure):
+    """Every string a figure carries, joined, for the template-text scan."""
+    if not figure:
+        return ""
+    parts = [str(figure.get("caption") or ""), str(figure.get("note") or "")]
+    for grid in figure.get("grids") or []:
+        parts.append(str(grid.get("title") or ""))
+        for row in grid.get("rows") or []:
+            for cell in row or []:
+                parts.append(str(cell.get("label") or ""))
+                parts.extend(str(bullet) for bullet in cell.get("bullets") or [])
+                parts.append(str(cell.get("gap") or ""))
+    return " ".join(part for part in parts if part)
 
 
 def paragraph(lines):
@@ -128,7 +144,11 @@ def check(sections, framework="pestel", implications="", answers=None, state=Non
             issues.append({"type": "heading_before_h1", "severity": "high",
                            "detail": "%s appears before any level 1 heading." % item.get("heading")})
         previous_level = level
-    texts = " ".join(" ".join(item.get("lines") or []) for item in sections).lower()
+    texts = []
+    for item in sections:
+        texts.append(" ".join(item.get("lines") or []))
+        texts.append(figure_text(item.get("figure")))
+    texts = " ".join(texts).lower()
     for phrase in META:
         if phrase in texts:
             issues.append({"type": "meta_text", "severity": "high",

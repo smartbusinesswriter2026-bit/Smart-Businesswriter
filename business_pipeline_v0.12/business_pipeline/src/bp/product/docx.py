@@ -147,7 +147,8 @@ STYLES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 
 def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None,
-                   hanging=None, italic=False, style=None, keep_next=False, break_before=False):
+                   hanging=None, italic=False, style=None, keep_next=False, break_before=False,
+                   shade=None):
     ppr = []
     if break_before:
         ppr.append("<w:pageBreakBefore/>")
@@ -155,6 +156,8 @@ def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None,
         ppr.append('<w:pStyle w:val="%s"/>' % style)
     if align:
         ppr.append('<w:jc w:val="%s"/>' % align)
+    if shade:
+        ppr.append('<w:shd w:val="clear" w:color="auto" w:fill="%s"/>' % shade)
     ppr.append('<w:spacing w:line="480" w:lineRule="auto" w:after="%d"/>' % after)
     if keep_next:
         ppr.append("<w:keepNext/>")
@@ -172,6 +175,143 @@ def _academic_para(text, bold=False, align=None, size=24, after=0, indent=None,
 
 def _page_break():
     return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
+
+
+#: Word's text column is 9360 twips wide between the 1-inch margins.
+FIGURE_WIDTH = 9360
+#: The tint behind a figure's cell label.
+LABEL_FILL = "E8EDF4"
+#: The tint behind a cell that carries the shared core of a model.
+HUB_FILL = "DCE6F1"
+
+
+def _figure_cell(paragraphs, width, fill=None, span=None, vmerge=None):
+    props = ['<w:tcW w:w="%d" w:type="dxa"/>' % width]
+    if span and span > 1:
+        props.append('<w:gridSpan w:val="%d"/>' % span)
+    if vmerge == "restart":
+        props.append('<w:vMerge w:val="restart"/>')
+    elif vmerge == "continue":
+        props.append('<w:vMerge/>')
+    if fill:
+        props.append('<w:shd w:val="clear" w:color="auto" w:fill="%s"/>' % fill)
+    props.append('<w:tcBorders><w:top w:val="single" w:sz="4" w:color="BFC8D6"/>'
+                 '<w:left w:val="single" w:sz="4" w:color="BFC8D6"/>'
+                 '<w:bottom w:val="single" w:sz="4" w:color="BFC8D6"/>'
+                 '<w:right w:val="single" w:sz="4" w:color="BFC8D6"/></w:tcBorders>')
+    return ("<w:tc><w:tcPr>%s</w:tcPr>%s</w:tc>" % ("".join(props), "".join(paragraphs)))
+
+
+def _cell_paragraphs(cell):
+    """The paragraphs of one figure cell: its label, its bullets, its gap.
+
+    The label sits on its own tinted line, so a reader can find a cell by its
+    name.  A cell with nothing in it still prints its gap, so it is never an
+    empty box.
+    """
+    parts = []
+    label = str(cell.get("label") or "")
+    if label:
+        parts.append(_academic_para(label, bold=True, size=19, after=30, shade=LABEL_FILL))
+    for bullet in cell.get("bullets") or []:
+        parts.append(_academic_para("\u2022  " + str(bullet), size=19, after=20))
+    gap = cell.get("gap")
+    if gap:
+        parts.append(_academic_para(str(gap), italic=True, size=17, after=20))
+    if not parts:
+        parts.append(_academic_para("", size=19, after=20))
+    return parts
+
+
+def _axis_labels(labels, count, vertical=False):
+    """Place a two-value axis across `count` slots.
+
+    A horizontal axis reads low-to-high left to right; a vertical axis reads
+    high at the top and low at the bottom.  When there are more cells than
+    labels the ends carry the labels and the middle stays blank; when the
+    counts match, every slot is labelled.
+    """
+    labels = [str(label) for label in (labels or [])]
+    if not labels or count <= 0:
+        return [""] * count
+    if len(labels) == count:
+        return list(reversed(labels)) if vertical else list(labels)
+    out = [""] * count
+    if vertical:
+        out[0] = labels[-1]
+        out[-1] = labels[0]
+    else:
+        out[0] = labels[0]
+        out[-1] = labels[-1]
+    return out
+
+
+def _figure_grid_xml(grid):
+    """One Word table for one grid of a figure, axes included."""
+    rows = grid.get("rows") or []
+    if not rows:
+        return ""
+    columns = max(len(row) for row in rows)
+    fractions = list(grid.get("col_widths") or [])
+    if len(fractions) != columns:
+        fractions = [1.0 / columns] * columns
+    axis_y = grid.get("axis_y")
+    axis_x = grid.get("axis_x")
+    # a vertical axis gets its own narrow column down the left-hand side
+    if axis_y:
+        fractions = [0.13] + fractions
+    scale = [int(FIGURE_WIDTH * float(fraction)) for fraction in fractions]
+    scale[-1] += FIGURE_WIDTH - sum(scale)
+    offset = 1 if axis_y else 0
+    parts = ['<w:tbl><w:tblPr><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>']
+    parts.extend('<w:gridCol w:w="%d"/>' % width for width in scale)
+    parts.append("</w:tblGrid>")
+    y_labels = _axis_labels(axis_y, len(rows), vertical=True) if axis_y else [""] * len(rows)
+    for index, row in enumerate(rows):
+        cells = []
+        if axis_y:
+            cells.append(_figure_cell(
+                [_academic_para(y_labels[index], italic=True, size=17, align="right", after=20)],
+                scale[0]))
+        column = 0
+        while column < columns:
+            cell = row[column] if column < len(row) else {"label": "", "bullets": []}
+            span = max(1, min(int(cell.get("span") or 1), columns - column))
+            width = sum(scale[offset + column:offset + column + span])
+            fill = HUB_FILL if cell.get("role") == "hub" else None
+            cells.append(_figure_cell(_cell_paragraphs(cell), width, fill=fill, span=span))
+            column += span
+        parts.append("<w:tr>" + "".join(cells) + "</w:tr>")
+    if axis_x:
+        # the horizontal axis is a row of labels under the columns
+        cells = []
+        if axis_y:
+            cells.append(_figure_cell([_academic_para("", size=17, after=20)], scale[0]))
+        x_labels = _axis_labels(axis_x, columns, vertical=False)
+        content = scale[offset:]
+        for column, width in enumerate(content):
+            cells.append(_figure_cell(
+                [_academic_para(x_labels[column], italic=True, size=17, align="center", after=20)],
+                width))
+        parts.append("<w:tr>" + "".join(cells) + "</w:tr>")
+    parts.append("</w:tbl>")
+    return "".join(parts)
+
+
+def _figure_xml(figure, number):
+    """The Word XML for one figure: its APA label, its grids and its note."""
+    parts = [_academic_para("Figure %d. %s" % (number, figure.get("caption") or ""),
+                            bold=False, size=22, after=60, keep_next=True)]
+    for grid in figure.get("grids") or []:
+        if grid.get("title"):
+            parts.append(_academic_para(str(grid["title"]), bold=True, size=20,
+                                        after=40, keep_next=True))
+        parts.append(_figure_grid_xml(grid))
+    if figure.get("note"):
+        parts.append(_academic_para("Note. " + str(figure["note"]), italic=True,
+                                    size=18, after=120))
+    return "".join(parts)
+
 
 
 def academic_document_xml(title, sections, style="apa", byline=()):
@@ -203,6 +343,7 @@ def academic_document_xml(title, sections, style="apa", byline=()):
                  '</w:pPr></w:p>')
     # the title is repeated at the top of the first page of text (APA 7)
     parts.append(_academic_para(title, bold=True, align="center", after=240, keep_next=True))
+    figure_number = 0
     for item in sections:
         if isinstance(item, dict):
             heading = item.get("heading", "")
@@ -221,6 +362,10 @@ def academic_document_xml(title, sections, style="apa", byline=()):
         else:
             parts.append(_academic_para(heading, bold=True, align="center", after=120,
                                         style="Heading1", break_before=is_reference))
+        figure = item.get("figure") if isinstance(item, dict) else None
+        if figure:
+            figure_number += 1
+            parts.append(_figure_xml(figure, figure_number))
         for line in lines:
             text = line if isinstance(line, str) else str(line)
             if text.startswith("\u2022") or text.startswith("-"):
