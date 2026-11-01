@@ -1,5 +1,23 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — One-click prefill into the Business Calculator
+
+**Ask.** The owner said "yes, one-click prefill" after the Portfolio lab landed: make the prefill
+result open the calculator with the fields filled.
+
+**Did.** Added `plOpenInCalc` to `web/index.html`. When `POST /api/cases/prefill` returns
+`ready: true`, the lab finds the matching tool in the calculator's finance group (`group.tools`, by
+`method`) and sets `state.calcTool`, `state.calcGroup` and `state.calcValues` (arrays become the
+comma-separated strings the fields show), then opens the Calculator. The student still presses = to
+run it — nothing is executed silently. A not-ready prefill keeps the named gaps and does not
+navigate. Fixed a real bug found while wiring: calculator items live under `group.tools`, not
+`group.items`.
+
+**Verified.** Each target's inputs are a strict subset of the method's declared schema
+(portfolio_analysis 5 keys, risk_metrics 2, capm 3, all `ready: true`) so the fields render and
+`readInputs` parses the lists. Page passes the Node `--check` gate; the subject/screen/prefill
+suites pass (53 tests).
+
 ## 2026-11-01 — The Portfolio lab is wired into the Finance page
 
 **Ask.** The owner said "do the UI wiring; also add the UI" after Phases 3 and 4 landed at the API

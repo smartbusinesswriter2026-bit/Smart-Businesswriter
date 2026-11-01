@@ -2243,14 +2243,39 @@ function plRenderScreen(data) {
     rows + '</tbody></table></div><p class="muted">' + esc(data.note) + "</p>";
 }
 
+let plLastPrefill = null;
+
+async function plOpenInCalc(data) {
+  data = data || plLastPrefill;
+  if (!data || !data.inputs) return;
+  try {
+    if (!state.calculator) state.calculator = await api("/api/cases/calculator");
+    let tool = null, groupId = null;
+    (state.calculator.groups || []).forEach((g) => {
+      (g.tools || []).forEach((t) => { if (!tool && t.method === data.method) { tool = t; groupId = g.id; } });
+    });
+    if (!tool) { toast("No Business Calculator tool matches " + data.method); return; }
+    state.calcGroup = groupId;
+    state.calcTool = tool;
+    state.calcValues = {};
+    Object.keys(data.inputs).forEach((k) => { state.calcValues[k] = calcValueText(data.inputs[k]); });
+    state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null; state.calcMode = "pad";
+    show("calculator");
+    toast("Inputs loaded into the calculator. Press = to run.");
+  } catch (e) { toast(e.message || String(e)); }
+}
+
 function plRenderPrefill(data) {
   const box = $("#plprefillout"); if (!box) return;
+  plLastPrefill = data;
   const gaps = (data.gaps || []).map((g) => "<li>" + esc(g) + "</li>").join("");
   box.innerHTML = '<div class="banner ' + (data.ready ? "ok" : "blocked") + '"><strong>' +
       (data.ready ? "Inputs ready to confirm" : "Not ready yet") + "</strong><div>Target " + esc(data.target) +
       " (" + esc(data.method) + ")</div>" + (gaps ? '<ul class="muted">' + gaps + "</ul>" : "") + "</div>" +
-    '<p class="muted">These are inputs only. Confirm and run them in the Business Calculator; the app does not fill or run a method silently.</p>' +
+    (data.ready ? '<div class="row" style="margin:6px 0"><button class="btn primary" type="button" id="plopenincalc">Open in the Business Calculator</button></div>' : "") +
+    '<p class="muted">These are inputs only. Opening the calculator only fills the fields; you still press = to run it, and the app never fills or runs a method silently.</p>' +
     '<div class="tablewrap"><pre style="white-space:pre-wrap;margin:0">' + esc(JSON.stringify(data.inputs, null, 2)) + "</pre></div>";
+  const open = $("#plopenincalc"); if (open) open.onclick = () => plOpenInCalc(data);
 }
 
 async function plLoadWatch() {
@@ -2292,7 +2317,7 @@ async function plPrefillRisk() {
   const box = $("#plprefillout"); if (!box) return;
   const id = (($("#plid") || {}).value || "").trim();
   if (!id) { box.innerHTML = banner("blocked", "Instrument id needed", "<div>Enter a tracked instrument id from the watch list.</div>"); return; }
-  try { plRenderPrefill(await post("/api/cases/prefill", { target: "risk", id: id, confidence: "0.95" })); }
+  try { const data = await post("/api/cases/prefill", { target: "risk", id: id, confidence: "0.95" }); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
   catch (e) { box.innerHTML = errorBanner(e); }
 }
 
@@ -2304,7 +2329,7 @@ async function plPrefillPort() {
   if (!a || !b) { box.innerHTML = banner("blocked", "Two instruments needed", "<div>Enter ids for asset A and asset B.</div>"); return; }
   const body = { target: "portfolio", ids: [a, b], weight_a: "0.5", risk_free_rate: (($("#plrf") || {}).value || "0.02") };
   if (m) body.market_id = m;
-  try { plRenderPrefill(await post("/api/cases/prefill", body)); }
+  try { const data = await post("/api/cases/prefill", body); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
   catch (e) { box.innerHTML = errorBanner(e); }
 }
 
