@@ -1,5 +1,28 @@
 # Worklog — append-only record of what was done
 
+## 2026-11-01 — Non-US fundamentals fallback chain
+
+**Ask.** The owner asked for a non-US fundamentals fallback after the free-tier derived P/E and ROE.
+
+**Did.** Added `marketdata.fundamentals_chain(symbol, providers=None)`: it tries `derived` →
+`alphavantage` → `massive`, merges each metric from the first provider that supplies it, records the
+supplier in `metric_sources`, aggregates a combined SHA and both source URLs, and appends a named gap
+for every provider that failed. Registered as the `auto`/`chain` provider; the Portfolio lab's
+fundamentals select gains "Auto (US first, then Alpha Vantage intl)". Alpha Vantage OVERVIEW accepts
+international exchange suffixes, so a non-US ticker is covered when that premium endpoint is
+available.
+
+**Verified.** 2 new tests (US merge that keeps the per-metric source and names the failed provider;
+non-US path that resolves through Alpha Vantage). The marketdata/screen/instrument/source_env suites
+pass (62 tests); the page passes the Node `--check` gate. Live: AAPL merged derived+massive —
+P/E 44.90, ROE 1.519, market cap 5.03T — with the Alpha Vantage premium refusal named as a gap;
+VOD.LON returned no data and reported, per source, why (SEC/Massive cover US only; AV premium).
+
+**Honest limits.** On today's free tier there is no non-US company-fundamentals source; the chain is
+wired and will supply non-US P/E/ROE/market cap through Alpha Vantage OVERVIEW once the premium tier
+is on, or through a dedicated non-US provider when a key exists. Until then a non-US ticker keeps
+these as named gaps while price, seeding and evaluation keep working.
+
 ## 2026-11-01 — Free-tier P/E and ROE by derivation
 
 **Ask.** The owner said "go" on natively deriving P/E and ROE from data already fetched, so they

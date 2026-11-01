@@ -395,5 +395,44 @@ class HistoryOverviewTest(unittest.TestCase):
         self.assertTrue(any("P/E needs" in gap for gap in out["gaps"]))
 
 
+    def test_fundamentals_chain_merges_and_names_gaps(self):
+        original = marketdata.fundamentals
+        def fake(symbol, provider="alphavantage"):
+            if provider == "derived":
+                return {"provider": "derived", "market_cap": "20000", "roe": "0.2",
+                        "source_url": "d", "response_sha256": "s", "gaps": []}
+            if provider == "alphavantage":
+                return {"provider": "alphavantage", "pe_ratio": "44.9",
+                        "source_url": "a", "response_sha256": "t", "gaps": []}
+            raise marketdata.MarketDataError("massive down")
+        marketdata.fundamentals = fake
+        try:
+            out = marketdata.fundamentals_chain("AAPL")
+        finally:
+            marketdata.fundamentals = original
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("20000"))
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.2"))
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("44.9"))
+        self.assertEqual(out["metric_sources"]["pe_ratio"], "alphavantage")
+        self.assertTrue(any("massive" in gap for gap in out["gaps"]))
+
+    def test_fundamentals_chain_non_us_uses_alpha_vantage(self):
+        original = marketdata.fundamentals
+        def fake(symbol, provider="alphavantage"):
+            if provider == "derived":
+                raise marketdata.MarketDataError("no SEC registrant for " + symbol)
+            if provider == "alphavantage":
+                return {"provider": "alphavantage", "pe_ratio": "12.3", "roe": "0.08",
+                        "market_cap": "90000000000", "source_url": "a", "response_sha256": "t", "gaps": []}
+            raise marketdata.MarketDataError("massive covers US markets only")
+        marketdata.fundamentals = fake
+        try:
+            out = marketdata.fundamentals_chain("VOD.LON")
+        finally:
+            marketdata.fundamentals = original
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("12.3"))
+        self.assertIn("alphavantage", out["contributors"])
+
+
 if __name__ == "__main__":
     unittest.main()

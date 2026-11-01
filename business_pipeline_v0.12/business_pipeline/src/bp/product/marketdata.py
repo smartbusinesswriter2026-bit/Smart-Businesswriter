@@ -519,7 +519,15 @@ def massive_overview(symbol):
 
 #: Fundamentals provider id -> marketdata function name.
 FUNDAMENTALS_PROVIDERS = {"alphavantage": "alpha_overview", "massive": "massive_overview",
-                          "derived": "derived_ratios"}
+                          "derived": "derived_ratios", "auto": "fundamentals_chain",
+                          "chain": "fundamentals_chain"}
+
+#: The order the fallback chain tries: the US path first, then international Alpha Vantage.
+FUNDAMENTALS_CHAIN = ("derived", "alphavantage", "massive")
+
+#: Metric keys the chain merges, each keeping the source that supplied it.
+_METRIC_KEYS = ("company", "sector", "market_cap", "pe_ratio", "roe", "price_to_book",
+                "profit_margin", "net_income", "shareholders_equity", "diluted_eps", "shares_outstanding")
 
 
 def fundamentals(symbol, provider="alphavantage"):
@@ -604,6 +612,60 @@ def derived_ratios(symbol):
     payload.update(out)
     _cache_put(cache_key, payload, DAY_SECONDS)
     return payload
+
+
+def fundamentals_chain(symbol, providers=None):
+    """Try several fundamentals providers and merge what each one supplies.
+
+    Useful for a non-US ticker: the SEC/Massive path covers US registrants, then
+    Alpha Vantage OVERVIEW (which accepts international exchange suffixes such as
+    ``TSCO.LON``) is tried next.  Each metric keeps the source that supplied it, and
+    a metric no provider returns stays a named gap.
+    """
+    symbol = _symbol(symbol)
+    names = tuple(providers or FUNDAMENTALS_CHAIN)
+    cache_key = ("fundamentals_chain", symbol, names)
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+    merged = {"symbol": symbol, "provider": "chain", "metric_sources": {}, "contributors": [],
+              "gaps": [], "source_urls": [], "response_sha256s": []}
+    for name in names:
+        try:
+            data = fundamentals(symbol, name)
+        except MarketDataError as error:
+            merged["gaps"].append("%s: %s" % (name, str(error)))
+            continue
+        merged["contributors"].append(name)
+        if data.get("source_url"):
+            merged["source_urls"].append(data["source_url"])
+        if data.get("response_sha256"):
+            merged["response_sha256s"].append(data["response_sha256"])
+        for key in _METRIC_KEYS:
+            if merged.get(key) in (None, "") and data.get(key) not in (None, ""):
+                merged[key] = data[key]
+                merged["metric_sources"][key] = name
+        for gap in (data.get("gaps") or []):
+            if gap not in merged["gaps"]:
+                merged["gaps"].append(gap)
+    if not merged["contributors"]:
+        raise MarketDataError("no fundamentals provider returned data for " + symbol + ": " +
+                              "; ".join(merged["gaps"]))
+    for key in ("market_cap", "pe_ratio", "roe"):
+        if merged.get(key) in (None, "") and not any(key in gap for gap in merged["gaps"]):
+            merged["gaps"].append("%s is not available from any configured fundamentals source" % key)
+    merged["format"] = FORMAT
+    merged["kind"] = "fundamentals"
+    merged["value"] = str(merged.get("market_cap") or merged.get("net_income") or 0)
+    merged["as_of"] = ""
+    merged["source"] = "Fallback chain (" + ", ".join(merged["contributors"]) + "); not independently verified"
+    merged["source_url"] = merged["source_urls"][0] if merged["source_urls"] else ""
+    merged["response_sha256"] = (hashlib.sha256("|".join(merged["response_sha256s"]).encode("utf-8")).hexdigest()
+                                 if merged["response_sha256s"] else "")
+    merged["verification"] = "each metric is shown with the source that supplied it; the app does not invent a ratio"
+    merged["note"] = "Confirm these values; the app does not fill a method silently."
+    _cache_put(cache_key, merged, DAY_SECONDS)
+    return merged
 
 
 def _sec_concept(cik, tags):
