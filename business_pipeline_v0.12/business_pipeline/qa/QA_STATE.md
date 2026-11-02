@@ -216,15 +216,13 @@ the harness itself was wrong:
 
 **Measured:** `python qa/probe_mgt_debug.py` → **0 problems** over 30 templates × 2 runs.
 **Framework-completion slice: 539 passed, 0 failed** (60 failing at session start).
-**Full suite: 3162 tests, 10 failures, 5 errors** — from 2932 / 66 / 13 at `211b672`. None of the
-15 remaining problems is on this shelf: 5 registry/catalogue, 4 operations examples, and one each
-in spreadsheets (the spec-hash removal landed without updating that test), paper documents, the
-marketing RFM record, the product rail, the network-dependent sources test and the chat hung-dimension test.
+**Full suite: 3165 tests, 4 failures, 4 errors** — from 2932 / 66 / 13 at `211b672`. All eight
+remaining are other lanes' and named in the commit: four `test_operations_frameworks` (an example
+template was renamed), one chat hung-dimension, one paper store, one web rail, one network-dependent
+sources test. **Nothing on this shelf fails.**
 
 Counts re-measured rather than copied: **18** profiles reachable from no page (SERVQUAL's row left
-the marketing shelf while that lane repairs it), **11** non-draftable, documented suite count **3158 →**
-to be reset by the next lane that changes the suite (the loader counts 3162 with this session's four
-new E-rows).
+the marketing shelf while that lane repairs it), **11** non-draftable, documented suite count **3165**.
 
 **Session 6 — `marketing`.** It is the only shelf with failures left in the framework-completion slice
 (27 of 27: attribution, cro, customer_journey, digital_mix, email_crm, funnel, kano, marketing_plan,
