@@ -1492,17 +1492,6 @@
    "before": null,
    "draftable": false,
    "group": null
-  },
-  {
-   "kind": "worksheet",
-   "key": "MKT-02",
-   "catalogue_id": "MKT-02",
-   "template": "template_marketing_plan",
-   "label": "Marketing plan: STP and the marketing mix",
-   "what": "Structure segmentation, targeting and positioning and the product, price, place and promotion mix.",
-   "before": null,
-   "draftable": true,
-   "group": null
   }
  ],
  "tiles": [],
@@ -1694,23 +1683,6 @@
     "decision analysis and risk quantification"
    ],
    "discipline_label": "decision analysis and risk quantification"
-  },
-  {
-   "id": "MKT-02",
-   "name": "Marketing Mix: 4Ps / Services Mix: 7Ps",
-   "type": "F",
-   "form": "worksheet",
-   "status_short": "Worksheet",
-   "status_note": "worksheet available: structure and evidence audit only; the evidence is yours",
-   "implementation_status": "worksheet available: structure and evidence audit only; the evidence is yours",
-   "structures": "Product, Price, Place, Promotion; services add People, Process and Physical Evidence",
-   "evidence_needs": "Customer, competitor and cost evidence; price and channel economics as appropriate",
-   "template": "template_marketing_plan",
-   "linked_methods": [],
-   "disciplines": [
-    "marketing and customers"
-   ],
-   "discipline_label": "Marketing frameworks"
   }
  ],
  "records": [

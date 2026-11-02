@@ -325,9 +325,15 @@ class ShelfWiring(unittest.TestCase):
         methods = {tool["method"] for tool in page["tools"]}
         for method in NEW_METHODS:
             self.assertIn(method, methods, method)
+        # The shelf's own canvases.  `template_marketing_plan` is NOT among them: the
+        # owner assigned the marketing plan to the marketing shelf alone (B-196), so
+        # its absence here is the contract, not a gap.
         templates = {w["template"] for w in page["worksheets"]}
-        for kind in NEW_TEMPLATES:
+        for kind in ("template_business_model_canvas", "template_lean_canvas",
+                     "template_value_proposition_canvas"):
             self.assertIn(kind, templates, kind)
+        self.assertNotIn("template_marketing_plan", templates,
+                         "the marketing plan belongs to the marketing shelf (B-196)")
 
     def test_management_and_marketing_offer_the_canvases_they_list(self):
         self.assertIn("STR-15", [w["catalogue_id"] for w in subjects.detail("management")["worksheets"]])

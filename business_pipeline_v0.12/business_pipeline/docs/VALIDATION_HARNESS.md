@@ -271,11 +271,11 @@ Recorded now so a later model does not have to rediscover them. These are **expe
 
 **Four shelves receive no capability by slot:** `supply-chain`, `entrepreneurship`, `people`, `management`. They get their frameworks from the profile/worksheet path, but their compute tools sit on the subject pages rather than in the capability catalogue. The crosswalk therefore needs a second, explicit override list for those four — the slots above are a floor, not the whole map.
 
-**Note on `supply-chain`:** four capabilities are operations-flavoured (`inventory_policy`, `capacity_analysis`, `oee_analysis`, `queue_analysis`) and would serve `supply-chain` better than `operations`. They are listed once in the manifest and filed under both shelves, exactly as the 31 shared worksheets are.
+**Note on `supply-chain`:** four capabilities are operations-flavoured (`inventory_policy`, `capacity_analysis`, `oee_analysis`, `queue_analysis`) and would serve `supply-chain` better than `operations`. They are listed once in the manifest and filed under both shelves, exactly as the 30 shared worksheets are.
 
 ### 7.1 Worksheets are shared between shelves
 
-31 of the 55 worksheets sit on **two** subject pages. One paper serves both, and it is filed in both folders. This is why "validate subject by subject" is cheaper than the raw count suggests.
+**30 of the 59 worksheets a subject page serves** sit on **two** subject pages (re-measured 2026-11-03, entrepreneurship session). One paper serves both, and it is filed in both folders. This is why "validate subject by subject" is cheaper than the raw count suggests.
 
 | Shared worksheets | Shelves |
 |---|---|
@@ -283,7 +283,6 @@ Recorded now so a later model does not have to rediscover them. These are **expe
 | `OPS-01`…`OPS-08`, `OPS-10`…`OPS-12` (11) | operations, supply-chain |
 | `STR-13`, `STR-15`–`STR-18` (5) | management, entrepreneurship |
 | `PM-10` (1) | project-management, people |
-| `MKT-02` (1) | entrepreneurship, marketing |
 
 ### 7.2 A reachability gap worth recording
 

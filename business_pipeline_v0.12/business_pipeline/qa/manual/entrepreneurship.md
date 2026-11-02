@@ -7,7 +7,7 @@ probes named in the table.
 
 | Evidence file | What it measures |
 |---|---|
-| `qa/baseline/ent_catalogue.json` | `subjects.detail("entrepreneurship")` verbatim (46 tools, 6 worksheets, 6 records) |
+| `qa/baseline/ent_catalogue.json` | `subjects.detail("entrepreneurship")` verbatim (46 tools, 5 worksheets, 6 records) |
 | `qa/baseline/ent_shelf.txt` / `.json` | `python qa/probe_ent_shelf.py` — every tool through its own preset: delivery, checks, determinism, units |
 | `qa/baseline/ent_mapping.txt` | `python qa/probe_ent_mapping.py` — a plan block's columns through `bp.ingest.to_method_inputs` |
 | `qa/baseline/ent_plan.txt` | `python qa/probe_ent_plan.py` — the plan and the deliverable, with the V-01…V-20 verdicts |
@@ -183,12 +183,16 @@ Source: `subjects.detail("entrepreneurship")["worksheets"]` (rank 5), `bp.templa
 | STR-17 | Value Proposition Canvas | `template_value_proposition_canvas` | yes | management |
 | STR-18 | SWOT evidence-to-action review | `template_swot` | yes | management |
 | STR-13 | Blue Ocean four actions (ERRC) | `template_blue_ocean_errc` | **no** | management |
-| MKT-02 | Marketing plan: STP and the marketing mix | `template_marketing_plan` | yes | marketing |
 
-All six are **T4**: they place and audit the student's own evidence, reproduce it verbatim, name
+All five are **T4**: they place and audit the student's own evidence, reproduce it verbatim, name
 every empty block and produce **no score, ranking or recommendation**. STR-13 is offered but has no
-draft button, by design (the grid is audited, not written). The five shared worksheets belong to
-two shelves and are fixed once, filed under both (`VALIDATION_HARNESS.md` §7.1).
+draft button, by design (the grid is audited, not written). All five are shared with the management
+shelf and fixed once, filed under both (`VALIDATION_HARNESS.md` §7.1).
+
+**The marketing plan (`MKT-02`) is not on this shelf.** It carries STP and the marketing mix, which
+belongs to the marketing shelf, where it is offered and draftable; the owner assigned it there alone
+(B-196). The shelf's own worksheets are the venture canvases, and the marketing mix is reached from
+the Marketing shelf rather than duplicated here.
 
 ## 6. Records, theories and the glossary
 
@@ -233,7 +237,7 @@ Source: `bp.product.api` routes (rank 1), `bp.server` (rank 1), `web/index.html`
 
 | Surface | Route / entry point | What it must do |
 |---|---|---|
-| Shelf page | `GET /api/cases/subjects/entrepreneurship` | 46 tools, 6 worksheets, 6 records, 0 theories, 34 glossary terms, the guidance and the three does-not lines |
+| Shelf page | `GET /api/cases/subjects/entrepreneurship` | 46 tools, 5 worksheets, 6 records, 0 theories, 34 glossary terms, the guidance and the three does-not lines |
 | Shelf index | `GET /api/cases/subjects` | `entrepreneurship` appears with the label `Entrepreneurship` |
 | Tool form | the page's schema-driven form | built from `LIBRARY[method].input_schema`; list fields as comma lists, `enum` fields as choices |
 | Plan composer | `POST /api/cases/chat {profile: "business_plan"}` | proposes the plan; no source is retrieved and no figure is computed until the student confirms |
@@ -258,7 +262,7 @@ retrieval mocked where a paper needs evidence. `PASS`/`FAIL`/`GAP` is decided in
 
 | Id | Behaviour | Source |
 |---|---|---|
-| E-ent-001 | `detail("entrepreneurship")` returns exactly 46 tools, 6 worksheets, 6 records, 0 theories and 34 glossary terms; the worksheet ids are STR-15, STR-16, STR-17, STR-18, STR-13, MKT-02 | rank 5 (measured `ent_catalogue.json`) |
+| E-ent-001 | `detail("entrepreneurship")` returns exactly 46 tools, **5** worksheets, 6 records, 0 theories and 34 glossary terms; the worksheet ids are STR-15, STR-16, STR-17, STR-18 and STR-13, and MKT-02 is deliberately absent (B-196) | rank 5 (measured `ent_catalogue.json`) |
 | E-ent-002 | Every tool's `method` is a frozen `LIBRARY` method or a registered `templates.TEMPLATES` entry; `case_decision` is the only template | rank 1 |
 | E-ent-003 | Every tool carries a `label`, `what`, `formula`, `period`, a `level` in {intro, intermediate, advanced}, ≥3 steps and ≥2 common mistakes | rank 5 |
 | E-ent-004 | Every `related` id resolves to a declared tool id | rank 5 `TOOL_INFO` |
@@ -362,7 +366,7 @@ retrieval mocked where a paper needs evidence. `PASS`/`FAIL`/`GAP` is decided in
 | E-ent-082 | The Value Proposition Canvas reports only the fit the student claims | rank 1 |
 | E-ent-083 | The SWOT review turns evidence into declared actions and adds no digit | rank 1 |
 | E-ent-084 | STR-13 (Blue Ocean ERRC) is offered as a worksheet but not draftable, and still runs | rank 5 |
-| E-ent-085 | MKT-02 is on both the entrepreneurship and the marketing shelves, and runs | rank 5 |
+| E-ent-085 | The marketing plan (MKT-02) is **not** on this shelf and not among its catalogue rows; the marketing shelf offers it, draftable, and the worksheet still runs | rank 5 + B-196 |
 
 ### 9.6 Records
 
@@ -378,7 +382,7 @@ retrieval mocked where a paper needs evidence. `PASS`/`FAIL`/`GAP` is decided in
 
 | Id | Behaviour | Source |
 |---|---|---|
-| E-ent-091 | `GET /api/cases/subjects/entrepreneurship` serves 46 tools, 6 worksheets, 6 records, three does-not lines and the guidance | rank 1 route |
+| E-ent-091 | `GET /api/cases/subjects/entrepreneurship` serves 46 tools, 5 worksheets, 6 records, three does-not lines and the guidance | rank 1 route |
 | E-ent-092 | The shelf index serves `entrepreneurship` with the label `Entrepreneurship` | rank 1 route |
 | E-ent-093 | The page groups the tools in plan order, from *Market and customers* to *Impact and options* | rank 5 |
 | E-ent-094 | The glossary carries TAM, SAM, SOM, break-even point, margin of safety, CAC, LTV, runway, ROI, cap table, dilution, funnel, cohort, purchase intent and positioning | rank 5 |
@@ -412,7 +416,7 @@ Filled from the executed suite. Each E-id is enforced by the test method of the 
 | E-ent-011…056 | `ToolDeliveryTest` — one generated test per tool, through its own preset | PASS (46/46) |
 | E-ent-057…068 | `ArithmeticTest` — hand recomputation from the guide and the contract | PASS |
 | E-ent-069…079 | `PlanProfileTest` — plan shape, gate, refusals, rubric coverage, gate switch | PASS |
-| E-ent-080…085 | `WorksheetTest` — the six T4 worksheets and the shared shelf | PASS |
+| E-ent-080…085 | `WorksheetTest` — the five T4 worksheets, the undraftable ERRC grid and the marketing plan's ownership | PASS |
 | E-ent-086…090 | `RecordTest` — record truth against the catalogue | PASS |
 | E-ent-091…101 | `SurfaceTest` — routes, grouping, glossary, brief, OCR engine, export bytes, pairs, page | PASS |
 | E-ent-102…106 | `TrapTest` — the two fixed defects and the two kept refusals | PASS |

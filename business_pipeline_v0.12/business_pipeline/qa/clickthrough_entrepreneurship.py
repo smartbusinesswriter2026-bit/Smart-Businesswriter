@@ -106,11 +106,14 @@ def main(argv):
         check("no reviewer surface %r" % marker, marker not in html)
 
     status, detail = _request(base, "/api/cases/subjects/entrepreneurship")
-    check("GET the shelf answers 200 with 46 tools, 6 worksheets, 6 records",
+    check("GET the shelf answers 200 with 46 tools, 5 worksheets, 6 records",
           status == 200 and len(detail.get("tools") or []) == 46
-          and len(detail.get("worksheets") or []) == 6
+          and len(detail.get("worksheets") or []) == 5
           and len(detail.get("records") or []) == 6,
-          "status=%s tools=%s" % (status, len(detail.get("tools") or [])))
+          "status=%s tools=%s worksheets=%s" % (status, len(detail.get("tools") or []),
+                                                len(detail.get("worksheets") or [])))
+    check("the marketing plan is not offered on this shelf",
+          "MKT-02" not in [row.get("catalogue_id") for row in detail.get("worksheets") or []])
 
     for item in detail.get("tools") or []:
         preset_id = item.get("preset")

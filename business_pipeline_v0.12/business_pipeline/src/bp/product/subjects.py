@@ -3472,10 +3472,10 @@ SUBJECT_DEFS = [
                   "scenario", "trendanalysis", "workingcapital",
                   "captable", "loan", "dcf", "multiples", "equitybridge", "currency",
                   "sroi", "cba", "costeffectiveness", "case_decision"],
-        "worksheets": ["STR-15", "STR-16", "STR-17", "STR-18", "STR-13", "MKT-02"],
+        "worksheets": ["STR-15", "STR-16", "STR-17", "STR-18", "STR-13"],
         "catalogue_ids": ["STR-15", "STR-16", "STR-17", "STR-13",
                           "QNT-MKT-01", "QNT-MKT-02", "QNT-MKT-03",
-                          "QNT-FIN-06", "QNT-FIN-07", "QNT-DEC-02", "MKT-02"],
+                          "QNT-FIN-06", "QNT-FIN-07", "QNT-DEC-02"],
     },
     {
         "id": "operations",

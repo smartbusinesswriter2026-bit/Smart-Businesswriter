@@ -66,14 +66,16 @@ def checks_pass(method_id, inputs):
 class InventoryTest(unittest.TestCase):
     """E-ent-001…010: what the shelf holds, and that every part of it runs."""
 
-    def test_e_ent_001__the_shelf_holds_46_tools_6_worksheets_and_6_records(self):
+    def test_e_ent_001__the_shelf_holds_46_tools_5_worksheets_and_6_records(self):
         self.assertEqual(len(SHELF["tools"]), 46)
-        self.assertEqual(len(SHELF["worksheets"]), 6)
+        self.assertEqual(len(SHELF["worksheets"]), 5)
         self.assertEqual(len(SHELF["records"]), 6)
         self.assertEqual(SHELF["theories"], [], "a theory is reached by naming it, not by a tile")
         self.assertEqual(len(SHELF["glossary"]), 34)
         self.assertEqual([w["catalogue_id"] for w in SHELF["worksheets"]],
-                         ["STR-15", "STR-16", "STR-17", "STR-18", "STR-13", "MKT-02"])
+                         ["STR-15", "STR-16", "STR-17", "STR-18", "STR-13"])
+        self.assertNotIn("MKT-02", [w["catalogue_id"] for w in SHELF["worksheets"]],
+                         "the marketing plan is the marketing shelf's alone (B-196)")
 
     def test_e_ent_002__every_tool_names_a_frozen_method_or_the_one_template(self):
         for tool in SHELF["tools"]:
@@ -520,12 +522,16 @@ class WorksheetTest(unittest.TestCase):
         self.assertFalse(row["draftable"], "the ERRC grid has no draft button, by design")
         self.assertTrue(self._run("template_blue_ocean_errc")["narrative"])
 
-    def test_e_ent_085__the_marketing_plan_is_shared_with_the_marketing_shelf(self):
-        row = next(w for w in SHELF["worksheets"] if w["catalogue_id"] == "MKT-02")
-        self.assertTrue(row["draftable"])
-        marketing = [w["catalogue_id"] for w in subjects.detail("marketing")["worksheets"]]
-        self.assertIn("MKT-02", marketing)
-        self.assertTrue(self._run("template_marketing_plan")["narrative"])
+    def test_e_ent_085__the_marketing_plan_belongs_to_the_marketing_shelf_alone(self):
+        """B-196: the owner assigned STP and the marketing mix to marketing only."""
+        self.assertNotIn("MKT-02", [w["catalogue_id"] for w in SHELF["worksheets"]])
+        self.assertNotIn("MKT-02", [row["id"] for row in SHELF["catalogue"]],
+                         "nor does its catalogue row stay behind on this page")
+        marketing = subjects.detail("marketing")
+        row = next(w for w in marketing["worksheets"] if w["catalogue_id"] == "MKT-02")
+        self.assertTrue(row["draftable"], "marketing offers it, and it is draftable there")
+        self.assertTrue(self._run("template_marketing_plan")["narrative"],
+                        "the worksheet itself still runs")
 
 
 class RecordTest(unittest.TestCase):
@@ -589,7 +595,7 @@ class SurfaceTest(unittest.TestCase):
         status, payload = api.handle("GET", "/api/cases/subjects/entrepreneurship")
         self.assertEqual(status, 200)
         self.assertEqual(len(payload["tools"]), 46)
-        self.assertEqual(len(payload["worksheets"]), 6)
+        self.assertEqual(len(payload["worksheets"]), 5)
         self.assertEqual(len(payload["records"]), 6)
         self.assertEqual(len(payload["does_not"]), 3)
         self.assertTrue(payload["guidance"])

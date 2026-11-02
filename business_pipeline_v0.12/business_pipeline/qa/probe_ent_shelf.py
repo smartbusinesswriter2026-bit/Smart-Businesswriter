@@ -121,7 +121,13 @@ def main():
             except Exception as error:                     # a method must not crash the sweep
                 outputs = {}
                 flag("IMPL_ERROR", str(error)[:160], tool["key"])
-            for key in outputs:
+            if isinstance(outputs, dict):
+                keys = list(outputs)
+            else:
+                # A method may return a bare value; the orchestrator wraps it.  Read the
+                # typing of its headline metric rather than inventing an output map.
+                keys = [method.metric]
+            for key in keys:
                 try:
                     value = method.typing(key)
                 except Exception:

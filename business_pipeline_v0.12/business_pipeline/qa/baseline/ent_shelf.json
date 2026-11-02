@@ -376,7 +376,16 @@
    ],
    "failed_checks": [],
    "deterministic": true,
-   "units": {}
+   "units": {
+    "n": "count",
+    "n_missing": "count",
+    "mean": "@unit",
+    "median": "@unit",
+    "minimum": "@unit",
+    "maximum": "@unit",
+    "variance": "@unit",
+    "sd": "@unit"
+   }
   },
   {
    "tool": "chi_square",
@@ -1353,7 +1362,9 @@
    ],
    "failed_checks": [],
    "deterministic": true,
-   "units": {}
+   "units": {
+    "npv": "currency"
+   }
   },
   {
    "tool": "irr",
@@ -2048,10 +2059,10 @@
  "findings": [],
  "counts": {
   "tools": 46,
-  "worksheets": 6,
+  "worksheets": 5,
   "records": 6,
   "theories": 0,
   "glossary": 34,
-  "catalogue": 11
+  "catalogue": 10
  }
 }

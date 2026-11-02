@@ -73,10 +73,12 @@ class SubjectCatalogueTest(unittest.TestCase):
         self.assertEqual(page["label"], "Entrepreneurship")
         self.assertTrue({"breakeven", "multi_product_breakeven", "unit_economics", "npv", "irr",
                          "discounted_payback"}.issubset({tool["method"] for tool in page["tools"]}))
+        # The marketing plan (MKT-02) is the marketing shelf's alone (B-196) and is
+        # therefore absent here; the three venture canvases are the shelf's own.
         self.assertEqual([worksheet["template"] for worksheet in page["worksheets"]],
                          ["template_business_model_canvas", "template_lean_canvas",
                           "template_value_proposition_canvas", "template_swot",
-                          "template_blue_ocean_errc", "template_marketing_plan"])
+                          "template_blue_ocean_errc"])
         self.assertTrue({"STR-15", "STR-16", "STR-17"}.issubset({row["id"] for row in page["catalogue"]}))
 
     def test_every_economics_tool_carries_student_notes_and_a_level(self):

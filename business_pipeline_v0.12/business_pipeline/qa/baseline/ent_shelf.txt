@@ -1,6 +1,6 @@
 entrepreneurship shelf sweep  (python qa/probe_ent_shelf.py)
 
-counts: {"catalogue": 11, "glossary": 34, "records": 6, "theories": 0, "tools": 46, "worksheets": 6}
+counts: {"catalogue": 10, "glossary": 34, "records": 6, "theories": 0, "tools": 46, "worksheets": 5}
 delivered through their own preset: 46 of 46
 
 marketsize       market_sizing                delivered  checks ok  [annual_spend_per_customer:currency, customers_in_som:count, obtainable_share:rate, serviceable_available_market:currency, serviceable_obtainable_market:currency, serviceable_share:rate, share_of_tam_obtained:rate, target_population:count, total_addressable_market:currency]
@@ -11,7 +11,7 @@ funnel           sales_funnel                 delivered  checks ok  [cac:currenc
 cohort           cohort_retention             delivered  checks ok  [average_lifetime:periods, average_retention:rate, churn_1:rate, churn_2:rate, churn_3:rate, churn_4:rate, retention_1:rate, retention_2:rate, retention_3:rate, retention_4:rate, total_retained_1:count, total_start:count]
 concentration    market_concentration         delivered  checks ok  [cr1:ratio, cr4:ratio, effective_n:ratio, hhi:ratio, n_firms:count, total_revenue:currency]
 elasticity       elasticity                   delivered  checks ok  [absolute_elasticity:ratio, elastic:count, pct_change_price:rate, pct_change_quantity:rate, price_elasticity:ratio, revenue_change:currency, total_revenue_1:currency, total_revenue_2:currency, unit_elastic:count]
-descriptive      descriptive_stats            delivered  checks ok
+descriptive      descriptive_stats            delivered  checks ok  [maximum:@unit, mean:@unit, median:@unit, minimum:@unit, n:count, n_missing:count, sd:@unit, variance:@unit]
 chi_square       chi_square                   delivered  checks ok  [alpha:rate, chi_squared:ratio, cramers_v:ratio, df:count, min_expected_count:count, n_cells:count, n_total:count, p_value:probability]
 power            power_analysis               delivered  checks ok  [_appendix:ratio, _checks:ratio, alpha:probability, mde:@unit, n1:count, n2:count, ncp:ratio, power:probability, se:@unit, target_power:probability, z_alpha:ratio]
 pricing          pricing_decision             delivered  checks ok  [break_even_price:currency, cost_plus_price:currency, expected_units:units, fixed_cost:currency, gross_margin_at_cost_plus:ratio, margin_price:currency, markup_rate:rate, target_margin_rate:rate, target_profit:currency, target_return_price:currency, total_cost:currency, unit_cost:currency]
@@ -32,7 +32,7 @@ startupcapital   startup_capital              delivered  checks ok  [amount_to_r
 cashrunway       cash_runway                  delivered  checks ok  [cash_at_target_month:currency, funding_gap:currency, lowest_cash_balance:currency, monthly_growth:rate, monthly_net_cash_flow:currency, opening_cash:currency, runway_months:units, target_months:count]
 roi              return_on_investment         delivered  checks ok  [annualised_roi:rate, net_gain:currency, roi:rate, total_investment:currency, years:count]
 tax              tax_declared                 delivered  checks ok  [deferred_tax:currency, deferred_tax_rate:rate, income_tax:currency, income_tax_rate:rate, net_income_after_tax:currency, taxable_income:currency, temporary_difference:currency, total_tax_charge:currency, vat_input_tax:currency, vat_output_tax:currency, vat_payable:currency]
-npv              npv                          delivered  checks ok
+npv              npv                          delivered  checks ok  [npv:currency]
 irr              irr                          delivered  checks ok  [irr:rate, n_periods:count, n_roots:count, npv_at_irr:currency]
 dpayback         discounted_payback           delivered  checks ok  [discounted_payback:periods, n_periods:count, net_present_value:currency, recovered_in_period:count]
 projectmetrics   project_metrics              delivered  checks ok  [equivalent_annual_annuity:currency, irr:rate, mirr:currency, n_periods:count, npv:currency, payback_period:years, profitability_index:ratio, pv_inflows:currency, pv_outflows:currency]
