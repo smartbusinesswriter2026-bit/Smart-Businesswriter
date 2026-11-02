@@ -47,6 +47,7 @@ shelves; the effects on them were re-tested (§6).
 | Glossary terms | 0 | `detail("management")["glossary"]` | the shelf has no glossary |
 | Catalogue records the shelf *counts* | 28 | `subjects.catalogue()` | **28** against 31 rows — D-MGT-08 |
 | Profiles no subject page reaches | 17 | `test_E_mgt_043` | **17**, not the 22 the harness recorded — D-MGT-09 |
+| Worksheets also shown on another shelf | 18 of the 31 rows | `VALIDATION_HARNESS.md` §7.1 | 13 CHG rows on People, 5 STR rows on Entrepreneurship (§2.2) |
 
 ### 2.1 Worksheets, one row each
 
