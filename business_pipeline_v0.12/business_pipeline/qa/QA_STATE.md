@@ -1,4 +1,38 @@
 # QA state
+## Session R — the rubric lane (2026-11-02, owner instruction)
+
+**Ask.** "a rubric to be uploaded which should be followed in writing the paper".
+
+**Built.** `src/bp/product/rubric.py` (reader + coverage), binding in `completion.complete`/`draft`,
+the export gate in `paper.missing`/`check`, `qa/manual/rubric.md` (29 E-rows), `tests/test_product_rubric.py`
+(29 tests), `qa/probe_rubric.py`, `qa/_count.py`. Decision **B-187** (B-186 was taken concurrently).
+
+**Commits.** `ff3f58d` (reader) · `eb204d1` (coverage, appendix, gate).
+
+**Gates at close.** `tests.test_product_rubric` 29 OK · `tests.test_docs_sync` 7 OK (count 2902 in sync)
+· framework-completion slice 61 failed / 521 passed with **0 names absent from the recorded baseline**
+(historical, other shelves) · paper/session/export/sample-papers 68 passed · rubric+ansoff+drafting+
+honesty+method-contracts 64 passed · `scripts/econ_shelf.py --check` **frozen fixture: in sync**.
+No frozen core, method, preset, input, check, number, route family or paper rule changed; no new
+dependency; no network or model call.
+
+**Open (declared, not silently dropped).** No upload role/button for a rubric; no section injection
+(a rubric heading the profile lacks is a named gap, never an empty section); OCR chain not built;
+the engine never writes a recommendation (B-154), so a rubric demanding one gets a gap.
+
+**Found and fixed this lane.** D-RUB-01 (weight regex dropped every `%` weight), D-RUB-02 (lead-in
+line read as a criterion), D-RUB-03 (`qa/_count.py` under-reported by 2), D-RUB-04 (unreadable rubric
+was validated after the research run), D-RUB-05 (self-inflicted UTF-8 double-decode in five docs,
+repaired and verified). Full detail in `qa/manual/rubric.md` §6.
+
+**Coordination hazard, recorded for the next session.** Three lanes write in this worktree at once:
+one lane committed some of this lane's in-flight doc text under its own message, and staged a broad
+set (`git add`) that included this lane's source files. Every commit here was made with an explicit
+pathspec so no other lane's work was bundled; the three count docs were left to the lane holding them
+and are in sync again. Never edit docs with `Get-Content -Raw`/`Set-Content` on Windows PowerShell
+5.1 — it double-decodes UTF-8.
+
+
 
 **Session:** 2 of 11 · **Subject:** `finance` · **Branch:** `corpus/merge-v1`
 **Opening commit:** `ab0be0d` (build 1.58 per `docs/HOME.md` and the newest numbered `docs/CHANGELOG.md` entry)
