@@ -167,7 +167,11 @@ class CatalogueHonestyTest(unittest.TestCase):
     def test_economics_declares_the_impact_evaluation_records(self):
         page = subjects.detail("economics")
         ids = {row["id"] for row in page["catalogue"]}
-        self.assertTrue({"IMP-03", "IMP-04", "IMP-05", "IMP-06", "IMP-07"} <= ids)
+        # Owner request: Results-Based Management (IMP-03) and the Evaluation design
+        # matrix (IMP-04) are hidden from the Economics page.  The cost-benefit,
+        # cost-effectiveness and SROI records stay on the shelf.
+        self.assertTrue({"IMP-05", "IMP-06", "IMP-07"} <= ids)
+        self.assertFalse({"IMP-03", "IMP-04"} & ids)
 
     def test_a_worksheet_is_not_repeated_as_a_catalogue_row(self):
         for definition in subjects.SUBJECT_DEFS:

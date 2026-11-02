@@ -3219,7 +3219,7 @@ SUBJECT_DEFS = [
                   "descriptive", "pearson", "ols", "welch", "anova", "chi_square", "power"],
         "worksheets": [],
         "catalogue_ids": ["QNT-FIN-07", "QNT-EVL-01", "QNT-EVL-02", "QNT-EVL-03",
-                          "QNT-EVL-04", "QNT-EVL-05", "IMP-03", "IMP-04", "IMP-05",
+                          "QNT-EVL-04", "QNT-EVL-05", "IMP-05",
                           "IMP-06", "IMP-07"],
     },
     {
