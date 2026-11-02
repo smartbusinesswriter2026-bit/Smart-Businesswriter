@@ -1,0 +1,56 @@
+{
+ "base": "http://127.0.0.1:8002",
+ "steps": [
+  {
+   "step": "attach an instruction file",
+   "ok": true,
+   "detail": "201 structured"
+  },
+  {
+   "step": "use it as the instruction",
+   "ok": true,
+   "detail": "200 chars=125"
+  },
+  {
+   "step": "the instruction is labelled unverified",
+   "ok": true,
+   "detail": "Read as the instruction. The text is unverified: check it against the "
+  },
+  {
+   "step": "the paper runs from the instruction text",
+   "ok": true,
+   "detail": "awaiting_confirmation -> delivered, 144 chars"
+  },
+  {
+   "step": "attach a source list",
+   "ok": true,
+   "detail": "201 sources"
+  },
+  {
+   "step": "read the source list",
+   "ok": true,
+   "detail": "200 entries=2"
+  },
+  {
+   "step": "list the declared citations",
+   "ok": true,
+   "detail": "Smith, J. (2019). Retail expansion. https://doi.org/10.1/xyz"
+  },
+  {
+   "step": "the citations are not presented as evidence",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "map a dataset column into a method",
+   "ok": true,
+   "detail": "{'values': ['10', '12.5', '9']}"
+  },
+  {
+   "step": "run the mapped dataset",
+   "ok": true,
+   "detail": "delivered, mean in report=True"
+  }
+ ],
+ "failures": []
+}
