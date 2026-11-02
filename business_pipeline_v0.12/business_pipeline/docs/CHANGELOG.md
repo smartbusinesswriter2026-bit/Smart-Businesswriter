@@ -1,3 +1,32 @@
+## Level-1 headings on a subject page get a mark and a rule — and still work with a Close button
+
+Owner: add a green bar to level-1 headings such as *Bookkeeping and statements* and *Cost and variance
+analysis*, to draw the eye and separate groups — and reconcile that with the Close button that sits
+beside the heading on some groups.
+
+The heading is one flex row with a `::before` bar, a hairline rule under the whole line, and any
+trailing control parked at the far right:
+
+- the **bar** is 4 px wide, `1.05em` tall (cap height, so it reads as a marker rather than a block)
+  and sits **outside** the text flow — a button beside the heading cannot push it, and it cannot push
+  the button;
+- the **rule** (`border-bottom`) does the separating, across the full width, so the bar does not have
+  to shout; group spacing rises to 26 px above and 12 px below;
+- the **Close button** takes `margin-left:auto`, so it always lands at the right edge *on* the rule,
+  while the heading keeps its visual weight on the left. Two controls would sit together at that edge;
+- the label is 13.4 px uppercase, 600 weight, `.07em` tracking — smaller than before but stronger, so
+  the bar is what draws the eye, not the type size.
+
+Rejected while designing: a filled green block behind the heading (eats vertical space and fights the
+Close button's contrast), and a `border-left` only (invisible once a button sits beside it, and it
+stops the heading from reading as a separator).
+
+No behaviour, id or markup contract changed: `.levelhead` keeps its class, its count suffix and its
+button. Page syntax gate OK; 60 page/contract tests pass.
+
+- 1.66 (2026-11-03): give `.levelhead` a green marker bar, a full-width separator rule and a right-hand slot for its Close button; no frozen core, method, preset, input, check, number or route changed.
+
+
 ## The hidden buttons are actually hidden now, and one Excel button is enough
 
 Owner: "again HIDE CHARTS AND EXPORT", "download the figures (excel) is already redundant if there is

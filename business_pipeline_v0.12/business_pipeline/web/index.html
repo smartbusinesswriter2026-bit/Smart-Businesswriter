@@ -520,7 +520,23 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .capcard .lvl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
               border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;
               flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
-.levelhead{margin:16px 0 2px;font-size:14.8px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+/* Level-1 group headings on a subject page ("Bookkeeping and statements", "Cost and
+   variance analysis", ...). Two devices, not one: a green bar at the start of the line
+   that the eye catches while scanning, and a hairline rule under the whole heading that
+   separates one group from the next. A trailing control — the Close button that a tile
+   group carries inside its heading — is parked at the far right ON the rule, so a group
+   heading reads the same whether or not it has a button, and the bar and the rule still
+   form one continuous line. */
+.levelhead{display:flex;align-items:center;gap:10px;position:relative;
+  margin:26px 0 12px;padding:0 0 7px;border-bottom:1px solid var(--border);
+  font-size:13.4px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);
+  font-weight:600}
+.levelhead::before{content:"";flex:0 0 auto;width:4px;height:1.05em;border-radius:2px;
+  background:var(--green-600)}
+.levelhead > button:first-of-type{margin-left:auto}
+.levelhead > button{margin-left:8px}
+.levelhead > button + button{margin-left:8px}
+
 .studynote{border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin:8px 0;background:var(--surface)}
 .studynote summary{cursor:pointer;font-weight:650;color:var(--navy-900)}
 .studynote p,.studynote li{font-size:15.4px;color:var(--text-2);line-height:1.5}
