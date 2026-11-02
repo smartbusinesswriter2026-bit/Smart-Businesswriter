@@ -1,3 +1,29 @@
+## The heading band is on every subject, and its Close button is reconciled
+
+Owner: approved on accounting — apply to all subjects, and reconcile professionally where a Close
+button sits beside a level-1 heading.
+
+- **Rolled out**: the scope moved from `#subjectout[data-subject="accounting"]` to `#subjectout`, so all
+  eleven shelves carry the filled `--green-700` band with the white label. Home panels and other
+  `.levelhead` uses are untouched, because the rule is scoped to the subject output.
+- **The Close button became part of the bar, and stopped being red.** It was `btn sm danger` with the
+  word *Close* sitting inside the heading. On a green band that was three problems at once: red on
+  green is a chromatic clash, a word is not what a header bar wants at its right edge, and "danger"
+  overstates an action that is reversible — a tile removed from a shelf can be added back. It is now a
+  26 px white icon button in a **right-hand action zone**, separated from the title by a 1 px
+  `rgba(255,255,255,.28)` rule, with a 16 % white hover and a visible focus ring. The word did not
+  disappear, it moved: `title` and `aria-label` read *"Remove <tile> from this shelf"*, so a screen
+  reader and a hover both still get it.
+- **Why a right-hand zone rather than a floating button**: a heading plus a stray control is two
+  objects. A title with a divided action area is one object — a header bar — which is what the eye
+  already reads a full-width band as. Multiple controls stack in that zone with 6 px between them.
+
+Page syntax gate OK; 60 page and contract tests pass (one failure is the pre-existing external
+portfolio-rail assertion). Build 1.68.
+
+- 1.68 (2026-11-03): apply the heading band to every subject and turn its Close button into a named icon control in a right-hand action zone; no frozen core, method, preset, input, check, number or route changed.
+
+
 ## Trial: a filled green band behind the accounting level-1 headings, pending approval
 
 Owner: the small green marker beside a level-1 heading is not enough — try a full horizontal bar with
