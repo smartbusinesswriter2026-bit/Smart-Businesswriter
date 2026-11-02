@@ -8,7 +8,7 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.66 (see docs/CHANGELOG.md)
+Build        : 1.67 (see docs/CHANGELOG.md)
 Tests        : 2932 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves â€” see docs/OPEN_ISSUES.md
 ```
 

@@ -537,6 +537,22 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .levelhead > button{margin-left:8px}
 .levelhead > button + button{margin-left:8px}
 
+/* Trial, ACCOUNTING ONLY, pending the owner's approval: a filled band across the full
+   width instead of a small marker. White on --green-700 (#076B41) is about 7.5:1, which
+   clears WCAG AA and AAA for the small uppercase label; --green-600 would not (3.1:1).
+   The marker bar is switched off here because the band itself is the marker, and any
+   control inside the heading is outlined in white so it stays legible on the green.
+   Removing the [data-subject="accounting"] condition applies it to every subject. */
+#subjectout[data-subject="accounting"] .levelhead{
+  background:var(--green-700);color:#fff;border-bottom:0;border-radius:8px;
+  padding:9px 12px;margin:22px 0 14px;font-size:13.2px;letter-spacing:.08em}
+#subjectout[data-subject="accounting"] .levelhead::before{display:none}
+#subjectout[data-subject="accounting"] .levelhead > button{
+  background:transparent;border-color:rgba(255,255,255,.55);color:#fff}
+#subjectout[data-subject="accounting"] .levelhead > button:hover{
+  background:rgba(255,255,255,.14)}
+
+
 .studynote{border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin:8px 0;background:var(--surface)}
 .studynote summary{cursor:pointer;font-weight:650;color:var(--navy-900)}
 .studynote p,.studynote li{font-size:15.4px;color:var(--text-2);line-height:1.5}
@@ -4533,6 +4549,9 @@ async function runDraft(draft, worksheet) {
 function renderSubject() {
   const s = state.subject; if (!s) return;
   const out = $("#subjectout");
+  // Which shelf is on screen, so a heading treatment can be trialled on one subject
+  // before it is applied to all of them.
+  out.dataset.subject = String(s.id || "").toLowerCase();
   let html = '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
     '<div class="shield"><span class="capicon" style="width:44px;height:44px;color:' + toneOf(s.id) + '">' +
       iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + '</h2>' +

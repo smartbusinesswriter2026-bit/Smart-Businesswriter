@@ -1,3 +1,24 @@
+## Trial: a filled green band behind the accounting level-1 headings, pending approval
+
+Owner: the small green marker beside a level-1 heading is not enough — try a full horizontal bar with
+the text in white, in **accounting first**, and apply it elsewhere only if approved.
+
+- The subject page now records which shelf is on screen (`#subjectout[data-subject="accounting"]`), so a
+  treatment can be trialled on one subject and switched on for all of them by removing one condition.
+- Accounting's `.levelhead` becomes a filled band: `--green-700` background, white label, 8 px radius,
+  9 px × 12 px padding, and the marker pseudo-element switched off because the band itself is the mark.
+- **White on `--green-700` (#076B41) is about 7.5:1** — WCAG AA and AAA for small text. `--green-600`
+  (#02A15E) would be about 3.1:1, which fails for a label this size, so the darker green was chosen
+  deliberately rather than for looks.
+- Any control inside the heading (a Close button on a tile group) is outlined in white with a 14%
+  white hover, so it stays legible on the band.
+
+Scoped to `accounting` only. Every other shelf keeps the marker-and-rule treatment until the owner says
+otherwise.
+
+- 1.67 (2026-11-03): trial the filled heading band on accounting; no frozen core, method, preset, input, check, number or route changed.
+
+
 ## Level-1 headings on a subject page get a mark and a rule — and still work with a Close button
 
 Owner: add a green bar to level-1 headings such as *Bookkeeping and statements* and *Cost and variance
