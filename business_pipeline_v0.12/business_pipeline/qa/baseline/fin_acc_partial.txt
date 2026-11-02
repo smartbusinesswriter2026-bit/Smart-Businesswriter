@@ -1,0 +1,77 @@
+﻿.....FF................F.                                                [100%]
+================================== FAILURES ===================================
+_ FinanceCatalogueAndContract.test_006__every_preset_default_passes_schema_and_profile _
+
+self = <test_subject_finance_acceptance.FinanceCatalogueAndContract testMethod=test_006__every_preset_default_passes_schema_and_profile>
+
+    def test_006__every_preset_default_passes_schema_and_profile(self):
+        """E-fin-006: a shipped preset is a runnable example, not a broken one."""
+        for item in tools():
+            if item["method"] not in methods.LIBRARY:
+                continue
+            preset_id, request = request_for(item["method"])
+>           self.assertIsNotNone(preset_id, item["method"])
+E           AssertionError: unexpectedly None : ols_robust
+
+tests\test_subject_finance_acceptance.py:175: AssertionError
+_ FinanceCatalogueAndContract.test_007__every_method_passes_its_own_checks_on_its_preset_except_mid_year_dcf _
+
+self = <test_subject_finance_acceptance.FinanceCatalogueAndContract testMethod=test_007__every_method_passes_its_own_checks_on_its_preset_except_mid_year_dcf>
+
+    def test_007__every_method_passes_its_own_checks_on_its_preset_except_mid_year_dcf(self):
+        """E-fin-007 / D-FIN-01: the one failing self-check, pinned with its ledger id."""
+        failures = []
+        for item in tools():
+            if item["method"] not in methods.LIBRARY:
+                continue
+            preset_id, request = request_for(item["method"])
+            if item["preset"] in server.PRESETS:
+                preset_id, request = item["preset"], server.PRESETS[item["preset"]]
+            method = methods.LIBRARY[item["method"]]
+>           for name, ok in method.tests(dict(request["inputs"]), method.impl):
+                                              ^^^^^^^^^^^^^^^^^
+E           TypeError: 'NoneType' object is not subscriptable
+
+tests\test_subject_finance_acceptance.py:193: TypeError
+_ FinanceIndependentRecomputation.test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures _
+
+self = <test_subject_finance_acceptance.FinanceIndependentRecomputation testMethod=test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures>
+
+    def test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures(self):
+        """E-fin-024: the four statistical tools on the shelf against their fixtures."""
+        descriptive = fixture("descriptive_golden.json")
+        for case in descriptive:
+            inputs = {"values": case["values"]}
+            if case.get("missing_codes"):
+                inputs["missing_codes"] = case["missing_codes"]
+            out = methods.LIBRARY["descriptive_stats"].impl(inputs)
+            for name, expected in case["expected"].items():
+                self.assertTrue(close(out[name], expected),
+                                "%s: %s %r != %r" % (case["name"], name, out[name], expected))
+        forecast = fixture("forecast_golden.json")
+        for case in forecast:
+            inputs = {"values": case["values"], "horizon": case["horizon"]}
+            if case.get("missing_codes"):
+                inputs["missing_codes"] = case["missing_codes"]
+            out = methods.LIBRARY["trend_forecast"].impl(inputs)
+            for name, expected in case["expected"].items():
+                self.assertTrue(close(out[name], expected),
+                                "%s: %s %r != %r" % (case["name"], name, out[name], expected))
+        correlation = fixture("correlation_golden.json")
+        for case in correlation:
+            inputs = {"x": case["x"], "y": case["y"]}
+            if case.get("missing_codes"):
+                inputs["missing_codes"] = case["missing_codes"]
+            out = methods.LIBRARY["pearson"].impl(inputs)
+            for name, expected in case["expected"].items():
+>               self.assertTrue(close(out[name], expected, D(str(case.get("p_tol", "1e-9")))),
+                                      ^^^^^^^^^
+                                "%s: %s %r != %r" % (case["name"], name, out[name], expected))
+E               KeyError: 'rho'
+
+tests\test_subject_finance_acceptance.py:394: KeyError
+=========================== short test summary info ===========================
+FAILED tests/test_subject_finance_acceptance.py::FinanceCatalogueAndContract::test_006__every_preset_default_passes_schema_and_profile
+FAILED tests/test_subject_finance_acceptance.py::FinanceCatalogueAndContract::test_007__every_method_passes_its_own_checks_on_its_preset_except_mid_year_dcf
+FAILED tests/test_subject_finance_acceptance.py::FinanceIndependentRecomputation::test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures
+3 failed, 22 passed in 0.60s

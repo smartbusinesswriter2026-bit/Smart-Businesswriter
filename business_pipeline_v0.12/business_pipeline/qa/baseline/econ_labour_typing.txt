@@ -1,0 +1,10 @@
+﻿unit currency
+{'nominal_wage': '100', 'cpi': '110', 'labour_productivity': '50', 'real_wage': '90.909090909090909090909090909090909090909090909091', 'wage_share_of_productivity': '1.8181818181818181818181818181818181818181818181818', 'vacancies': '300', 'unemployment_rate': '0.06', 'labour_market_tightness': '5.0E+3'}
+cpi -> ('ratio', 2)
+labour_market_tightness -> ('currency', 2)
+labour_productivity -> ('ratio', 2)
+nominal_wage -> ('currency', 2)
+real_wage -> ('currency', 2)
+unemployment_rate -> ('rate', 4)
+vacancies -> ('currency', 2)
+wage_share_of_productivity -> ('currency', 2)

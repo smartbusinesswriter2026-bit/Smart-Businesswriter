@@ -1,0 +1,18 @@
+﻿capabilities.py:704: Deterministic: only the recorded "yes" adds the capability, only "no" drops
+chat.py:1003: """Which of a capability's inputs the plan took from another frozen result."""
+chat.py:1015: capability is in this paper and has a recorded, successful result.  Nothing is
+chat.py:1016: run and nothing is overwritten: `run_capability` records which declared inputs
+chat.py:1031: def _fill_capability_inputs(selection):
+chat.py:1396: # capability: the plan records it, and the paper then carries it.
+chat.py:1398: return run_capability(state, wanted, values)
+chat.py:1401: def run_capability(state, key, values):
+chat.py:1411: # Fail closed: a capability the paper does not carry is never run, so a
+chat.py:1464: def _capability_inputs(entry_row, values):
+chat.py:1746: def set_capability(state, key, enabled=True, reason=""):
+chat.py:1747: """Add or drop one capability at the plan stage, recording the student's decision."""
+chat.py:1780: def _capability_status(state, row):
+chat.py:1789: def _available_capabilities(framework, selected):
+chat.py:2504: #: A capability without a bespoke formatter falls back to `_generic_lines`, which
+chat.py:4123: def _capability_lines(row, recorded):
+chat.py:4124: """Format one recorded capability for the draft; a gap is named, never filled."""
+chat.py:5405: [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]

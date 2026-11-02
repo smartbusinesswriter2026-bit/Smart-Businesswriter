@@ -3279,8 +3279,10 @@ composer text is 18 px (both were 19 px). The chat column - the composer and the
 under it - is 768 px, centred, with `max-width` only, so a narrow screen still gets the full width;
 the conversation card now sits 16 px under the composer instead of sharing an edge with it.
 
-The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion reads
-`font-size:16.8px`, with the owner's instruction and the date in a comment beside it.
+The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion pins
+the body rule itself at `font-size:16.8px`, with the owner's instruction and the date in a comment
+beside it. It pins the whole rule because 16.8 px is also a worksheet title size, so the loose form
+would have stopped guarding the body.
 
 **Files:** `web/index.html`, `web/DESIGN_NOTES.md`, `tests/test_product_subjects.py`,
 `docs/CHANGELOG.md`, `docs/WORKLOG.md`, `docs/DECISIONS.md`.

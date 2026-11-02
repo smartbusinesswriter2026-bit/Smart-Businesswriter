@@ -1,0 +1,12 @@
+﻿E       AssertionError: 8 != 9 : seven QNT-FIN records plus QNT-DEC-02 and QNT-FIN-06
+tests\test_subject_finance_acceptance.py:459: AssertionError
+E       AssertionError: 15 != 14 : 23 records, 9 computed, 14 read-only
+tests\test_subject_finance_acceptance.py:464: AssertionError
+E       AssertionError: 25 != 23 : G-fin-07 recorded 23 tools without need text; measured ['bond', 'breakeven', 'capm', 'currency', 'dcf', 'dcfmid', 'dupont', 'equitybridge', 'fx', 'leverage', 'loan', 'multibreakeven', 'multiples', 'ols_robust', 'options', 'portfolio', 'portfolioperf', 'portfolioval', 'ratios', 'risk', 'trendanalysis', 'tvm', 'unitecon', 'wacc', 'workingcapital']
+tests\test_subject_finance_acceptance.py:544: AssertionError
+E       AssertionError: Lists differ: [('discounted_payback', 'At a declared dis[1028 chars],0')] != []
+tests\test_subject_finance_acceptance.py:659: AssertionError
+E       AssertionError: Lists differ: ['equity_bridge', 'leverage_analysis', 'time_value'] != []
+tests\test_subject_finance_acceptance.py:666: AssertionError
+E       AssertionError: '-5.26' not found in 'Under the stated assumptions, the npv is USD (5.26). The result is not positive, so the investment does not clear the hurdle under these inputs.' : the declared NPV must appear, rounded to the paper's 2 dp
+tests\test_subject_finance_acceptance.py:676: AssertionError

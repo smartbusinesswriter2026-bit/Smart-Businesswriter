@@ -1,0 +1,113 @@
+﻿.........................FF.........F.........FFF.                       [100%]
+================================== FAILURES ===================================
+_ FinanceRecordsAndGuidance.test_026__computed_records_name_methods_the_engine_has _
+
+self = <test_subject_finance_acceptance.FinanceRecordsAndGuidance testMethod=test_026__computed_records_name_methods_the_engine_has>
+
+    def test_026__computed_records_name_methods_the_engine_has(self):
+        """E-fin-026: a computed record never names a method the engine lacks."""
+        checked = 0
+        for record in page()["records"]:
+            if record["form"] != "computed":
+                continue
+            self.assertTrue(record["linked_methods"],
+                            "%s is called computed but links no method" % record["id"])
+            for method_id in record["linked_methods"]:
+                self.assertIn(method_id, methods.LIBRARY,
+                              "%s links %r, which is not a frozen method"
+                              % (record["id"], method_id))
+            checked += 1
+>       self.assertEqual(checked, 9, "seven QNT-FIN records plus QNT-DEC-02 and QNT-FIN-06")
+E       AssertionError: 8 != 9 : seven QNT-FIN records plus QNT-DEC-02 and QNT-FIN-06
+
+tests\test_subject_finance_acceptance.py:459: AssertionError
+_ FinanceRecordsAndGuidance.test_027__a_read_only_record_claims_no_method_and_no_worksheet _
+
+self = <test_subject_finance_acceptance.FinanceRecordsAndGuidance testMethod=test_027__a_read_only_record_claims_no_method_and_no_worksheet>
+
+    def test_027__a_read_only_record_claims_no_method_and_no_worksheet(self):
+        """E-fin-027: a read-only record is something to read and cite, nothing more."""
+        read_only = [record for record in page()["records"] if record["form"] == "read_only"]
+>       self.assertEqual(len(read_only), 14, "23 records, 9 computed, 14 read-only")
+E       AssertionError: 15 != 14 : 23 records, 9 computed, 14 read-only
+
+tests\test_subject_finance_acceptance.py:464: AssertionError
+_ FinanceRecordsAndGuidance.test_037__missing_need_text_is_named_as_the_recorded_gap _
+
+self = <test_subject_finance_acceptance.FinanceRecordsAndGuidance testMethod=test_037__missing_need_text_is_named_as_the_recorded_gap>
+
+    def test_037__missing_need_text_is_named_as_the_recorded_gap(self):
+        """E-fin-037 / G-fin-07: 23 tools have no 'what to gather' line; it is ledgered."""
+        missing = sorted(item["key"] for item in tools() if not item.get("need"))
+>       self.assertEqual(len(missing), 23,
+                         "G-fin-07 recorded 23 tools without need text; measured %r" % (missing,))
+E       AssertionError: 25 != 23 : G-fin-07 recorded 23 tools without need text; measured ['bond', 'breakeven', 'capm', 'currency', 'dcf', 'dcfmid', 'dupont', 'equitybridge', 'fx', 'leverage', 'loan', 'multibreakeven', 'multiples', 'ols_robust', 'options', 'portfolio', 'portfolioperf', 'portfolioval', 'ratios', 'risk', 'trendanalysis', 'tvm', 'unitecon', 'wacc', 'workingcapital']
+
+tests\test_subject_finance_acceptance.py:544: AssertionError
+_ FinanceProductPath.test_047__capability_papers_print_money_at_two_decimals __
+
+self = <test_subject_finance_acceptance.FinanceProductPath testMethod=test_047__capability_papers_print_money_at_two_decimals>
+
+    def test_047__capability_papers_print_money_at_two_decimals(self):
+        """E-fin-047 / D-FIN-02: no capability paper prints a raw core Decimal."""
+        offenders = []
+        for key, row, method_id, inputs, recorded in finance_capability_runs():
+            lines = chat._capability_lines(row, {"ok": True, "inputs": inputs,
+                                                 "result": recorded})
+            for line in lines:
+                if LONG_DECIMAL.search(line):
+                    offenders.append((key, line[:160]))
+>       self.assertEqual(offenders, [],
+                         "a finance paper printed the core's full Decimal: %r" % (offenders,))
+E       AssertionError: Lists differ: [('discounted_payback', 'At a declared dis[1028 chars],0')] != []
+E       
+E       First list contains 6 additional elements.
+E       First extra element 0:
+E       ('discounted_payback', 'At a declared discount rate of 10%, the declared cash flows (-1,000; 400; 400; 400; 400) recover the outlay in 3.01925000000000000000000000000000000000000000000')
+E       
+E       Diff is 1206 characters long. Set self.maxDiff to None to see it. : a finance paper printed the core's full Decimal: [('discounted_payback', 'At a declared discount rate of 10%, the declared cash flows (-1,000; 400; 400; 400; 400) recover the outlay in 3.01925000000000000000000000000000000000000000000'), ('project_metrics', 'At a declared discount rate of 10%, the declared project has a net present value of 267.95, a profitability index of 1.26794617853971723242947886073355645106208'), ('unit_economics', 'The declared acquisition cost of 80 is covered after 2.1621621621621621621621621621621621621621621621622 periods of that margin.'), ('time_value', 'From the declared inputs (present value 100,000; payment 12,000; rate 0.06; periods 5; compounding quarterly; timing end), the frozen time value of money method'), ('leverage_analysis', 'From the declared inputs (ebit 500,000; interest expense 100,000; tax rate 0.30; debt 800,000; equity 1,200,000; shares outstanding 100,000; working capital 300'), ('equity_bridge', 'From the declared inputs (enterprise value 1,750,939.14; debt 300,000; cash 150,000; minority interest 20,000; preferred equity 10,000; shares outstanding 100,0')]
+
+tests\test_subject_finance_acceptance.py:659: AssertionError
+_ FinanceProductPath.test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap _
+
+self = <test_subject_finance_acceptance.FinanceProductPath testMethod=test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap>
+
+    def test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap(self):
+        """E-fin-048 / G-fin-08: a capability without a formatter quotes the core verbatim."""
+        missing = sorted({row["key"] for _tool, row, _m, _i, _r in finance_capability_runs()
+                          if chat.CAPABILITY_LINES.get(row["key"]) is None})
+>       self.assertEqual(missing, [],
+                         "G-fin-08: these finance capabilities fall back to the generic "
+                         "formatter: %r" % (missing,))
+E       AssertionError: Lists differ: ['equity_bridge', 'leverage_analysis', 'time_value'] != []
+E       
+E       First list contains 3 additional elements.
+E       First extra element 0:
+E       'equity_bridge'
+E       
+E       - ['equity_bridge', 'leverage_analysis', 'time_value']
+E       + [] : G-fin-08: these finance capabilities fall back to the generic formatter: ['equity_bridge', 'leverage_analysis', 'time_value']
+
+tests\test_subject_finance_acceptance.py:666: AssertionError
+_ FinanceProductPath.test_049__the_deliverable_carries_the_numbers_and_no_template_token _
+
+self = <test_subject_finance_acceptance.FinanceProductPath testMethod=test_049__the_deliverable_carries_the_numbers_and_no_template_token>
+
+    def test_049__the_deliverable_carries_the_numbers_and_no_template_token(self):
+        """E-fin-049: the report is the deliverable, with the core's figure and no token."""
+        from bp.product import deliverables
+        delivery = deliver("npv", dict(server.PRESETS["npv"]["inputs"]))
+        report = delivery.report
+        self.assertNotIn("{{ref:", report)
+>       self.assertIn("-5.26", report, "the declared NPV must appear, rounded to the paper's 2 dp")
+E       AssertionError: '-5.26' not found in 'Under the stated assumptions, the npv is USD (5.26). The result is not positive, so the investment does not clear the hurdle under these inputs.' : the declared NPV must appear, rounded to the paper's 2 dp
+
+tests\test_subject_finance_acceptance.py:676: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_subject_finance_acceptance.py::FinanceRecordsAndGuidance::test_026__computed_records_name_methods_the_engine_has
+FAILED tests/test_subject_finance_acceptance.py::FinanceRecordsAndGuidance::test_027__a_read_only_record_claims_no_method_and_no_worksheet
+FAILED tests/test_subject_finance_acceptance.py::FinanceRecordsAndGuidance::test_037__missing_need_text_is_named_as_the_recorded_gap
+FAILED tests/test_subject_finance_acceptance.py::FinanceProductPath::test_047__capability_papers_print_money_at_two_decimals
+FAILED tests/test_subject_finance_acceptance.py::FinanceProductPath::test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap
+FAILED tests/test_subject_finance_acceptance.py::FinanceProductPath::test_049__the_deliverable_carries_the_numbers_and_no_template_token
+6 failed, 44 passed in 1.62s

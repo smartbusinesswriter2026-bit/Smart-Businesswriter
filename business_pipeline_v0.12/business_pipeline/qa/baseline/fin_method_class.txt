@@ -1,0 +1,60 @@
+﻿18: class Method:
+19:     name: str; tier: str; impl: Callable; tests: Callable; profile: Callable
+20:     metric: str; unit: str; decision: Callable | None = None; test_names: tuple = ()
+22:     version: str = "1.0.0"; category: str = "decision"; status: str = "implemented_tested"
+23:     review_status: str = "pending_named_reviewer"   # disclosure only: no reviewer is named (B-112)
+24:     intended_use: str = ""; unsupported_use: str = ""
+25:     input_schema: dict = field(default_factory=dict)
+26:     defaults: tuple = (); assumptions: tuple = (); limitations: tuple = ()
+27:     output_precision: dict = field(default_factory=dict)
+28:     default_period: str = "annual"
+29:     caveats: Callable | None = None
+30:     template: Callable | None = None
+31:     claim_ceiling: str = "descriptive"
+33:     assumption_checks: Callable | None = None
+34:     assumption_check_names: tuple = ()
+35:     fallbacks: dict = field(default_factory=dict)      # failed check name -> fallback method id (written into the spec)
+36:     default_thresholds: dict = field(default_factory=dict)
+37:     output_units: dict = field(default_factory=dict)
+38:     typing: Callable | None = None                     # metric -> (unit, precision) for dynamic output names
+39:     mapping: Callable | None = None                    # account-mapping checkpoint: (inputs) -> {"rows": [...], "checks": [(name, ok, detail)]}
+40:     mapping_check_names: tuple = ()
+43: def sha_source(fn):
+44:     try: return hashlib.sha256(inspect.getsource(fn).encode()).hexdigest()
+47: def decision_flip(m, impl, inp, lo, hi):
+59: def _num(x):
+65: def _check(key, v, spec):
+67:     try:
+159: def validate_inputs(m, inp) -> list[str]:
+175: def npv(inp):
+179: def npv_reference(inp):  # independent route: Horner / backward induction
+184: def npv_tests(inp, impl):
+194: def npv_profile(inp):
+206: def _cfs_float(inp):
+207:     try:
+212: def _cfs_decimal(inp):
+213:     try:
+218: def _npv_float(cfs, r):
+221: def _irr_scan(cfs):
+243: def irr_impl(inp):
+257: def _irr_reference(inp):
+275: def _irr_tests(inp, impl):
+297: def _irr_profile(inp):
+298:     try:
+312: def _irr_typing(metric):
+317: def _irr_template(out, P, th):
+324: def dpb_impl(inp):
+340: def _dpb_reference(inp):
+353: def _dpb_tests(inp, impl):
+366:     try: higher = impl({**inp, "rate": str(r + D("0.05"))})
+382: def _dpb_profile(inp):
+383:     try:
+400: def _dpb_typing(metric):
+405: def _dpb_template(out, P, th):
+415: def _optional_decimal(inp, key):
+422: def breakeven(inp):
+447: def breakeven_tests(inp, impl):
+466: def breakeven_profile(inp):
+467:     try:
+484: def _breakeven_typing(metric):
+491: def breakeven_caveats(out, th):

@@ -1,0 +1,32 @@
+﻿const http = require("http");
+const fs = require("fs");
+const { spawn } = require("child_process");
+const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const PORT = 9339;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const getJSON = (url) => new Promise((res, rej) => { http.get(url, (r) => { let b = ""; r.on("data", (d) => b += d); r.on("end", () => { try { res(JSON.parse(b)); } catch (e) { rej(e); } }); }).on("error", rej); });
+(async () => {
+  const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars", "--window-size=1440,2200", "--remote-debugging-port=" + PORT, "--user-data-dir=" + process.env.TEMP + "\\sbw-cdp-snap", "about:blank"], { stdio: "ignore" });
+  let t = null;
+  for (let i = 0; i < 60; i++) { await sleep(300); try { const l = await getJSON("http://127.0.0.1:" + PORT + "/json/list"); t = l.find((x) => x.type === "page"); if (t) break; } catch (e) {} }
+  const ws = new WebSocket(t.webSocketDebuggerUrl);
+  let id = 1; const pending = new Map(); const events = [];
+  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(JSON.stringify(m.error))) : p.resolve(m.result); } else if (m.method) events.push(m); };
+  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+  const send = (method, params) => new Promise((res, rej) => { const i = id++; pending.set(i, { resolve: res, reject: rej }); ws.send(JSON.stringify({ id: i, method, params: params || {} })); });
+  await send("Page.enable"); await send("Runtime.enable");
+  await send("Page.navigate", { url: "http://127.0.0.1:8000/#/portfolio" }); await sleep(4500);
+  const ev = async (expression) => { const r = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) throw new Error(JSON.stringify(r.exceptionDetails).slice(0, 400)); return r.result.value; };
+  await ev(`(async () => { document.querySelector("[data-pfopen]").click(); await new Promise(r => setTimeout(r, 3000)); document.querySelector('[data-pftab="data"]').click(); await new Promise(r => setTimeout(r, 1200)); return true; })()`);
+  const out = {};
+  out.blocked = await ev(`(async () => { document.querySelector("#pfdate").value = "2026-11-03"; document.querySelector("#pfsnapshot").click(); await new Promise(r => setTimeout(r, 9000)); return (document.querySelector("#pfmsg") || {}).textContent.replace(/\\s+/g," ").trim(); })()`);
+  await ev(`(async () => { document.querySelector("#pffetch").click(); await new Promise(r => setTimeout(r, 25000)); return true; })()`);
+  out.afterFetch = await ev(`(document.querySelector("#pfmsg") || {}).textContent.replace(/\\s+/g," ").trim()`);
+  out.created = await ev(`(async () => { document.querySelector("#pfsnapshot").click(); await new Promise(r => setTimeout(r, 12000)); return (document.querySelector("#pfmsg") || {}).textContent.replace(/\\s+/g," ").trim(); })()`);
+  out.snapshotCards = await ev(`Array.from(document.querySelectorAll("#portfolioout h3")).map(h => h.textContent.trim()).filter(h => h.startsWith("Snapshot "))`);
+  const shot = await send("Page.captureScreenshot", { format: "png" });
+  fs.writeFileSync("portfolio-snapshot-confirmation.png", Buffer.from(shot.data, "base64"));
+  out.pageExceptions = events.filter((e) => e.method === "Runtime.exceptionThrown").length;
+  console.log(JSON.stringify(out, null, 2));
+  ws.close(); chrome.kill();
+})().catch((e) => { console.error(e); process.exit(1); });

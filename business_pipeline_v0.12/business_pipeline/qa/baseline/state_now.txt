@@ -1,0 +1,17 @@
+﻿167
+
+## 9. Next action
+
+**Session 2 â€” `finance`.** Top three risks, measured from this session's data:
+
+1. **The same shadowing class may hide in `chat.py`'s 50-odd formatters.** Three of this
+   session's five defects were duplicate definitions; `qa/probe_duplicates.py` is the gate, and
+   it must be run on `src/bp/product/*.py` at the start of every session.
+2. **Capability formatters without a bespoke function print raw Decimals.** 17 of the 126
+   capability keys have no `CAPABILITY_LINES` entry (measured: `qa/baseline/formatters.txt`), so
+   they fall back to `_generic_lines`, which quotes the core's full Decimal when a value carries
+   more than two places. Finance's `time_value`, `leverage_analysis`, `equity_bridge`,
+   `return_on_investment` and `cap_table_round` are five of the seventeen.
+3. **A second mandatory checkpoint exists for `management_accounts` only.** Any future method
+   with `mapping` must be driven through both checkpoints by the click-through, or the paper
+   silently stays at `awaiting_mapping_confirmation`.

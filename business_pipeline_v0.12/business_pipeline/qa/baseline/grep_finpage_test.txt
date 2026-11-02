@@ -1,0 +1,47 @@
+﻿
+> tests\test_finance_additions.py:257:    def 
+test_the_finance_page_groups_tools_and_carries_study_notes(self):
+  tests\test_finance_additions.py:258:        page = subjects.detail("finance")
+  tests\test_finance_additions.py:259:        order = []
+  tests\test_finance_additions.py:260:        for tool in page["tools"]:
+  tests\test_finance_additions.py:261:            self.assertTrue(tool["group"], 
+tool["key"])
+  tests\test_finance_additions.py:262:            self.assertTrue(tool["period"], 
+tool["key"])
+  tests\test_finance_additions.py:263:            self.assertTrue(tool["formula"], 
+tool["key"])
+  tests\test_finance_additions.py:264:            self.assertTrue(tool["steps"], 
+tool["key"])
+  tests\test_finance_additions.py:265:            
+self.assertTrue(tool["common_mistakes"], tool["key"])
+  tests\test_finance_additions.py:266:            if tool["group"] not in order:
+  tests\test_finance_additions.py:267:                order.append(tool["group"])
+  tests\test_finance_additions.py:268:        self.assertEqual(order, ["Foundations", 
+"Corporate finance", "Valuation",
+  tests\test_finance_additions.py:269:                                 "Investments", 
+"Risk & derivatives", "International"])
+  tests\test_finance_additions.py:270:        self.assertTrue(page["glossary"])
+  tests\test_finance_additions.py:271:        self.assertTrue(any(row["term"] == "WACC" 
+for row in page["glossary"]))
+  tests\test_finance_additions.py:272:        economics = subjects.detail("economics")
+  tests\test_finance_additions.py:273:        self.assertTrue(all(tool["group"] is None 
+for tool in economics["tools"]),
+  tests\test_finance_additions.py:274:                        "the finance grouping 
+must not leak onto the economics page")
+  tests\test_finance_additions.py:275:
+  tests\test_finance_additions.py:276:    def 
+test_a_percent_typed_as_a_whole_number_is_flagged(self):
+  tests\test_finance_additions.py:277:        bad = Pipeline().run({"objective": "x", 
+"method": "time_value", "currency": "USD",
+  tests\test_finance_additions.py:278:                              "inputs": 
+{"present_value": "1000", "rate": "6", "periods": "1",
+  tests\test_finance_additions.py:279:                                         
+"compounding": "annual"}}, lambda spec: True)
+  tests\test_finance_additions.py:280:        self.assertEqual(bad.status, "delivered")
+  tests\test_finance_additions.py:281:        self.assertIn("6% is 0.06", bad.report)
+  tests\test_finance_additions.py:282:        good = Pipeline().run({"objective": "x", 
+"method": "time_value", "currency": "USD",
+  tests\test_finance_additions.py:283:                               "inputs": 
+{"present_value": "1000", "rate": "0.06", "periods": "1",
+
+

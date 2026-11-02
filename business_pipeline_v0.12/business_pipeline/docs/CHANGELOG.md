@@ -88,9 +88,11 @@ Measured on the served page (Chrome, 1440x1000): `.hero h1` 45 -> 43 px, `body` 
 centre as the hero wordmark.
 
 The pinned body size in `tests/test_product_subjects.py` moved with the page - the assertion now
-reads `font-size:16.8px`, with the owner's instruction and the date beside it. The inline script
-parses (`node --check`); `tests/test_web_inline_script.py`, `tests/test_web_brand_assets.py` and
-`tests/test_product_subjects.py` pass. No behaviour, number, wording or claim changed.
+pins the body rule itself at `font-size:16.8px` (16.8 px is also a worksheet title size, so the
+loose form would have stopped guarding the body), with the owner's instruction and the date beside
+it. The inline script parses (`node --check`); `tests/test_web_inline_script.py`,
+`tests/test_web_brand_assets.py` and `tests/test_product_subjects.py` pass. No behaviour, number,
+wording or claim changed.
 
 ## A rubric can be read, and only what it states is carried
 

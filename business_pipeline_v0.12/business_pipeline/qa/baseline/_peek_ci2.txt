@@ -1,0 +1,6 @@
+﻿  page = open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_subject_economics_acceptance.py:267: ResourceWarning: unclosed file <_io.TextIOWrapper name='docs/CURRICULUM_MAP.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..............................................................

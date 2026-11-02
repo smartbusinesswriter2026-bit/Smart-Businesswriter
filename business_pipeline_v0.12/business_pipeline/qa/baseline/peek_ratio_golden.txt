@@ -1,0 +1,20 @@
+﻿{
+  "generated_by": "independent Fraction re-implementation of the declared ratio formulas (offline generation, 2026-10-21); not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "cases": [
+    {
+      "name": "full_pack",
+      "inputs": {
+        "current_assets": "5000",
+        "current_liabilities": "2000",
+        "cash": "800",
+        "inventory": "1200",
+        "receivables": "1500",
+        "payables": "900",
+        "total_assets": "12000",
+        "total_liabilities": "7000",
+        "equity": "5000",
+        "revenue": "20000",
+        "cost_of_sales": "12000",
+        "operating_profit": "3000",
+        "net_income": "1800",

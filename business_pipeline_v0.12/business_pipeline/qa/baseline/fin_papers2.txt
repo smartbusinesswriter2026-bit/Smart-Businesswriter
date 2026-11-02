@@ -1,0 +1,190 @@
+==============================================================================
+tvm  method=time_value  preset=tvm
+   capability time_value                 formatter=None output_key=None
+      From the declared inputs (present value 100,000; payment 12,000; rate 0.06; periods 5; compounding quarterly; timing end), the frozen time value of money method returns future value 412169.50589505043384053371598616910344392272576332; present value input 100,000; present value payments 206023.66542098316188539904687695437449708020464249; future value payments 277484.00524004483008047441420992809195015353401184; total payments 240,000; periodic rate 0.015; effective annual rate 0.061363550625; n periods 20; annuity factor 17.168638785081930157116587239746197874756683720208.   <-- raw long decimal
+      The figures are the method's recorded output; they are not a forecast and they hold only for the inputs the student declared.
+==============================================================================
+loan  method=loan_amortization  preset=loan
+   capability loan_amortization          formatter=_loan_lines output_key=None
+      On a declared principal of 200,000 at an annual rate of 9%, repaid over 60 payments, the level payment is 4,151.67 per payment.
+      The payments total 249,100.26, of which 49,100.26 is interest; the first payment is 1,500 interest and 2,651.67 principal.
+      The schedule assumes one fixed rate for the whole term and a payment at the end of each declared period; it does not model fees, a rate change or an early repayment.
+==============================================================================
+dupont  method=dupont_analysis  preset=dupont
+   capability dupont_analysis            formatter=_dupont_lines output_key=None
+      From a declared revenue of 20,000, net income of 1,800, total assets of 12,000 and equity of 5,000, the net margin is 9%, asset turnover 1.67 and the equity multiplier 2.40x, giving a return on equity of 36% (return on assets 15%).
+      The decomposition multiplies the three declared ratios; it does not judge whether the leverage is prudent.
+==============================================================================
+trendanalysis  method=trend_analysis  preset=trendanalysis
+   capability trend_analysis             formatter=_trend_lines output_key=None
+      Across 4 declared period(s), revenue grew at 10% a year (latest 10%), and net income at 16.55% a year.
+      The latest gross margin is 42.90%, the operating margin 23.37% and the net margin 14.27%; the method describes the declared series and does not forecast the next period.
+==============================================================================
+workingcapital  method=working_capital  preset=workingcapital
+   capability working_capital            formatter=_working_capital_lines output_key=None
+      With declared revenue of 20,000 and cost of sales of 12,000, the days sales outstanding are 27.38, days inventory 36.50 and days payables 27.38, giving a cash conversion cycle of 36.50 days and net working capital of 1,800.
+      At the declared annual demand and order cost, the economic order quantity is 353.55 units and the cost of the declared trade credit is 37.24% a year.
+      The cycle measures are arithmetic on the declared balances; the method does not judge the credit or ordering policy.
+==============================================================================
+ratios  method=ratio_analysis  preset=ratios
+   capability ratio_analysis             formatter=_ratio_lines output_key=None
+      From the declared figures, the method computes 15 ratio(s): current ratio 2.50; quick ratio 1.90; gross margin 40%; net margin 9%; return on assets 15%; return on equity 36%; equity multiplier 2.40; asset turnover 1.67; inventory days 36.50.
+      Each ratio is arithmetic on the declared statement figures; a ratio with a missing declared input is not reported.
+==============================================================================
+breakeven  method=breakeven  preset=breakeven
+   capability breakeven                  formatter=<lambda> output_key=None
+      At a declared fixed cost of 1,000, a price of 20 per unit and a variable cost of 10 per unit, the break-even quantity is 100 units and the break-even revenue is 2,000.
+      The contribution margin is 10 per unit (50.0% of the price).
+==============================================================================
+multibreakeven  method=multi_product_breakeven  preset=multibreakeven
+   capability multi_product_breakeven    formatter=_multi_breakeven_lines output_key=None
+      With declared fixed costs of 6,000 and 2 products (coffee at 5 with a variable cost of 2 and a mix of 3; cake at 6 with a variable cost of 3 and a mix of 1), the weighted contribution is 3 per unit of the mix.
+      Break-even is 2,000 units in total (1,500 of coffee, 500 of cake), for revenue of 10,500.
+      The mix is the student's declaration; the method does not forecast demand for any product.
+==============================================================================
+unitecon  method=unit_economics  preset=unitecon
+   capability unit_economics             formatter=_unit_economics_lines output_key=None
+      At a declared price of 49 and a variable cost of 12, the unit margin is 37 (75.51% of the price).
+      The declared acquisition cost of 80 is covered after 2.1621621621621621621621621621621621621621621621622 periods of that margin.   <-- raw long decimal
+==============================================================================
+forecast  method=trend_forecast  preset=forecast
+   capability trend_forecast             formatter=_forecast_lines output_key=None
+      The declared series of 12 period(s) has a trend of 1.00 per period (r squared 0.93, p = below 0.001), and the method projects 22.11 (19.37 to 24.84); 23.11 (20.28 to 25.94); 24.11 (21.18 to 27.05) over the declared horizon.
+      The projection extends the declared trend with its interval; it is not a market forecast and it assumes the declared pattern continues.
+==============================================================================
+descriptive  method=descriptive_stats  preset=descriptive
+   capability descriptive_stats          formatter=_descriptive_lines output_key=None
+      From the declared sample of 6 observation(s), with 1 excluded as missing, the mean is 78.83, the median is 79 and the standard deviation is 8.18, over a declared range of 68 to 90.
+      The summary describes the declared values only; it says nothing about a wider population.
+==============================================================================
+npv  method=npv  preset=npv
+   capability npv                        formatter=<lambda> output_key='npv'
+      At a declared discount rate of 10% and the declared cash flows (-1,000; 400; 400; 400), the net present value is -5.26.
+      A positive net present value means the declared flows recover the declared discount rate; a negative one means they do not. The figure is arithmetic on the declared flows and the declared rate, not a forecast.
+==============================================================================
+irr  method=irr  preset=irr
+   capability irr                        formatter=_irr_lines output_key=None
+      At the declared cash flows (-1,000; 400; 400; 400; 400), the internal rate of return is 21.86 - the rate at which the declared flows have a net present value of zero (here -0.00).
+      It is the rate the declared flows earn, not a forecast of what they will earn.
+==============================================================================
+dpayback  method=discounted_payback  preset=dpayback
+   capability discounted_payback         formatter=_payback_lines output_key=None
+      At a declared discount rate of 10%, the declared cash flows (-1,000; 400; 400; 400; 400) recover the outlay in 3.0192500000000000000000000000000000000000000000000 periods (inside period 4).   <-- raw long decimal
+      The figure is arithmetic on the declared flows and rate; it says nothing about flows beyond the ones declared.
+==============================================================================
+projectmetrics  method=project_metrics  preset=projectmetrics
+   capability project_metrics            formatter=_project_metrics_lines output_key=None
+      At a declared discount rate of 10%, the declared project has a net present value of 267.95, a profitability index of 1.2679461785397172324294788607335564510620859230927, a modified internal rate of return of 15.87 and an equivalent annual annuity of 84.53.   <-- raw long decimal
+      Each figure is the frozen method's output for the declared flows and rate; none of them is a forecast.
+==============================================================================
+wacc  method=wacc  preset=wacc
+   capability wacc                       formatter=_wacc_lines output_key=None
+      With declared equity of 800,000 (weight 80%) and debt of 200,000 (weight 20%), the weighted average cost of capital is 10.60%, from a declared cost of equity of 12% and an after-tax cost of debt of 5%.
+      Every rate is the student's declaration; the method weights them and does not estimate them.
+==============================================================================
+capm  method=capm  preset=capm
+   capability capm                       formatter=_capm_lines output_key=None
+      At a declared risk-free rate of 4% and an expected market return of 10%, with a declared beta of 1.20, the cost of equity is 11.20% (market risk premium 6%).
+      The rate follows from the declared inputs; neither the beta nor the market return is estimated by the paper.
+==============================================================================
+leverage  method=leverage_analysis  preset=leverage
+   capability leverage_analysis          formatter=None output_key=None
+      From the declared inputs (ebit 500,000; interest expense 100,000; tax rate 0.30; debt 800,000; equity 1,200,000; shares outstanding 100,000; working capital 300,000; retained earnings 400,000; total assets 2,000,000; total liabilities 800,000; sales 3,000,000; market value equity 1,800,000; alternative interest expense 200,000; alternative shares outstanding 60,000), the frozen financial leverage method returns eps 2.80; earnings before tax 400,000; interest tax shield 30,000; debt to equity 0.66666666666666666666666666666666666666666666666667; degree of financial leverage 1.25; interest cover 5; altman z 4.135; altman term working capital 0.18; altman term retained earnings 0.28; altman term ebit 0.825; altman term market equity 1.35; altman term sales 1.50; indifference ebit 350,000; eps at indifference 1.75; alternative eps 3.50.   <-- raw long decimal
+      The figures are the method's recorded output; they are not a forecast and they hold only for the inputs the student declared.
+==============================================================================
+scenario  method=scenario_analysis  preset=scenario
+   capability scenario_analysis          formatter=_scenario_lines output_key=None
+      At a declared discount rate of 10%, the declared cash flows have a net present value of 267.95; at the declared low rate of 5% it is 418.38 and at the high rate of 20% it is 35.49, a swing of 382.89.
+      The rate at which the declared flows break even is 21.86%.
+      Only the discount rate moves between the scenarios; every other declared input is held.
+==============================================================================
+case_decision  (method case_decision is a template, not a frozen method)
+==============================================================================
+dcf  method=dcf_valuation  preset=dcf
+   capability dcf_valuation              formatter=_dcf_lines output_key=None
+      At a declared discount rate of 10%, the declared free cash flows (100,000; 120,000; 140,000; 155,000) have a present value of 401,133.80.
+      With a declared terminal growth of 2%, the terminal value is 1,976,250, worth 1,349,805.34 today (77.09% of the total).
+      The enterprise value is 1,750,939.14 on those declared flows and that declared rate; it is arithmetic on the declarations, not a forecast.
+==============================================================================
+dcfmid  method=dcf_valuation  preset=dcf
+   capability dcf_valuation              formatter=_dcf_lines output_key=None
+      At a declared discount rate of 10%, the declared free cash flows (100,000; 120,000; 140,000; 155,000) have a present value of 401,133.80.
+      With a declared terminal growth of 2%, the terminal value is 1,976,250, worth 1,349,805.34 today (77.09% of the total).
+      The enterprise value is 1,750,939.14 on those declared flows and that declared rate; it is arithmetic on the declarations, not a forecast.
+==============================================================================
+equitybridge  method=equity_bridge  preset=equitybridge
+   capability equity_bridge              formatter=None output_key=None
+      From the declared inputs (enterprise value 1,750,939.14; debt 300,000; cash 150,000; minority interest 20,000; preferred equity 10,000; shares outstanding 100,000), the frozen equity bridge method returns net debt 150,000; equity value 1,570,939.14; per share value 15.7093914.   <-- raw long decimal
+      The figures are the method's recorded output; they are not a forecast and they hold only for the inputs the student declared.
+==============================================================================
+multiples  method=multiples_valuation  preset=multiples
+   capability multiples_valuation        formatter=_multiples_lines output_key=None
+      Applying a mean multiple of 10x to the declared ebitda of 500,000 across 3 peer(s) gives an implied enterprise value of 5,000,000.
+      After declared net debt of 300,000, the implied equity value is 4,700,000, or 47 per share on the declared shares.
+      The multiple is the student's declared peer or sector figure; the paper retrieves no market multiple and does not recommend a price.
+==============================================================================
+portfolioval  method=portfolio_valuation  preset=portfolioval
+   no capability row carries this method
+==============================================================================
+portfolioperf  method=portfolio_performance  preset=portfolioperf
+   no capability row carries this method
+==============================================================================
+bond  method=bond_analysis  preset=bond
+   capability bond_analysis              formatter=_bond_lines output_key=None
+      With a declared face value of 1,000, a 8% annual coupon and 10 years to maturity, a declared yield of 6% prices the bond at 1,148.77.
+      The Macaulay duration is 7.29 years, the modified duration is 7.07, the convexity is 63.92 and the DV01 is 0.81.
+      Every figure is computed from the declared bond terms; nothing is retrieved from a market.
+==============================================================================
+portfolio  method=portfolio_analysis  preset=portfolio
+   capability portfolio_analysis         formatter=_portfolio_lines output_key=None
+      From the declared return series for two assets at a declared weight of 60% and a risk-free rate of 2%, the portfolio return is 1.70% with a standard deviation of 1.40%.
+      The Sharpe ratio is -0.21, the beta against the declared market series is 0.94, and the correlation between the two return series is 0.83.
+      Every series is declared by the student; no return or covariance is retrieved.
+==============================================================================
+pearson  method=pearson  preset=pearson
+   capability pearson                    formatter=_pearson_lines output_key=None
+      Across 8 declared pair(s), the correlation between the two series is r = 0.94 (r squared 0.89), with a 95% confidence interval of 0.71 to 0.99 and p = below 0.001.
+      A correlation measures association between the declared series; it does not show that one series causes the other.
+==============================================================================
+ols  method=ols  preset=ols
+   capability ols                        formatter=_ols_lines output_key=None
+      On 10 declared observation(s) and 2 predictor(s), the regression has R squared 0.93 (adjusted 0.91), F = 48.36 with p = below 0.001 and a residual standard error of 2.65.
+      The declared coefficients are: study_hours 4.04 (se 0.41, p below 0.001); sleep_hours -2.38 (se 0.96, p 0.042).
+      A coefficient is an association measured in the declared sample; it is not a causal effect and it does not predict outside the declared values.
+==============================================================================
+ols_robust  method=ols_robust  preset=None
+   no preset supplies sample inputs
+==============================================================================
+risk  method=risk_metrics  preset=risk
+   capability risk_metrics               formatter=_risk_lines output_key=None
+      On the declared return series, the mean return is 0.15% with a standard deviation of 1.78%; at the declared 95% confidence over 1 day(s), the parametric value at risk is 0% of the declared portfolio value and the historical figure is 2.55%.
+      In money, the value at risk on the declared portfolio is 0 and the expected shortfall beyond it is 35,222.34; the estimate describes the declared history, not a guarantee about the future.
+==============================================================================
+options  method=option_pricing  preset=options
+   capability option_pricing             formatter=_option_lines output_key=None
+      At a declared spot price of 100, a strike of 100, a volatility of 25%, a risk-free rate of 5% and 1 years to maturity, the declared call option prices at 12.34 (binomial check 12.32).
+      Delta is 0.63, gamma is 0.02, vega is 37.84, theta is -7.25 and rho is 50.40.
+      Every input is declared; the price is the model's output for those inputs, not a market quote.
+==============================================================================
+fx  method=fx_parity  preset=fx
+   capability fx_parity                  formatter=_fx_lines output_key=None
+      At a declared spot rate of 56 and declared interest rates of 5% and 3%, interest-rate parity implies a forward rate of 57.09, and the declared inflation rates imply 57.10 under purchasing-power parity.
+      The parity forward of 57 stands 1.79% away from the declared spot rate.
+      Both rates are arithmetic on the declared inputs; neither is a forecast of the spot rate.
+==============================================================================
+currency  method=currency_convert  preset=currency
+   capability currency_convert           formatter=_convert_lines output_key=None
+      Converting a declared 1,000 USD at the declared rate of 0.92 gives 920 EUR.
+      The rate is the student's declared figure (provenance: user); the paper retrieves no exchange rate and no date is implied beyond the one declared.
+
+==============================================================================
+PROBLEMS (9)
+  [time_value] no bespoke formatter
+  [time_value] raw long decimal: From the declared inputs (present value 100,000; payment 12,000; rate 0.06; periods 5; compounding quarterly; timing end), the frozen time value of money method returns future value 412169.50589505043384053371598616910344392272576332; present value input 100,000; present value payments 206023.66542098316188539904687695437449708020464249; future value payments 277484.00524004483008047441420992809195015353401184; total payments 240,000; periodic rate 0.015; effective annual rate 0.061363550625; n periods 20; annuity factor 17.168638785081930157116587239746197874756683720208.
+  [unit_economics] raw long decimal: The declared acquisition cost of 80 is covered after 2.1621621621621621621621621621621621621621621621622 periods of that margin.
+  [discounted_payback] raw long decimal: At a declared discount rate of 10%, the declared cash flows (-1,000; 400; 400; 400; 400) recover the outlay in 3.0192500000000000000000000000000000000000000000000 periods (inside period 4).
+  [project_metrics] raw long decimal: At a declared discount rate of 10%, the declared project has a net present value of 267.95, a profitability index of 1.2679461785397172324294788607335564510620859230927, a modified internal rate of return of 15.87 and an equivalent annual annuity of 84.53.
+  [leverage_analysis] no bespoke formatter
+  [leverage_analysis] raw long decimal: From the declared inputs (ebit 500,000; interest expense 100,000; tax rate 0.30; debt 800,000; equity 1,200,000; shares outstanding 100,000; working capital 300,000; retained earnings 400,000; total assets 2,000,000; total liabilities 800,000; sales 3,000,000; market value equity 1,800,000; alternative interest expense 200,000; alternative shares outstanding 60,000), the frozen financial leverage method returns eps 2.80; earnings before tax 400,000; interest tax shield 30,000; debt to equity 0.66666666666666666666666666666666666666666666666667; degree of financial leverage 1.25; interest cover 5; altman z 4.135; altman term working capital 0.18; altman term retained earnings 0.28; altman term ebit 0.825; altman term market equity 1.35; altman term sales 1.50; indifference ebit 350,000; eps at indifference 1.75; alternative eps 3.50.
+  [equity_bridge] no bespoke formatter
+  [equity_bridge] raw long decimal: From the declared inputs (enterprise value 1,750,939.14; debt 300,000; cash 150,000; minority interest 20,000; preferred equity 10,000; shares outstanding 100,000), the frozen equity bridge method returns net debt 150,000; equity value 1,570,939.14; per share value 15.7093914.

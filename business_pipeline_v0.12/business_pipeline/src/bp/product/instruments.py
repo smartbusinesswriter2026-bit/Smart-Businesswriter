@@ -203,8 +203,8 @@ def record(instrument_id, quote=None, fetch=None, provider="alphavantage"):
         # Name the symbol and the provider: "the quoted price must be positive" on its own
         # leaves a student guessing which ticker failed and why.
         raise InstrumentError(
-            "%s: %s. No price was stored. Check that the ticker is listed on the provider and "
-            "that the %s key is configured." % (document.get("symbol") or "the instrument", error, provider))
+            "%s: %s. No price was stored; check the ticker and try again." %
+            (document.get("symbol") or "the instrument", error))
     snapshots = [s for s in document.get("snapshots", []) if s.get("as_of") != snapshot["as_of"]]
     snapshots.append(snapshot)
     snapshots.sort(key=lambda s: str(s.get("as_of") or ""))

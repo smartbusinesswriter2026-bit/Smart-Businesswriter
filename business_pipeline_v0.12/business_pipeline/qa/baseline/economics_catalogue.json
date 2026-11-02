@@ -1,0 +1,4044 @@
+{
+ "format": "bp-subjects/1",
+ "id": "economics",
+ "label": "Economics",
+ "icon": "economics",
+ "summary": "The quantitative economics core: micro, macro, welfare, international, development, behavioural, game theory and impact evaluation.",
+ "disciplines": [
+  "microeconomics",
+  "macroeconomics",
+  "welfare and public economics",
+  "international economics",
+  "development economics",
+  "behavioural economics",
+  "industrial organization",
+  "labour economics",
+  "public, nonprofit and impact evaluation",
+  "program and impact evaluation"
+ ],
+ "discipline_labels": [
+  "microeconomics",
+  "macroeconomics",
+  "welfare and public economics",
+  "international economics",
+  "development economics",
+  "behavioural economics",
+  "industrial organization",
+  "labour economics",
+  "public, nonprofit and impact evaluation",
+  "program and impact evaluation"
+ ],
+ "start_steps": [
+  "A market question: Market equilibrium, then Elasticity, Tax incidence or Price ceilings and floors.",
+  "A national or policy question: GDP and national income, Inflation and real interest, Unemployment and participation, then the money or fiscal multiplier.",
+  "A welfare or inequality question: Externalities and Pigouvian tax, Public goods, Social welfare, Gini coefficient and Poverty measures.",
+  "An international question: Comparative advantage, Tariff welfare, Purchasing-power parity and Interest-rate parity.",
+  "An evidence question: use the Advanced econometrics tools only when the data and design are declared."
+ ],
+ "does_not": [
+  "It does not retrieve GDP, CPI, market or household data; you declare every input.",
+  "It does not estimate a demand curve, a model or a causal effect from raw data.",
+  "It does not make a policy recommendation or prove that one policy is better."
+ ],
+ "cross_cutting": false,
+ "guidance": "Start with the level you are working at. Intro tools cover the first principles: demand and supply, elasticity, tax incidence, price controls and market concentration. Intermediate tools cover welfare, policy, international trade and behavioural questions. Advanced tools are econometrics and game theory; use them only when you have the data and the design. Every curve, rate and income is one you declare.",
+ "tools": [
+  {
+   "kind": "compute",
+   "key": "equilibrium",
+   "preset": "equilibrium",
+   "method": "demand_supply_equilibrium",
+   "label": "Market equilibrium",
+   "what": "Find the equilibrium price and quantity from declared linear demand and supply, with consumer and producer surplus.",
+   "need": null,
+   "level": "intro",
+   "formula": "Qd = a - bP and Qs = c + dP; set Qd = Qs to find P*, then Q* = a - bP*.",
+   "steps": [
+    "Write demand as Qd = a - bP and supply as Qs = c + dP.",
+    "Set Qd = Qs and solve for the equilibrium price P*.",
+    "Substitute P* into either curve to get the equilibrium quantity Q*.",
+    "Consumer surplus is the triangle below demand and above P*; producer surplus is the triangle above supply and below P*."
+   ],
+   "common_mistakes": [
+    "Using the inverse form P = a - bQ without rearranging it to Q = a - bP.",
+    "Forgetting to check that P* and Q* are positive.",
+    "Adding the two surplus triangles when one lies below the price axis."
+   ],
+   "diagram": "supply_demand",
+   "related": [
+    "elasticity",
+    "taxincidence",
+    "pricecontrol"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "elasticity",
+   "preset": "elasticity",
+   "method": "elasticity",
+   "label": "Price elasticity of demand",
+   "what": "Measure the arc elasticity between two price-quantity observations and see what happens to revenue.",
+   "need": null,
+   "level": "intro",
+   "formula": "E = (% change in Q) / (% change in P), using the midpoint (arc) formula.",
+   "steps": [
+    "Compute the change in quantity divided by the average quantity.",
+    "Compute the change in price divided by the average price.",
+    "Divide the first percentage change by the second.",
+    "Compare the absolute value with one and read the revenue change."
+   ],
+   "common_mistakes": [
+    "Using the slope of the inverse demand curve instead of the percentage changes.",
+    "Calling a negative elasticity inelastic because the sign is negative.",
+    "Mixing percentages and decimals in the same calculation.",
+    "Using the point formula for a discrete change."
+   ],
+   "diagram": "elasticity",
+   "related": [
+    "equilibrium",
+    "unitecon",
+    "breakeven"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "taxincidence",
+   "preset": "taxincidence",
+   "method": "tax_incidence",
+   "label": "Tax incidence and deadweight loss",
+   "what": "Split a per-unit tax between buyers and sellers and record the revenue and deadweight loss.",
+   "need": null,
+   "level": "intro",
+   "formula": "Consumer price Pc and producer price Ps satisfy Pc - Ps = t; the burden split follows the slopes.",
+   "steps": [
+    "Find the no-tax equilibrium first.",
+    "Shift the supply curve up by the per-unit tax.",
+    "Read the new consumer price and producer price.",
+    "Split the tax between the two sides, then compute revenue and deadweight loss."
+   ],
+   "common_mistakes": [
+    "Assuming the side that hands the tax to the government bears the burden.",
+    "Forgetting the tax wedge between the buyer's price and the seller's price.",
+    "Reporting the tax as a percentage when the input is per unit."
+   ],
+   "diagram": "tax_wedge",
+   "related": [
+    "equilibrium",
+    "pricecontrol",
+    "cba"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "pricecontrol",
+   "preset": "pricecontrol",
+   "method": "price_control",
+   "label": "Price ceilings and floors",
+   "what": "See the shortage, surplus and deadweight loss created by a declared price control.",
+   "need": null,
+   "level": "intro",
+   "formula": "At the control price, compare quantity demanded with quantity supplied; the short side determines quantity traded.",
+   "steps": [
+    "Find the free-market equilibrium.",
+    "Decide whether the ceiling is below it or the floor is above it.",
+    "At the control price, compute quantity demanded and quantity supplied.",
+    "Report the shortage or surplus, the quantity traded and the deadweight loss."
+   ],
+   "common_mistakes": [
+    "Treating a non-binding control as if it changed the market.",
+    "Reversing shortage and surplus.",
+    "Using the long side of the market as quantity traded."
+   ],
+   "diagram": "price_control",
+   "related": [
+    "equilibrium",
+    "taxincidence"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "concentration",
+   "preset": "concentration",
+   "method": "market_concentration",
+   "label": "Market concentration (HHI)",
+   "what": "Compute HHI, CR4 and the equivalent number of firms from declared firm revenues.",
+   "need": null,
+   "level": "intro",
+   "formula": "HHI = sum of squared percentage market shares; CR4 = sum of the four largest shares.",
+   "steps": [
+    "Add the declared revenues to get the market total.",
+    "Divide each firm's revenue by the total and multiply by one hundred.",
+    "Square each share and add them for the HHI.",
+    "Add the four largest shares for CR4; the equivalent number of firms is 10,000 divided by the HHI."
+   ],
+   "common_mistakes": [
+    "Entering fractions when the HHI expects percentage shares.",
+    "Using total corporate revenue instead of sales in the relevant market.",
+    "Treating the HHI as a legal conclusion rather than a descriptive measure."
+   ],
+   "diagram": "concentration",
+   "related": [
+    "equilibrium",
+    "unitecon"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "costcurves",
+   "preset": "costcurves",
+   "method": "cost_curves",
+   "label": "Cost curves",
+   "what": "Average, average variable, average fixed and marginal cost at a declared quantity, with profit and a shutdown test if you supply a price.",
+   "need": null,
+   "level": "intro",
+   "formula": "TC = FC + bQ + cQ^2; AC = TC / Q; MC = b + 2cQ.",
+   "steps": [
+    "Enter fixed cost and the linear and quadratic variable-cost terms.",
+    "Choose the quantity at which to evaluate the costs.",
+    "Read AC, AVC, AFC and MC together; MC crosses AC at the minimum of AC.",
+    "If you supply a price, compare it with the minimum AVC to test shutdown."
+   ],
+   "common_mistakes": [
+    "Using total cost where the formula needs fixed cost.",
+    "Confusing marginal cost with average cost.",
+    "Forgetting the quadratic term when computing marginal cost.",
+    "Shutting down whenever profit is negative, even when price covers average variable cost."
+   ],
+   "diagram": "cost_curves",
+   "related": [
+    "profitmax",
+    "breakeven",
+    "marketpower"
+   ],
+   "group": "firm_behaviour",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "profitmax",
+   "preset": "profitmax",
+   "method": "profit_maximization",
+   "label": "Profit maximisation",
+   "what": "Find the output and price where marginal revenue equals marginal cost, with profit, markup and the Lerner index.",
+   "need": null,
+   "level": "intro",
+   "formula": "Set MR = MC: a - 2bQ = c + 2dQ, then P = a - bQ.",
+   "steps": [
+    "Write demand as P = a - bQ, so marginal revenue is a - 2bQ.",
+    "Write marginal cost from the cost function as c + 2dQ.",
+    "Set MR = MC and solve for Q.",
+    "Substitute Q back into demand for P, then compute revenue, cost and profit."
+   ],
+   "common_mistakes": [
+    "Setting price equal to marginal cost; that is the competitive outcome, not the monopoly optimum.",
+    "Using the demand slope instead of twice the demand slope for marginal revenue.",
+    "Thinking fixed cost changes the profit-maximising quantity; it changes profit, not the optimum.",
+    "Reporting the Lerner index as a percentage without checking its scale."
+   ],
+   "diagram": "profit_max",
+   "related": [
+    "costcurves",
+    "marketpower",
+    "concentration"
+   ],
+   "group": "firm_behaviour",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "marketpower",
+   "preset": "marketpower",
+   "method": "market_power",
+   "label": "Markup and Lerner index",
+   "what": "Measure the markup and Lerner index from a price and marginal cost, and the implied demand elasticity.",
+   "need": null,
+   "level": "intro",
+   "formula": "Lerner index = (P - MC) / P; markup = P - MC; implied elasticity = 1 / Lerner.",
+   "steps": [
+    "Enter the price and the marginal cost at the same quantity.",
+    "Subtract marginal cost from price for the markup.",
+    "Divide the markup by price for the Lerner index.",
+    "If the index is positive, take its inverse for the implied demand elasticity."
+   ],
+   "common_mistakes": [
+    "Using average cost instead of marginal cost.",
+    "Reading a high markup as proof of consumer harm or a legal violation.",
+    "Forgetting that the implied elasticity is model-conditional."
+   ],
+   "diagram": null,
+   "related": [
+    "profitmax",
+    "concentration"
+   ],
+   "group": "firm_behaviour",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "pricediscrimination",
+   "preset": "pricediscrimination",
+   "method": "price_discrimination",
+   "label": "Price discrimination",
+   "what": "Set third-degree prices and quantities in two separated markets.",
+   "need": null,
+   "level": "advanced",
+   "formula": "Set marginal revenue equal to marginal cost separately in each market.",
+   "steps": [
+    "Write each market's linear demand.",
+    "Set MR = MC in each market for its quantity.",
+    "Substitute back for each price.",
+    "Add revenues and profits across the two markets."
+   ],
+   "common_mistakes": [
+    "Setting one price for both markets.",
+    "Ignoring that the markets must be separated and resale impossible.",
+    "Using average cost instead of marginal cost."
+   ],
+   "diagram": null,
+   "related": [
+    "profitmax",
+    "marketpower",
+    "cournot"
+   ],
+   "group": "firm_behaviour",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "cournot",
+   "preset": "cournot",
+   "method": "cournot_duopoly",
+   "label": "Cournot duopoly",
+   "what": "Find the two-firm Cournot quantities, price and profits.",
+   "need": null,
+   "level": "advanced",
+   "formula": "q1 = (a - 2c1 + c2) / (3b); q2 = (a - 2c2 + c1) / (3b); P = a - b(q1 + q2).",
+   "steps": [
+    "Write each firm's best response to the other's quantity.",
+    "Solve the two best responses simultaneously.",
+    "Substitute the quantities into demand for the price.",
+    "Compute each firm's profit."
+   ],
+   "common_mistakes": [
+    "Using the monopoly quantity for each firm.",
+    "Forgetting the 3b denominator in the solution.",
+    "Ignoring the case where one firm is priced out."
+   ],
+   "diagram": null,
+   "related": [
+    "nash",
+    "pricediscrimination",
+    "marketpower"
+   ],
+   "group": "firm_behaviour",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "nash",
+   "preset": "nash",
+   "method": "nash_equilibrium",
+   "label": "Nash equilibrium (2x2)",
+   "what": "Find the pure-strategy Nash equilibria of a declared 2x2 game.",
+   "need": null,
+   "level": "advanced",
+   "formula": "A cell is a Nash equilibrium when neither player can gain by switching strategy alone.",
+   "steps": [
+    "Enter each player's four payoffs in the declared cell order.",
+    "For each cell, check the row player's alternative and the column player's alternative.",
+    "Flag the cells where neither can gain.",
+    "Read the number of pure-strategy equilibria."
+   ],
+   "common_mistakes": [
+    "Looking for the highest joint payoff instead of no unilateral gain.",
+    "Missing a second equilibrium in a coordination game.",
+    "Treating a payoff tie as a non-equilibrium."
+   ],
+   "diagram": "payoff_matrix",
+   "related": [
+    "cournot",
+    "prospect"
+   ],
+   "group": "firm_behaviour",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "panel",
+   "preset": "panel",
+   "method": "panel_regression",
+   "label": "Panel fixed effects",
+   "what": "Estimate the within-entity slope from a balanced panel with entity fixed effects.",
+   "need": null,
+   "level": "advanced",
+   "formula": "Within slope = sum of within-entity (x - entity mean x)(y - entity mean y) / sum of within-entity (x - entity mean x)^2.",
+   "steps": [
+    "Check the panel is balanced: every entity has the same periods.",
+    "Subtract each entity's mean from its x and y.",
+    "Regress the demeaned y on the demeaned x.",
+    "Read the within R-squared and degrees of freedom."
+   ],
+   "common_mistakes": [
+    "Using pooled OLS and calling it a fixed-effects estimate.",
+    "Including a time-invariant regressor, which the within transformation absorbs.",
+    "Ignoring clustering when interpreting precision."
+   ],
+   "diagram": null,
+   "related": [
+    "ols",
+    "did",
+    "iv"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "iv",
+   "preset": "iv",
+   "method": "instrumental_variables",
+   "label": "Instrumental variables",
+   "what": "Estimate a just-identified IV slope from one endogenous regressor and one excluded instrument.",
+   "need": null,
+   "level": "advanced",
+   "formula": "Just-identified IV slope = cov(z, y) / cov(z, x); first stage = cov(z, x) / var(z).",
+   "steps": [
+    "Check the instrument varies and is correlated with the endogenous regressor.",
+    "Compute the covariance ratio for the IV slope.",
+    "Read the first-stage slope and the OLS slope for comparison.",
+    "State the exclusion restriction explicitly."
+   ],
+   "common_mistakes": [
+    "Treating a relevant instrument as a valid one; relevance is not exogeneity.",
+    "Ignoring weak-instrument problems.",
+    "Reading the IV estimate as causal without defending the design."
+   ],
+   "diagram": null,
+   "related": [
+    "ols",
+    "rdd",
+    "panel"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "rdd",
+   "preset": "rdd",
+   "method": "regression_discontinuity",
+   "label": "Regression discontinuity",
+   "what": "Estimate the jump at a cutoff with a local linear fit on each side.",
+   "need": null,
+   "level": "advanced",
+   "formula": "RDD estimate = right-side intercept at the cutoff - left-side intercept at the cutoff.",
+   "steps": [
+    "Choose the cutoff and a bandwidth.",
+    "Keep observations within the bandwidth on each side.",
+    "Fit a separate local linear line on each side.",
+    "Read the jump in intercepts at the cutoff."
+   ],
+   "common_mistakes": [
+    "Using a global polynomial through the whole sample.",
+    "Choosing the bandwidth after seeing the estimate.",
+    "Ignoring manipulation or another discontinuity at the cutoff."
+   ],
+   "diagram": null,
+   "related": [
+    "did",
+    "iv",
+    "panel"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "probit",
+   "preset": "probit",
+   "method": "probit",
+   "label": "Probit model",
+   "what": "Fit a binary probit with one predictor and read the marginal effect at the mean.",
+   "need": null,
+   "level": "advanced",
+   "formula": "P(y = 1) = Phi(intercept + slope x x); the marginal effect at the mean is phi(intercept + slope x mean x) x slope.",
+   "steps": [
+    "Check the outcome is binary and both outcomes occur.",
+    "Fit the latent-index probit by maximum likelihood.",
+    "Read the slope and intercept on the latent scale.",
+    "Evaluate the marginal effect at the mean of the predictor."
+   ],
+   "common_mistakes": [
+    "Reading the slope as a constant probability effect.",
+    "Ignoring separation or near-separation.",
+    "Comparing probit and logit coefficients directly without scaling."
+   ],
+   "diagram": null,
+   "related": [
+    "ols",
+    "iv",
+    "panel"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "nationalincome",
+   "preset": "nationalincome",
+   "method": "national_income",
+   "label": "GDP and national income",
+   "what": "Build GDP by the expenditure approach, then GNP, NNP, net exports, GDP per capita and real GDP.",
+   "need": null,
+   "level": "intro",
+   "formula": "GDP = C + I + G + X - M; GNP = GDP + net factor income; NNP = GNP - depreciation.",
+   "steps": [
+    "Add household consumption, investment and government spending.",
+    "Add exports and subtract imports.",
+    "Add net factor income for GNP, then subtract depreciation for NNP.",
+    "If you supply a population or deflator, read GDP per capita or real GDP."
+   ],
+   "common_mistakes": [
+    "Adding imports instead of subtracting them.",
+    "Double counting intermediate goods as if they were final expenditure.",
+    "Confusing GDP with GNP; the difference is net factor income from abroad.",
+    "Using a deflator as a percentage rather than an index with a base of 100."
+   ],
+   "diagram": "national_income",
+   "related": [
+    "growth",
+    "inflation",
+    "unemployment"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "growth",
+   "preset": "growth",
+   "method": "growth_rate",
+   "label": "Growth rate and CAGR",
+   "what": "Compute total growth, the compound annual growth rate and the rule-of-72 doubling time.",
+   "need": null,
+   "level": "intro",
+   "formula": "CAGR = (end / start)^(1 / periods) - 1; doubling time is about 72 / (CAGR x 100).",
+   "steps": [
+    "Enter the start value, end value and number of periods.",
+    "Read total growth as the proportional change.",
+    "Read CAGR as the constant rate that compounds the start to the end.",
+    "Use the rule of 72 only as an approximation for the doubling time."
+   ],
+   "common_mistakes": [
+    "Averaging yearly growth rates instead of compounding them.",
+    "Confusing total growth with the annual compound rate.",
+    "Using the rule of 72 at very high or negative growth rates.",
+    "Forgetting to adjust for population when the question is per-capita growth."
+   ],
+   "diagram": "growth",
+   "related": [
+    "nationalincome",
+    "inflation",
+    "budgetdebt"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "inflation",
+   "preset": "inflation",
+   "method": "inflation_cpi",
+   "label": "Inflation and real interest",
+   "what": "Compute inflation from two CPI values, the exact and approximate real interest rate, and real wage growth.",
+   "need": null,
+   "level": "intro",
+   "formula": "Inflation = (CPI end - CPI start) / CPI start; real interest = (1 + nominal) / (1 + inflation) - 1.",
+   "steps": [
+    "Enter the two CPI values.",
+    "Divide their difference by the starting CPI for inflation.",
+    "If you have a nominal interest rate, apply the Fisher relation for the real rate.",
+    "If you have wages, compare their growth with inflation for real wage growth."
+   ],
+   "common_mistakes": [
+    "Subtracting the two CPI values and calling the difference the inflation rate.",
+    "Using nominal minus inflation at high inflation without saying it is an approximation.",
+    "Confusing nominal and real wages.",
+    "Treating the CPI as a price level in currency rather than an index."
+   ],
+   "diagram": null,
+   "related": [
+    "growth",
+    "unemployment",
+    "fiscal"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "unemployment",
+   "preset": "unemployment",
+   "method": "unemployment_rate",
+   "label": "Unemployment and participation",
+   "what": "Compute the unemployment rate, labour-force participation rate and employment-population ratio.",
+   "need": null,
+   "level": "intro",
+   "formula": "Unemployment rate = unemployed / labour force; LFPR = labour force / working-age population.",
+   "steps": [
+    "Enter the labour force, the number employed and the working-age population.",
+    "Subtract employment from the labour force for the unemployed.",
+    "Divide the unemployed by the labour force for the unemployment rate.",
+    "Use the working-age population for participation and the employment ratio."
+   ],
+   "common_mistakes": [
+    "Dividing the unemployed by the working-age population instead of the labour force.",
+    "Counting discouraged workers as unemployed when they are outside the labour force.",
+    "Mixing the participation and employment-ratio denominators.",
+    "Treating the unemployment rate as a measure of hardship by itself."
+   ],
+   "diagram": null,
+   "related": [
+    "inflation",
+    "growth",
+    "nationalincome"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "moneymultiplier",
+   "preset": "moneymultiplier",
+   "method": "money_multiplier",
+   "label": "Money multiplier",
+   "what": "Compute the simple and currency-adjusted money multipliers and the implied money supply.",
+   "need": null,
+   "level": "intro",
+   "formula": "Simple multiplier = 1 / reserve ratio; extended = (1 + currency drain) / (reserve ratio + currency drain).",
+   "steps": [
+    "Enter the monetary base and the reserve ratio.",
+    "Compute the simple multiplier as the inverse of the reserve ratio.",
+    "Add the currency drain for the extended multiplier.",
+    "Multiply the base by the multiplier for the implied money supply."
+   ],
+   "common_mistakes": [
+    "Forgetting the currency drain, which lowers the multiplier.",
+    "Assuming banks hold no excess reserves.",
+    "Confusing the monetary base with the money supply.",
+    "Treating the multiplier as a forecast rather than an identity."
+   ],
+   "diagram": null,
+   "related": [
+    "inflation",
+    "fiscal"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "fiscal",
+   "preset": "fiscal",
+   "method": "fiscal_multiplier",
+   "label": "Fiscal multipliers",
+   "what": "Compute the government-spending, tax and balanced-budget multipliers and the output change from a declared fiscal package.",
+   "need": null,
+   "level": "intro",
+   "formula": "Government multiplier = 1 / (1 - MPC(1 - t)); tax multiplier = -MPC / (1 - MPC(1 - t)).",
+   "steps": [
+    "Enter the marginal propensity to consume and the proportional tax rate.",
+    "Compute the denominator 1 - MPC(1 - t).",
+    "Read the government-spending, tax and balanced-budget multipliers.",
+    "Apply the declared spending and tax changes to get the output change."
+   ],
+   "common_mistakes": [
+    "Using 1 / (1 - MPC) when there is an income tax; the tax rate belongs in the denominator.",
+    "Thinking the tax multiplier is positive.",
+    "Confusing a lump-sum tax change with a change in the tax rate.",
+    "Treating the multiplier as an estimated policy effect rather than an identity."
+   ],
+   "diagram": null,
+   "related": [
+    "budgetdebt",
+    "nationalincome"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "budgetdebt",
+   "preset": "budgetdebt",
+   "method": "budget_debt",
+   "label": "Budget balance and debt",
+   "what": "Compute the overall and primary balances, the debt-to-GDP ratio and the debt-ratio change.",
+   "need": null,
+   "level": "intro",
+   "formula": "Overall balance = revenue - spending - interest; debt ratio = debt / GDP.",
+   "steps": [
+    "Enter revenue, primary spending, interest, debt and GDP.",
+    "Add interest to primary spending for total spending.",
+    "Subtract total spending from revenue for the overall balance.",
+    "Divide debt by GDP for the debt ratio and apply the interest-growth-primary identity for its change."
+   ],
+   "common_mistakes": [
+    "Including interest in primary spending and then adding it again.",
+    "Confusing the overall balance with the primary balance.",
+    "Treating the debt-ratio change as a forecast rather than an identity.",
+    "Using nominal GDP growth without saying it is nominal."
+   ],
+   "diagram": null,
+   "related": [
+    "fiscal",
+    "growth"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "okun",
+   "preset": "okun",
+   "method": "output_gap_okun",
+   "label": "Output gap and Okun's law",
+   "what": "Compute the output gap and the unemployment change implied by a declared Okun coefficient.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Output gap = (actual GDP - potential GDP) / potential GDP; unemployment change = -Okun coefficient x gap.",
+   "steps": [
+    "Enter actual and potential GDP on the same basis.",
+    "Compute the proportional output gap.",
+    "Apply the declared Okun coefficient for the unemployment change in percentage points.",
+    "Add the change to the current unemployment rate."
+   ],
+   "common_mistakes": [
+    "Getting the sign wrong: a positive gap lowers unemployment.",
+    "Treating potential GDP as observed rather than declared.",
+    "Confusing percentage points with percent."
+   ],
+   "diagram": null,
+   "related": [
+    "unemployment",
+    "growth",
+    "inflation"
+   ],
+   "group": "macroeconomics",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "externality",
+   "preset": "externality",
+   "method": "externality_pigouvian",
+   "label": "Externalities and Pigouvian tax",
+   "what": "Compare the private market with the social optimum and record the Pigouvian tax and deadweight loss.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Social optimum: demand = private supply + marginal external cost; Pigouvian tax = marginal external cost; DWL = 1/2 x tax x (market quantity - social quantity).",
+   "steps": [
+    "Find the private market equilibrium first.",
+    "Add the external cost to private supply to get the social cost.",
+    "Solve for the social quantity and compare it with the market quantity.",
+    "Read the Pigouvian tax and the deadweight-loss triangle."
+   ],
+   "common_mistakes": [
+    "Ignoring the external cost and calling the private equilibrium efficient.",
+    "Taxing the market quantity instead of the social quantity.",
+    "Confusing the per-unit tax with total external damage."
+   ],
+   "diagram": "externality",
+   "related": [
+    "equilibrium",
+    "taxincidence",
+    "optimalpollution"
+   ],
+   "group": "welfare_policy",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "publicgood",
+   "preset": "publicgood",
+   "method": "public_good",
+   "label": "Public goods",
+   "what": "Find the efficient provision of a public good from two benefit schedules and a cost schedule.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Sum the marginal benefits vertically; set social marginal benefit equal to marginal cost.",
+   "steps": [
+    "Write each person's marginal benefit as a linear schedule.",
+    "Add the schedules vertically to get social marginal benefit.",
+    "Set it equal to marginal cost and solve for the efficient quantity.",
+    "Compare total benefit with total cost."
+   ],
+   "common_mistakes": [
+    "Adding the demand curves horizontally, which is the private-good case.",
+    "Using one person's marginal benefit as the social benefit.",
+    "Forgetting that voluntary contribution generally underprovides."
+   ],
+   "diagram": "public_good",
+   "related": [
+    "externality",
+    "socialwelfare"
+   ],
+   "group": "welfare_policy",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "socialwelfare",
+   "preset": "socialwelfare",
+   "method": "social_welfare",
+   "label": "Social welfare functions",
+   "what": "Compare utilitarian, Rawlsian and Nash welfare for the same incomes.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Utilitarian = sum of incomes; Rawlsian = minimum income; Nash = geometric mean.",
+   "steps": [
+    "Enter the incomes and choose the welfare function.",
+    "Read all three welfare values alongside the selected one.",
+    "Compare how a transfer changes each criterion."
+   ],
+   "common_mistakes": [
+    "Treating the choice of welfare function as an empirical result.",
+    "Comparing incomes without an equivalence scale.",
+    "Thinking Nash welfare is the same as the sum."
+   ],
+   "diagram": null,
+   "related": [
+    "gini",
+    "poverty"
+   ],
+   "group": "welfare_policy",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "gini",
+   "preset": "gini",
+   "method": "gini_coefficient",
+   "label": "Gini coefficient",
+   "what": "Measure inequality from declared incomes, with the poorest and richest shares.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Gini = (2 x sum of rank-weighted incomes - (n + 1) x total income) / (n x total income).",
+   "steps": [
+    "Sort the incomes from lowest to highest.",
+    "Compute the mean and the rank-weighted sum.",
+    "Apply the Gini formula; zero means perfect equality.",
+    "Read the poorest and richest shares for context."
+   ],
+   "common_mistakes": [
+    "Multiplying the Gini by one hundred and calling it a different index.",
+    "Using negative incomes, which the method refuses.",
+    "Treating the Gini as a full picture of where inequality lies."
+   ],
+   "diagram": "lorenz",
+   "related": [
+    "poverty",
+    "socialwelfare"
+   ],
+   "group": "welfare_policy",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "poverty",
+   "preset": "poverty",
+   "method": "poverty_measures",
+   "label": "Poverty measures",
+   "what": "Compute the headcount, poverty gap and squared gap against a declared poverty line.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Headcount = share below the line; poverty gap = average normalised shortfall over the population.",
+   "steps": [
+    "Choose and declare the poverty line.",
+    "Count the incomes below it for the headcount.",
+    "Average the normalised shortfall for the gap, and square it for the squared gap.",
+    "Read the total shortfall in currency."
+   ],
+   "common_mistakes": [
+    "Averaging the gap only over the poor instead of the whole population.",
+    "Changing the poverty line after seeing the result.",
+    "Confusing the headcount with the depth of poverty."
+   ],
+   "diagram": null,
+   "related": [
+    "gini",
+    "socialwelfare"
+   ],
+   "group": "welfare_policy",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "taxprogressivity",
+   "preset": "taxprogressivity",
+   "method": "tax_progressivity",
+   "label": "Tax progressivity",
+   "what": "Compare the top quartile's income share with its tax share.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Progressivity gap = top-quartile tax share - top-quartile income share.",
+   "steps": [
+    "Enter each person's income and tax.",
+    "Rank by income and take the top quartile.",
+    "Compare its tax share with its income share.",
+    "A positive gap means the top pays proportionally more."
+   ],
+   "common_mistakes": [
+    "Calling a proportional tax progressive; its gap is zero.",
+    "Using the top decile when the method uses the top quartile.",
+    "Ignoring tax incidence and behavioural responses."
+   ],
+   "diagram": null,
+   "related": [
+    "gini",
+    "taxincidence",
+    "budgetdebt"
+   ],
+   "group": "welfare_policy",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "optimalpollution",
+   "preset": "optimalpollution",
+   "method": "optimal_pollution",
+   "label": "Optimal pollution",
+   "what": "Find the emission level where marginal damage equals marginal abatement cost, with the pollution tax.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Set marginal damage equal to marginal abatement cost; the pollution tax equals marginal damage at the optimum.",
+   "steps": [
+    "Write marginal damage as rising with emissions.",
+    "Write marginal abatement cost as falling with emissions.",
+    "Set them equal and solve for optimal emissions.",
+    "Read the tax and the total damage."
+   ],
+   "common_mistakes": [
+    "Setting marginal abatement cost to zero instead of equal to marginal damage.",
+    "Confusing the pollution tax with total damage.",
+    "Forgetting that the curves are declared, not estimated."
+   ],
+   "diagram": "optimal_pollution",
+   "related": [
+    "externality",
+    "hdi"
+   ],
+   "group": "welfare_policy",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "comparative",
+   "preset": "comparative",
+   "method": "comparative_advantage",
+   "label": "Comparative advantage",
+   "what": "Find opportunity costs and comparative advantage from two countries' unit labour requirements.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Opportunity cost of good one = hours per unit of good one / hours per unit of good two.",
+   "steps": [
+    "Enter each country's unit labour requirements for both goods.",
+    "Compute the opportunity cost of each good in each country.",
+    "The lower opportunity cost identifies comparative advantage.",
+    "Check that the two countries specialise in different goods."
+   ],
+   "common_mistakes": [
+    "Using absolute hours instead of opportunity cost.",
+    "Assuming a country cannot have comparative advantage if it is better at both goods.",
+    "Forgetting that the two opportunity costs are reciprocals."
+   ],
+   "diagram": null,
+   "related": [
+    "tariff",
+    "ppp"
+   ],
+   "group": "international",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "tariff",
+   "preset": "tariff",
+   "method": "tariff_welfare",
+   "label": "Tariff welfare",
+   "what": "Compute the domestic price, imports, tariff revenue and deadweight loss of a small-country tariff.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Domestic price = world price + tariff; imports = quantity demanded - quantity supplied.",
+   "steps": [
+    "Find free-trade imports at the world price.",
+    "Add the tariff to get the domestic price.",
+    "Compute the new imports and tariff revenue.",
+    "Add the production and consumption deadweight-loss triangles."
+   ],
+   "common_mistakes": [
+    "Using the world price as the domestic price after the tariff.",
+    "Forgetting one of the two deadweight-loss triangles.",
+    "Applying small-country results to a large country."
+   ],
+   "diagram": "tariff",
+   "related": [
+    "comparative",
+    "equilibrium"
+   ],
+   "group": "international",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "ppp",
+   "preset": "ppp",
+   "method": "exchange_rate_ppp",
+   "label": "Purchasing-power parity",
+   "what": "Compare a nominal exchange rate with PPP and record the real rate and expected depreciation.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "PPP rate = domestic price / foreign price; real exchange rate = nominal x foreign price / domestic price.",
+   "steps": [
+    "Enter the two price levels and the nominal rate as domestic per foreign.",
+    "Compute the PPP rate and the real rate.",
+    "Read the misalignment: zero means the nominal rate is at PPP.",
+    "If inflation rates are supplied, read expected depreciation."
+   ],
+   "common_mistakes": [
+    "Inverting the exchange-rate quotation.",
+    "Confusing absolute and relative PPP.",
+    "Treating PPP as a short-run forecast."
+   ],
+   "diagram": null,
+   "related": [
+    "irp",
+    "inflation",
+    "comparative"
+   ],
+   "group": "international",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "irp",
+   "preset": "irp",
+   "method": "interest_rate_parity",
+   "label": "Interest-rate parity",
+   "what": "Compute the covered-interest-parity forward rate and forward premium from two interest rates.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Forward = spot x [(1 + domestic rate) / (1 + foreign rate)]^T.",
+   "steps": [
+    "Enter the spot rate, the two interest rates and the horizon.",
+    "Compute the parity forward rate.",
+    "Read the forward premium as the interest differential.",
+    "If a forward is declared, compare it with parity."
+   ],
+   "common_mistakes": [
+    "Using simple interest when the method compounds over the horizon.",
+    "Confusing covered and uncovered parity.",
+    "Forgetting that the horizon must match the rates."
+   ],
+   "diagram": null,
+   "related": [
+    "ppp",
+    "bop"
+   ],
+   "group": "international",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "bop",
+   "preset": "bop",
+   "method": "balance_of_payments",
+   "label": "Balance of payments",
+   "what": "Check the current, capital and financial accounts against the balance-of-payments identity.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Current account + capital account + financial account + errors and omissions = 0.",
+   "steps": [
+    "Enter the three account balances on one sign convention.",
+    "Add them, including declared errors and omissions.",
+    "A zero net balance closes the identity.",
+    "Read the current-account-to-GDP ratio if GDP is supplied."
+   ],
+   "common_mistakes": [
+    "Mixing sign conventions across the accounts.",
+    "Treating a zero balance as proof of sustainability.",
+    "Double counting reserve changes."
+   ],
+   "diagram": null,
+   "related": [
+    "irp",
+    "tariff"
+   ],
+   "group": "international",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "hdi",
+   "preset": "hdi",
+   "method": "hdi",
+   "label": "Human Development Index",
+   "what": "Compute the HDI from life expectancy, schooling and GNI per capita using the UNDP goalposts.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "HDI = geometric mean of the life, education and income indices.",
+   "steps": [
+    "Enter life expectancy, expected and mean schooling, and GNI per capita.",
+    "Scale each dimension against the UNDP goalposts.",
+    "Take the geometric mean of the three indices.",
+    "Read each dimension index to see what drives the result."
+   ],
+   "common_mistakes": [
+    "Using a different goalpost set without saying so.",
+    "Taking an arithmetic mean instead of the geometric mean.",
+    "Mixing currencies or purchasing-power bases in GNI."
+   ],
+   "diagram": null,
+   "related": [
+    "gini",
+    "poverty",
+    "growth"
+   ],
+   "group": "international",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "expectedutility",
+   "preset": "expectedutility",
+   "method": "expected_utility",
+   "label": "Expected utility",
+   "what": "Compute expected value, expected utility, the certainty equivalent and the risk premium.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "EV = sum of probability x outcome; EU = sum of probability x utility; the certainty equivalent is the certain amount with the same utility.",
+   "steps": [
+    "Enter the outcomes and probabilities.",
+    "Compute the expected value.",
+    "Apply the declared utility function for expected utility.",
+    "Invert the utility for the certainty equivalent and risk premium."
+   ],
+   "common_mistakes": [
+    "Confusing expected value with expected utility.",
+    "Using negative wealth with CRRA utility.",
+    "Treating the risk premium as an observed fee."
+   ],
+   "diagram": null,
+   "related": [
+    "prospect",
+    "gini"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "prospect",
+   "preset": "prospect",
+   "method": "prospect_theory",
+   "label": "Prospect theory",
+   "what": "Value a gamble around a reference point with loss aversion and probability weighting.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "v(gain) = gain^alpha; v(loss) = -loss aversion x loss^beta; probabilities are weighted.",
+   "steps": [
+    "Choose the reference point.",
+    "Enter outcomes and probabilities.",
+    "Evaluate gains and losses relative to the reference.",
+    "Apply the declared loss aversion, curvature and weighting."
+   ],
+   "common_mistakes": [
+    "Treating prospect theory as a normative recommendation.",
+    "Forgetting that the reference point changes the value.",
+    "Mixing the gain and loss curvature parameters."
+   ],
+   "diagram": null,
+   "related": [
+    "expectedutility",
+    "nash"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "labour",
+   "preset": "labour",
+   "method": "labour_market",
+   "label": "Real wage and labour market",
+   "what": "Compute the real wage, wage share of productivity and labour-market tightness.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Real wage = nominal wage / (CPI / 100); wage share = real wage / labour productivity.",
+   "steps": [
+    "Enter the nominal wage, CPI and productivity.",
+    "Deflate the nominal wage by the price index.",
+    "Divide the real wage by productivity for the wage share.",
+    "If vacancies and unemployment are supplied, read tightness."
+   ],
+   "common_mistakes": [
+    "Using the nominal wage as if it were real.",
+    "Dividing by the CPI instead of CPI/100.",
+    "Confusing the wage share with the labour share of GDP."
+   ],
+   "diagram": null,
+   "related": [
+    "unemployment",
+    "inflation"
+   ],
+   "group": "behavioural_evidence",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "did",
+   "preset": "did",
+   "method": "difference_in_differences",
+   "label": "Difference-in-differences",
+   "what": "Estimate a two-group, two-period treatment effect from four declared means.",
+   "need": null,
+   "level": "advanced",
+   "formula": "DiD = (treated post - treated pre) - (control post - control pre).",
+   "steps": [
+    "Enter the four group-period means.",
+    "Compute the treated change and the control change.",
+    "Subtract the control change from the treated change.",
+    "State the parallel-trends assumption explicitly."
+   ],
+   "common_mistakes": [
+    "Comparing post-treatment means only.",
+    "Ignoring the parallel-trends assumption.",
+    "Confusing DiD with a simple before-and-after comparison."
+   ],
+   "diagram": null,
+   "related": [
+    "okun",
+    "labour"
+   ],
+   "group": "behavioural_evidence",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "forecast",
+   "preset": "forecast",
+   "method": "trend_forecast",
+   "label": "Trend forecast",
+   "what": "Fit a trend to your own series and record the forecast periods and the range the result could fall in.",
+   "need": "a series in period order and the horizon",
+   "level": "intro",
+   "formula": "Fit y = a + bt to the series; the forecast extends the line and carries a prediction interval.",
+   "steps": [
+    "Enter the series in order, one value per period.",
+    "Declare the horizon you want to forecast.",
+    "Read the trend, the forecast values and the interval.",
+    "Check the holdout error before trusting the extrapolation."
+   ],
+   "common_mistakes": [
+    "Extrapolating far beyond the data without widening the interval.",
+    "Ignoring seasonality that a straight line cannot capture.",
+    "Reading a high R-squared as proof that the forecast is right.",
+    "Forecasting a series that changed regime."
+   ],
+   "diagram": null,
+   "related": [
+    "scenario",
+    "risk",
+    "unitecon"
+   ],
+   "group": "impact_evaluation",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "currency",
+   "preset": "currency",
+   "method": "currency_convert",
+   "label": "Currency conversion",
+   "what": "Convert an amount at a rate you declare; the rate and its source are recorded.",
+   "need": null,
+   "level": "intro",
+   "formula": "Converted amount = amount x rate, with the rate's provenance recorded.",
+   "steps": [
+    "Enter the amount, the source currency and the target currency.",
+    "Declare the rate and where it came from.",
+    "Read the converted amount and the recorded rate.",
+    "Keep the rate date with the result."
+   ],
+   "common_mistakes": [
+    "Multiplying when the quote is the other way up; divide instead.",
+    "Using a stale rate without saying so.",
+    "Forgetting the target currency's minor units.",
+    "Treating a declared rate as a verified market rate."
+   ],
+   "diagram": null,
+   "related": [
+    "fx",
+    "case_decision",
+    "forecast"
+   ],
+   "group": "impact_evaluation",
+   "period": "spot rate"
+  },
+  {
+   "kind": "compute",
+   "key": "pricing",
+   "preset": "pricing",
+   "method": "pricing_decision",
+   "label": "Pricing rules",
+   "what": "Cost-plus, target-margin, break-even and target-return prices from your cost, volume and rate.",
+   "need": null,
+   "level": "intro",
+   "formula": "Cost-plus price = unit cost x (1 + markup); margin price = unit cost / (1 - margin); break-even price = total cost / expected units.",
+   "steps": [
+    "Enter the variable cost per unit and the fixed cost for the period.",
+    "Enter the volume you expect to sell.",
+    "Read the cost-plus price at your markup, then the margin price and the break-even price.",
+    "Compare them with what customers in your market actually pay; the method cannot do that part."
+   ],
+   "common_mistakes": [
+    "Treating a 40% margin as a 40% markup: a markup on cost always gives a lower price than the same margin on price.",
+    "Forgetting fixed costs when pricing a small volume.",
+    "Setting a price below variable cost and hoping volume fixes it.",
+    "Ignoring what competitors charge in the same market."
+   ],
+   "diagram": null,
+   "related": [
+    "breakeven",
+    "elasticity",
+    "unitecon"
+   ],
+   "group": "quantitative_core",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "demandcurve",
+   "preset": "demandcurve",
+   "method": "demand_curve",
+   "label": "Demand line and revenue-max price",
+   "what": "Fit a line to your price and quantity pairs and read the slope, the elasticity and the price that maximises revenue.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "q = a + b p, fitted by least squares; elasticity at the mean = b x (mean price / mean quantity).",
+   "steps": [
+    "Collect price-quantity pairs from the same market and period basis.",
+    "Enter the prices and the quantity demanded at each price.",
+    "Read the slope, the R-squared and the elasticity at the mean price.",
+    "If the slope is negative, read the revenue-maximising price on the fitted line."
+   ],
+   "common_mistakes": [
+    "Treating the fitted line as an identified demand curve.",
+    "Mixing observations from different periods or markets.",
+    "Extrapolating far outside the observed price range.",
+    "Ignoring that price and quantity are jointly determined."
+   ],
+   "diagram": "supply_demand",
+   "related": [
+    "elasticity",
+    "pricing",
+    "purchaseintent"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "cba",
+   "preset": "cba",
+   "method": "cost_benefit",
+   "label": "Cost-benefit analysis",
+   "what": "Compare the present value of programme costs and benefits under declared assumptions.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "NPV = PV(benefits) - PV(costs); BCR = PV(benefits) / PV(costs).",
+   "steps": [
+    "Discount each period's costs and benefits at the declared rate.",
+    "Subtract present-value costs from present-value benefits.",
+    "Divide benefits by costs for the benefit-cost ratio."
+   ],
+   "common_mistakes": [
+    "Choosing the discount rate after seeing the result.",
+    "Counting a transfer as a benefit or a cost.",
+    "Comparing projects with different horizons without saying so."
+   ],
+   "diagram": null,
+   "related": [
+    "cea",
+    "sroi",
+    "equilibrium"
+   ],
+   "group": "quantitative_core",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "cea",
+   "preset": "cea",
+   "method": "cost_effectiveness",
+   "label": "Cost-effectiveness analysis",
+   "what": "Compare cost per unit of effect across options, with the effect measure declared.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "ICER = (cost of option - cost of comparator) / (effect of option - effect of comparator).",
+   "steps": [
+    "Name the comparator first.",
+    "Compute the incremental cost and the incremental effect for each other option.",
+    "Divide the cost difference by the effect difference."
+   ],
+   "common_mistakes": [
+    "Comparing options on different effect scales.",
+    "Ignoring a dominant option because it has no finite ratio.",
+    "Choosing the comparator after seeing the ratios."
+   ],
+   "diagram": null,
+   "related": [
+    "cba",
+    "sroi"
+   ],
+   "group": "quantitative_core",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "sroi",
+   "preset": "sroi",
+   "method": "sroi",
+   "label": "Social return on investment",
+   "what": "Record the SROI ratio from declared social value, investment and attribution assumptions.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "SROI = PV(social benefits) / investment.",
+   "steps": [
+    "Discount the declared social benefits.",
+    "Divide their present value by the declared investment.",
+    "State the attribution and deadweight assumptions explicitly."
+   ],
+   "common_mistakes": [
+    "Treating an unmonetised outcome as if it had been valued.",
+    "Omitting deadweight, attribution or displacement adjustments.",
+    "Presenting the ratio as assurance."
+   ],
+   "diagram": null,
+   "related": [
+    "cba",
+    "cea"
+   ],
+   "group": "quantitative_core",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "npv",
+   "preset": "npv",
+   "method": "npv",
+   "label": "Net present value",
+   "what": "Discount a project's cash flows at a declared rate and record the NPV with its checks.",
+   "need": "the outlay, the later cash flows, and the hurdle rate you will justify",
+   "level": "intro",
+   "formula": "NPV = sum of CF_t / (1 + r)^t, with the first cash flow at t = 0 and undiscounted.",
+   "steps": [
+    "List the cash flows in order, starting with the negative outlay at t = 0.",
+    "Choose the discount rate that matches the project's risk.",
+    "Discount each flow and add them.",
+    "Compare the result with zero; a positive NPV clears the hurdle at that rate."
+   ],
+   "common_mistakes": [
+    "Discounting the t = 0 outlay, which removes one period of discounting.",
+    "Using accounting profit instead of cash flow.",
+    "Entering the rate as 10 instead of 0.10.",
+    "Comparing NPVs of projects with different lives without an equivalent-annual measure."
+   ],
+   "diagram": null,
+   "related": [
+    "irr",
+    "dpayback",
+    "projectmetrics",
+    "scenario"
+   ],
+   "group": "quantitative_core",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "dcf",
+   "preset": "dcf",
+   "method": "dcf_valuation",
+   "label": "DCF valuation (year-end)",
+   "what": "Value a business or project from forecast free cash flows and a declared discount rate.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "EV = sum of FCF_t / (1 + r)^t + TV / (1 + r)^n; TV = FCF_n(1 + g) / (r - g).",
+   "steps": [
+    "Enter the free cash flows for the explicit forecast.",
+    "Enter the discount rate that matches the cash flows.",
+    "If the business continues, declare a terminal growth rate below the discount rate.",
+    "Read the explicit present value, the terminal present value and their sum."
+   ],
+   "common_mistakes": [
+    "Using a growth rate at or above the discount rate.",
+    "Discounting equity cash flows at WACC, or enterprise cash flows at the cost of equity.",
+    "Forgetting that the terminal value usually dominates the answer.",
+    "Forecasting cash flows inside the method; they are your declaration."
+   ],
+   "diagram": null,
+   "related": [
+    "wacc",
+    "dcfmid",
+    "equitybridge",
+    "multiples"
+   ],
+   "group": "quantitative_core",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "breakeven",
+   "preset": "breakeven",
+   "method": "breakeven",
+   "label": "Break-even point",
+   "what": "Solve the break-even quantity from fixed cost, price and variable cost.",
+   "need": null,
+   "level": "intro",
+   "formula": "Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.",
+   "steps": [
+    "Subtract variable cost from price to get the unit contribution and the contribution-margin ratio.",
+    "Divide fixed cost by the unit contribution for the break-even quantity.",
+    "Multiply by the price for the break-even revenue.",
+    "If you declare an expected volume, read the margin of safety; if you declare a profit target, read the sales volume it needs."
+   ],
+   "common_mistakes": [
+    "Using total cost instead of fixed cost.",
+    "Forgetting that a price below variable cost has no break-even.",
+    "Mixing per-unit and total figures.",
+    "Reporting a margin of safety against a budget you did not declare."
+   ],
+   "diagram": "breakeven",
+   "related": [
+    "multibreakeven",
+    "unitecon",
+    "pricing"
+   ],
+   "group": "quantitative_core",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "multibreakeven",
+   "preset": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "label": "Multi-product break-even",
+   "what": "Find the sales mix at which several products together cover their fixed costs.",
+   "need": null,
+   "level": "intro",
+   "formula": "Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.",
+   "steps": [
+    "Compute each product's unit contribution.",
+    "Weight the contributions by the declared sales mix.",
+    "Divide fixed cost by the weighted contribution.",
+    "Split the break-even units back across the mix."
+   ],
+   "common_mistakes": [
+    "Using a simple average instead of the mix-weighted contribution.",
+    "Letting the mix change while claiming one break-even point.",
+    "Ignoring capacity limits."
+   ],
+   "diagram": "breakeven",
+   "related": [
+    "breakeven",
+    "unitecon"
+   ],
+   "group": "quantitative_core",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "unitecon",
+   "preset": "unitecon",
+   "method": "unit_economics",
+   "label": "Unit economics",
+   "what": "Work out the margin each customer leaves, what it costs to win one, how long that takes to repay, and the value the customer brings over their life.",
+   "need": null,
+   "level": "intro",
+   "formula": "Contribution margin = price - variable cost; LTV = margin / churn; CAC payback = acquisition cost / margin.",
+   "steps": [
+    "Enter the price and the variable cost per unit or customer.",
+    "Enter the acquisition cost and, if you know it, the churn rate.",
+    "Read the margin, the payback period and the LTV/CAC ratio.",
+    "Check that price and cost are for the same period."
+   ],
+   "common_mistakes": [
+    "Using gross profit instead of contribution margin.",
+    "Entering churn as a percentage (5) instead of a decimal (0.05).",
+    "Comparing an undiscounted LTV with a discounted cost.",
+    "Treating a single churn rate as a retention curve."
+   ],
+   "diagram": null,
+   "related": [
+    "breakeven",
+    "portfolio",
+    "forecast"
+   ],
+   "group": "quantitative_core",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "descriptive",
+   "preset": "descriptive",
+   "method": "descriptive_stats",
+   "label": "Descriptive statistics",
+   "what": "Record the count, centre, spread and declared missing-value handling for one variable.",
+   "need": "the numbers you hold and the group they describe",
+   "level": "intro",
+   "formula": "Mean = sum of values / count; standard deviation measures typical distance from the mean.",
+   "steps": [
+    "Check the sample size and missing values.",
+    "Read the centre and spread together.",
+    "Look at the shape before using the mean alone."
+   ],
+   "common_mistakes": [
+    "Reporting a mean for a heavily skewed variable without the median.",
+    "Ignoring missing values.",
+    "Confusing standard deviation with standard error."
+   ],
+   "diagram": null,
+   "related": [
+    "pearson",
+    "ols"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "pearson",
+   "preset": "pearson",
+   "method": "pearson",
+   "label": "Pearson correlation",
+   "what": "Record the linear association between two variables with its sample size and checks.",
+   "need": "the two numeric variables you are relating, and the pairs you observed",
+   "level": "intermediate",
+   "formula": "r = covariance(x, y) / (standard deviation of x x standard deviation of y).",
+   "steps": [
+    "Check both variables are numeric and paired.",
+    "Read r between minus one and one.",
+    "Inspect the scatter plot before trusting a linear summary."
+   ],
+   "common_mistakes": [
+    "Reading causation into a correlation.",
+    "Ignoring an outlier that drives r.",
+    "Using Pearson for a clearly non-linear relationship."
+   ],
+   "diagram": null,
+   "related": [
+    "spearman",
+    "ols"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "ols",
+   "preset": "ols",
+   "method": "ols",
+   "label": "Linear regression",
+   "what": "Fit a declared linear model and record coefficients, fit and diagnostics.",
+   "need": "the outcome, the predictors, and the observations you have for each",
+   "level": "advanced",
+   "formula": "y = intercept + coefficient x x + error; the coefficients minimise the sum of squared errors.",
+   "steps": [
+    "Check the sample size and missing values.",
+    "Read each coefficient with its standard error.",
+    "Check the fit and residual diagnostics.",
+    "State the assumptions and the claim ceiling."
+   ],
+   "common_mistakes": [
+    "Reading a coefficient as a causal effect.",
+    "Ignoring heteroskedasticity or influential points.",
+    "Comparing R-squared across different dependent variables."
+   ],
+   "diagram": null,
+   "related": [
+    "ols_robust",
+    "pearson",
+    "logit"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "welch",
+   "preset": "welch",
+   "method": "welch_t",
+   "label": "Welch two-sample t-test",
+   "what": "Compare two group means without assuming equal variances.",
+   "need": null,
+   "level": "advanced",
+   "formula": "t = (mean A - mean B) / standard error of the difference, without assuming equal variances.",
+   "steps": [
+    "Check the two groups are independent.",
+    "Read the difference, the interval and the p-value together.",
+    "Report the effect size, not only significance."
+   ],
+   "common_mistakes": [
+    "Treating a small p-value as a large effect.",
+    "Using a paired test for independent groups.",
+    "Ignoring unequal variances."
+   ],
+   "diagram": null,
+   "related": [
+    "paired",
+    "anova"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "anova",
+   "preset": "anova",
+   "method": "anova",
+   "label": "One-way ANOVA",
+   "what": "Compare three or more group means and record the effect size and checks.",
+   "need": null,
+   "level": "advanced",
+   "formula": "F = between-group variance / within-group variance.",
+   "steps": [
+    "Check the groups are independent.",
+    "Read the F test and the effect size.",
+    "Use a post-hoc test before naming which groups differ."
+   ],
+   "common_mistakes": [
+    "Running several t-tests instead of one ANOVA.",
+    "Naming the winning group from the omnibus test alone.",
+    "Ignoring unequal variances."
+   ],
+   "diagram": null,
+   "related": [
+    "kruskal_wallis",
+    "posthoc"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "chi_square",
+   "preset": "chi_square",
+   "method": "chi_square",
+   "label": "Chi-square association",
+   "what": "Test whether two categorical variables are associated, with the expected-count checks.",
+   "need": "a two-way table of counts, and the categories in each direction",
+   "level": "advanced",
+   "formula": "Chi-square = sum of (observed - expected)^2 / expected.",
+   "steps": [
+    "Build the contingency table.",
+    "Check the expected counts.",
+    "Read the p-value and the effect size."
+   ],
+   "common_mistakes": [
+    "Using chi-square with very small expected counts.",
+    "Reading causation into an association.",
+    "Ignoring the table's degrees of freedom."
+   ],
+   "diagram": null,
+   "related": [
+    "pearson",
+    "power"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "power",
+   "preset": "power",
+   "method": "power_analysis",
+   "label": "Power and sample size",
+   "what": "Record the sample size or power implied by a declared effect and alpha.",
+   "need": "the size of the effect you are looking for and the number of observations",
+   "level": "advanced",
+   "formula": "Power depends on the effect size, alpha, sample size and variability.",
+   "steps": [
+    "Declare the effect size you care about.",
+    "Choose alpha and the desired power.",
+    "Read the required sample size or the detectable effect."
+   ],
+   "common_mistakes": [
+    "Choosing the effect size after seeing the data.",
+    "Confusing power with the p-value.",
+    "Ignoring attrition and clustering."
+   ],
+   "diagram": null,
+   "related": [
+    "welch",
+    "anova",
+    "chi_square"
+   ],
+   "group": "quantitative_core",
+   "period": "per observation"
+  }
+ ],
+ "worksheets": [],
+ "tiles": [
+  {
+   "key": "market_basics",
+   "label": "Market basics",
+   "what": "Equilibrium price and quantity, price elasticity, tax incidence, price controls and market concentration.",
+   "need": "The demand and supply curves, or two price-quantity observations for elasticity.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "equilibrium",
+     "preset": "equilibrium",
+     "method": "demand_supply_equilibrium",
+     "label": "Market equilibrium",
+     "what": "Find the equilibrium price and quantity from declared linear demand and supply, with consumer and producer surplus.",
+     "need": null,
+     "level": "intro",
+     "formula": "Qd = a - bP and Qs = c + dP; set Qd = Qs to find P*, then Q* = a - bP*.",
+     "steps": [
+      "Write demand as Qd = a - bP and supply as Qs = c + dP.",
+      "Set Qd = Qs and solve for the equilibrium price P*.",
+      "Substitute P* into either curve to get the equilibrium quantity Q*.",
+      "Consumer surplus is the triangle below demand and above P*; producer surplus is the triangle above supply and below P*."
+     ],
+     "common_mistakes": [
+      "Using the inverse form P = a - bQ without rearranging it to Q = a - bP.",
+      "Forgetting to check that P* and Q* are positive.",
+      "Adding the two surplus triangles when one lies below the price axis."
+     ],
+     "diagram": "supply_demand",
+     "related": [
+      "elasticity",
+      "taxincidence",
+      "pricecontrol"
+     ],
+     "group": "market_basics",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "elasticity",
+     "preset": "elasticity",
+     "method": "elasticity",
+     "label": "Price elasticity of demand",
+     "what": "Measure the arc elasticity between two price-quantity observations and see what happens to revenue.",
+     "need": null,
+     "level": "intro",
+     "formula": "E = (% change in Q) / (% change in P), using the midpoint (arc) formula.",
+     "steps": [
+      "Compute the change in quantity divided by the average quantity.",
+      "Compute the change in price divided by the average price.",
+      "Divide the first percentage change by the second.",
+      "Compare the absolute value with one and read the revenue change."
+     ],
+     "common_mistakes": [
+      "Using the slope of the inverse demand curve instead of the percentage changes.",
+      "Calling a negative elasticity inelastic because the sign is negative.",
+      "Mixing percentages and decimals in the same calculation.",
+      "Using the point formula for a discrete change."
+     ],
+     "diagram": "elasticity",
+     "related": [
+      "equilibrium",
+      "unitecon",
+      "breakeven"
+     ],
+     "group": "market_basics",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "taxincidence",
+     "preset": "taxincidence",
+     "method": "tax_incidence",
+     "label": "Tax incidence and deadweight loss",
+     "what": "Split a per-unit tax between buyers and sellers and record the revenue and deadweight loss.",
+     "need": null,
+     "level": "intro",
+     "formula": "Consumer price Pc and producer price Ps satisfy Pc - Ps = t; the burden split follows the slopes.",
+     "steps": [
+      "Find the no-tax equilibrium first.",
+      "Shift the supply curve up by the per-unit tax.",
+      "Read the new consumer price and producer price.",
+      "Split the tax between the two sides, then compute revenue and deadweight loss."
+     ],
+     "common_mistakes": [
+      "Assuming the side that hands the tax to the government bears the burden.",
+      "Forgetting the tax wedge between the buyer's price and the seller's price.",
+      "Reporting the tax as a percentage when the input is per unit."
+     ],
+     "diagram": "tax_wedge",
+     "related": [
+      "equilibrium",
+      "pricecontrol",
+      "cba"
+     ],
+     "group": "market_basics",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "pricecontrol",
+     "preset": "pricecontrol",
+     "method": "price_control",
+     "label": "Price ceilings and floors",
+     "what": "See the shortage, surplus and deadweight loss created by a declared price control.",
+     "need": null,
+     "level": "intro",
+     "formula": "At the control price, compare quantity demanded with quantity supplied; the short side determines quantity traded.",
+     "steps": [
+      "Find the free-market equilibrium.",
+      "Decide whether the ceiling is below it or the floor is above it.",
+      "At the control price, compute quantity demanded and quantity supplied.",
+      "Report the shortage or surplus, the quantity traded and the deadweight loss."
+     ],
+     "common_mistakes": [
+      "Treating a non-binding control as if it changed the market.",
+      "Reversing shortage and surplus.",
+      "Using the long side of the market as quantity traded."
+     ],
+     "diagram": "price_control",
+     "related": [
+      "equilibrium",
+      "taxincidence"
+     ],
+     "group": "market_basics",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "concentration",
+     "preset": "concentration",
+     "method": "market_concentration",
+     "label": "Market concentration (HHI)",
+     "what": "Compute HHI, CR4 and the equivalent number of firms from declared firm revenues.",
+     "need": null,
+     "level": "intro",
+     "formula": "HHI = sum of squared percentage market shares; CR4 = sum of the four largest shares.",
+     "steps": [
+      "Add the declared revenues to get the market total.",
+      "Divide each firm's revenue by the total and multiply by one hundred.",
+      "Square each share and add them for the HHI.",
+      "Add the four largest shares for CR4; the equivalent number of firms is 10,000 divided by the HHI."
+     ],
+     "common_mistakes": [
+      "Entering fractions when the HHI expects percentage shares.",
+      "Using total corporate revenue instead of sales in the relevant market.",
+      "Treating the HHI as a legal conclusion rather than a descriptive measure."
+     ],
+     "diagram": "concentration",
+     "related": [
+      "equilibrium",
+      "unitecon"
+     ],
+     "group": "market_basics",
+     "period": "per observation"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "firm_behaviour",
+   "label": "Firm behaviour",
+   "what": "Cost curves, profit maximisation, markup and Lerner index, price discrimination, Cournot and Nash equilibrium.",
+   "need": "A cost function and demand curve, or a price and marginal cost for markup.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "costcurves",
+     "preset": "costcurves",
+     "method": "cost_curves",
+     "label": "Cost curves",
+     "what": "Average, average variable, average fixed and marginal cost at a declared quantity, with profit and a shutdown test if you supply a price.",
+     "need": null,
+     "level": "intro",
+     "formula": "TC = FC + bQ + cQ^2; AC = TC / Q; MC = b + 2cQ.",
+     "steps": [
+      "Enter fixed cost and the linear and quadratic variable-cost terms.",
+      "Choose the quantity at which to evaluate the costs.",
+      "Read AC, AVC, AFC and MC together; MC crosses AC at the minimum of AC.",
+      "If you supply a price, compare it with the minimum AVC to test shutdown."
+     ],
+     "common_mistakes": [
+      "Using total cost where the formula needs fixed cost.",
+      "Confusing marginal cost with average cost.",
+      "Forgetting the quadratic term when computing marginal cost.",
+      "Shutting down whenever profit is negative, even when price covers average variable cost."
+     ],
+     "diagram": "cost_curves",
+     "related": [
+      "profitmax",
+      "breakeven",
+      "marketpower"
+     ],
+     "group": "firm_behaviour",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "profitmax",
+     "preset": "profitmax",
+     "method": "profit_maximization",
+     "label": "Profit maximisation",
+     "what": "Find the output and price where marginal revenue equals marginal cost, with profit, markup and the Lerner index.",
+     "need": null,
+     "level": "intro",
+     "formula": "Set MR = MC: a - 2bQ = c + 2dQ, then P = a - bQ.",
+     "steps": [
+      "Write demand as P = a - bQ, so marginal revenue is a - 2bQ.",
+      "Write marginal cost from the cost function as c + 2dQ.",
+      "Set MR = MC and solve for Q.",
+      "Substitute Q back into demand for P, then compute revenue, cost and profit."
+     ],
+     "common_mistakes": [
+      "Setting price equal to marginal cost; that is the competitive outcome, not the monopoly optimum.",
+      "Using the demand slope instead of twice the demand slope for marginal revenue.",
+      "Thinking fixed cost changes the profit-maximising quantity; it changes profit, not the optimum.",
+      "Reporting the Lerner index as a percentage without checking its scale."
+     ],
+     "diagram": "profit_max",
+     "related": [
+      "costcurves",
+      "marketpower",
+      "concentration"
+     ],
+     "group": "firm_behaviour",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "marketpower",
+     "preset": "marketpower",
+     "method": "market_power",
+     "label": "Markup and Lerner index",
+     "what": "Measure the markup and Lerner index from a price and marginal cost, and the implied demand elasticity.",
+     "need": null,
+     "level": "intro",
+     "formula": "Lerner index = (P - MC) / P; markup = P - MC; implied elasticity = 1 / Lerner.",
+     "steps": [
+      "Enter the price and the marginal cost at the same quantity.",
+      "Subtract marginal cost from price for the markup.",
+      "Divide the markup by price for the Lerner index.",
+      "If the index is positive, take its inverse for the implied demand elasticity."
+     ],
+     "common_mistakes": [
+      "Using average cost instead of marginal cost.",
+      "Reading a high markup as proof of consumer harm or a legal violation.",
+      "Forgetting that the implied elasticity is model-conditional."
+     ],
+     "diagram": null,
+     "related": [
+      "profitmax",
+      "concentration"
+     ],
+     "group": "firm_behaviour",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "pricediscrimination",
+     "preset": "pricediscrimination",
+     "method": "price_discrimination",
+     "label": "Price discrimination",
+     "what": "Set third-degree prices and quantities in two separated markets.",
+     "need": null,
+     "level": "advanced",
+     "formula": "Set marginal revenue equal to marginal cost separately in each market.",
+     "steps": [
+      "Write each market's linear demand.",
+      "Set MR = MC in each market for its quantity.",
+      "Substitute back for each price.",
+      "Add revenues and profits across the two markets."
+     ],
+     "common_mistakes": [
+      "Setting one price for both markets.",
+      "Ignoring that the markets must be separated and resale impossible.",
+      "Using average cost instead of marginal cost."
+     ],
+     "diagram": null,
+     "related": [
+      "profitmax",
+      "marketpower",
+      "cournot"
+     ],
+     "group": "firm_behaviour",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "cournot",
+     "preset": "cournot",
+     "method": "cournot_duopoly",
+     "label": "Cournot duopoly",
+     "what": "Find the two-firm Cournot quantities, price and profits.",
+     "need": null,
+     "level": "advanced",
+     "formula": "q1 = (a - 2c1 + c2) / (3b); q2 = (a - 2c2 + c1) / (3b); P = a - b(q1 + q2).",
+     "steps": [
+      "Write each firm's best response to the other's quantity.",
+      "Solve the two best responses simultaneously.",
+      "Substitute the quantities into demand for the price.",
+      "Compute each firm's profit."
+     ],
+     "common_mistakes": [
+      "Using the monopoly quantity for each firm.",
+      "Forgetting the 3b denominator in the solution.",
+      "Ignoring the case where one firm is priced out."
+     ],
+     "diagram": null,
+     "related": [
+      "nash",
+      "pricediscrimination",
+      "marketpower"
+     ],
+     "group": "firm_behaviour",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "nash",
+     "preset": "nash",
+     "method": "nash_equilibrium",
+     "label": "Nash equilibrium (2x2)",
+     "what": "Find the pure-strategy Nash equilibria of a declared 2x2 game.",
+     "need": null,
+     "level": "advanced",
+     "formula": "A cell is a Nash equilibrium when neither player can gain by switching strategy alone.",
+     "steps": [
+      "Enter each player's four payoffs in the declared cell order.",
+      "For each cell, check the row player's alternative and the column player's alternative.",
+      "Flag the cells where neither can gain.",
+      "Read the number of pure-strategy equilibria."
+     ],
+     "common_mistakes": [
+      "Looking for the highest joint payoff instead of no unilateral gain.",
+      "Missing a second equilibrium in a coordination game.",
+      "Treating a payoff tie as a non-equilibrium."
+     ],
+     "diagram": "payoff_matrix",
+     "related": [
+      "cournot",
+      "prospect"
+     ],
+     "group": "firm_behaviour",
+     "period": "per observation"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "macroeconomics",
+   "label": "Macroeconomics",
+   "what": "GDP and national income, growth and CAGR, inflation and real interest, unemployment, money and fiscal multipliers, budget and debt, Okun's law.",
+   "need": "The expenditure components for GDP, two values and periods for growth, two CPI values for inflation.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "nationalincome",
+     "preset": "nationalincome",
+     "method": "national_income",
+     "label": "GDP and national income",
+     "what": "Build GDP by the expenditure approach, then GNP, NNP, net exports, GDP per capita and real GDP.",
+     "need": null,
+     "level": "intro",
+     "formula": "GDP = C + I + G + X - M; GNP = GDP + net factor income; NNP = GNP - depreciation.",
+     "steps": [
+      "Add household consumption, investment and government spending.",
+      "Add exports and subtract imports.",
+      "Add net factor income for GNP, then subtract depreciation for NNP.",
+      "If you supply a population or deflator, read GDP per capita or real GDP."
+     ],
+     "common_mistakes": [
+      "Adding imports instead of subtracting them.",
+      "Double counting intermediate goods as if they were final expenditure.",
+      "Confusing GDP with GNP; the difference is net factor income from abroad.",
+      "Using a deflator as a percentage rather than an index with a base of 100."
+     ],
+     "diagram": "national_income",
+     "related": [
+      "growth",
+      "inflation",
+      "unemployment"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "growth",
+     "preset": "growth",
+     "method": "growth_rate",
+     "label": "Growth rate and CAGR",
+     "what": "Compute total growth, the compound annual growth rate and the rule-of-72 doubling time.",
+     "need": null,
+     "level": "intro",
+     "formula": "CAGR = (end / start)^(1 / periods) - 1; doubling time is about 72 / (CAGR x 100).",
+     "steps": [
+      "Enter the start value, end value and number of periods.",
+      "Read total growth as the proportional change.",
+      "Read CAGR as the constant rate that compounds the start to the end.",
+      "Use the rule of 72 only as an approximation for the doubling time."
+     ],
+     "common_mistakes": [
+      "Averaging yearly growth rates instead of compounding them.",
+      "Confusing total growth with the annual compound rate.",
+      "Using the rule of 72 at very high or negative growth rates.",
+      "Forgetting to adjust for population when the question is per-capita growth."
+     ],
+     "diagram": "growth",
+     "related": [
+      "nationalincome",
+      "inflation",
+      "budgetdebt"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "inflation",
+     "preset": "inflation",
+     "method": "inflation_cpi",
+     "label": "Inflation and real interest",
+     "what": "Compute inflation from two CPI values, the exact and approximate real interest rate, and real wage growth.",
+     "need": null,
+     "level": "intro",
+     "formula": "Inflation = (CPI end - CPI start) / CPI start; real interest = (1 + nominal) / (1 + inflation) - 1.",
+     "steps": [
+      "Enter the two CPI values.",
+      "Divide their difference by the starting CPI for inflation.",
+      "If you have a nominal interest rate, apply the Fisher relation for the real rate.",
+      "If you have wages, compare their growth with inflation for real wage growth."
+     ],
+     "common_mistakes": [
+      "Subtracting the two CPI values and calling the difference the inflation rate.",
+      "Using nominal minus inflation at high inflation without saying it is an approximation.",
+      "Confusing nominal and real wages.",
+      "Treating the CPI as a price level in currency rather than an index."
+     ],
+     "diagram": null,
+     "related": [
+      "growth",
+      "unemployment",
+      "fiscal"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "unemployment",
+     "preset": "unemployment",
+     "method": "unemployment_rate",
+     "label": "Unemployment and participation",
+     "what": "Compute the unemployment rate, labour-force participation rate and employment-population ratio.",
+     "need": null,
+     "level": "intro",
+     "formula": "Unemployment rate = unemployed / labour force; LFPR = labour force / working-age population.",
+     "steps": [
+      "Enter the labour force, the number employed and the working-age population.",
+      "Subtract employment from the labour force for the unemployed.",
+      "Divide the unemployed by the labour force for the unemployment rate.",
+      "Use the working-age population for participation and the employment ratio."
+     ],
+     "common_mistakes": [
+      "Dividing the unemployed by the working-age population instead of the labour force.",
+      "Counting discouraged workers as unemployed when they are outside the labour force.",
+      "Mixing the participation and employment-ratio denominators.",
+      "Treating the unemployment rate as a measure of hardship by itself."
+     ],
+     "diagram": null,
+     "related": [
+      "inflation",
+      "growth",
+      "nationalincome"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "moneymultiplier",
+     "preset": "moneymultiplier",
+     "method": "money_multiplier",
+     "label": "Money multiplier",
+     "what": "Compute the simple and currency-adjusted money multipliers and the implied money supply.",
+     "need": null,
+     "level": "intro",
+     "formula": "Simple multiplier = 1 / reserve ratio; extended = (1 + currency drain) / (reserve ratio + currency drain).",
+     "steps": [
+      "Enter the monetary base and the reserve ratio.",
+      "Compute the simple multiplier as the inverse of the reserve ratio.",
+      "Add the currency drain for the extended multiplier.",
+      "Multiply the base by the multiplier for the implied money supply."
+     ],
+     "common_mistakes": [
+      "Forgetting the currency drain, which lowers the multiplier.",
+      "Assuming banks hold no excess reserves.",
+      "Confusing the monetary base with the money supply.",
+      "Treating the multiplier as a forecast rather than an identity."
+     ],
+     "diagram": null,
+     "related": [
+      "inflation",
+      "fiscal"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "fiscal",
+     "preset": "fiscal",
+     "method": "fiscal_multiplier",
+     "label": "Fiscal multipliers",
+     "what": "Compute the government-spending, tax and balanced-budget multipliers and the output change from a declared fiscal package.",
+     "need": null,
+     "level": "intro",
+     "formula": "Government multiplier = 1 / (1 - MPC(1 - t)); tax multiplier = -MPC / (1 - MPC(1 - t)).",
+     "steps": [
+      "Enter the marginal propensity to consume and the proportional tax rate.",
+      "Compute the denominator 1 - MPC(1 - t).",
+      "Read the government-spending, tax and balanced-budget multipliers.",
+      "Apply the declared spending and tax changes to get the output change."
+     ],
+     "common_mistakes": [
+      "Using 1 / (1 - MPC) when there is an income tax; the tax rate belongs in the denominator.",
+      "Thinking the tax multiplier is positive.",
+      "Confusing a lump-sum tax change with a change in the tax rate.",
+      "Treating the multiplier as an estimated policy effect rather than an identity."
+     ],
+     "diagram": null,
+     "related": [
+      "budgetdebt",
+      "nationalincome"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "budgetdebt",
+     "preset": "budgetdebt",
+     "method": "budget_debt",
+     "label": "Budget balance and debt",
+     "what": "Compute the overall and primary balances, the debt-to-GDP ratio and the debt-ratio change.",
+     "need": null,
+     "level": "intro",
+     "formula": "Overall balance = revenue - spending - interest; debt ratio = debt / GDP.",
+     "steps": [
+      "Enter revenue, primary spending, interest, debt and GDP.",
+      "Add interest to primary spending for total spending.",
+      "Subtract total spending from revenue for the overall balance.",
+      "Divide debt by GDP for the debt ratio and apply the interest-growth-primary identity for its change."
+     ],
+     "common_mistakes": [
+      "Including interest in primary spending and then adding it again.",
+      "Confusing the overall balance with the primary balance.",
+      "Treating the debt-ratio change as a forecast rather than an identity.",
+      "Using nominal GDP growth without saying it is nominal."
+     ],
+     "diagram": null,
+     "related": [
+      "fiscal",
+      "growth"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "okun",
+     "preset": "okun",
+     "method": "output_gap_okun",
+     "label": "Output gap and Okun's law",
+     "what": "Compute the output gap and the unemployment change implied by a declared Okun coefficient.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Output gap = (actual GDP - potential GDP) / potential GDP; unemployment change = -Okun coefficient x gap.",
+     "steps": [
+      "Enter actual and potential GDP on the same basis.",
+      "Compute the proportional output gap.",
+      "Apply the declared Okun coefficient for the unemployment change in percentage points.",
+      "Add the change to the current unemployment rate."
+     ],
+     "common_mistakes": [
+      "Getting the sign wrong: a positive gap lowers unemployment.",
+      "Treating potential GDP as observed rather than declared.",
+      "Confusing percentage points with percent."
+     ],
+     "diagram": null,
+     "related": [
+      "unemployment",
+      "growth",
+      "inflation"
+     ],
+     "group": "macroeconomics",
+     "period": "annual"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "welfare_policy",
+   "label": "Welfare and policy",
+   "what": "Externalities and Pigouvian tax, public goods, social welfare functions, Gini coefficient, poverty measures, tax progressivity, optimal pollution.",
+   "need": "Incomes for inequality and poverty, benefit schedules for public goods, damage and abatement for externalities.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "externality",
+     "preset": "externality",
+     "method": "externality_pigouvian",
+     "label": "Externalities and Pigouvian tax",
+     "what": "Compare the private market with the social optimum and record the Pigouvian tax and deadweight loss.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Social optimum: demand = private supply + marginal external cost; Pigouvian tax = marginal external cost; DWL = 1/2 x tax x (market quantity - social quantity).",
+     "steps": [
+      "Find the private market equilibrium first.",
+      "Add the external cost to private supply to get the social cost.",
+      "Solve for the social quantity and compare it with the market quantity.",
+      "Read the Pigouvian tax and the deadweight-loss triangle."
+     ],
+     "common_mistakes": [
+      "Ignoring the external cost and calling the private equilibrium efficient.",
+      "Taxing the market quantity instead of the social quantity.",
+      "Confusing the per-unit tax with total external damage."
+     ],
+     "diagram": "externality",
+     "related": [
+      "equilibrium",
+      "taxincidence",
+      "optimalpollution"
+     ],
+     "group": "welfare_policy",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "publicgood",
+     "preset": "publicgood",
+     "method": "public_good",
+     "label": "Public goods",
+     "what": "Find the efficient provision of a public good from two benefit schedules and a cost schedule.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Sum the marginal benefits vertically; set social marginal benefit equal to marginal cost.",
+     "steps": [
+      "Write each person's marginal benefit as a linear schedule.",
+      "Add the schedules vertically to get social marginal benefit.",
+      "Set it equal to marginal cost and solve for the efficient quantity.",
+      "Compare total benefit with total cost."
+     ],
+     "common_mistakes": [
+      "Adding the demand curves horizontally, which is the private-good case.",
+      "Using one person's marginal benefit as the social benefit.",
+      "Forgetting that voluntary contribution generally underprovides."
+     ],
+     "diagram": "public_good",
+     "related": [
+      "externality",
+      "socialwelfare"
+     ],
+     "group": "welfare_policy",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "socialwelfare",
+     "preset": "socialwelfare",
+     "method": "social_welfare",
+     "label": "Social welfare functions",
+     "what": "Compare utilitarian, Rawlsian and Nash welfare for the same incomes.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Utilitarian = sum of incomes; Rawlsian = minimum income; Nash = geometric mean.",
+     "steps": [
+      "Enter the incomes and choose the welfare function.",
+      "Read all three welfare values alongside the selected one.",
+      "Compare how a transfer changes each criterion."
+     ],
+     "common_mistakes": [
+      "Treating the choice of welfare function as an empirical result.",
+      "Comparing incomes without an equivalence scale.",
+      "Thinking Nash welfare is the same as the sum."
+     ],
+     "diagram": null,
+     "related": [
+      "gini",
+      "poverty"
+     ],
+     "group": "welfare_policy",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "gini",
+     "preset": "gini",
+     "method": "gini_coefficient",
+     "label": "Gini coefficient",
+     "what": "Measure inequality from declared incomes, with the poorest and richest shares.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Gini = (2 x sum of rank-weighted incomes - (n + 1) x total income) / (n x total income).",
+     "steps": [
+      "Sort the incomes from lowest to highest.",
+      "Compute the mean and the rank-weighted sum.",
+      "Apply the Gini formula; zero means perfect equality.",
+      "Read the poorest and richest shares for context."
+     ],
+     "common_mistakes": [
+      "Multiplying the Gini by one hundred and calling it a different index.",
+      "Using negative incomes, which the method refuses.",
+      "Treating the Gini as a full picture of where inequality lies."
+     ],
+     "diagram": "lorenz",
+     "related": [
+      "poverty",
+      "socialwelfare"
+     ],
+     "group": "welfare_policy",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "poverty",
+     "preset": "poverty",
+     "method": "poverty_measures",
+     "label": "Poverty measures",
+     "what": "Compute the headcount, poverty gap and squared gap against a declared poverty line.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Headcount = share below the line; poverty gap = average normalised shortfall over the population.",
+     "steps": [
+      "Choose and declare the poverty line.",
+      "Count the incomes below it for the headcount.",
+      "Average the normalised shortfall for the gap, and square it for the squared gap.",
+      "Read the total shortfall in currency."
+     ],
+     "common_mistakes": [
+      "Averaging the gap only over the poor instead of the whole population.",
+      "Changing the poverty line after seeing the result.",
+      "Confusing the headcount with the depth of poverty."
+     ],
+     "diagram": null,
+     "related": [
+      "gini",
+      "socialwelfare"
+     ],
+     "group": "welfare_policy",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "taxprogressivity",
+     "preset": "taxprogressivity",
+     "method": "tax_progressivity",
+     "label": "Tax progressivity",
+     "what": "Compare the top quartile's income share with its tax share.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Progressivity gap = top-quartile tax share - top-quartile income share.",
+     "steps": [
+      "Enter each person's income and tax.",
+      "Rank by income and take the top quartile.",
+      "Compare its tax share with its income share.",
+      "A positive gap means the top pays proportionally more."
+     ],
+     "common_mistakes": [
+      "Calling a proportional tax progressive; its gap is zero.",
+      "Using the top decile when the method uses the top quartile.",
+      "Ignoring tax incidence and behavioural responses."
+     ],
+     "diagram": null,
+     "related": [
+      "gini",
+      "taxincidence",
+      "budgetdebt"
+     ],
+     "group": "welfare_policy",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "optimalpollution",
+     "preset": "optimalpollution",
+     "method": "optimal_pollution",
+     "label": "Optimal pollution",
+     "what": "Find the emission level where marginal damage equals marginal abatement cost, with the pollution tax.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Set marginal damage equal to marginal abatement cost; the pollution tax equals marginal damage at the optimum.",
+     "steps": [
+      "Write marginal damage as rising with emissions.",
+      "Write marginal abatement cost as falling with emissions.",
+      "Set them equal and solve for optimal emissions.",
+      "Read the tax and the total damage."
+     ],
+     "common_mistakes": [
+      "Setting marginal abatement cost to zero instead of equal to marginal damage.",
+      "Confusing the pollution tax with total damage.",
+      "Forgetting that the curves are declared, not estimated."
+     ],
+     "diagram": "optimal_pollution",
+     "related": [
+      "externality",
+      "hdi"
+     ],
+     "group": "welfare_policy",
+     "period": "per period"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "international",
+   "label": "International economics",
+   "what": "Comparative advantage, tariff welfare, purchasing-power parity, interest-rate parity, balance of payments, Human Development Index.",
+   "need": "Unit labour requirements for comparative advantage, a tariff rate, two interest rates for interest-rate parity.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "comparative",
+     "preset": "comparative",
+     "method": "comparative_advantage",
+     "label": "Comparative advantage",
+     "what": "Find opportunity costs and comparative advantage from two countries' unit labour requirements.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Opportunity cost of good one = hours per unit of good one / hours per unit of good two.",
+     "steps": [
+      "Enter each country's unit labour requirements for both goods.",
+      "Compute the opportunity cost of each good in each country.",
+      "The lower opportunity cost identifies comparative advantage.",
+      "Check that the two countries specialise in different goods."
+     ],
+     "common_mistakes": [
+      "Using absolute hours instead of opportunity cost.",
+      "Assuming a country cannot have comparative advantage if it is better at both goods.",
+      "Forgetting that the two opportunity costs are reciprocals."
+     ],
+     "diagram": null,
+     "related": [
+      "tariff",
+      "ppp"
+     ],
+     "group": "international",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "tariff",
+     "preset": "tariff",
+     "method": "tariff_welfare",
+     "label": "Tariff welfare",
+     "what": "Compute the domestic price, imports, tariff revenue and deadweight loss of a small-country tariff.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Domestic price = world price + tariff; imports = quantity demanded - quantity supplied.",
+     "steps": [
+      "Find free-trade imports at the world price.",
+      "Add the tariff to get the domestic price.",
+      "Compute the new imports and tariff revenue.",
+      "Add the production and consumption deadweight-loss triangles."
+     ],
+     "common_mistakes": [
+      "Using the world price as the domestic price after the tariff.",
+      "Forgetting one of the two deadweight-loss triangles.",
+      "Applying small-country results to a large country."
+     ],
+     "diagram": "tariff",
+     "related": [
+      "comparative",
+      "equilibrium"
+     ],
+     "group": "international",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "ppp",
+     "preset": "ppp",
+     "method": "exchange_rate_ppp",
+     "label": "Purchasing-power parity",
+     "what": "Compare a nominal exchange rate with PPP and record the real rate and expected depreciation.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "PPP rate = domestic price / foreign price; real exchange rate = nominal x foreign price / domestic price.",
+     "steps": [
+      "Enter the two price levels and the nominal rate as domestic per foreign.",
+      "Compute the PPP rate and the real rate.",
+      "Read the misalignment: zero means the nominal rate is at PPP.",
+      "If inflation rates are supplied, read expected depreciation."
+     ],
+     "common_mistakes": [
+      "Inverting the exchange-rate quotation.",
+      "Confusing absolute and relative PPP.",
+      "Treating PPP as a short-run forecast."
+     ],
+     "diagram": null,
+     "related": [
+      "irp",
+      "inflation",
+      "comparative"
+     ],
+     "group": "international",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "irp",
+     "preset": "irp",
+     "method": "interest_rate_parity",
+     "label": "Interest-rate parity",
+     "what": "Compute the covered-interest-parity forward rate and forward premium from two interest rates.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Forward = spot x [(1 + domestic rate) / (1 + foreign rate)]^T.",
+     "steps": [
+      "Enter the spot rate, the two interest rates and the horizon.",
+      "Compute the parity forward rate.",
+      "Read the forward premium as the interest differential.",
+      "If a forward is declared, compare it with parity."
+     ],
+     "common_mistakes": [
+      "Using simple interest when the method compounds over the horizon.",
+      "Confusing covered and uncovered parity.",
+      "Forgetting that the horizon must match the rates."
+     ],
+     "diagram": null,
+     "related": [
+      "ppp",
+      "bop"
+     ],
+     "group": "international",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "bop",
+     "preset": "bop",
+     "method": "balance_of_payments",
+     "label": "Balance of payments",
+     "what": "Check the current, capital and financial accounts against the balance-of-payments identity.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Current account + capital account + financial account + errors and omissions = 0.",
+     "steps": [
+      "Enter the three account balances on one sign convention.",
+      "Add them, including declared errors and omissions.",
+      "A zero net balance closes the identity.",
+      "Read the current-account-to-GDP ratio if GDP is supplied."
+     ],
+     "common_mistakes": [
+      "Mixing sign conventions across the accounts.",
+      "Treating a zero balance as proof of sustainability.",
+      "Double counting reserve changes."
+     ],
+     "diagram": null,
+     "related": [
+      "irp",
+      "tariff"
+     ],
+     "group": "international",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "hdi",
+     "preset": "hdi",
+     "method": "hdi",
+     "label": "Human Development Index",
+     "what": "Compute the HDI from life expectancy, schooling and GNI per capita using the UNDP goalposts.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "HDI = geometric mean of the life, education and income indices.",
+     "steps": [
+      "Enter life expectancy, expected and mean schooling, and GNI per capita.",
+      "Scale each dimension against the UNDP goalposts.",
+      "Take the geometric mean of the three indices.",
+      "Read each dimension index to see what drives the result."
+     ],
+     "common_mistakes": [
+      "Using a different goalpost set without saying so.",
+      "Taking an arithmetic mean instead of the geometric mean.",
+      "Mixing currencies or purchasing-power bases in GNI."
+     ],
+     "diagram": null,
+     "related": [
+      "gini",
+      "poverty",
+      "growth"
+     ],
+     "group": "international",
+     "period": "annual"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "behavioural_evidence",
+   "label": "Behavioural and evidence",
+   "what": "Expected utility, prospect theory, labour market, difference-in-differences, instrumental variables, panel regression, regression discontinuity, probit.",
+   "need": "A gamble for prospect theory, four means for difference-in-differences, an instrument and endogenous variable for IV.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "panel",
+     "preset": "panel",
+     "method": "panel_regression",
+     "label": "Panel fixed effects",
+     "what": "Estimate the within-entity slope from a balanced panel with entity fixed effects.",
+     "need": null,
+     "level": "advanced",
+     "formula": "Within slope = sum of within-entity (x - entity mean x)(y - entity mean y) / sum of within-entity (x - entity mean x)^2.",
+     "steps": [
+      "Check the panel is balanced: every entity has the same periods.",
+      "Subtract each entity's mean from its x and y.",
+      "Regress the demeaned y on the demeaned x.",
+      "Read the within R-squared and degrees of freedom."
+     ],
+     "common_mistakes": [
+      "Using pooled OLS and calling it a fixed-effects estimate.",
+      "Including a time-invariant regressor, which the within transformation absorbs.",
+      "Ignoring clustering when interpreting precision."
+     ],
+     "diagram": null,
+     "related": [
+      "ols",
+      "did",
+      "iv"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "iv",
+     "preset": "iv",
+     "method": "instrumental_variables",
+     "label": "Instrumental variables",
+     "what": "Estimate a just-identified IV slope from one endogenous regressor and one excluded instrument.",
+     "need": null,
+     "level": "advanced",
+     "formula": "Just-identified IV slope = cov(z, y) / cov(z, x); first stage = cov(z, x) / var(z).",
+     "steps": [
+      "Check the instrument varies and is correlated with the endogenous regressor.",
+      "Compute the covariance ratio for the IV slope.",
+      "Read the first-stage slope and the OLS slope for comparison.",
+      "State the exclusion restriction explicitly."
+     ],
+     "common_mistakes": [
+      "Treating a relevant instrument as a valid one; relevance is not exogeneity.",
+      "Ignoring weak-instrument problems.",
+      "Reading the IV estimate as causal without defending the design."
+     ],
+     "diagram": null,
+     "related": [
+      "ols",
+      "rdd",
+      "panel"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "rdd",
+     "preset": "rdd",
+     "method": "regression_discontinuity",
+     "label": "Regression discontinuity",
+     "what": "Estimate the jump at a cutoff with a local linear fit on each side.",
+     "need": null,
+     "level": "advanced",
+     "formula": "RDD estimate = right-side intercept at the cutoff - left-side intercept at the cutoff.",
+     "steps": [
+      "Choose the cutoff and a bandwidth.",
+      "Keep observations within the bandwidth on each side.",
+      "Fit a separate local linear line on each side.",
+      "Read the jump in intercepts at the cutoff."
+     ],
+     "common_mistakes": [
+      "Using a global polynomial through the whole sample.",
+      "Choosing the bandwidth after seeing the estimate.",
+      "Ignoring manipulation or another discontinuity at the cutoff."
+     ],
+     "diagram": null,
+     "related": [
+      "did",
+      "iv",
+      "panel"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "probit",
+     "preset": "probit",
+     "method": "probit",
+     "label": "Probit model",
+     "what": "Fit a binary probit with one predictor and read the marginal effect at the mean.",
+     "need": null,
+     "level": "advanced",
+     "formula": "P(y = 1) = Phi(intercept + slope x x); the marginal effect at the mean is phi(intercept + slope x mean x) x slope.",
+     "steps": [
+      "Check the outcome is binary and both outcomes occur.",
+      "Fit the latent-index probit by maximum likelihood.",
+      "Read the slope and intercept on the latent scale.",
+      "Evaluate the marginal effect at the mean of the predictor."
+     ],
+     "common_mistakes": [
+      "Reading the slope as a constant probability effect.",
+      "Ignoring separation or near-separation.",
+      "Comparing probit and logit coefficients directly without scaling."
+     ],
+     "diagram": null,
+     "related": [
+      "ols",
+      "iv",
+      "panel"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "expectedutility",
+     "preset": "expectedutility",
+     "method": "expected_utility",
+     "label": "Expected utility",
+     "what": "Compute expected value, expected utility, the certainty equivalent and the risk premium.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "EV = sum of probability x outcome; EU = sum of probability x utility; the certainty equivalent is the certain amount with the same utility.",
+     "steps": [
+      "Enter the outcomes and probabilities.",
+      "Compute the expected value.",
+      "Apply the declared utility function for expected utility.",
+      "Invert the utility for the certainty equivalent and risk premium."
+     ],
+     "common_mistakes": [
+      "Confusing expected value with expected utility.",
+      "Using negative wealth with CRRA utility.",
+      "Treating the risk premium as an observed fee."
+     ],
+     "diagram": null,
+     "related": [
+      "prospect",
+      "gini"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "prospect",
+     "preset": "prospect",
+     "method": "prospect_theory",
+     "label": "Prospect theory",
+     "what": "Value a gamble around a reference point with loss aversion and probability weighting.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "v(gain) = gain^alpha; v(loss) = -loss aversion x loss^beta; probabilities are weighted.",
+     "steps": [
+      "Choose the reference point.",
+      "Enter outcomes and probabilities.",
+      "Evaluate gains and losses relative to the reference.",
+      "Apply the declared loss aversion, curvature and weighting."
+     ],
+     "common_mistakes": [
+      "Treating prospect theory as a normative recommendation.",
+      "Forgetting that the reference point changes the value.",
+      "Mixing the gain and loss curvature parameters."
+     ],
+     "diagram": null,
+     "related": [
+      "expectedutility",
+      "nash"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "labour",
+     "preset": "labour",
+     "method": "labour_market",
+     "label": "Real wage and labour market",
+     "what": "Compute the real wage, wage share of productivity and labour-market tightness.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "Real wage = nominal wage / (CPI / 100); wage share = real wage / labour productivity.",
+     "steps": [
+      "Enter the nominal wage, CPI and productivity.",
+      "Deflate the nominal wage by the price index.",
+      "Divide the real wage by productivity for the wage share.",
+      "If vacancies and unemployment are supplied, read tightness."
+     ],
+     "common_mistakes": [
+      "Using the nominal wage as if it were real.",
+      "Dividing by the CPI instead of CPI/100.",
+      "Confusing the wage share with the labour share of GDP."
+     ],
+     "diagram": null,
+     "related": [
+      "unemployment",
+      "inflation"
+     ],
+     "group": "behavioural_evidence",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "did",
+     "preset": "did",
+     "method": "difference_in_differences",
+     "label": "Difference-in-differences",
+     "what": "Estimate a two-group, two-period treatment effect from four declared means.",
+     "need": null,
+     "level": "advanced",
+     "formula": "DiD = (treated post - treated pre) - (control post - control pre).",
+     "steps": [
+      "Enter the four group-period means.",
+      "Compute the treated change and the control change.",
+      "Subtract the control change from the treated change.",
+      "State the parallel-trends assumption explicitly."
+     ],
+     "common_mistakes": [
+      "Comparing post-treatment means only.",
+      "Ignoring the parallel-trends assumption.",
+      "Confusing DiD with a simple before-and-after comparison."
+     ],
+     "diagram": null,
+     "related": [
+      "okun",
+      "labour"
+     ],
+     "group": "behavioural_evidence",
+     "period": "per period"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "impact_evaluation",
+   "label": "Impact evaluation",
+   "what": "Trend forecast and currency conversion.",
+   "need": "Your own series for the trend forecast, and an amount plus a declared rate for currency conversion.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "forecast",
+     "preset": "forecast",
+     "method": "trend_forecast",
+     "label": "Trend forecast",
+     "what": "Fit a trend to your own series and record the forecast periods and the range the result could fall in.",
+     "need": "a series in period order and the horizon",
+     "level": "intro",
+     "formula": "Fit y = a + bt to the series; the forecast extends the line and carries a prediction interval.",
+     "steps": [
+      "Enter the series in order, one value per period.",
+      "Declare the horizon you want to forecast.",
+      "Read the trend, the forecast values and the interval.",
+      "Check the holdout error before trusting the extrapolation."
+     ],
+     "common_mistakes": [
+      "Extrapolating far beyond the data without widening the interval.",
+      "Ignoring seasonality that a straight line cannot capture.",
+      "Reading a high R-squared as proof that the forecast is right.",
+      "Forecasting a series that changed regime."
+     ],
+     "diagram": null,
+     "related": [
+      "scenario",
+      "risk",
+      "unitecon"
+     ],
+     "group": "impact_evaluation",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "currency",
+     "preset": "currency",
+     "method": "currency_convert",
+     "label": "Currency conversion",
+     "what": "Convert an amount at a rate you declare; the rate and its source are recorded.",
+     "need": null,
+     "level": "intro",
+     "formula": "Converted amount = amount x rate, with the rate's provenance recorded.",
+     "steps": [
+      "Enter the amount, the source currency and the target currency.",
+      "Declare the rate and where it came from.",
+      "Read the converted amount and the recorded rate.",
+      "Keep the rate date with the result."
+     ],
+     "common_mistakes": [
+      "Multiplying when the quote is the other way up; divide instead.",
+      "Using a stale rate without saying so.",
+      "Forgetting the target currency's minor units.",
+      "Treating a declared rate as a verified market rate."
+     ],
+     "diagram": null,
+     "related": [
+      "fx",
+      "case_decision",
+      "forecast"
+     ],
+     "group": "impact_evaluation",
+     "period": "spot rate"
+    }
+   ],
+   "records": []
+  },
+  {
+   "key": "quantitative_core",
+   "label": "Quantitative core",
+   "what": "Pricing and demand, cost-benefit and cost-effectiveness, discounting, social return on investment, difference-in-differences, break-even, multi-product break-even, unit economics, descriptive statistics, Pearson correlation, linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis.",
+   "need": "Price, variable and fixed cost for pricing and break-even; costs and benefits per period for cost-benefit; options with cost and effect for cost-effectiveness; investment and benefits for SROI; two-period group means for difference-in-differences; observations for statistics; two groups for t-test; three groups for ANOVA.",
+   "note": null,
+   "worksheets": [],
+   "tools": [
+    {
+     "kind": "compute",
+     "key": "pricing",
+     "preset": "pricing",
+     "method": "pricing_decision",
+     "label": "Pricing rules",
+     "what": "Cost-plus, target-margin, break-even and target-return prices from your cost, volume and rate.",
+     "need": null,
+     "level": "intro",
+     "formula": "Cost-plus price = unit cost x (1 + markup); margin price = unit cost / (1 - margin); break-even price = total cost / expected units.",
+     "steps": [
+      "Enter the variable cost per unit and the fixed cost for the period.",
+      "Enter the volume you expect to sell.",
+      "Read the cost-plus price at your markup, then the margin price and the break-even price.",
+      "Compare them with what customers in your market actually pay; the method cannot do that part."
+     ],
+     "common_mistakes": [
+      "Treating a 40% margin as a 40% markup: a markup on cost always gives a lower price than the same margin on price.",
+      "Forgetting fixed costs when pricing a small volume.",
+      "Setting a price below variable cost and hoping volume fixes it.",
+      "Ignoring what competitors charge in the same market."
+     ],
+     "diagram": null,
+     "related": [
+      "breakeven",
+      "elasticity",
+      "unitecon"
+     ],
+     "group": "quantitative_core",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "demandcurve",
+     "preset": "demandcurve",
+     "method": "demand_curve",
+     "label": "Demand line and revenue-max price",
+     "what": "Fit a line to your price and quantity pairs and read the slope, the elasticity and the price that maximises revenue.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "q = a + b p, fitted by least squares; elasticity at the mean = b x (mean price / mean quantity).",
+     "steps": [
+      "Collect price-quantity pairs from the same market and period basis.",
+      "Enter the prices and the quantity demanded at each price.",
+      "Read the slope, the R-squared and the elasticity at the mean price.",
+      "If the slope is negative, read the revenue-maximising price on the fitted line."
+     ],
+     "common_mistakes": [
+      "Treating the fitted line as an identified demand curve.",
+      "Mixing observations from different periods or markets.",
+      "Extrapolating far outside the observed price range.",
+      "Ignoring that price and quantity are jointly determined."
+     ],
+     "diagram": "supply_demand",
+     "related": [
+      "elasticity",
+      "pricing",
+      "purchaseintent"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "cba",
+     "preset": "cba",
+     "method": "cost_benefit",
+     "label": "Cost-benefit analysis",
+     "what": "Compare the present value of programme costs and benefits under declared assumptions.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "NPV = PV(benefits) - PV(costs); BCR = PV(benefits) / PV(costs).",
+     "steps": [
+      "Discount each period's costs and benefits at the declared rate.",
+      "Subtract present-value costs from present-value benefits.",
+      "Divide benefits by costs for the benefit-cost ratio."
+     ],
+     "common_mistakes": [
+      "Choosing the discount rate after seeing the result.",
+      "Counting a transfer as a benefit or a cost.",
+      "Comparing projects with different horizons without saying so."
+     ],
+     "diagram": null,
+     "related": [
+      "cea",
+      "sroi",
+      "equilibrium"
+     ],
+     "group": "quantitative_core",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "cea",
+     "preset": "cea",
+     "method": "cost_effectiveness",
+     "label": "Cost-effectiveness analysis",
+     "what": "Compare cost per unit of effect across options, with the effect measure declared.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "ICER = (cost of option - cost of comparator) / (effect of option - effect of comparator).",
+     "steps": [
+      "Name the comparator first.",
+      "Compute the incremental cost and the incremental effect for each other option.",
+      "Divide the cost difference by the effect difference."
+     ],
+     "common_mistakes": [
+      "Comparing options on different effect scales.",
+      "Ignoring a dominant option because it has no finite ratio.",
+      "Choosing the comparator after seeing the ratios."
+     ],
+     "diagram": null,
+     "related": [
+      "cba",
+      "sroi"
+     ],
+     "group": "quantitative_core",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "sroi",
+     "preset": "sroi",
+     "method": "sroi",
+     "label": "Social return on investment",
+     "what": "Record the SROI ratio from declared social value, investment and attribution assumptions.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "SROI = PV(social benefits) / investment.",
+     "steps": [
+      "Discount the declared social benefits.",
+      "Divide their present value by the declared investment.",
+      "State the attribution and deadweight assumptions explicitly."
+     ],
+     "common_mistakes": [
+      "Treating an unmonetised outcome as if it had been valued.",
+      "Omitting deadweight, attribution or displacement adjustments.",
+      "Presenting the ratio as assurance."
+     ],
+     "diagram": null,
+     "related": [
+      "cba",
+      "cea"
+     ],
+     "group": "quantitative_core",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "npv",
+     "preset": "npv",
+     "method": "npv",
+     "label": "Net present value",
+     "what": "Discount a project's cash flows at a declared rate and record the NPV with its checks.",
+     "need": "the outlay, the later cash flows, and the hurdle rate you will justify",
+     "level": "intro",
+     "formula": "NPV = sum of CF_t / (1 + r)^t, with the first cash flow at t = 0 and undiscounted.",
+     "steps": [
+      "List the cash flows in order, starting with the negative outlay at t = 0.",
+      "Choose the discount rate that matches the project's risk.",
+      "Discount each flow and add them.",
+      "Compare the result with zero; a positive NPV clears the hurdle at that rate."
+     ],
+     "common_mistakes": [
+      "Discounting the t = 0 outlay, which removes one period of discounting.",
+      "Using accounting profit instead of cash flow.",
+      "Entering the rate as 10 instead of 0.10.",
+      "Comparing NPVs of projects with different lives without an equivalent-annual measure."
+     ],
+     "diagram": null,
+     "related": [
+      "irr",
+      "dpayback",
+      "projectmetrics",
+      "scenario"
+     ],
+     "group": "quantitative_core",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "dcf",
+     "preset": "dcf",
+     "method": "dcf_valuation",
+     "label": "DCF valuation (year-end)",
+     "what": "Value a business or project from forecast free cash flows and a declared discount rate.",
+     "need": null,
+     "level": "intermediate",
+     "formula": "EV = sum of FCF_t / (1 + r)^t + TV / (1 + r)^n; TV = FCF_n(1 + g) / (r - g).",
+     "steps": [
+      "Enter the free cash flows for the explicit forecast.",
+      "Enter the discount rate that matches the cash flows.",
+      "If the business continues, declare a terminal growth rate below the discount rate.",
+      "Read the explicit present value, the terminal present value and their sum."
+     ],
+     "common_mistakes": [
+      "Using a growth rate at or above the discount rate.",
+      "Discounting equity cash flows at WACC, or enterprise cash flows at the cost of equity.",
+      "Forgetting that the terminal value usually dominates the answer.",
+      "Forecasting cash flows inside the method; they are your declaration."
+     ],
+     "diagram": null,
+     "related": [
+      "wacc",
+      "dcfmid",
+      "equitybridge",
+      "multiples"
+     ],
+     "group": "quantitative_core",
+     "period": "annual"
+    },
+    {
+     "kind": "compute",
+     "key": "breakeven",
+     "preset": "breakeven",
+     "method": "breakeven",
+     "label": "Break-even point",
+     "what": "Solve the break-even quantity from fixed cost, price and variable cost.",
+     "need": null,
+     "level": "intro",
+     "formula": "Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.",
+     "steps": [
+      "Subtract variable cost from price to get the unit contribution and the contribution-margin ratio.",
+      "Divide fixed cost by the unit contribution for the break-even quantity.",
+      "Multiply by the price for the break-even revenue.",
+      "If you declare an expected volume, read the margin of safety; if you declare a profit target, read the sales volume it needs."
+     ],
+     "common_mistakes": [
+      "Using total cost instead of fixed cost.",
+      "Forgetting that a price below variable cost has no break-even.",
+      "Mixing per-unit and total figures.",
+      "Reporting a margin of safety against a budget you did not declare."
+     ],
+     "diagram": "breakeven",
+     "related": [
+      "multibreakeven",
+      "unitecon",
+      "pricing"
+     ],
+     "group": "quantitative_core",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "multibreakeven",
+     "preset": "multibreakeven",
+     "method": "multi_product_breakeven",
+     "label": "Multi-product break-even",
+     "what": "Find the sales mix at which several products together cover their fixed costs.",
+     "need": null,
+     "level": "intro",
+     "formula": "Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.",
+     "steps": [
+      "Compute each product's unit contribution.",
+      "Weight the contributions by the declared sales mix.",
+      "Divide fixed cost by the weighted contribution.",
+      "Split the break-even units back across the mix."
+     ],
+     "common_mistakes": [
+      "Using a simple average instead of the mix-weighted contribution.",
+      "Letting the mix change while claiming one break-even point.",
+      "Ignoring capacity limits."
+     ],
+     "diagram": "breakeven",
+     "related": [
+      "breakeven",
+      "unitecon"
+     ],
+     "group": "quantitative_core",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "unitecon",
+     "preset": "unitecon",
+     "method": "unit_economics",
+     "label": "Unit economics",
+     "what": "Work out the margin each customer leaves, what it costs to win one, how long that takes to repay, and the value the customer brings over their life.",
+     "need": null,
+     "level": "intro",
+     "formula": "Contribution margin = price - variable cost; LTV = margin / churn; CAC payback = acquisition cost / margin.",
+     "steps": [
+      "Enter the price and the variable cost per unit or customer.",
+      "Enter the acquisition cost and, if you know it, the churn rate.",
+      "Read the margin, the payback period and the LTV/CAC ratio.",
+      "Check that price and cost are for the same period."
+     ],
+     "common_mistakes": [
+      "Using gross profit instead of contribution margin.",
+      "Entering churn as a percentage (5) instead of a decimal (0.05).",
+      "Comparing an undiscounted LTV with a discounted cost.",
+      "Treating a single churn rate as a retention curve."
+     ],
+     "diagram": null,
+     "related": [
+      "breakeven",
+      "portfolio",
+      "forecast"
+     ],
+     "group": "quantitative_core",
+     "period": "per period"
+    },
+    {
+     "kind": "compute",
+     "key": "descriptive",
+     "preset": "descriptive",
+     "method": "descriptive_stats",
+     "label": "Descriptive statistics",
+     "what": "Record the count, centre, spread and declared missing-value handling for one variable.",
+     "need": "the numbers you hold and the group they describe",
+     "level": "intro",
+     "formula": "Mean = sum of values / count; standard deviation measures typical distance from the mean.",
+     "steps": [
+      "Check the sample size and missing values.",
+      "Read the centre and spread together.",
+      "Look at the shape before using the mean alone."
+     ],
+     "common_mistakes": [
+      "Reporting a mean for a heavily skewed variable without the median.",
+      "Ignoring missing values.",
+      "Confusing standard deviation with standard error."
+     ],
+     "diagram": null,
+     "related": [
+      "pearson",
+      "ols"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "pearson",
+     "preset": "pearson",
+     "method": "pearson",
+     "label": "Pearson correlation",
+     "what": "Record the linear association between two variables with its sample size and checks.",
+     "need": "the two numeric variables you are relating, and the pairs you observed",
+     "level": "intermediate",
+     "formula": "r = covariance(x, y) / (standard deviation of x x standard deviation of y).",
+     "steps": [
+      "Check both variables are numeric and paired.",
+      "Read r between minus one and one.",
+      "Inspect the scatter plot before trusting a linear summary."
+     ],
+     "common_mistakes": [
+      "Reading causation into a correlation.",
+      "Ignoring an outlier that drives r.",
+      "Using Pearson for a clearly non-linear relationship."
+     ],
+     "diagram": null,
+     "related": [
+      "spearman",
+      "ols"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "ols",
+     "preset": "ols",
+     "method": "ols",
+     "label": "Linear regression",
+     "what": "Fit a declared linear model and record coefficients, fit and diagnostics.",
+     "need": "the outcome, the predictors, and the observations you have for each",
+     "level": "advanced",
+     "formula": "y = intercept + coefficient x x + error; the coefficients minimise the sum of squared errors.",
+     "steps": [
+      "Check the sample size and missing values.",
+      "Read each coefficient with its standard error.",
+      "Check the fit and residual diagnostics.",
+      "State the assumptions and the claim ceiling."
+     ],
+     "common_mistakes": [
+      "Reading a coefficient as a causal effect.",
+      "Ignoring heteroskedasticity or influential points.",
+      "Comparing R-squared across different dependent variables."
+     ],
+     "diagram": null,
+     "related": [
+      "ols_robust",
+      "pearson",
+      "logit"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "welch",
+     "preset": "welch",
+     "method": "welch_t",
+     "label": "Welch two-sample t-test",
+     "what": "Compare two group means without assuming equal variances.",
+     "need": null,
+     "level": "advanced",
+     "formula": "t = (mean A - mean B) / standard error of the difference, without assuming equal variances.",
+     "steps": [
+      "Check the two groups are independent.",
+      "Read the difference, the interval and the p-value together.",
+      "Report the effect size, not only significance."
+     ],
+     "common_mistakes": [
+      "Treating a small p-value as a large effect.",
+      "Using a paired test for independent groups.",
+      "Ignoring unequal variances."
+     ],
+     "diagram": null,
+     "related": [
+      "paired",
+      "anova"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "anova",
+     "preset": "anova",
+     "method": "anova",
+     "label": "One-way ANOVA",
+     "what": "Compare three or more group means and record the effect size and checks.",
+     "need": null,
+     "level": "advanced",
+     "formula": "F = between-group variance / within-group variance.",
+     "steps": [
+      "Check the groups are independent.",
+      "Read the F test and the effect size.",
+      "Use a post-hoc test before naming which groups differ."
+     ],
+     "common_mistakes": [
+      "Running several t-tests instead of one ANOVA.",
+      "Naming the winning group from the omnibus test alone.",
+      "Ignoring unequal variances."
+     ],
+     "diagram": null,
+     "related": [
+      "kruskal_wallis",
+      "posthoc"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "chi_square",
+     "preset": "chi_square",
+     "method": "chi_square",
+     "label": "Chi-square association",
+     "what": "Test whether two categorical variables are associated, with the expected-count checks.",
+     "need": "a two-way table of counts, and the categories in each direction",
+     "level": "advanced",
+     "formula": "Chi-square = sum of (observed - expected)^2 / expected.",
+     "steps": [
+      "Build the contingency table.",
+      "Check the expected counts.",
+      "Read the p-value and the effect size."
+     ],
+     "common_mistakes": [
+      "Using chi-square with very small expected counts.",
+      "Reading causation into an association.",
+      "Ignoring the table's degrees of freedom."
+     ],
+     "diagram": null,
+     "related": [
+      "pearson",
+      "power"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    },
+    {
+     "kind": "compute",
+     "key": "power",
+     "preset": "power",
+     "method": "power_analysis",
+     "label": "Power and sample size",
+     "what": "Record the sample size or power implied by a declared effect and alpha.",
+     "need": "the size of the effect you are looking for and the number of observations",
+     "level": "advanced",
+     "formula": "Power depends on the effect size, alpha, sample size and variability.",
+     "steps": [
+      "Declare the effect size you care about.",
+      "Choose alpha and the desired power.",
+      "Read the required sample size or the detectable effect."
+     ],
+     "common_mistakes": [
+      "Choosing the effect size after seeing the data.",
+      "Confusing power with the p-value.",
+      "Ignoring attrition and clustering."
+     ],
+     "diagram": null,
+     "related": [
+      "welch",
+      "anova",
+      "chi_square"
+     ],
+     "group": "quantitative_core",
+     "period": "per observation"
+    }
+   ],
+   "records": [
+    {
+     "id": "QNT-FIN-07",
+     "name": "Pricing and demand",
+     "type": "Q",
+     "form": "computed",
+     "status_short": "Computed",
+     "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+     "implementation_status": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+     "structures": "Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.",
+     "evidence_needs": "",
+     "template": null,
+     "linked_methods": [
+      "pricing_decision",
+      "elasticity"
+     ],
+     "disciplines": [
+      "finance, accounting and managerial economics"
+     ],
+     "discipline_label": "finance, accounting and managerial economics"
+    },
+    {
+     "id": "QNT-EVL-01",
+     "name": "Cost–benefit and cost-effectiveness calculations",
+     "type": "Q",
+     "form": "computed",
+     "status_short": "Computed",
+     "status_note": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+     "implementation_status": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+     "structures": "Cost–benefit and cost-effectiveness calculations.",
+     "evidence_needs": "",
+     "template": null,
+     "linked_methods": [
+      "cost_benefit",
+      "cost_effectiveness"
+     ],
+     "disciplines": [
+      "program and impact evaluation"
+     ],
+     "discipline_label": "program and impact evaluation"
+    },
+    {
+     "id": "QNT-EVL-02",
+     "name": "Discounting of costs and benefits, sensitivity to valuation assumptions",
+     "type": "Q",
+     "form": "computed",
+     "status_short": "Computed",
+     "status_note": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+     "implementation_status": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+     "structures": "Discounting of costs and benefits, sensitivity to valuation assumptions.",
+     "evidence_needs": "",
+     "template": null,
+     "linked_methods": [
+      "npv",
+      "dcf_valuation"
+     ],
+     "disciplines": [
+      "program and impact evaluation"
+     ],
+     "discipline_label": "program and impact evaluation"
+    },
+    {
+     "id": "QNT-EVL-03",
+     "name": "Difference-in-differences and other impact-estimation methods when assumptions and data support them",
+     "type": "Q",
+     "form": "computed",
+     "status_short": "Computed",
+     "status_note": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+     "implementation_status": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+     "structures": "Difference-in-differences and other impact-estimation methods when assumptions and data support them.",
+     "evidence_needs": "",
+     "template": null,
+     "linked_methods": [
+      "difference_in_differences"
+     ],
+     "disciplines": [
+      "program and impact evaluation"
+     ],
+     "discipline_label": "program and impact evaluation"
+    },
+    {
+     "id": "QNT-EVL-05",
+     "name": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions",
+     "type": "Q",
+     "form": "computed",
+     "status_short": "Computed",
+     "status_note": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+     "implementation_status": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+     "structures": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions.",
+     "evidence_needs": "",
+     "template": null,
+     "linked_methods": [
+      "sroi"
+     ],
+     "disciplines": [
+      "program and impact evaluation"
+     ],
+     "discipline_label": "program and impact evaluation"
+    }
+   ]
+  }
+ ],
+ "catalogue": [
+  {
+   "id": "QNT-FIN-07",
+   "name": "Pricing and demand",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "implementation_status": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "structures": "Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "pricing_decision",
+    "elasticity"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-EVL-01",
+   "name": "Cost–benefit and cost-effectiveness calculations",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+   "implementation_status": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+   "structures": "Cost–benefit and cost-effectiveness calculations.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "cost_benefit",
+    "cost_effectiveness"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-02",
+   "name": "Discounting of costs and benefits, sensitivity to valuation assumptions",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+   "implementation_status": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+   "structures": "Discounting of costs and benefits, sensitivity to valuation assumptions.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "npv",
+    "dcf_valuation"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-03",
+   "name": "Difference-in-differences and other impact-estimation methods when assumptions and data support them",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+   "implementation_status": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+   "structures": "Difference-in-differences and other impact-estimation methods when assumptions and data support them.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "difference_in_differences"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-05",
+   "name": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+   "implementation_status": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+   "structures": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "sroi"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  }
+ ],
+ "records": [
+  {
+   "id": "QNT-FIN-07",
+   "name": "Pricing and demand",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "implementation_status": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "structures": "Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "pricing_decision",
+    "elasticity"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-EVL-01",
+   "name": "Cost–benefit and cost-effectiveness calculations",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+   "implementation_status": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented",
+   "structures": "Cost–benefit and cost-effectiveness calculations.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "cost_benefit",
+    "cost_effectiveness"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-02",
+   "name": "Discounting of costs and benefits, sensitivity to valuation assumptions",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+   "implementation_status": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented",
+   "structures": "Discounting of costs and benefits, sensitivity to valuation assumptions.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "npv",
+    "dcf_valuation"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-03",
+   "name": "Difference-in-differences and other impact-estimation methods when assumptions and data support them",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+   "implementation_status": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented",
+   "structures": "Difference-in-differences and other impact-estimation methods when assumptions and data support them.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "difference_in_differences"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  },
+  {
+   "id": "QNT-EVL-05",
+   "name": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+   "implementation_status": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive",
+   "structures": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "sroi"
+   ],
+   "disciplines": [
+    "program and impact evaluation"
+   ],
+   "discipline_label": "program and impact evaluation"
+  }
+ ],
+ "theories": [],
+ "glossary": [
+  {
+   "term": "P*",
+   "definition": "The equilibrium price, where quantity demanded equals quantity supplied."
+  },
+  {
+   "term": "Q*",
+   "definition": "The equilibrium quantity traded at P*."
+  },
+  {
+   "term": "CS",
+   "definition": "Consumer surplus: the area below the demand curve and above the price."
+  },
+  {
+   "term": "PS",
+   "definition": "Producer surplus: the area above the supply curve and below the price."
+  },
+  {
+   "term": "DWL",
+   "definition": "Deadweight loss: the surplus lost when the quantity traded is not the efficient quantity."
+  },
+  {
+   "term": "E",
+   "definition": "Price elasticity of demand: the percentage change in quantity divided by the percentage change in price."
+  },
+  {
+   "term": "Pc / Ps",
+   "definition": "The consumer price and the producer price when a tax drives a wedge between them."
+  },
+  {
+   "term": "HHI",
+   "definition": "Herfindahl-Hirschman index: the sum of squared percentage market shares, from 0 to 10,000."
+  },
+  {
+   "term": "CR4",
+   "definition": "The combined market share of the four largest firms."
+  },
+  {
+   "term": "GDP",
+   "definition": "Gross domestic product: the market value of final goods and services produced inside a country in a period."
+  },
+  {
+   "term": "GNP / NNP",
+   "definition": "Gross national product adds net factor income from abroad; net national product subtracts depreciation."
+  },
+  {
+   "term": "CPI",
+   "definition": "Consumer price index: the cost of a fixed basket relative to a base period, usually scaled to 100."
+  },
+  {
+   "term": "CAGR",
+   "definition": "Compound annual growth rate: the constant yearly rate that turns the start value into the end value."
+  },
+  {
+   "term": "LFPR",
+   "definition": "Labour-force participation rate: the labour force divided by the working-age population."
+  },
+  {
+   "term": "MPC",
+   "definition": "Marginal propensity to consume: the fraction of an extra unit of income spent on consumption."
+  },
+  {
+   "term": "Debt-to-GDP",
+   "definition": "The debt stock divided by nominal GDP; the standard scale for comparing debt across economies."
+  },
+  {
+   "term": "Pigouvian tax",
+   "definition": "A tax equal to the marginal external cost at the social optimum."
+  },
+  {
+   "term": "Gini coefficient",
+   "definition": "An inequality index between zero (perfect equality) and one (one person has all income)."
+  },
+  {
+   "term": "HDI",
+   "definition": "Human Development Index: the geometric mean of life, education and income indices."
+  },
+  {
+   "term": "PPP",
+   "definition": "Purchasing-power parity: the exchange rate that equalises the cost of a basket across countries."
+  },
+  {
+   "term": "IRP",
+   "definition": "Interest-rate parity: the forward rate implied by the two countries' interest rates."
+  },
+  {
+   "term": "BoP",
+   "definition": "Balance of payments: the current, capital and financial accounts, which add to zero."
+  },
+  {
+   "term": "DiD",
+   "definition": "Difference-in-differences: the treated change minus the control change."
+  },
+  {
+   "term": "Nash equilibrium",
+   "definition": "A cell where neither player can gain by switching strategy alone."
+  },
+  {
+   "term": "Cournot",
+   "definition": "Quantity competition in which each firm best-responds to the other's output."
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+﻿const http = require("http");
+const fs = require("fs");
+const { spawn } = require("child_process");
+const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const PORT = 9341;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const getJSON = (url) => new Promise((res, rej) => { http.get(url, (r) => { let b = ""; r.on("data", (d) => b += d); r.on("end", () => { try { res(JSON.parse(b)); } catch (e) { rej(e); } }); }).on("error", rej); });
+(async () => {
+  const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars", "--window-size=1440,2400", "--remote-debugging-port=" + PORT, "--user-data-dir=" + process.env.TEMP + "\\sbw-cdp-cases", "about:blank"], { stdio: "ignore" });
+  let t = null;
+  for (let i = 0; i < 60; i++) { await sleep(300); try { const l = await getJSON("http://127.0.0.1:" + PORT + "/json/list"); t = l.find((x) => x.type === "page"); if (t) break; } catch (e) {} }
+  const ws = new WebSocket(t.webSocketDebuggerUrl);
+  let id = 1; const pending = new Map(); const events = [];
+  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(JSON.stringify(m.error))) : p.resolve(m.result); } else if (m.method) events.push(m); };
+  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+  const send = (method, params) => new Promise((res, rej) => { const i = id++; pending.set(i, { resolve: res, reject: rej }); ws.send(JSON.stringify({ id: i, method, params: params || {} })); });
+  await send("Page.enable"); await send("Runtime.enable");
+  await send("Page.navigate", { url: "http://127.0.0.1:8000/#/portfolio" }); await sleep(5000);
+  const ev = async (expression) => { const r = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) throw new Error(JSON.stringify(r.exceptionDetails).slice(0, 500)); return r.result.value; };
+  const out = {};
+  out.cases = await ev(`Array.from(document.querySelectorAll("#pfworkedcases details")).map(d => ({ title: d.querySelector("summary strong").textContent.trim(), open: d.open }))`);
+  out.buttons = await ev(`Array.from(document.querySelectorAll("#pfworkedcases [data-pfcase]")).map(b => b.dataset.pfcase + ":" + b.textContent.trim())`);
+  out.beforeCase1 = await ev(`(() => { const p = document.querySelector("#plpanel-watch"); return { watchShown: p ? !p.hidden : null, active: (document.activeElement || {}).id }; })()`);
+  out.case1 = await ev(`(async () => { document.querySelector('#pfworkedcases [data-pfcase="screen"]').click(); await new Promise(r => setTimeout(r, 700)); const p = document.querySelector("#plpanel-watch"); return { watchShown: p ? !p.hidden : null, active: (document.activeElement || {}).id, toast: (document.querySelectorAll(".toast span")[document.querySelectorAll(".toast span").length-1] || {}).textContent }; })()`);
+  out.case4 = await ev(`(async () => { document.querySelector('#pfworkedcases [data-pfcase="risk"]').click(); await new Promise(r => setTimeout(r, 700)); const p = document.querySelector("#plpanel-prefill"); return { prefillShown: p ? !p.hidden : null, active: (document.activeElement || {}).id, toast: (document.querySelectorAll(".toast span")[document.querySelectorAll(".toast span").length-1] || {}).textContent }; })()`);
+  out.case2 = await ev(`(async () => { document.querySelector('#pfworkedcases [data-pfcase="paper"]').click(); await new Promise(r => setTimeout(r, 900)); return { mode: (document.querySelector("#pfmode") || {}).value, active: (document.activeElement || {}).id, toast: (document.querySelectorAll(".toast span")[document.querySelectorAll(".toast span").length-1] || {}).textContent }; })()`);
+  out.case3 = await ev(`(async () => { document.querySelector('#pfworkedcases [data-pfcase="fund"]').click(); await new Promise(r => setTimeout(r, 900)); return { mode: (document.querySelector("#pfmode") || {}).value, toast: (document.querySelectorAll(".toast span")[document.querySelectorAll(".toast span").length-1] || {}).textContent }; })()`);
+  out.caseFromBook = await ev(`(async () => { const open = document.querySelector("[data-pfopen]"); if (!open) return "no book"; open.click(); await new Promise(r => setTimeout(r, 3000)); document.querySelector('[data-pftab="holdings"]').click(); await new Promise(r => setTimeout(r, 900)); await window.pfStartCase("screen"); await new Promise(r => setTimeout(r, 1200)); return { lab: !!document.querySelector("#portfoliolab"), watchShown: (() => { const p = document.querySelector("#plpanel-watch"); return p ? !p.hidden : null; })() }; })()`);
+  await ev(`(async () => { state.portfolioId = null; await loadPortfolioPage(); return true; })()`);
+  await sleep(2000);
+  out.casesBackOnLanding = await ev(`Array.from(document.querySelectorAll("#pfworkedcases details")).length`);
+  await ev(`document.querySelector("#pfworkedcases").scrollIntoView({block:"start"})`);
+  await sleep(700);
+  const shot = await send("Page.captureScreenshot", { format: "png" });
+  fs.writeFileSync("portfolio-worked-cases.png", Buffer.from(shot.data, "base64"));
+  out.pageExceptions = events.filter((e) => e.method === "Runtime.exceptionThrown").map((e) => (e.params.exceptionDetails && e.params.exceptionDetails.text) || "").slice(0, 6);
+  console.log(JSON.stringify(out, null, 2));
+  ws.close(); chrome.kill();
+})().catch((e) => { console.error(e); process.exit(1); });
+

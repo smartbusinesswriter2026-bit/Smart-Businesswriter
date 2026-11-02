@@ -1,0 +1,2 @@
+﻿43: PRESETS = {
+564:             if self.path == "/api/presets": return self._send(200, PRESETS)

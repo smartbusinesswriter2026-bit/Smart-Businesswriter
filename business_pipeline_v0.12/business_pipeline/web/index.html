@@ -717,11 +717,13 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfentry p{margin:0;font-size:14.5px}
 .pfentry .muted{font-size:13px}
 /* ---------- Portfolio Lab: an organised workspace, one task per panel ---------- */
-.pfstart{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px;align-items:start}
+.pfstart{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
 @media (max-width:960px){.pfstart{grid-template-columns:1fr}}
 .pfstart table{table-layout:auto}
-.pfstart tbody td:first-child{min-width:170px}
+.pfstart tbody td:first-child{min-width:220px}
 .pfstart tbody td:nth-child(2){white-space:nowrap}
+.pfform3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:960px){.pfform3{grid-template-columns:1fr}}
 .pfsection{margin-top:26px}
 .pfsection .pfsectionhead{margin:0 0 10px}
 .pfsection .pfsectionhead h3{margin:4px 0}
@@ -729,6 +731,7 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pflab{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);padding:16px 18px}
 .pflabhead{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .pflabhead h3{margin:0 0 4px}
+.pflabheadactions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .pflabhead p{margin:0;max-width:640px}
 .pflabtabs{display:flex;flex-wrap:wrap;gap:6px}
 .pflabtabs .chip{white-space:nowrap}
@@ -770,6 +773,18 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfdetails summary{cursor:pointer;font-weight:600;color:var(--navy-900)}
 .pfdetails summary .muted{font-weight:400}
 .pfdetails[open] summary{margin-bottom:10px}
+.pfheroactions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+a.pfguidepill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:9px 18px;
+  background:#fff;color:var(--navy-900);font-weight:700;font-size:14.2px;text-decoration:none;
+  border:1px solid rgba(255,255,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+a.pfguidepill:hover{background:#EAF4FF;color:var(--navy-900)}
+a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;color:#fff;border-radius:4px;
+  padding:2px 6px;font-weight:800}
+.pflabhead a.pfguidepill{background:var(--navy-900);color:#fff;border-color:var(--navy-900);box-shadow:none;
+  padding:7px 14px;font-size:13.6px}
+.pflabhead a.pfguidepill:hover{background:#14212e}
+.pflabhead a.pfguidepill .pfpdf{background:#fff;color:#C0392B}
+.pflabnote{margin:0 0 10px;font-size:14.2px;color:var(--text-3)}
 .pfcaseask{margin:0 0 6px}
 .pfcase p{margin:6px 0;font-size:15px;line-height:1.55}
 .pfcasehead{margin:10px 0 2px;font-size:14.6px;font-weight:700;color:var(--navy-900)}
@@ -1574,7 +1589,8 @@ function renderPortfolioLanding(rows) {
     '<div class="pfchoices">' +
       '<button class="pfchoice" type="button" id="pfnewpaper"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8v12H3z"/></svg></span><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span><em>Start a paper \u2192</em></button>' +
       '<button class="pfchoice" type="button" id="pfnewfund"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h2v12h14v2H4zm4-3V9h2v7H8zm4 0V6h2v10h-2zm4 0v-4h2v4h-2z"/></svg></span><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span><em>Open a fund \u2192</em></button>' +
-    '</div></section>' +
+    '</div>' +
+    '<div class="pfheroactions">' + pfGuideLink("hero") + '</div></section>' +
     '<div class="pfstart">' +
       '<div class="card"><div class="pfcardhead"><h3 style="margin:0">Your books</h3><span class="muted">' +
         (rows.length ? rows.length + " stored" : "none yet") + '</span></div>' +
@@ -1586,14 +1602,14 @@ function renderPortfolioLanding(rows) {
               : "<tr><td><strong>" + esc(row.name) + '</strong><div class="muted">' + esc(row.base_currency) +
                 (row.benchmark ? " \u00b7 " + esc(row.benchmark) : "") + "</div></td><td>" + esc(row.mode) +
                 "</td><td>" + esc(row.n_holdings) + "</td><td>" + esc(row.n_snapshots) + "</td><td class=\"muted\">" +
-                esc(row.updated_at) + '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) +
+                esc(pfStamp(row.updated_at)) + '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) +
                 '">Open</button></td></tr>').join("") +
             "</tbody></table></div>"
           : '<p class="muted" style="margin:6px 0 0">No book yet. Create one beside this card; it stays local on this machine.</p>') +
       '</div>' +
       '<div class="card"><h3 style="margin-top:0">Create a book</h3>' +
-        '<p class="muted" style="margin:0 0 10px">A paper starts with one valuation date; a fund adds a weekly journal and a return.</p>' +
-        '<div class="grid2 pf-form">' +
+        '<p class="muted" style="margin:0 0 10px">A paper starts with one valuation date; a fund adds a weekly journal and a return. Fill the form and press <strong>Create portfolio</strong>; nothing is saved before that.</p>' +
+        '<div class="pf-form pfform3">' +
         '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
         '<div class="fieldgroup"><label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3"></div>' +
         '<div class="fieldgroup"><label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500"></div>' +
@@ -1735,7 +1751,7 @@ function renderPortfolioWorkspace() {
     const equityReady = state.marketStatus && state.marketStatus.sources && state.marketStatus.sources.equity;
     fetchButton.disabled = !equityReady;
     const hint = $("#pffetchhint");
-    if (hint) hint.textContent = equityReady ? "Tries Alpha Vantage, then Massive, then QVeris; still check each price." : "Set BP_ALPHAVANTAGE_KEY, BP_MASSIVE_KEY or BP_QVERIS_* and restart the server.";
+    if (hint) hint.textContent = equityReady ? "Fetches from the market-data service, then checks nothing for you: read each price before you keep it." : "Live price fetching is not available right now. Type each price yourself; the snapshot stays blocked until every holding has one.";
     fetchButton.onclick = fetchPrices;
   }
   const saveEntry = $("#pfsavejournal"); if (saveEntry) saveEntry.onclick = saveJournalEntry;
@@ -1751,6 +1767,36 @@ function renderPortfolioWorkspace() {
     button.onclick = () => { state.portfolioTab = button.dataset.pfgotab; renderPortfolioWorkspace(); };
   });
   if ($("#portfoliolab")) bindPortfolioLab();
+}
+
+/* The Student guide is a printable PDF built from docs/PORTFOLIO_LAB_STUDENT_GUIDE.md by
+   scripts/build_portfolio_guide_pdf.py. It opens in a new page, so a student can keep the
+   walkthrough beside the app instead of losing the book they were working on. */
+function pfGuideLink(where) {
+  const hero = where === "hero";
+  return '<a class="pfguidepill" href="/guides/portfolio-lab-student-guide.pdf" target="_blank" rel="noopener"' +
+    ' title="Open the Student guide as a printable PDF in a new page">' +
+    '<span class="pfpdf">PDF</span><span>Student guide \u2014 four worked cases, click by click</span>' +
+    '<span aria-hidden="true">\u2197</span></a>';
+}
+
+/* "2026-10-28T21:46:17.668521+00:00" is precise and unreadable in a table column. The report
+   keeps the exact timestamp; the list shows the day and the minute. */
+function pfStamp(value) {
+  const text = String(value === null || value === undefined ? "" : value).trim();
+  const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/.exec(text);
+  return match ? match[1] + " " + match[2] : text;
+}
+
+/* Students are not asked to configure the product. When a market-data source is not connected,
+   the page says what is unavailable and what to do instead; the technical detail stays in the
+   server log, not in a sentence about a key or an environment variable. */
+function pfPlainError(error) {
+  const text = String((error && error.message) || error || "");
+  if (/BP_[A-Z_]+|api[_ ]?key|credential|not configured|environment variable|restart the server/i.test(text)) {
+    return "Live market data is not available right now. Nothing was estimated: type the figure yourself, or try again later.";
+  }
+  return text;
 }
 
 /* Display formatting only. The frozen core's exact value stays in the store, in the
@@ -1818,7 +1864,7 @@ function pfWorkedCases() {
       go: "screen",
       cta: "Start this case: open the watch list",
       ask: "Choose three listed companies and justify the choice with sourced data.",
-      need: "Nothing but this page. Live quotes need a quote key configured server-side; SEC fundamentals need no key.",
+      need: "Nothing but this page. Live quotes come from the market-data service this app is connected to; company fundamentals and filings are read from SEC EDGAR. You do not need an account or a key.",
       steps: [
         "Rail: Portfolio, then scroll to Before you buy: Find and screen candidates.",
         "Watch list and prices tab: type AAPL, MSFT, VOO in Add symbols to the watch list and click Add symbols.",
@@ -1885,7 +1931,8 @@ function pfWorkedCases() {
   const head = '<div class="pfsectionhead"><span class="pfkicker">Learn by example</span>' +
     '<h3>Four worked cases, click by click</h3>' +
     '<p class="muted">Each card is one assignment shape: what to click, what you should see and the sentence to write. ' +
-    'The long version, with a glossary and a troubleshooting table, is <code>docs/PORTFOLIO_LAB_STUDENT_GUIDE.md</code>.</p></div>';
+    'The same walkthrough, with a gap-decoding table, a submission checklist and a glossary, is the ' +
+    '<a href="/guides/portfolio-lab-student-guide.pdf" target="_blank" rel="noopener">Student guide (PDF)</a> \u2014 it opens in a new page.</p></div>';
   return '<section class="pfsection" id="pfworkedcases">' + head + cases.map((item, index) =>
     '<details class="card pfdetails pfcase"' + (index === 0 ? " open" : "") + '>' +
       '<summary><strong>Case ' + (index + 1) + ' \u2014 ' + esc(item.title) + '</strong> <span class="muted">\u2014 ' + esc(item.kicker) + '</span></summary>' +
@@ -2216,10 +2263,11 @@ async function fetchPrices() {
     }
   } catch (error) {
     const text = String(error.message || error);
-    message.innerHTML = /limit|quota|premium/i.test(text)
-      ? banner("honesty", "The free quote limit is reached",
-          "<p>" + esc(text) + "</p><p>Enter the prices manually or paste them; the snapshot stays blocked until every holding has one. Nothing is estimated.</p>")
-      : errorBanner(error);
+    const limited = /limit|quota|premium|too many/i.test(text);
+    message.innerHTML = limited
+      ? banner("honesty", "The live quote service is busy",
+          "<p>It has reached its request limit for now.</p><p>Enter the prices yourself (or paste them); the snapshot stays blocked until every holding has one. Nothing is estimated.</p>")
+      : errorBanner(new Error(pfPlainError(error)));
   }
 }
 
@@ -4698,7 +4746,7 @@ function ratesPanel() {
 function securitiesPanel() {
   return '<div class="marketpanel"><h3 style="margin-top:0">Market data for the book</h3>' +
     '<p class="muted">Look up an equity quote, the company fundamentals filed with the SEC, or its recent filings. ' +
-    'A quote needs your own free Alpha Vantage key; fundamentals and filings need no key. ' +
+    'Quotes come from the market-data service connected to this app; company fundamentals and filings are read from SEC EDGAR. ' +
     'Every result shows its source, date and response hash, and nothing is auto-filled: read a price and confirm it before you type it into the book.</p>' +
     '<div class="marketrow">' +
       '<label>Equity symbol <input id="eqsym" value="AAPL" maxlength="12" size="7" aria-label="Equity symbol"></label>' +
@@ -4714,8 +4762,8 @@ function securitiesPanel() {
       '</select></label>' +
       '<button class="btn sm" id="seclookup" type="button">Latest filings</button>' +
     '</div>' +
-    '<p class="muted">Equity quotes use your own free Alpha Vantage key (25 requests/day; fundamentals are premium there, so this app reads SEC XBRL instead). ' +
-    'Private companies and markets without a free official feed are not covered: enter those figures manually.</p>' +
+    '<p class="muted">Private companies, and markets that no official feed covers, are not available here: enter those figures yourself and name the source. ' +
+    'If live quotes are ever unavailable, the app says so and every price you type yourself is still stored with its date and source.</p>' +
     '<div id="secout" aria-live="polite"></div></div>';
 }
 
@@ -4767,7 +4815,7 @@ function bindSecuritiesPanel() {
     if (data && data.sources && !data.sources.equity) {
       const quote = $("#eqquote"), label = $("#eqstatus");
       if (quote) quote.disabled = true;
-      if (label) label.textContent = "Quote needs an Alpha Vantage key (BP_ALPHAVANTAGE_KEY); fundamentals still work via SEC";
+      if (label) label.textContent = "Live quotes are not available right now; fundamentals and filings still work via SEC";
     }
   }).catch(() => {});
 }
@@ -4780,7 +4828,7 @@ function bindMacroPanel() {
 function portfolioLabPanel(initialTab) {
   const tab = initialTab || state.plTab || "watch";
   state.plTab = tab;
-  const providers = '<option value="alphavantage">Alpha Vantage</option><option value="massive">Massive</option>';
+  const providers = pfQuoteOptions();
   const sorts = [["one_day_return", "one-day return"], ["mean_return", "mean return (needs history)"],
     ["sharpe", "Sharpe (needs history)"], ["price", "price"],
     ["market_cap", "market cap"], ["pe_ratio", "P/E"], ["roe", "ROE"]]
@@ -4789,7 +4837,12 @@ function portfolioLabPanel(initialTab) {
   return '<div class="marketpanel pflab" id="portfoliolab">' +
     '<div class="pflabhead"><div><span class="pfkicker">Portfolio lab</span>' +
       '<h3 style="margin:2px 0 0">Choose, track, evaluate</h3></div>' +
-      '<label class="pflabprov">Quote provider <select id="plprovider" aria-label="Quote provider">' + providers + '</select></label></div>' +
+      '<div class="pflabheadactions">' +
+        (providers
+          ? '<label class="pflabprov">Quote provider <select id="plprovider" aria-label="Quote provider">' + providers + '</select></label>'
+          : '<span class="pflabprov muted">Live quotes are not connected right now; you can still type prices into a book.</span>') +
+        pfGuideLink("lab") +
+      '</div></div>' +
     '<div class="pftabs" role="tablist">' + tabs.map((pair) =>
       '<button class="chip" type="button" role="tab" data-pltab="' + pair[0] + '" aria-selected="' + String(tab === pair[0]) + '">' + pair[1] + '</button>').join("") + '</div>' +
     '<section class="plpanel" id="plpanel-watch">' +
@@ -4857,7 +4910,30 @@ function plShowTab(name) {
   $$(".plpanel").forEach((panel) => { panel.hidden = panel.id !== "plpanel-" + name; });
 }
 
-function plProvider() { const el = $("#plprovider"); return el ? el.value : "alphavantage"; }
+/* Only the providers the server reports as connected are offered, so a student cannot pick a
+   source that is not there. The environment key names never reach the page. */
+const PF_PROVIDER_LABELS = { alphavantage: "Alpha Vantage", massive: "Massive" };
+function pfQuoteProviders() {
+  const rows = (state.marketStatus && state.marketStatus.equity_providers) || [];
+  const ids = [];
+  rows.forEach((row) => {
+    if (row.configured === false) return;
+    const env = String(row.key_env || "");
+    const id = env === "BP_ALPHAVANTAGE_KEY" ? "alphavantage" : env === "BP_MASSIVE_KEY" ? "massive" : "";
+    if (id && ids.indexOf(id) < 0) ids.push(id);
+  });
+  return ids;
+}
+function pfQuoteOptions() {
+  return pfQuoteProviders().map((id) => '<option value="' + id + '">' + PF_PROVIDER_LABELS[id] + "</option>").join("");
+}
+function plQuotesAvailable() { return pfQuoteProviders().length > 0; }
+function plProvider() {
+  const el = $("#plprovider");
+  if (el && el.value) return el.value;
+  const available = pfQuoteProviders();
+  return available.length ? available[0] : "";
+}
 
 function plTrackedIds() {
   return ((state.plWatch && state.plWatch.instruments) || []).map((row) => row.id);
@@ -5018,10 +5094,14 @@ async function plAddSymbols() {
     if (button) button.disabled = true;
     for (const symbol of fresh) {
       try {
-        await post("/api/cases/instruments", { symbol: symbol, record: true, provider: provider });
+        /* Add the ticker for a price when a quote source is connected; otherwise it is a
+           tracked symbol whose first price the student types in the book. */
+        await post("/api/cases/instruments", provider
+          ? { symbol: symbol, record: true, provider: provider }
+          : { symbol: symbol });
         added.push(symbol);
       } catch (error) {
-        failed.push(symbol + " (" + (error && error.message ? error.message : String(error)) + ")");
+        failed.push(symbol + " (" + pfPlainError(error) + ")");
       }
     }
     if (button) button.disabled = false;
@@ -5049,7 +5129,7 @@ async function plRecord(id) {
     await post("/api/cases/instruments/" + id + "/record", { provider: plProvider() });
     toast("Recorded today's sourced price for " + label + ".");
     plLoadWatch();
-  } catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+  } catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(new Error(pfPlainError(e))); }
 }
 
 async function plSeed(id) {
@@ -5196,7 +5276,7 @@ async function lookupEquity(kind) {
   try {
     out.innerHTML = marketResult(await api("/api/market/" + kind + "?symbol=" + encodeURIComponent(symbol)));
   } catch (error) {
-    out.innerHTML = errorBanner(error);
+    out.innerHTML = errorBanner(new Error(pfPlainError(error)));
   }
 }
 
@@ -8961,7 +9041,7 @@ function pmRender() {
   const configured = pm.config && pm.config.configured;
   let note = configured
     ? "PayPal charges in US dollars. Cancel any time; the period you have paid for stays active."
-    : "Checkout is off: " + ((pm.config && pm.config.missing) || []).join(" and ") + " is not set in Backend/.env.";
+    : "Checkout is not available right now, so nothing can be charged.";
   if (pm.current && pm.current.has_subscription) note = "You are on the " + pm.current.name + " plan. " + note;
   $("#pmnote").textContent = note;
 }

@@ -1,0 +1,4 @@
+﻿ .../business_pipeline/qa/QA_DEFECTS.md             | 11 +++--
+ .../business_pipeline/qa/manual/accounting.md      | 22 ++++++---
+ .../tests/test_subject_accounting_acceptance.py    | 54 ++++++++++++++++++++++
+ 3 files changed, 78 insertions(+), 9 deletions(-)

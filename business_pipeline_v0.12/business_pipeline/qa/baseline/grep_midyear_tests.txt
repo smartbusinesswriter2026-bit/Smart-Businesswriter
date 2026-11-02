@@ -1,0 +1,18 @@
+﻿test_chat.py:102: self.assertIn("total_s", state["timings"])
+test_chat.py:103: self.assertEqual(set(state["timings"]["dimensions"]), {"political", "economic", "social",
+test_chat.py:128: "web_cached": False, "database_timings": {}}
+test_chat.py:135: self.assertLess(state["timings"]["total_s"], 1.0)
+test_finance_additions.py:29: "compounding": "quarterly", "timing": "end"},
+test_sandbox.py:49: "time_value": {"present_value": "100000", "payment": "12000", "rate": "0.06", "periods": "5", "compounding": "quarterly", "timing": "end"},
+test_session_api.py:59: "time_value": {"present_value": "100000", "payment": "12000", "rate": "0.06", "periods": "5", "compounding": "quarterly", "timing": "end"},
+test_sources.py:154: self.assertEqual(set(result["timings"]), {"openalex", "doaj"})
+test_sources.py:155: self.assertTrue(all(value >= 0 for value in result["timings"].values()))
+test_sources.py:279: "databases": ["corpus"], "timings": {}, "cached": False}
+test_sources.py:281: "databases": databases or [], "timings": {}, "cached": False}
+test_sources.py:332: "databases": ["corpus"], "timings": {}, "cached": False}
+test_sources.py:334: "databases": databases or [], "timings": {}, "cached": False}
+test_valuation.py:80: def test_mid_year_convention_discounts_every_flow_half_a_period_earlier(self):
+test_valuation.py:81: mid = self.m().impl({**DCF_IN, "timing": "mid"}); exp = self.mid_expected(DCF_IN)
+test_valuation.py:87: self.assertEqual(Pipeline().run({"objective": "x", "method": "dcf_valuation", "inputs": {**DCF_IN, "timing": bad}}, YES).status, "blocked")
+test_valuation.py:149: self.assertEqual(server.PRESETS["dcfmid"]["inputs"]["timing"], "mid")
+test_valuation.py:151: self.assertEqual(LIBRARY["dcf_valuation"].input_schema["timing"]["values"], ["end", "mid"])

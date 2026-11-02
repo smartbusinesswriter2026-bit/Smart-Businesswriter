@@ -395,8 +395,9 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("restoreWorksheetDraft", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
         # The body size was reduced by one point on the owner's word (2026-11-03);
-        # the pin follows the new value so the type cannot drift again.
-        self.assertIn("font-size:16.8px", self.html)
+        # the pin follows the new value so the type cannot drift again. It pins
+        # the body rule itself, because 16.8px is also a worksheet title size.
+        self.assertIn("body{font-family:var(--font);font-size:16.8px;", self.html)
         # Student orientation: a first-run explainer and structured table editors.
         self.assertIn("How it works", self.html)
         self.assertIn("Start here", self.html)

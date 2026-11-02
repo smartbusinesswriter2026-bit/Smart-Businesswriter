@@ -1,0 +1,21 @@
+﻿44: def _load_inputs():
+362: def _plain(number):
+377: def _norm(text):
+383: def _tokens(text):
+387: def _has(text, phrase):
+392: def _numbers(text):
+396: def _first_number_between(text, start, end):
+403: def _percent_follows(text, number):
+410: def _comma_run(text):
+427: def _is_bare_arithmetic(text):
+437: def _segments(text):
+447: def _scalar_inputs(schema, text):
+482: def _number_for(text, names):
+504: def _tools():
+511: def _score(text, tokens):
+529: def _alt(key):
+536: def _payload(outcome, text, reason="", tool=None, inputs=None, missing=None,
+558: def _unsupported_topics(text):
+563: def _required(spec):
+568: def _extract(text, tool):
+608: def plan(text):

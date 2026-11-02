@@ -1,0 +1,28 @@
+﻿src\bp\case_decision.py:123: return {"kind": "case_decision", "registry_ids": ["QNT-FIN-01"], "facts": n["facts"], "alternatives": [{**{k: v for k, v in a.items() if k != "cashflows"}, "cashflows": [str(x) for x in a["cashflows"]]} for a in alts],
+src\bp\case_decision.py:198: TEMPLATES["case_decision"] = {"id": "case_decision", "version": "0.1.0", "tier": "T2", "name": "Business case: alternatives compared by net present value", "registry_ids": ["QNT-FIN-01"], "build": build, "render": render, "tests": tests,
+src\bp\case_decision.py:210: EXAMPLES["case_decision"] = {"objective": "Which option should the bakery pursue? Compare the alternatives by net present value.", "method": "case_decision", "inputs": {
+src\bp\server.py:323: "swot": templates.EXAMPLES["template_swot"], "five_forces": templates.EXAMPLES["template_five_forces"], "case_decision": templates.EXAMPLES["case_decision"],
+src\bp\templates.py:2588: from . import case_decision   # registers "case_decision" in TEMPLATES (kept in its own module; imported last to avoid a cycle)
+src\bp\product\calc_router.py:80: "case_decision": ["compare options", "strategic options", "crossover rate"],
+src\bp\product\calc_router.py:221: "compare": ["welch", "anova", "case_decision"],
+src\bp\product\explain.py:70: TEMPLATE_METHODS = frozenset({"case_decision"})
+src\bp\product\subjects.py:94: "case_decision": {"preset": "case_decision", "method": "case_decision", "label": "Compare strategic options",
+src\bp\product\subjects.py:367: "case_decision": "the facts, the alternatives, their cash flows and provenance",
+src\bp\product\subjects.py:1466: "related": ["npv", "risk", "case_decision"],
+src\bp\product\subjects.py:1468: "case_decision": {
+src\bp\product\subjects.py:1518: "related": ["fx", "case_decision", "forecast"],
+src\bp\product\subjects.py:1866: "related": ["evm", "capacity", "case_decision", "leveling", "crashing", "calendar"],
+src\bp\product\subjects.py:1950: "related": ["realoption", "mcda", "case_decision"],
+src\bp\product\subjects.py:1978: "related": ["decisiontree", "case_decision", "scenario", "montecarlo"],
+src\bp\product\subjects.py:2175: "leverage": "Corporate finance", "scenario": "Corporate finance", "case_decision": "Corporate finance",
+src\bp\product\subjects.py:2192: "projectmetrics": "per period", "scenario": "per period", "case_decision": "per period",
+src\bp\product\subjects.py:2226: "case_decision": "Impact and options",
+src\bp\product\subjects.py:2247: "sroi": "annual", "cba": "annual", "costeffectiveness": "annual", "case_decision": "per period",
+src\bp\product\subjects.py:2599: "scenario": "Compare the options", "case_decision": "Compare the options",
+src\bp\product\subjects.py:2609: "case_decision": "project life", "forecast": "per period",
+src\bp\product\subjects.py:3313: "scenario", "case_decision",
+src\bp\product\subjects.py:3390: "tools": ["case_decision"],
+src\bp\product\subjects.py:3436: "tools": ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision", "forecast",
+src\bp\product\subjects.py:3475: "sroi", "cba", "costeffectiveness", "case_decision"],
+src\bp\product\subjects.py:3650: "unitecon", "forecast", "case_decision", "currency"]},
+src\bp\product\subjects.py:3676: "forecast", "case_decision", "costeffectiveness", "sroi", "cba"]},

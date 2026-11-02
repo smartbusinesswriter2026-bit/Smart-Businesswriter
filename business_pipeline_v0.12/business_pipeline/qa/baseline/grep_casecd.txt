@@ -1,0 +1,210 @@
+﻿
+> src\bp\case_decision.py:24:    extra = set(inp) - {"facts", "alternatives", "rate", 
+"rate_provenance", "rate_range", "decision_rule", "currency"}
+  src\bp\case_decision.py:25:    if extra: errs.append(f"unknown input {sorted(extra)}")
+> src\bp\case_decision.py:26:    facts = _items(inp, "facts", None, None, errs, "F"); 
+fids = {f["id"] for f in facts}
+  src\bp\case_decision.py:27:    cur = inp.get("currency")
+  src\bp\case_decision.py:28:    if cur is not None and not (isinstance(cur, str) and 
+re.fullmatch(r"[A-Z]{3}", cur)): errs.append("currency must be a three-letter code such 
+as USD")
+  src\bp\case_decision.py:29:    rule = inp.get("decision_rule")
+  src\bp\case_decision.py:30:    if rule is not None and rule not in RULES: 
+errs.append(f"decision_rule must be null or one of {list(RULES)}; the decision rule is 
+yours and the system will not choose one")
+> src\bp\case_decision.py:35:    except (InvalidOperation, ValueError, TypeError): 
+errs.append("'rate' and 'rate_range' [low, high] are required numbers (strings or 
+integers)"); rate = lo = hi = None
+  src\bp\case_decision.py:36:    rp = inp.get("rate_provenance", "user")
+  src\bp\case_decision.py:37:    if rp not in ("user", "sourced", "assumption", 
+"synthetic"): errs.append("rate_provenance must be user, sourced, assumption or 
+synthetic")
+> src\bp\case_decision.py:38:    raw = inp.get("alternatives"); alts, used = [], set()
+  src\bp\case_decision.py:39:    if not isinstance(raw, list) or not 2 <= len(raw) <= 
+5: errs.append("'alternatives' must be a list of 2 to 5 alternatives you supply"); raw 
+= []
+  src\bp\case_decision.py:40:    for n, a in enumerate(raw, 1):
+  src\bp\case_decision.py:41:        w = f"alternatives[{n - 1}]"
+  src\bp\case_decision.py:42:        if not isinstance(a, dict): errs.append(f"{w} must 
+be an object"); continue
+> src\bp\case_decision.py:44:        if not isinstance(name, str) or not name.strip() 
+or len(name.strip()) > 60 or CTRL.search(name): errs.append(f"{w}: 'name' is required 
+(one line, at most 60 characters)"); continue
+  src\bp\case_decision.py:45:        desc = a.get("description", "")
+  src\bp\case_decision.py:46:        if not isinstance(desc, str) or len(desc.strip()) 
+> MAX_TEXT or CTRL.search(desc): errs.append(f"{w}: 'description' must be one line of 
+at most {MAX_TEXT} characters"); continue
+  src\bp\case_decision.py:47:        sup = a.get("supports")
+  src\bp\case_decision.py:48:        if not isinstance(sup, list) or not sup: 
+errs.append(f"{w}: must cite at least one case fact in 'supports' (alternatives must 
+follow from the case)"); continue
+> src\bp\case_decision.py:56:        if prov not in ("user", "sourced", "assumption", 
+"synthetic"): errs.append(f"{w}: 'cashflow_provenance' is required: user, sourced, 
+assumption or synthetic"); continue
+  src\bp\case_decision.py:57:        src = a.get("source")
+  src\bp\case_decision.py:58:        if prov == "sourced" and (not isinstance(src, str) 
+or not src.strip() or CTRL.search(src)): errs.append(f"{w}: sourced cash flows need a 
+'source' (one line)"); continue
+  src\bp\case_decision.py:59:        aid = a.get("id", f"A{n}")
+  src\bp\case_decision.py:60:        if not isinstance(aid, str) or not 
+AID.fullmatch(aid) or aid in used or aid in fids: errs.append(f"{w}: id must be unique, 
+1-12 letters, digits or _"); continue
+> src\bp\case_decision.py:66:    return {"facts": facts, "alts": alts, "rate": rate, 
+"lo": lo, "hi": hi, "rule": rule, "currency": cur, "rate_provenance": rp}, []
+  src\bp\case_decision.py:67:
+> src\bp\case_decision.py:68:def validate(inp): return normalize(inp)[1]
+  src\bp\case_decision.py:69:
+  src\bp\case_decision.py:70:_npv = lambda cf, r: M.npv({"rate": r, "cashflows": cf})
+  src\bp\case_decision.py:71:_ref = lambda cf, r: M.npv_reference({"rate": r, 
+"cashflows": cf})
+  src\bp\case_decision.py:72:
+> src\bp\case_decision.py:113:    audit = {"assumed_cashflows": [a["id"] for a in alts 
+if a["provenance"] == "assumption"], "synthetic_items": [a["id"] for a in alts if 
+a["provenance"] == "synthetic"] + [x["id"] for x in n["facts"] if x["provenance"] == 
+"synthetic"],
+> src\bp\case_decision.py:114:             "unsupported_facts": [x["id"] for x in 
+n["facts"] if x["provenance"] == "assumption"], "negative_npv_at_base": [i for i, v in 
+npv.items() if v < 0],
+  src\bp\case_decision.py:115:             "low_end_top": _ranking(alts, lo)[0], 
+"high_end_top": _ranking(alts, hi)[0], "rate_assumed": n["rate_provenance"] == 
+"assumption"}
+  src\bp\case_decision.py:116:    cur = n["currency"]
+  src\bp\case_decision.py:117:    arts = [{"id": "rate", "metric": "rate", "value": 
+str(rate), "unit": "rate", "precision": 2}, {"id": "rate_low", "metric": "rate_low", 
+"value": str(lo), "unit": "rate", "precision": 2},
+  src\bp\case_decision.py:118:            {"id": "rate_high", "metric": "rate_high", 
+"value": str(hi), "unit": "rate", "precision": 2}]
+> src\bp\case_decision.py:121:    counts = {"n_facts": len(n["facts"]), 
+"n_alternatives": len(alts), "n_crossovers": len(cross), "n_assumed": 
+len(audit["assumed_cashflows"]), "n_negative": len(audit["negative_npv_at_base"])}
+  src\bp\case_decision.py:122:    arts += [{"id": k, "metric": k, "value": str(v), 
+"unit": "count", "precision": 0} for k, v in counts.items()]
+> src\bp\case_decision.py:123:    return {"kind": "case_decision", "registry_ids": 
+["QNT-FIN-01"], "facts": n["facts"], "alternatives": [{**{k: v for k, v in a.items() if 
+k != "cashflows"}, "cashflows": [str(x) for x in a["cashflows"]]} for a in alts],
+  src\bp\case_decision.py:124:            "rate": str(rate), "rate_range": [str(lo), 
+str(hi)], "currency": cur, "npv_at_base": {i: str(v) for i, v in npv.items()}, 
+"ranking_at_base": ranking, "crossovers": cross,
+  src\bp\case_decision.py:125:            "recommendation": rec, "audit": audit, 
+"counts": counts, "artifacts": arts, "text_refs": {a["id"]: a["name"] for a in alts}}
+  src\bp\case_decision.py:126:
+  src\bp\case_decision.py:127:def _t(i): return "{{txt:%s}}" % i
+> src\bp\case_decision.py:130:    P = PERIOD; tok = lambda i, m: "{{ref:%s:%s:%s}}" % 
+(i, m, P); c = a["counts"]; au = a["audit"]; ids = [x["id"] for x in 
+a["alternatives"]]; join = lambda L: ", ".join(_t(i) for i in L)
+  src\bp\case_decision.py:131:    t = (f"This case comparison covers 
+{tok('n_alternatives', 'n_alternatives')} alternatives you supplied, each citing the 
+case facts it follows from ({tok('n_facts', 'n_facts')} facts in total). "
+  src\bp\case_decision.py:132:         f"Net present value is computed for each 
+alternative from the cash flows you supplied, at a discount rate you set of 
+{tok('rate', 'rate')} and across a range you set from {tok('rate_low', 'rate_low')} to 
+{tok('rate_high', 'rate_high')}. ")
+  src\bp\case_decision.py:133:    for i in ids: t += f"{_t(i)} has a net present value 
+of {tok('npv_' + i, 'npv')} at the base rate. "
+  src\bp\case_decision.py:134:    t += "By net present value at the base rate the order 
+is " + ", then ".join(("tied: " + join(g)) if len(g) > 1 else _t(g[0]) for g in 
+a["ranking_at_base"]) + ". "
+> src\bp\case_decision.py:152:    lines = ["Case facts (yours)"] + [f"  [{x['id']}] 
+{x['text']} — {lab(x['provenance'], x['source'])}" for x in a["facts"]]
+  src\bp\case_decision.py:153:    lines.append("Alternatives (yours)")
+> src\bp\case_decision.py:154:    for x in a["alternatives"]:
+  src\bp\case_decision.py:155:        lines.append(f"  [{x['id']}] {x['name']}" + (f" — 
+{x['description']}" if x["description"] else "") + f" — follows from {', 
+'.join(x['supports'])}; cash flows: {', '.join(x['cashflows'])} ({lab(x['provenance'], 
+x['source'])})")
+  src\bp\case_decision.py:156:    return t, "\n".join(lines)
+  src\bp\case_decision.py:157:
+  src\bp\case_decision.py:158:# ---------- verification: recomputed from the raw input 
+by different routes ----------
+> src\bp\case_decision.py:176:    rev = build({**inp, "alternatives": 
+list(reversed(inp["alternatives"]))}); nm = lambda z: {x["id"]: x["name"] for x in 
+z["alternatives"]}
+  src\bp\case_decision.py:177:    view = lambda z: ({nm(z)[i]: v for i, v in 
+z["npv_at_base"].items()}, [sorted(nm(z)[i] for i in g) for g in z["ranking_at_base"]],
+  src\bp\case_decision.py:178:                      sorted((tuple(sorted(nm(z)[p] for p 
+in c["pair"])), c["rate"][:20]) for c in z["crossovers"]))
+  src\bp\case_decision.py:179:    
+res.append(("order_of_alternatives_does_not_change_results", view(rev) == view(a)))
+> src\bp\case_decision.py:180:    texts = {f["text"] for f in n["facts"]} | {x["name"] 
+for x in alts} | {x["description"] for x in alts if x["description"]}
+> src\bp\case_decision.py:181:    out_texts = {f["text"] for f in a["facts"]} | 
+{x["name"] for x in a["alternatives"]} | {x["description"] for x in a["alternatives"] 
+if x["description"]}
+  src\bp\case_decision.py:182:    res.append(("analysis_contains_only_supplied_text", 
+out_texts == texts and set(a["text_refs"]) == set(ids)))
+> src\bp\case_decision.py:183:    
+res.append(("listing_reproduces_every_input_text_verbatim", all(f"[{f['id']}] 
+{f['text']} — " in listing for f in n["facts"]) and all(f"[{x['id']}] {x['name']}" in 
+listing for x in alts)))
+> src\bp\case_decision.py:184:    res.append(("alternatives_cite_existing_facts", all(s 
+in {f["id"] for f in n["facts"]} for x in alts for s in x["supports"]) and 
+all(x["supports"] for x in a["alternatives"])))
+> src\bp\case_decision.py:185:    res.append(("cashflows_reproduced_exactly", [[str(c) 
+for c in x["cashflows"]] for x in alts] == [x["cashflows"] for x in a["alternatives"]]))
+  src\bp\case_decision.py:186:    top = {t for k in range(201) for t in _ranking(alts, 
+lo + (hi - lo) * k / 200, _ref)[0]}; rk = _ranking(alts, rate, _ref)
+  src\bp\case_decision.py:187:    res.append(("recommendation_matches_recomputation", 
+a["recommendation"] is None or (a["recommendation"]["preferred_at_base"] == rk[0] and 
+a["recommendation"]["stable_across_range"] == (top == set(rk[0])) and sorted(top) == 
+a["recommendation"]["top_over_range"])))
+  src\bp\case_decision.py:188:    
+res.append(("no_recommendation_without_your_decision_rule", (a["recommendation"] is 
+None) == (n["rule"] is None)))
+  src\bp\case_decision.py:189:    
+res.append(("assumption_and_synthetic_flags_are_correct", 
+set(a["audit"]["assumed_cashflows"]) == {x["id"] for x in alts if x["provenance"] == 
+"assumption"}
+> src\bp\case_decision.py:190:                and set(a["audit"]["synthetic_items"]) == 
+{x["id"] for x in alts if x["provenance"] == "synthetic"} | {f["id"] for f in 
+n["facts"] if f["provenance"] == "synthetic"}))
+  src\bp\case_decision.py:191:    res.append(("rendering_is_deterministic", render(a) 
+== (narrative, listing)))
+  src\bp\case_decision.py:192:    return res
+  src\bp\case_decision.py:193:
+  src\bp\case_decision.py:194:NAMES = ("alternatives_pass_standard_npv_checks", 
+"base_values_agree_with_independent_recomputation", 
+"crossover_rates_are_roots_of_the_npv_difference", "ranking_changes_at_each_crossover",
+> src\bp\case_decision.py:199:    "test_names": NAMES, "validate": validate, 
+"sensitivity": True,
+  src\bp\case_decision.py:200:    "intended_use": "Compare two to five alternatives you 
+define, each grounded in case facts you supply, by net present value at your discount 
+rate, and see where the ranking changes across your rate range. A preference is stated 
+only under a decision rule you set.",
+  src\bp\case_decision.py:201:    "unsupported_use": "Choosing alternatives, facts, 
+cash flows, rates or weights for you; qualitative or multi-criteria judgments; risk or 
+probability weighting; unequal-length or mutually exclusive project adjustments beyond 
+what NPV captures.",
+> src\bp\case_decision.py:202:    "input_help": {"facts": "list of {text, provenance 
+user|sourced|assumption|synthetic, source (if sourced), id (optional)}", 
+"alternatives": "2-5 of {name, description (optional), supports: [fact ids], cashflows: 
+[numbers, first at t=0], cashflow_provenance, source (if sourced), id (optional)}",
+  src\bp\case_decision.py:203:                   "rate / rate_range": "your base 
+discount rate and [low, high] range for the sensitivity analysis (rate must lie inside 
+the range)", "decision_rule": "null (no recommendation) or \"highest_npv\"", 
+"currency": "optional three-letter code"},
+  src\bp\case_decision.py:204:    "defaults": ({"question": "Decision rule", 
+"default_chosen": "None. A preference is stated only if you set decision_rule; 
+otherwise the comparison is shown without a recommendation.", "impact": "The rule 
+encodes your values; the system will not choose one."},
+  src\bp\case_decision.py:205:                 {"question": "Cash-flow timing and 
+rate", "default_chosen": "Cash flows occur at period end, the first at t=0 
+undiscounted; the discount rate is the one you set.", "impact": "NPV and crossover 
+rates move if timing or the rate differ."},
+  src\bp\case_decision.py:206:                 {"question": "Ties and crossovers", 
+"default_chosen": "NPVs within 1e-9 are tied. Crossovers are searched on a 400-point 
+grid across your range and refined by bisection; a second, different grid cross-checks 
+that none was missed.", "impact": "Two crossovers closer than the grid spacing could be 
+missed; the cross-check would then block."}),
+> src\bp\case_decision.py:212:    "facts": [{"text": "A supermarket chain opened a 
+bakery counter nearby", "provenance": "synthetic"}, {"text": "An office park opens next 
+year", "provenance": "synthetic"}],
+> src\bp\case_decision.py:213:    "alternatives": [{"name": "Expand the shop", 
+"description": "Add seating and extend hours", "supports": ["F1"], "cashflows": 
+["-12000", "3000", "4000", "5000", "6000"], "cashflow_provenance": "synthetic"},
+  src\bp\case_decision.py:214:                     {"name": "Office catering", 
+"description": "Deliver lunches to the office park", "supports": ["F2"], "cashflows": 
+["-4000", "1500", "1800", "2000", "2200"], "cashflow_provenance": "assumption"}],
+  src\bp\case_decision.py:215:    "rate": "0.08", "rate_provenance": "assumption", 
+"rate_range": ["0.02", "0.25"], "decision_rule": "highest_npv"}}
+
+

@@ -1,0 +1,11 @@
+﻿1: """Docs-state sync tests: fail when the documentation drifts from the code.
+82: def _home_test_count(text):
+86: def _handoff_test_count(text):
+90: def _contributors_test_count(text):
+204: def test_documented_test_count_matches_the_real_suite(self):
+207: ("docs/HOME.md", _home_test_count(_read(DOCS / "HOME.md"))),
+208: ("docs/HANDOFF.md", _handoff_test_count(_read(DOCS / "HANDOFF.md"))),
+209: ("docs/CONTRIBUTORS.md", _contributors_test_count(_read(DOCS / "CONTRIBUTORS.md"))),
+304: ("docs/HOME.md", _read(DOCS / "HOME.md"), r"\*\*(\d+)\s+tests\*\*", _home_test_count),
+305: ("docs/HANDOFF.md", _read(DOCS / "HANDOFF.md"), r"Tests\s*:\s*(\d+)\s+tests", _handoff_test_count),
+310: _contributors_test_count,

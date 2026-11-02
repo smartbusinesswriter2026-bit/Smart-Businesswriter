@@ -1,0 +1,19 @@
+﻿45: #: Inputs that a frozen method can supply from another frozen method's result.
+59: def _row(key, method, label, intent, cues, slot, needs_any=None, priority=20, applies=None,
+140: [r"campaign (?:performance|efficiency|results)", r"cost per (?:click|acquisition)", r"\bctr\b"],
+566: def catalogue():
+571: def entry(key):
+578: def _normalise(text):
+582: def _sentence_with(text, match):
+594: def _first_match(entry_row, text):
+602: def _needs_match(entry_row, text):
+608: def _selected(entry_row, rule, quote):
+623: def _not_included(entry_row, reason):
+627: def _hash(payload):
+632: def resolve(brief, framework, answers=None):
+701: def apply_answer(selection, question_id, value):
+739: def set_enabled(selection, framework, key, enabled, reason=""):
+771: def carries(selection, key):
+775: def _canonical(value):
+784: def dependencies(selection, computations=None):
+798: value = (data.get("result") or {}).get(output) if data.get("ok") else None

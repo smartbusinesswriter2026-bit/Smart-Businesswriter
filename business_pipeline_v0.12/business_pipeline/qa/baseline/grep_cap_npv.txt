@@ -1,0 +1,18 @@
+﻿
+> src\bp\product\capabilities.py:51:    "npv": {"rate": ("wacc", "wacc", "the cost of 
+capital the WACC method computes")},
+  src\bp\product\capabilities.py:52:    "dcf_valuation": {"discount_rate": ("wacc", 
+"wacc",
+  src\bp\product\capabilities.py:53:                                        "the cost 
+of capital the WACC method computes")},
+> src\bp\product\capabilities.py:93:    _row("npv", "npv", "Net present value", 
+"appraisal",
+  src\bp\product\capabilities.py:94:         [r"net present value", r"\bnpv\b"],
+  src\bp\product\capabilities.py:95:         ("Financial Feasibility", "Net Present 
+Value"),
+> src\bp\product\capabilities.py:99:         priority=30, output="npv"),
+  src\bp\product\capabilities.py:100:    _row("irr", "irr", "Internal rate of return", 
+"appraisal",
+  src\bp\product\capabilities.py:101:         [r"internal rate of return", r"\birr\b"],
+
+

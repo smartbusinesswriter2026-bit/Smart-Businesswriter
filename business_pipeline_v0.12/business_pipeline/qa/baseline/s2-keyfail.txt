@@ -1,0 +1,1 @@
+﻿FAIL: test_the_finance_page_groups_tools_and_carries_study_notes (test_finance_additions.StudentFacingContract.test_the_finance_page_groups_tools_and_carries_study_notes)

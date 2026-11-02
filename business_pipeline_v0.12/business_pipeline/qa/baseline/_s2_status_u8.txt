@@ -1,0 +1,78 @@
+﻿ M _baseline_wt
+ D _qa_add.txt
+ D _qa_chat_diff.txt
+ D _qa_commit.txt
+ D _qa_show.txt
+ D _qa_staged.txt
+ D _qa_staged2.txt
+ D _qa_status.txt
+ D _qa_status2.txt
+ D _qa_unstaged.txt
+ M business_pipeline_v0.12/business_pipeline/docs/DECISIONS.md
+ M business_pipeline_v0.12/business_pipeline/documents/index.json
+ M business_pipeline_v0.12/business_pipeline/qa/QA_DEFECTS.md
+ M business_pipeline_v0.12/business_pipeline/qa/manual/accounting.md
+ M business_pipeline_v0.12/business_pipeline/qa/probe_shadowing.py
+ M business_pipeline_v0.12/business_pipeline/src/bp/methods.py
+ M business_pipeline_v0.12/business_pipeline/src/bp/orchestrator.py
+ M business_pipeline_v0.12/business_pipeline/src/bp/product/chat.py
+ M business_pipeline_v0.12/business_pipeline/src/bp/product/guard.py
+ M business_pipeline_v0.12/business_pipeline/tests/test_subject_accounting_acceptance.py
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/2026-11-02-ab0be0d-suite-err.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/2026-11-02-ab0be0d-suite-out.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_after2_err.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_after2_out.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_progress.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_s2_diffstat.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_s2_gitlog.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_s2_status.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/_s2_status_u8.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/acceptance2.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/docs_index.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_contracts.json
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_contracts.md
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_contracts_out.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_currency.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_detail_keys.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_examples.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_examples_exit.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_findings.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_inputs.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_labour_typing.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_preset_shape.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_recon.json
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_recon_out.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_reports.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_reports_exit.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_shape.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_shelf_after2.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_shelf_before.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tax_typing.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_testfiles.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tools.tsv
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tools_err.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tools_exit.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tools_report.json
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/econ_tools_report.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/economics_catalogue.json
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/gitlog.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/gitstatus.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_atunit.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_econ.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_labour.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_labour_contract.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_need.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_tightness.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_toolneeds.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_typing.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/grep_unfreeze.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/routing_check.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/routing_check2.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/shadowing_after.txt
+?? business_pipeline_v0.12/business_pipeline/qa/baseline/shadowing_after2.txt
+?? business_pipeline_v0.12/business_pipeline/qa/patch_typing_hooks.py
+?? business_pipeline_v0.12/business_pipeline/qa/probe_econ_contracts.py
+?? business_pipeline_v0.12/business_pipeline/qa/probe_econ_examples.py
+?? business_pipeline_v0.12/business_pipeline/qa/probe_econ_recon.py
+?? business_pipeline_v0.12/business_pipeline/qa/probe_econ_reports.py
+?? business_pipeline_v0.12/business_pipeline/qa/probe_econ_tools.py

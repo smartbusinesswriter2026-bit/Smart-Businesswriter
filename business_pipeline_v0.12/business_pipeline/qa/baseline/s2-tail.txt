@@ -1,0 +1,25 @@
+﻿  _warnings.warn(self.warn_message, ResourceWarning)
+..........F..F..F...................................F...........F...............................................................................................................................................................FEEEEE..EFE.................F.....................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: ''>
+  _warnings.warn(self.warn_message, ResourceWarning)
+F......................................................F..F..F...................F...........................................F..F..F.................................................................................F..F..F.......................................................................................................................................................F.........................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+....F...F....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_frozen_contract.py:28: ResourceWarning: unclosed file <_io.TextIOWrapper name='src\\bp\\server.py' mode='r' encoding='utf-8'>
+  src = open(os.path.join("src", "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......F.....F.......................F...........F........................................................................................F..F.....................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+...................................................................................................F..............F.....F............E.......F...................................................................................F................................................................EE.EE.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:163: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:157: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................F...............................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:491: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:497: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...................................

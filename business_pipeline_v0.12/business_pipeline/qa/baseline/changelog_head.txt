@@ -1,0 +1,12 @@
+﻿## Core: one unit hook per method, the shelf vocabulary enforces again, and an unknown method is refused (owner-approved unfreezes B-179â€¦B-181)
+
+- **A frozen method owns its own `typing` hook (B-179).** `src/bp/methods.py` defined
+  `_risk_typing`, `_tax_typing` and `_social_typing` twice each; Python keeps the last, so every
+  `Method(...)` construction captured whichever block came last and three methods were handed
+  another method's units: `risk_metrics` reported a mean return in "periods", `tax_incidence`
+  reported a quantity traded in "currency", `social_welfare` reported a headcount as a "rate".
+  All six hooks are renamed one-per-method and re-pointed. Labels only â€” no method, input, check,
+  preset or number changed, and `scripts/econ_shelf.py --check` still says
+  "frozen fixture: in sync". `src/bp/methods.py` now has zero duplicate definitions.
+- **A shelf refuses another shelf's brief, and names the shelf (B-180).**
+  `guard.subject_fit()` no longer returns `(True, None)` unconditionally: a brief must contain

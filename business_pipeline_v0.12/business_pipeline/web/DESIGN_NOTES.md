@@ -927,3 +927,39 @@ earlier rows point at it. The wording of the slogan is otherwise exactly as the 
 Verification: on the served page the lead reads "Your reliable business writing assistant" with no
 trailing full stop, in the first paint and in a re-render; the proof line is unchanged. The inline
 script parses (`node --check`) and the full suite passes.
+
+## 23. The brand name steps back, the body steps down, and the chat gets a reading column
+
+Owner instruction (2026-11-03): the brand name under the logo is "too loud and big" - reduce its
+font size by 2 points; in the body, reduce the font size by just 1 point; and give the chat
+container a width like Codex or ChatGPT.
+
+What changed (presentation only - no behaviour, number, wording or claim changed):
+- The brand name in the hero - the `h1` under the mark - is **43 px** (was 45 px). The topbar
+  wordmark is untouched at 20.2 px: it sits *beside* the mark, not under it, and it is the app's
+  own name in the chrome rather than the hero lockup the instruction named.
+- The body size is **16.8 px** (was 17.8 px), and the body copy that sat one rung above it moved
+  with it, so the reduction is visible rather than theoretical: the hero paragraph and the slogan
+  are **18 px** (was 19 px) and the composer text is **18 px** (was 19 px). The slogan keeps its
+  two-weight step - the bold lead and the italic proof line are still one step above and one step
+  below the slogan.
+- The chat column is **768 px**, centred. The composer (`.actionbox`) and the conversation card
+  (`#chatcard`) are one column, the width a chat gets in Codex or ChatGPT, instead of a box
+  stretched across the whole shell. It is `max-width` alone, so a narrow screen still gets the
+  full width.
+- The conversation card sits 16 px under the composer, the gap the Documents card already had.
+  Before this the two boxes shared an edge.
+
+Measured on the served page (Chrome, 1440x1000 viewport, rail collapsed):
+- `.hero h1` 45 px -> 43 px; `body` 17.8 px -> 16.8 px; the composer text and the slogan
+  19 px -> 18 px.
+- `.actionbox` 1116 px -> 768 px and `#chatcard` 1116 px -> 768 px, both at left 359 / right 1127
+  - the same edges, and the same centre as the hero wordmark (743 px).
+- The gap composer -> conversation is 16 px, and conversation -> Documents is 16 px.
+
+The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion now
+pins the body rule itself at `font-size:16.8px`, with the owner's instruction and the date in a
+comment beside it, so the type cannot drift again. It pins the whole rule because 16.8 px is also
+a worksheet title size and the loose form would have stopped guarding the body. The inline script
+parses (`node --check`); `tests/test_web_inline_script.py`, `tests/test_web_brand_assets.py` and
+`tests/test_product_subjects.py` pass.

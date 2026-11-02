@@ -1,0 +1,3 @@
+﻿+## Finance: the paper prints money, not the core's fiftieth decimal (QA session 2, D-FIN-02)
++## 2026-11-02 ΓÇö [finance] QA session 2: the shelf's missing manual, its acceptance suite, and the paper's numbers
++**Ask.** The 11-shelf QA work order, `SUBJECT = finance`: write the manual that does not exist, prove it

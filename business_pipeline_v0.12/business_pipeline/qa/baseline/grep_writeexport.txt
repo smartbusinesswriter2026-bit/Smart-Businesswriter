@@ -1,0 +1,5 @@
+﻿test_exports_credits.py:235: result = self.d.write_export(self.bundle, profile, fmt, destination)
+test_subject_accounting_acceptance.py:531: result = deliverables.write_export(bundle, profile, fmt, destination)
+test_subject_accounting_acceptance.py:535: with self.assertRaises(deliverables.DeliverableError) as refused:
+test_subject_accounting_acceptance.py:536: deliverables.check_pair("presentation", "docx")
+test_worksheet_export.py:53: result = D.write_export(bundle, "worksheet", "docx", path)

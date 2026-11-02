@@ -2009,10 +2009,17 @@ def _cc_caveats(out, th):
             "No conversion happens automatically anywhere else: one engagement still uses one currency, and multi-currency consolidation or translation is not implemented."]
 
 def _cc_template(out, P, th):
+    # B-190: the sentence used to print the SOURCE amount with the request (target)
+    # currency, so a USD 1,000 -> EUR 920 conversion read "EUR 1,000.00 converts to
+    # EUR 920.00" — a headline that contradicted its own arithmetic. The source
+    # amount and both codes stay in the appendix; the sentence quotes the converted
+    # amount only, which is the one denominated in the row's currency.
     tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
-    return ("At the declared rate, " + tok("amount_from") + " converts to " + tok("amount") + ". "
-            "The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, "
-            "the rate, its provenance and any declared date.")
+    return ("At the declared rate, " + tok("amount") +
+            " is the converted amount. The source amount, both currency codes, the rate, its "
+            "provenance and any declared date are recorded in the appendix, and the converted "
+            "amount is denominated in the target currency. "
+            "The rate is the owner's declaration and is not retrieved or verified by the system.")
 
 # ---------- Logistic regression and reliability (B-074) ----------
 # Logistic regression by Newton-Raphson (IRLS) on binary 0/1 outcomes; reliability by Cronbach's alpha.
@@ -7583,8 +7590,14 @@ def labour_market_profile(inp):
 
 
 def _labour_typing(metric):
-    if metric in ("cpi", "labour_productivity"):
-        return ("ratio", 2)
+    # B-190: a share, a tightness ratio and a vacancy count are not money. Before
+    # this, every metric not listed here inherited the row's "currency" unit, so the
+    # wage share printed as PHP 1.82 and tightness as PHP 5,000.00.
+    if metric in ("cpi", "labour_productivity", "wage_share_of_productivity",
+                  "labour_market_tightness"):
+        return ("ratio", 4)
+    if metric == "vacancies":
+        return ("count", 2)
     if metric in ("unemployment_rate",):
         return ("rate", 4)
     return ("currency", 2)

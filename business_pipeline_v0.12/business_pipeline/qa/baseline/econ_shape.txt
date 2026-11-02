@@ -1,0 +1,217 @@
+﻿{
+ "kind": "compute",
+ "key": "equilibrium",
+ "preset": "equilibrium",
+ "method": "demand_supply_equilibrium",
+ "label": "Market equilibrium",
+ "what": "Find the equilibrium price and quantity from declared linear demand and supply, with consumer and producer surplus.",
+ "need": null,
+ "level": "intro",
+ "formula": "Qd = a - bP and Qs = c + dP; set Qd = Qs to find P*, then Q* = a - bP*.",
+ "steps": [
+  "Write demand as Qd = a - bP and supply as Qs = c + dP.",
+  "Set Qd = Qs and solve for the equilibrium price P*.",
+  "Substitute P* into either curve to get the equilibrium quantity Q*.",
+  "Consumer surplus is the triangle below demand and above P*; producer surplus is the triangle above supply and below P*."
+ ],
+ "common_mistakes": [
+  "Using the inverse form P = a - bQ without rearranging it to Q = a - bP.",
+  "Forgetting to check that P* and Q* are positive.",
+  "Adding the two surplus triangles when one lies below the price axis."
+ ],
+ "diagram": "supply_demand",
+ "related": [
+  "elasticity",
+  "taxincidence",
+  "pricecontrol"
+ ],
+ "group": "market_basics",
+ "period": "per observation"
+}
+---RECORD---
+{
+ "id": "QNT-FIN-07",
+ "name": "Pricing and demand",
+ "type": "Q",
+ "form": "computed",
+ "status_short": "Computed",
+ "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+ "implementation_status": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+ "structures": "Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.",
+ "evidence_needs": "",
+ "template": null,
+ "linked_methods": [
+  "pricing_decision",
+  "elasticity"
+ ],
+ "disciplines": [
+  "finance, accounting and managerial economics"
+ ],
+ "discipline_label": "finance, accounting and managerial economics"
+}
+---TILE---
+{
+ "key": "market_basics",
+ "label": "Market basics",
+ "what": "Equilibrium price and quantity, price elasticity, tax incidence, price controls and market concentration.",
+ "need": "The demand and supply curves, or two price-quantity observations for elasticity.",
+ "note": null,
+ "worksheets": [],
+ "tools": [
+  {
+   "kind": "compute",
+   "key": "equilibrium",
+   "preset": "equilibrium",
+   "method": "demand_supply_equilibrium",
+   "label": "Market equilibrium",
+   "what": "Find the equilibrium price and quantity from declared linear demand and supply, with consumer and producer surplus.",
+   "need": null,
+   "level": "intro",
+   "formula": "Qd = a - bP and Qs = c + dP; set Qd = Qs to find P*, then Q* = a - bP*.",
+   "steps": [
+    "Write demand as Qd = a - bP and supply as Qs = c + dP.",
+    "Set Qd = Qs and solve for the equilibrium price P*.",
+    "Substitute P* into either curve to get the equilibrium quantity Q*.",
+    "Consumer surplus is the triangle below demand and above P*; producer surplus is the triangle above supply and below P*."
+   ],
+   "common_mistakes": [
+    "Using the inverse form P = a - bQ without rearranging it to Q = a - bP.",
+    "Forgetting to check that P* and Q* are positive.",
+    "Adding the two surplus triangles when one lies below the price axis."
+   ],
+   "diagram": "supply_demand",
+   "related": [
+    "elasticity",
+    "taxincidence",
+    "pricecontrol"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "elasticity",
+   "preset": "elasticity",
+   "method": "elasticity",
+   "label": "Price elasticity of demand",
+   "what": "Measure the arc elasticity between two price-quantity observations and see what happens to revenue.",
+   "need": null,
+   "level": "intro",
+   "formula": "E = (% change in Q) / (% change in P), using the midpoint (arc) formula.",
+   "steps": [
+    "Compute the change in quantity divided by the average quantity.",
+    "Compute the change in price divided by the average price.",
+    "Divide the first percentage change by the second.",
+    "Compare the absolute value with one and read the revenue change."
+   ],
+   "common_mistakes": [
+    "Using the slope of the inverse demand curve instead of the percentage changes.",
+    "Calling a negative elasticity inelastic because the sign is negative.",
+    "Mixing percentages and decimals in the same calculation.",
+    "Using the point formula for a discrete change."
+   ],
+   "diagram": "elasticity",
+   "related": [
+    "equilibrium",
+    "unitecon",
+    "breakeven"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "taxincidence",
+   "preset": "taxincidence",
+   "method": "tax_incidence",
+   "label": "Tax incidence and deadweight loss",
+   "what": "Split a per-unit tax between buyers and sellers and record the revenue and deadweight loss.",
+   "need": null,
+   "level": "intro",
+   "formula": "Consumer price Pc and producer price Ps satisfy Pc - Ps = t; the burden split follows the slopes.",
+   "steps": [
+    "Find the no-tax equilibrium first.",
+    "Shift the supply curve up by the per-unit tax.",
+    "Read the new consumer price and producer price.",
+    "Split the tax between the two sides, then compute revenue and deadweight loss."
+   ],
+   "common_mistakes": [
+    "Assuming the side that hands the tax to the government bears the burden.",
+    "Forgetting the tax wedge between the buyer's price and the seller's price.",
+    "Reporting the tax as a percentage when the input is per unit."
+   ],
+   "diagram": "tax_wedge",
+   "related": [
+    "equilibrium",
+    "pricecontrol",
+    "cba"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "pricecontrol",
+   "preset": "pricecontrol",
+   "method": "price_control",
+   "label": "Price ceilings and floors",
+   "what": "See the shortage, surplus and deadweight loss created by a declared price control.",
+   "need": null,
+   "level": "intro",
+   "formula": "At the control price, compare quantity demanded with quantity supplied; the short side determines quantity traded.",
+   "steps": [
+    "Find the free-market equilibrium.",
+    "Decide whether the ceiling is below it or the floor is above it.",
+    "At the control price, compute quantity demanded and quantity supplied.",
+    "Report the shortage or surplus, the quantity traded and the deadweight loss."
+   ],
+   "common_mistakes": [
+    "Treating a non-binding control as if it changed the market.",
+    "Reversing shortage and surplus.",
+    "Using the long side of the market as quantity traded."
+   ],
+   "diagram": "price_control",
+   "related": [
+    "equilibrium",
+    "taxincidence"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "concentration",
+   "preset": "concentration",
+   "method": "market_concentration",
+   "label": "Market concentration (HHI)",
+   "what": "Compute HHI, CR4 and the equivalent number of firms from declared firm revenues.",
+   "need": null,
+   "level": "intro",
+   "formula": "HHI = sum of squared percentage market shares; CR4 = sum of the four largest shares.",
+   "steps": [
+    "Add the declared revenues to get the market total.",
+    "Divide each firm's revenue by the total and multiply by one hundred.",
+    "Square each share and add them for the HHI.",
+    "Add the four largest shares for CR4; the equivalent number of firms is 10,000 divided by the HHI."
+   ],
+   "common_mistakes": [
+    "Entering fractions when the HHI expects percentage shares.",
+    "Using total corporate revenue instead of sales in the relevant market.",
+    "Treating the HHI as a legal conclusion rather than a descriptive measure."
+   ],
+   "diagram": "concentration",
+   "related": [
+    "equilibrium",
+    "unitecon"
+   ],
+   "group": "market_basics",
+   "period": "per observation"
+  }
+ ],
+ "records": []
+}
+---GLOSSARY---
+{
+ "term": "P*",
+ "definition": "The equilibrium price, where quantity demanded equals quantity supplied."
+}

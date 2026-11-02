@@ -1,0 +1,16 @@
+﻿
+> src\bp\product\capabilities.py:202:    _row("bond_analysis", "bond_analysis", "Bond 
+price and yield", "bond",
+> src\bp\product\capabilities.py:203:         [r"\bbond\b", r"coupon rate", r"yield to 
+maturity"],
+> src\bp\product\capabilities.py:204:         ("Financial Feasibility", "Bond Price and 
+Yield"), priority=12,
+  src\bp\product\capabilities.py:205:         one_of=[["yield_to_maturity"], 
+["price"]]),
+  src\bp\product\capabilities.py:206:    _row("ratio_analysis", "ratio_analysis", 
+"Ratio analysis", "ratios",
+  src\bp\product\capabilities.py:207:         [r"ratio analysis", r"financial ratios", 
+r"current ratio", r"liquidity ratio",
+  src\bp\product\capabilities.py:208:          r"profitability ratio"],
+
+

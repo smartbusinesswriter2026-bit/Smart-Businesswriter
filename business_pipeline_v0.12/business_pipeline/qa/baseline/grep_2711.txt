@@ -1,0 +1,3 @@
+﻿HOME.md:3: **Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.58**, **2711 tests**, 2026-11-02. Update the count and date when you change them.
+HANDOFF.md:12: Tests        : 2711 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves — see docs/OPEN_ISSUES.md
+CONTRIBUTORS.md:62: python -m unittest discover -s tests          # currently 2711 tests; the framework-completion build in flight still fails — see docs/OPEN_ISSUES.md

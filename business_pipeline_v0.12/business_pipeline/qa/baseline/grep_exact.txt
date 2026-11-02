@@ -1,0 +1,45 @@
+﻿
+> src\bp\product\chat.py:4086:def _fmt_exact(value):
+  src\bp\product\chat.py:4087:    """Print a recorded value without inventing precision 
+or losing it."""
+  src\bp\product\chat.py:4088:    text = str(value)
+  src\bp\product\chat.py:4089:    try:
+  src\bp\product\chat.py:4090:        number = Decimal(text)
+  src\bp\product\chat.py:4091:    except (InvalidOperation, ValueError):
+  src\bp\product\chat.py:4092:        return text
+  src\bp\product\chat.py:4093:    if number == number.to_integral():
+  src\bp\product\chat.py:4094:        return "{:,.0f}".format(number)
+  src\bp\product\chat.py:4095:    if abs(number) >= 1 and number.as_tuple().exponent >= 
+-2:
+  src\bp\product\chat.py:4096:        return "{:,.2f}".format(number)
+  src\bp\product\chat.py:4097:    return text
+  src\bp\product\chat.py:4098:
+  src\bp\product\chat.py:4099:
+> src\bp\product\chat.py:4100:def _generic_lines(row, inputs, result):
+  src\bp\product\chat.py:4101:    """The honest fallback: the declared inputs and the 
+recorded output, in prose.
+  src\bp\product\chat.py:4102:
+  src\bp\product\chat.py:4103:    The core echoes the declared inputs in its result; 
+those are dropped here so
+  src\bp\product\chat.py:4104:    the paragraph reports what the method produced, not 
+what the student typed.
+  src\bp\product\chat.py:4105:    """
+  src\bp\product\chat.py:4106:    declared = "; ".join((name.replace("_", " ") + " " + 
+_fmt_exact(value))
+  src\bp\product\chat.py:4107:                         for name, value in (inputs or 
+{}).items())
+  src\bp\product\chat.py:4108:    computed = {name: value for name, value in (result or 
+{}).items()
+  src\bp\product\chat.py:4109:                if name not in (inputs or {}) and not 
+str(name).startswith("_")}
+  src\bp\product\chat.py:4110:    produced = "; ".join((name.replace("_", " ") + " " + 
+_fmt_exact(value))
+  src\bp\product\chat.py:4111:                         for name, value in 
+computed.items())
+  src\bp\product\chat.py:4112:    head = ("From the declared inputs (" + declared + "), 
+") if declared else ""
+  src\bp\product\chat.py:4113:    if produced:
+  src\bp\product\chat.py:4114:        lines = [head + "the frozen " + 
+row["label"].lower() + " method returns " + produced + "."]
+
+

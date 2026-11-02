@@ -50,9 +50,13 @@ class RefusedPriceTest(unittest.TestCase):
             instruments.record(document["id"], quote={"value": "0", "as_of": "2026-11-02"},
                                provider="alphavantage")
         message = str(caught.exception)
+        self.assertEqual(caught.exception.__class__, instruments.InstrumentError)
         self.assertIn("ZZZZINVALID", message)
-        self.assertIn("alphavantage", message)
         self.assertIn("No price was stored", message)
+        # A student is never told to configure a key or an environment variable.
+        lowered = message.lower()
+        for burden in ("key", "bp_", "environment", "configure", "server"):
+            self.assertNotIn(burden, lowered, message)
 
     def test_a_refused_price_is_not_stored(self):
         document = instruments.create("ZZZZINVALID")

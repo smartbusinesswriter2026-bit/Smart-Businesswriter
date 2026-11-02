@@ -1,0 +1,6 @@
+﻿methods.py:15240: {"question": "Inference", "default_chosen": "No standard error, interval or test is computed, because an honest one needs a declared complex design.", "impact": "Users who need design-based inference must supply a design-aware method, which is not implemented."}),
+registry.py:29: WEAK = set("capital value point time rate flow cash level order group case model system plan process analysis analyze evaluate compare calculate describe explain identify design assess need needs help manage management new use using based factor factors affect affecting relate".split())
+drafting.py:245: ("individual_values", "Individual Needs and Values", "individual value need reward balance commitment"),
+subjects.py:40: "need needs want wants help using use make makes made get gets got".split()
+subjects.py:3702: "need": TOOL_NEEDS.get(key),
+subjects.py:4259: 'evidence_needs': 'Survey instrument, sampling and scoring choices; validity and context need review',

@@ -1,0 +1,8 @@
+﻿2506: CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result),
+3975: CAPABILITY_LINES.update({
+4123: def _capability_lines(row, recorded):
+4127: formatter = CAPABILITY_LINES.get(key)
+4561: lines.append(paper.paragraph(_capability_lines(block, data)))
+4667: [paper.paragraph(_capability_lines(block, data))]
+4778: [paper.paragraph(_capability_lines(block, data))]
+5405: [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]

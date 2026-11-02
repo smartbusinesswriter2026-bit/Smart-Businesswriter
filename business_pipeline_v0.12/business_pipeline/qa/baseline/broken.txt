@@ -1,0 +1,3 @@
+﻿419:             self.assertTrue(tile.get("need"),
+420:                             "tile %s has no 'what to gather' fallback" % tile["key"])
+422:     def test_E_eco_084__the_curriculum_map_states_the_true_tool_count(self):

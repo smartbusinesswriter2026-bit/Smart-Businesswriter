@@ -1,0 +1,5034 @@
+[
+ {
+  "tool": "equilibrium",
+  "label": "Market equilibrium",
+  "group": "market_basics",
+  "level": "intro",
+  "preset": "equilibrium",
+  "method": "demand_supply_equilibrium",
+  "name": "demand_supply_equilibrium",
+  "tier": "T1",
+  "metric": "equilibrium_price",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "quantity_demanded_equals_quantity_supplied",
+   "consumer_surplus_is_the_triangle",
+   "producer_surplus_is_the_triangle",
+   "total_surplus_is_consumer_plus_producer"
+  ],
+  "intended_use": "Equilibrium price and quantity for declared linear demand and supply curves (Qd = a - bP, Qs = c + dP), with consumer and producer surplus.",
+  "unsupported_use": "Estimating the curves from data; non-linear demand or supply; shifts, dynamics or expectations; taxes, externalities or market power; causal claims.",
+  "assumptions": [
+   "Demand slopes down and supply slopes up, both linearly.",
+   "All else equal: no shifts, taxes, externalities or market power.",
+   "The curves are the owner's declared functions, not estimated from data."
+  ],
+  "limitations": [
+   "Linear curves only; no dynamics, expectations or general equilibrium.",
+   "Surplus is geometric area, not a measured welfare change.",
+   "No tax, subsidy, price control or externality is included."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in Qd = a - bP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in Qd = a - bP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "c in Qs = c + dP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "d in Qs = c + dP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Curve form",
+    "default_chosen": "Quantity-dependent linear curves: Qd = a - bP and Qs = c + dP. If you have P = a - bQ, rearrange it first.",
+    "impact": "Using the inverse form without rearranging swaps the slope and gives the wrong equilibrium."
+   },
+   {
+    "question": "Welfare measure",
+    "default_chosen": "Consumer and producer surplus are the geometric areas under the declared linear curves.",
+    "impact": "With non-linear curves or externalities these triangles are not the welfare change."
+   }
+  ]
+ },
+ {
+  "tool": "elasticity",
+  "label": "Price elasticity of demand",
+  "group": "market_basics",
+  "level": "intro",
+  "preset": "elasticity",
+  "method": "elasticity",
+  "name": "elasticity",
+  "tier": "T1",
+  "metric": "price_elasticity",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "arc_elasticity_equals_percentage_changes",
+   "swapping_the_observations_leaves_the_arc_elasticity_unchanged",
+   "revenue_change_equals_new_revenue_minus_old",
+   "elastic_flag_matches_the_magnitude"
+  ],
+  "intended_use": "Arc (midpoint) price elasticity of demand between two declared price-quantity observations, with the revenue change and an elastic/inelastic classification.",
+  "unsupported_use": "Point elasticity at a single price without a demand function; income or cross-price elasticity; estimating elasticity from a regression; causal claims.",
+  "assumptions": [
+   "The two observations lie on the same demand curve.",
+   "All else equal: no income, substitute price or taste change between the observations.",
+   "The arc formula is the agreed convention for a discrete change."
+  ],
+  "limitations": [
+   "Arc elasticity only; no point elasticity without a demand function.",
+   "No income, cross-price or supply elasticity.",
+   "Two observations cannot identify a demand curve or prove causality."
+  ],
+  "inputs": [
+   {
+    "name": "price_1",
+    "type": "decimal",
+    "required": true,
+    "desc": "price at the first observation",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price_2",
+    "type": "decimal",
+    "required": true,
+    "desc": "price at the second observation",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quantity_1",
+    "type": "decimal",
+    "required": true,
+    "desc": "quantity at the first observation",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quantity_2",
+    "type": "decimal",
+    "required": true,
+    "desc": "quantity at the second observation",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Elasticity formula",
+    "default_chosen": "Arc (midpoint): the percentage change in quantity divided by the percentage change in price, using the average of the two values in each denominator.",
+    "impact": "The point formula at one end of the range gives a different number."
+   },
+   {
+    "question": "Sign",
+    "default_chosen": "The signed elasticity is reported; the absolute value is used for the elastic/inelastic classification.",
+    "impact": "Reporting a negative number as inelastic is a common error."
+   }
+  ]
+ },
+ {
+  "tool": "taxincidence",
+  "label": "Tax incidence and deadweight loss",
+  "group": "market_basics",
+  "level": "intro",
+  "preset": "taxincidence",
+  "method": "tax_incidence",
+  "name": "tax_incidence",
+  "tier": "T1",
+  "metric": "consumer_incidence",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "consumer_and_producer_incidence_sum_to_the_tax",
+   "consumer_share_equals_d_over_b_plus_d",
+   "tax_revenue_equals_tax_times_quantity_traded",
+   "deadweight_loss_is_the_triangle"
+  ],
+  "intended_use": "Economic incidence of a declared per-unit tax in a linear partial-equilibrium market: consumer and producer prices, the burden split, tax revenue and deadweight loss.",
+  "unsupported_use": "Estimating the curves; ad valorem taxes; a tax in a non-linear or general-equilibrium model; the statutory incidence; distributional or dynamic effects.",
+  "assumptions": [
+   "Linear demand and supply, all else equal.",
+   "The tax is a fixed amount per unit, not a percentage of price.",
+   "The market is competitive and partial equilibrium."
+  ],
+  "limitations": [
+   "Per-unit tax only; no ad valorem tax.",
+   "No income effects, other markets, evasion or administration costs.",
+   "The incidence split depends on the declared slopes, not on who hands the tax to the government."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in Qd = a - bP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in Qd = a - bP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "c in Qs = c + dP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "d in Qs = c + dP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "tax_per_unit",
+    "type": "decimal",
+    "required": true,
+    "desc": "per-unit tax on sellers",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Who the tax is levied on",
+    "default_chosen": "A per-unit tax on sellers. With the same rate, a tax on buyers gives the same economic incidence.",
+    "impact": "The statutory side does not determine who bears the burden."
+   },
+   {
+    "question": "Welfare loss",
+    "default_chosen": "Deadweight loss is the triangle between the declared linear demand and supply curves over the fall in quantity.",
+    "impact": "Non-linear curves or other market effects change the loss."
+   }
+  ]
+ },
+ {
+  "tool": "pricecontrol",
+  "label": "Price ceilings and floors",
+  "group": "market_basics",
+  "level": "intro",
+  "preset": "pricecontrol",
+  "method": "price_control",
+  "name": "price_control",
+  "tier": "T1",
+  "metric": "quantity_traded",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "a_non_binding_control_leaves_the_market_unchanged",
+   "a_binding_ceiling_creates_a_shortage",
+   "a_binding_floor_creates_a_surplus",
+   "deadweight_loss_is_the_triangle"
+  ],
+  "intended_use": "The effect of a declared price ceiling or floor on a linear competitive market: quantity traded, shortage or surplus, and deadweight loss.",
+  "unsupported_use": "Estimating the curves; rationing, queues or black markets; quality changes; dynamic or general-equilibrium effects; a control that is not a single fixed price.",
+  "assumptions": [
+   "Linear demand and supply, all else equal.",
+   "The control is a single fixed price that is enforced.",
+   "The market is competitive and partial equilibrium."
+  ],
+  "limitations": [
+   "No rationing, queues, black markets or quality adjustment.",
+   "No dynamics or general-equilibrium effects.",
+   "Deadweight loss is the triangle between the declared linear curves."
+  ],
+  "inputs": [
+   {
+    "name": "control_price",
+    "type": "decimal",
+    "required": true,
+    "desc": "the ceiling or floor price",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "control_type",
+    "type": "enum",
+    "required": true,
+    "desc": "ceiling (maximum price) or floor (minimum price)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in Qd = a - bP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in Qd = a - bP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "c in Qs = c + dP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "d in Qs = c + dP, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Binding test",
+    "default_chosen": "A ceiling binds only below the equilibrium price; a floor binds only above it.",
+    "impact": "A non-binding control leaves the market at equilibrium."
+   },
+   {
+    "question": "Quantity traded",
+    "default_chosen": "The short side of the market determines quantity traded.",
+    "impact": "The long side's notional quantity is reported but not traded."
+   }
+  ]
+ },
+ {
+  "tool": "concentration",
+  "label": "Market concentration (HHI)",
+  "group": "market_basics",
+  "level": "intro",
+  "preset": "concentration",
+  "method": "market_concentration",
+  "name": "market_concentration",
+  "tier": "T1",
+  "metric": "hhi",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "hhi_equals_the_sum_of_squared_shares",
+   "cr4_is_the_sum_of_the_four_largest_shares",
+   "shares_sum_to_one_hundred",
+   "effective_n_times_hhi_equals_ten_thousand"
+  ],
+  "intended_use": "Market concentration from declared firm revenues: Herfindahl-Hirschman index (0-10,000), CR1, CR4 and the equivalent number of equal-sized firms.",
+  "unsupported_use": "Defining the market; estimating revenues; import competition or geographic markets; merger simulation; applying a threshold as a legal conclusion.",
+  "assumptions": [
+   "The declared revenues cover the relevant market.",
+   "Each firm's revenue is its market sales, not total corporate revenue across other markets.",
+   "The market boundary is the owner's judgement."
+  ],
+  "limitations": [
+   "No market definition, import competition or geographic segmentation.",
+   "No merger simulation, entry or dynamic effects.",
+   "No legal threshold is applied; any threshold is a convention the user supplies."
+  ],
+  "inputs": [
+   {
+    "name": "firm_revenues",
+    "type": "decimal_list",
+    "required": true,
+    "desc": "revenue for each firm; shares are derived from the total",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Share scale",
+    "default_chosen": "Shares are percentages of total revenue, so the HHI runs from 0 to 10,000.",
+    "impact": "Fractions instead of percentages give an HHI from 0 to 1."
+   },
+   {
+    "question": "Market definition",
+    "default_chosen": "The firms and revenues you declare are the market; the tool does not define it for you.",
+    "impact": "A different market boundary changes every concentration measure."
+   }
+  ]
+ },
+ {
+  "tool": "costcurves",
+  "label": "Cost curves",
+  "group": "firm_behaviour",
+  "level": "intro",
+  "preset": "costcurves",
+  "method": "cost_curves",
+  "name": "cost_curves",
+  "tier": "T1",
+  "metric": "average_cost",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "marginal_cost_is_the_derivative_of_total_cost",
+   "average_cost_equals_total_cost_over_quantity",
+   "average_cost_equals_average_fixed_plus_average_variable",
+   "average_variable_cost_excludes_fixed_cost"
+  ],
+  "intended_use": "Average cost, average variable cost, average fixed cost and marginal cost at a declared quantity for the quadratic cost function TC = fixed + linear x Q + quadratic x Q squared, with optional price, revenue, profit and a shutdown flag.",
+  "unsupported_use": "Estimating the cost function; step costs, learning curves or capacity limits; economies of scope; a full cost-curve schedule.",
+  "assumptions": [
+   "The declared quadratic cost function describes the relevant range.",
+   "Fixed cost does not change with quantity.",
+   "The quantity is positive."
+  ],
+  "limitations": [
+   "One quantity only; no cost schedule across quantities.",
+   "No step costs, capacity limits, learning or economies of scope.",
+   "The shutdown test assumes the quadratic term is non-negative."
+  ],
+  "inputs": [
+   {
+    "name": "fixed_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "total fixed cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "linear_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "linear variable cost per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional price for revenue and profit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quadratic_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "quadratic variable cost per unit squared",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quantity",
+    "type": "decimal",
+    "required": true,
+    "desc": "the quantity at which costs are evaluated",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Cost function",
+    "default_chosen": "TC = fixed + linear x Q + quadratic x Q squared, with non-negative coefficients.",
+    "impact": "A different functional form gives different average and marginal costs."
+   },
+   {
+    "question": "Shutdown test",
+    "default_chosen": "The firm shuts down when price is below the linear cost, which is the minimum average variable cost when the quadratic term is non-negative.",
+    "impact": "With a negative quadratic term the minimum is not at zero and the test would not apply."
+   }
+  ]
+ },
+ {
+  "tool": "profitmax",
+  "label": "Profit maximisation",
+  "group": "firm_behaviour",
+  "level": "intro",
+  "preset": "profitmax",
+  "method": "profit_maximization",
+  "name": "profit_maximization",
+  "tier": "T1",
+  "metric": "profit",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "marginal_revenue_equals_marginal_cost",
+   "profit_equals_revenue_minus_cost",
+   "lerner_index_equals_markup_over_price",
+   "profit_falls_away_from_the_optimum"
+  ],
+  "intended_use": "Profit-maximising quantity and price for a firm facing linear demand P = a - bQ and quadratic cost TC = fixed + linear x Q + quadratic x Q squared, with revenue, cost, profit, markup and the Lerner index.",
+  "unsupported_use": "Estimating demand or cost; multi-product firms; price discrimination; entry, dynamics or strategic interaction; a competitive market price taken as given.",
+  "assumptions": [
+   "The firm faces the declared linear demand curve.",
+   "The cost function is quadratic and non-decreasing.",
+   "The firm is a single-price monopolist or monopoly-like seller."
+  ],
+  "limitations": [
+   "Single product and single period.",
+   "No price discrimination, strategic interaction or entry.",
+   "The result is arithmetic on the declared curves, not evidence about a real market."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in P = a - bQ",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in P = a - bQ, must be positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "fixed_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "total fixed cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "linear_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "linear marginal cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quadratic_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "quadratic cost term",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Market structure",
+    "default_chosen": "A single-price firm facing the declared downward-sloping demand curve; MR = MC.",
+    "impact": "A price-taking firm sets price equal to marginal cost instead."
+   },
+   {
+    "question": "Cost function",
+    "default_chosen": "TC = fixed + linear x Q + quadratic x Q squared, with non-negative coefficients.",
+    "impact": "A different cost function changes the optimum."
+   }
+  ]
+ },
+ {
+  "tool": "marketpower",
+  "label": "Markup and Lerner index",
+  "group": "firm_behaviour",
+  "level": "intro",
+  "preset": "marketpower",
+  "method": "market_power",
+  "name": "market_power",
+  "tier": "T1",
+  "metric": "lerner_index",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "lerner_index_equals_markup_over_price",
+   "markup_equals_price_minus_marginal_cost",
+   "price_equals_marginal_cost_gives_zero_lerner",
+   "a_higher_price_raises_the_lerner_index"
+  ],
+  "intended_use": "Markup and Lerner index from a declared price and marginal cost, with the implied demand elasticity under the single-price monopoly model.",
+  "unsupported_use": "Estimating marginal cost; proving market power or consumer harm; a dynamic or strategic game; a multi-product firm; a regulated price.",
+  "assumptions": [
+   "The declared marginal cost is the relevant marginal cost.",
+   "The firm sets a single price.",
+   "The price and cost are from the same period and product."
+  ],
+  "limitations": [
+   "Two declared numbers only; no cost estimation.",
+   "No legal threshold or competitive assessment is applied.",
+   "The implied elasticity is model-conditional."
+  ],
+  "inputs": [
+   {
+    "name": "marginal_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "marginal cost at the relevant quantity",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price",
+    "type": "decimal",
+    "required": true,
+    "desc": "the observed or declared price",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "What the index means",
+    "default_chosen": "The Lerner index is (price - marginal cost) / price; it is a static markup measure.",
+    "impact": "A high markup is not by itself evidence of harm or of a legal violation."
+   },
+   {
+    "question": "Implied elasticity",
+    "default_chosen": "Reported only when the Lerner index is positive, as its inverse under the single-price monopoly model.",
+    "impact": "With price equal to marginal cost the implied elasticity is undefined."
+   }
+  ]
+ },
+ {
+  "tool": "pricediscrimination",
+  "label": "Price discrimination",
+  "group": "firm_behaviour",
+  "level": "advanced",
+  "preset": "pricediscrimination",
+  "method": "price_discrimination",
+  "name": "price_discrimination",
+  "tier": "T1",
+  "metric": "total_profit",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "marginal_revenue_equals_marginal_cost_in_market_one",
+   "marginal_revenue_equals_marginal_cost_in_market_two",
+   "total_revenue_is_the_sum_of_market_revenues",
+   "a_higher_marginal_cost_lowers_both_quantities"
+  ],
+  "intended_use": "Third-degree price discrimination across two separated linear markets with constant marginal cost: quantities, prices and profit.",
+  "unsupported_use": "Estimating demand; arbitrage or market separation; first- or second-degree discrimination; menu costs, capacity or welfare comparison with a single price.",
+  "assumptions": [
+   "The two markets are separable and resale is impossible.",
+   "Demand is linear and marginal cost is constant.",
+   "The firm can set a different price in each market."
+  ],
+  "limitations": [
+   "No arbitrage, capacity, menu cost or fixed cost.",
+   "No welfare comparison with a single price.",
+   "Two markets only."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept_1",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of demand in market one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_intercept_2",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of demand in market two",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope_1",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of demand in market one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope_2",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of demand in market two",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "constant marginal cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Discrimination",
+    "default_chosen": "Third degree: a separate linear price in each market, with no resale.",
+    "impact": "If resale is possible the two prices collapse toward one."
+   },
+   {
+    "question": "Cost",
+    "default_chosen": "Constant marginal cost across both markets.",
+    "impact": "Different costs or capacity constraints change both prices."
+   }
+  ]
+ },
+ {
+  "tool": "cournot",
+  "label": "Cournot duopoly",
+  "group": "firm_behaviour",
+  "level": "advanced",
+  "preset": "cournot",
+  "method": "cournot_duopoly",
+  "name": "cournot_duopoly",
+  "tier": "T1",
+  "metric": "price",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "firm_one_is_on_its_best_response",
+   "firm_two_is_on_its_best_response",
+   "symmetric_costs_give_equal_quantities",
+   "a_higher_own_cost_lowers_own_quantity"
+  ],
+  "intended_use": "Two-firm Cournot equilibrium with linear demand and constant marginal costs: quantities, price and profits.",
+  "unsupported_use": "Estimating demand or costs; more than two firms; capacity, product differentiation, repeated interaction or collusion; a firm priced out of the market.",
+  "assumptions": [
+   "Two firms, homogeneous products and linear demand.",
+   "Constant marginal costs.",
+   "Simultaneous quantity choice and no collusion."
+  ],
+  "limitations": [
+   "Two firms only; no entry, capacity or differentiation.",
+   "One-shot game; no repeated interaction or collusion.",
+   "A corner solution is refused."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in P = a - bQ",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in P = a - bQ, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_cost_1",
+    "type": "decimal",
+    "required": true,
+    "desc": "constant marginal cost of firm one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_cost_2",
+    "type": "decimal",
+    "required": true,
+    "desc": "constant marginal cost of firm two",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Competition",
+    "default_chosen": "One-shot quantity competition with simultaneous choices.",
+    "impact": "Bertrand price competition or Stackelberg leadership gives a different outcome."
+   },
+   {
+    "question": "Equilibrium",
+    "default_chosen": "Interior Cournot equilibrium; a firm priced out of the market is refused.",
+    "impact": "A corner solution would need a different model."
+   }
+  ]
+ },
+ {
+  "tool": "nash",
+  "label": "Nash equilibrium (2x2)",
+  "group": "firm_behaviour",
+  "level": "advanced",
+  "preset": "nash",
+  "method": "nash_equilibrium",
+  "name": "nash_equilibrium",
+  "tier": "T1",
+  "metric": "nash_count",
+  "unit": "count",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "nash_count_equals_the_number_of_flags",
+   "prisoners_dilemma_has_one_nash",
+   "coordination_game_has_two_nash",
+   "matching_pennies_has_no_pure_nash"
+  ],
+  "intended_use": "Pure-strategy Nash equilibria of a declared 2x2 game, with a flag for each cell and the number of equilibria.",
+  "unsupported_use": "Mixed strategies; games larger than 2x2; sequential or repeated games; coalitional games; selecting among multiple equilibria.",
+  "assumptions": [
+   "The payoffs are the players' utilities and are comparable only within each player.",
+   "The game is one-shot and simultaneous.",
+   "Each player knows the payoff matrix."
+  ],
+  "limitations": [
+   "Pure strategies only; mixed equilibria are not computed.",
+   "2x2 games only.",
+   "Multiple equilibria are reported, not ranked."
+  ],
+  "inputs": [
+   {
+    "name": "column_payoffs",
+    "type": "value_list",
+    "required": true,
+    "desc": "column player's payoffs in the same cell order",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "row_payoffs",
+    "type": "value_list",
+    "required": true,
+    "desc": "row player's payoffs in the order (row one, column one), (row one, column two), (row two, column one), (row two, column two)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Strategies",
+    "default_chosen": "Two players, two pure strategies each, simultaneous moves.",
+    "impact": "Mixed or sequential strategies are a different solution concept."
+   },
+   {
+    "question": "Ties",
+    "default_chosen": "A cell where neither player can gain by a unilateral switch is counted as a weak Nash equilibrium.",
+    "impact": "A strict-equilibrium-only rule could report fewer cells."
+   }
+  ]
+ },
+ {
+  "tool": "panel",
+  "label": "Panel fixed effects",
+  "group": "behavioural_evidence",
+  "level": "advanced",
+  "preset": "panel",
+  "method": "panel_regression",
+  "name": "panel_regression",
+  "tier": "T1",
+  "metric": "slope",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "slope_equals_within_covariance_over_variance",
+   "adding_a_constant_to_y_leaves_the_slope_unchanged",
+   "adding_a_constant_to_x_leaves_the_slope_unchanged",
+   "within_residuals_sum_to_zero"
+  ],
+  "intended_use": "Balanced-panel fixed-effects (within) slope and intercept for one regressor, with within R-squared and degrees of freedom.",
+  "unsupported_use": "Unbalanced panels; time-invariant regressors; dynamic panels with lagged outcomes; clustered or robust standard errors; causal claims.",
+  "assumptions": [
+   "The panel is balanced and the entity effect is additive.",
+   "The slope is common across entities.",
+   "No time-varying omitted variable is correlated with x."
+  ],
+  "limitations": [
+   "Time-invariant regressors are absorbed and cannot be estimated.",
+   "No standard errors, clustering or robust inference.",
+   "Dynamic panel bias is not addressed."
+  ],
+  "inputs": [
+   {
+    "name": "data",
+    "type": "records",
+    "required": true,
+    "desc": "one record per entity-period; the panel must be balanced",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Estimator",
+    "default_chosen": "Within (fixed-effects) transformation, which removes each entity's mean.",
+    "impact": "Random effects or pooled OLS would use between-entity variation and give a different slope."
+   },
+   {
+    "question": "Inference",
+    "default_chosen": "No standard errors are computed; the output is the point estimate and within fit.",
+    "impact": "Clustered or robust inference would need a declared design."
+   }
+  ]
+ },
+ {
+  "tool": "iv",
+  "label": "Instrumental variables",
+  "group": "behavioural_evidence",
+  "level": "advanced",
+  "preset": "iv",
+  "method": "instrumental_variables",
+  "name": "instrumental_variables",
+  "tier": "T1",
+  "metric": "iv_slope",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "iv_slope_is_the_covariance_ratio",
+   "first_stage_slope_is_the_instrument_on_the_regressor",
+   "scaling_the_instrument_leaves_the_iv_slope_unchanged",
+   "adding_a_constant_to_y_shifts_the_intercept_not_the_slope"
+  ],
+  "intended_use": "Just-identified instrumental-variables slope and intercept with one endogenous regressor and one excluded instrument, plus the first-stage and OLS slopes for comparison.",
+  "unsupported_use": "Over-identified models; weak instruments; controls; robust or clustered inference; testing the exclusion restriction; causal claims without a defended design.",
+  "assumptions": [
+   "The instrument is relevant and satisfies the exclusion restriction.",
+   "The relationship is linear with a constant effect.",
+   "Observations are independent."
+  ],
+  "limitations": [
+   "One instrument and one endogenous regressor only.",
+   "No weak-instrument diagnostics or over-identification test.",
+   "No controls, robust or clustered standard errors."
+  ],
+  "inputs": [
+   {
+    "name": "x",
+    "type": "value_list",
+    "required": true,
+    "desc": "the endogenous regressor",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "y",
+    "type": "value_list",
+    "required": true,
+    "desc": "the outcome",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "z",
+    "type": "value_list",
+    "required": true,
+    "desc": "the excluded instrument",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Estimator",
+    "default_chosen": "Just-identified 2SLS, which here reduces to cov(z, y) / cov(z, x).",
+    "impact": "Over-identification or controls would need a matrix estimator."
+   },
+   {
+    "question": "Instrument validity",
+    "default_chosen": "Relevance is checked by a non-zero cov(z, x); the exclusion restriction is assumed, not tested.",
+    "impact": "An invalid instrument gives a biased estimate with no warning."
+   }
+  ]
+ },
+ {
+  "tool": "rdd",
+  "label": "Regression discontinuity",
+  "group": "behavioural_evidence",
+  "level": "advanced",
+  "preset": "rdd",
+  "method": "regression_discontinuity",
+  "name": "regression_discontinuity",
+  "tier": "T1",
+  "metric": "estimate",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "estimate_is_the_right_intercept_minus_the_left_intercept",
+   "shifting_the_outcome_leaves_the_estimate_unchanged",
+   "the_bandwidth_excludes_observations_outside_it",
+   "a_positive_jump_at_the_cutoff_gives_a_positive_estimate"
+  ],
+  "intended_use": "Sharp regression-discontinuity estimate from a local linear fit on each side of a declared cutoff and bandwidth.",
+  "unsupported_use": "Fuzzy designs; manipulation of the running variable; optimal bandwidth selection; covariates; bias-corrected or robust inference; causal claims without a defended design.",
+  "assumptions": [
+   "Treatment is determined by the running variable crossing the cutoff.",
+   "No manipulation of the running variable.",
+   "No other discontinuity at the cutoff."
+  ],
+  "limitations": [
+   "No optimal bandwidth, bias correction or covariates.",
+   "Sharp design only; no fuzzy RDD.",
+   "No robust or clustered inference."
+  ],
+  "inputs": [
+   {
+    "name": "bandwidth",
+    "type": "decimal",
+    "required": true,
+    "desc": "the symmetric bandwidth around the cutoff",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "cutoff",
+    "type": "decimal",
+    "required": true,
+    "desc": "the treatment cutoff",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "data",
+    "type": "records",
+    "required": true,
+    "desc": "one record per observation: the running variable and the outcome",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Fit",
+    "default_chosen": "A separate local linear fit on each side, with the estimate as the jump in intercepts at the cutoff.",
+    "impact": "A global polynomial or a different bandwidth gives a different estimate."
+   },
+   {
+    "question": "Design",
+    "default_chosen": "Sharp design: treatment switches exactly at the cutoff.",
+    "impact": "A fuzzy design would need an instrument for treatment."
+   }
+  ]
+ },
+ {
+  "tool": "probit",
+  "label": "Probit model",
+  "group": "behavioural_evidence",
+  "level": "advanced",
+  "preset": "probit",
+  "method": "probit",
+  "name": "probit",
+  "tier": "T1",
+  "metric": "slope",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "score_equations_are_near_zero",
+   "predicted_probabilities_are_between_zero_and_one",
+   "scaling_the_predictor_rescales_the_slope",
+   "shifting_the_predictor_moves_the_intercept_not_the_slope"
+  ],
+  "intended_use": "Binary probit with one predictor: latent-index coefficients, log likelihood, McFadden pseudo R-squared and the marginal effect at the mean.",
+  "unsupported_use": "Multiple predictors, interactions, robust or clustered inference, separation, causal claims, or predicted probabilities outside the observed support.",
+  "assumptions": [
+   "The outcome is binary and observations are independent.",
+   "The latent index is linear in the predictor.",
+   "No separation or near-separation."
+  ],
+  "limitations": [
+   "One predictor only; no controls or interactions.",
+   "No robust, clustered or bootstrapped standard errors.",
+   "Separation is refused rather than penalised."
+  ],
+  "inputs": [
+   {
+    "name": "x",
+    "type": "value_list",
+    "required": true,
+    "desc": "the numeric predictor, same length as y",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "y",
+    "type": "value_list",
+    "required": true,
+    "desc": "the binary outcome, coded 0 or 1",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Estimator",
+    "default_chosen": "Maximum likelihood by Newton-Raphson on the probit likelihood.",
+    "impact": "Logit or a linear probability model gives different coefficients."
+   },
+   {
+    "question": "Marginal effect",
+    "default_chosen": "Reported at the mean of the predictor; it is not a constant effect.",
+    "impact": "A marginal effect at a different x changes the number."
+   }
+  ]
+ },
+ {
+  "tool": "nationalincome",
+  "label": "GDP and national income",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "nationalincome",
+  "method": "national_income",
+  "name": "national_income",
+  "tier": "T1",
+  "metric": "gdp",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "gdp_equals_expenditure_components",
+   "gnp_equals_gdp_plus_net_factor_income",
+   "nnp_equals_gnp_minus_depreciation",
+   "net_exports_equals_exports_minus_imports"
+  ],
+  "intended_use": "GDP by the expenditure approach, plus GNP, NNP, net exports, optional GDP per capita and optional real GDP from a declared deflator.",
+  "unsupported_use": "Retrieving national-accounts data; the income or production approach; double-counting checks; chain-linked or base-year rebasing; informal or underground activity.",
+  "assumptions": [
+   "The components are one period's declared values in one currency.",
+   "Imports are already included in the other components and are subtracted once.",
+   "The deflator, if used, is an index with a base of 100."
+  ],
+  "limitations": [
+   "No income-approach or production-approach cross-check.",
+   "No base-year conversion, chain-linking or seasonal adjustment.",
+   "No informal-sector, underground or home-production adjustment."
+  ],
+  "inputs": [
+   {
+    "name": "consumption",
+    "type": "decimal",
+    "required": true,
+    "desc": "household consumption",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "depreciation",
+    "type": "decimal",
+    "required": false,
+    "desc": "capital consumption, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "exports",
+    "type": "decimal",
+    "required": true,
+    "desc": "exports of goods and services",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "gdp_deflator",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional GDP deflator index (base 100) for real GDP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "government_spending",
+    "type": "decimal",
+    "required": true,
+    "desc": "government consumption and investment",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "imports",
+    "type": "decimal",
+    "required": true,
+    "desc": "imports of goods and services",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "investment",
+    "type": "decimal",
+    "required": true,
+    "desc": "gross investment",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "net_factor_income",
+    "type": "decimal",
+    "required": false,
+    "desc": "net factor income from abroad, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "population",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional population for GDP per capita",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "GDP approach",
+    "default_chosen": "Expenditure approach: C + I + G + X - M from the declared components.",
+    "impact": "The income and production approaches would need different data and can differ in practice."
+   },
+   {
+    "question": "Real GDP",
+    "default_chosen": "Real GDP is nominal GDP divided by the declared deflator index divided by one hundred.",
+    "impact": "A different base year or chain-linking convention gives a different real series."
+   }
+  ]
+ },
+ {
+  "tool": "growth",
+  "label": "Growth rate and CAGR",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "growth",
+  "method": "growth_rate",
+  "name": "growth_rate",
+  "tier": "T1",
+  "metric": "cagr",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "cagr_compounds_to_the_end_value",
+   "total_growth_is_end_over_start_minus_one",
+   "doubling_time_times_cagr_is_approximately_72_percent",
+   "a_higher_end_value_raises_cagr"
+  ],
+  "intended_use": "Total growth, compound annual growth rate and the rule-of-72 doubling time between two declared values, with optional per-capita growth.",
+  "unsupported_use": "Forecasting future growth; fitting a trend; inflation adjustment; a growth-accounting decomposition into capital, labour and productivity.",
+  "assumptions": [
+   "The two values are measured on the same basis and currency.",
+   "The periods are equal in length.",
+   "No inflation adjustment is made unless the values are already real."
+  ],
+  "limitations": [
+   "Two observations only; no trend or volatility.",
+   "The rule of 72 is approximate.",
+   "No growth-accounting decomposition."
+  ],
+  "inputs": [
+   {
+    "name": "end_value",
+    "type": "decimal",
+    "required": true,
+    "desc": "the value at the end",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "periods",
+    "type": "decimal",
+    "required": true,
+    "desc": "the number of periods between the two values",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "population_end",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional ending population for per-capita growth",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "population_start",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional starting population for per-capita growth",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "start_value",
+    "type": "decimal",
+    "required": true,
+    "desc": "the value at the start",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Growth convention",
+    "default_chosen": "CAGR is the constant rate that compounds the start value to the end value over the declared periods.",
+    "impact": "A simple average of yearly growth rates gives a different number."
+   },
+   {
+    "question": "Doubling time",
+    "default_chosen": "The rule of 72 is an approximation; the exact time is ln(2)/ln(1 + CAGR).",
+    "impact": "The approximation is close only for moderate rates."
+   }
+  ]
+ },
+ {
+  "tool": "inflation",
+  "label": "Inflation and real interest",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "inflation",
+  "method": "inflation_cpi",
+  "name": "inflation_cpi",
+  "tier": "T1",
+  "metric": "inflation_rate",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "inflation_is_the_cpi_percentage_change",
+   "fisher_identity_holds",
+   "approximation_gap_is_the_declared_identity",
+   "a_higher_cpi_end_raises_inflation"
+  ],
+  "intended_use": "Inflation from two CPI values, the exact and approximate real interest rate, and optional real wage growth.",
+  "unsupported_use": "Retrieving CPI data; choosing or rebasing the basket; core versus headline inflation; expectations; a household-specific cost-of-living index.",
+  "assumptions": [
+   "The two CPI values use the same basket and base.",
+   "The nominal rate and the CPI cover the same period.",
+   "Wages, if used, are nominal values for the same period."
+  ],
+  "limitations": [
+   "Two CPI values only; no index construction or rebasing.",
+   "No expectations, core measure or household-specific basket.",
+   "Real wage growth is an index comparison, not a full cost-of-living measure."
+  ],
+  "inputs": [
+   {
+    "name": "cpi_end",
+    "type": "decimal",
+    "required": true,
+    "desc": "the CPI at the end",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "cpi_start",
+    "type": "decimal",
+    "required": true,
+    "desc": "the CPI at the start",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "nominal_interest_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "nominal interest rate, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "wage_end",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional nominal wage at the end",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "wage_start",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional nominal wage at the start",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Inflation measure",
+    "default_chosen": "The percentage change in the declared CPI between the two periods.",
+    "impact": "A different basket, base period or core measure gives a different rate."
+   },
+   {
+    "question": "Real interest",
+    "default_chosen": "Exact Fisher relation; the nominal-minus-inflation figure is reported only as an approximation.",
+    "impact": "At high inflation the approximation can be far from the exact rate."
+   }
+  ]
+ },
+ {
+  "tool": "unemployment",
+  "label": "Unemployment and participation",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "unemployment",
+  "method": "unemployment_rate",
+  "name": "unemployment_rate",
+  "tier": "T1",
+  "metric": "unemployment_rate",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "unemployed_equals_labour_force_minus_employed",
+   "unemployment_rate_equals_unemployed_over_labour_force",
+   "participation_rate_equals_labour_force_over_working_age_population",
+   "employment_population_ratio_equals_employed_over_working_age_population"
+  ],
+  "intended_use": "Unemployment rate, labour-force participation rate and employment-population ratio from declared labour-force, employment and working-age population counts.",
+  "unsupported_use": "Retrieving labour-market data; defining who is in the labour force; underemployment, discouragement or informal work; seasonal adjustment.",
+  "assumptions": [
+   "The three counts cover the same population and period.",
+   "The labour force does not exceed the working-age population.",
+   "The employed are a subset of the labour force."
+  ],
+  "limitations": [
+   "Counts only; no underemployment or informal-sector adjustment.",
+   "No seasonal adjustment or demographic standardisation.",
+   "The labour-force definition is the owner's."
+  ],
+  "inputs": [
+   {
+    "name": "employed",
+    "type": "decimal",
+    "required": true,
+    "desc": "the number employed",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "labour_force",
+    "type": "decimal",
+    "required": true,
+    "desc": "the labour force: employed plus unemployed",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "working_age_population",
+    "type": "decimal",
+    "required": true,
+    "desc": "the working-age population",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Labour-force definition",
+    "default_chosen": "The labour force is exactly the count you declare; discouraged workers outside it are not counted.",
+    "impact": "A broader definition that includes discouraged workers would raise the unemployment rate."
+   },
+   {
+    "question": "Denominators",
+    "default_chosen": "The unemployment rate uses the labour force; participation and employment ratios use the working-age population.",
+    "impact": "Mixing the denominators gives a different and usually misleading rate."
+   }
+  ]
+ },
+ {
+  "tool": "moneymultiplier",
+  "label": "Money multiplier",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "moneymultiplier",
+  "method": "money_multiplier",
+  "name": "money_multiplier",
+  "tier": "T1",
+  "metric": "simple_money_multiplier",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "simple_multiplier_is_one_over_the_reserve_ratio",
+   "extended_multiplier_is_the_currency_adjusted_formula",
+   "money_supply_is_the_base_times_the_multiplier",
+   "a_higher_reserve_ratio_lowers_the_simple_multiplier"
+  ],
+  "intended_use": "Simple and currency-adjusted money multipliers from the monetary base, reserve ratio and optional currency drain, with the implied money supply.",
+  "unsupported_use": "Retrieving monetary aggregates; excess reserves, bank capital or liquidity constraints; central-bank reaction functions; a full money-market model.",
+  "assumptions": [
+   "The reserve ratio is binding and constant.",
+   "Banks lend all available funds above reserves.",
+   "The currency drain is a constant fraction of deposits."
+  ],
+  "limitations": [
+   "No excess reserves, capital or liquidity constraints.",
+   "No central-bank policy reaction or interest rate.",
+   "The multiplier is an identity, not a forecast."
+  ],
+  "inputs": [
+   {
+    "name": "currency_drain_ratio",
+    "type": "decimal",
+    "required": false,
+    "desc": "currency held outside banks as a fraction of deposits, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "monetary_base",
+    "type": "decimal",
+    "required": true,
+    "desc": "the monetary base",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "reserve_ratio",
+    "type": "decimal",
+    "required": true,
+    "desc": "the reserve requirement as a fraction, greater than zero and at most one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Reserve behaviour",
+    "default_chosen": "Banks hold exactly the declared reserve ratio and no excess reserves.",
+    "impact": "Excess reserves lower the realised multiplier."
+   },
+   {
+    "question": "Currency drain",
+    "default_chosen": "The simple multiplier assumes no currency drain; the extended multiplier adds the declared drain.",
+    "impact": "A positive drain lowers the multiplier."
+   }
+  ]
+ },
+ {
+  "tool": "fiscal",
+  "label": "Fiscal multipliers",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "fiscal",
+  "method": "fiscal_multiplier",
+  "name": "fiscal_multiplier",
+  "tier": "T1",
+  "metric": "government_spending_multiplier",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "government_multiplier_is_one_over_one_minus_mpc_times_one_minus_tax",
+   "tax_multiplier_is_negative_mpc_times_the_government_multiplier",
+   "balanced_budget_multiplier_is_one_minus_mpc_times_the_government_multiplier",
+   "a_higher_mpc_raises_the_government_multiplier"
+  ],
+  "intended_use": "Government-spending, tax and balanced-budget multipliers from a declared marginal propensity to consume and proportional tax rate, with the output change from declared fiscal changes.",
+  "unsupported_use": "Estimating the mpc or tax rate; crowding out, confidence, supply-side effects, lags, open-economy leakages or a full macro model.",
+  "assumptions": [
+   "The mpc and tax rate are constant over the relevant range.",
+   "Prices and interest rates do not respond.",
+   "There is spare capacity."
+  ],
+  "limitations": [
+   "No crowding out, confidence, supply-side or open-economy effects.",
+   "No lags or expectations.",
+   "The multipliers are arithmetic identities, not estimated policy effects."
+  ],
+  "inputs": [
+   {
+    "name": "government_spending_change",
+    "type": "decimal",
+    "required": false,
+    "desc": "change in government spending, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mpc",
+    "type": "decimal",
+    "required": true,
+    "desc": "marginal propensity to consume, between zero and one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "tax_change",
+    "type": "decimal",
+    "required": false,
+    "desc": "change in lump-sum tax, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "tax_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "proportional income tax rate, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Model",
+    "default_chosen": "Closed-economy Keynesian multiplier with a proportional income tax.",
+    "impact": "An open economy or a price-level response gives a smaller multiplier."
+   },
+   {
+    "question": "Tax change",
+    "default_chosen": "A lump-sum tax change uses the same tax multiplier on the declared change.",
+    "impact": "A proportional tax change is already in the denominator and is a different experiment."
+   }
+  ]
+ },
+ {
+  "tool": "budgetdebt",
+  "label": "Budget balance and debt",
+  "group": "macroeconomics",
+  "level": "intro",
+  "preset": "budgetdebt",
+  "method": "budget_debt",
+  "name": "budget_debt",
+  "tier": "T1",
+  "metric": "debt_to_gdp",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "overall_balance_equals_revenue_minus_total_spending",
+   "primary_balance_equals_overall_balance_plus_interest",
+   "debt_ratio_equals_debt_over_gdp",
+   "debt_ratio_change_follows_the_interest_growth_primary_identity"
+  ],
+  "intended_use": "Overall and primary budget balances, the debt-to-GDP ratio, the interest rate and the standard debt-ratio change from declared budget aggregates.",
+  "unsupported_use": "Forecasting debt; contingent liabilities, off-budget items, currency composition or maturity structure; a full debt-sustainability model; choosing a fiscal rule.",
+  "assumptions": [
+   "The aggregates are one period's declared values in one currency.",
+   "The debt stock is at the start of the period.",
+   "The interest rate is interest paid divided by the debt stock."
+  ],
+  "limitations": [
+   "No contingent liabilities, off-budget items or debt composition.",
+   "No forecast path or stochastic stress test.",
+   "The debt-ratio change is an identity, not a sustainability verdict."
+  ],
+  "inputs": [
+   {
+    "name": "debt_stock",
+    "type": "decimal",
+    "required": true,
+    "desc": "the debt stock at the start of the period",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "government_revenue",
+    "type": "decimal",
+    "required": true,
+    "desc": "total government revenue",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "government_spending",
+    "type": "decimal",
+    "required": true,
+    "desc": "primary spending, excluding interest",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "inflation_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional inflation rate for the real interest rate",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "interest_payments",
+    "type": "decimal",
+    "required": true,
+    "desc": "interest paid on the debt",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "nominal_gdp",
+    "type": "decimal",
+    "required": true,
+    "desc": "nominal GDP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "nominal_growth_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "nominal GDP growth rate",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "What spending includes",
+    "default_chosen": "government_spending is primary spending and excludes interest; total spending adds interest.",
+    "impact": "Including interest in spending would double-count it in the overall balance."
+   },
+   {
+    "question": "Debt dynamics",
+    "default_chosen": "The debt-ratio change is (interest rate - nominal growth) x debt ratio - primary balance ratio, with the declared rates held constant.",
+    "impact": "A different growth or interest assumption changes the path."
+   }
+  ]
+ },
+ {
+  "tool": "okun",
+  "label": "Output gap and Okun's law",
+  "group": "macroeconomics",
+  "level": "intermediate",
+  "preset": "okun",
+  "method": "output_gap_okun",
+  "name": "output_gap_okun",
+  "tier": "T1",
+  "metric": "output_gap",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "output_gap_is_actual_over_potential_minus_one",
+   "zero_gap_gives_zero_unemployment_change",
+   "a_positive_gap_lowers_the_predicted_unemployment_rate",
+   "a_higher_okun_coefficient_raises_the_magnitude"
+  ],
+  "intended_use": "Output gap from actual and potential GDP, with the predicted unemployment change from a declared Okun coefficient.",
+  "unsupported_use": "Estimating potential output; estimating the Okun coefficient; a structural model of the labour market; a forecast.",
+  "assumptions": [
+   "Actual and potential GDP are on the same price and currency basis.",
+   "The Okun relation is linear over the relevant range.",
+   "The coefficient is the owner's declared value."
+  ],
+  "limitations": [
+   "Potential output is declared, not estimated.",
+   "The Okun coefficient is not estimated here.",
+   "The predicted change is an illustration, not a forecast."
+  ],
+  "inputs": [
+   {
+    "name": "actual_gdp",
+    "type": "decimal",
+    "required": true,
+    "desc": "actual nominal or real GDP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "current_unemployment_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "current unemployment rate as a fraction, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "okun_coefficient",
+    "type": "decimal",
+    "required": false,
+    "desc": "percentage-point unemployment change per one percent output gap, default 0.5",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "potential_gdp",
+    "type": "decimal",
+    "required": true,
+    "desc": "potential GDP on the same basis",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Potential output",
+    "default_chosen": "Potential GDP is the value you declare; it is not estimated.",
+    "impact": "A different potential-output estimate changes the gap."
+   },
+   {
+    "question": "Okun coefficient",
+    "default_chosen": "The coefficient is the owner's declared value, default 0.5 percentage points per one percent gap.",
+    "impact": "Different countries and periods have different coefficients."
+   }
+  ]
+ },
+ {
+  "tool": "externality",
+  "label": "Externalities and Pigouvian tax",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "externality",
+  "method": "externality_pigouvian",
+  "name": "externality_pigouvian",
+  "tier": "T1",
+  "metric": "deadweight_loss",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "market_quantity_uses_the_private_curves",
+   "social_quantity_equates_demand_to_private_supply_plus_external_cost",
+   "pigouvian_tax_equals_the_marginal_external_cost",
+   "a_higher_external_cost_lowers_the_social_quantity"
+  ],
+  "intended_use": "Market and social optimum under a declared per-unit external cost, with the Pigouvian tax and deadweight loss.",
+  "unsupported_use": "Estimating external damages; valuing non-monetary effects; abatement technology; tax interaction; general-equilibrium or distributional effects.",
+  "assumptions": [
+   "Linear private demand and supply; a constant per-unit external cost.",
+   "The external cost is known and additively separable.",
+   "Partial equilibrium with no other distortions."
+  ],
+  "limitations": [
+   "No damage estimation, non-monetary valuation or abatement technology.",
+   "No tax interaction, enforcement cost or distributional analysis.",
+   "The tax is a declared Pigouvian benchmark, not an observed policy."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in Qd = a - bP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in Qd = a - bP, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_external_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "external cost per unit produced",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "c in Qs = c + dP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "d in Qs = c + dP, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "External cost",
+    "default_chosen": "A constant per-unit external cost added to private supply at the social optimum.",
+    "impact": "A non-linear or production-dependent damage function gives a different tax."
+   },
+   {
+    "question": "Policy",
+    "default_chosen": "The Pigouvian tax equals the marginal external cost at the optimum.",
+    "impact": "A second-best tax in a distorted economy would differ."
+   }
+  ]
+ },
+ {
+  "tool": "publicgood",
+  "label": "Public goods",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "publicgood",
+  "method": "public_good",
+  "name": "public_good",
+  "tier": "T1",
+  "metric": "efficient_quantity",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "samuelson_condition_holds",
+   "total_benefit_is_the_area_under_social_marginal_benefit",
+   "total_cost_is_the_area_under_marginal_cost",
+   "a_higher_marginal_cost_lowers_the_efficient_quantity"
+  ],
+  "intended_use": "Efficient provision of a public good from two declared linear marginal-benefit schedules and one marginal-cost schedule, with total and net benefit.",
+  "unsupported_use": "Estimating benefits; free-riding games; contribution mechanisms; crowding out; distributional weights; more than two individuals.",
+  "assumptions": [
+   "Two individuals with declared linear marginal benefits.",
+   "The good is non-rival and non-excludable.",
+   "Marginal cost is linear and positive."
+  ],
+  "limitations": [
+   "Two individuals only; no free-riding or contribution game.",
+   "No distributional weights, crowding out or administrative cost.",
+   "The benefit schedules are declared, not estimated."
+  ],
+  "inputs": [
+   {
+    "name": "mb1_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of the first marginal-benefit schedule",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mb1_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of the first marginal-benefit schedule",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mb2_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of the second marginal-benefit schedule",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mb2_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of the second marginal-benefit schedule",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mc_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of marginal cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mc_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of marginal cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Aggregation",
+    "default_chosen": "Vertical summation of the two marginal-benefit schedules (the Samuelson condition).",
+    "impact": "Horizontal summation would be the private-good case, not the public-good case."
+   },
+   {
+    "question": "Provision",
+    "default_chosen": "The efficient quantity is where summed marginal benefit equals marginal cost.",
+    "impact": "A voluntary-contribution equilibrium would generally underprovide."
+   }
+  ]
+ },
+ {
+  "tool": "socialwelfare",
+  "label": "Social welfare functions",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "socialwelfare",
+  "method": "social_welfare",
+  "name": "social_welfare",
+  "tier": "T1",
+  "metric": "social_welfare",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "welfare_measures_agree_with_their_definitions",
+   "utilitarian_is_the_sum_of_incomes",
+   "rawlsian_is_the_minimum_income",
+   "nash_is_the_geometric_mean",
+   "a_transfer_from_the_richest_to_the_poorest_does_not_lower_nash_welfare"
+  ],
+  "intended_use": "Utilitarian, Rawlsian and Nash social welfare from declared incomes, with the selected welfare function.",
+  "unsupported_use": "Estimating individual utility; interpersonal comparisons beyond income; equivalence scales; non-income dimensions; a policy recommendation.",
+  "assumptions": [
+   "Incomes are positive and comparable across the people listed.",
+   "Income is a sufficient proxy for the welfare argument.",
+   "The selected function is the intended ethical criterion."
+  ],
+  "limitations": [
+   "No equivalence scales, household composition or non-income dimensions.",
+   "No interpersonal utility comparison beyond the declared incomes.",
+   "The welfare function is a normative choice."
+  ],
+  "inputs": [
+   {
+    "name": "incomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "declared incomes, all positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "welfare_function",
+    "type": "enum",
+    "required": true,
+    "desc": "which welfare function to report",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Utility",
+    "default_chosen": "Income is used as the utility argument; no separate utility function is estimated.",
+    "impact": "A concave utility function would change the utilitarian ranking."
+   },
+   {
+    "question": "Welfare function",
+    "default_chosen": "The selected function is reported alongside all three; the choice is ethical, not empirical.",
+    "impact": "Utilitarian, Rawlsian and Nash can rank the same distribution differently."
+   }
+  ]
+ },
+ {
+  "tool": "gini",
+  "label": "Gini coefficient",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "gini",
+  "method": "gini_coefficient",
+  "name": "gini_coefficient",
+  "tier": "T1",
+  "metric": "gini",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "equal_incomes_give_zero_gini",
+   "gini_is_bounded_between_zero_and_one",
+   "scaling_all_incomes_leaves_gini_unchanged",
+   "reordering_the_incomes_leaves_gini_unchanged"
+  ],
+  "intended_use": "Gini coefficient, mean, minimum and maximum from declared incomes, with the poorest and richest shares.",
+  "unsupported_use": "Estimating incomes; equivalence scales; taxes and transfers; in-kind income; decomposing inequality by source or group; a policy verdict.",
+  "assumptions": [
+   "Incomes are non-negative and cover the intended population.",
+   "Each income belongs to one person or household.",
+   "No equivalence scale is applied."
+  ],
+  "limitations": [
+   "One summary measure; it hides where in the distribution inequality lies.",
+   "No taxes, transfers, in-kind income or equivalence scales.",
+   "No decomposition by group or source."
+  ],
+  "inputs": [
+   {
+    "name": "incomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "declared incomes, non-negative",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Income definition",
+    "default_chosen": "The declared incomes are used as given; the unit and coverage are the owner's choice.",
+    "impact": "Pre-tax, post-tax or consumption measures give different Ginis."
+   },
+   {
+    "question": "Scale",
+    "default_chosen": "The Gini is reported between zero and one, not multiplied by one hundred.",
+    "impact": "A 0-100 presentation is a scale choice, not a different index."
+   }
+  ]
+ },
+ {
+  "tool": "poverty",
+  "label": "Poverty measures",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "poverty",
+  "method": "poverty_measures",
+  "name": "poverty_measures",
+  "tier": "T1",
+  "metric": "headcount_ratio",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "headcount_is_the_share_below_the_line",
+   "poverty_gap_is_the_average_normalised_shortfall",
+   "squared_gap_is_the_average_squared_shortfall",
+   "a_higher_poverty_line_raises_the_headcount"
+  ],
+  "intended_use": "Headcount ratio, poverty gap, squared gap and total shortfall from declared incomes and a declared poverty line.",
+  "unsupported_use": "Choosing a poverty line; estimating incomes; multidimensional poverty; transient versus chronic poverty; equivalence scales; a policy verdict.",
+  "assumptions": [
+   "Incomes are non-negative and cover the intended population.",
+   "The poverty line is fixed and comparable across the observations.",
+   "No equivalence scale is applied."
+  ],
+  "limitations": [
+   "No multidimensional or transient poverty analysis.",
+   "No taxes, transfers, in-kind income or equivalence scales.",
+   "The line is a declared choice."
+  ],
+  "inputs": [
+   {
+    "name": "incomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "declared incomes, non-negative",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "poverty_line",
+    "type": "decimal",
+    "required": true,
+    "desc": "the declared poverty line",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Poverty line",
+    "default_chosen": "The line is the owner's declared value; the method does not choose or verify it.",
+    "impact": "A higher line raises the headcount and gap."
+   },
+   {
+    "question": "Gap",
+    "default_chosen": "The gap is averaged over the whole population, with a zero shortfall for the non-poor.",
+    "impact": "Averaging only over the poor gives a larger number."
+   }
+  ]
+ },
+ {
+  "tool": "taxprogressivity",
+  "label": "Tax progressivity",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "taxprogressivity",
+  "method": "tax_progressivity",
+  "name": "tax_progressivity",
+  "tier": "T1",
+  "metric": "progressivity_gap",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "average_tax_rate_equals_total_tax_over_total_income",
+   "top_income_share_equals_top_income_over_total_income",
+   "top_tax_share_equals_top_tax_over_total_tax",
+   "a_proportional_tax_gives_zero_progressivity_gap"
+  ],
+  "intended_use": "Average tax rate and a simple top-quartile progressivity gap from declared incomes and taxes.",
+  "unsupported_use": "Estimating taxes; a full Kakwani or Reynolds-Smolensky index; deductions, exemptions or behavioural responses; a policy verdict.",
+  "assumptions": [
+   "Incomes are positive and taxes are non-negative.",
+   "The two lists cover the same people and period.",
+   "The top quartile is the intended comparison group."
+  ],
+  "limitations": [
+   "A simple top-quartile gap, not a full progressivity index.",
+   "No deductions, exemptions, incidence or behavioural responses.",
+   "No equivalence scale."
+  ],
+  "inputs": [
+   {
+    "name": "incomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "pre-tax incomes, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "taxes",
+    "type": "value_list",
+    "required": true,
+    "desc": "tax paid, one per income and same length",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Progressivity measure",
+    "default_chosen": "The gap is the top quartile's tax share minus its income share; positive means the top pays proportionally more.",
+    "impact": "A full Kakwani index uses concentration curves and can rank differently."
+   },
+   {
+    "question": "Top group",
+    "default_chosen": "The top quartile by income, with at least one observation.",
+    "impact": "A different top group changes the gap."
+   }
+  ]
+ },
+ {
+  "tool": "optimalpollution",
+  "label": "Optimal pollution",
+  "group": "welfare_policy",
+  "level": "intermediate",
+  "preset": "optimalpollution",
+  "method": "optimal_pollution",
+  "name": "optimal_pollution",
+  "tier": "T1",
+  "metric": "optimal_emissions",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "marginal_damage_equals_marginal_abatement_cost",
+   "pollution_tax_equals_marginal_damage",
+   "total_damage_is_the_area_under_marginal_damage",
+   "a_higher_damage_intercept_lowers_optimal_emissions"
+  ],
+  "intended_use": "Optimal emissions and pollution tax where declared linear marginal damage equals declared linear marginal abatement cost.",
+  "unsupported_use": "Estimating damage or abatement costs; non-linear or threshold damage; multiple pollutants; technological change; a policy verdict.",
+  "assumptions": [
+   "Linear marginal damage and marginal abatement cost.",
+   "One pollutant and one period.",
+   "The curves are the owner's declared functions."
+  ],
+  "limitations": [
+   "No damage or abatement estimation.",
+   "No multiple pollutants, thresholds or technological change.",
+   "No distributional or enforcement analysis."
+  ],
+  "inputs": [
+   {
+    "name": "marginal_abatement_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of the marginal-abatement-cost curve",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_abatement_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of marginal abatement cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_damage_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "intercept of the marginal-damage curve",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "marginal_damage_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "positive slope of marginal damage",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Curve form",
+    "default_chosen": "Marginal damage rises with emissions and marginal abatement cost falls with emissions, both linearly.",
+    "impact": "A non-linear damage function gives a different optimum."
+   },
+   {
+    "question": "Policy",
+    "default_chosen": "The pollution tax equals marginal damage at the optimum.",
+    "impact": "A cap-and-trade quantity instrument would need a different model."
+   }
+  ]
+ },
+ {
+  "tool": "comparative",
+  "label": "Comparative advantage",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "comparative",
+  "method": "comparative_advantage",
+  "name": "comparative_advantage",
+  "tier": "T1",
+  "metric": "oc_a_good1",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "opportunity_costs_are_reciprocals",
+   "exactly_one_country_has_advantage_in_each_good",
+   "scaling_a_countrys_hours_leaves_its_opportunity_cost_unchanged",
+   "absolute_advantage_does_not_determine_comparative_advantage"
+  ],
+  "intended_use": "Ricardian comparative advantage from two countries' declared unit labour requirements in two goods, with opportunity costs and specialisation flags.",
+  "unsupported_use": "Estimating productivity; more than two countries or goods; transport costs, tariffs, demand differences, increasing returns or strategic trade policy.",
+  "assumptions": [
+   "Unit labour requirements are constant and the only input.",
+   "Two countries and two goods.",
+   "Labour is mobile within a country and immobile between countries."
+  ],
+  "limitations": [
+   "No transport costs, tariffs, demand or increasing returns.",
+   "Two countries and two goods only.",
+   "No distributional analysis of the gains from trade."
+  ],
+  "inputs": [
+   {
+    "name": "countries",
+    "type": "records",
+    "required": true,
+    "desc": "exactly two countries with their unit labour requirements",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Trade model",
+    "default_chosen": "Two countries, two goods and constant unit labour requirements; the Ricardian textbook case.",
+    "impact": "A Heckscher-Ohlin or increasing-returns model gives a different pattern."
+   },
+   {
+    "question": "Advantage",
+    "default_chosen": "Comparative advantage follows the lower opportunity cost, not the lower absolute hours.",
+    "impact": "Absolute advantage alone does not determine who should specialise in what."
+   }
+  ]
+ },
+ {
+  "tool": "tariff",
+  "label": "Tariff welfare",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "tariff",
+  "method": "tariff_welfare",
+  "name": "tariff_welfare",
+  "tier": "T1",
+  "metric": "total_dwloss",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "domestic_price_is_world_price_plus_tariff",
+   "imports_equal_domestic_demand_minus_supply",
+   "tariff_revenue_equals_tariff_times_imports",
+   "a_higher_tariff_lowers_imports"
+  ],
+  "intended_use": "Small-country tariff on a linear market: domestic price, imports, tariff revenue and the production and consumption deadweight losses.",
+  "unsupported_use": "Large-country terms-of-trade effects; retaliation; quotas; transport costs; general-equilibrium or dynamic effects.",
+  "assumptions": [
+   "Linear domestic demand and supply.",
+   "The country is a price-taker in world markets.",
+   "The tariff is a per-unit amount and is fully enforced."
+  ],
+  "limitations": [
+   "Small-country, partial-equilibrium model only.",
+   "No retaliation, quota, transport cost or dynamic effect.",
+   "No distributional analysis of producers and consumers."
+  ],
+  "inputs": [
+   {
+    "name": "demand_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "a in Qd = a - bP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "demand_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "b in Qd = a - bP, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_intercept",
+    "type": "decimal",
+    "required": true,
+    "desc": "c in Qs = c + dP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "supply_slope",
+    "type": "decimal",
+    "required": true,
+    "desc": "d in Qs = c + dP, positive",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "tariff_per_unit",
+    "type": "decimal",
+    "required": true,
+    "desc": "the per-unit tariff",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "world_price",
+    "type": "decimal",
+    "required": true,
+    "desc": "the world price before the tariff",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Country size",
+    "default_chosen": "Small open economy: the world price is taken as given and the tariff is fully passed into the domestic price.",
+    "impact": "A large country can shift the world price and gain terms-of-trade."
+   },
+   {
+    "question": "Welfare",
+    "default_chosen": "Production and consumption deadweight-loss triangles plus tariff revenue.",
+    "impact": "A quota or a non-linear model gives a different welfare split."
+   }
+  ]
+ },
+ {
+  "tool": "ppp",
+  "label": "Purchasing-power parity",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "ppp",
+  "method": "exchange_rate_ppp",
+  "name": "exchange_rate_ppp",
+  "tier": "T1",
+  "metric": "real_exchange_rate",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "ppp_rate_is_the_domestic_price_over_the_foreign_price",
+   "real_exchange_rate_is_nominal_over_ppp",
+   "nominal_rate_equal_to_ppp_gives_zero_misalignment",
+   "a_higher_domestic_price_raises_the_ppp_rate"
+  ],
+  "intended_use": "Absolute and relative purchasing-power parity from declared price levels and a nominal exchange rate, with the real rate, misalignment and expected depreciation.",
+  "unsupported_use": "Retrieving price levels or exchange rates; choosing a basket; non-tradables, transport costs, tariffs or a full equilibrium model.",
+  "assumptions": [
+   "The two price levels cover comparable baskets.",
+   "The nominal rate is domestic per foreign.",
+   "Relative PPP uses one period and the declared inflation rates."
+  ],
+  "limitations": [
+   "No transport costs, tariffs, non-tradables or Balassa-Samuelson effect.",
+   "The price levels are declared, not retrieved.",
+   "PPP is a long-run benchmark, not a forecast."
+  ],
+  "inputs": [
+   {
+    "name": "domestic_inflation",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional domestic inflation for relative PPP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "foreign_inflation",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional foreign inflation for relative PPP",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "nominal_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "domestic currency per one unit of foreign currency",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price_domestic",
+    "type": "decimal",
+    "required": true,
+    "desc": "domestic price level or basket cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price_foreign",
+    "type": "decimal",
+    "required": true,
+    "desc": "foreign price level in foreign currency",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "PPP basis",
+    "default_chosen": "Absolute PPP on the declared price levels; relative PPP uses the declared inflation rates for one period.",
+    "impact": "A different basket or base period gives a different PPP rate."
+   },
+   {
+    "question": "Real rate",
+    "default_chosen": "Real exchange rate = nominal x foreign price / domestic price; 1 means PPP.",
+    "impact": "A different quotation convention inverts the real rate."
+   }
+  ]
+ },
+ {
+  "tool": "irp",
+  "label": "Interest-rate parity",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "irp",
+  "method": "interest_rate_parity",
+  "name": "interest_rate_parity",
+  "tier": "T1",
+  "metric": "implied_forward",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "covered_interest_parity_holds",
+   "forward_premium_is_the_interest_differential",
+   "a_higher_domestic_rate_raises_the_implied_forward",
+   "a_higher_foreign_rate_lowers_the_implied_forward"
+  ],
+  "intended_use": "Covered interest parity: the implied forward rate and forward premium from a spot rate, two interest rates and a declared horizon, with an optional declared forward and real rates.",
+  "unsupported_use": "Retrieving rates; uncovered parity as a forecast; transaction costs, capital controls, credit or basis risk; a full exchange-rate model.",
+  "assumptions": [
+   "The spot rate is domestic per foreign.",
+   "The two interest rates apply to the same horizon.",
+   "Capital is mobile and there are no controls or transaction costs."
+  ],
+  "limitations": [
+   "No transaction costs, capital controls, credit or basis risk.",
+   "Uncovered parity is not a forecast and is not computed.",
+   "The forward is implied, not observed, unless declared."
+  ],
+  "inputs": [
+   {
+    "name": "domestic_inflation",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional domestic inflation for the real rate",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "domestic_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "domestic interest rate for the horizon",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "foreign_inflation",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional foreign inflation for the real rate",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "foreign_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "foreign interest rate for the horizon",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "forward_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional declared forward rate to compare with parity",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "spot_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "spot domestic currency per foreign currency",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "time_to_maturity",
+    "type": "decimal",
+    "required": true,
+    "desc": "horizon in years",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Parity",
+    "default_chosen": "Covered interest parity with compounding over the declared horizon.",
+    "impact": "Simple-interest or continuous compounding gives a slightly different forward."
+   },
+   {
+    "question": "Forward",
+    "default_chosen": "The implied forward is computed; a declared forward is compared with it and the gap is reported.",
+    "impact": "A gap can reflect transaction costs, controls or a data mismatch."
+   }
+  ]
+ },
+ {
+  "tool": "bop",
+  "label": "Balance of payments",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "bop",
+  "method": "balance_of_payments",
+  "name": "balance_of_payments",
+  "tier": "T1",
+  "metric": "net_balance",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "net_balance_is_the_sum_of_the_accounts",
+   "a_balanced_position_is_flagged",
+   "a_current_account_deficit_needs_an_offsetting_surplus",
+   "the_current_account_ratio_uses_gdp"
+  ],
+  "intended_use": "Balance-of-payments identity from declared current, capital and financial account balances, with an optional errors term and current-account-to-GDP ratio.",
+  "unsupported_use": "Retrieving balance-of-payments data; choosing a sign convention; reserve valuation effects; debt-service or sustainability analysis.",
+  "assumptions": [
+   "The three account balances use one sign convention and one period.",
+   "Errors and omissions are declared or zero.",
+   "GDP, if used, is on the same basis."
+  ],
+  "limitations": [
+   "No reserve valuation, debt-service or sustainability analysis.",
+   "No decomposition into trade, income and transfers.",
+   "The identity does not validate the underlying data."
+  ],
+  "inputs": [
+   {
+    "name": "capital_account",
+    "type": "decimal",
+    "required": true,
+    "desc": "capital-account balance",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "current_account",
+    "type": "decimal",
+    "required": true,
+    "desc": "current-account balance",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "errors_and_omissions",
+    "type": "decimal",
+    "required": false,
+    "desc": "net errors and omissions, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "financial_account",
+    "type": "decimal",
+    "required": true,
+    "desc": "financial-account balance",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "gdp",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional nominal GDP for the current-account ratio",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Sign convention",
+    "default_chosen": "All balances use the same declared sign convention and are added; the method checks the identity, not the convention.",
+    "impact": "Mixing conventions can make a balanced position look unbalanced."
+   },
+   {
+    "question": "Interpretation",
+    "default_chosen": "A zero net balance is an accounting identity, not a sustainability verdict.",
+    "impact": "A balanced position can still hide risky composition."
+   }
+  ]
+ },
+ {
+  "tool": "hdi",
+  "label": "Human Development Index",
+  "group": "international",
+  "level": "intermediate",
+  "preset": "hdi",
+  "method": "hdi",
+  "name": "hdi",
+  "tier": "T1",
+  "metric": "hdi",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "dimension_indices_are_bounded",
+   "hdi_is_the_geometric_mean_of_the_indices",
+   "a_higher_life_expectancy_raises_the_life_index",
+   "the_goalposts_give_an_hdi_of_one"
+  ],
+  "intended_use": "Human Development Index from declared life expectancy, expected and mean years of schooling and GNI per capita, using the UNDP goalposts.",
+  "unsupported_use": "Retrieving HDI data; choosing goalposts; inequality-adjusted HDI; multidimensional poverty; a policy verdict.",
+  "assumptions": [
+   "The four inputs are on the UNDP definitions and comparable basis.",
+   "The goalposts are the declared UNDP values.",
+   "GNI per capita is in purchasing-power terms."
+  ],
+  "limitations": [
+   "No inequality adjustment or multidimensional poverty.",
+   "The index hides distribution within each dimension.",
+   "The data are declared, not retrieved."
+  ],
+  "inputs": [
+   {
+    "name": "expected_years_schooling",
+    "type": "decimal",
+    "required": true,
+    "desc": "expected years of schooling",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "gni_per_capita",
+    "type": "decimal",
+    "required": true,
+    "desc": "GNI per capita in purchasing-power terms",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "life_expectancy",
+    "type": "decimal",
+    "required": true,
+    "desc": "life expectancy at birth in years",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "mean_years_schooling",
+    "type": "decimal",
+    "required": true,
+    "desc": "mean years of schooling",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Goalposts",
+    "default_chosen": "UNDP goalposts: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000.",
+    "impact": "A different goalpost set gives a different HDI."
+   },
+   {
+    "question": "Aggregation",
+    "default_chosen": "Geometric mean of the three dimension indices.",
+    "impact": "An arithmetic mean would be more substitutable across dimensions."
+   }
+  ]
+ },
+ {
+  "tool": "expectedutility",
+  "label": "Expected utility",
+  "group": "behavioural_evidence",
+  "level": "intermediate",
+  "preset": "expectedutility",
+  "method": "expected_utility",
+  "name": "expected_utility",
+  "tier": "T1",
+  "metric": "certainty_equivalent",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "expected_value_is_the_probability_weighted_outcome",
+   "risk_neutral_certainty_equivalent_equals_expected_value",
+   "a_risky_gamble_has_a_positive_risk_premium_under_crra",
+   "a_higher_risk_aversion_lowers_the_certainty_equivalent"
+  ],
+  "intended_use": "Expected value, expected utility, certainty equivalent and risk premium for a declared gamble under risk neutrality or CRRA utility.",
+  "unsupported_use": "Estimating utilities or risk aversion; non-expected-utility models; ambiguity; reference dependence (use prospect_theory); a normative recommendation.",
+  "assumptions": [
+   "Probabilities are known and sum to one.",
+   "Outcomes are positive final wealth levels.",
+   "The utility function and risk aversion are the owner's declared values."
+  ],
+  "limitations": [
+   "No probability weighting, ambiguity or reference dependence.",
+   "CRRA is defined only for positive outcomes.",
+   "The utility parameters are not estimated."
+  ],
+  "inputs": [
+   {
+    "name": "outcomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "positive final wealth outcomes",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "probabilities",
+    "type": "value_list",
+    "required": true,
+    "desc": "probabilities, same length, summing to one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "risk_aversion",
+    "type": "decimal",
+    "required": false,
+    "desc": "CRRA coefficient, default 1",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "utility_function",
+    "type": "enum",
+    "required": false,
+    "desc": "default crra",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Utility",
+    "default_chosen": "CRRA with the declared risk-aversion coefficient; risk-neutral utility is available as a declared alternative.",
+    "impact": "A different utility function changes the certainty equivalent and risk premium."
+   },
+   {
+    "question": "Outcomes",
+    "default_chosen": "Outcomes are final wealth levels and must be positive.",
+    "impact": "Gains and losses relative to a reference point belong to prospect_theory, not this method."
+   }
+  ]
+ },
+ {
+  "tool": "prospect",
+  "label": "Prospect theory",
+  "group": "behavioural_evidence",
+  "level": "intermediate",
+  "preset": "prospect",
+  "method": "prospect_theory",
+  "name": "prospect_theory",
+  "tier": "T1",
+  "metric": "prospect_value",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "a_reference_outcome_has_zero_prospect_value",
+   "a_loss_hurts_more_than_an_equal_gain",
+   "a_higher_loss_aversion_lowers_a_mixed_prospect",
+   "gains_and_losses_are_curved_separately"
+  ],
+  "intended_use": "Kahneman-Tversky-style prospect value from declared outcomes, probabilities and a reference point, with loss aversion, curvature and probability weighting.",
+  "unsupported_use": "Estimating the parameters; a normative recommendation; ambiguity, framing or reference-point selection; cumulative prospect theory with rank dependence.",
+  "assumptions": [
+   "Outcomes are evaluated relative to the declared reference point.",
+   "Probabilities are known and sum to one.",
+   "The parameters are the owner's declared values."
+  ],
+  "limitations": [
+   "A declared parameterisation, not an estimate.",
+   "No cumulative rank-dependent weighting, ambiguity or framing.",
+   "Descriptive, not normative."
+  ],
+  "inputs": [
+   {
+    "name": "gain_curvature",
+    "type": "decimal",
+    "required": false,
+    "desc": "gain curvature, default 0.88",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "loss_aversion",
+    "type": "decimal",
+    "required": false,
+    "desc": "loss-aversion coefficient, default 2.25",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "loss_curvature",
+    "type": "decimal",
+    "required": false,
+    "desc": "loss curvature, default 0.88",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "outcomes",
+    "type": "value_list",
+    "required": true,
+    "desc": "outcomes to be evaluated relative to the reference",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "probabilities",
+    "type": "value_list",
+    "required": true,
+    "desc": "probabilities, same length, summing to one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "probability_weighting",
+    "type": "decimal",
+    "required": false,
+    "desc": "probability-weighting parameter, default 0.61",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "reference_point",
+    "type": "decimal",
+    "required": true,
+    "desc": "the reference outcome",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Value function",
+    "default_chosen": "Gains are curved with the gain parameter; losses with the loss parameter and multiplied by loss aversion.",
+    "impact": "Different parameters change the prospect value and the ranking of gambles."
+   },
+   {
+    "question": "Probability weights",
+    "default_chosen": "Tversky-Kahneman-style weights, normalised to sum to one.",
+    "impact": "Cumulative rank-dependent weighting is not implemented."
+   }
+  ]
+ },
+ {
+  "tool": "labour",
+  "label": "Real wage and labour market",
+  "group": "behavioural_evidence",
+  "level": "intermediate",
+  "preset": "labour",
+  "method": "labour_market",
+  "name": "labour_market",
+  "tier": "T1",
+  "metric": "real_wage",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "real_wage_is_nominal_wage_over_the_price_index",
+   "wage_share_is_real_wage_over_productivity",
+   "a_higher_cpi_lowers_the_real_wage",
+   "a_higher_productivity_lowers_the_wage_share"
+  ],
+  "intended_use": "Real wage, wage share of productivity and optional labour-market tightness from declared nominal wage, CPI, productivity and vacancy/unemployment figures.",
+  "unsupported_use": "Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; a full labour-market model.",
+  "assumptions": [
+   "The nominal wage, CPI and productivity cover the same period and population.",
+   "The CPI is an index with a base of 100.",
+   "Productivity is output per worker."
+  ],
+  "limitations": [
+   "No hours, composition, taxes, benefits or bargaining.",
+   "The wage share is a simple ratio, not a full decomposition.",
+   "No regional or sectoral breakdown."
+  ],
+  "inputs": [
+   {
+    "name": "cpi",
+    "type": "decimal",
+    "required": true,
+    "desc": "consumer price index, base 100",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "labour_productivity",
+    "type": "decimal",
+    "required": true,
+    "desc": "output per worker",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "nominal_wage",
+    "type": "decimal",
+    "required": true,
+    "desc": "nominal wage",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "unemployment_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional unemployment rate as a fraction for tightness",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "vacancies",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional vacancy count",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Real wage",
+    "default_chosen": "Nominal wage divided by the CPI divided by one hundred.",
+    "impact": "A different price index or base year changes the real wage."
+   },
+   {
+    "question": "Wage share",
+    "default_chosen": "Real wage divided by labour productivity, a simple comparison rather than a full labour-share decomposition.",
+    "impact": "A full decomposition would need compensation and value-added data."
+   }
+  ]
+ },
+ {
+  "tool": "did",
+  "label": "Difference-in-differences",
+  "group": "behavioural_evidence",
+  "level": "advanced",
+  "preset": "did",
+  "method": "difference_in_differences",
+  "name": "difference_in_differences",
+  "tier": "T1",
+  "metric": "did_estimate",
+  "unit": "currency",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "treated_change_is_post_minus_pre",
+   "control_change_is_post_minus_pre",
+   "did_is_the_difference_of_the_two_changes",
+   "parallel_trends_give_a_zero_estimate"
+  ],
+  "intended_use": "Two-group, two-period difference-in-differences from four declared means.",
+  "unsupported_use": "Testing parallel trends; covariates, clustering, weights, repeated cross-sections, staggered adoption or a causal claim without the design.",
+  "assumptions": [
+   "The four means are comparable and measured the same way.",
+   "The control group would have followed the treated group's trend absent treatment.",
+   "No confounding shocks differ between the groups."
+  ],
+  "limitations": [
+   "Parallel trends cannot be tested here.",
+   "No covariates, clustering, weights or repeated cross-sections.",
+   "A two-period, two-group design only."
+  ],
+  "inputs": [
+   {
+    "name": "control_post",
+    "type": "decimal",
+    "required": true,
+    "desc": "control group mean after",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "control_pre",
+    "type": "decimal",
+    "required": true,
+    "desc": "control group mean before",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "treated_post",
+    "type": "decimal",
+    "required": true,
+    "desc": "treated group mean after",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "treated_pre",
+    "type": "decimal",
+    "required": true,
+    "desc": "treated group mean before",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Design",
+    "default_chosen": "Two groups and two periods with declared means.",
+    "impact": "A regression with covariates or staggered adoption is a different design."
+   },
+   {
+    "question": "Identification",
+    "default_chosen": "The estimate is causal only under parallel trends, which this method cannot test.",
+    "impact": "If trends differ, the estimate is biased."
+   }
+  ]
+ },
+ {
+  "tool": "forecast",
+  "label": "Trend forecast",
+  "group": "impact_evaluation",
+  "level": "intro",
+  "preset": "forecast",
+  "method": "trend_forecast",
+  "name": "trend_forecast",
+  "tier": "T1",
+  "metric": "forecast_1",
+  "unit": "from_request",
+  "claim_ceiling": "predictive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "out_of_sample_check_agrees",
+   "shift_moves_intercept_and_forecasts_not_slope",
+   "positive_scale_equivariance",
+   "bounded_and_consistent"
+  ],
+  "intended_use": "Project a linear trend in a single time series forward for a user-chosen horizon, with prediction intervals and a disclosed out-of-sample error on the recent past.",
+  "unsupported_use": "Seasonal, cyclical or structural-break series; causal claims; multi-series or driver-based models; long horizons; policy simulations.",
+  "assumptions": [
+   "Observations are in time order with one value per period.",
+   "The trend is linear in time.",
+   "Errors around the trend are independent and roughly normal."
+  ],
+  "limitations": [
+   "No seasonality, cycles, external drivers or structural-break handling.",
+   "Extrapolation: the forecast projects the trend beyond the observed range and becomes less reliable the further ahead it goes.",
+   "Prediction intervals are approximate in small samples."
+  ],
+  "inputs": [
+   {
+    "name": "confidence_level",
+    "type": "decimal",
+    "required": false,
+    "desc": "default 0.95",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "horizon",
+    "type": "decimal",
+    "required": false,
+    "desc": "number of periods ahead to forecast, default 3 (a whole number from 1 to 12)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "values",
+    "type": "value_list",
+    "required": true,
+    "desc": "the time series in period order; blank or null counts as missing at that position",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Trend model",
+    "default_chosen": "A linear trend in time fitted by ordinary least squares; no seasonality, cycles or external drivers.",
+    "impact": "Seasonal or structural-break series will be forecast badly; the out-of-sample check surfaces the recent error."
+   },
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "Missing entries keep their position in time and are excluded from the fit; they are not filled in.",
+    "impact": "Filling gaps (interpolation) would change the fit."
+   },
+   {
+    "question": "Prediction intervals",
+    "default_chosen": "Classical intervals for the mean forecast plus residual uncertainty, using the t critical value at the declared confidence level.",
+    "impact": "They assume independent, roughly normal errors around the trend."
+   },
+   {
+    "question": "Out-of-sample check",
+    "default_chosen": "The last m periods (m is a quarter of the series length, capped at 3) are held out, the trend is refit on the rest, and the mean absolute error and interval coverage on the held-out periods are reported.",
+    "impact": "It measures only recent past performance, not future accuracy."
+   }
+  ]
+ },
+ {
+  "tool": "currency",
+  "label": "Currency conversion",
+  "group": "impact_evaluation",
+  "level": "intro",
+  "preset": "currency",
+  "method": "currency_convert",
+  "name": "currency_convert",
+  "tier": "T1",
+  "metric": "amount",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "round_trip_at_the_inverse_rate_returns_the_original",
+   "zero_amount_converts_to_zero",
+   "negative_amount_converts_with_the_same_magnitude",
+   "scaling_the_amount_scales_the_result"
+  ],
+  "intended_use": "Convert an amount from one ISO 4217 currency to another at a rate the owner declares, recording the rate, its provenance, any source and date.",
+  "unsupported_use": "Retrieving or verifying exchange rates; interpolation, forward rates or triangulation; translating a set of statements; multi-currency consolidation; tax or fee conversion.",
+  "assumptions": [
+   "The rate is the owner's declaration and describes the instant it is intended for.",
+   "Both currencies are ISO 4217 codes present in the declared table."
+  ],
+  "limitations": [
+   "No FX retrieval, verification, interpolation or triangulation; no forward rates.",
+   "One rate per conversion, no spread or fee handling.",
+   "Single-currency engagements only: no consolidation or translation of statements."
+  ],
+  "inputs": [
+   {
+    "name": "amount",
+    "type": "decimal",
+    "required": true,
+    "desc": "the amount in the source currency",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "from_currency",
+    "type": "currency",
+    "required": true,
+    "desc": "ISO 4217 code, e.g. USD",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "units of the target currency per one unit of the source currency (declared)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "rate_date",
+    "type": "text",
+    "required": false,
+    "desc": "the rate date as YYYY-MM-DD (recorded, not verified)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "rate_provenance",
+    "type": "enum",
+    "required": false,
+    "desc": "default user",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "rate_source",
+    "type": "text",
+    "required": false,
+    "desc": "where a sourced rate came from (recorded, not verified)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "to_currency",
+    "type": "currency",
+    "required": true,
+    "desc": "ISO 4217 code, e.g. EUR, CNY, JPY",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Where the rate comes from",
+    "default_chosen": "The owner declares it, with provenance user/sourced/assumption; a sourced rate must name its source. Nothing is retrieved or verified.",
+    "impact": "A wrong or stale rate gives a wrong converted amount with no warning from the system."
+   },
+   {
+    "question": "Result currency",
+    "default_chosen": "The converted amount is carried in the request's currency field, so set that field to the TARGET currency; the appendix states both codes.",
+    "impact": "If the request currency is not the target, the displayed label is wrong even though the appendix is right."
+   }
+  ]
+ },
+ {
+  "tool": "pricing",
+  "label": "Pricing rules",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "pricing",
+  "method": "pricing_decision",
+  "name": "pricing_decision",
+  "tier": "T1",
+  "metric": "cost_plus_price",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "cost_plus_price_is_unit_cost_times_one_plus_markup",
+   "break_even_price_covers_the_total_cost",
+   "margin_price_recovers_the_declared_margin",
+   "target_return_price_covers_cost_and_declared_profit"
+  ],
+  "intended_use": "Cost-plus, target-margin, break-even and target-return prices from declared unit cost, fixed cost, volume and rate inputs.",
+  "unsupported_use": "Researching willingness to pay or competitor prices; estimating a demand response; psychological pricing; discounts and promotions; tax.",
+  "assumptions": [
+   "Unit cost and fixed cost are constant over the declared range.",
+   "The expected volume is the owner's declared figure."
+  ],
+  "limitations": [
+   "No demand response, competitor price or price elasticity.",
+   "No discounts, VAT or other taxes.",
+   "A target-return price is arithmetic, not a recommendation."
+  ],
+  "inputs": [
+   {
+    "name": "expected_units",
+    "type": "decimal",
+    "required": true,
+    "desc": "units expected to be sold in the period",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "fixed_cost",
+    "type": "decimal",
+    "required": false,
+    "desc": "total fixed cost for the period, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "markup_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "markup on cost as a decimal, e.g. 0.60 for 60%",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "target_margin_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional margin on the price, greater than zero and below one",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "target_profit",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional profit target for the period",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "unit_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "variable cost per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Markup versus margin",
+    "default_chosen": "The cost-plus price marks up the cost; the margin price divides the cost by one minus the declared margin. Both are shown separately.",
+    "impact": "Treating a margin as a markup understates the price."
+   },
+   {
+    "question": "Volume",
+    "default_chosen": "The declared expected units are used for the break-even and target-return prices.",
+    "impact": "A different volume changes both prices."
+   }
+  ]
+ },
+ {
+  "tool": "demandcurve",
+  "label": "Demand line and revenue-max price",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "demandcurve",
+  "method": "demand_curve",
+  "name": "demand_curve",
+  "tier": "T1",
+  "metric": "slope",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "slope_is_the_covariance_over_the_variance",
+   "fitted_line_passes_through_the_means",
+   "r_squared_is_bounded_and_matches_the_residuals",
+   "revenue_maximising_price_sets_marginal_revenue_to_zero"
+  ],
+  "intended_use": "A straight line fitted to declared price-quantity observations, with the slope, R-squared, elasticity at the mean price and, when the slope is negative, the revenue-maximising price on the fitted line.",
+  "unsupported_use": "Identifying demand; causal claims; omitting variables, simultaneity or measurement error; non-linear demand; market data retrieval; pricing recommendations.",
+  "assumptions": [
+   "The pairs are comparable observations of the same market in the same period basis.",
+   "The relationship is approximately linear within the observed range."
+  ],
+  "limitations": [
+   "No identification, omitted-variable or endogeneity correction.",
+   "Constant price or constant quantity blocks the fit.",
+   "The revenue-maximising price exists only for a negative fitted slope and only within the fitted line."
+  ],
+  "inputs": [
+   {
+    "name": "prices",
+    "type": "value_list",
+    "required": true,
+    "desc": "observed or declared prices, one per observation",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "quantities",
+    "type": "value_list",
+    "required": true,
+    "desc": "quantity demanded at each price, paired by position",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Functional form",
+    "default_chosen": "A straight line, quantity on price, fitted by least squares.",
+    "impact": "A log or kinked form would give a different slope and elasticity."
+   },
+   {
+    "question": "Interpretation",
+    "default_chosen": "An association between the observed pairs; the fit is not an identified demand curve.",
+    "impact": "A price set from the fit may not hold when supply or income shifts."
+   }
+  ]
+ },
+ {
+  "tool": "cba",
+  "label": "Cost-benefit analysis",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "cba",
+  "method": "cost_benefit",
+  "name": "cost_benefit",
+  "tier": "T2",
+  "metric": "net_present_value",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "net_value_is_present_value_of_benefits_minus_costs",
+   "zero_discount_rate_gives_undiscounted_sums",
+   "scaling_the_benefits_scales_the_benefit_side",
+   "a_higher_discount_rate_lowers_the_present_value"
+  ],
+  "intended_use": "Discounted cost-benefit appraisal: present values of declared costs and benefits, the net present value and the benefit-cost ratio.",
+  "unsupported_use": "Monetising non-monetised effects; choosing the discount rate; tax, financing or risk adjustment; probability distributions or Monte Carlo; distributive weighting.",
+  "assumptions": [
+   "Costs and benefits are the owner's declared values on one basis.",
+   "The declared rate is the appropriate social or financial discount rate."
+  ],
+  "limitations": [
+   "No monetisation of non-monetised effects, no risk adjustment and no distributional analysis.",
+   "One rate for all periods; no mid-period timing.",
+   "No tax or financing effects."
+  ],
+  "inputs": [
+   {
+    "name": "benefits",
+    "type": "value_list",
+    "required": true,
+    "desc": "benefit per period, same length as costs",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "costs",
+    "type": "value_list",
+    "required": true,
+    "desc": "cost per period, starting at period 1",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "discount_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "periodic discount rate, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Discounting",
+    "default_chosen": "Costs and benefits are end-of-period from period 1 and discounted at the declared rate (default 0).",
+    "impact": "A different rate or timing changes the net value and can change its sign."
+   },
+   {
+    "question": "What counts as a benefit",
+    "default_chosen": "Only the monetised benefits the owner declared; no unmonetised effect is valued by the system.",
+    "impact": "Omitting an effect understates the appraisal; valuing it is the owner's judgement."
+   }
+  ]
+ },
+ {
+  "tool": "cea",
+  "label": "Cost-effectiveness analysis",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "cea",
+  "method": "cost_effectiveness",
+  "name": "cost_effectiveness",
+  "tier": "T2",
+  "metric": "n_options",
+  "unit": "count",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "icer_is_incremental_cost_over_incremental_effect",
+   "comparator_is_the_first_option",
+   "cheaper_and_more_effective_is_flagged_dominant",
+   "adding_a_third_option_adds_one_ratio_per_option"
+  ],
+  "intended_use": "Cost-effectiveness analysis against a declared comparator: incremental cost per unit of effect (ICER) for each other option, with dominance flags.",
+  "unsupported_use": "Comparing different outcome scales; weighting or aggregating several effects; probabilistic sensitivity analysis; deciding a willingness-to-pay threshold.",
+  "assumptions": [
+   "Costs and effects are declared on one basis and one outcome scale.",
+   "The first option is the intended comparator."
+  ],
+  "limitations": [
+   "One outcome scale only; no willingness-to-pay threshold and no sensitivity analysis.",
+   "An option with the same effect as the comparator has an undefined ratio and blocks.",
+   "Dominance is flagged, not ranked."
+  ],
+  "inputs": [
+   {
+    "name": "options",
+    "type": "records",
+    "required": true,
+    "desc": "the first option is the comparator; each other option is compared with it on cost and effect",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Comparator",
+    "default_chosen": "The first listed option is the comparator.",
+    "impact": "A different comparator changes every incremental ratio."
+   },
+   {
+    "question": "Effect scale",
+    "default_chosen": "All options state their effect on one declared scale.",
+    "impact": "Mixing scales makes the ratios incomparable."
+   }
+  ]
+ },
+ {
+  "tool": "sroi",
+  "label": "Social return on investment",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "sroi",
+  "method": "sroi",
+  "name": "sroi",
+  "tier": "T2",
+  "metric": "sroi_ratio",
+  "unit": "ratio",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "ratio_is_present_value_over_investment",
+   "net_value_is_benefits_minus_investment",
+   "doubling_the_investment_halves_the_ratio",
+   "zero_discount_rate_gives_undiscounted_benefits"
+  ],
+  "intended_use": "Social return on investment: present value of declared social benefits divided by the declared investment.",
+  "unsupported_use": "Estimating or verifying social benefits; additionality, deadweight, attribution or displacement adjustments; assurance; comparing across different outcome scales.",
+  "assumptions": [
+   "Benefits are declared values on one basis.",
+   "The investment is a declared amount and the rate is the owner's choice."
+  ],
+  "limitations": [
+   "No additionality/attribution adjustment and no assurance; the result is a declared-input ratio.",
+   "One outcome aggregate only.",
+   "Sensitivity to the valuation assumptions is not computed."
+  ],
+  "inputs": [
+   {
+    "name": "benefits",
+    "type": "value_list",
+    "required": true,
+    "desc": "monetised benefit per period, starting at period 1",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "discount_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "periodic discount rate, default 0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "investment",
+    "type": "decimal",
+    "required": true,
+    "desc": "the investment amount",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Benefit valuation",
+    "default_chosen": "The benefits are the owner's declared monetised values; the system does not value a social outcome.",
+    "impact": "The ratio is only as good as those valuations."
+   },
+   {
+    "question": "Adjustments",
+    "default_chosen": "No deadweight, attribution, displacement or drop-off adjustment is applied.",
+    "impact": "Real SROI practice may require them; here they must be supplied already adjusted if wanted."
+   }
+  ]
+ },
+ {
+  "tool": "npv",
+  "label": "Net present value",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "npv",
+  "method": "npv",
+  "name": "npv",
+  "tier": "T1",
+  "metric": "npv",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "boundary_zero_rate_equals_sum",
+   "t0_cash_flow_shifts_npv_one_for_one"
+  ],
+  "intended_use": "Value a stream of cash flows at a user-supplied discount rate.",
+  "unsupported_use": "Choosing the discount rate; ranking mutually exclusive projects of unequal scale or life; unequal period lengths.",
+  "assumptions": [
+   "Cash flows are certain given the inputs."
+  ],
+  "limitations": [
+   "Single constant discount rate."
+  ],
+  "inputs": [
+   {
+    "name": "cashflows",
+    "type": "decimal_list",
+    "required": true,
+    "desc": "cash flows, first at t=0",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "discount rate per period, e.g. 0.10",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Timing and rate convention",
+    "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.",
+    "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."
+   }
+  ]
+ },
+ {
+  "tool": "dcf",
+  "label": "DCF valuation (year-end)",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "dcf",
+  "method": "dcf_valuation",
+  "name": "dcf_valuation",
+  "tier": "T2",
+  "metric": "enterprise_value",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "value_scales_with_the_cash_flows",
+   "a_higher_discount_rate_lowers_the_value",
+   "terminal_value_is_gordon_growth_on_the_last_flow",
+   "without_terminal_growth_there_is_no_terminal_value",
+   "mid_year_convention_raises_the_value"
+  ],
+  "intended_use": "Discount a declared stream of free cash flows at a declared rate and declared timing (end-of-period, or an explicit mid-year convention), with an optional Gordon-growth terminal value, to an enterprise value.",
+  "unsupported_use": "Forecasting the cash flows; choosing the discount rate or growth (declare them, or use wacc and your own inputs); tax computation; real-option or scenario valuation; equity value claims beyond the separate equity_bridge method.",
+  "assumptions": [
+   "The cash flows and the discount rate are the owner's declared inputs.",
+   "The terminal growth rate persists forever and stays below the discount rate.",
+   "Under a mid-year convention every flow is assumed to arrive mid-period."
+  ],
+  "limitations": [
+   "The result is model-conditional arithmetic, not a market price or a forecast guarantee.",
+   "The terminal value typically dominates the answer and rests on the growth assumption.",
+   "No tax computation; the enterprise-to-equity bridge is the separate equity_bridge method."
+  ],
+  "inputs": [
+   {
+    "name": "cashflows",
+    "type": "value_list",
+    "required": true,
+    "desc": "free cash flows, one per period, first in period 1",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "discount_rate",
+    "type": "decimal",
+    "required": true,
+    "desc": "periodic discount rate, e.g. 0.10",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "terminal_growth",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional perpetual growth after the forecast; must be below the discount rate",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "timing",
+    "type": "enum",
+    "required": false,
+    "desc": "discounting convention: 'end' (default, end-of-period) or 'mid' (mid-year, exponents t-0.5)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Terminal value",
+    "default_chosen": "No terminal value unless terminal_growth is declared; then a Gordon-growth value on the last cash flow, discounted at the same rate and timing convention.",
+    "impact": "Without a terminal value the valuation covers only the explicit forecast and will usually understate a going concern."
+   },
+   {
+    "question": "Timing and taxes",
+    "default_chosen": "Cash flows are end-of-period, after tax and after claims as supplied; no tax is computed. Declare timing='mid' to discount every flow (and the terminal value) one half-period earlier.",
+    "impact": "A mid-year convention raises the value; pre-tax cash flows with an after-tax discount rate are inconsistent."
+   }
+  ]
+ },
+ {
+  "tool": "breakeven",
+  "label": "Break-even point",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "breakeven",
+  "method": "breakeven",
+  "name": "breakeven",
+  "tier": "T1",
+  "metric": "breakeven_units",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "profit_at_breakeven_is_zero",
+   "contribution_margin_is_price_minus_variable",
+   "breakeven_revenue_is_units_times_price",
+   "margin_of_safety_is_expected_units_minus_breakeven",
+   "target_profit_raises_the_required_units"
+  ],
+  "intended_use": "Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.",
+  "unsupported_use": "Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.",
+  "assumptions": [
+   "Linear cost and revenue.",
+   "The expected volume is the owner's declared input, not a forecast."
+  ],
+  "limitations": [
+   "Single product; a mix needs multi_product_breakeven.",
+   "No tax, financing or working-capital effects.",
+   "The margin of safety is relative to the declared expected volume only."
+  ],
+  "inputs": [
+   {
+    "name": "expected_units",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional expected sales volume, for the margin of safety",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "fixed",
+    "type": "decimal",
+    "required": true,
+    "desc": "total fixed cost",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price",
+    "type": "decimal",
+    "required": true,
+    "desc": "price per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "target_profit",
+    "type": "decimal",
+    "required": false,
+    "desc": "optional pre-tax profit target, for the required volume",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "variable",
+    "type": "decimal",
+    "required": true,
+    "desc": "variable cost per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Cost behavior",
+    "default_chosen": "Fixed cost is constant and unit price and variable cost are constant.",
+    "impact": "Break-even moves if costs are stepped or prices change with volume."
+   },
+   {
+    "question": "Margin of safety and target profit",
+    "default_chosen": "Both are reported only when expected_units or target_profit is declared; neither is assumed.",
+    "impact": "A different expected volume changes the margin of safety but not the break-even point."
+   }
+  ]
+ },
+ {
+  "tool": "multibreakeven",
+  "label": "Multi-product break-even",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "multibreakeven",
+  "method": "multi_product_breakeven",
+  "name": "multi_product_breakeven",
+  "tier": "T1",
+  "metric": "breakeven_total_units",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "weighted_contribution_is_the_mix_weighted_margin",
+   "profit_at_break_even_is_zero",
+   "scaling_fixed_costs_scales_break_even_units",
+   "per_product_units_sum_to_the_total"
+  ],
+  "intended_use": "Break-even in units and revenue for a fixed product mix: the mix-weighted contribution margin and the per-product break-even quantities.",
+  "unsupported_use": "A changing mix, step costs, capacity limits, price-volume relationships or tax; forecasting which mix will actually occur.",
+  "assumptions": [
+   "Each product's price and variable cost are constant.",
+   "The declared mix is the mix that will be sold.",
+   "Fixed costs do not change with volume."
+  ],
+  "limitations": [
+   "One break-even point for one declared mix; no capacity limits or step costs.",
+   "No tax, financing or working-capital effects.",
+   "Per-product units are a break-even mix, not a target."
+  ],
+  "inputs": [
+   {
+    "name": "fixed_costs",
+    "type": "decimal",
+    "required": true,
+    "desc": "total fixed costs for the period",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "products",
+    "type": "records",
+    "required": true,
+    "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Mix assumption",
+    "default_chosen": "The declared mix_units are held constant and used as the weighting.",
+    "impact": "A different mix changes the weighted contribution and the break-even."
+   },
+   {
+    "question": "Cost behaviour",
+    "default_chosen": "Fixed costs are constant and unit prices and variable costs are constant over the range.",
+    "impact": "Step costs or volume discounts break the single break-even point."
+   }
+  ]
+ },
+ {
+  "tool": "unitecon",
+  "label": "Unit economics",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "unitecon",
+  "method": "unit_economics",
+  "name": "unit_economics",
+  "tier": "T1",
+  "metric": "unit_margin",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "margin_is_price_minus_variable_cost",
+   "payback_is_acquisition_cost_over_margin",
+   "raising_price_raises_margin_by_the_same_amount",
+   "lower_churn_raises_ltv"
+  ],
+  "intended_use": "Unit contribution margin, payback of the acquisition cost and (when a churn rate is declared) a period-value LTV and LTV/CAC.",
+  "unsupported_use": "Estimating churn, retention curves or customer lifetime modelling; discounting LTV to present value; tax, financing or cross-sell; segment-level CAC.",
+  "assumptions": [
+   "Prices, costs and churn are the owner's declared inputs.",
+   "The unit margin is earned each period until churn."
+  ],
+  "limitations": [
+   "No present-value discounting, retention curve, tax or financing.",
+   "Churn is a single constant rate.",
+   "Segment or product-level CAC is not modelled."
+  ],
+  "inputs": [
+   {
+    "name": "acquisition_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "cost to acquire one customer",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "churn_rate",
+    "type": "decimal",
+    "required": false,
+    "desc": "period churn in (0,1); if supplied, LTV = unit margin / churn",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "price",
+    "type": "decimal",
+    "required": true,
+    "desc": "price per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "variable_cost",
+    "type": "decimal",
+    "required": true,
+    "desc": "variable cost per unit",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "LTV definition",
+    "default_chosen": "LTV = unit margin / declared churn rate (period value, no discounting); omitted when no churn is declared.",
+    "impact": "A different LTV convention (e.g. discounted, cohort-based) would give a different number."
+   },
+   {
+    "question": "Payback",
+    "default_chosen": "Payback periods = acquisition cost / unit margin.",
+    "impact": "It assumes the margin is earned every period at the same rate."
+   }
+  ]
+ },
+ {
+  "tool": "descriptive",
+  "label": "Descriptive statistics",
+  "group": "quantitative_core",
+  "level": "intro",
+  "preset": "descriptive",
+  "method": "descriptive_stats",
+  "name": "descriptive_stats",
+  "tier": "T1",
+  "metric": "mean",
+  "unit": "from_request",
+  "claim_ceiling": "descriptive",
+  "output_precision": {
+   "n": 0,
+   "n_missing": 0
+  },
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "shift_moves_location_not_spread",
+   "scale_scales_spread",
+   "permutation_invariant",
+   "missing_entries_excluded_not_valued",
+   "order_statistics_bounded"
+  ],
+  "intended_use": "Summarize one numeric variable in a dataset (n, missing, mean, median, range, sample SD).",
+  "unsupported_use": "Inference (intervals, tests, effect sizes), weighted or clustered survey data, grouped summaries, quartiles.",
+  "assumptions": [
+   "Observations are numeric and the listed codes fully identify missing values."
+  ],
+  "limitations": [
+   "Descriptive claims only; no inference.",
+   "Float reference comparison tolerance is 1e-9 relative."
+  ],
+  "inputs": [
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes such as 99; never read as values",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "values",
+    "type": "value_list",
+    "required": true,
+    "desc": "the observations; blank or null counts as missing",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "Blank, null and user-defined missing codes are excluded from every statistic (listwise for one variable) and counted.",
+    "impact": "Including codes as values would distort every statistic."
+   },
+   {
+    "question": "Median and spread definitions",
+    "default_chosen": "Median averages the two middle values for even n; variance and SD use n-1 (sample).",
+    "impact": "Population SD (n) is smaller; packages differ on quartile definitions, which are not reported."
+   },
+   {
+    "question": "Small-sample threshold",
+    "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].",
+    "impact": "Changes only the wording, not the numbers."
+   }
+  ]
+ },
+ {
+  "tool": "pearson",
+  "label": "Pearson correlation",
+  "group": "quantitative_core",
+  "level": "intermediate",
+  "preset": "pearson",
+  "method": "pearson",
+  "name": "pearson",
+  "tier": "T1",
+  "metric": "r",
+  "unit": "correlation",
+  "claim_ceiling": "associational",
+  "output_precision": {
+   "n_pairs": 0,
+   "n_excluded": 0,
+   "r": 3,
+   "r_squared": 3,
+   "ci_lower": 3,
+   "ci_upper": 3,
+   "p_value": 4
+  },
+  "output_units": {
+   "p_value": "probability",
+   "confidence_level": "rate",
+   "alpha": "rate",
+   "n_pairs": "count",
+   "n_excluded": "count"
+  },
+  "test_names": [
+   "second_implementation_agrees",
+   "invariant_to_positive_linear_transform",
+   "negating_y_flips_sign_keeps_p",
+   "symmetric_in_x_and_y",
+   "bounded_and_consistent",
+   "missing_pairs_excluded_not_valued"
+  ],
+  "intended_use": "Linear association between two numeric variables in a sample, with interval, p-value and effect size.",
+  "unsupported_use": "Causal claims; non-linear relationships; clustered, weighted or repeated-measures data; more than two variables.",
+  "assumptions": [
+   "Pairs are independent observations.",
+   "Relationship is approximately linear.",
+   "Approximate normality, screened by skewness and kurtosis only."
+  ],
+  "limitations": [
+   "Normality screen limits (2 and 7) are conventional placeholders [UNVERIFIED].",
+   "Linearity and independence are not tested.",
+   "Interval uses the Fisher z approximation."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "confidence_level",
+    "type": "decimal",
+    "required": false,
+    "desc": "default 0.95",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes such as 99; apply to both variables",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "x",
+    "type": "value_list",
+    "required": true,
+    "desc": "first variable; blank or null counts as missing",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "y",
+    "type": "value_list",
+    "required": true,
+    "desc": "second variable, paired by position with x",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "A pair is excluded if either value is blank, null or a declared missing code (pairwise deletion for two variables).",
+    "impact": "Counts of excluded pairs are reported; other handling (imputation) changes the estimate."
+   },
+   {
+    "question": "Multiple comparisons",
+    "default_chosen": "One test, so no correction. If more tests are run, declare a correction in the spec.",
+    "impact": "Running many correlations without correction inflates false positives."
+   },
+   {
+    "question": "Effect-size wording thresholds",
+    "default_chosen": "Absolute r below 0.1 negligible, below 0.3 small, below 0.5 medium, otherwise large (Cohen-style conventions) [PROVISIONAL, UNVERIFIED]. The effect size is the coefficient itself.",
+    "impact": "Changes only the descriptive word, not the numbers."
+   },
+   {
+    "question": "Precision statement",
+    "default_chosen": "Precision is conveyed by the confidence interval; no separate power calculation is made.",
+    "impact": "A wide interval signals low precision."
+   },
+   {
+    "question": "Assumption screen and fallback",
+    "default_chosen": "If skewness or excess kurtosis of either variable exceeds the declared limits, switch to Spearman as a logged amendment.",
+    "impact": "Spearman is robust to outliers and skew but measures monotone, not linear, association."
+   }
+  ]
+ },
+ {
+  "tool": "ols",
+  "label": "Linear regression",
+  "group": "quantitative_core",
+  "level": "advanced",
+  "preset": "ols",
+  "method": "ols",
+  "name": "ols",
+  "tier": "T1",
+  "metric": "r_squared",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "shift_changes_intercept_only",
+   "scaling_rescales_coefficients_not_significance",
+   "row_order_invariant",
+   "incomplete_rows_excluded_not_valued",
+   "bounded_and_consistent",
+   "cross_check_partial_regression_and_pearson"
+  ],
+  "intended_use": "Linear association of one numeric outcome with up to five numeric predictors, with intervals, p-values and effect sizes.",
+  "unsupported_use": "Causal claims; categorical predictors; interactions; non-linear fits; clustered, weighted or time-series data; prediction beyond the observed range.",
+  "assumptions": [
+   "Observations are independent.",
+   "The outcome is approximately linear in the predictors.",
+   "Residual variance is constant (screened) or robust errors are used."
+  ],
+  "limitations": [
+   "Linearity, independence, and the correct specification are not tested.",
+   "No interactions, transformations, categorical predictors, weights or clustering.",
+   "At most five predictors.",
+   "F-form Breusch-Pagan and the diagnostic limits are conventions [UNVERIFIED]."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "confidence_level",
+    "type": "decimal",
+    "required": false,
+    "desc": "default 0.95",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes; a row with any missing value is excluded",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "predictors",
+    "type": "column_map",
+    "required": true,
+    "desc": "name -> values for each predictor, paired by position with y (names: letters and underscores only)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "y",
+    "type": "value_list",
+    "required": true,
+    "desc": "outcome variable; blank or null counts as missing",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "A row is excluded (listwise deletion) if the outcome or any predictor is blank, null or a declared missing code.",
+    "impact": "Excluded rows are counted; imputation would change estimates and bias depends on the missingness mechanism."
+   },
+   {
+    "question": "Multiple comparisons",
+    "default_chosen": "Coefficient p-values are reported unadjusted; no correction is applied.",
+    "impact": "With many predictors some will look significant by chance; declare a correction in the spec if needed."
+   },
+   {
+    "question": "Effect-size wording thresholds",
+    "default_chosen": "Cohen-style f-squared cut-offs 0.02, 0.15 and 0.35 for small, medium, large [PROVISIONAL, UNVERIFIED]. Standardized coefficients are also reported.",
+    "impact": "Changes only the descriptive word."
+   },
+   {
+    "question": "Diagnostic screens",
+    "default_chosen": "Residual skewness 2 and excess kurtosis 7 limits, F-form Breusch-Pagan level 0.05, largest VIF 10, largest Cook's distance 1 [PROVISIONAL, UNVERIFIED conventions]. Normality, collinearity or influence failures block; heteroskedasticity switches to HC3 robust errors as a logged amendment.",
+    "impact": "Looser or stricter limits change which analyses are blocked."
+   },
+   {
+    "question": "Precision statement",
+    "default_chosen": "Precision is conveyed by confidence intervals; no power calculation is made.",
+    "impact": "Wide intervals signal low precision."
+   }
+  ]
+ },
+ {
+  "tool": "welch",
+  "label": "Welch two-sample t-test",
+  "group": "quantitative_core",
+  "level": "advanced",
+  "preset": "welch",
+  "method": "welch_t",
+  "name": "welch_t",
+  "tier": "T1",
+  "metric": "diff",
+  "unit": "from_request",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "shift_leaves_difference_inference_unchanged",
+   "positive_scale_equivariance",
+   "swapping_groups_negates_difference_keeps_p",
+   "row_order_invariant",
+   "missing_entries_excluded_not_valued",
+   "bounded_and_consistent"
+  ],
+  "intended_use": "Compare the means of two independent groups on a numeric outcome, with interval, p-value and standardized effect size.",
+  "unsupported_use": "Paired or repeated measures; more than two groups; causal claims; clustered data; proportions or counts.",
+  "assumptions": [
+   "Observations are independent within and between groups.",
+   "Group means are approximately normal (screened by skewness and kurtosis only)."
+  ],
+  "limitations": [
+   "Normality screen limits are conventions [UNVERIFIED].",
+   "Hedges g interval is a large-sample approximation.",
+   "Independence is not tested."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "confidence_level",
+    "type": "decimal",
+    "required": false,
+    "desc": "default 0.95",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "groups",
+    "type": "column_map",
+    "required": true,
+    "desc": "exactly two groups: name -> observations (letters and underscores in names; group sizes may differ)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "Blank, null and declared missing codes are excluded within each group and counted.",
+    "impact": "Excluded counts are reported."
+   },
+   {
+    "question": "Test choice",
+    "default_chosen": "Welch's unequal-variance t-test (no equal-variance assumption), two-sided.",
+    "impact": "Student's pooled t-test gives different degrees of freedom and p-values when variances or group sizes differ."
+   },
+   {
+    "question": "Standardized effect size",
+    "default_chosen": "Hedges' g using the pooled standard deviation, with a large-sample normal interval [approximate]. Cohen-style cut-offs 0.2, 0.5, 0.8 [UNVERIFIED conventions].",
+    "impact": "Using each group's SD (Glass) or the Welch-style average changes g."
+   },
+   {
+    "question": "Multiple comparisons",
+    "default_chosen": "One test, so no correction.",
+    "impact": "Several comparisons inflate false positives; declare a correction in the spec."
+   },
+   {
+    "question": "Assumption screen and fallback",
+    "default_chosen": "If either group's skewness or excess kurtosis exceeds the declared limits, switch to the Mann-Whitney test as a logged amendment.",
+    "impact": "Mann-Whitney compares rank distributions and reports a median-type shift, not a mean difference."
+   }
+  ]
+ },
+ {
+  "tool": "anova",
+  "label": "One-way ANOVA",
+  "group": "quantitative_core",
+  "level": "advanced",
+  "preset": "anova",
+  "method": "anova",
+  "name": "anova",
+  "tier": "T1",
+  "metric": "eta_squared",
+  "unit": "from_request",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "within_group_permutation_invariant",
+   "group_relabeling_invariant",
+   "equal_shift_leaves_F_and_effect_unchanged",
+   "positive_scale_equivariance",
+   "missing_entries_excluded_not_valued",
+   "bounded_and_consistent"
+  ],
+  "intended_use": "Compare the means of three or more independent groups with an omnibus F test, an eta-squared effect size and per-group summaries.",
+  "unsupported_use": "Repeated measures; two-way or factorial designs; post-hoc pairwise tests; causal claims; fewer than three groups.",
+  "assumptions": [
+   "Observations are independent within and between groups.",
+   "Group distributions are approximately normal (screened by skewness and kurtosis only).",
+   "Group variances are approximately equal (screened by Levene's test)."
+  ],
+  "limitations": [
+   "Normality and Levene screen limits are conventional placeholders [UNVERIFIED].",
+   "Independence is not tested.",
+   "No post-hoc pairwise comparisons or repeated-measures designs.",
+   "Eta-squared is a sample effect size and is not bias-corrected."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "groups",
+    "type": "column_map",
+    "required": true,
+    "desc": "three or more groups: name -> observations (letters and underscores in names; sizes may differ)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "missing_codes",
+    "type": "code_list",
+    "required": false,
+    "desc": "user-defined missing codes",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Missing-value handling",
+    "default_chosen": "Blank, null and declared missing codes are excluded within each group and counted.",
+    "impact": "Excluded counts are reported."
+   },
+   {
+    "question": "Test",
+    "default_chosen": "One-way independent ANOVA (F test), two-sided, comparing group means.",
+    "impact": "Repeated-measures, two-way and ANCOVA designs are not supported."
+   },
+   {
+    "question": "Effect size",
+    "default_chosen": "Eta-squared (between-group SS over total SS), with Cohen-style cut-offs 0.01, 0.06, 0.14 [UNVERIFIED conventions].",
+    "impact": "Omega-squared (less biased) is not reported."
+   },
+   {
+    "question": "Assumption screens and fallback",
+    "default_chosen": "If any group's skewness or excess kurtosis exceeds the declared limits, or Levene's test for equal variances rejects at the declared level, switch to Kruskal-Wallis as a logged amendment.",
+    "impact": "Kruskal-Wallis compares rank distributions, not means."
+   },
+   {
+    "question": "Multiple comparisons",
+    "default_chosen": "The omnibus F test makes no pairwise comparisons, so no correction is applied.",
+    "impact": "Post-hoc pairwise tests would need their own correction."
+   }
+  ]
+ },
+ {
+  "tool": "chi_square",
+  "label": "Chi-square association",
+  "group": "quantitative_core",
+  "level": "advanced",
+  "preset": "chi_square",
+  "method": "chi_square",
+  "name": "chi_square",
+  "tier": "T1",
+  "metric": "cramers_v",
+  "unit": "ratio",
+  "claim_ceiling": "associational",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "row_order_invariant",
+   "transpose_invariant",
+   "uniform_scaling_scales_chi2_keeps_V",
+   "independence_gives_zero_chi2",
+   "bounded_and_consistent"
+  ],
+  "intended_use": "Test whether two categorical variables are independent from a table of observed counts, with a Cramer's V effect size.",
+  "unsupported_use": "Goodness of fit; ordered categories; repeated or paired counts; causal claims; tables with small expected counts (blocks).",
+  "assumptions": [
+   "Observations are independent and each is counted in exactly one cell.",
+   "Expected counts are large enough (screened; at least 5)."
+  ],
+  "limitations": [
+   "The p-value is an approximation; exact tests are not implemented.",
+   "No Yates continuity correction for 2x2 tables.",
+   "Cramer's V cut-offs are coarse [UNVERIFIED]."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "table",
+    "type": "count_table",
+    "required": true,
+    "desc": "a table of non-negative whole-number counts (rows x columns)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Test",
+    "default_chosen": "Pearson chi-square test of independence on a table of observed counts.",
+    "impact": "Goodness-of-fit (one variable) and Fisher's exact test are not implemented."
+   },
+   {
+    "question": "Expected-count rule",
+    "default_chosen": "If any expected count is below 5, the analysis blocks (fail-closed) instead of reporting an unreliable p-value.",
+    "impact": "Small tables may block; larger samples or collapsing categories may be needed."
+   },
+   {
+    "question": "Effect size",
+    "default_chosen": "Cramer's V, with coarse cut-offs 0.1, 0.3, 0.5 [UNVERIFIED conventions].",
+    "impact": "The interpretation of V depends on the table dimensions."
+   }
+  ]
+ },
+ {
+  "tool": "power",
+  "label": "Power and sample size",
+  "group": "quantitative_core",
+  "level": "advanced",
+  "preset": "power",
+  "method": "power_analysis",
+  "name": "power_analysis",
+  "tier": "T1",
+  "metric": "power",
+  "unit": "probability",
+  "claim_ceiling": "descriptive",
+  "output_precision": {},
+  "output_units": {},
+  "test_names": [
+   "second_implementation_agrees",
+   "power_at_zero_effect_equals_alpha",
+   "power_increases_with_effect_size",
+   "power_increases_with_sample_size",
+   "mde_decreases_with_sample_size"
+  ],
+  "intended_use": "Plan a two-sample or one-sample comparison of means: the power for a stated effect, and the minimum detectable effect at a declared target power, under the normal approximation.",
+  "unsupported_use": "Exact power under the noncentral t distribution; proportions or counts; cluster, weighted or repeated-measures designs; multiplicity; treating a high power as a guarantee of significance.",
+  "assumptions": [
+   "Observations are independent within and between groups.",
+   "The standard deviations supplied are the planning values and are positive.",
+   "A single test at the declared alpha, with the declared number of tails."
+  ],
+  "limitations": [
+   "Normal approximation; no noncentral t exactness.",
+   "No clustering, weights or repeated measures.",
+   "Power describes the design, not the study's actual outcome."
+  ],
+  "inputs": [
+   {
+    "name": "alpha",
+    "type": "decimal",
+    "required": false,
+    "desc": "significance level, default 0.05",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "design",
+    "type": "enum",
+    "required": true,
+    "desc": "two_sample compares two means; one_sample tests a single mean",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "effect",
+    "type": "decimal",
+    "required": true,
+    "desc": "the difference (or mean) to detect, in the units of the outcome",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "n1",
+    "type": "decimal",
+    "required": true,
+    "desc": "sample size of group 1 (or the single sample for one_sample)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "n2",
+    "type": "decimal",
+    "required": false,
+    "desc": "sample size of group 2 (two_sample only)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "sd1",
+    "type": "decimal",
+    "required": true,
+    "desc": "standard deviation of group 1 (or the single sample)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "sd2",
+    "type": "decimal",
+    "required": false,
+    "desc": "standard deviation of group 2 (two_sample only)",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "tails",
+    "type": "enum",
+    "required": false,
+    "desc": "two_sided (default) or one_sided",
+    "choices": null,
+    "unit": null,
+    "default": null
+   },
+   {
+    "name": "target_power",
+    "type": "decimal",
+    "required": false,
+    "desc": "power used to compute the minimum detectable effect, default 0.8",
+    "choices": null,
+    "unit": null,
+    "default": null
+   }
+  ],
+  "defaults": [
+   {
+    "question": "Underlying distribution",
+    "default_chosen": "The normal approximation. It is exact when the standard deviations are known or planned; with sds estimated from a pilot, exact power uses the noncentral t distribution.",
+    "impact": "Exact power is somewhat lower than the normal approximation when sds are estimated."
+   },
+   {
+    "question": "Multiplicity",
+    "default_chosen": "A single comparison is assumed; the correction does not account for several planned tests.",
+    "impact": "A family of tests needs a smaller per-test alpha (see multiple_comparison)."
+   }
+  ]
+ }
+]

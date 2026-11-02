@@ -1,0 +1,22 @@
+﻿diff --git a/business_pipeline_v0.12/business_pipeline/src/bp/orchestrator.py b/business_pipeline_v0.12/business_pipeline/src/bp/orchestrator.py
+index b22d62e..d8b933f 100644
+--- a/business_pipeline_v0.12/business_pipeline/src/bp/orchestrator.py
++++ b/business_pipeline_v0.12/business_pipeline/src/bp/orchestrator.py
+@@ -87,6 +87,17 @@ class Pipeline:
+         self.request = request
+         inp = request["inputs"]; m = LIBRARY.get(request["method"])
+         issues = []; t = templates.TEMPLATES.get(request["method"])
++        if not t and not m and request["method"] != "framework_only":
++            # An unknown method name must fail closed (HANDOFF non-negotiable 4).  The
++            # sentinel `framework_only` is the one declared way to ask for a
++            # structure-only paper; any other name that is neither a frozen method nor a
++            # template is a mistake, and answering it with a framework-only delivery
++            # would be a silent substitution of a different artefact (B-181).
++            reason = ("unknown method %r: it is neither a frozen method nor a template. "
++                      "The frozen methods are listed at /api/methods; a structure-only paper "
++                      "is requested by omitting the method." % request["method"])
++            self.log("intake", "refused", reason=reason)
++            return self._block("intake", reason, "T4")
+         if t: issues = templates.validate(request["method"], inp)
+         elif m:
+             issues = validate_inputs(m, inp)            # schema first: actionable errors, no defaults substituted

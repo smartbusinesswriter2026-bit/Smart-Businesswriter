@@ -1,0 +1,30 @@
+﻿      In money, the value at risk on the declared portfolio is 0 and the expected shortfall beyond it is 35,222.34; the estimate describes the declared history, not a guarantee about the future.
+==============================================================================
+options  method=option_pricing  preset=options
+   capability option_pricing             formatter=_option_lines output_key=None
+      At a declared spot price of 100, a strike of 100, a volatility of 25%, a risk-free rate of 5% and 1 years to maturity, the declared call option prices at 12.34 (binomial check 12.32).
+      Delta is 0.63, gamma is 0.02, vega is 37.84, theta is -7.25 and rho is 50.40.
+      Every input is declared; the price is the model's output for those inputs, not a market quote.
+==============================================================================
+fx  method=fx_parity  preset=fx
+   capability fx_parity                  formatter=_fx_lines output_key=None
+      At a declared spot rate of 56 and declared interest rates of 5% and 3%, interest-rate parity implies a forward rate of 57.09, and the declared inflation rates imply 57.10 under purchasing-power parity.
+      The parity forward of 57 stands 1.79% away from the declared spot rate.
+      Both rates are arithmetic on the declared inputs; neither is a forecast of the spot rate.
+==============================================================================
+currency  method=currency_convert  preset=currency
+   capability currency_convert           formatter=_convert_lines output_key=None
+      Converting a declared 1,000 USD at the declared rate of 0.92 gives 920 EUR.
+      The rate is the student's declared figure (provenance: user); the paper retrieves no exchange rate and no date is implied beyond the one declared.
+
+==============================================================================
+PROBLEMS (9)
+  [time_value] no bespoke formatter
+  [time_value] raw long decimal: From the declared inputs (present value 100,000; payment 12,000; rate 0.06; periods 5; compounding quarterly; timing end), the frozen time value of money method returns future value 412169.50589505043384053371598616910344392272576332; present value input 100,000; present value payments 206023.66542098316188539904687695437449708020464249; future value payments 277484.00524004483008047441420992809195015353401184; total payments 240,000; periodic rate 0.015; effective annual rate 0.061363550625; n periods 20; annuity factor 17.168638785081930157116587239746197874756683720208.
+  [unit_economics] raw long decimal: The declared acquisition cost of 80 is covered after 2.1621621621621621621621621621621621621621621621622 periods of that margin.
+  [discounted_payback] raw long decimal: At a declared discount rate of 10%, the declared cash flows (-1,000; 400; 400; 400; 400) recover the outlay in 3.0192500000000000000000000000000000000000000000000 periods (inside period 4).
+  [project_metrics] raw long decimal: At a declared discount rate of 10%, the declared project has a net present value of 267.95, a profitability index of 1.2679461785397172324294788607335564510620859230927, a modified internal rate of return of 15.87 and an equivalent annual annuity of 84.53.
+  [leverage_analysis] no bespoke formatter
+  [leverage_analysis] raw long decimal: From the declared inputs (ebit 500,000; interest expense 100,000; tax rate 0.30; debt 800,000; equity 1,200,000; shares outstanding 100,000; working capital 300,000; retained earnings 400,000; total assets 2,000,000; total liabilities 800,000; sales 3,000,000; market value equity 1,800,000; alternative interest expense 200,000; alternative shares outstanding 60,000), the frozen financial leverage method returns eps 2.80; earnings before tax 400,000; interest tax shield 30,000; debt to equity 0.66666666666666666666666666666666666666666666666667; degree of financial leverage 1.25; interest cover 5; altman z 4.135; altman term working capital 0.18; altman term retained earnings 0.28; altman term ebit 0.825; altman term market equity 1.35; altman term sales 1.50; indifference ebit 350,000; eps at indifference 1.75; alternative eps 3.50.
+  [equity_bridge] no bespoke formatter
+  [equity_bridge] raw long decimal: From the declared inputs (enterprise value 1,750,939.14; debt 300,000; cash 150,000; minority interest 20,000; preferred equity 10,000; shares outstanding 100,000), the frozen equity bridge method returns net debt 150,000; equity value 1,570,939.14; per share value 15.7093914.

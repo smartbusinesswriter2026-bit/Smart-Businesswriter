@@ -1,0 +1,8 @@
+﻿EXITED
+NOW=19:31:10 ERR=140111
+AssertionError: 'Case and Market Context' not found in ['Introduction', 'The Case and Its Industry', 'Value Chain', 'Firm Infrastructure', 'Human Resource Management', 'Technology Development', 'Procurement', 'Inbound Logistics', 'Operations', 'Outbound Logistics', 'Marketing and Sales', 'Service', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+
+----------------------------------------------------------------------
+Ran 2627 tests in 634.776s
+
+FAILED (failures=66, errors=13)

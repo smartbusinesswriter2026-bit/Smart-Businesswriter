@@ -1,0 +1,45 @@
+﻿
+> qa\baseline\s2-suite-err.txt:957:FAIL: test_no_method_is_framework_only 
+(test_pipeline.T.test_no_method_is_framework_only)
+  qa\baseline\s2-suite-err.txt:958:-----------------------------------------------------
+-----------------
+  qa\baseline\s2-suite-err.txt:959:Traceback (most recent call last):
+> qa\baseline\s2-suite-err.txt:960:  File "D:\SMART 
+BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_pipeline.py", line 
+44, in test_no_method_is_framework_only
+  qa\baseline\s2-suite-err.txt:961:    d = Pipeline().run({**REQ, "method": "mystery"}, 
+yes); self.assertEqual(d.tier, "T4"); self.assertIn("No computed answer", d.report)
+  qa\baseline\s2-suite-err.txt:962:                                                     
+                                      ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  qa\baseline\s2-suite-err.txt:963:AssertionError: 'No computed answer' not found in ''
+  qa\baseline\s2-suite-err.txt:964:
+  qa\baseline\s2-suite-err.txt:965:=====================================================
+=================
+  qa\baseline\s2-suite-err.txt:966:FAIL: 
+test_the_model_prompt_speaks_porters_diamond_and_keeps_the_safety_rules (test_porters_di
+amond_completion.PortersDiamondCompletionTest.test_the_model_prompt_speaks_porters_diamo
+nd_and_keeps_the_safety_rules)
+  qa\baseline\s2-suite-err.txt:967:-----------------------------------------------------
+-----------------
+  qa\baseline\s2-suite-err.txt:968:Traceback (most recent call last):
+  qa\baseline\s2-suite-err.txt:969:  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.
+12\business_pipeline\tests\test_porters_diamond_completion.py", line 145, in 
+test_the_model_prompt_speaks_porters_diamond_and_keeps_the_safety_rules
+  qa\baseline\s2-suite-err.txt:970:    self.assertIn("industry", system.lower())
+  qa\baseline\s2-suite-err.txt:971:    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  qa\baseline\s2-suite-err.txt:972:AssertionError: 'industry' not found in 'you are an 
+academic analyst writing the opening of a porters diamond paper. use only the case 
+instruction and the determinants items. write in formal academic english, third person, 
+with no contractions, no rhetorical questions, no first or second person, and no 
+reference to this paper, the analysis, the model, the reader or the drafting process. 
+do not open with \'this paper\' or \'the case concerns\'; begin with the market and the 
+decision it frames. write an introduction of 160 to 190 words in two paragraphs that 
+closes with one sentence stating whether the evidence supports the competitive position 
+the decision depends on. write a case context of 110 to 140 words in one paragraph that 
+defines the decision, the market and the evidence base in academic terms. do not 
+restate every item. do not add facts, numbers, names, sources or citations beyond the 
+items. do not recommend a decision. write generic terms in lower case (for example big 
+data, net zero, supply chain) and capitalise only a name that appears in the items. 
+return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+

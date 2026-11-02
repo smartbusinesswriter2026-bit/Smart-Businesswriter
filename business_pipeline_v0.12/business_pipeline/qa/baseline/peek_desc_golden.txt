@@ -1,0 +1,14 @@
+﻿[
+ {
+  "name": "textbook_eight_values",
+  "values": [
+   "2",
+   "4",
+   "4",
+   "4",
+   "5",
+   "5",
+   "7",
+   "9"
+  ],
+  "missing_codes": [],

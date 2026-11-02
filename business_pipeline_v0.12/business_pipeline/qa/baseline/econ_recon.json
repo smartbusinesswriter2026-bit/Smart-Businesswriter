@@ -1,0 +1,2264 @@
+{
+ "counts": {
+  "tools": 59,
+  "worksheets": 0,
+  "records": 5,
+  "theories": 0,
+  "glossary": 25,
+  "tiles": 8,
+  "start_steps": 5,
+  "does_not": 3,
+  "methods_in_library": 142,
+  "presets": 144
+ },
+ "findings": [
+  {
+   "kind": "NO_NEED",
+   "detail": "tool equilibrium declares no 'need' text",
+   "tool": "equilibrium"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool elasticity declares no 'need' text",
+   "tool": "elasticity"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool taxincidence declares no 'need' text",
+   "tool": "taxincidence"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool pricecontrol declares no 'need' text",
+   "tool": "pricecontrol"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool concentration declares no 'need' text",
+   "tool": "concentration"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool costcurves declares no 'need' text",
+   "tool": "costcurves"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool profitmax declares no 'need' text",
+   "tool": "profitmax"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool marketpower declares no 'need' text",
+   "tool": "marketpower"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool pricediscrimination declares no 'need' text",
+   "tool": "pricediscrimination"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool cournot declares no 'need' text",
+   "tool": "cournot"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool nash declares no 'need' text",
+   "tool": "nash"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool panel declares no 'need' text",
+   "tool": "panel"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool iv declares no 'need' text",
+   "tool": "iv"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool rdd declares no 'need' text",
+   "tool": "rdd"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool probit declares no 'need' text",
+   "tool": "probit"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool nationalincome declares no 'need' text",
+   "tool": "nationalincome"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool growth declares no 'need' text",
+   "tool": "growth"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool inflation declares no 'need' text",
+   "tool": "inflation"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool unemployment declares no 'need' text",
+   "tool": "unemployment"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool moneymultiplier declares no 'need' text",
+   "tool": "moneymultiplier"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool fiscal declares no 'need' text",
+   "tool": "fiscal"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool budgetdebt declares no 'need' text",
+   "tool": "budgetdebt"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool okun declares no 'need' text",
+   "tool": "okun"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool externality declares no 'need' text",
+   "tool": "externality"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool publicgood declares no 'need' text",
+   "tool": "publicgood"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool socialwelfare declares no 'need' text",
+   "tool": "socialwelfare"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool gini declares no 'need' text",
+   "tool": "gini"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool poverty declares no 'need' text",
+   "tool": "poverty"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool taxprogressivity declares no 'need' text",
+   "tool": "taxprogressivity"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool optimalpollution declares no 'need' text",
+   "tool": "optimalpollution"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool comparative declares no 'need' text",
+   "tool": "comparative"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool tariff declares no 'need' text",
+   "tool": "tariff"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool ppp declares no 'need' text",
+   "tool": "ppp"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool irp declares no 'need' text",
+   "tool": "irp"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool bop declares no 'need' text",
+   "tool": "bop"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool hdi declares no 'need' text",
+   "tool": "hdi"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool expectedutility declares no 'need' text",
+   "tool": "expectedutility"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool prospect declares no 'need' text",
+   "tool": "prospect"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool labour declares no 'need' text",
+   "tool": "labour"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool did declares no 'need' text",
+   "tool": "did"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool forecast related id 'scenario' is not an economics tool",
+   "tool": "forecast"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool forecast related id 'risk' is not an economics tool",
+   "tool": "forecast"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool currency declares no 'need' text",
+   "tool": "currency"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool currency related id 'fx' is not an economics tool",
+   "tool": "currency"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool currency related id 'case_decision' is not an economics tool",
+   "tool": "currency"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool pricing declares no 'need' text",
+   "tool": "pricing"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool demandcurve declares no 'need' text",
+   "tool": "demandcurve"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool demandcurve related id 'purchaseintent' is not an economics tool",
+   "tool": "demandcurve"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool cba declares no 'need' text",
+   "tool": "cba"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool cea declares no 'need' text",
+   "tool": "cea"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool sroi declares no 'need' text",
+   "tool": "sroi"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool npv related id 'irr' is not an economics tool",
+   "tool": "npv"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool npv related id 'dpayback' is not an economics tool",
+   "tool": "npv"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool npv related id 'projectmetrics' is not an economics tool",
+   "tool": "npv"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool npv related id 'scenario' is not an economics tool",
+   "tool": "npv"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool dcf declares no 'need' text",
+   "tool": "dcf"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool dcf related id 'wacc' is not an economics tool",
+   "tool": "dcf"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool dcf related id 'dcfmid' is not an economics tool",
+   "tool": "dcf"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool dcf related id 'equitybridge' is not an economics tool",
+   "tool": "dcf"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool dcf related id 'multiples' is not an economics tool",
+   "tool": "dcf"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool breakeven declares no 'need' text",
+   "tool": "breakeven"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool multibreakeven declares no 'need' text",
+   "tool": "multibreakeven"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool unitecon declares no 'need' text",
+   "tool": "unitecon"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool unitecon related id 'portfolio' is not an economics tool",
+   "tool": "unitecon"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool pearson related id 'spearman' is not an economics tool",
+   "tool": "pearson"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool ols related id 'ols_robust' is not an economics tool",
+   "tool": "ols"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool ols related id 'logit' is not an economics tool",
+   "tool": "ols"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool welch declares no 'need' text",
+   "tool": "welch"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool welch related id 'paired' is not an economics tool",
+   "tool": "welch"
+  },
+  {
+   "kind": "NO_NEED",
+   "detail": "tool anova declares no 'need' text",
+   "tool": "anova"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool anova related id 'kruskal_wallis' is not an economics tool",
+   "tool": "anova"
+  },
+  {
+   "kind": "RELATED_UNRESOLVED",
+   "detail": "tool anova related id 'posthoc' is not an economics tool",
+   "tool": "anova"
+  },
+  {
+   "kind": "DUPLICATE_DEFINITION",
+   "detail": "src\\bp\\methods.py: _risk_typing at lines [4616, 12616]"
+  },
+  {
+   "kind": "DUPLICATE_DEFINITION",
+   "detail": "src\\bp\\methods.py: _tax_typing at lines [5164, 13953]"
+  },
+  {
+   "kind": "DUPLICATE_DEFINITION",
+   "detail": "src\\bp\\methods.py: _social_typing at lines [6441, 10066]"
+  }
+ ],
+ "tools": [
+  {
+   "key": "equilibrium",
+   "label": "Market equilibrium",
+   "method": "demand_supply_equilibrium",
+   "preset": "equilibrium",
+   "group": "market_basics",
+   "level": "intro",
+   "diagram": "supply_demand",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "elasticity",
+    "taxincidence",
+    "pricecontrol"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "equilibrium_price",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "supply_intercept",
+    "supply_slope"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "elasticity",
+   "label": "Price elasticity of demand",
+   "method": "elasticity",
+   "preset": "elasticity",
+   "group": "market_basics",
+   "level": "intro",
+   "diagram": "elasticity",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "equilibrium",
+    "unitecon",
+    "breakeven"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "price_elasticity",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "price_1",
+    "price_2",
+    "quantity_1",
+    "quantity_2"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "taxincidence",
+   "label": "Tax incidence and deadweight loss",
+   "method": "tax_incidence",
+   "preset": "taxincidence",
+   "group": "market_basics",
+   "level": "intro",
+   "diagram": "tax_wedge",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "equilibrium",
+    "pricecontrol",
+    "cba"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "consumer_incidence",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "supply_intercept",
+    "supply_slope",
+    "tax_per_unit"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "pricecontrol",
+   "label": "Price ceilings and floors",
+   "method": "price_control",
+   "preset": "pricecontrol",
+   "group": "market_basics",
+   "level": "intro",
+   "diagram": "price_control",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "equilibrium",
+    "taxincidence"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "quantity_traded",
+   "unit": "units",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "control_price",
+    "control_type",
+    "demand_intercept",
+    "demand_slope",
+    "supply_intercept",
+    "supply_slope"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "concentration",
+   "label": "Market concentration (HHI)",
+   "method": "market_concentration",
+   "preset": "concentration",
+   "group": "market_basics",
+   "level": "intro",
+   "diagram": "concentration",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "equilibrium",
+    "unitecon"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "hhi",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "firm_revenues"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "costcurves",
+   "label": "Cost curves",
+   "method": "cost_curves",
+   "preset": "costcurves",
+   "group": "firm_behaviour",
+   "level": "intro",
+   "diagram": "cost_curves",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "profitmax",
+    "breakeven",
+    "marketpower"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "average_cost",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "fixed_cost",
+    "linear_cost",
+    "price",
+    "quadratic_cost",
+    "quantity"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "profitmax",
+   "label": "Profit maximisation",
+   "method": "profit_maximization",
+   "preset": "profitmax",
+   "group": "firm_behaviour",
+   "level": "intro",
+   "diagram": "profit_max",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "costcurves",
+    "marketpower",
+    "concentration"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "profit",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "fixed_cost",
+    "linear_cost",
+    "quadratic_cost"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "marketpower",
+   "label": "Markup and Lerner index",
+   "method": "market_power",
+   "preset": "marketpower",
+   "group": "firm_behaviour",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "profitmax",
+    "concentration"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "lerner_index",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "microeconomics",
+   "inputs": [
+    "marginal_cost",
+    "price"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "pricediscrimination",
+   "label": "Price discrimination",
+   "method": "price_discrimination",
+   "preset": "pricediscrimination",
+   "group": "firm_behaviour",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "profitmax",
+    "marketpower",
+    "cournot"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "total_profit",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "industrial organization",
+   "inputs": [
+    "demand_intercept_1",
+    "demand_intercept_2",
+    "demand_slope_1",
+    "demand_slope_2",
+    "marginal_cost"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "cournot",
+   "label": "Cournot duopoly",
+   "method": "cournot_duopoly",
+   "preset": "cournot",
+   "group": "firm_behaviour",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "nash",
+    "pricediscrimination",
+    "marketpower"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "price",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "industrial organization",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "marginal_cost_1",
+    "marginal_cost_2"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "nash",
+   "label": "Nash equilibrium (2x2)",
+   "method": "nash_equilibrium",
+   "preset": "nash",
+   "group": "firm_behaviour",
+   "level": "advanced",
+   "diagram": "payoff_matrix",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "cournot",
+    "prospect"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "nash_count",
+   "unit": "count",
+   "claim_ceiling": "descriptive",
+   "category": "game theory",
+   "inputs": [
+    "column_payoffs",
+    "row_payoffs"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "panel",
+   "label": "Panel fixed effects",
+   "method": "panel_regression",
+   "preset": "panel",
+   "group": "behavioural_evidence",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "ols",
+    "did",
+    "iv"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "slope",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "panel data",
+   "inputs": [
+    "data"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "iv",
+   "label": "Instrumental variables",
+   "method": "instrumental_variables",
+   "preset": "iv",
+   "group": "behavioural_evidence",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "ols",
+    "rdd",
+    "panel"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "iv_slope",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "instrumental variables",
+   "inputs": [
+    "x",
+    "y",
+    "z"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "rdd",
+   "label": "Regression discontinuity",
+   "method": "regression_discontinuity",
+   "preset": "rdd",
+   "group": "behavioural_evidence",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "did",
+    "iv",
+    "panel"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "estimate",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "regression discontinuity",
+   "inputs": [
+    "bandwidth",
+    "cutoff",
+    "data"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "probit",
+   "label": "Probit model",
+   "method": "probit",
+   "preset": "probit",
+   "group": "behavioural_evidence",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "ols",
+    "iv",
+    "panel"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "slope",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "binary choice",
+   "inputs": [
+    "x",
+    "y"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "nationalincome",
+   "label": "GDP and national income",
+   "method": "national_income",
+   "preset": "nationalincome",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": "national_income",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "growth",
+    "inflation",
+    "unemployment"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "gdp",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "consumption",
+    "depreciation",
+    "exports",
+    "gdp_deflator",
+    "government_spending",
+    "imports",
+    "investment",
+    "net_factor_income",
+    "population"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "growth",
+   "label": "Growth rate and CAGR",
+   "method": "growth_rate",
+   "preset": "growth",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": "growth",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "nationalincome",
+    "inflation",
+    "budgetdebt"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "cagr",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "end_value",
+    "periods",
+    "population_end",
+    "population_start",
+    "start_value"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "inflation",
+   "label": "Inflation and real interest",
+   "method": "inflation_cpi",
+   "preset": "inflation",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "growth",
+    "unemployment",
+    "fiscal"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "inflation_rate",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "cpi_end",
+    "cpi_start",
+    "nominal_interest_rate",
+    "wage_end",
+    "wage_start"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "unemployment",
+   "label": "Unemployment and participation",
+   "method": "unemployment_rate",
+   "preset": "unemployment",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "inflation",
+    "growth",
+    "nationalincome"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "unemployment_rate",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "employed",
+    "labour_force",
+    "working_age_population"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "moneymultiplier",
+   "label": "Money multiplier",
+   "method": "money_multiplier",
+   "preset": "moneymultiplier",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "inflation",
+    "fiscal"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "simple_money_multiplier",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "currency_drain_ratio",
+    "monetary_base",
+    "reserve_ratio"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "fiscal",
+   "label": "Fiscal multipliers",
+   "method": "fiscal_multiplier",
+   "preset": "fiscal",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "budgetdebt",
+    "nationalincome"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "government_spending_multiplier",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "government_spending_change",
+    "mpc",
+    "tax_change",
+    "tax_rate"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "budgetdebt",
+   "label": "Budget balance and debt",
+   "method": "budget_debt",
+   "preset": "budgetdebt",
+   "group": "macroeconomics",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "fiscal",
+    "growth"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "debt_to_gdp",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "debt_stock",
+    "government_revenue",
+    "government_spending",
+    "inflation_rate",
+    "interest_payments",
+    "nominal_gdp",
+    "nominal_growth_rate"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "okun",
+   "label": "Output gap and Okun's law",
+   "method": "output_gap_okun",
+   "preset": "okun",
+   "group": "macroeconomics",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "unemployment",
+    "growth",
+    "inflation"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "output_gap",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "macroeconomics",
+   "inputs": [
+    "actual_gdp",
+    "current_unemployment_rate",
+    "okun_coefficient",
+    "potential_gdp"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "externality",
+   "label": "Externalities and Pigouvian tax",
+   "method": "externality_pigouvian",
+   "preset": "externality",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": "externality",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "equilibrium",
+    "taxincidence",
+    "optimalpollution"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "deadweight_loss",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "welfare economics",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "marginal_external_cost",
+    "supply_intercept",
+    "supply_slope"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "publicgood",
+   "label": "Public goods",
+   "method": "public_good",
+   "preset": "publicgood",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": "public_good",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "externality",
+    "socialwelfare"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "efficient_quantity",
+   "unit": "units",
+   "claim_ceiling": "descriptive",
+   "category": "welfare economics",
+   "inputs": [
+    "mb1_intercept",
+    "mb1_slope",
+    "mb2_intercept",
+    "mb2_slope",
+    "mc_intercept",
+    "mc_slope"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "socialwelfare",
+   "label": "Social welfare functions",
+   "method": "social_welfare",
+   "preset": "socialwelfare",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "gini",
+    "poverty"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "social_welfare",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "welfare economics",
+   "inputs": [
+    "incomes",
+    "welfare_function"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "gini",
+   "label": "Gini coefficient",
+   "method": "gini_coefficient",
+   "preset": "gini",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": "lorenz",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "poverty",
+    "socialwelfare"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "gini",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "welfare economics",
+   "inputs": [
+    "incomes"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "poverty",
+   "label": "Poverty measures",
+   "method": "poverty_measures",
+   "preset": "poverty",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "gini",
+    "socialwelfare"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "headcount_ratio",
+   "unit": "rate",
+   "claim_ceiling": "descriptive",
+   "category": "welfare economics",
+   "inputs": [
+    "incomes",
+    "poverty_line"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "taxprogressivity",
+   "label": "Tax progressivity",
+   "method": "tax_progressivity",
+   "preset": "taxprogressivity",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "gini",
+    "taxincidence",
+    "budgetdebt"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "progressivity_gap",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "public economics",
+   "inputs": [
+    "incomes",
+    "taxes"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "optimalpollution",
+   "label": "Optimal pollution",
+   "method": "optimal_pollution",
+   "preset": "optimalpollution",
+   "group": "welfare_policy",
+   "level": "intermediate",
+   "diagram": "optimal_pollution",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "externality",
+    "hdi"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "optimal_emissions",
+   "unit": "units",
+   "claim_ceiling": "descriptive",
+   "category": "environmental economics",
+   "inputs": [
+    "marginal_abatement_intercept",
+    "marginal_abatement_slope",
+    "marginal_damage_intercept",
+    "marginal_damage_slope"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "comparative",
+   "label": "Comparative advantage",
+   "method": "comparative_advantage",
+   "preset": "comparative",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "tariff",
+    "ppp"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "oc_a_good1",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "international economics",
+   "inputs": [
+    "countries"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "tariff",
+   "label": "Tariff welfare",
+   "method": "tariff_welfare",
+   "preset": "tariff",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": "tariff",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "comparative",
+    "equilibrium"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "total_dwloss",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "international economics",
+   "inputs": [
+    "demand_intercept",
+    "demand_slope",
+    "supply_intercept",
+    "supply_slope",
+    "tariff_per_unit",
+    "world_price"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "ppp",
+   "label": "Purchasing-power parity",
+   "method": "exchange_rate_ppp",
+   "preset": "ppp",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "irp",
+    "inflation",
+    "comparative"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "real_exchange_rate",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "international economics",
+   "inputs": [
+    "domestic_inflation",
+    "foreign_inflation",
+    "nominal_rate",
+    "price_domestic",
+    "price_foreign"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "irp",
+   "label": "Interest-rate parity",
+   "method": "interest_rate_parity",
+   "preset": "irp",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "ppp",
+    "bop"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "implied_forward",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "international economics",
+   "inputs": [
+    "domestic_inflation",
+    "domestic_rate",
+    "foreign_inflation",
+    "foreign_rate",
+    "forward_rate",
+    "spot_rate",
+    "time_to_maturity"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "bop",
+   "label": "Balance of payments",
+   "method": "balance_of_payments",
+   "preset": "bop",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "irp",
+    "tariff"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "net_balance",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "international economics",
+   "inputs": [
+    "capital_account",
+    "current_account",
+    "errors_and_omissions",
+    "financial_account",
+    "gdp"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "hdi",
+   "label": "Human Development Index",
+   "method": "hdi",
+   "preset": "hdi",
+   "group": "international",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "gini",
+    "poverty",
+    "growth"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "hdi",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "development economics",
+   "inputs": [
+    "expected_years_schooling",
+    "gni_per_capita",
+    "life_expectancy",
+    "mean_years_schooling"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "expectedutility",
+   "label": "Expected utility",
+   "method": "expected_utility",
+   "preset": "expectedutility",
+   "group": "behavioural_evidence",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "prospect",
+    "gini"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "certainty_equivalent",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "behavioural economics",
+   "inputs": [
+    "outcomes",
+    "probabilities",
+    "risk_aversion",
+    "utility_function"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "prospect",
+   "label": "Prospect theory",
+   "method": "prospect_theory",
+   "preset": "prospect",
+   "group": "behavioural_evidence",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "expectedutility",
+    "nash"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "prospect_value",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "behavioural economics",
+   "inputs": [
+    "gain_curvature",
+    "loss_aversion",
+    "loss_curvature",
+    "outcomes",
+    "probabilities",
+    "probability_weighting",
+    "reference_point"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "labour",
+   "label": "Real wage and labour market",
+   "method": "labour_market",
+   "preset": "labour",
+   "group": "behavioural_evidence",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "unemployment",
+    "inflation"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "real_wage",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "labour economics",
+   "inputs": [
+    "cpi",
+    "labour_productivity",
+    "nominal_wage",
+    "unemployment_rate",
+    "vacancies"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "did",
+   "label": "Difference-in-differences",
+   "method": "difference_in_differences",
+   "preset": "did",
+   "group": "behavioural_evidence",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "okun",
+    "labour"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "did_estimate",
+   "unit": "currency",
+   "claim_ceiling": "associational",
+   "category": "impact evaluation",
+   "inputs": [
+    "control_post",
+    "control_pre",
+    "treated_post",
+    "treated_pre"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "forecast",
+   "label": "Trend forecast",
+   "method": "trend_forecast",
+   "preset": "forecast",
+   "group": "impact_evaluation",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": "a series in period order and the horizon",
+   "related": [
+    "scenario",
+    "risk",
+    "unitecon"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "forecast_1",
+   "unit": "from_request",
+   "claim_ceiling": "predictive",
+   "category": "forecasting",
+   "inputs": [
+    "confidence_level",
+    "horizon",
+    "missing_codes",
+    "values"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "currency",
+   "label": "Currency conversion",
+   "method": "currency_convert",
+   "preset": "currency",
+   "group": "impact_evaluation",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "fx",
+    "case_decision",
+    "forecast"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "amount",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "currency",
+   "inputs": [
+    "amount",
+    "from_currency",
+    "rate",
+    "rate_date",
+    "rate_provenance",
+    "rate_source",
+    "to_currency"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "pricing",
+   "label": "Pricing rules",
+   "method": "pricing_decision",
+   "preset": "pricing",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "breakeven",
+    "elasticity",
+    "unitecon"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "cost_plus_price",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "pricing",
+   "inputs": [
+    "expected_units",
+    "fixed_cost",
+    "markup_rate",
+    "target_margin_rate",
+    "target_profit",
+    "unit_cost"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "demandcurve",
+   "label": "Demand line and revenue-max price",
+   "method": "demand_curve",
+   "preset": "demandcurve",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": "supply_demand",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "elasticity",
+    "pricing",
+    "purchaseintent"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "slope",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "demand analysis",
+   "inputs": [
+    "prices",
+    "quantities"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "cba",
+   "label": "Cost-benefit analysis",
+   "method": "cost_benefit",
+   "preset": "cba",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "cea",
+    "sroi",
+    "equilibrium"
+   ],
+   "method_resolved": true,
+   "tier": "T2",
+   "metric": "net_present_value",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "appraisal",
+   "inputs": [
+    "benefits",
+    "costs",
+    "discount_rate"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "cea",
+   "label": "Cost-effectiveness analysis",
+   "method": "cost_effectiveness",
+   "preset": "cea",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "cba",
+    "sroi"
+   ],
+   "method_resolved": true,
+   "tier": "T2",
+   "metric": "n_options",
+   "unit": "count",
+   "claim_ceiling": "descriptive",
+   "category": "appraisal",
+   "inputs": [
+    "options"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "sroi",
+   "label": "Social return on investment",
+   "method": "sroi",
+   "preset": "sroi",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "cba",
+    "cea"
+   ],
+   "method_resolved": true,
+   "tier": "T2",
+   "metric": "sroi_ratio",
+   "unit": "ratio",
+   "claim_ceiling": "descriptive",
+   "category": "appraisal",
+   "inputs": [
+    "benefits",
+    "discount_rate",
+    "investment"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "npv",
+   "label": "Net present value",
+   "method": "npv",
+   "preset": "npv",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": "the outlay, the later cash flows, and the hurdle rate you will justify",
+   "related": [
+    "irr",
+    "dpayback",
+    "projectmetrics",
+    "scenario"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "npv",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "capital budgeting",
+   "inputs": [
+    "cashflows",
+    "rate"
+   ],
+   "n_tests": 3
+  },
+  {
+   "key": "dcf",
+   "label": "DCF valuation (year-end)",
+   "method": "dcf_valuation",
+   "preset": "dcf",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "wacc",
+    "dcfmid",
+    "equitybridge",
+    "multiples"
+   ],
+   "method_resolved": true,
+   "tier": "T2",
+   "metric": "enterprise_value",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "valuation",
+   "inputs": [
+    "cashflows",
+    "discount_rate",
+    "terminal_growth",
+    "timing"
+   ],
+   "n_tests": 6
+  },
+  {
+   "key": "breakeven",
+   "label": "Break-even point",
+   "method": "breakeven",
+   "preset": "breakeven",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": "breakeven",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "multibreakeven",
+    "unitecon",
+    "pricing"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "breakeven_units",
+   "unit": "units",
+   "claim_ceiling": "descriptive",
+   "category": "cost-volume-profit",
+   "inputs": [
+    "expected_units",
+    "fixed",
+    "price",
+    "target_profit",
+    "variable"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "multibreakeven",
+   "label": "Multi-product break-even",
+   "method": "multi_product_breakeven",
+   "preset": "multibreakeven",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": "breakeven",
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "breakeven",
+    "unitecon"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "breakeven_total_units",
+   "unit": "units",
+   "claim_ceiling": "descriptive",
+   "category": "cost-volume-profit",
+   "inputs": [
+    "fixed_costs",
+    "products"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "unitecon",
+   "label": "Unit economics",
+   "method": "unit_economics",
+   "preset": "unitecon",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 4,
+   "need": null,
+   "related": [
+    "breakeven",
+    "portfolio",
+    "forecast"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "unit_margin",
+   "unit": "currency",
+   "claim_ceiling": "descriptive",
+   "category": "unit economics",
+   "inputs": [
+    "acquisition_cost",
+    "churn_rate",
+    "price",
+    "variable_cost"
+   ],
+   "n_tests": 5
+  },
+  {
+   "key": "descriptive",
+   "label": "Descriptive statistics",
+   "method": "descriptive_stats",
+   "preset": "descriptive",
+   "group": "quantitative_core",
+   "level": "intro",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": "the numbers you hold and the group they describe",
+   "related": [
+    "pearson",
+    "ols"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "mean",
+   "unit": "from_request",
+   "claim_ceiling": "descriptive",
+   "category": "descriptive statistics",
+   "inputs": [
+    "missing_codes",
+    "values"
+   ],
+   "n_tests": 6
+  },
+  {
+   "key": "pearson",
+   "label": "Pearson correlation",
+   "method": "pearson",
+   "preset": "pearson",
+   "group": "quantitative_core",
+   "level": "intermediate",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": "the two numeric variables you are relating, and the pairs you observed",
+   "related": [
+    "spearman",
+    "ols"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "r",
+   "unit": "correlation",
+   "claim_ceiling": "associational",
+   "category": "correlation",
+   "inputs": [
+    "alpha",
+    "confidence_level",
+    "missing_codes",
+    "x",
+    "y"
+   ],
+   "n_tests": 6
+  },
+  {
+   "key": "ols",
+   "label": "Linear regression",
+   "method": "ols",
+   "preset": "ols",
+   "group": "quantitative_core",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 4,
+   "n_mistakes": 3,
+   "need": "the outcome, the predictors, and the observations you have for each",
+   "related": [
+    "ols_robust",
+    "pearson",
+    "logit"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "r_squared",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "regression",
+   "inputs": [
+    "alpha",
+    "confidence_level",
+    "missing_codes",
+    "predictors",
+    "y"
+   ],
+   "n_tests": 7
+  },
+  {
+   "key": "welch",
+   "label": "Welch two-sample t-test",
+   "method": "welch_t",
+   "preset": "welch",
+   "group": "quantitative_core",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "paired",
+    "anova"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "diff",
+   "unit": "from_request",
+   "claim_ceiling": "associational",
+   "category": "group comparison",
+   "inputs": [
+    "alpha",
+    "confidence_level",
+    "groups",
+    "missing_codes"
+   ],
+   "n_tests": 7
+  },
+  {
+   "key": "anova",
+   "label": "One-way ANOVA",
+   "method": "anova",
+   "preset": "anova",
+   "group": "quantitative_core",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": null,
+   "related": [
+    "kruskal_wallis",
+    "posthoc"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "eta_squared",
+   "unit": "from_request",
+   "claim_ceiling": "associational",
+   "category": "group comparison",
+   "inputs": [
+    "alpha",
+    "groups",
+    "missing_codes"
+   ],
+   "n_tests": 7
+  },
+  {
+   "key": "chi_square",
+   "label": "Chi-square association",
+   "method": "chi_square",
+   "preset": "chi_square",
+   "group": "quantitative_core",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": "a two-way table of counts, and the categories in each direction",
+   "related": [
+    "pearson",
+    "power"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "cramers_v",
+   "unit": "ratio",
+   "claim_ceiling": "associational",
+   "category": "categorical association",
+   "inputs": [
+    "alpha",
+    "table"
+   ],
+   "n_tests": 6
+  },
+  {
+   "key": "power",
+   "label": "Power and sample size",
+   "method": "power_analysis",
+   "preset": "power",
+   "group": "quantitative_core",
+   "level": "advanced",
+   "diagram": null,
+   "has_formula": true,
+   "n_steps": 3,
+   "n_mistakes": 3,
+   "need": "the size of the effect you are looking for and the number of observations",
+   "related": [
+    "welch",
+    "anova",
+    "chi_square"
+   ],
+   "method_resolved": true,
+   "tier": "T1",
+   "metric": "power",
+   "unit": "probability",
+   "claim_ceiling": "descriptive",
+   "category": "study design",
+   "inputs": [
+    "alpha",
+    "design",
+    "effect",
+    "n1",
+    "n2",
+    "sd1",
+    "sd2",
+    "tails",
+    "target_power"
+   ],
+   "n_tests": 5
+  }
+ ],
+ "records": [
+  {
+   "id": "QNT-FIN-07",
+   "name": "Pricing and demand",
+   "form": "computed",
+   "template": null,
+   "linked_methods": [
+    "pricing_decision",
+    "elasticity"
+   ],
+   "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented"
+  },
+  {
+   "id": "QNT-EVL-01",
+   "name": "Cost\u2013benefit and cost-effectiveness calculations",
+   "form": "computed",
+   "template": null,
+   "linked_methods": [
+    "cost_benefit",
+    "cost_effectiveness"
+   ],
+   "status_note": "partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented"
+  },
+  {
+   "id": "QNT-EVL-02",
+   "name": "Discounting of costs and benefits, sensitivity to valuation assumptions",
+   "form": "computed",
+   "template": null,
+   "linked_methods": [
+    "npv",
+    "dcf_valuation"
+   ],
+   "status_note": "partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented"
+  },
+  {
+   "id": "QNT-EVL-03",
+   "name": "Difference-in-differences and other impact-estimation methods when assumptions and data support them",
+   "form": "computed",
+   "template": null,
+   "linked_methods": [
+    "difference_in_differences"
+   ],
+   "status_note": "partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented"
+  },
+  {
+   "id": "QNT-EVL-05",
+   "name": "SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and monetization assumptions",
+   "form": "computed",
+   "template": null,
+   "linked_methods": [
+    "sroi"
+   ],
+   "status_note": "partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive"
+  }
+ ],
+ "method_gaps": [],
+ "duplicate_definitions": {
+  "src\\bp\\methods.py": {
+   "_risk_typing": [
+    4616,
+    12616
+   ],
+   "_tax_typing": [
+    5164,
+    13953
+   ],
+   "_social_typing": [
+    6441,
+    10066
+   ]
+  }
+ }
+}

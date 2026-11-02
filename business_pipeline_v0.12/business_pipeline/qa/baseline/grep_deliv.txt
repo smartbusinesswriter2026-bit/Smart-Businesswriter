@@ -1,0 +1,11 @@
+﻿73: def profile(name):
+82: def check_pair(name, fmt):
+92: def infer(fmt):
+104: def catalogue():
+112: def _appendix(bundle):
+117: def _accounts(bundle):
+123: def _lines(value):
+129: def block(bundle, name):
+201: def sections(bundle, profile_name):
+212: def write_export(bundle, profile_name, fmt, destination):
+235: def _title(bundle):

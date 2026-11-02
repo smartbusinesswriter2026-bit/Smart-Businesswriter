@@ -1,0 +1,48 @@
+fix(finance): the paper prints money, and the shelf finally has a manual and a suite
+
+QA session 2 (finance). Three parts, one increment:
+
+1. D-FIN-02 (BLOCKER, product layer). The finance capability papers printed the frozen
+   core's exact Decimal into student prose: "future value 412169.5058950504338405337159861
+   03103944392272576332". chat.py had no formatter for time_value, leverage_analysis or
+   equity_bridge (they fell through to _generic_lines, which quotes the recorded output),
+   and _payback_lines / _project_metrics_lines / _unit_economics_lines called _fmt_exact on
+   computed non-integers. Added _time_value_lines, _leverage_lines and _equity_bridge_lines
+   and moved the three computed figures to _fmt_number. The product still only formats the
+   core's numbers; nothing is recomputed here.
+
+2. The missing manual: qa/manual/finance.md. 35 tools, 0 worksheets, 23 records, 22 glossary
+   terms, every cell citing bp.methods.LIBRARY / subjects.detail() / the harness rules, and
+   50 numbered E-fin-nnn rows.
+
+3. The acceptance suite: tests/test_subject_finance_acceptance.py, 50 tests, one per E-row,
+   including independent recomputation (hand arithmetic and the hash-pinned
+   ratio/descriptive/forecast/correlation/regression fixtures), the refusal reasons, the
+   session lifecycle, sandbox parity, determinism and the capability formatters.
+
+Also fixed: tests/test_finance_additions.py asserted that *no* economics tool carries a
+group, which stopped being true when the economics shelf declared its own grouping
+(subjects.ECONOMICS_TILES). The guard now asserts what it always meant — no finance group
+name on the economics page — so it still catches a real leak (D-FIN-06).
+
+Also corrected: docs/CURRICULUM_MAP.md said the shelf had "33 tools … plus trend_analysis";
+it has 35 (D-FIN-11). docs/HOME.md, HANDOFF.md and CONTRIBUTORS.md carry the new documented
+suite count (2761).
+
+Reported, not fixed (see qa/QA_DEFECTS.md): D-FIN-01, the dcfmid tile is undeliverable
+because the frozen _dcf_tests compares the input set with itself when the input already
+declares timing="mid"; the independent recomputation in qa/probe_dcf_midyear.py shows the
+method is right to 40 digits and only the check is wrong, so the fix is inside the frozen
+core and needs an owner unfreeze.
+
+Note on staging: src/bp/product/chat.py also carries three lines of the B-180 wiring that
+were already in the tree when this session opened (owner-approved, committed separately as
+4e842f0). qa/QA_DEFECTS.md is shared with a concurrent economics session and therefore also
+carries that session's D-ECO rows; this commit's own rows are D-FIN-*.
+
+Verified by: tests/test_subject_finance_acceptance.py (50 tests, 50 passed), the finance
+slice (147 passed), tests/test_docs_sync.py (7 passed), scripts/econ_shelf.py --check
+("frozen fixture: in sync"), scripts/ui_smoke.py (0 failures), a live click-through of all
+35 tiles on port 8001 (0 failures, 1 known-blocked, 1 no-preset), and scripts/ci.py
+(2 of 3 steps; the unit-test step's failure set has 0 new names and 2 fewer than at the
+opening — 77 vs 79). Documented suite count 2761.

@@ -50,14 +50,15 @@ the **Time-weighted return**. *Export the report* is on the hero.
 with sourced data."* The trap is picking from memory. The lab makes you look at the same criteria
 for every candidate, and it shows what it could not source.
 
-**You need:** nothing but the page. A quote key must be configured server-side for live prices (the
-provider is shown at the top of the lab); SEC fundamentals need no key.
+**You need:** nothing but the page. Live quotes come from the market-data service this app is
+connected to, and company fundamentals and filings are read from SEC EDGAR: you do not need an
+account, a key or any setting.
 
 **Click by click**
 
 1. Rail → **Portfolio**.
 2. Scroll to **Before you buy → Find and screen candidates**. Under *Quote provider* keep
-   **Alpha Vantage** (or choose **Massive** if that is the key configured).
+   **Alpha Vantage** or **Massive** — whichever is connected on this machine.
 3. Click the **Watch list and prices** tab.
 4. In **Add symbols to the watch list**, type your candidates separated by commas, e.g.
    `AAPL, MSFT, VOO` — any quoteable ticker works, not just the reference list.
@@ -248,7 +249,7 @@ reported.
 
 | Symptom | Fix |
 |---|---|
-| "Could not add: X (… key is configured)" | the quote provider key is not set server-side; tell the operator, or record prices manually |
+| "Could not add: <symbol> — no price was stored" | the ticker is not covered, or the live quote service is unavailable; nothing was estimated. Try the ticker again later, or add the holding and type its price yourself |
 | "Symbols to screen" is empty on **Find candidates** | click **Use my watch list**, or type tickers |
 | **Create the snapshot** refuses with missing prices | fill every holding's price (or **Fetch prices**), then retry |
 | **Open in the Business Calculator** is missing | the prefill is not ready — read the gap card above the inputs |

@@ -1,0 +1,82 @@
+﻿
+> qa\baseline\fin_acc_partial.txt:3:_ 
+FinanceCatalogueAndContract.test_006__every_preset_default_passes_schema_and_profile _
+  qa\baseline\fin_acc_partial.txt:4:
+> qa\baseline\fin_acc_partial.txt:5:self = 
+<test_subject_finance_acceptance.FinanceCatalogueAndContract 
+testMethod=test_006__every_preset_default_passes_schema_and_profile>
+  qa\baseline\fin_acc_partial.txt:6:
+> qa\baseline\fin_acc_partial.txt:7:    def 
+test_006__every_preset_default_passes_schema_and_profile(self):
+  qa\baseline\fin_acc_partial.txt:8:        """E-fin-006: a shipped preset is a 
+runnable example, not a broken one."""
+  qa\baseline\fin_acc_partial.txt:9:        for item in tools():
+  qa\baseline\fin_acc_partial.txt:10:            if item["method"] not in 
+methods.LIBRARY:
+  qa\baseline\fin_acc_partial.txt:11:                continue
+  qa\baseline\fin_acc_partial.txt:12:            preset_id, request = 
+request_for(item["method"])
+  qa\baseline\fin_acc_partial.txt:13:>           self.assertIsNotNone(preset_id, 
+item["method"])
+  qa\baseline\fin_acc_partial.txt:14:E           AssertionError: unexpectedly None : 
+ols_robust
+  qa\baseline\fin_acc_partial.txt:15:
+  qa\baseline\fin_acc_partial.txt:16:tests\test_subject_finance_acceptance.py:175: 
+AssertionError
+> qa\baseline\fin_acc_partial.txt:17:_ FinanceCatalogueAndContract.test_007__every_metho
+d_passes_its_own_checks_on_its_preset_except_mid_year_dcf _
+  qa\baseline\fin_acc_partial.txt:18:
+> qa\baseline\fin_acc_partial.txt:19:self = 
+<test_subject_finance_acceptance.FinanceCatalogueAndContract testMethod=test_007__every_
+method_passes_its_own_checks_on_its_preset_except_mid_year_dcf>
+  qa\baseline\fin_acc_partial.txt:20:
+> qa\baseline\fin_acc_partial.txt:21:    def 
+test_007__every_method_passes_its_own_checks_on_its_preset_except_mid_year_dcf(self):
+  qa\baseline\fin_acc_partial.txt:22:        """E-fin-007 / D-FIN-01: the one failing 
+self-check, pinned with its ledger id."""
+  qa\baseline\fin_acc_partial.txt:23:        failures = []
+  qa\baseline\fin_acc_partial.txt:24:        for item in tools():
+  qa\baseline\fin_acc_partial.txt:25:            if item["method"] not in 
+methods.LIBRARY:
+  qa\baseline\fin_acc_partial.txt:26:                continue
+  qa\baseline\fin_acc_partial.txt:27:            preset_id, request = 
+request_for(item["method"])
+  qa\baseline\fin_acc_partial.txt:28:            if item["preset"] in server.PRESETS:
+  qa\baseline\fin_acc_partial.txt:29:                preset_id, request = 
+item["preset"], server.PRESETS[item["preset"]]
+  qa\baseline\fin_acc_partial.txt:30:            method = 
+methods.LIBRARY[item["method"]]
+  qa\baseline\fin_acc_partial.txt:31:>           for name, ok in 
+method.tests(dict(request["inputs"]), method.impl):
+  qa\baseline\fin_acc_partial.txt:32:                                              
+^^^^^^^^^^^^^^^^^
+  qa\baseline\fin_acc_partial.txt:33:E           TypeError: 'NoneType' object is not 
+subscriptable
+  qa\baseline\fin_acc_partial.txt:34:
+  qa\baseline\fin_acc_partial.txt:35:tests\test_subject_finance_acceptance.py:193: 
+TypeError
+  qa\baseline\fin_acc_partial.txt:36:_ FinanceIndependentRecomputation.test_024__descrip
+tive_forecast_pearson_and_ols_match_their_golden_fixtures _
+  qa\baseline\fin_acc_partial.txt:37:
+  qa\baseline\fin_acc_partial.txt:38:self = 
+<test_subject_finance_acceptance.FinanceIndependentRecomputation 
+testMethod=test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures>
+  qa\baseline\fin_acc_partial.txt:39:
+  qa\baseline\fin_acc_partial.txt:40:    def 
+test_024__descriptive_forecast_pearson_and_ols_match_their_golden_fixtures(self):
+  qa\baseline\fin_acc_partial.txt:41:        """E-fin-024: the four statistical tools 
+on the shelf against their fixtures."""
+  qa\baseline\fin_acc_partial.txt:42:        descriptive = 
+fixture("descriptive_golden.json")
+  qa\baseline\fin_acc_partial.txt:43:        for case in descriptive:
+> qa\baseline\fin_acc_partial.txt:74:FAILED tests/test_subject_finance_acceptance.py::Fi
+nanceCatalogueAndContract::test_006__every_preset_default_passes_schema_and_profile
+> qa\baseline\fin_acc_partial.txt:75:FAILED tests/test_subject_finance_acceptance.py::Fi
+nanceCatalogueAndContract::test_007__every_method_passes_its_own_checks_on_its_preset_ex
+cept_mid_year_dcf
+  qa\baseline\fin_acc_partial.txt:76:FAILED tests/test_subject_finance_acceptance.py::Fi
+nanceIndependentRecomputation::test_024__descriptive_forecast_pearson_and_ols_match_thei
+r_golden_fixtures
+  qa\baseline\fin_acc_partial.txt:77:3 failed, 22 passed in 0.60s
+
+
