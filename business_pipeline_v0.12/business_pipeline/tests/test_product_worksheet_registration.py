@@ -20,7 +20,7 @@ class WorksheetRegistrationTests(unittest.TestCase):
     def test_new_catalogue_records_exist(self):
         data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "src", "bp", "data", "registry_v0_2.json")))
         ids = {r["id"] for r in data["records"]}
-        for cid in ("CHG-15", "STR-19", "STR-20"):
+        for cid in ("CHG-15", "STR-19"):
             self.assertIn(cid, ids)
     def test_eight_profiles_exist(self):
         for key in ("bmc", "lean_canvas", "value_proposition_canvas", "project_charter", "wbs", "risk_register", "stakeholder_plan", "lessons_learned"):

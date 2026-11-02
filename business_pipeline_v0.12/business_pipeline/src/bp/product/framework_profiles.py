@@ -5517,20 +5517,21 @@ RACI = {'assumption': 'probe',
  'title_prefix': 'RACI Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'RACI assigns four roles to each task. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'RACI assigns four roles to each task. Name the industry or market.'},
+ 'voice': {'block_plural': 'roles',
            'closing': 'identifies the role with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the roles are assigned to the '
+                            'tasks that need to get things done there.',
+           'implication_frame': 'A role assignment has to be defensible: someone must own the work, someone must '
+                                'answer for the outcome, and the evidence must show who should do what.',
+           'interaction': 'Read together, the roles describe how work gets done in the market: the person who does '
+                          'the work, the person who answers for it, the person whose advice is needed, and the '
+                          'person who is kept in the loop.',
+           'intro_frame': 'The unit of analysis is the industry, because RACI assigns roles to tasks in that '
+                          'industry.',
+           'lens': 'the four RACI roles: responsible, accountable, consulted, informed',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the role assignment the decision relies on',
            'unit_noun': 'industry'}}
@@ -6445,103 +6446,6 @@ STRATEGIC_POSITIONING = {'assumption': 'probe',
            'reference_heading': 'References'}}
 
 
-STRATEGY_4 = {'assumption': 'probe',
- 'blocks': [{'category': None,
-             'cues': 'perspective worldview identity',
-             'fill': 'research',
-             'key': 'perspective',
-             'label': 'Perspective',
-             'probe': 'state the evidence for perspective',
-             'prompt': 'How the organisation sees the world and its place in it',
-             'queries': ['perspective and identity in this industry']},
-            {'category': None,
-             'cues': 'position competitive standing',
-             'fill': 'research',
-             'key': 'position',
-             'label': 'Position',
-             'probe': 'state the evidence for position',
-             'prompt': 'Where the organisation stands relative to competitors',
-             'queries': ['competitive position in this industry']},
-            {'category': None,
-             'cues': 'plan course of action',
-             'fill': 'research',
-             'key': 'plan',
-             'label': 'Plan',
-             'probe': 'state the evidence for the plan',
-             'prompt': 'The intended course of action to reach the desired position',
-             'queries': ['strategic plan and course of action in this industry']},
-            {'category': None,
-             'cues': 'pattern behaviour realised',
-             'fill': 'research',
-             'key': 'pattern',
-             'label': 'Pattern',
-             'probe': 'state the evidence for the pattern',
-             'prompt': 'The realised behaviour that emerges over time',
-             'queries': ['emergent pattern and behaviour in this industry']}],
- 'gate': {'require_geography': False, 'title_context': True, 'title_cue': True},
- 'key': 'strategy_4',
- 'label': 'Strategy 4',
- 'notes': {'pattern': {'analysis': 'This element describes a strategic perspective. The relevant question is whether '
-                                   'the evidence shows it.',
-                       'probe': 'state the evidence for this element',
-                       'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                  'measured.',
-                       'short': 'An element without evidence is a claim without support.'},
-           'perspective': {'analysis': 'This element describes a strategic perspective. The relevant question is '
-                                       'whether the evidence shows it.',
-                           'probe': 'state the evidence for this element',
-                           'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                      'measured.',
-                           'short': 'An element without evidence is a claim without support.'},
-           'plan': {'analysis': 'This element describes a strategic perspective. The relevant question is whether the '
-                                'evidence shows it.',
-                    'probe': 'state the evidence for this element',
-                    'qualify': 'The evidence does not establish this element, so it is described rather than measured.',
-                    'short': 'An element without evidence is a claim without support.'},
-           'position': {'analysis': 'This element describes a strategic perspective. The relevant question is whether '
-                                    'the evidence shows it.',
-                        'probe': 'state the evidence for this element',
-                        'qualify': 'The evidence does not establish this element, so it is described rather than '
-                                   'measured.',
-                        'short': 'An element without evidence is a claim without support.'}},
- 'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
-             'discussion': 'What the evidence shows',
-             'framework': 'Strategy 4',
-             'implications': 'Implications for the decision',
-             'lead': 'Strategy as perspective, position, plan and pattern describes how an organisation sees itself '
-                     'and behaves. Each is examined in turn, first through the evidence and then through what it '
-                     'implies.',
-             'limitations': 'Limitations'},
- 'providers': ['brave', 'deepseek', 'firecrawl'],
- 'ratings': False,
- 'sites': 'industry',
- 'subject': 'strategy',
- 'template': 'template_strategy_4',
- 'title_prefix': 'Strategy 4 Analysis',
- 'unit': {'field': 'industry',
-          'label': 'Industry or market',
-          'help': 'The strategy framework is set for a firm in a market. Name the industry or market.',
-          'example': 'smartphones, grocery retail, banking',
-          'refuse': 'The strategy framework is set for a firm in a market. Name the industry or market.'},
- 'voice': {'thesis_question': 'whether the evidence supports the strategy the decision depends on',
-           'unit_noun': 'market',
-           'block_plural': 'elements',
-           'lens': 'the four parts of a strategy: the perspective it rests on, the position it claims, the plan '
-                   'that delivers it and the pattern it creates',
-           'closing': 'identifies the element the strategy depends on and the element the evidence cannot settle',
-           'intro_frame': 'The unit of analysis is the market rather than the firm, because the framework reads a '
-                          "strategy against the market it is played in rather than describing the firm's own "
-                          'activity.',
-           'context_frame': 'The relevant market is the one named in the brief; the elements describe the strategy '
-                            'in that market rather than the strategy the firm would prefer.',
-           'interaction': 'Read together, the elements describe one strategy from four angles rather than four '
-                          'separate plans: the perspective bounds the position, the position is delivered by the '
-                          'plan, and the pattern is what the plan has to produce in practice.',
-           'implication_frame': 'A decision about the strategy has to match the pattern the evidence supports, '
-                                'because a plan that does not change the pattern of behaviour has not changed how '
-                                'the firm competes.',
-           'reference_heading': 'References'}}
 
 
 CHANGE_ORGANIZATION = {'assumption': 'probe',
@@ -6806,20 +6710,21 @@ MARKETING_PLAN = {'assumption': 'probe',
  'title_prefix': 'Marketing Plan Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'A marketing plan is set for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'A marketing plan is set for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'elements',
            'closing': 'identifies the element with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the elements describe the plan '
+                            'for that market rather than the plan the firm would prefer.',
+           'implication_frame': 'A decision about the plan has to match the evidence the market supports: the '
+                                'segment chosen has to justify the position, and the mix has to deliver that '
+                                'position at a price and through channels the market accepts.',
+           'interaction': 'Read together, the elements describe one plan in which some evidence is present and '
+                          'some is not, and an element without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the plan is read against the '
+                          'market it addresses rather than describing the activity of the firm.',
+           'lens': 'the segmentation, targeting and positioning decisions and the marketing mix that delivers them',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the marketing plan the decision relies on',
            'unit_noun': 'industry'}}
@@ -6916,20 +6821,21 @@ KANO = {'assumption': 'probe',
  'title_prefix': 'Kano Model Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'The Kano model classifies requirements for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'The Kano model classifies requirements for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'categories',
            'closing': 'identifies the category with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the categories are how customers '
+                            'in that market judge the offer.',
+           'implication_frame': 'A decision about the offer has to match the categories the evidence supports: a '
+                                'must-be quality left unmet loses the customer, while an attractive quality is '
+                                'where the offer can be judged better than rivals.',
+           'interaction': 'Read together, the categories describe one set of requirements in which some evidence '
+                          'is present and some is not, and a category without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the categories describe how '
+                          'customers in that market react to quality rather than what the firm intends to deliver.',
+           'lens': 'the five quality categories, from must-be to reverse',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the quality classification the decision relies on',
            'unit_noun': 'industry'}}
@@ -7054,20 +6960,21 @@ PAID_MEDIA_PLAN = {'assumption': 'probe',
  'title_prefix': 'Paid Media Plan Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'A paid media plan is set for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'A paid media plan is set for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'elements',
            'closing': 'identifies the element with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the elements describe the media '
+                            'bought in that market rather than the media the firm would prefer.',
+           'implication_frame': 'A decision about the plan has to match what the market can deliver: the audience '
+                                'has to be reachable on the named channels, the budget has to carry the bid, and '
+                                'the conversion definition has to match what the plan is judged on.',
+           'interaction': 'Read together, the elements describe one plan in which some evidence is present and '
+                          'some is not, and an element without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the plan buys attention in '
+                          'that market rather than describing the activity of the firm.',
+           'lens': 'the objective, audience, channels, budget, creative, conversion definition and measurement the plan sets out',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the media plan the decision relies on',
            'unit_noun': 'industry'}}
@@ -7163,20 +7070,21 @@ MEASUREMENT_PLAN = {'assumption': 'probe',
  'title_prefix': 'Measurement Plan Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'A measurement plan is set for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'A measurement plan is set for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'elements',
            'closing': 'identifies the element with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the elements describe what is '
+                            'measured in that market rather than what the firm finds convenient.',
+           'implication_frame': 'A decision about the plan has to match what the market can actually measure: each '
+                                'metric has to answer a stated question, rest on events that are captured, and be '
+                                'owned by someone accountable for its quality.',
+           'interaction': 'Read together, the elements describe one plan in which some evidence is present and '
+                          'some is not, and an element without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the plan measures outcomes in '
+                          'that market rather than describing the activity of the firm.',
+           'lens': 'the questions, metrics, events, data quality and governance the plan sets out',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the measurement plan the decision relies on',
            'unit_noun': 'industry'}}
@@ -7453,20 +7361,21 @@ CUSTOMER_JOURNEY = {'assumption': 'probe',
  'title_prefix': 'Customer Journey Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'The customer journey is read for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'The customer journey is read for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'stages',
            'closing': 'identifies the element with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the stages are behaviours of '
+                            'customers in that market.',
+           'implication_frame': 'A decision about the offer has to match the journey the evidence supports: what '
+                                'draws customers in at awareness has to be carried through consideration and '
+                                'purchase to retention and advocacy.',
+           'interaction': 'Read together, the stages describe one journey in which some evidence is present and '
+                          'some is not, and a stage without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the journey describes how '
+                          'customers behave in that market rather than inside the firm.',
+           'lens': 'the five stages a customer passes through, from awareness to advocacy',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the customer journey the decision relies on',
            'unit_noun': 'industry'}}
@@ -7686,20 +7595,21 @@ SERVQUAL = {'assumption': 'probe',
  'title_prefix': 'SERVQUAL Analysis',
  'unit': {'example': 'smartphones, grocery retail, banking',
           'field': 'industry',
-          'help': "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+          'help': 'SERVQUAL reads service quality for a firm in a market. Name the industry or market.',
           'label': 'Industry or market',
-          'refuse': "VRIO evaluates resources against an industry's competitors. Name the industry or market."},
- 'voice': {'block_plural': 'tests',
+          'refuse': 'SERVQUAL reads service quality for a firm in a market. Name the industry or market.'},
+ 'voice': {'block_plural': 'dimensions',
            'closing': 'identifies the element with the strongest evidence and the one most unsupported',
-           'context_frame': 'The relevant industry is the one named in the brief; the tests are properties of the '
-                            'resource in that industry.',
-           'implication_frame': 'A sustained advantage has to answer the tests the evidence supports: what is '
-                                'valuable, rare, costly to imitate and organized to capture value.',
-           'interaction': 'Read together, the tests describe a resource in which some evidence is present and some is '
-                          'not, and a test without evidence carries no weight.',
-           'intro_frame': 'The unit of analysis is the industry, because VRIO evaluates resources against an '
-                          "industry's competitors.",
-           'lens': 'the resources a firm holds, and how each passes the four tests',
+           'context_frame': 'The relevant industry is the one named in the brief; the dimensions are how customers '
+                            'in that market judge the service.',
+           'implication_frame': 'A decision about the service has to match the dimensions the evidence supports: '
+                                'reliability is the floor a customer expects, and the remaining dimensions are '
+                                'where the service can be judged better than rivals.',
+           'interaction': 'Read together, the dimensions describe one service in which some evidence is present '
+                          'and some is not, and a dimension without evidence carries no weight.',
+           'intro_frame': 'The unit of analysis is the industry or market, because the dimensions describe how '
+                          'customers in that market judge service rather than how the firm believes it performs.',
+           'lens': 'the five service-quality dimensions, from tangibles to empathy',
            'reference_heading': 'References',
            'thesis_question': 'whether the evidence supports the servqual the decision relies on',
            'unit_noun': 'industry'}}
@@ -10633,7 +10543,7 @@ PROFILES = {profile["template"]: profile
                             PDCA, JOB_CHARACTERISTICS, KIRKPATRICK, AMO, TUCKMAN, 
 NINE_BOX, KOTTER, COMPETING_VALUES, ORG_DESIGN, ADKAR, LEWIN, THEORY_OF_CHANGE, PDSA, DMAIC, GENERIC_STRATEGIES, BCG, GE_MCKINSEY, MCKINSEY_7S, RACI, PORTERS_DIAMOND, BURKE_LITWIN, GALBRAITH_STAR, MINTZBERG, LOGIC_MODEL,
 BMC, LEAN_CANVAS, VALUE_PROPOSITION_CANVAS, PROJECT_CHARTER, WBS, RISK_REGISTER, STAKEHOLDER_PLAN, LESSONS_LEARNED,
-STRATEGIC_POSITIONING, STRATEGY_4, CHANGE_ORGANIZATION, MARKETING_PLAN, KANO, PAID_MEDIA_PLAN, MEASUREMENT_PLAN, STP, AIDA, CUSTOMER_JOURNEY, FUNNEL, SERVQUAL, RFM, TAM, UTAUT, BRAND_EQUITY, DIGITAL_MIX, SEO_CONTENT, EMAIL_CRM, SOCIAL_MEDIA, ATTRIBUTION, CRO, MARKETING_AUTOMATION, STP_EVIDENCE,)
+STRATEGIC_POSITIONING, CHANGE_ORGANIZATION, MARKETING_PLAN, KANO, PAID_MEDIA_PLAN, MEASUREMENT_PLAN, STP, AIDA, CUSTOMER_JOURNEY, FUNNEL, SERVQUAL, RFM, TAM, UTAUT, BRAND_EQUITY, DIGITAL_MIX, SEO_CONTENT, EMAIL_CRM, SOCIAL_MEDIA, ATTRIBUTION, CRO, MARKETING_AUTOMATION, STP_EVIDENCE,)
 }
 #: The default profile for a payload that predates the template field.
 

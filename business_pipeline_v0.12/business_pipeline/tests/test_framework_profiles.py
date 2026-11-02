@@ -102,5 +102,47 @@ class ProfileTest(unittest.TestCase):
                          "Porter's Five Forces")
 
 
+class ForeignFrameworkTextTest(unittest.TestCase):
+    """The trap test for a profile that was copied from another framework.
+
+    RACI, Customer Journey, Kano, Marketing Plan, Measurement Plan, Paid Media
+    Plan and SERVQUAL each carried VRIO's words in ``unit`` and ``voice``, so a
+    paper built from them described the wrong framework.  The guard is on the two
+    blocks that reach the model prompt and the deterministic draft.
+    """
+
+    VRIO_SIGNATURE = ("vrio", "valuable, rare, costly", "costly to imitate",
+                      "the four tests")
+
+    def _strings(self, value):
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, dict):
+            for item in value.values():
+                yield from self._strings(item)
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                yield from self._strings(item)
+
+    def test_no_other_profile_describes_vrio(self):
+        offenders = []
+        for template, profile in framework_profiles.PROFILES.items():
+            if template == "template_vrio":
+                continue
+            text = " ".join(self._strings(
+                [profile.get("unit"), profile.get("voice")])).lower()
+            for marker in self.VRIO_SIGNATURE:
+                if marker in text:
+                    offenders.append((template, marker))
+        self.assertEqual(offenders, [])
+
+    def test_raci_speaks_of_roles_not_resources(self):
+        profile = framework_profiles.get("template_raci")
+        self.assertEqual(profile["voice"]["block_plural"], "roles")
+        lens = profile["voice"]["lens"].lower()
+        for role in ("responsible", "accountable", "consulted", "informed"):
+            self.assertIn(role, lens)
+
+
 if __name__ == "__main__":
     unittest.main()

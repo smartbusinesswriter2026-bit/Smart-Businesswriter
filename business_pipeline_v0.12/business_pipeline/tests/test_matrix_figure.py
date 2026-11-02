@@ -195,5 +195,68 @@ class ExportGateTest(unittest.TestCase):
         self.assertTrue(any(issue["type"] == "meta_text" for issue in issues["issues"]), issues)
 
 
+class ResponsibilityLayoutTest(unittest.TestCase):
+    """The grid added for the responsibility framework.
+
+    RACI is four roles read left to right, so the paper draws it as a figure
+    rather than as paragraphs in a row.
+    """
+
+    def test_the_raci_layout_is_four_columns_in_canonical_order(self):
+        layout = matrix.layout_for("template_raci")
+        self.assertIsNotNone(layout)
+        self.assertEqual(layout["kind"], "columns")
+        cells = [cell for row in layout["grids"][0]["rows"] for cell in row]
+        self.assertEqual(cells,
+                         ["responsible", "accountable", "consulted", "informed"])
+
+    def test_the_raci_layout_builds_a_figure_with_canonical_labels(self):
+        figure = matrix.build("template_raci", {})
+        found = [cell["label"] for grid in figure["grids"]
+                 for row in grid["rows"] for cell in row]
+        self.assertEqual(sorted(found),
+                         ["Accountable", "Consulted", "Informed", "Responsible"])
+
+
+class PorterLayoutTest(unittest.TestCase):
+    """The two Porter grids: generic strategies and the Diamond."""
+
+    def test_the_generic_strategies_layout_is_the_classic_two_by_two(self):
+        layout = matrix.layout_for("template_generic_strategies")
+        self.assertIsNotNone(layout)
+        self.assertEqual(layout["kind"], "quadrant")
+        self.assertEqual(layout["grids"][0]["rows"],
+                         [["low_cost", "differentiation"],
+                          ["focus_low_cost", "focus_differentiation"]])
+        self.assertEqual(layout["grids"][0]["axis_x"],
+                         ("Cost advantage", "Differentiation advantage"))
+        self.assertEqual(layout["grids"][0]["axis_y"],
+                         ("Narrow target", "Broad target"))
+
+    def test_the_diamond_carries_four_determinants_and_two_influences(self):
+        layout = matrix.layout_for("template_porters_diamond")
+        self.assertIsNotNone(layout)
+        determinants = [cell for row in layout["grids"][0]["rows"] for cell in row]
+        influences = [cell for row in layout["grids"][1]["rows"] for cell in row]
+        self.assertEqual(sorted(determinants),
+                         ["demand_conditions", "factor_conditions",
+                          "firm_strategy", "related_industries"])
+        self.assertEqual(sorted(influences), ["chance", "government"])
+
+    def test_both_porter_layouts_build_with_canonical_labels(self):
+        for template, labels in (
+                ("template_generic_strategies",
+                 ["Differentiation", "Focused Differentiation", "Focused Low-Cost",
+                  "Low-Cost"]),
+                ("template_porters_diamond",
+                 ["Chance", "Demand Conditions", "Factor Conditions", "Government",
+                  "Related and Supporting Industries",
+                  "Firm Strategy, Structure and Rivalry"])):
+            figure = matrix.build(template, {})
+            found = [cell["label"] for grid in figure["grids"]
+                     for row in grid["rows"] for cell in row]
+            self.assertEqual(sorted(found), sorted(labels))
+
+
 if __name__ == "__main__":
     unittest.main()

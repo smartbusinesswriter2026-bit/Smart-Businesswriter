@@ -299,7 +299,9 @@ class EntrepreneurshipPage(unittest.TestCase):
             self.assertTrue(rows[rid]["implementation_status"].startswith("partial:"), rid)
         for rid in ("STR-15", "STR-16", "STR-17"):
             self.assertTrue(rows[rid]["implementation_status"].startswith(("worksheet available", "template available")), rid)
-        self.assertIsNone(rows["THE-06"]["template"])
+        # Reading lenses are not shelf rows any more: a theory is reached by
+        # naming it in the brief, not by clicking a tile.
+        self.assertNotIn("THE-06", rows)
 
     def test_the_finance_grouping_did_not_leak(self):
         finance = subjects.detail("finance")

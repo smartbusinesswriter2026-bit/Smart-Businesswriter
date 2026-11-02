@@ -529,12 +529,6 @@ CANVAS_BLOCKS = {
         "value_proposition": ("Value Proposition", "The value the firm delivers to customers"),
         "target_segment": ("Target Segment", "The customers the firm chooses to serve"),
     },
-    "template_strategy_4": {
-        "perspective": ("Perspective", "How the organisation sees the world and its place in it"),
-        "position": ("Position", "Where the organisation stands relative to competitors"),
-        "plan": ("Plan", "The intended course of action to reach the desired position"),
-        "pattern": ("Pattern", "The realised behaviour that emerges over time"),
-    },
     "template_change_organization": {
         "change_type": ("Change Type", "The kind of change being made and its scope"),
         "readiness": ("Readiness", "Whether the organisation is ready for the change"),
@@ -1097,12 +1091,6 @@ CANVAS_META = {
         "unsupported_use": "Choosing the segment or the position, scoring the fit, or deciding whether the claim holds; the claim is read and the choice is yours.",
         "extra_help": "The four elements are the ones the review names. An element with no evidence is named and left empty; the worksheet derives no verdict on the position.",
     },
-    "template_strategy_4": {
-        "name": "Strategy framework with an evidence audit", "short": "strategy framework", "registry_ids": ["STR-20"],
-        "intended_use": "Read one strategy from its perspective, position, plan and pattern, and audit the element the evidence cannot settle.",
-        "unsupported_use": "Writing the strategy, choosing the position, or scoring how coherent it is; the elements are read and the strategy is yours.",
-        "extra_help": "The four elements are the ones the framework names. An element with no evidence is named and left empty; the worksheet derives no coherence score.",
-    },
     "template_tam": {
         "name": "Technology Acceptance Model with an evidence audit", "short": "acceptance model", "registry_ids": ["MKT-09"],
         "intended_use": "Read the evidence behind the constructs of one acceptance model for the users of a system, and audit the construct the evidence cannot settle.",
@@ -1220,7 +1208,6 @@ CANVAS_PREFIXES = {
     "template_stp_evidence": {"segmentation_evidence": "SE", "targeting_evidence": "TE", "positioning_evidence": "PE"},
     "template_strategic_positioning": {"position": "PO", "differentiation": "DF", "value_proposition": "VP",
                                         "target_segment": "TS"},
-    "template_strategy_4": {"perspective": "PE", "position": "PO", "plan": "PL", "pattern": "PA"},
     "template_tam": {"perceived_usefulness": "PU", "perceived_ease_of_use": "PE", "attitude": "AT",
                       "behavioral_intention": "BI"},
     "template_theory_of_change": {"inputs": "IN", "activities": "AC", "outputs": "OU", "outcomes": "OC"},
@@ -2555,14 +2542,6 @@ EXAMPLES = {
             "differentiation": [{"text": "Meals are ready within ten minutes because they are cooked in advance", "provenance": "synthetic"}],
             "value_proposition": [{"text": "A hot meal you can eat between classes without leaving the gate", "provenance": "synthetic"}],
             "target_segment": [{"text": "Students with a short break between classes", "provenance": "synthetic"}]
-        }
-}},
-    "template_strategy_4": {"objective": "Read the strategy of the campus meal service", "method": "template_strategy_4", "inputs": {
-        "blocks": {
-            "perspective": [{"text": "Students will pay more for a meal they can eat without waiting in a queue", "provenance": "assumption"}],
-            "position": [{"text": "The fastest student-priced hot meal on campus", "provenance": "synthetic"}],
-            "plan": [{"text": "Cook in advance, sell at one counter beside the gate and keep the menu fixed", "provenance": "synthetic"}],
-            "pattern": [{"text": "The kitchen, the counter and the supplier all work to the same fixed menu", "provenance": "synthetic"}]
         }
 }},
     "template_tam": {"objective": "Read the acceptance evidence for the meal card ordering system", "method": "template_tam", "inputs": {

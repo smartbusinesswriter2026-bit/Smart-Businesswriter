@@ -197,6 +197,19 @@ METHOD_LINK_RULES = [
     (r"common-cause and special-cause process variation", ["process_control"],
      "an I-MR control chart and Cp/Cpk capability are implemented; subgroup charts (X-bar/R, p, c, u), EWMA, "
      "CUSUM and measurement-system analysis are not implemented"),
+    (r"^Cost.benefit and cost-effectiveness", ["cost_benefit", "cost_effectiveness"],
+     "discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of "
+     "effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and "
+     "unmonetised effects are not implemented"),
+    (r"^Discounting of costs and benefits", ["npv", "dcf_valuation"],
+     "discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; "
+     "a probabilistic sensitivity analysis over every valuation assumption is not implemented"),
+    (r"^Difference-in-differences", ["difference_in_differences"],
+     "a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel "
+     "trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented"),
+    (r"^SROI-type estimates", ["sroi"],
+     "a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; "
+     "deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive"),
 ]
 
 TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces",
@@ -233,7 +246,7 @@ TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01"
                   "CHG-15": "template_change_organization",
                   "STR-02": "template_generic_strategies", "STR-05": "template_porters_diamond",
                   "STR-10": "template_bcg", "STR-11": "template_ge_mckinsey",
-                  "STR-19": "template_strategic_positioning", "STR-20": "template_strategy_4",
+                  "STR-19": "template_strategic_positioning",
                   "MKT-01": "template_stp", "MKT-03": "template_aida",
                   "MKT-05": "template_funnel", "MKT-08": "template_rfm",
                   "MKT-09": "template_tam", "MKT-10": "template_utaut",

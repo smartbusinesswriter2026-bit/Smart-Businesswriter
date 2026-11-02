@@ -121,6 +121,51 @@ LAYOUTS = {
         "grids": [{"rows": [["eliminate", "reduce", "raise", "create"]],
                    "col_widths": [0.25, 0.25, 0.25, 0.25]}],
     },
+    "template_generic_strategies": {
+        "kind": "quadrant",
+        "caption": "Porter's generic strategies",
+        "note": "Each cell holds the evidence for one generic strategy.",
+        "labels": {"low_cost": "Low-Cost",
+                   "differentiation": "Differentiation",
+                   "focus_low_cost": "Focused Low-Cost",
+                   "focus_differentiation": "Focused Differentiation"},
+        "grids": [{"rows": [["low_cost", "differentiation"],
+                            ["focus_low_cost", "focus_differentiation"]],
+                   "axis_x": ("Cost advantage", "Differentiation advantage"),
+                   "axis_y": ("Narrow target", "Broad target"),
+                   "col_widths": [0.5, 0.5]}],
+    },
+    "template_porters_diamond": {
+        "kind": "quadrant",
+        "caption": "Porter's Diamond",
+        "note": "The four determinants are read together; government and chance "
+                "act on all of them.",
+        "labels": {"factor_conditions": "Factor Conditions",
+                   "demand_conditions": "Demand Conditions",
+                   "related_industries": "Related and Supporting Industries",
+                   "firm_strategy": "Firm Strategy, Structure and Rivalry",
+                   "government": "Government",
+                   "chance": "Chance"},
+        "grids": [
+            {"title": "Determinants of national advantage",
+             "rows": [["demand_conditions", "firm_strategy"],
+                      ["factor_conditions", "related_industries"]],
+             "col_widths": [0.5, 0.5]},
+            {"title": "Influences on the diamond",
+             "rows": [["government", "chance"]],
+             "col_widths": [0.5, 0.5]},
+        ],
+    },
+    "template_raci": {
+        "kind": "columns",
+        "caption": "RACI responsibility matrix",
+        "note": "Responsible, accountable, consulted and informed are the four "
+                "roles assigned to each task.",
+        "labels": {"responsible": "Responsible", "accountable": "Accountable",
+                   "consulted": "Consulted", "informed": "Informed"},
+        "grids": [{"rows": [["responsible", "accountable", "consulted", "informed"]],
+                   "col_widths": [0.25, 0.25, 0.25, 0.25]}],
+    },
 }
 
 #: The chat names the same cells with its own words.  Both names find the cell.
