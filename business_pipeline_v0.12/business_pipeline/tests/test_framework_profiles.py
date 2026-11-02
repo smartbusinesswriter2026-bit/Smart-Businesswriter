@@ -77,10 +77,11 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("political", str(refused.exception))
 
     def test_a_framework_without_a_profile_has_no_extension(self):
-        # A template with no profile yet: the customer journey is catalogued but
-        # not built, so it must fall back to its plain worksheet.
-        self.assertIsNone(framework_profiles.describe_extra("template_customer_journey"))
-        self.assertFalse(framework_profiles.has("template_customer_journey"))
+        # A template with no profile: case_decision is the one template the completion
+        # engine refuses (the customer journey gained a profile), so it must fall back to
+        # its plain worksheet.
+        self.assertIsNone(framework_profiles.describe_extra("case_decision"))
+        self.assertFalse(framework_profiles.has("case_decision"))
 
     def test_the_served_extension_names_the_unit_and_the_blocks(self):
         extra = framework_profiles.describe_extra("template_pestel")
@@ -98,7 +99,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(framework_profiles.label_for("template_five_forces"), "Porter's Five Forces")
         # A template with no profile of its own falls back to the default
         # profile's label; it never borrows another framework's name.
-        self.assertEqual(framework_profiles.label_for("template_customer_journey"),
+        self.assertEqual(framework_profiles.label_for("case_decision"),
                          "Porter's Five Forces")
 
 
