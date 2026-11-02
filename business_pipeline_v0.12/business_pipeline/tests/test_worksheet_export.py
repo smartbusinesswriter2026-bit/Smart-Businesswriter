@@ -34,13 +34,23 @@ class WorksheetProfile(unittest.TestCase):
         self.assertEqual(D.check_pair("worksheet", "docx")["label"], "Worksheet submission")
         self.assertEqual(D.check_pair("worksheet", "html")["label"], "Worksheet submission")
 
-    def test_the_sections_carry_the_report_checks_limits_and_citation(self):
+    def test_the_sections_carry_the_report_checks_and_limits_and_no_specification_footer(self):
         bundle = template_bundle()
         headings = [heading for heading, _ in D.sections(bundle, "worksheet")]
         self.assertIn("Report", headings)
         self.assertIn("Verification checks", headings)
         self.assertIn("Limitations", headings)
-        self.assertIn("How this was produced", headings)
+        # P3 (owner, 2026-11-03): a student paper carries no specification footer.
+        # "How this was produced" / "Method: <id> (version 1.0.0)" / "Specification
+        # hash: <64 hex>" / "can be re-run from the stored bundle" was deleted, and
+        # asking for it now refuses rather than printing it.
+        self.assertNotIn("How this was produced", headings)
+        text = "\n".join("\n".join(lines) for _heading, lines in D.sections(bundle, "worksheet"))
+        for fragment in ("Specification hash", "Code hash", "Document hash", "Method: ",
+                         "can be re-run from the stored bundle"):
+            self.assertNotIn(fragment, text)
+        with self.assertRaises(D.DeliverableError):
+            D.block(bundle, "citation")
         report = dict(D.sections(bundle, "worksheet"))["Report"]
         text = "\n".join(report)
         self.assertIn("business model canvas organizes", text)

@@ -183,10 +183,10 @@ class PestelCompletionTest(unittest.TestCase):
         self.assertEqual(payload["template"], "template_pestel")
 
     def test_a_framework_without_a_profile_is_refused_and_names_the_real_options(self):
-        # The customer journey is catalogued but has no profile yet, so it is
-        # refused and the message names the frameworks that do run.
+        # case_decision is a template with no completion profile, so it is refused
+        # and the message names the frameworks that do run.
         with self.assertRaises(ValueError) as refused:
-            completion.complete("template_customer_journey", BRIEF)
+            completion.complete("case_decision", BRIEF)
         self.assertIn("PESTEL", str(refused.exception))
         self.assertIn("Porter's Five Forces", str(refused.exception))
 

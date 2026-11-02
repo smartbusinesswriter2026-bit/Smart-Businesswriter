@@ -23,7 +23,13 @@ BLOCK_LABELS = {
     "workings": "Workings",
     "checks": "Verification checks",
     "limitations": "Limitations",
-    "citation": "How this was produced",
+    #: `citation` is deliberately absent.  It printed "How this was produced",
+    #: "Method: <id> (version 1.0.0)", "Specification hash: <64 hex>" and "These
+    #: figures can be re-run from the stored bundle" — a specification footer, not
+    #: part of a student's paper.  The owner deleted it (2026-11-03, P3) from every
+    #: paper path: this export, `session_paper.docx_bytes`, `completion.draft_bytes`
+    #: and `chat.docx_bytes`.  The record still exists in the store and every figure
+    #: remains re-runnable from it; the paper simply no longer prints the identifier.
     "headline": "Headline figures",
     "artifact_table": "Recorded values",
     "report": "Report",
@@ -33,7 +39,7 @@ PROFILES = {
     "submission": {
         "label": "Assignment submission",
         "audience": "A marker reading the finished work.",
-        "blocks": ["statements", "workings", "checks", "limitations", "citation"],
+        "blocks": ["statements", "workings", "checks", "limitations"],
         "formats": ["docx", "html"],
         "default": "docx",
         "available": True,
@@ -41,7 +47,7 @@ PROFILES = {
     "workpapers": {
         "label": "Working papers",
         "audience": "An examiner auditing the figures cell by cell.",
-        "blocks": ["statements", "artifact_table", "citation"],
+        "blocks": ["statements", "artifact_table"],
         "formats": ["xlsx", "spreadsheetml", "csv"],
         "default": "xlsx",
         "available": True,
@@ -49,7 +55,7 @@ PROFILES = {
     "worksheet": {
         "label": "Worksheet submission",
         "audience": "A marker reading a completed framework and its evidence audit.",
-        "blocks": ["report", "checks", "limitations", "citation"],
+        "blocks": ["report", "checks", "limitations"],
         "formats": ["docx", "html"],
         "default": "docx",
         "available": True,
@@ -57,7 +63,7 @@ PROFILES = {
     "presentation": {
         "label": "Case presentation",
         "audience": "A tutorial group or a viva panel.",
-        "blocks": ["headline", "statements", "checks", "citation"],
+        "blocks": ["headline", "statements", "checks"],
         "formats": [],
         "default": None,
         "available": False,
@@ -183,18 +189,13 @@ def block(bundle, name):
         return ["%s = %s %s  [%s]" % (r["id"], "" if r["value"] is None else r["value"],
                                       r.get("unit") or "", r.get("derivation") or "") for r in rows]
     if name == "citation":
-        reperform = bundle.get("reperform") if isinstance(bundle, dict) else {}
-        reperform = reperform if isinstance(reperform, dict) else {}
-        method = (reperform.get("method") or {}).get("id") or "unknown method"
-        out = ["Method: %s (version %s)" % (method, (reperform.get("method") or {}).get("version") or "?")]
-        if reperform.get("spec_hash"):
-            out.append("Specification hash: %s" % reperform["spec_hash"])
-        if appendix.get("code_hash"):
-            out.append("Code hash: %s" % appendix["code_hash"])
-        if reperform.get("statements_hash"):
-            out.append("Document hash: %s" % reperform["statements_hash"])
-        out.append("These figures can be re-run from the stored bundle; the hash identifies the document.")
-        return out
+        # The specification footer was deleted at the owner's instruction (P3,
+        # 2026-11-03).  It is refused rather than silently empty: a caller that
+        # still asks for it is running an old profile, and a paper must not print
+        # "How this was produced", a method version or a 64-hex specification hash.
+        raise DeliverableError(
+            "the specification footer is not part of a student paper; "
+            "the record stays in the store and is re-runnable from there")
     raise DeliverableError(f"unknown block {name!r}")
 
 

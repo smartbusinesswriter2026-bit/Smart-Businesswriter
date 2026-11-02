@@ -180,6 +180,19 @@ ALIASES = {
     "template_vrio": {"costly": "costly_to_imitate",
                       "costly_to_imitate": "costly_to_imitate",
                       "organised": "organized"},
+    # Porter's nine activities: the profile (and the worksheet form) name the blocks
+    # in full, the chain layout names the nine bands in short.  Without this map the
+    # figure looked each short key up in the completion's cells, found nothing, and
+    # drew nine evidence boxes with no bullet and no gap in them.
+    "template_value_chain": {"firm_infrastructure": "infrastructure",
+                             "human_resource_management": "human",
+                             "technology_development": "technology",
+                             "procurement": "procurement",
+                             "inbound_logistics": "inbound",
+                             "operations": "operations",
+                             "outbound_logistics": "outbound",
+                             "marketing_and_sales": "marketing",
+                             "service": "service"},
 }
 
 

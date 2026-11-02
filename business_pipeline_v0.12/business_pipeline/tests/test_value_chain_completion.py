@@ -52,8 +52,9 @@ class ValueChainCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_value_chain")
         self.assertEqual(result["framework"], "Porter's Value Chain")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["inbound", "operations", "outbound", "marketing", "service",
-                          "procurement", "technology", "human", "infrastructure"])
+                         ["firm_infrastructure", "human_resource_management", "technology_development",
+                          "procurement", "inbound_logistics", "operations", "outbound_logistics",
+                          "marketing_and_sales", "service"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -163,14 +164,15 @@ class ValueChainCompletionTest(unittest.TestCase):
 
     def test_the_framework_name_is_not_an_invented_name(self):
         facts = completion._facts([{
-            "key": "inbound", "label": "Inbound logistics",
+            "key": "inbound_logistics", "label": "Inbound logistics",
             "items": [{"text": "Retailers receive stock at regional depots.", "provenance": "user"}]}])
         data = {"introduction": ["Porter's Value Chain frames the decision for the market."], "context": [""],
-                "lead": "lead", "groups": {"inbound": ["Inbound logistics matters."]},
+                "lead": "lead", "groups": {"inbound_logistics": ["Inbound logistics matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_value_chain"),
                                           {"unit": {"value": INDUSTRY}, "region": "Global"})
-        problems = completion._problems(data, facts, "A case in grocery retail.", "short", ["inbound"], allow=allow)
+        problems = completion._problems(data, facts, "A case in grocery retail.", "short",
+                                        ["inbound_logistics"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name Porter")
                           or p.startswith("name Value") or p.startswith("name Chain")], problems)
 
@@ -182,7 +184,8 @@ class ValueChainCompletionTest(unittest.TestCase):
 
     def test_the_route_generates_a_paper_with_an_empty_activity(self):
         result = complete()
-        result["blocks"] = [block for block in result["blocks"] if block["key"] != "human"]
+        result["blocks"] = [block for block in result["blocks"] if block["key"] != "human_resource_management"]
+
         status, payload = api.handle("POST", "/api/cases/frameworks/report",
                                      {"completion": result, "version": "draft"})
         self.assertEqual(status, 200, payload)
@@ -198,8 +201,10 @@ class ValueChainCompletionTest(unittest.TestCase):
         self.assertEqual(payload["template"], "template_value_chain")
 
     def test_an_unfinished_framework_still_names_the_real_options(self):
+        # case_decision is a template with no completion profile, so it is refused
+        # and the message names the frameworks that do run.
         with self.assertRaises(ValueError) as refused:
-            completion.complete("template_swot", BRIEF)
+            completion.complete("case_decision", BRIEF)
         self.assertIn("Porter's Value Chain", str(refused.exception))
 
 

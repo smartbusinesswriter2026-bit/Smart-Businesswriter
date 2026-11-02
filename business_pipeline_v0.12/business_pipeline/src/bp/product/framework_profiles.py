@@ -600,438 +600,6 @@ PESTEL = {
 
 }
 
-#: Porter's Value Chain ---------------------------------------------------------
-
-VALUE_CHAIN = {
-
-    "template": "template_value_chain",
-
-    "key": "value_chain",
-
-    "label": "Porter's Value Chain",
-
-    "title_prefix": "Porter's Value Chain",
-
-    "unit": {
-
-        "field": "industry",
-
-        "label": "Industry or market",
-
-        "help": ("Required: the chain is analysed for the market the firm competes in, not for a company on "
-
-                 "its own."),
-
-        "example": "grocery retail, banking, cold-chain logistics",
-
-        "refuse": ("Porter's Value Chain is analysed for the activities of a market, not a company on its own. "
-
-                   "Name the industry or market (for example grocery retail, banking or cold-chain logistics)."),
-
-    },
-
-    "ratings": False,
-
-    "assumption": "probe",
-
-    "sites": None,
-
-    "providers": None,
-
-    "gate": {"title_cue": True, "title_context": False, "require_geography": True},
-
-    "blocks": [
-
-        {"key": "inbound", "label": "Inbound logistics",
-
-         "prompt": "Primary activity: receiving, storing and moving inputs",
-
-         "cues": "inbound logistics supplier receiving storage inventory handling",
-
-         "queries": ["inbound logistics materials handling"], "category": None,
-
-         "probe": "search for evidence on how inputs are received, stored and moved in this market"},
-
-        {"key": "operations", "label": "Operations",
-
-         "prompt": "Primary activity: turning inputs into the product or service",
-
-         "cues": "operations production manufacturing assembly process quality",
-
-         "queries": ["operations production process"], "category": None,
-
-         "probe": "search for evidence on production or service operations in this market"},
-
-        {"key": "outbound", "label": "Outbound logistics",
-
-         "prompt": "Primary activity: storing and delivering the finished offer",
-
-         "cues": "outbound distribution delivery warehousing order fulfilment",
-
-         "queries": ["outbound logistics distribution delivery"], "category": None,
-
-         "probe": "search for evidence on storage, distribution and delivery in this market"},
-
-        {"key": "marketing", "label": "Marketing and sales",
-
-         "prompt": "Primary activity: winning customers and setting the offer",
-
-         "cues": "marketing sales branding pricing channel advertising customers",
-
-         "queries": ["marketing sales channels pricing"], "category": "economic",
-
-         "probe": "search for evidence on channels, pricing and promotion in this market"},
-
-        {"key": "service", "label": "Service",
-
-         "prompt": "Primary activity: installing, supporting and keeping the offer working",
-
-         "cues": "service support warranty installation maintenance after-sales",
-
-         "queries": ["customer service after-sales support"], "category": None,
-
-         "probe": "search for evidence on after-sales support and service standards in this market"},
-
-        {"key": "procurement", "label": "Procurement",
-
-         "prompt": "Support activity: how inputs are bought, not the inputs themselves",
-
-         "cues": "procurement purchasing sourcing supplier contracts",
-
-         "queries": ["procurement purchasing supplier sourcing"], "category": "economic",
-
-         "probe": "search for evidence on supplier terms and input availability in this market"},
-
-        {"key": "technology", "label": "Technology development",
-
-         "prompt": "Support activity: product, process and information technology",
-
-         "cues": "technology research development innovation automation digital",
-
-         "queries": ["technology development process innovation"], "category": None,
-
-         "probe": "search for adoption or implementation evidence on the technology this activity relies on"},
-
-        {"key": "human", "label": "Human resource management",
-
-         "prompt": "Support activity: recruiting, developing and rewarding people",
-
-         "cues": "human resources training recruitment skills labour",
-
-         "queries": ["human resource management practices"], "category": "social",
-
-         "probe": "search for evidence on skills, pay and turnover in the labour market this chain draws on"},
-
-        {"key": "infrastructure", "label": "Firm infrastructure",
-
-         "prompt": "Support activity: planning, finance, legal, quality and management",
-
-         "cues": "infrastructure support firm management finance planning legal quality governance",
-
-         "queries": ["firm infrastructure support activities"], "category": "legal",
-
-         "probe": "search for evidence on how the support functions of this market are organised and costed"},
-
-    ],
-
-    "outline": {
-
-        "framework": "Porter's Value Chain",
-
-        "context": "Case and market context",
-
-        "discussion": "What the evidence shows",
-
-        "implications": "Implications for the decision",
-
-        "limitations": "Limitations",
-
-        "conclusion": "Conclusion",
-
-        "lead": ("Porter's value chain separates the activities through which a firm creates and delivers its offer "
-
-                 "into five primary activities and four support activities. Each activity is treated in turn, first "
-
-                 "through the evidence accepted for the case and then through what that evidence implies for the "
-
-                 "decision."),
-
-    },
-
-    "voice": {
-
-        "thesis_question": ("whether the activities of the chain support the position the decision requires, and "
-
-                            "where the chain is exposed"),
-
-        "unit_noun": "market",
-
-        "block_plural": "activities",
-
-        "lens": "cost and differentiation (what each activity adds to cost, to value, or to both)",
-
-        "closing": ("identifies the activity the evidence supports most strongly and the activity the evidence "
-
-                    "cannot settle"),
-
-        "intro_frame": ("The unit of analysis is the market in which the chain competes, because the activities are "
-
-                        "comparable across the firms that serve it, rather than the performance of a single firm."),
-
-        "context_frame": ("The relevant market is the one named in the brief; the activities describe how value is "
-
-                          "created and cost is incurred in that market."),
-
-        "interaction": ("Read together, the activities show where cost is incurred and where value is added, and an "
-
-                        "activity without accepted evidence cannot be treated as either an advantage or a cost the "
-
-                        "plan has measured."),
-
-        "implication_frame": ("A viable position must say which activities it will perform differently: cost must be "
-
-                              "contained where the evidence shows pressure, and differentiation must rest on "
-
-                              "activities the market rewards."),
-
-        "reference_heading": "References",
-
-    },
-
-    "notes": {
-
-        "inbound": {
-
-            "analysis": ("Inbound logistics covers receiving, storing and moving inputs to the point of use. Its cost "
-
-                         "depends on distance, handling and the reliability of delivery, and a disruption here "
-
-                         "reaches every activity downstream. The relevant question for the decision is whether the "
-
-                         "position can be supplied at the volume and reliability the plan assumes."),
-
-            "qualify": ("The evidence does not establish the cost per unit moved, the capacity of the relevant "
-
-                        "infrastructure or the firm's dependence on a single route, so continuity is inferred rather "
-
-                        "than demonstrated."),
-
-            "short": ("Inbound logistics sets the reliability of supply on which every downstream activity depends."),
-
-            "probe": "search for evidence on how inputs are received, stored and moved in this market",
-
-        },
-
-        "operations": {
-
-            "analysis": ("Operations turn inputs into the offer. The design of the process determines unit cost, the "
-
-                         "range that can be produced and the consistency the market receives; a process built for one "
-
-                         "volume carries a penalty when demand moves. The relevant question for the decision is "
-
-                         "whether the operation can deliver the offer at the cost and consistency the position "
-
-                         "requires."),
-
-            "qualify": ("The evidence does not establish the firm's capacity, utilisation or unit cost, so the "
-
-                        "operation is read as a condition on the plan rather than as a measured capability."),
-
-            "short": ("The production process sets unit cost and consistency, and a plan inherits both."),
-
-            "probe": "search for evidence on production or service operations in this market",
-
-        },
-
-        "outbound": {
-
-            "analysis": ("Outbound logistics covers storing and delivering the finished offer. Delivery cost, order "
-
-                         "accuracy and speed determine what the customer receives and what the firm spends to "
-
-                         "provide it; where customers compare on availability, the activity becomes part of the offer "
-
-                         "rather than a back-office cost. The relevant question for the decision is whether delivery "
-
-                         "can meet the standard the market expects at a cost the price can carry."),
-
-            "qualify": ("The evidence does not establish delivery cost, coverage or the service standard the market "
-
-                        "expects, so the activity is read as a condition rather than a costed advantage."),
-
-            "short": ("Delivery cost and reliability decide whether the offer reaches the customer on terms the "
-
-                      "price can carry."),
-
-            "probe": "search for evidence on storage, distribution and delivery in this market",
-
-        },
-
-        "marketing": {
-
-            "analysis": ("Marketing and sales win the customer and set the terms of the offer. Channel choice, "
-
-                         "pricing and promotion determine what the customer compares and what the firm must spend to "
-
-                         "be considered; where buyers compare on visible value, the activity carries the cost of "
-
-                         "remaining visible. The relevant question for the decision is whether the position can reach "
-
-                         "the customers it needs at a cost the margin can support."),
-
-            "qualify": ("The evidence does not establish acquisition cost, channel power or the responsiveness of "
-
-                        "demand to price, so the activity is read as a condition on the plan rather than a measured "
-
-                        "return."),
-
-            "short": ("Channel and pricing choices set what the customer compares and what it costs to be "
-
-                      "considered."),
-
-            "probe": "search for evidence on channels, pricing and promotion in this market",
-
-        },
-
-        "service": {
-
-            "analysis": ("Service covers installation, support and keeping the offer working after the sale. Where "
-
-                         "the offer requires support, the activity determines whether the promise made at purchase is "
-
-                         "kept, and its cost is a standing charge on the margin. The relevant question for the "
-
-                         "decision is whether the position can support what it sells without eroding the margin it "
-
-                         "expects."),
-
-            "qualify": ("The evidence does not establish the service level the market expects, its cost or the "
-
-                        "volume of support the offer will require, so the activity is treated as a condition rather "
-
-                        "than a costed commitment."),
-
-            "short": ("Support after the sale is a standing cost that decides whether the promise made at purchase "
-
-                      "can be kept."),
-
-            "probe": "search for evidence on after-sales support and service standards in this market",
-
-        },
-
-        "procurement": {
-
-            "analysis": ("Procurement is how inputs are bought rather than the inputs themselves. Terms, supplier "
-
-                         "relationships and the number of alternatives available determine how much of a cost change "
-
-                         "can be passed on and how reliable the flow of inputs is. The relevant question for the "
-
-                         "decision is whether the position can secure its inputs on terms that survive a change in "
-
-                         "price or availability."),
-
-            "qualify": ("The evidence does not report the number of alternative suppliers, contract terms or the "
-
-                        "share of cost that inputs represent, so the activity is read as a source of exposure rather "
-
-                        "than a measured cost."),
-
-            "short": ("Procurement determines how much of an input cost change the position can absorb."),
-
-            "probe": "search for evidence on supplier terms and input availability in this market",
-
-        },
-
-        "technology": {
-
-            "analysis": ("Technology development covers the product, process and information systems through which "
-
-                         "the offer is designed and delivered. Where a capability is already standard in the market, "
-
-                         "it is a requirement of trading rather than a source of differentiation, and a plan that "
-
-                         "treats it as an advantage carries a cost it has not budgeted. The relevant question for the "
-
-                         "decision is which technology the position must match and which it could use to "
-
-                         "differentiate."),
-
-            "qualify": ("The evidence does not establish adoption in the specific market, the cost of implementation "
-
-                        "or the firm's capacity to operate the technology, so feasibility is inferred rather than "
-
-                        "demonstrated."),
-
-            "short": ("Technology is either a requirement of trading or a source of differentiation, and the plan "
-
-                      "must know which."),
-
-            "probe": "search for adoption or implementation evidence on the technology this activity relies on",
-
-        },
-
-        "human": {
-
-            "analysis": ("People are the activity through which the rest of the chain is performed. Recruitment, "
-
-                         "training and reward determine whether the firm can staff the position and keep the "
-
-                         "capability it builds; a chain that depends on skills the labour market does not supply "
-
-                         "carries a cost in training and turnover. The relevant question for the decision is whether "
-
-                         "the people the plan needs can be recruited, trained and retained on terms the plan can "
-
-                         "carry."),
-
-            "qualify": ("The evidence does not establish wage levels, turnover or the supply of the specific skills "
-
-                        "the position needs, so the activity is treated as a condition rather than a costed input."),
-
-            "short": ("Recruitment, training and retention determine whether the plan can be staffed and at what "
-
-                      "cost."),
-
-            "probe": "search for evidence on skills, pay and turnover in the labour market this chain draws on",
-
-        },
-
-        "infrastructure": {
-
-            "analysis": ("Firm infrastructure covers planning, finance, legal, quality and management, and it sets "
-
-                         "the terms on which the primary activities operate. Where the support functions are "
-
-                         "organised around the market the firm serves, they set the cost of coordination and the "
-
-                         "speed at which the chain can respond; where they are not, every primary activity carries "
-
-                         "the overhead. The relevant question for the decision is whether the support activities can "
-
-                         "carry the scale the position requires without adding a fixed cost the margin cannot "
-
-                         "absorb."),
-
-            "qualify": ("The evidence does not establish the cost of each support function, how it is organised or "
-
-                        "how much of it is shared across the chain, so the activity is read as a condition on the "
-
-                        "plan rather than as a measured overhead."),
-
-            "short": ("Support functions set the coordination cost the primary activities carry, so their scale is "
-
-                      "a condition of the plan."),
-
-            "probe": "search for evidence on how the support functions of this market are organised and costed",
-
-        },
-
-    },
-
-}
-
 #: SIPOC ------------------------------------------------------------------------
 
 #: SIPOC and the value stream map are **process** frameworks: the facts they
@@ -3846,7 +3414,7 @@ VALUE_CHAIN = {
 
     "label": "Porter's Value Chain",
 
-    "title_prefix": "Value Chain Analysis",
+    "title_prefix": "Porter's Value Chain",
 
     "subject": "management",
 
@@ -3878,15 +3446,19 @@ VALUE_CHAIN = {
 
         {"key": "firm_infrastructure", "label": "Firm infrastructure", "prompt": "Planning, finance, legal, quality",
 
-         "fill": "auto", "cues": "infrastructure planning finance legal quality governance management",
+         "fill": "research", "cues": "infrastructure support overhead administrative firm planning finance legal "
 
-         "queries": ["firm infrastructure and overhead in this industry"], "category": None,
+                  "quality governance management",
+
+         "queries": ["firm infrastructure and support activities",
+
+                     "administrative overhead and support functions in this industry"], "category": None,
 
          "probe": "state the evidence about infrastructure in this industry"},
 
         {"key": "human_resource_management", "label": "Human resource management", "prompt": "Recruiting, developing, rewarding",
 
-         "fill": "auto", "cues": "human resource labour recruitment training skill wage",
+         "fill": "research", "cues": "human resource labour recruitment training skill wage",
 
          "queries": ["human resource management and skills in this industry"], "category": None,
 
@@ -3894,7 +3466,7 @@ VALUE_CHAIN = {
 
         {"key": "technology_development", "label": "Technology development", "prompt": "Product, process and information technology",
 
-         "fill": "auto", "cues": "technology innovation research development automation digital",
+         "fill": "research", "cues": "technology innovation research development automation digital",
 
          "queries": ["technology and innovation in this industry"], "category": "technological",
 
@@ -3902,7 +3474,7 @@ VALUE_CHAIN = {
 
         {"key": "procurement", "label": "Procurement", "prompt": "How inputs are bought",
 
-         "fill": "auto", "cues": "procurement purchasing sourcing supplier cost",
+         "fill": "research", "cues": "procurement purchasing sourcing supplier cost",
 
          "queries": ["procurement and sourcing in this industry"], "category": None,
 
@@ -3910,7 +3482,7 @@ VALUE_CHAIN = {
 
         {"key": "inbound_logistics", "label": "Inbound logistics", "prompt": "Receiving, storing and moving inputs",
 
-         "fill": "auto", "cues": "inbound logistics receiving storage transport supply",
+         "fill": "research", "cues": "inbound logistics receiving storage transport supply",
 
          "queries": ["inbound logistics in this industry"], "category": None,
 
@@ -3918,7 +3490,7 @@ VALUE_CHAIN = {
 
         {"key": "operations", "label": "Operations", "prompt": "Turning inputs into the product or service",
 
-         "fill": "auto", "cues": "operations production manufacturing assembly process",
+         "fill": "research", "cues": "operations production manufacturing assembly process",
 
          "queries": ["operations and production in this industry"], "category": None,
 
@@ -3926,7 +3498,7 @@ VALUE_CHAIN = {
 
         {"key": "outbound_logistics", "label": "Outbound logistics", "prompt": "Storing and delivering the finished offer",
 
-         "fill": "auto", "cues": "outbound logistics distribution delivery warehouse",
+         "fill": "research", "cues": "outbound logistics distribution delivery warehouse",
 
          "queries": ["outbound logistics and distribution in this industry"], "category": None,
 
@@ -3934,7 +3506,7 @@ VALUE_CHAIN = {
 
         {"key": "marketing_and_sales", "label": "Marketing and sales", "prompt": "Winning customers and setting the offer",
 
-         "fill": "auto", "cues": "marketing sales customer acquisition pricing channel",
+         "fill": "research", "cues": "marketing sales customer acquisition pricing channel",
 
          "queries": ["marketing and sales in this industry"], "category": None,
 
@@ -3942,7 +3514,7 @@ VALUE_CHAIN = {
 
         {"key": "service", "label": "Service", "prompt": "Installing, supporting and keeping the offer working",
 
-         "fill": "auto", "cues": "service support maintenance customer care",
+         "fill": "research", "cues": "service support maintenance customer care",
 
          "queries": ["service and support in this industry"], "category": None,
 
@@ -3952,7 +3524,7 @@ VALUE_CHAIN = {
 
     "outline": {
 
-        "framework": "Value chain", "context": "The case and its industry",
+        "framework": "Porter's Value Chain", "context": "Case and market context",
 
         "discussion": "What the evidence shows",
 
@@ -6522,25 +6094,25 @@ CHANGE_ORGANIZATION = {'assumption': 'probe',
  'subject': 'change',
  'template': 'template_change_organization',
  'title_prefix': 'Change and Organization Analysis',
- 'unit': {'field': 'process',
-          'label': 'The change you are planning',
-          'help': 'A change and organisation review reads one programme of change. Name it in a few words, for '
-                  'example moving the campus meal card to a contactless system or the restructuring of the ward '
-                  'rota.',
-          'example': 'moving the campus meal card to a contactless system',
-          'refuse': 'A change and organisation review reads one programme of change. Name the change you are '
-                    'planning, for example moving the campus meal card to a contactless system or the '
-                    'restructuring of the ward rota.'},
+ 'unit': {'field': 'industry',
+          'label': 'Industry or market',
+          'help': 'A change and organisation review reads one programme of change in the industry or market the '
+                  'organisation competes in. Name the industry or market, for example grocery retail or '
+                  'healthcare.',
+          'example': 'grocery retail, healthcare',
+          'refuse': 'A change and organisation review is analysed for the industry or market the organisation '
+                    'competes in. Name the industry or market (for example grocery retail or healthcare).'},
  'voice': {'thesis_question': 'whether the evidence supports the change and the organisation it depends on',
-           'unit_noun': 'change',
+           'unit_noun': 'industry',
            'block_plural': 'elements',
            'lens': 'the four questions a change review asks: what kind of change it is, how ready the organisation '
                    'is, where it will resist and what support it needs',
            'closing': 'identifies the element the change depends on and the element the evidence cannot settle',
-           'intro_frame': 'The unit of analysis is the change rather than the firm, because the review reads one '
-                          'programme of change against the organisation that has to carry it.',
-           'context_frame': 'The relevant change is the one named in the brief; the elements belong to that change '
-                            'rather than to change work in general.',
+           'intro_frame': 'The unit of analysis is the industry or market the organisation competes in rather than '
+                          'the firm on its own, because the readiness, resistance and support a change meets are '
+                          'measured in that market.',
+           'context_frame': 'The relevant industry is the one named in the brief; the four elements belong to the '
+                            'change being made in that market rather than to change work in general.',
            'interaction': 'Read together, the elements describe the change and the organisation receiving it '
                           'rather than a plan to be followed: the type of change has to be judged against the '
                           'resistance the evidence shows.',
@@ -10531,8 +10103,959 @@ ORG_DESIGN = {
 NINE_BOX, KOTTER, COMPETING_VALUES, ORG_DESIGN, ADKAR, LEWIN, THEORY_OF_CHANGE, PDSA, DMAIC, GENERIC_STRATEGIES, BCG, GE_MCKINSEY, MCKINSEY_7S, RACI, PORTERS_DIAMOND, BURKE_LITWIN, GALBRAITH_STAR, MINTZBERG, LOGIC_MODEL,
 
 
-# ---- WO-3 generated profiles ----
-exec(open(r"C:/tmp/profiles_out.py").read().split("# ----",1)[0] if False else open(r"C:/tmp/profiles_out.py").read())
+# ---- WO-3 profiles (inlined 2026-11-03) -------------------------------------
+# These eight profiles were loaded at import time from a temporary file outside the
+# repository by a bare `exec(open(...))`.  That made this module unimportable on any
+# machine without that file, and nothing in the repository contained them.  They are
+# now part of the module, exactly as the exec produced them (the last definition of
+# each name in that file).
+
+#: BMC (WO-3, inlined: it was loaded from an external temp file)
+BMC = {'template': 'template_business_model_canvas',
+ 'key': 'bmc',
+ 'label': 'Business Model Canvas',
+ 'title_prefix': 'Business Model Canvas',
+ 'subject': 'strategy',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'key_partners',
+             'label': 'Key partners',
+             'prompt': 'Who you depend on, and what each partner supplies',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['key_partners evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'key_activities',
+             'label': 'Key activities',
+             'prompt': 'The few things the business must do well to deliver the value',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['key_activities evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'key_resources',
+             'label': 'Key resources',
+             'prompt': 'What it needs to do those activities: people, equipment, cash, licences',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['key_resources evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'value_propositions',
+             'label': 'Value propositions',
+             'prompt': "The value you promise each segment, in the customer's words",
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['value_propositions evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'customer_relationships',
+             'label': 'Customer relationships',
+             'prompt': 'How you win a customer, keep them and grow the relationship',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_relationships evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'channels',
+             'label': 'Channels',
+             'prompt': 'How the value reaches the customer, from first contact to delivery',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['channels evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'customer_segments',
+             'label': 'Customer segments',
+             'prompt': 'Who you serve, described by need and behaviour, not demographics alone',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_segments evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'cost_structure',
+             'label': 'Cost structure',
+             'prompt': 'The main fixed and variable costs the model creates',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['cost_structure evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'revenue_streams',
+             'label': 'Revenue streams',
+             'prompt': 'How the business earns, and what the customer pays for',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['revenue_streams evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'key_partners': {'analysis': 'Key partners is a structural block awaiting evidence.',
+                            'qualify': 'The evidence does not establish more than what is supplied.',
+                            'short': 'Key partners awaits evidence.',
+                            'probe': 'state the evidence for this block'},
+           'key_activities': {'analysis': 'Key activities is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Key activities awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'key_resources': {'analysis': 'Key resources is a structural block awaiting evidence.',
+                             'qualify': 'The evidence does not establish more than what is supplied.',
+                             'short': 'Key resources awaits evidence.',
+                             'probe': 'state the evidence for this block'},
+           'value_propositions': {'analysis': 'Value propositions is a structural block awaiting evidence.',
+                                  'qualify': 'The evidence does not establish more than what is supplied.',
+                                  'short': 'Value propositions awaits evidence.',
+                                  'probe': 'state the evidence for this block'},
+           'customer_relationships': {'analysis': 'Customer relationships is a structural block awaiting '
+                                                  'evidence.',
+                                      'qualify': 'The evidence does not establish more than what is supplied.',
+                                      'short': 'Customer relationships awaits evidence.',
+                                      'probe': 'state the evidence for this block'},
+           'channels': {'analysis': 'Channels is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Channels awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'customer_segments': {'analysis': 'Customer segments is a structural block awaiting evidence.',
+                                 'qualify': 'The evidence does not establish more than what is supplied.',
+                                 'short': 'Customer segments awaits evidence.',
+                                 'probe': 'state the evidence for this block'},
+           'cost_structure': {'analysis': 'Cost structure is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Cost structure awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'revenue_streams': {'analysis': 'Revenue streams is a structural block awaiting evidence.',
+                               'qualify': 'The evidence does not establish more than what is supplied.',
+                               'short': 'Revenue streams awaits evidence.',
+                               'probe': 'state the evidence for this block'}}}
+
+#: LEAN_CANVAS (WO-3, inlined: it was loaded from an external temp file)
+LEAN_CANVAS = {'template': 'template_lean_canvas',
+ 'key': 'lean_canvas',
+ 'label': 'Lean Canvas',
+ 'title_prefix': 'Lean Canvas',
+ 'subject': 'strategy',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'problem',
+             'label': 'Problem',
+             'prompt': 'The top problems you are solving',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['problem evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'customer_segments',
+             'label': 'Customer segments',
+             'prompt': 'Who has those problems',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_segments evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'unique_value_proposition',
+             'label': 'Unique value proposition',
+             'prompt': 'Why you are different and worth attention',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['unique_value_proposition evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'solution',
+             'label': 'Solution',
+             'prompt': 'The smallest thing that solves the problem',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['solution evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'channels',
+             'label': 'Channels',
+             'prompt': 'The route to customers',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['channels evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'revenue_streams',
+             'label': 'Revenue streams',
+             'prompt': 'How you earn',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['revenue_streams evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'cost_structure',
+             'label': 'Cost structure',
+             'prompt': 'The main costs',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['cost_structure evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'key_metrics',
+             'label': 'Key metrics',
+             'prompt': 'The few numbers that show it is working',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['key_metrics evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'unfair_advantage',
+             'label': 'Unfair advantage',
+             'prompt': 'What cannot easily be copied',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['unfair_advantage evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'problem': {'analysis': 'Problem is a structural block awaiting evidence.',
+                       'qualify': 'The evidence does not establish more than what is supplied.',
+                       'short': 'Problem awaits evidence.',
+                       'probe': 'state the evidence for this block'},
+           'customer_segments': {'analysis': 'Customer segments is a structural block awaiting evidence.',
+                                 'qualify': 'The evidence does not establish more than what is supplied.',
+                                 'short': 'Customer segments awaits evidence.',
+                                 'probe': 'state the evidence for this block'},
+           'unique_value_proposition': {'analysis': 'Unique value proposition is a structural block awaiting '
+                                                    'evidence.',
+                                        'qualify': 'The evidence does not establish more than what is '
+                                                   'supplied.',
+                                        'short': 'Unique value proposition awaits evidence.',
+                                        'probe': 'state the evidence for this block'},
+           'solution': {'analysis': 'Solution is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Solution awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'channels': {'analysis': 'Channels is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Channels awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'revenue_streams': {'analysis': 'Revenue streams is a structural block awaiting evidence.',
+                               'qualify': 'The evidence does not establish more than what is supplied.',
+                               'short': 'Revenue streams awaits evidence.',
+                               'probe': 'state the evidence for this block'},
+           'cost_structure': {'analysis': 'Cost structure is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Cost structure awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'key_metrics': {'analysis': 'Key metrics is a structural block awaiting evidence.',
+                           'qualify': 'The evidence does not establish more than what is supplied.',
+                           'short': 'Key metrics awaits evidence.',
+                           'probe': 'state the evidence for this block'},
+           'unfair_advantage': {'analysis': 'Unfair advantage is a structural block awaiting evidence.',
+                                'qualify': 'The evidence does not establish more than what is supplied.',
+                                'short': 'Unfair advantage awaits evidence.',
+                                'probe': 'state the evidence for this block'}}}
+
+#: VALUE_PROPOSITION_CANVAS (WO-3, inlined: it was loaded from an external temp file)
+VALUE_PROPOSITION_CANVAS = {'template': 'template_value_proposition_canvas',
+ 'key': 'value_proposition_canvas',
+ 'label': 'Value Proposition Canvas',
+ 'title_prefix': 'Value Proposition Canvas',
+ 'subject': 'strategy',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'customer_jobs',
+             'label': 'Customer jobs',
+             'prompt': 'What the customer is trying to get done',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_jobs evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'customer_pains',
+             'label': 'Pains',
+             'prompt': 'What is costly, risky or annoying',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_pains evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'customer_gains',
+             'label': 'Gains',
+             'prompt': 'What the customer wants to gain',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['customer_gains evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'products_services',
+             'label': 'Products and services',
+             'prompt': 'What you offer',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['products_services evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'pain_relievers',
+             'label': 'Pain relievers',
+             'prompt': 'How you remove a stated pain',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['pain_relievers evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'gain_creators',
+             'label': 'Gain creators',
+             'prompt': 'How you create a stated gain',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['gain_creators evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'customer_jobs': {'analysis': 'Customer jobs is a structural block awaiting evidence.',
+                             'qualify': 'The evidence does not establish more than what is supplied.',
+                             'short': 'Customer jobs awaits evidence.',
+                             'probe': 'state the evidence for this block'},
+           'customer_pains': {'analysis': 'Pains is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Pains awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'customer_gains': {'analysis': 'Gains is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Gains awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'products_services': {'analysis': 'Products and services is a structural block awaiting evidence.',
+                                 'qualify': 'The evidence does not establish more than what is supplied.',
+                                 'short': 'Products and services awaits evidence.',
+                                 'probe': 'state the evidence for this block'},
+           'pain_relievers': {'analysis': 'Pain relievers is a structural block awaiting evidence.',
+                              'qualify': 'The evidence does not establish more than what is supplied.',
+                              'short': 'Pain relievers awaits evidence.',
+                              'probe': 'state the evidence for this block'},
+           'gain_creators': {'analysis': 'Gain creators is a structural block awaiting evidence.',
+                             'qualify': 'The evidence does not establish more than what is supplied.',
+                             'short': 'Gain creators awaits evidence.',
+                             'probe': 'state the evidence for this block'}}}
+
+#: PROJECT_CHARTER (WO-3, inlined: it was loaded from an external temp file)
+PROJECT_CHARTER = {'template': 'template_project_charter',
+ 'key': 'project_charter',
+ 'label': 'Project Charter',
+ 'title_prefix': 'Project Charter',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'objective',
+             'label': 'Objective',
+             'prompt': 'The outcome the project exists to deliver, in one testable statement',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['objective evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'scope_in',
+             'label': 'In scope',
+             'prompt': 'What the project will deliver and cover',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['scope_in evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'scope_out',
+             'label': 'Out of scope',
+             'prompt': 'What the project deliberately will not do',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['scope_out evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'deliverables',
+             'label': 'Deliverables',
+             'prompt': 'The verifiable outputs you will hand over',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['deliverables evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'governance',
+             'label': 'Sponsor and governance',
+             'prompt': 'Who authorises the project, who decides, and how change is controlled',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['governance evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'budget',
+             'label': 'Budget and funding',
+             'prompt': 'The declared budget, its source and the spending authority',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['budget evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'milestones',
+             'label': 'Milestones',
+             'prompt': 'The dated checkpoints and decisions, including the end date',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['milestones evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'success_measures',
+             'label': 'Success measures',
+             'prompt': 'How completion and benefit will be judged, with baselines and targets',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['success_measures evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'assumptions',
+             'label': 'Assumptions',
+             'prompt': 'What must hold for the plan to work, marked as assumptions',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['assumptions evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'constraints',
+             'label': 'Constraints and dependencies',
+             'prompt': "Fixed dates, resources, contracts or dependencies outside the project's control",
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['constraints evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'objective': {'analysis': 'Objective is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'Objective awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'scope_in': {'analysis': 'In scope is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'In scope awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'scope_out': {'analysis': 'Out of scope is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'Out of scope awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'deliverables': {'analysis': 'Deliverables is a structural block awaiting evidence.',
+                            'qualify': 'The evidence does not establish more than what is supplied.',
+                            'short': 'Deliverables awaits evidence.',
+                            'probe': 'state the evidence for this block'},
+           'governance': {'analysis': 'Sponsor and governance is a structural block awaiting evidence.',
+                          'qualify': 'The evidence does not establish more than what is supplied.',
+                          'short': 'Sponsor and governance awaits evidence.',
+                          'probe': 'state the evidence for this block'},
+           'budget': {'analysis': 'Budget and funding is a structural block awaiting evidence.',
+                      'qualify': 'The evidence does not establish more than what is supplied.',
+                      'short': 'Budget and funding awaits evidence.',
+                      'probe': 'state the evidence for this block'},
+           'milestones': {'analysis': 'Milestones is a structural block awaiting evidence.',
+                          'qualify': 'The evidence does not establish more than what is supplied.',
+                          'short': 'Milestones awaits evidence.',
+                          'probe': 'state the evidence for this block'},
+           'success_measures': {'analysis': 'Success measures is a structural block awaiting evidence.',
+                                'qualify': 'The evidence does not establish more than what is supplied.',
+                                'short': 'Success measures awaits evidence.',
+                                'probe': 'state the evidence for this block'},
+           'assumptions': {'analysis': 'Assumptions is a structural block awaiting evidence.',
+                           'qualify': 'The evidence does not establish more than what is supplied.',
+                           'short': 'Assumptions awaits evidence.',
+                           'probe': 'state the evidence for this block'},
+           'constraints': {'analysis': 'Constraints and dependencies is a structural block awaiting evidence.',
+                           'qualify': 'The evidence does not establish more than what is supplied.',
+                           'short': 'Constraints and dependencies awaits evidence.',
+                           'probe': 'state the evidence for this block'}}}
+
+#: WBS (WO-3, inlined: it was loaded from an external temp file)
+WBS = {'template': 'template_wbs',
+ 'key': 'wbs',
+ 'label': 'Work Breakdown Structure',
+ 'title_prefix': 'Work Breakdown Structure',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'deliverables',
+             'label': 'Level 1 deliverables',
+             'prompt': 'The major deliverables the project must produce',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['deliverables evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'work_packages',
+             'label': 'Work packages',
+             'prompt': 'The smallest pieces of work, each with an owner and a completion test',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['work_packages evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'acceptance',
+             'label': 'Acceptance criteria',
+             'prompt': 'The test that shows a deliverable or work package is complete',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['acceptance evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'exclusions',
+             'label': 'Exclusions',
+             'prompt': 'Work the WBS deliberately leaves out',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['exclusions evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'deliverables': {'analysis': 'Level 1 deliverables is a structural block awaiting evidence.',
+                            'qualify': 'The evidence does not establish more than what is supplied.',
+                            'short': 'Level 1 deliverables awaits evidence.',
+                            'probe': 'state the evidence for this block'},
+           'work_packages': {'analysis': 'Work packages is a structural block awaiting evidence.',
+                             'qualify': 'The evidence does not establish more than what is supplied.',
+                             'short': 'Work packages awaits evidence.',
+                             'probe': 'state the evidence for this block'},
+           'acceptance': {'analysis': 'Acceptance criteria is a structural block awaiting evidence.',
+                          'qualify': 'The evidence does not establish more than what is supplied.',
+                          'short': 'Acceptance criteria awaits evidence.',
+                          'probe': 'state the evidence for this block'},
+           'exclusions': {'analysis': 'Exclusions is a structural block awaiting evidence.',
+                          'qualify': 'The evidence does not establish more than what is supplied.',
+                          'short': 'Exclusions awaits evidence.',
+                          'probe': 'state the evidence for this block'}}}
+
+#: RISK_REGISTER (WO-3, inlined: it was loaded from an external temp file)
+RISK_REGISTER = {'template': 'template_risk_register',
+ 'key': 'risk_register',
+ 'label': 'Risk Register',
+ 'title_prefix': 'Risk Register',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'risk',
+             'label': 'Risk',
+             'prompt': 'Describe the risk',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['risk evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'response',
+             'label': 'Response',
+             'prompt': 'Describe the response',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['response evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'risk': {'analysis': 'Risk is a structural block awaiting evidence.',
+                    'qualify': 'The evidence does not establish more than what is supplied.',
+                    'short': 'Risk awaits evidence.',
+                    'probe': 'state the evidence for this block'},
+           'response': {'analysis': 'Response is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Response awaits evidence.',
+                        'probe': 'state the evidence for this block'}}}
+
+#: STAKEHOLDER_PLAN (WO-3, inlined: it was loaded from an external temp file)
+STAKEHOLDER_PLAN = {'template': 'template_stakeholder_plan',
+ 'key': 'stakeholder_plan',
+ 'label': 'Stakeholder Plan',
+ 'title_prefix': 'Stakeholder Plan',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'stakeholders',
+             'label': 'Stakeholders',
+             'prompt': 'Who is affected by the project or can affect it',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['stakeholders evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'interests',
+             'label': 'Interests and concerns',
+             'prompt': 'What each stakeholder wants, fears or needs from the project',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['interests evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'influence',
+             'label': 'Influence and impact',
+             'prompt': 'The influence and impact labels you assign, with the evidence for them',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['influence evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'engagement',
+             'label': 'Engagement approach',
+             'prompt': 'How you will engage: inform, consult, involve or collaborate',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['engagement evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'messages',
+             'label': 'Key messages',
+             'prompt': 'What each stakeholder needs to hear, in plain terms',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['messages evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'channels',
+             'label': 'Channels',
+             'prompt': 'The route the message takes: meeting, email, notice, report or one-to-one',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['channels evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'frequency',
+             'label': 'Timing and frequency',
+             'prompt': 'When and how often the communication happens, tied to milestones',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['frequency evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'owners',
+             'label': 'Communication owner',
+             'prompt': 'Who is responsible for each message or channel',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['owners evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'risks',
+             'label': 'Communication risks',
+             'prompt': 'What could make the communication fail, and the response',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['risks evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'stakeholders': {'analysis': 'Stakeholders is a structural block awaiting evidence.',
+                            'qualify': 'The evidence does not establish more than what is supplied.',
+                            'short': 'Stakeholders awaits evidence.',
+                            'probe': 'state the evidence for this block'},
+           'interests': {'analysis': 'Interests and concerns is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'Interests and concerns awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'influence': {'analysis': 'Influence and impact is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'Influence and impact awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'engagement': {'analysis': 'Engagement approach is a structural block awaiting evidence.',
+                          'qualify': 'The evidence does not establish more than what is supplied.',
+                          'short': 'Engagement approach awaits evidence.',
+                          'probe': 'state the evidence for this block'},
+           'messages': {'analysis': 'Key messages is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Key messages awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'channels': {'analysis': 'Channels is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Channels awaits evidence.',
+                        'probe': 'state the evidence for this block'},
+           'frequency': {'analysis': 'Timing and frequency is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'Timing and frequency awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'owners': {'analysis': 'Communication owner is a structural block awaiting evidence.',
+                      'qualify': 'The evidence does not establish more than what is supplied.',
+                      'short': 'Communication owner awaits evidence.',
+                      'probe': 'state the evidence for this block'},
+           'risks': {'analysis': 'Communication risks is a structural block awaiting evidence.',
+                     'qualify': 'The evidence does not establish more than what is supplied.',
+                     'short': 'Communication risks awaits evidence.',
+                     'probe': 'state the evidence for this block'}}}
+
+#: LESSONS_LEARNED (WO-3, inlined: it was loaded from an external temp file)
+LESSONS_LEARNED = {'template': 'template_lessons_learned',
+ 'key': 'lessons_learned',
+ 'label': 'Lessons Learned',
+ 'title_prefix': 'Lessons Learned',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the single unit this worksheet covers.',
+          'example': 'One project, one change programme, or one business model.',
+          'refuse': 'A worksheet cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'went_well',
+             'label': 'What went well',
+             'prompt': 'Practices, decisions or behaviours that worked and should be repeated',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['went_well evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'went_poorly',
+             'label': 'What did not go well',
+             'prompt': 'What failed, slipped or caused avoidable cost',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['went_poorly evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'causes',
+             'label': 'Why it happened',
+             'prompt': 'The cause you can evidence, not blame',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['causes evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'changes',
+             'label': 'What to change next time',
+             'prompt': 'The specific change the next project should make',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['changes evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'actions',
+             'label': 'Actions and owners',
+             'prompt': 'Who will make the change, and by when',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['actions evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'share',
+             'label': 'Who should see this',
+             'prompt': 'The teams or roles that need the lesson',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['share evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'},
+            {'key': 'evidence',
+             'label': 'Evidence',
+             'prompt': 'Records, incidents, change requests or data behind the lesson',
+             'fill': 'research',
+             'cues': ['evidence'],
+             'queries': ['evidence evidence'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this block'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Block-by-block evidence',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'lead'},
+ 'voice': {'thesis_question': 'What does the evidence say about this framework for the named unit?',
+           'unit_noun': 'unit',
+           'block_plural': 'blocks',
+           'lens': 'evidence audit',
+           'closing': "The evidence is yours; the structure is the tool's.",
+           'intro_frame': "This paper organises the evidence you supplied into the framework's blocks.",
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Each block carries sourced items or a named gap.',
+           'implication_frame': 'Implications are stated only where the evidence supports them.',
+           'reference_heading': 'Sources'},
+ 'notes': {'went_well': {'analysis': 'What went well is a structural block awaiting evidence.',
+                         'qualify': 'The evidence does not establish more than what is supplied.',
+                         'short': 'What went well awaits evidence.',
+                         'probe': 'state the evidence for this block'},
+           'went_poorly': {'analysis': 'What did not go well is a structural block awaiting evidence.',
+                           'qualify': 'The evidence does not establish more than what is supplied.',
+                           'short': 'What did not go well awaits evidence.',
+                           'probe': 'state the evidence for this block'},
+           'causes': {'analysis': 'Why it happened is a structural block awaiting evidence.',
+                      'qualify': 'The evidence does not establish more than what is supplied.',
+                      'short': 'Why it happened awaits evidence.',
+                      'probe': 'state the evidence for this block'},
+           'changes': {'analysis': 'What to change next time is a structural block awaiting evidence.',
+                       'qualify': 'The evidence does not establish more than what is supplied.',
+                       'short': 'What to change next time awaits evidence.',
+                       'probe': 'state the evidence for this block'},
+           'actions': {'analysis': 'Actions and owners is a structural block awaiting evidence.',
+                       'qualify': 'The evidence does not establish more than what is supplied.',
+                       'short': 'Actions and owners awaits evidence.',
+                       'probe': 'state the evidence for this block'},
+           'share': {'analysis': 'Who should see this is a structural block awaiting evidence.',
+                     'qualify': 'The evidence does not establish more than what is supplied.',
+                     'short': 'Who should see this awaits evidence.',
+                     'probe': 'state the evidence for this block'},
+           'evidence': {'analysis': 'Evidence is a structural block awaiting evidence.',
+                        'qualify': 'The evidence does not establish more than what is supplied.',
+                        'short': 'Evidence awaits evidence.',
+                        'probe': 'state the evidence for this block'}}}
 
 
 PROFILES = {profile["template"]: profile
