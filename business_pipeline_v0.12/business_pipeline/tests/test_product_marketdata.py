@@ -124,8 +124,8 @@ SEC_ATOM = b"""<?xml version="1.0" encoding="ISO-8859-1" ?>
   </content></entry>
 </feed>"""
 WB_JSON = b""" [{"page":1,"pages":1,"per_page":5,"total":2,"sourceid":"2","lastupdated":"2026-10-08"},
-[{"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"PH","value":"Philippines"},"countryiso3code":"PHL","date":"2025","value":4.4024,"unit":"","obs_status":"","decimal":1},
- {"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"PH","value":"Philippines"},"countryiso3code":"PHL","date":"2024","value":5.7147,"unit":"","obs_status":"","decimal":1}]]"""
+[{"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"KE","value":"Kenya"},"countryiso3code":"KEN","date":"2025","value":4.4024,"unit":"","obs_status":"","decimal":1},
+ {"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"KE","value":"Kenya"},"countryiso3code":"KEN","date":"2024","value":5.7147,"unit":"","obs_status":"","decimal":1}]]"""
 
 
 class EquityTest(unittest.TestCase):
@@ -355,18 +355,18 @@ class WorldBankTest(unittest.TestCase):
         marketdata._fetch = self.real; marketdata.clear_cache()
 
     def test_the_latest_observation_is_returned_with_its_year_and_unit(self):
-        marketdata._fetch = FakeFetch(WB_JSON, "https://api.worldbank.org/v2/country/PH/indicator/NY.GDP.MKTP.KD.ZG?format=json")
-        out = marketdata.worldbank_indicator("ph", "gdp_growth")
+        marketdata._fetch = FakeFetch(WB_JSON, "https://api.worldbank.org/v2/country/KE/indicator/NY.GDP.MKTP.KD.ZG?format=json")
+        out = marketdata.worldbank_indicator("ke", "gdp_growth")
         self.assertEqual(out["value"], "4.4024")
         self.assertEqual(out["as_of"], "2025")
         self.assertEqual(out["unit"], "%")
-        self.assertEqual(out["country"], "Philippines")
+        self.assertEqual(out["country"], "Kenya")
 
     def test_an_unknown_indicator_or_country_is_refused(self):
         with self.assertRaises(marketdata.MarketDataError):
-            marketdata.worldbank_indicator("PH", "not_an_indicator")
+            marketdata.worldbank_indicator("KE", "not_an_indicator")
         with self.assertRaises(marketdata.MarketDataError):
-            marketdata.worldbank_indicator("PHILIPPINES", "gdp_growth")
+            marketdata.worldbank_indicator("KENYA", "gdp_growth")
 
 
 

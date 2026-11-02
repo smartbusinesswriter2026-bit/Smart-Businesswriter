@@ -1,0 +1,26 @@
+fix(web): transparent logo, restored favicon, larger hero mark
+
+The Home logo no longer arrives on a white card. The owner's PNG is RGB with
+no alpha channel - the mark was flattened onto solid #FCFCFC paper, so the
+copy in the page carried that paper with it and sat on a white rectangle over
+the hero wash. web/assets/mark.png is now cut from web/assets/logo.png with a
+real alpha channel (paper outside the artwork transparent, paper inside the
+book opaque), written from the same bytes the page inlines.
+
+The favicon is back. Commit 977c1cc had pasted a scaffold document in front of
+the real page, so a browser parsed the scaffold as the document and the four
+icon links landed in the body, where no browser reads a favicon from. The page
+is one document again and the 16/32/64/apple-touch icons are in the head.
+
+The hero mark is 20% larger (78px -> 94px, 56px -> 67px under 900px), sits 6px
+lower and closes to a 6px gap above "Smart Business Writer", so the two read
+as one lockup. The topbar mark and the chat button keep their sizes.
+
+New scripts/generate_mark.py rebuilds the mark and re-inlines it, reusing the
+alpha cut from scripts/generate_favicons.py. New
+tests/test_web_brand_assets.py (5 tests, standard library only) holds all of
+it: one document, the icon links in the head, the logo's corner transparent
+and its artwork present, the asset identical to the inline copy, and no
+opaque corner in any favicon.
+
+No computation, route contract, frozen fixture or business number changed.

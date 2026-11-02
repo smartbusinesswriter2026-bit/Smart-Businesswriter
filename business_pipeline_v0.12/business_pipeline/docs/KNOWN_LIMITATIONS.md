@@ -91,13 +91,13 @@
 - **Five marketing worksheets structure evidence and compute nothing** (B-133). The journey map, Kano grid, SERVQUAL grid, paid media plan and measurement plan name empty blocks and cells; they do not derive a Kano category, average a SERVQUAL gap, deploy a tag or read a platform.
 
 ## Added with free market-data lookups (B-106, B-109)
-- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes (the user's own free key; its fundamentals endpoint is premium and is not used), **SEC EDGAR** for US filings and XBRL fundamentals, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
+- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes (the user's own free key; its fundamentals endpoint is premium and is not used), **SEC EDGAR** for US filings and XBRL fundamentals, and the **World Bank** for macro indicators. Yahoo Finance is **not** used: it has no public licence for this use.
 - Alpha Vantage needs `BP_ALPHAVANTAGE_KEY` for the **quote**; on the free tier it allows 25 requests a day, cached for 24 hours. Without a key the quote refuses and says where to register. The **fundamentals** button reads SEC XBRL instead and needs no key.
 - A retrieved value is **published by the source, not independently verified here**. There is no cross-source check, no correction and no guarantee that the source's terms will stay the same.
-- The value is **never written into a method input automatically**. The panel shows the value, as-of date, source and response SHA-256; the student confirms and types it into the tool.
+- The value is **never written into a method input automatically**. The panel shows the value, as-of date, source and a link to the provider; the student confirms and types it into the tool.
 - A lookup needs network access. On failure it returns a reason and no value; it does not fall back to a remembered or invented rate. Caches are in memory only and clear on restart.
 - FX is quoted as one unit of the base currency in the quote currency, on the source's latest business day unless a date is given. A Treasury par yield is a **US** rate, not any country's policy or lending rate.
-- **PSE prices, private-company figures and anything the five sources do not cover are manual entries.** The panel says so rather than scraping a site.
+- **Private-company figures and anything the five sources do not cover are manual entries.** The product says so rather than scraping a site.
 - One observation (or one filing list) is returned at a time; there is no stored price history, chart or portfolio tracker.
 
 ## Added with document reading (B-107, B-110)
@@ -510,6 +510,11 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **The companion is not the assignment.** It is a study and defence aid; the paper remains the submitted record. It carries no new source, citation, recommendation or number.
 
 ## Added with the Portfolio Lab (B-154)
+- **The instrument list is a fixed reference, not a market feed or advice** (B-178). Twenty widely held long-only US listings are described in one neutral line each with a source link; the list is not ranked, carries no expected return, rating or target price, and a listing on it is not a recommendation. It is not a complete market and it is not a screener; a symbol the student already knows can be typed in.
+- **The guide is a decision aid** (B-178). It explains how to choose (mandate, mix, fit, reason, snapshot) and states its own limits; it does not tell the student what to buy.
+- **Example books are examples** (B-178). Three compositions (diversified, balanced, concentrated) load editable rows into the import box; nothing is saved until the student imports, and the concentrated book deliberately breaches the default position limit so the limit is visible.
+- **A reason is student-authored** (B-178). The *Why you hold it* field is free text stored with the holding; the app never generates or grades it, and the report prints "(not recorded)" when it is missing.
+- **No instrument data is verified here** (B-178). A listing's description is a fixed product note, not a verified profile; fundamentals and filings come from the retrieved-source panel and are labelled not independently verified.
 - **Fund mode is a journal, not a trading system.** A fund records weekly snapshots, a student note,
   the external flow and an optional benchmark level, and computes a time-weighted return from the
   dated snapshots. There is no order execution, broker connection or team authentication; the

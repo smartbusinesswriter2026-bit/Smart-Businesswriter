@@ -76,6 +76,11 @@ def main():
               "http://" not in account and "https://" not in account)
         wallet = json.loads(_get(base, "/api/cases/credits").decode())
         check("the export wallet is readable", isinstance(wallet.get("balance"), int) and bool(wallet.get("prices")))
+        guide = json.loads(_get(base, "/api/portfolios/instruments").decode())
+        check("the portfolio guide and reference list are served",
+              bool((guide.get("guidance") or {}).get("steps")) and
+              len(guide.get("instruments") or []) >= 12)
+        check("the portfolio page asks for the guide", "/api/portfolios/instruments" in page)
 
         # Pricing is a dialog over the workbench, not a page: the four plans arrive from
         # /api/billing/plans, so the markup never holds a tier name (checked case-sensitively,
@@ -130,12 +135,12 @@ def main():
 
         # -- the business-plan profile, end to end over the same routes ------
         plan = _post(base, "/api/cases/chat", {
-            "brief": "A coffee shop selling specialty coffee to university students in Cebu City.",
+            "brief": "A coffee shop selling specialty coffee to university students in a mid-sized city.",
             "profile": "business_plan", "subject": "entrepreneurship", "level": "shs", "mode": "strict"})
         plan = _post(base, "/api/cases/chat/" + plan["id"] + "/plan", {})
         plan = _post(base, "/api/cases/chat/" + plan["id"] + "/inputs", {"values": {
             "business_name": "Bean There", "product": "specialty coffee and pastries",
-            "customers": "university students", "location": "Cebu City",
+            "customers": "university students", "location": "a mid-sized city",
             "positioning": "affordable specialty coffee", "channels": "a campus kiosk",
             "pricing_note": "mid-market pricing", "operations": "a single kiosk with two staff",
             "team": "the owner and one barista", "risks": ["a rent increase"]}})

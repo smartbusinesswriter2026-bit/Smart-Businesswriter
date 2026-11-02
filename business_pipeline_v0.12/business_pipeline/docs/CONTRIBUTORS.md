@@ -4,7 +4,7 @@
 
 Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WORKLOG.md) (what was done, when), [`DECISIONS.md`](DECISIONS.md) (why), [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) (what it cannot do), [`PRODUCT_GAP_MAP.md`](PRODUCT_GAP_MAP.md) (what is missing), [`PARKED_QUEUE.md`](PARKED_QUEUE.md) (what is deliberately parked and what un-parks it), [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) (the frozen core and the product-backend lane).
 
-## 1. The ten non-negotiables
+## 1. The eleven non-negotiables
 
 1. **Numbers never come from a model.** A model may propose facts, alternatives and critique; code computes every number (`src/bp/assist.py`, `docs/MODEL_PROVIDER_REPORT.md`).
 2. **No invented sources.** A citation is either resolved-and-verified by a retrieval source or labelled `unverified_user_supplied`. Never cite from memory (`src/bp/literature.py`, REW manual Â§2).
@@ -16,6 +16,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 8. **No runtime third-party imports.** Runtime is the Python standard library only. `scipy`/`numpy` are used *offline* to generate golden fixtures and are never imported by `src/`.
 9. **The supplied sources are read-only.** Anything under `docs/sources/` is authority material. Do not edit it; record your amendment in `DECISIONS.md`.
 10. **Every change is traceable.** One increment = one commit = one CHANGELOG entry = one WORKLOG entry = (if it decides something) one B-xxx decision.
+11. **The product is global.** It never names a home exchange or a home country. No PSE/PSEi name, no Philippine place name, no Philippine-specific example, currency or market claim; examples use neutral places and USD. Introduce no new country-specific default (B-177). The ISO 3166 country list used for geography detection and the ISO 4217 currency table are universal reference data, not a home-market reference: keep both complete.
 
 ## 1A. Model ownership: computation vs design (owner directive, B-066)
 
@@ -58,7 +59,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 2553 tests; the framework-completion build in flight still fails — see docs/OPEN_ISSUES.md
+python -m unittest discover -s tests          # currently 2627 tests; the framework-completion build in flight still fails — see docs/OPEN_ISSUES.md
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 

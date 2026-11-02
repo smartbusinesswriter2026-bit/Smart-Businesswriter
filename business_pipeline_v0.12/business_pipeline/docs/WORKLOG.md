@@ -1,6 +1,45 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
+## 2026-11-02 — [product] QA session 1 (accounting): the paper's numbers are formatted again, and a computation brief is refused instead of wrapped
+
+**Ask.** "I want to ensure the pipeline works and that it has no bugs. There is no manual for how
+each subject should work. Test, debug and fix the pipeline for each subject" — accounting first.
+
+**Did.** Wrote `qa/manual/accounting.md`: the manual that did not exist, 51 expectation rows
+(`E-acc-001…051`) each traced to `bp.methods.LIBRARY`, the shipped catalogue, the student guide or
+the paper rules, plus the traceability matrix and the eight declared gaps. Wrote
+`tests/test_subject_accounting_acceptance.py` (50 tests, 119 subtests) so every row is enforced;
+`qa/probe_traceability.py` reconciles the two 1:1. Fixed five defects in the product layer:
+(1) `chat.py` defined `_capability_lines` and `_declared_inputs_line` twice and the later
+`key: value` stubs shadowed both prose formatters, so delivered papers printed 50-digit Decimals and
+the internal appendix dict; (2) `_trend_lines` was defined twice and both capability entries captured
+the forecast version; (3) `loan_amortization`/`tax_declared` had no formatter and plain ratios used
+`_fmt_exact`, so long Decimals reached the page; (4) `chat.start` computed a refusal and then ignored
+it, so a journal-entry brief became a PESTEL paper; (5) the `HOME.md` spine and `DECISIONS.md`
+register were missing two documents and the drafted B-170.
+
+**Why.** Every one of the five is a defect against a written rule, not a redesign: the paper rules
+(`CONDUCTOR_MANUAL.md` §8, `VALIDATION_HARNESS.md` V-06/V-07), the non-negotiable "no silent framework
+substitution", and the docs' own drift checks. Three findings are **ledgered, not patched**, because
+they live inside the frozen core or need an owner decision: `_tax_typing` shadowing `tax_incidence`'s
+unit hook (`qa/QA_DEFECTS.md` D-ACC-06), the subject-vocabulary question (D-ACC-07) and an unknown
+method name being delivered as a framework-only answer (D-ACC-09). Baseline 2548 tests / 86 failures
+/ 13 errors is recorded in `qa/baseline/`; the closing count is in `qa/QA_STATE.md`.
+
+
+**Ask.** "the guidance to users in picking up stocks is still not there. when create a portfolio button is clicked, it says a name is required and asked to enter a portfolio name but no field is provided."
+
+**Did.** (1) A new product module `bp/product/instruments.py`: a six-step guide (mandate, mix before names, pick from a neutral list, fit check, write the reason, snapshot and grade the decision), the principles and limits that keep it a decision aid, a fixed reference list of 20 widely held long-only US listings (11 funds, 9 companies) with a neutral line and a source link each, and three labelled example books (diversified, balanced, concentrated). Served by the additive read-only route `GET /api/portfolios/instruments` and rendered on the Portfolio landing. (2) The Holdings tab gains a chooser (filter Funds/Single companies, search, **Use** prefills the symbol and focuses shares), the example books (load editable rows into the existing import textarea; nothing saved until Import), and a **Why you hold it** field - the server and the DOCX report already stored and printed `rationale`, the page never collected it. (3) The create-portfolio handler now focuses and scrolls to the name field and names it in the banner; if the form is not on screen it re-renders the landing instead of reporting a name the student cannot type. A headless-browser probe against the live page confirmed the field exists and is visible, the empty click focuses it, the guide renders, the chooser lists 20 rows and 3 sample books, **Use** prefills AAPL, the company filter leaves 9 rows, and the probe portfolio created by the run was deleted afterwards.
+
+**Why.** The owner asked for guidance on choosing stocks and for the system to offer choices and prefill; B-154 forbids engine advice, so the feature is a decision aid with neutral, sourced vocabulary and explicitly labelled examples. The create-name defect is real when the form is not on screen (a stale or interrupted render), so the handler repairs the state rather than showing a dead error.
+
+**Verified.** `tests/test_product_instruments.py` (14 tests: catalogue completeness and sourcing, no advice language, example-book labelling, the guide, the global-copy rule, the read-only route and its 405, and the page contracts for the chooser, the reason field and the create flow). `scripts/ui_smoke.py --url http://127.0.0.1:8000` adds two live checks (the bundle and the page's request for it) and reports 0 failures.
+
+**Open/next.** The example books carry no prices (the student fetches or types them), and the reference list is fixed and US-listed: a broader or region-aware list is a later increment, not a recommendation engine.
+
+---
+
 ## 2026-11-02 — [design] The logo loses its white card, the favicon comes back, and the mark grows
 
 **Ask.** "fix the logo smart business writer in home page. remove the white background around it. also restore the favicon, its lost. its now at http://127.0.0.1:8021/#/home" — then: "increase the size of the logo by 20% and put it a little closer to Smart Business Writer. like move it down a little because it appears far. then commit it" — and then, after seeing the result: "it still look off. increase the logo by 10%. the space between smart business writer and the logo should be the same with the space between smart business writer and Your reliable business writing assistant. then commit".

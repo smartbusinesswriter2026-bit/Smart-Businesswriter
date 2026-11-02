@@ -6,7 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx
+from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -705,6 +705,10 @@ class H(BaseHTTPRequestHandler):
         parts = [part for part in path.split("/") if part]
         body = self._body() if verb in ("POST", "PATCH") else None
         try:
+            if len(parts) == 3 and parts[1] == "portfolios" and parts[2] == "instruments":
+                if verb != "GET":
+                    return self._send(405, {"error": "method %s is not allowed on the instrument list" % verb})
+                return self._send(200, product_instruments.bundle())
             if len(parts) == 2 and parts[1] == "portfolios":
                 if verb == "GET": return self._send(200, {"portfolios": product_portfolios.summaries()})
                 if verb == "POST":

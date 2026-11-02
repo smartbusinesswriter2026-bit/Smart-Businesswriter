@@ -45,7 +45,7 @@ the gap rather than filling it.
   end-of-period unless you are told otherwise.
 - **The discount rate is your hurdle**, not the engine's. Declare it and justify it in the report; a
   different rate changes every appraisal measure.
-- **NPV is the decision rule.** IRR is a rate, not a peso amount, and it can mislead when projects differ
+- **NPV is the decision rule.** IRR is a rate, not a currency amount, and it can mislead when projects differ
   in scale or timing. PI, MIRR and EAA are ranking aids under their stated assumptions.
 - **Payback is a liquidity measure**, not a value measure: it ignores every flow after recovery.
   Discounted payback counts the time value but still ignores the later flows.

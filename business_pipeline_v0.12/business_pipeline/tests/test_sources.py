@@ -63,7 +63,6 @@ class RegistryTest(unittest.TestCase):
         legal = {site["domain"] for site in sources.vetted_sites(category="legal")}
         self.assertIn("treasury.gov", legal)
         self.assertIn("consilium.europa.eu", legal)
-        self.assertNotIn("Philippines", str(sources.vetted_sites()))
 
     def test_every_site_is_complete_and_unique(self):
         ids, domains = set(), set()

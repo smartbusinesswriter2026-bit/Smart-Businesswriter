@@ -1194,7 +1194,7 @@ Change emphasis and ordering within sections; never change facts, numbers, or th
 | **Owner / proponent** | Should I commit my money and time? | Honest verdict, downside, switching values, conditions, personal risk | Persuasive tone; add "what would change my mind" |
 | **Board / management (expansion)** | Should we approve capex? | Incremental cash flows, strategic fit, alternatives, capital allocation vs. hurdle rate | Start-up detail |
 | **Government / LGU / public agency** | Does it serve public objectives and use funds well? | Socio-economic and environmental analysis, ENPV, BCR, cost per beneficiary, compliance, sustainability | Private profit; add stakeholder consultation |
-| **Grant / development funder** | Impact per peso and sustainability? | Outcomes, beneficiaries, cost-effectiveness, sustainability after funding, governance, risk | Equity returns; add monitoring framework |
+| **Grant / development funder** | Impact per dollar and sustainability? | Outcomes, beneficiaries, cost-effectiveness, sustainability after funding, governance, risk | Equity returns; add monitoring framework |
 | **Academic panel** | Is the method sound and the analysis defensible? | Methodology, sampling, instruments, statistical treatment, literature, consistency of analysis, limitations | Commercial pitch; follow the academic skeleton (13B) |
 
 ---

@@ -21,27 +21,23 @@ If an answer produces a rate above 100%, the report adds a warning: rates are en
 so 6% is `0.06`, not `6`. The warning does not block the run, because a declared rate above 100%
 can be genuine.
 
-## Market data in the app
+## Rates and FX in the app
 
-The Finance page has a **Market data (retrieved, not verified)** panel:
+The Finance page has a **Rates and FX (retrieved, not verified)** panel:
 
-- **FX:** a pair such as USD/PHP, optional date, from Frankfurter (official reference rates).
+- **FX:** a pair such as USD/EUR, optional date, from Frankfurter (official reference rates).
 - **Risk-free:** a U.S. Treasury par-yield maturity from 1M to 30Y.
 
-The panel shows the value, its as-of date, the source link and a SHA-256 of the response. It never
-fills a tool for you: read the value, confirm it, and type it into `fx_parity` or wherever it
-belongs. It also offers:
+The panel shows the value, its as-of date, and a source link to the provider's website. It never
+fills a tool for you: read the value, confirm it, and type it into `fx_parity`, the CAPM risk-free
+rate or wherever it belongs. Nothing here is written into a method input automatically; every
+lookup is labelled as retrieved and not independently verified.
 
-- **Equity quote** — Alpha Vantage, using your own free key in `BP_ALPHAVANTAGE_KEY`
-  (25 requests a day; register at alphavantage.co).
-- **Fundamentals** — SEC EDGAR XBRL facts (US registrants only; no key needed).
-- **Recent filings** — U.S. SEC EDGAR, no key.
-- **Macro indicators** — World Bank (GDP growth, inflation, unemployment, GDP per capita,
-  population, government debt), no key.
-
-**PSE prices and private-company figures are not covered**: enter those manually. Nothing here
-is written into a method input automatically, and every lookup is labelled not independently
-verified.
+Equity quotes, company fundamentals, SEC filings and World Bank macro indicators are not on this
+page. Quotes, fundamentals and filings sit with the book in the Portfolio Lab, where they are used,
+and macro indicators sit on the Economics page. The same rule applies there: read the value, confirm
+it, and type it in. Private-company figures and any market the free sources do not cover stay manual
+entries.
 
 ## Conventions used throughout
 

@@ -133,8 +133,8 @@ def paper_state():
         "level_label": "Senior high school",
         "mode": "strict",
         "mode_label": "Business-plan convention",
-        "brief": "A coffee shop selling specialty coffee to university students in Cebu City.",
-        "answers": {"decision": "A coffee shop in Cebu City.", "style": "apa"},
+        "brief": "A coffee shop selling specialty coffee to university students in a mid-sized city.",
+        "answers": {"decision": "A coffee shop in a mid-sized city.", "style": "apa"},
         "sources": [],
         "gaps": ["Market size and growth"],
         "plan": {

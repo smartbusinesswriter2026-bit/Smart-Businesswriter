@@ -1,4 +1,31 @@
-## Finance: FX dropdowns, professional source links, and cleaner provenance (design lane)
+## Accounting: the paper's numbers are formatted, and a computation brief is no longer wrapped in a PESTEL paper (QA session 1)
+
+- **A student's accounting paper printed raw core decimals.** `src/bp/product/chat.py` held **two**
+  definitions of `_capability_lines` (and of `_declared_inputs_line`); the later `key: value` stub
+  shadowed the prose formatter, so a delivered section read
+  `payment: 4151.6710452708019636401401930057889326743235830633` and the ratio section printed the
+  whole internal `_appendix` dict. The stubs are removed; every capability keeps its own formatter.
+- **`loan_amortization` and `tax_declared` had no formatter**, so they fell back to the generic line
+  and printed full-precision Decimals. Both now have one (`_loan_lines`, `_tax_lines`), and a plain
+  ratio is reported at the paper's two decimals instead of `1.6666666666666666666666666666666666667`.
+- **`_trend_lines` was defined twice** — for the forecast and for the accounting trend analysis — and
+  both capability entries captured the forecast version, so the accounting trend paper would have
+  printed forecast fields. The forecast formatter is renamed `_forecast_lines` and each capability
+  maps to its own.
+- **A chained input again states its source.** Removing the `_declared_inputs_line` stub restores
+  `" (from the … result)"`, so a derived figure is never presented as one the student typed.
+- **A pure accounting computation is refused by the framework chat.** `chat.start` computed
+  `fits`/`message` and then discarded them, so *"prepare the journal entries and the trial
+  balance"* was answered with a PESTEL paper. The refusal is applied (`stage: not_supported`) and the
+  computation-boundary hunk is restored in `_fit`. This is the design note's WO-1.
+- **Docs:** `CONTINUATION_NOTE.md` and `TAXONOMY_COVERAGE_EVALUATION.md` gain rows in the `HOME.md`
+  documentation spine, and the drafted `B-170` (Home as the open entry point) is recorded in
+  `DECISIONS.md` as **PROPOSED**, which is what the register drift check was reporting.
+- **New:** `qa/manual/accounting.md` (the acceptance manual, 51 expectation rows) and
+  `tests/test_subject_accounting_acceptance.py` (50 tests, 119 subtests), plus the QA baseline and
+  defect ledger under `qa/`. No method, schema, check, preset or frozen-contract entry changed.
+
+
 
 - **FX base and quote are now dropdowns** populated from the ISO 4217 currency catalog (`/api/currencies`), replacing free-text inputs. Defaults are USD/EUR; the full list shows code and name (e.g. "USD — US dollar").
 - **Market-data result footers are redesigned** with a professional "Open the source" button that links to the provider's human-readable website (Frankfurter, U.S. Treasury, Alpha Vantage, SEC EDGAR, World Bank) instead of the raw API endpoint. The SHA-256 hash line and the "published by the source; not independently verified by this app" sentence are no longer shown in the UI; the API response still carries them for programmatic use.

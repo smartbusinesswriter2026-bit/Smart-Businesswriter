@@ -139,7 +139,7 @@ The fix is two file restores:
 git -C 'D:\SMART BUSINESSWRITER' checkout -- business_pipeline_v0.12/business_pipeline/src/bp/product/chat.py business_pipeline_v0.12/business_pipeline/src/bp/product/guard.py
 ```
 **One caveat to check after restoring:** an explicitly named framework can still be over-refused —
-"…our coffee shop in Davao City" is detected as `swot` but refused with "This does not look like a
+"…our coffee shop in a mid-sized city" is detected as `swot` but refused with "This does not look like a
 management or strategy instruction", because the management hint list has no "shop"/"coffee". The
 correct repair is to let an explicitly named framework bypass the subject guard (the carve-out HEAD
 already makes for `breakeven`/`vrio`), **not** to widen the hint list.

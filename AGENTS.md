@@ -35,4 +35,7 @@ Non-negotiables:
 - no silent framework substitution;
 - computations come from the frozen core;
 - a paper never contains template instructions;
-- export is blocked when the paper is incomplete.
+- export is blocked when the paper is incomplete;
+- the product is global: no PSE/PSEi name, no Philippine place name and no Philippine-specific
+  example, currency or market claim. A global product never names a home exchange or a home
+  country; examples use neutral places and USD (decision B-177).

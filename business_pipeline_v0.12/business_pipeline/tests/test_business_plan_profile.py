@@ -32,11 +32,11 @@ def _run(method_id, inputs):
 
 api.attach_methods(_run, methods.describe)
 
-BRIEF = "A coffee shop selling specialty coffee to university students in Cebu City."
+BRIEF = "A coffee shop selling specialty coffee to university students in a mid-sized city."
 
 INPUTS = {
     "business_name": "Bean There", "product": "specialty coffee and pastries",
-    "customers": "university students", "location": "Cebu City",
+    "customers": "university students", "location": "a mid-sized city",
     "positioning": "affordable specialty coffee", "channels": "a campus kiosk and social media",
     "pricing_note": "mid-market pricing", "operations": "a single kiosk with two staff",
     "suppliers": "a local roaster", "capacity_note": "120 cups a day",
@@ -401,23 +401,23 @@ class PlanRoutes(unittest.TestCase):
         self.assertIn("captable", [block["key"] for block in state["plan"]["blocks"]])
 
     def test_the_brief_route_reads_pasted_text(self):
-        status, payload = self._post("/api/cases/brief", {"text": "  A coffee shop in Cebu.  "})
+        status, payload = self._post("/api/cases/brief", {"text": "  A coffee shop in a mid-sized city.  "})
         self.assertEqual(status, 200)
-        self.assertEqual(payload["text"], "A coffee shop in Cebu.")
+        self.assertEqual(payload["text"], "A coffee shop in a mid-sized city.")
 
     def test_the_brief_route_reads_a_txt_attachment(self):
-        encoded = base64.b64encode(b"A coffee shop in Cebu City.").decode("ascii")
+        encoded = base64.b64encode(b"A coffee shop in a mid-sized city.").decode("ascii")
         status, payload = self._post("/api/cases/brief", {"filename": "brief.txt", "data": encoded})
         self.assertEqual(status, 200)
         self.assertEqual(payload["method"], "text_file")
-        self.assertIn("Cebu", payload["text"])
+        self.assertIn("mid-sized city", payload["text"])
 
     def test_the_brief_route_reads_a_docx_attachment(self):
-        encoded = base64.b64encode(_docx_bytes("A coffee shop in Cebu City.")).decode("ascii")
+        encoded = base64.b64encode(_docx_bytes("A coffee shop in a mid-sized city.")).decode("ascii")
         status, payload = self._post("/api/cases/brief", {"filename": "brief.docx", "data": encoded})
         self.assertEqual(status, 200)
         self.assertEqual(payload["method"], "docx_text")
-        self.assertIn("Cebu", payload["text"])
+        self.assertIn("mid-sized city", payload["text"])
 
     def test_the_brief_route_refuses_bad_base64_and_unknown_types(self):
         status, _ = self._post("/api/cases/brief", {"filename": "brief.txt", "data": "not base64!"})

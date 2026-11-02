@@ -1058,7 +1058,7 @@ Change emphasis and ordering within sections; never change facts or numbers.
 | **Investor** | Is growth efficient and scalable? | CAC, LTV:CAC, payback, channel scalability, unit economics, learning plan | Fine-grained content calendars to the Appendix |
 | **Lender / finance** | Does marketing spend protect cash and revenue? | Budget discipline, downside scenario, payback, guardrails, link to cash flow | Brand storytelling; add contingency triggers |
 | **Agency client / stakeholder approval** | Does it solve my brief and what will I get? | Objectives, deliverables, timeline, reporting, approvals | Technical channel detail |
-| **Grant / nonprofit funder** | Impact per peso | Reach among beneficiaries, outcomes, cost per outcome, partnerships, accountability | Profit metrics; add outcome metrics (cost per sign-up, volunteer, donation) |
+| **Grant / nonprofit funder** | Impact per dollar | Reach among beneficiaries, outcomes, cost per outcome, partnerships, accountability | Profit metrics; add outcome metrics (cost per sign-up, volunteer, donation) |
 | **Franchise / partner brand** | Brand compliance and consistency | Brand rules, local-store marketing, co-op budgets | Heavy original positioning |
 
 ---

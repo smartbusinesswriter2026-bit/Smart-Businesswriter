@@ -97,6 +97,20 @@ SECTIONS = [
             ["Assumptions and limits", "What does the report not claim?"],
         ],
     }},
+    {"heading": "How to choose what you hold", "paragraphs": [
+        "The app does not recommend, rank or forecast an investment. It gives you a fixed reference list, a "
+        "guide and example books so that the choice is deliberate and recorded - and the report can defend it.",
+    ], "bullets": [
+        "Write the mandate first: objective, benchmark and base currency, before you look at a single name.",
+        "Decide the mix before the names: a broad index fund for a diversified core, a sector fund for a "
+        "deliberate tilt, a single company for a firm-specific view, and cash for liquidity.",
+        "Pick from the reference list, or type a symbol you can source. The list is not ranked and it carries "
+        "no expected return: a listing on it is not a recommendation.",
+        "Keep one base currency. Convert a foreign price before entry, because the app does not convert it for you.",
+        "Write one reason per holding. The report prints it under Holdings and rationale; a blank reason is a gap.",
+        "Load an example book only to see the shape of a diversified, balanced or concentrated book, then replace "
+        "every row with your own decision. An example is not advice.",
+    ]},
     {"heading": "For instructors", "bullets": [
         "The artifacts are dated and immutable: a snapshot for a date cannot be rewritten after it is saved.",
         "The journal is student-authored; the app records it, it does not generate it.",

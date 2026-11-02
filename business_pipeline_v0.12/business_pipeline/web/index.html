@@ -505,6 +505,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .marketrow label{font-size:14.6px;color:var(--text-2);display:flex;gap:6px;align-items:center}
 .marketrow input,.marketrow select{border:1px solid var(--border);border-radius:8px;padding:5px 7px;font-size:15px;background:var(--surface)}
 .marketcard{border-left:3px solid var(--green-600);padding:8px 12px;margin-top:10px;background:var(--surface-2);border-radius:8px}
+.marketfoot{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-2);flex-wrap:wrap}
+.marketfoot-source{font-size:14px;color:var(--text-2);flex:1 1 auto;min-width:180px}
+.marketfoot-link{flex:0 0 auto}
 .doctext{white-space:pre-wrap;max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:6px;font-size:14.4px;background:var(--surface-2)}
 .capgroup{margin-top:18px}
 .subjectask{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -639,6 +642,9 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfdark{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.22)!important;color:#fff!important}
 .pfdark:hover{background:rgba(255,255,255,.18)!important}
 .pfchoices{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:20px}
+.pfinstrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
+.pfinstrow:first-of-type{border-top:0}
+.pfinstrow .pfdesc{flex:1 1 240px;min-width:180px;color:var(--text-2)}
 .pfchoice{display:block;text-align:left;padding:15px;border-radius:14px;border:1px solid rgba(255,255,255,.16);
   background:rgba(255,255,255,.07);color:#fff;cursor:pointer;transition:transform .15s,background .15s}
 .pfchoice:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
@@ -1422,6 +1428,9 @@ async function loadPortfolioPage() {
     if (!state.marketStatus) {
       try { state.marketStatus = await api("/api/market/status"); } catch (error) { state.marketStatus = null; }
     }
+    if (!state.instruments) {
+      try { state.instruments = await api("/api/portfolios/instruments"); } catch (error) { state.instruments = null; }
+    }
     if (state.portfolioId) {
       const bundle = await api("/api/portfolios/" + encodeURIComponent(state.portfolioId));
       state.portfolioBundle = bundle;
@@ -1462,6 +1471,7 @@ function renderPortfolioLanding(rows) {
       '<button class="pfchoice" type="button" id="pfnewpaper"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8v12H3z"/></svg></span><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span><em>Start a paper \u2192</em></button>' +
       '<button class="pfchoice" type="button" id="pfnewfund"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h2v12h14v2H4zm4-3V9h2v7H8zm4 0V6h2v10h-2zm4 0v-4h2v4h-2z"/></svg></span><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span><em>Open a fund \u2192</em></button>' +
     '</div></section>';
+  html += pfGuidanceCard();
   html += '<div class="card"><h3>Create a portfolio</h3>' +
     '<div class="grid2 pf-form">' +
     '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
@@ -1495,8 +1505,23 @@ function renderPortfolioLanding(rows) {
 
 async function createPortfolio() {
   const message = $("#pfmsg");
-  const name = ($("#pfname").value || "").trim();
-  if (!name) { message.innerHTML = banner("blocked", "A name is required", "Enter a portfolio name."); return; }
+  const field = $("#pfname");
+  if (!field) {
+    /* The form is not on screen (a stale panel or an interrupted render): bring it back
+       instead of reporting a missing name the student cannot type. */
+    loadPortfolioPage();
+    return;
+  }
+  const name = (field.value || "").trim();
+  if (!name) {
+    field.focus();
+    field.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (message) {
+      message.innerHTML = banner("blocked", "A name is required",
+        "The portfolio name field is highlighted above. Type a name there, then press Create portfolio.");
+    }
+    return;
+  }
   message.innerHTML = loading("Creating the portfolio");
   try {
     const portfolio = await post("/api/portfolios", {
@@ -1568,6 +1593,24 @@ function renderPortfolioWorkspace() {
   const exportButton2 = $("#pfexport2"); if (exportButton2) exportButton2.onclick = exportPortfolio;
   $$("[data-pftab]").forEach((button) => { button.onclick = () => { state.portfolioTab = button.dataset.pftab; renderPortfolioWorkspace(); }; });
   const add = $("#pfaddholding"); if (add) add.onclick = addHolding;
+  const search = $("#pfsearch");
+  if (search) {
+    search.oninput = () => {
+      state.pfQuery = search.value;
+      const rows = $("#pfinstrumentrows");
+      if (rows) { rows.innerHTML = pfInstrumentRows(); bindInstrumentRows(rows); }
+    };
+  }
+  $$("[data-pfclass]").forEach((button) => {
+    button.onclick = () => {
+      state.pfClass = button.dataset.pfclass;
+      $$("[data-pfclass]").forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+      const rows = $("#pfinstrumentrows");
+      if (rows) { rows.innerHTML = pfInstrumentRows(); bindInstrumentRows(rows); }
+    };
+  });
+  $$("[data-pfsample]").forEach((button) => { button.onclick = () => loadSampleBook(button.dataset.pfsample); });
+  bindInstrumentRows(out);
   const holdingsImport = $("#pfhimportbtn"); if (holdingsImport) holdingsImport.onclick = importHoldings;
   const pricesImport = $("#pfpimportbtn"); if (pricesImport) pricesImport.onclick = importPrices;
   const fetchButton = $("#pffetch");
@@ -1622,28 +1665,125 @@ function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
   return html;
 }
 
+function pfGuidanceCard() {
+  const guide = (state.instruments || {}).guidance;
+  if (!guide) {
+    return '<div class="card"><h3 style="margin-top:0">How to choose what you hold</h3>' +
+      '<p class="muted">The guide is unavailable right now. Choose a mandate, diversify before you name a stock, ' +
+      'write one line per holding saying why it belongs, and never hold a name you cannot source or explain.</p></div>';
+  }
+  return '<div class="card"><h3 style="margin-top:0">' + esc(guide.title || "How to choose what you hold") + '</h3>' +
+    '<p class="muted">' + esc(guide.intro || "") + '</p>' +
+    '<ol class="guidesteps">' + (guide.steps || []).map((step) =>
+      '<li><strong>' + esc(step.title) + '</strong> ' + esc(step.text) + '</li>').join("") + '</ol>' +
+    '<div class="pflimit"><strong>What this guide does not do.</strong> ' +
+      esc([].concat(guide.principles || [], guide.limits || []).join(" ")) + '</div></div>';
+}
+
 function pfHoldings(holdings) {
+  const data = state.instruments || {};
+  const books = data.sample_books || [];
   let html = '<div class="card" style="margin-top:14px"><h3>Holdings</h3>';
   if (holdings.length) {
-    html += '<div class="tablewrap"><table><caption>Declared holdings</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Cost basis</th><th></th></tr></thead><tbody>' +
+    html += '<div class="tablewrap"><table><caption>Declared holdings</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Cost basis</th><th>Why you hold it</th><th></th></tr></thead><tbody>' +
       holdings.map((row) => "<tr><td>" + esc(row.symbol) + "</td><td>" + esc(row.shares) + "</td><td>" + esc(row.cost_basis) +
+        "</td><td>" + esc(row.rationale || "(not recorded)") +
         '</td><td><button class="btn sm" type="button" data-pfremove="' + esc(row.symbol) + '">Remove</button></td></tr>').join("") +
       "</tbody></table></div>";
   } else {
-    html += '<p class="muted">No holdings yet. Add one to begin.</p>';
+    html += '<p class="muted">No holdings yet. Choose from the reference list below, or type a symbol you already know.</p>';
   }
-  html += '<div class="grid3" style="margin-top:12px">' +
+  html += '<div class="grid2 pf-form" style="margin-top:12px">' +
     '<div class="fieldgroup"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0"></div>' +
-    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div></div>' +
-    '<div class="card" style="margin-top:14px"><h3>Paste or import holdings</h3>' +
-    '<p class="muted">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine.</p>' +
+    '<div class="fieldgroup"><label class="field" for="pfhwhy">Why you hold it (one line)</label><input type="text" id="pfhwhy" maxlength="300" placeholder="e.g. Diversified core, about 20% of the book"></div>' +
+    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button>' +
+    '<span class="muted">The reason is printed in the report under Holdings and rationale.</span></div></div>';
+  html += pfChooser(data);
+  if (books.length) {
+    html += '<div class="card" style="margin-top:14px"><h3>Start from an example book</h3>' +
+      '<p class="muted">These are examples, not advice: each shows a different level of diversification. ' +
+      'Load one into the import box, read it, then replace every row with your own decision. Nothing is saved until you click Import holdings.</p>' +
+      '<div class="row">' + books.map((book) => '<button class="btn" type="button" data-pfsample="' + esc(book.id) + '">' + esc(book.label) + '</button>').join("") + '</div>' +
+      books.map((book) => '<p class="muted" style="margin:8px 0 0"><strong>' + esc(book.label) + '.</strong> ' + esc(book.intent) + '</p>').join("") +
+      '</div>';
+  }
+  html += '<div class="card" style="margin-top:14px"><h3>Paste or import holdings</h3>' +
+    '<p class="muted">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine. ' +
+    'An imported row has no reason yet: add one at a time above, or the report will print it as a gap.</p>' +
     '<textarea id="pfhimport" rows="4" style="width:100%" placeholder="AAPL,10,150&#10;MSFT,5,350"></textarea>' +
     '<div class="row" style="margin-top:6px"><input type="file" id="pfhfile" accept=".csv,.tsv,.txt"><span class="muted">or choose a CSV/TSV file</span></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfhimportbtn">Import holdings</button>' +
     '<span class="muted">Nothing is fetched; these are your declared rows.</span></div></div>';
   return html;
+}
+
+function pfChooser(data) {
+  const groups = [["all", "All"], ["etf", "Funds"], ["equity", "Single companies"]];
+  const chosen = state.pfClass || "all";
+  return '<div class="card" style="margin-top:14px"><h3>Choose holdings from the reference list</h3>' +
+    '<p class="muted">A fixed list of large, widely held long-only listings, with a one-line description and a source link. ' +
+    'It is not ranked and it carries no expected return: read what the instrument is, then add it to the book. ' +
+    'A listing here is not a recommendation.</p>' +
+    '<div class="row" id="pffilterrow">' +
+      groups.map((pair) => '<button class="chip" type="button" data-pfclass="' + pair[0] + '" aria-pressed="' + String(chosen === pair[0]) + '">' + pair[1] + '</button>').join("") +
+      '<input type="search" id="pfsearch" placeholder="Search the list" aria-label="Search the instrument list" style="max-width:260px">' +
+    '</div><div id="pfinstrumentrows">' + pfInstrumentRows() + '</div></div>';
+}
+
+function pfInstrumentRows() {
+  const all = (state.instruments || {}).instruments || [];
+  const query = String(state.pfQuery || "").trim().toLowerCase();
+  const chosen = state.pfClass || "all";
+  const filtered = all.filter((row) => {
+    if (chosen !== "all" && row.asset_class !== chosen) return false;
+    if (!query) return true;
+    return ((row.symbol + " " + row.name + " " + row.description + " " + row.asset_class).toLowerCase().indexOf(query) >= 0);
+  }).sort((a, b) => String(a.symbol).localeCompare(String(b.symbol)));
+  if (!filtered.length) {
+    return '<p class="muted">No listing matches that filter. A symbol you already know can still be typed in above.</p>';
+  }
+  return filtered.map((row) =>
+    '<div class="pfinstrow"><strong>' + esc(row.symbol) + '</strong><span class="muted">' + esc(row.name) +
+    ' \u00b7 ' + esc(row.asset_class === "etf" ? "fund" : "company") + '</span>' +
+    '<span class="pfdesc">' + esc(row.description) + '</span>' +
+    '<a href="' + esc(row.source_url) + '" target="_blank" rel="noopener">source</a>' +
+    '<button class="btn sm" type="button" data-pfinstrument="' + esc(row.symbol) + '">Use</button></div>').join("");
+}
+
+function bindInstrumentRows(scope) {
+  $$("[data-pfinstrument]", scope || document).forEach((button) => {
+    button.onclick = () => chooseInstrument(button.dataset.pfinstrument);
+  });
+}
+
+function chooseInstrument(symbol) {
+  const field = $("#pfhsym");
+  if (!field) return;
+  field.value = symbol;
+  const why = $("#pfhwhy");
+  if (why && !why.value) why.placeholder = "Why this one belongs in the book";
+  const shares = $("#pfhshares"); if (shares) shares.focus();
+  const add = $("#pfaddholding"); if (add) add.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+function loadSampleBook(id) {
+  const books = (state.instruments || {}).sample_books || [];
+  const book = books.filter((row) => row.id === id)[0];
+  if (!book) return;
+  const box = $("#pfhimport");
+  if (box) {
+    box.value = ["SYMBOL,SHARES,COST"].concat((book.holdings || []).map((row) =>
+      row.symbol + "," + row.shares + "," + (row.cost_basis || "0"))).join("\n");
+  }
+  const message = $("#pfmsg");
+  if (message) {
+    message.innerHTML = banner("honesty", "Example book loaded into the import box",
+      "<p>" + esc(book.note) + "</p><p>Cash to declare on the Prices tab: " + esc(book.cash || "0") +
+      ". Nothing is saved until you click Import holdings.</p>");
+  }
+  if (box) box.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
 function pfData(holdings, latest, snapshot) {
@@ -1685,10 +1825,15 @@ async function addHolding() {
   const message = $("#pfmsg");
   const symbol = ($("#pfhsym").value || "").trim().toUpperCase();
   const shares = ($("#pfhshares").value || "").trim();
-  if (!symbol || !shares) { message.innerHTML = banner("blocked", "Two fields are needed", "Enter a symbol and the number of shares."); return; }
+  const rationale = (($("#pfhwhy") || {}).value || "").trim();
+  if (!symbol || !shares) { message.innerHTML = banner("blocked", "A symbol and shares are needed", "Enter a symbol and the number of shares (and, if you can, the reason you hold it)."); return; }
   message.innerHTML = loading("Adding the holding");
   try {
-    await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings", { symbol: symbol, shares: shares, cost_basis: ($("#pfhcost").value || "0").trim() });
+    await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings", {
+      symbol: symbol, shares: shares,
+      cost_basis: ($("#pfhcost").value || "0").trim(),
+      rationale: rationale
+    });
     await loadPortfolioPage();
   } catch (error) { message.innerHTML = errorBanner(error); }
 }
@@ -4080,13 +4225,13 @@ function renderSubject() {
 
 
 function ratesPanel() {
-  return '<div class="marketpanel"><h3 style="margin-top:0">Rates and FX (retrieved, not verified)</h3>' +
+  return '<div class="marketpanel"><h3 style="margin-top:0">Rates and FX</h3>' +
     '<p class="muted">Reference FX and the U.S. Treasury par yield curve are free and keyless. ' +
     'Read the value, confirm it, and type it into the tool that needs it, such as the CAPM risk-free rate, ' +
     'FX parity or a currency conversion. Nothing is auto-filled.</p>' +
     '<div class="marketrow">' +
-      '<label>FX base <input id="fxbase" value="USD" maxlength="3" size="4" aria-label="FX base currency"></label>' +
-      '<label>quote <input id="fxquote" value="EUR" maxlength="3" size="4" aria-label="FX quote currency"></label>' +
+      '<label>FX base <select id="fxbase" aria-label="FX base currency"></select></label>' +
+      '<label>quote <select id="fxquote" aria-label="FX quote currency"></select></label>' +
       '<label>date <input id="fxdate" type="date" aria-label="FX date (optional)"></label>' +
       '<button class="btn sm" id="fxlookup" type="button">Look up FX</button>' +
       '<button class="btn sm" id="rflookup" type="button">Treasury yield</button>' +
@@ -4142,6 +4287,23 @@ function bindRatesPanel() {
   const on = (id, fn) => { const el = $("#" + id); if (el) el.onclick = fn; };
   on("fxlookup", lookupFx);
   on("rflookup", lookupRiskfree);
+
+  // Load ISO 4217 currencies into dropdowns
+  const baseSel = $("#fxbase");
+  const quoteSel = $("#fxquote");
+  if (baseSel && quoteSel) {
+    api("/api/currencies").then((data) => {
+      const currencies = (data && data.currencies) ? data.currencies : [];
+      if (!currencies.length) return;
+      const options = currencies.map((c) =>
+        '<option value="' + esc(c.code) + '">' + esc(c.code) + " — " + esc(c.name) + "</option>"
+      ).join("");
+      baseSel.innerHTML = options;
+      quoteSel.innerHTML = options;
+      baseSel.value = "USD";
+      quoteSel.value = "EUR";
+    }).catch(() => {});
+  }
 }
 
 function bindSecuritiesPanel() {
@@ -4164,10 +4326,30 @@ function bindMacroPanel() {
 }
 
 function marketFoot(data) {
-  return '<div class="muted">' + esc(data.source) + " - " +
-      '<a href="' + esc(data.source_url) + '" target="_blank" rel="noopener">open the source</a></div>' +
-    '<div class="muted">Response SHA-256 ' + esc(String(data.response_sha256 || "").slice(0, 16)) + "...</div>" +
-    '<div class="muted">' + esc(data.verification) + ". " + esc(data.note) + "</div>";
+  // Derive a human-readable source URL for known sources
+  let sourceUrl = data.source_url || "";
+  let sourceLabel = "Open the source";
+  if (sourceUrl.includes("frankfurter")) {
+    sourceUrl = "https://frankfurter.dev/";
+    sourceLabel = "Open Frankfurter (reference FX)";
+  } else if (sourceUrl.includes("home.treasury.gov")) {
+    sourceUrl = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates";
+    sourceLabel = "Open U.S. Treasury (par yield curve)";
+  } else if (sourceUrl.includes("alphavantage")) {
+    sourceLabel = "Open Alpha Vantage (equity quote)";
+  } else if (sourceUrl.includes("massive.com")) {
+    sourceLabel = "Open Massive (equity quote)";
+  } else if (sourceUrl.includes("qveris.ai")) {
+    sourceLabel = "Open QVeris (equity quote)";
+  } else if (sourceUrl.includes("sec.gov") || sourceUrl.includes("data.sec.gov")) {
+    sourceLabel = "Open SEC EDGAR";
+  } else if (sourceUrl.includes("worldbank.org")) {
+    sourceLabel = "Open World Bank Open Data";
+  }
+  return '<div class="marketfoot">' +
+    '<span class="marketfoot-source">' + esc(data.source) + '</span>' +
+    '<a class="btn sm marketfoot-link" href="' + esc(sourceUrl) + '" target="_blank" rel="noopener">' + esc(sourceLabel) + '</a>' +
+    '</div>';
 }
 
 function marketResult(data) {

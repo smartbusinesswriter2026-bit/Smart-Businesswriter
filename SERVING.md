@@ -26,7 +26,15 @@ restarts if it crashes. There is no terminal to keep open.
 - **Autostart** — `SmartBusinessWriter-8021.vbs` in the per-user Startup folder, so it
   needs no administrator rights. (A Scheduled Task was attempted and refused: *Access is
   denied*. The Startup folder is the working equivalent.)
-- **Log** — `C:\Users\Roderick\.smart-business-writer\server.log`
+- **Log** — `C:\Users\Roderick\.smart-business-writer\server.log` (launcher/supervisor);
+  server stdout → `server-out.log`, server stderr → `server-crash.log` in the same folder.
+- **Trap** — the launcher runs under Windows PowerShell 5.1, which **rejects
+  `Start-Process` when `-RedirectStandardOutput` and `-RedirectStandardError` point at the
+  same file**. `Start-Process` then returns `$null` (non-terminating error) and the next
+  `$p.WaitForExit()` throws *"You cannot call a method on a null-valued expression"* —
+  logged as `launch failed`, and the page never comes up. Keep the stdout and stderr
+  files distinct. (This is what broke the 8021 page from 2026-10-31 04:49 to 2026-11-02
+  17:25; fixed 2026-11-02.)
 
 To start it by hand:
 

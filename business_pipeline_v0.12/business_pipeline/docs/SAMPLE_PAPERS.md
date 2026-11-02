@@ -82,7 +82,7 @@ own ranking and will show gaps where the sources are thin.
 | File | Shows |
 |---|---|
 | `portfolio-mock-fund-sample.docx` | a fund with three weekly snapshots, one contribution, a declared benchmark and a decision journal; the Checks section says **"All 12 checks passed"** in plain language |
-| `portfolio-lab-explainer.docx` | a short guide for students and instructors: workflows, how to read NAV/weights/TWR, what the checks mean, provenance, the report sections and a checklist |
+| `portfolio-lab-explainer.docx` | a short guide for students and instructors: workflows, how to choose what you hold (the instrument guide and the example books), how to read NAV/weights/TWR, what the checks mean, provenance, the report sections and a checklist |
 
 The sample's prices are **simulated** and every provenance row says `sample (simulated)`; it is an
 illustration, not market data. Both are generated:

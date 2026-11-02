@@ -1,0 +1,89 @@
+"""The retrieved market-data panels are split by the consumer of each lookup (B-177).
+
+The product is global. A panel that names a home exchange or a home country is a
+product-identity defect, not a style choice: rates and FX belong to the finance
+shelf, securities data belongs with the portfolio book, and macro data belongs to
+economics. Every panel keeps the same boundary: it displays a value with its
+source, date and response hash, and nothing is written into a tool automatically.
+"""
+
+import pathlib
+import sys
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from bp.product import marketdata  # noqa: E402
+
+PAGE = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+GUIDE = (ROOT / "docs" / "FINANCE_STUDENT_GUIDE.md").read_text(encoding="utf-8")
+LIMITS = (ROOT / "docs" / "KNOWN_LIMITATIONS.md").read_text(encoding="utf-8")
+
+
+def _function(name):
+    """The body of one page function, from its definition to the next blank line after a close."""
+    start = PAGE.index("function %s(" % name)
+    return PAGE[start:start + 6000]
+
+
+class PanelSplitTest(unittest.TestCase):
+    def test_three_panels_are_defined_and_the_single_panel_is_gone(self):
+        for name in ("ratesPanel", "securitiesPanel", "macroPanel"):
+            self.assertIn("function %s()" % name, PAGE)
+        self.assertNotIn("function marketPanel", PAGE)
+        self.assertNotIn('id="marketout"', PAGE)
+
+    def test_each_panel_has_its_own_result_region(self):
+        for marker in ('id="ratesout"', 'id="secout"', 'id="macroout"'):
+            self.assertIn(marker, PAGE)
+
+    def test_finance_gets_rates_and_economics_gets_macro(self):
+        self.assertIn('if (s.id === "finance") html += ratesPanel();', PAGE)
+        self.assertIn('if (s.id === "economics") html += macroPanel();', PAGE)
+        self.assertNotIn("html += securitiesPanel();", PAGE)
+        self.assertNotIn('if (s.id === "finance") html += macroPanel();', PAGE)
+
+    def test_the_securities_panel_renders_inside_the_portfolio_book(self):
+        book = PAGE.split("function pfData(", 1)[1].split("function addHolding(", 1)[0]
+        self.assertIn("securitiesPanel()", book)
+
+    def test_each_panel_binds_its_own_handlers(self):
+        self.assertIn('if (s.id === "finance") bindRatesPanel();', PAGE)
+        self.assertIn('if (s.id === "economics") bindMacroPanel();', PAGE)
+        workspace = PAGE.split("function renderPortfolioWorkspace(", 1)[1].split("function pfTone(", 1)[0]
+        self.assertIn("bindSecuritiesPanel();", workspace)
+
+    def test_each_handler_writes_to_its_own_panel(self):
+        for function, region in (("lookupFx", "ratesout"), ("lookupRiskfree", "ratesout"),
+                                 ("lookupEquity", "secout"), ("lookupSec", "secout"),
+                                 ("lookupMacro", "macroout")):
+            body = PAGE.split("async function %s(" % function, 1)[1].split("\n\n", 1)[0]
+            self.assertIn('$("#%s")' % region, body, function)
+
+    def test_the_served_page_names_no_home_exchange_or_home_country(self):
+        for forbidden in ("PSE", "Philippines", "Philippine", "Filipino", "Cebu", "PHP", "peso"):
+            self.assertNotIn(forbidden, PAGE, "the page must stay global: " + forbidden)
+
+    def test_the_panels_keep_the_never_auto_fill_boundary(self):
+        for name in ("ratesPanel", "securitiesPanel", "macroPanel"):
+            body = _function(name)
+            self.assertIn("not verified", body, name)
+        self.assertIn("Nothing is auto-filled.", _function("ratesPanel"))
+        self.assertIn("nothing is auto-filled", _function("securitiesPanel"))
+
+
+class GlobalProductCopyTest(unittest.TestCase):
+    def test_the_market_data_status_note_is_global(self):
+        note = marketdata.status()["note"]
+        for forbidden in ("PSE", "Philippines", "Philippine"):
+            self.assertNotIn(forbidden, note)
+
+    def test_the_student_guide_and_limits_name_no_home_market(self):
+        for text, label in ((GUIDE, "FINANCE_STUDENT_GUIDE"), (LIMITS, "KNOWN_LIMITATIONS")):
+            for forbidden in ("PSE", "Philippines", "Philippine"):
+                self.assertNotIn(forbidden, text, label + " must stay global: " + forbidden)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -2041,7 +2041,7 @@ EXAMPLES = {
     "template_business_model_canvas": {"objective": "Lay out the evidence for our campus meal business model", "method": "template_business_model_canvas", "inputs": {
         "blocks": {
             "customer_segments": [{"text": "Students living within walking distance of the campus", "provenance": "synthetic", "id": "CS1", "materiality": "high"}],
-            "value_propositions": [{"text": "A hot rice meal under eighty pesos in under ten minutes", "provenance": "synthetic", "id": "VP1"}],
+            "value_propositions": [{"text": "A hot rice meal under eight dollars in under ten minutes", "provenance": "synthetic", "id": "VP1"}],
             "channels": [{"text": "A counter beside the main gate and a phone order line", "provenance": "synthetic"}],
             "cost_structure": [{"text": "Rent, ingredients and two part-time staff", "provenance": "synthetic"}],
             "revenue_streams": [{"text": "Walk-in meals and prepaid meal cards", "provenance": "synthetic"}]},
@@ -2069,7 +2069,7 @@ EXAMPLES = {
             "targeting": [{"text": "First- and second-year students with a short midday break", "provenance": "synthetic"}],
             "positioning": [{"text": "The fastest student-priced hot meal beside the gate", "provenance": "synthetic"}],
             "product": [{"text": "Three rice meals and two drinks", "provenance": "synthetic"}],
-            "price": [{"text": "Seventy-five pesos a meal, cost-plus pricing", "provenance": "synthetic"}],
+            "price": [{"text": "Seventy-five dollars a meal, cost-plus pricing", "provenance": "synthetic"}],
             "place": [{"text": "Counter beside the main gate", "provenance": "synthetic"}],
             "promotion": [{"text": "Class-group chats and a first-week meal-card discount", "provenance": "synthetic"}]}}},
     "template_pestel": {"objective": "Organize the external evidence for the campus meal service", "method": "template_pestel", "inputs": {
@@ -2152,8 +2152,8 @@ EXAMPLES = {
             "scope_out": [{"text": "No delivery beyond the gate and no second campus location", "provenance": "synthetic"}],
             "deliverables": [{"text": "A fitted counter with a food-handling permit", "provenance": "synthetic", "id": "DEL1"},
                              {"text": "A phone order line and a prepaid meal card", "provenance": "synthetic", "id": "DEL2"}],
-            "governance": [{"text": "The student affairs office sponsors the project; the owner approves spend above 50,000 pesos", "provenance": "synthetic"}],
-            "budget": [{"text": "450,000 pesos from the student services fund", "provenance": "synthetic"}],
+            "governance": [{"text": "The student affairs office sponsors the project; the owner approves spend above 50,000 dollars", "provenance": "synthetic"}],
+            "budget": [{"text": "450,000 dollars from the student services fund", "provenance": "synthetic"}],
             "milestones": [{"text": "Permit approved by week 4; counter open by week 10", "provenance": "synthetic"}],
             "success_measures": [{"text": "150 meals a day and a queue under five minutes by week 12", "provenance": "assumption"}],
             "assumptions": [{"text": "The gate stays open for the whole semester", "provenance": "assumption"}],

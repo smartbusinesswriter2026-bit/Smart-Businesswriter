@@ -44,7 +44,7 @@ class WorksheetProfile(unittest.TestCase):
         report = dict(D.sections(bundle, "worksheet"))["Report"]
         text = "\n".join(report)
         self.assertIn("business model canvas organizes", text)
-        self.assertIn("A hot rice meal under eighty pesos", text)
+        self.assertIn("A hot rice meal under eight dollars", text)
 
     def test_the_word_file_is_written_and_not_empty(self):
         bundle = template_bundle()

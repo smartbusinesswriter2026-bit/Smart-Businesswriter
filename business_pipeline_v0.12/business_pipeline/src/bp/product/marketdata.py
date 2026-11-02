@@ -19,7 +19,8 @@ Nothing here computes a business number and nothing here enters a method by itse
 A lookup returns the value *with its source, date, URL and a SHA-256 of the response*;
 the user must confirm and type it into the tool.  That is the boundary the rest of the
 product keeps: retrieved data is labelled and confirmed, never silently substituted.
-An uncovered market (PSE, private companies) stays a manual entry.
+A market the free sources do not cover (a private company, or an exchange with no free
+official feed) stays a manual entry.
 
 The module is standard library only.  Network failures raise ``MarketDataError`` and no
 value is invented.  Hosts are fixed, responses are capped, redirects are checked against
@@ -319,7 +320,7 @@ def status():
             "alpha_key_env": "BP_ALPHAVANTAGE_KEY",
             "note": ("Equity quotes try Alpha Vantage first, then Massive, then QVeris. Each provider "
                      "has an internal ceiling; when one is reached the next is tried. Fundamentals come "
-                     "from SEC EDGAR and need no key. Uncovered markets (PSE, private companies) are "
+                     "from SEC EDGAR and need no key. Markets the free sources do not cover are "
                      "manual entries.")}
 
 
