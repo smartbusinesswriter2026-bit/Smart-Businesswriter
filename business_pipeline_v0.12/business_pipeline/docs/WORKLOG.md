@@ -1,5 +1,29 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [paper] Every tile downloads its paper, and the sources block is closed
+
+**Ask.** "where will the completed paper go in finance? each tile or each function there must have
+downloadable feature for user to download their paper" + "on a) close that" (the declared-sources
+section I had left open).
+
+**Found.** The result screen gave every computation a **Download spreadsheet**, but the Word paper
+was conditional on `state.draft` — which a plain computation session never has. So all 35 finance
+tiles could be run and read but not downloaded as a paper.
+
+**Did.** `POST /api/sessions/{id}/paper` (Word or Markdown) built by the new
+`bp.product.session_paper` from the delivery itself — report, honesty, assumptions, limitations,
+checks, spec hash — with **409 before delivery** and **422 for an unknown format**. Two buttons on
+the results screen. Declared sources finished on both paths: a section headed *"Sources you declared
+(not evidence)"* with the caveat in prose (not only in the heading), and `chat.declare_sources` +
+one wrapper on `draft()` so a conductor paper carries the same section exactly once.
+
+**Why one wrapper, not six builders.** The five prose builders each assemble their own sections;
+wrapping `draft()` keeps the behaviour identical everywhere and avoids six copies of the same rule.
+
+**Verified.** `tests/test_session_paper.py` — 15 tests including the route's 409/200/422/404 paths
+and the .docx being a real zip container. Page passes the Node `--check` gate. Suite count 2830.
+
+
 ## 2026-11-02 — [ingest] P3: the dataset leg is proven, and its provenance is no longer lost
 
 **Found.** The dataset-to-method path was built (B-065/B-071) and refused bad mappings correctly,

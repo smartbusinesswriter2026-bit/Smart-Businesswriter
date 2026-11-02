@@ -1,3 +1,30 @@
+## Every delivered computation now downloads a paper, and declared sources have their own section (B-182)
+
+The result screen offered **Download spreadsheet** for every computation, but the Word paper only
+appeared when a conductor *draft* existed — so a finance tile (NPV, WACC, DCF, the ratio pack, the
+maturity tools) could be run and read but **not downloaded as a paper**. That is now closed.
+
+`POST /api/sessions/{id}/paper` returns the delivered record as **Word** or **Markdown**. The new
+`bp.product.session_paper` builds it from the delivery itself — report, honesty block, assumptions,
+limitations, recorded checks and the specification hash — and adds no sentence the screen does not
+show. The route refuses with **409** until the result is delivered ("the paper is written only after
+the result is delivered"), refuses an unknown format with **422**, and names the file after the
+method rather than an id. The results screen gains **Download the paper (Word)** and **Download the
+paper (Markdown)** beside the spreadsheet button.
+
+Declared sources are finished in both kinds of paper (B-182). `session_paper` places the student's
+own citations in a section headed **"Sources you declared (not evidence)"** whose first line says, in
+prose, that they are *their* citations, unverified, and not evidence. The conductor gains
+`chat.declare_sources` and a single wrapper on `draft()` that appends the same section exactly once
+(re-drafting does not duplicate it). They are never merged into the references of retrieved evidence,
+and a part of the paper with no retrieved evidence still names that gap.
+
+Verified by `tests/test_session_paper.py` (15 tests: the paper carries the figure, the honesty block
+and the checks; a non-applicable disclosure is omitted, not printed blank; the .docx is a real zip;
+the declared section exists, sits apart, and does not duplicate; the route's 409/200/422/404 paths).
+Page still passes the Node `--check` gate. Suite count 2830.
+
+
 ## Ingest: a mapped dataset now keeps its provenance into the specification (B-071)
 
 `bp.ingest.to_method_inputs` already turned named columns into a method request, and it refuses

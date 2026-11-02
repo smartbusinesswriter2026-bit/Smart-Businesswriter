@@ -6,7 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
+from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -672,6 +672,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(*product_api.handle("POST", self.path, json.loads(self.rfile.read(n) or b"{}")))
             if self.path.startswith("/api/portfolios"): return self._portfolios("POST")
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
+            pm = re.fullmatch(r"/api/sessions/(\w+)/paper", self.path)
+            if pm: return self._session_paper(pm[1], self._body())
             if self.path == "/api/assist": return self._assist(self._body())
             if self.path == "/api/intake": return self._intake_upload(self._body(INGEST_MAXBODY))
             im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/ingest", self.path)
@@ -1035,6 +1037,36 @@ class H(BaseHTTPRequestHandler):
         except ingest.IngestError as e:
             return self._send(201, product_intake.fail(record["id"], str(e)))
         return self._send(201, product_intake.attach_table(record["id"], table))
+
+    def _session_paper(self, session_id, b):
+        """The delivered computation as a downloadable paper: the same record, as Word or Markdown.
+
+        It adds no sentence the screen does not show.  The declared sources are the student's own
+        citations (B-182): their own section, headed "not evidence", never merged into the
+        references of retrieved evidence.
+        """
+        if not isinstance(b, dict): raise ValueError("body must be an object")
+        delivery = (M.get(session_id).to_dict() or {}).get("delivery") or {}
+        if delivery.get("status") != "delivered":
+            return self._send(409, {"error": "the paper is written only after the result is delivered; "
+                                             "confirm the specification first"})
+        fmt = str(b.get("format") or "docx").lower()
+        if fmt not in ("docx", "md"):
+            return self._send(422, {"error": "format must be docx or md"})
+        declared = []
+        for file_id in b.get("source_files") or []:
+            try:
+                declared.extend(product_intake.declared_sources(file_id)["citations"])
+            except (product_intake.IntakeError, ValueError) as error:
+                declared.append("A declared source list could not be read: " + str(error)[:120])
+        title = str(b.get("title") or "") or None
+        if fmt == "md":
+            return self._send(200, product_session_paper.markdown(delivery, declared, title).encode("utf-8"),
+                              "text/markdown; charset=utf-8",
+                              product_session_paper.filename(delivery, "md", title))
+        return self._send(200, product_session_paper.docx_bytes(delivery, declared, title),
+                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                          product_session_paper.filename(delivery, "docx", title))
 
     def _intake_sources(self, file_id):
         """Read a stored .bib/.ris as the student's own source list (B-182).

@@ -5349,7 +5349,45 @@ def _change_section(state, by_id, target):
     return paper.section("What Would Change the Answer", paper.H1, [paper.paragraph(paragraphs)])
 
 
+def declare_sources(state, citations):
+    """Record the student's own citations for the paper (B-182: cited, never evidence).
+
+    They are kept apart from the retrieved `sources` list on purpose: a declared citation can
+    never satisfy an evidence gate, and the paper shows it in its own section.
+    """
+    state["declared_sources"] = [str(line).strip() for line in (citations or []) if str(line).strip()]
+    state["updated_at"] = _now()
+    return state
+
+
+def _append_declared_sources(state):
+    """Add the student's own citations as their own section, headed *not evidence*."""
+    declared = [str(line).strip() for line in (state.get("declared_sources") or []) if str(line).strip()]
+    if not declared:
+        return state
+    draft = state.get("draft") or {}
+    heading = "Sources you declared (not evidence)"
+    lead = ("These are the sources you declared. They are your citations, this system has not "
+            "verified them, and they are not evidence: a part of the paper with no retrieved "
+            "evidence still names that gap.")
+    sections = draft.get("sections") or []
+    if any(isinstance(item, (list, tuple)) and item and item[0] == heading for item in sections):
+        return state
+    sections.append([heading, [lead] + declared])
+    draft["sections"] = sections
+    outline = draft.get("outline")
+    if isinstance(outline, list) and all(isinstance(item, dict) for item in outline):
+        outline.append(paper.section(heading, paper.H1, [lead] + declared))
+    state["draft"] = draft
+    return state
+
+
 def draft(state, accepted_ids=None, implications="", style=None):
+    """Compose the paper, then attach the student's own citations in their own section (B-182)."""
+    return _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
+
+
+def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     """Compose the paper from accepted evidence.  It invents nothing."""
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
         return _draft_plan(state, accepted_ids, style)
