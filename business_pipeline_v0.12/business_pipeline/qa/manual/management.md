@@ -46,7 +46,7 @@ shelves; the effects on them were re-tested (§6).
 | Theories | 0 | `detail("management")["theories"]` | 0 |
 | Glossary terms | 0 | `detail("management")["glossary"]` | the shelf has no glossary |
 | Catalogue records the shelf *counts* | 28 | `subjects.catalogue()` | **28** against 31 rows — D-MGT-09 |
-| Profiles no subject page reaches | 17 | `test_E_mgt_043` | **17**, not the 22 the harness recorded — G-mgt-04 |
+| Profiles no subject page reaches | 18 | `test_E_mgt_043` | **18** on 2026-11-03 (17 before the marketing lane removed the SERVQUAL worksheet row while repairing it) — G-mgt-04 |
 | Worksheets also shown on another shelf | 18 of the 31 rows | `VALIDATION_HARNESS.md` §7.1 | 13 CHG rows on People, 5 STR rows on Entrepreneurship (§2.2) |
 
 ### 2.1 Worksheets, one row each
@@ -204,9 +204,23 @@ silently. `GAP` = a declared limitation that must not be built.
 | E-mgt-043 | The profiles no page reaches are the measured seventeen, and Change and Organization is one | `VALIDATION_HARNESS.md` §7.2 — re-measured | PASS |
 | E-mgt-044 | An unreachable profile still produces a complete paper through the real engine | V-01…V-15 on the artefact | PASS |
 | E-mgt-045 | A non-draftable profile still produces a complete paper through the real engine | `VALIDATION_HARNESS.md` §7.2 | PASS |
-| E-mgt-046 | The shelf's catalogue count omits three of its own worksheets (STR-01, STR-07, STR-18) | `subjects.catalogue()` | **BLOCKED** (D-MGT-08) |
+| E-mgt-046 | The shelf's catalogue count omits three of its own worksheets (STR-01, STR-07, STR-18) | `subjects.catalogue()` | **BLOCKED** (D-MGT-09) |
 
-**Scoreboard: 45 PASS · 1 BLOCKED · 0 DISPUTED · 0 GAP.**
+### 3.6 Debugging the shelf by driving it (2026-11-03)
+
+`qa/probe_mgt_debug.py` runs every one of the 30 templates twice (with evidence and with none),
+strips `word/document.xml`, reads the paper and checks V-01…V-20, the figure, the citations, the
+references and determinism. It found four defects the unit tests could not, because a unit test
+asserts what someone thought to assert and the harness asserts what a reader can see.
+
+| E-id | Behaviour | Source of truth | Status |
+|---|---|---|---|
+| E-mgt-047 | No block declares a placeholder cue (`'evidence'`) or a list of cues | `framework_profiles`; `retrieval.cue_words_of` | PASS |
+| E-mgt-048 | Every researched block accepts a source whose title echoes its own query (168 blocks) | `retrieval._accept`; V-01 | PASS |
+| E-mgt-049 | The three canvas profiles carry a sourced item, with a citation | V-01, V-12 | PASS |
+| E-mgt-050 | No paper prints a wrong article or a broken singular (`a element`, `a activitie`) | manual §4.6 | PASS |
+
+**Scoreboard: 49 PASS · 1 BLOCKED · 0 DISPUTED · 0 GAP.**
 
 ## 4. DISPUTED rows
 
@@ -246,6 +260,9 @@ paper prints `Npv A1: 2586.47` instead of fifty digits. One row is still `BLOCKE
 | E-mgt-021 | `test_E_mgt_021__the_title_drops_the_trailing_period` | E-mgt-044 | `test_E_mgt_044__an_unreachable_profile_still_produces_a_paper` |
 | E-mgt-022 | `test_E_mgt_022__a_brief_without_an_industry_is_refused_naming_the_market` | E-mgt-045 | `test_E_mgt_045__a_non_draftable_profile_still_produces_a_paper` |
 | E-mgt-023 | `test_E_mgt_023__the_unit_of_analysis_is_the_industry` | E-mgt-046 | `test_E_mgt_046__the_shelf_catalogue_count_omits_three_of_its_own_worksheets` |
+| E-mgt-043 | `test_E_mgt_043__the_unreachable_profiles_are_the_measured_eighteen` | E-mgt-047 | `test_E_mgt_047__no_block_declares_a_placeholder_cue_or_a_list_of_cues` |
+| E-mgt-048 | `test_E_mgt_048__every_research_block_accepts_evidence_for_its_own_question` | E-mgt-049 | `test_E_mgt_049__the_three_canvases_carry_a_sourced_item` |
+| E-mgt-050 | `test_E_mgt_050__no_shelf_paper_prints_a_wrong_article_or_singular` | — | — |
 
 Every row maps to exactly one test; no test is unused and no row is untested.
 
@@ -314,6 +331,9 @@ found only by reading the produced `.docx` (P6), which is why the probe exists.
 | D-MGT-09 | the shelf page counts 28 records beside 31 worksheets | CATALOGUE | **BLOCKED** |
 | D-MGT-10 | “a activitie”, “A activitie” in every -ies profile's paper | WORDING | FIXED |
 | D-MGT-11 | “How this was produced / Method: … / Specification hash: …” in the export | HONESTY (P3) | FIXED |
+| D-MGT-12 | three canvas profiles accepted **no** evidence, ever | WIRING | FIXED |
+| D-MGT-13 | five blocks refused a source whose title echoed their own query | WIRING | FIXED |
+| D-MGT-14 | “it is **a element** the case has not documented” | WORDING | FIXED |
 | G-mgt-02 | Change and Organization works when called and no page reaches it | WIRING | GAP (owner decision) |
 | G-mgt-04 | the harness recorded 22 unreachable profiles; the live count is 17 | DOC-DRIFT | FIXED (doc corrected) |
 

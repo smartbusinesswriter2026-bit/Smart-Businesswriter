@@ -178,8 +178,10 @@ class CompletionTest(unittest.TestCase):
         self.assertNotIn("Case assumption", buyers["lines"][0])
 
     def test_another_template_is_refused(self):
+        # case_decision is the one template with no completion profile (the customer
+        # journey gained one), so it is the honest example of a refused framework.
         with self.assertRaises(ValueError):
-            completion.complete("template_customer_journey", "A grocery chain is entering Saudi Arabia.")
+            completion.complete("case_decision", "A grocery chain is entering Saudi Arabia.")
 
     @mock.patch("bp.product.completion.complete")
     def test_the_route_returns_the_completion(self, complete):

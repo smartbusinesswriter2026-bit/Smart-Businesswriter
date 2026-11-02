@@ -34,7 +34,7 @@ if SRC not in sys.path:
 from bp import registry, server, templates                       # noqa: E402
 from bp.orchestrator import Pipeline                             # noqa: E402
 from bp.product import (completion, deliverables, docx, framework_profiles,  # noqa: E402
-                        matrix, paper, subjects)
+                        matrix, paper, retrieval, subjects)
 
 SUBJECT = "management"
 INDUSTRY = "grocery retail"
@@ -557,11 +557,12 @@ class ReachabilityTest(unittest.TestCase):
         return sorted(template for template in framework_profiles.PROFILES
                       if template not in reached)
 
-    def test_E_mgt_043__the_unreachable_profiles_are_the_measured_seventeen(self):
+    def test_E_mgt_043__the_unreachable_profiles_are_the_measured_eighteen(self):
         measured = self._unreachable()
-        self.assertEqual(len(measured), 17,
-                         "docs/VALIDATION_HARNESS.md §7.2 said 22 on 2026-11-02; re-measure, "
-                         "do not re-copy the number")
+        self.assertEqual(len(measured), 18,
+                         "18 on 2026-11-03 (17 before the marketing lane removed the SERVQUAL "
+                         "worksheet row while repairing it, D-MKT-04/B-198); re-measure, do not "
+                         "re-copy the number")
         self.assertIn("template_change_organization", measured,
                       "the Change and Organization profile has no worksheet on any shelf (G-mgt-02)")
 
@@ -577,7 +578,9 @@ class ReachabilityTest(unittest.TestCase):
         not_draftable = sorted({sheet["template"] for row in subjects.catalogue()["subjects"]
                                 for sheet in subjects.detail(row["id"])["worksheets"]
                                 if not sheet["draftable"]})
-        self.assertEqual(len(not_draftable), 12)
+        self.assertEqual(len(not_draftable), 11,
+                         "11 on 2026-11-03: SERVQUAL left the shelf's rows while the marketing "
+                         "lane repairs it, so it is no longer counted here")
         for template in not_draftable:
             result = complete_any(template)
             report = completion.draft(result, "apa", "draft", "short")
@@ -596,4 +599,101 @@ class ReachabilityTest(unittest.TestCase):
         entry = next(row for row in subjects.catalogue()["subjects"] if row["id"] == SUBJECT)
         self.assertEqual(entry["catalogue_count"], 28)
         self.assertEqual(entry["worksheet_count"], 31)
+
+
+
+class CueReachabilityTest(unittest.TestCase):
+    """E-mgt-047..049 — D-MGT-12: a block must be able to accept evidence for its own question.
+
+    Found by driving all 30 profiles with a source whose title echoes the block's own query:
+    the three canvas profiles accepted nothing, ever, because their blocks declared
+    `cues: ['evidence']` and `queries: ['<key> evidence']`, and a list of cues became the
+    single token "['evidence']" once it was coerced with str().
+    """
+
+    def _echo(self, query, databases=None, limit=10, year_from=None):
+        return {"results": [{"title": query[:120],
+                             "abstract": "Evidence on " + query[:110] + ".",
+                             "authors": "Ada Lovelace", "authors_list": ["Ada Lovelace"],
+                             "year": 2024, "venue": "Journal", "doi": "10.1/" + str(abs(hash(query)) % 999983),
+                             "url": "https://doi.org/10.1/x", "database": "OpenAlex"}],
+                "errors": [], "skipped": []}
+
+    def test_E_mgt_047__no_block_declares_a_placeholder_cue_or_a_list_of_cues(self):
+        for sheet in sheets():
+            for block in profile(sheet["template"])["blocks"]:
+                self.assertIsInstance(block.get("cues"), str,
+                                      "%s/%s declares cues as a list" % (sheet["catalogue_id"], block["key"]))
+                words = str(block.get("cues") or "").split()
+                self.assertGreaterEqual(len(words), 2,
+                                        "%s/%s has no cue vocabulary" % (sheet["catalogue_id"], block["key"]))
+                self.assertNotEqual(words, ["evidence"],
+                                    "%s/%s declares the placeholder cue 'evidence'"
+                                    % (sheet["catalogue_id"], block["key"]))
+                for query in block.get("queries") or []:
+                    self.assertNotEqual(query, "%s evidence" % block["key"],
+                                        "%s/%s searches its own key name"
+                                        % (sheet["catalogue_id"], block["key"]))
+
+    def test_E_mgt_048__every_research_block_accepts_evidence_for_its_own_question(self):
+        for sheet in sheets():
+            template = sheet["template"]
+            for block in profile(template)["blocks"]:
+                if framework_profiles.fill_of(block) not in ("research", "auto"):
+                    continue
+                query = retrieval.build_query((block.get("queries") or [""])[0], INDUSTRY, "Global")
+                with mock.patch("bp.product.sources.search_academic", side_effect=self._echo), \
+                        mock.patch("bp.product.sources.search_web", side_effect=web):
+                    found = retrieval.retrieve(
+                        key=block["key"], cues=block.get("cues"), queries=[query],
+                        context=retrieval.context_words(INDUSTRY), geography="Global",
+                        gate=profile(template).get("gate"))
+                self.assertTrue(found["items"],
+                                "%s/%s accepted no evidence for its own query (dropped %d)"
+                                % (sheet["catalogue_id"], block["key"], found["dropped"]))
+
+    def test_E_mgt_049__the_three_canvases_carry_a_sourced_item(self):
+        for template in ("template_business_model_canvas", "template_lean_canvas",
+                         "template_value_proposition_canvas"):
+            unit = (profile(template).get("unit") or {}).get("field")
+            kwargs = {"industry": INDUSTRY} if unit == "industry" else {"unit_value": "the campus shop"}
+            with mock.patch("bp.product.sources.search_academic", side_effect=self._echo), \
+                    mock.patch("bp.product.sources.search_web", side_effect=web):
+                result = completion.complete(template, BRIEF, **kwargs)
+            sourced = [item for block in result["blocks"] for item in block["items"]
+                       if item["provenance"] == "sourced"]
+            self.assertTrue(sourced, "%s accepted no evidence" % template)
+            for item in sourced:
+                self.assertTrue(item["citation"], template)
+
+
+    def test_E_mgt_050__no_shelf_paper_prints_a_wrong_article_or_singular(self):
+        """The article was hard-coded "a", so a vowel-initial singular read "a element"."""
+        for sheet in sheets():
+            template = sheet["template"]
+            profile = framework_profiles.PROFILES[template]
+            field = (profile.get("unit") or {}).get("field")
+            kwargs = {}
+            if field == "industry":
+                kwargs["industry"] = INDUSTRY
+            elif field == "process":
+                kwargs["unit_value"] = "the campus mentoring programme"
+            elif field == "country":
+                kwargs["country"] = "Iran"
+            else:
+                kwargs["unit_value"] = "the campus shop offer"
+            instruction = {"process": "The programme is being reviewed before deciding whether to continue it.",
+                           "country": "A supermarket chain in Iran is weighing its options.",
+                           "unit": "The campus shop is reviewing its offer."}.get(
+                               field, BRIEF)
+            with mock.patch("bp.product.sources.search_academic", side_effect=empty), \
+                    mock.patch("bp.product.sources.search_web", side_effect=web):
+                result = completion.complete(template, instruction, **kwargs)
+            report = completion.draft(dict(result, byline=["A Student"]), "apa", "draft", "mid")
+            text = docx_text(completion.draft_bytes(dict(result, byline=["A Student"]), "apa",
+                                                   report, "draft", "mid"))
+            for weak in (r"\ba activitie\b", r"\ba entrie\b", r"\ba element\b",
+                         r"\ba assumption\b", r"\ba outcome\b", r"\ba activitie "):
+                self.assertIsNone(re.search(weak, text),
+                                  "%s: %r in the paper" % (sheet["catalogue_id"], weak))
 

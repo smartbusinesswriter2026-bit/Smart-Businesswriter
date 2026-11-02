@@ -491,6 +491,22 @@ def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,
         pass
 
 
+def cue_words_of(cues):
+    """The cue words of a declaration, whether it is a string or a list.
+
+    A profile that declared ``cues`` as a list of words produced the single token
+    ``"['evidence']"`` once it was coerced with ``str()``, so no title could ever match
+    and the block could never carry evidence — a cell that was silently always a gap
+    (D-MGT-12, found by driving the canvas profiles with a title that echoes their own
+    query).  A list is a legitimate declaration; it is read here.
+    """
+    if isinstance(cues, (list, tuple, set)):
+        words = " ".join(str(word) for word in cues)
+    else:
+        words = str(cues or "")
+    return {word for word in clean(words, 400).split() if word}
+
+
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
              academic_limit=4, corpus_limit=4, web_limit=3, corpus_doc_cap=3,
@@ -514,7 +530,7 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     gate = gate_of(gate)
     exclude = exclude if exclude is not None else set()
     corpus_doc_counts = corpus_doc_counts if corpus_doc_counts is not None else {}
-    cue_words = {word for word in clean(cues, 400).split() if word}
+    cue_words = cue_words_of(cues)
     context_set = {word for word in context or [] if word}
     started = time.perf_counter()
     found, errors, skipped, notices = [], [], [], []

@@ -226,7 +226,18 @@ behaviour.
 | D-MGT-10 | management | Every `-ies` profile's paper; E-mgt-018, E-mgt-020 | MAJOR | WORDING | the produced `.docx` read “that a activitie for which no evidence is recorded” and “A activitie without an accepted item” | `_draft_data` and `_sections` built the singular with `plural.rstrip("s")`, and the article was hard-coded as “a” | `29d0509` | `test_E_mgt_018__the_outline_headings_are_present_in_declared_order`, read back with `qa/probe_mgt_paper.py` | FIXED |
 | D-MGT-11 | management | Every deliverable export; E-mgt-013, E-mgt-035 | BLOCKER | HONESTY (P3) | `deliverables.sections(bundle, "submission")` still returned the heading “How this was produced” with “Method: … (version 1.0.0)” and “Specification hash: …” | the footer was deleted from `session_paper` but `deliverables.block("citation")` printed the same block for every profile that listed it | `29d0509` | `test_E_mgt_035__no_paper_path_prints_a_specification_footer` | FIXED |
 
-### Session 4 — the shelf's declared gaps
+### Session 5 (continued) — debugging by driving every profile
+
+`qa/probe_mgt_debug.py` runs all 30 templates twice (evidence, no evidence), strips
+`word/document.xml`, reads the paper, and checks V-01…V-20, the figure, the citations, the
+references and determinism. Four defects came out of it that no unit test had asserted.
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-MGT-12 | management | Business Model Canvas, Lean Canvas, Value Proposition Canvas; E-mgt-047, E-mgt-049 | BLOCKER | WIRING | `python qa/probe_mgt_debug.py` before: the three canvas profiles reported "no sourced item reached the paper" even when the source's title **echoed the block's own query** | their blocks declared `cues: ['evidence']` and `queries: ['<key> evidence']` — the machine placeholders from the WO-3 temp file. A list of cues became the single token `"['evidence']"` once coerced with `str()`, so no title could ever match; and `retrieval` had no way to read a list | this session (`framework_profiles.py`, `retrieval.py`) | `test_E_mgt_047`, `test_E_mgt_048`, `test_E_mgt_049` | FIXED |
+| D-MGT-13 | management | Five blocks (STR-04 boundaries, CHOR-01 communicate, CHG-08/CHG-07 activities, STR-12 axes); E-mgt-048 | MAJOR | WIRING | `python qa/probe_mgt_debug.py` after D-MGT-12: 5 of 168 researched blocks refused a title that was their own query | the cue set did not contain the words the query used (`boundary exclude` vs "strategic trade-offs and exclusions"), or the query searched "intervention", a word the gate blocks on purpose because it pulls clinical papers | this session (`framework_profiles.py`) | `test_E_mgt_048` | FIXED |
+| D-MGT-14 | management | Every paper whose singular starts with a vowel; E-mgt-050 | MINOR | WORDING | the produced `.docx` read "it is **a element** the case has not documented" | `_draft_data` hard-coded "it is a " + singular; the `_article` helper added for D-MGT-10 covered the other four clauses but not this one | this session (`completion.py`) | `test_E_mgt_050` | FIXED |
+| G-mgt-06 | cross-shelf | 34 blocks on five other profiles still declare the `['evidence']` placeholder (Project Charter, WBS, Risk Register, Stakeholder Plan, Lessons Learned) | GAP | — | `framework_profiles` audit: `cues == ['evidence']` for those profiles | they came from the same WO-3 temp file; the project-management lane is repairing its own (D-PM-xx, `ba3f88a`), so they are measured and left to it | — | — | **GAP** (other lane) |
 
 | ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
 |---|---|---|---|---|---|---|---|---|---|
