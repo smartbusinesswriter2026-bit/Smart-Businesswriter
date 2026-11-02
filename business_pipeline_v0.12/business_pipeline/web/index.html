@@ -3322,12 +3322,16 @@ function intakeRow(row) {
       ? '<button class="btn sm" type="button" data-extract="' + esc(id) + '">Extract text</button>' : "") +
     (canBeBrief(row)
       ? '<button class="btn sm" type="button" data-brief="' + esc(id) + '">Use as the instruction</button>' : "") +
+    (row.kind === "sources"
+      ? '<button class="btn sm" type="button" data-showsources="' + esc(id) + '">Show sources</button>' : "") +
     (row.status === "extracted"
       ? '<button class="btn sm" type="button" data-showtext="' + esc(id) + '">Show text</button>' : "") +
     '<button class="btn sm" type="button" data-remove="' + esc(id) + '">Remove</button>';
   return '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.filename || id) + "</strong>" +
     '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) +
-    (row.role === "brief" ? " - used as the instruction" : "") + "</div>" +
+    (row.role === "brief" ? " - used as the instruction" : "") +
+    (typeof row.n_sources === "number" ? " - " + esc(row.n_sources) + " declared source(s)" : "") +
+    "</div>" +
     intakeDetail(row) + '<div data-textbox="' + esc(id) + '"></div></div><div class="row">' + actions + "</div></div>";
 }
 
@@ -3348,6 +3352,7 @@ async function loadAttachments() {
     $$("[data-extract]", box).forEach((b) => { b.onclick = () => extractAttachment(b.dataset.extract); });
     $$("[data-showtext]", box).forEach((b) => { b.onclick = () => showAttachmentText(b.dataset.showtext); });
     $$("[data-brief]", box).forEach((b) => { b.onclick = () => useAsBrief(b.dataset.brief); });
+    $$("[data-showsources]", box).forEach((b) => { b.onclick = () => showDeclaredSources(b.dataset.showsources); });
     $$("[data-remove]", box).forEach((b) => { b.onclick = () => removeAttachment(b.dataset.remove); });
   } catch (error) {
     box.innerHTML = errorBanner(error);
@@ -3374,6 +3379,27 @@ async function showAttachmentText(id) {
     box.innerHTML = '<div class="muted">Unverified text; check it against the document. ' +
       (data.truncated ? "Showing the first part of " + esc(data.chars) + " characters." : esc(data.chars) + " characters.") +
       '</div><pre class="doctext">' + esc(data.text) + "</pre>";
+  } catch (error) {
+    box.innerHTML = errorBanner(error);
+  }
+}
+
+/* Show a student's own source list (B-182).  These are their citations: the panel says,
+   in the same breath, that they are not evidence and that nothing was verified. */
+async function showDeclaredSources(id) {
+  const box = document.querySelector('[data-textbox="' + id + '"]');
+  if (!box) return;
+  box.innerHTML = loading("Reading your source list");
+  try {
+    const data = await api("/api/intake/" + encodeURIComponent(id) + "/sources");
+    const lines = (data.citations || []).map((line) => "<li>" + esc(line) + "</li>").join("");
+    const problems = (((data.sources || {}).problems) || []).map((item) =>
+      "<li>" + esc(item.problem) + (item.line ? " (line " + esc(item.line) + ")" : "") + "</li>").join("");
+    box.innerHTML = '<div class="muted">These are your own citations. They are not evidence and this ' +
+      "system has not verified them, so a part of the paper that has no retrieved evidence still " +
+      'names that as a gap.</div>' +
+      (lines ? "<ul>" + lines + "</ul>" : '<div class="muted">No entry could be read.</div>') +
+      (problems ? '<div class="muted">Entries that could not be read:</div><ul>' + problems + "</ul>" : "");
   } catch (error) {
     box.innerHTML = errorBanner(error);
   }

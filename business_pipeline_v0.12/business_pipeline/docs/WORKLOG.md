@@ -1,5 +1,29 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [intake] P2: the student's own sources are cited, never evidence
+
+**Did.** `bp.product.sources_file` (stdlib only) reads a declared subset of `.bib`, `.ris` and
+`.csv` into entries plus **named problems**; `intake` gains `SOURCES_EXT`, `kind: sources`,
+`attach_sources` and `declared_sources`; `POST /api/intake/{id}/sources` reads a stored list and
+`GET /api/intake/{id}/sources` returns the entries and one citation line each; the page gains a
+**Show sources** action that states, on screen, that these are the student's citations and that
+nothing was verified.
+
+**The rule, from the owner (B-182).** "Cited, not evidence." A declared source never enters the
+evidence Reference list, never satisfies an evidence gate (V-12) and never fills a named gap. That is
+why this commit does **not** append declared sources to a paper's References: the separation is
+structural, not editorial, and the review screen shows the declared list beside the paper instead.
+
+**Still open (deliberate).** Where a declared list should *appear inside* an exported paper is a
+design question for the six draft builders, each of which assembles its own References list and none
+of which receives an intake id. Recorded in `qa/QA_STATE.md` as the next increment rather than
+half-wired into one of them.
+
+**Verified.** `tests/test_sources_file.py` (18 tests) and 10 new tests in
+`tests/test_product_intake.py`; page passes the Node `--check` gate; frozen contract green. Suite
+count 2804.
+
+
 ## 2026-11-02 — [intake] P1: an attached file becomes the instruction, and says it is unverified
 
 **Did.** `intake.ROLES` + a `role` on the record (never guessed); `POST /api/intake/{id}/brief` reads a

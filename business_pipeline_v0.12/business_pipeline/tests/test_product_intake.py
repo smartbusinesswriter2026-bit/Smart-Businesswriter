@@ -22,10 +22,11 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 sys.path.insert(0, HERE)
 
-from bp.product import intake  # noqa: E402
+from bp.product import intake, sources_file  # noqa: E402
 
 
 CSV = b"region,sales\nnorth,10\nsouth,20\n"
+BIB = b"@article{a1, author = {Smith, J.}, title = {A declared source}, year = {2019}}\n"
 XLS_LEGACY = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1legacy workbook bytes"
 
 
@@ -339,6 +340,97 @@ class IntakeRoutesTest(unittest.TestCase):
     def test_a_missing_file_is_404_as_a_brief(self):
         self.assertEqual(self.call("POST", "/api/intake/" + "0" * 12 + "/brief", {})[0], 404)
 
+    def test_a_bib_is_read_as_a_source_list_over_the_route(self):
+        status, record = self.upload("refs.bib", BIB)
+        self.assertEqual(status, 201)
+        self.assertEqual(record["kind"], "sources")
+        status, table = self.call("POST", "/api/intake/%s/sources" % record["id"], {})
+        self.assertEqual(status, 200)
+        self.assertEqual(table["role"], "sources")
+        self.assertEqual(table["sources"]["n_entries"], 1)
+        status, listed = self.call("GET", "/api/intake")
+        row = next(item for item in listed["files"] if item["id"] == record["id"])
+        self.assertEqual(row["n_sources"], 1)
+        self.assertEqual(row["n_source_problems"], 0)
+
+    def test_a_file_with_no_source_reader_is_422(self):
+        status, record = self.upload("sales.csv", CSV)
+        self.assertEqual(status, 201)
+        status, refused = self.call("POST", "/api/intake/%s/sources" % record["id"], {})
+        self.assertEqual(status, 422)
+        self.assertIn("no source reader", refused["error"])
+
+    def test_an_unreadable_source_list_is_named_not_silently_dropped(self):
+        status, record = self.upload("refs.bib", b"@misc{broken, year = {2020}}\n")
+        self.assertEqual(status, 201)
+        status, table = self.call("POST", "/api/intake/%s/sources" % record["id"], {})
+        self.assertEqual(status, 200)
+        self.assertEqual(table["sources"]["n_entries"], 0)
+        self.assertEqual(table["sources"]["n_problems"], 1)
+        self.assertIn("no title", table["sources"]["problems"][0]["problem"])
+
+    def test_a_missing_file_is_404_as_a_source_list(self):
+        self.assertEqual(self.call("POST", "/api/intake/" + "0" * 12 + "/sources", {})[0], 404)
+
+    def test_the_declared_sources_route_lists_the_citations(self):
+        status, record = self.upload("refs.bib", BIB)
+        self.assertEqual(status, 201)
+        self.assertEqual(self.call("GET", "/api/intake/%s/sources" % record["id"])[0], 422,
+                         "nothing has been read yet, so there is no list to show")
+        self.call("POST", "/api/intake/%s/sources" % record["id"], {})
+        status, data = self.call("GET", "/api/intake/%s/sources" % record["id"])
+        self.assertEqual(status, 200)
+        self.assertEqual(data["citations"], ["Smith, J. (2019). A declared source."])
+
+
+
+
+class IntakeSourcesTest(unittest.TestCase):
+    """E-intake-03 / B-182: a .bib or .ris is read as the student's own citations."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="bp-intake-sources-")
+        self.previous = os.environ.get("BP_INTAKE_DIR")
+        os.environ["BP_INTAKE_DIR"] = self.root
+
+    def tearDown(self):
+        if self.previous is None:
+            os.environ.pop("BP_INTAKE_DIR", None)
+        else:
+            os.environ["BP_INTAKE_DIR"] = self.previous
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_a_bib_is_stored_as_a_source_list_not_as_evidence(self):
+        record = intake.save("refs.bib", BIB)
+        self.assertEqual(record["kind"], "sources")
+        self.assertEqual(record["status"], "stored")
+        self.assertIn("not evidence", record["note"])
+        table = sources_file.parse("refs.bib", BIB)
+        updated = intake.attach_sources(record["id"], table)
+        self.assertEqual(updated["role"], "sources")
+        self.assertEqual(updated["sources"]["n_entries"], 1)
+        listed = intake.list_files()[0]
+        self.assertEqual((listed["n_sources"], listed["n_source_problems"]), (1, 0))
+
+    def test_a_source_list_is_not_read_as_a_document(self):
+        record = intake.save("refs.bib", BIB)
+        with self.assertRaises(intake.IntakeError):
+            intake.extract(record["id"])
+
+    def test_a_csv_is_not_read_as_a_source_list(self):
+        record = intake.save("refs.csv", CSV.replace(b"region,sales", b"key,title"))
+        self.assertEqual(record["kind"], "structured")
+        self.assertNotEqual(record["role"], "sources")
+
+    def test_the_declared_sources_are_listed_as_the_students_citations(self):
+        record = intake.save("refs.bib", BIB)
+        with self.assertRaises(intake.IntakeError):
+            intake.declared_sources(record["id"])
+        intake.attach_sources(record["id"], sources_file.parse("refs.bib", BIB))
+        data = intake.declared_sources(record["id"])
+        self.assertEqual(data["citations"], ["Smith, J. (2019). A declared source."])
+        self.assertIn("not evidence", data["note"])
+
 
 class IntakePageContractTest(unittest.TestCase):
     """E-intake-02: the page offers the instruction action and starts nothing by itself."""
@@ -367,6 +459,15 @@ class IntakePageContractTest(unittest.TestCase):
         for ext in (".pdf", ".docx", ".txt"):
             self.assertIn('"%s"' % ext, block)
         self.assertNotIn('".csv"', block, "a spreadsheet is a dataset, not an instruction")
+
+    def test_the_page_lists_declared_sources_and_says_they_are_not_evidence(self):
+        self.assertIn("Show sources", self.page)
+        start = self.page.index("async function showDeclaredSources(")
+        end = self.page.index("async function useAsBrief(")
+        handler = self.page[start:end]
+        self.assertIn("not evidence", handler)
+        self.assertIn("/sources", handler)
+
 
 
 if __name__ == "__main__":

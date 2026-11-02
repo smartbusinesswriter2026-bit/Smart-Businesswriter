@@ -21,9 +21,10 @@ One JSON record per file under `BP_INTAKE_DIR` (default `<repo>/intake/`):
 
     {"format": "bp-intake/1", "id": "<12 lowercase hex>", "filename": str,
      "ext": str, "bytes": int, "sha256": str, "uploaded_at": "<ISO-8601 UTC>",
-     "kind": "structured" | "document" | "reference", "status": "stored" |
+     "kind": "structured" | "sources" | "document" | "reference", "status": "stored" |
      "ingested" | "extracted" | "ocr_required" | "reference_only", "note": str,
      "error": str | null, "table": object | null, "extraction": object | null,
+     "sources": object | null,
      "role": "brief" | "dataset" | "sources" | "reference" | null,
      "brief": object | null}
 
@@ -43,7 +44,7 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from . import documents
+from . import documents, sources_file
 
 FORMAT = "bp-intake/1"
 
@@ -55,6 +56,9 @@ STRUCTURED_EXT = (".csv", ".tsv", ".txt", ".xlsx", ".xlsm")
 
 #: Extensions stored as documents that can be read only on an explicit extract request.
 DOCUMENT_EXT = (".pdf", ".docx", ".png", ".jpg", ".jpeg")
+
+#: Extensions stored as a student's own source list, read by `sources_file` on request.
+SOURCES_EXT = (".bib", ".ris")
 
 #: Extensions accepted for storage but never read (explicit notes below).
 LEGACY_NOTE = "Legacy .xls is not read; save the workbook as .xlsx to ingest it."
@@ -136,6 +140,7 @@ def _clean_ext(name):
 
 def _kind(ext):
     if ext in STRUCTURED_EXT: return "structured"
+    if ext in SOURCES_EXT: return "sources"
     if ext in DOCUMENT_EXT: return "document"
     return "reference"
 
@@ -148,6 +153,9 @@ def _payload_suffix(ext):
 def _note(ext, kind):
     if kind == "structured":
         return "Read into a typed table by the frozen ingestion module; nothing is imputed or retyped."
+    if kind == "sources":
+        return ("Stored as your own source list; choose Read sources to list the entries. These are your "
+                "citations: they are not evidence and this system has not verified them.")
     if kind == "document":
         return DOCUMENT_NOTE
     if ext == ".xls":
@@ -225,7 +233,7 @@ def save(filename, raw, content_type=None, role=None):
         "sha256": hashlib.sha256(raw).hexdigest(),
         "uploaded_at": _now_iso(),
         "kind": kind,
-        "status": "stored" if kind in ("structured", "document") else "reference_only",
+        "status": "stored" if kind in ("structured", "document", "sources") else "reference_only",
         "note": _note(ext, kind),
         "error": None,
         "table": None,
@@ -304,6 +312,39 @@ def attach_table(file_id, table):
     record["error"] = None
     _write_json(_path(file_id), record)
     return record
+
+
+def attach_sources(file_id, table):
+    """Record the source list an explicit read produced for this file (B-182).
+
+    The table is stored as read.  Nothing is verified, resolved or fetched: these are the
+    student's own citations, and the record keeps them exactly as they were written.
+    """
+    if not isinstance(table, dict) or not isinstance(table.get("n_entries"), int):
+        raise ValueError("a source table with n_entries is required")
+    record = load(file_id)
+    record["status"] = "stored"
+    record["role"] = "sources"
+    record["sources"] = table
+    record["error"] = None
+    record["note"] = table.get("note") or record.get("note")
+    _write_json(_path(file_id), record)
+    return record
+
+
+def declared_sources(file_id):
+    """The student's own source list, with one citation line per entry (B-182).
+
+    These lines are *their* citations.  Nothing here is verified, and the response says so:
+    a declared source may be listed beside a paper, and it never becomes evidence.
+    """
+    record = load(file_id)
+    table = record.get("sources")
+    if not isinstance(table, dict):
+        raise IntakeError("no source list has been read for this file; choose Read sources first")
+    return {"id": record["id"], "filename": record["filename"], "role": record.get("role"),
+            "sources": table, "citations": sources_file.citations(table),
+            "note": table.get("note")}
 
 
 def fail(file_id, message):
@@ -441,6 +482,8 @@ def _summary(record):
         "n_rows": table.get("n_rows"),
         "n_cols": table.get("n_cols"),
         "columns": [c.get("name") for c in table.get("columns", []) if isinstance(c, dict)],
+        "n_sources": (record.get("sources") or {}).get("n_entries"),
+        "n_source_problems": (record.get("sources") or {}).get("n_problems"),
         "extraction": record.get("extraction"),
         "text_chars": (record.get("extraction") or {}).get("chars"),
     }

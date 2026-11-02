@@ -1,3 +1,27 @@
+## Intake: a student's own sources are read, listed, and never treated as evidence (B-182)
+
+A `.bib`, `.ris` or `.csv` source list can now be attached and read. The new
+`bp.product.sources_file` opens a **declared subset** of each format with the standard library
+only: BibTeX `@type{key, field = {value}}`, RIS `TY…ER` blocks, and a CSV whose header must name
+`title`. Every entry that cannot be read becomes a **named problem** with its record or line number —
+an entry with no title, a URL that is not http(s), a field longer than 1,000 characters — and nothing
+is dropped silently. A file with an extension this reader does not know is refused with the message
+that names the three it does.
+
+`POST /api/intake/{id}/sources` reads a stored list and records it as `role: sources`;
+`GET /api/intake/{id}/sources` returns the entries and one citation line each. The page gains a
+**Show sources** action that lists them under the sentence *"These are your own citations. They are
+not evidence and this system has not verified them…"*. Under B-182 they never enter the evidence
+Reference list, never satisfy an evidence gate (V-12) and never convert a named gap into a filled one
+— a part of the paper with no retrieved evidence still names that as a gap.
+
+Verified by `tests/test_sources_file.py` (18 tests: the three formats, the named problems, the
+refusals, the citation lines and their order) and 10 new tests in `tests/test_product_intake.py`
+(kind and role, the read route's 200/404/422 paths, an unreadable list returned as a problem rather
+than dropped, the declared-sources route, and two page-contract tests). Page still passes the Node
+`--check` gate; the frozen contract is untouched. Suite count 2804.
+
+
 ## Intake: a stored file can be used as the paper's instruction (B-182)
 
 The attach mechanism could already read a file for the brief, but only as a throwaway: `POST

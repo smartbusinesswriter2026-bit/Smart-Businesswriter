@@ -6,7 +6,7 @@ from .session import SessionManager
 from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
-from .product import api as product_api, ops as product_ops, intake as product_intake, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
+from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -571,6 +571,12 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.extracted_text(im[1], (qs.get("limit") or [4000])[0]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/sources", text_url.path)
+            if im:
+                try:
+                    return self._send(200, product_intake.declared_sources(im[1]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             im = re.fullmatch(r"/api/intake/([0-9a-f]{12})", self.path)
             if im:
                 try: return self._send(200, product_intake.load(im[1]))
@@ -676,6 +682,12 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.extract(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/sources", self.path)
+            if im:
+                # Read a stored .bib/.ris as the student's own source list (B-182): cited,
+                # never evidence.  Nothing is resolved or fetched.
+                self._body()
+                return self._intake_sources(im[1])
             im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/brief", self.path)
             if im:
                 # Use a stored attachment as the paper's instruction.  The text comes back
@@ -1023,6 +1035,30 @@ class H(BaseHTTPRequestHandler):
         except ingest.IngestError as e:
             return self._send(201, product_intake.fail(record["id"], str(e)))
         return self._send(201, product_intake.attach_table(record["id"], table))
+
+    def _intake_sources(self, file_id):
+        """Read a stored .bib/.ris as the student's own source list (B-182).
+
+        The entries are the student's citations: nothing here resolves a DOI, fetches a
+        page or claims the source exists.  An entry that cannot be read is returned as a
+        named problem, and a file with no source reader is refused with the reason.
+        """
+        try:
+            record = product_intake.load(file_id)
+            filename, raw = product_intake.payload(file_id)
+        except product_intake.IntakeNotFound as e:
+            return self._send(404, {"error": str(e)})
+        except product_intake.IntakeError as e:
+            return self._send(422, {"error": str(e)})
+        if record.get("kind") != "sources":
+            return self._send(422, {"error": "attach a .bib or .ris source list; %s has no source reader"
+                                    % (record.get("ext") or "this file")})
+        try:
+            table = product_sources.parse(filename, raw)
+        except product_sources.SourcesError as e:
+            product_intake.fail(file_id, str(e))
+            return self._send(422, {"error": str(e)})
+        return self._send(200, product_intake.attach_sources(file_id, table))
 
     def _intake_ingest(self, file_id, b):
         """Read a stored structured file again, with sheet/merged options."""
