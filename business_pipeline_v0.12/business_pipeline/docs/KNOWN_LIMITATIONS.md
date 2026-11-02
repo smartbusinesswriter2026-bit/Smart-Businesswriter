@@ -8,6 +8,22 @@
 - Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
 - Server is for local development, not production.
 
+## Added with the rubric reader (B-187)
+- **A rubric can be read; a paper does not yet follow it.** `bp/product/rubric.py` parses a marking
+  guide into criteria, weights, required elements, sections, a word budget and a citation style, and
+  refuses what it cannot read. **Binding is not built**: the outline, the word band and the required
+  elements are not yet driven by a parsed rubric, there is no "Rubric coverage" appendix, no export
+  gate on a required criterion, and no upload role or button for a rubric specifically. Until then a
+  rubric changes nothing about a paper.
+- **The reader carries what the document states and nothing else.** A rubric with no weights gives
+  `weight: None` on every criterion (never an assumed `1/n`); weights that miss 100 are reported as
+  written (never rescaled); a page limit is never converted into a word count; two named citation
+  styles are a problem, not a choice. `confirm_required` marks every parse the student must check.
+- **Nothing is scored.** There is no mark, grade or predicted result anywhere in the module; whether
+  a criterion is *met well* is a human judgement (`VALIDATION_HARNESS.md` §5.2).
+- **A scanned or photographed rubric is not readable yet** — the reader takes text, so a scan needs
+  the OCR chain described in the OCR plan; until then it is refused by name, never guessed.
+
 ## Added with the matrix figures (B-176)
 - **The matrix figures are Word tables, not pictures.** They carry the framework's structure, cells and axes
   in academic styling; they do not reproduce the colour, icons or decoration of the slide templates in
