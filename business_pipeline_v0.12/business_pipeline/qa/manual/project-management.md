@@ -296,12 +296,31 @@ was converted into a worksheet.
 | Gate | Result | Evidence |
 |---|---|---|
 | Shelf acceptance suite | **62 passed** | `python -m pytest tests/test_subject_project_management_acceptance.py -q` |
+| Shelf acceptance + `test_docs_sync` + `test_frozen_contract` | **72 passed** | after the marketing lane's commit `2209822` landed |
 | Shelf's own tests + 19 shared contract modules | **234 passed, 3 failed** — all three are baseline failures on other shelves | `qa/baseline/pm-shelf-tests.txt` |
 | Full suite, before | 3084 tests, 40 failures, 6 errors | `qa/baseline/pm-before-suite-err.txt` |
-| Full suite, after | **see `qa/baseline/pm-after-suite-err.txt`** | recorded in `qa/QA_STATE.md` |
-| Framework profiles | 75 before and after (no profile added) | `test_E_pm_004` area |
-| `scripts/econ_shelf.py --check` | in sync (recorded in `qa/QA_STATE.md`) | — |
-| `qa/check_page_syntax.py` | page syntax OK (recorded in `qa/QA_STATE.md`) | — |
+| Full suite, after | `qa/baseline/pm-after2-suite-err.txt` (started at HEAD `3ebde77`) | see `qa/QA_STATE.md` |
+| Framework profiles | 75 before and after (no profile added) | `qa/baseline/pm-probe.txt` |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** | `qa/baseline/pm-econ-shelf.txt` |
+| `qa/check_page_syntax.py` | **page syntax: OK** | `qa/baseline/pm-page-syntax.txt` |
+| Live click-through on 8001 | **18 of 18 calculators delivered**, four page markers present, **four screenshots saved** | `qa/evidence/project-management/clickthrough.json` |
+
+### 8.1 Commits
+
+| Commit | Content |
+|---|---|
+| `ba3f88a` | the two fixes, the 62-row acceptance suite, the manual, the probes and the click-through, plus `CHANGELOG`/`WORKLOG`/`QA_STATE`/`QA_DEFECTS` |
+| `3ebde77` | the evidence: baseline, probe output, gate logs, the produced paper and its no-source twin, four screenshots |
+
+Pushed: `d5e6be3..3ebde77  corpus/merge-v1 -> corpus/merge-v1`.
+
+**The full-suite "after" number is the one measurement this session could not
+finish inside the work order's window.** The marketing lane committed `2209822`
+while the first after-run was in flight, so that run was against a moving tree and
+was discarded; a clean run was started at `3ebde77` and its log path is above.
+What *is* measured and green: the shelf's 62 rows, the 19 shared contract modules,
+`docs_sync`, the frozen contract, `econ_shelf`, the page-syntax gate and the live
+click-through.
 
 ## 9. Lane discipline (another lane is live in this worktree)
 
@@ -323,4 +342,93 @@ before each commit, and no `git add -A`, no `git add qa`, no `git clean` was use
    `project_crashing` looked wrong and was right; the next reader will not check.
    The independent recomputations in this session's suite (E-pm-021…026) are the
    guard, and they must not be loosened.
+
+
+## 4.7 Strict reconciliation — every item, one cited E-row
+
+`detail('project-management')` returns 18 tools, 6 worksheets, 10 records and 23
+glossary terms. Each line below is one of those items.
+
+### Tools (18)
+
+| tool | method | E-row |
+|---|---|---|
+| `npv` | `npv` | E-pm-015 |
+| `irr` | `irr` | E-pm-016 |
+| `dpayback` | `discounted_payback` | E-pm-017 |
+| `projectmetrics` | `project_metrics` | E-pm-018 |
+| `scenario` | `scenario_analysis` | E-pm-019 |
+| `case_decision` | `case_decision` | E-pm-014 |
+| `forecast` | `trend_forecast` | E-pm-020 |
+| `cpm` | `cpm_schedule` | E-pm-021 |
+| `evm` | `earned_value` | E-pm-022 |
+| `leveling` | `resource_leveling` | E-pm-023 |
+| `crashing` | `project_crashing` | E-pm-024 |
+| `calendar` | `calendar_schedule` | E-pm-025 |
+| `multiproject` | `multi_project_schedule` | E-pm-026 |
+| `schedrisk` | `schedule_risk` | E-pm-027, E-pm-028 |
+| `decisiontree` | `decision_tree` | E-pm-029 |
+| `realoption` | `real_option` | E-pm-030 |
+| `mcda` | `multi_criteria` | E-pm-031 |
+| `montecarlo` | `monte_carlo` | E-pm-032, E-pm-033 |
+
+### Worksheets (6)
+
+| id | template | E-row(s) |
+|---|---|---|
+| PM-05 | `template_project_charter` | E-pm-046…050, E-pm-053, E-pm-054 |
+| PM-09 | `template_wbs` | E-pm-046…052 |
+| PM-10 | `template_raci` | E-pm-009, E-pm-046…050, E-pm-055, E-pm-058 |
+| PM-06 | `template_risk_register` | E-pm-046…050, E-pm-053, E-pm-055 |
+| PM-15 | `template_stakeholder_plan` | E-pm-046…050, E-pm-053 |
+| PM-16 | `template_lessons_learned` | E-pm-046…050, E-pm-053 |
+
+### Records (10)
+
+| id | name | E-row(s) |
+|---|---|---|
+| PM-01 | Balanced Scorecard | E-pm-003, E-pm-008 |
+| PM-02 | Strategy Map | E-pm-003, E-pm-008 |
+| PM-03 | KPI Tree / Driver Tree | E-pm-003, E-pm-008 |
+| PM-04 | Objectives and Key Results (OKRs) | E-pm-003, E-pm-008 |
+| PM-07 | Scrum | E-pm-003, E-pm-008 |
+| PM-08 | Kanban Method | E-pm-003, E-pm-008 |
+| PM-11 | COBIT | E-pm-003, E-pm-008 |
+| PM-12 | ITIL | E-pm-003, E-pm-008 |
+| PM-13 | DeLone–McLean IS Success Model | E-pm-003, E-pm-008 |
+| PM-14 | Technology-Organization-Environment (TOE) Framework | E-pm-003, E-pm-008 |
+
+### Glossary (23)
+
+Every term is asserted for presence and for a definition by `E-pm-004` and
+`E-pm-005`; the list is printed from the page so it cannot drift.
+
+| # | term |
+|---:|---|
+| 1 | Business case |
+| 2 | Project charter |
+| 3 | Scope |
+| 4 | Deliverable |
+| 5 | Work breakdown structure (WBS) |
+| 6 | Work package |
+| 7 | Milestone |
+| 8 | Dependency |
+| 9 | Critical path |
+| 10 | Gantt chart |
+| 11 | RACI |
+| 12 | Stakeholder |
+| 13 | Risk register |
+| 14 | Contingency |
+| 15 | Baseline |
+| 16 | Earned value (PV, EV, AC) |
+| 17 | CPI / SPI |
+| 18 | Benefits realisation |
+| 19 | Lessons learned |
+| 20 | PRINCE2 |
+| 21 | PMBOK / PMI |
+| 22 | Scrum |
+| 23 | Kanban |
+
+**Counts asserted:** 18 + 6 + 10 + 23 = **57 items reconciled**, each with at
+least one cited E-row; `E-pm-001`…`E-pm-003` assert the counts themselves.
 
