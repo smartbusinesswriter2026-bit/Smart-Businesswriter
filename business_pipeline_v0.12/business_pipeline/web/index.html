@@ -1636,12 +1636,12 @@ function renderPortfolioWorkspace() {
     '</div><div class="row"><button class="btn sm pfdark" type="button" id="pfall">All portfolios</button>' +
     '<button class="btn sm pfdark" type="button" id="pfexport"' + (snapshot ? "" : " disabled") + '>Export the report</button></div></div>' +
     (snapshot
-      ? '<div class="pfnav"><div><span class="pfnavlabel">Net asset value</span><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + '</strong><span class="pfnavmeta">Snapshot ' + esc(snapshot.date) + '</span></div>' +
+      ? '<div class="pfnav"><div><span class="pfnavlabel">Net asset value</span><strong>' + esc(p.base_currency) + " " + pfNum(snapshot.outputs.nav, 2) + '</strong><span class="pfnavmeta">Snapshot ' + esc(snapshot.date) + '</span></div>' +
         '<div class="pfstatrow">' +
-          '<div class="pfstat"><span>Invested</span><strong>' + esc(snapshot.outputs.invested_value) + '</strong></div>' +
-          '<div class="pfstat"><span>Cash</span><strong>' + esc(snapshot.outputs.cash) + '</strong></div>' +
-          '<div class="pfstat"><span>Top three</span><strong>' + esc(snapshot.outputs.top3_concentration) + '</strong></div>' +
-          (twr ? '<div class="pfstat"><span>Time-weighted return</span><strong class="' + pfTone(twr) + '">' + esc(twr) + '</strong></div>' : '') +
+          '<div class="pfstat"><span>Invested</span><strong>' + pfNum(snapshot.outputs.invested_value, 2) + '</strong></div>' +
+          '<div class="pfstat"><span>Cash</span><strong>' + pfNum(snapshot.outputs.cash, 2) + '</strong></div>' +
+          '<div class="pfstat"><span>Top three</span><strong>' + pfNum(snapshot.outputs.top3_concentration, 4) + '</strong></div>' +
+          (twr ? '<div class="pfstat"><span>Time-weighted return</span><strong class="' + pfTone(twr) + '">' + pfNum(twr, 4) + '</strong></div>' : '') +
         '</div></div>'
       : '<p class="pfempty">Add holdings, enter their prices on one date, then create the snapshot.</p>') +
     '</section>' +
@@ -1704,6 +1704,21 @@ function renderPortfolioWorkspace() {
   if ($("#portfoliolab")) bindPortfolioLab();
 }
 
+/* Display formatting only. The frozen core's exact value stays in the store, in the
+   tooltip and in the report; the page trims a long decimal so a stat box stays readable.
+   Nothing is rounded, scaled or recomputed: the digits shown are the digits the core gave. */
+function pfNum(value, places) {
+  const text = String(value === null || value === undefined ? "" : value).trim();
+  const exact = esc(text);
+  let shown = text;
+  if (/^-?\d+\.\d+$/.test(text) && places) {
+    const parts = text.split(".");
+    const frac = parts[1].slice(0, places).replace(/0+$/, "");
+    shown = parts[0] + (frac ? "." + frac : "");
+  }
+  return '<span title="' + exact + (shown === text ? "" : ". Exact value: " + exact) + '">' + esc(shown) + "</span>";
+}
+
 function pfTone(value) {
   const text = String(value === undefined || value === null ? "" : value).trim();
   return text.startsWith("-") ? "pf-down" : "pf-up";
@@ -1734,10 +1749,10 @@ function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
       (snapshot ? "word report" : "needs a snapshot") + "</small></div></div>";
   if (snapshot) {
     html += '<div class="pfvalue"><span class="pfnavlabel">Latest valuation \u00b7 ' + esc(snapshot.date) +
-      '</span><strong>' + esc(p.base_currency) + " " + esc(snapshot.outputs.nav) + "</strong>" +
-      '<p class="muted" style="margin:4px 0 0">Invested ' + esc(snapshot.outputs.invested_value) +
-      " \u00b7 cash " + esc(snapshot.outputs.cash) + " \u00b7 top three " +
-      esc(snapshot.outputs.top3_concentration) + "</p></div>";
+      '</span><strong>' + esc(p.base_currency) + " " + pfNum(snapshot.outputs.nav, 2) + "</strong>" +
+      '<p class="muted" style="margin:4px 0 0">Invested ' + pfNum(snapshot.outputs.invested_value, 2) +
+      " \u00b7 cash " + pfNum(snapshot.outputs.cash, 2) + " \u00b7 top three " +
+      pfNum(snapshot.outputs.top3_concentration, 4) + "</p></div>";
   }
   html += '<div class="pflimit"><strong>What this does not do.</strong> No FX, fees, tax, dividends, forecast or recommendation. One base currency; long-only; the snapshot is a valuation, not a sale price.</div>';
   html += "</div>";
@@ -1896,8 +1911,8 @@ function pfData(holdings, latest, snapshot) {
       (snapshot.positions || []).map((row) => "<tr><td>" + esc(row.symbol) + "</td><td>" + esc(row.shares) + "</td><td>" +
         esc(row.price) + "</td><td>" + esc(row.value) + "</td><td>" + esc(row.weight) + "</td></tr>").join("") +
       "</tbody></table></div>" +
-      '<p style="margin-top:10px"><strong>NAV ' + esc(snapshot.outputs.nav) + "</strong> · invested " + esc(snapshot.outputs.invested_value) +
-      " · cash " + esc(snapshot.outputs.cash) + " · top three " + esc(snapshot.outputs.top3_concentration) + "</p>" +
+      '<p style="margin-top:10px"><strong>NAV ' + pfNum(snapshot.outputs.nav, 2) + "</strong> · invested " + pfNum(snapshot.outputs.invested_value, 2) +
+      " · cash " + pfNum(snapshot.outputs.cash, 2) + " · top three " + pfNum(snapshot.outputs.top3_concentration, 4) + "</p>" +
       '<div class="row"><button class="btn" type="button" id="pfexport2">Download the report (.docx)</button></div></div>';
   }
   return html;
