@@ -25,7 +25,7 @@ These are listed here only so a reader does not park them by mistake — they ar
 
 - **Imputation / complex-design inference** — needs an owner-declared model (recommended default: none; keep the extreme-case bounds only). Not a difficulty problem.
 - **Standards / filings / tax retrieval** — needs the owner to name sources, jurisdictions and licensing (B-052 deferred).
-- **PDF/scan/OCR/SPSS ingestion** — explicitly refused by design (B-065); would need a declared extraction step plus human confirmation of unverified text.
+- **SPSS / proprietary statistics-file ingestion** — still refused: no reader exists and none is planned without a declared format specification. (The PDF/scan/OCR half of this line is **built, not refused**: B-107 added a PDF text layer and optional local OCR, B-110 installed the renderer and Tesseract, and both keep the condition that extracted text is unverified and must be confirmed by the user.)
 - **Breadth templates** - gated on B-028 (next templates); reviewer naming is not planned (B-112).
 - **REW stages R0–R8** — gated on ratifying R1–R10.
 

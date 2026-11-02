@@ -1,3 +1,19 @@
+## Docs: two decision cross-references corrected, and the declared-sources rule recorded (B-182)
+
+Three documentation corrections, no behaviour change. (1) `src/bp/product/documents.py` cited
+**B-105** for document extraction; B-105 is the entrepreneurship shelf. The correct decision is
+**B-107** ("Document reading: PDF text layer now, OCR only when a local engine exists", the entry
+recording the owner's instruction that *the upload mechanism is needed*). (2)
+`docs/PARKED_QUEUE.md` still listed "PDF/scan/OCR/SPSS ingestion — explicitly refused by design
+(B-065)", which stopped being true when B-107 and B-110 built it; the line now names only the part
+that is still refused (a proprietary SPSS-style format with no declared spec) and records that the
+extracted text remains unverified and must be confirmed by the user. (3) **B-182** records the rule
+the owner set for the sources-file work: a student's own sources are **cited, never evidence** —
+they may appear in References and in a "Sources you declared" block, but they never satisfy an
+evidence gate (V-12), never count as a sourced item, and never convert a named gap into a filled
+one.
+
+
 ## Finance: the paper prints money, not the core's fiftieth decimal (QA session 2, D-FIN-02)
 
 The finance shelf's capability papers were quoting the frozen core's exact `Decimal`

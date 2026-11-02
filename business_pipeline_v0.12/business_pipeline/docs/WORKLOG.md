@@ -1,5 +1,26 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [core docs] Two decision cross-references, and the rule for a student's own sources
+
+**Ask.** "were you able to fix the errors you found? i forgot something, like a mechanism or a button
+for enabling users to add an instruction file, dataset and sources files that will be used by the
+pipeline. do you think we can still add this?" — followed by the scope decision (instruction file,
+sources file, dataset wiring) and the rule for sources: **cited, not evidence**.
+
+**Did.** Found the mechanism already largely built: `POST /api/intake` (B-065 store), the "Attach
+files" button, CSV/XLSX → typed table via `bp.ingest`, table → method inputs via `column_map`, and
+PDF/OCR extraction (B-107, B-110). Fixed the two drifted references that made it look unfinished:
+`documents.py` cited B-105 (entrepreneurship) for document reading — the decision is **B-107**; and
+`PARKED_QUEUE.md` still described PDF/OCR as "explicitly refused by design", which B-107/B-110
+overtook. Recorded **B-182** for the owner's sources rule so the coming code cites a decision rather
+than a preference.
+
+**Next.** The three legs — a persisted instruction file, a stdlib sources-file reader, and an
+end-to-end proof of the dataset-to-method-input path — in that order, one commit each, with the
+frozen contract re-run every time (all three are additive product-layer work; no method, preset or
+route family changes).
+
+
 
 ## 2026-11-02 — [finance] QA session 2: the shelf's missing manual, its acceptance suite, and the paper's numbers
 

@@ -1,4 +1,4 @@
-"""Document text extraction for attached PDFs and images (B-105).
+"""Document text extraction for attached PDFs and images (B-107).
 
 The reader is **optional and fail-closed**:
 
