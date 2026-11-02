@@ -1,3 +1,30 @@
+## No Markdown downloads, no charts button, and a figures form that fits
+
+Owner instruction: never download `.md` files, and the charts-and-exports button should disappear
+until its handling is decided.
+
+- **"Download the paper (Markdown)" is gone from every tile.** The button and its handler are removed;
+  Word is the only paper download. (A live session can still produce Markdown at the API, which is
+  documented, but no surface offers it.)
+- **"Charts and exports" is hidden** — both the static button on the calculator and the one the result
+  panel renders. The element and its id are kept, hidden, so the surface can return without being
+  rebuilt.
+- **The figures form no longer squeezes its own tables.** The form is a `grid2` whose cells hold a
+  control *and* its hint; at wide widths `auto-fit` was producing three columns, so a row table (the
+  trial-balance rows) was crushed into a column with a sideways scrollbar and a clipped header. Now a
+  field that carries a table spans the whole row, a field's hint stays inside its own cell and is
+  capped to a readable measure, and each cell may shrink (`min-width: 0`) instead of forcing the grid
+  wider than the page. A `.tbwrap` container scrolls a genuinely wide table inside itself rather than
+  dragging the layout sideways.
+
+The trial-balance Word paper was verified on the real routes while checking this: start → confirm →
+`POST /api/sessions/{id}/paper` with `format: docx` answers **200**, 5,497 bytes,
+`application/vnd.openxmlformats-officedocument.wordprocessingml.document`. Its earlier failure was the
+session-versus-saved-case bug fixed in `10a7739`.
+
+- 1.64 (2026-11-03): remove the Markdown download surface, hide the charts-and-exports button, and let a table field span the figures form; no frozen core, method, preset, input, check, number or route changed.
+
+
 ## Downloads reach the browser: a file, not a path on the server
 
 Reported by the owner: the accounting result panel answered "Spreadsheet exported to

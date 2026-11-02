@@ -459,6 +459,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
 /* ---------- misc ---------- */
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+/* The figures form: one field per cell, and a field that carries a row table takes the
+   whole row so it is never squeezed into a column with a sideways scrollbar. A field's
+   hint stays with its own control instead of becoming a third column of floating text. */
+.grid2 > *{min-width:0}
+.grid2 > *:has(table){grid-column:1 / -1}
+.grid2 p,.grid2 .muted{max-width:62ch}
+.grid2 table{width:100%}
+@media (max-width:720px){.grid2{grid-template-columns:1fr}}
+.tbwrap{overflow-x:auto}
+.tbwrap table{min-width:520px}
+
 .subjectgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
 .subjectcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:16px 18px;
             display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;
@@ -1065,7 +1076,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <div class="report"></div>
         <div class="row">
           <button class="btn primary" id="savecase" type="button">Save as case</button>
-          <button class="btn" id="tocharts" type="button">Charts and exports</button>
+          <button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>
           <button class="btn" id="tostats" type="button">Download financial statements</button>
         </div>
       </div>
@@ -4671,7 +4682,7 @@ function renderSubject() {
           t.steps.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ol>" : "") +
         ((t.common_mistakes || []).length ? "<p><strong>Common mistakes.</strong></p><ul>" +
           t.common_mistakes.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
-        (t.diagram ? '<p class="muted">Diagram to draw: ' + esc(String(t.diagram).replace(/_/g, " ")) + ".</p>" : "") +
+        
         ((t.related || []).length ? '<p class="muted">Related: ' + t.related.map(esc).join(", ") + "</p>" : "") +
         "</details>";
     });
@@ -8096,9 +8107,9 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="viewgantt">View the Gantt</button>' : "") +
       '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
       '<button class="btn" id="downloadpaper">Download the paper (Word)</button>' +
-      '<button class="btn" id="downloadpapermd">Download the paper (Markdown)</button>' +
+      '<button class="btn" id="downloadpaperxlsx">Download the figures (Excel)</button>' +
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
-      '<button class="btn" id="tocharts">Charts and exports</button>' +
+      '<button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
       (state.worksheet && state.worksheet.completion ? '<select id="evresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><select id="evresultlength"><option value="short">Short</option><option value="mid" selected>Mid</option><option value="long">Long</option></select><select id="evresultstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select><button class="btn" id="evresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
@@ -8173,7 +8184,7 @@ function renderResults() {
   const gantt = $("#viewgantt"); if (gantt) gantt.onclick = viewGantt;
   const xlsx = $("#downloadxlsx"); if (xlsx) xlsx.onclick = downloadResultXlsx;
   const paper = $("#downloadpaper"); if (paper) paper.onclick = () => downloadSessionPaper("docx");
-  const papermd = $("#downloadpapermd"); if (papermd) papermd.onclick = () => downloadSessionPaper("md");
+        const paperxlsx = $("#downloadpaperxlsx"); if (paperxlsx) paperxlsx.onclick = () => downloadSessionPaper("xlsx");
   const svg = $("#downloadsvg"); if (svg) svg.onclick = downloadResultSvg;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
