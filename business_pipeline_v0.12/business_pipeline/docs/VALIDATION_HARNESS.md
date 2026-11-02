@@ -287,9 +287,21 @@ Recorded now so a later model does not have to rediscover them. These are **expe
 
 ### 7.2 A reachability gap worth recording
 
-**22 of the 76 profiles are not reachable from any subject page** (the marketing and strategy profiles aida, attribution, bcg, brand_equity, change_organization, cro, digital_mix, email_crm, funnel, ge_mckinsey, generic_strategies, marketing_automation, porters_diamond, rfm, seo_content, social_media, stp, stp_evidence, strategic_positioning, strategy_4, tam, utaut). A student reaches them only through the conductor, if at all. The harness must still produce their papers — otherwise the report silently omits a quarter of the framework surface. **This is a product finding, not a harness defect; it is recorded here so it is not lost.**
+**Re-measured 2026-11-03 (management session): 17 of the 75 profiles are not reachable from any subject
+page** — `aida`, `attribution`, `brand_equity`, `change_organization`, `cro`, `digital_mix`, `email_crm`,
+`funnel`, `marketing_automation`, `rfm`, `seo_content`, `social_media`, `stp`, `stp_evidence`,
+`strategic_positioning`, `tam`, `utaut`. A student reaches them only through the conductor, if at all.
+The harness must still produce their papers — otherwise the report silently omits a fifth of the
+framework surface. **This is a product finding, not a harness defect; it is recorded here so it is not
+lost.** `test_E_mgt_043` is the live measurement: it fails if the number moves, so the next reader
+re-measures instead of copying this paragraph. The 22 recorded on 2026-11-02 included `bcg`,
+`ge_mckinsey`, `generic_strategies`, `porters_diamond` and a `strategy_4` that does not exist; the first
+four have since been wired to subject pages.
 
-A further **12 profiles have a worksheet that is not marked `draftable`** (activity_system_fit, ansoff, blue_ocean_errc, customer_journey, kano, measurement_plan, paid_media_plan, scenario_planning, servqual, strategic_group_map, value_stream_map, vrio). The harness produces them anyway: the draftable flag governs the student button, not the capability to write the paper.
+`change_organization` is the one profile in that list with a **complete profile, a full completion test
+suite and no worksheet row on any shelf** (G-mgt-02): it works when called, and no page can call it.
+
+A further **12 profiles have a worksheet that is not marked `draftable`** (activity_system_fit, ansoff, blue_ocean_errc, customer_journey, kano, measurement_plan, paid_media_plan, scenario_planning, servqual, strategic_group_map, value_stream_map, vrio). The harness produces them anyway: the draftable flag governs the student button, not the capability to write the paper. Re-measured 2026-11-03: still 12, unchanged.
 
 ## 8. Evidence fixtures
 
@@ -403,6 +415,7 @@ Stage 1 alone already replaces most of the owner's reading, because the framewor
 
 | Date | Change |
 |---|---|
+| 2026-11-03 | §7.2 re-measured by the management session: **17** profiles are reachable from no subject page (not the 22 recorded on 2026-11-02), and 12 are still not `draftable`. The count is now asserted by `tests/test_subject_management_acceptance.py::test_E_mgt_043` so this paragraph cannot drift again. `change_organization` is named as the one unreachable profile that works when called but has no worksheet row (G-mgt-02). |
 | 2026-11-02 | Document created from the owner's request to automate validation subject by subject. Measured the surface (364 targets), recorded what already exists, fixed the architecture at three layers, seeded the rule registry from `CONDUCTOR_MANUAL.md` §4/§8, recorded the rule-relaxation procedure (§6), the subject crosswalk gap (§7), the evidence-fixture plan (§8) and the owner's model instruction (OpenCode or OpenRouter, not the DeepSeek direct API, §9). Nothing built. |
 | 2026-11-02 | Made discoverable: a row in `HOME.md` §1 (Read in 30 seconds), §1 (By task) and §4 (the documentation spine); a pointer in `CONDUCTOR_MANUAL.md` §12; an entry in `WORKLOG.md` tagged `[design]`; an entry in `DISCUSSION_NOTEBOOK.md`; an entry in `CHANGELOG.md`. No product file, source file or test was changed. |
 | 2026-11-02 | Added §5.1–§5.4, answering the owner's question "can the harness identify errors as if I manually tested each feature?". Measured it: of the 62 failing or erroring framework-completion tests, **all 62 assert a machine-checkable property of the produced artefact**. The harness therefore replaces *checking*, not *reading*; the residual is judgement (§5.2) and live-environment behaviour (§5.3), and the workflow it implies is to read the failures plus a random sample of the passes. |

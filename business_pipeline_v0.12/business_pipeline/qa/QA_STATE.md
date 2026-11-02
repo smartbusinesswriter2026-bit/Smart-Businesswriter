@@ -1,5 +1,80 @@
 # QA state
 
+## Session 5 — `management` (2026-11-03) · commit `29d0509`
+
+**Subject chosen by the work order** ("SUBJECT = management, do not start marketing, people, operations
+or any other shelf"). Branch `corpus/merge-v1`, opening commit `211b672`.
+
+### Baseline (Phase 0) — measured, not assumed
+
+| Measure | Documented | Measured at `211b672` |
+|---|---|---|
+| Tests (`python -m unittest discover -s tests`) | 2910 (economics' close) | **2932** |
+| Failures | 67 | **66** |
+| Errors | 13 | **13** |
+| Distinct failure names | — | **79** |
+| Wall time | — | 650 s |
+
+Raw: `qa/baseline/mgt-suite-err.txt`. Framework-completion slice: 539 tests, **60 failed**
+(`qa/baseline/mgt-completion-slice.txt`). Shelf inventory confirmed exactly as the work order stated:
+1 compute tool, 31 worksheets, 0 records, 0 theories, 75 profiles overall, 12 non-draftable profiles.
+The one number that did **not** match: **17** profiles are reachable from no subject page, not the 22
+recorded in `VALIDATION_HARNESS.md` §7.2 (D-MGT-09 / G-mgt-04).
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/management.md` | The shelf's acceptance manual: inventory reconciled 1:1 with the catalogue, **46 E-rows** (44 PASS · 2 BLOCKED · 0 DISPUTED), traceability matrix, declared gaps, residual risk |
+| `tests/test_subject_management_acceptance.py` | **46 tests, 46 passed** — one per row, named `test_E_mgt_nnn__<behaviour>` |
+| `qa/probe_mgt_shelf.py` | Read-only inventory + one mocked run per profile (the evidence behind the manual) |
+| `qa/probe_mgt_paper.py` | Builds the papers and reads `word/document.xml` back (P6) |
+| `qa/evidence/management/` | Five artefacts + `summary.txt` |
+
+### Fixed (eleven ledger rows, `D-MGT-01…11`)
+
+The two that were not this shelf's tests at all: **D-MGT-01** — `framework_profiles.py` ran
+`exec(open("C:/tmp/profiles_out.py"))` at import time, so eight profiles lived outside the repository
+and the module could not import on any other machine (BLOCKER); and **D-MGT-11** — `deliverables.py`
+still printed the specification footer the owner deleted from the computation paper (P3, BLOCKER).
+
+The shelf's own: the Value Chain declared twice with two vocabularies (D-MGT-05), its nine cells
+`fill: "auto"` so the brief's own sentence filled Procurement and eight cells went empty (D-MGT-03),
+firm infrastructure unable to accept any real overhead evidence (D-MGT-04), a chain figure with nine
+empty boxes (D-MGT-02), Change and Organization refusing every industry brief (D-MGT-06), a prompt that
+never named the unit of analysis (D-MGT-07), and “a activitie” in every `-ies` paper (D-MGT-10).
+
+### Gates at close
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Full suite, after | **3084 tests, 40 failures, 6 errors** — **0 new names**, 33 repaired (79 → 46) | `qa/baseline/mgt-after-suite-err.txt`, `mgt-after-failures.txt` |
+| Framework-completion slice | **27 failed, 512 passed** (from 60 failed); every remaining failure is on the marketing shelf | `qa/baseline/mgt-completion-after.txt` |
+| Shelf acceptance suite | **46 passed** | `python -m pytest tests/test_subject_management_acceptance.py -q` |
+| `tests/test_docs_sync.py` + `tests/test_frozen_contract.py` | **10 passed** (documented count 3084 unchanged) | — |
+| `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | — |
+| Artefact read (P6) | value-chain, change-organization, no-source twins, worksheet export — no footer, no diagram promise, byline on the title page, background disclosed | `qa/evidence/management/summary.txt` |
+
+### Left open, deliberately
+
+- **D-MGT-08 / E-mgt-039 (BLOCKED).** Four frozen methods (`npv`, `pearson`, `spearman`,
+  `descriptive_stats`) declare no `typing` hook, and `case_decision`'s per-alternative keys are not in
+  its hook's table, so the computation paper prints `Npv A1: 2586.4733808644797823…`. The frozen core
+  is out of bounds and "what a paper should say" is the owner's call — the value is pinned by a test.
+- **D-MGT-09 / E-mgt-046 (BLOCKED).** The shelf page counts 28 catalogue records beside 31 worksheets
+  (STR-01, STR-07, STR-18 uncounted). The number is on the page.
+- **G-mgt-02.** Change and Organization has a profile, tests and no worksheet row: no page reaches it.
+  Adding one changes the catalogue surface — owner decision.
+
+### Coordination hazard, recorded again
+
+Another lane committed three times while this session ran (`839f06e`, `bfd9872`, `d765853`) and
+`839f06e` swept an in-flight edit of `completion.py` into its own commit. Nothing was lost; every
+commit here used an explicit pathspec and `git diff --cached --name-only` was read before each one.
+The documented test count also moved under this session (2910 → 3084) as that lane added 106 tests;
+the count is 3084 after this session's 46, so `test_docs_sync` still passes unchanged.
+
+
 ## Session 6 — `entrepreneurship` (2026-11-03, owner work order)
 
 **Parameter.** `SUBJECT = entrepreneurship`, shelf 6 of 11. Opening commit `b2987fc`, build 1.68.

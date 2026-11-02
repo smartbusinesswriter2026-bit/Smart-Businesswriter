@@ -116,6 +116,24 @@ behaviour, so a change in either is a red test rather than a silent drift.
 
 ## Session 6 — `entrepreneurship` (opening `b2987fc`, 2932 tests, 66 failures, 13 errors)
 
+
+---
+
+## Session 4 — `management` (baseline `211b672`, 2932 tests, 66 failures, 13 errors)
+
+Probes: `qa/probe_mgt_shelf.py` (inventory, one mocked run per profile), `qa/probe_mgt_paper.py`
+(builds the papers and reads `word/document.xml` back — P6). Manual: `qa/manual/management.md`
+(46 E-rows). Suite: `tests/test_subject_management_acceptance.py` (46 tests).
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-MGT-01 | management | Every profile; E-mgt-040 | BLOCKER | WIRING | rename the temp file and run `python -c "import bp.product.framework_profiles"` → `FileNotFoundError` | `framework_profiles.py` ran `exec(open(r"C:/tmp/profiles_out.py").read())` at import time; eight profiles (BMC, Lean Canvas, VPC, Project Charter, WBS, Risk Register, Stakeholder Plan, Lessons Learned) existed only in that file and `PROFILES` named them, so the module could not import on any machine without it | `29d0509` | `test_E_mgt_040__the_profiles_module_imports_nothing_outside_the_repository` | FIXED |
+| D-MGT-02 | management | Value-chain figure; E-mgt-015 | MAJOR | WIRING | `qa/probe_mgt_paper.py` before: the Figure 1 grid drew nine labelled boxes with no bullet and no gap | the chain layout in `matrix.LAYOUTS` keys its nine bands by short names while the profile and `templates.CANVAS_BLOCKS` key them by the long names, and `matrix.ALIASES` had no `template_value_chain` entry, so every lookup returned `{}` | `29d0509` | `test_E_mgt_015__the_canvas_figure_carries_one_bullet_per_activity` | FIXED |
+| D-MGT-03 | management | Value-chain cells; E-mgt-016, E-mgt-017 | BLOCKER | HONESTY | `qa/probe_mgt_shelf.py` with no sources: `procurement items=['student']` fed from a brief sentence containing the word “cost”; the other eight cells empty | the nine blocks were `fill: "auto"`, which falls back to quoting the brief into any block whose cue appears anywhere in it, and which excludes the block from the background/gap policy that `probe` profiles rely on | `29d0509` | `test_E_mgt_017__a_cell_with_no_source_says_so_in_the_paper` | FIXED |
+| D-MGT-04 | management | firm infrastructure; E-mgt-016 | BLOCKER | WIRING | with a realistic title (“Overhead costs and administrative support functions in grocery retail”) the block accepted nothing; only a title echoing the query passed | the block asked “firm infrastructure and overhead” with cues `infrastructure planning finance legal quality governance management`: no cue for overhead, support, administrative or firm, and the gate needs a cue **and** the industry in the title | `29d0509` | `test_E_mgt_016__firm_infrastructure_accepts_real_overhead_evidence` | FIXED |
+| D-MGT-05 | management | Porter's Value Chain; E-mgt-014 | MAJOR | DETERMINISM | `Select-String VALUE_CHAIN = {` returned two; the first (short keys) was dead | the module declared the framework twice and the second assignment won, so the file read as if it declared the short names the tests used | `29d0509` | `test_E_mgt_041__every_profile_is_declared_once_in_the_module` | FIXED |
+| D-MGT-06 | management | Change and Organization; E-mgt-023 | MAJOR | VALIDATION | `completion.complete("template_change_organization", …, industry="healthcare")` raised “Name the change you are planning” for every brief | the profile declared `unit.field = "process"`, so the industry was never the unit of analysis and the refusal did not name the market | `29d0509` | `test_E_mgt_023__the_unit_of_analysis_is_the_industry` | FIXED |
+
 | ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | D-ENT-01 | entrepreneurship | A marking guide attached to the business plan; E-ent-075…079, E-ent-101 | MAJOR | WIRING | before: `chat.start(BRIEF, profile="business_plan", rubric=RUBRIC)` raised `TypeError: start() got an unexpected keyword argument 'rubric'`; the plan drafted 22 sections with no coverage table, and `paper.missing` never saw a rubric | the rubric was wired into `completion.complete` (the worksheet path) only. The plan is a **second engine** that runs through `chat.start`, which took no `rubric`, stored none, and `_draft_plan` measured nothing — while `paper.missing` already read `state["rubric"]` | this session (`src/bp/product/chat.py`, `api.py`, `web/index.html`) | `test_e_ent_075…077`, `test_e_ent_101` | FIXED |
@@ -137,5 +155,34 @@ proves the wiring, not a live read; **E-ent-056** exercises the composite templa
 preset, not through `LIBRARY` (it is a template). Both tests still run and pin the measured
 behaviour.
 
+
+| D-MGT-07 | management | Model prompt; E-mgt-029…031 | MAJOR | HONESTY | `completion._system(HEAD_SYSTEM, …, _profile("template_bcg"))` contained no “industry” at all, and BCG's prompt began “with the portfolio” | `HEAD_SYSTEM` had no slot for the declared unit of analysis, so a profile could write an industry paper while the model was told nothing about the industry | `29d0509` | `test_E_mgt_031__every_industry_prompt_names_the_industry` | FIXED |
+| D-MGT-08 | management | `Npv` in the computation paper; E-mgt-039 | MAJOR | ROUNDING | `qa/probe_mgt_paper.py`: `Npv A1: 2586.4733808644797823276713689760481408096100978284` | four frozen methods (`npv`, `pearson`, `spearman`, `descriptive_stats`) declare no `typing` hook, and `case_decision`'s per-alternative keys (`npv_a1`…) are not in its hook's table, so `session_paper._render` prints the Decimal as stored | — | `test_E_mgt_039__a_method_without_a_declared_precision_is_the_recorded_blocker` | **BLOCKED** — needs a typing hook in the frozen core (owner) or a product rule for a missing precision (owner: what a paper should say) |
+| D-MGT-09 | management | Shelf catalogue count; E-mgt-046 | MINOR | CATALOGUE | `subjects.catalogue()` reports `catalogue_count: 28` while the same shelf lists 31 worksheet rows | STR-01, STR-07 and STR-18 are shown as worksheets but absent from `SUBJECT_DEFS["management"]["catalogue_ids"]` | — | `test_E_mgt_046__the_shelf_catalogue_count_omits_three_of_its_own_worksheets` | **BLOCKED** — the number is on the page: which side moves is the owner's call |
+| D-MGT-10 | management | Every `-ies` profile's paper; E-mgt-018, E-mgt-020 | MAJOR | WORDING | the produced `.docx` read “that a activitie for which no evidence is recorded” and “A activitie without an accepted item” | `_draft_data` and `_sections` built the singular with `plural.rstrip("s")`, and the article was hard-coded as “a” | `29d0509` | `test_E_mgt_018__the_outline_headings_are_present_in_declared_order`, read back with `qa/probe_mgt_paper.py` | FIXED |
+| D-MGT-11 | management | Every deliverable export; E-mgt-013, E-mgt-035 | BLOCKER | HONESTY (P3) | `deliverables.sections(bundle, "submission")` still returned the heading “How this was produced” with “Method: … (version 1.0.0)” and “Specification hash: …” | the footer was deleted from `session_paper` but `deliverables.block("citation")` printed the same block for every profile that listed it | `29d0509` | `test_E_mgt_035__no_paper_path_prints_a_specification_footer` | FIXED |
+
+### Session 4 — the shelf's declared gaps
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| G-mgt-01 | management | Records, theories, glossary; E-mgt-004 | GAP | — | `detail("management")["records"] == []` | the shelf has no read-only record set by design | — | `test_E_mgt_004__…` | **GAP** (declared) |
+| G-mgt-02 | management | Change and Organization reachability; E-mgt-043 | MAJOR | WIRING | collecting every shelf's worksheets, `template_change_organization` appears in none | the profile and its tests exist but no `WORKSHEETS` row was ever added, so no page reaches it; adding one changes the catalogue surface | — | `test_E_mgt_043__the_unreachable_profiles_are_the_measured_seventeen` | **GAP** — owner decision (catalogue surface) |
+| G-mgt-03 | management | Six non-draftable worksheets; E-mgt-006, E-mgt-045 | GAP | — | `[s["catalogue_id"] for s in detail("management")["worksheets"] if not s["draftable"]]` | declared: the flag governs the student button, not the capability | — | `test_E_mgt_045__a_non_draftable_profile_still_produces_a_paper` | **GAP** (declared) |
+| G-mgt-04 | management | `docs/VALIDATION_HARNESS.md` §7.2 said 22 unreachable profiles | MINOR | DOC-DRIFT | `test_E_mgt_043` measures **17** | the number moved as profiles were wired; the doc records a dated measurement, not a contract | this session (`docs/VALIDATION_HARNESS.md`) | `test_E_mgt_043__…` | FIXED (doc corrected) |
+| G-mgt-05 | management | A no-source cell prints the framework's background | GAP | — | `qa/probe_mgt_paper.py` value-chain-nosource | owner policy for `probe` profiles (harness §6.5); the paper now discloses it before printing it | — | `test_E_mgt_017__…` | **GAP** (declared, disclosed) |
+
+### Session 4 — the counts this shelf must not drift from
+
+| Measure | Value | Where it is asserted |
+|---|---:|---|
+| Compute tools | 1 | `test_E_mgt_001` |
+| Worksheets / catalogue ids on the shelf | 31 / 31 | `test_E_mgt_002` |
+| Distinct worksheet templates | 30 (`template_swot` twice) | `test_E_mgt_007` |
+| Framework profiles overall | 75 | `test_E_mgt_003` |
+| Records / theories / glossary | 0 / 0 / 0 | `test_E_mgt_004` |
+| Non-draftable worksheets on the shelf | 6 | `test_E_mgt_006` |
+| Profiles no subject page reaches | 17 | `test_E_mgt_043` |
+| Non-draftable profiles overall | 12 | `test_E_mgt_045` |
 
 

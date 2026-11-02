@@ -253,3 +253,106 @@ behaviour is a known defect and the decision belongs to the owner:
 
 Every row maps to exactly one test; no test is unused and no row is untested.
 
+
+---
+
+## 6. What this session changed, and what it re-tested
+
+`framework_profiles.py` is shared with the People, Operations, Entrepreneurship and Marketing shelves
+(the 31 shared worksheets), so every edit here was re-tested against them.
+
+| Change | File | Why it could not be done anywhere else | Re-tested |
+|---|---|---|---|
+| Eight profiles inlined; the import-time `exec` deleted | `bp/product/framework_profiles.py` | the module raised `FileNotFoundError` without the temp file: a crash, not a shelf bug | full suite |
+| The dead short-key Value Chain deleted | same | the live profile and `templates.CANVAS_BLOCKS` both declare the long keys | value-chain, matrix, people |
+| Value Chain blocks `auto` → `research`; infrastructure cues | same | the fill policy is a profile declaration | value-chain, people |
+| Change and Organization unit process → industry | same | a profile declares its own unit | change-organization |
+| `{unit_rule}` in `HEAD_SYSTEM`, `_singular`, `_article`, background disclosure | `bp/product/completion.py` | one prompt template serves all 75 profiles | every `test_*_completion.py` |
+| `ALIASES["template_value_chain"]` | `bp/product/matrix.py` | the alias map is how a layout key finds a profile key | matrix, value-chain |
+| The specification footer deleted | `bp/product/deliverables.py` | it is the one block that printed it | worksheet export, accounting acceptance |
+| Value-chain keys, the refusal template, the footer test | the three existing tests | a name change is one coordinated change | those suites |
+
+**Not touched:** `src/bp/methods.py`, `src/bp/server.py`, `tests/fixtures/frozen_contract.json`, any
+preset, any route family, `docs/sources/**`. No new dependency, no network call, no model call.
+
+**Measured effect on the framework-completion slice** (`python -m pytest tests/test_*_completion.py`):
+
+| | Tests | Failures |
+|---|---:|---:|
+| Before this session (`qa/baseline/mgt-completion-slice.txt`) | 539 | 60 |
+| After (`qa/baseline/mgt-completion-after.txt`) | 539 | **27** |
+
+**Measured effect on the full suite** (`python -m unittest discover -s tests`):
+
+| | Tests | Failures | Errors | Distinct failure names |
+|---|---:|---:|---:|---:|
+| Baseline at `211b672` (`qa/baseline/mgt-suite-err.txt`) | 2932 | 66 | 13 | 79 |
+| After (`qa/baseline/mgt-after-suite-err.txt`) | 3084 | 40 | 6 | 46 |
+
+**Zero new failure names** (`qa/baseline/mgt-after-failures.txt` against the baseline set): 33 names
+repaired, 79 → 46. The 3084 includes the acceptance suite this session added (46 tests) and another
+lane's 106, which is why the documented count in `HOME.md`/`HANDOFF.md`/`CONTRIBUTORS.md` is still
+3084 and `tests/test_docs_sync.py` passes.
+
+The 27 that remain are all on the **marketing** shelf (attribution, cro, customer_journey, digital_mix,
+email_crm, funnel, kano, marketing_plan, measurement_plan, paid_media_plan, rfm, servqual, social_media,
+stp, stp_evidence, tam) and were not started. Twenty-one of the 33 repaired tests belong to this shelf
+(6 value chain, 9 change and organization, and six prompt tests); the other twelve are marketing prompt
+tests the shared `{unit_rule}` fix repaired as a side effect, and they are recorded rather than claimed.
+
+## 7. Defects found, and where they are recorded
+
+The ledger rows are `D-MGT-01 … D-MGT-09` in `qa/QA_DEFECTS.md`. Two were found only by reading the
+produced `.docx` (P6), which is why the probe exists.
+
+| Ledger | What the reader saw | Class | Status |
+|---|---|---|---|
+| D-MGT-01 | (nothing — the module would not import on a clean checkout) | WIRING / BLOCKER | FIXED |
+| D-MGT-02 | a value-chain figure with nine empty boxes | WIRING | FIXED |
+| D-MGT-03 | “where cost and differentiation come from” printed as evidence for Procurement | HONESTY | FIXED |
+| D-MGT-04 | a prompt that never names the industry it is analysing | HONESTY | FIXED |
+| D-MGT-05 | two declarations of Porter's Value Chain, one of them dead | DETERMINISM | FIXED |
+| D-MGT-06 | Change and Organization refused every industry brief | VALIDATION | FIXED |
+| D-MGT-07 | `Npv A1: 2586.4733808644797823276713689760481408096100978284` | ROUNDING | **BLOCKED** |
+| D-MGT-08 | the shelf page counts 28 records beside 31 worksheets | CATALOGUE | **BLOCKED** |
+| D-MGT-09 | 17 profiles reachable from no page; Change and Organization is one | WIRING | GAP (ledgered) |
+| D-MGT-10 | “a activitie”, “A activitie” in every -ies profile's paper | WORDING | FIXED |
+| D-MGT-11 | “How this was produced / Method: … / Specification hash: …” in the export | HONESTY (P3) | FIXED |
+
+## 8. Evidence
+
+| Artefact | Path |
+|---|---|
+| The value-chain paper (sourced run) | `qa/evidence/management/value-chain.docx` / `.txt` |
+| The value-chain paper (no source at all) | `qa/evidence/management/value-chain-nosource.docx` / `.txt` |
+| The Change and Organization paper (+ no-source twin) | `qa/evidence/management/change-organization*.docx` / `.txt` |
+| The worksheet export (P3) | `qa/evidence/management/worksheet-export.docx` / `.txt` |
+| The measurements this file quotes | `qa/evidence/management/summary.txt` |
+| Baseline full suite, before any change | `qa/baseline/mgt-suite-err.txt` (2932 tests, 66 failures, 13 errors) |
+| Completion slice, before any change | `qa/baseline/mgt-completion-slice.txt` (60 failed, 479 passed) |
+| Completion slice, after | `qa/baseline/mgt-completion-after.txt` |
+
+## 9. Declared gaps
+
+| Id | Gap | Why it is not built |
+|---|---|---|
+| G-mgt-01 | The shelf has no records, theories or glossary | by design; the record sets live on Project management and People |
+| G-mgt-02 | **Change and Organization has a profile and tests but no worksheet row**, so no page reaches it | adding a worksheet row changes the catalogue surface: owner decision |
+| G-mgt-03 | Six worksheets offer no “draft it for me” button | the flag governs the button; the paper is still produced (E-mgt-045) |
+| G-mgt-04 | Two catalogue records (STR-07, STR-18) share one engine | deliberate: two assignments, one profile; filing by template alone cannot tell them apart |
+| G-mgt-05 | A captured “Value Chain” trace in `docs/VALIDATION_HARNESS.md` §7.2 says 22 unreachable profiles; measured 17 | the number moved as profiles were wired; the doc is corrected, the count is re-measured each run |
+| G-mgt-06 | A no-source run still fills a cell from the framework's own general background | the owner's policy for `probe` profiles (harness §6.5); the paper now says so before it prints it |
+
+## 10. Residual risk
+
+1. **The live gate is stricter than the mocks.** Every sourced-item row here was measured with a
+   mocked retrieval whose titles carry the query. The real gate needs a cue word *and* the industry in
+   the title, so a live run on a thin topic still returns gaps. That is fail-closed behaviour, not a
+   defect, but it means “sourced items” in this manual is a claim about the pipeline, not about any
+   particular search.
+2. **Two lanes in one worktree.** During this session another lane committed three times and swept an
+   in-flight edit of `completion.py` into its own commit (`839f06e`). Nothing was lost; every commit
+   here is path-scoped, and `git status` was checked before and after each one.
+3. **`framework_profiles.py` is now 640 KB of data.** The inlining was necessary, but the module should
+   eventually become a package of per-shelf data files; that is an owner decision, not this session's.
+

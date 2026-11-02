@@ -1,3 +1,44 @@
+## 2026-11-03 — [core] Management & strategy, session 4: the module imports from the repo, the nine activities have one set of names, and no paper carries a specification footer
+
+**Ask.** The owner's standing work order: audit one subject shelf at a time, write the acceptance
+manual that does not exist, prove every row with an offline test, and fix every defect in the layer that
+owns it — without weakening a check, editing the frozen core or inventing evidence. Shelf 4 is
+`management`: 1 compute tool, 31 worksheets, 0 records, 0 theories, 75 framework profiles overall.
+
+**Did.**
+
+1. **Baseline measured**, not assumed: `211b672` → **2932 tests, 66 failures, 13 errors**, 79 distinct
+   failure names (`qa/baseline/mgt-suite-err.txt`). The framework-completion slice: 539 tests, 60
+   failed. One documented number did not survive measurement — `docs/VALIDATION_HARNESS.md` §7.2 said
+   22 profiles are reachable from no page; the live count is **17** (D-MGT-09, doc corrected).
+2. **The manual** (`qa/manual/management.md`): inventory reconciled 1:1 with the catalogue (31 rows,
+   one per worksheet, plus the tool, the 0/0/0 records/theories/glossary, and every UI surface),
+   **46 E-rows**, a traceability matrix, the declared gaps and the residual risk.
+3. **The acceptance suite** (`tests/test_subject_management_acceptance.py`, 46 tests): every row is one
+   test named `test_E_mgt_nnn__<behaviour>`, run offline, through the real paths.
+4. **Read the artefacts, not only the tests.** `qa/probe_mgt_paper.py` builds a value-chain paper, a
+   change paper, a no-source twin of each and the worksheet export, unzips `word/document.xml` and reads
+   the sentences. Two defects were invisible to the suite and obvious in the file: “that a activitie for
+   which no evidence is recorded” (D-MGT-10) and nine empty boxes in the value-chain figure (D-MGT-02).
+5. **Fixed eleven defects** (`D-MGT-01…11`), two of them outside the shelf entirely: an import-time
+   `exec(open("C:/tmp/profiles_out.py"))` that made `framework_profiles` unimportable on a clean
+   checkout (BLOCKER), and the specification footer still printed by `deliverables.py` (BLOCKER, P3).
+   Decision **B-195** records the naming convention, the `research` fill and the prompt's unit rule.
+6. **Left two BLOCKED with a pinning test each**: a frozen method with no `typing` hook prints a
+   50-digit `Npv` (D-MGT-08), and the shelf page counts 28 catalogue records beside 31 worksheets
+   (D-MGT-09). Both need an owner decision and both would fail a test the day they are fixed.
+
+**Result.** Full suite **3084 tests, 40 failures, 6 errors** — **0 new failure names**, 33 repaired
+(79 → 46). Framework-completion slice 60 → 27 failures, all remaining on the marketing shelf, which was
+not started. `test_docs_sync` + `test_frozen_contract` 10 passed; `scripts/econ_shelf.py --check`
+“frozen fixture: in sync”.
+
+**Learned.** A profile is a declaration, and when the declaration exists twice the file tells two
+stories: the tests read one and the product ran the other. The same is true of a cue set that does not
+contain the words its own query asks for — every mocked test passes while the live gate refuses
+everything. And the artefact still finds what a green suite cannot.
+
+
 ## 2026-11-03 — [core] Entrepreneurship shelf, session 6: the marking guide reaches the plan, eight period-less presets deliver again, and a plan block's columns are proposed
 
 **Ask.** The owner's standing work order: audit one subject shelf at a time, write the acceptance

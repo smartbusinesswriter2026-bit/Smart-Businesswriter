@@ -1,3 +1,51 @@
+## The management shelf, inlined profiles, and no specification footer in any paper
+
+Owner: shelf 4 of 11 (work order: subject audit, `management`). Session record: `qa/QA_STATE.md`
+(“Session 5”); manual: `qa/manual/management.md` (46 E-rows); ledger: `D-MGT-01…11`.
+
+- **The app imports from the repository again.** `framework_profiles.py` ran
+  `exec(open("C:/tmp/profiles_out.py").read())` at import time: eight profiles (Business Model Canvas,
+  Lean Canvas, Value Proposition Canvas, Project Charter, WBS, Risk Register, Stakeholder Plan, Lessons
+  Learned) existed only in that temp file, so the module raised `FileNotFoundError` on any other machine
+  and on a clean checkout. They are now literal data in the module and the `exec` is gone (D-MGT-01,
+  BLOCKER).
+- **One name for each of Porter's nine activities.** The module declared Value Chain twice — a dead
+  short-key copy (`inbound`, `infrastructure`, …) and the live long-key profile that
+  `templates.CANVAS_BLOCKS` and the worksheet form also declare. The dead copy is deleted and the tests
+  moved to the declared names; `matrix.ALIASES` maps the profile keys onto the chain layout, so the
+  figure's nine boxes carry their evidence instead of being empty (D-MGT-02, D-MGT-05).
+- **A cell is evidence, a gap, or a stated background — never a stray sentence of the brief.** The nine
+  blocks were `fill: "auto"`, which quoted “where cost and differentiation come from” into
+  **Procurement** and left eight cells empty on a no-source run. They are `research` again; a cell with
+  no source now says so in the paper before it prints the framework's background (V-12), and firm
+  infrastructure's cue set carries the words its own query asks for (D-MGT-03, D-MGT-04).
+- **Change and Organization analyses an industry,** not “the change you are planning”: the unit of
+  analysis, the refusal and the voice now say so, so the industry brief is no longer refused
+  (D-MGT-06).
+- **The model prompt names the unit of analysis.** `HEAD_SYSTEM` gained
+  `Keep the unit of analysis in view: {unit_rule}`, taken from the profile's own unit label, so a BCG,
+  GE-McKinsey, Diamond or Generic Strategies prompt can no longer write an industry paper without ever
+  naming the industry (D-MGT-07). Twenty-one tests on this shelf and twelve on marketing depend on it.
+- **“a activitie” is gone.** The deterministic draft built the singular with `rstrip("s")` and the
+  article was hard-coded; `_singular`/`_article` fix both, and the paper was read back to prove it
+  (D-MGT-10).
+- **No student paper prints a specification footer.** `deliverables.py` still emitted “How this was
+  produced” / “Method: … (version 1.0.0)” / “Specification hash: …” / “These figures can be re-run from
+  the stored bundle” for every deliverable profile; the block is deleted and asking for it now refuses
+  (P3, D-MGT-11). `tests/test_worksheet_export.py` asserted the footer's presence and now asserts its
+  absence.
+- **Recorded, not fixed.** Four frozen methods declare no `typing` hook, so the computation paper still
+  prints a 50-digit `Npv` (D-MGT-08, BLOCKED — owner decision); the shelf page counts 28 catalogue
+  records beside its 31 worksheets (D-MGT-09, BLOCKED — the number is on the page); Change and
+  Organization works when called but has no worksheet row on any shelf (G-mgt-02).
+
+Measured: full suite **3084 tests, 40 failures, 6 errors** at close (baseline `2932 / 66 / 13`), **0 new
+failure names**, 33 repaired; the framework-completion slice went 60 → 27 failures, and every one of
+the 27 is on the marketing shelf. Decision **B-195**. No method, preset, input, check, number, tier,
+route family or frozen fixture changed; `scripts/econ_shelf.py --check` reports “frozen fixture: in
+sync”.
+
+
 ## The entrepreneurship shelf, and the marking guide reaches the business plan
 
 Owner: shelf 6 of 11 (work order: subject audit, `entrepreneurship`).
