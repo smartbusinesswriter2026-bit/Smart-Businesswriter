@@ -1,3 +1,76 @@
+## Input labels: a title, a dash, then the declared description — on every tile
+
+The "Enter figures" form showed the raw schema id jammed against its description:
+`present_value amount you have today (the lump sum)`. Worse, three of the seven branches built
+their own label from `esc(name)` while the others used a `label` variable, so `cashflows` and
+`present_value` did not even look alike — the calculator form had a fourth copy with the same flaw.
+
+There is now exactly **one** label builder, `fieldLabel(name, desc, extra)`, and one title helper,
+`fieldTitle(name)`, and every branch uses them:
+
+```
+Present Value - amount you have today (the lump sum)
+Periods - number of YEARS the money is invested or borrowed
+EBIT - earnings before interest and taxes
+Tax Rate - the declared rate, not a jurisdiction's law
+```
+
+`fieldTitle` splits the id on `_`, upper-cases a token when it is a real acronym (EBIT, NPV, IRR,
+WACC, CAPM, DCF, YTM, EPS, ROE, ROA, ROI, PV, FV, DSO, DIO, DPO, CCC, EOQ, CAGR, VaR, CVaR, SPI,
+CPI, MIRR, FX) and title-cases the rest, so an id reads as words without becoming a sentence.
+
+**The descriptions are untouched.** *"amount you have today (the lump sum)"* is
+`Method.input_schema[field]["desc"]` — the frozen contract's own sentence — and this change only adds
+the title and the separator. Rewriting those words would be a frozen-core edit and needs an unfreeze.
+
+Verified by `tests/test_product_subjects.py::test_every_input_label_is_a_title_then_a_description`
+(the builder exists, the ` - ` separator is there, and `<label class="field" for="in-` now appears in
+exactly one place in the whole page) and by `qa/check_field_labels.js`, which extracts the two helpers
+from the served page, runs them under Node and prints the labels a student sees — 0 failures. Suite
+count unchanged; page passes the Node `--check` gate.
+
+
+## The Portfolio Lab is re-drawn as a task-by-task workspace, and any ticker can be added
+
+The owner's report was blunt: *"I DONT SEE HERE THAT USER CAN ADD ADDITONAL SYMBOLS ASIDE FROM AAPL.
+ALLOW USERS TO ADD. ALSO ACT AS A PROFESSIONAL UI AND UX DESIGNER AND IMPROVE THE APPEARANCE OF
+PORTFOLIO LAB."* Both halves are answered.
+
+**Adding symbols was a single hard-coded input.** The lab had one `Symbol` box pre-filled with `AAPL`
+and a `Track & record price` button, so the page read as a demo of one ticker. It is now an **Add
+symbols to the watch list** box that takes one or many tickers at once (comma, space or semicolon
+separated, up to 25 per press, any ticker the configured quote provider can resolve - the B-178
+reference list is a browsing aid, not the allowed universe). Each symbol is created and recorded at
+today's sourced price, the result line names what was added and what failed and why, and a per-row
+**Remove** leaves the watch list. The prefill selects are rebuilt from the tracked series, so a symbol
+a student adds is immediately available to evaluate.
+
+**The lab is one task per tab, not one stack of every control.** Three tabs - **Watch list and
+prices**, **Find candidates**, **Evaluate** - with the quote provider lifted into one toolbar so it is
+chosen once. The watch list keeps history, risk-readiness and the last recorded price, with Record
+price / Seed 30 days / Evaluate / Remove per row; screening keeps the candidate list (with *Use my
+watch list*), the sort metric, the fundamentals switch and the sourced shortlist; Evaluate keeps the
+single-asset and two-asset prefill with selects instead of raw instrument ids. A blocked screen now
+names its own reason ("No symbols to screen", "Too many symbols") instead of returning silently.
+
+**The landing page is organised before it is decorated.** The book list and the create form sit side
+by side at the top (each sized to its content), then the lab under a *Before you buy* kicker, then the
+six-step how-to-choose guide collapsed into a `<details>` card so it no longer pushes the tools off
+the screen. The book workspace gains a **Find candidates** tab that renders the same lab, and the
+overview's quick actions jump to it. Holdings is now a card per task: the declared table, the add form,
+then the reference list, the example books and the paste/import box each inside their own collapsible
+card - reference material is available without being in the way.
+
+Verified live on 8000 with a headless Chrome CDP run: adding `MSFT, NVDA` from the box produced
+"Added and recorded: MSFT, NVDA.", the watch list grew from 1 to 3 rows, the Evaluate selects listed
+all three tracked series, tab switches hid and showed the right panel, and screening from the watch
+list returned sourced AAPL/NVDA/MSFT rows with named gaps for every metric the provider could not
+supply. No page exception or console error. Screenshots in `qa/evidence/portfolio/`.
+
+No method, preset, input, check, computed number, endpoint or frozen-core entry changed. The tests in
+`tests/test_portfolio_screener_ui.py` were re-pointed at the tabs, the multi-symbol add and the
+multi-symbol handler.
+
 ## The tool page loses five lines of clutter, on the owner's instruction
 
 Every finance tile's session view carried five things the owner asked to delete, and they are gone:

@@ -681,8 +681,11 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfentry p{margin:0;font-size:14.5px}
 .pfentry .muted{font-size:13px}
 /* ---------- Portfolio Lab: an organised workspace, one task per panel ---------- */
-.pfstart{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}
+.pfstart{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px;align-items:start}
 @media (max-width:960px){.pfstart{grid-template-columns:1fr}}
+.pfstart table{table-layout:auto}
+.pfstart tbody td:first-child{min-width:170px}
+.pfstart tbody td:nth-child(2){white-space:nowrap}
 .pfsection{margin-top:26px}
 .pfsection .pfsectionhead{margin:0 0 10px}
 .pfsection .pfsectionhead h3{margin:4px 0}
@@ -713,6 +716,21 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .plwatch th{position:sticky;top:0;background:var(--sunken);z-index:1}
 .plactions{display:flex;gap:4px;flex-wrap:wrap}
 .pflabgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pflabprov{display:flex;flex-direction:column;gap:4px;font-size:13.4px;color:var(--text-3)}
+.pflabprov select{border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:14.6px;background:var(--surface);color:var(--text-1)}
+.pflabnote{margin:0 0 12px;max-width:840px;font-size:14.4px}
+.pftabs{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.pftabs .chip{white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--navy-900);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14.4px}
+.pftabs .chip:hover{background:var(--sunken)}
+.pftabs .chip[aria-selected="true"]{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.plpanel[hidden]{display:none}
+.pladdbox{border:1px solid var(--border);border-radius:var(--r-md);background:var(--sunken);padding:14px;margin-bottom:14px}
+.pffieldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pfcheck{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-2);margin-top:8px}
+.pfsubhead{margin:18px 0 8px;font-size:15px;font-weight:700;color:var(--navy-900);padding-top:12px;border-top:1px solid var(--border)}
+.pfsubhead:first-of-type{border-top:0;padding-top:0;margin-top:4px}
+.pfnone{border:1px dashed var(--border);border-radius:var(--r-md);padding:14px;background:var(--surface)}
+.pfok{display:inline-block;font-size:12.6px;font-weight:700;color:#0B7A5A;background:#E4F7EF;border-radius:999px;padding:2px 8px}
 .pfdetails summary{cursor:pointer;font-weight:600;color:var(--navy-900)}
 .pfdetails summary .muted{font-weight:400}
 .pfdetails[open] summary{margin-bottom:10px}
@@ -1544,7 +1562,7 @@ function renderPortfolioLanding(rows) {
     '</div>' +
     '<section class="pfsection"><div class="pfsectionhead"><span class="pfkicker">Before you buy</span>' +
       '<h3>Find and screen candidates</h3><p class="muted">Add the symbols you are weighing to the watch list, screen them on the criteria you care about, then send the inputs to the Business Calculator. A shortlist is sourced evidence — it is not a recommendation.</p></div>' +
-      portfolioLabPanel() + '</section>' +
+      portfolioLabPanel("screen") + '</section>' +
     pfGuidanceCard();
   out.innerHTML = html;
   $("#pfnewpaper").onclick = () => { $("#pfname").focus(); $("#pfname").scrollIntoView({ block: "center", behavior: "smooth" }); };
@@ -1633,7 +1651,7 @@ function renderPortfolioWorkspace() {
         ({ overview: "Overview", screen: "Find candidates", holdings: "Holdings", data: "Prices and snapshot", journal: "Journal and return" })[key] + "</button>").join("") +
     "</div><div id=\"pfmsg\"></div>";
   if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot, snapshots.length);
-  if (tab === "screen") html += portfolioLabPanel();
+  if (tab === "screen") html += portfolioLabPanel("screen");
   if (tab === "holdings") html += pfHoldings(holdings);
   if (tab === "data") html += pfData(holdings, latest, snapshot);
   if (tab === "journal" && p.mode === "fund") html += pfJournal(bundle, snapshot);
@@ -1745,46 +1763,48 @@ function pfGuidanceCard() {
 function pfHoldings(holdings) {
   const data = state.instruments || {};
   const books = data.sample_books || [];
-  let html = portfolioLabPanel() + '<div class="card" style="margin-top:14px"><h3>Holdings</h3>';
+  let html = '<div class="card"><div class="pfcardhead"><h3 style="margin:0">Your holdings</h3>' +
+    '<span class="muted">' + holdings.length + ' declared</span></div>';
   if (holdings.length) {
-    html += '<div class="tablewrap"><table><caption>Declared holdings</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Cost basis</th><th>Why you hold it</th><th></th></tr></thead><tbody>' +
-      holdings.map((row) => "<tr><td>" + esc(row.symbol) + "</td><td>" + esc(row.shares) + "</td><td>" + esc(row.cost_basis) +
+    html += '<div class="tablewrap" style="margin-top:8px"><table><caption>Declared holdings</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Cost basis</th><th>Why you hold it</th><th></th></tr></thead><tbody>' +
+      holdings.map((row) => "<tr><td><strong>" + esc(row.symbol) + "</strong></td><td>" + esc(row.shares) + "</td><td>" + esc(row.cost_basis) +
         "</td><td>" + esc(row.rationale || "(not recorded)") +
         '</td><td><button class="btn sm" type="button" data-pfremove="' + esc(row.symbol) + '">Remove</button></td></tr>').join("") +
       "</tbody></table></div>";
   } else {
-    html += '<p class="muted">No holdings yet. Choose from the reference list below, or type a symbol you already know.</p>';
+    html += '<p class="muted" style="margin:6px 0 0">Nothing declared yet. Add a holding below, or use <strong>Find candidates</strong> to screen symbols first.</p>';
   }
-  html += '<div class="grid2 pf-form" style="margin-top:12px">' +
+  html += "</div>" +
+    '<div class="card"><h3 style="margin-top:0">Add a holding</h3>' +
+    '<p class="muted" style="margin:0 0 10px">Declare one position at a time; the reason is printed in the report under Holdings and rationale.</p>' +
+    '<div class="grid2 pf-form">' +
     '<div class="fieldgroup"><label class="field" for="pfhsym">Symbol</label><input type="text" id="pfhsym" maxlength="12" placeholder="AAPL"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfhshares">Shares</label><input type="text" id="pfhshares" placeholder="10"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfhcost">Cost basis (optional)</label><input type="text" id="pfhcost" placeholder="0"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfhwhy">Why you hold it (one line)</label><input type="text" id="pfhwhy" maxlength="300" placeholder="e.g. Diversified core, about 20% of the book"></div>' +
-    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button>' +
-    '<span class="muted">The reason is printed in the report under Holdings and rationale.</span></div></div>';
-  html += pfChooser(data);
+    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="pfaddholding">Add holding</button></div></div>';
+  html += '<details class="card pfdetails"><summary><strong>Browse the reference list</strong> <span class="muted">\u2014 20 widely held funds and companies, each with a source</span></summary>' +
+    pfChooser(data) + '</details>';
   if (books.length) {
-    html += '<div class="card" style="margin-top:14px"><h3>Start from an example book</h3>' +
-      '<p class="muted">These are examples, not advice: each shows a different level of diversification. ' +
-      'Load one into the import box, read it, then replace every row with your own decision. Nothing is saved until you click Import holdings.</p>' +
+    html += '<details class="card pfdetails"><summary><strong>Start from an example book</strong> <span class="muted">\u2014 examples, not advice</span></summary>' +
+      '<p class="muted" style="margin:0 0 8px">Each book shows a different level of diversification. Load one into the import box, read it, then replace every row with your own decision. Nothing is saved until you click Import holdings.</p>' +
       '<div class="row">' + books.map((book) => '<button class="btn" type="button" data-pfsample="' + esc(book.id) + '">' + esc(book.label) + '</button>').join("") + '</div>' +
       books.map((book) => '<p class="muted" style="margin:8px 0 0"><strong>' + esc(book.label) + '.</strong> ' + esc(book.intent) + '</p>').join("") +
-      '</div>';
+      '</details>';
   }
-  html += '<div class="card" style="margin-top:14px"><h3>Paste or import holdings</h3>' +
-    '<p class="muted">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine. ' +
-    'An imported row has no reason yet: add one at a time above, or the report will print it as a gap.</p>' +
+  html += '<details class="card pfdetails"><summary><strong>Paste or import holdings</strong></summary>' +
+    '<p class="muted" style="margin:0 0 8px">One row per holding: SYMBOL,SHARES,COST (cost optional). Paste from a spreadsheet as commas or tabs; a header row is fine. An imported row has no reason yet: add one at a time above, or the report will print it as a gap.</p>' +
     '<textarea id="pfhimport" rows="4" style="width:100%" placeholder="AAPL,10,150&#10;MSFT,5,350"></textarea>' +
     '<div class="row" style="margin-top:6px"><input type="file" id="pfhfile" accept=".csv,.tsv,.txt"><span class="muted">or choose a CSV/TSV file</span></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfhimportbtn">Import holdings</button>' +
-    '<span class="muted">Nothing is fetched; these are your declared rows.</span></div></div>';
+    '<span class="muted">Nothing is fetched; these are your declared rows.</span></div></details>';
   return html;
 }
 
 function pfChooser(data) {
   const groups = [["all", "All"], ["etf", "Funds"], ["equity", "Single companies"]];
   const chosen = state.pfClass || "all";
-  return '<div class="card" style="margin-top:14px"><h3>Choose holdings from the reference list</h3>' +
+  return '<div class="pfchooser">' +
     '<p class="muted">A fixed list of large, widely held long-only listings, with a one-line description and a source link. ' +
     'It is not ranked and it carries no expected return: read what the instrument is, then add it to the book. ' +
     'A listing here is not a recommendation.</p>' +
@@ -3796,6 +3816,26 @@ function methodName(id) {
     : (i === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part)).join(" ");
 }
 
+/* A schema field id shown as a title: present_value -> "Present Value", ebit -> "EBIT". */
+const FIELD_ACRONYMS = ["ebit", "ebitda", "npv", "irr", "wacc", "capm", "dcf", "ytm", "eps", "roe",
+                        "roa", "roi", "pv", "fv", "dso", "dio", "dpo", "ccc", "eoq", "cagr",
+                        "var", "cvar", "spi", "cpi", "mirr", "fx", "tvm", "ols", "pi", "nwc"];
+
+function fieldTitle(name) {
+  return String(name || "").trim().split("_").filter(Boolean).map((part) =>
+    FIELD_ACRONYMS.indexOf(part.toLowerCase()) !== -1
+      ? part.toUpperCase()
+      : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(" ");
+}
+
+/* The one way an input is labelled: the title, a dash, then the declared description.
+   The description is the frozen contract's own sentence; this never rewrites it. */
+function fieldLabel(name, desc, extra) {
+  const tail = [esc(desc || ""), esc(extra || "")].filter(Boolean).join(" ");
+  return '<label class="field" for="in-' + esc(name) + '">' + esc(fieldTitle(name)) +
+    (tail ? ' - <span class="muted">' + tail + "</span>" : "") + "</label>";
+}
+
 /* Held back on the owner's request (2026-11-02).  The framework picker and the groups
    listed here are not rendered, and their tiles are not built.  The markup is left in
    place, so nothing else changes and surfacing them again is this object alone. */
@@ -4515,74 +4555,149 @@ function bindMacroPanel() {
   on("wblookup", lookupMacro);
 }
 
-function portfolioLabPanel() {
+function portfolioLabPanel(initialTab) {
+  const tab = initialTab || state.plTab || "watch";
+  state.plTab = tab;
   const providers = '<option value="alphavantage">Alpha Vantage</option><option value="massive">Massive</option>';
   const sorts = [["one_day_return", "one-day return"], ["mean_return", "mean return (needs history)"],
     ["sharpe", "Sharpe (needs history)"], ["price", "price"],
     ["market_cap", "market cap"], ["pe_ratio", "P/E"], ["roe", "ROE"]]
     .map((p) => '<option value="' + p[0] + '">' + p[1] + "</option>").join("");
-  return '<div class="marketpanel" id="portfoliolab"><h3 style="margin-top:0">Portfolio lab: choose, track, evaluate</h3>' +
-    '<p class="muted">Pick an instrument yourself, or ask for a sourced shortlist. Recording a price now builds the history over weeks; ' +
-    'a value the app cannot source stays a named gap, and the frozen calculators do the maths only after you confirm.</p>' +
-    '<div class="marketrow">' +
-      '<label>Symbol <input id="plsym" value="AAPL" maxlength="12" size="7" aria-label="Symbol to track"></label>' +
-      '<label>Provider <select id="plprovider" aria-label="Quote provider">' + providers + '</select></label>' +
-      '<button class="btn sm" id="pltrack" type="button">Track &amp; record price</button>' +
-      '<span id="plmsg" class="muted"></span>' +
-    '</div>' +
-    '<div class="marketrow">' +
-      '<label>Candidate symbols <input id="plcands" value="AAPL, MSFT, JPM" size="26" aria-label="Candidate symbols, comma separated"></label>' +
-      '<label>Sort by <select id="plsort" aria-label="Sort metric">' + sorts + '</select></label>' +
-      '<label><input type="checkbox" id="plfund" aria-label="Include fundamentals"> Include fundamentals</label>' +
-      '<label>Fundamentals <select id="plfundprov" aria-label="Fundamentals provider"><option value="derived">Derived (SEC + Massive)</option><option value="auto">Auto (US first, then Alpha Vantage intl)</option><option value="massive">Massive</option><option value="alphavantage">Alpha Vantage (premium)</option></select></label>' +
-      '<button class="btn sm" id="plscreen" type="button">Help me choose</button>' +
-    '</div>' +
-    '<div id="plscreenout" aria-live="polite"></div>' +
-    '<h4 class="levelhead">Watch list</h4>' +
-    '<div id="plwatch" aria-live="polite">' + loading("Reading tracked instruments") + '</div>' +
-    '<h4 class="levelhead">Evaluate a tracked series</h4>' +
-    '<div class="marketrow">' +
-      '<label>Instrument id <input id="plid" maxlength="12" size="12" aria-label="Instrument id"></label>' +
-      '<label>Risk-free (decimal) <input id="plrf" value="0.02" size="6" aria-label="Risk-free rate as a decimal"></label>' +
-      '<button class="btn sm" id="plrisk" type="button">Prefill single-asset risk</button>' +
-    '</div>' +
-    '<div class="marketrow">' +
-      '<label>A id <input id="plida" maxlength="12" size="12" aria-label="Asset A id"></label>' +
-      '<label>B id <input id="plidb" maxlength="12" size="12" aria-label="Asset B id"></label>' +
-      '<label>Benchmark id <input id="plidm" maxlength="12" size="12" aria-label="Benchmark id"></label>' +
-      '<button class="btn sm" id="plport" type="button">Prefill two-asset portfolio</button>' +
-    '</div>' +
-    '<div id="plprefillout" aria-live="polite"></div>' +
+  const tabs = [["watch", "Watch list and prices"], ["screen", "Find candidates"], ["prefill", "Evaluate"]];
+  return '<div class="marketpanel pflab" id="portfoliolab">' +
+    '<div class="pflabhead"><div><span class="pfkicker">Portfolio lab</span>' +
+      '<h3 style="margin:2px 0 0">Choose, track, evaluate</h3></div>' +
+      '<label class="pflabprov">Quote provider <select id="plprovider" aria-label="Quote provider">' + providers + '</select></label></div>' +
+    '<div class="pftabs" role="tablist">' + tabs.map((pair) =>
+      '<button class="chip" type="button" role="tab" data-pltab="' + pair[0] + '" aria-selected="' + String(tab === pair[0]) + '">' + pair[1] + '</button>').join("") + '</div>' +
+    '<section class="plpanel" id="plpanel-watch">' +
+      '<div class="pladdbox"><label class="field" for="plnewsyms">Add symbols to the watch list</label>' +
+      '<div class="row"><input type="text" id="plnewsyms" maxlength="200" placeholder="AAPL, MSFT, JPM" aria-label="Symbols to add, comma or space separated" style="flex:1;min-width:220px">' +
+      '<button class="btn primary" id="pladdsymbols" type="button">Add symbols</button></div>' +
+      '<div class="muted" style="margin-top:6px">Type any ticker, or several at once separated by commas or spaces. Each one is recorded at today\'s sourced price; that is the first point in its history. You can add more at any time.</div>' +
+      '<div id="plmsg" class="muted" aria-live="polite"></div></div>' +
+      '<div id="plwatch" aria-live="polite">' + loading("Reading tracked instruments") + '</div>' +
+    '</section>' +
+    '<section class="plpanel" id="plpanel-screen">' +
+      '<div class="pffieldgrid">' +
+        '<div class="fieldgroup"><label class="field" for="plcands">Symbols to screen</label><input type="text" id="plcands" placeholder="AAPL, MSFT, JPM" aria-label="Candidate symbols, comma separated">' +
+          '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" id="plusewatch">Use my watch list</button></div></div>' +
+        '<div class="fieldgroup"><label class="field" for="plsort">Sort by</label><select id="plsort" aria-label="Sort metric">' + sorts + '</select></div>' +
+        '<div class="fieldgroup"><label class="field" for="plfundprov">Fundamentals</label><select id="plfundprov" aria-label="Fundamentals provider"><option value="derived">Derived (SEC + Massive)</option><option value="auto">Auto (US first, then Alpha Vantage intl)</option><option value="massive">Massive</option><option value="alphavantage">Alpha Vantage (premium)</option></select>' +
+          '<label class="pfcheck"><input type="checkbox" id="plfund"> Include fundamentals</label></div>' +
+      '</div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn primary" id="plscreen" type="button">Screen these symbols</button>' +
+      '<span class="muted">One row per symbol, sorted on the metric you picked.</span></div>' +
+      '<div id="plscreenout" aria-live="polite"></div>' +
+    '</section>' +
+    '<section class="plpanel" id="plpanel-prefill">' +
+      '<p class="muted" style="margin:0 0 10px">Prefill sends the fields a calculator needs and stops there: it never runs the method. ' +
+        'Choose a tracked series, then open it in the Business Calculator and press = yourself.</p>' +
+      '<div class="pfsubhead">Single asset risk</div>' +
+      '<div class="pffieldgrid">' +
+        '<div class="fieldgroup"><label class="field" for="plid">Instrument</label><select id="plid" aria-label="Instrument for single-asset risk"></select></div>' +
+        '<div class="fieldgroup"><label class="field" for="plrf">Risk-free rate (decimal)</label><input id="plrf" value="0.02" aria-label="Risk-free rate as a decimal"></div>' +
+      '</div>' +
+      '<div class="row" style="margin-top:8px"><button class="btn" id="plrisk" type="button">Prefill single-asset risk</button></div>' +
+      '<div class="pfsubhead">Two-asset portfolio</div>' +
+      '<div class="pffieldgrid">' +
+        '<div class="fieldgroup"><label class="field" for="plida">Asset A</label><select id="plida" aria-label="Asset A"></select></div>' +
+        '<div class="fieldgroup"><label class="field" for="plidb">Asset B</label><select id="plidb" aria-label="Asset B"></select></div>' +
+        '<div class="fieldgroup"><label class="field" for="plidm">Benchmark (optional)</label><select id="plidm" aria-label="Benchmark"></select></div>' +
+      '</div>' +
+      '<div class="row" style="margin-top:8px"><button class="btn" id="plport" type="button">Prefill two-asset portfolio</button></div>' +
+      '<div id="plprefillout" aria-live="polite"></div>' +
+    '</section>' +
   '</div>';
 }
 
 function bindPortfolioLab() {
   const on = (id, fn) => { const el = $("#" + id); if (el) el.onclick = fn; };
-  on("pltrack", plTrack);
+  on("pladdsymbols", plAddSymbols);
   on("plscreen", plScreen);
+  on("plusewatch", plUseWatch);
   on("plrisk", plPrefillRisk);
   on("plport", plPrefillPort);
+  const newsyms = $("#plnewsyms");
+  if (newsyms) newsyms.onkeydown = (event) => { if (event.key === "Enter") plAddSymbols(); };
+  $$("[data-pltab]").forEach((button) => { button.onclick = () => plShowTab(button.dataset.pltab); });
+  plShowTab(state.plTab || "watch");
   plLoadWatch();
+}
+
+function plShowTab(name) {
+  state.plTab = name;
+  $$("[data-pltab]").forEach((button) => {
+    const on = button.dataset.pltab === name;
+    button.setAttribute("aria-selected", String(on));
+    button.classList.toggle("pftabon", on);
+  });
+  $$(".plpanel").forEach((panel) => { panel.hidden = panel.id !== "plpanel-" + name; });
 }
 
 function plProvider() { const el = $("#plprovider"); return el ? el.value : "alphavantage"; }
 
+function plTrackedIds() {
+  return ((state.plWatch && state.plWatch.instruments) || []).map((row) => row.id);
+}
+
+function plFillPrefillSelects() {
+  const items = (state.plWatch && state.plWatch.instruments) || [];
+  const options = items.map((row) => '<option value="' + esc(row.id) + '">' + esc(row.symbol) +
+    " (" + esc(row.snapshots) + " snapshot" + (Number(row.snapshots) === 1 ? "" : "s") + ")</option>").join("");
+  [["plid", false], ["plida", false], ["plidb", false], ["plidm", true]].forEach((pair) => {
+    const select = $("#" + pair[0]);
+    if (!select) return;
+    const chosen = select.value;
+    select.innerHTML = (pair[1] ? '<option value="">(none)</option>' : '<option value="">Select an instrument</option>') + options;
+    if (chosen && items.some((row) => row.id === chosen)) select.value = chosen;
+  });
+}
+
+async function plUseWatch() {
+  const items = (state.plWatch && state.plWatch.instruments) || [];
+  const field = $("#plcands");
+  if (!field) return;
+  if (!items.length) { toast("The watch list is empty. Add symbols first."); return; }
+  field.value = items.map((row) => row.symbol).join(", ");
+  toast(items.length + " symbol(s) copied from the watch list.");
+}
+
 function plRenderWatch(data) {
   const box = $("#plwatch"); if (!box) return;
-  const items = (data && data.instruments) || [];
-  if (!items.length) { box.innerHTML = '<p class="muted">No instruments tracked yet. Track one above.</p>'; return; }
-  const rows = items.map((r) => '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.snapshots) +
-    '</td><td>' + esc(r.returns) + '</td><td>' + (r.risk_ready ? "yes" : "not yet") + '</td><td>' +
-    esc(r.last_price || "n/a") + ' <span class="muted">' + esc(r.last_as_of || "") + '</span></td><td class="muted">' +
-    esc(r.id) + '</td><td><button class="btn sm" type="button" data-record="' + esc(r.id) + '">Record</button> ' +
-    '<button class="btn sm" type="button" data-seed="' + esc(r.id) + '" title="Seed 30 days of daily bars">Seed</button> ' +
-    '<button class="btn sm" type="button" data-use="' + esc(r.id) + '">Use</button></td></tr>').join("");
-  box.innerHTML = '<div class="tablewrap"><table><caption>Tracked instruments (' + items.length + ')</caption><thead><tr>' +
-    '<th>Symbol</th><th>Snapshots</th><th>Returns</th><th>Ready</th><th>Last</th><th>Id</th><th></th></tr></thead><tbody>' +
-    rows + '</tbody></table></div>';
+  state.plWatch = data || { instruments: [] };
+  const items = state.plWatch.instruments || [];
+  if (!items.length) {
+    box.innerHTML = '<div class="pfnone"><strong>No symbols on the watch list yet.</strong>' +
+      '<p class="muted" style="margin:6px 0 0">Type one or more tickers in the box above and press Add symbols. ' +
+      'They do not have to come from the reference list: any ticker your provider can quote works.</p></div>';
+    plFillPrefillSelects();
+    return;
+  }
+  const rows = items.map((r) => {
+    const ready = r.risk_ready ? '<span class="pfok">ready</span>' : '<span class="muted">not yet</span>';
+    return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.snapshots) + ' / ' + esc(r.returns) +
+      '</td><td>' + ready + '</td><td>' + esc(r.last_price || "n/a") + ' <span class="muted">' + esc(r.last_as_of || "") +
+      '</span></td><td><button class="btn sm" type="button" data-record="' + esc(r.id) + '">Record price</button> ' +
+      '<button class="btn sm" type="button" data-seed="' + esc(r.id) + '" title="Seed 30 days of daily bars">Seed 30 days</button> ' +
+      '<button class="btn sm" type="button" data-use="' + esc(r.id) + '">Evaluate</button> ' +
+      '<button class="btn sm" type="button" data-plremove="' + esc(r.id) + '" title="Remove from the watch list">Remove</button></td></tr>';
+  }).join("");
+  box.innerHTML = '<div class="tablewrap"><table><caption>Watch list (' + items.length +
+    ') - snapshots / returns</caption><thead><tr><th>Symbol</th><th>History</th><th>Risk-ready</th><th>Last recorded price</th><th></th></tr></thead><tbody>' +
+    rows + '</tbody></table></div>' +
+    '<p class="muted" style="margin:6px 0 0">Recording one price a day builds the history the return and risk calculators need. ' +
+    'Seed 30 days pulls daily bars where the provider has them; a series that is still short stays a named gap.</p>';
   $$("[data-record]", box).forEach((b) => { b.onclick = () => plRecord(b.dataset.record); });
   $$("[data-seed]", box).forEach((b) => { b.onclick = () => plSeed(b.dataset.seed); });
-  $$("[data-use]", box).forEach((b) => { b.onclick = () => { const f = $("#plid"); if (f) f.value = b.dataset.use; }; });
+  $$("[data-use]", box).forEach((b) => {
+    b.onclick = () => {
+      plShowTab("prefill");
+      const select = $("#plid"); if (select) select.value = b.dataset.use;
+    };
+  });
+  $$("[data-plremove]", box).forEach((b) => { b.onclick = () => plRemoveSymbol(b.dataset.plremove); });
+  plFillPrefillSelects();
 }
 
 function plRenderScreen(data) {
@@ -4650,16 +4765,59 @@ async function plLoadWatch() {
   catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
 }
 
-async function plTrack() {
-  const symbol = (($("#plsym") || {}).value || "").trim();
-  const msg = $("#plmsg"); if (msg) msg.textContent = "";
-  if (!symbol) return;
-  try {
-    const created = await post("/api/cases/instruments", { symbol: symbol });
-    await post("/api/cases/instruments/" + created.id + "/record", { provider: plProvider() });
-    if (msg) msg.textContent = "Recorded " + created.symbol;
-    plLoadWatch();
-  } catch (e) { const box = $("#plscreenout"); if (box) box.innerHTML = errorBanner(e); }
+async function plAddSymbols() {
+  const field = $("#plnewsyms");
+  const msg = $("#plmsg");
+  const raw = ((field && field.value) || "").trim();
+  if (!raw) {
+    if (msg) msg.textContent = "Type at least one ticker, for example AAPL or AAPL, MSFT.";
+    if (field) field.focus();
+    return;
+  }
+  const seen = {};
+  const symbols = raw.split(/[\s,;]+/).map((s) => s.replace(/[^A-Za-z0-9.\-^=]/g, "").toUpperCase())
+    .filter((s) => { if (!s || s.length > 12 || seen[s]) return false; seen[s] = true; return true; });
+  if (!symbols.length) {
+    if (msg) msg.textContent = "Those inputs do not look like tickers. Use letters, digits, and at most one dot or dash (for example BRK.B).";
+    return;
+  }
+  if (symbols.length > 25) {
+    if (msg) msg.textContent = "Add up to 25 symbols at a time; the list above has " + symbols.length + ".";
+    return;
+  }
+  if (msg) msg.textContent = "Adding " + symbols.join(", ") + " ...";
+  const provider = plProvider();
+  const tracked = ((state.plWatch && state.plWatch.instruments) || []).map((row) => String(row.symbol).toUpperCase());
+  const already = symbols.filter((symbol) => tracked.indexOf(symbol) >= 0);
+  const fresh = symbols.filter((symbol) => tracked.indexOf(symbol) < 0);
+  const added = [], failed = [];
+  if (fresh.length) {
+    const button = $("#pladdsymbols");
+    if (button) button.disabled = true;
+    for (const symbol of fresh) {
+      try {
+        await post("/api/cases/instruments", { symbol: symbol, record: true, provider: provider });
+        added.push(symbol);
+      } catch (error) {
+        failed.push(symbol + " (" + (error && error.message ? error.message : String(error)) + ")");
+      }
+    }
+    if (button) button.disabled = false;
+  }
+  if (field) field.value = "";
+  if (msg) {
+    msg.textContent = (added.length ? "Added and recorded: " + added.join(", ") + ". " : "") +
+      (already.length ? "Already on the watch list: " + already.join(", ") + ". " : "") +
+      (failed.length ? "Could not add: " + failed.join("; ") + "." : "");
+  }
+  if (added.length) toast(added.length + " symbol(s) added to the watch list.");
+  if (already.length && !added.length) toast("Those symbols are already on the watch list.");
+  plLoadWatch();
+}
+
+async function plRemoveSymbol(id) {
+  try { await api("/api/cases/instruments/" + encodeURIComponent(id), { method: "DELETE" }); plLoadWatch(); }
+  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
 }
 
 async function plRecord(id) {
@@ -4674,8 +4832,18 @@ async function plSeed(id) {
 
 async function plScreen() {
   const box = $("#plscreenout"); if (!box) return;
-  const symbols = (($("#plcands") || {}).value || "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (!symbols.length) return;
+  const typed = (($("#plcands") || {}).value || "").split(/[\s,;]+/).map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const symbols = typed.length ? typed : plTrackedIds().length
+    ? ((state.plWatch.instruments || []).map((row) => row.symbol)) : [];
+  if (!symbols.length) {
+    box.innerHTML = banner("blocked", "No symbols to screen",
+      "<div>Type one or more tickers, or add them to the watch list first and press Use my watch list.</div>");
+    return;
+  }
+  if (symbols.length > 25) {
+    box.innerHTML = banner("blocked", "Too many symbols", "<div>Screen up to 25 symbols at a time; this list has " + symbols.length + ".</div>");
+    return;
+  }
   box.innerHTML = loading("Screening " + symbols.length + " symbol(s)");
   try {
     plRenderScreen(await post("/api/cases/screen", {
@@ -4690,7 +4858,7 @@ async function plScreen() {
 async function plPrefillRisk() {
   const box = $("#plprefillout"); if (!box) return;
   const id = (($("#plid") || {}).value || "").trim();
-  if (!id) { box.innerHTML = banner("blocked", "Instrument id needed", "<div>Enter a tracked instrument id from the watch list.</div>"); return; }
+  if (!id) { box.innerHTML = banner("blocked", "Choose an instrument", "<div>Pick a tracked series on the Watch list tab, or add one there first.</div>"); return; }
   try { const data = await post("/api/cases/prefill", { target: "risk", id: id, confidence: "0.95" }); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
   catch (e) { box.innerHTML = errorBanner(e); }
 }
@@ -4700,7 +4868,8 @@ async function plPrefillPort() {
   const a = (($("#plida") || {}).value || "").trim();
   const b = (($("#plidb") || {}).value || "").trim();
   const m = (($("#plidm") || {}).value || "").trim();
-  if (!a || !b) { box.innerHTML = banner("blocked", "Two instruments needed", "<div>Enter ids for asset A and asset B.</div>"); return; }
+  if (!a || !b) { box.innerHTML = banner("blocked", "Two instruments needed", "<div>Pick asset A and asset B from the tracked series.</div>"); return; }
+  if (a === b) { box.innerHTML = banner("blocked", "Pick two different series", "<div>Asset A and asset B cannot be the same instrument.</div>"); return; }
   const body = { target: "portfolio", ids: [a, b], weight_a: "0.5", risk_free_rate: (($("#plrf") || {}).value || "0.02") };
   if (m) body.market_id = m;
   try { const data = await post("/api/cases/prefill", body); plRenderPrefill(data); if (data.ready) plOpenInCalc(data); }
@@ -5005,8 +5174,7 @@ function calcField(name, spec) {
   const type = (spec && spec.type) || "text";
   const desc = (spec && spec.desc) || "";
   const value = state.calcValues[name] === undefined ? "" : state.calcValues[name];
-  const label = '<label class="field" for="in-' + esc(name) + '">' + esc(name) +
-    ' <span class="muted">' + esc(desc) + "</span></label>";
+  const label = fieldLabel(name, desc);
   if (type === "decimal_list" || type === "value_list" || type === "code_list") {
     return '<div class="stack" style="gap:4px">' + label +
       '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(value) +
@@ -5019,8 +5187,7 @@ function calcField(name, spec) {
   }
   if (type === "boolean") {
     return '<div class="row"><input type="checkbox" id="in-' + esc(name) + '" data-type="boolean"' +
-      (value ? " checked" : "") + '><label class="field" for="in-' + esc(name) + '">' + esc(name) +
-      ' <span class="muted">' + esc(desc) + "</span></label></div>";
+      (value ? " checked" : "") + ">" + label + "</div>";
   }
   return '<div class="stack" style="gap:4px">' + label +
     '<input type="text" id="in-' + esc(name) + '" data-type="decimal" value="' + esc(value) + '"></div>';
@@ -7242,26 +7409,23 @@ function inputField(name, spec, plan) {
   if (method === "decision_tree" && name === "tree") return treeEditor(value);
   if (method === "multi_project_schedule" && name === "projects") return projectsEditor(value);
   if (method === "multi_criteria" && name === "alternatives") return mcdaEditor(value);
-  const label = type === "engagement_spec" ? "The engagement" : name;
+  /* The label text is produced by fieldLabel(name, desc) in every branch below. */
   if (type === "enum") {
     const current = value === undefined || value === null ? "" : String(value);
     const options = (spec.values || []).map((v) =>
       '<option value="' + esc(v) + '"' + (current === String(v) ? " selected" : "") + ">" + esc(v) + "</option>").join("");
-    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
-      ' <span class="muted">' + esc(desc) + "</span></label>" +
+    return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc) +
       '<select id="in-' + esc(name) + '" data-type="enum"><option value="">default</option>' + options + "</select></div>";
   }
   if (type === "value_list" || type === "code_list") {
     const text = Array.isArray(value) ? value.join(", ") : String(value || "");
-    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
-      ' <span class="muted">' + esc(desc) + "</span></label>" +
+    return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc) +
       '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(text) +
       '" placeholder="comma separated"></div>';
   }
   if (type === "value_matrix") {
     const text = typeof value === "string" ? value : JSON.stringify(value || [], null, 1);
-    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
-      ' <span class="muted">' + esc(desc) + " (a JSON list of rows)</span></label>" +
+    return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc, "(a JSON list of rows)") +
       '<textarea id="in-' + esc(name) + '" data-type="object" rows="5" spellcheck="false" class="jsoninput">' + esc(text) + "</textarea></div>";
   }
   if (type === "records") return recordsField(name, spec, value);
@@ -7272,16 +7436,14 @@ function inputField(name, spec, plan) {
   }
   if (type === "decimal_list") {
     const text = Array.isArray(value) ? value.join(", ") : String(value || "");
-    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(name) +
-      ' <span class="muted">' + esc(desc) + "</span></label>" +
+    return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc) +
       '<input type="text" id="in-' + esc(name) + '" data-type="decimal_list" value="' + esc(text) + '" placeholder="comma separated"></div>';
   }
   if (type === "object" || type === "array" ||
       (value !== null && typeof value === "object")) {
     const text = typeof value === "string" ? value : JSON.stringify(value || (type === "array" ? [] : {}), null, 1);
     const rows = Math.min(16, Math.max(4, text.split("\n").length + 1));
-    return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(label) +
-      ' <span class="muted">' + esc(desc) + "</span></label>" +
+    return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc) +
       '<textarea id="in-' + esc(name) + '" data-type="object" rows="' + rows + '" spellcheck="false" ' +
       'class="jsoninput" placeholder="{}">' + esc(text) + "</textarea>" +
       (type === "engagement_spec"
@@ -7293,10 +7455,9 @@ function inputField(name, spec, plan) {
   }
   if (type === "boolean") {
     return '<div class="row"><input type="checkbox" id="in-' + esc(name) + '" data-type="boolean"' + (value ? " checked" : "") +
-      '><label class="field" for="in-' + esc(name) + '">' + esc(name) + ' <span class="muted">' + esc(desc) + "</span></label></div>";
+      ">" + fieldLabel(name, desc) + "</div>";
   }
-  return '<div class="stack" style="gap:4px"><label class="field" for="in-' + esc(name) + '">' + esc(name) +
-    ' <span class="muted">' + esc(desc) + "</span></label>" +
+  return '<div class="stack" style="gap:4px">' + fieldLabel(name, desc) +
     '<input type="text" id="in-' + esc(name) + '" data-type="decimal" value="' + esc(value) + '"></div>';
 }
 

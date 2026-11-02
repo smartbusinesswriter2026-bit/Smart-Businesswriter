@@ -281,6 +281,19 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('activate("new")', body)
         self.assertNotIn('show("new")', body)
 
+    def test_every_input_label_is_a_title_then_a_description(self):
+        """The owner's rule: "Present Value - amount you have today (the lump sum)".
+
+        One builder produces every input label: the field id in Title Case, a dash, then the
+        schema's own description.  Three branches used to print the raw id instead, which is
+        why `cashflows` and `present_value` looked different from one form to the next.
+        """
+        self.assertIn("function fieldTitle(name)", self.html)
+        self.assertIn("function fieldLabel(name, desc, extra)", self.html)
+        self.assertIn('\' - <span class="muted">\'', self.html)
+        self.assertEqual(self.html.count('<label class="field" for="in-'), 1,
+                         "the input label must be built in exactly one place (fieldLabel)")
+
     def test_the_figures_panel_describes_the_method_actually_on_screen(self):
         """Only management accounts have an engagement.
 
