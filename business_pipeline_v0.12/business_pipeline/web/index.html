@@ -487,8 +487,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .shield .capicon{display:grid;place-items:center;flex:0 0 auto}
 .shield .capicon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .capcard strong{font-size:17.2px;color:var(--navy-900);display:block;line-height:1.3}
-.capcard p,.capcard .capdesc{margin:0;font-size:15.4px;color:var(--text-2);line-height:1.45}
-.capcard .capneed{display:block;margin-top:6px;font-size:14.6px;line-height:1.45;color:var(--text)}
+.capcard p,.capcard .capdesc{margin:0;font-size:15.4px;color:var(--text-2);line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.capcard .capneed{display:block;margin-top:6px;font-size:14.6px;line-height:1.45;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .startsteps{margin:8px 0 4px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
 .startsteps h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:16.4px;color:var(--text)}
 .startsteps .guidesteps{margin:4px 0 2px 18px;font-size:15.4px;line-height:1.55}
@@ -502,12 +502,13 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .decision span{font-size:14.8px;color:var(--text-2);line-height:1.45}
 .studentguide{margin:0 0 14px}
 .studentguide h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:17.2px;color:var(--navy-900)}
-@media (max-width:640px){.decisiongrid{grid-template-columns:1fr}.actionrow{flex-wrap:wrap}.subjectask{gap:6px}}
-.capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+.capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
                   font-size:14.2px;color:var(--text-3)}
-.capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap}
-.capcard .lvl{margin-left:auto;font-size:12.4px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
-              border:1px solid var(--border);border-radius:999px;padding:2px 7px;white-space:nowrap}
+.capcard .capfoot-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.capcard .lvl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
+              border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;
+              flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
 .levelhead{margin:16px 0 2px;font-size:14.8px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
 .studynote{border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin:8px 0;background:var(--surface)}
 .studynote summary{cursor:pointer;font-weight:650;color:var(--navy-900)}
@@ -3395,15 +3396,17 @@ function capabilityCard(item, kind) {
   const need = (!isSheet && item.need)
     ? '<span class="capneed">You will need: ' + esc(item.need) + "</span>" : "";
   const source = isSheet ? "Worksheet" : (item.preset ? "Worked example" : "Your figures");
-  /* The period badge says what the number covers, so a student can tell an
-     annual return from a per-observation summary before they run anything. */
+  /* Period moved to footer, below the source line */
   const period = (!isSheet && item.period) ? '<span class="lvl">' + esc(item.period) + "</span>" : "";
   return '<button class="capcard" type="button" ' + attrs + ">" +
     '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' + iconSvg(toolIcon(isSheet ? { kind: "worksheet" } : item)) + "</span>" +
-      "<strong>" + esc(item.label) + "</strong>" + period + "</span>" +
+      "<strong>" + esc(item.label) + "</strong></span>" +
     '<span class="capdesc">' + esc(item.what) + "</span>" + need +
-    '<span class="capfoot"><span>' + esc(source) + '</span><span class="capgo">' +
+    '<span class="capfoot">' +
+      '<span class="capfoot-row"><span>' + esc(source) + '</span>' + (period ? '<span class="capperiod">' + period + "</span>" : "") + '<span class="capgo">' +
       (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
+      (need ? '<span class="capfoot-row capneed-row">' + need + "</span>" : "") +
+    '</span>' +
   "</button>";
 }
 
@@ -3455,10 +3458,23 @@ function subjectTiles(s) {
         '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
     }
     if (rows.length) {
-      html += '<p class="muted" style="margin:12px 0 6px">Catalogued frameworks with no worksheet yet: read and cite them, ' +
-        "and check what each one would need.</p>" +
-        '<div class="capgrid">' + rows.map((row) => frameworkCard(row, "framework", tile.label,
-          "Read and cite - no worksheet yet")).join("") + "</div>";
+      /* A record backed by a frozen method is a computed method, not a gap: say
+         so and point the student at the record, rather than calling every row a
+         worksheet that does not exist yet. */
+      const computedRows = rows.filter((row) => row.form === "computed");
+      const readOnlyRows = rows.filter((row) => row.form !== "computed");
+      if (computedRows.length) {
+        html += '<p class="muted" style="margin:12px 0 6px">Computed methods: a frozen calculation is registered ' +
+          "for these records and runs on the figures you declare.</p>" +
+          '<div class="capgrid">' + computedRows.map((row) => frameworkCard(row, "method", tile.label,
+            "Computed method - open the record")).join("") + "</div>";
+      }
+      if (readOnlyRows.length) {
+        html += '<p class="muted" style="margin:12px 0 6px">Catalogued frameworks with no worksheet yet: read and cite them, ' +
+          "and check what each one would need.</p>" +
+          '<div class="capgrid">' + readOnlyRows.map((row) => frameworkCard(row, "framework", tile.label,
+            "Read and cite - no worksheet yet")).join("") + "</div>";
+      }
     }
     if (tools.length) {
       html += '<p class="muted" style="margin:12px 0 6px">Calculators: supply the figures and confirm; the server computes ' +
@@ -3950,13 +3966,14 @@ function renderSubject() {
       "</tbody></table></div></details>";
   }
 
-  html += '<h3>Stored cases in this subject</h3><div id="subjectcases">' + loading("Reading the case store") + "</div>";
+  html += '<details class="studynote"><summary>Stored cases in this subject</summary><div id="subjectcases">' + loading("Reading the case store") + "</div></details>";
 
   if ((s.glossary || []).length) {
-    html += '<h3>Glossary</h3><div class="tablewrap"><table><caption>Terms used on this page</caption><thead><tr>' +
+    html += '<details class="studynote"><summary>Glossary <span class="muted">(' + s.glossary.length + ' terms)</span></summary>' +
+      '<div class="tablewrap"><table><caption>Terms used on this page</caption><thead><tr>' +
       '<th>Term</th><th>Meaning</th></tr></thead><tbody>' +
       s.glossary.map((row) => "<tr><td>" + esc(row.term) + "</td><td>" + esc(row.definition) + "</td></tr>").join("") +
-      "</tbody></table></div>";
+      "</tbody></table></div></details>";
   }
   const noted = tools.filter((t) => t.formula);
   if (noted.length) {
