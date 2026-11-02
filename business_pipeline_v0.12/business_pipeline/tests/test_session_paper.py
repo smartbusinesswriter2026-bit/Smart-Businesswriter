@@ -44,7 +44,9 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
         self.assertIn("Assumptions made", headings)
         self.assertIn("Limitations", headings)
         self.assertIn("How the figures were checked", headings)
-        self.assertIn("Audit record", headings)
+        self.assertNotIn("Audit record", headings,
+                         "the paper must carry no specification footer")
+        self.assertNotIn("How this was produced", headings)
 
     def test_a_non_applicable_disclosure_is_omitted_not_printed_blank(self):
         honesty = dict(session_paper.sections(DELIVERY))["Honesty: what was not done"]
@@ -57,7 +59,10 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
         self.assertIn("Second implementation agrees", text)
         self.assertNotIn("second_implementation_agrees", text,
                          "the paper must not show a raw check identifier")
-        self.assertIn("Record identifier: abc123", text)
+        self.assertNotIn("Specification hash", text,
+                         "a 64-character hash must not reach a student paper")
+        self.assertNotIn("Record identifier", text)
+        self.assertNotIn("version 1.0.0", text)
 
     def test_the_word_file_is_a_real_document(self):
         data = session_paper.docx_bytes(DELIVERY)

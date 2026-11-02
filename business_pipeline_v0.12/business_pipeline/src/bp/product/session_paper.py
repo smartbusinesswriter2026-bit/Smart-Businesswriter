@@ -31,20 +31,44 @@ def _plain(name):
     return (text[:1].upper() + text[1:]) if text else ""
 
 
+def _render(key, value, method):
+    """One figure as a reader can use it: the core's declared precision, no Python repr."""
+    from decimal import Decimal, InvalidOperation
+    if isinstance(value, (list, tuple)):
+        return "%s: %s" % (_plain(key), ", ".join(str(item) for item in value))
+    unit = precision = None
+    if method is not None and getattr(method, "typing", None):
+        try:
+            unit, precision = method.typing(key)
+        except Exception:                                   # noqa: BLE001
+            unit = precision = None
+    text = str(value)
+    if precision is not None:
+        try:
+            quantum = Decimal(1).scaleb(-int(precision))
+            text = format(Decimal(text).quantize(quantum), "f")
+        except (InvalidOperation, ValueError, TypeError):
+            text = str(value)
+    return "%s: %s" % (_plain(key), text)
+
+
 def _figure_lines(appendix):
-    """The inputs and outputs as readable lines, straight from the stored record."""
+    """The inputs and outputs as readable lines, at the method's own declared precision."""
+    from ..methods import LIBRARY
     record = (appendix or {}).get("reperform") or {}
+    method_id = ((appendix or {}).get("method") or {}).get("id")
+    method = LIBRARY.get(method_id) if method_id else None
     lines = []
     inputs = record.get("inputs") or {}
     if isinstance(inputs, dict) and inputs:
         lines.append("What you declared")
-        lines.extend("%s: %s" % (_plain(key), value) for key, value in inputs.items())
+        lines.extend(_render(key, value, method) for key, value in inputs.items())
     outputs = record.get("outputs") or {}
     if isinstance(outputs, dict) and outputs:
         if lines:
             lines.append("")
         lines.append("What was computed")
-        lines.extend("%s: %s" % (_plain(key), value) for key, value in outputs.items())
+        lines.extend(_render(key, value, method) for key, value in outputs.items())
     return lines
 
 
@@ -85,14 +109,10 @@ def sections(delivery, declared_sources=None, title=None):
     for key, heading in HEADINGS:
         if body[key]:
             out.append((heading, body[key]))
-    method = appendix.get("method") or {}
-    audit = ["Every figure above is stored with this computation and can be re-run from that "
-             "record; this line identifies it.",
-             "Method: %s (version %s)" % (_plain(method.get("id") or "unknown"),
-                                          method.get("version") or "?")]
-    if appendix.get("spec_hash"):
-        audit.append("Record identifier: " + str(appendix["spec_hash"]))
-    out.append(("Audit record", audit))
+    # The audit block (method, version, specification hash) was DELETED from the paper at
+    # the owner's instruction: a student's paper must not carry a specification footer.
+    # The record itself still exists in the store and every figure remains re-runnable
+    # from it; the paper simply no longer prints the identifier.
     return out
 
 
