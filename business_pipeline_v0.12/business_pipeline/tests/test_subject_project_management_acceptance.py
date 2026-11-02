@@ -772,30 +772,39 @@ class GateTest(unittest.TestCase):
         for promise in ("fills in a wbs", "assigns responsibilities for you"):
             self.assertNotIn(promise, guidance, promise)
 
-    def test_E_pm_063__the_framework_overview_never_prints_a_placeholder_lead(self):
-        """Trap test for D-PM-05: five profiles shipped `'lead': 'lead'` and the paper
-        printed the literal token under the framework heading while the pipeline's own
-        check reported "lead short"."""
+    def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
+        """Trap test for D-PM-05. Three layers, because the defect had three.
+
+        The data shipped `'lead': 'lead'` for eight profiles; the code printed it;
+        and the paper carried the token. So this asserts the data is authored, the
+        guard still fails closed on a stub, and the finished paper prints the
+        paragraph instead of the token.
+        """
         placeholders = ["template_project_charter", "template_wbs", "template_risk_register",
                         "template_stakeholder_plan", "template_lessons_learned"]
+        canvases = ["template_business_model_canvas", "template_lean_canvas",
+                    "template_value_proposition_canvas"]
+        for template in placeholders + canvases:
+            outline = framework_profiles.get(template)["outline"]
+            self.assertNotEqual(str(outline.get("lead") or "").strip().lower(), "lead", template)
+            lead = completion._lead_of(outline)
+            self.assertGreaterEqual(len(lead.split()), 25, template)
+            self.assertNotIn("'", lead.replace("'s ", "s "), template)   # no shell-out quoting
+        # the guard itself still refuses a stub, for any profile added later
+        self.assertEqual(completion._lead_of({"lead": "lead"}), "")
+        self.assertEqual(completion._lead_of({}), "")
+        # the finished paper prints the authored paragraph and no bare token
         for template in placeholders:
-            profile = framework_profiles.get(template)
-            self.assertEqual(completion._lead_of(profile["outline"]), "", template)
+            lead = completion._lead_of(framework_profiles.get(template)["outline"])
             document = completion.draft_bytes(complete(template))
             with zipfile.ZipFile(io.BytesIO(document)) as archive:
                 text = archive.read("word/document.xml").decode("utf-8")
             paragraphs = [re.sub(r"<[^>]+>", "", chunk).strip()
                           for chunk in text.split("</w:p>")]
+            self.assertIn(lead.split(":")[0], text, template)          # the paragraph is present
             for paragraph in paragraphs:
-                if not paragraph:
-                    continue
-                self.assertNotEqual(paragraph.lower(), "lead", (template, paragraph))
-                self.assertNotEqual(paragraph.lower(), "framework overview", (template, paragraph))
-        # the control: a profile with a real lead still prints it, in full
-        raci = framework_profiles.get("template_raci")
-        lead = completion._lead_of(raci["outline"])
-        self.assertGreaterEqual(len(lead.split()), 20)
-        self.assertIn("RACI", lead)
+                if paragraph:
+                    self.assertNotEqual(paragraph.lower(), "lead", (template, paragraph))
 
 
 if __name__ == "__main__":

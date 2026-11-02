@@ -6,10 +6,12 @@ Session 7 debugging pass, second commit. Build **1.71**.
   lessons learned shipped `'lead': 'lead'` in their outline (as did the Business Model Canvas, Lean
   Canvas and Value Proposition Canvas), so the produced `.docx` carried a paragraph that was the single
   word **`lead`** under the framework heading — while the pipeline's own `_problems` already reported
-  "lead short". `completion._lead_of()` now treats a bare token as a **declared absence**: the
-  framework-overview paragraph and its heading are omitted (the section survives only when a figure
-  lives there) and "lead short" is reported only for a lead that exists. No prose is invented — the
-  wording stays the profile author's decision. Trap test `test_E_pm_063`; before/after captured in
+  "lead short". **Fixed in both layers.** `completion._lead_of()` treats a bare token as a **declared
+  absence** (the paragraph and heading are omitted, the section survives only for a figure, and "lead
+  short" is reported only for a lead that exists) — so no future stub can print; and the **eight leads
+  are now authored**, 56–86 words each, grounded on that profile's own block labels with no case fact,
+  number or source. The finished charter now opens its framework section with "A project charter
+  authorises one project: …". Trap test `test_E_pm_063`; before/after in
   `qa/evidence/project-management/lead-before-after.txt`.
 - **Measured and corrected, not fixed:** the five worksheets' blocks printed `background` because the
   evidence pack was empty, **not** because retrieval is dead. Instrumenting `retrieval.retrieve` showed

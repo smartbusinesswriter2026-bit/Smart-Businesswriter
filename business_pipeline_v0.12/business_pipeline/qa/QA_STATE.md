@@ -42,10 +42,12 @@ Inventory confirmed exactly as the work order stated: 18 tools · 6 worksheets �
   is `PM-10` and two pages carry it. Trap test `test_E_pm_058`.
 - **D-PM-05** (BLOCKER, gate/V-06): the charter, WBS, risk register, stakeholder plan and lessons
   learned shipped `'lead': 'lead'` and the produced paper **printed the literal token `lead`** as its
-  framework-overview paragraph. `_lead_of()` now treats a bare token as a declared absence and omits
-  the paragraph (no invented prose). Trap test `test_E_pm_063`; before/after in
-  `qa/evidence/project-management/lead-before-after.txt`. Three canvases (BMC, Lean, VPC) shared the
-  same placeholder and are fixed by the same change — 139 entrepreneurship tests still green.
+  framework-overview paragraph. Fixed in **both layers**: the eight leads (those five plus BMC, Lean
+  Canvas and VPC) are now **authored** — 56–86 words each, grounded on that profile's own block
+  labels, with no case fact, number or source — and `_lead_of()` still fails closed on any future
+  stub. Trap test `test_E_pm_063`; before/after in
+  `qa/evidence/project-management/lead-before-after.txt`. Blast radius measured: 139 entrepreneurship
+  tests, 63 shelf rows and the shared contracts green.
 
 ### Ledgered / declared (4 + 4 gaps)
 

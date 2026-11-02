@@ -8,12 +8,14 @@ line showed paragraph 12 was the single word **`lead`**. Root cause: eight profi
 project-management worksheets plus the Business Model, Lean and Value Proposition canvases) carry
 `'lead': 'lead'` in their outline — the key repeated as its own value — and `complete()` printed it
 verbatim under "Framework Overview", while the pipeline's own `_problems` was already reporting
-"lead short". `completion._lead_of()` now returns "" for a bare token, so the paragraph and its
-heading are omitted (the section survives only when a figure lives there), and "lead short" is
-reported only for a lead that exists. Nothing was invented: the five profiles still need an authored
-lead, and that wording is the profile author's decision. Trap test `test_E_pm_063`; the before/after
-is `qa/evidence/project-management/lead-before-after.txt`. Blast radius measured: 139 entrepreneurship
-tests and 99 shelf/shared tests still green.
+"lead short". Fixed in **both layers**: `completion._lead_of()` now treats a bare token as a declared
+absence (paragraph and heading omitted, "lead short" reported only for a lead that exists) so no
+future stub can print, **and the eight leads are authored** — 56–86 words each, grounded on each
+profile's own block labels, stating no case fact, no number and no source. The charter's framework
+section now opens "A project charter authorises one project: the objective it exists to deliver …".
+Trap test `test_E_pm_063` covers all three layers (data authored, guard fails closed, paper prints the
+paragraph). Before/after: `qa/evidence/project-management/lead-before-after.txt`. Blast radius
+measured green: 139 entrepreneurship tests, 63 shelf rows, the shared contracts.
 
 **Found, and corrected against myself (no defect).** The same paper showed all ten blocks filled from
 the framework's background. I first concluded the retrieval path was dead for these five worksheets.
