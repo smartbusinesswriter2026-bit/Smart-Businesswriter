@@ -22,7 +22,8 @@ Suite: `tests/test_subject_project_management_acceptance.py` (62 tests).
 |---|---|---|---|---|---|---|---|---|---|
 | D-PM-01 | project-management | PM-05, PM-06, PM-09, PM-15, PM-16; E-pm-049, E-pm-050 | MAJOR | WIRING | `qa/probe_pm_shelf.py --blocks` reported `cues: ['evidence']` on every block of five profiles, and queries built from the raw block key (`scope_in evidence`, `work_packages evidence`) | the five profiles were inlined with placeholder search vocabulary: one shared cue word meant the gate could not attribute an item to a dimension, and the student's query was a snake_case token instead of the framework's language | `session 7` | `test_E_pm_049`, `test_E_pm_050` | FIXED |
 | D-PM-02 | project-management | PM-10 RACI (shared with the people shelf); E-pm-058 | MAJOR | DECLARATION | `framework_profiles.get('template_raci')['subject']` → `'management'` while `R.get('PM-10')['template'] == 'template_raci'` and **both** pages list PM-10 | the profile was authored under the management shelf's vocabulary; nothing asserted the subject against the catalogue id | `session 7` | `test_E_pm_058` | FIXED |
-| D-PM-03 | marketing (ledgered from this shelf) | `template_customer_journey`, `template_servqual`; E-pm-057 | MAJOR | DECLARATION | `sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))` → both templates | a block may declare exactly ONE form; these two declare canvas and matrix, and `describe()` returns canvas so the matrix definition is dead code | — | `test_E_pm_057` (asserts the measured pair) | **LEDGERED** — marketing shelf owns the fix |
+| D-PM-03 | marketing (ledgered from this shelf) | `template_servqual` still; `template_customer_journey` repaired; E-pm-057 | MAJOR | DECLARATION | `sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))` → both templates at session start; `['template_servqual']` after `2209822`/B-198 | a block may declare exactly ONE form. The customer journey half was repaired by the marketing lane during this session (D-MKT-04); SERVQUAL's grid is still in both maps and its tile is hidden until that is repaired | `2209822` (their half) | `test_E_pm_057` (asserts the measured pair) | **LEDGERED** — one kind still open, marketing shelf owns it |
+
 | D-PM-04 | project-management | `case_decision` card; E-pm-014 | MINOR | DECLARATION | the card is `kind: compute` and `case_decision` is **not** in `bp.methods.LIBRARY` | it is a **T2 template** (registry `QNT-FIN-01`) that computes NPV inside the template path and delivers through `Pipeline` — declared `compute` is honest | — | `test_E_pm_014` | **NOT A DEFECT** (measured, pinned) |
 
 ### Session 7 — the shelf's declared gaps
@@ -42,7 +43,7 @@ Suite: `tests/test_subject_project_management_acceptance.py` (62 tests).
 | Worksheets / records / theories / glossary | 6 / 10 / 0 / 23 | `test_E_pm_002`…`004` |
 | Declared tiles | 0 (fallback layout) | `test_E_pm_006` |
 | Framework profiles overall | 75 | `test_E_pm_004` area |
-| Registry kinds declared in two forms | 2 (`customer_journey`, `servqual`) | `test_E_pm_057` |
+| Registry kinds declared in two forms | 1 (`servqual`; customer journey repaired by D-MKT-04) | `test_E_pm_057` |
 | Items on the shelf that complete from a brief | 6 of 16 | manual §2.2 |
 
 ---

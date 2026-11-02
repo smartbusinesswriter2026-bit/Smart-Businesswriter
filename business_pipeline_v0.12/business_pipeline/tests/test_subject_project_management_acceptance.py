@@ -725,9 +725,15 @@ class GateTest(unittest.TestCase):
     """E-pm-057 ... E-pm-062 : the page, the paper and the registry."""
 
     def test_E_pm_057__two_registry_kinds_are_still_declared_in_two_forms(self):
-        """The K1 audit, ledgered as D-PM-03: marketing owns the fix, not this shelf."""
+        """The K1 audit, ledgered as D-PM-03: marketing owns the fix, not this shelf.
+
+        Half of it was closed on 2026-11-03: the customer journey map is a grid and is
+        now declared only as one (D-MKT-04).  The SERVQUAL grid is still in both maps, and
+        its tile is hidden from the marketing page until that is repaired (B-198), so the
+        remaining declaration is recorded here rather than silently tolerated.
+        """
         both = sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))
-        self.assertEqual(both, ["template_customer_journey", "template_servqual"])
+        self.assertEqual(both, ["template_servqual"])
         for template in WORKSHEETS.values():
             self.assertNotIn(template, both)
 
