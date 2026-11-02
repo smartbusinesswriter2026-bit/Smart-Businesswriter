@@ -3320,10 +3320,59 @@ async function downloadSessionPaper(fmt) {
 }
 
 
-/* ---------- business-plan builder ---------- */
+/* ---------- the four long documents ----------
+   One builder serves four chat profiles.  Each profile carries its own sections,
+   student fields and computation blocks in `bp.product.chat`; a door names the
+   profile and the subject it belongs to, and every gate (required fields, required
+   blocks, the export block) is shared.  The business plan used to be the only one
+   with a door: the other three composed correctly and could never be reached. */
+const PLAN_PROFILES = {
+  business_plan: {
+    label: "Business plan", subject: "entrepreneurship", convention: "Business-plan convention",
+    heading: "Build the business plan", start: "Start the business plan",
+    blurb: "A business plan combines your own description, the retrieved market evidence and plan-level computations. " +
+      "This shelf uses the strict business-plan convention: the standard sections, a Financial Plan with its computation " +
+      "blocks, and an export that is blocked until the plan is complete.",
+  },
+  feasibility_study: {
+    label: "Feasibility study", subject: "entrepreneurship", convention: "Feasibility-study convention",
+    heading: "Test the idea with a feasibility study", start: "Start the feasibility study",
+    blurb: "A feasibility study tests market, technical, management, legal and financial feasibility one at a time and " +
+      "stops where the evidence does. The export is blocked until every required field is supplied and every required " +
+      "computation has run.",
+  },
+  marketing_plan: {
+    label: "Marketing plan", subject: "marketing", convention: "Marketing-plan convention",
+    heading: "Build the marketing plan", start: "Start the marketing plan",
+    blurb: "A marketing plan states the audience, the positioning, the channels and the budget, and measures each one. " +
+      "The evidence is researched with its citations, and the export is blocked until the plan is complete.",
+  },
+  project_proposal: {
+    label: "Project proposal", subject: "project-management", convention: "Project-proposal convention",
+    heading: "Build the project proposal", start: "Start the project proposal",
+    blurb: "A project proposal states the problem, the objectives, the work plan, the budget and how delivery will be " +
+      "monitored. The export is blocked until every required field is supplied and every required computation has run.",
+  },
+};
+
+/* Which doors a subject page offers.  A subject with no long document offers none. */
+const SUBJECT_PLAN_DOORS = {
+  entrepreneurship: ["business_plan", "feasibility_study"],
+  marketing: ["marketing_plan"],
+  "project-management": ["project_proposal"],
+};
+
 RENDERERS.plan = function () { renderPlan(); };
 
-function startPlan(mode) {
+function planProfile() {
+  return PLAN_PROFILES[state.planProfile] || PLAN_PROFILES.business_plan;
+}
+
+function startPlan(mode, profile) {
+  const chosen = PLAN_PROFILES[profile] ? profile : (state.planProfile || "business_plan");
+  // Switching document drops the composed one: its sections belong to the other profile.
+  if (chosen !== state.planProfile && state.plan && state.plan.data) state.plan = null;
+  state.planProfile = chosen;
   state.planMode = mode || "strict";
   if (state.plan && state.plan.data && (state.plan.data.mode || "strict") !== state.planMode) state.plan = null;
   if (!state.plan || !state.plan.data) state.plan = null;
@@ -3449,6 +3498,10 @@ function renderPlan() {
   const out = $("#planout"); if (!out) return;
   capturePlanForms();
   const p = state.plan;
+  // The panel heading names the document that is open, so the door and the page agree.
+  const titleNode = $("#plan-title");
+  const composed = p && p.data && p.data.plan && p.data.plan.label;
+  if (titleNode) titleNode.textContent = composed || planProfile().label || "Business plan";
   if (!p || !p.data) {
     out.innerHTML = '<p class="sub">Describe the business and the plan, or attach a PDF, Word .docx or TXT brief. ' +
       "The plan is proposed first; no source is retrieved and no figure is computed until you confirm it.</p>" +
@@ -3457,7 +3510,7 @@ function renderPlan() {
         '<label class="field" style="margin:0">Brief file <input type="file" id="planfile" accept=".pdf,.docx,.txt"></label>' +
         '<label class="field" style="margin:0">Level <select id="planlevel"><option value="shs">Senior high school</option><option value="college">College</option></select></label>' +
         '<label class="field" style="margin:0">Composition <select id="planmode">' +
-          '<option value="strict"' + (state.planMode === "strict" ? " selected" : "") + '>Business-plan convention</option>' +
+          '<option value="strict"' + (state.planMode === "strict" ? " selected" : "") + ">" + esc(planProfile().convention) + "</option>" +
           '<option value="open"' + (state.planMode === "open" ? " selected" : "") + '>Open composition</option>' +
         "</select></label>" +
         '<button class="btn primary" id="planbegin">Propose the plan</button>' +
@@ -3659,7 +3712,8 @@ async function beginPlan() {
       throw new Error("Describe the business in at least one sentence, or attach a brief.");
     }
     state.planMode = mode;
-    const body = { brief: brief, profile: "business_plan", subject: "entrepreneurship",
+    const door = planProfile();
+    const body = { brief: brief, profile: state.planProfile || "business_plan", subject: door.subject,
       level: level, mode: mode };
     // The marking guide read on the intake card travels with the run: the paper carries a
     // coverage table and the download is blocked while a weighted criterion is unaddressed.
@@ -4632,11 +4686,13 @@ function renderSubject() {
   html += '<div class="capgroup">';
   if (s.id === "finance") html += ratesPanel();
   if (s.id === "economics") html += macroPanel();
-  if (s.id === "entrepreneurship") html +=
-    '<div class="card" style="margin:0 0 14px"><h3 style="margin-top:0">Build the business plan</h3>' +
-    '<p class="sub" style="margin:4px 0 10px">A business plan combines your own description, the retrieved market evidence and plan-level computations. ' +
-    'This shelf uses the strict business-plan convention: the standard sections, a Financial Plan with its computation blocks, and an export that is blocked until the plan is complete.</p>' +
-    '<button class="btn primary" id="subjectplan" type="button">Start the business plan</button></div>';
+  (SUBJECT_PLAN_DOORS[s.id] || []).forEach((key) => {
+    const door = PLAN_PROFILES[key];
+    if (!door) return;
+    html += '<div class="card" style="margin:0 0 14px"><h3 style="margin-top:0">' + esc(door.heading) + "</h3>" +
+      '<p class="sub" style="margin:4px 0 10px">' + esc(door.blurb) + "</p>" +
+      '<button class="btn primary" data-plan-profile="' + esc(key) + '" type="button">' + esc(door.start) + "</button></div>";
+  });
   const tools = s.tools || [];
   const sheets = s.worksheets || [];
   const records = s.records || [];
@@ -4779,7 +4835,9 @@ function renderSubject() {
   const calc = $("#subjectcalc"); if (calc) calc.onclick = () => show("calculator");
   /* "Ask in the chat instead" is a real #/chat link; the router lands it on Home
      with the cursor in the composer, so no click handler is needed here. */
-  const subjectplan = $("#subjectplan"); if (subjectplan) subjectplan.onclick = () => startPlan("strict");
+  $$("[data-plan-profile]", out).forEach((button) => {
+    button.onclick = () => startPlan("strict", button.dataset.planProfile);
+  });
   if (s.id === "finance") bindRatesPanel();
   if (s.id === "economics") bindMacroPanel();
   bindSubjectCards(out);

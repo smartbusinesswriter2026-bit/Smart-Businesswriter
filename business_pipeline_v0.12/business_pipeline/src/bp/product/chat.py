@@ -1914,6 +1914,7 @@ def _start_project_proposal(brief, subject, level, mode):
 
 def _plan_profile(state):
     profile = state.get("profile") or PROFILE_BUSINESS_PLAN
+    level = state.get("level") or "shs"
     if profile == PROFILE_FEASIBILITY_STUDY:
         levels = FEASIBILITY_LEVELS
         modes = FEASIBILITY_MODES
@@ -1976,7 +1977,6 @@ def _plan_profile(state):
         output = ("A business plan with an executive summary, business description, market analysis, marketing "
                   "and operations plans, management, a Financial Plan with its computation blocks, a risk "
                   "analysis, a conclusion and one reference list.")
-    level = state.get("level") or "shs"
     dropped = state.get("dropped_sections") or []
     blocks = [dict(b) for b in blocks_list
               if (b["level"] == "shs" or level == "college")
@@ -2113,7 +2113,6 @@ def set_inputs(state, values):
 def _missing_fields(state):
     supplied = state["answers"].get("inputs") or {}
     missing = []
-    level = state.get("level") or "shs"
     profile = state.get("profile") or PROFILE_BUSINESS_PLAN
     if profile == PROFILE_FEASIBILITY_STUDY:
         sections_list = FEASIBILITY_SECTIONS
@@ -4373,6 +4372,44 @@ def _block_lines(state, block):
     return ["The computation returned a result."]
 
 
+def _plan_reference_section(state, evidence, style):
+    """One reference list, built from the evidence the student accepted (B-182).
+
+    Every plan profile ships the same list: a source is cited once (DOI or title),
+    and a plan with no accepted evidence says so rather than printing nothing.
+    """
+    references, seen = [], set()
+    for source in state["sources"]:
+        if source["id"] not in {item["source_id"] for item in evidence}:
+            continue
+        key = source.get("doi") or _clean(source.get("title"), 120).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        references.append(_reference(source, style))
+    heading = "References" if style == "apa" else "Bibliography"
+    return paper.section(heading, paper.H1, references or ["No sources were used."])
+
+
+def _store_plan_draft(state, sections, style, accepted, title, profile):
+    """Store a plan draft the way every plan profile must.
+
+    The business plan did this and the other three did not: they stored `sections`
+    alone, so `draft["title"]`, `draft["outline"]` and `draft["missing"]` were absent
+    — the export crashed reading the title instead of naming what was missing, and
+    the page's "complete the plan" gate had nothing to read.  One shape, one writer.
+    """
+    state["claim_problems"] = _claim_scan(sections)
+    state["draft"] = {"title": title, "sections": paper.flatten(sections), "outline": sections,
+                      "style": style, "profile": profile,
+                      "level": state.get("level") or "shs",
+                      "accepted": sorted(accepted), "missing": paper.missing(state),
+                      "created_at": _now()}
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
 def _draft_plan(state, accepted_ids=None, style=None):
     """Compose the business plan from student inputs, accepted evidence and stored core results."""
     if state.get("stage") not in ("evidence", "evidence_reviewed", "computed", "inputs", "draft"):
@@ -4382,7 +4419,6 @@ def _draft_plan(state, accepted_ids=None, style=None):
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
-    level = state.get("level") or "shs"
     sections = []
     name = _plan_input(state, "business_name")
     product = _plan_input(state, "product")
@@ -4525,27 +4561,11 @@ def _draft_plan(state, accepted_ids=None, style=None):
     sections.append(paper.section("Conclusion", paper.H1, [paper.paragraph(conclusion)]))
 
     # -- one reference list
-    references, seen = [], set()
-    for source in state["sources"]:
-        if source["id"] not in {item["source_id"] for item in evidence}:
-            continue
-        key = source.get("doi") or _clean(source.get("title"), 120).lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        references.append(_reference(source, style))
-    heading = "References" if style == "apa" else "Bibliography"
-    sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
+    sections.append(_plan_reference_section(state, evidence, style))
 
-    state["claim_problems"] = _claim_scan(sections)
-    state["draft"] = {"title": "Business plan: " + (name or _clean(plan.get("decision"), 180)),
-                      "sections": paper.flatten(sections), "outline": sections,
-                      "style": style, "profile": PROFILE_BUSINESS_PLAN, "level": level,
-                      "accepted": sorted(accepted),
-                      "missing": paper.missing(state), "created_at": _now()}
-    state["stage"] = "draft"
-    state["updated_at"] = _now()
-    return state
+    return _store_plan_draft(state, sections, style, accepted,
+                             "Business plan: " + (name or _clean(plan.get("decision"), 180)),
+                             PROFILE_BUSINESS_PLAN)
 
 
 
@@ -4558,7 +4578,6 @@ def _draft_feasibility_study(state, accepted_ids=None, style=None):
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
-    level = state.get("level") or "shs"
     sections = []
     name = _plan_input(state, "project_name")
     desc = _plan_input(state, "project_description")
@@ -4672,12 +4691,11 @@ def _draft_feasibility_study(state, accepted_ids=None, style=None):
     sections.append(paper.section("Conclusion", paper.H1, [verdict]))
 
     # -- references
-    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+    sections.append(_plan_reference_section(state, evidence, style))
 
-    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
-    state["stage"] = "draft"
-    state["updated_at"] = _now()
-    return state
+    return _store_plan_draft(state, sections, style, accepted,
+                             "Feasibility study: " + (name or _clean(plan.get("decision"), 180)),
+                             PROFILE_FEASIBILITY_STUDY)
 
 
 def _draft_marketing_plan(state, accepted_ids=None, style=None):
@@ -4689,7 +4707,6 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
-    level = state.get("level") or "shs"
     sections = []
     name = _plan_input(state, "business_name")
     product = _plan_input(state, "product")
@@ -4790,12 +4807,11 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
     sections.append(paper.section("Conclusion", paper.H1, ["The marketing plan above is based on the declared inputs and computations."]))
 
     # -- references
-    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+    sections.append(_plan_reference_section(state, evidence, style))
 
-    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
-    state["stage"] = "draft"
-    state["updated_at"] = _now()
-    return state
+    return _store_plan_draft(state, sections, style, accepted,
+                             "Marketing plan: " + (name or _clean(plan.get("decision"), 180)),
+                             PROFILE_MARKETING_PLAN)
 
 
 
@@ -4808,7 +4824,6 @@ def _draft_project_proposal(state, accepted_ids=None, style=None):
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
-    level = state.get("level") or "shs"
     sections = []
     title = _plan_input(state, "project_title")
     problem = _plan_input(state, "problem_statement")
@@ -4914,12 +4929,11 @@ def _draft_project_proposal(state, accepted_ids=None, style=None):
     sections.append(paper.section("Conclusion", paper.H1, ["The project proposal above is based on the declared inputs and computations."]))
 
     # -- references
-    sections.append(paper.section("References", paper.H1, ["No references supplied."]))
+    sections.append(_plan_reference_section(state, evidence, style))
 
-    state["draft"] = {"sections": sections, "style": style, "accepted": list(accepted)}
-    state["stage"] = "draft"
-    state["updated_at"] = _now()
-    return state
+    return _store_plan_draft(state, sections, style, accepted,
+                             "Project proposal: " + (title or _clean(plan.get("decision"), 180)),
+                             PROFILE_PROJECT_PROPOSAL)
 
 
 

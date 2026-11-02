@@ -95,7 +95,7 @@ def _rubric_missing(state):
 
 
 def _missing_base(state, implications=""):
-    if state.get("profile") == "business_plan":
+    if state.get("profile") in DRAFT_PROFILES:
         return _plan_missing(state)
     answers = state.get("answers") or {}
     framework = state.get("framework") or "pestel"
@@ -128,8 +128,20 @@ def _missing_base(state, implications=""):
     return required
 
 
+#: The long documents `chat` composes section by section.  Each one is a plan
+#: profile with its own sections, student fields and computation blocks, and each
+#: is gated the same way: every required field supplied and every required block
+#: run.  The gate used to test for `business_plan` alone, so a marketing plan, a
+#: feasibility study or a project proposal drafted cleanly and then could never be
+#: exported — `paper.missing` fell through to the framework-paper path and demanded
+#: an "implications" sentence no plan profile has a field for.  `chat` owns the
+#: profile names; `tests/test_document_profile_doors.py` fails if the two drift.
+DRAFT_PROFILES = frozenset({"business_plan", "marketing_plan", "feasibility_study",
+                            "project_proposal"})
+
+
 def _plan_missing(state):
-    """A business plan needs its student fields and every required block.
+    """A plan needs its student fields and every required block.
 
     A computation that refused is named with its reason, so an unbalanced
     opening balance sheet or a loan repaid faster than it is owed blocks export
