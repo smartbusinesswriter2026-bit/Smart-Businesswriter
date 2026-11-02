@@ -1,0 +1,36 @@
+tvm              time_value                 status=delivered tier=T1 checks=0 refs=0 chars=688
+loan             loan_amortization          status=delivered tier=T1 checks=0 refs=0 chars=618
+dupont           dupont_analysis            status=delivered tier=T1 checks=0 refs=0 chars=877
+trendanalysis    trend_analysis             status=delivered tier=T1 checks=0 refs=0 chars=1239
+workingcapital   working_capital            status=delivered tier=T1 checks=0 refs=0 chars=712
+ratios           ratio_analysis             status=delivered tier=T1 checks=0 refs=0 chars=1199
+breakeven        breakeven                  status=delivered tier=T1 checks=0 refs=0 chars=437
+multibreakeven   multi_product_breakeven    status=delivered tier=T1 checks=0 refs=0 chars=476
+unitecon         unit_economics             status=delivered tier=T1 checks=0 refs=0 chars=516
+forecast         trend_forecast             status=delivered tier=T1 checks=0 refs=0 chars=1623
+descriptive      descriptive_stats          status=delivered tier=T1 checks=0 refs=0 chars=535
+npv              npv                        status=delivered tier=T1 checks=0 refs=0 chars=236
+irr              irr                        status=delivered tier=T1 checks=0 refs=0 chars=283
+dpayback         discounted_payback         status=delivered tier=T1 checks=0 refs=0 chars=254
+projectmetrics   project_metrics            status=delivered tier=T1 checks=0 refs=0 chars=797
+wacc             wacc                       status=delivered tier=T1 checks=0 refs=0 chars=600
+capm             capm                       status=delivered tier=T1 checks=0 refs=0 chars=1004
+leverage         leverage_analysis          status=delivered tier=T1 checks=0 refs=0 chars=1101
+scenario         scenario_analysis          status=delivered tier=T1 checks=0 refs=0 chars=743
+case_decision    case_decision              status=delivered tier=T2 checks=0 refs=0 chars=2076
+dcf              dcf_valuation              status=delivered tier=T2 checks=0 refs=0 chars=1137
+dcfmid           dcf_valuation              status=blocked   tier=T4 checks=0 refs=0 chars=0
+      blocked: checks failed after 0 amendment(s): ['mid_year_convention_raises_the_value']; escalate to human/lower tier
+equitybridge     equity_bridge              status=delivered tier=T2 checks=0 refs=0 chars=735
+multiples        multiples_valuation        status=delivered tier=T2 checks=0 refs=0 chars=795
+portfolioval     portfolio_valuation        status=delivered tier=T1 checks=0 refs=0 chars=683
+portfolioperf    portfolio_performance      status=delivered tier=T1 checks=0 refs=0 chars=920
+bond             bond_analysis              status=delivered tier=T1 checks=0 refs=0 chars=766
+portfolio        portfolio_analysis         status=delivered tier=T1 checks=0 refs=0 chars=1032
+pearson          pearson                    status=delivered tier=T1 checks=0 refs=0 chars=1267
+ols              ols                        status=delivered tier=T1 checks=0 refs=0 chars=2150
+ols_robust       ols_robust                 !!! tool has no preset request
+risk             risk_metrics               status=delivered tier=T1 checks=0 refs=0 chars=1143
+options          option_pricing             status=delivered tier=T2 checks=0 refs=0 chars=847
+fx               fx_parity                  status=delivered tier=T1 checks=0 refs=0 chars=1004
+currency         currency_convert           status=delivered tier=T1 checks=0 refs=0 chars=814

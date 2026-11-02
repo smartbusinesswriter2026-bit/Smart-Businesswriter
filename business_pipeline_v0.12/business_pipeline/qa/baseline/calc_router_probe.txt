@@ -1,0 +1,14 @@
+﻿python :   File "<string>", line 1
+At line:1 char:96
++ ... PATH='src'; python -c "import sys,json;sys.path.insert(0,'src');from  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 1:String) [], Remo 
+   teException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    import sys,json;sys.path.insert(0,'src');from bp.product import calc_router as 
+c;\nfor t in ['net present value of this project','what is the wacc','break even 
+units']:\n  o=c.plan(t); print(t,'->',{k:o[k] for k in o if k in 
+('tool','method','status','reason','inputs')})
+                                                                                      ^
+SyntaxError: unexpected character after line continuation character

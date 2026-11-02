@@ -1,0 +1,48 @@
+======================================================================
+E-fin-009 unknown input  (npv)
+  validate_inputs: ["unknown input 'bogus'; allowed: ['cashflows', 'rate']"]
+  profile: no issues
+  impl: DID NOT RAISE
+  pipeline: blocked / profiling anomalies: ["unknown input 'bogus'; allowed: ['cashflows', 'rate']"]
+======================================================================
+E-fin-010 survey weights  (npv)
+  validate_inputs: ["'weights' is refused: survey weights are not supported by npv, which treats every observation as independent; supply only the declared inputs or use a method that models the structure"]
+  profile: no issues
+  impl: DID NOT RAISE
+  pipeline: blocked / profiling anomalies: ["'weights' is refused: survey weights are not supported by npv, which treats every observation as independent; supply only the declared inputs or use a method that models the structure"]
+======================================================================
+E-fin-012 no sign change  (irr)
+  validate_inputs: no errors
+  profile: ['the cash flows never change sign, so no IRR exists']
+  impl raised: DataError: no internal rate of return exists: the cash flows never change sign, so the net present value cannot reach zero
+  pipeline: blocked / profiling anomalies: ['the cash flows never change sign, so no IRR exists']
+======================================================================
+E-fin-012 two sign changes  (irr)
+  validate_inputs: no errors
+  profile: ['no IRR in the searched range (-99.99% to 1000%)']
+  impl raised: DataError: no internal rate of return exists in the searched range (-99.99% to 1000%): the net present value does not reach zero there
+  pipeline: blocked / profiling anomalies: ['no IRR in the searched range (-99.99% to 1000%)']
+======================================================================
+E-fin-013 unrecovered outlay  (discounted_payback)
+  validate_inputs: no errors
+  profile: ['the discounted cash flows never recover the initial outlay within the horizon']
+  impl raised: DataError: the discounted cash flows do not recover the initial outlay within 2 periods
+  pipeline: blocked / profiling anomalies: ['the discounted cash flows never recover the initial outlay within the horizon']
+======================================================================
+E-fin-014 price equals variable  (breakeven)
+  validate_inputs: no errors
+  profile: ['price <= variable cost: no break-even quantity exists']
+  impl raised: DataError: price must exceed variable cost, otherwise there is no break-even quantity
+  pipeline: blocked / profiling anomalies: ['price <= variable cost: no break-even quantity exists']
+======================================================================
+E-fin-015 growth above rate  (dcf_valuation)
+  validate_inputs: no errors
+  profile: ['the terminal growth rate must be below the discount rate']
+  impl raised: DataError: the terminal growth rate must be below the discount rate
+  pipeline: blocked / profiling anomalies: ['the terminal growth rate must be below the discount rate']
+======================================================================
+E-fin-015 bad timing  (dcf_valuation)
+  validate_inputs: ["'timing' must be one of: end, mid"]
+  profile: ["timing must be 'end' or 'mid'"]
+  impl raised: DataError: timing must be 'end' (end-of-period, default) or 'mid' (mid-year convention)
+  pipeline: blocked / profiling anomalies: ["'timing' must be one of: end, mid"]

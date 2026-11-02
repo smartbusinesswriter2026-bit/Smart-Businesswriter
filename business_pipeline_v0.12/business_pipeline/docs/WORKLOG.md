@@ -1,6 +1,38 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
+## 2026-11-02 — [finance] QA session 2: the shelf's missing manual, its acceptance suite, and the paper's numbers
+
+**Ask.** The 11-shelf QA work order, `SUBJECT = finance`: write the manual that does not exist, prove it
+with an executable suite, fix every defect in the correct layer, ledger the rest.
+
+**Read first, and one thing to note.** The work order's reading order, then `qa/QA_STATE.md` and
+`qa/QA_DEFECTS.md` from session 1. The WORKLOG entry above records the owner telling the *core* session
+"dont do finance yet, its doing some fixing"; that fixing is the design lane's finance UI work, landed at
+`2c2ca4f` (FX dropdowns, provenance panel). No finance file was dirty when this session opened, and this
+session touched no presentation file, so the two lanes did not collide.
+
+**Did.** (1) Baseline on `ab0be0d`: 2630 tests, 66 failures, 13 errors, measured against session 1's
+closing set — identical except one test each way (see `qa/QA_STATE.md` §1). (2) `qa/manual/finance.md`:
+35 tools, 23 records, 22 glossary terms, 0 worksheets, 0 tiles, 50 numbered `E-fin-nnn` rows, each citing
+`LIBRARY`/`detail()`/the harness rules. (3) `tests/test_subject_finance_acceptance.py`, 50 tests, one per
+row. (4) **D-FIN-02 fixed** in `src/bp/product/chat.py` — the finance capability papers printed the core's
+full `Decimal` (see `docs/CHANGELOG.md`). (5) **D-FIN-01 reported, not fixed**: the `dcfmid` tile is
+undeliverable because the frozen `_dcf_tests` check `mid_year_convention_raises_the_value` compares the
+input set with itself when the input already declares `timing="mid"`. The independent recomputation
+(`qa/probe_dcf_midyear.py`) shows the *method* is right to 40 digits (1,750,939.14 end-year,
+1,836,400.47 mid-year, ratio 1.048808848…) and only the check is wrong; the fix is inside the frozen core
+and needs an owner unfreeze, so it is ledgered BLOCKED with the report attached.
+
+**Left alone deliberately.** The tree also carries the owner-approved B-179/B-180/B-181 implementation
+(`src/bp/methods.py`, `orchestrator.py`, `guard.py` and one hunk of `chat.py`) from the core session,
+uncommitted. This session committed only its own files; `chat.py` rides along with three lines of the
+B-180 wiring, and that is stated in the commit message rather than hidden. `test_pipeline.py::
+test_no_method_is_framework_only` still asserts the pre-B-181 behaviour and is the one *new* failure
+against session 1's closing set; aligning it belongs with the commit that lands B-181, and the exact
+change is written into `qa/QA_DEFECTS.md` (D-FIN-13) rather than made here against uncommitted code.
+
+
 ## 2026-11-02 — [core] Owner-approved unfreezes: one unit hook per method, the shelf vocabulary enforces again, an unknown method is refused
 
 **Ask.** "1. what do you need from me? to unfreeze, yes unfreeze it. 2. implement your reco 3. yes

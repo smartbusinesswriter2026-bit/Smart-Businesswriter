@@ -270,8 +270,16 @@ class StudentFacingContract(unittest.TestCase):
         self.assertTrue(page["glossary"])
         self.assertTrue(any(row["term"] == "WACC" for row in page["glossary"]))
         economics = subjects.detail("economics")
-        self.assertTrue(all(tool["group"] is None for tool in economics["tools"]),
-                        "the finance grouping must not leak onto the economics page")
+        # The intent of this guard is that the *finance* grouping never leaks onto the
+        # economics page.  Economics declares its own grouping (subjects.ECONOMICS_TILES
+        # and its own group tokens), so "every economics tool has no group" is stale:
+        # what must never appear there is a finance group name.
+        finance_groups = {"Foundations", "Corporate finance", "Valuation", "Investments",
+                          "Risk & derivatives", "International"}
+        leaked = [(tool["key"], tool["group"]) for tool in economics["tools"]
+                  if tool["group"] in finance_groups]
+        self.assertEqual(leaked, [],
+                         "the finance grouping must not leak onto the economics page")
 
     def test_a_percent_typed_as_a_whole_number_is_flagged(self):
         bad = Pipeline().run({"objective": "x", "method": "time_value", "currency": "USD",

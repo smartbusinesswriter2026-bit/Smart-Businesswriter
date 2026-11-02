@@ -2556,7 +2556,7 @@ def _payback_lines(row, inputs, result):
     period = result.get("discounted_payback")
     lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared cash flows ("
              + "; ".join(_fmt_exact(value) for value in flows) + ") recover the outlay in "
-             + _fmt_exact(period) + " periods (inside period "
+             + _fmt_number(period) + " periods (inside period "
              + _fmt_exact(result.get("recovered_in_period")) + ")."]
     lines.append("The figure is arithmetic on the declared flows and rate; it says nothing about flows "
                  "beyond the ones declared.")
@@ -2567,7 +2567,7 @@ def _project_metrics_lines(row, inputs, result):
     rate = Decimal(str(inputs.get("rate", "0")))
     lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared project has a net "
              "present value of " + _money(result.get("npv")) + ", a profitability index of "
-             + _fmt_exact(result.get("profitability_index")) + ", a modified internal rate of return of "
+             + _fmt_number(result.get("profitability_index")) + ", a modified internal rate of return of "
              + _pct(result.get("mirr")) + " and an equivalent annual annuity of "
              + _money(result.get("equivalent_annual_annuity")) + "."]
     lines.append("Each figure is the frozen method's output for the declared flows and rate; none of them is a "
@@ -2582,7 +2582,7 @@ def _unit_economics_lines(row, inputs, result):
              + _pct(result.get("margin_pct")) + "% of the price)."]
     if result.get("payback_periods") not in (None, ""):
         lines.append("The declared acquisition cost of " + _money(inputs.get("acquisition_cost"))
-                     + " is covered after " + _fmt_exact(result.get("payback_periods"))
+                     + " is covered after " + _fmt_number(result.get("payback_periods"))
                      + " periods of that margin.")
     else:
         lines.append("No payback period is reported: the declared margin cannot recover the declared "
@@ -3972,7 +3972,68 @@ def _multi_project_lines(row, inputs, result):
     return lines
 
 
+def _time_value_lines(row, inputs, result):
+    """Time value of money: the future value, the payments' present value and the EAR.
+
+    Every figure is the frozen method's output for the declared inputs; nothing is
+    estimated here, and each number is printed at the paper's two-decimal precision
+    (D-FIN-02).
+    """
+    periods = _fmt_exact(result.get("n_periods"))
+    lines = ["At a declared present value of " + _money(inputs.get("present_value"))
+             + ", a declared payment of " + _money(inputs.get("payment") or "0")
+             + " per period and a declared rate of " + _pct(inputs.get("rate")) + "% over "
+             + periods + " periods (" + str(inputs.get("compounding") or "annual")
+             + " compounding, payments at the " + str(inputs.get("timing") or "end") + "), the "
+             "future value is " + _money(result.get("future_value")) + " and the present value "
+             "of the payments is " + _money(result.get("present_value_payments")) + "."]
+    lines.append("The rate actually applied per period is " + _pct(result.get("periodic_rate"))
+                 + "%, so the effective annual rate is "
+                 + _pct(result.get("effective_annual_rate")) + "%.")
+    lines.append("Every figure is arithmetic on your declared inputs; the method chooses no rate and "
+                 "assumes the payment is level.")
+    return lines
+
+
+def _leverage_lines(row, inputs, result):
+    """EPS, the leverage degree, the tax shield, the Z-score and the indifference EBIT."""
+    lines = ["On declared EBIT of " + _money(inputs.get("ebit")) + " and interest of "
+             + _money(inputs.get("interest_expense")) + ", earnings per share are "
+             + _money(result.get("eps")) + ", the degree of financial leverage is "
+             + _fmt_number(result.get("degree_of_financial_leverage"))
+             + " and interest cover is " + _fmt_number(result.get("interest_cover")) + " times."]
+    lines.append("The interest tax shield at the declared rate is "
+                 + _money(result.get("interest_tax_shield")) + " and debt to equity is "
+                 + _fmt_number(result.get("debt_to_equity")) + ".")
+    if result.get("altman_z") not in (None, ""):
+        lines.append("The five-term Altman Z is " + _fmt_number(result.get("altman_z"))
+                     + ". The score is reported; no zone cut-off is applied, because the boundaries "
+                     "are a convention the method does not choose for you.")
+    if result.get("indifference_ebit") not in (None, ""):
+        lines.append("The two declared financing plans give the same earnings per share at an EBIT of "
+                     + _money(result.get("indifference_ebit")) + " ("
+                     + _money(result.get("eps_at_indifference")) + " per share).")
+    return lines
+
+
+def _equity_bridge_lines(row, inputs, result):
+    """Enterprise value to equity value, through net debt and the declared claims."""
+    lines = ["From a declared enterprise value of " + _money(inputs.get("enterprise_value"))
+             + " and net debt of " + _money(result.get("net_debt")) + ", the equity value is "
+             + _money(result.get("equity_value")) + "."]
+    if result.get("per_share_value") not in (None, ""):
+        lines.append("Across the declared " + _fmt_exact(inputs.get("shares_outstanding"))
+                     + " shares, that is " + _money(result.get("per_share_value")) + " per share.")
+    lines.append("The bridge subtracts only the claims you declared; minority interest, preferred "
+                 "equity and any other claim are your own figures, not estimates.")
+    return lines
+
+
 CAPABILITY_LINES.update({
+    "time_value": _time_value_lines,
+    "leverage_analysis": _leverage_lines,
+    "equity_bridge": _equity_bridge_lines,
+
     "irr": _irr_lines,
     "discounted_payback": _payback_lines,
     "project_metrics": _project_metrics_lines,

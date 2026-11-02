@@ -1,0 +1,37 @@
+﻿PASS  served page carries the worksheet and draft markers
+PASS  no reviewer surface in the page
+PASS  the rail keeps the subject marked while its workspace is open
+PASS  the collapsed rail carries the scrollbar's column
+PASS  a tile that names a tool opens that tool
+PASS  page has a title
+PASS  the account page is served
+PASS  the account page reaches no remote asset
+PASS  the export wallet is readable
+PASS  the portfolio guide and reference list are served
+PASS  the portfolio page asks for the guide
+PASS  the workbench carries the pricing dialog
+PASS  the pricing dialog does not type its own tier names
+PASS  four tiers are priced
+PASS  every annual plan is cheaper than twelve monthly payments
+PASS  a credit allowance is not invented
+PASS  checkout reports whether it is configured
+PASS  the payment secret is never served
+PASS  subject gallery lists every shelf
+PASS  template template_business_model_canvas uses the canvas form
+PASS  template template_pestel uses the canvas form
+PASS  template template_scenario_planning uses the matrix form
+PASS  template template_swot uses the swot form
+PASS  template template_five_forces uses the five_forces form
+PASS  template template_pestel carries a completion profile
+PASS  template template_pestel declares its unit of analysis
+PASS  template template_pestel declares 6 blocks
+PASS  template template_five_forces carries a completion profile
+PASS  template template_five_forces declares its unit of analysis
+PASS  template template_five_forces declares 5 blocks
+PASS  worksheet run delivers
+PASS  delivered report has no unresolved token
+PASS  every check passed
+PASS  business plan drafts with no missing input
+PASS  business plan exports its submission
+
+0 failure(s)

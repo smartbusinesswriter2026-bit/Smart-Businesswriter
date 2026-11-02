@@ -1,3 +1,32 @@
+## Finance: the paper prints money, not the core's fiftieth decimal (QA session 2, D-FIN-02)
+
+The finance shelf's capability papers were quoting the frozen core's exact `Decimal`
+into student-facing prose. Three capabilities (`time_value`, `leverage_analysis`,
+`equity_bridge`) had no bespoke formatter at all, so they fell through to
+`_generic_lines`, which echoes the recorded output verbatim: a paper sentence read
+*"future value 412169.50589505043384053371598616910344392272576332"*. Three more
+(`discounted_payback`, `project_metrics`, `unit_economics`) had a formatter that called
+`_fmt_exact` on a computed non-integer, which returns the raw text by design, so a
+payback of 3.0192500… printed all forty-nine digits and a profitability index printed
+its full expansion.
+
+`src/bp/product/chat.py` now carries `_time_value_lines`, `_leverage_lines` and
+`_equity_bridge_lines`, and the three `_fmt_exact` calls on computed figures became
+`_fmt_number` (two decimals; whole numbers integral). The product still formats the
+core's numbers and never recomputes one. Verified by
+`tests/test_subject_finance_acceptance.py::FinanceProductPath::test_047__capability_papers_print_money_at_two_decimals`
+and `::test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap`, which drive
+every finance capability through the same recorded shape `chat.run_capability` stores.
+The finance slice is green (147 tests), the acceptance suite is 50 tests, and the
+documented suite count is now 2761.
+
+Also in this entry: `tests/test_finance_additions.py` asserted that *no* economics tool
+carries a group, which stopped being true when the economics shelf declared its own
+grouping (`subjects.ECONOMICS_TILES`). The guard now asserts what it always meant — that
+no **finance** group name appears on the economics page — so it still catches a real leak
+and no longer fails on a legitimate feature.
+
+
 ## Core: one unit hook per method, the shelf vocabulary enforces again, and an unknown method is refused (owner-approved unfreezes B-179…B-181)
 
 - **A frozen method owns its own `typing` hook (B-179).** `src/bp/methods.py` defined

@@ -1,0 +1,89 @@
+﻿======================================================================
+anova_golden.json | list
+  n cases: 4
+  case keys: ['expected', 'groups', 'method', 'missing_codes', 'name', 'source']
+   name: 'three_groups'
+   method: 'anova'
+   expected keys: ['eta_squared', 'f_stat', 'n_excluded', 'p_value']
+======================================================================
+chisquare_golden.json | list
+  n cases: 2
+  case keys: ['expected', 'method', 'name', 'source', 'table']
+   name: '3x3_associated'
+   method: 'chi_square'
+   expected keys: ['chi_squared', 'cramers_v', 'df', 'min_expected_count', 'p_value']
+======================================================================
+correlation_golden.json | list
+  n cases: 6
+  case keys: ['expected', 'method', 'missing_codes', 'name', 'p_tol', 'source', 'x', 'y']
+   name: 'classic_five'
+   method: 'pearson'
+   expected keys: ['ci_lower', 'ci_upper', 'n_excluded', 'n_pairs', 'p_value', 'r']
+======================================================================
+descriptive_golden.json | list
+  n cases: 5
+  case keys: ['expected', 'missing_codes', 'name', 'source', 'values']
+   name: 'textbook_eight_values'
+   expected keys: ['maximum', 'mean', 'median', 'minimum', 'n', 'n_missing', 'sd', 'variance']
+======================================================================
+forecast_golden.json | list
+  n cases: 2
+  case keys: ['expected', 'horizon', 'method', 'missing_codes', 'name', 'source', 'values']
+   name: 'linear_noise_h3'
+   method: 'trend_forecast'
+   expected keys: ['ci_lower_1', 'ci_lower_2', 'ci_lower_3', 'ci_upper_1', 'ci_upper_2', 'ci_upper_3', 'forecast_1', 'forecast_2', 'forecast_3', 'intercept', 'n_excluded', 'p_slope', 'r_squared', 'residual_se', 'slope']
+======================================================================
+groups_golden.json | list
+  n cases: 6
+  case keys: ['expected', 'groups', 'method', 'missing_codes', 'name', 'source']
+   name: 'lecture_workshop'
+   method: 'welch_t'
+   expected keys: ['ci_lower', 'ci_upper', 'df', 'diff', 'n_excluded', 'p_value', 'se_diff', 't_stat']
+======================================================================
+inference_golden.json | dict
+  top keys: ['generated_by', 'one_sample', 'paired', 'tolerance']
+  n cases: 0
+======================================================================
+logistic_golden.json | dict
+  top keys: ['data', 'expected', 'generated_by', 'tolerance']
+  n cases: 0
+======================================================================
+posthoc_golden.json | dict
+  top keys: ['adjust', 'alpha', 'expected', 'generated_by', 'groups', 'tolerance']
+  n cases: 0
+======================================================================
+power_golden.json | dict
+  top keys: ['cases', 'generated_by', 'tolerance']
+  n cases: 3
+  case keys: ['expected', 'inputs', 'mde', 'name', 'ncp', 'power', 'se']
+   name: 'two_sample_balanced_power'
+   inputs: ['alpha', 'design', 'effect', 'n1', 'n2', 'sd1', 'sd2', 'tails', 'target_power']
+   expected keys: ['mde', 'ncp', 'power', 'se']
+======================================================================
+ratio_golden.json | dict
+  top keys: ['cases', 'generated_by', 'tolerance']
+  n cases: 3
+  case keys: ['expected', 'inputs', 'name', 'not_computed']
+   name: 'full_pack'
+   inputs: ['cash', 'cost_of_sales', 'current_assets', 'current_liabilities', 'equity', 'interest_expense', 'inventory', 'net_income', 'operating_profit', 'payables', 'receivables', 'revenue', 'total_assets', 'total_liabilities']
+   expected keys: ['asset_turnover', 'cash_ratio', 'current_ratio', 'debt_to_equity', 'equity_multiplier', 'gross_margin', 'interest_cover', 'inventory_days', 'net_margin', 'operating_margin', 'payables_days', 'quick_ratio', 'receivables_days', 'return_on_assets', 'return_on_equity']
+======================================================================
+regression_golden.json | list
+  n cases: 5
+  case keys: ['expected', 'method', 'missing_codes', 'name', 'predictors', 'source', 'y']
+   name: 'classic_five_hand_checked'
+   method: 'ols'
+   expected keys: ['adj_r_squared', 'ci_lower_intercept', 'ci_lower_x', 'ci_upper_intercept', 'ci_upper_x', 'coef_intercept', 'coef_x', 'f_stat', 'n', 'n_excluded', 'p_f', 'p_intercept', 'p_x', 'r_squared', 'residual_se', 'se_intercept', 'se_x']
+======================================================================
+schedule_golden.json | dict
+  top keys: ['cases', 'generator', 'note', 'numeric_route', 'python', 'rounding']
+  n cases: 6
+  case keys: ['expected', 'kind', 'name', 'spec']
+   name: 'straight_line_even'
+======================================================================
+two_way_golden.json | dict
+  top keys: ['cases', 'generated_by', 'tolerance']
+  n cases: 2
+  case keys: ['data', 'expected', 'name']
+   name: 'balanced_main_effects'
+   expected keys: ['df_error', 'f_a', 'f_ab', 'f_b', 'p_a', 'p_ab', 'p_b', 'ss_a', 'ss_ab', 'ss_b', 'ss_error', 'ss_total']
