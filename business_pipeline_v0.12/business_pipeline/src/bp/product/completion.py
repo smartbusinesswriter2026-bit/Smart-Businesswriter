@@ -429,6 +429,39 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                 block["gap"] = "No source was found; a case assumption is proposed for your review."
                 notes.append(block["label"] + ": suggested case assumption.")
     elapsed = (datetime.datetime.now(datetime.timezone.utc) - started).total_seconds()
+    # Authoring help rides WITH the block, never inside it.  `contains` and `ask` are
+    # the framework's own teaching text; `tailored` is that same question rewritten in
+    # the student's words by the model lane, validated or dropped.  None of it can
+    # become an item, so an empty cell still reads as a gap and a suggestion can never
+    # be presented as evidence (V-01, V-03, V-08).
+    advice = {block["key"]: framework_profiles.advice_for(template, block["key"])
+              for block in blocks}
+    tailored = {}
+    # "Unanswered" means no sourced and no student item: a block holding only the
+    # framework's own background is exactly the cell the student is stuck on, so that
+    # is where the model lane is asked to reword the question.
+    unanswered = [block["key"] for block in blocks
+                  if not any(item.get("provenance") in ("sourced", "student")
+                             for item in block.get("items") or [])]
+    asked = {key: advice[key]["ask"][0] for key in unanswered
+             if (advice.get(key) or {}).get("ask")}
+    if asked and os.environ.get("BP_FRAMEWORK_SUGGEST", "1") != "0":
+        try:
+            tailored = prose.suggest_questions(
+                profile.get("label") or template,
+                (profile.get("unit") or {}).get("label") or "unit",
+                (unit or {}).get("value") or "", instruction, asked)
+        except Exception:                                            # noqa: BLE001
+            tailored = {}
+    for block in blocks:
+        row = advice.get(block["key"]) or {"contains": [], "ask": []}
+        row["tailored"] = tailored.get(block["key"]) or ""
+        row["model_used"] = bool(row["tailored"])
+        block["advice"] = row
+    if tailored:
+        notes.append("Authoring questions were reworded for your case by the model lane; "
+                     "they are prompts, not evidence.")
+
     # The counts the page shows are computed here, on the server: the client
     # never counts, sums or works out a progress figure of its own.
     filled = [block for block in blocks if block["items"]]

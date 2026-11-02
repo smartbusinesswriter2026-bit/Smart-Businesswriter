@@ -1,3 +1,27 @@
+## Model-assisted writing for the frameworks: what a usable answer contains, and the question that unblocks it
+
+Session 7, third pass. Build **1.71**.
+
+- **Authoring help, per block, in the framework's own words.** `framework_profiles.ADVICE`
+  now carries, for all 36 blocks of the six project-management worksheets (charter, WBS, risk
+  register, RACI, stakeholder plan, lessons learned), two "a usable answer contains …" lines and
+  the question that unblocks an empty cell — e.g. charter *sponsor and governance*: "who sponsors
+  the project and who decides" / "Who can stop this project, and who signs off a change?".
+  Served on the existing `/api/templates/<id>` payload as `blocks[].advice`, so no new route, no
+  new provider, and it works offline.
+- **Model tailoring, validated.** `prose.suggest_questions()` rewords that question in the
+  student's own case words through the existing prose lane, for blocks with **no sourced and no
+  student item**. Every returned string must be a question, ≤25 words, and free of digits, links,
+  DOIs, "et al", "ibid" and template braces — otherwise it is dropped and the authored question
+  stands. `prose.valid_suggestion()` is that filter.
+- **It can never become evidence.** The help renders in a `<details>` beside each input; a
+  suggestion is never written into the textarea and never becomes an item, so provenance stays
+  inside `sourced / student / assumption / background`. `test_E_pm_064…067` pin the four
+  properties: advice exists for every block, the page can only render it, no suggestion becomes
+  an item, and a fabricated question never reaches the paper.
+- Tests: **67** shelf rows (was 63), suite **3162**.
+
+
 ## Project management: the paper stops printing the word "lead" as a paragraph
 
 Session 7 debugging pass, second commit. Build **1.71**.

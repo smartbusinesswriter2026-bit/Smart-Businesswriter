@@ -221,12 +221,38 @@ second route and this session's hand pass agree.
 | E-pm-062 | the shelf guidance names the read-only records and promises no invention | `test_E_pm_062` | PASS |
 | E-pm-063 | every framework lead is **authored** (56–86 words, grounded on that profile's own blocks), the guard still fails closed on a stub, and the finished paper prints the paragraph rather than the token `lead` (trap: D-PM-05) | `test_E_pm_063`, `qa/evidence/project-management/lead-before-after.txt` | PASS (fixed in code and data) |
 
-**Scoreboard: 63 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
+| E-pm-064 | every block of all six worksheets carries authored authoring help: at least two "a usable answer contains" lines and at least one question that ends in a question mark, and none of them contains a digit (so a suggestion can never be mistaken for a datum) | `test_E_pm_064` | PASS |
+| E-pm-065 | the served form carries that help and can only *render* it: `adviceHtml` contains no assignment into an input and constructs no item | `test_E_pm_065` | PASS |
+| E-pm-066 | a suggestion never becomes an item and never changes a provenance — block items stay inside `sourced / student / assumption / background` | `test_E_pm_066` | PASS |
+| E-pm-067 | a model-rewritten question is validated before it is shown: a number, link, brace, non-question or 26-word sentence is dropped, the authored question is used instead, and the model text never reaches the paper | `test_E_pm_067` | PASS |
+
+**Scoreboard: 67 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
 No row is DISPUTED: where a measurement contradicted the work order's premise
 (§8 D-PM-01, the crashing arithmetic), the measurement is recorded and the test
 asserts the truth, not the premise.
 
-## 5. The finished paper, read against V-01 … V-20 (U8)
+## 4.9 Model-assisted writing — what the shelf now offers, and what it refuses
+
+A student who does not know what to write in a cell is the gap this closes. Two
+layers, both shown *beside* the input and never inside it:
+
+| Layer | What it is | Cost | Can it reach the paper? |
+|---|---|---|---|
+| **Authored help** (`framework_profiles.ADVICE`, 36 blocks) | "A usable answer contains …" (two lines per block) and the question that unblocks the cell, written per block in the framework's own vocabulary | free, offline, deterministic | **No** — it is a `details` panel beside the textarea |
+| **Model tailoring** (`prose.suggest_questions`) | the same question rewritten in the student's own case words, for blocks with no sourced and no student item | one small call, only when a key is configured and the block is unanswered | **No** — validated, rendered as a prompt, never an item |
+
+The refusals are the point:
+
+- a returned question may not contain **a digit, a link, a DOI, "et al", "ibid" or
+  template braces**, may not exceed **25 words**, and must **end in a question mark**;
+  anything else is dropped and the authored question is shown instead
+  (`prose.valid_suggestion`, `test_E_pm_067`);
+- a suggestion is never written into the textarea, so it can never be submitted as
+  the student's own evidence (`test_E_pm_065`, `test_E_pm_066`);
+- a block holding only the framework's background still reads as unanswered, which is
+  what triggers the help — the same block the student is stuck on.
+
+
 
 Produced through the real path — `completion.complete` → `completion.draft_bytes`
 — then unzipped and read from `word/document.xml` (`qa/probe_pm_paper.py`,

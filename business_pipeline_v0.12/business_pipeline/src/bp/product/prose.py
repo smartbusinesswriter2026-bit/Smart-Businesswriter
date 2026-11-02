@@ -31,6 +31,70 @@ def available():
     return bool(os.environ.get("BP_OPENGO_API_KEY"))
 
 
+#: A suggested question may not carry a number, a source or a link: it is a prompt
+#: for the student's own thinking, and a model that invents one is overruled.
+BAD_SUGGESTION = re.compile(r"\d|https?://|doi:|www\.|et al\.|ibid|\{\{|\}\}", re.I)
+
+
+def valid_suggestion(text):
+    """Whether one model-proposed question may be shown to a student.
+
+    A suggestion is advisory text beside the input.  It must be a question, short
+    enough to read, and free of numbers, sources, links and template braces - any of
+    which would turn authoring help into a fabricated fact.  Anything else is
+    dropped and the framework's own authored question is shown instead.
+    """
+    text = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not text or len(text.split()) > 25 or not text.endswith("?"):
+        return None
+    if BAD_SUGGESTION.search(text):
+        return None
+    return text
+
+
+def suggest_questions(framework, unit_label, unit_value, brief, blocks, limit=5, timeout=45):
+    """Rephrase the authored questions in the student's own brief, or return {}.
+
+    The model is a copy-editor here, exactly as it is for prose: it may rewrite a
+    question this product already asks, and it may not add a fact, a number or a
+    source.  Every returned string passes `valid_suggestion`; a block whose answer
+    fails validation simply keeps the authored question.  No key, no problem: the
+    caller gets an empty mapping and the deterministic advice is what the student
+    sees.
+    """
+    wanted = [{"block": key, "question": question}
+              for key, question in (blocks or {}).items() if question]
+    if not wanted or not available():
+        return {}
+    payload = {
+        "framework": framework,
+        "unit": {"label": unit_label, "value": unit_value},
+        "brief": str(brief or "")[:1200],
+        "questions": wanted[:limit],
+    }
+    system = ("You rewrite questions for a student filling in a framework worksheet. "
+              "Return only JSON: {\"questions\": [{\"block\": \"<key>\", \"question\": \"<one question>\"}]}. "
+              "Keep each question under twenty-five words, end it with a question mark, and use the "
+              "student's own words for the case. Never add a number, a statistic, a source, a citation, "
+              "a link, a name or any fact the student did not supply. Never answer the question.")
+    try:
+        raw = _call([{"role": "system", "content": system},
+                     {"role": "user", "content": json.dumps(payload)}], timeout=timeout,
+                    max_tokens=800)
+        data = json.loads(raw[raw.find("{"):raw.rfind("}") + 1])
+    except (ProseError, ValueError, TypeError):
+        return {}
+    out = {}
+    for row in data.get("questions") or []:
+        if not isinstance(row, dict):
+            continue
+        key = str(row.get("block") or "").strip()
+        clean = valid_suggestion(row.get("question"))
+        if key in (blocks or {}) and clean:
+            out[key] = clean
+    return out
+
+
 def model_id():
     return os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", DEFAULT_MODEL)
 

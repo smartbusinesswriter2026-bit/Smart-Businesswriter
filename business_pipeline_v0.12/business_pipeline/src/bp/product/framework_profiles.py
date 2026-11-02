@@ -11212,6 +11212,18 @@ def phrase(key):
 
     return ""
 
+def advice_for(template, key):
+    """The authoring help for one block: what a usable answer holds, and the question.
+
+    Empty when no advice is authored for that block, so a new framework renders
+    without a help panel rather than with a generic one.  This is teaching text,
+    never evidence: it is shown beside the input and can never be placed in a block.
+    """
+    entry = (ADVICE.get(str(template or "")) or {}).get(str(key or "")) or {}
+    return {"contains": [str(item) for item in entry.get("contains") or []],
+            "ask": [str(item) for item in entry.get("ask") or []]}
+
+
 def describe_extra(template):
 
     """What the served page needs to render the completion form, or None.
@@ -11256,6 +11268,8 @@ def describe_extra(template):
 
                     "prompt": block.get("prompt") or "",
 
+                    "advice": advice_for(template, block["key"]),
+
                     "fill": fill_of(block)} for block in profile["blocks"]],
 
         "fills": [{"key": "research", "label": "Research retrieves external evidence for this part."},
@@ -11267,4 +11281,137 @@ def describe_extra(template):
                   {"key": "gap", "label": "Only you can state this part. It stays a named gap until you do."}],
 
     }
+
+
+
+#: How to write one block, per block (authoring help, never content).
+#:
+#: `contains` is what a usable answer in that block holds; `ask` is the question
+#: that unblocks a student staring at an empty cell.  Nothing here is evidence: an
+#: entry is a prompt to the student's own thinking, it carries no fact, number or
+#: source, and it can never be placed in a block as an item.  The page renders it
+#: under the block; the model lane may rephrase `ask` into the student's own words,
+#: which is why every returned string is validated before it is shown.
+ADVICE = {
+    'template_project_charter': {
+        'objective': {'contains': ['one sentence naming the outcome and who benefits',
+                                   'the change it makes or the decision it enables'],
+                      'ask': ['What is different once this project is finished, and for whom?']},
+        'scope_in': {'contains': ['what the project delivers and covers',
+                                  'the boundary you will defend when scope creeps'],
+                     'ask': ['What exactly sits inside the line you are drawing?']},
+        'scope_out': {'contains': ['what the project deliberately will not do',
+                                   'the request you expect and are already refusing'],
+                      'ask': ['What will someone ask for that you have decided to leave out?']},
+        'deliverables': {'contains': ['verifiable outputs, not activities',
+                                      'who receives each one'],
+                         'ask': ['What can be handed over and checked?']},
+        'governance': {'contains': ['who sponsors the project and who decides',
+                                    'how a change to scope or budget is approved'],
+                       'ask': ['Who can stop this project, and who signs off a change?']},
+        'budget': {'contains': ['the amount and where it comes from',
+                                'who may spend it, and up to what'],
+                   'ask': ['Where does the money come from, and who controls it?']},
+        'milestones': {'contains': ['dated checkpoints that gate the next stage',
+                                    'the completion date'],
+                       'ask': ['Which dates decide whether this project continues?']},
+        'success_measures': {'contains': ['a measure, a target and a time window',
+                                          'who reads the measure'],
+                             'ask': ['How will you know it worked, by when, and read by whom?']},
+        'assumptions': {'contains': ['what you are treating as true without evidence',
+                                     'what happens to the plan if it is not'],
+                        'ask': ['What has to stay true for this plan to hold?']},
+        'constraints': {'contains': ['the limits you cannot change',
+                                     'the dependencies outside your control'],
+                        'ask': ['What is fixed, and what are you waiting on?']},
+    },
+    'template_wbs': {
+        'deliverables': {'contains': ['the top-level deliverables only, not tasks',
+                                      'one line per deliverable'],
+                         'ask': ['What are the few things this project hands over?']},
+        'work_packages': {'contains': ['the work under each deliverable, small enough to own',
+                                       'who owns each package'],
+                          'ask': ['What work has to happen under each deliverable, and who owns it?']},
+        'acceptance': {'contains': ['the test that shows the package is complete',
+                                    'who accepts it'],
+                       'ask': ['What test would you run, and who signs it off?']},
+        'exclusions': {'contains': ['the work the breakdown leaves out',
+                                    'why it is left out'],
+                       'ask': ['What nearby work are you deliberately not doing?']},
+    },
+    'template_risk_register': {
+        'risk': {'contains': ['the risk as a cause and its effect',
+                              'what it would affect if it happened'],
+                 'ask': ['What could happen, and what would it do to the project?']},
+        'response': {'contains': ['the response, the trigger and the owner',
+                                  'what is done now versus if it happens'],
+                     'ask': ['Who acts, when do they act, and what do they do?']},
+    },
+    'template_raci': {
+        'responsible': {'contains': ['who does the work, as a role rather than a name',
+                                     'the task the role is attached to'],
+                        'ask': ['Who actually does this work, role by role?']},
+        'accountable': {'contains': ['the one role that answers for the outcome',
+                                     'how a disagreement about it is settled'],
+                        'ask': ['Who answers for the outcome if it fails?']},
+        'consulted': {'contains': ['whose input is needed before the decision',
+                                   'when in the process they are asked'],
+                      'ask': ['Whose view must be heard before you decide?']},
+        'informed': {'contains': ['who is told after the decision is made',
+                                  'how and when they are told'],
+                     'ask': ['Who must be told once the decision is made?']},
+    },
+    'template_stakeholder_plan': {
+        'stakeholders': {'contains': ['named roles or groups, never "everyone"',
+                                      'why each one is affected'],
+                         'ask': ['Who is affected by this, and how?']},
+        'interests': {'contains': ['what each one wants and what they fear',
+                                   'what would make them resist'],
+                      'ask': ['What does each stakeholder want, and what worries them?']},
+        'influence': {'contains': ['how far each can help or block the project',
+                                   'where that power comes from'],
+                      'ask': ['Who can make this land, and who can stop it?']},
+        'engagement': {'contains': ['the approach for each group: inform, consult or involve',
+                                    'what you are asking of them'],
+                       'ask': ['For each group, are you informing, consulting or involving them?']},
+        'messages': {'contains': ['the one message each group needs first',
+                                  'what you are deliberately not saying yet'],
+                     'ask': ['What does each group need to hear first?']},
+        'channels': {'contains': ['the channel and the form the message takes',
+                                  'why that channel suits them'],
+                     'ask': ['Where will they actually read it?']},
+        'frequency': {'contains': ['how often for each group',
+                                   'the event that forces an extra update'],
+                      'ask': ['How often, and what event forces an update?']},
+        'owners': {'contains': ['who sends each message',
+                                'who covers when they are away'],
+                   'ask': ['Who sends it, and who covers for them?']},
+        'risks': {'contains': ['the communication failure you expect',
+                               'what you will do if it appears'],
+                  'ask': ['What could go wrong with the communication itself?']},
+    },
+    'template_lessons_learned': {
+        'went_well': {'contains': ['what happened, with the instance it happened in',
+                                   'why it worked'],
+                      'ask': ['What went better than expected, and why?']},
+        'went_poorly': {'contains': ['what happened, with the instance it happened in',
+                                     'the effect it had'],
+                        'ask': ['What went wrong, and what did it cost?']},
+        'causes': {'contains': ['the cause you can act on',
+                                'how you know that is the cause'],
+                   'ask': ['Why did it happen, and how do you know?']},
+        'changes': {'contains': ['a change the next project can actually make',
+                                 'how it would have changed the outcome'],
+                    'ask': ['What would you do differently next time?']},
+        'actions': {'contains': ['a named action with the owner who carries it',
+                                 'the date it is due'],
+                    'ask': ['Who does what, and by when?']},
+        'share': {'contains': ['who needs this lesson and why',
+                               'where the record lives'],
+                  'ask': ['Who should read this, and where will they find it?']},
+        'evidence': {'contains': ['the record that supports the lesson',
+                                  'where that record is kept'],
+                     'ask': ['What record backs this lesson up?']},
+    },
+}
 

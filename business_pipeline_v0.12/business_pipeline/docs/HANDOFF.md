@@ -9,7 +9,7 @@ Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
 Build        : 1.71 (see docs/CHANGELOG.md)
-Tests        : 3161 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Tests        : 3162 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell

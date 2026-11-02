@@ -1,3 +1,34 @@
+## 2026-11-03 — [project-management] Model-assisted writing: help a student complete the framework without inventing a word of it
+
+**Ask.** "Can you do a model assisted writing there? Provide suggestions for the user to complete
+it — these are all important frameworks and must be done well."
+
+**Did.** Two layers, both beside the input and neither inside it.
+
+1. **Authored help** (`framework_profiles.ADVICE`): 36 blocks of the six project-management
+   worksheets now carry two "a usable answer contains …" lines and the unblocking question, in the
+   framework's own vocabulary. Served on the existing `/api/templates/<id>` payload as
+   `blocks[].advice` — no new route, no new provider, offline, deterministic.
+2. **Model tailoring** (`prose.suggest_questions`): the same question reworded in the student's case
+   words, only for blocks with no sourced and no student item, only when a key is configured. The
+   filter (`prose.valid_suggestion`) refuses any question carrying a digit, link, DOI, "et al",
+   "ibid" or template brace, over 25 words, or not ending in a question mark.
+3. **The page** renders it as a `<details>` "How to write this block" panel. A suggestion is never
+   written into the textarea, so it can never be submitted as the student's own evidence.
+
+**Two real defects my own tests caught while building it:** `template_raci` had no advice at all
+(it is on this shelf as PM-10, and my first authoring pass forgot it — `test_E_pm_064` failed until
+it was written), and the tailoring never fired for the five `unit`-typed worksheets because their
+blocks are pre-filled with the framework's background, so "no items" was the wrong trigger; it is
+now "no sourced and no student item" — the cell the student is actually stuck on. A third: my first
+insert of the new rows swallowed the `E-pm-063` header, collapsing two acceptance rows into one
+test; the suite count exposed it and it is repaired.
+
+**Gates.** Shelf suite **67 passed**; shelf + `docs_sync` + `frozen_contract` + `sample_papers`
+green; `econ_shelf` in sync; page syntax OK; 219 shared tests green with only the known baseline
+rail failure. Suite count re-measured and the three documents updated to **3162**.
+
+
 ## 2026-11-03 — [project-management] Debugging the finished paper: the token `lead`, and a correction to my own reading of the gate
 
 **Ask.** "You must have debugging capability, you must debug project management." Inventory work was
