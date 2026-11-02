@@ -3265,19 +3265,31 @@ onto its real path, which is still held open by the owner's Word.
 
 ---
 
-## 2026-11-03 - [design] The brand name steps back, the body steps down, and the chat gets a reading column
+## 2026-11-03 - [design] The brand name steps back, the body steps down, and the chat lines up with the Documents
 
 **Ask.** Owner instruction on the Home page: the brand name under the logo is "too loud and big" -
 reduce its font size by 2 points; in the body, reduce the font size by just 1 point; and adjust the
 width of the chat container to a Codex or ChatGPT size.
 
+A second instruction the same day reversed the width half: the narrow column "looks awkward with
+the documents section" - align it to the Documents section, with equal space on both sides. The
+type changes are the first instruction and stand; the column width is the second.
+
 **Did.** The hero `h1` under the mark is 43 px (was 45 px). The topbar wordmark is untouched at
 20.2 px - it sits beside the mark, not under it, so it is not the brand name the instruction named.
 The body is 16.8 px (was 17.8 px), and the body copy one rung above it moved with it, so the
 reduction is visible and not only structural: the hero paragraph and the slogan are 18 px and the
-composer text is 18 px (both were 19 px). The chat column - the composer and the conversation card
-under it - is 768 px, centred, with `max-width` only, so a narrow screen still gets the full width;
-the conversation card now sits 16 px under the composer instead of sharing an edge with it.
+composer text is 18 px (both were 19 px).
+
+The chat column - the composer and the conversation card under it - is **the width of the Documents
+section below it**: the full content box, the same edges as `#homedocs`, with the same even space
+on both sides, so nothing floats in the middle of the page and the page reads as one column. The
+conversation card sits 16 px under the composer instead of sharing an edge with it.
+
+A `max-width: 768px` on the composer and the conversation card was tried first, on the Codex /
+ChatGPT reading of the first instruction. It measured as a narrower box floating inside a wider
+page - 174 px of empty space on each side against a Documents card that ran the full width - and
+the owner reversed it. The rule is gone.
 
 The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion pins
 the body rule itself at `font-size:16.8px`, with the owner's instruction and the date in a comment

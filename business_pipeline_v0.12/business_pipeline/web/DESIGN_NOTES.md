@@ -928,11 +928,15 @@ Verification: on the served page the lead reads "Your reliable business writing 
 trailing full stop, in the first paint and in a re-render; the proof line is unchanged. The inline
 script parses (`node --check`) and the full suite passes.
 
-## 23. The brand name steps back, the body steps down, and the chat gets a reading column
+## 23. The brand name steps back, the body steps down, and the chat lines up with the Documents
 
 Owner instruction (2026-11-03): the brand name under the logo is "too loud and big" - reduce its
 font size by 2 points; in the body, reduce the font size by just 1 point; and give the chat
 container a width like Codex or ChatGPT.
+
+A second instruction the same day reversed the width half: the narrow column "looks awkward with
+the documents section" - align it to the Documents section, with equal space on both sides. The
+type changes below are the owner's first instruction and stand; the column width is the second.
 
 What changed (presentation only - no behaviour, number, wording or claim changed):
 - The brand name in the hero - the `h1` under the mark - is **43 px** (was 45 px). The topbar
@@ -943,18 +947,24 @@ What changed (presentation only - no behaviour, number, wording or claim changed
   are **18 px** (was 19 px) and the composer text is **18 px** (was 19 px). The slogan keeps its
   two-weight step - the bold lead and the italic proof line are still one step above and one step
   below the slogan.
-- The chat column is **768 px**, centred. The composer (`.actionbox`) and the conversation card
-  (`#chatcard`) are one column, the width a chat gets in Codex or ChatGPT, instead of a box
-  stretched across the whole shell. It is `max-width` alone, so a narrow screen still gets the
-  full width.
+- The chat column is **the width of the Documents section below it**. The composer (`.actionbox`)
+  and the conversation card (`#chatcard`) are one column, and that column is the full content
+  box - the same edges as `#homedocs`, with the same even space on both sides - so nothing
+  floats in the middle of the page and the page reads as one column.
 - The conversation card sits 16 px under the composer, the gap the Documents card already had.
   Before this the two boxes shared an edge.
+
+A `max-width: 768px` on the composer and the conversation card was tried first, on the Codex /
+ChatGPT reading of the first instruction. It measured as a narrower box floating inside a wider
+page, 174 px of empty space on each side against a Documents card that ran the full width, and
+the owner reversed it. The rule is gone; the column takes the content box, as the Documents
+section does.
 
 Measured on the served page (Chrome, 1440x1000 viewport, rail collapsed):
 - `.hero h1` 45 px -> 43 px; `body` 17.8 px -> 16.8 px; the composer text and the slogan
   19 px -> 18 px.
-- `.actionbox` 1116 px -> 768 px and `#chatcard` 1116 px -> 768 px, both at left 359 / right 1127
-  - the same edges, and the same centre as the hero wordmark (743 px).
+- `.actionbox`, `#chatcard` and `#homedocs` all measure **1116 px**, all at left 185 / right 1301 -
+  the same edges, and 0 px of space inside the content box on either side.
 - The gap composer -> conversation is 16 px, and conversation -> Documents is 16 px.
 
 The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion now
