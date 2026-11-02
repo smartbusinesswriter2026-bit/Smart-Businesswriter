@@ -302,7 +302,7 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .attachmeta{min-width:0}
 .attachmeta strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52ch}
 .attachmeta details{margin-top:4px;font-size:15.4px}
-.attachrow .row{gap:6px;flex:0 0 auto;margin-top:0}
+.attachrow .row{gap:6px;flex:0 1 auto;margin-top:0;flex-wrap:wrap;justify-content:flex-end}
 .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
 .chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);
       padding:7px 14px;font-size:16.6px;color:var(--navy-700);cursor:pointer;box-shadow:var(--sh-1)}
@@ -3305,6 +3305,14 @@ function isReadableDocument(row) {
   return row.kind === "document" && [".pdf", ".png", ".jpg", ".jpeg"].includes(String(row.ext || "").toLowerCase());
 }
 
+/* The extensions documents.extract_document can open.  A file with one of these can be
+   used as the paper's instruction; anything else is refused by the route with its own
+   reason, so the button is only offered where a reader exists. */
+function canBeBrief(row) {
+  return [".pdf", ".docx", ".docm", ".txt", ".text", ".md", ".png", ".jpg", ".jpeg", ".webp"]
+    .includes(String(row.ext || "").toLowerCase());
+}
+
 function intakeRow(row) {
   const id = row.id || "";
   const actions =
@@ -3312,11 +3320,14 @@ function intakeRow(row) {
       ? '<button class="btn sm" type="button" data-ingest="' + esc(id) + '">Ingest</button>' : "") +
     (isReadableDocument(row) && row.status !== "extracted"
       ? '<button class="btn sm" type="button" data-extract="' + esc(id) + '">Extract text</button>' : "") +
+    (canBeBrief(row)
+      ? '<button class="btn sm" type="button" data-brief="' + esc(id) + '">Use as the instruction</button>' : "") +
     (row.status === "extracted"
       ? '<button class="btn sm" type="button" data-showtext="' + esc(id) + '">Show text</button>' : "") +
     '<button class="btn sm" type="button" data-remove="' + esc(id) + '">Remove</button>';
   return '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.filename || id) + "</strong>" +
-    '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) + "</div>" +
+    '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) +
+    (row.role === "brief" ? " - used as the instruction" : "") + "</div>" +
     intakeDetail(row) + '<div data-textbox="' + esc(id) + '"></div></div><div class="row">' + actions + "</div></div>";
 }
 
@@ -3327,14 +3338,16 @@ async function loadAttachments() {
     const data = await api("/api/intake");
     const rows = (data && data.files) || [];
     if (!rows.length) {
-      box.innerHTML = '<p class="muted">No files attached. Spreadsheets are read into a typed table; PDFs and images ' +
-        "can be read on request; every other file is stored and labelled not read.</p>";
+      box.innerHTML = '<p class="muted">No files attached. Spreadsheets are read into a typed table; a PDF, Word ' +
+        "or text file can be used as the instruction; images can be read on request; every other file is " +
+        "stored and labelled not read.</p>";
       return;
     }
     box.innerHTML = rows.map(intakeRow).join("");
     $$("[data-ingest]", box).forEach((b) => { b.onclick = () => ingestAttachment(b.dataset.ingest); });
     $$("[data-extract]", box).forEach((b) => { b.onclick = () => extractAttachment(b.dataset.extract); });
     $$("[data-showtext]", box).forEach((b) => { b.onclick = () => showAttachmentText(b.dataset.showtext); });
+    $$("[data-brief]", box).forEach((b) => { b.onclick = () => useAsBrief(b.dataset.brief); });
     $$("[data-remove]", box).forEach((b) => { b.onclick = () => removeAttachment(b.dataset.remove); });
   } catch (error) {
     box.innerHTML = errorBanner(error);
@@ -3364,6 +3377,27 @@ async function showAttachmentText(id) {
   } catch (error) {
     box.innerHTML = errorBanner(error);
   }
+}
+
+/* Read a stored file as the paper's instruction.  The route extracts the text with the
+   same reader the brief route uses; nothing is started here.  The text lands in the brief
+   box for the student to read and correct, because extracted text is unverified. */
+async function useAsBrief(id) {
+  try {
+    const data = await post("/api/intake/" + encodeURIComponent(id) + "/brief", {});
+    const box = $("#objective");
+    if (box) {
+      box.value = data.text || "";
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+      box.focus();
+      if (box.scrollIntoView) box.scrollIntoView({ block: "center" });
+    }
+    toast("Read as the instruction: " + (data.chars || 0) +
+      " characters. It is unverified - check it before starting the analysis.");
+  } catch (error) {
+    toast(error.message || String(error));
+  }
+  loadAttachments();
 }
 
 async function ingestAttachment(id) {

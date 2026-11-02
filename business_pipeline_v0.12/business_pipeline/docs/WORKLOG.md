@@ -1,5 +1,25 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [intake] P1: an attached file becomes the instruction, and says it is unverified
+
+**Did.** `intake.ROLES` + a `role` on the record (never guessed); `POST /api/intake/{id}/brief` reads a
+**stored** file with `documents.extract_document` (the same reader the brief route uses) and returns the
+text flagged `unverified: true`, recording `role: brief` and the text's SHA-256 on the record;
+`_summary` exposes `role` and `brief_chars` so the list shows what a file is for. The page gains a
+**Use as the instruction** button on any row whose extension a reader can open, which fills the brief
+box and starts nothing; the empty-state text now says which files can be used that way.
+
+**Why not a new brief parser.** `extract_document` already opens PDF, Word and text, and refuses the
+rest with an actionable message; re-implementing it would have been a second reader to keep in step.
+
+**Refusals kept.** A .csv/.xlsx is refused as an instruction (it is a dataset), a scan with no OCR
+engine is recorded `ocr_required` rather than returning empty text, and a refused brief does not
+relabel the file.
+
+**Verified.** `tests/test_product_intake.py` — 28 tests in the file, 15 of them new; the page still
+passes `tests/test_web_inline_script.py` (Node `--check`). Suite count 2776.
+
+
 ## 2026-11-02 — [core docs] Two decision cross-references, and the rule for a student's own sources
 
 **Ask.** "were you able to fix the errors you found? i forgot something, like a mechanism or a button

@@ -11,13 +11,22 @@ file it is:
   never used by a method without the user confirming it;
 * every other file is stored with status `reference_only` and is never read.
 
+A record also carries a **role** — what the student said the file is for (`brief`, `dataset`,
+`sources`, `reference`, or null when they have not said) — and the `brief` block records the last
+time the file was used as the instruction.  `use_as_brief` is the only function that sets it, it
+re-reads the text through the same reader `POST /api/cases/brief` uses, and the text it returns is
+**unverified**: the student sees it in the brief box before any paper starts.
+
 One JSON record per file under `BP_INTAKE_DIR` (default `<repo>/intake/`):
 
     {"format": "bp-intake/1", "id": "<12 lowercase hex>", "filename": str,
      "ext": str, "bytes": int, "sha256": str, "uploaded_at": "<ISO-8601 UTC>",
      "kind": "structured" | "document" | "reference", "status": "stored" |
      "ingested" | "extracted" | "ocr_required" | "reference_only", "note": str,
-     "error": str | null, "table": object | null, "extraction": object | null}
+     "error": str | null, "table": object | null, "extraction": object | null,
+     "role": "brief" | "dataset" | "sources" | "reference" | null,
+     "brief": object | null}
+
 
 The payload bytes live beside it as `<id><ext>` and are never rewritten.  Extracted text
 is written beside them as `<id>.txt`.  A corrupt record refuses to load; it is listed as
@@ -56,6 +65,10 @@ DOCUMENT_NOTE = "Stored as a document; choose Extract text to read its text (the
 MAX_BYTES = 5_000_000
 
 STATUSES = ("stored", "ingested", "extracted", "ocr_required", "reference_only")
+
+#: What the student said the file is for.  `None` means they have not said; it is never guessed.
+ROLES = ("brief", "dataset", "sources", "reference")
+
 
 
 class IntakeError(Exception):
@@ -179,13 +192,20 @@ def _write_bytes(path, raw):
     return path
 
 
-def save(filename, raw, content_type=None):
+def save(filename, raw, content_type=None, role=None):
     """Store one file and return its record.
 
     The bytes are written first, then the record.  A record that cannot be
     written removes the payload, so a half-stored file is never listed.
+
+    ``role`` is what the student said the file is for (``ROLES``); it is only ever
+    set when the caller says so, because a role guessed from an extension would be
+    a claim about intent the student never made.
     """
     name = _clean_filename(filename)
+    if role is not None and role not in ROLES:
+        raise ValueError("role must be one of: " + ", ".join(ROLES))
+
     if not isinstance(raw, (bytes, bytearray)):
         raise ValueError("the file content must be bytes")
     raw = bytes(raw)
@@ -210,6 +230,8 @@ def save(filename, raw, content_type=None):
         "error": None,
         "table": None,
         "extraction": None,
+        "role": role,
+        "brief": None,
     }
     if isinstance(content_type, str) and content_type.strip():
         record["content_type"] = content_type.strip()[:120]
@@ -238,6 +260,9 @@ def _validate(document, file_id):
             raise IntakeCorrupt("intake %s is missing %r" % (file_id, key))
     if document["status"] not in STATUSES:
         raise IntakeCorrupt("intake %s has an unknown status %r" % (file_id, document["status"]))
+    role = document.get("role")
+    if role is not None and role not in ROLES:
+        raise IntakeCorrupt("intake %s has an unknown role %r" % (file_id, role))
     return document
 
 
@@ -356,6 +381,48 @@ def extracted_text(file_id, limit=4000):
             "truncated": len(text) > limit, "text": text[:limit], "extraction": record.get("extraction")}
 
 
+def use_as_brief(file_id):
+    """Read a stored file as the paper's instruction, and record that it was used.
+
+    The text is read by the same reader ``POST /api/cases/brief`` uses, so the same
+    extensions are accepted and the same refusals apply.  The text is **unverified**: it
+    is returned for the student to read in the brief box, and nothing here starts a
+    paper.  A file whose text cannot be read (a scan with no OCR engine, or a type with
+    no reader) raises with the reader's own reason instead of returning an empty
+    instruction.
+    """
+    record = load(file_id)
+    filename, raw = payload(file_id)
+    try:
+        result = documents.extract_document(raw, filename)
+    except documents.DocumentError as error:
+        raise IntakeError(str(error))
+    if result.get("status") != "extracted":
+        record["status"] = "ocr_required"
+        record["error"] = None
+        record["brief"] = None
+        record["note"] = result.get("reason") or "No text could be read from this document."
+        _write_json(_path(file_id), record)
+        raise IntakeError(record["note"])
+    text = result.get("text") or ""
+    encoded = text.encode("utf-8")
+    _write_bytes(_text_path(file_id), encoded)
+    digest = hashlib.sha256(encoded).hexdigest()
+    record["status"] = "extracted"
+    record["role"] = "brief"
+    record["error"] = None
+    record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", len(text)),
+                            "method": result.get("method"), "text_sha256": digest}
+    record["brief"] = {"chars": len(text), "text_sha256": digest,
+                       "set_at": _now_iso(), "method": result.get("method")}
+    record["note"] = ("Read as the instruction. The text is unverified: check it against the file "
+                      "before starting the analysis.")
+    _write_json(_path(file_id), record)
+    return {"id": record["id"], "filename": record["filename"], "role": "brief",
+            "status": record["status"], "chars": len(text), "text": text, "unverified": True,
+            "method": result.get("method"), "pages": result.get("pages"), "note": record["note"]}
+
+
 def _summary(record):
     table = record.get("table") or {}
     return {
@@ -367,6 +434,8 @@ def _summary(record):
         "uploaded_at": record.get("uploaded_at"),
         "kind": record.get("kind"),
         "status": record.get("status"),
+        "role": record.get("role"),
+        "brief_chars": (record.get("brief") or {}).get("chars"),
         "note": record.get("note"),
         "error": record.get("error"),
         "n_rows": table.get("n_rows"),

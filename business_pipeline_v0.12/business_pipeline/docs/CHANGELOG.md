@@ -1,3 +1,27 @@
+## Intake: a stored file can be used as the paper's instruction (B-182)
+
+The attach mechanism could already read a file for the brief, but only as a throwaway: `POST
+/api/cases/brief` took pasted text or a base64 blob and returned text, so the file was never stored,
+never listed and never re-usable. A student who uploaded their instructions could not see them again
+and the attachments list did not know what any file was for.
+
+`bp.product.intake` now records a **role** on each file (`brief`, `dataset`, `sources`, `reference`,
+or null when the student has not said — a role is never guessed from an extension), and a new additive
+route `POST /api/intake/{id}/brief` reads a **stored** file as the instruction through the same reader
+`POST /api/cases/brief` uses, so the same extensions are accepted and the same refusals apply. The
+text comes back with `unverified: true`; the page's new **"Use as the instruction"** button puts it in
+the brief box and starts nothing — a paper is never begun from text the student has not read. A file
+with no reader (.csv, .xlsx) is refused with the reader's own message, and a file whose text cannot be
+read (a scan with no OCR engine) is recorded `ocr_required` rather than returning an empty
+instruction.
+
+Verified by `tests/test_product_intake.py`: 15 new tests (role round-trip and refusal, a corrupt role
+listed not hidden, `.txt` and PDF-with-text-layer briefs, the no-reader and missing-file refusals, the
+route's 200/400/404/422 paths, and three page-contract tests asserting the button exists, fills
+`#objective`, and never posts a session). The page still passes the Node `--check` gate. Suite count
+2776.
+
+
 ## Docs: two decision cross-references corrected, and the declared-sources rule recorded (B-182)
 
 Three documentation corrections, no behaviour change. (1) `src/bp/product/documents.py` cited

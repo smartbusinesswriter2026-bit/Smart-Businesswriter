@@ -676,6 +676,15 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.extract(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/brief", self.path)
+            if im:
+                # Use a stored attachment as the paper's instruction.  The text comes back
+                # unverified and nothing is started: the page puts it in the brief box and
+                # the student decides.
+                self._body()
+                try: return self._send(200, product_intake.use_as_brief(im[1]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)
@@ -1007,7 +1016,7 @@ class H(BaseHTTPRequestHandler):
         merged = b.get("merged", "refuse")
         if merged not in ingest.MERGED_POLICIES:
             return self._send(422, {"error": "merged must be one of: " + ", ".join(ingest.MERGED_POLICIES)})
-        record = product_intake.save(b.get("filename"), raw, b.get("content_type"))
+        record = product_intake.save(b.get("filename"), raw, b.get("content_type"), b.get("role"))
         if record["kind"] != "structured": return self._send(201, record)
         try:
             table = ingest.read_table(record["filename"], raw, sheet=b.get("sheet"), merged=merged)
