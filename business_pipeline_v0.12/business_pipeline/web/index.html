@@ -7274,22 +7274,21 @@ function renderNew() {
       return "These are the figures the engine will post. The engagement is declared once: the period, the chart, " +
         "the opening balances, the entries and any schedules. Change a figure, then run it.";
     }
-    return "These are the figures the engine will post, exactly as you enter them. Change a figure, then run it.";
+    return "";
   }
   const delivered = s.delivery && s.delivery.status === "delivered";
   const blocked = s.delivery && s.delivery.status === "blocked";
   const mapping = s.status === "awaiting_mapping_confirmation";
   let html = '<div class="card">' +
     "<h2>" + (state.tool ? "Tool - " + esc(state.tool.label) : "New analysis") + "</h2>" +
-    '<div class="row" style="justify-content:space-between"><span class="sub">' + esc(plan.objective || "") + "</span>" +
-    '<span class="badge">' + esc(plan.tier_label || txt(plan.tier)) + "</span></div>" +
+    '<div class="row" style="justify-content:space-between"><span class="sub">' + esc(plan.objective || "") + "</span></div>" +
     '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
       '<button class="btn sm" id="toolcalc">Calculator</button></div>' +
     "</div>";
 
   if (!delivered && !mapping && !state.worksheet && state.tool) {
     html += '<div class="card"><h2>Before you start</h2>' +
-      '<p class="sub">' + esc(state.tool.need || "Gather the figures this calculation needs; nothing is estimated for you.") + ".</p>" +
+      (state.tool.need ? '<p class="sub">' + esc(state.tool.need) + ".</p>" : "") +
       (state.tool.preset
         ? '<p class="muted">A worked example is loaded so you can see the format. Replace it with your own figures, or clear it and start blank.</p>' +
           '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>'
@@ -7306,16 +7305,14 @@ function renderNew() {
         'and the engine posts the entries, then builds the statements. Nothing is posted before you confirm.</p>' +
         '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="confirmmap">Confirm the account mapping and post</button>' +
         '<button class="btn" id="reject">Reject</button></div>' +
-        '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
         mappingTable(s.account_mapping)
       : '<h2>' + (state.worksheet ? "Fill in the worksheet" : "Enter the figures") + "</h2>" +
-        '<p class="sub">' + (state.worksheet
-          ? "This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts."
-          : figuresCopy(plan)) + "</p>" +
+        (state.worksheet
+          ? '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>'
+          : (figuresCopy(plan) ? '<p class="sub">' + esc(figuresCopy(plan)) + "</p>" : "")) +
         '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="apply">' +
         (state.worksheet ? "Run the worksheet" : "Apply figures and calculate") + "</button>" +
         '<button class="btn" id="reject">Reject</button></div>' +
-        '<p class="muted" style="margin:0 0 12px">Session ' + esc(s.id) + " - " + esc(s.status) + "</p>" +
         (state.worksheet
           ? worksheetForm(state.worksheet)
           : isCaseDecision
@@ -7327,8 +7324,7 @@ function renderNew() {
   }
 
   html += '<div class="card"><h2>Method</h2>' +
-    kv([["Method", (method && method.method_id) || plan.method], ["Version", method && method.version],
-        ["Tier", plan.tier], ["Verification", "checks run and limitations stated; not teacher-approved"],
+    kv([["Method", (method && method.method_id) || plan.method],
         ["Intended use", method && method.intended_use], ["Unsupported use", method && method.unsupported_use]]) +
     "</div>";
   if (s.spec) {

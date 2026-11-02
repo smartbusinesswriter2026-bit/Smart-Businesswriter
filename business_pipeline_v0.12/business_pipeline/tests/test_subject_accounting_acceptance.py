@@ -290,9 +290,11 @@ class ShelfShapeTest(unittest.TestCase):
                               "if accounting gains `need` text, update GAP G-acc-01 and this row")
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             html = stream.read()
-        self.assertIn("Gather the figures this calculation needs", html,
-                      "the figures panel needs a generic fallback for a tool with no `need`")
-        self.assertIn("(tile.need)", html)
+        # The generic fallback sentence was deleted as clutter on the owner's instruction
+        # (2026-11-02); the card now prints the tool's own `need` and nothing otherwise.
+        self.assertIn("(state.tool.need ?", html)
+        self.assertNotIn("Gather the figures this calculation needs", html)
+
 
     def test_E_acc_019__opening_a_tool_loads_its_own_preset(self):
         for key in TOOLS:

@@ -291,8 +291,13 @@ class ServedUiContractTest(unittest.TestCase):
         """
         self.assertIn("function figuresCopy(plan)", self.html)
         self.assertIn('methodId === "management_accounts"', self.html)
-        self.assertIn(': figuresCopy(plan)) + "</p>" +', self.html)
+        # The generic "these are the figures the engine will post" line was deleted as clutter
+        # on the owner's instruction (2026-11-02); only the engagement copy remains, and it is
+        # rendered only when non-empty.
+        self.assertIn("figuresCopy(plan) ? '<p class=\"sub\">'", self.html)
+        self.assertNotIn("exactly as you enter them", self.html)
         self.assertEqual(self.html.count("the chart, the opening balances"), 1)
+
 
     def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
         for subject_id in ["accounting", "finance", "economics", "management", "project-management",
@@ -348,7 +353,11 @@ class ServedUiContractTest(unittest.TestCase):
     def test_no_reviewer_surface_remains_in_the_served_page(self):
         for gone in ('data-tab="signoff"', "Reviewer name", "Sign-off", "Review status", "pending_named_reviewer"):
             self.assertNotIn(gone, self.html, "reviewer surface still present: " + gone)
-        self.assertIn("not teacher-approved", self.html)
+        # The owner deleted the per-tile "not teacher-approved" line as clutter (2026-11-02).
+        # The disclosure itself is still made, on every result, by the honesty banner.
+        self.assertIn("Honesty: what was not done", self.html)
+        self.assertNotIn("not teacher-approved", self.html)
+
 
     def test_worksheet_drafts_and_the_worksheet_export_are_present(self):
         self.assertIn("bp-ws-draft-", self.html)

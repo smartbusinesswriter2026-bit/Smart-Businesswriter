@@ -1,3 +1,30 @@
+## The tool page loses five lines of clutter, on the owner's instruction
+
+Every finance tile's session view carried five things the owner asked to delete, and they are gone:
+the tier badge in the header (*"standard method; expert review pending"*), the generic
+*"Gather the figures this calculation needs; nothing is estimated for you."* fallback, the
+*"These are the figures the engine will post, exactly as you enter them."* paragraph, the
+*"Session <id> - <status>"* line under the form, and the **Version / Tier / Verification** rows in the
+Method card. The Method card now states what the method is for (`Intended use`, `Unsupported use`) and
+nothing else; a tool with its own `need` text still shows it, and the engagement copy is unchanged for
+management accounts, where it is true.
+
+The disclosure those lines carried is not lost: every result still shows the **honesty banner**
+("Honesty: what was not done") with the recorded assumptions and limitations, and the paper carries
+them too.
+
+Four assertions that required the deleted strings were updated in the same commit, each with the reason
+recorded: `test_product_subjects` now checks the honesty banner instead of the removed
+"not teacher-approved" line; the accounting acceptance row for GAP G-acc-01 asserts the card prints only
+the tool's own `need`; and the two click-through scripts use the honesty banner as their page marker.
+
+**Download, checked across all tiles:** every delivered computation offers **Word (.docx)** and
+**Markdown** on its result screen; 34 of 35 finance tiles were verified end to end (33 before the mid-year
+DCF fix, 34 after). **PDF is not offered** — the repository reads PDFs but has no PDF writer, and adding
+one would mean a new runtime dependency, which the standing rules forbid. DOCX covers the requirement
+("either DOCX or PDF").
+
+
 ## Hidden on request: the framework picker and the "risk and decision analysis" group
 
 The owner asked for two things on the subject pages to be held back: the **Choose a framework**

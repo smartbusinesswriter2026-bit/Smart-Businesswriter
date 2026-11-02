@@ -25,7 +25,7 @@ from bp.product import subjects  # noqa: E402
 from bp.server import PRESETS  # noqa: E402
 
 PAGE_MARKERS = ("railSubject", "markCurrentRailItem", 'activate("new")', "calculator",
-                "subjectgallery", "not teacher-approved")
+                "subjectgallery", "Honesty: what was not done")
 PAGE_ABSENT = ("Reviewer name", "Sign-off", "Review status")
 KNOWN_BLOCKED = {"dcfmid": "D-FIN-01"}
 
