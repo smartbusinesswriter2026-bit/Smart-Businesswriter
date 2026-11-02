@@ -18,14 +18,14 @@ from pathlib import Path
 _STYLE = """
 body { font-family: Georgia, 'Times New Roman', serif; margin: 2rem auto; max-width: 52rem;
        color: #1b1b1b; background: #fdfdfb; line-height: 1.45; }
-h1 { font-size: 1.4rem; border-bottom: 1px solid #d8d4c8; padding-bottom: .3rem; }
-h2 { font-size: 1.05rem; margin-top: 2rem; letter-spacing: .02em; }
+h1 { font-size:1.46rem; border-bottom: 1px solid #d8d4c8; padding-bottom: .3rem; }
+h2 { font-size:1.11rem; margin-top: 2rem; letter-spacing: .02em; }
 pre { white-space: pre-wrap; word-wrap: break-word; background: #f6f5f0; border: 1px solid #e2ded2;
-      padding: .9rem; font-family: ui-monospace, Consolas, monospace; font-size: .85rem; }
-table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+      padding: .9rem; font-family: ui-monospace, Consolas, monospace; font-size:0.91rem; }
+table { border-collapse: collapse; width: 100%; font-size:0.91rem; }
 th, td { border: 1px solid #e2ded2; padding: .35rem .5rem; text-align: left; vertical-align: top; }
 th { background: #f0eee6; }
-footer { margin-top: 2.5rem; font-size: .75rem; color: #6b6b6b; }
+footer { margin-top: 2.5rem; font-size:0.81rem; color: #6b6b6b; }
 """
 
 
