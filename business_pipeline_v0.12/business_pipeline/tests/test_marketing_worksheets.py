@@ -18,9 +18,15 @@ from bp.product import subjects  # noqa: E402
 NEW = {
     "template_customer_journey": ("MKT-04", "matrix"),
     "template_kano": ("MKT-06", "canvas"),
-    "template_servqual": ("MKT-07", "matrix"),
     "template_paid_media_plan": ("MKT-15", "canvas"),
     "template_measurement_plan": ("MKT-18", "canvas"),
+}
+#: A worksheet that is registered and complete but **not offered** on the page.
+#: SERVQUAL is filed as both a canvas and a grid, so the page gave it the wrong editor;
+#: the owner hid the tile until that is repaired (B-198).  Its registration facts are
+#: still asserted below, so hiding it cannot hide a broken registration.
+HIDDEN = {
+    "template_servqual": ("MKT-07", "matrix"),
 }
 yes = lambda _s: True
 
@@ -48,11 +54,35 @@ class Registration(unittest.TestCase):
             self.assertTrue(described["defaults"], kind)
             self.assertEqual(len(described["planned_checks"]), 8 if kind in T.MATRIX_META else 9, kind)
 
-    def test_the_marketing_page_offers_six_worksheets_and_no_duplicate_rows(self):
+    def test_the_marketing_page_offers_five_worksheets_and_no_duplicate_rows(self):
         page = subjects.detail("marketing")
         offered = [w["catalogue_id"] for w in page["worksheets"]]
-        self.assertEqual(offered, ["MKT-02", "MKT-04", "MKT-06", "MKT-07", "MKT-15", "MKT-18"])
+        self.assertEqual(offered, ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18"])
         self.assertFalse({row["id"] for row in page["records"]} & set(offered))
+
+    def test_a_hidden_worksheet_stays_registered_and_is_not_offered(self):
+        """B-198: SERVQUAL's tile is hidden; its template, record and grid are intact."""
+        for kind, (rid, form) in HIDDEN.items():
+            template = T.TEMPLATES[kind]
+            self.assertEqual(template["tier"], "T4", kind)
+            self.assertEqual(template["registry_ids"], [rid], kind)
+            self.assertIn(kind, T.MATRIX_META, "the worksheet is a grid by declaration")
+            self.assertEqual(T.describe(kind)["form_kind"], "canvas",
+                             "still mis-declared as a canvas — that is why the tile is "
+                             "hidden; repair the form and unhide it (D-MKT-07, B-198)")
+            self.assertNotIn(rid, [w["catalogue_id"] for w in subjects.detail("marketing")["worksheets"]],
+                             "a hidden worksheet must not be offered")
+
+    def test_every_offered_worksheet_opens_the_form_its_example_is_written_for(self):
+        """The trap for the canvas/grid confusion: a grid must not open a canvas form."""
+        page = subjects.detail("marketing")
+        for sheet in page["worksheets"]:
+            kind = sheet["template"]
+            inputs = (T.EXAMPLES.get(kind) or {}).get("inputs") or {}
+            shape = "canvas" if "blocks" in inputs else ("matrix" if "cells" in inputs else None)
+            if shape:
+                self.assertEqual(T.describe(kind)["form_kind"], shape,
+                                 (sheet["catalogue_id"], sorted(inputs)))
 
     def test_each_worksheet_is_offered_on_the_page_that_owns_its_record(self):
         for rid in NEW.values():

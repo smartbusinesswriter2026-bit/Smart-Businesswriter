@@ -642,12 +642,22 @@ class ServedUiContractTest(unittest.TestCase):
                     self.assertEqual(row["implementation_status"], record.get("implementation_status"), row["id"])
 
     def test_no_catalogue_row_claims_a_worksheet_the_engine_does_not_have(self):
+        # A row that carries a template is normally offered as a worksheet.  The owner hid
+        # one tile until its form is repaired (B-198); it is named here with the reason,
+        # rather than silently tolerated, and the list is pinned so it cannot grow quietly.
+        hidden = {"MKT-07": "the SERVQUAL grid opens the wrong editor; hidden until the "
+                            "canvas/grid declaration is repaired (D-MKT-07, B-198)"}
+        self.assertEqual(sorted(hidden), ["MKT-07"], "only the owner-hidden tile is excused")
         for definition in subjects.SUBJECT_DEFS:
             worksheet_ids = set(definition["worksheets"])
             for row in subjects.detail(definition["id"])["catalogue"]:
-                if row["template"] is not None:
-                    self.assertIn(row["id"], worksheet_ids,
-                                  "%s has a template but is not offered as a worksheet" % row["id"])
+                if row["template"] is None:
+                    continue
+                if row["id"] in hidden:
+                    self.assertNotIn(row["id"], worksheet_ids, hidden[row["id"]])
+                    continue
+                self.assertIn(row["id"], worksheet_ids,
+                              "%s has a template but is not offered as a worksheet" % row["id"])
 
     def test_a_subject_page_has_tools_or_an_honest_catalogue(self):
         for definition in subjects.SUBJECT_DEFS:

@@ -6605,6 +6605,39 @@ function evidenceProfile(t) {
   return (t && t.completion) || null;
 }
 
+/* What a usable answer in this block contains, and the question that unblocks a
+   student staring at an empty cell.  Teaching text only: it sits beside the input,
+   it is never written into the textarea, and it can never become an item - so a
+   suggestion can never be presented as the student's own evidence.  When the model
+   lane reworded the question for this case, it is labelled and shown first, with the
+   framework's own question kept underneath. */
+function adviceHtml(b) {
+  const advice = b.advice || {};
+  const contains = advice.contains || [];
+  const ask = advice.ask || [];
+  const tailored = advice.tailored || "";
+  if (!contains.length && !ask.length) { return ""; }
+  return '<details class="advice">' +
+    "<summary>How to write this block</summary>" +
+    (contains.length
+      ? '<p class="muted" style="margin:6px 0 2px">A usable answer contains:</p><ul class="advicelist">' +
+        contains.map(function (item) { return "<li>" + esc(item) + "</li>"; }).join("") + "</ul>"
+      : "") +
+    (tailored
+      ? '<p style="margin:6px 0 2px"><strong>Answer this:</strong> ' + esc(tailored) +
+        ' <span class="muted">(reworded for your case by the model lane - a prompt, not evidence)</span></p>'
+      : "") +
+    (ask.length
+      ? (tailored
+          ? '<p class="muted" style="margin:6px 0 2px">The framework\'s own question:</p>'
+          : '<p style="margin:6px 0 2px"><strong>Answer this:</strong></p>') +
+        '<ul class="advicelist">' + ask.map(function (item) { return "<li>" + esc(item) + "</li>"; }).join("") + "</ul>"
+      : "") +
+    '<p class="muted" style="margin:6px 0 0">Answer above in your own words. Nothing here is ' +
+      "evidence, and nothing is filled in for you.</p>" +
+  "</details>";
+}
+
 function evidenceBlocks(t) {
   const p = evidenceProfile(t);
   return (p && p.blocks) || t.blocks || [];
@@ -6631,6 +6664,7 @@ function evidenceBlockHtml(t, b) {
           '<input type="text" id="evw-' + key + '" placeholder="why (needed for a rating)" style="flex:1;min-width:170px">'
         : "") +
     "</div>" +
+    adviceHtml(b) +
     (p.assumption === "probe" && !backgroundProfile(p)
       ? '<label class="muted" style="display:block;margin-top:6px"><input type="checkbox" id="evgap-' + key +
         '"> ' + (fill === "gap"
@@ -6717,25 +6751,38 @@ function matrixForm(t) {
   const grouped = t.id === "template_strategic_group_map";
   const raci = t.id === "template_raci";
   const risk = t.id === "template_risk_register";
+  // A grid names its own axes (touchpoint x stage, service dimension x measure).  The
+  // server sends them in `matrix`, so the form never labels a journey map as if it were
+  // scenario planning.
+  const meta = t.matrix || {};
+  const cap = (word) => String(word || "").charAt(0).toUpperCase() + String(word || "").slice(1);
+  const rowsLabel = raci ? "Activities" : risk ? "Risks" : grouped ? "Competitors"
+    : cap(meta.row_label) || "Scenarios";
+  const colsLabel = raci ? "Roles" : risk ? "Fields" : grouped ? "Two axes"
+    : cap(meta.column_label) || "Drivers";
+  const colsHint = raci ? "One role per line" : risk ? "Four fields: likelihood, impact, response, owner"
+    : grouped ? "Exactly two, one per line"
+    : (meta.min_columns && meta.max_columns
+        ? meta.min_columns + " to " + meta.max_columns + ", one per line" : "Two to six, one per line");
   const intro = raci
     ? "List the activities and the roles you have confirmed. Then write R, A, C or I in each cell: R does the work, A owns the outcome, C is consulted, I is informed. Every activity needs exactly one A and at least one R."
     : risk
       ? "List the risks, then choose four fields: likelihood (your label), impact (your label), response and owner. Likelihood and impact are labels you declare; no probability or score is computed."
       : grouped
         ? "List the competitors you have evidence for, the group you assign to each, and the two axes with a reason for each. Placing a competitor is your judgment."
-        : "List the scenarios and the drivers that distinguish them. The grid is built from your lists; you then state what you assume in each cell.";
+        : "List the " + rowsLabel.toLowerCase() + " you have evidence for, then the " + colsLabel.toLowerCase() +
+          " that organise them. Each cell records what you know happens at that crossing, with its source; the grid is your evidence, not a diagram, and nothing is scored.";
   return '<div class="wsheet">' + (t.before ? '<p class="sub">' + esc(t.before) + "</p>" : "") +
     '<p class="wintro">' + intro + "</p>" +
     '<div class="wblock"><label class="field" for="mx-rows"><strong class="wtitle">' +
-      (raci ? "Activities" : risk ? "Risks" : grouped ? "Competitors" : "Scenarios") +
+      rowsLabel +
       '</strong><span class="wprompt">One per line</span></label>' +
       '<textarea class="wtext" id="mx-rows" rows="3" placeholder="One per line"></textarea>' +
       (grouped ? '<div class="wmeta"><input type="text" id="mx-groups" placeholder="group for each competitor, in the same order" style="flex:1"></div>' : "") +
     "</div>" +
     '<div class="wblock"><label class="field" for="mx-cols"><strong class="wtitle">' +
-      (raci ? "Roles" : risk ? "Fields" : grouped ? "Two axes" : "Drivers") + '</strong><span class="wprompt">' +
-      (raci ? "One role per line" : risk ? "Four fields: likelihood, impact, response, owner" :
-        grouped ? "Exactly two, one per line" : "Two to six, one per line") + "</span></label>" +
+      colsLabel + '</strong><span class="wprompt">' +
+      colsHint + "</span></label>" +
       '<textarea class="wtext" id="mx-cols" rows="3" placeholder="One per line"></textarea>' +
       (grouped ? '<div class="wmeta"><input type="text" id="mx-rationale" placeholder="why each axis, in the same order" style="flex:1"></div>' : "") +
     "</div>" +

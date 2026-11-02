@@ -3561,7 +3561,7 @@ SUBJECT_DEFS = [
                   "unitecon", "multibreakeven", "cohort", "rfm", "clv", "custprofit",
                   "campaign", "attribution", "channelecon", "email", "social", "web", "mediaplan",
                   "funnel", "abtest", "alpha", "chi_square", "power"],
-        "worksheets": ["MKT-02", "MKT-04", "MKT-06", "MKT-07", "MKT-15", "MKT-18"],
+        "worksheets": ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18"],
         "catalogue_ids": None,
     },
     {

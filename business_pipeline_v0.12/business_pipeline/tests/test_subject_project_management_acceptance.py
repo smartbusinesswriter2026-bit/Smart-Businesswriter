@@ -11,6 +11,7 @@ second formula, never the method's own output compared with itself.
 import copy
 import io
 import json
+import os
 import re
 import sys
 import unittest
@@ -771,6 +772,69 @@ class GateTest(unittest.TestCase):
         self.assertIn("read-only", guidance)
         for promise in ("fills in a wbs", "assigns responsibilities for you"):
             self.assertNotIn(promise, guidance, promise)
+
+    def test_E_pm_064__every_block_tells_the_student_what_a_usable_answer_contains(self):
+        """The authoring help: teaching text per block, and it can never read as data."""
+        for template in WORKSHEETS.values():
+            for block in framework_profiles.get(template)["blocks"]:
+                advice = framework_profiles.advice_for(template, block["key"])
+                self.assertGreaterEqual(len(advice["contains"]), 2, (template, block["key"]))
+                self.assertGreaterEqual(len(advice["ask"]), 1, (template, block["key"]))
+                self.assertTrue(advice["ask"][0].endswith("?"), (template, block["key"]))
+                for line in advice["contains"] + advice["ask"]:
+                    self.assertFalse(re.search(r"\d", line), (template, block["key"], line))
+
+    def test_E_pm_065__the_served_form_carries_the_advice_and_never_writes_it_into_the_answer(self):
+        described = framework_profiles.describe_extra("template_project_charter")
+        self.assertTrue(all(block["advice"]["ask"] for block in described["blocks"]))
+        html = io.open("web/index.html", encoding="utf-8").read()
+        self.assertIn("function adviceHtml", html)
+        self.assertIn("How to write this block", html)
+        start = html.index("function adviceHtml")
+        body = html[start:html.index("function evidenceBlocks", start)]
+        # It may only render text: no assignment into an input, and no item construction.
+        self.assertNotIn(".value =", body)
+        self.assertNotIn("provenance", body)
+
+    def test_E_pm_066__a_suggestion_never_becomes_an_item_or_changes_provenance(self):
+        result = complete("template_wbs")
+        for block in result["blocks"]:
+            self.assertIn("advice", block)
+            self.assertTrue(block["advice"]["ask"], block["key"])
+            for item in block["items"]:
+                self.assertNotIn(item["provenance"], ("suggested", "question", "advice"), block["key"])
+        kinds = {item["provenance"] for block in result["blocks"] for item in block["items"]}
+        self.assertTrue(kinds <= {"sourced", "student", "assumption", "background"}, kinds)
+        # with no model lane configured there is no tailored text at all
+        with mock.patch.dict(os.environ, {"BP_OPENGO_API_KEY": ""}, clear=False):
+            self.assertEqual(complete("template_wbs")["blocks"][0]["advice"]["tailored"], "")
+
+    def test_E_pm_067__a_model_question_is_validated_and_a_fabricated_one_is_dropped(self):
+        from bp.product import prose
+        self.assertEqual(prose.valid_suggestion("What evidence shows the roster handover?"),
+                         "What evidence shows the roster handover?")
+        for bad in ("The roster cuts overtime by 12 percent?",     # a number
+                    "See https://example.org for the roster?",     # a link
+                    "What does the shift roster migration cover",  # not a question
+                    "What about " + " ".join(["very"] * 30) + "?",  # too long
+                    "What does {{block}} need?"):                  # template braces
+            self.assertIsNone(prose.valid_suggestion(bad), bad)
+        answer = json.dumps({"questions": [
+            {"block": "deliverables", "question": "What does the roster handover deliver?"},
+            {"block": "acceptance", "question": "Which test proves it works by week 12?"}]})
+        with mock.patch.dict(os.environ, {"BP_OPENGO_API_KEY": "test"}, clear=False), \
+                mock.patch("bp.product.prose._call", return_value=answer):
+            result = complete("template_wbs")
+        tailored = {block["key"]: block["advice"]["tailored"] for block in result["blocks"]}
+        self.assertEqual(tailored["deliverables"], "What does the roster handover deliver?")
+        self.assertEqual(tailored["acceptance"], "")          # the fabricated one was dropped
+        self.assertFalse(any(block["advice"]["model_used"] for block in result["blocks"]
+                             if block["key"] == "acceptance"))
+        # and it never reaches the paper
+        document = completion.draft_bytes(result)
+        with zipfile.ZipFile(io.BytesIO(document)) as archive:
+            text = archive.read("word/document.xml").decode("utf-8")
+        self.assertNotIn("What does the roster handover deliver?", text)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

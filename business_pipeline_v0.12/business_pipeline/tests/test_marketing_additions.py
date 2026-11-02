@@ -392,7 +392,9 @@ class MarketingShelf(unittest.TestCase):
         page = subjects.detail("marketing")
         labels = [row["discipline_label"] for row in page["records"]]
         self.assertEqual(labels.count("Digital marketing"), 14)
-        self.assertEqual(labels.count("Marketing frameworks"), 8)
+        # Nine, not eight: with MKT-07's tile hidden (B-198) its catalogue row is shown on
+        # the page as a record instead of being suppressed as an offered worksheet.
+        self.assertEqual(labels.count("Marketing frameworks"), 9)
         self.assertEqual(labels.count("Customer and market analytics"), 7)
 
     def test_the_digital_frameworks_and_methods_are_in_the_catalogue(self):

@@ -73,6 +73,15 @@ class MarketingProfileAlignmentTest(unittest.TestCase):
     def test_E_mkt_001__every_profile_declares_the_blocks_its_form_declares(self):
         for template in TEMPLATES:
             profile = framework_profiles.PROFILES[template]
+            if template in templates.MATRIX_META and template not in templates.CANVAS_BLOCKS:
+                # A grid names its own axes: the profile's blocks are the framework's
+                # dimensions (the paper's sections), while the worksheet's rows and
+                # columns are the student's.  They are different by design, so what the
+                # form must declare here is its two axis labels.
+                meta = templates.MATRIX_META[template]
+                self.assertTrue(meta.get("row_label"), template)
+                self.assertTrue(meta.get("column_label"), template)
+                continue
             form = templates.CANVAS_BLOCKS.get(template) or templates.MATRIX_META.get(template) or {}
             self.assertTrue(form, template)
             self.assertEqual(sorted(block["key"] for block in profile["blocks"]), sorted(form),
@@ -98,7 +107,13 @@ class MarketingProfileAlignmentTest(unittest.TestCase):
 
     def test_E_mkt_004__every_shelf_worksheet_resolves_to_a_profile(self):
         page = subjects.detail("marketing")
-        self.assertEqual(len(page["worksheets"]), 6)
+        # Five, not six: the SERVQUAL gap grid (MKT-07) is hidden from the page until its
+        # form is repaired — it is filed as both a canvas and a grid, so the page gave it
+        # the wrong editor (D-MKT-07, owner decision B-198).  Its template, record and
+        # completion profile are untouched, so the framework still runs through the
+        # conductor; only the tile is gone.
+        self.assertEqual(len(page["worksheets"]), 5)
+        self.assertNotIn("MKT-07", [sheet["catalogue_id"] for sheet in page["worksheets"]])
         for sheet in page["worksheets"]:
             self.assertIn(sheet["template"], framework_profiles.PROFILES, sheet["catalogue_id"])
 

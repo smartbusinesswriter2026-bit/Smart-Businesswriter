@@ -546,13 +546,10 @@ CANVAS_BLOCKS = {
         "desire": ("Desire", "How desire is created"),
         "action": ("Action", "How action is triggered"),
     },
-    "template_customer_journey": {
-        "awareness": ("Awareness", "How customers first learn about the offer"),
-        "consideration": ("Consideration", "How customers evaluate the offer"),
-        "purchase": ("Purchase", "How customers buy the offer"),
-        "retention": ("Retention", "How customers are kept after purchase"),
-        "advocacy": ("Advocacy", "How customers recommend the offer"),
-    },
+    # template_customer_journey is deliberately NOT here: it is a grid (touchpoints x
+    # stages), declared in MATRIX_META with its row and column labels.  It was in both
+    # maps, which made describe() call it a canvas and gave the page the wrong editor
+    # (D-MKT-04).  One artefact, one form.
     "template_funnel": {
         "awareness": ("Awareness", "How prospects enter the funnel"),
         "interest": ("Interest", "How interest is captured"),
@@ -2022,8 +2019,17 @@ def describe(kind):
                  "five_forces" if kind == "template_five_forces" else
                  "matrix" if kind in MATRIX_META else
                  "vrio" if kind == "template_vrio" else "none")
+    # A grid names its own axes.  Without this the page could only fall back to generic
+    # wording (it said "Scenarios / Drivers" on every grid), so a journey map or a
+    # SERVQUAL grid was labelled as if it were scenario planning.
+    grid = MATRIX_META.get(kind)
+    matrix = ({"row_label": grid.get("row_label"), "column_label": grid.get("column_label"),
+               "min_rows": grid.get("min_rows"), "max_rows": grid.get("max_rows"),
+               "min_columns": grid.get("min_columns"), "max_columns": grid.get("max_columns")}
+              if grid else None)
     return {"id": t["id"], "version": t["version"], "name": t["name"], "registry_ids": t["registry_ids"], "tier": t.get("tier", "T4"), "intended_use": t["intended_use"], "unsupported_use": t["unsupported_use"],
-            "input_help": t["input_help"], "blocks": blocks, "form_kind": form_kind, "defaults": list(t["defaults"]), "limitations": list(t["limitations"]), "planned_checks": list(t["test_names"]), "example_request": EXAMPLES.get(kind)}
+            "input_help": t["input_help"], "blocks": blocks, "form_kind": form_kind, "matrix": matrix,
+            "defaults": list(t["defaults"]), "limitations": list(t["limitations"]), "planned_checks": list(t["test_names"]), "example_request": EXAMPLES.get(kind)}
 
 BAKERY = "Illustrative bakery case (synthetic)"
 EXAMPLES = {
