@@ -142,12 +142,14 @@ class CatalogueHonestyTest(unittest.TestCase):
     def test_project_management_owns_the_pm_records_and_the_appraisal_tools(self):
         page = subjects.detail("project-management")
         pm_ids = {"PM-%02d" % n for n in range(1, 17)}
-        worksheet_ids = {"PM-01", "PM-05", "PM-06", "PM-09", "PM-10", "PM-15", "PM-16"}
+        worksheet_ids = {"PM-01", "PM-02", "PM-03", "PM-04", "PM-05", "PM-06", "PM-09",
+                         "PM-10", "PM-15", "PM-16"}
         self.assertEqual({row["id"] for row in page["records"]}, pm_ids - worksheet_ids,
                          "the Project management page drops or repeats a PM record")
         self.assertEqual([row["catalogue_id"] for row in page["worksheets"]],
-                         ["PM-01", "PM-05", "PM-09", "PM-10", "PM-06", "PM-15", "PM-16"],
-                         "the seven PM worksheets are missing or out of order")
+                         ["PM-01", "PM-02", "PM-03", "PM-04", "PM-05", "PM-09", "PM-10",
+                          "PM-06", "PM-15", "PM-16"],
+                         "the ten PM worksheets are missing or out of order")
 
         self.assertEqual([tool["key"] for tool in page["tools"]],
                          ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision",

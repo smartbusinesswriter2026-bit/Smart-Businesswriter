@@ -32,8 +32,12 @@ Raw: `qa/baseline/pm-before-suite-err.txt`, names in
 
 ## 2. The shelf as measured
 
-18 compute tools · **7 worksheets** · **9 records** · 0 theories · 23 glossary terms ·
-**tiles: 0** · 76 framework profiles overall.
+18 compute tools · **10 worksheets** · **6 records** · 0 theories · 23 glossary terms ·
+**tiles: 0** · 79 framework profiles overall.
+
+*Re-measured twice on 2026-11-03: first the Balanced Scorecard, then the Strategy Map, the
+KPI Tree and OKRs, stopped being read-only records and became completing worksheets. That
+is why the shelf now shows ten worksheets and six records instead of six and ten.*
 
 *This section was re-measured after the owner's 2026-11-03 instruction: the Balanced
 Scorecard stopped being a read-only record and became a completing worksheet (PM-01),
@@ -49,7 +53,8 @@ THEM"*, followed by *"YES BUILD THIS: Build the Balanced Scorecard as a real wor
 |---|---|
 | `web/index.html` `HOLD.groups` gains `"project delivery and governance"` | the ten read-only cards and their heading are no longer rendered on the shelf page (`c440aac`). The catalogue rows stay, so nothing is lost and one line restores them |
 | `PM-01` becomes a worksheet | new T4 matrix template `template_balanced_scorecard`, linked through `registry.TEMPLATE_LINKS`; the record keeps its id and its professionally written text, and stops saying "no worksheet yet" |
-| the remaining nine | **not built, not shown** — Strategy Map, KPI Tree, OKRs, Scrum, Kanban, COBIT, ITIL, DeLone–McLean, TOE stay catalogued and off the page |
+| the remaining six | **not built, not shown** — Scrum, Kanban, COBIT, ITIL, DeLone–McLean, TOE stay catalogued and off the page |
+| **PM-02, PM-03, PM-04** become worksheets | `template_strategy_map`, `template_kpi_tree`, `template_okrs` — same T4 matrix machinery, same eight checks, linked through `registry.TEMPLATE_LINKS`. Strategy Map: objective × Perspective · Objective · Drives · Measure. KPI Tree: metric × Level · Metric · Formula or definition · Source. OKRs: objective × Objective · Key results · Baseline to target · Source |
 
 `qa/baseline/pm-probe.txt` is the raw probe (`python qa/probe_pm_shelf.py --blocks --refusals`).
 
@@ -246,7 +251,11 @@ second route and this session's hand pass agree.
 | E-pm-069 | its 4 × 4 grid passes all eight checks, computes no score, weight, index or ranking, and names an empty cell instead of filling it | `test_E_pm_069` | PASS |
 | E-pm-070 | its paper opens with the authored lead and discusses all four perspectives, Conclusion and References included | `test_E_pm_070` | PASS |
 
-**Scoreboard: 70 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
+| E-pm-071 | the Strategy Map, KPI Tree and OKRs are declared T4 matrix worksheets linked to PM-02/03/04, each `form == "worksheet"` and offered on the shelf | `test_E_pm_071` | PASS (built) |
+| E-pm-072 | each of the three passes all eight shared checks, computes no score, weight, attainment or ranking, and names a deleted cell instead of filling it | `test_E_pm_072` | PASS |
+| E-pm-073 | each produces a paper with its own vocabulary — its authored lead, its own block labels, a Conclusion and References | `test_E_pm_073` | PASS |
+
+**Scoreboard: 73 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
 No row is DISPUTED: where a measurement contradicted the work order's premise
 (§8 D-PM-01, the crashing arithmetic), the measurement is recorded and the test
 asserts the truth, not the premise.

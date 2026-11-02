@@ -45,12 +45,14 @@ METHODS = {"npv": "npv", "irr": "irr", "dpayback": "discounted_payback",
            "montecarlo": "monte_carlo"}
 
 WORKSHEETS = {"PM-01": "template_balanced_scorecard",
+              "PM-02": "template_strategy_map", "PM-03": "template_kpi_tree",
+              "PM-04": "template_okrs",
               "PM-05": "template_project_charter", "PM-06": "template_risk_register",
               "PM-09": "template_wbs", "PM-10": "template_raci",
               "PM-15": "template_stakeholder_plan", "PM-16": "template_lessons_learned"}
-RECORDS = ["PM-02", "PM-03", "PM-04", "PM-07", "PM-08", "PM-11", "PM-12",
-           "PM-13", "PM-14"]
-FORMS = {"template_balanced_scorecard": "matrix",
+RECORDS = ["PM-07", "PM-08", "PM-11", "PM-12", "PM-13", "PM-14"]
+FORMS = {"template_balanced_scorecard": "matrix", "template_strategy_map": "matrix",
+         "template_kpi_tree": "matrix", "template_okrs": "matrix",
          "template_project_charter": "canvas", "template_wbs": "canvas",
          "template_raci": "matrix", "template_risk_register": "matrix",
          "template_stakeholder_plan": "canvas", "template_lessons_learned": "canvas"}
@@ -879,6 +881,51 @@ class GateTest(unittest.TestCase):
         for label in ("Financial perspective", "Customer perspective",
                       "Internal process perspective", "Organisational capacity perspective"):
             self.assertIn(label, text, label)
+
+    def test_E_pm_071__the_three_governance_grids_are_declared_t4_matrix_worksheets(self):
+        """PM-02, PM-03 and PM-04 stop being read-only entries (E-pm-068 is the Scorecard)."""
+        pairs = {"template_strategy_map": "PM-02", "template_kpi_tree": "PM-03",
+                 "template_okrs": "PM-04"}
+        for template, record in pairs.items():
+            declared = T.TEMPLATES[template]
+            self.assertEqual(declared["tier"], "T4", template)
+            self.assertEqual(declared["registry_ids"], [record], template)
+            self.assertEqual(T.describe(template)["form_kind"], "matrix", template)
+            self.assertEqual(R.get(record)["template"], template, record)
+            self.assertEqual(R.get(record)["form"], "worksheet", record)
+        offered = {sheet["catalogue_id"] for sheet in page()["worksheets"]}
+        self.assertTrue(set(pairs.values()) <= offered, sorted(offered))
+
+    def test_E_pm_072__each_new_grid_passes_its_checks_and_computes_nothing(self):
+        for template in ("template_strategy_map", "template_kpi_tree", "template_okrs"):
+            checks, out = results_of(template, copy.deepcopy(T.EXAMPLES[template])["inputs"])
+            self.assertTrue(all(checks.values()), (template, checks))
+            self.assertGreaterEqual(len(checks), 8, template)
+            for forbidden in ("score", "weight", "attainment", "ranking", "verdict"):
+                self.assertNotIn(forbidden, out["analysis"], (template, forbidden))
+                self.assertNotIn(forbidden, out["counts"], (template, forbidden))
+            request = copy.deepcopy(T.EXAMPLES[template])["inputs"]
+            request["cells"].pop()
+            checks, out = results_of(template, request)
+            self.assertTrue(checks["empty_cells_reported_not_filled"], template)
+            self.assertEqual(out["counts"]["n_empty_cells"], 1, template)
+
+    def test_E_pm_073__each_new_worksheet_produces_a_paper_with_its_own_vocabulary(self):
+        expected = {"template_strategy_map": ("A strategy map connects the objectives",
+                                              "Capability objectives"),
+                    "template_kpi_tree": ("KPI tree takes one outcome metric", "Driver metrics"),
+                    "template_okrs": ("OKR set commits one team", "Key results")}
+        for template, (lead_fragment, block_label) in expected.items():
+            result = complete(template)
+            self.assertTrue(result["blocks"], template)
+            self.assertGreaterEqual(len(result["blocks"]), 3, template)
+            document = completion.draft_bytes(result)
+            with zipfile.ZipFile(io.BytesIO(document)) as archive:
+                text = archive.read("word/document.xml").decode("utf-8")
+            self.assertIn(lead_fragment, text, template)
+            self.assertIn(block_label, text, template)
+            self.assertIn("Conclusion", text, template)
+            self.assertIn("References", text, template)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

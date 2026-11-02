@@ -1,3 +1,74 @@
+## Project management: the Strategy Map, the KPI Tree and OKRs become worksheets
+
+Session 7, fifth pass, on the owner's instruction — *"THIS NEEDS WORKSHEET: Strategy Map,
+KPI Tree, OKRs. DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* Build **1.71**.
+
+- **Three records become completing worksheets**, on the same T4 declared-matrix machinery as
+  the Balanced Scorecard, so each inherits the eight shared checks (every cell placed once,
+  counts recount, verbatim listing, **empty cells named not filled**, assumptions flagged,
+  **no score / ranking / probability**, deterministic render):
+  - **Strategy Map (PM-02)** — rows are objectives; the four declared fields are
+    *Perspective · Objective · Drives · Measure*. A causal link exists only where the student
+    writes one; no arrow, chain or weight is derived.
+  - **KPI Tree (PM-03)** — rows are metrics; fields are *Level (outcome/driver/input) · Metric ·
+    Formula or definition · Source*. No value is calculated and no arithmetic is checked.
+  - **OKRs (PM-04)** — rows are objectives; fields are *Objective · Key results · Baseline to
+    target · Source*. A key result without a baseline is named at audit; no attainment score.
+- **Each has a product profile and a paper**: four/three/three blocks with their own cues and
+  queries, an authored lead, voice and per-block notes, plus the per-block authoring help
+  (`ADVICE`) that tells a student what a usable cell contains.
+- **The remaining six stay off the page**: Scrum, Kanban, COBIT, ITIL, DeLone–McLean, TOE.
+- Tests: **73** shelf rows (E-pm-071…073 new), suite **3184**; `test_product_subjects` now
+  expects 10 worksheets and 6 records. `econ_shelf` in sync, page syntax OK, 278 shared tests
+  green.
+
+
+## The other three long documents get a door, and the export gate learns their names
+
+Session 7, owner's question of 2026-11-03 — *"DID YOU WIRE THOSE TEMPLATES FOR BUSINESS
+PLAN, MARKETING PLAN, AND OTHERS? THEY MAY BE LONG BUT IMPORTANT"* — answered by
+measurement, not memory: the engine composed **four** long documents and exactly **one**
+of them, the business plan, had a way in. Build **1.73**.
+
+- **Three documents were unreachable.** `chat.start(profile=...)` accepts
+  `business_plan`, `feasibility_study`, `marketing_plan` and `project_proposal`; each
+  returns its own sections, student fields and computation blocks. The page posted
+  `profile: "business_plan"` from one hard-coded button, so a marketing plan (8
+  sections), a feasibility study (10) and a project proposal (8) could be built only by
+  hand-writing an API call. `feasibility_study` and `project_proposal` appeared nowhere
+  in the test suite at all.
+- **They could not have been exported even by hand.** `paper._missing_base` gated on
+  the single string `"business_plan"`; every other profile fell through to the
+  framework-paper gate, which demands an `implications` sentence no plan profile has a
+  field for. A marketing plan drafted with `missing: []` then threw `ExportBlocked:
+  ['implications']`. One constant, `paper.DRAFT_PROFILES`, now names all four, and a
+  drift test fails if `chat`'s constants and that set ever disagree.
+- **Two composers stored half a draft.** `_draft_marketing_plan` and
+  `_draft_project_proposal` (and the feasibility study) stored `{sections, style,
+  accepted}` — no `title`, no `outline`, no `missing` — so the Word export crashed
+  reading a title instead of naming what was still required, and the page's "complete
+  the plan" gate had nothing to read. One writer, `_store_plan_draft`, gives all four
+  the same shape the business plan already had.
+- **They also printed a placeholder reference list.** All three hard-coded
+  `"No references supplied."` whether or not a source had been accepted, so a document
+  with accepted evidence claimed it had none. `_plan_reference_section` builds the same
+  deduplicated list the business plan builds, and says "No sources were used." only
+  when that is true.
+- **One door per document, on the shelf it belongs to.** `PLAN_PROFILES` +
+  `SUBJECT_PLAN_DOORS` in `web/index.html`: the entrepreneurship shelf offers the
+  business plan *and* the feasibility study, marketing offers the marketing plan,
+  project management offers the project proposal. `beginPlan` posts
+  `state.planProfile` and the door's own subject, the panel heading follows the
+  document that is open, and the composition label follows the profile's own
+  convention instead of always saying "Business-plan convention".
+- **Measured, not asserted**: a supplied marking-graded-free run of each profile now
+  exports a Word file — 14.0 KB (marketing plan), 20.7 KB (feasibility study, 14
+  headings including the projected statements and sensitivity), 14.0 KB (project
+  proposal) — and the business plan is unchanged.
+
+- 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
+
+
 ## Model-assisted writing for the frameworks: the Balanced Scorecard is now a worksheet you can fill in
 
 Session 7, fourth pass, on the owner's instruction of 2026-11-03 — *"are they just like
