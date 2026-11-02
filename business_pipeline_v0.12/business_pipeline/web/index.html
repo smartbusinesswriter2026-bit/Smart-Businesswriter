@@ -680,6 +680,43 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfdate{font-size:13px;font-weight:700;color:var(--navy-900);background:var(--sunken);border-radius:8px;padding:5px 7px;text-align:center}
 .pfentry p{margin:0;font-size:14.5px}
 .pfentry .muted{font-size:13px}
+/* ---------- Portfolio Lab: an organised workspace, one task per panel ---------- */
+.pfstart{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}
+@media (max-width:960px){.pfstart{grid-template-columns:1fr}}
+.pfsection{margin-top:26px}
+.pfsection .pfsectionhead{margin:0 0 10px}
+.pfsection .pfsectionhead h3{margin:4px 0}
+.pfsection .pfsectionhead p{margin:0;max-width:760px}
+.pflab{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);padding:16px 18px}
+.pflabhead{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.pflabhead h3{margin:0 0 4px}
+.pflabhead p{margin:0;max-width:640px}
+.pflabtabs{display:flex;flex-wrap:wrap;gap:6px}
+.pflabtabs .chip{white-space:nowrap}
+.plpanel{margin-top:4px}
+.plcard{border:1px solid var(--border);border-radius:var(--r-md);background:var(--sunken);padding:14px}
+.plcard + .plcard{margin-top:12px}
+.plcardhead{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.plcardhead h4{margin:0;font-size:16.6px}
+.plrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:8px 0}
+.plrow label{display:flex;flex-direction:column;gap:4px;font-size:14.2px;color:var(--text-2)}
+.plrow input,.plrow select{border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:15.4px;background:var(--surface);min-width:0}
+.plrow .plgrow{flex:1 1 260px}
+.plrow .plgrow input{width:100%}
+.plcheck{flex-direction:row!important;align-items:center;gap:6px!important;padding-bottom:8px}
+.plhint{margin:6px 0 0;font-size:13.6px;color:var(--text-3)}
+.plchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+.plchips button{all:unset;cursor:pointer;font-size:13.4px;border:1px solid var(--border);border-radius:999px;padding:4px 10px;background:var(--surface);color:var(--navy-900)}
+.plchips button:hover{background:var(--sunken)}
+.plwatch{max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+.plwatch table{margin:0}
+.plwatch th{position:sticky;top:0;background:var(--sunken);z-index:1}
+.plactions{display:flex;gap:4px;flex-wrap:wrap}
+.pflabgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pfdetails summary{cursor:pointer;font-weight:600;color:var(--navy-900)}
+.pfdetails summary .muted{font-weight:400}
+.pfdetails[open] summary{margin-bottom:10px}
+.pfstart .card{margin:0}
 /* ---------- documents on Home: sections, a segmented example, quiet links ---------- */
 .docs{display:flex;flex-direction:column;gap:18px}
 .docs h3{margin:0 0 8px}
@@ -1476,33 +1513,39 @@ function renderPortfolioLanding(rows) {
     '<div class="pfchoices">' +
       '<button class="pfchoice" type="button" id="pfnewpaper"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8v12H3z"/></svg></span><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span><em>Start a paper \u2192</em></button>' +
       '<button class="pfchoice" type="button" id="pfnewfund"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h2v12h14v2H4zm4-3V9h2v7H8zm4 0V6h2v10h-2zm4 0v-4h2v4h-2z"/></svg></span><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span><em>Open a fund \u2192</em></button>' +
-    '</div></section>';
-  html += pfGuidanceCard();
-  html += portfolioLabPanel();
-  html += '<div class="card"><h3>Create a portfolio</h3>' +
-    '<div class="grid2 pf-form">' +
-    '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
-    '<div class="fieldgroup"><label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3"></div>' +
-    '<div class="fieldgroup"><label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500"></div>' +
-    '<div class="fieldgroup"><label class="field" for="pfmode">Mode</label><select id="pfmode"><option value="paper">Paper portfolio (one valuation)</option><option value="fund">Mock fund (weekly journal)</option></select></div>' +
-    '<div class="fieldgroup"><label class="field" for="pfobjective">Objective (optional)</label><input type="text" id="pfobjective" placeholder="e.g. Learn long-only equity selection this term"></div>' +
-    '<div class="fieldgroup"><label class="field" for="pfroster">Team (optional)</label><input type="text" id="pfroster" placeholder="e.g. A. Cruz, B. Santos"></div>' +
-    "</div><div class=\"row\" style=\"margin-top:12px\"><button class=\"btn primary\" id=\"pfcreate\" type=\"button\">Create portfolio</button>" +
-    '<span class="muted">A paper portfolio starts with one valuation date; a fund adds a weekly journal and a return.</span></div><div id="pfmsg"></div></div>';
-  html += '<div class="card"><h3>Your portfolios</h3>';
-  if (!rows.length) {
-    html += '<p class="muted">No portfolio yet. Create one above; it stays local on this machine.</p>';
-  } else {
-    html += '<div class="tablewrap"><table><caption>Stored portfolios</caption><thead><tr>' +
-      "<th>Name</th><th>Mode</th><th>Currency</th><th>Holdings</th><th>Snapshots</th><th>Updated</th><th></th></tr></thead><tbody>" +
-      rows.map((row) => row.corrupt
-        ? '<tr class="row-warn"><td colspan="6">A stored portfolio is unreadable: ' + esc(row.id) + "</td><td></td></tr>"
-        : "<tr><td>" + esc(row.name) + "</td><td>" + esc(row.mode) + "</td><td>" + esc(row.base_currency) +
-          "</td><td>" + esc(row.n_holdings) + "</td><td>" + esc(row.n_snapshots) + "</td><td>" + esc(row.updated_at) +
-          '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) + '">Open</button></td></tr>').join("") +
-      "</tbody></table></div>";
-  }
-  html += "</div>";
+    '</div></section>' +
+    '<div class="pfstart">' +
+      '<div class="card"><div class="pfcardhead"><h3 style="margin:0">Your books</h3><span class="muted">' +
+        (rows.length ? rows.length + " stored" : "none yet") + '</span></div>' +
+        (rows.length
+          ? '<div class="tablewrap"><table><caption>Stored portfolios</caption><thead><tr>' +
+            "<th>Name</th><th>Mode</th><th>Holdings</th><th>Snapshots</th><th>Updated</th><th></th></tr></thead><tbody>" +
+            rows.map((row) => row.corrupt
+              ? '<tr class="row-warn"><td colspan="5">A stored portfolio is unreadable: ' + esc(row.id) + "</td><td></td></tr>"
+              : "<tr><td><strong>" + esc(row.name) + '</strong><div class="muted">' + esc(row.base_currency) +
+                (row.benchmark ? " \u00b7 " + esc(row.benchmark) : "") + "</div></td><td>" + esc(row.mode) +
+                "</td><td>" + esc(row.n_holdings) + "</td><td>" + esc(row.n_snapshots) + "</td><td class=\"muted\">" +
+                esc(row.updated_at) + '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) +
+                '">Open</button></td></tr>').join("") +
+            "</tbody></table></div>"
+          : '<p class="muted" style="margin:6px 0 0">No book yet. Create one beside this card; it stays local on this machine.</p>') +
+      '</div>' +
+      '<div class="card"><h3 style="margin-top:0">Create a book</h3>' +
+        '<p class="muted" style="margin:0 0 10px">A paper starts with one valuation date; a fund adds a weekly journal and a return.</p>' +
+        '<div class="grid2 pf-form">' +
+        '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
+        '<div class="fieldgroup"><label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3"></div>' +
+        '<div class="fieldgroup"><label class="field" for="pfbenchmark">Benchmark (optional)</label><input type="text" id="pfbenchmark" placeholder="e.g. S&P 500"></div>' +
+        '<div class="fieldgroup"><label class="field" for="pfmode">Mode</label><select id="pfmode"><option value="paper">Paper portfolio (one valuation)</option><option value="fund">Mock fund (weekly journal)</option></select></div>' +
+        '<div class="fieldgroup"><label class="field" for="pfobjective">Objective (optional)</label><input type="text" id="pfobjective" placeholder="e.g. Learn long-only equity selection this term"></div>' +
+        '<div class="fieldgroup"><label class="field" for="pfroster">Team (optional)</label><input type="text" id="pfroster" placeholder="e.g. A. Cruz, B. Santos"></div>' +
+        "</div><div class=\"row\" style=\"margin-top:12px\"><button class=\"btn primary\" id=\"pfcreate\" type=\"button\">Create portfolio</button>" +
+        '<span class="muted">You can add holdings and prices after it is created.</span></div><div id="pfmsg"></div></div>' +
+    '</div>' +
+    '<section class="pfsection"><div class="pfsectionhead"><span class="pfkicker">Before you buy</span>' +
+      '<h3>Find and screen candidates</h3><p class="muted">Add the symbols you are weighing to the watch list, screen them on the criteria you care about, then send the inputs to the Business Calculator. A shortlist is sourced evidence — it is not a recommendation.</p></div>' +
+      portfolioLabPanel() + '</section>' +
+    pfGuidanceCard();
   out.innerHTML = html;
   $("#pfnewpaper").onclick = () => { $("#pfname").focus(); $("#pfname").scrollIntoView({ block: "center", behavior: "smooth" }); };
   $("#pfnewfund").onclick = () => { $("#pfmode").value = "fund"; $("#pfname").focus(); $("#pfname").scrollIntoView({ block: "center", behavior: "smooth" }); };
@@ -1585,11 +1628,12 @@ function renderPortfolioWorkspace() {
       : '<p class="pfempty">Add holdings, enter their prices on one date, then create the snapshot.</p>') +
     '</section>' +
     '<div class="card pfworkspace"><div class="tabs" role="tablist">' +
-      (p.mode === "fund" ? ["overview", "holdings", "data", "journal"] : ["overview", "holdings", "data"]).map((key) =>
+      (p.mode === "fund" ? ["overview", "screen", "holdings", "data", "journal"] : ["overview", "screen", "holdings", "data"]).map((key) =>
         '<button class="tab" type="button" data-pftab="' + key + '" aria-selected="' + (tab === key) + '">' +
-        ({ overview: "Overview", holdings: "Holdings", data: "Prices and snapshot", journal: "Journal and return" })[key] + "</button>").join("") +
+        ({ overview: "Overview", screen: "Find candidates", holdings: "Holdings", data: "Prices and snapshot", journal: "Journal and return" })[key] + "</button>").join("") +
     "</div><div id=\"pfmsg\"></div>";
   if (tab === "overview") html += pfOverview(p, holdings, latest, snapshot, snapshots.length);
+  if (tab === "screen") html += portfolioLabPanel();
   if (tab === "holdings") html += pfHoldings(holdings);
   if (tab === "data") html += pfData(holdings, latest, snapshot);
   if (tab === "journal" && p.mode === "fund") html += pfJournal(bundle, snapshot);
@@ -1636,6 +1680,9 @@ function renderPortfolioWorkspace() {
   const pricesFile = $("#pfpfile"); if (pricesFile) pricesFile.onchange = () => readFileInto(pricesFile, "#pfpimport");
   const snap = $("#pfsnapshot"); if (snap) snap.onclick = createSnapshot;
   $$("[data-pfremove]", out).forEach((button) => { button.onclick = () => removeHolding(button.dataset.pfremove); });
+  $$("[data-pfgotab]", out).forEach((button) => {
+    button.onclick = () => { state.portfolioTab = button.dataset.pfgotab; renderPortfolioWorkspace(); };
+  });
   if ($("#portfoliolab")) bindPortfolioLab();
 }
 
@@ -1646,7 +1693,12 @@ function pfTone(value) {
 
 function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
   const rows = snapshot && snapshot.positions ? snapshot.positions : [];
-  let html = '<div class="pfoverview">';
+  let html = '<div class="pfoverview">' +
+    '<div class="pfactions">' +
+      '<button class="btn primary" type="button" data-pfgotab="screen">Find candidates</button>' +
+      '<button class="btn" type="button" data-pfgotab="holdings">Add holdings</button>' +
+      '<button class="btn" type="button" data-pfgotab="data">Prices and snapshot</button>' +
+    '</div>';
   if (holdings.length) {
     html += '<div class="card" style="margin:0"><div class="pfcardhead"><h3>Position board</h3><span class="muted">' +
       holdings.length + " holdings</span></div>" +
@@ -1676,17 +1728,18 @@ function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
 
 function pfGuidanceCard() {
   const guide = (state.instruments || {}).guidance;
+  const head = '<summary><strong>How to choose what you hold</strong> <span class="muted">— six steps, and what this guide does not do</span></summary>';
   if (!guide) {
-    return '<div class="card"><h3 style="margin-top:0">How to choose what you hold</h3>' +
+    return '<details class="card pfdetails">' + head +
       '<p class="muted">The guide is unavailable right now. Choose a mandate, diversify before you name a stock, ' +
-      'write one line per holding saying why it belongs, and never hold a name you cannot source or explain.</p></div>';
+      'write one line per holding saying why it belongs, and never hold a name you cannot source or explain.</p></details>';
   }
-  return '<div class="card"><h3 style="margin-top:0">' + esc(guide.title || "How to choose what you hold") + '</h3>' +
+  return '<details class="card pfdetails" open>' + head +
     '<p class="muted">' + esc(guide.intro || "") + '</p>' +
     '<ol class="guidesteps">' + (guide.steps || []).map((step) =>
       '<li><strong>' + esc(step.title) + '</strong> ' + esc(step.text) + '</li>').join("") + '</ol>' +
     '<div class="pflimit"><strong>What this guide does not do.</strong> ' +
-      esc([].concat(guide.principles || [], guide.limits || []).join(" ")) + '</div></div>';
+      esc([].concat(guide.principles || [], guide.limits || []).join(" ")) + '</div></details>';
 }
 
 function pfHoldings(holdings) {
@@ -3727,6 +3780,20 @@ function subjectTiles(s) {
       '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
   }
   return html;
+}
+
+/* A method id is shown as an acronym where it is one (irr -> IRR) and as words otherwise
+   (dcf_valuation -> DCF valuation). */
+const METHOD_ACRONYMS = ["npv", "irr", "wacc", "capm", "dcf", "tvm", "ols", "eva", "roe", "roa",
+                         "eps", "eoq", "ccc", "var", "cvar", "ytm", "mirr", "pi", "roi", "fx",
+                         "abc", "cagr", "dso", "dio", "dpo", "spi", "cpi", "irf", "btc", "aic"];
+
+function methodName(id) {
+  const text = String(id || "").trim();
+  if (!text) return "";
+  return text.split("_").map((part, i) => METHOD_ACRONYMS.indexOf(part.toLowerCase()) !== -1
+    ? part.toUpperCase()
+    : (i === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part)).join(" ");
 }
 
 /* Held back on the owner's request (2026-11-02).  The framework picker and the groups
@@ -7288,7 +7355,6 @@ function renderNew() {
 
   if (!delivered && !mapping && !state.worksheet && state.tool) {
     html += '<div class="card"><h2>Before you start</h2>' +
-      (state.tool.need ? '<p class="sub">' + esc(state.tool.need) + ".</p>" : "") +
       (state.tool.preset
         ? '<p class="muted">A worked example is loaded so you can see the format. Replace it with your own figures, or clear it and start blank.</p>' +
           '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>'
@@ -7324,7 +7390,7 @@ function renderNew() {
   }
 
   html += '<div class="card"><h2>Method</h2>' +
-    kv([["Method", (method && method.method_id) || plan.method],
+    kv([["Method", methodName((method && method.method_id) || plan.method)],
         ["Intended use", method && method.intended_use], ["Unsupported use", method && method.unsupported_use]]) +
     "</div>";
   if (s.spec) {
