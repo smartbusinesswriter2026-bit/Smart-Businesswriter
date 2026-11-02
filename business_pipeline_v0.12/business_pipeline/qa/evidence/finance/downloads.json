@@ -192,7 +192,12 @@
   },
   {
    "tool": "dcfmid",
-   "known": "blocked (D-FIN-01)"
+   "preset": "dcfmid",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7001,
+   "figure": "420,712.68",
+   "ok": true
   },
   {
    "tool": "equitybridge",
@@ -309,7 +314,6 @@
  ],
  "failures": [],
  "known": [
-  "dcfmid: blocked (D-FIN-01)",
   "ols_robust: no preset (G-fin-05)"
  ]
 }
