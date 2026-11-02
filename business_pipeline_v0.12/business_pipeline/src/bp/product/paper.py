@@ -65,7 +65,33 @@ def missing(state, implications=""):
     # A figure that no longer reproduces from its own inputs or a sentence that
     # claims more than a method licenses blocks export.
     return list(base) + list(state.get("recompute_problems") or []) \
-        + list(state.get("claim_problems") or [])
+        + list(state.get("claim_problems") or []) + _rubric_missing(state)
+
+
+def rubric_gate_on(state):
+    """The rubric gate is on unless the student turned it off for this paper."""
+    return (state or {}).get("rubric_gate", True) is not False
+
+
+def _rubric_coverage(state):
+    coverage = (state or {}).get("rubric")
+    return coverage if isinstance(coverage, dict) else None
+
+
+def _rubric_missing(state):
+    """The criteria a rubric states that the paper does not address.
+
+    A criterion the rubric weights is the document's own statement of what must be
+    present, so leaving it out blocks export until the student writes it — or turns
+    the gate off, which demotes every row to a warning and is recorded.  Nothing
+    here fills the gap: the student writes it, the system only refuses to call the
+    paper finished.
+    """
+    coverage = _rubric_coverage(state)
+    if not coverage or not rubric_gate_on(state):
+        return []
+    return ["the '" + str(name) + "' criterion your rubric states"
+            for name in coverage.get("blocking") or []]
 
 
 def _missing_base(state, implications=""):
@@ -164,4 +190,14 @@ def check(sections, framework="pestel", implications="", answers=None, state=Non
     for item in required:
         issues.append({"type": "missing_input", "severity": "high",
                        "detail": "Required before export: %s." % item})
+    coverage = _rubric_coverage(target)
+    if coverage:
+        gate_on = rubric_gate_on(target)
+        blocking = set(coverage.get("blocking") or [])
+        for name in coverage.get("gaps") or []:
+            if gate_on and name in blocking:
+                continue  # already reported as required before export, by missing()
+            issues.append({"type": "rubric_criterion_gap", "severity": "medium",
+                           "detail": "Your rubric's '%s' criterion is not addressed by this "
+                                     "paper." % name})
     return {"pass": not any(issue["severity"] == "high" for issue in issues), "issues": issues}

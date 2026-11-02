@@ -23,6 +23,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor, wait
 
 from . import docx, framework_profiles, guard, matrix, paper, prose, retrieval, writing
+from . import rubric as rubric_reader
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
 FRAMEWORK_WORDS = {"porter", "forces", "five", "swot", "pestel", "break", "even", "analysis", "pestel analysis"}
@@ -239,7 +240,7 @@ def _sites(profile):
 
 
 def complete(template, instruction, region=None, student_items=None, industry=None, country=None,
-             unit_value=None):
+             unit_value=None, rubric=None):
     """Fill a framework from the instruction.  Returns blocks with provenance.
 
     Each part is completed the way its profile says: researched where external
@@ -247,6 +248,13 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     theirs, and returned as a named gap where only the owner of the process can
     state it.  The pipeline never observes the case, times a step or reads a
     machine, so nothing here is measured.
+
+    ``rubric`` is the marking guide the student attached, as the text of the file
+    or already parsed by ``bp.product.rubric.parse``.  It is read once, here, and a
+    rubric that cannot be read is **refused**: a run that silently ignored it would
+    tell the student their rubric was followed when it was not.  The rubric changes
+    no block and invents no evidence; it is measured against the finished paper by
+    ``draft`` (coverage) and enforced by ``paper.check`` (the export gate).
     """
     if not framework_profiles.has(template):
         raise ValueError("Framework completion is not enabled for this worksheet. It runs for "
@@ -259,6 +267,9 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     ok, message = guard.computation_boundary(instruction, profile.get("subject") or "management")
     if not ok:
         raise ValueError(message)
+    # The rubric is read before anything is researched: a marking guide that cannot
+    # be read must cost a sentence, not a full run whose paper silently ignores it.
+    attached = _read_rubric(rubric) if rubric is not None else None
     unit_field = (profile["unit"] or {}).get("field") or "industry"
     declared = unit_value if unit_value not in (None, "") else (
         industry if unit_field == "industry" else country)
@@ -397,13 +408,31 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     # The counts the page shows are computed here, on the server: the client
     # never counts, sums or works out a progress figure of its own.
     filled = [block for block in blocks if block["items"]]
-    return {"format": "bp-framework-completion/1", "template": template,
-            "framework": profile["label"], "unit": {k: v for k, v in unit.items() if k != "context"},
-            "instruction": instruction, "country": _country(instruction), "region": region,
-            "blocks": blocks, "notes": notes, "elapsed_s": round(elapsed, 2),
-            "summary": {"parts": len(blocks), "filled": len(filled),
-                        "gaps": len(blocks) - len(filled)},
-            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    completed = {"format": "bp-framework-completion/1", "template": template,
+                 "framework": profile["label"], "unit": {k: v for k, v in unit.items() if k != "context"},
+                 "instruction": instruction, "country": _country(instruction), "region": region,
+                 "blocks": blocks, "notes": notes, "elapsed_s": round(elapsed, 2),
+                 "summary": {"parts": len(blocks), "filled": len(filled),
+                             "gaps": len(blocks) - len(filled)},
+                 "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    if attached is not None:
+        completed["rubric"] = attached
+    return completed
+
+
+def _read_rubric(value):
+    """The attached rubric, read once; a rubric that cannot be read is refused.
+
+    A run that accepted an unreadable rubric and wrote the paper anyway would tell
+    the student their marking guide had been followed when nothing had been read
+    from it.  So the reader's own reason is raised, and the caller shows it.
+    """
+    parsed = value if isinstance(value, dict) else rubric_reader.parse(value)
+    if not isinstance(parsed, dict) or not parsed.get("ok"):
+        problems = (parsed or {}).get("problems") if isinstance(parsed, dict) else None
+        raise ValueError(problems[0] if problems else
+                         "The rubric could not be read. Attach it as a table or a numbered list.")
+    return parsed
 
 
 def _probe(profile, block):
@@ -1240,17 +1269,80 @@ def draft(result, style="apa", version="draft", length="mid"):
     sections = _sections(data, blocks, style, citations, result)
     words = sum(_words(" ".join(section.get("lines") or [])) for section in sections
                 if section.get("heading") not in ("References", "Bibliography"))
-    return {"title": _title(result.get("instruction"), profile,
-                            (result.get("unit") or {}).get("value") or result.get("country") or ""),
-            "sections": sections, "style": style,
-            "version": version, "model_used": model_used, "fallback": fallback, "words": words,
-            "framework": profile["label"], "template": profile["template"],
-            "length": _length_name(length), "length_label": _length(length)["label"],
-            "length_range": _length(length)["range"],
-            # The band is the Full paper's target.  A deterministic Draft reports
-            # its own word count instead of claiming a length it does not reach.
-            "length_applies_to": "full",
-            "byline": [str(line).strip() for line in (result.get("byline") or []) if str(line or "").strip()]}
+    attached = result.get("rubric") if isinstance(result.get("rubric"), dict) else None
+    coverage = None
+    if attached:
+        # Measured against the paper that was actually written, **before** the
+        # appendix that reports on it exists — otherwise the report could satisfy
+        # the criterion it is reporting on.
+        coverage = rubric_reader.coverage(attached, sections)
+        sections = sections[:-1] + [_rubric_section(coverage)] + sections[-1:]
+    report = {"title": _title(result.get("instruction"), profile,
+                              (result.get("unit") or {}).get("value") or result.get("country") or ""),
+              "sections": sections, "style": style,
+              "version": version, "model_used": model_used, "fallback": fallback, "words": words,
+              "framework": profile["label"], "template": profile["template"],
+              "length": _length_name(length), "length_label": _length(length)["label"],
+              "length_range": _length(length)["range"],
+              # The band is the Full paper's target.  A deterministic Draft reports
+              # its own word count instead of claiming a length it does not reach.
+              "length_applies_to": "full",
+              "byline": [str(line).strip() for line in (result.get("byline") or []) if str(line or "").strip()]}
+    if coverage is not None:
+        report["rubric"] = coverage
+        report["rubric_gate"] = coverage["gate"]
+        report["word_target"] = _word_target(attached, words)
+    return report
+
+
+def _word_target(parsed, words):
+    """The rubric's stated length beside the paper's own count; never a verdict on quality.
+
+    A tolerance the rubric states is applied as written.  When the rubric states a
+    number of words with no tolerance, ``met`` is ``None``: a bare count does not
+    say whether it is a floor or a ceiling, and guessing one would be inventing a
+    requirement.
+    """
+    budget = (parsed or {}).get("word_budget") or {}
+    target = budget.get("words")
+    if not target:
+        return None
+    actual, tolerance = int(words), budget.get("tolerance")
+    if tolerance:
+        low = int(round(target * (1 - tolerance)))
+        high = int(round(target * (1 + tolerance)))
+        return {"words": target, "tolerance": tolerance, "actual": actual,
+                "met": bool(low <= actual <= high), "range": [low, high],
+                "note": "the rubric states %d words plus or minus %g%%"
+                        % (target, tolerance * 100)}
+    return {"words": target, "tolerance": None, "actual": actual, "met": None, "range": None,
+            "note": "the rubric states %d words without a tolerance; the paper's length is "
+                    "reported for you to judge" % target}
+
+
+def _rubric_section(coverage):
+    """The mechanical coverage table: what the rubric asked for, and what the paper does."""
+    rows = coverage.get("criteria") or []
+    lines = ["Your rubric states %d assessment %s. This table records whether each one is "
+             "present in the paper above. It does not mark the paper and no score is given."
+             % (len(rows), "criterion" if len(rows) == 1 else "criteria")]
+    for row in rows:
+        weight = (" (" + str(row["weight_text"]) + ")") if row.get("weight_text") else ""
+        if row["status"] == "addressed":
+            where = row.get("where") or []
+            lines.append("• " + str(row["name"]) + weight + ": addressed in "
+                         + (", ".join(where) if where else "the paper") + ".")
+        elif row["status"] == "partially":
+            lines.append("• " + str(row["name"]) + weight + ": partly addressed — "
+                         + (row.get("note") or "the section is present but an element it asks for "
+                                               "is not stated") + ".")
+        else:
+            lines.append("• " + str(row["name"]) + weight + ": not addressed by this paper. "
+                         "Treat this as a gap you still have to write.")
+    if coverage.get("gaps"):
+        lines.append("The gaps named above are reported, not filled: this system does not write "
+                     "the missing analysis for you.")
+    return paper.section("Rubric coverage", 1, lines)
 
 
 def draft_bytes(result, style="apa", report=None, version="draft", length="mid"):

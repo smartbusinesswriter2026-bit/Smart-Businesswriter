@@ -9,18 +9,24 @@
 - Server is for local development, not production.
 
 ## Added with the rubric reader (B-187)
-- **A rubric can be read; a paper does not yet follow it.** `bp/product/rubric.py` parses a marking
-  guide into criteria, weights, required elements, sections, a word budget and a citation style, and
-  refuses what it cannot read. **Binding is not built**: the outline, the word band and the required
-  elements are not yet driven by a parsed rubric, there is no "Rubric coverage" appendix, no export
-  gate on a required criterion, and no upload role or button for a rubric specifically. Until then a
-  rubric changes nothing about a paper.
+- **A rubric is read, measured against the paper, and enforced at export.** `bp/product/rubric.py`
+  parses a marking guide into criteria, weights, required elements, sections, a word budget and a
+  citation style and refuses what it cannot read; `completion.draft` measures coverage, adds a
+  "Rubric coverage" appendix before the reference list, and reports the rubric's word budget beside
+  the paper's own count; `paper.missing`/`paper.check` block export when a **weighted** criterion is a
+  gap, and demote every row to a warning when the student turns the gate off.
+- **What is still not built.** A rubric heading the profile does not have is named as a gap, never
+  created as an empty section (no section injection); there is no upload role or button for a rubric
+  specifically (the intake store's roles and its "use as the instruction" action are the surface that
+  exists); and a scanned or photographed rubric needs the OCR chain before it can be read at all.
 - **The reader carries what the document states and nothing else.** A rubric with no weights gives
   `weight: None` on every criterion (never an assumed `1/n`); weights that miss 100 are reported as
   written (never rescaled); a page limit is never converted into a word count; two named citation
   styles are a problem, not a choice. `confirm_required` marks every parse the student must check.
-- **Nothing is scored.** There is no mark, grade or predicted result anywhere in the module; whether
-  a criterion is *met well* is a human judgement (`VALIDATION_HARNESS.md` §5.2).
+- **Nothing is scored.** There is no mark, grade or predicted result anywhere in the module, the
+  coverage report or the appendix; whether a criterion is *met well* is a human judgement
+  (`VALIDATION_HARNESS.md` §5.2). Coverage answers presence only, and a rubric demanding
+  recommendations gets a named gap rather than engine-written advice (B-154).
 - **A scanned or photographed rubric is not readable yet** — the reader takes text, so a scan needs
   the OCR chain described in the OCR plan; until then it is refused by name, never guessed.
 

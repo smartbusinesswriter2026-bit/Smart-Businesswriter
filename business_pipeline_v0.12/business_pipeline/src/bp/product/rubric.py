@@ -407,3 +407,94 @@ def summary(parsed):
 def as_json(parsed):
     """The parsed rubric as a JSON string, stable across runs."""
     return json.dumps(parsed, sort_keys=True, ensure_ascii=False, default=str)
+
+
+#: Words that carry no meaning when matching a criterion to a heading.
+_STOP = frozenset("a an and the of for to in on at by with or from is are be as its it this that "
+                  "your their our you they we".split())
+
+
+def _tokens(text):
+    """The significant words of a phrase, for matching only; never shown to a student."""
+    words = re.findall(r"[a-z][a-z0-9']+", str(text or "").lower().replace("\u2019", "'"))
+    return [word for word in words if word not in _STOP and len(word) > 2]
+
+
+def _normalise(text):
+    return " ".join(_tokens(text))
+
+
+def _covers(heading, criterion):
+    """True when a heading names the criterion: containment either way, or overlap."""
+    left, right = _normalise(heading), _normalise(criterion)
+    if not left or not right:
+        return False
+    if left in right or right in left:
+        return True
+    wanted, found = set(_tokens(criterion)), set(_tokens(heading))
+    if not wanted or not found:
+        return False
+    return len(wanted & found) / float(len(wanted)) >= 0.6
+
+
+def coverage(parsed, sections, blocks=None):
+    """Which criteria of a rubric a paper addresses — mechanically, and nothing more.
+
+    A criterion is ``addressed`` when a heading names it (or its parts) **and** every
+    required element it states is present; ``partially`` when some of that is true;
+    ``gap`` when neither a heading nor an element mentions it.  Presence is the only
+    question asked, so this never judges how well a criterion is met and never awards
+    a mark: that is a human step.
+
+    ``gate`` is ``blocked`` when a criterion that carries a weight is a gap (or, when
+    the rubric states no weights, when any criterion is a gap), because a weighted
+    criterion is the document's own statement of what must be there.  ``blocks`` is
+    ``False`` when the student turned the gate off; the rows are then warnings.
+    """
+    parsed = parsed or {}
+    criteria = parsed.get("criteria") or []
+    headings = []
+    for item in sections or []:
+        if isinstance(item, dict):
+            heading = item.get("heading")
+        elif isinstance(item, (list, tuple)) and item:
+            heading = item[0]
+        else:
+            heading = ""
+        if str(heading or "").strip():
+            headings.append(str(heading))
+    body = " ".join(
+        " ".join(str(line) for line in (item.get("lines") or []))
+        if isinstance(item, dict) else " ".join(str(line) for line in (item[1] or []))
+        for item in (sections or [])).lower()
+    rows = []
+    for criterion in criteria:
+        where = [heading for heading in headings if _covers(heading, criterion.get("name"))]
+        elements = []
+        for element in criterion.get("required_elements") or []:
+            wanted = _normalise(element)
+            found = bool(wanted) and wanted in _normalise(body)
+            elements.append({"text": element, "found": found, "where": "" if not found else "body"})
+        missing = [row["text"] for row in elements if not row["found"]]
+        if where and not missing:
+            status = "addressed"
+        elif where or any(row["found"] for row in elements):
+            status = "partially"
+        else:
+            status = "gap"
+        rows.append({"name": criterion.get("name"), "weight": criterion.get("weight"),
+                     "weight_text": criterion.get("weight_text"), "status": status,
+                     "where": where, "elements": elements,
+                     "note": ("no heading or sentence addresses it" if status == "gap" else
+                              ("stated but not yet shown: " + "; ".join(missing) if missing else ""))})
+    weighted = any(row["weight"] is not None for row in rows)
+    blocking = [row["name"] for row in rows
+                if row["status"] == "gap" and (row["weight"] is not None or not weighted)]
+    gaps = [row["name"] for row in rows if row["status"] == "gap"]
+    return {"criteria": rows, "count": len(rows),
+            "addressed": len([row for row in rows if row["status"] == "addressed"]),
+            "partial": len([row for row in rows if row["status"] == "partially"]),
+            "gaps": gaps, "blocking": blocking,
+            "gate": "blocked" if blocking else "clear",
+            "scored": False, "weights_stated": weighted}
+

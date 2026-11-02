@@ -10,10 +10,11 @@ import json
 import pathlib
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, "src")
 
-from bp.product import rubric
+from bp.product import completion, paper, rubric  # noqa: E402
 
 TABLE = """BA 101 - Group Business Report (30% of the course grade)
 
@@ -235,6 +236,164 @@ Cite every source in APA or Harvard style.
                        "urllib", "socket", "requests", "http.client", "openai", "anthropic"):
             self.assertNotIn(banned, source,
                              "the rubric reader must stay offline and outside the frozen core")
+
+
+BRIEF = ("A grocery retailer is reviewing growth options before deciding whether to open a new "
+         "store format or launch a private-label range.")
+INDUSTRY = "grocery retail"
+
+TWO_CRITERIA = """| Criterion | Weight | Descriptor |
+| --- | --- | --- |
+| Market penetration | 50% | existing markets with existing products |
+| Recommendations | 50% | actions follow from the findings |
+"""
+
+ELEMENT_MISSING = """| Criterion | Weight | Required |
+| --- | --- | --- |
+| Market penetration | 100% | a five-year forecast |
+"""
+
+WITH_TOLERANCE = """| Criterion | Weight |
+| --- | --- |
+| Market penetration | 50% |
+| Discussion | 50% |
+
+Word count: 2,500 words (+/- 10%)
+"""
+
+NO_TOLERANCE = """| Criterion | Weight |
+| --- | --- |
+| Market penetration | 50% |
+| Discussion | 50% |
+
+Word count: 2,500 words
+"""
+
+
+def _academic(query, databases=None, limit=10, year_from=None):
+    """A source whose title follows the query, so the cell gate can judge it."""
+    return {"results": [{
+        "title": "Grocery retail " + query[:70],
+        "abstract": "Evidence on the growth option named in the query. A second sentence.",
+        "authors": "Ada Lovelace", "authors_list": ["Ada Lovelace"], "year": 2024,
+        "venue": "Journal of Marketing", "doi": "10.1/" + str(abs(hash(query)) % 1000000),
+        "url": "https://doi.org/10.1/x", "database": "OpenAlex"}], "errors": [], "skipped": []}
+
+
+def _web(query, region="Global", limit=10, category=None, fast=False):
+    return {"results": [], "notice": "Web search is not configured.", "sites": []}
+
+
+def _complete(rubric_text):
+    with mock.patch("bp.product.sources.search_academic", side_effect=_academic), \
+            mock.patch("bp.product.sources.search_web", side_effect=_web):
+        return completion.complete("template_ansoff", BRIEF, industry=INDUSTRY,
+                                   rubric=rubric_text)
+
+
+def _draft(rubric_text):
+    return completion.draft(_complete(rubric_text))
+
+
+class RubricCoverageTest(unittest.TestCase):
+    """E-rub-019…026: a rubric is measured against the paper, never scored."""
+
+    def test_e_rub_019__a_heading_that_names_the_criterion_addresses_it(self):
+        report = _draft(TWO_CRITERIA)
+        rows = {row["name"]: row for row in report["rubric"]["criteria"]}
+        self.assertEqual(rows["Market penetration"]["status"], "addressed")
+        self.assertIn("market penetration",
+                      [heading.lower() for heading in rows["Market penetration"]["where"]],
+                      "the heading that covers the criterion is named")
+
+    def test_e_rub_020__a_criterion_the_paper_never_mentions_is_a_named_gap(self):
+        report = _draft(TWO_CRITERIA)
+        rows = {row["name"]: row for row in report["rubric"]["criteria"]}
+        self.assertEqual(rows["Recommendations"]["status"], "gap")
+        self.assertEqual(report["rubric"]["gaps"], ["Recommendations"])
+        self.assertEqual(report["rubric"]["blocking"], ["Recommendations"])
+        self.assertEqual(report["rubric_gate"], "blocked")
+
+    def test_e_rub_021__a_stated_element_that_is_absent_downgrades_to_partial(self):
+        report = _draft(ELEMENT_MISSING)
+        row = report["rubric"]["criteria"][0]
+        self.assertEqual(row["status"], "partially")
+        self.assertEqual([item["text"] for item in row["elements"]], ["a five-year forecast"])
+        self.assertFalse(row["elements"][0]["found"])
+        self.assertIn("a five-year forecast", row["note"])
+
+    def test_e_rub_022__the_appendix_reports_coverage_and_cannot_satisfy_it(self):
+        report = _draft(TWO_CRITERIA)
+        headings = [section["heading"] for section in report["sections"]]
+        self.assertIn("Rubric coverage", headings)
+        self.assertLess(headings.index("Rubric coverage"), headings.index("References"),
+                        "the appendix sits before the reference list")
+        self.assertIn("Recommendations", " ".join(report["sections"][headings.index("Rubric coverage")]["lines"]))
+        self.assertEqual(report["rubric"]["criteria"][1]["status"], "gap",
+                         "the appendix naming a criterion must not make it addressed")
+
+
+    def _paper(self):
+        return [paper.section("Introduction", 1, ["A sentence about the case."]),
+                paper.section("Conclusion", 1, ["A sentence that concludes the paper."]),
+                paper.section("References", 1, ["No sources were used."])]
+
+    def test_e_rub_023__the_word_budget_is_reported_and_never_guessed(self):
+        report = _draft(WITH_TOLERANCE)
+        target = report["word_target"]
+        self.assertEqual(target["words"], 2500)
+        self.assertEqual(target["range"], [2250, 2750])
+        self.assertEqual(target["actual"], report["words"],
+                         "the count reported is the paper's own count")
+        self.assertFalse(target["met"], "a short draft is reported as short, never as met")
+        without = _draft(NO_TOLERANCE)["word_target"]
+        self.assertIsNone(without["met"], "a bare count does not say floor or ceiling")
+        self.assertIsNone(without["range"])
+        self.assertIn("for you to judge", without["note"])
+
+    def test_e_rub_024__a_weighted_criterion_gap_blocks_export(self):
+        coverage = _draft(TWO_CRITERIA)["rubric"]
+        state = {"rubric": coverage}
+        required = paper.missing(state, "A position.")
+        self.assertTrue(any("Recommendations" in item for item in required), required)
+        report = paper.check(self._paper(), "ansoff", "A position.", {}, state=state)
+        self.assertFalse(report["pass"], "an unaddressed weighted criterion blocks export")
+
+    def test_e_rub_025__turning_the_gate_off_demotes_the_rows_to_warnings(self):
+        coverage = _draft(TWO_CRITERIA)["rubric"]
+        state = {"rubric": coverage, "rubric_gate": False}
+        self.assertFalse(paper.rubric_gate_on(state))
+        self.assertEqual(paper.missing(state, "A position."), [],
+                         "with the gate off nothing is required before export")
+        report = paper.check(self._paper(), "ansoff", "A position.", {}, state=state)
+        self.assertTrue(report["pass"])
+        self.assertTrue(any(issue["type"] == "rubric_criterion_gap" and issue["severity"] == "medium"
+                            for issue in report["issues"]),
+                        "the gap is still reported, as a warning")
+
+    def test_e_rub_026__an_unreadable_rubric_is_refused_before_any_research(self):
+        with self.assertRaises(ValueError) as refused:
+            _complete("Please read the attached case and write a short report about the company.")
+        self.assertIn("No assessment criterion", str(refused.exception))
+
+    def test_e_rub_027__coverage_is_deterministic_and_scores_nothing(self):
+        first, second = _draft(TWO_CRITERIA)["rubric"], _draft(TWO_CRITERIA)["rubric"]
+        self.assertEqual(first, second)
+        self.assertFalse(first["scored"])
+        for key in first:
+            if key == "scored":
+                continue
+            for word in ("mark", "grade", "score", "percentage"):
+                self.assertNotIn(word, key.lower())
+
+    def test_e_rub_028__a_paper_without_a_rubric_is_unchanged(self):
+        with mock.patch("bp.product.sources.search_academic", side_effect=_academic), \
+                mock.patch("bp.product.sources.search_web", side_effect=_web):
+            plain = completion.complete("template_ansoff", BRIEF, industry=INDUSTRY)
+        self.assertNotIn("rubric", plain)
+        report = completion.draft(plain)
+        self.assertNotIn("Rubric coverage", [section["heading"] for section in report["sections"]])
+        self.assertNotIn("rubric", report)
 
 
 if __name__ == "__main__":
