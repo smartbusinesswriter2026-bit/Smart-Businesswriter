@@ -9,7 +9,7 @@
 | Measure | Documented baseline | Measured this session (opening) | Measured this session (closing) |
 |---|---|---|---|
 | Tests executed | ~2553 | **2548** | **2627** |
-| Failures | ~84 | **86** | **68** |
+| Failures | ~84 | **86** | **68** on the closing full run, **66** on `scripts/ci.py` after the docs repair (the authoritative latest number) |
 | Errors | ~12 | **13** | **13** |
 | Framework-completion failures | ~55–62 | 61 of the 99 (see list) | 61 |
 
@@ -29,6 +29,20 @@ than its own loader count — so the honest comparison is on the failure **set**
 
 Failure-set diff: `qa/baseline/failure_list.txt` vs `qa/baseline/failure_list_after.txt`.
 
+**Variance between the three measurements, and why.** The opening run and the closing run agree on
+the failure *set*; the raw counts differ for two reasons only:
+
+- The closing full run (`qa/baseline/_after_err.txt`) started at 18:44, **before** the `HOME.md` /
+  `DECISIONS.md` drift was repaired (18:50), so it still contains the two `test_docs_sync` failures.
+  Its 68 = those 2 + the 66 below.
+- `scripts/ci.py` ran at 18:59, after the repair: **66 failures** — the same set minus the two
+  `test_docs_sync` tests, which pass (`pytest tests/test_docs_sync.py -q` → 7 passed,
+  `qa/baseline/docs_sync_now.txt`). It still contains the intermittent Brave→Firecrawl test, which
+  passed in isolation (`28 passed`).
+
+`qa/baseline/ci_failure_list.txt` contains **zero** failure names that are not already in the
+opening list.
+
 ## 2. Gates (Phase 0 and Phase 4)
 
 | Gate | Result | Evidence |
@@ -39,7 +53,7 @@ Failure-set diff: `qa/baseline/failure_list.txt` vs `qa/baseline/failure_list_af
 | `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | `qa/baseline/econ_shelf_after.txt` |
 | `python scripts/ui_smoke.py --url http://127.0.0.1:8001` | **0 failure(s)** | `qa/baseline/ui_smoke_after.txt` |
 | Live click-through, 12 accounting tiles on 8001 | **0 failure(s)**, `accounts` through its two checkpoints | `qa/evidence/accounting/clickthrough.md` / `.json` |
-| `python scripts/ci.py` | see §5 | `qa/baseline/ci_out.txt` |
+| `python scripts/ci.py` | **2 of 3 steps passed**: `unit tests` FAIL (2627 tests, 66 failures, 13 errors — the 66 are the carried-forward historical set, listed in `qa/baseline/ci_failure_list.txt` with **zero** new names), `shelf audit and frozen contract` PASS, `page syntax` (node `--check`) PASS | `qa/baseline/ci_out.txt`, `qa/baseline/ci_err.txt` |
 
 ## 3. Subject passed so far
 
