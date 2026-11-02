@@ -111,8 +111,15 @@ historical carried-forward set — worksheet/profile/prompt failures on other sh
 
 ## 6. Commit status — read this before committing anything
 
-Committed in this session (finance only — **explicit paths, never `git add qa`**, because another session's
-economics manual/suite/probes live in the same tree):
+**Landed:** `d871503` — `fix(finance): the paper prints money, and the shelf finally has a manual and a
+suite` (58 files: the manual, the suite, the probes and evidence, `src/bp/product/chat.py`,
+`tests/test_finance_additions.py`, the six docs, `qa/QA_STATE.md`, `qa/QA_DEFECTS.md`).
+Post-commit verification: `tests/test_subject_finance_acceptance.py tests/test_finance_additions.py
+tests/test_docs_sync.py` → **80 passed** (`qa/baseline/fin_post_commit.txt`).
+
+Committed finance only — **explicit paths, never `git add qa`**, because another session's economics
+manual/suite/probes live in the same tree:
+
 
 ```
 git add business_pipeline_v0.12/business_pipeline/qa/manual/finance.md \
