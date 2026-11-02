@@ -1058,7 +1058,7 @@ class H(BaseHTTPRequestHandler):
         return self._send(201, product_intake.attach_table(record["id"], table))
 
     def _session_paper(self, session_id, b):
-        """The delivered computation as a downloadable paper: the same record, as Word or Markdown.
+        """The delivered computation as a downloadable paper: the same record, as Word or Excel.
 
         It adds no sentence the screen does not show.  The declared sources are the student's own
         citations (B-182): their own section, headed "not evidence", never merged into the

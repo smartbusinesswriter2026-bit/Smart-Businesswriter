@@ -1,3 +1,35 @@
+## 2026-11-03 — [core] Economics shelf session 2: two label defects fixed under B-190, one blocked, and the shelf's missing manual written
+
+**Ask.** The owner's work order: audit and repair the pipeline one subject shelf at a time, writing
+the acceptance manual that does not exist, then proving it with tests and fixing every defect —
+without weakening a check or inventing evidence. The session parameter said `economics`; the
+recorded order said `finance` next, so I asked, and the owner chose `economics`, reminding me that
+`finance` is "doing some fixing" in another session. It stays skipped.
+
+**Did.** (1) **Baseline measured, not assumed** — `ab0be0d`: 2627 tests, 66 failures, 13 errors,
+634.8 s (`qa/baseline/2026-11-02-ab0be0d-suite-err.txt`). **None of the 79 named failures belongs to
+economics**; they are all worksheet/framework-completion and one network test, and they carry
+forward to their own shelves. (2) **The manual** — `qa/manual/economics.md`, ten sections, 59
+generated per-tool contract rows, 84 E-rows, a scoreboard and the declared gaps. (3) **The suite** —
+`tests/test_subject_economics_acceptance.py`, 83 tests (59 generated per tool, 24 cross-cutting),
+including 23 worked examples recomputed by hand from the student guide rather than from the method.
+(4) **The sweep** — a unit audit over all 59 tools found that `labour_market` typed a share and a
+ratio as currency; a report scan over all 59 presets found that the `currency` paper mislabelled its
+source amount. Both were **B-190**, fixed with trap tests. `docs/CURRICULUM_MAP.md`'s "55 tools" was
+`D-ECO-08`, fixed. (5) **Two false alarms retired, not written up as defects**: `@unit` and a `None`
+`typing` hook are both handled by `orchestrator.py` (lines 227, 233-234, 270), and all 151 `related`
+ids resolve (131 local, 20 cross-shelf). (6) **One carried-forward claim re-tested and closed** —
+session 1's `tax_incidence` units defect does not reproduce (`typing("producer_share")` is
+`("ratio", 4)`), because B-179 renamed the duplicated hooks. (7) **A guide paragraph** on what a
+student can attach, so the intake/brief/dataset/sources/rubric work is declared on this shelf.
+
+**Left.** `D-ECO-02` — tightness divides a count by a rate — is BLOCKED on the owner choosing the
+replacement definition and whether a new input enters the frozen schema; the owner has already ruled
+that the absent-denominator case must refuse with a named gap, never divide by a rate. The
+documented test count is re-measured in the follow-up commit, because another lane held uncommitted
+edits in the five docs that carry it while this work landed.
+
+
 ## 2026-11-03 - [portfolio] The Portfolio Lab teaches itself: four worked cases, click by click
 
 **Ask.** "make users understand and know how to use it by teaching and guiding them through examples. remember when i asked you for an example using a case where you explain it in simpler terms? do the same but oriented for finance students. use 3 or more different cases depending on how best it can illustrate its capability. you may add but 3 is the lowest. then guide students step by step on what to click to achieve desired result. base it on your experiences on how student use you in this particualr field only that this pipeliune is isntneded to exceed that capability as it can record multiple weeks and others. as usual, test and debug before reporting success."
