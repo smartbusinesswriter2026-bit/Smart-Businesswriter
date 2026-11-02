@@ -1,0 +1,148 @@
+{
+ "base": "http://127.0.0.1:8001",
+ "page": {
+  "status": 200,
+  "bytes": 806942,
+  "markers": {
+   "Complete a framework": true,
+   "With computation": true,
+   "Start here": true,
+   "All subjects": true
+  },
+  "templates_status": 200,
+  "shelf_templates": {
+   "template_project_charter": true,
+   "template_wbs": true,
+   "template_raci": true,
+   "template_risk_register": true,
+   "template_stakeholder_plan": true,
+   "template_lessons_learned": true
+  },
+  "presets_status": 200,
+  "presets_shape": [
+   "abc",
+   "abtest",
+   "accounts",
+   "alpha",
+   "anova",
+   "attribution",
+   "bond",
+   "bop"
+  ]
+ },
+ "tools": {
+  "npv": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "irr": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "dpayback": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "projectmetrics": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "scenario": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "case_decision": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "forecast": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "cpm": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "evm": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "leveling": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "crashing": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "calendar": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "multiproject": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "schedrisk": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "decisiontree": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "realoption": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "mcda": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "montecarlo": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  }
+ },
+ "screenshots": [
+  {
+   "name": "01-shelf-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "02-shelf-390.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "03-calculator-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "04-delivered-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/chat"
+  }
+ ],
+ "console": []
+}

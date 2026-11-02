@@ -1,0 +1,30 @@
+﻿self = <test_framework_profiles.ProfileTest testMethod=test_a_framework_without_a_profile_has_no_extension>
+
+    def test_a_framework_without_a_profile_has_no_extension(self):
+        # A template with no profile yet: the customer journey is catalogued but
+        # not built, so it must fall back to its plain worksheet.
+>       self.assertIsNone(framework_profiles.describe_extra("template_customer_journey"))
+E       AssertionError: {'template': 'template_customer_journey', 'label': 'Customer Journey', 'title_prefix': 'Customer Journey Analysis', 'subject': 'marketing', 'unit': {'example': 'smartphones, grocery retail, banking', 'field': 'industry', 'help': 'The customer journey is read for a firm in a market. Name the industry or market.', 'label': 'Industry or market', 'refuse': 'The customer journey is read for a firm in a market. Name the industry or market.'}, 'ratings': False, 'assumption': 'probe', 'styles': ['apa', 'harvard'], 'lengths': [{'key': 'short', 'label': 'Short (600-1,200 words)'}, {'key': 'mid', 'label': 'Mid (1,200-2,500 words)'}, {'key': 'long', 'label': 'Long (2,500-5,000 words)'}], 'blocks': [{'key': 'awareness', 'label': 'Awareness', 'prompt': 'How customers first learn about the offer', 'fill': 'research'}, {'key': 'consideration', 'label': 'Consideration', 'prompt': 'How customers evaluate the offer', 'fill': 'research'}, {'key': 'purchase', 'label': 'Purchase', 'prompt': 'How customers buy the offer', 'fill': 'research'}, {'key': 'retention', 'label': 'Retention', 'prompt': 'How customers are kept after purchase', 'fill': 'research'}, {'key': 'advocacy', 'label': 'Advocacy', 'prompt': 'How customers recommend the offer', 'fill': 'research'}], 'fills': [{'key': 'research', 'label': 'Research retrieves external evidence for this part.'}, {'key': 'auto', 'label': 'Researched where evidence exists, otherwise taken from your own words.'}, {'key': 'quote', 'label': 'Taken from your own words in the instruction, verbatim.'}, {'key': 'gap', 'label': 'Only you can state this part. It stays a named gap until you do.'}]} is not None
+
+tests\test_framework_profiles.py:82: AssertionError
+__________ ProfileTest.test_the_label_is_the_profiles_not_a_literal ___________
+
+self = <test_framework_profiles.ProfileTest testMethod=test_the_label_is_the_profiles_not_a_literal>
+
+    def test_the_label_is_the_profiles_not_a_literal(self):
+        self.assertEqual(framework_profiles.label_for("template_pestel"), "PESTEL")
+        self.assertEqual(framework_profiles.label_for("template_five_forces"), "Porter's Five Forces")
+        # A template with no profile of its own falls back to the default
+        # profile's label; it never borrows another framework's name.
+>       self.assertEqual(framework_profiles.label_for("template_customer_journey"),
+                         "Porter's Five Forces")
+E       AssertionError: 'Customer Journey' != "Porter's Five Forces"
+E       - Customer Journey
+E       + Porter's Five Forces
+
+tests\test_framework_profiles.py:101: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_product_subjects.py::ServedUiContractTest::test_the_rail_carries_the_portfolio_lab_above_the_calculator
+FAILED tests/test_framework_profiles.py::ProfileTest::test_a_framework_without_a_profile_has_no_extension
+FAILED tests/test_framework_profiles.py::ProfileTest::test_the_label_is_the_profiles_not_a_literal
+3 failed, 234 passed in 36.03s

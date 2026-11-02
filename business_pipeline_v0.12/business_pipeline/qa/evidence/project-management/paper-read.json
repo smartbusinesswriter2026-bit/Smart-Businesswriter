@@ -1,0 +1,155 @@
+{
+ "template": "template_project_charter",
+ "findings": [
+  {
+   "rule": "V-01",
+   "where": "H2 Objective",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 In scope",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Out of scope",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Deliverables",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Sponsor and governance",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Budget and funding",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Milestones",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Success measures",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Assumptions",
+   "detail": "filled from the framework's own background with no source and no gap"
+  },
+  {
+   "rule": "V-01",
+   "where": "H2 Constraints and dependencies",
+   "detail": "filled from the framework's own background with no source and no gap"
+  }
+ ],
+ "files": [
+  "qa\\evidence\\project-management\\project-charter.docx",
+  "qa\\evidence\\project-management\\project-charter-nosource.docx"
+ ],
+ "headings": [
+  "November 02, 2026",
+  "Introduction",
+  "Context and Unit",
+  "Framework Overview",
+  "Objective",
+  "In Scope",
+  "Out of Scope",
+  "Deliverables",
+  "Sponsor and Governance",
+  "Budget and Funding",
+  "Milestones",
+  "Success Measures",
+  "Assumptions",
+  "Constraints and Dependencies",
+  "Discussion",
+  "Block-by-Block Evidence",
+  "Implications",
+  "Limitations",
+  "Conclusion",
+  "References"
+ ],
+ "words": 872,
+ "blocks": [
+  {
+   "key": "objective",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "scope_in",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "scope_out",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "deliverables",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "governance",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "budget",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "milestones",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "success_measures",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "assumptions",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  },
+  {
+   "key": "constraints",
+   "items": [
+    "background"
+   ],
+   "gap": false
+  }
+ ],
+ "nosource_disclosed": true
+}
