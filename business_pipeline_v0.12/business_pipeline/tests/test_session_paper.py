@@ -53,8 +53,8 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
         self.assertTrue(any("missing data" in line for line in honesty))
         self.assertFalse(any(line.strip().endswith(":") for line in honesty))
 
-    def test_the_markdown_carries_the_figure_and_the_checks(self):
-        text = session_paper.markdown(DELIVERY)
+    def test_the_paper_text_carries_the_figures_and_the_readable_checks(self):
+        text = "\n".join(line for _h, lines in session_paper.sections(DELIVERY) for line in lines)
         self.assertIn("(5.26)", text)
         self.assertIn("Second implementation agrees", text)
         self.assertNotIn("second_implementation_agrees", text,

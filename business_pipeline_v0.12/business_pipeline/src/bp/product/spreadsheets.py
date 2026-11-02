@@ -124,7 +124,6 @@ def to_spreadsheetml(bundle):
         ("Title", str(bundle.get("title") or "not recorded")),
         ("Method", str(bundle.get("method") or "not recorded")),
         ("Tier", str(bundle.get("tier") or "not recorded")),
-        ("Spec hash", str(bundle.get("spec_hash") or "not recorded")),
         ("Outputs hash", str(bundle.get("outputs_hash") or "not recorded")),
         ("Created at", str(bundle.get("created_at") or "not recorded")),
     ]
@@ -320,7 +319,6 @@ def to_xlsx(bundle):
         [("Title", True), str(bundle.get("title") or "not recorded")],
         [("Method", True), str(bundle.get("method") or "not recorded")],
         [("Tier", True), str(bundle.get("tier") or "not recorded")],
-        [("Spec hash", True), str(bundle.get("spec_hash") or "not recorded")],
         [("Outputs hash", True), str(bundle.get("outputs_hash") or "not recorded")],
         [("Created at", True), str(bundle.get("created_at") or "not recorded")],
     ]

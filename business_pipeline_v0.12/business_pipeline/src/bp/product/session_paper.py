@@ -31,17 +31,58 @@ def _plain(name):
     return (text[:1].upper() + text[1:]) if text else ""
 
 
-def _render(key, value, method):
+def _recorded_precision(appendix):
+    """{key: (unit, precision)} from the figures the core recorded for this delivery.
+
+    A template delivered through the core (`case_decision`) is not a `Method`, and its
+    per-alternative keys (`npv_A1`) are not in any method's `typing` table.  The core
+    still records the unit and the precision of every figure it emits, in
+    `appendix["analysis"]["artifacts"]`, so the paper reads that declaration instead of
+    printing the Decimal as stored (D-MGT-08, B-197).
+    """
+    out = {}
+    analysis = (appendix or {}).get("analysis") or {}
+    for entry in (analysis.get("artifacts") or []) if isinstance(analysis, dict) else []:
+        if not isinstance(entry, dict) or entry.get("precision") is None:
+            continue
+        try:
+            pair = (entry.get("unit"), int(entry["precision"]))
+        except (TypeError, ValueError):
+            continue
+        for key in (entry.get("id"), entry.get("metric")):
+            if key:
+                out.setdefault(str(key), pair)
+    return out
+
+
+def _flatten(value):
+    """A nested value as words: no braces, no quotes, no Python repr in a paper.
+
+    `_render` printed `Facts: {'text': 'A supermarket…', 'provenance': 'synthetic'}, …`
+    because a list of dicts was joined with `str()`.  P4 forbids a Python repr in a
+    paper, so every level is spelled out instead.
+    """
+    if isinstance(value, dict):
+        return "; ".join("%s: %s" % (_plain(key), _flatten(item)) for key, item in value.items())
+    if isinstance(value, (list, tuple)):
+        return ", ".join(_flatten(item) for item in value)
+    text = str(value)
+    return "" if text in ("None", "null") else text
+
+
+def _render(key, value, method, recorded=None):
     """One figure as a reader can use it: the core's declared precision, no Python repr."""
     from decimal import Decimal, InvalidOperation
     if isinstance(value, (list, tuple)):
-        return "%s: %s" % (_plain(key), ", ".join(str(item) for item in value))
+        return "%s: %s" % (_plain(key), _flatten(value))
     unit = precision = None
     if method is not None and getattr(method, "typing", None):
         try:
             unit, precision = method.typing(key)
         except Exception:                                   # noqa: BLE001
             unit = precision = None
+    if precision is None and recorded:
+        unit, precision = (recorded.get(str(key)) or (None, None))
     text = str(value)
     if precision is not None:
         try:
@@ -56,19 +97,21 @@ def _figure_lines(appendix):
     """The inputs and outputs as readable lines, at the method's own declared precision."""
     from ..methods import LIBRARY
     record = (appendix or {}).get("reperform") or {}
-    method_id = ((appendix or {}).get("method") or {}).get("id")
+    method_id = ((appendix or {}).get("method") or {}).get("id") \
+        or ((appendix or {}).get("reperform") or {}).get("method", {}).get("id")
     method = LIBRARY.get(method_id) if method_id else None
+    recorded = _recorded_precision(appendix)
     lines = []
     inputs = record.get("inputs") or {}
     if isinstance(inputs, dict) and inputs:
         lines.append("What you declared")
-        lines.extend(_render(key, value, method) for key, value in inputs.items())
+        lines.extend(_render(key, value, method, recorded) for key, value in inputs.items())
     outputs = record.get("outputs") or {}
     if isinstance(outputs, dict) and outputs:
         if lines:
             lines.append("")
         lines.append("What was computed")
-        lines.extend(_render(key, value, method) for key, value in outputs.items())
+        lines.extend(_render(key, value, method, recorded) for key, value in outputs.items())
     return lines
 
 
@@ -114,18 +157,6 @@ def sections(delivery, declared_sources=None, title=None):
     # The record itself still exists in the store and every figure remains re-runnable
     # from it; the paper simply no longer prints the identifier.
     return out
-
-
-def markdown(delivery, declared_sources=None, title=None):
-    """The paper as Markdown, for the reader who wants the text."""
-    name = title or title_for(delivery)
-    parts = ["# " + name, ""]
-    for heading, lines in sections(delivery, declared_sources, name):
-        parts.append("## " + heading)
-        parts.append("")
-        parts.extend(lines)
-        parts.append("")
-    return "\n".join(parts).rstrip() + "\n"
 
 
 def docx_bytes(delivery, declared_sources=None, title=None):
