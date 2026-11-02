@@ -378,10 +378,19 @@ def handle(method, path, body=None):
             try:
                 document = instrument_store.create(body.get("symbol"), body.get("label"),
                                                    body.get("kind") or "equity", body.get("sector"))
-                if body.get("record"):
-                    document = instrument_store.record(document["id"], provider=body.get("provider") or "alphavantage")
             except (instrument_store.InstrumentError, ValueError) as error:
                 return _error(error)
+            if body.get("record"):
+                try:
+                    document = instrument_store.record(document["id"], provider=body.get("provider") or "alphavantage")
+                except (instrument_store.InstrumentError, ValueError) as error:
+                    # "Create and record" is one action: a symbol whose first price cannot be
+                    # sourced must not be left behind as an empty row on the watch list.
+                    try:
+                        instrument_store.delete(document["id"])
+                    except (instrument_store.InstrumentError, ValueError):
+                        pass
+                    return _error(error)
             return 201, document
         instrument_id = segments[1]
         if len(segments) == 2:

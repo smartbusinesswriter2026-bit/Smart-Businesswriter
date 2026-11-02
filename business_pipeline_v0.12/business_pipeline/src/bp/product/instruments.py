@@ -197,7 +197,14 @@ def record(instrument_id, quote=None, fetch=None, provider="alphavantage"):
             quote = fetcher(document["symbol"])
         except marketdata.MarketDataError as error:
             raise InstrumentError(str(error))
-    snapshot = _snapshot_from_quote(quote)
+    try:
+        snapshot = _snapshot_from_quote(quote)
+    except InstrumentError as error:
+        # Name the symbol and the provider: "the quoted price must be positive" on its own
+        # leaves a student guessing which ticker failed and why.
+        raise InstrumentError(
+            "%s: %s. No price was stored. Check that the ticker is listed on the provider and "
+            "that the %s key is configured." % (document.get("symbol") or "the instrument", error, provider))
     snapshots = [s for s in document.get("snapshots", []) if s.get("as_of") != snapshot["as_of"]]
     snapshots.append(snapshot)
     snapshots.sort(key=lambda s: str(s.get("as_of") or ""))

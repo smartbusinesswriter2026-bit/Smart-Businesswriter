@@ -138,7 +138,9 @@ class BundleRouteTest(unittest.TestCase):
 
 class PageCarriesTheGuideTest(unittest.TestCase):
     def test_the_page_carries_the_guide_and_the_chooser(self):
-        for marker in ("pfGuidanceCard", "Choose holdings from the reference list",
+        # The B-185 redesign put the reference list behind a collapsible card, so the
+        # chooser is reached through "Browse the reference list" instead of a bare heading.
+        for marker in ("pfGuidanceCard", "Browse the reference list",
                        "data-pfinstrument", "data-pfsample", "pfInstrumentRows",
                        "/api/portfolios/instruments"):
             self.assertIn(marker, PAGE)

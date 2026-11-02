@@ -86,5 +86,36 @@ class RoutesPresentTest(unittest.TestCase):
             self.assertIn(marker, source)
 
 
+class ButtonFeedbackTest(unittest.TestCase):
+    """Every action in the lab and the book says what happened (B-185 follow-up).
+
+    A click that re-renders silently leaves a student unable to tell success from a
+    dropped request, so each action that changes the book now confirms itself.
+    """
+
+    def test_the_book_market_panel_no_longer_carries_the_disclaimer(self):
+        self.assertNotIn("Market data for the book (retrieved, not verified)", PAGE)
+        self.assertIn("Market data for the book", PAGE)
+
+    def test_each_action_confirms_itsown_success(self):
+        for marker in ("Snapshot created",
+                       "Recorded today's sourced price for ",
+                       "Holding \" + symbol + \" removed.",
+                       "Journal entry for ",
+                       "Added and recorded: ",
+                       "Already on the watch list: "):
+            self.assertIn(marker, PAGE)
+
+    def test_the_in_book_controls_are_rendered_and_bound(self):
+        for marker in ('id="pfaddholding"', 'data-pfremove', 'id="pfsnapshot"', 'id="pffetch"',
+                       'id="pfhimportbtn"', 'id="pfpimportbtn"', 'id="pfhfile"', 'id="pfpfile"',
+                       'id="pfperform"', 'id="pfsavejournal"', 'id="pfexport2"'):
+            self.assertIn(marker, PAGE)
+        for handler in ('$("#pfsnapshot")', '$("#pffetch")', '$("#pfhimportbtn")',
+                        '$("#pfpimportbtn")', '$("#pfhfile")', '$("#pfpfile")',
+                        '$("#pfperform")', '$("#pfsavejournal")', '$("#pfaddholding")'):
+            self.assertIn(handler, PAGE)
+
+
 if __name__ == "__main__":
     unittest.main()

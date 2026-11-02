@@ -56,7 +56,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{font-family:var(--font);font-size:17.8px;line-height:1.5;color:var(--text);background:var(--canvas);
+body{font-family:var(--font);font-size:16.8px;line-height:1.5;color:var(--text);background:var(--canvas);
      -webkit-font-smoothing:antialiased}
 a{color:var(--navy-500)}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -259,10 +259,10 @@ main{padding:28px 32px 96px;max-width:1180px;width:100%;margin:0 auto;flex:1 1 a
              radial-gradient(40% 60% at 80% 10%,rgba(20,40,90,.06),rgba(20,40,90,0) 70%);
   pointer-events:none}
 .hero img{height:103px;width:auto;margin-top:6px;filter:drop-shadow(0 6px 16px rgba(16,24,40,.10))}
-.hero h1{font-size:45px;line-height:1.08;margin:8px 0 10px;font-weight:750;letter-spacing:-.03em;color:var(--navy-900)}
-.hero p{margin:0 auto;max-width:62ch;color:var(--text-2);font-size:19px}
+.hero h1{font-size:43px;line-height:1.08;margin:8px 0 10px;font-weight:750;letter-spacing:-.03em;color:var(--navy-900)}
+.hero p{margin:0 auto;max-width:62ch;color:var(--text-2);font-size:18px}
 /* the owner's slogan, under the wordmark: one step below it in weight */
-.hero .slogan{margin:12px auto 0;max-width:60ch;font-size:19px;line-height:1.5;color:var(--text-2)}
+.hero .slogan{margin:12px auto 0;max-width:60ch;font-size:18px;line-height:1.5;color:var(--text-2)}
 /* the promise carries the weight and steps up a little; the proof under it
    steps down and speaks aside */
 .hero .slogan-lead{font-size:20.8px;font-weight:700}
@@ -283,7 +283,7 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
   transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease}
 .actionbox:hover{box-shadow:var(--sh-3,rgba(16,24,40,.14) 0 10px 28px -12px)}
 .actionbox:focus-within{border-color:var(--green-600);box-shadow:var(--sh-2),0 0 0 4px rgba(2,161,94,.12)}
-.actionbox textarea{min-height:104px;font-size:19px;line-height:1.55;border-color:transparent;background:transparent;padding:6px 4px}
+.actionbox textarea{min-height:104px;font-size:18px;line-height:1.55;border-color:transparent;background:transparent;padding:6px 4px}
 .actionbox textarea:focus{background:transparent;outline:none}
 .actionbox textarea::placeholder{color:var(--text-3)}
 .actionrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
@@ -295,6 +295,12 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .runbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .runbtn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
 .actionbox.dragging{border-color:var(--green-600);box-shadow:var(--sh-2),0 0 0 3px rgba(2,161,94,.16)}
+/* The chat column: the composer and the conversation under it are one reading
+   column, the width a chat gets in Codex or ChatGPT, instead of a box stretched
+   across the whole shell. Centred, and it collapses to the screen width on a
+   narrow one. */
+.actionbox,#chatcard{max-width:768px;margin-left:auto;margin-right:auto}
+#chatcard{margin-top:16px}
 #attachbtn{align-self:flex-start;justify-content:center}
 .attachments{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .attachrow{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;border:1px solid var(--border);
@@ -510,6 +516,25 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .marketrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
 .marketrow label{font-size:14.6px;color:var(--text-2);display:flex;gap:6px;align-items:center}
 .marketrow input,.marketrow select{border:1px solid var(--border);border-radius:8px;padding:5px 7px;font-size:15px;background:var(--surface)}
+/* ---------- rates and FX: one lookup per card ----------
+   The panel used to be a single row of eight controls, which left the reader to
+   guess which button read which field. Now each lookup owns its own card: the
+   fields it reads, then its button, then nothing else. */
+.marketgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:12px;margin:12px 0 0}
+.lookupcard{display:flex;flex-direction:column;gap:9px;padding:12px 13px;border:1px solid var(--border-2);
+            border-radius:var(--r-md);background:var(--surface-2)}
+.lookupcard h4{margin:0;font-size:14.6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-700)}
+.lookupcard > p{margin:0;font-size:14.4px;line-height:1.45;color:var(--text-3)}
+.lookupfields{display:grid;grid-template-columns:1fr 1fr;gap:9px 10px}
+.lookupfield{display:flex;flex-direction:column;gap:3px;font-weight:600;color:var(--text-2)}
+.lookupfield.wide{grid-column:1 / -1}
+.lookupfield > span{font-size:13.4px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.lookupfield select,.lookupfield input{width:100%;min-height:34px;padding:7px 9px;font-family:inherit;font-size:15px;
+            font-weight:400;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.lookupfield select:focus,.lookupfield input:focus{outline:none;border-color:var(--green-600);
+            box-shadow:0 0 0 3px rgba(2,161,94,.14)}
+.lookupcard .btn{align-self:flex-start}
+.lookupnote{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--border-2);font-size:14.2px;line-height:1.5;color:var(--text-3)}
 .marketcard{border-left:3px solid var(--green-600);padding:8px 12px;margin-top:10px;background:var(--surface-2);border-radius:8px}
 .marketfoot{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-2);flex-wrap:wrap}
 .marketfoot-source{font-size:14px;color:var(--text-2);flex:1 1 auto;min-width:180px}
@@ -517,6 +542,18 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .doctext{white-space:pre-wrap;max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:6px;font-size:14.4px;background:var(--surface-2)}
 .capgroup{margin-top:18px}
 .subjectask{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* the three ways into a shelf are one control, not three: same pill, same
+   height, same weight, and no default favourite. The one you picked goes bold
+   and navy - that is the only thing that separates it from the other two. */
+.subjectask .quicklink{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:6px 14px;
+  font-size:15.4px;font-weight:600;line-height:1.2;border:1px solid var(--border);border-radius:var(--r-pill);
+  background:var(--surface);color:var(--navy-700);text-decoration:none;cursor:pointer;
+  transition:background .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease}
+.subjectask .quicklink:hover{border-color:var(--navy-300);background:var(--sunken);color:var(--navy-900)}
+.subjectask .quicklink:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+.subjectask .quicklink.is-active{font-weight:750;background:var(--navy-900);border-color:var(--navy-900);color:#fff;
+  box-shadow:var(--sh-1)}
+.subjectask .quicklink.is-active:hover{background:var(--navy-700);border-color:var(--navy-700);color:#fff}
 .toolrow{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border-2);padding:10px 0}
 .toolrow:last-child{border-bottom:none}
 .toolrow .tooltext{max-width:70ch}
@@ -1610,6 +1647,8 @@ async function createPortfolio() {
 
 function openPortfolio(id) {
   state.portfolioId = id;
+  /* The price date belongs to the book you were in: a new book starts today. */
+  state.pfDate = null;
   show("portfolio");
 }
 
@@ -1697,6 +1736,8 @@ function renderPortfolioWorkspace() {
   const holdingsFile = $("#pfhfile"); if (holdingsFile) holdingsFile.onchange = () => readFileInto(holdingsFile, "#pfhimport");
   const pricesFile = $("#pfpfile"); if (pricesFile) pricesFile.onchange = () => readFileInto(pricesFile, "#pfpimport");
   const snap = $("#pfsnapshot"); if (snap) snap.onclick = createSnapshot;
+  const priceDate = $("#pfdate");
+  if (priceDate) priceDate.onchange = () => { state.pfDate = priceDate.value; };
   $$("[data-pfremove]", out).forEach((button) => { button.onclick = () => removeHolding(button.dataset.pfremove); });
   $$("[data-pfgotab]", out).forEach((button) => {
     button.onclick = () => { state.portfolioTab = button.dataset.pfgotab; renderPortfolioWorkspace(); };
@@ -1802,7 +1843,7 @@ function pfHoldings(holdings) {
     pfChooser(data) + '</details>';
   if (books.length) {
     html += '<details class="card pfdetails"><summary><strong>Start from an example book</strong> <span class="muted">\u2014 examples, not advice</span></summary>' +
-      '<p class="muted" style="margin:0 0 8px">Each book shows a different level of diversification. Load one into the import box, read it, then replace every row with your own decision. Nothing is saved until you click Import holdings.</p>' +
+      '<p class="muted" style="margin:0 0 8px">These are examples, not advice: each book shows a different level of diversification. Load one into the import box, read it, then replace every row with your own decision. Nothing is saved until you click Import holdings.</p>' +
       '<div class="row">' + books.map((book) => '<button class="btn" type="button" data-pfsample="' + esc(book.id) + '">' + esc(book.label) + '</button>').join("") + '</div>' +
       books.map((book) => '<p class="muted" style="margin:8px 0 0"><strong>' + esc(book.label) + '.</strong> ' + esc(book.intent) + '</p>').join("") +
       '</details>';
@@ -1888,7 +1929,7 @@ function pfData(holdings, latest, snapshot) {
   let html = securitiesPanel() + '<div class="card" style="margin-top:14px"><h3>Prices and snapshot</h3>' +
     '<p class="muted">Enter one price per holding for the snapshot date. Every price is stored with its date and source; a missing price blocks the snapshot.</p>' +
     '<div class="grid2">' +
-    '<div class="fieldgroup"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(today) + '"></div>' +
+    '<div class="fieldgroup"><label class="field" for="pfdate">Snapshot date</label><input type="date" id="pfdate" value="' + esc(state.pfDate || today) + '"></div>' +
     '<div class="fieldgroup"><label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pffetch">Fetch prices (Alpha Vantage)</button>' +
     '<span class="muted" id="pffetchhint"></span></div>' +
@@ -2011,6 +2052,7 @@ async function removeJournalEntry(date) {
   try {
     await api("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/journal/" + encodeURIComponent(date), { method: "DELETE" });
     state.portfolioPerformance = null;
+    toast("Journal entry for " + date + " removed.");
     await loadPortfolioPage();
   } catch (error) { toast(error.message || String(error)); }
 }
@@ -2082,6 +2124,7 @@ async function importPrices() {
 async function removeHolding(symbol) {
   try {
     await api("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/holdings/" + encodeURIComponent(symbol), { method: "DELETE" });
+    toast("Holding " + symbol + " removed.");
     await loadPortfolioPage();
   } catch (error) { toast(error.message || String(error)); }
 }
@@ -2099,6 +2142,9 @@ async function createSnapshot() {
       { date: date, cash: cash, prices: prices });
     state.portfolioTab = "data";
     await loadPortfolioPage();
+    const fresh = $("#pfmsg");
+    if (fresh) fresh.innerHTML = banner("ok", "Snapshot created",
+      "<p>The valuation for " + esc(date) + " is stored. Download the report, or compute the return once two snapshots exist.</p>");
   } catch (error) { message.innerHTML = errorBanner(error); }
 }
 
@@ -4253,9 +4299,9 @@ function renderSubject() {
         "</details>"
       : "") +
     '<div class="subjectask">' +
-      '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
-      '<a class="btn sm" id="subjecthome" href="#/chat">Ask in the chat instead</a>' +
-      (s.id !== "research" ? '<button class="btn sm" data-subject="research">Research &amp; statistics methods</button>' : "") +
+      '<button class="btn sm quicklink" id="subjectcalc" type="button">Open the Business Calculator</button>' +
+      '<a class="btn sm quicklink" id="subjecthome" href="#/chat">Ask in the chat instead</a>' +
+      (s.id !== "research" ? '<button class="btn sm quicklink" type="button" data-subject="research">Research &amp; statistics methods</button>' : "") +
     "</div>";
   html += '<div class="capgroup">';
   if (s.id === "finance") html += ratesPanel();
@@ -4469,27 +4515,58 @@ function renderSubject() {
 }
 
 
+/* the three ways into a shelf behave as one control: the one you click goes
+   bold, none of them starts bold. Delegated, so it survives a re-render. */
+document.addEventListener("click", function (event) {
+  const hit = event.target && event.target.closest ? event.target.closest(".subjectask .quicklink") : null;
+  if (!hit) return;
+  const row = hit.closest(".subjectask");
+  if (!row) return;
+  Array.prototype.forEach.call(row.querySelectorAll(".quicklink"), function (el) {
+    el.classList.remove("is-active");
+    el.removeAttribute("aria-current");
+  });
+  hit.classList.add("is-active");
+  hit.setAttribute("aria-current", "page");
+}, true);
+
 function ratesPanel() {
   return '<div class="marketpanel"><h3 style="margin-top:0">Rates and FX</h3>' +
     '<p class="muted">Reference FX and the U.S. Treasury par yield curve are free and keyless. ' +
     'Read the value, confirm it, and type it into the tool that needs it, such as the CAPM risk-free rate, ' +
-    'FX parity or a currency conversion. Nothing is auto-filled.</p>' +
-    '<div class="marketrow">' +
-      '<label>FX base <select id="fxbase" aria-label="FX base currency"></select></label>' +
-      '<label>quote <select id="fxquote" aria-label="FX quote currency"></select></label>' +
-      '<label>date <input id="fxdate" type="date" aria-label="FX date (optional)"></label>' +
-      '<button class="btn sm" id="fxlookup" type="button">Look up FX</button>' +
-      '<button class="btn sm" id="rflookup" type="button">Treasury yield</button>' +
-      '<select id="rfmat" aria-label="Treasury maturity">' +
-        ["1M","2M","3M","4M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"].map((m) =>
-          '<option value="' + m + '"' + (m === "10Y" ? " selected" : "") + ">" + m + "</option>").join("") +
-      '</select>' +
+    'FX parity or a currency conversion.</p>' +
+    '<div class="marketgrid">' +
+      '<div class="lookupcard"><h4>FX rate</h4>' +
+        '<p>One currency against another, on a date you choose.</p>' +
+        '<div class="lookupfields">' +
+          '<label class="lookupfield"><span>Base</span>' +
+            '<select id="fxbase" aria-label="FX base currency"></select></label>' +
+          '<label class="lookupfield"><span>Quote</span>' +
+            '<select id="fxquote" aria-label="FX quote currency"></select></label>' +
+          '<label class="lookupfield wide"><span>Date</span>' +
+            '<input id="fxdate" type="date" aria-label="FX date (optional)"></label>' +
+        '</div>' +
+        '<button class="btn sm" id="fxlookup" type="button">Look up FX</button>' +
+      '</div>' +
+      '<div class="lookupcard"><h4>Treasury par yield</h4>' +
+        '<p>The U.S. Treasury par yield curve, at one maturity.</p>' +
+        '<div class="lookupfields">' +
+          '<label class="lookupfield wide"><span>Maturity</span>' +
+            '<select id="rfmat" aria-label="Treasury maturity">' +
+              ["1M","2M","3M","4M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"].map((m) =>
+                '<option value="' + m + '"' + (m === "10Y" ? " selected" : "") + ">" + m + "</option>").join("") +
+            '</select></label>' +
+        '</div>' +
+        '<button class="btn sm" id="rflookup" type="button">Treasury yield</button>' +
+      '</div>' +
     '</div>' +
+    '<p class="lookupnote">Both are published figures, not verified evidence: cite the date you read them. ' +
+    'Nothing is auto-filled.</p>' +
     '<div id="ratesout" aria-live="polite"></div></div>';
 }
 
 function securitiesPanel() {
-  return '<div class="marketpanel"><h3 style="margin-top:0">Market data for the book (retrieved, not verified)</h3>' +
+  return '<div class="marketpanel"><h3 style="margin-top:0">Market data for the book</h3>' +
     '<p class="muted">Look up an equity quote, the company fundamentals filed with the SEC, or its recent filings. ' +
     'A quote needs your own free Alpha Vantage key; fundamentals and filings need no key. ' +
     'Every result shows its source, date and response hash, and nothing is auto-filled: read a price and confirm it before you type it into the book.</p>' +
@@ -4836,8 +4913,13 @@ async function plRemoveSymbol(id) {
 }
 
 async function plRecord(id) {
-  try { await post("/api/cases/instruments/" + id + "/record", { provider: plProvider() }); plLoadWatch(); }
-  catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
+  const row = ((state.plWatch && state.plWatch.instruments) || []).find((item) => item.id === id);
+  const label = row ? row.symbol : "the instrument";
+  try {
+    await post("/api/cases/instruments/" + id + "/record", { provider: plProvider() });
+    toast("Recorded today's sourced price for " + label + ".");
+    plLoadWatch();
+  } catch (e) { const box = $("#plwatch"); if (box) box.innerHTML = errorBanner(e); }
 }
 
 async function plSeed(id) {
