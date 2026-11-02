@@ -118,7 +118,8 @@ are written and in the tree; the one command that finishes the job once the tree
 
 ```
 git add business_pipeline_v0.12/business_pipeline/docs/CHANGELOG.md \
-        business_pipeline_v0.12/business_pipeline/docs/WORKLOG.md
+        business_pipeline_v0.12/business_pipeline/docs/WORKLOG.md \
+        business_pipeline_v0.12/business_pipeline/qa
 git commit -m "docs(accounting): CHANGELOG and WORKLOG entries for QA session 1 (2627 tests)"
 ```
 
