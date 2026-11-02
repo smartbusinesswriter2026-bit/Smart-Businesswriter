@@ -1,5 +1,19 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [portfolio] The screening lab is ported back and surfaced in the Portfolio Lab
+
+**Ask.** "i am checking the portfolio again and im tired of repeating myself. the portfolio must have a feature that will guide students based on common criteria on what stock to pick. i had it instructed before and spent hours for that, now i cant see it. can you check if its there. if its there, surface it in the UI and ensure they are wired correctly"
+
+**Did.** (1) **Found it.** The feature exists — on `origin/main`, built as builds 1.23-1.29 (tracked-instrument price store, `screener.py`, `prefill.py`, the Finance-page UI and its tests), and never merged into `corpus/merge-v1`. This branch had only the B-178 guidance. (2) **Ported it, not re-invented it.** Brought `screener.py` (declared-criteria screening of a student-supplied candidate list, sourced rows, named gaps, no recommendation) and `prefill.py` (exact frozen inputs for risk/portfolio/CAPM, `ready` + gaps, never runs a method) into the product layer; merged the tracked-instrument price store (append-only per-symbol JSON, same-day dedupe, returns series, readiness, 30-day daily-bar seed) into `instruments.py` beside the guidance; added Massive daily bars/history, Massive and Alpha Vantage overviews, derived P/E+ROE from SEC XBRL and Massive market cap, and the fundamentals chain to `marketdata.py`; added the `/api/cases/instruments` CRUD/record/seed, `/api/cases/screen` and `/api/cases/prefill` routes to `api.py`. (3) **Surfaced it in the Portfolio Lab** — the panel now renders on the landing page under the How-to-choose guide and in the Holdings tab of a book: track-and-record, candidate list with sort (one-day return, mean, Sharpe, price, market cap, P/E, ROE), include-fundamentals, Help me choose, the watch list (Record/Seed/Use), and prefill into the Calculator (fields only; the student presses =).
+
+**Why.** The owner spent hours on this feature and could not find it because it lived on a branch this line never took. Re-deriving it would repeat the work; porting the proven modules and their tests restored it in one increment, and placing it in the Portfolio Lab puts the matching tool beside the book it serves.
+
+**Verified.** 14 ported tests (`tests/test_product_screen_prefill.py`) and 7 page/route tests (`tests/test_portfolio_screener_ui.py`); live on 8000 — tracked AAPL and recorded its 2026-10-30 close 344.63; screened AAPL/MSFT (344.63 / 521.91, gaps named); derived AAPL market cap 5.03T, P/E 44.90, ROE 1.519 from SEC + Massive with a response hash; the risk prefill returned `ready: false` with "record at least two price snapshots before a return exists"; headless Chrome probe confirmed the panel on the landing (buttons Track/Help me choose/Record/Seed/Use/Prefill) and in the Holdings tab, with the watch list populated. Screenshots in `qa/evidence/portfolio/`.
+
+**Open/next.** The derived ratios are arithmetic on sourced facts, not verified profiles (a small equity base can make ROE look extreme); the shortlist needs the Alpha Vantage / Massive keys configured server-side; the panel is on the Portfolio Lab and not re-added to the Finance page (one home, no duplicate UI).
+
+---
+
 ## 2026-11-02 — [finance] The wordiness, measured; and a heading restored
 
 **Ask.** "we still need to clean up the wordiness of finance subject."

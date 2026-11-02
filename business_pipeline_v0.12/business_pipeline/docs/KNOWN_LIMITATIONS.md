@@ -570,3 +570,26 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **The secret is only as safe as the file.** `PAYPAL_CLIENT_SECRET` sits in `Backend/.env`, which
   git ignores; it is never returned by an API, logged or printed, but it is readable by anyone who
   can read that file on this machine.
+
+## Added with the portfolio screening lab (B-184)
+- **The shortlist ranks sourced values; it does not recommend.** Criteria are declared (one-day
+  return; recorded mean, volatility and Sharpe; price; market cap; P/E; ROE) and every metric a
+  provider cannot supply is a named gap; the panel says "sourced, not a recommendation" and carries
+  no expected return, rating or target price.
+- **History is the student's own record, or seeded daily bars.** Mean, volatility, Sharpe and
+  momentum exist only after at least three recorded returns; **Seed** fills up to 30 days from
+  Massive daily bars and stores each bar with its provider, date and response hash. A provider
+  failure is a gap, never a guess, and a seeded series is still the provider's history, not the
+  student's decisions.
+- **Derived fundamentals are arithmetic on sourced inputs, not verified profiles.** P/E = Massive
+  market cap / SEC net income and ROE = SEC net income / SEC equity; a small equity base (buybacks)
+  can make ROE look extreme, and non-US registrants keep both as gaps. The row is labelled derived
+  and keeps its source URLs and response hash.
+- **Prefill only fills the calculator.** It never runs a method: the student opens the Business
+  Calculator with the fields filled and presses =, and the normal create-then-confirm path is
+  unchanged.
+- **The quote providers need institutional keys.** Alpha Vantage and Massive keys are configured
+  server-side in `Backend/.env`; without a key the lookup fails closed with the variable to set and
+  the shortlist shows the gap instead of a price.
+- **The lab lives in the Portfolio Lab**, not on the Finance page (one home for the UI; the market
+  data panels remain split per B-177).
