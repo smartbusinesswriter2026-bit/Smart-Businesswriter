@@ -1,3 +1,29 @@
+## Project management: the five delivery worksheets stop searching for the word "evidence"
+
+Session 7 of the shelf-by-shelf debug (`SUBJECT = project-management`). Build **1.71**.
+
+- **D-PM-01 (MAJOR, wiring).** The project charter, WBS, risk register, stakeholder plan and lessons
+  learned declared `cues: ['evidence']` on **every** block and a query built from the raw block key, so
+  the retrieval gate could not tell one dimension from another and the student's search string was a
+  snake_case token (`scope_in evidence`). Each block now names its own vocabulary (`scope_in` →
+  `scope`, `included`, `boundary`; query `project scope statement inclusions`) — 32 blocks across five
+  profiles, product layer only, no frozen-core change. Trap tests: `test_E_pm_049`, `test_E_pm_050`.
+- **D-PM-02 (MAJOR, declaration).** RACI is `PM-10` on **both** the project-management page and the
+  people page, and its profile declared `subject: 'management'`. It now declares
+  `project-management`, so the catalogue id, the two pages and the computation-boundary refusal all
+  agree. Trap test: `test_E_pm_058`.
+- **Measured, not changed:** `case_decision` is a T2 *template* that computes NPV (not a
+  `bp.methods` method) and it delivers (D-PM-04); the two registry kinds still declared as canvas
+  *and* matrix are `template_customer_journey` and `template_servqual` — marketing's, ledgered as
+  D-PM-03; `tiles: 0` is a real fallback layout, not a UI defect (§2.1 of the manual).
+- **The shelf's acceptance manual is new:** `qa/manual/project-management.md` — the 16-item
+  delivery/governance inventory with a per-item verdict, a **ranked, owner-gated proposal** for which
+  read-only records should become worksheets (build none of them), **62 E-rows** reconciled 1:1 with
+  `detail('project-management')`, and the one paper read against V-01…V-20.
+- Tests: **62** new (`tests/test_subject_project_management_acceptance.py`), all passing; suite
+  3151 tests. `scripts/econ_shelf.py --check` → frozen fixture: in sync.
+
+
 ## The core is unfrozen (standing rule), and every method now declares its own precision
 
 Owner instruction, 2026-11-03: *"ON QUESTION, UNFREEZE IT. KEEP EVERYTHING UNFREEZE UNTIL I FREEZE IT

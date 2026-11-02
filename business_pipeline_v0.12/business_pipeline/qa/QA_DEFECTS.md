@@ -11,7 +11,44 @@ silently succeeds) · **MAJOR** (feature unreachable, wrong refusal, stale doc c
 Class: FORMULA, UNITS, ROUNDING, VALIDATION, REFUSAL, GATE, HONESTY, DETERMINISM, WIRING, UI,
 CATALOGUE, DOC-DRIFT, STORAGE, NETWORK.
 
+## Session 7 — `project-management` (opening `84490ec`, 3084 tests, 40 failures, 6 errors)
+
+Probes: `qa/probe_pm_shelf.py` (inventory, declared form, K1 registry audit, K5 refusals),
+`qa/probe_pm_paper.py` (builds the `.docx` through the real path and reads `word/document.xml`).
+Manual: `qa/manual/project-management.md` (62 E-rows).
+Suite: `tests/test_subject_project_management_acceptance.py` (62 tests).
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-PM-01 | project-management | PM-05, PM-06, PM-09, PM-15, PM-16; E-pm-049, E-pm-050 | MAJOR | WIRING | `qa/probe_pm_shelf.py --blocks` reported `cues: ['evidence']` on every block of five profiles, and queries built from the raw block key (`scope_in evidence`, `work_packages evidence`) | the five profiles were inlined with placeholder search vocabulary: one shared cue word meant the gate could not attribute an item to a dimension, and the student's query was a snake_case token instead of the framework's language | `session 7` | `test_E_pm_049`, `test_E_pm_050` | FIXED |
+| D-PM-02 | project-management | PM-10 RACI (shared with the people shelf); E-pm-058 | MAJOR | DECLARATION | `framework_profiles.get('template_raci')['subject']` → `'management'` while `R.get('PM-10')['template'] == 'template_raci'` and **both** pages list PM-10 | the profile was authored under the management shelf's vocabulary; nothing asserted the subject against the catalogue id | `session 7` | `test_E_pm_058` | FIXED |
+| D-PM-03 | marketing (ledgered from this shelf) | `template_customer_journey`, `template_servqual`; E-pm-057 | MAJOR | DECLARATION | `sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))` → both templates | a block may declare exactly ONE form; these two declare canvas and matrix, and `describe()` returns canvas so the matrix definition is dead code | — | `test_E_pm_057` (asserts the measured pair) | **LEDGERED** — marketing shelf owns the fix |
+| D-PM-04 | project-management | `case_decision` card; E-pm-014 | MINOR | DECLARATION | the card is `kind: compute` and `case_decision` is **not** in `bp.methods.LIBRARY` | it is a **T2 template** (registry `QNT-FIN-01`) that computes NPV inside the template path and delivers through `Pipeline` — declared `compute` is honest | — | `test_E_pm_014` | **NOT A DEFECT** (measured, pinned) |
+
+### Session 7 — the shelf's declared gaps
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| G-pm-01 | project-management | every `probe`-profile worksheet; V-01/V-12 | MAJOR | HONESTY (owner policy) | `qa/probe_pm_paper.py` → **ten of ten** H2 blocks of the charter paper carry `background`, none carries a gap | `completion.py:381-390` fills an unsourced part with the framework's own background on the owner's instruction, and the paper discloses it | — | `test_E_pm_054`, `paper-read.json` | **GAP** (declared, disclosed) |
+| G-pm-02 | all shelves | 17 profiles reachable from no subject page (K3) | MAJOR | WIRING | `qa/probe_pm_shelf.py` → `profiles on no subject page : 17` | none of them is on this shelf; adding worksheet rows changes the catalogue surface | — | — | **GAP** — owner decision |
+| G-pm-03 | project-management | risk register figure; E-pm-047 | MINOR | WIRING | `matrix.layout_for('template_risk_register')` → `None`, while `layout_for('template_raci')` → a layout | the risk register's matrix is drawn by the `MATRIX_META` builder, not by a `matrix.LAYOUTS` figure geometry | — | `test_E_pm_047` | **GAP** (declared) |
+| G-pm-04 | project-management | a rate entered as `6`; E-pm-040 | MINOR | VALIDATION | `Pipeline` delivers; `appendix['ambiguities']` says "the rate is taken as given" | the frozen core does not bound a rate; the run discloses the convention instead of rescaling it | — | `test_E_pm_040` | **GAP** (declared, disclosed) |
+
+### Session 7 — the counts this shelf must not drift from
+
+| Measure | Value | Where it is asserted |
+|---|---:|---|
+| Compute tools | 18 | `test_E_pm_001` |
+| Worksheets / records / theories / glossary | 6 / 10 / 0 / 23 | `test_E_pm_002`…`004` |
+| Declared tiles | 0 (fallback layout) | `test_E_pm_006` |
+| Framework profiles overall | 75 | `test_E_pm_004` area |
+| Registry kinds declared in two forms | 2 (`customer_journey`, `servqual`) | `test_E_pm_057` |
+| Items on the shelf that complete from a brief | 6 of 16 | manual §2.2 |
+
+---
+
 ## Session 1 — `accounting` (baseline `97544f7`, 2548 tests, 86 failures, 13 errors)
+
 
 | ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
 |---|---|---|---|---|---|---|---|---|---|

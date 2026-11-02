@@ -2,6 +2,81 @@
 
 ---
 
+## Session 7 — `project-management` (2026-11-03) · branch `corpus/merge-v1`, opening commit `84490ec`
+
+**Subject chosen by the work order.** Manual: `qa/manual/project-management.md` (62 E-rows).
+Suite: `tests/test_subject_project_management_acceptance.py` (**62 tests**). Probes:
+`qa/probe_pm_shelf.py` (inventory, forms, K1 audit, K5 refusals), `qa/probe_pm_paper.py`
+(builds the .docx and reads `word/document.xml`).
+
+### Baseline (measured here, not assumed)
+
+| Measure | Documented | Measured |
+|---|---:|---:|
+| Tests | 3084 | **3084** |
+| Failures | 40 | **40** |
+| Errors | 6 | **6** |
+| Wall time | — | 705 s |
+
+46 distinct failure names (`qa/baseline/pm-before-failures.txt`): 30 marketing-shelf completion,
+9 operations/marketing worksheet + registry import, 2 `customer_journey` profile, 5 other-shelf
+(rail, paper store, template refusal, chat), 1 network (Brave→Firecrawl). **0 new, 0 on this shelf.**
+Inventory confirmed exactly as the work order stated: 18 tools · 6 worksheets · 10 records ·
+0 theories · 23 glossary terms · tiles 0 · 75 profiles.
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/project-management.md` | The **16-item delivery/governance inventory** with a per-item verdict, a **ranked owner-gated proposal** (nothing built), 62 E-rows reconciled 1:1 with `detail('project-management')`, the V-01…V-20 reading of one paper, the defect ledger, residual risk |
+| `tests/test_subject_project_management_acceptance.py` | 62 tests, 62 passed — independent recomputation for all 17 core methods |
+| `qa/probe_pm_shelf.py`, `qa/probe_pm_paper.py` | The reproducible evidence behind every claim |
+| `qa/baseline/pm-*` | Baseline + after measurements, probe output, shelf-test slice |
+| `qa/evidence/project-management/` | The paper, its no-source twin, `paper-read.json` |
+
+### Fixed (2)
+
+- **D-PM-01** (MAJOR, wiring): five worksheets searched with one shared cue (`evidence`) and a raw-key
+  query; 32 blocks now carry their own vocabulary. Trap tests `test_E_pm_049`, `test_E_pm_050`.
+- **D-PM-02** (MAJOR, declaration): RACI's profile said `subject: 'management'` while its catalogue id
+  is `PM-10` and two pages carry it. Trap test `test_E_pm_058`.
+
+### Ledgered / declared (4 + 4 gaps)
+
+D-PM-03 (marketing's two kinds declared canvas **and** matrix — not this shelf's to fix),
+D-PM-04 (`case_decision` is a T2 template, measured and pinned), G-pm-01 (probe-profile background
+fill; V-01 fails at all ten blocks of the charter paper, disclosed), G-pm-02 (17 profiles unreachable
+from any page), G-pm-03 (risk register has no paper figure), G-pm-04 (a rate entered as `6` is taken
+as given and disclosed, not rescaled).
+
+### Gates at close
+
+| Gate | Result |
+|---|---|
+| Shelf acceptance suite | **62 passed** |
+| Shelf + 19 shared contract modules | 234 passed, 3 failed — all three are baseline failures on other shelves (`qa/baseline/pm-shelf-tests.txt`) |
+| Full suite before / after | 3084 / 40 / 6 → **see `qa/baseline/pm-after-suite-err.txt`** |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** (`qa/baseline/pm-econ-shelf.txt`) |
+| `qa/check_page_syntax.py` | **page syntax: OK** (`qa/baseline/pm-page-syntax.txt`) |
+| `tests/test_docs_sync.py` + `test_frozen_contract.py` | **10 passed** |
+
+### Next subject and its top three risks
+
+**Next: `supply-chain`** — the one shelf with no acceptance manual and no acceptance suite, and it
+inherits the whole operations toolset.
+
+1. **Reachability.** It shares worksheets with operations; `test_E_pm_057` measures 17 profiles that no
+   subject page reaches. Measure supply chain's own reachability before writing a row.
+2. **Inventory arithmetic is the dangerous part.** `inventory_policy` (EOQ, reorder point) mixes money,
+   shares and periods; recompute by hand first, then by a second formula — never the method's own
+   output against itself.
+3. **Another lane is live in this worktree.** HEAD moved mid-session here (`84490ec` → `0970a06`).
+   Print `git diff --cached --name-only` before every commit, never `git add -A`, and re-read a file
+   that appears to have "vanished".
+
+
+---
+
 ## Session 6 — `marketing` (started 2026-11-03, in progress)
 
 **Owner instruction:** "8. GO." — the next subject, after the management shelf closed and after the

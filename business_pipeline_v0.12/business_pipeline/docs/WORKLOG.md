@@ -1,3 +1,43 @@
+## 2026-11-03 — [project-management] Delivery and governance: the inventory the owner asked for, two wiring fixes, and the V-01 reading
+
+**Ask.** Debug the project-management shelf (session 7 of 11). Before any code, settle the scope
+question: 10 delivery/governance frameworks exist only as read-only records, so the shelf teaches
+governance but does not let a student *produce* it.
+
+**Did.**
+
+1. **The 16-item inventory, with a verdict each** (`qa/manual/project-management.md` §2.2): 6 of 16
+   items complete from a brief, 10 are read-only, 16 of 16 are reachable from the page. Then a
+   **ranked proposal** (§3) for which records should become completing worksheets — COBIT, Balanced
+   Scorecard, OKRs, KPI tree, ITIL, Strategy Map — every one marked *SHOULD COMPLETE — needs owner
+   approval*. **Nothing was built**: a record→worksheet conversion is a new profile and a
+   design-lane B-number.
+2. **D-PM-01 fixed.** The five `unit`-typed worksheets searched with `cues: ['evidence']` on every
+   block and a raw-key query (`scope_in evidence`). 32 blocks now carry the framework's own
+   vocabulary and a human query. Product layer only.
+3. **D-PM-02 fixed.** RACI's profile said `subject: 'management'` while its id is `PM-10` and both
+   the project and people pages carry it (K2). It says `project-management` now; the people page is
+   unaffected because it renders from the catalogue row.
+4. **The paper, read for real** (U8): `completion.complete` → `draft_bytes`, unzipped, read.
+   Structure passes (headings, conclusion, references, byline, 872 words, no spec footer);
+   **V-01/V-12 fail at all ten H2 blocks** — each is filled from the framework's own background with
+   no source and no gap, which is an owner instruction implemented at `completion.py:381-390` and is
+   disclosed in the paper. Recorded as G-pm-01, not passed silently.
+5. **K4 done by hand.** Every numeric tool was recomputed independently: NPV/MIRR/PI/payback by a
+   second Decimal route, CPM by a forward/backward pass written in the test, levelling by a greedy
+   simulation, calendars by a working-period simulation, the real option by a CRR lattice built in
+   the test, and `project_crashing` by hand. **The crashing output looked wrong and was right** (the
+   A–C path, not A–B) — the correction is written into the manual so the next reader does not repeat
+   the mistake.
+6. **62 acceptance tests** (`tests/test_subject_project_management_acceptance.py`), one per E-row,
+   none skipped, none loosened.
+
+**Gates.** Shelf suite 62/62. Shelf tests + 19 shared modules: 234 passed, 3 failed — all three are
+baseline failures on other shelves. Full suite before: 3084 tests, 40 failures, 6 errors; after:
+recorded in `qa/QA_STATE.md`. `econ_shelf --check` in sync; `check_page_syntax` OK; `docs_sync`
+green.
+
+
 ## 2026-11-03 — [core] The core is unfrozen as a standing rule (B-197), and 142 of 142 methods now declare their own precision
 
 **Ask.** The owner answered the one question session 5 put to them: *"ON QUESTION, UNFREEZE IT. KEEP
