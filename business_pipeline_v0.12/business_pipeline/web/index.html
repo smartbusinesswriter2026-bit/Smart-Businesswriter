@@ -253,6 +253,7 @@ body.rail-open .railgroup-label{opacity:1}
 
 /* ---------- main + hero ---------- */
 main{padding:28px 32px 96px;max-width:1180px;width:100%;margin:0 auto;flex:1 1 auto;min-width:0}
+[hidden]{display:none !important}
 .panel[hidden]{display:none}
 .hero{text-align:center;padding:44px 0 30px;position:relative}
 .hero::before{content:"";position:absolute;inset:-40px 0 auto;height:320px;z-index:-1;
@@ -3230,49 +3231,46 @@ async function downloadChat() {
 /* The paper for a delivered computation.  It is the same record the screen shows, plus the
    student's own declared sources in their own section (B-182: cited, not evidence). */
 async function downloadSessionPaper(fmt) {
+  if (fmt !== "docx") { toast("The paper is downloaded as Word."); return; }
   const sessionId = state.session && state.session.id;
-  if (!sessionId) {
-    // A saved case keeps no live session. Word still comes from the case's own export;
-    // Markdown has no case export yet, so the student is told exactly that instead of
-    // being handed a message about a session they never had.
-    const caseId = state.caseId || state.savedCaseId;
-    if (caseId && fmt === "docx") {
-      try {
-        const r = await post("/api/cases/" + encodeURIComponent(caseId) + "/export",
-                             { kind: "docx", deliverable: "submission", download: true });
-        saveDownload(r);
-        toast("Paper downloaded: " + (r.filename || "paper.docx"));
-      } catch (e) { toast("The paper could not be downloaded: " + (e.message || e)); }
-      return;
-    }
-    toast(fmt === "md"
-      ? "Markdown comes from the delivered session. Run the tool again and press this straight after it delivers."
-      : "There is no delivered session and no saved case to download.");
-    return;
-  }
-  const id = sessionId;
-  try {
-    const response = await fetch("/api/sessions/" + encodeURIComponent(id) + "/paper", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ format: fmt, source_files: state.intakeSources || [] })
-    });
-    if (!response.ok) {
+  let reason = "";
+  if (sessionId) {
+    try {
+      const response = await fetch("/api/sessions/" + encodeURIComponent(sessionId) + "/paper", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ format: "docx", source_files: state.intakeSources || [] })
+      });
+      if (response.ok) {
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const match = /filename\*=UTF-8''([^;]+)/.exec(disposition);
+        const name = match ? decodeURIComponent(match[1]) : "computation.docx";
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement("a");
+        link.href = url; link.download = name;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        toast("Paper downloaded: " + name);
+        return;
+      }
       const problem = await response.json().catch(function () { return {}; });
-      throw new Error(problem.error || ("HTTP " + response.status));
-    }
-    const disposition = response.headers.get("Content-Disposition") || "";
-    const match = /filename\*=UTF-8''([^;]+)/.exec(disposition);
-    const name = match ? decodeURIComponent(match[1]) : ("computation." + (fmt === "md" ? "md" : "docx"));
-    const url = URL.createObjectURL(await response.blob());
-    const link = document.createElement("a");
-    link.href = url; link.download = name;
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    toast("Paper downloaded: " + name);
-  } catch (error) {
-    toast(error.message || String(error));
+      reason = problem.error || ("HTTP " + response.status);
+    } catch (error) { reason = error.message || String(error); }
   }
+  // A session can be gone (the registry lives in memory, so a restart clears it) or
+  // blocked (a refused check has no paper). The saved case still holds the record.
+  const savedId = state.caseId || state.savedCaseId;
+  if (savedId) {
+    try {
+      const r = await post("/api/cases/" + encodeURIComponent(savedId) + "/export",
+                           { kind: "docx", deliverable: "submission", download: true });
+      saveDownload(r);
+      toast("Paper downloaded: " + (r.filename || "paper"));
+      return;
+    } catch (error) { reason = error.message || String(error); }
+  }
+  toast("The paper could not be downloaded" + (reason ? ": " + reason
+        : ". Run the tool first, or save it as a case."));
 }
 
 
@@ -8107,7 +8105,6 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="viewgantt">View the Gantt</button>' : "") +
       '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
       '<button class="btn" id="downloadpaper">Download the paper (Word)</button>' +
-      '<button class="btn" id="downloadpaperxlsx">Download the figures (Excel)</button>' +
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
@@ -8184,7 +8181,6 @@ function renderResults() {
   const gantt = $("#viewgantt"); if (gantt) gantt.onclick = viewGantt;
   const xlsx = $("#downloadxlsx"); if (xlsx) xlsx.onclick = downloadResultXlsx;
   const paper = $("#downloadpaper"); if (paper) paper.onclick = () => downloadSessionPaper("docx");
-        const paperxlsx = $("#downloadpaperxlsx"); if (paperxlsx) paperxlsx.onclick = () => downloadSessionPaper("xlsx");
   const svg = $("#downloadsvg"); if (svg) svg.onclick = downloadResultSvg;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
