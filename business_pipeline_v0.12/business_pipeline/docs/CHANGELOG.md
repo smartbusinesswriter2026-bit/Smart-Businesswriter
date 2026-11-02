@@ -1,3 +1,25 @@
+## Core: the mid-year DCF check compares the two conventions, so the tile delivers (B-183, owner-approved unfreeze)
+
+The **DCF valuation (mid-year)** tile could not produce a result. `_dcf_tests` built
+`mid = impl({**inp, "timing": "mid"})` and asserted it was worth more than `base = impl(inp)`; when
+the caller already declares `timing="mid"` — which the shipped `dcfmid` preset does — those two
+calls are the same call, so the strict `>` could never hold. The valuation was always right (an
+independent recomputation agrees to 40 digits on both conventions); the check compared the input
+with itself, and a check that cannot pass refuses a correct product.
+
+The check now computes the **other** convention (`"end" if declared == "mid" else "mid"`) and
+asserts the direction that convention implies. Nothing else moved: `test_names`, the metric, the
+unit, the tier, the Decimal route, `_dcf_reference`, the presets and every number are unchanged, and
+`scripts/econ_shelf.py --check` still reports **"frozen fixture: in sync"**. This is an
+owner-approved unfreeze of the B-079 core contract (B-183), and with it the last BLOCKER on the
+finance shelf is closed: D-FIN-01 is **FIXED**, E-fin-007 flips to PASS, and the acceptance
+scoreboard reads **48 PASS, 0 BLOCKED, 2 GAP**.
+
+Verified by `tests/test_subject_finance_acceptance.py::test_007__…` (no self-check fails on its own
+preset) and `::test_017__…` (the mid-year tile delivers a report), plus
+`qa/probe_dcf_midyear.py` (six checks pass on both conventions). Suite count 2830.
+
+
 ## Every delivered computation now downloads a paper, and declared sources have their own section (B-182)
 
 The result screen offered **Download spreadsheet** for every computation, but the Word paper only

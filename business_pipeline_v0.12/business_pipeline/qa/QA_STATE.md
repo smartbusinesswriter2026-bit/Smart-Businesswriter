@@ -93,18 +93,18 @@ historical carried-forward set — worksheet/profile/prompt failures on other sh
 | E-fin-001…004 | PASS |
 | E-fin-005 | **GAP** G-fin-05 (`ols_robust` has no preset; frozen `PRESETS`) |
 | E-fin-006 | PASS |
-| E-fin-007 | **BLOCKED** D-FIN-01 (frozen mid-year self-check) |
+| E-fin-007 | PASS — D-FIN-01 fixed by **B-183** (the mid-year tile delivers) |
 | E-fin-008…025 | PASS |
 | E-fin-026…036 | PASS |
 | E-fin-037 | **GAP** G-fin-07 (25 tools have no `need` text) |
 | E-fin-038…050 | PASS |
-| **Total** | **47 PASS, 1 BLOCKED, 2 GAP — 0 unexplained** |
+| **Total** | **48 PASS, 0 BLOCKED, 2 GAP — 0 unexplained** |
 
 ## 5. Open decisions for the owner (do not invent a default)
 
 | # | Decision needed | Evidence | Ledger |
 |---|---|---|---|
-| 1 | Unfreeze `src/bp/methods.py::_dcf_tests` so the mid-year self-check compares the two conventions instead of the input with itself. The proposed one-line change is in `qa/QA_DEFECTS.md` D-FIN-01 | `qa/probe_dcf_midyear.py`: the method is right to 40 digits; the check fails on its own preset, so the `dcfmid` tile cannot deliver | D-FIN-01 |
+| 1 | ~~Unfreeze `src/bp/methods.py::_dcf_tests`~~ — **CLOSED**: the owner approved the unfreeze ("okay go. unfreeze and finish it") and **B-183** landed the one-line fix; the `dcfmid` tile now delivers | `qa/probe_dcf_midyear.py`: six checks pass on both conventions; `econ_shelf.py --check` still "in sync" | D-FIN-01 (FIXED) |
 | 2 | ~~Land the in-flight B-179/B-180/B-181 implementation and align `test_pipeline`~~ — **closed by the core pass**: `4e842f0` landed the unfreezes and replaced `test_no_method_is_framework_only`; the failure is gone from the closing set (D-FIN-13) | `docs/DECISIONS.md` B-179…181; `git log 4e842f0` | D-FIN-13 (CLOSED) |
 | 3 | Should `ols_robust` get a preset? `server.PRESETS` is part of the frozen 144, so it needs an unfreeze | `tool("ols_robust")["preset"] is None` | D-FIN-08 / G-fin-05 |
 | 4 | Should the calculator router's match threshold be lowered so "price this bond" reaches `bond_analysis`? The threshold is shared by all 11 shelves | `qa/baseline/fin_router2.txt` | D-FIN-12 |

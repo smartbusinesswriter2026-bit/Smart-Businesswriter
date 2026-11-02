@@ -2887,7 +2887,13 @@ def _dcf_tests(inp, impl):
     g = None if raw_g is None or (isinstance(raw_g, str) and not raw_g.strip()) else D(str(raw_g))
     higher_r = impl({**inp, "discount_rate": str(r + D("0.01"))}) if (g is None or r + D("0.01") > g) else base
     no_g = impl({k: v for k, v in inp.items() if k != "terminal_growth"})
-    mid = impl({**inp, "timing": "mid"})
+    # B-183: the check compares the two conventions, whichever one the caller declared.  It
+    # used to compute `mid` unconditionally, so an input that already declared timing="mid"
+    # was compared with itself and the check could never pass on the mid-year preset.
+    declared_timing = str(inp.get("timing") or "end")
+    other = impl({**inp, "timing": "end" if declared_timing == "mid" else "mid"})
+    mid_raises = (other["enterprise_value"] > base["enterprise_value"]) if declared_timing != "mid" \
+        else (base["enterprise_value"] > other["enterprise_value"])
     expect_tv = (cfs[-1] * (1 + g) / (r - g)) if g is not None else D(0)
     checks = [
         ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
@@ -2895,7 +2901,7 @@ def _dcf_tests(inp, impl):
         ("a_higher_discount_rate_lowers_the_value", higher_r["enterprise_value"] < base["enterprise_value"], "discounting more heavily reduces the present value"),
         ("terminal_value_is_gordon_growth_on_the_last_flow", _close(base["terminal_value"], expect_tv), "terminal value = last cash flow x (1+g) / (r-g)"),
         ("without_terminal_growth_there_is_no_terminal_value", no_g["pv_terminal"] == 0 and no_g["enterprise_value"] == no_g["pv_explicit"], "omitting growth leaves the explicit forecast only"),
-        ("mid_year_convention_raises_the_value", mid["enterprise_value"] > base["enterprise_value"], "discounting one half-period less raises a positive valuation"),
+        ("mid_year_convention_raises_the_value", mid_raises, "discounting one half-period less raises a positive valuation"),
     ]
     return [(n, ok) for n, ok, _ in checks]
 

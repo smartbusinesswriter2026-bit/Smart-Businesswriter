@@ -288,7 +288,7 @@ Atomic, testable, one line each. `PASS`/`FAIL`/`BLOCKED`/`GAP` is decided in §9
 | E-fin-004 | Every tool carries ≥3 `steps`, ≥2 `common_mistakes`, and every `related` id resolves to a declared tool id | rank 5 |
 | E-fin-005 | Every tool has a preset whose `method` equals the tool's method — with `ols_robust` the single named exception (G-fin-05) | rank 1 `server.PRESETS` |
 | E-fin-006 | Every finance preset's default inputs pass `validate_inputs` **and** the method's `profile()` with no issue | rank 1 |
-| E-fin-007 | Every frozen method's declared self-tests pass on its own preset's defaults — with `dcf_valuation` at `timing="mid"` the single named exception (D-FIN-01) | rank 1 `Method.tests` |
+| E-fin-007 | Every frozen method's declared self-tests pass on its own preset's defaults, including `dcf_valuation` at `timing="mid"` (D-FIN-01, fixed by **B-183**) | rank 1 `Method.tests`; B-183 |
 | E-fin-008 | No finance method claims a `prescriptive` ceiling; every ceiling is `descriptive` except `pearson`, `ols`, `ols_robust` (`associational`) | rank 1 `claim_ceiling` |
 | E-fin-009 | An unknown input name is refused with the allowed list; the refusal is a `blocked` delivery, never a silent drop | rank 1 `validate_inputs` |
 | E-fin-010 | `weights`, `strata`, `cluster(s)`, `repeated`, `id`, `time`, `pair(s)` are refused by name as unsupported survey structure | rank 1 `_UNSUPPORTED_CONCEPTS` |
@@ -375,7 +375,7 @@ The closing status of every row is in `qa/QA_STATE.md` §4; the run that produce
 
 | E-ids | Enforcing test family | Status |
 |---|---|---|
-| E-fin-001…008 | `test_00n__…` — catalogue, contract, preset and self-test rows, one test each | PASS except E-fin-005 (GAP G-fin-05) and E-fin-007 (BLOCKED D-FIN-01) |
+| E-fin-001…008 | `test_00n__…` — catalogue, contract, preset and self-test rows, one test each | PASS except E-fin-005 (GAP G-fin-05) |
 | E-fin-009…015 | `test_00n__…` — refusal rows, one test each, through `Pipeline().start` so the product route is what refuses | PASS |
 | E-fin-016…025 | `test_0nn__…` — independent recomputation, hand arithmetic or the hash-pinned fixture | PASS |
 | E-fin-026…029 | `test_02n__…` — record truth against `LIBRARY` and `WORKSHEETS` | PASS |

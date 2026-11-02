@@ -1,5 +1,24 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [core] B-183: the mid-year DCF check, unfrozen and fixed
+
+**Ask.** "okay go. unfreeze and finish it."
+
+**Did.** `_dcf_tests` now computes the convention the caller did *not* declare and asserts the
+direction that convention implies, instead of always building `timing="mid"` and comparing it with
+an input that may already be mid-year. One expression changed; no method, formula, number, metric,
+unit, tier or `test_names` did. `econ_shelf.py --check` still says "frozen fixture: in sync", which
+is the point: the pinned public contract is untouched, only an acceptance check that could never
+pass was corrected.
+
+**Result.** The `dcfmid` tile delivers. D-FIN-01 → FIXED, E-fin-007 → PASS, scoreboard
+**48 PASS, 0 BLOCKED, 2 GAP**. `qa/check_finance_downloads.py` now reports the tile among the ones
+that download a paper.
+
+**Next.** The finance shelf's student-facing copy is the remaining complaint ("wordiness"): 35 tool
+cards whose `what`, steps and common-mistake lines run to two sentences each.
+
+
 ## 2026-11-02 — [paper] Every tile downloads its paper, and the sources block is closed
 
 **Ask.** "where will the completed paper go in finance? each tile or each function there must have

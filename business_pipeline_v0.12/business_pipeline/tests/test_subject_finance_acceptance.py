@@ -219,9 +219,9 @@ class FinanceCatalogueAndContract(unittest.TestCase):
             for name, ok in method.tests(dict(request["inputs"]), method.impl):
                 if not ok:
                     failures.append((item["key"], name))
-        self.assertEqual(failures, [("dcfmid", "mid_year_convention_raises_the_value")],
-                         "D-FIN-01 is the only failing self-check on this shelf; "
-                         "anything else is a new defect")
+        self.assertEqual(failures, [],
+                         "every finance self-check passes on its own preset; a failure here is a "
+                         "new defect (D-FIN-01 was fixed by B-183)")
 
     def test_008__no_finance_method_claims_prescriptive(self):
         """E-fin-008: the ceiling is descriptive, or associational for the statistics."""
@@ -330,6 +330,10 @@ class FinanceIndependentRecomputation(unittest.TestCase):
         self.assertTrue(close(method.impl({**inputs, "timing": "end"})["enterprise_value"], end))
         self.assertTrue(mid > end, "mid-year discounting must raise a positive valuation")
         self.assertTrue(close(mid / end, "1.0488088481701515", D("1e-12")))
+        # B-183: and the product must actually deliver the mid-year tile, not block it.
+        delivery = deliver("dcf_valuation", inputs)
+        self.assertEqual(delivery.status, "delivered", delivery.blocked_reason)
+        self.assertGreater(len(delivery.report), 0)
 
     def test_018__equity_bridge_matches_hand_arithmetic(self):
         """E-fin-018: equity = EV − net debt − minority − preferred; per share divides by shares."""
