@@ -505,7 +505,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
                   font-size:14.2px;color:var(--text-3)}
 .capcard .capfoot-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
-.capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
 .capcard .lvl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
               border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;
               flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
@@ -1257,7 +1257,7 @@ function toolIcon(tool) {
   if (["npv", "irr", "discounted_payback", "wacc", "dcf_valuation", "dcf_midyear",
        "equity_bridge", "unit_economics", "forecast", "currency"].indexOf(tool.method) >= 0) return "finance";
   if (["management_accounts", "ratio_analysis"].indexOf(tool.method) >= 0) return "accounting";
-  if (["cost_benefit_analysis", "cost_effectiveness", "sroi"].indexOf(tool.method) >= 0) return "economics";
+  if (["cost_benefit", "cost_effectiveness", "sroi"].indexOf(tool.method) >= 0) return "economics";
   return "calculator";
 }
 
@@ -3458,17 +3458,11 @@ function subjectTiles(s) {
         '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
     }
     if (rows.length) {
-      /* A record backed by a frozen method is a computed method, not a gap: say
-         so and point the student at the record, rather than calling every row a
-         worksheet that does not exist yet. */
-      const computedRows = rows.filter((row) => row.form === "computed");
+      /* A record backed by a computed method is surfaced as a calculator in the
+         tile and in the page-level "Method coverage and limits" panel, so it is
+         never shown here as a "no worksheet yet" card.  Only genuine gaps are
+         listed as read-and-cite cards. */
       const readOnlyRows = rows.filter((row) => row.form !== "computed");
-      if (computedRows.length) {
-        html += '<p class="muted" style="margin:12px 0 6px">Computed methods: a frozen calculation is registered ' +
-          "for these records and runs on the figures you declare.</p>" +
-          '<div class="capgrid">' + computedRows.map((row) => frameworkCard(row, "method", tile.label,
-            "Computed method - open the record")).join("") + "</div>";
-      }
       if (readOnlyRows.length) {
         html += '<p class="muted" style="margin:12px 0 6px">Catalogued frameworks with no worksheet yet: read and cite them, ' +
           "and check what each one would need.</p>" +
@@ -3528,6 +3522,37 @@ function caseBriefBox() {
     '<textarea id="casebrief" rows="3" style="width:100%" placeholder="For example: a local bakery faces a new competitor and we need to decide how to position it."></textarea>' +
     '<div class="row" style="margin-top:8px;align-items:center"><button class="btn primary" id="casefind">Find the framework</button>' +
     '<span class="muted" id="casefindnote"></span></div><div id="casefindout"></div></div>';
+}
+
+/* Friendly label and launch target for a linked method id.  A subject tool is
+   preferred; otherwise fall back to any preset whose method matches (covers
+   methods that live on another shelf, e.g. npv / dcf). */
+function methodLabel(methodId) {
+  const tools = (state.subject && state.subject.tools) || [];
+  const tool = tools.find((t) => t.method === methodId);
+  if (tool) return tool.label;
+  const words = String(methodId || "").replace(/_/g, " ");
+  return words.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function toolForMethod(methodId, subject) {
+  const tools = (subject && subject.tools) || [];
+  const direct = tools.find((t) => t.method === methodId);
+  if (direct) return direct;
+  const key = Object.keys(state.presets || {})
+    .find((k) => state.presets[k] && state.presets[k].method === methodId);
+  if (key) return { key: key, preset: key, method: methodId, label: methodLabel(methodId), what: "" };
+  return null;
+}
+
+/* The tail of a coverage note: what is deliberately not built yet, without the
+   leading "partial:" preamble. */
+function coverageLimit(note) {
+  const text = String(note || "");
+  const cut = text.lastIndexOf("; ");
+  let tail = cut >= 0 ? text.slice(cut + 2).trim() : text.replace(/^partial:\s*/i, "").trim();
+  tail = tail.replace(/\s+(is|are)\s+not\s+implemented\.?\s*$/i, "");
+  return tail || "None stated.";
 }
 
 function openFramework(row) {
@@ -3847,7 +3872,7 @@ function renderSubject() {
       '<p class="sub" style="margin:4px 0 0">' + esc(s.summary) + "</p></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     ((s.guidance || (s.start_steps || []).length || (s.does_not || []).length)
-      ? '<div class="card guide studentguide"><h3>Student guide</h3>' +
+      ? '<details class="card guide studentguide"><summary>Student guide</summary>' +
         (s.guidance ? '<p class="sub" style="margin:4px 0 8px">' + esc(s.guidance) + "</p>" : "") +
         ((s.start_steps || []).length
           ? '<div class="startsteps"><h4 style="margin:0 0 4px;font-size:16.4px;color:var(--text)">Start here</h4><ol class="guidesteps">' +
@@ -3857,7 +3882,7 @@ function renderSubject() {
           ? '<details class="studynote"><summary><strong>What this shelf does not do</strong></summary><ul>' +
             s.does_not.map((line) => "<li>" + esc(line) + "</li>").join("") + "</ul></details>"
           : "") +
-        "</div>"
+        "</details>"
       : "") +
     '<div class="subjectask">' +
       '<button class="btn sm primary" id="subjectcalc">Open the Business Calculator</button>' +
@@ -3958,11 +3983,17 @@ function renderSubject() {
   }
   html += "</div>";
   if (computedRecords.length) {
-    html += '<details class="studynote"><summary>Catalogue coverage for the computed methods (' + computedRecords.length + ')</summary>' +
+    html += '<details class="studynote"><summary>Method coverage and limits (' + computedRecords.length + ')</summary>' +
+      '<p class="muted">Each row names what runs and what is deliberately not built yet. Use Run to open the calculator; ' +
+      "the figures and the confirmation are yours.</p>" +
       '<div class="tablewrap"><table><caption>What each computed method area covers</caption><thead><tr>' +
-      "<th>Method area</th><th>Coverage</th></tr></thead><tbody>" +
+      "<th>Method area</th><th>What runs</th><th>Limits and not built yet</th></tr></thead><tbody>" +
       computedRecords.map((row) => "<tr><td>" + esc(txt(row.name)) + "</td><td>" +
-        esc((row.linked_methods || []).join(", ") || row.status_note) + "</td></tr>").join("") +
+        ((row.linked_methods || []).length
+          ? row.linked_methods.map((mid) => '<button class="btn sm" type="button" data-run-method="' +
+              esc(mid) + '">' + esc(methodLabel(mid)) + "</button>").join(" ")
+          : '<span class="muted">Nothing yet</span>') +
+        "</td><td>" + esc(coverageLimit(row.status_note)) + "</td></tr>").join("") +
       "</tbody></table></div></details>";
   }
 
@@ -4006,6 +4037,11 @@ function renderSubject() {
   });
   $$("[data-worksheet]", out).forEach((b) => {
     b.onclick = () => openWorksheet(b.dataset.worksheet, b.dataset.wlabel);
+  });
+  $$("[data-run-method]", out).forEach((b) => {
+    const tool = toolForMethod(b.dataset.runMethod, s);
+    if (!tool) { b.disabled = true; b.title = "No calculator is registered for this method yet."; return; }
+    b.onclick = () => openTool(tool);
   });
   const frameworkpick = out.querySelector("#frameworkpick");
   if (frameworkpick) frameworkpick.onchange = () => {

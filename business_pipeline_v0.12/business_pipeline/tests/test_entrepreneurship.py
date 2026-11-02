@@ -306,8 +306,15 @@ class EntrepreneurshipPage(unittest.TestCase):
     def test_the_finance_grouping_did_not_leak(self):
         finance = subjects.detail("finance")
         self.assertTrue(all(tool["group"] for tool in finance["tools"]))
+        # Economics has its own grouping now (ECONOMICS_GROUPS).  The Finance
+        # group names must not leak into it: every Economics tool is either
+        # ungrouped or grouped by an Economics group name.
         economics = subjects.detail("economics")
-        self.assertTrue(all(tool["group"] is None for tool in economics["tools"]))
+        finance_groups = set(subjects.FINANCE_GROUPS.values())
+        economics_groups = set(subjects.ECONOMICS_GROUPS.values())
+        for tool in economics["tools"]:
+            self.assertIn(tool["group"], economics_groups | {None}, tool["key"])
+            self.assertNotIn(tool["group"], finance_groups - economics_groups, tool["key"])
 
 
 if __name__ == "__main__":

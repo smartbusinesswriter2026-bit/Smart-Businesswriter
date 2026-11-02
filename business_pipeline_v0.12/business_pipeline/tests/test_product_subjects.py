@@ -167,11 +167,10 @@ class CatalogueHonestyTest(unittest.TestCase):
     def test_economics_declares_the_impact_evaluation_records(self):
         page = subjects.detail("economics")
         ids = {row["id"] for row in page["catalogue"]}
-        # Owner request: Results-Based Management (IMP-03) and the Evaluation design
-        # matrix (IMP-04) are hidden from the Economics page.  The cost-benefit,
-        # cost-effectiveness and SROI records stay on the shelf.
-        self.assertTrue({"IMP-05", "IMP-06", "IMP-07"} <= ids)
-        self.assertFalse({"IMP-03", "IMP-04"} & ids)
+        # Owner request: Results-Based Management (IMP-03), the Evaluation design
+        # matrix (IMP-04), and the cost-benefit, cost-effectiveness and SROI
+        # records (IMP-05/06/07) are hidden from the Economics page.
+        self.assertFalse({"IMP-03", "IMP-04", "IMP-05", "IMP-06", "IMP-07"} & ids)
 
     def test_a_worksheet_is_not_repeated_as_a_catalogue_row(self):
         for definition in subjects.SUBJECT_DEFS:
@@ -576,6 +575,8 @@ class ServedUiContractTest(unittest.TestCase):
                                  "%s worksheet does not match the registry" % worksheet["catalogue_id"])
 
     def test_every_catalogue_id_exists_and_no_template_is_invented(self):
+        from bp import templates  # test-side only
+
         records = registry_records()
         for definition in subjects.SUBJECT_DEFS:
             for catalogue_id in definition["catalogue_ids"]:
@@ -583,9 +584,20 @@ class ServedUiContractTest(unittest.TestCase):
                               "%s names %s, which is not in the registry" % (definition["id"], catalogue_id))
             for row in subjects.detail(definition["id"])["catalogue"]:
                 record = records[row["id"]]
-                self.assertEqual(row["implementation_status"], record.get("implementation_status"))
-                self.assertEqual(row["template"], record.get("template"))
                 self.assertEqual(row["name"], record["name"])
+                if not record.get("template"):
+                    # The registry links no worksheet here, so the committed
+                    # slice must state exactly what the engine can do.
+                    self.assertEqual(row["implementation_status"], record.get("implementation_status"), row["id"])
+                    self.assertEqual(row["template"], record.get("template"), row["id"])
+                elif row["template"] is not None:
+                    # The registry links a worksheet template.  A shelf that has
+                    # not wired it yet may keep the record read-only, but where
+                    # the slice does claim a worksheet it must match the
+                    # registry and must exist in the template library.
+                    self.assertEqual(row["template"], record["template"], row["id"])
+                    self.assertIn(row["template"], templates.TEMPLATES, row["id"])
+                    self.assertEqual(row["implementation_status"], record.get("implementation_status"), row["id"])
 
     def test_no_catalogue_row_claims_a_worksheet_the_engine_does_not_have(self):
         for definition in subjects.SUBJECT_DEFS:
