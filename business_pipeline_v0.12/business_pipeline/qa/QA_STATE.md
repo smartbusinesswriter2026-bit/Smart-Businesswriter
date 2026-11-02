@@ -67,10 +67,11 @@ opening list.
 - **Manual:** `qa/manual/accounting.md` — 51 expectation rows (`E-acc-001…051`), every row
   traced to a source of truth; §9 is the traceability matrix (50 PASS, 1 BLOCKED); §10 lists
   the nine declared gaps.
-- **Suite:** `tests/test_subject_accounting_acceptance.py` — 50 tests / 119 subtests; one test
-  per E-row; `qa/probe_traceability.py` reconciles the manual and the suite 1:1.
-- **Defect ledger:** `qa/QA_DEFECTS.md` — 5 fixed (D-ACC-01…05), 3 blocked on an owner
-  decision (D-ACC-06, -07, -09), 2 gaps (D-ACC-08, -10).
+- **Suite:** `tests/test_subject_accounting_acceptance.py` — **53 tests / 136 subtests** (one test
+  per E-row, including the three added under B-179…B-181); `qa/probe_traceability.py` reconciles
+  the manual and the suite 1:1 (53 rows ↔ 53 tests).
+- **Defect ledger:** `qa/QA_DEFECTS.md` — **8 fixed** (D-ACC-01…05 in the first increment,
+  D-ACC-06/-07/-09 under the owner-approved B-179…B-181), 0 blocked, 2 gaps (D-ACC-08, -10).
 - **Probes** (read-only, kept so the next session can re-measure): `qa/probe_subject.py`,
   `qa/summarise_subject.py`, `qa/probe_methods.py`, `qa/probe_schema.py`, `qa/probe_related.py`,
   `qa/probe_duplicates.py`, `qa/probe_shadowing.py`, `qa/probe_accounting_papers.py`,
@@ -150,7 +151,26 @@ Manual: `E-acc-051…053` added, matrix now **53 rows / 53 tests**, all PASS. Do
 `econ_shelf --check`: "frozen fixture: in sync" after the core rename.
 `qa/probe_duplicates.py src/bp/methods.py` → **0 duplicate definitions**.
 
-## 9. Next action
+## 9. Closing measurement after the follow-up increment (2026-11-02, 19:52)
+
+| Measure | Value | Note |
+|---|---|---|
+| Full suite | **2711 tests, 65 failures, 14 errors** | `qa/baseline/_final_err.txt` |
+| New failure names vs the previous run | **1** — `test_E_eco_079__hhi_uses_percentage_shares` in `tests/test_subject_economics_acceptance.py`, a file the **other** session added while this run was in flight | not mine; their session owns it |
+| Failures that disappeared | 3 — the flaky social-media route ERROR, `test_documented_test_count…` (green at the time) and `test_no_method_is_framework_only` (updated under B-181) | verified |
+| `pytest tests/test_subject_accounting_acceptance.py tests/test_pipeline.py tests/test_product_home_routing.py tests/test_frozen_contract.py` | **84 passed, 136 subtests** | `qa/baseline/verify_final.txt` |
+| `qa/probe_duplicates.py src/bp/methods.py src/bp/product/chat.py` | **0 duplicate definitions** in both | `qa/baseline/dups_final.txt` |
+| `scripts/econ_shelf.py --check` | "frozen fixture: in sync" | `qa/baseline/econ_shelf_after2.txt` |
+
+**The documented test count is a moving target while the other session adds tests.** The count
+went 2627 → 2630 (this session's three new tests) → 2711 (their finance/economics suites) → 2726
+(their next additions, measured at 19:53). `HOME.md` / `HANDOFF.md` / `CONTRIBUTORS.md` currently
+carry **2711**, which was correct when that session wrote it; `test_documented_test_count_matches_the_real_suite`
+is therefore red until the number is refreshed again. That is the intended pressure of the test,
+and it belongs to whichever session is adding tests — not a defect in this increment. My own
+three tests are inside the number.
+
+## 10. Next action
 
 **Session 2 — `finance`.** Top three risks, measured from this session's data:
 
