@@ -154,6 +154,36 @@ def _plan_missing(state):
     return required
 
 
+def rubric_section(coverage):
+    """The mechanical coverage table: what the rubric asked for, and what the paper does.
+
+    Shared by both paper paths — a completed worksheet and a conducted paper — so the
+    same coverage table is printed (and read) the same way whichever route produced
+    the paper.  Nothing here marks the paper or awards a score.
+    """
+    rows = coverage.get("criteria") or []
+    lines = ["Your rubric states %d assessment %s. This table records whether each one is "
+             "present in the paper above. It does not mark the paper and no score is given."
+             % (len(rows), "criterion" if len(rows) == 1 else "criteria")]
+    for row in rows:
+        weight = (" (" + str(row["weight_text"]) + ")") if row.get("weight_text") else ""
+        if row["status"] == "addressed":
+            where = row.get("where") or []
+            lines.append("• " + str(row["name"]) + weight + ": addressed in "
+                         + (", ".join(where) if where else "the paper") + ".")
+        elif row["status"] == "partially":
+            lines.append("• " + str(row["name"]) + weight + ": partly addressed — "
+                         + (row.get("note") or "the section is present but an element it asks for "
+                                               "is not stated") + ".")
+        else:
+            lines.append("• " + str(row["name"]) + weight + ": not addressed by this paper. "
+                         "Treat this as a gap you still have to write.")
+    if coverage.get("gaps"):
+        lines.append("The gaps named above are reported, not filled: this system does not write "
+                     "the missing analysis for you.")
+    return section("Rubric coverage", H1, lines)
+
+
 def check(sections, framework="pestel", implications="", answers=None, state=None):
     """Structural coherence checks.  Returns high/medium/low issues."""
     issues = []

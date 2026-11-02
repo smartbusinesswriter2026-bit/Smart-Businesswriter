@@ -254,7 +254,9 @@ class Pipeline:
 
         # 8 Drafting: template writes tokens, never digits; renderer fills numbers
         decision = m.decision(primary) if m.decision else None
-        template = template or (m.template(outputs, period, spec.thresholds) if m.template else self._default_template(m, decision, flip is not None, period))
+        template = template or (m.template(outputs, period if isinstance(period, str) else str(period),
+                                           spec.thresholds) if m.template
+                                else self._default_template(m, decision, flip is not None, period))
         self.log("drafting", "done")
 
         # 9 Draft audit: raw digits rejected, tokens resolved against labels, claim wording licensed

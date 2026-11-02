@@ -3463,7 +3463,8 @@ function renderPlan() {
         '<button class="btn primary" id="planbegin">Propose the plan</button>' +
       "</div>" +
       '<p class="muted" style="margin-bottom:0">Supported briefs: PDF text layer, Word .docx, TXT, or a pasted description. ' +
-      "A scanned PDF needs OCR on this machine; the reader says so rather than guessing the text.</p>";
+      "A scanned PDF needs OCR on this machine; the reader says so rather than guessing the text.</p>" +
+      rubricNoteHtml();
     const begin = $("#planbegin"); if (begin) begin.onclick = beginPlan;
     return;
   }
@@ -3473,8 +3474,10 @@ function renderPlan() {
     "</span> <span class=\"pill\">" + esc(plan.mode_label || "") + "</span></div>" +
     '<button class="btn sm" id="planreset">Start over</button></div>' +
     '<p style="margin:6px 0 0">' + esc(d.brief) + "</p>" +
-    (p.attachment ? '<p class="muted">Brief read from ' + esc(p.attachment.method || "the attachment") +
-      " (" + esc(p.attachment.chars) + " characters). Check it against the document.</p>" : "") +
+    (p.attachment ? '<p class="muted">Brief read from ' + esc(p.attachment.filename || "the attachment") +
+      " by " + esc(p.attachment.method || "the reader") +
+      (p.attachment.engine ? " (" + esc(p.attachment.engine) + ")" : "") + ", " +
+      esc(p.attachment.chars) + " characters. It is unverified: check it against the document.</p>" : "") +
     "</div>";
   if (p.error) html += banner("blocked", "The last step did not complete", "<p>" + esc(p.error) + "</p>");
 
@@ -3562,6 +3565,14 @@ function renderPlan() {
     if ((d.draft.missing || []).length) {
       html += banner("blocked", "Complete the plan before export",
         "<p>Still needed: " + d.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
+      // A criterion the marking guide weights and no section of this profile can carry is
+      // the student's decision, not a silent block: they may accept the gap, which is
+      // recorded, and the coverage table keeps naming it.
+      if ((d.draft.missing || []).some((item) => /criterion your rubric states/.test(String(item)))) {
+        html += '<div class="row" style="margin-bottom:8px"><button class="btn sm" id="planrubricgate">' +
+          "Accept the rubric gap and download</button><span class=\"muted\">Your marking guide is kept: " +
+          "the coverage table still names every gap, and the decision is recorded on this plan.</span></div>";
+      }
     } else {
       html += '<div class="row" style="margin-bottom:8px"><button class="btn primary" id="plandownload">Download the plan</button>' +
         '<span class="muted">A plan with a computation downloads as a ZIP with its explainer.</span></div>';
@@ -3596,6 +3607,8 @@ function renderPlan() {
     planPost("draft", { accepted: accepted });
   };
   const download = $("#plandownload"); if (download) download.onclick = downloadPlan;
+  const rubricGate = $("#planrubricgate");
+  if (rubricGate) rubricGate.onclick = () => planPost("rubric-gate", { enabled: false });
 }
 
 async function planPost(action, body) {
@@ -3611,6 +3624,20 @@ async function planPost(action, body) {
     state.plan.error = error.message;
     renderPlan();
   }
+}
+
+/* What the student will be held to, when they read a marking guide from a file.
+   The plan runs the same coverage check the completed worksheets run: the paper gets a
+   coverage table, and a weighted criterion it does not address blocks the download.
+   Nothing here marks the paper. */
+function rubricNoteHtml() {
+  const parsed = state.rubric;
+  const criteria = (parsed && parsed.criteria) || [];
+  if (!criteria.length) return "";
+  return '<p class="muted" style="margin:8px 0 0">The marking guide you read (' + criteria.length +
+    (criteria.length === 1 ? " criterion" : " criteria") + ") travels with this plan: the paper " +
+    "carries a coverage table, and the download is blocked while a weighted criterion it names is " +
+    "unaddressed. It does not mark the paper.</p>";
 }
 
 async function beginPlan() {
@@ -3632,8 +3659,12 @@ async function beginPlan() {
       throw new Error("Describe the business in at least one sentence, or attach a brief.");
     }
     state.planMode = mode;
-    const data = await post("/api/cases/chat", { brief: brief, profile: "business_plan",
-      subject: "entrepreneurship", level: level, mode: mode });
+    const body = { brief: brief, profile: "business_plan", subject: "entrepreneurship",
+      level: level, mode: mode };
+    // The marking guide read on the intake card travels with the run: the paper carries a
+    // coverage table and the download is blocked while a weighted criterion is unaddressed.
+    if (state.rubric) body.rubric = state.rubric;
+    const data = await post("/api/cases/chat", body);
     state.plan = { data: data, attachment: attachment, error: null, student: null, blocks: null };
     renderPlan();
   } catch (error) {

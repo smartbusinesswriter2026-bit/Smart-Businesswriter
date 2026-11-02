@@ -64,6 +64,30 @@ def _words(text):
     return len(re.findall(r"[A-Za-z0-9'\u2019%-]+", str(text or "")))
 
 
+def _singular(word):
+    """One of `word`, in English: activities -> activity, dimensions -> dimension.
+
+    ``rstrip("s")`` turned "activities" into "activitie", and the deterministic
+    draft printed "a activitie for which no evidence is recorded" in every paper
+    whose profile pluralises with -ies.  Read on the produced .docx, not in a unit
+    test (2026-11-03).
+    """
+    text = str(word or "").strip()
+    lower = text.lower()
+    if lower.endswith("ies") and len(text) > 3:
+        return text[:-3] + ("Y" if text[-3].isupper() else "y")
+    if lower.endswith(("ses", "xes", "zes", "ches", "shes")):
+        return text[:-2]
+    if lower.endswith("s") and not lower.endswith("ss"):
+        return text[:-1]
+    return text
+
+
+def _article(word):
+    """`a` or `an`, from the word that follows it."""
+    return "an" if str(word or "")[:1].lower() in "aeiou" else "a"
+
+
 def _as_list(value):
     if value is None:
         return []
@@ -490,7 +514,7 @@ def _suggest(profile, gaps, instruction, unit, blocks, mode="assumption"):
 
 def _suggest_prompt(mode, plural):
     """The system prompt for one proposal mode."""
-    noun = plural.rstrip("s")
+    noun = _singular(plural)
     if mode == "question":
         return ("You are a business case tutor. For each " + noun + ", write ONE "
                 "specific question that the student can answer from their own position, using only the "
@@ -601,7 +625,8 @@ HEAD_SYSTEM = (
     "{block_plural} items. Write in formal academic English, third person, with no contractions, no rhetorical "
     "questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or "
     "the drafting process. Do not open with 'This paper' or 'The case concerns'; begin with the {unit_noun} and the "
-    "decision it frames. Write an introduction of {intro} words in {head_phrase} that closes with one sentence "
+    "decision it frames. Keep the unit of analysis in view: {unit_rule}. Write an introduction of {intro} words in "
+    "{head_phrase} that closes with one sentence "
     "stating {thesis_question}. Write a case context of {context} words in one paragraph that defines the decision, "
     "the {unit_noun} and the evidence base in academic terms. Do not restate every item. Do not add facts, numbers, "
     "names, sources or citations beyond the items. Do not recommend a decision. Return only JSON: "
@@ -652,6 +677,20 @@ CASE_RULE = (" Write generic terms in lower case (for example big data, net zero
              "only a name that appears in the items.")
 
 
+def _unit_noun(framework):
+    """The unit of analysis in the profile's own words, as a noun phrase.
+
+    The prompt must name what the paper analyses: a profile that declares an
+    industry writes an industry paper, and a model asked to "begin with the
+    portfolio" while the unit is an industry drifts into another framework's
+    vocabulary.  The profile's own label is used verbatim, lower-cased at the
+    first letter only, so nothing is invented here.
+    """
+    unit = framework.get("unit") or {}
+    noun = _clean(unit.get("label") or unit.get("field") or "market", 60)
+    return (noun[:1].lower() + noun[1:]) if noun else "market"
+
+
 def _system(template, length_profile, framework):
     """Fill the shared prompt with the framework's words and the length band."""
     voice = framework.get("voice") or {}
@@ -665,8 +704,9 @@ def _system(template, length_profile, framework):
     slots = {
         "name": framework["label"],
         "block_plural": voice.get("block_plural") or "dimensions",
-        "block_singular": (voice.get("block_plural") or "dimensions").rstrip("s"),
+        "block_singular": _singular(voice.get("block_plural") or "dimensions"),
         "unit_noun": voice.get("unit_noun") or "market",
+        "unit_rule": _unit_noun(framework),
         "thesis_question": voice.get("thesis_question") or "whether the evidence supports the decision",
         "lens": voice.get("lens") or "the terms the framework supplies",
         "closing": voice.get("closing") or "identifies the strongest and the weakest evidenced dimension",
@@ -1037,6 +1077,20 @@ def _title(instruction, profile=None, unit=""):
     return _apa_title(profile["title_prefix"] + ": " + text)
 
 
+def _background_note(profile, block):
+    """What a cell filled from general background must say about itself.
+
+    A paragraph that no source supports is not evidence.  The cell states that
+    before it states the paragraph, so a reader cannot take the framework's own
+    general knowledge for a finding (V-12).
+    """
+    note = _gap_note(profile, block)
+    if "general background" in note:
+        return note
+    return ("No source was found for this part; it is written from general background "
+            "and is not cited.")
+
+
 def _draft_data(result, length="mid"):
     """Deterministic prose from the accepted items and the profile's own notes.
 
@@ -1072,7 +1126,7 @@ def _draft_data(result, length="mid"):
     strongest = labels[counts.index(max(counts))] if counts else "none of the dimensions"
     weakest = labels[counts.index(min(counts))] if counts else "none of the dimensions"
     plural = voice.get("block_plural") or "dimensions"
-    singular = plural.rstrip("s")
+    singular = _singular(plural)
     interaction = (voice.get("interaction") or "").strip()
     if not interaction.lower().startswith("read together"):
         interaction = ("Read together, the documented " + plural + " " + interaction).strip()
@@ -1086,12 +1140,14 @@ def _draft_data(result, length="mid"):
                 "established from the accepted evidence and then interpreted, with attention to its effect on "
                 "the decision."),
             ("The argument advanced is that the " + plural + " supported by evidence constrain the decision, and "
-             "that a " + singular + " for which no evidence is recorded cannot be treated as favourable. The "
+             "that " + _article(singular) + " " + singular + " for which no evidence is recorded cannot be "
+             "treated as favourable. The "
              "conclusion returns to this proposition."),
         ],
         "context": [
             "The case concerns the following decision: " + instruction + ". " + (voice.get("context_frame") or ""),
-            ("Evidence is limited to the accepted items. A " + singular + " without an accepted item is recorded as "
+            ("Evidence is limited to the accepted items. " + _article(singular).capitalize() + " " + singular +
+             " without an accepted item is recorded as "
              "a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or "
              "recommendation is produced."),
         ],
@@ -1103,12 +1159,14 @@ def _draft_data(result, length="mid"):
              str(assumptions) + " case assumptions. The " + plural + " carrying evidence are " + listed + ", while " +
              str(gaps) + " " + singular + "(s) are recorded as gaps."),
             (interaction +
-             " A " + singular + " without evidence carries no weight in the assessment, because a gap is not a "
+             " " + _article(singular).capitalize() + " " + singular +
+             " without evidence carries no weight in the assessment, because a gap is not a "
              "finding and cannot be read as either a strength or a weakness."),
         ],
         "implications": [
             ("The combined reading bears on the decision: the documented conditions must be answered by the "
-             "proposed position, and the plan must show how each would be met. A " + singular + " that appears "
+             "proposed position, and the plan must show how each would be met. " + _article(singular).capitalize() +
+             " " + singular + " that appears "
              "weak in the evidence is not thereby one that can be disregarded; it is a " + singular + " the case "
              "has not documented."),
             (voice.get("implication_frame") or "") + " The decision itself remains the student's.",
@@ -1151,9 +1209,12 @@ def _draft_data(result, length="mid"):
         first = (" ".join(lines) if lines else
                  (block.get("gap") or "No evidence was found for this " + singular + ", so it is recorded as a gap."))
         if has_background:
-            # The item is already the general background paragraph; adding the
-            # note again printed the same paragraph twice.
-            paragraphs = [first]
+            # V-12 at the paper: the paragraph below is the framework's own general
+            # background, written from knowledge rather than from a retrieved source.
+            # Printed bare it posed as a finding, so the cell says what it is first.
+            # The completion payload keeps its item and its (absent) gap: the
+            # worksheet shows the run, the paper says what the run cannot support.
+            paragraphs = [_background_note(framework, block), first]
         elif name == "short":
             paragraphs = [first + " " + (note.get("short") or "")]
         elif name == "long":
@@ -1212,7 +1273,7 @@ def _sections(data, blocks, style, citations, result):
                 paper.section(outline.get("context") or "Case and context", 2, list(data["context"])),
                 paper.section(outline.get("framework") or profile["label"], 1, [data["lead"]],
                               figure=figure)]
-    singular = ((profile.get("voice") or {}).get("block_plural") or "dimensions").rstrip("s")
+    singular = _singular((profile.get("voice") or {}).get("block_plural") or "dimensions")
     for block in blocks:
         key = block.get("key")
         paragraphs = list(data["groups"].get(key) or [])
@@ -1337,27 +1398,7 @@ def _word_target(parsed, words):
 
 def _rubric_section(coverage):
     """The mechanical coverage table: what the rubric asked for, and what the paper does."""
-    rows = coverage.get("criteria") or []
-    lines = ["Your rubric states %d assessment %s. This table records whether each one is "
-             "present in the paper above. It does not mark the paper and no score is given."
-             % (len(rows), "criterion" if len(rows) == 1 else "criteria")]
-    for row in rows:
-        weight = (" (" + str(row["weight_text"]) + ")") if row.get("weight_text") else ""
-        if row["status"] == "addressed":
-            where = row.get("where") or []
-            lines.append("• " + str(row["name"]) + weight + ": addressed in "
-                         + (", ".join(where) if where else "the paper") + ".")
-        elif row["status"] == "partially":
-            lines.append("• " + str(row["name"]) + weight + ": partly addressed — "
-                         + (row.get("note") or "the section is present but an element it asks for "
-                                               "is not stated") + ".")
-        else:
-            lines.append("• " + str(row["name"]) + weight + ": not addressed by this paper. "
-                         "Treat this as a gap you still have to write.")
-    if coverage.get("gaps"):
-        lines.append("The gaps named above are reported, not filled: this system does not write "
-                     "the missing analysis for you.")
-    return paper.section("Rubric coverage", 1, lines)
+    return paper.rubric_section(coverage)
 
 
 def draft_bytes(result, style="apa", report=None, version="draft", length="mid"):

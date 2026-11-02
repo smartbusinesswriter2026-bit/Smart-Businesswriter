@@ -8,6 +8,21 @@ def sha(obj) -> str:
 
 class RefMismatch(Exception): pass
 
+
+def _label(value):
+    """A label as a token writes it.
+
+    A template receives the declared period and writes it into its references, so a method
+    asked for **no** period writes the literal text ``None``; that text is the absence of a
+    label, not a period named "None".  Refusing it blocked every preset that declares no
+    period (D-ENT-04) with a message that read "token wants n/None, artifact is n/None".
+    A genuinely different label still mismatches.
+    """
+    if value is None:
+        return None
+    text = str(value).strip()
+    return None if text in ("", "None", "none", "null") else text
+
 @dataclass(frozen=True)
 class Artifact:
     id: str
@@ -34,7 +49,7 @@ class ArtifactStore:
         self._a[a.id] = a
     def resolve(self, id, metric, period) -> Artifact:
         a = self._a[id]
-        if (a.metric, a.period) != (metric, period):
+        if (_label(a.metric), _label(a.period)) != (_label(metric), _label(period)):
             raise RefMismatch(f"token wants {metric}/{period}, artifact is {a.metric}/{a.period}")
         return a
     def all(self): return list(self._a.values())

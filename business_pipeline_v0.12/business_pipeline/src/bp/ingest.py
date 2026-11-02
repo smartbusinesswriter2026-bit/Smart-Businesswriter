@@ -297,6 +297,11 @@ def to_method_inputs(table, method_id, mapping):
 
     Supported shapes: a `value_list`/`code_list` input maps from one column name (missing cells become null);
     a `column_map` input (groups, predictors, pairs) maps from an object of output-name -> column name.
+    A mapping that leaves a required input out is a **partial proposal**: the input is named in
+    `not_mapped` and the student supplies it, because a plan block mixes list inputs (revenue by period)
+    with declared drivers (the gross margin).  What a mapping gets wrong is still refused — a scalar that
+    a column cannot feed, an unknown column, a column that mixes numbers and text, a value that fails its
+    own rule — never what it leaves to the student.  Nothing here runs the method.
     The returned request carries a provenance note naming the file and hash. Mapping does not upgrade the data:
     the pipeline still treats it as owner-supplied and the note says so.
     """
@@ -326,8 +331,20 @@ def to_method_inputs(table, method_id, mapping):
         else:
             raise IngestError(f"'{key}' has type {t!r}, which cannot be mapped from a column; provide it directly in the request")
     errs = methodlib.validate_inputs(m, out)
+    # A mapping that names no input this method declares is a mistake, not a proposal.
+    if not out:
+        raise IngestError("the mapping names no input of " + method_id + ": it maps "
+                          + ", ".join(sorted(str(name) for name in mapping))
+                          + " and the method takes " + ", ".join(sorted(m.input_schema)))
+    # An input the student did not map is not a mapping error.  The proposal names
+    # every input still to be supplied in `not_mapped`, and the form still asks for
+    # it — which is exactly the shape a plan block has: its lists come from the
+    # file and its drivers are typed.  A value the mapping *did* supply and that
+    # fails its own rule is still refused, in the core's own words.
+    missing = [e for e in errs if e.startswith("missing required input '")]
+    errs = [e for e in errs if e not in missing]
     if errs: raise IngestError("the mapped columns do not form a valid request for " + method_id + ": " + "; ".join(errs))
-    prof = m.profile(out)
+    prof = m.profile(out) if not missing else []
     if prof: raise IngestError("the mapped columns fail the method's pre-checks: " + "; ".join(prof))
     # Which columns actually fed the request, so the session can carry the file and its hash
     # as a manifest entry and each mapped input can say where it came from (B-071).

@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, council, docx, framework_profiles, guard, matrix, paper, prose, retrieval, verify, writing
+from . import capabilities, council, docx, framework_profiles, guard, matrix, paper, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -769,20 +769,28 @@ def _defaults(brief):
 
 
 def start(brief, subject="management", framework=None, profile=None, level="shs", mode="strict",
-          words=None):
-    """Create a conductor state.  No source is retrieved until the plan is confirmed."""
+          words=None, rubric=None):
+    """Create a conductor state.  No source is retrieved until the plan is confirmed.
+
+    ``rubric`` is the marking guide the student attached — the text of the file, or the
+    structure ``bp.product.rubric.parse`` already returned.  It is read **once, here**, and
+    a rubric that cannot be read is refused: a run that accepted it and wrote the paper
+    anyway would tell the student their rubric had been followed when nothing had been
+    read from it.  The coverage is measured when the paper is drafted, not now.
+    """
     brief = _clean(brief, 2000)
     if len(brief) < 15:
         raise ChatError("Describe the case or assignment in at least one sentence.")
+    attached = _read_rubric(rubric) if rubric is not None else None
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
-        return _start_plan(brief, subject, level, mode)
+        return _with_rubric(_start_plan(brief, subject, level, mode), attached)
     if wanted in (PROFILE_FEASIBILITY_STUDY, "feasibility_study", "feasibilitystudy", "feasibility"):
-        return _start_feasibility_study(brief, subject, level, mode)
+        return _with_rubric(_start_feasibility_study(brief, subject, level, mode), attached)
     if wanted in (PROFILE_MARKETING_PLAN, "marketing_plan", "marketingplan", "marketing"):
-        return _start_marketing_plan(brief, subject, level, mode)
+        return _with_rubric(_start_marketing_plan(brief, subject, level, mode), attached)
     if wanted in (PROFILE_PROJECT_PROPOSAL, "project_proposal", "projectproposal", "proposal"):
-        return _start_project_proposal(brief, subject, level, mode)
+        return _with_rubric(_start_project_proposal(brief, subject, level, mode), attached)
     framework = (framework or "").strip().lower() or _infer_framework(brief)
     council_result, council_note = None, None
     if council.available():
@@ -905,6 +913,38 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
         # a journal-entry or npv brief to PESTEL.  Fail closed, with the reason.
         state.update({"stage": "not_supported", "message": message, "questions": [],
                       "question_index": 0})
+    return _with_rubric(state, attached)
+
+
+def _read_rubric(value):
+    """The attached marking guide, read once; a document that cannot be read is refused.
+
+    The reader's own reason is raised, so the student is told what to fix — a rubric
+    silently ignored would be a promise the product did not keep.
+    """
+    try:
+        parsed = value if isinstance(value, dict) else rubric_reader.parse(value)
+    except Exception as error:                                   # a reader must never crash a run
+        raise ChatError("The rubric could not be read: " + str(error)[:200])
+    if not isinstance(parsed, dict) or not parsed.get("ok"):
+        problems = (parsed or {}).get("problems") if isinstance(parsed, dict) else None
+        raise ChatError(problems[0] if problems else
+                        "The rubric could not be read. Attach it as a table or a numbered list.")
+    return parsed
+
+
+def _with_rubric(state, attached):
+    """Carry the marking guide on the state it was attached to, and nowhere else.
+
+    The parsed guide is stored as `rubric_record`; the **coverage** is measured when the
+    paper is drafted and stored as `rubric`, which is the key `paper.missing` reads.  A
+    run with no rubric is byte-identical to what it was before the guide existed.
+    """
+    if attached is None:
+        return state
+    state["rubric_record"] = attached
+    state["rubric_gate"] = True
+    state["updated_at"] = _now()
     return state
 
 
@@ -5383,8 +5423,52 @@ def _append_declared_sources(state):
 
 
 def draft(state, accepted_ids=None, implications="", style=None):
-    """Compose the paper, then attach the student's own citations in their own section (B-182)."""
-    return _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
+    """Compose the paper, then attach the student's own citations (B-182) and the rubric audit."""
+    state = _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
+    return _apply_rubric(state)
+
+
+#: The heading the coverage table carries, in both paper paths.
+RUBRIC_HEADING = "Rubric coverage"
+
+
+def _apply_rubric(state):
+    """Measure the finished paper against the marking guide the student attached.
+
+    The coverage is measured on the paper **before** the table exists, so the table can
+    never satisfy the criterion it reports on — the same rule the completed worksheet
+    follows.  `state["rubric"]` is the key `paper.missing` reads, so a criterion the
+    guide weights and the paper does not address blocks the download and is named there;
+    nothing here writes the missing section.  A paper with no attached guide is returned
+    unchanged.
+    """
+    attached = state.get("rubric_record")
+    draft = state.get("draft") or {}
+    outline = draft.get("outline")
+    if not attached or not isinstance(outline, list) or not outline:
+        return state
+    if not all(isinstance(item, dict) for item in outline):
+        return state
+    if any(str(item.get("heading") or "") == RUBRIC_HEADING for item in outline):
+        return state
+    coverage = rubric_reader.coverage(attached, outline)
+    insert_at = len(outline)
+    for position, item in enumerate(outline):
+        if str(item.get("heading") or "") in ("References", "Bibliography"):
+            insert_at = position
+            break
+    outline = outline[:insert_at] + [paper.rubric_section(coverage)] + outline[insert_at:]
+    draft["outline"] = outline
+    draft["sections"] = paper.flatten(outline)
+    draft["rubric"] = coverage
+    state["draft"] = draft
+    state["rubric"] = coverage
+    # The table is the paper's own sentence now, so the claim guard reads it too.
+    state["claim_problems"] = _claim_scan(outline)
+    draft["missing"] = paper.missing(state, draft.get("implications", ""))
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
 
 
 def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
@@ -5636,6 +5720,26 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                       "met_target": target == 0 or words >= target,
                       "missing": missing, "created_at": _now()}
     state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
+def set_rubric_gate(state, enabled=True):
+    """The student's own switch on the marking guide's gate.
+
+    A rubric can name a section this profile does not carry — a marker's "Referencing"
+    against the plan's own "References" — and then the gate would honour the document
+    against a paper that can never satisfy it.  Turning it off is recorded, the rows stay
+    in the coverage table as gaps, and the download is allowed: the student accepts the
+    gap rather than the system pretending it is closed.
+    """
+    if not state.get("rubric") and not state.get("rubric_record"):
+        raise ChatError("Attach a marking guide before changing its gate.")
+    state["rubric_gate"] = bool(enabled)
+    state["rubric_gate_set_at"] = _now()
+    draft = state.get("draft")
+    if isinstance(draft, dict):
+        draft["missing"] = paper.missing(state, draft.get("implications", ""))
     state["updated_at"] = _now()
     return state
 

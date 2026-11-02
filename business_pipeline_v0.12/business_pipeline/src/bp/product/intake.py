@@ -463,7 +463,8 @@ def use_as_brief(file_id):
     _write_json(_path(file_id), record)
     return {"id": record["id"], "filename": record["filename"], "role": "brief",
             "status": record["status"], "chars": len(text), "text": text, "unverified": True,
-            "method": result.get("method"), "pages": result.get("pages"), "note": record["note"]}
+            "method": result.get("method"), "engine": result.get("engine"),
+            "pages": result.get("pages"), "note": record["note"]}
 
 
 def use_as_rubric(file_id):

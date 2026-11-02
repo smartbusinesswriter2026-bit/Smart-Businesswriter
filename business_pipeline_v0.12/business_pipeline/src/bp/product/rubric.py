@@ -204,6 +204,18 @@ def _split_name(body):
     return text.strip(), None, ""
 
 
+def _length_only(text):
+    """True when a line's name part is nothing but a word count and its tolerance.
+
+    ``2,500 words (+/- 10%)`` is a length budget, not a criterion.  Without this
+    guard the ``10%`` in the tolerance reads as a weight and the budget becomes a
+    criterion no paper can ever address — which then blocks the download.
+    """
+    stripped = TOLERANCE_RE.sub("", str(text or ""))
+    stripped = WORDS_RE.sub("", stripped)
+    return not re.search(r"[A-Za-z]", stripped)
+
+
 def _read_list(lines):
     """A bulleted, numbered or headed list of criteria."""
     rows = []
@@ -214,6 +226,8 @@ def _read_list(lines):
             continue
         if SECTIONS_RE.match(body):
             continue
+        if WORDS_RE.search(body) and WORDS_LABEL_RE.match(body):
+            continue  # "Word limit: 2,500 words (+/- 10%)" states the length, not a criterion
         weight, weight_text = _find_weight(body)
         if weight is None and not bullet and not NAME_SPLIT_RE.search(body):
             continue  # prose, a title or a heading: not a criterion
@@ -223,6 +237,8 @@ def _read_list(lines):
         name = name.strip(" *#\t")
         if not name or len(name) > MAX_NAME:
             continue
+        if _length_only(name):
+            continue  # a bare "2,500 words +/- 10%" line is the budget, not a criterion
         rows.append({"name": name, "weight": weight_text or stated or "",
                      "descriptor": descriptor, "required": ""})
     return rows, ("list" if rows else "none")
@@ -425,7 +441,15 @@ def _normalise(text):
 
 
 def _covers(heading, criterion):
-    """True when a heading names the criterion: containment either way, or overlap."""
+    """True when a heading names the criterion: containment, overlap, or the same stem.
+
+    A criterion is often a gerund where the section is a noun ("Referencing" against the
+    paper's "References"), and refusing that pair would report a gap the paper does not
+    have — a false gap blocks the download.  The stem rule is deliberately narrow: two
+    words match only when both are at least six characters and their first six agree, so
+    "operations"/"operating" and "references"/"referencing" match while "content" and
+    "context" do not.
+    """
     left, right = _normalise(heading), _normalise(criterion)
     if not left or not right:
         return False
@@ -434,7 +458,15 @@ def _covers(heading, criterion):
     wanted, found = set(_tokens(criterion)), set(_tokens(heading))
     if not wanted or not found:
         return False
-    return len(wanted & found) / float(len(wanted)) >= 0.6
+    if len(wanted & found) / float(len(wanted)) >= 0.6:
+        return True
+    return any(_same_stem(a, b) for a in wanted for b in found)
+
+
+def _same_stem(left, right):
+    """Two words that name the same thing written two ways: same first six letters."""
+    left, right = str(left or ""), str(right or "")
+    return len(left) >= 6 and len(right) >= 6 and left[:6] == right[:6]
 
 
 def coverage(parsed, sections, blocks=None):

@@ -527,7 +527,11 @@ def handle(method, path, body=None):
             result = documents.extract_document(raw, filename)
         except documents.DocumentError as error:
             return 422, {"error": str(error)}
-        return 200, result
+        # The file the text came from travels with it, so the page can say which file it read
+        # and which engine read it (`method`, and `engine` when a vision model read the page).
+        payload = dict(result)
+        payload["filename"] = filename
+        return 200, payload
 
     # -- the deterministic PESTEL conductor ----------------------------------
     if segments and segments[0] == "chat":
@@ -543,7 +547,8 @@ def handle(method, path, body=None):
                                              body.get("framework"), profile=body.get("profile"),
                                              level=body.get("level") or "shs",
                                              mode=body.get("mode") or "strict",
-                                             words=body.get("words"))
+                                             words=body.get("words"),
+                                             rubric=body.get("rubric"))
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)
@@ -597,6 +602,8 @@ def handle(method, path, body=None):
                 if accepted is not None and not isinstance(accepted, list):
                     return _error("accepted must be a list of evidence ids")
                 state = chat_conductor.draft(state, accepted, data.get("implications"), data.get("style"))
+            elif action == "rubric-gate":
+                state = chat_conductor.set_rubric_gate(state, data.get("enabled", True))
             elif action == "assist":
                 key = str(data.get("key") or "").strip()
                 if not key:
