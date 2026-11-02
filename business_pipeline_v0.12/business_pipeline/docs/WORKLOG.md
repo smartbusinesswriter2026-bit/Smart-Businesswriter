@@ -8,6 +8,8 @@
 
 **Verified.** `node --check` on the page script; 8 page/route tests in `tests/test_portfolio_screener_ui.py` (tabs, panels, multi-add markers, no hard-coded `AAPL` value, prefill-fills-only) plus the 14 ported module tests, all green; live on 8000 through a headless Chrome CDP run - `MSFT, NVDA` added and recorded, watch list 1 -> 3 rows, selects populated with all three series, tab swap correct, screen-from-watch-list returned AAPL/NVDA/MSFT with named gaps, no console error or page exception. Screenshots in `qa/evidence/portfolio/`. No frozen core, method, preset, check, number or endpoint changed; suite 2854 tests.
 
+**Gate fix found in the same pass.** `scripts/ui_smoke.py` still required the marker "not teacher-approved", which the earlier clutter commit (735d849) deleted on purpose; the marker is now the honesty banner ("Honesty: what was not done"), matching `test_product_subjects.py`, and the smoke run is 0 failures.
+
 **Open/next.** The lab still needs the Alpha Vantage / Massive keys configured server-side for live rows (without them every metric is a named gap); the watch list is global to the machine, not per book; a symbol the provider cannot resolve is reported per symbol rather than pre-validated in the box.
 
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
