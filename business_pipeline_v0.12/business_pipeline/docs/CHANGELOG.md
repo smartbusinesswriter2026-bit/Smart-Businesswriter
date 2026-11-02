@@ -1,4 +1,43 @@
-## The heading band is on every subject, and its Close button is reconciled
+## The entrepreneurship shelf, and the marking guide reaches the business plan
+
+Owner: shelf 6 of 11 (work order: subject audit, `entrepreneurship`).
+
+- **The marking guide now reaches the plan.** `chat.start(..., rubric=…)` reads it once, refuses an
+  unreadable one with the reader's own reason, and `chat.draft` measures the finished plan against
+  it: the paper carries a `Rubric coverage` table before its references, and a weighted criterion
+  the plan does not address blocks the download and is named in `missing`. The student may accept
+  the gap (`POST /api/cases/chat/{id}/rubric-gate`); the table keeps naming it and the decision is
+  recorded. `paper.rubric_section` is now one function for both paper paths.
+- **Two rubric-reader defects fixed.** A labelled word budget in a list rubric ("Word limit: 2,500
+  words +/- 10%") was read as a sixth weighted criterion — the tolerance's `%` became its weight,
+  so a complete paper could never be downloaded. A gerund criterion never matched its noun heading
+  ("Referencing" against "References"), a false gap with the same effect. `_read_list` skips a
+  labelled length line and a name that is only a word count; `_covers` accepts two words that share
+  their first six letters.
+- **A plan block's columns are proposed, not refused.** `bp.ingest.to_method_inputs` refused any
+  mapping that left a required scalar out — which is exactly a plan block's shape (list columns
+  from a file, drivers typed). It now names the un-mapped inputs in `not_mapped`; what a mapping
+  gets wrong (a scalar asked from a column, an unknown column, a mixed-type column, a value that
+  fails its own rule, a mapping that names no input at all) is still refused in the core's words.
+- **Eight presets across three shelves deliver again.** A preset that declares no period wrote the
+  literal text `None` into its own reference token, and `ArtifactStore.resolve` compared that text
+  with a real `None`: `reference failure: RefMismatch('token wants n/None, artifact is n/None')`.
+  `pearson` additionally crashed in the frozen `corr_template`. Fixed in the artifact layer and at
+  the template call (never in `methods.py`): accounting's `accounts`, the research/finance
+  statistics presets and three entrepreneurship tools now deliver. **46 of 46 entrepreneurship
+  tools deliver through their own preset** (43 before).
+- **The engine that read a brief reaches the page.** `POST /api/cases/brief` now returns the file
+  it read and, when a vision model read it, the model id; the plan page shows it and says the text
+  is unverified.
+- **Docs corrected**: `CURRICULUM_MAP.md` said 5 worksheets (6), `KNOWN_LIMITATIONS.md` said the
+  SWOT review was the only structured worksheet, and both now describe the six.
+
+Page syntax gate OK. Acceptance suite `tests/test_subject_entrepreneurship_acceptance.py` **106
+tests, 106 passed**; the shelf's own suites (62 + 63 + 39) still pass. No frozen method, preset,
+input, check, number or route family changed; `tests/fixtures/frozen_contract.json` untouched.
+
+- 1.69 (2026-11-03): the marking guide reaches the business plan and its gate is the student's; a dataset proposes a plan block's columns; eight period-less presets deliver again; the OCR engine reaches the page. No frozen core, method, preset, input, check, number or route changed.
+
 
 Owner: approved on accounting — apply to all subjects, and reconcile professionally where a Close
 button sits beside a level-1 heading.

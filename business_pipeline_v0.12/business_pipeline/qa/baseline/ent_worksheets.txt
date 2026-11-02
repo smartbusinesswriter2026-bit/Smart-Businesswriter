@@ -1,0 +1,39 @@
+﻿.....F.....F............................................................ [ 59%]
+.................................................                        [100%]
+================================== FAILURES ===================================
+______ Registration.test_every_new_worksheet_is_t4_and_links_its_record _______
+
+self = <test_marketing_worksheets.Registration testMethod=test_every_new_worksheet_is_t4_and_links_its_record>
+
+    def test_every_new_worksheet_is_t4_and_links_its_record(self):
+        for kind, (rid, form) in NEW.items():
+            template = T.TEMPLATES[kind]
+            self.assertEqual(template["tier"], "T4", kind)
+            self.assertEqual(template["registry_ids"], [rid], kind)
+            self.assertEqual(R.get(rid)["template"], kind, rid)
+            self.assertEqual(R.get(rid)["form"], "worksheet", rid)
+>           self.assertEqual(T.describe(kind)["form_kind"], form, kind)
+E           AssertionError: 'canvas' != 'matrix'
+E           - canvas
+E           + matrix
+E            : template_customer_journey
+
+tests\test_marketing_worksheets.py:40: AssertionError
+______ ExampleRuns.test_the_listing_reproduces_a_supplied_line_verbatim _______
+
+self = <test_marketing_worksheets.ExampleRuns testMethod=test_the_listing_reproduces_a_supplied_line_verbatim>
+
+    def test_the_listing_reproduces_a_supplied_line_verbatim(self):
+        for kind in NEW:
+            out = T.run_template(kind, example(kind)["inputs"])
+            first = T.EXAMPLES[kind]["inputs"]
+            if kind in T.CANVAS_BLOCKS:
+>               text = next(item["text"] for items in first["blocks"].values() for item in items)
+                                                      ^^^^^^^^^^^^^^^
+E               KeyError: 'blocks'
+
+tests\test_marketing_worksheets.py:76: KeyError
+=========================== short test summary info ===========================
+FAILED tests/test_marketing_worksheets.py::Registration::test_every_new_worksheet_is_t4_and_links_its_record
+FAILED tests/test_marketing_worksheets.py::ExampleRuns::test_the_listing_reproduces_a_supplied_line_verbatim
+2 failed, 119 passed, 2963 deselected in 11.18s

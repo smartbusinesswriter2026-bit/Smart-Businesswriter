@@ -1,0 +1,2057 @@
+{
+ "tools": [
+  {
+   "tool": "marketsize",
+   "method": "market_sizing",
+   "preset": "marketsize",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "a"
+    },
+    {
+     "name": "s",
+     "ok": "a"
+    },
+    {
+     "name": "s",
+     "ok": "o"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "target_population": "count",
+    "annual_spend_per_customer": "currency",
+    "serviceable_share": "rate",
+    "obtainable_share": "rate",
+    "total_addressable_market": "currency",
+    "serviceable_available_market": "currency",
+    "serviceable_obtainable_market": "currency",
+    "customers_in_som": "count",
+    "share_of_tam_obtained": "rate"
+   }
+  },
+  {
+   "tool": "forecast",
+   "method": "trend_forecast",
+   "preset": "forecast",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "o",
+     "ok": "u"
+    },
+    {
+     "name": "s",
+     "ok": "h"
+    },
+    {
+     "name": "p",
+     "ok": "o"
+    },
+    {
+     "name": "b",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "intercept": "@unit",
+    "slope": "@unit",
+    "r_squared": "ratio",
+    "residual_se": "@unit",
+    "p_slope": "probability",
+    "n_fitted": "count",
+    "n_excluded": "count",
+    "horizon": "count",
+    "confidence_level": "rate",
+    "forecast_1": "@unit",
+    "ci_lower_1": "@unit",
+    "ci_upper_1": "@unit",
+    "forecast_2": "@unit",
+    "ci_lower_2": "@unit",
+    "ci_upper_2": "@unit",
+    "forecast_3": "@unit",
+    "ci_lower_3": "@unit",
+    "ci_upper_3": "@unit",
+    "mae_holdout": "@unit",
+    "coverage_holdout": "rate",
+    "n_holdout": "count"
+   }
+  },
+  {
+   "tool": "demandcurve",
+   "method": "demand_curve",
+   "preset": "demandcurve",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "s",
+     "ok": "l"
+    },
+    {
+     "name": "f",
+     "ok": "i"
+    },
+    {
+     "name": "r",
+     "ok": "_"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "intercept": "ratio",
+    "slope": "ratio",
+    "r_squared": "ratio",
+    "mean_price": "currency",
+    "mean_quantity": "units",
+    "elasticity_at_mean": "ratio",
+    "revenue_max_price": "currency",
+    "revenue_max_quantity": "units",
+    "revenue_max_revenue": "currency"
+   }
+  },
+  {
+   "tool": "purchaseintent",
+   "method": "purchase_intent",
+   "preset": "purchaseintent",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "i",
+     "ok": "n"
+    },
+    {
+     "name": "a",
+     "ok": "l"
+    },
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "respondents": "count",
+    "definitely": "count",
+    "probably": "count",
+    "maybe": "count",
+    "never": "count",
+    "intent_rate": "rate",
+    "weighted_intenders": "currency",
+    "target_population": "count",
+    "projected_buyers": "count",
+    "price": "currency",
+    "projected_revenue": "currency"
+   }
+  },
+  {
+   "tool": "funnel",
+   "method": "sales_funnel",
+   "preset": "funnel",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "o",
+     "ok": "v"
+    },
+    {
+     "name": "e",
+     "ok": "a"
+    },
+    {
+     "name": "o",
+     "ok": "v"
+    },
+    {
+     "name": "c",
+     "ok": "a"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "customers": "count",
+    "drop_off": "count",
+    "overall_conversion": "rate",
+    "count_1": "count",
+    "conversion_1": "rate",
+    "count_2": "count",
+    "conversion_2": "rate",
+    "count_3": "count",
+    "spend": "currency",
+    "cac": "currency"
+   }
+  },
+  {
+   "tool": "cohort",
+   "method": "cohort_retention",
+   "preset": "cohort",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "f",
+     "ok": "i"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "v"
+    },
+    {
+     "name": "p",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "retention_1": "rate",
+    "churn_1": "rate",
+    "retention_2": "rate",
+    "churn_2": "rate",
+    "retention_3": "rate",
+    "churn_3": "rate",
+    "retention_4": "rate",
+    "churn_4": "rate",
+    "average_retention": "rate",
+    "average_lifetime": "periods",
+    "total_start": "count",
+    "total_retained_1": "count"
+   }
+  },
+  {
+   "tool": "concentration",
+   "method": "market_concentration",
+   "preset": "concentration",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "h",
+     "ok": "h"
+    },
+    {
+     "name": "c",
+     "ok": "r"
+    },
+    {
+     "name": "s",
+     "ok": "h"
+    },
+    {
+     "name": "e",
+     "ok": "f"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "n_firms": "count",
+    "total_revenue": "currency",
+    "hhi": "ratio",
+    "cr1": "ratio",
+    "cr4": "ratio",
+    "effective_n": "ratio"
+   }
+  },
+  {
+   "tool": "elasticity",
+   "method": "elasticity",
+   "preset": "elasticity",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "r"
+    },
+    {
+     "name": "s",
+     "ok": "w"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    },
+    {
+     "name": "e",
+     "ok": "l"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "price_elasticity": "ratio",
+    "absolute_elasticity": "ratio",
+    "pct_change_quantity": "rate",
+    "pct_change_price": "rate",
+    "total_revenue_1": "currency",
+    "total_revenue_2": "currency",
+    "revenue_change": "currency",
+    "elastic": "count",
+    "unit_elastic": "count"
+   }
+  },
+  {
+   "tool": "descriptive",
+   "method": "descriptive_stats",
+   "preset": "descriptive",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "s",
+     "ok": "h"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    },
+    {
+     "name": "p",
+     "ok": "e"
+    },
+    {
+     "name": "m",
+     "ok": "i"
+    },
+    {
+     "name": "o",
+     "ok": "r"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {}
+  },
+  {
+   "tool": "chi_square",
+   "method": "chi_square",
+   "preset": "chi_square",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "r",
+     "ok": "o"
+    },
+    {
+     "name": "t",
+     "ok": "r"
+    },
+    {
+     "name": "u",
+     "ok": "n"
+    },
+    {
+     "name": "i",
+     "ok": "n"
+    },
+    {
+     "name": "b",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "chi_squared": "ratio",
+    "df": "count",
+    "p_value": "probability",
+    "cramers_v": "ratio",
+    "n_total": "count",
+    "n_cells": "count",
+    "min_expected_count": "count",
+    "alpha": "rate"
+   }
+  },
+  {
+   "tool": "power",
+   "method": "power_analysis",
+   "preset": "power",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "p",
+     "ok": "o"
+    },
+    {
+     "name": "p",
+     "ok": "o"
+    },
+    {
+     "name": "p",
+     "ok": "o"
+    },
+    {
+     "name": "m",
+     "ok": "d"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "power": "probability",
+    "mde": "@unit",
+    "se": "@unit",
+    "ncp": "ratio",
+    "z_alpha": "ratio",
+    "alpha": "probability",
+    "target_power": "probability",
+    "n1": "count",
+    "n2": "count",
+    "_appendix": "ratio",
+    "_checks": "ratio"
+   }
+  },
+  {
+   "tool": "pricing",
+   "method": "pricing_decision",
+   "preset": "pricing",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "c",
+     "ok": "o"
+    },
+    {
+     "name": "b",
+     "ok": "r"
+    },
+    {
+     "name": "m",
+     "ok": "a"
+    },
+    {
+     "name": "t",
+     "ok": "a"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "unit_cost": "currency",
+    "fixed_cost": "currency",
+    "expected_units": "units",
+    "markup_rate": "rate",
+    "total_cost": "currency",
+    "cost_plus_price": "currency",
+    "gross_margin_at_cost_plus": "ratio",
+    "break_even_price": "currency",
+    "target_margin_rate": "rate",
+    "margin_price": "currency",
+    "target_profit": "currency",
+    "target_return_price": "currency"
+   }
+  },
+  {
+   "tool": "breakeven",
+   "method": "breakeven",
+   "preset": "breakeven",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "c",
+     "ok": "o"
+    },
+    {
+     "name": "b",
+     "ok": "r"
+    },
+    {
+     "name": "m",
+     "ok": "a"
+    },
+    {
+     "name": "t",
+     "ok": "a"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "breakeven_units": "units",
+    "contribution_margin": "currency",
+    "contribution_margin_ratio": "ratio",
+    "breakeven_revenue": "currency"
+   }
+  },
+  {
+   "tool": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "preset": "multibreakeven",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "w",
+     "ok": "e"
+    },
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    },
+    {
+     "name": "p",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "weighted_contribution": "ratio",
+    "breakeven_total_units": "units",
+    "breakeven_revenue": "currency",
+    "fixed_costs": "currency",
+    "total_mix_units": "units",
+    "units_coffee": "units",
+    "units_cake": "units"
+   }
+  },
+  {
+   "tool": "unitecon",
+   "method": "unit_economics",
+   "preset": "unitecon",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "m",
+     "ok": "a"
+    },
+    {
+     "name": "p",
+     "ok": "a"
+    },
+    {
+     "name": "r",
+     "ok": "a"
+    },
+    {
+     "name": "l",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "unit_margin": "currency",
+    "margin_pct": "rate",
+    "payback_periods": "ratio",
+    "price": "currency",
+    "variable_cost": "currency",
+    "acquisition_cost": "currency",
+    "churn_rate": "rate",
+    "ltv": "currency",
+    "ltv_cac": "ratio"
+   }
+  },
+  {
+   "tool": "costcurves",
+   "method": "cost_curves",
+   "preset": "costcurves",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "m",
+     "ok": "a"
+    },
+    {
+     "name": "a",
+     "ok": "v"
+    },
+    {
+     "name": "a",
+     "ok": "v"
+    },
+    {
+     "name": "a",
+     "ok": "v"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "total_cost": "currency",
+    "fixed_cost": "currency",
+    "variable_cost": "currency",
+    "average_cost": "currency",
+    "average_variable_cost": "currency",
+    "average_fixed_cost": "currency",
+    "marginal_cost": "currency",
+    "quantity": "units",
+    "price": "currency",
+    "total_revenue": "currency",
+    "profit": "currency",
+    "shutdown": "count"
+   }
+  },
+  {
+   "tool": "marketpower",
+   "method": "market_power",
+   "preset": "marketpower",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "l",
+     "ok": "e"
+    },
+    {
+     "name": "m",
+     "ok": "a"
+    },
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "price": "currency",
+    "marginal_cost": "currency",
+    "markup": "currency",
+    "lerner_index": "ratio",
+    "implied_demand_elasticity": "ratio"
+   }
+  },
+  {
+   "tool": "capacity",
+   "method": "capacity_analysis",
+   "preset": "capacity",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "c",
+     "ok": "a"
+    },
+    {
+     "name": "b",
+     "ok": "o"
+    },
+    {
+     "name": "u",
+     "ok": "t"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "max_output": "units",
+    "bottleneck_index": "count",
+    "capacity_1": "units",
+    "capacity_2": "units",
+    "capacity_3": "units",
+    "demand": "units",
+    "capacity_gap": "units",
+    "utilisation_1": "ratio",
+    "utilisation_2": "ratio",
+    "utilisation_3": "ratio",
+    "bottleneck_utilisation": "ratio"
+   }
+  },
+  {
+   "tool": "inventory",
+   "method": "inventory_policy",
+   "preset": "inventory",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "e",
+     "ok": "o"
+    },
+    {
+     "name": "d",
+     "ok": "o"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "annual_demand": "units",
+    "order_cost": "currency",
+    "holding_cost_per_unit": "currency",
+    "lead_time_days": "days",
+    "days_per_year": "currency",
+    "service_level": "rate",
+    "daily_demand_sd": "units",
+    "safety_factor": "ratio",
+    "economic_order_quantity": "units",
+    "orders_per_year": "units",
+    "cycle_stock": "units",
+    "safety_stock": "units",
+    "reorder_point": "units",
+    "average_inventory": "units",
+    "annual_ordering_cost": "currency",
+    "annual_holding_cost": "currency",
+    "total_annual_cost": "currency",
+    "daily_demand": "units"
+   }
+  },
+  {
+   "tool": "frommarket",
+   "method": "sales_from_market",
+   "preset": "frommarket",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "a"
+    },
+    {
+     "name": "t",
+     "ok": "a"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "market_size": "currency",
+    "target_share": "rate",
+    "price": "currency",
+    "target_revenue": "currency",
+    "target_units": "units"
+   }
+  },
+  {
+   "tool": "proforma",
+   "method": "proforma_statements",
+   "preset": "proforma",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "g",
+     "ok": "r"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "c",
+     "ok": "a"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "total_revenue": "currency",
+    "total_net_income": "currency",
+    "revenue_1": "currency",
+    "gross_profit_1": "currency",
+    "operating_profit_1": "currency",
+    "interest_1": "currency",
+    "principal_repayment_1": "currency",
+    "pre_tax_profit_1": "currency",
+    "tax_1": "currency",
+    "net_income_1": "currency",
+    "cash_from_operations_1": "currency",
+    "cash_from_investing_1": "currency",
+    "cash_from_financing_1": "currency",
+    "net_cash_flow_1": "currency",
+    "closing_cash_1": "currency",
+    "receivables_1": "currency",
+    "inventory_1": "currency",
+    "fixed_assets_1": "currency",
+    "total_assets_1": "currency",
+    "payables_1": "currency",
+    "loan_1": "currency",
+    "total_liabilities_1": "currency",
+    "equity_1": "currency",
+    "revenue_2": "currency",
+    "gross_profit_2": "currency",
+    "operating_profit_2": "currency",
+    "interest_2": "currency",
+    "principal_repayment_2": "currency",
+    "pre_tax_profit_2": "currency",
+    "tax_2": "currency",
+    "net_income_2": "currency",
+    "cash_from_operations_2": "currency",
+    "cash_from_investing_2": "currency",
+    "cash_from_financing_2": "currency",
+    "net_cash_flow_2": "currency",
+    "closing_cash_2": "currency",
+    "receivables_2": "currency",
+    "inventory_2": "currency",
+    "fixed_assets_2": "currency",
+    "total_assets_2": "currency",
+    "payables_2": "currency",
+    "loan_2": "currency",
+    "total_liabilities_2": "currency",
+    "equity_2": "currency",
+    "revenue_3": "currency",
+    "gross_profit_3": "currency",
+    "operating_profit_3": "currency",
+    "interest_3": "currency",
+    "principal_repayment_3": "currency",
+    "pre_tax_profit_3": "currency",
+    "tax_3": "currency",
+    "net_income_3": "currency",
+    "cash_from_operations_3": "currency",
+    "cash_from_investing_3": "currency",
+    "cash_from_financing_3": "currency",
+    "net_cash_flow_3": "currency",
+    "closing_cash_3": "currency",
+    "receivables_3": "currency",
+    "inventory_3": "currency",
+    "fixed_assets_3": "currency",
+    "total_assets_3": "currency",
+    "payables_3": "currency",
+    "loan_3": "currency",
+    "total_liabilities_3": "currency",
+    "equity_3": "currency",
+    "closing_cash_final": "currency",
+    "closing_equity_final": "currency"
+   }
+  },
+  {
+   "tool": "sensitivity",
+   "method": "sensitivity_table",
+   "preset": "sensitivity",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "b",
+     "ok": "a"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "e",
+     "ok": "v"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "base_profit": "currency",
+    "base_price": "currency",
+    "base_units": "units",
+    "profit_1_1": "currency",
+    "profit_1_2": "currency",
+    "profit_1_3": "currency",
+    "profit_2_1": "currency",
+    "profit_2_2": "currency",
+    "profit_2_3": "currency",
+    "profit_3_1": "currency",
+    "profit_3_2": "currency",
+    "profit_3_3": "currency"
+   }
+  },
+  {
+   "tool": "ratios",
+   "method": "ratio_analysis",
+   "preset": "ratios",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "e",
+     "ok": "v"
+    },
+    {
+     "name": "d",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "b",
+     "ok": "a"
+    },
+    {
+     "name": "f",
+     "ok": "i"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "current_ratio": "ratio",
+    "quick_ratio": "ratio",
+    "cash_ratio": "ratio",
+    "gross_margin": "ratio",
+    "operating_margin": "ratio",
+    "net_margin": "ratio",
+    "return_on_assets": "ratio",
+    "return_on_equity": "ratio",
+    "debt_to_equity": "ratio",
+    "equity_multiplier": "ratio",
+    "interest_cover": "ratio",
+    "asset_turnover": "ratio",
+    "receivables_days": "days",
+    "inventory_days": "days",
+    "payables_days": "days",
+    "n_computed": "count",
+    "_appendix": "ratio",
+    "_checks": "ratio"
+   }
+  },
+  {
+   "tool": "depreciation",
+   "method": "depreciation_schedule",
+   "preset": "depreciation",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "d",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "c"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "p",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "depreciation_1": "currency",
+    "accumulated_1": "currency",
+    "carrying_1": "currency",
+    "depreciation_2": "currency",
+    "accumulated_2": "currency",
+    "carrying_2": "currency",
+    "depreciation_3": "currency",
+    "accumulated_3": "currency",
+    "carrying_3": "currency",
+    "depreciation_4": "currency",
+    "accumulated_4": "currency",
+    "carrying_4": "currency",
+    "depreciation_5": "currency",
+    "accumulated_5": "currency",
+    "carrying_5": "currency",
+    "cost": "currency",
+    "salvage": "currency",
+    "life": "count",
+    "rate": "rate",
+    "total_depreciation": "currency",
+    "final_carrying": "currency"
+   }
+  },
+  {
+   "tool": "salesprojection",
+   "method": "sales_projection",
+   "preset": "salesprojection",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "f",
+     "ok": "i"
+    },
+    {
+     "name": "u",
+     "ok": "n"
+    },
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "t",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "start_units": "units",
+    "price": "currency",
+    "unit_variable_cost": "currency",
+    "fixed_cost_per_period": "currency",
+    "growth_rate": "rate",
+    "periods": "count",
+    "units_1": "units",
+    "revenue_1": "currency",
+    "profit_1": "currency",
+    "units_2": "units",
+    "revenue_2": "currency",
+    "profit_2": "currency",
+    "units_3": "units",
+    "revenue_3": "currency",
+    "profit_3": "currency",
+    "units_4": "units",
+    "revenue_4": "currency",
+    "profit_4": "currency",
+    "units_5": "units",
+    "revenue_5": "currency",
+    "profit_5": "currency",
+    "units_6": "units",
+    "revenue_6": "currency",
+    "profit_6": "currency",
+    "units_7": "units",
+    "revenue_7": "currency",
+    "profit_7": "currency",
+    "units_8": "units",
+    "revenue_8": "currency",
+    "profit_8": "currency",
+    "units_9": "units",
+    "revenue_9": "currency",
+    "profit_9": "currency",
+    "units_10": "units",
+    "revenue_10": "currency",
+    "profit_10": "currency",
+    "units_11": "units",
+    "revenue_11": "currency",
+    "profit_11": "currency",
+    "units_12": "units",
+    "revenue_12": "currency",
+    "profit_12": "currency",
+    "total_units": "units",
+    "total_revenue": "currency",
+    "total_variable_cost": "currency",
+    "total_fixed_cost": "currency",
+    "total_profit": "currency"
+   }
+  },
+  {
+   "tool": "startupcapital",
+   "method": "startup_capital",
+   "preset": "startupcapital",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "f",
+     "ok": "u"
+    },
+    {
+     "name": "a",
+     "ok": "m"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "m",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "start_up_costs": "currency",
+    "working_capital": "currency",
+    "contingency_rate": "rate",
+    "contingency_reserve": "currency",
+    "total_funding_required": "currency",
+    "owner_equity": "currency",
+    "loan_amount": "currency",
+    "declared_sources": "currency",
+    "amount_to_raise": "currency",
+    "funding_surplus": "currency",
+    "funded_share": "ratio"
+   }
+  },
+  {
+   "tool": "cashrunway",
+   "method": "cash_runway",
+   "preset": "cashrunway",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "f",
+     "ok": "u"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "opening_cash": "currency",
+    "monthly_net_cash_flow": "currency",
+    "monthly_growth": "rate",
+    "target_months": "count",
+    "runway_months": "units",
+    "lowest_cash_balance": "currency",
+    "cash_at_target_month": "currency",
+    "funding_gap": "currency"
+   }
+  },
+  {
+   "tool": "roi",
+   "method": "return_on_investment",
+   "preset": "roi",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "r",
+     "ok": "o"
+    },
+    {
+     "name": "d",
+     "ok": "o"
+    },
+    {
+     "name": "a",
+     "ok": "n"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "total_investment": "currency",
+    "net_gain": "currency",
+    "roi": "rate",
+    "years": "count",
+    "annualised_roi": "rate"
+   }
+  },
+  {
+   "tool": "tax",
+   "method": "tax_declared",
+   "preset": "tax",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "i",
+     "ok": "n"
+    },
+    {
+     "name": "v",
+     "ok": "a"
+    },
+    {
+     "name": "d",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "o"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "taxable_income": "currency",
+    "income_tax_rate": "rate",
+    "income_tax": "currency",
+    "net_income_after_tax": "currency",
+    "vat_output_tax": "currency",
+    "vat_input_tax": "currency",
+    "vat_payable": "currency",
+    "temporary_difference": "currency",
+    "deferred_tax_rate": "rate",
+    "deferred_tax": "currency",
+    "total_tax_charge": "currency"
+   }
+  },
+  {
+   "tool": "npv",
+   "method": "npv",
+   "preset": "npv",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "b",
+     "ok": "o"
+    },
+    {
+     "name": "t",
+     "ok": "0"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {}
+  },
+  {
+   "tool": "irr",
+   "method": "irr",
+   "preset": "irr",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "p"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    },
+    {
+     "name": "u",
+     "ok": "n"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "irr": "rate",
+    "npv_at_irr": "currency",
+    "n_roots": "count",
+    "n_periods": "count"
+   }
+  },
+  {
+   "tool": "dpayback",
+   "method": "discounted_payback",
+   "preset": "dpayback",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    },
+    {
+     "name": "u",
+     "ok": "n"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "discounted_payback": "periods",
+    "recovered_in_period": "count",
+    "net_present_value": "currency",
+    "n_periods": "count"
+   }
+  },
+  {
+   "tool": "projectmetrics",
+   "method": "project_metrics",
+   "preset": "projectmetrics",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "npv": "currency",
+    "profitability_index": "ratio",
+    "mirr": "currency",
+    "equivalent_annual_annuity": "currency",
+    "pv_inflows": "currency",
+    "pv_outflows": "currency",
+    "n_periods": "count",
+    "payback_period": "years",
+    "irr": "rate"
+   }
+  },
+  {
+   "tool": "scenario",
+   "method": "scenario_analysis",
+   "preset": "scenario",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "npv_base": "currency",
+    "npv_at_low_rate": "currency",
+    "npv_at_high_rate": "currency",
+    "swing": "currency",
+    "discount_rate": "rate",
+    "rate_low": "rate",
+    "rate_high": "rate",
+    "breakeven_rate": "rate"
+   }
+  },
+  {
+   "tool": "trendanalysis",
+   "method": "trend_analysis",
+   "preset": "trendanalysis",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "n_periods": "count",
+    "revenue_cagr": "rate",
+    "revenue_growth_latest": "rate",
+    "revenue_index_latest": "ratio",
+    "gross_margin_latest": "rate",
+    "operating_margin_latest": "rate",
+    "net_margin_latest": "rate",
+    "common_size_cost_of_sales": "ratio",
+    "common_size_operating_expenses": "ratio",
+    "gross_margin_change": "rate",
+    "net_margin_change": "rate",
+    "net_income_cagr": "rate",
+    "net_income_index_latest": "ratio",
+    "net_income_growth_total": "rate",
+    "equity_to_assets_latest": "ratio",
+    "asset_growth_latest": "rate"
+   }
+  },
+  {
+   "tool": "workingcapital",
+   "method": "working_capital",
+   "preset": "workingcapital",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "dso": "days",
+    "dio": "days",
+    "dpo": "days",
+    "cash_conversion_cycle": "days",
+    "net_working_capital": "currency",
+    "eoq": "units",
+    "reorder_point": "units",
+    "cost_of_trade_credit": "rate",
+    "daily_demand": "units",
+    "n_orders_per_year": "units"
+   }
+  },
+  {
+   "tool": "captable",
+   "method": "cap_table_round",
+   "preset": "captable",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "p",
+     "ok": "o"
+    },
+    {
+     "name": "p",
+     "ok": "r"
+    },
+    {
+     "name": "i",
+     "ok": "n"
+    },
+    {
+     "name": "o",
+     "ok": "w"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "pre_money_valuation": "currency",
+    "investment": "currency",
+    "founders_shares": "units",
+    "post_money_valuation": "currency",
+    "price_per_share": "currency",
+    "new_shares": "units",
+    "option_pool_pct": "rate",
+    "option_pool_shares": "units",
+    "total_shares": "units",
+    "founder_pct": "rate",
+    "investor_pct": "rate",
+    "pool_pct_actual": "rate",
+    "founder_dilution": "rate"
+   }
+  },
+  {
+   "tool": "loan",
+   "method": "loan_amortization",
+   "preset": "loan",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    },
+    {
+     "name": "d",
+     "ok": "o"
+    },
+    {
+     "name": "t",
+     "ok": "o"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "e",
+     "ok": "f"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "payment": "currency",
+    "total_paid": "currency",
+    "total_interest": "currency",
+    "principal": "currency",
+    "periodic_rate": "rate",
+    "effective_annual_rate": "rate",
+    "n_payments": "count",
+    "first_interest": "currency",
+    "first_principal": "currency"
+   }
+  },
+  {
+   "tool": "dcf",
+   "method": "dcf_valuation",
+   "preset": "dcf",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "v",
+     "ok": "a"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    },
+    {
+     "name": "t",
+     "ok": "e"
+    },
+    {
+     "name": "w",
+     "ok": "i"
+    },
+    {
+     "name": "m",
+     "ok": "i"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "pv_explicit": "currency",
+    "pv_terminal": "currency",
+    "terminal_value": "currency",
+    "enterprise_value": "currency",
+    "terminal_share": "ratio",
+    "n_periods": "count",
+    "discount_rate": "rate",
+    "terminal_growth": "rate"
+   }
+  },
+  {
+   "tool": "multiples",
+   "method": "multiples_valuation",
+   "preset": "multiples",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "t",
+     "ok": "h"
+    },
+    {
+     "name": "e",
+     "ok": "n"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "mean_multiple": "ratio",
+    "median_multiple": "ratio",
+    "min_multiple": "ratio",
+    "max_multiple": "ratio",
+    "n_comparables": "count",
+    "implied_enterprise_value": "currency",
+    "implied_equity_value": "currency",
+    "net_debt": "currency",
+    "per_share_value": "currency"
+   }
+  },
+  {
+   "tool": "equitybridge",
+   "method": "equity_bridge",
+   "preset": "equitybridge",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "e",
+     "ok": "q"
+    },
+    {
+     "name": "a",
+     "ok": "d"
+    },
+    {
+     "name": "p",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "enterprise_value": "currency",
+    "net_debt": "currency",
+    "equity_value": "currency",
+    "debt": "currency",
+    "cash": "currency",
+    "minority_interest": "currency",
+    "preferred_equity": "currency",
+    "per_share_value": "currency",
+    "shares_outstanding": "count"
+   }
+  },
+  {
+   "tool": "currency",
+   "method": "currency_convert",
+   "preset": "currency",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "r",
+     "ok": "o"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "amount": "currency",
+    "amount_from": "currency",
+    "rate": "ratio",
+    "_appendix": "currency"
+   }
+  },
+  {
+   "tool": "sroi",
+   "method": "sroi",
+   "preset": "sroi",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "r",
+     "ok": "a"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "d",
+     "ok": "o"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "pv_benefits": "currency",
+    "investment": "currency",
+    "sroi_ratio": "ratio",
+    "net_value": "currency",
+    "n_periods": "count",
+    "discount_rate": "rate"
+   }
+  },
+  {
+   "tool": "cba",
+   "method": "cost_benefit",
+   "preset": "cba",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "e"
+    },
+    {
+     "name": "z",
+     "ok": "e"
+    },
+    {
+     "name": "s",
+     "ok": "c"
+    },
+    {
+     "name": "a",
+     "ok": "_"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "pv_costs": "currency",
+    "pv_benefits": "currency",
+    "net_present_value": "currency",
+    "n_periods": "count",
+    "discount_rate": "rate",
+    "benefit_cost_ratio": "ratio"
+   }
+  },
+  {
+   "tool": "costeffectiveness",
+   "method": "cost_effectiveness",
+   "preset": "cea",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "s",
+     "ok": "e"
+    },
+    {
+     "name": "i",
+     "ok": "c"
+    },
+    {
+     "name": "c",
+     "ok": "o"
+    },
+    {
+     "name": "c",
+     "ok": "h"
+    },
+    {
+     "name": "a",
+     "ok": "d"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {
+    "comparator_cost": "@unit",
+    "comparator_effect": "@unit",
+    "n_options": "count",
+    "icer_intensive": "currency",
+    "delta_cost_intensive": "currency",
+    "delta_effect_intensive": "@unit",
+    "dominant_intensive": "count"
+   }
+  },
+  {
+   "tool": "case_decision",
+   "method": "case_decision",
+   "preset": "case_decision",
+   "status": "delivered",
+   "checks": [
+    {
+     "name": "a",
+     "ok": "l"
+    },
+    {
+     "name": "b",
+     "ok": "a"
+    },
+    {
+     "name": "c",
+     "ok": "r"
+    },
+    {
+     "name": "r",
+     "ok": "a"
+    },
+    {
+     "name": "n",
+     "ok": "o"
+    },
+    {
+     "name": "r",
+     "ok": "a"
+    },
+    {
+     "name": "o",
+     "ok": "r"
+    },
+    {
+     "name": "a",
+     "ok": "n"
+    },
+    {
+     "name": "l",
+     "ok": "i"
+    },
+    {
+     "name": "a",
+     "ok": "l"
+    },
+    {
+     "name": "c",
+     "ok": "a"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    },
+    {
+     "name": "n",
+     "ok": "o"
+    },
+    {
+     "name": "a",
+     "ok": "s"
+    },
+    {
+     "name": "r",
+     "ok": "e"
+    }
+   ],
+   "failed_checks": [],
+   "deterministic": true,
+   "units": {}
+  }
+ ],
+ "findings": [],
+ "counts": {
+  "tools": 46,
+  "worksheets": 6,
+  "records": 6,
+  "theories": 0,
+  "glossary": 34,
+  "catalogue": 11
+ }
+}

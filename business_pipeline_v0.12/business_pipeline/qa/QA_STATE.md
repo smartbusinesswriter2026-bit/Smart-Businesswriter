@@ -1,4 +1,86 @@
 # QA state
+
+## Session 6 — `entrepreneurship` (2026-11-03, owner work order)
+
+**Parameter.** `SUBJECT = entrepreneurship`, shelf 6 of 11. Opening commit `b2987fc`, build 1.68.
+Closed at build 1.69.
+
+**Inventory, confirmed against the live catalogue** (`GET /api/cases/subjects/entrepreneurship`
+on 8001, then `subjects.detail`): **46 tools, 6 worksheets, 6 records, 0 theories** — as expected, so
+no inventory defect. `docs/CURRICULUM_MAP.md` disagreed (it said 5 worksheets) — D-ENT-11.
+
+**Opening state, measured.** `python -m unittest discover -s tests`: **2932 tests, 66 failures, 13
+errors, 650 s** (`qa/baseline/ent_suite_out.txt` / `ent_suite_err.txt`, names in
+`ent_baseline_failures.txt`). That is exactly the documented baseline; **none of the 79 named
+failures belongs to entrepreneurship** — they are worksheet/framework-completion and one network
+test, and they carry forward to their own shelves' sessions.
+
+**Delivered.**
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/entrepreneurship.md` | eleven sections, 46 per-tool contract rows, **106 E-rows**, a traceability matrix, six declared gaps |
+| `tests/test_subject_entrepreneurship_acceptance.py` | **106 tests**, one per E-row, offline, retrieval mocked, 12 hand recomputations |
+| `qa/probe_ent_shelf.py` | every tool through its own preset: delivery, checks, determinism, units |
+| `qa/probe_ent_plan.py` | the witness plan (with a marking guide) and the computation deliverable, judged against V-01…V-20 |
+| `qa/probe_ent_mapping.py` | a plan block's columns through the core mapper, before and after D-ENT-02 |
+| `qa/evidence/entrepreneurship/` | `business-plan.docx`, `business-plan-no-rubric.docx`, `computation-submission.docx`, `computation-workpapers.xlsx`, `validation.md` |
+
+**Defects fixed, each with a trap test** (`qa/QA_DEFECTS.md` D-ENT-01…05, D-ENT-11):
+
+- **D-ENT-04 — BLOCKER.** Eight presets that declare no period delivered *nothing*:
+  `reference failure: RefMismatch('token wants n/None, artifact is n/None')`, and `pearson` crashed.
+  Three of the eight are this shelf's (Trend forecast, Descriptive statistics, Chi-square). Fixed in
+  the artifact layer and at the template call. **46 of 46 tools deliver now** (43 before).
+- **D-ENT-01 — MAJOR.** A marking guide could not reach the business plan at all (`chat.start` had no
+  `rubric`); the plan is a second engine and the guide had been wired into the worksheet path only.
+- **D-ENT-02 — MAJOR.** A plan block's list columns were refused by the core mapper for the shape the
+  plan itself asks for.
+- **D-ENT-03 — MAJOR.** A word-budget line in a list rubric became a weighted criterion, and
+  "Referencing" never matched "References" — both block a finished paper for ever.
+- **D-ENT-05 — MINOR.** The engine that read a scanned brief reached the record but not the caller or
+  the page.
+
+**Declared, not built** (G-ent-01…06 / D-ENT-06…10): term sheets, liquidation preference,
+anti-dilution, multi-round cap tables, conjoint, survival models, Monte Carlo; 36 tools with no
+`need` text; no theory row by design; no dataset picker on the plan form (B-192's open surface);
+`case`/`unsupported` presets are fixtures.
+
+**Gates at close.**
+
+| Gate | Result | Evidence |
+|---|---|---|
+| `python -m pytest tests/test_subject_entrepreneurship_acceptance.py -q` | **106 passed** | `qa/baseline/ent_acceptance.txt` |
+| the shelf's own suites (`test_entrepreneurship`, `test_entrepreneurship_planning`, `test_business_plan_core`, `test_business_plan_profile`, `test_plan_verifier`, `test_plan_replay`, `test_export_downloads`) | **164 passed** | this session's runs; `ent_slice.txt` |
+| the shared-worksheet slice (`-k "strategic or mkt or worksheet"`) | **119 passed, 2 failed** — both `test_marketing_worksheets` and both in the historical set; not this shelf's. (`test_strategic_positioning_completion` was in the opening set and has since been repaired by the framework-profile lane.) | `ent_worksheets.txt` |
+| `python -m unittest discover -s tests` (inside `scripts/ci.py`) | **3038 tests, 40 failures, 6 errors** — **0 names absent from the opening baseline**, **33 gone** (79 → 46). The 33 are another lane's repairs to `framework_profiles.py` and its tests; this session's own fix removed no name from the set because the eight period-less presets were never exercised by a delivery test | `qa/baseline/ent_ci_err.txt`, `ent_baseline_failures.txt` → `ent_final_failures.txt`, `ent_repaired.txt` |
+| `python scripts/ci.py` | **2 of 3 steps passed**: unit tests FAIL on the 46 historical problems; `shelf audit and frozen contract` **PASS**; `page syntax` (node `--check`) **PASS** | `qa/baseline/ent_ci_out.txt` |
+| `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | `qa/baseline/ent_econ_shelf.txt` |
+| `python qa/_count.py` | **SUITE_COUNT 3038** (2932 + 106) | `qa/baseline/ent_count.txt` |
+| `python qa/check_page_syntax.py` | **page syntax: OK** | `qa/baseline/ent_page_syntax.txt` |
+| `python qa/probe_duplicates.py` on the ten edited/read modules | **0 duplicate definitions** — the trap that has silently changed `chat.py` twice | `qa/baseline/ent_duplicates.txt` |
+| `python scripts/ui_smoke.py --url http://127.0.0.1:8003` | **0 failure(s)**, including "business plan drafts with no missing input" and "business plan exports its submission" | `qa/baseline/ent_ui_smoke.txt` |
+| live click-through, 46 tiles + the plan's marking-guide path, on 8003 | **0 failure(s)**: 46 of 46 tools delivered, the coverage table sits before the references, an unaddressed criterion blocks at 409, the gate is accepted, and the paper then downloads | `qa/evidence/entrepreneurship/clickthrough.json` / `.md` |
+| `python -m pytest tests/test_docs_sync.py -q` | **7 passed** | `qa/baseline/ent_docsync.txt` |
+
+**Why 8003 and not 8001.** The 8001 process (PID 9512) was started before this session's changes and
+belongs to another lane; killing it would have interrupted them. The live gates therefore ran on a
+fresh instance of the current code on 8003 (`ent_server_pid.txt`), and the served page on 8001 was
+smoked separately. Nothing in `web/index.html` is cached by the server — it is read per request — so
+the page coverage applies to both.
+
+**Next subject: `operations` (shelf 7 of 11).** Its top three risks, measured from this session:
+
+1. **Eleven T4 worksheets share the supply-chain shelf** (`OPS-01`…`OPS-08`, `OPS-10`…`OPS-12`); each
+   belongs to two shelves and must be fixed once. The marketing worksheet registration failures
+   (`test_marketing_worksheets`, in the historical set) are the same class and will be met again.
+2. **The no-period defect's blast radius was eight presets**; the operations tools carry more list
+   inputs than any other shelf, so run `qa/probe_ent_shelf.py`'s pattern over them first — it found
+   D-ENT-04 in one pass after two sessions had missed it.
+3. **The plan profile is a second engine** and the lesson generalises: any feature wired into the
+   conductor must be proved on the *plan* path too. The four profiles share `chat.draft`, so a rubric
+   now reaches all four; nothing else is yet proved there.
+
 ## Session R — the rubric lane (2026-11-02, owner instruction)
 
 **Ask.** "a rubric to be uploaded which should be followed in writing the paper".

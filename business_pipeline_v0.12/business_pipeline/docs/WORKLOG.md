@@ -1,3 +1,57 @@
+## 2026-11-03 — [core] Entrepreneurship shelf, session 6: the marking guide reaches the plan, eight period-less presets deliver again, and a plan block's columns are proposed
+
+**Ask.** The owner's standing work order: audit one subject shelf at a time, write the acceptance
+manual that does not exist, prove every row with an offline test, and fix every defect in the layer
+that owns it — without weakening a check, editing the frozen core or inventing evidence. Shelf 6 is
+`entrepreneurship`: 46 tools, 6 worksheets, 6 records, 0 theories.
+
+**Did.** (1) **Inventory confirmed against the live catalogue**, not the docs: 46 / 6 / 6 / 0, and
+`docs/CURRICULUM_MAP.md` said "5 worksheets" (D-ENT-11). (2) **Baseline measured**: 2932 tests, 66
+failures, 13 errors (`qa/baseline/ent_suite_err.txt`) — the documented opening state, and none of the
+79 named failures is this shelf's. (3) **The manual**: `qa/manual/entrepreneurship.md`, eleven
+sections, 46 per-tool contract rows, **106 E-rows**, a traceability matrix and six declared gaps.
+(4) **The suite**: `tests/test_subject_entrepreneurship_acceptance.py`, **106 tests, 106 passed** —
+one per E-row, offline, retrieval mocked, 46 of them generated per tool, 12 hand recomputations from
+the student guide. (5) **The probes**: `qa/probe_ent_shelf.py` (every tool through its own preset),
+`qa/probe_ent_mapping.py` (a plan block's columns through the core mapper), `qa/probe_ent_plan.py`
+(the witness plan and the computation deliverable, judged against V-01…V-20). (6) **Six defects
+fixed**, each with a trap test and a ledger row (D-ENT-01…D-ENT-05, D-ENT-11).
+
+**The one that mattered most** was not on the work order's list: three entrepreneurship tools —
+Trend forecast, Descriptive statistics, Chi-square — delivered **nothing**, with a refusal that read
+`reference failure: RefMismatch('token wants n/None, artifact is n/None')`, identical on both sides
+of the comma. The probe that found it is the one the economics session wrote; it took a single pass.
+Root cause: a preset that declares no period hands the method's own template `None`, the template
+writes that into its reference token as the **text** `None`, and `ArtifactStore.resolve` then
+compares the text with a real `None`. Eight presets were blocked across accounting, research/finance
+and this shelf, and `pearson` crashed outright inside the frozen `corr_template`. Fixed in the
+artifact layer (the text `None` is the absence of a label) and at the template call (the period is
+handed over as text), never in `methods.py`. **46 of 46 tools now deliver through their own preset**
+(43 before).
+
+**The work order's risk (b) was real.** A rubric attached to a plan was refused by signature:
+`chat.start` took no `rubric`, so `paper.missing` — which already read `state["rubric"]` — could never
+see one. The plan is a *second engine*, and the guide had been wired into `completion.complete` only.
+Fixed across `chat.start`, the draft seam (now `chat.draft`, shared by all four plan profiles),
+`api.py` and the page, and the gate got the student's own switch: a rubric can name a section no
+profile carries ("Appendices"), and a permanent block with no recourse is not a gate, it is a dead
+end. Two reader defects surfaced while proving it — a word-budget line in a **list** rubric became a
+sixth weighted criterion (the tolerance's `%` read as its weight), and "Referencing" could never
+match "References". Both block a finished paper for ever; both are fixed with traps.
+
+**Also fixed.** A plan block's columns were refused by the core mapper for the shape the plan itself
+asks for (list columns from a spreadsheet, drivers typed) — D-ENT-02; and the engine that read a
+scanned brief never reached the caller or the page, though the intake record carried it — D-ENT-05.
+
+**Left alone, deliberately.** `D-ECO-02`'s tightness denominator (another session's BLOCKED row), the
+marketing worksheet registration failures and the strategic-positioning prompt failure: all three are
+in the historical failure set, belong to other shelves' sessions, and are recorded rather than
+touched. `docs/HANDOFF.md` line 12 and `docs/WORKLOG.md`'s older headings carry double-encoded em
+dashes from an earlier lane; noted, not swept, because they are not this shelf's text.
+
+**Next.** `operations` (shelf 7 of 11) carries the largest worksheet surface: eleven T4 worksheets
+sharing the supply-chain shelf. Its top three risks are recorded in `qa/QA_STATE.md`.
+
 ## 2026-11-03 — [core] Economics shelf session 2: two label defects fixed under B-190, one blocked, and the shelf's missing manual written
 
 **Ask.** The owner's work order: audit and repair the pipeline one subject shelf at a time, writing
