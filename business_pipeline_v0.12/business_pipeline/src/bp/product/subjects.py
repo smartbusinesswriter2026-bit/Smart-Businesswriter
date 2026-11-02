@@ -2247,8 +2247,60 @@ ENTREPRENEURSHIP_PERIODS = {
     "sroi": "annual", "cba": "annual", "costeffectiveness": "annual", "case_decision": "per period",
 }
 
+#: Presentation groups for the Economics page, in the order a student meets them.
+#: Intro (market_basics), intermediate (firm_behaviour, macroeconomics, welfare_policy, international),
+#: advanced (behavioural_evidence, impact_evaluation, quantitative_core).
+ECONOMICS_GROUPS = {
+    "equilibrium": "market_basics", "elasticity": "market_basics", "taxincidence": "market_basics",
+    "pricecontrol": "market_basics", "concentration": "market_basics",
+    "costcurves": "firm_behaviour", "profitmax": "firm_behaviour", "marketpower": "firm_behaviour",
+    "pricediscrimination": "firm_behaviour", "cournot": "firm_behaviour", "nash": "firm_behaviour",
+    "nationalincome": "macroeconomics", "growth": "macroeconomics", "inflation": "macroeconomics",
+    "unemployment": "macroeconomics", "moneymultiplier": "macroeconomics", "fiscal": "macroeconomics",
+    "budgetdebt": "macroeconomics", "okun": "macroeconomics",
+    "externality": "welfare_policy", "publicgood": "welfare_policy", "socialwelfare": "welfare_policy",
+    "gini": "welfare_policy", "poverty": "welfare_policy", "taxprogressivity": "welfare_policy",
+    "optimalpollution": "welfare_policy",
+    "comparative": "international", "tariff": "international", "ppp": "international",
+    "irp": "international", "bop": "international", "hdi": "international",
+    "expectedutility": "behavioural_evidence", "prospect": "behavioural_evidence",
+    "labour": "behavioural_evidence", "did": "behavioural_evidence",
+    "iv": "behavioural_evidence", "panel": "behavioural_evidence",
+    "rdd": "behavioural_evidence", "probit": "behavioural_evidence",
+    "cba": "impact_evaluation", "cea": "impact_evaluation", "sroi": "impact_evaluation",
+    "forecast": "impact_evaluation", "currency": "impact_evaluation",
+    "breakeven": "quantitative_core", "multibreakeven": "quantitative_core", "unitecon": "quantitative_core",
+    "descriptive": "quantitative_core", "pearson": "quantitative_core", "ols": "quantitative_core",
+    "ols_robust": "quantitative_core", "welch": "quantitative_core", "anova": "quantitative_core",
+    "chi_square": "quantitative_core", "power": "quantitative_core",
+}
+
+#: Period convention for the Economics tiles.
+ECONOMICS_PERIODS = {
+    "equilibrium": "per observation", "elasticity": "per observation", "taxincidence": "per observation",
+    "pricecontrol": "per observation", "concentration": "per observation",
+    "costcurves": "per period", "profitmax": "per period", "marketpower": "per observation",
+    "pricediscrimination": "per period", "cournot": "per period", "nash": "per observation",
+    "nationalincome": "annual", "growth": "annual", "inflation": "annual", "unemployment": "annual",
+    "moneymultiplier": "annual", "fiscal": "annual", "budgetdebt": "annual", "okun": "annual",
+    "externality": "per period", "publicgood": "per period", "socialwelfare": "per period",
+    "gini": "per observation", "poverty": "per observation", "taxprogressivity": "per observation",
+    "optimalpollution": "per period",
+    "comparative": "per observation", "tariff": "per observation", "ppp": "per observation",
+    "irp": "per observation", "bop": "annual", "hdi": "annual",
+    "expectedutility": "per observation", "prospect": "per observation", "labour": "annual",
+    "did": "per period", "iv": "per period", "panel": "per period", "rdd": "per period",
+    "probit": "per period",
+    "cba": "annual", "cea": "annual", "sroi": "annual", "forecast": "per period",
+    "currency": "spot rate",
+    "breakeven": "per period", "multibreakeven": "per period", "unitecon": "per period",
+    "descriptive": "per observation", "pearson": "per observation", "ols": "per observation",
+    "ols_robust": "per observation", "welch": "per observation", "anova": "per observation",
+    "chi_square": "per observation", "power": "per observation",
+}
+
 #: The grouping and period maps a subject page uses.  Economics keeps its
-#: intro/intermediate/advanced grouping, so it is deliberately absent here.
+#: intro/intermediate/advanced grouping.
 #: Presentation groups for the Marketing & customers page, in the order a
 #: student builds the plan: size and demand, customer economics, the funnel,
 #: the digital channels that feed it, and the tests used to check a change.
@@ -2571,12 +2623,12 @@ SUBJECT_GROUPS = {"finance": FINANCE_GROUPS, "entrepreneurship": ENTREPRENEURSHI
                   "marketing": MARKETING_GROUPS, "accounting": ACCOUNTING_GROUPS,
                   "operations": OPERATIONS_GROUPS, "supply-chain": SUPPLY_CHAIN_GROUPS,
                   "project-management": PROJECT_MANAGEMENT_GROUPS,
-                  "people": PEOPLE_GROUPS}
+                  "people": PEOPLE_GROUPS, "economics": ECONOMICS_GROUPS}
 SUBJECT_PERIODS = {"finance": FINANCE_PERIODS, "entrepreneurship": ENTREPRENEURSHIP_PERIODS,
                    "marketing": MARKETING_PERIODS, "accounting": ACCOUNTING_PERIODS,
                    "operations": OPERATIONS_PERIODS, "supply-chain": SUPPLY_CHAIN_PERIODS,
                    "project-management": PROJECT_MANAGEMENT_PERIODS,
-                   "people": PEOPLE_PERIODS}
+                   "people": PEOPLE_PERIODS, "economics": ECONOMICS_PERIODS}
 
 #: The tiles the People & organisation page shows, in the order a student meets
 #: them.  A tile names the work it covers and what the student needs before
@@ -2605,6 +2657,53 @@ PEOPLE_TILES = [
      "need": "The numbers you already hold, and the period they cover."},
 ]
 
+# ---- Economics subject tiles -----------------------------------------------
+#: The tiles the Economics page shows, in the order a student meets them.
+#: A tile names the work it covers and what the student needs before starting;
+#: a tile with nothing in it is shown empty and says so, because a missing
+#: capability is named rather than hidden.
+ECONOMICS_TILES = [
+    {"key": "market_basics", "label": "Market basics",
+     "what": "Equilibrium price and quantity, price elasticity, tax incidence, price controls and market concentration.",
+     "need": "The demand and supply curves, or two price-quantity observations for elasticity."},
+    {"key": "firm_behaviour", "label": "Firm behaviour",
+     "what": "Cost curves, profit maximisation, markup and Lerner index, price discrimination, Cournot and Nash equilibrium.",
+     "need": "A cost function and demand curve, or a price and marginal cost for markup."},
+    {"key": "macroeconomics", "label": "Macroeconomics",
+     "what": "GDP and national income, growth and CAGR, inflation and real interest, unemployment, money and fiscal multipliers, budget and debt, Okun's law.",
+     "need": "The expenditure components for GDP, two values and periods for growth, two CPI values for inflation."},
+    {"key": "welfare_policy", "label": "Welfare and policy",
+     "what": "Externalities and Pigouvian tax, public goods, social welfare functions, Gini coefficient, poverty measures, tax progressivity, optimal pollution.",
+     "need": "Incomes for inequality and poverty, benefit schedules for public goods, damage and abatement for externalities."},
+    {"key": "international", "label": "International economics",
+     "what": "Comparative advantage, tariff welfare, purchasing-power parity, interest-rate parity, balance of payments, Human Development Index.",
+     "need": "Unit labour requirements for comparative advantage, a tariff rate, two interest rates for interest-rate parity."},
+    {"key": "behavioural_evidence", "label": "Behavioural and evidence",
+     "what": "Expected utility, prospect theory, labour market, difference-in-differences, instrumental variables, panel regression, regression discontinuity, probit.",
+     "need": "A gamble for prospect theory, four means for difference-in-differences, an instrument and endogenous variable for IV."},
+    {"key": "impact_evaluation", "label": "Impact evaluation",
+     "what": "Cost-benefit, cost-effectiveness, social return on investment, trend forecast, currency conversion.",
+     "need": "Costs and benefits per period for CBA, options with cost and effect for CEA, investment and benefits for SROI."},
+    {"key": "quantitative_core", "label": "Quantitative core",
+     "what": "Break-even, multi-product break-even, unit economics, descriptive statistics, Pearson correlation, linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis.",
+     "need": "Fixed cost, price and variable cost for break-even; observations for statistics; two groups for t-test; three groups for ANOVA."},
+]
+
+#: Which tile each Economics catalogue record belongs to.  A record
+#: with no worksheet yet is shown in its tile as something to read and cite, not
+#: as a button that cannot work.
+ECONOMICS_RECORD_GROUPS = {
+    "QNT-FIN-07": "quantitative_core",
+    "QNT-EVL-01": "quantitative_core",
+    "QNT-EVL-02": "quantitative_core",
+    "QNT-EVL-03": "quantitative_core",
+    "QNT-EVL-04": "quantitative_core",
+    "QNT-EVL-05": "quantitative_core",
+    "IMP-05": "impact_evaluation",
+    "IMP-06": "impact_evaluation",
+    "IMP-07": "impact_evaluation",
+}
+
 #: Which tile each People worksheet and catalogue record belongs to.  A record
 #: with no worksheet yet is shown in its tile as something to read and cite, not
 #: as a button that cannot work.
@@ -2626,8 +2725,8 @@ PEOPLE_RECORD_GROUPS = {
 }
 
 SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS}
-SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS}
-SUBJECT_TILES = {"people": PEOPLE_TILES}
+SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS}
+SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES}
 
 #: Plain-language labels for the raw catalogue discipline tags, so the records
 #: table does not show an internal taxonomy name to a student.
