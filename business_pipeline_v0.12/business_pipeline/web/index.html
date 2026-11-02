@@ -770,6 +770,13 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
 .pfdetails summary{cursor:pointer;font-weight:600;color:var(--navy-900)}
 .pfdetails summary .muted{font-weight:400}
 .pfdetails[open] summary{margin-bottom:10px}
+.pfcaseask{margin:0 0 6px}
+.pfcase p{margin:6px 0;font-size:15px;line-height:1.55}
+.pfcasehead{margin:10px 0 2px;font-size:14.6px;font-weight:700;color:var(--navy-900)}
+.pfsteps{margin:4px 0 8px 20px;padding:0;font-size:15px;line-height:1.55}
+.pfsteps li{margin:3px 0}
+.pfcase .row{margin-top:10px}
+.pfcase code{font-size:13.4px;background:var(--sunken);border-radius:5px;padding:1px 4px}
 .pfstart .card{margin:0}
 /* ---------- documents on Home: sections, a segmented example, quiet links ---------- */
 .docs{display:flex;flex-direction:column;gap:18px}
@@ -1599,6 +1606,7 @@ function renderPortfolioLanding(rows) {
     '<section class="pfsection"><div class="pfsectionhead"><span class="pfkicker">Before you buy</span>' +
       '<h3>Find and screen candidates</h3><p class="muted">Add the symbols you are weighing to the watch list, screen them on the criteria you care about, then send the inputs to the Business Calculator. A shortlist is sourced evidence — it is not a recommendation.</p></div>' +
       portfolioLabPanel("screen") + '</section>' +
+    pfWorkedCases() +
     pfGuidanceCard();
   out.innerHTML = html;
   $("#pfnewpaper").onclick = () => { $("#pfname").focus(); $("#pfname").scrollIntoView({ block: "center", behavior: "smooth" }); };
@@ -1606,6 +1614,7 @@ function renderPortfolioLanding(rows) {
   $("#pfcreate").onclick = createPortfolio;
   if ($("#portfoliolab")) bindPortfolioLab();
   $$("[data-pfopen]", out).forEach((button) => { button.onclick = () => openPortfolio(button.dataset.pfopen); });
+  $$("[data-pfcase]", out).forEach((button) => { button.onclick = () => pfStartCase(button.dataset.pfcase); });
 }
 
 async function createPortfolio() {
@@ -1797,6 +1806,130 @@ function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
   html += '<div class="pflimit"><strong>What this does not do.</strong> No FX, fees, tax, dividends, forecast or recommendation. One base currency; long-only; the snapshot is a valuation, not a sale price.</div>';
   html += "</div>";
   return html;
+}
+
+/* Four worked cases. A student should not have to read a manual to start: each card is
+   one assignment shape, the exact clicks, the result to expect and the sentence to write. */
+function pfWorkedCases() {
+  const cases = [
+    {
+      title: "Pick candidates for a stock-selection paper",
+      kicker: "screening, then a declared book",
+      go: "screen",
+      cta: "Start this case: open the watch list",
+      ask: "Choose three listed companies and justify the choice with sourced data.",
+      need: "Nothing but this page. Live quotes need a quote key configured server-side; SEC fundamentals need no key.",
+      steps: [
+        "Rail: Portfolio, then scroll to Before you buy: Find and screen candidates.",
+        "Watch list and prices tab: type AAPL, MSFT, VOO in Add symbols to the watch list and click Add symbols.",
+        "Find candidates tab: click Use my watch list, choose Sort by market cap, tick Include fundamentals, then click Screen these symbols.",
+        "Read the Shortlist table: price, 1-day, market cap, P/E, ROE and the Gaps column. A gap is information, not a zero.",
+        "Holdings tab: Add a holding for each name you choose, with a one-line Why you hold it."
+      ],
+      see: "One row per symbol, e.g. AAPL 344.63, -1.23%, market cap 5.03T, P/E 44.90, ROE 1.5191, with the gap: mean, volatility and Sharpe need at least three recorded returns. MSFT shows its 1-day as a named gap when the quote carries no previous close.",
+      write: "The criterion, the sourced value with its date and provider, and the gap. Example: AAPL traded at 344.63 on 2026-10-30 (Alpha Vantage); its P/E of 44.90 is derived from SEC net income and Massive market cap, not a vendor profile.",
+      not: "It does not name a best stock, recommend one or forecast a price. A listing in the reference list is not a recommendation."
+    },
+    {
+      title: "Value the book on one date and hand in the report",
+      kicker: "one dated snapshot, NAV and weights",
+      go: "paper",
+      cta: "Start this case: create the paper book",
+      ask: "State your holdings, value them on a date, report the weights and comment on concentration.",
+      need: "Holdings (symbol, shares, cost basis), one price per holding for the valuation date, and the cash you declare.",
+      steps: [
+        "Create a book: Portfolio name, Base currency USD, Benchmark optional, Mode Paper portfolio (one valuation), then Create portfolio.",
+        "Holdings tab: Add a holding for each position, e.g. AAPL 20 shares, MSFT 8, VOO 5, each with a why.",
+        "Prices and snapshot tab: set Snapshot date and Cash (USD), type each price or click Fetch prices (Alpha Vantage), then click Create the snapshot.",
+        "Read the banner Snapshot created and the Valuation table, then click Download the report (.docx) (or Export the report on the hero)."
+      ],
+      see: "Net asset value USD 14,541.93, Invested 14,541.93, Cash 0, Top three 1; weights 0.4740 AAPL, 0.2871 MSFT, 0.2389 VOO. With three holdings the top three are the whole book, so the concentration figure says nothing yet about diversification.",
+      write: "NAV and its date, the weights, the published checks, and the conventions: one base currency, long-only, no FX, fees, tax or dividends, and the snapshot is a valuation, not a sale price.",
+      not: "It does not fetch a price silently, and a snapshot cannot be edited: to correct a book, take a new snapshot on a new date."
+    },
+    {
+      title: "Run a mock fund for the semester and report the time-weighted return",
+      kicker: "several weeks, flows, a decision journal",
+      go: "fund",
+      cta: "Start this case: create the fund book",
+      ask: "Run a paper fund for several weeks, record your decisions and report the time-weighted return, with a benchmark if you declared one.",
+      need: "A fund-mode book, at least two dated snapshots, a journal entry per period with the flow you declare, and benchmark levels if you report a benchmark.",
+      steps: [
+        "Mock fund journal (or Mode Mock fund (weekly journal)) and Create portfolio. Declare the benchmark in the form if you will report one.",
+        "Each week: Holdings to change positions, then Prices and snapshot, set that week\u2019s Snapshot date, enter prices (or Fetch prices) and click Create the snapshot.",
+        "Journal and return: set Period ends, Flow (money added or withdrawn), Benchmark level if you have one, write Your note, then Save the entry.",
+        "After two snapshots, click Compute the return."
+      ],
+      see: "Time-weighted return -0.10235 printed as a ratio, so -10.235% across 3 periods, with Start NAV 15,700, final NAV 14,541.93 and flow 500, then a Periods table with best 0.0204 and worst -0.1203. The conventions line says flows sit at period start and no fees, tax or dividends apply.",
+      write: "The TWR as a ratio and as a percentage, the number of periods, the NAV path, the flows with dates, the best and worst week with the note you wrote at the time, and a benchmark comparison only if every period has a level.",
+      not: "It does not trade for you, annualise the return, or apply fees, tax or dividends. A missing journal entry is treated as a zero flow, so state that convention."
+    },
+    {
+      title: "Compute the risk and return of a stock and of a two-asset portfolio",
+      kicker: "returns series, prefilled into the calculator",
+      go: "risk",
+      cta: "Start this case: open Evaluate",
+      ask: "For your chosen stock, report the mean return, standard deviation, Sharpe ratio and a VaR at 95%; then do the same for a two-asset portfolio.",
+      need: "Recorded prices. Seed 30 days pulls daily bars where the provider has them; or click Record price once a day. Risk metrics need at least 3 returns (4 prices); the two-asset portfolio needs 3 returns on shared dates.",
+      steps: [
+        "Watch list and prices tab: add your ticker(s), then click Seed 30 days (or Record price each day). The row shows its history and whether it is risk-ready.",
+        "Evaluate tab, Single asset risk: choose the Instrument, set Risk-free rate (decimal) e.g. 0.02 and click Prefill single-asset risk.",
+        "If the card says Inputs ready to confirm, click Open in the Business Calculator and press = yourself to run risk_metrics.",
+        "Two-asset portfolio: choose Asset A, Asset B and an optional Benchmark, click Prefill two-asset portfolio, then Open in the Business Calculator and press =."
+      ],
+      see: "A ready prefill listing the exact returns array and confidence 0.95 (live example: AAPL, 24 recorded returns). Before enough shared dates you get a named gap instead: portfolio_analysis needs at least three returns, so at least four shared snapshot dates; 1 shared so far.",
+      write: "The method id and tier, the exact inputs (paste the array from the prefill card), the risk-free rate you declared, the number of returns and the fact they are per period, not annual, and the honesty banner from the calculator result.",
+      not: "It does not annualise, impute missing prices or quietly use a shorter window: a short series stays a named gap. Prefill only fills the fields; you press =."
+    }
+  ];
+  const head = '<div class="pfsectionhead"><span class="pfkicker">Learn by example</span>' +
+    '<h3>Four worked cases, click by click</h3>' +
+    '<p class="muted">Each card is one assignment shape: what to click, what you should see and the sentence to write. ' +
+    'The long version, with a glossary and a troubleshooting table, is <code>docs/PORTFOLIO_LAB_STUDENT_GUIDE.md</code>.</p></div>';
+  return '<section class="pfsection" id="pfworkedcases">' + head + cases.map((item, index) =>
+    '<details class="card pfdetails pfcase"' + (index === 0 ? " open" : "") + '>' +
+      '<summary><strong>Case ' + (index + 1) + ' \u2014 ' + esc(item.title) + '</strong> <span class="muted">\u2014 ' + esc(item.kicker) + '</span></summary>' +
+      '<p class="pfcaseask"><strong>Assignment.</strong> ' + esc(item.ask) + '</p>' +
+      '<p><strong>You need.</strong> ' + esc(item.need) + '</p>' +
+      '<div class="pfcasehead">Click by click</div>' +
+      '<ol class="pfsteps">' + item.steps.map((step) => '<li>' + esc(step) + '</li>').join("") + '</ol>' +
+      '<p><strong>You should see.</strong> ' + esc(item.see) + '</p>' +
+      '<p><strong>Write this in your paper.</strong> ' + esc(item.write) + '</p>' +
+      '<p class="muted"><strong>What it does not do.</strong> ' + esc(item.not) + '</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-pfcase="' + esc(item.go) + '">' + esc(item.cta) + '</button></div>' +
+    '</details>').join("") + '</section>';
+}
+
+/* A worked case starts the right control: the lab tab it needs, or the create form in the
+   right mode. It never creates a book for the student and never presses a button for them. */
+async function pfStartCase(name) {
+  if (name === "paper" || name === "fund") {
+    if (state.portfolioId) { state.portfolioId = null; await loadPortfolioPage(); }
+    const mode = $("#pfmode");
+    if (mode) mode.value = (name === "fund") ? "fund" : "paper";
+    const field = $("#pfname");
+    if (field) { field.focus(); field.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    toast(name === "fund"
+      ? "Fund mode selected. Name the book, then press Create portfolio."
+      : "Paper mode selected. Name the book, then press Create portfolio.");
+    return;
+  }
+  if (name !== "screen" && name !== "risk") return;
+  if (!$("#portfoliolab")) {
+    if (state.portfolioId) { state.portfolioTab = "screen"; renderPortfolioWorkspace(); }
+    else { await loadPortfolioPage(); }
+    await new Promise((resolve) => setTimeout(resolve, 60));
+  }
+  if (!$("#portfoliolab")) { toast("Open a book first; the lab is in the Find candidates tab."); return; }
+  plShowTab(name === "risk" ? "prefill" : "watch");
+  const target = (name === "risk") ? $("#plid") : $("#plnewsyms");
+  if (target) {
+    target.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (target.focus) target.focus();
+  }
+  toast(name === "risk"
+    ? "Evaluate is open. Pick a tracked series, then press Prefill single-asset risk."
+    : "Watch list is open. Type your tickers, then press Add symbols.");
 }
 
 function pfGuidanceCard() {

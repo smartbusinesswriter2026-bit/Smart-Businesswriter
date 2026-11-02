@@ -1,3 +1,51 @@
+## The Portfolio Lab teaches itself: four worked cases, click by click
+
+The owner's next step after the audit was teaching: *"make users understand and know how to use it
+by teaching and guiding them through examples … use 3 or more different cases depending on how best
+it can illustrate its capability … then guide students step by step on what to click."* The lab now
+carries a **Learn by example** section with **four worked cases**, and the long version is
+`docs/PORTFOLIO_LAB_STUDENT_GUIDE.md`.
+
+**The four cases are the assignments a finance student actually brings.**
+1. **"Which stocks should I put in my portfolio paper?"** — screening on declared criteria, reading
+   the shortlist, then declaring the names with a reason in *Holdings*.
+2. **"Value my portfolio on one date and hand in the report"** — create the book, declare holdings
+   and cash, enter one price per holding, **Create the snapshot**, export the DOCX.
+3. **"Run a mock fund for the semester and report a time-weighted return"** — weekly snapshots and
+   journal entries with the flow you declare, then **Compute the return**; this is the capability a
+   one-shot chat answer cannot give: the weeks, the flows and an immutable dated record.
+4. **"Compute the risk and return of my stock (and a two-asset portfolio)"** — record or seed a
+   returns series, prefill `risk_metrics` / `portfolio_analysis`, then open the Business Calculator
+   and press `=` yourself.
+
+**Each card says what to click, what you should see, and the sentence to write.** The click steps
+name the real labels on the page (*Add symbols*, *Use my watch list*, *Screen these symbols*,
+*Create the snapshot*, *Download the report (.docx)*, *Compute the return*, *Prefill single-asset
+risk*, *Open in the Business Calculator*), and a test cross-checks every label against
+`web/index.html` so the instructions cannot drift from the shipped page. The "you should see"
+examples are live values from this machine on 2026-11-02, labelled as such: AAPL 344.63 with P/E
+44.90 and the gap text; NAV USD 14,541.93 with weights 0.4740 / 0.2871 / 0.2389; TWR -0.10235 as a
+ratio (-10.235%) across 3 periods with a 500 flow; the AAPL single-asset prefill with 24 returns and
+the two-asset named gap.
+
+**A Start button per case that only opens the right control.** *Start this case: open the watch
+list* switches the lab to *Watch list and prices* and focuses the symbol box; *…open Evaluate* goes
+to the prefill selects; *…create the paper book* / *…create the fund book* return to the landing and
+set *Mode* before focusing the name field. It never creates a book, never presses a button for the
+student, and never runs a method — a test asserts the handler contains no `post(`/`api(` call.
+
+**The long guide** is written for students, not maintainers: the four cases in full, a gap-decoding
+table ("the change needs a previous close" → record another day), a "what a professor can verify in
+your submission" list (dated source per price, response hash, immutable snapshot, published checks,
+the decision journal), a troubleshooting table and a glossary. It is indexed in `docs/HOME.md`.
+Verified live through a headless-Chrome CDP run: the four cards render, the first is open, each Start
+button focuses the intended control (`#plnewsyms`, `#plid`, `#pfname`, fund mode), the lab opens from
+inside a book, and there are no page exceptions.
+
+No method, preset, check, computed number, endpoint or frozen-core entry changed. Tests: new
+`tests/test_portfolio_student_guide.py` (12) pinning the cases, the click labels, the advice
+boundary, the global rule and the non-creating Start handler; suite 2892 tests.
+
 ## Rates and FX: the foot sentence is gone
 
 Owner's call, and a fair one — the panel was saying the same thing twice.

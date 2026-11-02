@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.60**, **2880 tests**, 2026-11-02. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.60**, **2892 tests**, 2026-11-02. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -117,6 +117,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`ECONOMICS_STUDENT_GUIDE.md`](ECONOMICS_STUDENT_GUIDE.md) | Living student guide | Update when the Economics shelf, its conventions or its worked examples change |
 | [`ENTREPRENEURSHIP_STUDENT_GUIDE.md`](ENTREPRENEURSHIP_STUDENT_GUIDE.md) | Living student guide | Update when the Entrepreneurship shelf, its conventions or its worked examples change |
 | [`FINANCE_STUDENT_GUIDE.md`](FINANCE_STUDENT_GUIDE.md) | Living student guide | Update when the Finance shelf, its conventions or its worked examples change |
+| [`PORTFOLIO_LAB_STUDENT_GUIDE.md`](PORTFOLIO_LAB_STUDENT_GUIDE.md) | Living student guide — the Portfolio Lab by four worked cases | Update when the lab's labels, its four worked cases or its conventions change |
 | [`MARKETING_STUDENT_GUIDE.md`](MARKETING_STUDENT_GUIDE.md) | Living student guide | Update when the Marketing & customers shelf, its conventions or its worked examples change |
 | [`OPERATIONS_STUDENT_GUIDE.md`](OPERATIONS_STUDENT_GUIDE.md) | Living student guide | Update when the Operations or Supply chain shelf, its conventions or its worked examples change |
 | [`SAMPLE_PAPERS.md`](SAMPLE_PAPERS.md) | Living note on the generated samples | Update when a sample is regenerated, a framework is added or the byline rule changes |

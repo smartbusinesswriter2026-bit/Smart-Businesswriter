@@ -1,3 +1,19 @@
+## 2026-11-03 - [portfolio] The Portfolio Lab teaches itself: four worked cases, click by click
+
+**Ask.** "make users understand and know how to use it by teaching and guiding them through examples. remember when i asked you for an example using a case where you explain it in simpler terms? do the same but oriented for finance students. use 3 or more different cases depending on how best it can illustrate its capability. you may add but 3 is the lowest. then guide students step by step on what to click to achieve desired result. base it on your experiences on how student use you in this particualr field only that this pipeliune is isntneded to exceed that capability as it can record multiple weeks and others. as usual, test and debug before reporting success."
+
+**Did.** (1) **Four worked cases in the lab**, on the Portfolio landing under *Learn by example*: stock selection, one-date valuation and report, a semester mock fund with a time-weighted return, and the risk/return assignment. Each card states the assignment, what you need, numbered click steps using the page's real labels, what you should see, the sentence to write in the paper, and what it does not do. (2) **A Start button per case that only opens the right control**: the watch list with the symbol box focused, the Evaluate tab with the instrument select focused, or the create form in paper/fund mode with the name field focused. It creates no book and runs no method (pinned). (3) **A student-facing long guide**, `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md`: the four cases in full, a gap-decoding table, a "what a professor can verify in your submission" list, a troubleshooting table and a glossary; indexed in `docs/HOME.md`.
+
+**Why.** The owner's students ask for stock picks, portfolio values, fund returns and risk figures; the lab now answers each with a recorded, sourced, reproducible procedure, which is more than a one-shot chat answer can do (weeks, flows, immutable snapshots). Teaching it in the page means the student does not have to read a manual to start.
+
+**Files:** `web/index.html`, `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md`, `tests/test_portfolio_student_guide.py`, `docs/CHANGELOG.md`, `docs/WORKLOG.md`, `docs/DECISIONS.md`, `docs/HOME.md`, `qa/evidence/portfolio/lab-worked-cases.png`.
+
+**Decisions:** B-189.
+
+**Verified.** `node --check` on the inline script; live headless-Chrome CDP run: four cards render (first open), each Start button lands on the intended control (`#plnewsyms`, `#plid`, `#pfname` paper, `#pfname` fund mode), the lab opens from inside a book, 0 page exceptions; `tests/test_portfolio_student_guide.py` (12) cross-checks every click label against `web/index.html` so the teaching cannot drift; full suite 2892 tests with the targeted batches green; `ui_smoke` 0 failures. The example values in the cards and the guide are live values from this machine on 2026-11-02 (AAPL 344.63 / P/E 44.90; NAV 14,541.93; TWR -0.10235 over 3 periods with a 500 flow; AAPL prefill with 24 returns), labelled as such.
+
+**Open/next.** None. The guide's screenshots live in `qa/evidence/portfolio/`; the printed case cards show the same click path as the page.
+
 ## 2026-11-02 — [ui] Three launchers that behave as one, and Rates and FX as two cards
 
 **Ask.** "MAKE THEIR APPEARANCE UNIFORM WHEN CLICKED… DONT DEFAULT OPEN THE BUSINESS CALCULATOR TO BOLD
@@ -69,16 +85,16 @@ requirement the student never wrote, and it would then be enforced against their
 `qa/probe_rubric.py` on six realistic documents (table, list, no weights, prose, marks column, page limit)
 shows the intended behaviour for each. Docs kept in step: B-187 in `DECISIONS.md`; the suite count
 re-measured with the gate's own counter (`qa/_count.py`, which calls `test_docs_sync._suite_count()`) at
-**2878**; a `1.60` changelog bullet restores the build that `HOME`/`HANDOFF` had already claimed (HEAD said
-1.60 while its newest changelog entry said 1.59 — that drift is fixed here). No frozen core, method,
+**2878**; a `1.60` changelog bullet restores the build that `HOME`/`HANDOFF` had already claimed (HEAD
+said 1.60 while its newest changelog entry said 1.59 — that drift is fixed here). No frozen core, method,
 preset, input, check, number, route family or paper rule touched; no new dependency; no network or model
 call.
 
 **Count caveat, stated plainly.** Three lanes write in this worktree at once, so the count is a snapshot:
-`2878` is what the gate counts here, at this commit. It includes ~22 tests sitting in another lane's
-*uncommitted* economics suite, and a clean checkout of this commit holds ~101 fewer because several test
-modules need provisioned runtime data (intake store, document index, corpus) that is not in git — that
-shortfall is a property of the repository, not of this commit, and is worth its own session.
+**2878** is what the gate counts here, at this commit. It includes tests sitting in another lane's
+*uncommitted* work, and a clean checkout of this commit holds ~101 fewer because several test modules need
+provisioned runtime data (intake store, document index, corpus) that is not in git — that shortfall is a
+property of the repository, not of this commit, and is worth its own session.
 
 **Open/next.** Binding is **not built**: the outline, the word band and the required elements are not yet
 driven by a parsed rubric, there is no "Rubric coverage" appendix, no export gate on a required criterion,
@@ -3248,4 +3264,37 @@ their identifiers whole. Coverage re-checked at 452/452 source blocks matched in
 onto its real path, which is still held open by the owner's Word.
 
 ---
+
+## 2026-11-03 - [design] The brand name steps back, the body steps down, and the chat gets a reading column
+
+**Ask.** Owner instruction on the Home page: the brand name under the logo is "too loud and big" -
+reduce its font size by 2 points; in the body, reduce the font size by just 1 point; and adjust the
+width of the chat container to a Codex or ChatGPT size.
+
+**Did.** The hero `h1` under the mark is 43 px (was 45 px). The topbar wordmark is untouched at
+20.2 px - it sits beside the mark, not under it, so it is not the brand name the instruction named.
+The body is 16.8 px (was 17.8 px), and the body copy one rung above it moved with it, so the
+reduction is visible and not only structural: the hero paragraph and the slogan are 18 px and the
+composer text is 18 px (both were 19 px). The chat column - the composer and the conversation card
+under it - is 768 px, centred, with `max-width` only, so a narrow screen still gets the full width;
+the conversation card now sits 16 px under the composer instead of sharing an edge with it.
+
+The pinned body size in `tests/test_product_subjects.py` moved with the page: the assertion reads
+`font-size:16.8px`, with the owner's instruction and the date in a comment beside it.
+
+**Files:** `web/index.html`, `web/DESIGN_NOTES.md`, `tests/test_product_subjects.py`,
+`docs/CHANGELOG.md`, `docs/WORKLOG.md`, `docs/DECISIONS.md`.
+
+**Decisions:** B-188.
+
+**Verified:** measured on the served page (Chrome, 1440x1000 viewport, rail collapsed): `.hero h1`
+45 -> 43 px, `body` 17.8 -> 16.8 px, the composer text and the slogan 19 -> 18 px, `.actionbox` and
+`#chatcard` 1116 -> 768 px at the same left (359) and right (1127) and the same centre as the hero
+wordmark (743 px), the gap composer -> conversation 16 px and conversation -> Documents 16 px. The
+inline script parses (`node --check`); `tests/test_web_inline_script.py` (2),
+`tests/test_web_brand_assets.py` (5) and `tests/test_product_subjects.py` (53) pass. No behaviour,
+number, wording or claim changed.
+
+**Open/next:** the build pill stays at v1.45; `tests/test_product_subjects.py` pins its shape
+(`v\d+\.\d+`) and the version string is the computation owner's to move.
 
