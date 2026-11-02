@@ -1,6 +1,6 @@
 # Home — map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.56**, **2553 tests**, 2026-11-02. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.58**, **2627 tests**, 2026-11-02. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -131,6 +131,8 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`UI_BRIEF.md`](UI_BRIEF.md) | Owner instruction for the website UI phase (design owner) | Plan-mode first; keep the frozen contract, compute nothing in the UI, no invented content |
 | [`UI_CLOSURE.md`](UI_CLOSURE.md) | Living UI-phase closure checklist | Update when the student-facing workbench changes; do not claim the backend product items |
 | [`DISCUSSION_NOTEBOOK.md`](DISCUSSION_NOTEBOOK.md) | Living, append-only owner-review and design-discussion record; newest entry at the top | Never rewrite an old entry; supersede it; every entry must end with where it could be wrong |
+| [`CONTINUATION_NOTE.md`](CONTINUATION_NOTE.md) | Hand-off note on the coverage findings and their work orders (WO-1…) | Update when a work order in it is completed or superseded; do not rewrite past findings |
+| [`TAXONOMY_COVERAGE_EVALUATION.md`](TAXONOMY_COVERAGE_EVALUATION.md) | Evaluation of catalogue-vs-build coverage and the routing defects it measured | Historical measurement: describe as "at the time"; supersede, never rewrite |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** — never edit; amend via decisions |
 
 ## 5. Conventions for this map

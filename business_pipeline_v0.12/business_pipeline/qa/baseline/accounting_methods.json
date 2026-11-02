@@ -1,0 +1,1100 @@
+[
+ {
+  "method_id": "management_accounts",
+  "name": "management_accounts",
+  "tier": "T2",
+  "metric": "net_income",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "accounting",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked.",
+  "unsupported_use": "GAAP or IFRS statements; assurance; tax filings; multi-currency consolidation; posting anything the owner did not declare.",
+  "assumptions": [
+   "Every entry is balanced and inside the period (enforced by the kernel).",
+   "The chart reflects the owner's account mapping.",
+   "Amounts respect the declared currency places."
+  ],
+  "limitations": [
+   "Management accounts only: not GAAP or IFRS statements and not assurance (manual 9.5).",
+   "Cash-flow activity classification is a declared heuristic unless accounts carry explicit activity tags.",
+   "Custom analysis (T2); expert review pending.",
+   "The ledger engine decision is closed: the custom kernel is management accounts v1 (B-032, RESOLVED 2026-10-27); the Beancount comparison was never run."
+  ],
+  "test_names": [
+   "trial_balance_debits_equal_credits",
+   "assets_equal_liabilities_plus_equity",
+   "net_income_agrees_across_routes",
+   "opening_balances_equal_prior_closing",
+   "statement_lines_foot_to_totals",
+   "journal_hash_chain_intact",
+   "cash_flow_agrees_across_routes",
+   "retained_earnings_rollforward",
+   "income_expense_and_dividends_zero_after_closing",
+   "statement_internally_consistent",
+   "opening_balances_agree"
+  ],
+  "input_schema": {
+   "spec": {
+    "type": "engagement_spec",
+    "desc": "the declarative engagement: period, currency, framework, places, chart, prior_closing, opening, entries, schedules"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Reporting framework",
+    "default_chosen": "A required input with no default (manual D-010).",
+    "impact": "Standards differ by framework; none is asserted."
+   },
+   {
+    "question": "Closing",
+    "default_chosen": "Every engagement closes: income, expenses and declared dividends move into retained earnings.",
+    "impact": "Post-closing statements carry the period result in retained earnings."
+   },
+   {
+    "question": "Prior closing balances",
+    "default_chosen": "A required input (an empty object for a first period); the opening entry is checked against it.",
+    "impact": "A mismatch fails the opening-balances check."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "spec"
+  ]
+ },
+ {
+  "method_id": "trial_balance_check",
+  "name": "trial_balance_check",
+  "tier": "T2",
+  "metric": "n_differing",
+  "unit": "count",
+  "claim_ceiling": "descriptive",
+  "category": "accounting",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Compare a student's own trial balance with the one rebuilt from their own journal: every line that matches, differs or has no counterpart, with candidate causes labelled as heuristics.",
+  "unsupported_use": "Deciding which of the two figures is correct; checking amounts against source documents; detecting an error of principle that the journal itself encodes; correcting anything.",
+  "assumptions": [
+   "Both inputs are the student's own declared figures.",
+   "An account code, where given, means the same account on both sides."
+  ],
+  "limitations": [
+   "A balanced trial balance is not proof of correct entries: errors of principle, commission, original entry, omission, reversal and compensating errors all leave it balanced.",
+   "Candidate causes are heuristics labelled as such, never conclusions.",
+   "It cannot check amounts against source documents, and it corrects nothing.",
+   "Custom analysis (T2); expert review pending."
+  ],
+  "test_names": [
+   "every_row_is_matched_or_explained",
+   "second_route_agrees",
+   "net_difference_agrees_with_lines",
+   "submitted_balance_difference_agrees",
+   "divisibility_rule_is_reported_not_concluded"
+  ],
+  "input_schema": {
+   "journal": {
+    "type": "engagement_spec",
+    "required": false,
+    "desc": "the student's journal in the engagement shape (period, chart, opening, entries); optional, and supplying it is what makes the check meaningful"
+   },
+   "trial_balance": {
+    "type": "rows",
+    "min_items": 1,
+    "required": false,
+    "desc": "the student's own trial balance rows: a code or a name, and a debit or a credit"
+   },
+   "places": {
+    "type": "decimal",
+    "required": false,
+    "desc": "decimal places the figures were stated to (default 2)"
+   }
+  },
+  "output_precision": {
+   "n_submitted": 0,
+   "n_rebuilt": 0,
+   "n_matched": 0,
+   "n_differing": 0,
+   "n_missing_submitted": 0,
+   "n_missing_rebuilt": 0,
+   "n_findings": 0,
+   "total_absolute_difference": 2,
+   "difference_net": 2,
+   "submitted_balance_difference": 2
+  },
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Matching an account",
+    "default_chosen": "By account code when both sides carry one, otherwise by name; an ambiguous name is refused rather than resolved.",
+    "impact": "A shared name would otherwise be matched arbitrarily."
+   },
+   {
+    "question": "Which figure is right",
+    "default_chosen": "Neither. The check compares two declared figures and does not decide between them.",
+    "impact": "The verdict names where they disagree, never which is correct."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "journal",
+   "places",
+   "trial_balance"
+  ]
+ },
+ {
+  "method_id": "ratio_analysis",
+  "name": "ratio_analysis",
+  "tier": "T1",
+  "metric": "n_computed",
+  "unit": "count",
+  "claim_ceiling": "descriptive",
+  "category": "financial statement analysis",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Compute liquidity, profitability, solvency and efficiency ratios from figures on your own financial statements, showing each ratio's declared formula and the figures it used.",
+  "unsupported_use": "Benchmarks, industry averages or pass/fail judgements; GAAP or IFRS presentation; restating or adjusting figures; multi-period comparatives; segment, consolidated or multi-currency analysis; forecasting.",
+  "assumptions": [
+   "The figures are as reported for one period, in one currency and on one accounting basis.",
+   "Balance-sheet figures are period-end balances."
+  ],
+  "limitations": [
+   "Descriptive arithmetic only; no benchmark, threshold or verdict is applied because none is supplied or verified.",
+   "The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.",
+   "There is no tax computation; net income is used exactly as supplied."
+  ],
+  "test_names": [
+   "every_ratio_is_either_computed_or_explained",
+   "denominators_are_nonzero",
+   "negative_denominators_are_flagged_not_dropped",
+   "second_route_agrees_on_every_ratio",
+   "balance_sheet_identity_holds_when_checkable",
+   "figures_parsed_exactly_as_supplied"
+  ],
+  "input_schema": {
+   "current_assets": {
+    "type": "decimal",
+    "required": false,
+    "desc": "current assets at the period end"
+   },
+   "current_liabilities": {
+    "type": "decimal",
+    "required": false,
+    "desc": "current liabilities at the period end"
+   },
+   "cash": {
+    "type": "decimal",
+    "required": false,
+    "desc": "cash and cash equivalents"
+   },
+   "inventory": {
+    "type": "decimal",
+    "required": false,
+    "desc": "inventory"
+   },
+   "receivables": {
+    "type": "decimal",
+    "required": false,
+    "desc": "trade receivables"
+   },
+   "payables": {
+    "type": "decimal",
+    "required": false,
+    "desc": "trade payables"
+   },
+   "total_assets": {
+    "type": "decimal",
+    "required": false,
+    "desc": "total assets"
+   },
+   "total_liabilities": {
+    "type": "decimal",
+    "required": false,
+    "desc": "total liabilities"
+   },
+   "equity": {
+    "type": "decimal",
+    "required": false,
+    "desc": "total equity"
+   },
+   "revenue": {
+    "type": "decimal",
+    "required": false,
+    "desc": "revenue for the period"
+   },
+   "cost_of_sales": {
+    "type": "decimal",
+    "required": false,
+    "desc": "cost of sales for the period"
+   },
+   "operating_profit": {
+    "type": "decimal",
+    "required": false,
+    "desc": "operating profit for the period"
+   },
+   "net_income": {
+    "type": "decimal",
+    "required": false,
+    "desc": "net income for the period (as supplied; no tax computation is performed)"
+   },
+   "interest_expense": {
+    "type": "decimal",
+    "required": false,
+    "desc": "interest expense for the period, as a positive amount"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Benchmarks and cut-offs",
+    "default_chosen": "None are applied, because none is supplied or verified. Ratios are computed, not rated.",
+    "impact": "Whether a value is good or bad is left to the reader and the context."
+   },
+   {
+    "question": "Balance conventions",
+    "default_chosen": "Period-end balances and a 365-day year for the efficiency ratios.",
+    "impact": "Average balances or a 360-day year would give different numbers."
+   },
+   {
+    "question": "Uncomputable ratios",
+    "default_chosen": "A ratio with a missing figure or a zero denominator is listed in the appendix with its reason and is not estimated.",
+    "impact": "The pack is partial rather than invented."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "cash",
+   "cost_of_sales",
+   "current_assets",
+   "current_liabilities",
+   "equity",
+   "interest_expense",
+   "inventory",
+   "net_income",
+   "operating_profit",
+   "payables",
+   "receivables",
+   "revenue",
+   "total_assets",
+   "total_liabilities"
+  ]
+ },
+ {
+  "method_id": "standard_cost_variances",
+  "name": "standard_cost_variances",
+  "tier": "T1",
+  "metric": "total_variance",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "management accounting",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead variances for the output actually produced, with a positive figure unfavourable.",
+  "unsupported_use": "Setting or judging standards; mix, yield, sales, planning or idle-capacity variances; standard costing in several processes or products; tax or inventory valuation effects.",
+  "assumptions": [
+   "The standards are the declared quantities and prices.",
+   "Actual hours and quantities are for the same period and output."
+  ],
+  "limitations": [
+   "No standards setting, mix, yield, sales or planning variances.",
+   "One product and one process only.",
+   "No journal entries or inventory valuation."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "material_price_and_usage_sum_to_the_material_variance",
+   "labour_rate_and_efficiency_sum_to_the_labour_variance",
+   "fixed_overhead_volume_is_budget_applied",
+   "total_variance_is_the_sum_of_the_reported_variances"
+  ],
+  "input_schema": {
+   "actual_units": {
+    "type": "decimal",
+    "desc": "units actually produced in the period"
+   },
+   "standard_material_per_unit": {
+    "type": "decimal",
+    "desc": "standard material quantity allowed per unit"
+   },
+   "standard_material_price": {
+    "type": "decimal",
+    "desc": "standard price per unit of material"
+   },
+   "actual_material_quantity": {
+    "type": "decimal",
+    "desc": "material quantity actually used"
+   },
+   "actual_material_price": {
+    "type": "decimal",
+    "desc": "actual price paid per unit of material"
+   },
+   "standard_hours_per_unit": {
+    "type": "decimal",
+    "desc": "standard labour hours allowed per unit"
+   },
+   "standard_labour_rate": {
+    "type": "decimal",
+    "desc": "standard labour rate per hour"
+   },
+   "actual_hours": {
+    "type": "decimal",
+    "desc": "labour hours actually worked"
+   },
+   "actual_labour_rate": {
+    "type": "decimal",
+    "desc": "actual labour rate per hour"
+   },
+   "standard_variable_overhead_rate": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional standard variable overhead per labour hour"
+   },
+   "actual_variable_overhead": {
+    "type": "decimal",
+    "required": false,
+    "desc": "actual variable overhead, required with the standard rate"
+   },
+   "budgeted_fixed_overhead": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional budgeted fixed overhead for the period"
+   },
+   "actual_fixed_overhead": {
+    "type": "decimal",
+    "required": false,
+    "desc": "actual fixed overhead, required with the budget"
+   },
+   "denominator_hours": {
+    "type": "decimal",
+    "required": false,
+    "desc": "budgeted labour hours used to set the fixed overhead rate"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Sign convention",
+    "default_chosen": "Every variance is actual cost less the standard cost of the output achieved; positive is unfavourable.",
+    "impact": "A different convention flips every sign and the favourable/unfavourable reading."
+   },
+   {
+    "question": "Overhead detail",
+    "default_chosen": "Variable and fixed overhead variances are reported only when their inputs are declared.",
+    "impact": "Leaving them out reports material and labour only."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "actual_fixed_overhead",
+   "actual_hours",
+   "actual_labour_rate",
+   "actual_material_price",
+   "actual_material_quantity",
+   "actual_units",
+   "actual_variable_overhead",
+   "budgeted_fixed_overhead",
+   "denominator_hours",
+   "standard_hours_per_unit",
+   "standard_labour_rate",
+   "standard_material_per_unit",
+   "standard_material_price",
+   "standard_variable_overhead_rate"
+  ]
+ },
+ {
+  "method_id": "abc_costing",
+  "name": "abc_costing",
+  "tier": "T1",
+  "metric": "total_allocated",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "management accounting",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Activity-based costing: a rate per activity from its pool and driver total, each product's allocation from the driver quantities it consumes, and the resulting unit cost.",
+  "unsupported_use": "Choosing cost drivers; idle or unused capacity cost; activity hierarchies; time-driven ABC; cost of poor quality.",
+  "assumptions": [
+   "Pool costs and driver quantities are declared for one period.",
+   "Every product's driver quantities are recorded for every activity it consumes."
+  ],
+  "limitations": [
+   "No idle-capacity adjustment, activity hierarchy or time-driven ABC.",
+   "One period and one currency.",
+   "The drivers are the declared ones, not chosen or validated."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "every_pool_is_allocated_in_full",
+   "rate_is_the_pool_cost_over_its_driver_total",
+   "unit_cost_is_the_allocation_over_units",
+   "allocations_sum_to_the_total"
+  ],
+  "input_schema": {
+   "activities": {
+    "type": "records",
+    "min_items": 1,
+    "fields": {
+     "name": "text",
+     "pool_cost": "decimal"
+    },
+    "desc": "one record per activity pool: a name and its cost"
+   },
+   "products": {
+    "type": "records",
+    "min_items": 1,
+    "fields": {
+     "name": "text",
+     "units": "decimal"
+    },
+    "desc": "one record per product: a name and its units produced"
+   },
+   "allocations": {
+    "type": "records",
+    "min_items": 1,
+    "fields": {
+     "activity": "text",
+     "product": "text",
+     "driver_quantity": "decimal"
+    },
+    "desc": "one record per activity-product pair: the driver quantity that product consumed"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Pool allocation",
+    "default_chosen": "Every pool is allocated in full over the driver quantities declared, with no unused-capacity cost.",
+    "impact": "Leaving idle capacity in the pool overstates product cost."
+   },
+   {
+    "question": "Driver totals",
+    "default_chosen": "Driver totals are the sum of the declared product quantities, not a separate capacity figure.",
+    "impact": "Using practical capacity would need a separate driver total."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "activities",
+   "allocations",
+   "products"
+  ]
+ },
+ {
+  "method_id": "sales_variances",
+  "name": "sales_variances",
+  "tier": "T1",
+  "metric": "total_sales_variance",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "management accounting",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Sales price, mix and yield variances for two or more products, at budgeted prices with the budget mix as the standard, reconciling to the total revenue change.",
+  "unsupported_use": "Explaining why price or mix moved; market-size and market-share variances; a changing standard; more than one period.",
+  "assumptions": [
+   "Budget and actual units and prices cover the same period and product set.",
+   "The budget mix is the standard mix."
+  ],
+  "limitations": [
+   "No market-size or share variance; no explanation of the movements.",
+   "The split depends on the declared convention.",
+   "One currency and one period."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "total_variance_is_actual_minus_budget_revenue",
+   "price_mix_and_yield_add_to_the_total_variance",
+   "volume_variance_is_mix_plus_yield",
+   "per_product_components_sum_to_the_totals"
+  ],
+  "input_schema": {
+   "products": {
+    "type": "records",
+    "min_items": 2,
+    "fields": {
+     "name": "text",
+     "budget_units": "decimal",
+     "budget_price": "decimal",
+     "actual_units": "decimal",
+     "actual_price": "decimal"
+    },
+    "desc": "one record per product with budget and actual units and prices"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Standard mix",
+    "default_chosen": "The budget mix is the standard, and mix and yield are valued at budgeted prices.",
+    "impact": "A different standard or valuation changes the split, not the total."
+   },
+   {
+    "question": "Scope",
+    "default_chosen": "One period and the products declared; no market-size or market-share split.",
+    "impact": "Those need the market total, which is not declared here."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "products"
+  ]
+ },
+ {
+  "method_id": "breakeven",
+  "name": "breakeven",
+  "tier": "T1",
+  "metric": "breakeven_units",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "category": "cost-volume-profit",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.",
+  "unsupported_use": "Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.",
+  "assumptions": [
+   "Linear cost and revenue.",
+   "The expected volume is the owner's declared input, not a forecast."
+  ],
+  "limitations": [
+   "Single product; a mix needs multi_product_breakeven.",
+   "No tax, financing or working-capital effects.",
+   "The margin of safety is relative to the declared expected volume only."
+  ],
+  "test_names": [
+   "profit_at_breakeven_is_zero",
+   "contribution_margin_is_price_minus_variable",
+   "breakeven_revenue_is_units_times_price",
+   "margin_of_safety_is_expected_units_minus_breakeven",
+   "target_profit_raises_the_required_units"
+  ],
+  "input_schema": {
+   "fixed": {
+    "type": "decimal",
+    "desc": "total fixed cost"
+   },
+   "price": {
+    "type": "decimal",
+    "desc": "price per unit"
+   },
+   "variable": {
+    "type": "decimal",
+    "desc": "variable cost per unit"
+   },
+   "expected_units": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional expected sales volume, for the margin of safety"
+   },
+   "target_profit": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional pre-tax profit target, for the required volume"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Cost behavior",
+    "default_chosen": "Fixed cost is constant and unit price and variable cost are constant.",
+    "impact": "Break-even moves if costs are stepped or prices change with volume."
+   },
+   {
+    "question": "Margin of safety and target profit",
+    "default_chosen": "Both are reported only when expected_units or target_profit is declared; neither is assumed.",
+    "impact": "A different expected volume changes the margin of safety but not the break-even point."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "expected_units",
+   "fixed",
+   "price",
+   "target_profit",
+   "variable"
+  ]
+ },
+ {
+  "method_id": "multi_product_breakeven",
+  "name": "multi_product_breakeven",
+  "tier": "T1",
+  "metric": "breakeven_total_units",
+  "unit": "units",
+  "claim_ceiling": "descriptive",
+  "category": "cost-volume-profit",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Break-even in units and revenue for a fixed product mix: the mix-weighted contribution margin and the per-product break-even quantities.",
+  "unsupported_use": "A changing mix, step costs, capacity limits, price-volume relationships or tax; forecasting which mix will actually occur.",
+  "assumptions": [
+   "Each product's price and variable cost are constant.",
+   "The declared mix is the mix that will be sold.",
+   "Fixed costs do not change with volume."
+  ],
+  "limitations": [
+   "One break-even point for one declared mix; no capacity limits or step costs.",
+   "No tax, financing or working-capital effects.",
+   "Per-product units are a break-even mix, not a target."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "weighted_contribution_is_the_mix_weighted_margin",
+   "profit_at_break_even_is_zero",
+   "scaling_fixed_costs_scales_break_even_units",
+   "per_product_units_sum_to_the_total"
+  ],
+  "input_schema": {
+   "fixed_costs": {
+    "type": "decimal",
+    "desc": "total fixed costs for the period"
+   },
+   "products": {
+    "type": "records",
+    "min_items": 2,
+    "fields": {
+     "name": "text",
+     "price": "decimal",
+     "variable_cost": "decimal",
+     "mix_units": "decimal"
+    },
+    "desc": "two or more products with a declared mix (mix_units are the relative quantities sold)"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Mix assumption",
+    "default_chosen": "The declared mix_units are held constant and used as the weighting.",
+    "impact": "A different mix changes the weighted contribution and the break-even."
+   },
+   {
+    "question": "Cost behaviour",
+    "default_chosen": "Fixed costs are constant and unit prices and variable costs are constant over the range.",
+    "impact": "Step costs or volume discounts break the single break-even point."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "fixed_costs",
+   "products"
+  ]
+ },
+ {
+  "method_id": "working_capital",
+  "name": "working_capital",
+  "tier": "T1",
+  "metric": "cash_conversion_cycle",
+  "unit": "days",
+  "claim_ceiling": "descriptive",
+  "category": "working capital",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Measure the cash conversion cycle from receivable, inventory and payable days, and compute the economic order quantity, reorder point and the annualised cost of forgoing a trade discount.",
+  "unsupported_use": "Forecasting working capital; seasonal or step demand; quantity discounts; bad-debt and credit-scoring models; a full cash budget.",
+  "assumptions": [
+   "The period-end balances and the annual demand are the owner's figures.",
+   "Demand, order cost and holding cost are constant over the year.",
+   "The credit terms are as declared."
+  ],
+  "limitations": [
+   "No seasonality, quantity discounts or stock-out cost.",
+   "No cash budget or forecast.",
+   "The trade-credit cost is an annualised convention, not a financing recommendation."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "the_cash_conversion_cycle_is_the_three_periods",
+   "the_eoq_minimises_order_and_holding_cost",
+   "the_reorder_point_is_lead_time_demand_plus_safety_stock",
+   "a_larger_discount_raises_the_cost_of_trade_credit"
+  ],
+  "input_schema": {
+   "revenue": {
+    "type": "decimal",
+    "desc": "revenue for the period"
+   },
+   "cost_of_sales": {
+    "type": "decimal",
+    "desc": "cost of sales for the period"
+   },
+   "inventory": {
+    "type": "decimal",
+    "desc": "inventory at the period end"
+   },
+   "receivables": {
+    "type": "decimal",
+    "desc": "trade receivables at the period end"
+   },
+   "payables": {
+    "type": "decimal",
+    "desc": "trade payables at the period end"
+   },
+   "annual_demand": {
+    "type": "decimal",
+    "desc": "units demanded in a year, for the order quantity"
+   },
+   "order_cost": {
+    "type": "decimal",
+    "desc": "cost of placing one order"
+   },
+   "holding_cost_per_unit": {
+    "type": "decimal",
+    "desc": "cost of holding one unit for a year"
+   },
+   "discount_percent": {
+    "type": "decimal",
+    "desc": "early-payment discount as a decimal, e.g. 0.02 for 2%; use 0 if there is none"
+   },
+   "credit_terms_days": {
+    "type": "decimal",
+    "desc": "full credit period in days, e.g. 30"
+   },
+   "discount_days": {
+    "type": "decimal",
+    "desc": "days within which the discount must be taken, e.g. 10"
+   },
+   "days": {
+    "type": "decimal",
+    "required": false,
+    "desc": "days in the period; default 365"
+   },
+   "daily_demand": {
+    "type": "decimal",
+    "required": false,
+    "desc": "units sold per day; default annual demand divided by days"
+   },
+   "lead_time_days": {
+    "type": "decimal",
+    "required": false,
+    "desc": "supplier lead time in days; default 0"
+   },
+   "safety_stock": {
+    "type": "decimal",
+    "required": false,
+    "desc": "buffer units held; default 0"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Which balances?",
+    "default_chosen": "Period-end balances and a 365-day year; average balances would give different days.",
+    "impact": "A seasonal business can look very different at a peak or trough date."
+   },
+   {
+    "question": "Inventory model",
+    "default_chosen": "A constant-demand EOQ with a fixed order cost and holding cost per unit.",
+    "impact": "Quantity discounts and step costs change the optimal order size."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "annual_demand",
+   "cost_of_sales",
+   "credit_terms_days",
+   "daily_demand",
+   "days",
+   "discount_days",
+   "discount_percent",
+   "holding_cost_per_unit",
+   "inventory",
+   "lead_time_days",
+   "order_cost",
+   "payables",
+   "receivables",
+   "revenue",
+   "safety_stock"
+  ]
+ },
+ {
+  "method_id": "loan_amortization",
+  "name": "loan_amortization",
+  "tier": "T1",
+  "metric": "payment",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "debt",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Compute the level payment on an amortizing loan, the total interest over its life, the first payment's interest and principal split, and the effective annual rate.",
+  "unsupported_use": "Variable or teaser rates; interest-only or balloon structures; fees, insurance or prepayment penalties; a full period-by-period schedule export.",
+  "assumptions": [
+   "The rate is fixed for the whole term.",
+   "Payments are level and made on time.",
+   "The loan is fully amortized with no balloon."
+  ],
+  "limitations": [
+   "No variable, capped or teaser rates.",
+   "No fees, insurance, taxes or penalties.",
+   "No period-by-period schedule; only the first split and the totals are reported."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "zero_rate_payment_is_principal_over_periods",
+   "doubling_the_principal_doubles_the_payment",
+   "total_interest_is_payments_minus_principal",
+   "the_final_balance_is_repaid",
+   "effective_annual_rate_follows_the_payment_frequency"
+  ],
+  "input_schema": {
+   "principal": {
+    "type": "decimal",
+    "desc": "amount borrowed"
+   },
+   "annual_rate": {
+    "type": "decimal",
+    "desc": "nominal ANNUAL interest rate as a decimal, e.g. 0.09 for 9%"
+   },
+   "years": {
+    "type": "decimal",
+    "desc": "loan term in YEARS"
+   },
+   "payments_per_year": {
+    "type": "decimal",
+    "required": false,
+    "desc": "number of payments a year; default 12 (monthly)"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Payment frequency",
+    "default_chosen": "Monthly payments (12 a year); every other frequency can be declared.",
+    "impact": "More frequent payments reduce the interest paid over the life."
+   },
+   {
+    "question": "Rate convention",
+    "default_chosen": "The annual rate is divided by the number of payments a year; the effective annual rate is reported separately.",
+    "impact": "A quoted monthly rate entered as annual would be wrong by a factor of twelve."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "annual_rate",
+   "payments_per_year",
+   "principal",
+   "years"
+  ]
+ },
+ {
+  "method_id": "trend_analysis",
+  "name": "trend_analysis",
+  "tier": "T1",
+  "metric": "revenue_cagr",
+  "unit": "rate",
+  "claim_ceiling": "descriptive",
+  "category": "financial statement analysis",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Turn several years of income-statement figures into common-size percentages, an index on the first period, compound growth rates and margin changes.",
+  "unsupported_use": "Forecasting; adjusting or restating the figures; industry benchmarks; segment or consolidated analysis; balance-sheet common-size beyond the equity-to-assets ratio; more than ten periods.",
+  "assumptions": [
+   "Revenue is positive in every period, because it is the common-size base.",
+   "The periods are consecutive and in increasing order.",
+   "The figures are as reported, on one accounting basis and in one currency."
+  ],
+  "limitations": [
+   "Historical arithmetic only; no adjustment, restatement or forecast.",
+   "CAGR uses only the endpoints and ignores the path.",
+   "A net-income CAGR is omitted when the base period's net income is not positive."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "the_cagr_compounds_the_first_period_to_the_last",
+   "the_common_size_lines_and_the_operating_margin_sum_to_one",
+   "the_index_is_the_latest_value_over_the_base_times_one_hundred",
+   "the_latest_growth_is_the_change_from_the_previous_period",
+   "the_margin_change_is_the_difference_between_the_endpoints"
+  ],
+  "input_schema": {
+   "years": {
+    "type": "value_list",
+    "min_items": 2,
+    "desc": "the period labels, in increasing order, e.g. 2022, 2023, 2024"
+   },
+   "revenue": {
+    "type": "value_list",
+    "min_items": 2,
+    "desc": "revenue for each period, in the same order"
+   },
+   "cost_of_sales": {
+    "type": "value_list",
+    "min_items": 2,
+    "desc": "cost of sales for each period"
+   },
+   "operating_expenses": {
+    "type": "value_list",
+    "min_items": 2,
+    "desc": "operating expenses for each period"
+   },
+   "net_income": {
+    "type": "value_list",
+    "min_items": 2,
+    "desc": "net income for each period; may be negative"
+   },
+   "total_assets": {
+    "type": "value_list",
+    "required": false,
+    "min_items": 2,
+    "desc": "optional total assets per period, for equity-to-assets and asset growth"
+   },
+   "equity": {
+    "type": "value_list",
+    "required": false,
+    "min_items": 2,
+    "desc": "optional equity per period, supplied with total_assets"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Which base?",
+    "default_chosen": "Revenue is the common-size base and the first declared period is the index base (100).",
+    "impact": "A different base changes every percentage but not the underlying figures."
+   },
+   {
+    "question": "Growth measure",
+    "default_chosen": "Both the compound rate across the whole span and the latest period-on-period change are reported, so they are not confused.",
+    "impact": "A single endpoint can move the CAGR sharply."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "cost_of_sales",
+   "equity",
+   "net_income",
+   "operating_expenses",
+   "revenue",
+   "total_assets",
+   "years"
+  ]
+ },
+ {
+  "method_id": "tax_declared",
+  "name": "tax_declared",
+  "tier": "T1",
+  "metric": "total_tax_charge",
+  "unit": "currency",
+  "claim_ceiling": "descriptive",
+  "category": "taxation",
+  "status": "implemented_tested",
+  "version": "1.0.0",
+  "default_period": "annual",
+  "intended_use": "Income tax, VAT payable and deferred tax from the rates and figures you declare, with the after-tax income and the total tax charge.",
+  "unsupported_use": "Any jurisdiction's tax law: credits, exemptions, thresholds, progressive bands, NOLCO, withholding, filing, penalties or refunds. It does not derive taxable income from the accounts.",
+  "assumptions": [
+   "The declared taxable income and rates are the ones that apply to the period.",
+   "VAT output and input are for the same period and the same registration."
+  ],
+  "limitations": [
+   "No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.",
+   "No link to the accounting profit or the statements.",
+   "Deferred tax is one declared difference times one declared rate."
+  ],
+  "test_names": [
+   "second_implementation_agrees",
+   "income_tax_is_the_rate_on_positive_income",
+   "vat_payable_is_output_minus_input",
+   "deferred_tax_is_the_rate_on_the_temporary_difference",
+   "total_charge_is_income_tax_plus_deferred_tax"
+  ],
+  "input_schema": {
+   "taxable_income": {
+    "type": "decimal",
+    "desc": "the taxable income you declare; a loss can be entered as a negative figure"
+   },
+   "income_tax_rate": {
+    "type": "decimal",
+    "desc": "the income tax rate as a decimal, e.g. 0.25 for 25%"
+   },
+   "vat_output_tax": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional output VAT on sales"
+   },
+   "vat_input_tax": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional input VAT on purchases, declared with the output VAT"
+   },
+   "temporary_difference": {
+    "type": "decimal",
+    "required": false,
+    "desc": "optional temporary difference for deferred tax"
+   },
+   "deferred_tax_rate": {
+    "type": "decimal",
+    "required": false,
+    "desc": "the deferred tax rate, declared with the temporary difference"
+   }
+  },
+  "output_precision": {},
+  "output_units": {},
+  "defaults": [
+   {
+    "question": "Jurisdiction",
+    "default_chosen": "None. The rates and the taxable income are yours; the method applies no national or local tax law.",
+    "impact": "A real filing needs the jurisdiction's rules and a tax adviser."
+   },
+   {
+    "question": "Taxable income",
+    "default_chosen": "The declared figure is used as given; a loss carries no positive income tax and no loss carry-forward.",
+    "impact": "A carry-forward or minimum tax needs the jurisdiction's rules."
+   }
+  ],
+  "review_status": "pending_named_reviewer",
+  "fallbacks": {},
+  "default_thresholds": {},
+  "input_keys": [
+   "deferred_tax_rate",
+   "income_tax_rate",
+   "taxable_income",
+   "temporary_difference",
+   "vat_input_tax",
+   "vat_output_tax"
+  ]
+ }
+]

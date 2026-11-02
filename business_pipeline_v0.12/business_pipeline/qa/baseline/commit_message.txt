@@ -1,0 +1,43 @@
+fix(accounting): format the paper's numbers and refuse a computation brief
+
+QA session 1 of 11 (subject: accounting). Five product-layer defects, each
+reproduced first and repaired in src/bp/product/chat.py:
+
+- D-ACC-01 (BLOCKER) chat.py defined `_capability_lines` twice; the later
+  `key: value` stub shadowed the prose formatter, so a delivered accounting
+  paper printed `payment: 4151.6710452708019...` and the ratio section dumped
+  the internal `_appendix` dict into the page. Stub removed.
+- D-ACC-02 (MAJOR) the same for `_declared_inputs_line`: a chained input no
+  longer said which result it came from. Stub removed.
+- D-ACC-03 (MAJOR) `_trend_lines` was defined twice (forecast and trend
+  analysis); both capability entries captured the forecast version, so the
+  accounting trend paper would have printed forecast fields. The forecast
+  formatter is now `_forecast_lines` and each capability maps to its own.
+- D-ACC-04 (MAJOR) `loan_amortization` and `tax_declared` had no formatter and
+  plain ratios used `_fmt_exact`, so 50-digit Decimals reached the paper. Added
+  `_loan_lines`/`_tax_lines`; ratios report at the paper's two decimals.
+- D-ACC-05 (BLOCKER) `chat.start` computed `fits`/`message` and then discarded
+  them, so "prepare the journal entries and the trial balance" was answered
+  with a PESTEL paper. The refusal is applied (`stage: not_supported`) and the
+  computation-boundary hunk is restored in `_fit` (docs/CONTINUATION_NOTE.md
+  WO-1).
+
+Also: two documents added to the HOME.md documentation spine and the drafted
+B-170 recorded in DECISIONS.md as PROPOSED, which is what test_docs_sync was
+reporting.
+
+New: qa/manual/accounting.md (51 expectation rows, traceability matrix, nine
+declared gaps), tests/test_subject_accounting_acceptance.py (50 tests, 119
+subtests, one per E-row), the baseline logs, the defect ledger and the read-only
+probes under qa/.
+
+Verified: 2627 tests, 68 failures, 13 errors (baseline 2548 / 86 / 13; 19
+distinct failures repaired, one intermittent network test re-verified by
+`pytest tests/test_sources.py` -> 28 passed); test_docs_sync 7 passed;
+scripts/econ_shelf.py --check "frozen fixture: in sync"; ui_smoke 0 failures;
+12/12 accounting tiles deliver through the live product on :8001.
+
+Ledgered, not patched (frozen core / owner decision): D-ACC-06 `_tax_typing`
+shadowing tax_incidence's unit hook, D-ACC-07 guard.subject_fit advisory vs
+enforcing, D-ACC-09 an unknown method name delivered as a framework-only paper.
+No method, schema, check, preset or frozen-contract entry changed.

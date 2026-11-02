@@ -708,6 +708,12 @@ def _fit(brief, framework="pestel"):
     if framework in ("breakeven", "vrio"):
         # A computation and an internal-resource audit need no external evidence.
         return True, None
+    if any(hint in text for hint in COMPUTATION_HINTS) and not any(hint in text for hint in EXTERNAL_HINTS):
+        # A pure computation is not a strategic analysis: the Accounting and Finance
+        # shelves run the frozen methods for it, and the framework chat must say so
+        # rather than wrap a trial balance in a PESTEL paper.
+        return False, ("This looks like an accounting or finance computation, not a strategic analysis. "
+                       "Use the Accounting or Finance shelf instead.")
     if framework == "pestel" and not any(hint in text for hint in EXTERNAL_HINTS):
         return False, ("This brief does not yet name an external question. Add the market, industry, country "
                        "or decision the analysis should support.")
@@ -887,6 +893,13 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     if selection.get("question"):
         questions.insert(0, dict(selection["question"]))
         state["question_quote"] = selection.get("question_quote") or ""
+    if not fits:
+        # A refusal that has been decided must reach the student: `fits` and its
+        # message are computed above (the subject fit, the external-evidence fit and
+        # the pure-computation boundary), and silently returning `clarify` would send
+        # a journal-entry or npv brief to PESTEL.  Fail closed, with the reason.
+        state.update({"stage": "not_supported", "message": message, "questions": [],
+                      "question_index": 0})
     return state
 
 
@@ -2715,7 +2728,9 @@ def _ratio_lines(row, inputs, result):
         elif kind == "days":
             parts.append(label + " " + _fmt_number(value))
         else:
-            parts.append(label + " " + _fmt_exact(value))
+            # A ratio is reported at the paper's two decimals, never as the core's
+            # full 50-digit Decimal: a marker reads a ratio, not a bit pattern.
+            parts.append(label + " " + _fmt_number(value))
     count = result.get("n_computed")
     lines = ["From the declared figures, the method computes " + str(count or len(parts)) + " ratio(s)"
              + (": " + "; ".join(parts) if parts else "") + "."]
@@ -3074,7 +3089,13 @@ def _cohort_lines(row, inputs, result):
     return lines
 
 
-def _trend_lines(row, inputs, result):
+def _forecast_lines(row, inputs, result):
+    """The trend-forecast capability: the declared series, its trend and its interval.
+
+    Distinct from `_trend_lines`, which reports the accounting shelf's common-size
+    and trend analysis.  The two capabilities used to share one name, so whichever
+    definition came last silently formatted the other's paper.
+    """
     horizon = int(Decimal(str(result.get("horizon") or "1")))
     points = []
     for step in range(1, horizon + 1):
@@ -3262,6 +3283,41 @@ def _working_capital_lines(row, inputs, result):
                  + _pct(result.get("cost_of_trade_credit")) + "% a year.")
     lines.append("The cycle measures are arithmetic on the declared balances; the method does not judge the "
                  "credit or ordering policy.")
+    return lines
+
+
+def _loan_lines(row, inputs, result):
+    """The loan amortisation: the level payment, what the borrowing costs, and the first split."""
+    lines = ["On a declared principal of " + _money(inputs.get("principal")) + " at an annual rate of "
+             + _pct(inputs.get("annual_rate")) + "%, repaid over " + _fmt_exact(result.get("n_payments"))
+             + " payments, the level payment is " + _money(result.get("payment")) + " per payment."]
+    lines.append("The payments total " + _money(result.get("total_paid")) + ", of which "
+                 + _money(result.get("total_interest")) + " is interest; the first payment is "
+                 + _money(result.get("first_interest")) + " interest and "
+                 + _money(result.get("first_principal")) + " principal.")
+    lines.append("The schedule assumes one fixed rate for the whole term and a payment at the end of each "
+                 "declared period; it does not model fees, a rate change or an early repayment.")
+    return lines
+
+
+def _tax_lines(row, inputs, result):
+    """Declared-rate tax: income tax, VAT payable and deferred tax, from the declared rates only."""
+    lines = ["On declared taxable income of " + _money(result.get("taxable_income"))
+             + " at a declared rate of " + _pct(result.get("income_tax_rate")) + "%, the income tax is "
+             + _money(result.get("income_tax")) + " and the after-tax income is "
+             + _money(result.get("net_income_after_tax")) + "."]
+    if result.get("vat_payable") not in (None, ""):
+        lines.append("VAT payable is output tax of " + _money(result.get("vat_output_tax"))
+                     + " less input tax of " + _money(result.get("vat_input_tax")) + ", which is "
+                     + _money(result.get("vat_payable")) + ".")
+    if result.get("deferred_tax") not in (None, ""):
+        lines.append("The deferred tax is the declared temporary difference of "
+                     + _money(result.get("temporary_difference")) + " at the declared rate of "
+                     + _pct(result.get("deferred_tax_rate")) + "%, which is "
+                     + _money(result.get("deferred_tax")) + ".")
+    lines.append("The total tax charge is " + _money(result.get("total_tax_charge")) + ".")
+    lines.append("Every rate and the taxable income are the student's declared figures; the method applies "
+                 "no jurisdiction's tax law, credits, exemptions, thresholds or filing rules.")
     return lines
 
 
@@ -3950,7 +4006,7 @@ CAPABILITY_LINES.update({
     "weighted_summary": _weighted_lines,
     "power_analysis": _power_lines,
     "cohort_retention": _cohort_lines,
-    "trend_forecast": _trend_lines,
+    "trend_forecast": _forecast_lines,
     "missing_data_bounds": _missing_lines,
     "media_plan": _media_lines,
     "web_analytics": _web_lines,
@@ -3962,6 +4018,8 @@ CAPABILITY_LINES.update({
     "dupont_analysis": _dupont_lines,
     "trend_analysis": _trend_lines,
     "working_capital": _working_capital_lines,
+    "loan_amortization": _loan_lines,
+    "tax_declared": _tax_lines,
     "scenario_analysis": _scenario_lines,
     "risk_metrics": _risk_lines,
     "fx_parity": _fx_lines,
@@ -4514,26 +4572,6 @@ def _draft_feasibility_study(state, accepted_ids=None, style=None):
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state
-
-
-def _declared_inputs_line(data):
-    """Format the declared inputs line for a computation block."""
-    inputs = data.get("inputs") or {}
-    if not inputs:
-        return ""
-    parts = []
-    for k, v in inputs.items():
-        parts.append(str(k) + ": " + str(v))
-    return "Declared inputs: " + "; ".join(parts) + "."
-
-
-def _capability_lines(block, data):
-    """Format the result lines for a computation block."""
-    result = data.get("result") or {}
-    lines = []
-    for k, v in result.items():
-        lines.append(str(k) + ": " + str(v))
-    return lines if lines else ["No result reported."]
 
 
 def _draft_marketing_plan(state, accepted_ids=None, style=None):

@@ -1,0 +1,163 @@
+{
+ "base": "http://127.0.0.1:8001",
+ "page_checks": [
+  "PASS  page marker 'railSubject'",
+  "PASS  page marker 'markCurrentRailItem'",
+  "PASS  page marker 'activate(\"new\")'",
+  "PASS  page marker 'calculator'",
+  "PASS  page marker 'subjectgallery'",
+  "PASS  page marker 'not teacher-approved'",
+  "PASS  page marker 'Confirm the account mapping and post'",
+  "PASS  no reviewer surface 'Reviewer name'",
+  "PASS  no reviewer surface 'Sign-off'",
+  "PASS  no reviewer surface 'Review status'",
+  "PASS  GET /api/cases/subjects/accounting -> 200, 12 tools",
+  "PASS  accounts         accounts -> delivered (2 checkpoints)",
+  "PASS  tbcheck          tbcheck -> delivered (1 checkpoint)",
+  "PASS  ratios           ratios -> delivered (1 checkpoint)",
+  "PASS  scv              scv -> delivered (1 checkpoint)",
+  "PASS  abc              abc -> delivered (1 checkpoint)",
+  "PASS  salesvar         salesvar -> delivered (1 checkpoint)",
+  "PASS  breakeven        breakeven -> delivered (1 checkpoint)",
+  "PASS  multibreakeven   multibreakeven -> delivered (1 checkpoint)",
+  "PASS  workingcapital   workingcapital -> delivered (1 checkpoint)",
+  "PASS  loan             loan -> delivered (1 checkpoint)",
+  "PASS  trendanalysis    trendanalysis -> delivered (1 checkpoint)",
+  "PASS  tax              tax -> delivered (1 checkpoint)"
+ ],
+ "runs": [
+  {
+   "tool": "accounts",
+   "preset": "accounts",
+   "method": "management_accounts",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 2,
+   "checks": 11,
+   "first_line": "The engagement posts 6 entries",
+   "ok": true
+  },
+  {
+   "tool": "tbcheck",
+   "preset": "tbcheck",
+   "method": "trial_balance_check",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "The check found 0 differing line(s), 0 present only in the journal and 0 present only in the trial balance, with a net difference of USD 0.00 and 0 finding(s)",
+   "ok": true
+  },
+  {
+   "tool": "ratios",
+   "preset": "ratios",
+   "method": "ratio_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 6,
+   "first_line": "The analysis computes 15 financial-statement ratios from the figures supplied",
+   "ok": true
+  },
+  {
+   "tool": "scv",
+   "preset": "scv",
+   "method": "standard_cost_variances",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "For 4,800.00 units, the material price variance is PHP 4,900.00 and the material usage variance is PHP 3,000.00; the labour rate variance is PHP 7,300.00 and the labour efficiency ",
+   "ok": true
+  },
+  {
+   "tool": "abc",
+   "preset": "abc",
+   "method": "abc_costing",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "The declared pools total PHP 80,000.00 and are allocated in full to the products",
+   "ok": true
+  },
+  {
+   "tool": "salesvar",
+   "preset": "salesvar",
+   "method": "sales_variances",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "Revenue moved by PHP (240.00) against budget: a price variance of PHP (40.00), a mix variance of PHP (200.00) and a yield variance of PHP 0.00",
+   "ok": true
+  },
+  {
+   "tool": "breakeven",
+   "preset": "breakeven",
+   "method": "breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "At a contribution margin of 10.00 per unit, the business breaks even at 100.00 units, or 2,000.00 of sales",
+   "ok": true
+  },
+  {
+   "tool": "multibreakeven",
+   "preset": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of USD 10,500.00 at the declared mix",
+   "ok": true
+  },
+  {
+   "tool": "workingcapital",
+   "preset": "workingcapital",
+   "method": "working_capital",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "The cash conversion cycle is 36.5 days (27.4 receivable days, 36.5 inventory days and 27.4 payable days)",
+   "ok": true
+  },
+  {
+   "tool": "loan",
+   "preset": "loan",
+   "method": "loan_amortization",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 6,
+   "first_line": "The level payment is USD 4,151.67 over 60 payments, so the total paid is USD 249,100.26 and the total interest is USD 49,100.26",
+   "ok": true
+  },
+  {
+   "tool": "trendanalysis",
+   "preset": "trendanalysis",
+   "method": "trend_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 6,
+   "first_line": "Over the declared periods revenue grew at a compound rate of 10.00%, with the latest period 10.00% above the previous one and an index of 133.1000 against the base period",
+   "ok": true
+  },
+  {
+   "tool": "tax",
+   "preset": "tax",
+   "method": "tax_declared",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "checkpoints": 1,
+   "checks": 5,
+   "first_line": "On taxable income of PHP 1,000,000.00 at a declared rate of 25.00%, the income tax is PHP 250,000.00 and the after-tax income is PHP 750,000.00",
+   "ok": true
+  }
+ ],
+ "failures": []
+}
