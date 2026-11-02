@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+import zipfile
 
 sys.path.insert(0, "src")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,18 @@ class SpreadsheetTest(unittest.TestCase):
         self.assertTrue(all(cell.get(SS + "Type") == "String" for cell in cells))
         self.assertIn("50.00", [cell.text for cell in cells])
         self.assertIn("The net present value is 50.00 currency.", [cell.text for cell in sheets[2].findall(".//" + SS + "Data")])
-        self.assertIn("sha256:spec-abc", [cell.text for cell in sheets[0].findall(".//" + SS + "Data")])
+
+    def test_no_spreadsheet_carries_a_hash_or_an_internal_marker(self):
+        """The owner's rule (B-199): a hash is the system's marker, never a student's cell."""
+        for label, text in (("spreadsheetml", spreadsheets.to_spreadsheetml(bundle())),
+                            ("xlsx", spreadsheets.export_xlsx(bundle(), os.path.join(
+                                tempfile.mkdtemp(prefix="bp-nohash-"), "w.xlsx"))["path"])):
+            if label == "xlsx":
+                with zipfile.ZipFile(text) as archive:
+                    text = " ".join(archive.read(name).decode("utf-8", "replace")
+                                    for name in archive.namelist() if name.endswith(".xml"))
+            self.assertNotIn("sha256", text, label)
+            self.assertNotIn("hash", text.lower().replace("hashes", ""), label)
 
     def test_spreadsheetml_adds_a_schedule_sheet_for_cpm_artifacts(self):
         base = bundle()

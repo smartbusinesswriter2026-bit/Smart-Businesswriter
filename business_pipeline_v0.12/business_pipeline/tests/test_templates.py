@@ -122,9 +122,13 @@ class SandboxAndReperform(unittest.TestCase):
 
 class RegistryAndApi(unittest.TestCase):
     def test_registry_links(self):
-        for rid, tid in (("STR-07", "template_swot"), ("STR-18", "template_swot"), ("STR-01", "template_five_forces")):
+        for rid, tid in (("STR-07", "template_swot"), ("STR-18", "template_swot"), ("STR-01", "template_five_forces"),
+                         ("STR-02", "template_generic_strategies")):
             r = R.get(rid); self.assertEqual(r["template"], tid); self.assertIn("worksheet available", r["implementation_status"])
-        self.assertIsNone(R.get("STR-02")["template"]); self.assertEqual(R.validate(), [])
+        # A row with no worksheet keeps no template link.  OPS-09 is the surviving example:
+        # STR-02 gained its Generic Strategies worksheet (template_generic_strategies lists
+        # STR-02 in its registry_ids), so it can no longer serve as the negative case.
+        self.assertIsNone(R.get("OPS-09")["template"]); self.assertEqual(R.validate(), [])
         bad = copy.deepcopy(R.load()); next(r for r in bad["records"] if r["id"] == "STR-02")["template"] = "template_swot"; self.assertIn("not consistent", " | ".join(R.validate(bad)))
     def test_case_suggestions_carry_the_template_link(self):
         r = R.recommend(server.PRESETS["case"]["objective"]); self.assertEqual([x["template"] for x in r["frameworks"] if x["id"] == "STR-01"], ["template_five_forces"])

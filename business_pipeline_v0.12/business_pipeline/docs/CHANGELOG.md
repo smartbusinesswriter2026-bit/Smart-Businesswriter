@@ -149,7 +149,30 @@ route family or frozen fixture changed; `scripts/econ_shelf.py --check` reports 
 sync”.
 
 
-## A worksheet is one form: the customer journey opens its grid, and SERVQUAL's tile is hidden
+## No hash in a spreadsheet, and the registry rebuilt from its authority
+
+Owner: *"never ever goes to the spreadsheet that is hash. that's your internal marker … regenerate the
+registry."*
+
+- **The rule**: a hash is the system's own marker, never a student's cell. The `.xlsx` and
+  SpreadsheetML workbooks drop the `Outputs hash` row from the `Case` sheet and the `Entry hash`
+  column from the ledger `Journal` sheet. The identifiers stay where they belong — the stored
+  bundle's `outputs_hash`, the appendix, the replay record, and the SHA-256 the exporter returns
+  *beside* the download.
+- **The test that was "failing" was demanding the hash** (`sha256:spec-abc` inside the Case sheet).
+  It is replaced by a trap that fails if either format carries a hash-like cell or a `…hash` column
+  heading. The Word/HTML submission's "How this was produced" block is unchanged (it is the paper's
+  citation of method and record, not a spreadsheet) and is flagged for a separate ruling.
+- **The registry is regenerated from the catalogue** (`catalogue_import.import_catalogue`), not
+  hand-patched: 161 records, 27 lines changed (`STR-20` was missing). Four `test_registry` rows clear.
+- **Two records that the stale file had been hiding were settled by the code's own rule, not by
+  taste**: `STR-02` now links `template_generic_strategies` (the template lists STR-02 in its
+  `registry_ids`), and the RFM record reports `form: worksheet` because `registry.form` says a
+  template link wins — its computed half is carried by `linked_methods` and stated in the
+  implementation note (the catalogue types the row `Q/M`).
+
+- 1.72 (2026-11-03): a spreadsheet carries no hash (B-199), and the shipped registry is rebuilt from the catalogue. No frozen core, method, preset, template contract, input, check, number or route changed.
+
 
 Owner: *"only fix customer journey map; the other SERVQUAL gap grid — hide it."*
 

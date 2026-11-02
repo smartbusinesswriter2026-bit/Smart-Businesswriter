@@ -420,7 +420,14 @@ class MarketingShelf(unittest.TestCase):
         self.assertEqual(record["name"], "RFM Segmentation")
         self.assertIn("QNT-MKT-04", record["also_listed_as"])
         self.assertEqual([m["method_id"] for m in record["linked_methods"]], ["rfm_scoring"])
-        self.assertEqual(record["form"], "computed")
+        # A record that has a worksheet *and* a runnable method reports "worksheet", which
+        # is `registry.form`'s documented rule (a template link wins); the computed half is
+        # carried by linked_methods and stated in the implementation note, and the catalogue
+        # itself types this row "Q/M".
+        self.assertEqual(record["form"], "worksheet")
+        self.assertIn("worksheet available", record["implementation_status"])
+        self.assertIn("computed method is also registered", record["implementation_status"])
+        self.assertIn("not implemented", record["implementation_status"])
 
     def test_media_planning_is_catalogued_and_linked(self):
         from bp import registry

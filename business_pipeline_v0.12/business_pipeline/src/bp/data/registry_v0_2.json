@@ -526,6 +526,32 @@
    "version": "0.1"
   },
   {
+   "id": "STR-20",
+   "name": "Strategy framework: perspective, position, plan and pattern",
+   "type": "F",
+   "secondary_types": [],
+   "type_note": "",
+   "disciplines": [
+    "strategy"
+   ],
+   "aliases": [],
+   "also_listed_as": [],
+   "structures": "A strategy read through its perspective, the position it claims, the plan that delivers it and the pattern of behaviour it creates",
+   "evidence_needs": "Evidence that the plan produces the intended pattern and that the position holds in the market; a strategy is read, not scored",
+   "summary": "A strategy read through its perspective, the position it claims, the plan that delivers it and the pattern of behaviour it creates",
+   "members": [],
+   "source_ref": "catalogue section 3, row STR-20",
+   "verify_edition_and_permissions": false,
+   "evidence_status": "unreviewed",
+   "pipeline_status": "catalogued",
+   "limitations": [],
+   "when_not_to_use": [],
+   "related": [],
+   "licensing_review": "not_reviewed",
+   "catalogue_version": "0.4",
+   "version": "0.1"
+  },
+  {
    "id": "CHG-01",
    "name": "Kotter's 8-Step Change Model",
    "type": "F",

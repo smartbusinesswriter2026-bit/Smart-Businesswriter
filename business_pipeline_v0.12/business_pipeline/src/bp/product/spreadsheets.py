@@ -4,12 +4,17 @@ Three formats, all written from the **stored values** so nothing is re-typed,
 re-rounded or recomputed:
 
 * CSV - the artifact table (`artifact, metric, unit, precision, value, derivation`);
-* SpreadsheetML 2003 XML - a workbook with three worksheets: `Case` (identity
-  and hashes), `Artifacts` (the table) and `Report` (the delivered report, one
-  line per row);
+* SpreadsheetML 2003 XML - a workbook with three worksheets: `Case` (identity),
+  `Artifacts` (the table) and `Report` (the delivered report, one line per row);
 * .xlsx (Office Open XML) - the primary spreadsheet download: `Case`, the
   statements, trial balance, journal and checks when the case carries them,
   the recorded values and the report.
+
+A spreadsheet carries **no hash and no internal marker**: the spec hash, the code
+hash, the entry hashes and the file digest are the system's own identifiers, they
+belong to the record behind the artefact, and they are never printed in a student's
+workbook (B-199).  The file's SHA-256 is returned to the caller beside the download,
+not written into a cell.
 
 Every cell is written as a string, so `50.00` stays `50.00` and never becomes a
 numeric cell that Excel might re-format.
@@ -124,7 +129,6 @@ def to_spreadsheetml(bundle):
         ("Title", str(bundle.get("title") or "not recorded")),
         ("Method", str(bundle.get("method") or "not recorded")),
         ("Tier", str(bundle.get("tier") or "not recorded")),
-        ("Outputs hash", str(bundle.get("outputs_hash") or "not recorded")),
         ("Created at", str(bundle.get("created_at") or "not recorded")),
     ]
     artifacts = [CSV_HEADER] + [
@@ -293,11 +297,11 @@ def _accounting_rows(accounts):
     journal = accounts.get("journal")
     if isinstance(journal, list) and journal:
         rows = [[("Date", True), ("Description", True), ("Account", True),
-                 ("Debit", True), ("Credit", True), ("Entry hash", True)]]
+                 ("Debit", True), ("Credit", True)]]
         for entry in journal:
             for line in entry.get("lines") or []:
                 rows.append([entry.get("date"), entry.get("description"), line.get("name"),
-                             line.get("debit"), line.get("credit"), entry.get("hash")])
+                             line.get("debit"), line.get("credit")])
         sheets.append(("Journal", rows))
     checks = accounts.get("checks")
     if isinstance(checks, list) and checks:
@@ -319,7 +323,6 @@ def to_xlsx(bundle):
         [("Title", True), str(bundle.get("title") or "not recorded")],
         [("Method", True), str(bundle.get("method") or "not recorded")],
         [("Tier", True), str(bundle.get("tier") or "not recorded")],
-        [("Outputs hash", True), str(bundle.get("outputs_hash") or "not recorded")],
         [("Created at", True), str(bundle.get("created_at") or "not recorded")],
     ]
     sheets = [("Case", identity)]
