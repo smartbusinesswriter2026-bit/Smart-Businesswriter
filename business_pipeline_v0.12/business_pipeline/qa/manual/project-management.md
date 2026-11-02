@@ -32,8 +32,24 @@ Raw: `qa/baseline/pm-before-suite-err.txt`, names in
 
 ## 2. The shelf as measured
 
-18 compute tools · 6 worksheets · 10 records · 0 theories · 23 glossary terms ·
-**tiles: 0** · 75 framework profiles overall.
+18 compute tools · **7 worksheets** · **9 records** · 0 theories · 23 glossary terms ·
+**tiles: 0** · 76 framework profiles overall.
+
+*This section was re-measured after the owner's 2026-11-03 instruction: the Balanced
+Scorecard stopped being a read-only record and became a completing worksheet (PM-01),
+which is why the shelf now shows seven worksheets and nine records instead of six and ten.*
+
+### 2.0 The owner's instruction of 2026-11-03, and what changed
+
+The ten delivery/governance entries were **read-only records** — cards a student can only
+read, never fill in — and the owner's words were *"are they just like theories? … DELETE
+THEM"*, followed by *"YES BUILD THIS: Build the Balanced Scorecard as a real worksheet."*
+
+| Change | What it means |
+|---|---|
+| `web/index.html` `HOLD.groups` gains `"project delivery and governance"` | the ten read-only cards and their heading are no longer rendered on the shelf page (`c440aac`). The catalogue rows stay, so nothing is lost and one line restores them |
+| `PM-01` becomes a worksheet | new T4 matrix template `template_balanced_scorecard`, linked through `registry.TEMPLATE_LINKS`; the record keeps its id and its professionally written text, and stops saying "no worksheet yet" |
+| the remaining nine | **not built, not shown** — Strategy Map, KPI Tree, OKRs, Scrum, Kanban, COBIT, ITIL, DeLone–McLean, TOE stay catalogued and off the page |
 
 `qa/baseline/pm-probe.txt` is the raw probe (`python qa/probe_pm_shelf.py --blocks --refusals`).
 
@@ -226,7 +242,11 @@ second route and this session's hand pass agree.
 | E-pm-066 | a suggestion never becomes an item and never changes a provenance — block items stay inside `sourced / student / assumption / background` | `test_E_pm_066` | PASS |
 | E-pm-067 | a model-rewritten question is validated before it is shown: a number, link, brace, non-question or 26-word sentence is dropped, the authored question is used instead, and the model text never reaches the paper | `test_E_pm_067` | PASS |
 
-**Scoreboard: 67 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
+| E-pm-068 | the Balanced Scorecard is a declared T4 matrix worksheet linked to PM-01, draftable, and `R.get("PM-01")["form"] == "worksheet"` (trap: the record is no longer inert) | `test_E_pm_068` | PASS (built) |
+| E-pm-069 | its 4 × 4 grid passes all eight checks, computes no score, weight, index or ranking, and names an empty cell instead of filling it | `test_E_pm_069` | PASS |
+| E-pm-070 | its paper opens with the authored lead and discusses all four perspectives, Conclusion and References included | `test_E_pm_070` | PASS |
+
+**Scoreboard: 70 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
 No row is DISPUTED: where a measurement contradicted the work order's premise
 (§8 D-PM-01, the crashing arithmetic), the measurement is recorded and the test
 asserts the truth, not the premise.

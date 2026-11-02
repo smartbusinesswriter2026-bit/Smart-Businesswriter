@@ -44,12 +44,14 @@ METHODS = {"npv": "npv", "irr": "irr", "dpayback": "discounted_payback",
            "realoption": "real_option", "mcda": "multi_criteria",
            "montecarlo": "monte_carlo"}
 
-WORKSHEETS = {"PM-05": "template_project_charter", "PM-06": "template_risk_register",
+WORKSHEETS = {"PM-01": "template_balanced_scorecard",
+              "PM-05": "template_project_charter", "PM-06": "template_risk_register",
               "PM-09": "template_wbs", "PM-10": "template_raci",
               "PM-15": "template_stakeholder_plan", "PM-16": "template_lessons_learned"}
-RECORDS = ["PM-01", "PM-02", "PM-03", "PM-04", "PM-07", "PM-08", "PM-11", "PM-12",
+RECORDS = ["PM-02", "PM-03", "PM-04", "PM-07", "PM-08", "PM-11", "PM-12",
            "PM-13", "PM-14"]
-FORMS = {"template_project_charter": "canvas", "template_wbs": "canvas",
+FORMS = {"template_balanced_scorecard": "matrix",
+         "template_project_charter": "canvas", "template_wbs": "canvas",
          "template_raci": "matrix", "template_risk_register": "matrix",
          "template_stakeholder_plan": "canvas", "template_lessons_learned": "canvas"}
 
@@ -835,6 +837,48 @@ class GateTest(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(document)) as archive:
             text = archive.read("word/document.xml").decode("utf-8")
         self.assertNotIn("What does the roster handover deliver?", text)
+
+    def test_E_pm_068__the_balanced_scorecard_is_a_declared_t4_matrix_worksheet(self):
+        """PM-01 stops being a read-only entry: it is a completing worksheet now."""
+        template = T.TEMPLATES["template_balanced_scorecard"]
+        self.assertEqual(template["tier"], "T4")
+        self.assertEqual(template["registry_ids"], ["PM-01"])
+        self.assertEqual(T.describe("template_balanced_scorecard")["form_kind"], "matrix")
+        self.assertEqual(R.get("PM-01")["template"], "template_balanced_scorecard")
+        offered = {sheet["catalogue_id"]: sheet for sheet in page()["worksheets"]}
+        self.assertIn("PM-01", offered)
+        self.assertTrue(offered["PM-01"]["draftable"])
+        self.assertEqual(R.get("PM-01")["form"], "worksheet")
+
+    def test_E_pm_069__the_scorecard_grid_passes_its_checks_and_computes_nothing(self):
+        checks, out = results_of("template_balanced_scorecard",
+                                 copy.deepcopy(T.EXAMPLES["template_balanced_scorecard"])["inputs"])
+        self.assertTrue(all(checks.values()), checks)
+        self.assertGreaterEqual(len(checks), 8)
+        self.assertEqual(out["counts"]["n_rows"], 4)
+        self.assertEqual(out["counts"]["n_columns"], 4)
+        for forbidden in ("score", "weight", "index", "ranking", "verdict"):
+            self.assertNotIn(forbidden, out["analysis"], forbidden)
+            self.assertNotIn(forbidden, out["counts"], forbidden)
+        # an empty cell is named, never filled
+        request = copy.deepcopy(T.EXAMPLES["template_balanced_scorecard"])["inputs"]
+        request["cells"].pop()
+        checks, out = results_of("template_balanced_scorecard", request)
+        self.assertTrue(checks["empty_cells_reported_not_filled"])
+        self.assertEqual(out["counts"]["n_empty_cells"], 1)
+
+    def test_E_pm_070__the_scorecard_paper_opens_with_its_four_perspectives(self):
+        result = complete("template_balanced_scorecard")
+        self.assertEqual(len(result["blocks"]), 4)
+        lead = completion._lead_of(framework_profiles.get("template_balanced_scorecard")["outline"])
+        self.assertGreaterEqual(len(lead.split()), 25)
+        document = completion.draft_bytes(result)
+        with zipfile.ZipFile(io.BytesIO(document)) as archive:
+            text = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("A balanced scorecard steers one unit", text)
+        for label in ("Financial perspective", "Customer perspective",
+                      "Internal process perspective", "Organisational capacity perspective"):
+            self.assertIn(label, text, label)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

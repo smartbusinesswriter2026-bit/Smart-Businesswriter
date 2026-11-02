@@ -11058,6 +11058,111 @@ LESSONS_LEARNED = {'template': 'template_lessons_learned',
                         'probe': 'state the evidence for this block'}}}
 
 
+#: The Balanced Scorecard (PM-01) ---------------------------------------------
+#: Four perspectives, each answered with an objective, a measure, a target and the
+#: initiative behind it.  The grid is the declared-matrix template
+#: (`template_balanced_scorecard`); this profile supplies the prose the paper is
+#: written from, and the four perspectives are the paper's dimensions.  It computes
+#: nothing: no weight, no score, no composite index.
+BALANCED_SCORECARD = {'template': 'template_balanced_scorecard',
+ 'key': 'balanced_scorecard',
+ 'label': 'Balanced Scorecard',
+ 'title_prefix': 'Balanced Scorecard',
+ 'subject': 'project-management',
+ 'unit': {'field': 'unit',
+          'label': 'Unit of analysis',
+          'help': 'Name the project or business unit this scorecard steers.',
+          'example': 'One project, one programme, or one operating unit.',
+          'refuse': 'A scorecard cannot be completed for a unit that has not been named.'},
+ 'ratings': False,
+ 'assumption': 'probe',
+ 'sites': 'organization',
+ 'providers': ['brave', 'deepseek', 'firecrawl'],
+ 'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'blocks': [{'key': 'financial',
+             'label': 'Financial perspective',
+             'prompt': 'The money objective, the measure, the target and the initiative behind it',
+             'fill': 'research',
+             'cues': ['financial', 'budget', 'cost', 'revenue', 'funding'],
+             'queries': ['financial perspective objective measure target'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this perspective'},
+            {'key': 'customer',
+             'label': 'Customer perspective',
+             'prompt': 'What the customer or beneficiary gets, measured and targeted',
+             'fill': 'research',
+             'cues': ['customer', 'client', 'service', 'satisfaction', 'beneficiary'],
+             'queries': ['customer perspective objective measure target'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this perspective'},
+            {'key': 'internal_process',
+             'label': 'Internal process perspective',
+             'prompt': 'The process that has to be excellent for the other perspectives to hold',
+             'fill': 'research',
+             'cues': ['process', 'operations', 'quality', 'cycle', 'delivery'],
+             'queries': ['internal process perspective objective measure target'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this perspective'},
+            {'key': 'organisational_capacity',
+             'label': 'Organisational capacity perspective',
+             'prompt': 'The skills, systems and culture the other three depend on',
+             'fill': 'research',
+             'cues': ['training', 'skills', 'capability', 'culture', 'system'],
+             'queries': ['learning and growth perspective objective measure target'],
+             'category': 'worksheet',
+             'probe': 'state the evidence for this perspective'}],
+ 'outline': {'framework': 'Framework overview',
+             'context': 'Context and unit',
+             'discussion': 'Perspective by perspective',
+             'implications': 'Implications',
+             'limitations': 'Limitations',
+             'conclusion': 'Conclusion',
+             'lead': 'A balanced scorecard steers one unit through four perspectives at once: the '
+                     'financial result, the customer who pays for it, the internal process that '
+                     'delivers it and the organisational capacity the other three rest on. Each '
+                     'perspective is treated in turn, first through the evidence accepted for the '
+                     'case and then through what that evidence implies for the decision, with an '
+                     'objective, a measure, a target and an initiative recorded for each.'},
+ 'voice': {'thesis_question': 'whether each perspective is carried by evidence and whether its '
+                              'measure can actually be read',
+           'unit_noun': 'unit',
+           'block_plural': 'perspectives',
+           'lens': 'the four perspectives and the measures behind them',
+           'closing': 'separates the perspectives the evidence supports from the ones it leaves open',
+           'intro_frame': 'The unit is the one named in the brief; every perspective is read '
+                          'against it.',
+           'context_frame': 'Context is limited to the unit named and the evidence supplied.',
+           'interaction': 'Read together, the perspectives show whether the steering measures rest '
+                          'on evidence or on intention.',
+           'implication_frame': 'An objective without a measure, or a measure without an owner, is '
+                                'named rather than assumed.',
+           'reference_heading': 'References'},
+ 'notes': {'financial': {'analysis': 'This perspective states the money objective and the measure '
+                                     'that shows it; a figure without a declared target is '
+                                     'described, not judged.',
+                         'qualify': 'The evidence does not establish the target or the initiative, '
+                                    'so both stay yours to declare.',
+                         'short': 'A financial measure without a target is a hope.',
+                         'probe': 'state the evidence for this perspective'},
+           'customer': {'analysis': 'This perspective states what the customer or beneficiary gets '
+                                    'and how it is measured.',
+                        'qualify': 'The evidence does not establish satisfaction, so the measure is '
+                                   'described rather than computed.',
+                        'short': 'A customer measure nobody collects is decoration.',
+                        'probe': 'state the evidence for this perspective'},
+           'internal_process': {'analysis': 'This perspective names the process that has to perform '
+                                            'for the other perspectives to hold.',
+                                'qualify': 'The evidence does not establish process capability, so '
+                                           'the measure is described rather than computed.',
+                                'short': 'A process objective without a measure cannot be steered.',
+                                'probe': 'state the evidence for this perspective'},
+           'organisational_capacity': {'analysis': 'This perspective covers the skills, systems and '
+                                                   'culture the other three depend on.',
+                                       'qualify': 'The evidence does not establish capability, so it '
+                                                  'is described rather than measured.',
+                                       'short': 'Capacity is the perspective most often assumed.',
+                                       'probe': 'state the evidence for this perspective'}}}
+
 PROFILES = {profile["template"]: profile
 
             for profile in (FIVE_FORCES, PESTEL, VALUE_CHAIN, SWOT, ANSOFF, VRIO, ERRC, ACTIVITY_SYSTEM, SCENARIO, 
@@ -11065,7 +11170,7 @@ PROFILES = {profile["template"]: profile
                             FIVE_S, ROOT_CAUSE, FMEA, KRALJIC, SALES_AND_OPERATIONS, 
                             PDCA, JOB_CHARACTERISTICS, KIRKPATRICK, AMO, TUCKMAN, 
 NINE_BOX, KOTTER, COMPETING_VALUES, ORG_DESIGN, ADKAR, LEWIN, THEORY_OF_CHANGE, PDSA, DMAIC, GENERIC_STRATEGIES, BCG, GE_MCKINSEY, MCKINSEY_7S, RACI, PORTERS_DIAMOND, BURKE_LITWIN, GALBRAITH_STAR, MINTZBERG, LOGIC_MODEL,
-BMC, LEAN_CANVAS, VALUE_PROPOSITION_CANVAS, PROJECT_CHARTER, WBS, RISK_REGISTER, STAKEHOLDER_PLAN, LESSONS_LEARNED,
+BMC, LEAN_CANVAS, VALUE_PROPOSITION_CANVAS, PROJECT_CHARTER, BALANCED_SCORECARD, WBS, RISK_REGISTER, STAKEHOLDER_PLAN, LESSONS_LEARNED,
 STRATEGIC_POSITIONING, CHANGE_ORGANIZATION, MARKETING_PLAN, KANO, PAID_MEDIA_PLAN, MEASUREMENT_PLAN, STP, AIDA, CUSTOMER_JOURNEY, FUNNEL, SERVQUAL, RFM, TAM, UTAUT, BRAND_EQUITY, DIGITAL_MIX, SEO_CONTENT, EMAIL_CRM, SOCIAL_MEDIA, ATTRIBUTION, CRO, MARKETING_AUTOMATION, STP_EVIDENCE,)
 }
 #: The default profile for a payload that predates the template field.
@@ -11360,6 +11465,20 @@ ADVICE = {
         'informed': {'contains': ['who is told after the decision is made',
                                   'how and when they are told'],
                      'ask': ['Who must be told once the decision is made?']},
+    },
+    'template_balanced_scorecard': {
+        'financial': {'contains': ['the money result, not the activity that produces it',
+                                   'the measure, the target and who reads it'],
+                      'ask': ['What money result must this project produce, and how will you know?']},
+        'customer': {'contains': ['who is better off and what they get',
+                                  'the measure they would actually feel'],
+                     'ask': ['Who is better off when this works, and how would they notice?']},
+        'internal_process': {'contains': ['the one process that has to perform',
+                                          'the measure of that process, not of its staff'],
+                             'ask': ['Which process has to be right for that to happen?']},
+        'organisational_capacity': {'contains': ['the skills, systems or culture it depends on',
+                                                 'the measure of that capacity'],
+                                    'ask': ['What must the team be able to do that it cannot do yet?']},
     },
     'template_stakeholder_plan': {
         'stakeholders': {'contains': ['named roles or groups, never "everyone"',

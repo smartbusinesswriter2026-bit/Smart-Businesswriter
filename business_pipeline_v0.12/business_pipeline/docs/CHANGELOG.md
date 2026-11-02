@@ -1,3 +1,32 @@
+## Model-assisted writing for the frameworks: the Balanced Scorecard is now a worksheet you can fill in
+
+Session 7, fourth pass, on the owner's instruction of 2026-11-03 — *"are they just like
+theories? … DELETE THEM"* and *"YES BUILD THIS: Build the Balanced Scorecard as a real
+worksheet."* Build **1.71**.
+
+- **The ten read-only cards are off the shelf page.** `HOLD.groups` in `web/index.html`
+  gains `"project delivery and governance"`, the same switch that already hides "risk and
+  decision analysis". The heading and the ten "Read the framework" cards stop rendering;
+  the catalogue rows stay, so nothing is lost and one line restores them.
+- **The Balanced Scorecard is a completing worksheet.** New core template
+  `template_balanced_scorecard` — T4, **matrix** form, four perspectives as rows and
+  Objective · Measure · Target · Initiative as the four declared columns — registered
+  through `MATRIX_META`, so it inherits the eight shared matrix checks (each cell placed
+  once, counts recount, verbatim listing, empty cells named, assumptions flagged, **no
+  score / ranking / probability**, deterministic render). It is wired to the existing
+  record through `registry.TEMPLATE_LINKS["PM-01"]`, so PM-01 keeps its id and its
+  professionally written text and simply stops saying "no worksheet yet".
+- **The product layer gives it a paper.** A `BALANCED_SCORECARD` profile (four perspective
+  blocks with their own cues and queries, authored lead, voice, per-block notes) and the
+  per-block authoring help (`ADVICE`) so a student knows what a usable cell contains. No
+  weight, no composite index, no verdict is computed anywhere.
+- **The remaining nine stay off the page:** Strategy Map, KPI Tree, OKRs, Scrum, Kanban,
+  COBIT, ITIL, DeLone–McLean, TOE.
+- Tests: **70** shelf rows (E-pm-068…070 are the new ones), suite **3168**;
+  `tests/test_product_subjects.py` updated because the shelf genuinely changed (7
+  worksheets, 9 records). `econ_shelf` in sync, page syntax OK.
+
+
 ## Model-assisted writing for the frameworks: what a usable answer contains, and the question that unblocks it
 
 Session 7, third pass. Build **1.71**.
