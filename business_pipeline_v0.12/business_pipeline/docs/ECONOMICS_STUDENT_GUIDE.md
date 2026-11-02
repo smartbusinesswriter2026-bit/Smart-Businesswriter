@@ -355,3 +355,25 @@ teacher-reviewed.
 **Never covered by arithmetic alone:** IS-LM and AD-AS diagrams, game theory
 trees, consumer-choice diagrams, schools of economic thought and economic
 history. These belong in worksheets and catalogue records, not in a calculator.
+
+## Bringing your own material
+
+The calculator box is not the only way in. At the top of the session you can
+attach, and each attachment becomes something specific:
+
+- **An instruction** — your assignment brief pasted or attached, then read back
+  by *Use as the instruction*. It is marked `unverified: true`: the system shows
+  you what it thinks the brief asks, and you confirm it before anything runs.
+- **A dataset** — attached with `role: dataset`. Its columns then map onto a
+  method's inputs and the mapped values are recorded as **sourced**, with an
+  `input_provenance` entry and a data manifest, rather than as figures you typed.
+- **Your sources** — a `.bib`, `.ris` or `.csv` file attached as `kind: sources`.
+  A declared source is recorded as your declaration (B-182); it is **not**
+  evidence that this system retrieved or verified it.
+- **A rubric** — attached and read by `rubric.py`, which is read-only and asks
+  you to confirm what it read (`confirm_required`). It never awards a mark.
+
+None of this changes the rule above: the tools still calculate only what is
+declared, and nothing is estimated, fetched or filled in for you. Attachments
+are a faster way to declare, not a substitute for declaring.
+
