@@ -33,6 +33,22 @@
 - **A scanned or photographed rubric is not readable yet** — the reader takes text, so a scan needs
   the OCR chain described in the OCR plan; until then it is refused by name, never guessed.
 
+## Added with the vision-model OCR lane (B-191)
+- **A scanned page is read when the machine has no OCR engine of its own.** The chain is the PDF's own
+  text layer, then a local Tesseract, then an OpenAI-compatible **vision model** named by
+  `BP_OCR_MODEL` and reached with `BP_OPENGO_API_KEY` (or `BP_OCR_KEY`; `BP_OCR_URL` names another
+  gateway). Only a page neither of the first two can read reaches the network, the lane is off unless
+  a key **and** a model id are configured, and a model id is never assumed.
+- **The prompt transcribes and changes nothing.** It never summarises, translates, corrects or adds; a
+  page the model read is recorded as `pdf_ocr_model` / `image_ocr_model` with the model's id, and the
+  text is still unverified.
+- **Every failure is named** — an HTTP status, an unreachable endpoint, an empty answer, or a page
+  above the 8 MB limit. A page that cannot be read is refused, never returned blank.
+- **A scanned PDF still needs `pypdfium2`** to render its pages before any engine can look at them;
+  without it the file is refused naming the package.
+- **No bundled weights, no auto-download, no GPU** — the engine is either the local Tesseract or a
+  hosted model the owner configures.
+
 ## Added with the matrix figures (B-176)
 - **The matrix figures are Word tables, not pictures.** They carry the framework's structure, cells and axes
   in academic styling; they do not reproduce the colour, icons or decoration of the slide templates in

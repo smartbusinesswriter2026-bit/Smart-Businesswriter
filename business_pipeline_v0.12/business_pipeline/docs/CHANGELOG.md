@@ -1,3 +1,27 @@
+## A scanned page is read by a vision model when the machine has no OCR of its own
+
+The owner asked for a free or cheap model to read scanned documents instead of a local stack. The
+repository already had exactly that shape in `prose.py` — optional, key-gated, `available()` false
+without a key, never touched by the tests — so the OCR chain reuses it instead of inventing a second
+model lane.
+
+`bp/product/ocr.py` reads one page through an OpenAI-compatible `chat/completions` endpoint with a
+base64 page image. The chain is fixed by cost and privacy, in this order: the **PDF's own text
+layer** (offline, exact), a **local Tesseract** (offline, free), then the **vision model**. Only a
+page neither of the first two can read reaches the network. The lane is off unless a key **and** a
+model id (`BP_OCR_MODEL`) are configured, so a fresh install and every test run open no socket, and
+no model id is guessed.
+
+The prompt is literal — transcribe, never summarise, translate, correct or add — because the text
+becomes a brief, a rubric or evidence, and a model that "improved" a figure would change what the
+document says. The engine is recorded (`pdf_ocr_model` / `image_ocr_model` plus the model id) and the
+text stays unverified. Every failure is named: an HTTP status, an unreachable endpoint, an empty
+answer, or a page above the 8 MB limit — never a blank success. A scanned PDF still needs
+`pypdfium2` to render its pages, and that missing package is named too.
+
+- 1.61 (2026-11-03): vision-model OCR lane (`bp/product/ocr.py`) behind the text layer and a local Tesseract, B-191, 10 tests E-ocr-001…010; no frozen core, method, preset, input, check, number or route family changed.
+
+
 ## Economics: a share is not money, and a conversion stops mislabelling its source (owner-approved unfreeze B-190)
 
 - **A frozen method's fall-through unit was printing shares as money (B-190).** `_labour_typing` in

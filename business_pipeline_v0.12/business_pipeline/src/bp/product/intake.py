@@ -454,7 +454,8 @@ def use_as_brief(file_id):
     record["role"] = "brief"
     record["error"] = None
     record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", len(text)),
-                            "method": result.get("method"), "text_sha256": digest}
+                            "method": result.get("method"), "engine": result.get("engine"),
+                            "text_sha256": digest}
     record["brief"] = {"chars": len(text), "text_sha256": digest,
                        "set_at": _now_iso(), "method": result.get("method")}
     record["note"] = ("Read as the instruction. The text is unverified: check it against the file "
@@ -502,7 +503,8 @@ def use_as_rubric(file_id):
     record["role"] = "rubric"
     record["error"] = None
     record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", len(text)),
-                            "method": result.get("method"), "text_sha256": digest}
+                            "method": result.get("method"), "engine": result.get("engine"),
+                            "text_sha256": digest}
     record["rubric"] = rubric_reader.summary(parsed)
     record["note"] = ("Read as the marking guide: %d criteria. The text is unverified - check the "
                       "criteria against the file before the paper follows them." % len(criteria))

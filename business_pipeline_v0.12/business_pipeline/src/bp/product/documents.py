@@ -3,10 +3,12 @@
 The reader is **optional and fail-closed**:
 
 * PDF **text layer** extraction uses ``pypdf`` when it is installed.  A PDF with no text
-  layer (a scan) is rendered with ``pypdfium2`` and OCR'd with a local Tesseract when both
-  are available; otherwise it is reported as ``ocr_required``.  Text is never guessed.
-* Image OCR uses ``pytesseract`` plus a local Tesseract binary when both are installed.
-  Otherwise the file is reported as ``ocr_required``.
+  layer (a scan) is rendered with ``pypdfium2`` and read by a local Tesseract, or — when
+  no Tesseract is installed — by a configured vision model (:mod:`bp.product.ocr`);
+  otherwise it is reported as ``ocr_required`` naming what is missing.  Text is never guessed.
+* Image OCR uses ``pytesseract`` plus a local Tesseract binary when both are installed, and
+  otherwise the configured vision model.  With neither, the file is reported as
+  ``ocr_required``.  The engine that read a page is recorded, never implied.
 * OCR is capped at 20 pages (rendering every page is slow); the text-layer route is capped
   at 50 pages and 200,000 characters.  Encrypted PDFs are refused.
 
@@ -20,6 +22,8 @@ import io
 import os
 import re
 import shutil
+
+from . import ocr as ocr_model
 
 MAX_PAGES = 50
 MAX_OCR_PAGES = 20
@@ -110,19 +114,30 @@ def extract_pdf(raw):
             parts.append("")
     text = _clean("\n".join(parts))
     if len(text) < MIN_CHARS:
-        if pdf_ocr_available():
+        if pdf_renderer_available() and (pdf_ocr_available() or ocr_model.available()):
             return _ocr_pdf(raw, pages)
-        return {"status": "ocr_required", "pages": pages, "chars": len(text),
-                "reason": "the PDF has no usable text layer (it looks scanned); OCR needs pypdfium2 and a local Tesseract, which are not installed"}
+        if not pdf_renderer_available():
+            reason = ("the PDF has no usable text layer (it looks scanned); rendering its pages "
+                      "needs the optional 'pypdfium2' package")
+        else:
+            reason = ("the PDF has no usable text layer (it looks scanned); OCR needs a local "
+                      "Tesseract or a configured OCR model (BP_OCR_MODEL), and neither is available")
+        return {"status": "ocr_required", "pages": pages, "chars": len(text), "reason": reason}
     if len(text) > MAX_CHARS:
         raise DocumentError("the extracted text is longer than the %d-character limit; split the document" % MAX_CHARS)
     return {"status": "extracted", "text": text, "pages": pages, "chars": len(text), "method": "pdf_text_layer"}
 
 
 def _ocr_pdf(raw, pages):
-    """Render a scanned PDF with pdfium and OCR each page with the local Tesseract."""
+    """Render a scanned PDF with pdfium and read each page with the best engine available.
+
+    A local Tesseract is preferred because it is free and offline; the vision model is
+    used when no Tesseract is installed, and its name is recorded on the result so the
+    student can see what read their document.
+    """
     if pages > MAX_OCR_PAGES:
         raise DocumentError("the scanned PDF has %d pages; OCR is limited to %d, so split it first" % (pages, MAX_OCR_PAGES))
+    use_model = ocr_model.available() and not pdf_ocr_available()
     try:
         import pypdfium2 as pdfium
         document = pdfium.PdfDocument(raw)
@@ -135,7 +150,15 @@ def _ocr_pdf(raw, pages):
             try:
                 bitmap = page.render(scale=RENDER_SCALE)
                 try:
-                    parts.append(_ocr_image(bitmap.to_pil()))
+                    if use_model:
+                        buffer = io.BytesIO()
+                        bitmap.to_pil().save(buffer, format="PNG")
+                        try:
+                            parts.append(_clean(ocr_model.read(buffer.getvalue(), "image/png")))
+                        except ocr_model.OcrError as error:
+                            raise DocumentError("page %d could not be read: %s" % (index + 1, error))
+                    else:
+                        parts.append(_ocr_image(bitmap.to_pil()))
                 finally:
                     bitmap.close()
             finally:
@@ -148,14 +171,37 @@ def _ocr_pdf(raw, pages):
                 "reason": "OCR ran but found no usable text in this PDF"}
     if len(text) > MAX_CHARS:
         raise DocumentError("the OCR text is longer than the %d-character limit; split the document" % MAX_CHARS)
+    if use_model:
+        return {"status": "extracted", "text": text, "pages": pages, "chars": len(text),
+                "method": "pdf_ocr_model", "engine": ocr_model.model_id()}
     return {"status": "extracted", "text": text, "pages": pages, "chars": len(text), "method": "pdf_ocr"}
 
 
+def _model_image(raw, ext):
+    """Read one image with the configured vision model."""
+    mime = "image/jpeg" if ext in (".jpg", ".jpeg") else (
+        "image/webp" if ext == ".webp" else "image/png")
+    try:
+        text = _clean(ocr_model.read(raw, mime))
+    except ocr_model.OcrError as error:
+        raise DocumentError(str(error))
+    if len(text) < MIN_CHARS:
+        return {"status": "ocr_required", "pages": 1, "chars": len(text),
+                "reason": "the OCR model read no usable text from this image"}
+    if len(text) > MAX_CHARS:
+        raise DocumentError("the extracted text is longer than the %d-character limit" % MAX_CHARS)
+    return {"status": "extracted", "text": text, "pages": 1, "chars": len(text),
+            "method": "image_ocr_model", "engine": ocr_model.model_id()}
+
+
 def extract_image(raw, ext):
-    """OCR one image when a local Tesseract is available; otherwise report that it is required."""
+    """Read one image: the local Tesseract first, then the vision model, else say so."""
     if not ocr_available():
+        if ocr_model.available():
+            return _model_image(raw, ext)
         return {"status": "ocr_required", "pages": 1, "chars": 0,
-                "reason": "image OCR needs Tesseract and 'pytesseract' on this machine; install Tesseract, or paste the text yourself"}
+                "reason": "image OCR needs Tesseract and 'pytesseract' on this machine, or a "
+                          "configured OCR model (BP_OCR_MODEL); install Tesseract, or paste the text yourself"}
     try:
         from PIL import Image
         text = _ocr_image(Image.open(io.BytesIO(raw)))
