@@ -2015,10 +2015,10 @@ def _cc_template(out, P, th):
     # amount and both codes stay in the appendix; the sentence quotes the converted
     # amount only, which is the one denominated in the row's currency.
     tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
-    return ("At the declared rate, " + tok("amount") +
-            " is the converted amount. The source amount, both currency codes, the rate, its "
-            "provenance and any declared date are recorded in the appendix, and the converted "
-            "amount is denominated in the target currency. "
+    return ("At the declared rate, an amount you declared in the source currency converts to " +
+            tok("amount") + ". The source amount, both currency codes, the rate, its provenance "
+            "and any declared date are recorded in the appendix, and the converted amount is "
+            "denominated in the target currency. "
             "The rate is the owner's declaration and is not retrieved or verified by the system.")
 
 # ---------- Logistic regression and reliability (B-074) ----------
