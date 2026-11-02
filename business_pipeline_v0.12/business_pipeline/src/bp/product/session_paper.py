@@ -18,9 +18,35 @@ DECLARED_LEAD = ("These are the sources you declared. They are your citations, t
                  "evidence still names that gap.")
 
 #: How each heading is written.  The order is the reading order of the paper.
-HEADINGS = (("report", "Result"), ("honesty", "Honesty: what was not done"),
-            ("assumptions", "Assumptions (as recorded)"), ("limitations", "Limitations (as recorded)"),
-            ("declared", "Sources you declared (not evidence)"), ("checks", "Checks recorded"))
+HEADINGS = (("report", "Result"), ("figures", "Inputs and results"),
+            ("honesty", "Honesty: what was not done"),
+            ("assumptions", "Assumptions made"), ("limitations", "Limitations"),
+            ("declared", "Sources you declared (not evidence)"),
+            ("checks", "How the figures were checked"))
+
+
+def _plain(name):
+    """A machine name as a readable phrase: `arc_elasticity_equals_percentage_changes`."""
+    text = str(name or "").replace("_", " ").strip()
+    return (text[:1].upper() + text[1:]) if text else ""
+
+
+def _figure_lines(appendix):
+    """The inputs and outputs as readable lines, straight from the stored record."""
+    record = (appendix or {}).get("reperform") or {}
+    lines = []
+    inputs = record.get("inputs") or {}
+    if isinstance(inputs, dict) and inputs:
+        lines.append("What you declared")
+        lines.extend("%s: %s" % (_plain(key), value) for key, value in inputs.items())
+    outputs = record.get("outputs") or {}
+    if isinstance(outputs, dict) and outputs:
+        if lines:
+            lines.append("")
+        lines.append("What was computed")
+        lines.extend("%s: %s" % (_plain(key), value) for key, value in outputs.items())
+    return lines
+
 
 
 def title_for(delivery, fallback="Business computation"):
@@ -48,24 +74,25 @@ def sections(delivery, declared_sources=None, title=None):
     delivery = delivery or {}
     appendix = delivery.get("appendix") or {}
     body = {"report": _lines(delivery.get("report")),
+            "figures": _figure_lines(appendix),
             "honesty": [("%s: %s" % (key.replace("_", " "), value))
                         for key, value in (appendix.get("honesty") or {}).items() if value],
             "assumptions": _lines(appendix.get("assumptions")),
             "limitations": _lines(appendix.get("limitations")),
             "declared": ([DECLARED_LEAD] + _lines(declared_sources)) if _lines(declared_sources) else [],
-            "checks": _lines(appendix.get("tests"))}
+            "checks": [_plain(name) + "." for name in _lines(appendix.get("tests"))]}
     out = []
     for key, heading in HEADINGS:
         if body[key]:
             out.append((heading, body[key]))
     method = appendix.get("method") or {}
-    citation = ["Method: %s (version %s)" % (method.get("id") or "unknown",
-                                             method.get("version") or "?")]
+    audit = ["Every figure above is stored with this computation and can be re-run from that "
+             "record; this line identifies it.",
+             "Method: %s (version %s)" % (_plain(method.get("id") or "unknown"),
+                                          method.get("version") or "?")]
     if appendix.get("spec_hash"):
-        citation.append("Specification hash: " + str(appendix["spec_hash"]))
-    citation.append("Every figure in this paper can be re-run from the stored specification; "
-                    "the hash identifies it.")
-    out.append(("How this was produced", citation))
+        audit.append("Record identifier: " + str(appendix["spec_hash"]))
+    out.append(("Audit record", audit))
     return out
 
 
@@ -88,9 +115,27 @@ def docx_bytes(delivery, declared_sources=None, title=None):
     return docx.render_bytes(name, sections(delivery, declared_sources, name))
 
 
+def xlsx_bytes(delivery, declared_sources=None, title=None, session_id=None):
+    """The same record as a workbook: what you declared, what was computed, the checks.
+
+    Every cell is copied from the stored delivery; nothing is recomputed here.
+    """
+    from . import spreadsheets
+    appendix = (delivery or {}).get("appendix") or {}
+    method = appendix.get("method") or {}
+    bundle = {"id": session_id, "title": title or title_for(delivery),
+              "method": method.get("id"), "tier": (delivery or {}).get("tier"),
+              "spec_hash": appendix.get("spec_hash"),
+              "created_at": appendix.get("run_id") or "",
+              "delivery": delivery, "artifacts": appendix.get("artifacts")}
+    if declared_sources:
+        bundle["declared_sources"] = list(declared_sources)
+    return spreadsheets.to_xlsx(bundle)
+
+
 def filename(delivery, fmt, title=None):
     """A readable download name; never an id."""
     stem = (title or title_for(delivery)).strip() or "computation"
     safe = "".join(char if char.isalnum() or char in " -_" else " " for char in stem)
     safe = " ".join(safe.split())[:90] or "computation"
-    return safe + (".md" if fmt == "md" else ".docx")
+    return safe + (".xlsx" if fmt == "xlsx" else ".docx")

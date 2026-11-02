@@ -1070,8 +1070,8 @@ class H(BaseHTTPRequestHandler):
             return self._send(409, {"error": "the paper is written only after the result is delivered; "
                                              "confirm the specification first"})
         fmt = str(b.get("format") or "docx").lower()
-        if fmt not in ("docx", "md"):
-            return self._send(422, {"error": "format must be docx or md"})
+        if fmt not in ("docx", "xlsx"):
+            return self._send(422, {"error": "format must be docx or xlsx"})
         declared = []
         for file_id in b.get("source_files") or []:
             try:
@@ -1079,10 +1079,11 @@ class H(BaseHTTPRequestHandler):
             except (product_intake.IntakeError, ValueError) as error:
                 declared.append("A declared source list could not be read: " + str(error)[:120])
         title = str(b.get("title") or "") or None
-        if fmt == "md":
-            return self._send(200, product_session_paper.markdown(delivery, declared, title).encode("utf-8"),
-                              "text/markdown; charset=utf-8",
-                              product_session_paper.filename(delivery, "md", title))
+        if fmt == "xlsx":
+            return self._send(200,
+                              product_session_paper.xlsx_bytes(delivery, declared, title, session_id),
+                              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                              product_session_paper.filename(delivery, "xlsx", title))
         return self._send(200, product_session_paper.docx_bytes(delivery, declared, title),
                           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                           product_session_paper.filename(delivery, "docx", title))

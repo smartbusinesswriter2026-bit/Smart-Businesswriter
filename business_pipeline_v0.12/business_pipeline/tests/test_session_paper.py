@@ -29,7 +29,8 @@ DELIVERY = {
                              "power": None},
                  "assumptions": ["Cash flows occur at period end."],
                  "limitations": ["The rate is the student's declaration."],
-                 "tests": ["second_implementation_agrees", "boundary_zero_rate_equals_sum"]},
+                 "reperform": {"inputs": {"rate": "0.10"}, "outputs": {"npv": "1.00"}},
+        "tests": ["second_implementation_agrees", "boundary_zero_rate_equals_sum"]},
 }
 DECLARED = ["Smith, J. (2019). Retail expansion. https://doi.org/10.1/xyz"]
 
@@ -39,10 +40,11 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
         headings = [heading for heading, _lines in session_paper.sections(DELIVERY)]
         self.assertIn("Result", headings)
         self.assertIn("Honesty: what was not done", headings)
-        self.assertIn("Assumptions (as recorded)", headings)
-        self.assertIn("Limitations (as recorded)", headings)
-        self.assertIn("Checks recorded", headings)
-        self.assertIn("How this was produced", headings)
+        self.assertIn("Inputs and results", headings)
+        self.assertIn("Assumptions made", headings)
+        self.assertIn("Limitations", headings)
+        self.assertIn("How the figures were checked", headings)
+        self.assertIn("Audit record", headings)
 
     def test_a_non_applicable_disclosure_is_omitted_not_printed_blank(self):
         honesty = dict(session_paper.sections(DELIVERY))["Honesty: what was not done"]
@@ -52,8 +54,10 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
     def test_the_markdown_carries_the_figure_and_the_checks(self):
         text = session_paper.markdown(DELIVERY)
         self.assertIn("(5.26)", text)
-        self.assertIn("second_implementation_agrees", text)
-        self.assertIn("abc123", text)
+        self.assertIn("Second implementation agrees", text)
+        self.assertNotIn("second_implementation_agrees", text,
+                         "the paper must not show a raw check identifier")
+        self.assertIn("Record identifier: abc123", text)
 
     def test_the_word_file_is_a_real_document(self):
         data = session_paper.docx_bytes(DELIVERY)
@@ -62,7 +66,7 @@ class ThePaperCarriesTheRecord(unittest.TestCase):
 
     def test_the_download_name_is_readable_not_an_id(self):
         self.assertEqual(session_paper.filename(DELIVERY, "docx"), "Computation npv.docx")
-        self.assertEqual(session_paper.filename(DELIVERY, "md"), "Computation npv.md")
+        self.assertEqual(session_paper.filename(DELIVERY, "xlsx"), "Computation npv.xlsx")
 
 
 class DeclaredSourcesStayCitedOnly(unittest.TestCase):
@@ -75,7 +79,7 @@ class DeclaredSourcesStayCitedOnly(unittest.TestCase):
 
     def test_they_are_never_merged_into_the_result_or_the_checks(self):
         sections = dict(session_paper.sections(DELIVERY, DECLARED))
-        for heading in ("Result", "Checks recorded", "Assumptions (as recorded)"):
+        for heading in ("Result", "How the figures were checked", "Assumptions made"):
             self.assertFalse(any("Smith, J." in line for line in sections[heading]),
                              "%s must not carry a declared citation" % heading)
 
@@ -146,24 +150,24 @@ class TheDownloadRouteTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(data.startswith(b"PK"), "a .docx is a zip container")
 
-    def test_a_delivered_computation_downloads_markdown_with_its_figure(self):
+    def test_a_delivered_computation_downloads_excel_with_its_figure(self):
         session_id = self.session()
         self.call("/api/sessions/%s/confirm" % session_id, {})
-        status, data = self.call("/api/sessions/%s/paper" % session_id, {"format": "md"}, raw=True)
+        status, data = self.call("/api/sessions/%s/paper" % session_id, {"format": "xlsx"}, raw=True)
         self.assertEqual(status, 200)
-        text = data.decode("utf-8")
-        self.assertIn("(305.79)", text)
-        self.assertIn("How this was produced", text)
+        self.assertTrue(data.startswith(b"PK"), "an .xlsx is a zip container")
+        self.assertGreater(len(data), 1000,
+                           "a workbook with content, not an empty shell")
 
     def test_an_unknown_format_is_refused(self):
         session_id = self.session()
         self.call("/api/sessions/%s/confirm" % session_id, {})
         status, refused = self.call("/api/sessions/%s/paper" % session_id, {"format": "pdf"})
         self.assertEqual(status, 422)
-        self.assertIn("docx or md", refused["error"])
+        self.assertIn("docx or xlsx", refused["error"])
 
     def test_an_unknown_session_is_a_404(self):
-        self.assertEqual(self.call("/api/sessions/nosuch/paper", {"format": "md"})[0], 404)
+        self.assertEqual(self.call("/api/sessions/nosuch/paper", {"format": "xlsx"})[0], 404)
 
 
 if __name__ == "__main__":
