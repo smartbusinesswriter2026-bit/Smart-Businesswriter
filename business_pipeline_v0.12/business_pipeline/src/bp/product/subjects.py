@@ -66,7 +66,7 @@ TOOL_INFO = {
                 "what": "Compare your own trial balance with the one your journal rebuilds to, and see every "
                         "line that differs or is missing."},
     "unitecon": {"preset": "unitecon", "method": "unit_economics", "label": "Unit economics",
-                 "what": "Work out the margin each customer leaves, what it costs to win one, how long that takes to repay, and the value the customer brings over their life."},
+                 "what": "The margin per customer, the cost to win one, its payback and lifetime value."},
     "ratios": {"preset": "ratios", "method": "ratio_analysis", "label": "Financial statement ratios",
                "what": "Compute the declared liquidity, profitability, solvency and efficiency ratios from supplied statements."},
     "accounts": {"preset": "accounts", "method": "management_accounts", "label": "Management accounts",
@@ -522,7 +522,7 @@ STUDENT_NOTES = {
         "steps": ["Subtract variable cost from price to get the unit contribution and the contribution-margin ratio.",
                   "Divide fixed cost by the unit contribution for the break-even quantity.",
                   "Multiply by the price for the break-even revenue.",
-                  "If you declare an expected volume, read the margin of safety; if you declare a profit target, read the sales volume it needs."],
+                  "If you declare an expected volume, read the margin of safety; a profit target gives its volume."],
         "common_mistakes": ["Using total cost instead of fixed cost.",
                             "Forgetting that a price below variable cost has no break-even.",
                             "Mixing per-unit and total figures.",
@@ -3288,11 +3288,10 @@ SUBJECT_DEFS = [
         "label": "Finance",
         "icon": "finance",
         "summary": "Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs.",
-        "guidance": ("Start with the question, not the tool. For one cash flow or one instrument, use time value, a "
-                     "loan or a bond. For a project, use NPV, IRR and discounted payback, then rank it. For a company, "
-                     "use WACC and DCF, then bridge to equity. For an investment or a risk question, use CAPM, the "
-                     "portfolio, risk and options tools. For an international question, use the parity and currency "
-                     "tools. Every rate, price and cash flow is yours to declare."),
+        "guidance": ("Start with the question, not the tool. Instrument: time value, a loan or a bond. "
+                     "Project: NPV, IRR and discounted payback, then rank it. Company: WACC, DCF, then the "
+                     "equity bridge. Investment or risk: CAPM, the portfolio, VaR, options. International: "
+                     "the parity and currency tools. Every rate, price and cash flow is yours to declare."),
         "start_steps": [
             "One cash flow or instrument: Time value of money, Loan amortization or Bond price and duration.",
             "A project: NPV, IRR and Discounted payback, then Project ranking metrics and Scenario analysis.",

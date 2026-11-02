@@ -1,3 +1,23 @@
+## Finance: the shelf copy is measured and kept terse, and the section heading is restored
+
+Two lines of the finance shelf's student-facing copy ran long against a sane ceiling: the unit-economics
+card (28 words) and one break-even step (23). Both are one line now, and the shelf `guidance` — 80 words
+of instruction on the page — is 58. Measured with `qa/probe_wordiness.py`, which reports the word count
+of every `what`, step and common-mistake line: the shelf already met a ceiling of 20/18/18 on 341 of its
+343 lines, so the ceilings are **the measured ones**, not a new voice imposed on copy the owner wrote.
+`tests/test_subject_finance_acceptance.py::test_052__the_shelf_copy_stays_short` pins them, so
+wordiness cannot creep back in on this shelf.
+
+Also restored: the computed-tools heading. The finance shelf names that section **"Quantitative
+Finance"**, and the change that made it dynamic had replaced the plain `With computation` heading for
+every other shelf too, which broke the served-page contract
+(`test_product_subjects.py::test_frameworks_come_before_computation_and_then…`). Both headings are now
+written literally — finance keeps its own name, every other shelf keeps the plain one — so the contract
+holds and the page still passes the Node `--check` gate.
+
+Suite count 2845.
+
+
 ## Core: the mid-year DCF check compares the two conventions, so the tile delivers (B-183, owner-approved unfreeze)
 
 The **DCF valuation (mid-year)** tile could not produce a result. `_dcf_tests` built

@@ -233,6 +233,25 @@ class FinanceCatalogueAndContract(unittest.TestCase):
         associational = {name for name, ceiling in ceilings.items() if ceiling == "associational"}
         self.assertEqual(associational, {"pearson", "ols", "ols_robust"})
 
+    def test_052__the_shelf_copy_stays_short(self):
+        """E-fin-052: a student-facing line is a line, not a paragraph.
+
+        The ceilings are the measured ones (the shelf already met them on 341 of 343 lines), so
+        this pins the terse style rather than imposing a new voice on copy the owner wrote.
+        """
+        def words(text):
+            return len(str(text or "").split())
+
+        self.assertLessEqual(words(page()["guidance"]), 65,
+                             "the shelf guidance is a list of short lines, not an essay")
+        for item in tools():
+            self.assertLessEqual(words(item["what"]), 20, "%s: what" % item["key"])
+            for step in item["steps"]:
+                self.assertLessEqual(words(step), 18, "%s: a step" % item["key"])
+            for mistake in item["common_mistakes"]:
+                self.assertLessEqual(words(mistake), 18, "%s: a common mistake" % item["key"])
+
+
 
 class FinanceRefusals(unittest.TestCase):
     """E-fin-009 … E-fin-015: a refusal is a refusal, and it names the reason.

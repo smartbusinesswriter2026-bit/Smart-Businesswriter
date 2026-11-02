@@ -297,6 +297,8 @@ Atomic, testable, one line each. `PASS`/`FAIL`/`BLOCKED`/`GAP` is decided in §9
 | E-fin-013 | A discounted payback on an outlay the flows never recover is refused | rank 1 self-test |
 | E-fin-014 | A break-even whose contribution margin is ≤ 0 is refused | rank 1 `breakeven_tests` |
 | E-fin-015 | A DCF with `terminal_growth ≥ discount_rate`, or a `timing` outside {`end`,`mid`}, is refused with the reason named | rank 1 `dcf_impl` |
+| E-fin-052 | A student-facing line stays a line: `guidance` ≤ 65 words, each `what` ≤ 20, each step and each common mistake ≤ 18. The ceilings are the measured ones — the shelf met them on 341 of 343 lines before this session — so the rule pins the terse style instead of imposing a new voice | rank 5 copy, measured by `qa/probe_wordiness.py` |
+
 
 ### 8.2 Independent recomputation
 
@@ -385,6 +387,8 @@ The closing status of every row is in `qa/QA_STATE.md` §4; the run that produce
 | E-fin-042…046 | `test_04n__…` — session lifecycle, honesty, determinism, sandbox parity | PASS |
 | E-fin-047…048 | `test_04n__…` — capability paper formatting | PASS after D-FIN-02 |
 | E-fin-049…050 | `test_04n__…` — deliverables and refusal-not-zero | PASS |
+| E-fin-052 | `test_052__the_shelf_copy_stays_short` — the measured word ceilings | PASS |
+
 
 ## 10. Known gaps
 

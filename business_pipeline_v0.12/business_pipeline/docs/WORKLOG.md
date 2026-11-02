@@ -1,5 +1,24 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [finance] The wordiness, measured; and a heading restored
+
+**Ask.** "we still need to clean up the wordiness of finance subject."
+
+**Measured first.** `qa/probe_wordiness.py` counts words per field across the shelf: `what` mean 13.8
+(max 28), each step mean 10.2 (max 23), each common mistake mean 9.4 (max 18), guidance 80. So the copy
+was **not** bloated in general — two lines were out of line with the rest.
+
+**Did.** Unit-economics card 28 → 15 words; the long break-even step 23 → 16; the shelf `guidance`
+80 → 58 by turning five sentences into five short clauses. Added
+`test_052__the_shelf_copy_stays_short` with the measured ceilings (guidance 65, what 20, step 18,
+mistake 18) so the shelf cannot drift back.
+
+**Also fixed, honestly:** a concurrent edit to this page made the computed-tools heading dynamic
+(`"Quantitative Finance"` for finance, `"With computation"` otherwise) and, in doing so, removed the
+literal heading every other shelf renders — which broke `test_product_subjects`. Both headings are
+written literally again: finance keeps its own name, everyone else keeps the plain one.
+
+
 ## 2026-11-02 — [core] B-183: the mid-year DCF check, unfrozen and fixed
 
 **Ask.** "okay go. unfreeze and finish it."
