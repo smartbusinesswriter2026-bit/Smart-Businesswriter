@@ -1,3 +1,20 @@
+## Hidden on request: the framework picker and the "risk and decision analysis" group
+
+The owner asked for two things on the subject pages to be held back: the **Choose a framework**
+dropdown ("N frameworks - choose one") and the **risk and decision analysis** group with all eight tiles
+beneath it. Both are now behind one switch at the top of the page script:
+
+```js
+const HOLD = { picker: true, groups: ["risk and decision analysis"] };
+```
+
+Nothing is deleted: the markup, the tiles and the labels are all still there, and setting
+`picker: false` or emptying `groups` puts them back. The filter runs on the group's own
+`discipline_label`, so a held group is not counted, not grouped and not rendered — on the finance shelf
+that removes "risk and decision analysis - 8" and its eight tiles, and the empty section heading with it.
+Page passes the Node `--check` gate; 146 tests green.
+
+
 ## Finance: the shelf copy is measured and kept terse, and the section heading is restored
 
 Two lines of the finance shelf's student-facing copy ran long against a sane ceiling: the unit-economics

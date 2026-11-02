@@ -3729,7 +3729,17 @@ function subjectTiles(s) {
   return html;
 }
 
+/* Held back on the owner's request (2026-11-02).  The framework picker and the groups
+   listed here are not rendered, and their tiles are not built.  The markup is left in
+   place, so nothing else changes and surfacing them again is this object alone. */
+const HOLD = { picker: true, groups: ["risk and decision analysis"] };
+
+function isHeldGroup(label) {
+  return HOLD.groups.indexOf(String(label || "").trim().toLowerCase()) !== -1;
+}
+
 function frameworkPicker(s, groups) {
+  if (HOLD.picker) return "";
   const opts = [];
   if (s.worksheets.length) {
     opts.push('<optgroup label="Worksheets">' + s.worksheets.map((w, i) =>
@@ -4155,9 +4165,13 @@ function renderSubject() {
     html += subjectTiles(s);
   } else {
   if (sheets.length) html += caseBriefBox();
-  if (sheets.length || frameworks.length || theories.length) {
+  // Frameworks whose group is held back are not counted, not grouped and not shown.
+  const visibleFrameworks = frameworks.filter((row) => !isHeldGroup(
+    row.discipline_label || ((row.disciplines || [])[0] || "")));
+  if (sheets.length || visibleFrameworks.length || theories.length) {
     // A shelf with worksheets leads with them: they complete themselves from the
     // brief, so they are the first thing a student should meet, not the last.
+
     html += sheets.length
       ? '<h3 style="margin-top:0">Complete a framework</h3>' +
         '<p class="muted">Name the case in your own words and the worksheet fills itself: the parts a source can support ' +
@@ -4170,16 +4184,16 @@ function renderSubject() {
       html += '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
     }
     const frameworkGroups = [];
-    frameworks.forEach((row) => {
+    visibleFrameworks.forEach((row) => {
       const label = row.discipline_label || ((row.disciplines && row.disciplines.length) ? row.disciplines[0] : "Other");
       let group = frameworkGroups.find((g) => g.label === label);
       if (!group) { group = { label: label, rows: [] }; frameworkGroups.push(group); }
       group.rows.push(row);
     });
-    if (frameworks.length || theories.length) {
+    if (!HOLD.picker && (visibleFrameworks.length || theories.length)) {
       html += frameworkPicker(s, frameworkGroups);
     }
-    frameworkGroups.forEach((group) => {
+    frameworkGroups.filter((group) => !isHeldGroup(group.label)).forEach((group) => {
       html += '<h4 class="levelhead">' + esc(group.label) + ' - ' + group.rows.length + '</h4>' +
         '<div class="capgrid">' + group.rows.map((row) => frameworkCard(row, "framework", group.label)).join("") + "</div>";
     });
