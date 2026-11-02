@@ -1,3 +1,23 @@
+## A dataset you attached can supply a tool's values — proposed, never run
+
+The frozen core already mapped columns to a method's declared inputs (`ingest.to_method_inputs`,
+reached from `/api/ingest`), but only for a file uploaded in that same request. A file a student
+attached earlier could not feed anything, so a spreadsheet became a typed table and then sat there.
+
+`intake.mapped_request(file_id, method, columns)` now maps from the **stored** table through that
+same core mapper, and `POST /api/intake/{id}/map` exposes it. The core keeps its own rules: it reads
+the method's `input_schema`, accepts only the shapes a column can feed, refuses a scalar in its own
+words, validates the assembled request, runs the method's pre-checks, and returns the inputs with
+their provenance, data manifest and `not_mapped`. **Nothing is executed** — the response has no
+report, delivery or result, so a wrong column is a correction, never a paper built on it.
+
+This is the data path only. The calculator still has no picker that offers it (see
+`docs/KNOWN_LIMITATIONS.md`): that surface, and the one "Your files" card on the calculator and the
+subject pages, remain open.
+
+- 1.62 (2026-11-03): dataset → validated method inputs from a stored attachment (`intake.mapped_request`, `POST /api/intake/{id}/map`), 6 tests E-map-001…006; no frozen core, method, preset, input, check, number or route family changed.
+
+
 ## A scanned page is read by a vision model when the machine has no OCR of its own
 
 The owner asked for a free or cheap model to read scanned documents instead of a local stack. The

@@ -33,6 +33,16 @@
 - **A scanned or photographed rubric is not readable yet** — the reader takes text, so a scan needs
   the OCR chain described in the OCR plan; until then it is refused by name, never guessed.
 
+## Added with the dataset path (B-192)
+- **A stored spreadsheet can now feed a method — as a proposal.** `intake.mapped_request` and
+  `POST /api/intake/{id}/map` map the columns of an attached table through the frozen core's own
+  mapper: inputs are validated against the method's `input_schema`, a scalar is refused rather than
+  read from a column, and the response carries provenance and `not_mapped`. **Nothing runs** — there
+  is no report, delivery or result in the response.
+- **The calculator still has no picker for it.** No page surface offers a dataset to a tool yet, and
+  the one "Your files" card on the calculator and subject pages is not built. Until it is, the path
+  is reachable only from the API.
+
 ## Added with the vision-model OCR lane (B-191)
 - **A scanned page is read when the machine has no OCR engine of its own.** The chain is the PDF's own
   text layer, then a local Tesseract, then an OpenAI-compatible **vision model** named by

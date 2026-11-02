@@ -708,6 +708,16 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.use_as_rubric(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/map", self.path)
+            if im:
+                # Propose a method's inputs from a stored table.  Nothing runs: the page
+                # fills the form with these values and the student presses the button.
+                b = self._body()
+                if not isinstance(b, dict) or not b.get("method") or not isinstance(b.get("columns"), dict):
+                    return self._send(422, {"error": "map needs {method, columns}"})
+                try: return self._send(200, product_intake.mapped_request(im[1], b["method"], b["columns"]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)

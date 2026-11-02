@@ -517,6 +517,27 @@ def use_as_rubric(file_id):
             "method": result.get("method"), "pages": result.get("pages"), "note": record["note"]}
 
 
+def mapped_request(file_id, method, columns):
+    """Propose a method's inputs from a stored table, through the frozen mapper.
+
+    The mapping is the core's own (``bp.ingest.to_method_inputs``): it reads the method's
+    declared ``input_schema``, accepts only shapes a column can feed (``value_list``,
+    ``code_list``, ``column_map``), refuses a scalar with the core's own words, validates
+    the assembled request and runs the method's pre-checks.  **Nothing is executed here.**
+    The caller gets inputs to show the student, who then confirms and runs — so a wrong
+    column is a correction, never a paper built on it.
+    """
+    record = load(file_id)
+    table = record.get("table")
+    if not isinstance(table, dict) or not table.get("columns"):
+        raise IntakeError("this file is not a table; ingest a CSV, TSV or XLSX file first")
+    from .. import ingest
+    try:
+        return ingest.to_method_inputs(table, method, columns)
+    except ingest.IngestError as error:
+        raise IntakeError(str(error))
+
+
 def _summary(record):
     table = record.get("table") or {}
     return {
