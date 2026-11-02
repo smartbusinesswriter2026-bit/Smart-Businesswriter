@@ -1,0 +1,55 @@
+{
+  "slice": {
+    "subject": "People and Organization",
+    "shelf": "Strategy and Design",
+    "version": "1.0.0",
+    "generated": "2026-11-02T00:00:00Z",
+    "worksheets": [
+      {
+        "id": "PPL-STR-LEWIN-001",
+        "theorist": "Kurt Lewin",
+        "framework": "Force Field Analysis; 3-Step Change Model (Unfreeze → Change → Refreeze)",
+        "path": "subjects/people-organization/strategy-design/lewin/worksheet.md",
+        "beforeBriefing": "subjects/people-organization/strategy-design/lewin/before-briefing.md",
+        "chgRefs": ["CHG-03", "CHG-04"],
+        "chainPosition": 1,
+        "chainLabel": "strategy_design",
+        "status": "active"
+      },
+      {
+        "id": "PPL-STR-GALBRAITH-002",
+        "theorist": "Jay Galbraith",
+        "framework": "Star Model of Organizational Design (Strategy, Structure, Processes, Rewards, People)",
+        "path": "subjects/people-organization/strategy-design/galbraith/worksheet.md",
+        "beforeBriefing": "subjects/people-organization/strategy-design/galbraith/before-briefing.md",
+        "chgRefs": ["CHG-05", "CHG-06"],
+        "chainPosition": 2,
+        "chainLabel": "strategy_design",
+        "status": "active"
+      },
+      {
+        "id": "PPL-STR-MINTZBERG-003",
+        "theorist": "Henry Mintzberg",
+        "framework": "Five Organizational Configurations (Simple Structure, Machine Bureaucracy, Professional Bureaucracy, Divisionalized Form, Adhocracy)",
+        "path": "subjects/people-organization/strategy-design/mintzberg/worksheet.md",
+        "beforeBriefing": "subjects/people-organization/strategy-design/mintzberg/before-briefing.md",
+        "chgRefs": ["CHG-07", "CHG-08", "CHG-13"],
+        "chainPosition": 3,
+        "chainLabel": "strategy_design",
+        "status": "active"
+      }
+    ],
+    "peopleShelfBriefing": {
+      "path": "subjects/people-organization/strategy-design/people-shelf-before-briefing.md",
+      "chgRefs": ["CHG-02", "CHG-09", "CHG-10"]
+    },
+    "wiring": {
+      "chg15": {
+        "targetTile": "People strategy_design",
+        "probePath": "wiring/chg-15-probe.mjs",
+        "reachabilityVerified": false,
+        "driftChecked": false
+      }
+    }
+  }
+}
