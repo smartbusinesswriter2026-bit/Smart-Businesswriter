@@ -3302,13 +3302,45 @@ would have stopped guarding the body.
 **Decisions:** B-188.
 
 **Verified:** measured on the served page (Chrome, 1440x1000 viewport, rail collapsed): `.hero h1`
-45 -> 43 px, `body` 17.8 -> 16.8 px, the composer text and the slogan 19 -> 18 px, `.actionbox` and
-`#chatcard` 1116 -> 768 px at the same left (359) and right (1127) and the same centre as the hero
-wordmark (743 px), the gap composer -> conversation 16 px and conversation -> Documents 16 px. The
-inline script parses (`node --check`); `tests/test_web_inline_script.py` (2),
-`tests/test_web_brand_assets.py` (5) and `tests/test_product_subjects.py` (53) pass. No behaviour,
-number, wording or claim changed.
+45 -> 43 px, `body` 17.8 -> 16.8 px, the composer text and the slogan 19 -> 18 px, and `.actionbox`,
+`#chatcard` and `#homedocs` all 1116 px at the same left (185) and right (1301) - the same edges and
+0 px of space inside the content box on either side. The gap composer -> conversation 16 px and
+conversation -> Documents 16 px. The inline script parses (`node --check`);
+`tests/test_web_inline_script.py` (2), `tests/test_web_brand_assets.py` (5) and
+`tests/test_product_subjects.py` (53) pass. No behaviour, number, wording or claim changed.
 
 **Open/next:** the build pill stays at v1.45; `tests/test_product_subjects.py` pins its shape
 (`v\d+\.\d+`) and the version string is the computation owner's to move.
+
+---
+
+## 2026-11-03 - [design] The rail's icons sit in the middle of the green
+
+**Ask.** Owner instruction: check the icon rails on the outermost left side of the screen - the
+icons are not centred. Centre them.
+
+**Did.** The icon column is now centred in the green strip instead of packed against its right
+edge. `--rail-ic-pad` changed from the right-packing formula to
+`calc((var(--rail-w) - var(--rail-ic-w)) / 2 - var(--rail-pad))` - a formula, so the narrow layout's
+own `--rail-w`/`--rail-pad`/`--rail-ic-w` recompute it. The toggle's chevron walks onto the column
+by hand in terms of `--rail-ic-pad`, so it moved onto the centre line with it.
+
+Nothing else moved: the strip stays 45 px (44 px narrow), the gutter stays 10 px, and the label
+column and the "SUBJECTS" heading stay on the same x (55 px; 54 px narrow).
+
+**Files:** `web/index.html`, `web/DESIGN_NOTES.md`, `docs/WORKLOG.md`.
+
+**Verified:** measured on the served page (Chrome, device pixel ratio 1) with a CDP probe, in both
+rail states at 1280x900 and 760x900, and captured in all four. Wide: strip 0 -> 45 px (centre
+22.5), glyph 18.5 -> 37.5 px before and **13 -> 32 px** after (centre 22.5), chevron 18 -> 38 px
+before and **12.5 -> 32.5 px** after. The off-centre error is **0 px**, was 5.5 px. Narrow: strip
+0 -> 44 px (centre 22), glyph **12.5 -> 31.5 px** and chevron **12 -> 32 px**, both centred; the
+error is **0 px**, was 6 px. The glyph is still the full 19 px and is not clipped. The inline script
+parses (`node --check`); `tests/test_web_inline_script.py` and `tests/test_web_brand_assets.py` pass.
+
+**Open/next:** the glyph-to-word distance in the open rail is now 23 px, was 17.5 px - the price of
+the icons being in the middle of the green. `tests/test_product_subjects.py` has one **pre-existing**
+failure, `test_the_rail_carries_the_portfolio_lab_above_the_calculator`: it asserts the string
+"The free quote limit is reached", which commit `8bd1e9f` removed from the page. It fails the same
+way with or without this change.
 

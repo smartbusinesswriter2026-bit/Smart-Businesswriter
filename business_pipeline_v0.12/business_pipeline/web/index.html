@@ -36,10 +36,11 @@
   --rail-w:45px; --rail-w-open:272px; --rail-gap:10px;
   /* the strip carries the icon column and the label column starts a fixed gap
      after the strip, so narrowing the strip moves both halves together. The
-     icon column leans towards the labels: it is right-packed inside the strip
-     instead of centred in it, which is what closes the gap between the two.
-     --rail-pad is the strip's own inset, so the packed column ends 4 px short
-     of the strip edge and still clears the subject list's overflow clip. */
+     icon column is CENTRED in the strip: the owner's instruction was that the
+     icons do not sit in the middle of the green, and the earlier right-packing
+     (section 10) left every glyph 5.5 px right of the strip's own centre.
+     --rail-ic-pad is the item's own left inset, so the strip's own --rail-pad
+     comes off the centring. */
   --rail-pad:4px;
   --rail-ic-w:26px;
   /* The collapsed rail is the strip plus a column for the subject list's
@@ -49,7 +50,7 @@
      green and the icons keep the width they had. */
   --rail-sb:16px;
   --rail-w-collapsed:calc(var(--rail-w) + var(--rail-sb));
-  --rail-ic-pad:calc(var(--rail-w) - var(--rail-ic-w) - var(--rail-pad) - 4px);
+  --rail-ic-pad:calc((var(--rail-w) - var(--rail-ic-w)) / 2 - var(--rail-pad));
   --rail-text-x:calc(var(--rail-w) + var(--rail-gap));
   --rail-text-off:calc(var(--rail-text-x) - var(--rail-pad));
   --rail-text-gap:calc(var(--rail-text-x) - var(--rail-pad) - var(--rail-ic-pad) - var(--rail-ic-w));
@@ -156,8 +157,8 @@ body:not(.rail-open) .rail{width:var(--rail-w-collapsed)}
 .railtoggle{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0;
             border-radius:var(--r-sm);color:#FFFFFF;flex:0 0 auto;position:relative;z-index:2}
 .railtoggle svg{flex:0 0 auto}
-/* collapsed, the toggle sits over the icon column, which leans towards the
-   labels, so the two read as one column. It hugs the strip rather than the
+/* collapsed, the toggle sits over the icon column, which is centred in the
+   strip, so the two read as one column. It hugs the strip rather than the
    whole rail - the rail now carries the scrollbar's column - and the chevron
    is walked back onto the icon column by hand. */
 body:not(.rail-open) .railtoggle{width:calc(var(--rail-w) - var(--rail-pad));

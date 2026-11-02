@@ -973,3 +973,60 @@ comment beside it, so the type cannot drift again. It pins the whole rule becaus
 a worksheet title size and the loose form would have stopped guarding the body. The inline script
 parses (`node --check`); `tests/test_web_inline_script.py`, `tests/test_web_brand_assets.py` and
 `tests/test_product_subjects.py` pass.
+
+## 24. The rail's icons sit in the middle of the green
+
+Owner instruction (2026-11-03): check the icon rails on the outermost left side of the screen - the
+icons are not centred. Centre them.
+
+What was wrong, measured on the served page (Chrome, device pixel ratio 1, read with a CDP probe
+over the live page):
+- The green strip is **0 -> 45 px**, so its own centre is **22.5 px**. Every glyph sat at **28 px**,
+  and the toggle's chevron with it: **5.5 px right of the middle of the green**, with 19 px of green
+  on the icons' left and 7.5 px on their right.
+- The cause was section 10: the icon column was *right-packed* inside the strip so that the label
+  column could come closer to it. That closed the gap between an icon and its word, and it moved the
+  icons off the strip's centre line to do it. Neither the strip's width nor the label column was the
+  problem - the column's own position inside the strip was.
+- In the narrow layout (760 px, where the strip is 44 px) the glyph was still at 28 px, so the
+  error was **6 px**.
+
+What changed:
+- `--rail-ic-pad` now *centres* the icon column in the strip instead of packing it to the right:
+  `--rail-ic-pad: calc((var(--rail-w) - var(--rail-ic-w)) / 2 - var(--rail-pad))`. The strip's own
+  `--rail-pad` comes off the centring because `--rail-ic-pad` is the item's left inset inside the
+  rail's padding box. It is a formula, not a number, so the narrow layout's own `--rail-w`,
+  `--rail-pad` and `--rail-ic-w` recompute it correctly.
+- The toggle's chevron follows the column by hand - its `translateX` is written in terms of
+  `--rail-ic-pad` and `--rail-ic-w` - so it walked onto the centre line on its own. No second rule
+  was needed.
+- Nothing else moved. `--rail-w` (45 px; 44 px narrow), `--rail-gap` (10 px), `--rail-text-x`
+  (55 px; 54 px narrow) and `--rail-text-off` keep their values: the labels and the "SUBJECTS"
+  heading are still on the same x as before, and the open rail is still 272 px wide.
+
+Measured after the change (Chrome, device pixel ratio 1, the same probe):
+- Wide layout (1280x900): strip 0 -> 45 px (centre 22.5), glyph **13 -> 32 px (centre 22.5)**,
+  chevron **12.5 -> 32.5 px (centre 22.5)**. The off-centre error is **0 px**, was 5.5 px.
+- Narrow layout (760x900): strip 0 -> 44 px (centre 22), glyph **12.5 -> 31.5 px (centre 22)**,
+  chevron **12 -> 32 px (centre 22)**. The off-centre error is **0 px**, was 6 px.
+- The label column did not move: 55 px in the wide layout and 54 px narrow, and the "SUBJECTS"
+  heading and every subject name still start on it.
+- The glyph is still the full 19 px and is not clipped in either rail state.
+
+The cost, stated plainly: the glyph now ends at 32 px instead of 37.5 px while the label column is
+still at 55 px, so the eye crosses **23 px** between a glyph and its word instead of 17.5 px. That
+is the other half of the trade section 10 made on purpose; the owner has now taken the opposite
+half. The strip's width was not narrowed to buy the 5.5 px back, because narrowing the strip moves
+the labels with it.
+
+Verification: the served page was measured in both rail states at 1280x900 and 760x900 and captured
+in all four; the inline script parses (`node --check`); `tests/test_web_inline_script.py`,
+`tests/test_web_brand_assets.py` and `tests/test_product_subjects.py` pass, except for one
+pre-existing failure in that last file - `test_the_rail_carries_the_portfolio_lab_above_the_calculator`
+asserts the string "The free quote limit is reached", which commit `8bd1e9f` removed from the page,
+so it fails the same way with or without this change. No `src/bp/**`, `tests/**`, fixture or
+factual-doc edit, and the build pill is left alone.
+
+Not done, on purpose: the label column was not moved to keep the glyph-to-word gap at 17.5 px. That
+would mean narrowing the white gutter between the green strip and the labels from 10 px to 4.5 px
+and moving every label 5.5 px left, which the instruction did not ask for.
