@@ -1,3 +1,49 @@
+## Rates and FX: the foot sentence is gone
+
+Owner's call, and a fair one — the panel was saying the same thing twice.
+*"Both are published figures, not verified evidence: cite the date you read them. Nothing is auto-filled."*
+is deleted, and its CSS rule (`.lookupnote`) with it.
+
+Nothing factual left with it: the panel's intro still tells the student to read a value, confirm it and
+type it into the tool that needs it, and every result renders `marketFoot` — the publisher's name, an
+as-of date and a link to the source. The securities and macro panels keep their own sentences, because
+those two invite a bulk read of filings and series rather than a single figure.
+
+`test_market_panels.py::test_the_panels_keep_the_never_auto_fill_boundary` becomes
+`test_the_never_auto_fill_boundary_survives_without_a_standing_sentence`, which now asserts the
+sentence is absent, that the read-then-type instruction is present, and that the result footer still
+names the publisher. Suite count unchanged; served page on 8002 no longer contains the line.
+
+
+## The brand name steps back, the body steps down, and the chat gets a reading column
+
+Three instructions from the owner on the same look at the Home page: the brand name under the logo
+is "too loud and big" - two points smaller; the body - one point smaller; and the chat container
+should be the width a chat gets in Codex or ChatGPT.
+
+**The brand name is 43 px** (was 45 px). It is the `h1` under the mark in the hero. The topbar
+wordmark is untouched at 20.2 px, because that one sits *beside* the mark and is the app's own name
+in the chrome, not the hero lockup the instruction named.
+
+**The body is 16.8 px** (was 17.8 px). The body copy that sat one rung above it moved with it, so
+the change is visible and not only structural: the hero paragraph and the slogan are 18 px (was
+19 px) and the composer text is 18 px (was 19 px). The slogan keeps its two-weight step - the bold
+lead and the italic proof line are still one step above and one step below it.
+
+**The chat column is 768 px**, centred. The composer and the conversation card under it are one
+column instead of a box stretched across the whole shell, and `max-width` alone, so a narrow screen
+still gets the full width. The conversation card now sits 16 px under the composer, the gap the
+Documents card already had; before this the two boxes shared an edge.
+
+Measured on the served page (Chrome, 1440x1000): `.hero h1` 45 -> 43 px, `body` 17.8 -> 16.8 px,
+`.actionbox` and `#chatcard` 1116 -> 768 px at the same left (359) and right (1127) and the same
+centre as the hero wordmark.
+
+The pinned body size in `tests/test_product_subjects.py` moved with the page - the assertion now
+reads `font-size:16.8px`, with the owner's instruction and the date beside it. The inline script
+parses (`node --check`); `tests/test_web_inline_script.py`, `tests/test_web_brand_assets.py` and
+`tests/test_product_subjects.py` pass. No behaviour, number, wording or claim changed.
+
 ## A rubric can be read, and only what it states is carried
 
 The owner asked for a rubric to be uploaded and followed when the paper is written. The first
