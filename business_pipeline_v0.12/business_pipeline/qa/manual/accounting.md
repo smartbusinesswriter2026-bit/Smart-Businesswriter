@@ -385,7 +385,9 @@ Every row is atomic and testable. "Source" is the authority the expectation rest
 | E-acc-007 | `POST /api/sessions` returns `awaiting_confirmation` with nothing computed and the method's `test_names` in the work plan; `confirm` returns `delivered`; the state is fully JSON-serialisable. `management_accounts` stops at its **second mandatory checkpoint** (`awaiting_mapping_confirmation`) and delivers only after the mapping is confirmed — the page's "Confirm the account mapping and post". | `session.py`; `test_session_api.py`; live click-through `qa/evidence/accounting/` |
 | E-acc-008 | Rejecting the plan blocks it and marks the remaining stages `not_run`; a blocked run cannot later be confirmed. | `session.py`; `test_session_api.py` |
 | E-acc-009 | An unknown input name, a wrong type or a binary float is refused at intake with an actionable message — never a 500, never a silent coercion. | `methods.validate_inputs`; orchestrator intake |
-| E-acc-051 | An **unknown method name** is refused with a reason, not silently converted into a framework-only (T4) delivery. **Today it is not: see D-ACC-09 / G-acc-09 — the fail-open lives in the frozen stage contract, so the fix needs an owner unfreeze decision.** | `HANDOFF.md` non-negotiable 4 ("unknown method → block"); `orchestrator.resume` line 139 |
+| E-acc-051 | An **unknown method name** is refused with a reason, not silently converted into a framework-only (T4) delivery; the declared `framework_only` sentinel still delivers a structure-only paper. | `HANDOFF.md` non-negotiable 4 ("unknown method → block"); `orchestrator.start` intake; B-181 |
+| E-acc-052 | Every accounting method — and the accounting-adjacent methods `tax_incidence`, `risk_metrics`, `social_welfare` — owns its own `typing` hook: no two methods share a hook name or function object, and each answers with its own units. | `LIBRARY[id].typing`; B-179 |
+| E-acc-053 | A brief that belongs to another shelf is refused by the shelf vocabulary, naming the shelf ("does not look like a management or strategy instruction"); one recognised word is enough, and an explicitly named framework is never refused. | `guard.subject_fit`; `CONDUCTOR_MANUAL.md` §4; B-180 |
 | E-acc-010 | A delivered accounting computation carries its honesty block, passes every declared check, keeps its claim ceiling (`descriptive`) and contains no unresolved `{{ref:` token. | orchestrator/`claims`; `test_honesty.py` |
 | E-acc-045 | A delivered computation exports to `.docx` (submission) and `.xlsx` (workpapers) with the computed numbers unchanged and no template text; `presentation` is refused with a reason. | `deliverables.py`; `CONDUCTOR_MANUAL.md` §8 |
 
@@ -491,13 +493,21 @@ session; `GAP` = a declared gap (ledger id given); `BLOCKED` = waiting on an own
 | E-acc-048 | `test_E_acc_048__paper_prose_carries_no_recommendation_or_forecast` | PASS |
 | E-acc-049 | `test_E_acc_049__a_pure_accounting_brief_is_refused_and_named` | PASS |
 | E-acc-050 | `test_E_acc_050__guide_catalogue_and_limitations_agree` | PASS |
-| E-acc-051 | *(no test — deliberately)* | **BLOCKED (D-ACC-09)**: the fail-open is inside the frozen stage contract; a trap test would fail on today's tree. The reproduction is recorded verbatim in `qa/QA_DEFECTS.md`. |
+| E-acc-051 | `test_E_acc_051__an_unknown_method_is_refused` | PASS (was BLOCKED; fixed under B-181) |
+| E-acc-052 | `test_E_acc_052__each_method_owns_its_typing_hook` | PASS (was BLOCKED; fixed under B-179) |
+| E-acc-053 | `test_E_acc_053__a_brief_for_another_shelf_is_refused_by_vocabulary` | PASS (was BLOCKED; fixed under B-180) |
 
 Rows E-acc-043, E-acc-044, E-acc-046, E-acc-049 were **FAIL** when this session opened (they are
 baseline failures `test_a_bespoke_formatter_reports_the_core_numbers_as_money`,
 `test_a_finance_paper_reports_the_cash_conversion_cycle`, `test_plan_dependencies…`,
 `test_plan_verifier…` and `test_open_pure_accounting_refused`). Their fixes are this session's
-increments; see `qa/QA_DEFECTS.md` D-ACC-01…D-ACC-05.
+first increment; see `qa/QA_DEFECTS.md` D-ACC-01…D-ACC-05.
+
+Rows E-acc-051, E-acc-052 and E-acc-053 were **BLOCKED** at the same point — each needed an owner
+decision. The owner approved all three in the session that followed, so they are now **PASS**,
+each with its own trap test and its own decision: **B-179** (one `typing` hook per method),
+**B-180** (the shelf vocabulary enforces again, with a named-framework carve-out) and **B-181**
+(an unknown method name fails closed).
 
 ## 10. Known gaps (declared, not fixed)
 
@@ -507,11 +517,11 @@ increments; see `qa/QA_DEFECTS.md` D-ACC-01…D-ACC-05.
 | G-acc-02 | No worksheet or framework profile on this shelf. | `SUBJECT_DEFS[0]["worksheets"] == []`; `CURRICULUM_MAP.md` | Declared shelf shape. |
 | G-acc-03 | No jurisdiction tax law, credits, thresholds, NOLCO or filing; no audit sampling or opinion; no group consolidation; no target or life-cycle costing; no budget, planning or idle-capacity variances. | guide §"What is not built"; `LIBRARY` limitations; `QNT-FIN-02/05` | Owner-gated (tax is B-052; standards retrieval is HANDOFF §4G). |
 | G-acc-04 | No PDF, scan or image ingestion. | guide §"What is not built" | Parked ingestion work (HANDOFF §4). |
-| G-acc-05 | `_tax_typing` is defined twice in `src/bp/methods.py` (lines 5164 and 13953); `tax_incidence` captures the second, so its unit/precision hook answers for `tax_declared`. `_risk_typing` and `_social_typing` are duplicated the same way. | `qa/probe_duplicates.py`, `qa/probe_shadowing.py` | **Inside the frozen core.** A rename changes a delivered unit label on the economics and project shelves, so it needs an owner unfreeze decision. Ledgered D-ACC-06 / BLOCKED. |
-| G-acc-06 | `guard.subject_fit()` returns `(True, None)` unconditionally, so a marketing brief typed on the management shelf is refused by `_fit`'s external-evidence rule rather than by the subject vocabulary. | `docs/CONTINUATION_NOTE.md`; `tests/test_product_home_routing.py::test_shelf_mode_control` | Two documented positions disagree (the design note says restore the vocabulary; the guard docstring says Home is a policy-free conductor). Ledgered D-ACC-07 / BLOCKED on an owner B-decision. |
+| G-acc-05 | `_tax_typing` is defined twice in `src/bp/methods.py` (lines 5164 and 13953); `tax_incidence` captures the second, so its unit/precision hook answers for `tax_declared`. `_risk_typing` and `_social_typing` are duplicated the same way. | `qa/probe_duplicates.py`, `qa/probe_shadowing.py` | **RESOLVED — B-179 (owner unfreeze, 2026-11-02).** All six hooks renamed to one per method (`_tax_incidence_typing`, `_tax_declared_typing`, `_risk_metrics_typing`, `_schedule_risk_typing`, `_social_welfare_typing`, `_social_engagement_typing`) and re-pointed; `methods.py` now has **zero** duplicate definitions. Test: E-acc-052. |
+| G-acc-06 | `guard.subject_fit()` returned `(True, None)` unconditionally, so a marketing brief typed on the management shelf was refused by `_fit`'s external-evidence rule rather than by the subject vocabulary. | `docs/CONTINUATION_NOTE.md`; `tests/test_product_home_routing.py::test_shelf_mode_control` | **RESOLVED — B-180 (owner decision, 2026-11-02).** The vocabulary enforces again (`SUBJECT_HINTS`, one recognised word is enough) with a named-framework carve-out and the computation boundary checked first; the refusal names the shelf. Test: E-acc-053. |
 | G-acc-07 | No PDF, Markdown or ZIP deliverable for a computation; `presentation` has no renderer. | `deliverables.PROFILES` | Declared limit: a format is offered only where a renderer exists. |
 | G-acc-08 | The student guide's practice-set questions 3 and 4 are queueing and line-balancing exercises — operations tools, not accounting ones. | guide §"Practice set"; `OPERATIONS_GROUPS` | Documentation drift. Ledgered D-ACC-08 (MINOR, DOC-DRIFT): the questions are answerable on the Operations shelf. |
-| G-acc-09 | An unknown `method` name is delivered as a framework-only (T4) response instead of being refused. | `orchestrator.resume` (line 139 `if not m:`), `HANDOFF.md` non-negotiable 4 | Fail-open inside the **frozen stage contract** (B-079). Fix needs an owner unfreeze decision plus a B-number, so it is ledgered D-ACC-09 / BLOCKED, not patched. |
+| G-acc-09 | An unknown `method` name was delivered as a framework-only (T4) response instead of being refused. | `orchestrator.start`; `HANDOFF.md` non-negotiable 4 | **RESOLVED — B-181 (owner unfreeze, 2026-11-02).** The intake refuses a name that is neither a frozen method nor a template, with the reason and the pointer to `/api/methods`; the declared `framework_only` sentinel still produces a structure-only paper. Test: E-acc-051. |
 
 
 

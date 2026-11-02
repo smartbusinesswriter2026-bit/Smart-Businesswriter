@@ -808,7 +808,12 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     if open_mode:
         detected_id, detected_cue = guard.detect_subject(brief)
     if not open_mode:
-        fits, message = guard.subject_fit(brief, subject or "management")
+        # The computation boundary runs first: it can name the shelf the brief belongs
+        # to ("use the Accounting shelf"), which is more useful than the vocabulary's
+        # generic refusal for the same brief.
+        fits, message = guard.computation_boundary(brief, subject or "management")
+        if fits:
+            fits, message = guard.subject_fit(brief, subject or "management")
         if not fits and framework in ("breakeven", "vrio"):
             # A break-even paper and a resource audit are not management briefs; the
             # framework is explicit, so the subject guard would refuse a legitimate paper.

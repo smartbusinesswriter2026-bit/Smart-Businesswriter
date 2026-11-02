@@ -1,7 +1,34 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
 
-## 2026-11-02 — [product] QA session 1 (accounting): the paper's numbers are formatted again, and a computation brief is refused instead of wrapped
+## 2026-11-02 — [core] Owner-approved unfreezes: one unit hook per method, the shelf vocabulary enforces again, an unknown method is refused
+
+**Ask.** "1. what do you need from me? to unfreeze, yes unfreeze it. 2. implement your reco 3. yes
+unfreeze. dont do finance yet, its doing some fixing" — i.e. approve the three blocked items from
+QA session 1 and leave `finance` alone while another session works on it.
+
+**Did.** (1) **B-179** — renamed the six duplicated `typing` hooks in `src/bp/methods.py`
+(`_risk_metrics_typing`, `_tax_incidence_typing`, `_social_welfare_typing`,
+`_social_engagement_typing`, `_schedule_risk_typing`, `_tax_declared_typing`) and re-pointed the
+six `Method(...)` constructions, so `risk_metrics`, `tax_incidence` and `social_welfare` stop
+answering with another method's units. The edit was applied by `qa/patch_typing_hooks.py`, which
+asserts every target line before writing (and is kept as the record), and the file now has zero
+duplicate definitions. (2) **B-180** — `guard.subject_fit()` enforces the shelf vocabulary again
+with `SUBJECT_LABELS`, a named-framework carve-out (`FRAMEWORK_WORDS`) and the computation
+boundary re-ordered to run first in `chat.start`, so a journal-entry brief gets the Accounting
+message and a marketing brief on the management shelf gets the shelf message.
+(3) **B-181** — `orchestrator.start` refuses a method name that is neither a frozen method nor a
+template, with the reason and a pointer to `/api/methods`; the declared `framework_only` sentinel
+still delivers the structure-only paper. Manual `E-acc-051…053`, three trap tests, ledger rows
+moved to FIXED, decisions B-179…B-181 recorded, documented count 2627 → 2630.
+
+**Why.** The owner's approval converts three ledgered BLOCKED findings into fixes, and each is a
+real wrong answer rather than a tidy-up: a 50-digit decimal labelled "periods", a marketing brief
+refused with a sentence about the wrong thing, and a typo'd method name answered with a paper that
+looks like an answer. Scope was held to the three decisions: no method, input, check, preset or
+number changed, `scripts/econ_shelf.py --check` still reports "frozen fixture: in sync", and the
+12 protected API route families are untouched. `finance` was not opened, per the instruction.
+
 
 **Ask.** "I want to ensure the pipeline works and that it has no bugs. There is no manual for how
 each subject should work. Test, debug and fix the pipeline for each subject" — accounting first.

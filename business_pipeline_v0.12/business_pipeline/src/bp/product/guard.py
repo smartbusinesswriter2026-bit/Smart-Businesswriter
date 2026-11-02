@@ -79,10 +79,55 @@ def computation_boundary(text, subject="management"):
     return True, None
 
 
+#: What each shelf is called in a refusal.  The label is the shelf's own name, so the
+#: student is told which shelf the brief belongs to rather than that it is "invalid".
+SUBJECT_LABELS = {
+    "management": "management or strategy",
+    "finance": "finance",
+    "accounting": "accounting",
+    "economics": "economics",
+    "marketing": "marketing",
+    "operations": "operations",
+    "supply-chain": "supply chain",
+    "project-management": "project management",
+    "entrepreneurship": "entrepreneurship",
+    "people": "people and organisation",
+    "research": "research or statistics",
+}
+
+#: Naming one of these is the stronger statement of intent: the student has said what
+#: the paper is, so the shelf vocabulary does not re-litigate it.  This is the same
+#: carve-out `chat.start` already makes for break-even and VRIO.
+FRAMEWORK_WORDS = ("five forces", "value chain", "pestel", "swot", "vrio", "ansoff",
+                   "break-even", "breakeven", "break even", "business model canvas",
+                   "lean canvas", "business plan", "feasibility study", "marketing plan",
+                   "project proposal")
+
+
 def subject_fit(text, subject="management"):
-    """Return (ok, message).  Home is the macro conductor: it accepts any subject
-    and any combination of framework + computation; the subject field is advisory."""
-    return True, None
+    """Return (ok, message): the brief must look like work for **this** shelf.
+
+    A shelf is a promise about the kind of question it answers, so a brief that belongs
+    to another shelf is refused here with the shelf to use instead — that is the
+    "no silent framework substitution" rule at the routing layer (B-180).  The check is
+    deliberately generous: one recognised word is enough, and naming a framework (or
+    opening the composer on "any") bypasses it entirely, because over-refusing a real
+    brief is its own defect.
+    """
+    if not subject or is_open(subject):
+        return True, None
+    hints = SUBJECT_HINTS.get(subject)
+    if not hints:
+        # A shelf the vocabulary does not describe cannot be checked from words alone.
+        return True, None
+    lower = (text or "").lower()
+    if any(word in lower for word in FRAMEWORK_WORDS):
+        return True, None
+    if _words(text) & set(hints):
+        return True, None
+    label = SUBJECT_LABELS.get(subject, subject)
+    return False, ("This does not look like a %s instruction. Name the %s question, or open "
+                   "the shelf the brief belongs to." % (label, label))
 
 
 def five_forces_fit(text, industry=""):

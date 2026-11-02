@@ -40,8 +40,18 @@ class T(unittest.TestCase):
         self.assertEqual([e["stage"] for e in p.events if e["stage"] in ("intake","formalization","delivery")], ["intake","formalization","formalization","delivery"])
     def test_user_must_confirm(self):
         self.assertEqual(Pipeline().run(REQ, lambda s: False).status, "blocked")
-    def test_no_method_is_framework_only(self):
-        d = Pipeline().run({**REQ, "method": "mystery"}, yes); self.assertEqual(d.tier, "T4"); self.assertIn("No computed answer", d.report)
+    def test_a_missing_method_is_framework_only_and_an_unknown_one_is_refused(self):
+        # No method at all is the declared way to ask for a structure-only paper: the
+        # request becomes the `framework_only` sentinel (B-181).
+        d = Pipeline().run({**REQ, "method": None}, yes)
+        self.assertEqual(d.tier, "T4"); self.assertIn("No computed answer", d.report)
+        # A name that is neither a frozen method nor a template is a mistake, and it is
+        # refused: before B-181 this returned the framework-only paper, which was a
+        # silent substitution of a different artefact.
+        refused = Pipeline().run({**REQ, "method": "mystery"}, yes)
+        self.assertEqual(refused.status, "blocked")
+        self.assertIn("mystery", refused.blocked_reason)
+        self.assertIn("neither a frozen method nor a template", refused.blocked_reason)
     def test_profiling_blocks_bad_input(self):
         r = {"objective": "x", "method": "breakeven", "inputs": {"fixed": "100", "price": "5", "variable": "6"}}
         self.assertEqual(Pipeline().run(r, yes).status, "blocked")

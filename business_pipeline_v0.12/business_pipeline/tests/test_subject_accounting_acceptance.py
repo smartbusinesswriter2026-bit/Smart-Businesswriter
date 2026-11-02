@@ -499,6 +499,22 @@ class RunPathTest(unittest.TestCase):
                     self.assertNotIn(overclaim, lowered,
                                      "a descriptive method must not license causation")
 
+    def test_E_acc_051__an_unknown_method_is_refused(self):
+        """B-181: a name that is neither a frozen method nor a template must fail closed."""
+        refused = Pipeline().run({"objective": "x", "method": "no_such_method", "inputs": {}},
+                                 lambda stage: True)
+        self.assertEqual(refused.status, "blocked")
+        self.assertIn("no_such_method", refused.blocked_reason)
+        self.assertIn("neither a frozen method nor a template", refused.blocked_reason)
+        self.assertNotIn("report", refused.appendix,
+                         "a refused method must not carry a framework-only report")
+        # The declared sentinel still asks for a structure-only paper.
+        control = Pipeline().run({"objective": "Assess the grocery retail industry.", "inputs": {}},
+                                 lambda stage: True)
+        self.assertEqual(control.status, "delivered")
+        self.assertEqual(control.tier, "T4")
+        self.assertIn("Framework-only response", control.appendix.get("note", ""))
+
     def test_E_acc_045__deliverables_carry_the_numbers_and_refuse_presentation(self):
         delivery = deliver("accounts")
         self.assertEqual(delivery.status, "delivered", delivery.blocked_reason)
@@ -834,6 +850,27 @@ class ToolBehaviourTest(unittest.TestCase):
             methods.LIBRARY["tax_declared"].impl(
                 {"taxable_income": "1000", "income_tax_rate": "1.5"})
 
+    def test_E_acc_052__each_method_owns_its_typing_hook(self):
+        """B-179: two methods must never share one unit/precision hook by shadowing."""
+        seen = {}
+        for method_id in METHODS + ["tax_incidence", "risk_metrics", "social_welfare",
+                                   "schedule_risk", "social_engagement"]:
+            hook = getattr(methods.LIBRARY[method_id], "typing", None)
+            if hook is None:
+                continue
+            name = getattr(hook, "__name__", repr(hook))
+            with self.subTest(method=method_id):
+                self.assertNotIn(name, seen,
+                                 "%s and %s share the hook %r" % (method_id, seen.get(name), name))
+            seen[name] = method_id
+        # The measured consequence of the repair, per method.
+        self.assertEqual(methods.LIBRARY["tax_declared"].typing("income_tax_rate"), ("rate", 4))
+        self.assertEqual(methods.LIBRARY["tax_declared"].typing("taxable_income"), ("currency", 2))
+        self.assertEqual(methods.LIBRARY["tax_incidence"].typing("producer_share"), ("ratio", 4))
+        self.assertEqual(methods.LIBRARY["tax_incidence"].typing("quantity_traded"), ("units", 2))
+        self.assertEqual(methods.LIBRARY["risk_metrics"].typing("mean_return"), ("rate", 4))
+        self.assertEqual(methods.LIBRARY["social_welfare"].typing("n"), ("count", 0))
+
     def test_E_acc_042__guide_worked_examples_reproduce(self):
         from bp import accounts
         spec = MINIATURE
@@ -943,6 +980,23 @@ class RoutingTest(unittest.TestCase):
                            "capital cycle the entry needs.", "any")
         self.assertNotEqual(keeps["stage"], "not_supported",
                             "an industry brief with an external question is still a paper")
+
+    def test_E_acc_053__a_brief_for_another_shelf_is_refused_by_vocabulary(self):
+        """B-180: the shelf vocabulary refuses another shelf's brief, naming the shelf."""
+        marketing = chat.start("Evaluate the effectiveness of the brand new digital advertising "
+                               "campaign for urban millennials.", "management")
+        self.assertEqual(marketing["stage"], "not_supported")
+        self.assertIn("does not look like a management or strategy instruction",
+                      marketing["message"])
+        # A named framework is the stronger statement of intent and is never over-refused.
+        named = chat.start("SWOT analysis of our coffee shop in a coastal city.", "management",
+                           "swot")
+        self.assertNotEqual(named["stage"], "not_supported",
+                            "an explicitly named framework must not be refused by vocabulary")
+        # One recognised word is enough: the check may not demand a whole sentence.
+        fits = chat.start("Assess the competitive position of the grocery chain entering the "
+                          "Saudi market.", "management")
+        self.assertNotEqual(fits["stage"], "not_supported")
 
 
 if __name__ == "__main__":

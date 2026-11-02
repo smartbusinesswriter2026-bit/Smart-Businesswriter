@@ -1,4 +1,34 @@
-## Accounting: the paper's numbers are formatted, and a computation brief is no longer wrapped in a PESTEL paper (QA session 1)
+## Core: one unit hook per method, the shelf vocabulary enforces again, and an unknown method is refused (owner-approved unfreezes B-179…B-181)
+
+- **A frozen method owns its own `typing` hook (B-179).** `src/bp/methods.py` defined
+  `_risk_typing`, `_tax_typing` and `_social_typing` twice each; Python keeps the last, so every
+  `Method(...)` construction captured whichever block came last and three methods were handed
+  another method's units: `risk_metrics` reported a mean return in "periods", `tax_incidence`
+  reported a quantity traded in "currency", `social_welfare` reported a headcount as a "rate".
+  All six hooks are renamed one-per-method and re-pointed. Labels only — no method, input, check,
+  preset or number changed, and `scripts/econ_shelf.py --check` still says
+  "frozen fixture: in sync". `src/bp/methods.py` now has zero duplicate definitions.
+- **A shelf refuses another shelf's brief, and names the shelf (B-180).**
+  `guard.subject_fit()` no longer returns `(True, None)` unconditionally: a brief must contain
+  one word from the shelf's own vocabulary, and the refusal reads *"This does not look like a
+  management or strategy instruction. Name the … question, or open the shelf the brief belongs
+  to."* Three carve-outs stop it over-refusing — the composer opened on `any`, any explicitly
+  named framework, and the computation boundary, which is now checked **first** so a
+  journal-entry brief is told to use the Accounting shelf instead of that it is not strategy.
+- **An unknown method name fails closed (B-181).** `orchestrator.start` refuses a `method` that
+  is neither a frozen method nor a template, with the reason and a pointer to `/api/methods`.
+  Previously `{"method": "no_such_method"}` came back `delivered` with a T4 "no computed answer
+  is given" report — a silent substitution of a different artefact. The declared
+  `framework_only` sentinel still produces a structure-only paper; the API route families are
+  untouched.
+- **Manual and suite grow with the changes:** `qa/manual/accounting.md` gains `E-acc-051…053`
+  (all PASS), the traceability matrix moves to 53 rows, and
+  `tests/test_subject_accounting_acceptance.py` gains the three trap tests (53 tests,
+  136 subtests). `qa/QA_DEFECTS.md` moves D-ACC-06/-07/-09 from BLOCKED to FIXED.
+- The documented test count moves 2627 → **2630** in `HOME.md`, `HANDOFF.md` and
+  `CONTRIBUTORS.md`.
+
+
 
 - **A student's accounting paper printed raw core decimals.** `src/bp/product/chat.py` held **two**
   definitions of `_capability_lines` (and of `_declared_inputs_line`); the later `key: value` stub

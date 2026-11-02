@@ -4613,7 +4613,7 @@ def _risk_profile(inp):
     except (InvalidOperation, ValueError, TypeError, KeyError):
         return ["risk inputs are malformed: returns is required and the confidence, portfolio value and horizon must be numbers"]
 
-def _risk_typing(metric):
+def _risk_metrics_typing(metric):
     if metric in ("n_observations",): return ("count", 0)
     if metric in ("mean_return", "sd_return", "confidence", "parametric_var", "historical_var", "parametric_cvar", "historical_cvar"): return ("rate", 4)
     if metric == "horizon_days": return ("days", 0)
@@ -5161,7 +5161,7 @@ def tax_incidence_profile(inp):
         return ["tax-incidence inputs are malformed: four curve numbers and tax_per_unit are required"]
 
 
-def _tax_typing(metric):
+def _tax_incidence_typing(metric):
     if metric in ("equilibrium_quantity_no_tax", "quantity_traded"):
         return ("units", 2)
     if metric in ("consumer_share", "producer_share"):
@@ -6438,7 +6438,7 @@ def social_welfare_profile(inp):
         return ["social-welfare inputs are malformed: incomes must be a list of positive numbers"]
 
 
-def _social_typing(metric):
+def _social_welfare_typing(metric):
     if metric == "n":
         return ("count", 0)
     return ("currency", 2)
@@ -10063,7 +10063,7 @@ def social_engagement_profile(inp):
     except (InvalidOperation, ValueError, TypeError, KeyError):
         return ["social inputs are malformed: impressions, reach, engagements, followers and spend are required"]
 
-def _social_typing(metric):
+def _social_engagement_typing(metric):
     if metric in ("impressions", "reach", "engagements", "posts"):
         return ("count", 0)
     if metric in ("spend", "cpm", "cost_per_engagement"):
@@ -12613,7 +12613,7 @@ def schedule_risk_profile(inp):
         return ["schedule-risk inputs are malformed; every activity needs optimistic, most_likely and pessimistic durations"]
 
 
-def _risk_typing(metric):
+def _schedule_risk_typing(metric):
     if metric == "iterations" or metric == "n_within_target":
         return ("count", 0)
     if metric.startswith("criticality_") or metric.startswith("probability_"):
@@ -13950,7 +13950,7 @@ def tax_declared_profile(inp):
     except (InvalidOperation, ValueError, TypeError, KeyError):
         return ["tax inputs are malformed: taxable_income and income_tax_rate are required numbers"]
 
-def _tax_typing(metric):
+def _tax_declared_typing(metric):
     if metric in ("income_tax_rate", "deferred_tax_rate"):
         return ("rate", 4)
     return ("currency", 2)
@@ -15465,7 +15465,7 @@ LIBRARY = {
                             {"question": "Horizon scaling", "default_chosen": "The square root of the declared horizon; this assumes independent and identically distributed returns.", "impact": "Volatility clustering makes the scaled loss understated."}),
                   assumptions=("The return series is representative of the risk being measured.", "The parametric route assumes normality; the historical route assumes the sample covers the tail.", "Returns are independent over the scaling horizon."),
                   limitations=("VaR is a quantile, not a maximum loss; the tail beyond it is only summarised by expected shortfall.", "No volatility model, simulation or backtest.", "No credit, liquidity or non-linear position risk."),
-                  default_period="period", caveats=_risk_caveats, template=_risk_template, claim_ceiling="descriptive", typing=_risk_typing),
+                  default_period="period", caveats=_risk_caveats, template=_risk_template, claim_ceiling="descriptive", typing=_risk_metrics_typing),
     "fx_parity": Method("fx_parity", "T1", fx_impl, _fx_tests, _fx_profile, "ppp_expected_spot", "value", None,
                   ("second_implementation_agrees", "interest_rate_parity_reproduces_the_forward", "purchasing_power_parity_reproduces_the_expected_spot",
                    "the_forward_premium_is_the_annualised_forward_change", "zero_differentials_leave_the_spot_rate_unchanged",
@@ -15585,7 +15585,7 @@ LIBRARY = {
                   assumptions=("Linear demand and supply, all else equal.", "The tax is a fixed amount per unit, not a percentage of price.", "The market is competitive and partial equilibrium."),
                   limitations=("Per-unit tax only; no ad valorem tax.", "No income effects, other markets, evasion or administration costs.", "The incidence split depends on the declared slopes, not on who hands the tax to the government."),
                   default_period="annual", caveats=tax_incidence_caveats, template=tax_incidence_template,
-                  claim_ceiling="descriptive", typing=_tax_typing),
+                  claim_ceiling="descriptive", typing=_tax_incidence_typing),
     "price_control": Method("price_control", "T1", price_control_impl, price_control_tests,
                   price_control_profile, "quantity_traded", "units", None,
                   ("second_implementation_agrees", "a_non_binding_control_leaves_the_market_unchanged",
@@ -15871,7 +15871,7 @@ LIBRARY = {
                   assumptions=("Incomes are positive and comparable across the people listed.", "Income is a sufficient proxy for the welfare argument.", "The selected function is the intended ethical criterion."),
                   limitations=("No equivalence scales, household composition or non-income dimensions.", "No interpersonal utility comparison beyond the declared incomes.", "The welfare function is a normative choice."),
                   default_period="annual", caveats=social_welfare_caveats, template=social_welfare_template,
-                  claim_ceiling="descriptive", typing=_social_typing),
+                  claim_ceiling="descriptive", typing=_social_welfare_typing),
     "gini_coefficient": Method("gini_coefficient", "T1", gini_coefficient_impl, gini_coefficient_tests,
                   gini_coefficient_profile, "gini", "ratio", None,
                   ("second_implementation_agrees", "equal_incomes_give_zero_gini",
@@ -16620,7 +16620,7 @@ LIBRARY = {
                   assumptions=("The counts cover one account, one period and one platform definition.", "Reach is a subset of impressions."),
                   limitations=("Declared-count arithmetic; no platform read, bot filter or sentiment.", "Engagement definitions differ between platforms and change over time.", "No sales attribution or incrementality."),
                   default_period="per period", caveats=social_engagement_caveats, template=social_engagement_template,
-                  claim_ceiling="descriptive", typing=_social_typing),
+                  claim_ceiling="descriptive", typing=_social_engagement_typing),
     "web_analytics": Method("web_analytics", "T1", web_analytics_impl, web_analytics_tests,
                   web_analytics_profile, "revenue_per_session", "currency", None,
                   ("second_implementation_agrees", "session_shares_sum_to_one", "conversion_rate_is_conversions_over_sessions",
@@ -16915,7 +16915,7 @@ LIBRARY = {
                   assumptions=("Activity durations are independent draws from the declared triangular distributions.", "The network is acyclic and has no resource limits.", "The seed is declared and kept for the report."),
                   limitations=("Monte Carlo is a sample, not a guarantee; percentiles move with the seed.", "No resource limits, calendars, correlation or distribution fitting.", "Criticality is the share of runs with zero float, not a causal importance measure."),
                   default_period="per period", caveats=schedule_risk_caveats, template=schedule_risk_template,
-                  claim_ceiling="descriptive", typing=_risk_typing),
+                  claim_ceiling="descriptive", typing=_schedule_risk_typing),
     "decision_tree": Method("decision_tree", "T1", decision_tree_impl, decision_tree_tests, decision_tree_profile,
                   "expected_value", "currency", None,
                   ("second_implementation_agrees", "chance_probabilities_sum_to_one",
@@ -17121,7 +17121,7 @@ LIBRARY = {
                   assumptions=("The declared taxable income and rates are the ones that apply to the period.", "VAT output and input are for the same period and the same registration."),
                   limitations=("No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.", "No link to the accounting profit or the statements.", "Deferred tax is one declared difference times one declared rate."),
                   default_period="annual", caveats=tax_declared_caveats, template=tax_declared_template,
-                  claim_ceiling="descriptive", typing=_tax_typing),
+                  claim_ceiling="descriptive", typing=_tax_declared_typing),
     "depreciation_schedule": Method("depreciation_schedule", "T1", depreciation_schedule_impl, depreciation_schedule_tests,
                   depreciation_schedule_profile, "total_depreciation", "currency", None,
                   ("second_implementation_agrees", "depreciation_never_takes_carrying_below_salvage",
