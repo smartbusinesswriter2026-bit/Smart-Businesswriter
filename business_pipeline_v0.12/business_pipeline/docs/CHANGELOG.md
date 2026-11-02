@@ -1,3 +1,24 @@
+## The hidden buttons are actually hidden now, and one Excel button is enough
+
+Owner: "again HIDE CHARTS AND EXPORT", "download the figures (excel) is already redundant if there is
+download spreadsheet", "in trial balance, it wont download docx".
+
+- **Why "hidden" did nothing.** `.btn{display:inline-flex}` overrode the `hidden` attribute, because
+  only `.panel`, `.tabpanel`, `.drawer` and `.modal` had an explicit `[hidden]` rule. There is now one
+  global `[hidden]{display:none !important}`, so both **Charts and exports** buttons (the static one on
+  the calculator and the one the result panel renders) are actually gone from view.
+- **One Excel button.** The result panel rendered two: `Download spreadsheet` (which downloads bytes)
+  and `Download the figures (Excel)`, and the second was bound to `downloadSessionPaper("xlsx")` — a
+  format the paper route refuses, so it never worked at all. It is removed, with its handler.
+- **The Word paper now has a real second route.** A session is in memory only, so a server restart, or
+  a run that came back blocked, left `Download the paper (Word)` dead. The handler now tries the live
+  session and, if that cannot serve the paper, exports the **saved case** (`docx` / `submission`) before
+  reporting failure — and when both fail it shows the reason instead of nothing. This is the path the
+  accounting tiles use, trial balance included.
+
+- 1.65 (2026-11-03): make `[hidden]` win over `.btn`, remove the duplicate Excel button, and give the Word paper a saved-case fallback; no frozen core, method, preset, input, check, number or route changed.
+
+
 ## No Markdown downloads, no charts button, and a figures form that fits
 
 Owner instruction: never download `.md` files, and the charts-and-exports button should disappear
