@@ -6,13 +6,23 @@ The workbench front end is a single self-contained `web/index.html` (no build st
 ## 1. Assets
 
 - `web/assets/logo.png` — the owner's PNG copied verbatim (1284×1032, RGB, no alpha, 576,836 bytes).
-- `web/assets/mark.png` — the mark cropped from the logo (168×139, 38,359 bytes) and area-averaged down
-  from the saturated top band. Used in the rail/chat button and inlined as a data URI.
+- `web/assets/mark.png` — the mark cropped from the logo (168×139) and **cut with a real alpha
+  channel**: the paper outside the artwork is transparent, the paper inside the book stays opaque.
+  Used in the rail/chat button and inlined as a data URI. Rebuilt by `scripts/generate_mark.py`;
+  the file on disk is the same bytes the page carries.
 - Palette sampled from the PNG (not guessed): navy-900 `#02284C`, navy-700 `#0C243E`, green-600 `#02A15E`,
   green-700 `#076B41`, canvas `#FCFCFC`. The brief's approximations (`#143E68`, `#1E9E6B`) are mid-tints.
-- The logo has **no alpha channel** and a solid `#FCFCFC` background: on the navy rail it reads as a light
-  rectangle. It is used on light surfaces only; the rail uses the cropped mark on the same `#FCFCFC`
-  background so the rectangle disappears. A transparent/cropped owner-supplied mark would be cleaner (Q7).
+- The logo PNG itself has **no alpha channel** and a solid `#FCFCFC` background, so it must not be
+  inlined as it stands — the mark is cut first (Q7 is now answered: the owner's own PNG, cut with
+  alpha, not a new owner-supplied asset). A copy of the raw logo pasted into the page shows as a
+  white card on the Home hero and as a white rectangle on the navy chat button.
+- The page is **one document**. A second `<!doctype html>` in front of the real page makes a
+  browser parse the scaffold as the document, which pushes the real `<head>` - and with it the
+  four icon links - into the body, where a browser reads no favicon from. The icon links must
+  stay inside `<head>`; `tests/test_web_brand_assets.py` holds that.
+- The Home hero mark is 94px tall (67px under 900px), sits 6px lower, and has a 6px gap to the
+  wordmark - the owner's own numbers, so the mark and "Smart Business Writer" read as one
+  lockup. The topbar mark (30px) and the chat button (30px) keep their sizes.
 - The A1 screenshot was used for **structure only** (narrow fixed left icon rail, centred hero with the logo above
   a short headline, a large central action box with a secondary controls row inside, a row of quick-action chips
   beneath, a floating circular chat button bottom-right). Its text, claims, pricing and social-proof block were not

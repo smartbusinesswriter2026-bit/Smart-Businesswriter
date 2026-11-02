@@ -1,3 +1,37 @@
+## Brand: the logo loses its white card, and the tab icon comes back (design lane)
+
+- **The Home logo no longer arrives on a white card.** The owner's PNG is RGB with no alpha
+  channel: the mark was flattened onto solid `#FCFCFC` paper, so the logo that went into the
+  page carried that paper with it. On the Home hero - whose background is the canvas with a
+  green wash over it - the mark sat on a white rectangle. `web/assets/mark.png` is now cut
+  from `web/assets/logo.png` with a real alpha channel: the paper *outside* the artwork is
+  transparent, the paper *inside* the book stays opaque, so the book still reads as a solid
+  object. The same cut gives the chat button its round plate back, and the topbar mark loses
+  its card for free.
+- **The favicon is back.** Commit `977c1cc` had pasted a scaffold document
+  (`<!doctype html> ... <!-- Content goes here -->`) in front of the real page. A browser
+  parses that scaffold as the document, so the real `<head>` - and with it the four icon
+  links - ended up in the body, where no browser reads a favicon from. The scaffold is gone
+  and the page is one document again; the four icons (16, 32, 64 and the 180 apple-touch
+  icon) are in the head where they belong.
+- **Measured, not assumed.** Chrome's own parser was asked what it made of the two versions
+  of the page: before, `iconLinksInHead` was **0** (the three icon links were in the body);
+  after, it is **3**, plus the apple-touch icon. The browser made no `/favicon.ico` request
+  after the fix, which is how a browser says it has taken the icon from the page.
+- **The Home mark is 20% larger and sits closer to the wordmark.** `.hero img` height goes
+  78px -> 94px (56px -> 67px under 900px), the mark sits 6px lower, and the gap to
+  "Smart Business Writer" is 6px instead of 16px, so the two read as one lockup. The
+  topbar mark and the chat button keep their sizes.
+- **New `scripts/generate_mark.py`** rebuilds `web/assets/mark.png` from
+  `web/assets/logo.png` and re-inlines it, reusing the alpha cut that
+  `scripts/generate_favicons.py` already uses for the tab icons. The file on disk is written
+  from the same bytes that go into the page, so the asset and the inline copy cannot drift.
+- **New `tests/test_web_brand_assets.py`** (5 tests) reads the page and the PNG bytes with
+  the standard library only: one document, the icon links in the head, the logo's corner
+  transparent and its artwork still there, the asset identical to the inline copy, and no
+  white card in any favicon.
+- No computation, route contract, frozen fixture or business number changed.
+
 ## Subject-by-subject paper validation: the harness design (proposal, design lane)
 
 - **New living document `docs/VALIDATION_HARNESS.md`.** It records the design of a validation harness that
@@ -123,6 +157,7 @@
 [product]
 
 # Changelog (build)
+- 1.57 (2026-11-02): **The retrieved market-data panels are split by the consumer of each lookup, and the product stops naming a home market.** (1) **The split.** A single **Market data (retrieved, not verified)** panel sat above the Finance tools and carried five unrelated lookups. **Rates and FX** stay on the **Finance** shelf, where `fx_parity`, the CAPM risk-free rate and a currency conversion take a declared rate; the **equity quote, SEC fundamentals and SEC filings** move into the **Portfolio Lab**, where a price is actually used and the existing fetch route already reads the same module; the **World Bank macro indicators** move to the **Economics** shelf, where the macro tools are. Each panel renders its own result region (`ratesout`, `secout`, `macroout`) and binds its own handlers; the old `marketPanel()` / `marketout` surface is retired. The boundary is unchanged: every lookup shows its value, source, as-of date and response SHA-256, and nothing is written into a tool or a book automatically. (2) **The product is global (owner instruction, B-177).** The last PSE reference leaves the served page, `marketdata.py` and the finance guide; the FX example is USD/EUR, the macro example is the US, the coffee-shop brief example is a mid-sized city instead of a named place, and the synthetic worksheet examples price in dollars rather than pesos. `tests/test_market_panels.py` pins the placement, the never-auto-fill copy and the absence of a home-market name in the page, the finance guide and the limitations. (3) **No computed number moved.** The example-currency label (`PHP` inside presets, guides and tests) is a separate increment, so no preset, method, schema, check or frozen-contract entry changed. 2558 tests collected; the pre-existing failures named in `docs/OPEN_ISSUES.md` are unchanged.
 - 1.56 (2026-11-02): **The People & organisation shelf stops saying "no worksheet yet".** (1) **The gap, and its cause.** Ten change-and-organisation frameworks - **ADKAR** (`CHG-02`, five parts), **Lewin** (`CHG-03`, three), **McKinsey 7-S** (`CHG-04`, seven), **Burke-Litwin** (`CHG-05`, twelve), **Galbraith Star** (`CHG-06`, five), **Theory of Change** (`CHG-07`, six), **Logic Model** (`CHG-08`, five), **PDSA** (`CHG-09`, four), **DMAIC** (`CHG-10`, five) and **Mintzberg** (`CHG-13`, five) - sat on the People shelf as read-only records: the catalogue said "no worksheet yet", the shelf offered nothing to complete, and the shelf's own test module was red. The cause was a **stale committed catalogue slice**, generated before `registry.TEMPLATE_LINKS` gained the ten links; the registry itself already knew every one of them was a worksheet, so the engine could run them and the page could not offer them. (2) **They are worksheets now.** Each is a T4 worksheet on the shared canvas builder, with a drafting schema, a profile whose parts are `research`, a worked example and a stated refusal. The unit of analysis is the thing the student names - a programme of change, a team, a service - and it is never detected and never guessed; a brief without one is refused with a reason that names what to supply. A part with no source is written from the framework's own general background paragraph as an **uncited** item, so a part is never a notice, never a blank and never a gate. **None of the ten scores a person, ranks a team or predicts who will succeed**: the nine-box criterion stays the student's own placement, and the seven-element and five-element models read fit rather than judge it. (3) **Theory of Change and the Logic Model now reach the impact they contribute to**, and the chain of change names the **assumptions** each link depends on - the part most often left unstated and most often found to be false. (4) **The eight frameworks already on the shelf now have worked examples** (Job Characteristics, Kirkpatrick, AMO, Tuckman, Nine-Box, Kotter, Competing Values, Organisational Design), so every worksheet on the shelf runs and passes its own checks, and the shelf's test module covers all eighteen. (5) **A corrupt generated file was restored.** The shipped registry slice had been rewritten with a double-encoded character set and with three records replaced by structural placeholders; it is the deterministic import of the authority catalogue again, and the fifteen framework names it carries read correctly. The shelf now offers **nineteen worksheets**, and the ten broken per-framework test modules were rewritten to the shelf's standard. 2553 tests.
 - 1.55 (2026-10-30): **Home chat accepts a brief from any subject.** The open composer no longer hard-codes the management subject; `guard.detect_subject` routes the brief, recorded as a routing hint only (never in the paper). Shelf boundary preserved. 2455 tests pass (pre-existing framework-completion failures unchanged).
 
