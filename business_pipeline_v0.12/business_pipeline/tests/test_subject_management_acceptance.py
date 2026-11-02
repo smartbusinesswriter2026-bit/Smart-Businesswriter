@@ -468,25 +468,38 @@ class PresentationTest(unittest.TestCase):
         self.assertIn("quantize", source)
         self.assertNotIn("float(", source)
 
-    def test_E_mgt_039__a_method_without_a_declared_precision_is_the_recorded_blocker(self):
-        """D-MGT-07 (BLOCKED): four frozen methods declare no typing hook.
+    def test_E_mgt_039__every_method_declares_its_precision_and_no_paper_prints_a_raw_decimal(self):
+        """D-MGT-08 (FIXED, B-196): the owner unfroze the core rather than a paper rule.
 
-        Pinned, not excused.  `session_paper._render` can only print the core's own
-        precision; when the method declares none it prints the Decimal as stored, so
-        the npv paper carries 50 digits.  The fix is either a typing hook in the frozen
-        core (`src/bp/methods.py`, owner decision) or a product rule for a missing
-        precision (owner decision: this is what a paper should say).  The day either
-        lands this test fails and the row flips to PASS.
+        Four methods (`npv`, `pearson`, `spearman`, `descriptive_stats`) declared no
+        `typing` hook and `case_decision` is a template rather than a `Method`, so the
+        computation paper printed `Npv A1: 2586.473380864479782327…`.  The hooks are now
+        declared in the core (the unfreeze) and the paper reads the core's own recorded
+        precision for a template's derived keys.  This test fails if either half goes.
         """
         from bp.methods import LIBRARY
         from bp.product import session_paper
         hookless = sorted(key for key, method in LIBRARY.items()
                           if not callable(getattr(method, "typing", None)))
-        self.assertEqual(hookless, ["descriptive_stats", "npv", "pearson", "spearman"],
-                         "the recorded set of hookless methods changed: re-measure D-MGT-07")
-        rendered = session_paper._render("npv", "-5.25920360631104432757325319308790383170548459805",
-                                         LIBRARY["npv"])
-        self.assertRegex(rendered, r"\d\.\d{6,}", "D-MGT-07 is fixed: flip E-mgt-039 to PASS")
+        self.assertEqual(hookless, [], "every method must declare its own precision")
+        self.assertEqual(LIBRARY["npv"].typing("npv"), ("currency", 2))
+        self.assertEqual(LIBRARY["pearson"].typing("r"), ("correlation", 3))
+        self.assertEqual(LIBRARY["spearman"].typing("rho"), ("correlation", 3))
+        self.assertEqual(LIBRARY["descriptive_stats"].typing("n"), ("count", 0))
+        for method_id in ("npv", "case_decision"):
+            preset = server.PRESETS[method_id]
+            delivery = deliver(preset["method"], dict(preset["inputs"]))
+            paper = "\n".join(line for _h, lines in
+                              __import__("bp.product.session_paper", fromlist=["x"]).sections(
+                                  {"report": delivery.report, "appendix": delivery.appendix})
+                              for line in lines)
+            self.assertNotRegex(paper, r"\d\.\d{6,}", "%s paper prints a raw Decimal" % method_id)
+            for repr_mark in ("{'", "['", "'}"):
+                self.assertNotIn(repr_mark, paper, "%s paper carries a Python repr" % method_id)
+            recorded = session_paper._recorded_precision(delivery.appendix)
+            if method_id == "case_decision":
+                self.assertEqual(recorded.get("npv_A1"), ("currency", 2),
+                                 "the core's own recorded precision must reach the paper")
 
 
 

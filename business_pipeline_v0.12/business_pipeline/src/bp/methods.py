@@ -176,6 +176,15 @@ def npv(inp):
     r = D(str(inp["rate"]))
     return sum((D(str(c)) / (1 + r) ** t for t, c in enumerate(inp["cashflows"])), D(0))
 
+def npv_typing(metric):
+    # B-197 (owner unfreeze, 2026-11-03): npv declared no `typing` hook, so any paper
+    # that printed its figure printed the Decimal as stored — a 50-digit NPV.  Money is
+    # currency at 2 dp everywhere else in the library (_irr_typing, _wacc_typing), so the
+    # same declaration is used here rather than a value chosen at the paper.
+    if metric in ("n_periods", "n_cashflows", "n_negative"):
+        return ("count", 0)
+    return ("currency", 2)
+
 def npv_reference(inp):  # independent route: Horner / backward induction
     v = 1 / (1 + D(str(inp["rate"]))); acc = D(0)
     for c in reversed(inp["cashflows"]): acc = D(str(c)) + v * acc
@@ -824,6 +833,32 @@ def _corr(inp, kind):
 
 pearson_impl = lambda inp: _corr(inp, "pearson")
 spearman_impl = lambda inp: _corr(inp, "spearman")
+
+
+def _corr_typing(metric):
+    # B-197 (owner unfreeze, 2026-11-03): pearson and spearman declared their
+    # `output_precision`/`output_units` on the Method row but no `typing` hook, so a
+    # paper that printed one of these figures printed the Decimal as stored.  This hook
+    # reads the declaration that was already there; nothing new is chosen here.
+    if metric in ("n_pairs", "n_excluded"):
+        return ("count", 0)
+    if metric == "p_value":
+        return ("probability", 4)
+    if metric in ("confidence_level", "alpha"):
+        return ("rate", 2)
+    if metric in ("r", "rho"):
+        return ("correlation", 3)
+    return ("ratio", 3)
+
+
+def _describe_typing(metric):
+    # B-197 (owner unfreeze, 2026-11-03): descriptive_stats declared `output_precision`
+    # for its two counts only, so the mean printed as a 50-digit Decimal.  The counts
+    # keep their declared 0; every other statistic is the request's own unit at the
+    # library's default 2 dp, the same convention `_one_typing` uses for a mean.
+    if metric in ("n", "n_missing"):
+        return ("count", 0)
+    return ("@unit", 2)
 
 def _cols(inp, keep=None):
     xs, ys, ex = _pairs(inp); return [str(v) for v in xs], [str(v) for v in ys], ex
@@ -14839,7 +14874,7 @@ LIBRARY = {
                   input_schema={"rate": {"type": "decimal", "desc": "discount rate per period, e.g. 0.10"},
                                 "cashflows": {"type": "decimal_list", "min_items": 2, "desc": "cash flows, first at t=0"}},
                   defaults=({"question": "Timing and rate convention", "default_chosen": "Cash flows occur at period end; the first cash flow is at t=0 and is undiscounted; the rate is taken as given.", "impact": "Changes NPV if cash flows are mid-period or the rate is not the right hurdle."},),
-                  assumptions=("Cash flows are certain given the inputs.",), limitations=("Single constant discount rate.",)),
+                  assumptions=("Cash flows are certain given the inputs.",), limitations=("Single constant discount rate.",), output_precision={"npv": 2}, output_units={"npv": "currency"}, typing=npv_typing),
     "irr": Method("irr", "T1", irr_impl, _irr_tests, _irr_profile, "irr", "rate", None,
                   ("second_implementation_agrees", "net_present_value_at_the_irr_is_zero",
                    "npv_is_positive_below_and_negative_above_the_irr", "scaling_the_cash_flows_leaves_the_irr_unchanged",
@@ -14891,7 +14926,7 @@ LIBRARY = {
                   limitations=("Normality screen limits (2 and 7) are conventional placeholders [UNVERIFIED].", "Linearity and independence are not tested.", "Interval uses the Fisher z approximation."),
                   default_period="cross_section", caveats=corr_caveats, template=corr_template, claim_ceiling="associational",
                   assumption_checks=normality_screen, assumption_check_names=("normality_screen",), fallbacks={"normality_screen": "spearman"},
-                  default_thresholds=_CORR_THRESH, output_units=_CORR_UNITS, output_precision={"n_pairs": 0, "n_excluded": 0, "r": 3, "r_squared": 3, "ci_lower": 3, "ci_upper": 3, "p_value": 4}),
+                  default_thresholds=_CORR_THRESH, output_units=_CORR_UNITS, output_precision={"n_pairs": 0, "n_excluded": 0, "r": 3, "r_squared": 3, "ci_lower": 3, "ci_upper": 3, "p_value": 4}, typing=_corr_typing),
     "spearman": Method("spearman", "T1", spearman_impl, spearman_tests, corr_profile, "rho", "correlation", None,
                   ("second_implementation_agrees", "invariant_to_monotone_transform", "negating_y_flips_sign_keeps_p", "symmetric_in_x_and_y", "bounded_and_consistent", "missing_pairs_excluded_not_valued"),
                   category="correlation", intended_use="Monotone association between two variables, robust to outliers and skew; fallback for Pearson.",
@@ -14900,7 +14935,7 @@ LIBRARY = {
                   assumptions=("Pairs are independent observations.", "Relationship is monotone."),
                   limitations=("Interval uses the Bonett-Wright standard error [UNVERIFIED] and the p-value uses a t approximation; both are approximate.",),
                   default_period="cross_section", caveats=corr_caveats, template=corr_template, claim_ceiling="associational",
-                  default_thresholds=_CORR_THRESH, output_units=_CORR_UNITS, output_precision={"n_pairs": 0, "n_excluded": 0, "rho": 3, "ci_lower": 3, "ci_upper": 3, "p_value": 4}),
+                  default_thresholds=_CORR_THRESH, output_units=_CORR_UNITS, output_precision={"n_pairs": 0, "n_excluded": 0, "rho": 3, "ci_lower": 3, "ci_upper": 3, "p_value": 4}, typing=_corr_typing),
     "ols": Method("ols", "T1", ols_impl, ols_tests, ols_profile, "r_squared", "ratio", None,
                   ("second_implementation_agrees", "shift_changes_intercept_only", "scaling_rescales_coefficients_not_significance", "row_order_invariant", "incomplete_rows_excluded_not_valued", "bounded_and_consistent", "cross_check_partial_regression_and_pearson"),
                   category="regression", intended_use="Linear association of one numeric outcome with up to five numeric predictors, with intervals, p-values and effect sizes.",
@@ -14947,7 +14982,7 @@ LIBRARY = {
                             {"question": "Small-sample threshold", "default_chosen": "Fewer than 30 valid observations triggers cautionary wording [PROVISIONAL].", "impact": "Changes only the wording, not the numbers."}),
                   assumptions=("Observations are numeric and the listed codes fully identify missing values.",),
                   limitations=("Descriptive claims only; no inference.", "Float reference comparison tolerance is 1e-9 relative."),
-                  output_precision={"n": 0, "n_missing": 0}, default_period="cross_section",
+                  output_precision={"n": 0, "n_missing": 0}, typing=_describe_typing, default_period="cross_section",
                   caveats=describe_caveats, template=describe_template, default_thresholds={"small_sample_n": "30"}),
     "anova": Method("anova", "T1", anova_impl, _anova_tests, anova_profile, "eta_squared", "from_request", None,
                   ("second_implementation_agrees", "within_group_permutation_invariant", "group_relabeling_invariant", "equal_shift_leaves_F_and_effect_unchanged", "positive_scale_equivariance", "missing_entries_excluded_not_valued", "bounded_and_consistent"),

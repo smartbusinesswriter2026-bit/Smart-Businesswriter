@@ -1,3 +1,34 @@
+## 2026-11-03 — [core] The core is unfrozen as a standing rule (B-197), and 142 of 142 methods now declare their own precision
+
+**Ask.** The owner answered the one question session 5 put to them: *"ON QUESTION, UNFREEZE IT. KEEP
+EVERYTHING UNFREEZE UNTIL I FREEZE IT AGAIN, MAKE THIS A RULE."*
+
+**Did.**
+
+1. **Made it a rule, not a permission.** `docs/BACKEND_CONTRACT.md` §3 now opens "The standing state is
+   UNFROZEN (B-197)"; `docs/HANDOFF.md` §2 rule 10 says the same; `docs/DECISIONS.md` B-197 carries the
+   four conditions that do **not** relax (frozen-contract test passes, econ_shelf in sync, no loosened
+   check, a trap test per behaviour change) and the one way back (the owner says "frozen").
+2. **Used it on the defect the question was about.** Four methods declared no `typing` hook, so every
+   paper that printed their figures printed the Decimal as stored — `Npv A1: 2586.4733808644797823…`.
+   `npv_typing`, `_corr_typing` and `_describe_typing` now declare what the library already meant
+   (money 2 dp; r/rho 3; p 4; counts 0; statistics at the request's unit, 2 dp).
+3. **Closed the template gap.** `case_decision` is not a `Method`, so its `npv_A1` keys had no
+   declaration; the core already records each figure's unit and precision in
+   `appendix["analysis"]["artifacts"]`, and `session_paper` now reads it. The product formats; it never
+   chooses a precision.
+4. **Killed the Python repr** the same block printed (`Facts: {'text': …}`): nested values are flattened
+   into words.
+
+**Result.** `Npv A1: 2586.47`, `Npv A2: 2136.83`, `Cross 1: 0.10`, `Facts: Text: …; Provenance:
+synthetic`. 142 of 142 methods declare a precision (was 138). `tests/test_frozen_contract.py` and
+`scripts/econ_shelf.py --check` are green — the fixture is untouched, because no pinned surface moved.
+
+**Learned.** The owner's rule is the one that fits the code: a paper cannot print a precision the core
+does not declare, and a product that guesses one has started computing. Declaring it where the number is
+made is the only fix that keeps one rule for all 142 methods.
+
+
 ## 2026-11-03 — [core] Management & strategy, session 4: the module imports from the repo, the nine activities have one set of names, and no paper carries a specification footer
 
 **Ask.** The owner's standing work order: audit one subject shelf at a time, write the acceptance
@@ -89,6 +120,19 @@ marketing worksheet registration failures and the strategic-positioning prompt f
 in the historical failure set, belong to other shelves' sessions, and are recorded rather than
 touched. `docs/HANDOFF.md` line 12 and `docs/WORKLOG.md`'s older headings carry double-encoded em
 dashes from an earlier lane; noted, not swept, because they are not this shelf's text.
+
+**Correction, same session (B-196).** The owner reviewed the shelf's surface and ruled that the
+marketing plan — STP and the marketing mix — belongs to the marketing shelf, where it already lives:
+*"delete that in entrepreneurship"*. `MKT-02` is now off the entrepreneurship page (removed from
+`worksheets` **and** `catalogue_ids`, so neither the worksheet nor its catalogue row is duplicated
+there); the shelf carries its own five worksheets, all shared with management, and the worksheet
+itself is untouched on marketing. `VALIDATION_HARNESS.md` §7.1 loses the row and is re-measured —
+**30 of the 59** worksheets a subject page serves are shared, where the header still said "31 of the
+55" — and `CURRICULUM_MAP`, `KNOWN_LIMITATIONS`, the manual (E-ent-001, E-ent-085, E-ent-091) and the
+two tests that encoded the old pairing were corrected to the owner's assignment rather than loosened.
+The probe also stopped assuming every `impl` returns a mapping: the core now returns a bare value for
+`npv` (another lane's unfreeze, B-197), so the sweep reads typing from the headline metric instead of
+crashing — 46 of 46 still deliver, findings none.
 
 **Next.** `operations` (shelf 7 of 11) carries the largest worksheet surface: eleven T4 worksheets
 sharing the supply-chain shelf. Its top three risks are recorded in `qa/QA_STATE.md`.

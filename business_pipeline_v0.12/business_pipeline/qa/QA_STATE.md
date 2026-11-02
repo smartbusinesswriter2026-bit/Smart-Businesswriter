@@ -52,7 +52,7 @@ never named the unit of analysis (D-MGT-07), and “a activitie” in every `-ie
 | Framework-completion slice | **27 failed, 512 passed** (from 60 failed); every remaining failure is on the marketing shelf | `qa/baseline/mgt-completion-after.txt` |
 | Shelf acceptance suite | **46 passed** | `python -m pytest tests/test_subject_management_acceptance.py -q` |
 | `tests/test_docs_sync.py` + `tests/test_frozen_contract.py` | **10 passed** (documented count 3084 unchanged) | — |
-| `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | — |
+| `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | after the B-197 unfreeze too |
 | Artefact read (P6) | value-chain, change-organization, no-source twins, worksheet export — no footer, no diagram promise, byline on the title page, background disclosed | `qa/evidence/management/summary.txt` |
 
 **Push: BLOCKED by this machine, not by the work.** `git push origin corpus/merge-v1` fails with
@@ -63,12 +63,16 @@ with credentials must push them. Recorded rather than worked around.
 
 ### Left open, deliberately
 
-- **D-MGT-08 / E-mgt-039 (BLOCKED).** Four frozen methods (`npv`, `pearson`, `spearman`,
-  `descriptive_stats`) declare no `typing` hook, and `case_decision`'s per-alternative keys are not in
-  its hook's table, so the computation paper prints `Npv A1: 2586.4733808644797823…`. The frozen core
-  is out of bounds and "what a paper should say" is the owner's call — the value is pinned by a test.
+- **D-MGT-08 — CLOSED after the owner's ruling.** The owner answered the one question of this session
+  with "UNFREEZE IT", and then made the unfreeze standing (B-197). Four methods now declare their
+  precision (`npv`, `pearson`, `spearman`, `descriptive_stats` — 142 of 142), `case_decision`'s derived
+  keys are formatted from the precision the core itself records, and no paper prints a raw Decimal or a
+  Python repr. E-mgt-039 flipped BLOCKED → PASS. Re-measured after the change: **3084 tests, 40
+  failures, 6 errors, 0 new failure names** (`qa/baseline/mgt2-suite-err.txt`,
+  `mgt2-failures.txt` — identical to the pre-unfreeze set), `test_frozen_contract.py` green and
+  `scripts/econ_shelf.py --check` "frozen fixture: in sync".
 - **D-MGT-09 / E-mgt-046 (BLOCKED).** The shelf page counts 28 catalogue records beside 31 worksheets
-  (STR-01, STR-07, STR-18 uncounted). The number is on the page.
+  (STR-01, STR-07, STR-18 uncounted). The number is on the page, so which side moves is the owner's.
 - **G-mgt-02.** Change and Organization has a profile, tests and no worksheet row: no page reaches it.
   Adding one changes the catalogue surface — owner decision.
 
@@ -106,8 +110,11 @@ the count is 3084 after this session's 46, so `test_docs_sync` still passes unch
 Closed at build 1.69.
 
 **Inventory, confirmed against the live catalogue** (`GET /api/cases/subjects/entrepreneurship`
-on 8001, then `subjects.detail`): **46 tools, 6 worksheets, 6 records, 0 theories** — as expected, so
-no inventory defect. `docs/CURRICULUM_MAP.md` disagreed (it said 5 worksheets) — D-ENT-11.
+on 8001, then `subjects.detail`): **46 tools, 6 worksheets, 6 records, 0 theories** at the opening —
+as the work order expected, so no inventory defect; `docs/CURRICULUM_MAP.md` disagreed (it said 5
+worksheets) — D-ENT-11. **The owner then ruled that the marketing plan (`MKT-02`, STP and the
+marketing mix) belongs to the marketing shelf alone (B-196), so the shelf closes with 5 worksheets**;
+the inventory rows in the manual, the tests and the docs were corrected rather than left behind.
 
 **Opening state, measured.** `python -m unittest discover -s tests`: **2932 tests, 66 failures, 13
 errors, 650 s** (`qa/baseline/ent_suite_out.txt` / `ent_suite_err.txt`, names in

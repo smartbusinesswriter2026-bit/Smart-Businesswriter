@@ -1,3 +1,35 @@
+## The core is unfrozen (standing rule), and every method now declares its own precision
+
+Owner instruction, 2026-11-03: *"ON QUESTION, UNFREEZE IT. KEEP EVERYTHING UNFREEZE UNTIL I FREEZE IT
+AGAIN, MAKE THIS A RULE."* Decision **B-197**.
+
+- **The standing rule.** `src/bp/**` and the pinned fixture may be changed without a fresh per-change
+  unfreeze until the owner says "frozen" again. The guarantees do not relax: `test_frozen_contract.py`
+  must pass, `scripts/econ_shelf.py --check` must still say "frozen fixture: in sync", no check is
+  loosened or deleted, every behaviour change ships with a trap test that fails on the old code, and
+  every unfreeze is a decision row. Written into `docs/BACKEND_CONTRACT.md` §3 and `docs/HANDOFF.md` §2
+  rule 10 so the next agent reads it as the rule rather than a permission.
+- **First use of it: four methods that declared no precision.** `npv`, `pearson`, `spearman` and
+  `descriptive_stats` had no `typing` hook, so the computation paper printed the Decimal as stored:
+  `Npv A1: 2586.4733808644797823276713689760481408096100978284`. The hooks are now declared where the
+  number is computed — `npv_typing` (money at 2 dp, the convention `_irr_typing` already used),
+  `_corr_typing` (reads the `output_precision`/`output_units` the correlation rows already declared:
+  r/rho 3, intervals 3, p 4, counts 0), `_describe_typing` (counts 0, other statistics at the request's
+  unit and the library's default 2 dp). **142 of 142 methods now declare a precision.**
+- **`case_decision` is a template, not a `Method`,** so its per-alternative keys (`npv_A1`) had no
+  declaration at all. The core already records the unit and precision of every figure it emits in
+  `appendix["analysis"]["artifacts"]`; `session_paper` now reads that record instead of choosing a
+  precision at the paper (the product formats, it never recomputes).
+- **No Python repr in a paper.** The same block printed `Facts: {'text': 'A supermarket chain opened…'}`;
+  nested values are now flattened into words (`Facts: Text: …; Provenance: synthetic`).
+
+Read on the artefacts: the `case_decision` paper now prints `Npv A1: 2586.47`, `Npv A2: 2136.83`,
+`Cross 1: 0.10`, `Rate: 0.08`, and no line matches `\d\.\d{6,}`. No preset, input, check, tier, route
+family or input-schema key changed; `tests/fixtures/frozen_contract.json` is untouched;
+`scripts/econ_shelf.py --check` reports "frozen fixture: in sync". Trap test:
+`test_E_mgt_039__every_method_declares_its_precision_and_no_paper_prints_a_raw_decimal`.
+
+
 ## The management shelf, inlined profiles, and no specification footer in any paper
 
 Owner: shelf 4 of 11 (work order: subject audit, `management`). Session record: `qa/QA_STATE.md`
@@ -46,7 +78,33 @@ route family or frozen fixture changed; `scripts/econ_shelf.py --check` reports 
 sync”.
 
 
-## The entrepreneurship shelf, and the marking guide reaches the business plan
+## The marketing plan moves to the marketing shelf, where it belongs
+
+Owner: correction to the entrepreneurship shelf — *"marketing plan: STP and marketing mix should
+belong to marketing, it's already there, so delete that in entrepreneurship."*
+
+- **`MKT-02` is off the entrepreneurship page.** `subjects.SUBJECT_DEFS` drops it from the shelf's
+  `worksheets` and from its `catalogue_ids`, so the page no longer offers a marketing plan and no
+  longer prints its catalogue row either. The worksheet, its template and its catalogue record are
+  untouched: the Marketing shelf still offers it, draftable, and it still runs.
+- **The shelf carries five worksheets**, all shared with the management shelf: the Business Model
+  Canvas, the Lean Canvas, the Value Proposition Canvas, the SWOT evidence-to-action review and the
+  Blue Ocean ERRC grid (offered, not draftable).
+- **Docs follow the code**: `VALIDATION_HARNESS.md` §7.1 drops the MKT-02 row from the shared list
+  and is re-measured (30 of the 59 worksheets a subject page serves are shared; the header said
+  "31 of the 55", which had drifted), `CURRICULUM_MAP` and `KNOWN_LIMITATIONS` say five, and the
+  acceptance manual's §5, E-ent-001, E-ent-085 and E-ent-091 say five with the marketing plan
+  explicitly absent.
+- **Two test expectations were corrected, not loosened**: `test_entrepreneurship_planning`'s
+  shelf-wiring row and `test_product_subjects.test_entrepreneurship_offers_venture_tools_and_canvas_records`
+  now assert the four canvases are present **and** that the marketing plan is not.
+
+Acceptance suite **106 tests, 106 passed**. No method, preset, template, input, check, number or
+route changed; `tests/fixtures/frozen_contract.json` untouched; `scripts/econ_shelf.py --check`:
+**frozen fixture: in sync**.
+
+- 1.70 (2026-11-03): the marketing plan (MKT-02) belongs to the marketing shelf alone; the entrepreneurship page carries its five own worksheets and no longer duplicates STP or the marketing mix. No frozen core, method, preset, template, input, check, number or route changed.
+
 
 Owner: shelf 6 of 11 (work order: subject audit, `entrepreneurship`).
 

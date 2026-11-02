@@ -45,8 +45,8 @@ shelves; the effects on them were re-tested (§6).
 | Records (read-only) | 0 | `detail("management")["records"]` | 0 |
 | Theories | 0 | `detail("management")["theories"]` | 0 |
 | Glossary terms | 0 | `detail("management")["glossary"]` | the shelf has no glossary |
-| Catalogue records the shelf *counts* | 28 | `subjects.catalogue()` | **28** against 31 rows — D-MGT-08 |
-| Profiles no subject page reaches | 17 | `test_E_mgt_043` | **17**, not the 22 the harness recorded — D-MGT-09 |
+| Catalogue records the shelf *counts* | 28 | `subjects.catalogue()` | **28** against 31 rows — D-MGT-09 |
+| Profiles no subject page reaches | 17 | `test_E_mgt_043` | **17**, not the 22 the harness recorded — G-mgt-04 |
 | Worksheets also shown on another shelf | 18 of the 31 rows | `VALIDATION_HARNESS.md` §7.1 | 13 CHG rows on People, 5 STR rows on Entrepreneurship (§2.2) |
 
 ### 2.1 Worksheets, one row each
@@ -197,7 +197,7 @@ silently. `GAP` = a declared limitation that must not be built.
 | E-mgt-036 | A figure prints at the method's own declared precision, and a list prints as words | owner rule P4 | PASS |
 | E-mgt-037 | No paper and no page promises a diagram nobody draws | owner rule P5 | PASS |
 | E-mgt-038 | The product formats the core's number and never recomputes it | manual §4.5; owner rule P4 | PASS |
-| E-mgt-039 | A method that declares no precision still prints a readable figure | owner rule P4 — needs a rule for the missing case | **BLOCKED** (D-MGT-07) |
+| E-mgt-039 | Every method declares its own figure precision, and no paper prints a raw Decimal or a Python repr | owner rule P4; B-197 (standing unfreeze) | PASS |
 | E-mgt-040 | The profiles module imports nothing outside the repository | a clean checkout must run | PASS |
 | E-mgt-041 | Every profile is declared once in the module (no shadowed second assignment) | manual §5 (one copy of the words) | PASS |
 | E-mgt-042 | Every researched block declares cues and a query, so the gate can judge it | `retrieval._accept` | PASS |
@@ -206,20 +206,15 @@ silently. `GAP` = a declared limitation that must not be built.
 | E-mgt-045 | A non-draftable profile still produces a complete paper through the real engine | `VALIDATION_HARNESS.md` §7.2 | PASS |
 | E-mgt-046 | The shelf's catalogue count omits three of its own worksheets (STR-01, STR-07, STR-18) | `subjects.catalogue()` | **BLOCKED** (D-MGT-08) |
 
-**Scoreboard: 44 PASS · 2 BLOCKED · 0 DISPUTED · 0 GAP.**
+**Scoreboard: 45 PASS · 1 BLOCKED · 0 DISPUTED · 0 GAP.**
 
 ## 4. DISPUTED rows
 
-None. Two rows are `BLOCKED` rather than disputed, because in each case the product's current
-behaviour is a known defect and the decision belongs to the owner:
+None. E-mgt-039 was `BLOCKED` and is now `PASS`: the owner answered the one question of session 5 by
+unfreezing the core (B-197), and the four methods that declared no precision now declare one, so the
+paper prints `Npv A1: 2586.47` instead of fifty digits. One row is still `BLOCKED`:
 
-- **E-mgt-039 / D-MGT-07.** Four of the frozen core's 142 methods declare no `typing` hook —
-  `npv`, `pearson`, `spearman`, `descriptive_stats` — and `case_decision`'s per-alternative keys
-  (`npv_a1`…) are not in its hook's table, so the computation paper prints
-  `Npv A1: 2586.4733808644797823276713689760481408096100978284`. The frozen core is out of bounds
-  (`docs/HANDOFF.md` §2 rule 10) and "what a paper should say" is the owner's call, so the value is
-  pinned by a test rather than changed. This is the one question asked at the end of the session.
-- **E-mgt-046 / D-MGT-08.** `subjects.catalogue()` reports **28** catalogue records for a shelf that
+- **E-mgt-046 / D-MGT-09.** `subjects.catalogue()` reports **28** catalogue records for a shelf that
   shows **31** worksheet rows; the three it omits are STR-01, STR-07 and STR-18. The number is on the
   page, so which side moves is the owner's call.
 
@@ -243,7 +238,7 @@ behaviour is a known defect and the decision belongs to the owner:
 | E-mgt-013 | `test_E_mgt_013__the_case_decision_paper_carries_no_specification_footer` | E-mgt-036 | `test_E_mgt_036__figures_print_at_the_methods_declared_precision` |
 | E-mgt-014 | `test_E_mgt_014__the_nine_activities_are_those_the_profile_and_the_form_declare` | E-mgt-037 | `test_E_mgt_037__no_paper_promises_a_diagram_nobody_draws` |
 | E-mgt-015 | `test_E_mgt_015__the_canvas_figure_carries_one_bullet_per_activity` | E-mgt-038 | `test_E_mgt_038__the_figures_are_the_cores_not_the_products` |
-| E-mgt-016 | `test_E_mgt_016__firm_infrastructure_accepts_real_overhead_evidence` | E-mgt-039 | `test_E_mgt_039__a_method_without_a_declared_precision_is_the_recorded_blocker` |
+| E-mgt-016 | `test_E_mgt_016__firm_infrastructure_accepts_real_overhead_evidence` | E-mgt-039 | `test_E_mgt_039__every_method_declares_its_precision_and_no_paper_prints_a_raw_decimal` |
 | E-mgt-017 | `test_E_mgt_017__a_cell_with_no_source_says_so_in_the_paper` | E-mgt-040 | `test_E_mgt_040__the_profiles_module_imports_nothing_outside_the_repository` |
 | E-mgt-018 | `test_E_mgt_018__the_outline_headings_are_present_in_declared_order` | E-mgt-041 | `test_E_mgt_041__every_profile_is_declared_once_in_the_module` |
 | E-mgt-019 | `test_E_mgt_019__conclusion_and_references_are_the_last_two_sections` | E-mgt-042 | `test_E_mgt_042__every_researched_block_declares_cues_and_a_query` |
@@ -303,22 +298,24 @@ tests the shared `{unit_rule}` fix repaired as a side effect, and they are recor
 
 ## 7. Defects found, and where they are recorded
 
-The ledger rows are `D-MGT-01 … D-MGT-09` in `qa/QA_DEFECTS.md`. Two were found only by reading the
-produced `.docx` (P6), which is why the probe exists.
+The ledger rows are `D-MGT-01 … D-MGT-11` and `G-mgt-01 … G-mgt-05` in `qa/QA_DEFECTS.md`. Three were
+found only by reading the produced `.docx` (P6), which is why the probe exists.
 
 | Ledger | What the reader saw | Class | Status |
 |---|---|---|---|
 | D-MGT-01 | (nothing — the module would not import on a clean checkout) | WIRING / BLOCKER | FIXED |
 | D-MGT-02 | a value-chain figure with nine empty boxes | WIRING | FIXED |
 | D-MGT-03 | “where cost and differentiation come from” printed as evidence for Procurement | HONESTY | FIXED |
-| D-MGT-04 | a prompt that never names the industry it is analysing | HONESTY | FIXED |
+| D-MGT-04 | firm infrastructure could accept no real overhead evidence | WIRING | FIXED |
 | D-MGT-05 | two declarations of Porter's Value Chain, one of them dead | DETERMINISM | FIXED |
 | D-MGT-06 | Change and Organization refused every industry brief | VALIDATION | FIXED |
-| D-MGT-07 | `Npv A1: 2586.4733808644797823276713689760481408096100978284` | ROUNDING | **BLOCKED** |
-| D-MGT-08 | the shelf page counts 28 records beside 31 worksheets | CATALOGUE | **BLOCKED** |
-| D-MGT-09 | 17 profiles reachable from no page; Change and Organization is one | WIRING | GAP (ledgered) |
+| D-MGT-07 | a prompt that never names the industry it is analysing | HONESTY | FIXED |
+| D-MGT-08 | `Npv A1: 2586.4733808644797823276713689760481408096100978284` and `Facts: {'text': …}` | ROUNDING | FIXED (B-197) |
+| D-MGT-09 | the shelf page counts 28 records beside 31 worksheets | CATALOGUE | **BLOCKED** |
 | D-MGT-10 | “a activitie”, “A activitie” in every -ies profile's paper | WORDING | FIXED |
 | D-MGT-11 | “How this was produced / Method: … / Specification hash: …” in the export | HONESTY (P3) | FIXED |
+| G-mgt-02 | Change and Organization works when called and no page reaches it | WIRING | GAP (owner decision) |
+| G-mgt-04 | the harness recorded 22 unreachable profiles; the live count is 17 | DOC-DRIFT | FIXED (doc corrected) |
 
 ## 8. Evidence
 
