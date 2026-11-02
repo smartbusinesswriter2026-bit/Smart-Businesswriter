@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>business_pipeline — platform mockup (dual-mode reasoning)</title>
+<style>
+/* ============================================================
+   PALETTE  (deep slate console; cyan = text mode, violet = latent)
+   ============================================================ */
+:root{
+  --canvas:#0f151c; --surface:#161e27; --raise:#1d2732; --raise2:#243140;
+  --line:#2a3846; --line2:#36485a;
+  --ink:#e9eff5; --ink2:#aebecd; --ink3:#7d92a5;
+  --signal:#5fb4cc;         /* TEXT mode: external, auditable */
+  --signalbg:#132a33;
+  --latent:#a48ad9;        /* LATENT mode: internal, dense */
+  --latentbg:#241d38;
+  --ok:#69c39a; --okbg:#12291f;
+  --warn:#e0b264; --warnbg:#2e2614;
+  --bad:#e08585; --badbg:#30191b;
+  --disp:"Bahnschrift","DIN Alternate","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;
+  --body:"Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--canvas); color:var(--ink); font:14px/1.55 var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--latent);color:#0f151c}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+
+/* ============================ TOP BAR ============================ */
+.topbar{
+  display:flex;align-items:center;gap:18px;padding:12px 20px;
+  border-bottom:1px solid var(--line);background:linear-gradient(180deg,#141c25,#0f151c);
+  position:sticky;top:0;z-index:40;
+}
+.mark{display:flex;align-items:center;gap:9px;flex:none}
+.markglyph{display:flex;gap:2px;align-items:stretch;height:20px}
+.markglyph i{display:block;width:3px;border-radius:1px}
+.markglyph i:nth-child(1){background:var(--signal)}
+.markglyph i:nth-child(2){background:var(--latent);width:7px;opacity:.75}
+.brandname{font-family:var(--disp);font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.brandsub{font-size:10.5px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+.topspacer{flex:1}
+.topmeta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.metablock{display:flex;flex-direction:column;gap:1px}
+.metalabel{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.metavalue{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+
+/* toggle */
+.toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;position:relative;
+  padding:6px 11px;border:1px solid var(--line2);border-radius:999px;background:var(--raise);
+  font:inherit;color:inherit;text-align:left}
+.toggle:hover{border-color:var(--latent)}
+.toggledot{width:26px;height:14px;border-radius:999px;background:#0b1116;border:1px solid var(--line2);position:relative;flex:none;transition:background .18s,border-color .18s}
+.toggledot::after{content:"";position:absolute;top:1px;left:1px;width:10px;height:10px;border-radius:50%;background:var(--ink3);transition:transform .18s,background .18s}
+.toggle[aria-pressed="true"] .toggledot{border-color:var(--latent);background:var(--latentbg)}
+.toggle[aria-pressed="true"] .toggledot::after{transform:translateX(12px);background:var(--latent)}
+.toggletext{font-size:11.5px;color:var(--ink2)}
+.toggle[aria-pressed="true"] .toggletext{color:var(--ink)}
+
+/* ============================ TABS ============================ */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 20px;background:#121a22;overflow-x:auto}
+.tab{
+  appearance:none;background:none;border:0;border-bottom:2px solid transparent;
+  color:var(--ink3);font:inherit;font-size:12.5px;letter-spacing:.04em;
+  padding:11px 15px;cursor:pointer;white-space:nowrap;
+}
+.tab:hover{color:var(--ink2)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--signal)}
+.tab .tabnum{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-right:7px}
+
+/* ============================ LAYOUT ============================ */
+.shell{display:grid;grid-template-columns:226px minmax(0,1fr) 322px;gap:0;align-items:start;max-width:1720px;margin:0 auto}
+.rail{border-right:1px solid var(--line);padding:16px 14px 40px;position:sticky;top:53px;max-height:calc(100vh - 53px);overflow-y:auto}
+.aside{border-left:1px solid var(--line);padding:16px 14px 40px;position:sticky;top:53px;max-height:calc(100vh - 53px);overflow-y:auto}
+.center{padding:18px 20px 60px;min-width:0}
+.railh,.asideh{
+  font-family:var(--disp);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin:20px 0 9px;padding-bottom:6px;border-bottom:1px solid var(--line);
+}
+.railh:first-child,.asideh:first-child{margin-top:0}
+@media(max-width:1180px){
+  .shell{grid-template-columns:1fr}
+  .rail,.aside{position:static;max-height:none;border:0;border-bottom:1px solid var(--line)}
+  .aside{border-bottom:0;border-top:1px solid var(--line)}
+}
+
+/* ============================ PANELS ============================ */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.panel-head{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--raise);flex-wrap:wrap}
+.panel-head h2{margin:0;font-family:var(--disp);font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.panel-head .hint{font-size:11px;color:var(--ink3)}
+.panel-head .headright{margin-left:auto;display:flex;gap:7px;align-items:center}
+.panel-body{padding:14px}
+.panel-body.tight{padding:0}
+
+/* ============================ BADGES ============================ */
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;padding:2px 7px;border-radius:3px;border:1px solid transparent;white-space:nowrap}
+.chip-text{background:var(--signalbg);color:var(--signal);border-color:#22434f}
+.chip-latent{background:var(--latentbg);color:var(--latent);border-color:#3b3059}
+.chip-det{background:#1a2430;color:var(--ink3);border-color:var(--line2)}
+.chip-ok{background:var(--okbg);color:var(--ok);border-color:#1e4033}
+.chip-warn{background:var(--warnbg);color:var(--warn);border-color:#4a3d1c}
+.chip-bad{background:var(--badbg);color:var(--bad);border-color:#4d272a}
+.chip-new{background:#1c2430;color:#9fb4c6;border-color:var(--line2)}
+.chip-block{background:var(--badbg);color:var(--bad);border-color:#4d272a}
+.chip-draft{background:var(--warnbg);color:var(--warn);border-color:#4a3d1c}
+
+/* ============================ WORKSPACE RAIL ============================ */
+.wsentity{display:flex;flex-direction:column;gap:2px;padding:10px 11px;background:var(--raise);border:1px solid var(--line);border-radius:8px}
+.wsname{font-family:var(--disp);font-size:14px;letter-spacing:.02em}
+.wsmeta{font-size:11px;color:var(--ink3);font-family:var(--mono)}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:11.5px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--ink3)}
+.kv .v{font-family:var(--mono);color:var(--ink2);text-align:right}
+.raillist{display:flex;flex-direction:column;gap:2px}
+.railitem{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:6px 8px;border-radius:6px;font-size:12px;color:var(--ink2);cursor:default}
+.railitem:hover{background:var(--raise)}
+.railitem .rn{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.railitem.is-stale{color:var(--warn)}
+
+/* ============================ STAGE TRACK ============================ */
+.track{position:relative;padding:4px 0}
+.stage{display:grid;grid-template-columns:26px 1fr auto;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:start}
+.stage:last-child{border-bottom:0}
+.stage:hover{background:#1a2430}
+.stage.is-open{background:#1b2531;box-shadow:inset 2px 0 0 var(--signal)}
+.stage-n{font-family:var(--mono);font-size:10px;color:var(--ink3);padding-top:2px;text-align:right}
+.stage-title{font-size:13.5px;font-weight:600;letter-spacing:.01em}
+.stage-exec{font-size:11px;color:var(--ink3);margin-top:1px}
+.stage-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stagedetail{display:none;padding:12px 14px 16px 52px;background:#121a22;border-bottom:1px solid var(--line)}
+.stagedetail.open{display:block}
+.sdgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.sdgrid{grid-template-columns:1fr}}
+.sd-h{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.sd-line{font-family:var(--mono);font-size:11px;color:var(--ink2);padding:2.5px 0;display:flex;gap:8px}
+.sd-line .mk{color:var(--ink3);flex:none}
+.sd-line .ok{color:var(--ok)}
+.sd-line .bad{color:var(--bad)}
+.sd-note{font-size:11.5px;color:var(--ink3);margin-top:10px;line-height:1.6}
+
+/* ============================ REASONING RIBBON ============================ */
+.ribbon-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#121a22}
+.ribbon-track{position:relative;padding:12px 14px}
+.rb-line{display:flex;gap:10px;align-items:flex-start;padding:7px 0}
+.rb-gutter{font-family:var(--mono);font-size:9.5px;color:var(--ink3);flex:none;width:58px;padding-top:3px;letter-spacing:.06em}
+.rb-text{font-size:12.5px;color:var(--ink2);flex:1}
+.rb-text em{color:var(--ink);font-style:normal;font-weight:600}
+.rb-tokens{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+.tok{font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:3px;background:var(--signalbg);color:var(--signal);border:1px solid #22434f}
+.tok.tool{background:#1d2732;color:#9fb4c6;border-color:var(--line2)}
+.tok.arg{background:#1d2732;color:var(--warn);border-color:#3f3520}
+
+/* latent band */
+.latent-band{margin:4px 0 4px;padding:0}
+.gate{font-family:var(--mono);font-size:9.5px;color:var(--latent);letter-spacing:.1em;
+  padding:3px 0;display:flex;align-items:center;gap:8px}
+.gate::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#3b3059,transparent)}
+.latent-field{display:flex;align-items:flex-end;gap:1.5px;height:34px;padding:6px 10px;
+  background:var(--latentbg);border:1px solid #3b3059;border-radius:6px;overflow:hidden}
+.latent-field i{flex:1 1 auto;background:linear-gradient(180deg,var(--latent),#6d59a6);border-radius:1px;opacity:.62;min-width:1px}
+.latent-field.revealed{height:auto;display:block;background:#191428;border-style:dashed}
+.latent-pseudo{font-family:var(--mono);font-size:11.5px;color:#c9b8f0;line-height:1.75;padding:10px 12px}
+.latent-pseudo .frag{color:#e2d8f8}
+.latent-pseudo .frag-a{color:#8fb8c9}
+.latent-caption{font-size:10.5px;color:var(--ink3);padding:5px 10px 7px;display:flex;gap:10px;flex-wrap:wrap}
+.latent-caption b{font-family:var(--mono);color:var(--latent);font-weight:500}
+
+/* ============================ TRACE AUDIT ============================ */
+.cmp{width:100%;border-collapse:collapse;font-size:12px}
+.cmp th,.cmp td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+.cmp thead th{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);font-weight:600;background:#121a22}
+.cmp td.num,.cmp th.num{text-align:right;font-family:var(--mono);font-size:11.5px}
+.cmp .rowlab{color:var(--ink2)}
+.cmp .muted{color:var(--ink3)}
+.cmp tr.hl td{background:#141d26}
+.delta-up{color:var(--ok)} .delta-dn{color:var(--bad)}
+.tag-src{font-family:var(--mono);font-size:9px;color:var(--ink3);border:1px solid var(--line2);border-radius:3px;padding:0 4px;margin-left:6px;white-space:nowrap}
+.tag-unv{font-family:var(--mono);font-size:9px;color:var(--warn);border:1px solid #4a3d1c;border-radius:3px;padding:0 4px;white-space:nowrap}
+
+/* ============================ FINANCIAL ============================ */
+.fin-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}
+@media(max-width:900px){.fin-grid{grid-template-columns:1fr}}
+.drivers{display:flex;flex-direction:column;gap:0;font-family:var(--mono);font-size:11.5px}
+.driver{border-left:2px solid var(--line2);padding:5px 0 5px 12px;margin-left:6px}
+.driver.lvl1{border-left-color:var(--signal)}
+.driver.lvl2{border-left-color:var(--line2);padding-left:24px;color:var(--ink3)}
+.driver.lvl3{border-left-color:#4a3d1c;padding-left:36px;color:var(--warn)}
+.driver .dname{color:var(--ink)}
+.driver .dval{color:var(--ink2)}
+.driver .dval.assumed{color:var(--warn)}
+.stat{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+.stat td{padding:4px 6px;border-bottom:1px solid #1e2833}
+.stat td:last-child{text-align:right;color:var(--ink)}
+.stat tr.tot td{border-top:1px solid var(--line2);border-bottom:0;padding-top:6px;color:var(--ink);font-weight:600}
+.stat tr.sub td{color:var(--ink3);font-size:10.5px;padding-top:7px;border-bottom:0}
+.stat .neg{color:var(--bad)}
+.outcome{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.outcell{background:var(--raise);padding:10px 11px}
+.outlabel{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.outval{font-family:var(--disp);font-size:21px;letter-spacing:.01em;margin-top:3px}
+.outval.pos{color:var(--ok)} .outval.neg{color:var(--bad)}
+.outnote{font-size:10.5px;color:var(--ink3);margin-top:2px}
+.sliderrow{display:flex;align-items:center;gap:14px;padding:12px 14px;border-top:1px solid var(--line);background:#121a22;flex-wrap:wrap}
+.sliderrow label{font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+input[type=range]{flex:1;min-width:180px;accent-color:var(--signal);background:transparent}
+.rateval{font-family:var(--mono);font-size:16px;color:var(--signal);min-width:74px;text-align:right}
+.flipbanner{margin:10px 14px 14px;padding:9px 12px;border-radius:7px;font-size:12px;display:flex;gap:9px;align-items:flex-start;border:1px solid}
+.flipbanner.yes{background:var(--warnbg);border-color:#4a3d1c;color:var(--warn)}
+.flipbanner.no{background:var(--okbg);border-color:#1e4033;color:var(--ok)}
+.invlist{display:flex;flex-direction:column;gap:5px}
+.inv{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.inv .mk{color:var(--ok);flex:none}
+.inv.fail .mk{color:var(--bad)}
+
+/* ============================ ARCH ============================ */
+.layer{border:1px solid var(--line);border-radius:9px;margin-bottom:9px;background:var(--raise);overflow:hidden}
+.layer-head{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:11px 13px;cursor:pointer}
+.layer-head:hover{background:var(--raise2)}
+.layer-n{font-family:var(--disp);font-size:15px;color:var(--ink3);text-align:center}
+.layer-name{font-family:var(--disp);font-size:13.5px;letter-spacing:.06em;text-transform:uppercase}
+.layer-sub{font-size:11.5px;color:var(--ink3);margin-top:1px}
+.layer-body{display:none;padding:0 13px 13px 59px;color:var(--ink2);font-size:12.5px;line-height:1.65}
+.layer.open .layer-body{display:block}
+.layer-body ul{margin:6px 0 0;padding-left:17px}
+.layer-body li{margin:3px 0}
+.archflow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding:8px 13px;background:#121a22;border-top:1px solid var(--line)}
+.archflow b{color:var(--signal);font-weight:400}
+
+/* ============================ INTEGRATION ============================ */
+.maptable{width:100%;border-collapse:collapse;font-size:12.5px}
+.maptable th,.maptable td{padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.maptable thead th{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);font-weight:600;background:#121a22}
+.maptable .paper{font-family:var(--mono);font-size:11px;color:var(--latent)}
+.maptable .here{color:var(--ink2)}
+.maptable .here b{color:var(--ink)}
+.callout{padding:11px 13px;border-radius:8px;font-size:12.5px;line-height:1.65;border:1px solid;margin-bottom:12px}
+.callout.warn{background:var(--warnbg);border-color:#4a3d1c;color:#f0d9a6}
+.callout.info{background:#121a22;border-color:var(--line2);color:var(--ink2)}
+.callout b{color:var(--ink)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink3);padding:9px 14px;background:#121a22;border-top:1px solid var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.footer{padding:16px 20px 40px;color:var(--ink3);font-size:11px;max-width:1720px;margin:0 auto;border-top:1px solid var(--line)}
+.footer code{font-family:var(--mono);color:var(--ink2)}
+.view[hidden]{display:none}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="mark">
+    <span class="markglyph" aria-hidden="true"><i></i><i></i></span>
+    <span>
+      <div class="brandname">business_pipeline</div>
+      <div class="brandsub">platform mockup · v0.12 → v1 proposal</div>
+    </span>
+  </div>
+  <div class="topspacer"></div>
+  <div class="topmeta">
+    <div class="metablock">
+      <span class="metalabel">Reasoning service</span>
+      <span class="metavalue">qwen3-14b-base + HybridLink (planned)</span>
+    </div>
+    <div class="metablock">
+      <span class="metalabel">Mode policy</span>
+      <span class="metavalue">per-stage · text ⊕ latent</span>
+    </div>
+    <div class="metablock">
+      <span class="metalabel">Verifiability tier</span>
+      <span class="metavalue">T1 library · T2 custom</span>
+    </div>
+    <button class="toggle" id="revealBtn" type="button" aria-pressed="false"
+            title="Reveal latent reasoning as pseudo-text, per the paper's interpretability result">
+      <span class="toggledot" aria-hidden="true"></span>
+      <span class="toggletext">Reveal latent reasoning</span>
+    </button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Mockup views">
+  <button class="tab" role="tab" aria-selected="true"  aria-controls="v-run" id="t-run"><span class="tabnum">01</span>Run console</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="v-fin" id="t-fin"><span class="tabnum">02</span>Financial model</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="v-arch" id="t-arch"><span class="tabnum">03</span>Architecture</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="v-int" id="t-int"><span class="tabnum">04</span>PDF integration</button>
+</nav>
+
+<div class="shell">
+
+  <!-- ===================== LEFT RAIL ===================== -->
+  <aside class="rail">
+    <div class="railh">Case workspace</div>
+    <div class="wsentity">
+      <div class="wsname">Meridian Foods, Inc.</div>
+      <div class="wsmeta">PSE: MERI · FY ends 31 Dec · PHP</div>
+    </div>
+    <div style="margin-top:9px">
+      <div class="kv"><span class="k">Reporting framework</span><span class="v">local (PFRS)</span></div>
+      <div class="kv"><span class="k">Spec versions</span><span class="v">4 (v1 frozen)</span></div>
+      <div class="kv"><span class="k">Baseline artifacts</span><span class="v">37 immutable</span></div>
+      <div class="kv"><span class="k">Account mapping</span><span class="v">confirmed 12 Oct</span></div>
+      <div class="kv"><span class="k">Stale artifacts</span><span class="v">2 flagged</span></div>
+      <div class="kv"><span class="k">Retention</span><span class="v">user-owned</span></div>
+    </div>
+
+    <div class="railh">Deliverables</div>
+    <div class="raillist">
+      <div class="railitem"><span>Management accounts</span><span class="rn">v2</span></div>
+      <div class="railitem"><span>Expansion case study</span><span class="rn">v1</span></div>
+      <div class="railitem is-stale"><span>Unit economics brief</span><span class="rn">stale</span></div>
+      <div class="railitem"><span>Costing memo</span><span class="rn">v1</span></div>
+    </div>
+
+    <div class="railh">Platform layers</div>
+    <div class="raillist" id="layerjump"></div>
+
+    <div class="railh">Open owner decisions</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span class="chip chip-block">B-005 named reviewer</span>
+      <span class="chip chip-block">B-019 T2 container</span>
+      <span class="chip chip-block">B-035 stage 7 manuals</span>
+      <span class="chip chip-draft">B-036 provider</span>
+      <span class="chip chip-draft">B-038 data handling</span>
+    </div>
+  </aside>
+
+  <!-- ===================== CENTER ===================== -->
+  <main class="center">
+
+    <!-- ---------- VIEW 01 : RUN ---------- -->
+    <section class="view" id="v-run" role="tabpanel" aria-labelledby="t-run">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Run console</h2>
+          <span class="hint">ten-stage deterministic spine — code fixes the order; agents are bounded subroutines</span>
+          <span class="headright"><span class="chip chip-det">spec 7f3a…c91e</span></span>
+        </div>
+        <div class="panel-body tight">
+          <div class="track" id="track"></div>
+        </div>
+        <div class="legend">
+          <span><span class="chip chip-det">N/A</span> deterministic — no model in the loop</span>
+          <span><span class="chip chip-text">TEXT</span> model output is visible and auditable</span>
+          <span><span class="chip chip-latent">LATENT</span> model reasons without verbalising</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Reasoning ribbon</h2>
+          <span class="hint">one turn, two tracks — text tokens interleaved with a continuous latent band</span>
+          <span class="headright"><span class="chip chip-det" id="ribbonmeta">latent steps 0</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="ribbon-wrap" id="ribbon"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Visible-trace audit</h2>
+          <span class="hint">the surface an external monitor sees — the paper's monitorability claim, applied to this pipeline</span>
+        </div>
+        <div class="panel-body tight">
+          <table class="cmp">
+            <thead><tr>
+              <th>Measure</th><th class="num">Text-only agent</th><th class="num">Hybrid (planned)</th><th>Reading</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="rowlab">Text-mode tokens per instance</td><td class="num">596</td><td class="num">302</td><td class="muted">paper: 43–49% fewer exposed tokens</td></tr>
+              <tr><td class="rowlab">Latent-mode steps per instance</td><td class="num">—</td><td class="num">170</td><td class="muted">replaces verbalised reasoning</td></tr>
+              <tr class="hl"><td class="rowlab">Key reasoning steps per 100 visible tokens</td><td class="num">0.57</td><td class="num">0.72</td><td class="delta-up">denser trace, not a thinner one</td></tr>
+              <tr><td class="rowlab">Weak-monitor AUROC (predicts failure)</td><td class="num">0.772</td><td class="num">0.840</td><td class="delta-up">within 0.022 of matched text agent</td></tr>
+              <tr><td class="rowlab">Strong-monitor AUROC</td><td class="num">0.935</td><td class="num">0.961</td><td class="delta-up">monitoring preserved</td></tr>
+              <tr><td class="rowlab">First error correctly localised</td><td class="num">94.2%</td><td class="num">99.2%</td><td class="delta-up">debugging preserved</td></tr>
+              <tr><td class="rowlab">Diagnosis matches reference</td><td class="num">93.5%</td><td class="num">97.6%</td><td class="delta-up">&lt;1% answer leakage</td></tr>
+              <tr><td class="rowlab">Fix-rate gain, targeted hint vs. retry</td><td class="num">+3.4</td><td class="num">+9.1</td><td class="delta-up">correction loop strengthened</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="legend">
+          <span><span class="tag-src">paper</span> reported by the authors on Qwen3-base agentic benchmarks — <b style="color:var(--warn)">not measured on this pipeline</b></span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Artifact lineage</h2>
+          <span class="hint">every displayed number links to its derivation</span>
+        </div>
+        <div class="panel-body tight">
+          <table class="cmp">
+            <thead><tr><th>Artifact</th><th>Value</th><th>Provenance</th><th>Derivation</th></tr></thead>
+            <tbody id="artifacts"></tbody>
+          </table>
+        </div>
+        <div class="legend">
+          <span>provenance tags: <span class="chip chip-new">user</span> <span class="chip chip-new">sourced</span> <span class="chip chip-new">assumption</span> <span class="chip chip-new">computed</span></span>
+          <span>env_hash <span style="font-family:var(--mono)">3ac9…f10b</span> · code_hash <span style="font-family:var(--mono)">81d4…77a2</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- VIEW 02 : FINANCIAL ---------- -->
+    <section class="view" id="v-fin" role="tabpanel" aria-labelledby="t-fin" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Driver-led forecast</h2>
+          <span class="hint">the model emits entries, never a spreadsheet — statements derive, so they balance by construction</span>
+          <span class="headright"><span class="chip chip-det">T2 · custom analysis · reviewer pending</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="fin-grid">
+            <div>
+              <div class="sd-h">Driver tree</div>
+              <div class="drivers">
+                <div class="driver lvl1"><span class="dname">Revenue</span> <span class="dval">₱71.9M</span></div>
+                <div class="driver lvl2"><span class="dname">volume × ASP</span> <span class="dval">12,400 units/qtr × ₱1,450</span></div>
+                <div class="driver lvl1"><span class="dname">Cost of sales</span> <span class="dval">₱38.6M</span></div>
+                <div class="driver lvl2"><span class="dname">variable 38%</span> <span class="dval">assumed</span></div>
+                <div class="driver lvl2"><span class="dname">fixed</span> <span class="dval">₱1.1M/qtr</span></div>
+                <div class="driver lvl1"><span class="dname">EBITDA</span> <span class="dval">₱21.4M</span></div>
+                <div class="driver lvl1"><span class="dname">D&amp;A</span> <span class="dval">₱2.7M</span></div>
+                <div class="driver lvl1"><span class="dname">EBIT</span> <span class="dval">₱18.7M</span></div>
+                <div class="driver lvl2"><span class="dname">tax</span> <span class="dval assumed">25% assumed</span></div>
+                <div class="driver lvl1"><span class="dname">NOPAT</span> <span class="dval">₱14.0M</span></div>
+                <div class="driver lvl2"><span class="dname">+ D&amp;A</span> <span class="dval">₱2.7M</span></div>
+                <div class="driver lvl2"><span class="dname">− capex</span> <span class="dval assumed">₱320M at t₀</span></div>
+                <div class="driver lvl2"><span class="dname">− Δ working capital</span> <span class="dval assumed">1.5% of Δrevenue</span></div>
+                <div class="driver lvl1"><span class="dname">Free cash flow</span> <span class="dval">₱91.6M in Y5</span></div>
+                <div class="driver lvl1"><span class="dname">Terminal value</span> <span class="dval assumed">g = 3.0%</span></div>
+              </div>
+              <div class="sd-h" style="margin-top:14px">Ledger entries the forecast emits</div>
+              <table class="stat">
+                <tr><td>2027-01-01</td><td>Capex — plant line 2</td><td class="neg">320,000,000.00</td></tr>
+                <tr><td>2027-01-01</td><td>Dr Plant &amp; equipment 320,000,000.00 / Cr Cash 320,000,000.00</td><td style="color:var(--ink3)">balanced</td></tr>
+                <tr><td>2027-12-31</td><td>Depreciation — straight line, 8 yr</td><td>2,700,000.00</td></tr>
+                <tr><td>2027-12-31</td><td>Accrual — raw materials</td><td class="neg">1,980,000.00</td></tr>
+                <tr><td>2027-12-31</td><td>Dr Inventory / Cr Trade payables</td><td style="color:var(--ink3)">balanced</td></tr>
+              </table>
+              <div class="sd-note">Amounts are strings; the kernel refuses binary floats and refuses to round silently. Scenarios are overlays of extra entries on this base ledger, with a diff showing what moved.</div>
+            </div>
+
+            <div>
+              <div class="sd-h">Derived statements (FY2027)</div>
+              <table class="stat">
+                <tr class="sub"><td colspan="2">INCOME STATEMENT</td></tr>
+                <tr><td>Revenue</td><td>71,900,000.00</td></tr>
+                <tr><td>Cost of sales</td><td class="neg">(38,600,000.00)</td></tr>
+                <tr><td>Gross profit</td><td>33,300,000.00</td></tr>
+                <tr><td>Operating expenses</td><td class="neg">(14,600,000.00)</td></tr>
+                <tr><td>EBITDA</td><td>21,400,000.00</td></tr>
+                <tr><td>Depreciation &amp; amortisation</td><td class="neg">(2,700,000.00)</td></tr>
+                <tr><td>EBIT</td><td>18,700,000.00</td></tr>
+                <tr><td>Income tax</td><td class="neg">(4,675,000.00)</td></tr>
+                <tr><td>Net income</td><td>14,025,000.00</td></tr>
+                <tr class="sub"><td colspan="2">BALANCE SHEET (excerpt)</td></tr>
+                <tr><td>Cash &amp; equivalents</td><td>18,940,000.00</td></tr>
+                <tr><td>Trade receivables</td><td>11,300,000.00</td></tr>
+                <tr><td>Inventories</td><td>6,180,000.00</td></tr>
+                <tr><td>Property, plant &amp; equipment</td><td>312,400,000.00</td></tr>
+                <tr><td>Total assets</td><td>348,820,000.00</td></tr>
+                <tr><td>Trade payables</td><td class="neg">(9,440,000.00)</td></tr>
+                <tr><td>Loan payable</td><td class="neg">(180,000,000.00)</td></tr>
+                <tr><td>Total equity</td><td>(159,380,000.00)</td></tr>
+                <tr class="tot"><td>Liabilities + equity</td><td>348,820,000.00</td></tr>
+                <tr class="sub"><td colspan="2">CASH FLOW (indirect route)</td></tr>
+                <tr><td>Net income</td><td>14,025,000.00</td></tr>
+                <tr><td>+ D&amp;A</td><td>2,700,000.00</td></tr>
+                <tr><td>− Δ working capital</td><td class="neg">(1,980,000.00)</td></tr>
+                <tr><td>− Capex</td><td class="neg">(320,000,000.00)</td></tr>
+                <tr class="tot"><td>Free cash flow</td><td class="neg">(305,255,000.00)</td></tr>
+              </table>
+              <div class="sd-h" style="margin-top:14px">Invariants — a failure blocks delivery</div>
+              <div class="invlist">
+                <div class="inv"><span class="mk">✓</span> trial_balance_debits_equal_credits</div>
+                <div class="inv"><span class="mk">✓</span> assets_equal_liabilities_plus_equity</div>
+                <div class="inv"><span class="mk">✓</span> net_income_agrees_across_routes</div>
+                <div class="inv"><span class="mk">✓</span> cash_flow_ending_cash_equals_balance_sheet_cash</div>
+                <div class="inv"><span class="mk">✓</span> opening_balances_equal_prior_closing</div>
+                <div class="inv"><span class="mk">✓</span> statement_lines_foot_to_totals</div>
+                <div class="inv"><span class="mk">✓</span> journal_hash_chain_intact</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Valuation — NPV as a view over the forecast ledger</h2>
+          <span class="hint">live; computed in this page from the cash-flow arrays</span>
+        </div>
+        <div class="panel-body">
+          <div class="outcome" id="outcomes"></div>
+        </div>
+        <div class="sliderrow">
+          <label for="wacc">Discount rate (WACC)</label>
+          <input type="range" id="wacc" min="6" max="30" step="0.1" value="11.4" aria-label="Discount rate">
+          <span class="rateval" id="waccval">11.4%</span>
+        </div>
+        <div id="flipzone"></div>
+        <div class="legend">
+          <span>alternative A — expand (capex ₱320M, g 3.0%) &nbsp;·&nbsp; alternative B — hold + refresh (capex ₱85M, g 2.5%)</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Ambiguity register</h2>
+          <span class="hint">the defaults this run took, and what the alternative would change</span>
+        </div>
+        <div class="panel-body tight">
+          <table class="cmp">
+            <thead><tr><th>Question</th><th>Default taken</th><th>Impact if the other way</th></tr></thead>
+            <tbody>
+              <tr><td class="rowlab">Terminal growth</td><td>A: 3.0% · B: 2.5%</td><td class="muted">dominant driver; move ±1pt and NPV shifts ₱55–70M</td></tr>
+              <tr><td class="rowlab">Tax treatment</td><td>25% flat, no incentives</td><td class="muted">+5pt lowers NPV ₱38M; does not flip the ranking</td></tr>
+              <tr><td class="rowlab">Working-capital days</td><td>as stated</td><td class="muted">±5 days moves NPV ₱4.1M; does not flip the ranking</td></tr>
+              <tr><td class="rowlab">Capex phasing</td><td>100% at t₀</td><td class="muted">flips the ranking — see the crossover above</td></tr>
+              <tr><td class="rowlab">Unequal lives</td><td>5-year horizon both</td><td class="muted">not implemented; no equivalent-annual-value adjustment yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- VIEW 03 : ARCHITECTURE ---------- -->
+    <section class="view" id="v-arch" role="tabpanel" aria-labelledby="t-arch" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Platform architecture</h2>
+          <span class="hint">click a layer to expand — status reflects the repo today</span>
+          <span class="headright">
+            <span class="chip chip-ok">built</span><span class="chip chip-new">new</span>
+            <span class="chip chip-draft">extend</span><span class="chip chip-block">blocked</span>
+          </span>
+        </div>
+        <div class="panel-body" id="layers"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Build sequence</h2><span class="hint">phases with their exit gate</span></div>
+        <div class="panel-body tight">
+          <table class="cmp">
+            <thead><tr><th>Phase</th><th>Scope</th><th>Exit gate</th></tr></thead>
+            <tbody id="phases"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Current repo, measured</h2><span class="hint">read from the codebase, not projected</span></div>
+        <div class="panel-body">
+          <div class="outcome">
+            <div class="outcell"><div class="outlabel">Tests</div><div class="outval">253</div><div class="outnote">stdlib only, no network</div></div>
+            <div class="outcell"><div class="outlabel">Executable methods</div><div class="outval">9</div><div class="outnote">+ 3 templates · 4 frameworks</div></div>
+            <div class="outcell"><div class="outlabel">Ledger trap cases</div><div class="outval">12</div><div class="outnote">5 rejected · 2 caught · 3 flagged</div></div>
+            <div class="outcell"><div class="outlabel">Framework records</div><div class="outval">—</div><div class="outnote">all “unreviewed”</div></div>
+          </div>
+          <div class="sd-note">Stage 7 (research pipeline) is blocked on the Smart Researcher manuals and was not reconstructed from memory. T1 labels remain “expert review pending” until a named reviewer exists (B-005). The sandbox is developed and tested on Linux; the Windows path is untested.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- VIEW 04 : INTEGRATION ---------- -->
+    <section class="view" id="v-int" role="tabpanel" aria-labelledby="t-int" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>PDF integration map</h2>
+          <span class="hint">Hybrid Reasoning Agents (arXiv:2610.18861v1, 13 Oct 2026) → this pipeline</span>
+        </div>
+        <div class="panel-body">
+          <div class="callout warn">
+            <b>Honest status: designed, not built.</b> The paper informed the architecture in this mockup and the sequencing in the plan. <b>No pipeline code has been changed</b> — the existing spine is untouched, the Anthropic adapter has never been run live, and no latent mode exists at runtime. Every integration below is a proposal with a defined seam, not an implemented feature.
+          </div>
+          <div class="callout info">
+            <b>The central finding.</b> The pipeline is already a <b>text-mode</b> hybrid agent: it draws the line between external, auditable, user-visible output and internal deliberation, and the deterministic spine is the part that never needs a model. What the paper contributes is <b>a mode policy</b> (when to think vs. when to act) and a <b>post-training recipe</b> — not new plumbing. And the pipeline already satisfies the paper's key enabler: hybrid policy factorization holds here by construction, because the model's stochasticity is confined to proposals it cannot verify.
+          </div>
+        </div>
+        <div class="panel-body tight" style="padding:0">
+          <table class="maptable">
+            <thead><tr><th style="width:23%">Paper element</th><th style="width:33%">Adaptation here</th><th style="width:26%">Why it fits</th><th>Status</th></tr></thead>
+            <tbody id="maprows"></tbody>
+          </table>
+        </div>
+        <div class="legend">
+          <span><span class="chip chip-ok">built</span> exists in the repo today</span>
+          <span><span class="chip chip-draft">designed</span> seam defined, not implemented</span>
+          <span><span class="chip chip-block">rejected</span> deliberately not adopted</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Deliberately not adopted</h2></div>
+        <div class="panel-body">
+          <table class="maptable">
+            <tbody>
+              <tr><td class="paper">Qwen3-Base 4B/8B/14B · H100 · 54K hybrid trajectories</td><td class="here"><b>Training is not a v1 dependency.</b> The pipeline is stdlib-only, offline, laptop-scale. Adopt the architecture and the recipe as a pattern; keep post-training a later phase gated by the evaluation set the manual requires.</td><td><span class="chip chip-block">rejected for v1</span></td></tr>
+              <tr><td class="paper">Latent reasoning as a route to better numbers</td><td class="here"><b>Latent reasoning does not improve the numbers.</b> They come from deterministic execution (P1). Latent mode is for the <i>proposal</i> layer only — intake profiling, spec framing, critique. Crediting latent reasoning with a number would violate the manual's first principle.</td><td><span class="chip chip-block">rejected</span></td></tr>
+              <tr><td class="paper">AIME / GPQA / GAIA / WebWalker benchmarks</td><td class="here"><b>Wrong task.</b> Apply the paper's <i>method</i> — interventions, monitors, held-out discipline — to the manual's datasets: the 30–50 real business problems and the seeded trap set.</td><td><span class="chip chip-draft">adapted</span></td></tr>
+              <tr><td class="paper">Reported headline numbers (10.4% gain, 35.5–54.7% fewer tokens)</td><td class="here"><b>Tagged [UNVERIFIED].</b> An arXiv v1 from 13 Oct 2026 with no independent reproduction. The architectural claims are durable; the benchmark deltas are not yet evidence for this product.</td><td><span class="chip chip-warn" style="border-color:#4a3d1c">unverified</span></td></tr>
+              <tr><td class="paper">Reward for tool use (r_tool)</td><td class="here"><b>Adopt with a correction.</b> Reward <i>trap-set catch rate</i>, not check-pass rate — passing checks on clean data is trivially gameable.</td><td><span class="chip chip-draft">adapted</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>The one place the paper and the manual disagree — and the resolution</h2></div>
+        <div class="panel-body">
+          <div class="callout info" style="margin:0">
+            <b>Paper:</b> the model <i>learns</i> when to enter and exit latent mode. <b>Manual (P4):</b> code decides the order of stages and whether verification runs; agents are subroutines whose output always passes a check they do not control.<br><br>
+            <b>Resolution — the line is mode, not verification.</b> Choosing <i>how much</i> to verbalise is not the same as choosing <i>whether a check runs</i>. A learned mode policy may change the length and timing of a proposal, but the frozen test plan, the thresholds, the stage order and the pass/fail decision all stay in code. Mode switching cannot alter the verification outcome — so P4 holds.<br><br>
+            <b>The test that enforces it:</b> the same run, executed with the learned mode policy and with latent mode disabled entirely, must produce <b>identical artifacts, identical check results and an identical report</b>. Only latency, token count and proposal quality may differ. That single property is the gate for the entire hybrid path, and it is exactly the kind of metamorphic test the manual's evaluation plan already calls for.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== RIGHT RAIL ===================== -->
+  <aside class="aside">
+    <div class="asideh">Correctness layers</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div class="kv"><span class="k">Computational</span><span class="v" style="color:var(--ok)">guaranteed</span></div>
+      <div class="kv"><span class="k">Formulation</span><span class="v" style="color:var(--warn)">surfaced</span></div>
+      <div class="kv"><span class="k">Input</span><span class="v" style="color:var(--warn)">flagged</span></div>
+    </div>
+    <div class="sd-note" style="margin-top:8px">A number derived correctly from a bad input will still be read as a hallucination — so key inputs and assumptions sit next to every headline number.</div>
+
+    <div class="asideh">Claim licensing</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div class="railitem"><span>Net income rose</span><span class="chip chip-ok">descriptive</span></div>
+      <div class="railitem"><span>Margin associated with scale</span><span class="chip chip-warn">associational</span></div>
+      <div class="railitem"><span>Expansion will pay back</span><span class="chip chip-warn">predictive</span></div>
+      <div class="railitem"><span>We should expand</span><span class="chip chip-bad">prescriptive</span></div>
+    </div>
+    <div class="sd-note" style="margin-top:8px">Intervention language is auto-flagged as causal regardless of how the spec typed it. “Certainly” and “proves” are blocked at the prescriptive ceiling.</div>
+
+    <div class="asideh">Decision-flip filter</div>
+    <div class="sd-line"><span class="mk">●</span><span>Discount rate &gt; crossover</span><span class="ok">flips</span></div>
+    <div class="sd-line"><span class="mk">●</span><span>Terminal growth ±1pt</span><span class="ok">flips</span></div>
+    <div class="sd-line"><span class="mk">●</span><span>Working-capital days ±5</span><span class="ok">no flip</span></div>
+    <div class="sd-line"><span class="mk">●</span><span>Tax ±5pt</span><span class="ok">no flip</span></div>
+    <div class="sd-note" style="margin-top:8px">Flippers reach the headline. Non-flippers go to the appendix.</div>
+
+    <div class="asideh">Amendments</div>
+    <div class="sd-line"><span class="mk">1</span><span>normality → <b>spearman</b></span></div>
+    <div class="sd-line"><span class="mk">2</span><span>heteroskedasticity → <b>ols_robust</b></span></div>
+    <div class="sd-note" style="margin-top:8px">Every switch is logged with the failing check, the reason and the fallback — never silent. The builder may patch code; it may never touch tests, thresholds or the verifier.</div>
+
+    <div class="asideh">Run ledger</div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);line-height:1.85" id="ledger"></div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <p><b>Mockup only.</b> A design artefact, not a running system. The pipeline in <code>business_pipeline_v0.12/</code> was read, not modified; no source file was changed and no new file was added inside it.</p>
+  <p>Figures in the financial view are illustrative and computed live in this page from the cash-flow arrays; they are not pipeline output. Figures tagged <span class="tag-src">paper</span> are the authors' reported results on their own benchmarks, not measured here. Figures described as measured are read from the repository.</p>
+</footer>
+
+<script>
+"use strict";
+/* ============================================================
+   TABS
+   ============================================================ */
+const TABS=["run","fin","arch","int"];
+function showTab(id){
+  TABS.forEach(function(t){
+    const on=t===id;
+    document.getElementById("v-"+t).hidden=!on;
+    document.getElementById("t-"+t).setAttribute("aria-selected",on?"true":"false");
+  });
+  window.scrollTo({top:0,behavior:"instant"});
+}
+TABS.forEach(function(t){
+  document.getElementById("t-"+t).addEventListener("click",function(){showTab(t);});
+});
+
+/* ============================================================
+   STAGE TRACK  — real pipeline stage names
+   ============================================================ */
+const STAGES=[
+ {n:"intake",t:"Intake and data profiling",exec:"bounded agent + deterministic profiler",mode:"latent",st:"done",
+  lines:[["ok","merged cells resolved in 3 sheets"],["ok","duplicate customer IDs: 12 flagged"],["ok","missing periods: Q3 absent"],["ok","unit ambiguity: '000s suffix on 2 tabs"],["ok","currency: PHP throughout"]],
+  note:"Anomalies are reported to the user before anything is formulated. Extraction runs twice by independent methods and reconciles; values absent from the source text layer are rejected."},
+ {n:"formalization",t:"Formalization",exec:"model proposes, user confirms",mode:"text",st:"awaiting_user",
+  lines:[["ok","objective drafted"],["ok","claims typed"],["ok","inputs tagged with provenance"],["ok","4 assumptions with plausible ranges"],["ok","ambiguity register: 5 entries"],["bad","AWAITING CONFIRMATION — user checkpoint"]],
+  note:"The spec is hashed and frozen on confirmation. Changing the question mid-way creates a new version; earlier results are never silently reused."},
+ {n:"method_selection",t:"Method selection",exec:"deterministic router + bounded assist",mode:"latent",st:"done",
+  lines:[["ok","escalated by missing method, not by difficulty"],["ok","tier: T1 · standard method"],["ok","review status: expert review pending (B-005)"],["ok","2 frameworks suggested, 0 applied"]],
+  note:"Nothing is applied unless the user selects it. Every catalogue record is currently unreviewed, so the system cannot yet say what a framework will miss."},
+ {n:"test_planning",t:"Test planning",exec:"verifier (different model family)",mode:"text",st:"done",
+  lines:[["ok","test names frozen before execution"],["ok","reconciliation to source totals"],["ok","boundary: zero rate = sum of flows"],["ok","monotonicity: higher cost lowers NPV"],["ok","second implementation agrees"]],
+  note:"The test plan is written from the spec before the code runs, by a different instance or family than the builder, to decorrelate errors."},
+ {n:"execution",t:"Execution",exec:"deterministic sandbox",mode:"det",st:"done",
+  lines:[["ok","guarded subprocess · python -S -s"],["ok","PYTHONHASHSEED=0"],["ok","network blocked"],["ok","writes limited to temp workdir"],["ok","Decimal arithmetic, never binary floats"],["ok","artifacts hashed and immutable"]],
+  note:"Process isolation for our own vetted code — not a security boundary. Model-written code (T2/T3) still needs an OS-level container (B-019)."},
+ {n:"verification",t:"Verification",exec:"deterministic checks + invariants",mode:"det",st:"pass",
+  lines:[["ok","assumption screens passed"],["ok","normality → fallback to spearman (amendment 1)"],["ok","heteroskedasticity → ols_robust (amendment 2)"],["ok","independent float route agrees to 1e-15"]],
+  note:"A failed check triggers a pre-declared fallback as a logged amendment. After N amendments the run escalates to a human or a lower tier."},
+ {n:"sensitivity",t:"Sensitivity",exec:"deterministic",mode:"det",st:"done",
+  lines:[["ok","400-point grid + bisection"],["ok","cross-checked on a 997-point grid"],["ok","crossover at 19.6% — a flipper","sens-cross"]],
+  note:"Decision-flip is the filter for caveats: an unresolved item reaches the headline only if it can flip the recommendation within its plausible range."},
+ {n:"drafting",t:"Drafting",exec:"model writes tokens, renderer fills numbers",mode:"text",st:"done",
+  lines:[["ok","reference tokens only — no digits in model output"],["ok","tables generated by code from artifacts"],["ok","methods section built from the run log"]],
+  note:"Digits are unspeakable: raw numeric literals are rejected, and a post-hoc scan of the rendered text is a second layer."},
+ {n:"draft_audit",t:"Draft audit",exec:"deterministic scans + reviewer",mode:"text",st:"pass",
+  lines:[["ok","no raw numeric literal"],["ok","every reference resolves to an artifact"],["ok","metric and period match the reference"],["ok","claim wording within ceiling"],["ok","synthetic-data label present"]],
+  note:"The renderer rejects a metric or period mismatch. This is the principal defence against citing the wrong artifact."},
+ {n:"delivery",t:"Delivery",exec:"deterministic",mode:"det",st:"delivered",
+  lines:[["ok","report"],["ok","live-formula workbook"],["ok","journal export"],["ok","provenance appendix"],["ok","limitations page"],["ok","re-performance bundle"]],
+  note:"An expert must be able to reproduce every number from the delivered files. The bundle re-runs in a fresh sandbox and compares outputs exactly, within tolerance, or mismatched."}
+];
+const MODE_CHIP={text:["chip-text","TEXT"],latent:["chip-latent","LATENT"],det:["chip-det","N/A"]};
+const ST_CHIP={done:"chip-ok",pass:"chip-ok",delivered:"chip-ok",awaiting_user:"chip-warn"};
+
+function buildTrack(){
+  const box=document.getElementById("track");box.replaceChildren();
+  STAGES.forEach(function(s,i){
+    const row=document.createElement("div");
+    row.className="stage";row.tabIndex=0;row.setAttribute("role","button");
+    row.setAttribute("aria-expanded","false");
+    const n=document.createElement("div");n.className="stage-n";n.textContent=String(i+1).padStart(2,"0");
+    const mid=document.createElement("div");
+    const ttl=document.createElement("div");ttl.className="stage-title";ttl.textContent=s.t;
+    const ex=document.createElement("div");ex.className="stage-exec";ex.textContent=s.exec;
+    mid.appendChild(ttl);mid.appendChild(ex);
+    const right=document.createElement("div");right.className="stage-right";
+    const mc=document.createElement("span");mc.className="chip "+MODE_CHIP[s.mode][0];mc.textContent=MODE_CHIP[s.mode][1];
+    const sc=document.createElement("span");sc.className="chip "+(ST_CHIP[s.st]||"chip-det");sc.textContent=s.st.replace(/_/g," ");
+    right.appendChild(mc);right.appendChild(sc);
+    row.appendChild(n);row.appendChild(mid);row.appendChild(right);
+
+    const det=document.createElement("div");det.className="stagedetail";
+    const grid=document.createElement("div");grid.className="sdgrid";
+    const left=document.createElement("div");
+    const lh=document.createElement("div");lh.className="sd-h";lh.textContent="Recorded checks";
+    left.appendChild(lh);
+    s.lines.forEach(function(l){
+      const d=document.createElement("div");d.className="sd-line";
+      const mk=document.createElement("span");mk.className="mk "+(l[0]==="ok"?"ok":"bad");mk.textContent=l[0]==="ok"?"✓":"!";
+      const sp=document.createElement("span");sp.textContent=l[1];
+      if(l[2]) sp.id=l[2];
+      d.appendChild(mk);d.appendChild(sp);left.appendChild(d);
+    });
+    const right2=document.createElement("div");
+    const rh=document.createElement("div");rh.className="sd-h";rh.textContent="Mode routing";
+    right2.appendChild(rh);
+    const rd=document.createElement("div");rd.className="sd-line";
+    const mk2=document.createElement("span");mk2.className="mk";mk2.textContent="→";
+    const sp2=document.createElement("span");
+    sp2.textContent = s.mode==="det" ? "no model in the loop — deterministic code"
+      : s.mode==="text" ? "model output stays visible and auditable"
+      : "model deliberates in latent space; only the proposal surfaces";
+    rd.appendChild(mk2);rd.appendChild(sp2);right2.appendChild(rd);
+    const nn=document.createElement("div");nn.className="sd-note";nn.textContent=s.note;
+    right2.appendChild(nn);
+    grid.appendChild(left);grid.appendChild(right2);det.appendChild(grid);
+    row.addEventListener("click",function(){
+      const open=det.classList.toggle("open");
+      row.classList.toggle("is-open",open);
+      row.setAttribute("aria-expanded",open?"true":"false");
+    });
+    row.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();row.click();}
+    });
+    box.appendChild(row);box.appendChild(det);
+  });
+}
+buildTrack();
+
+/* ============================================================
+   REASONING RIBBON
+   ============================================================ */
+const LATENT_STEPS=170;
+const PSEUDO=[
+ "the request names two alternatives and no rule, so the ranking depends on the rule, not on the",
+ "cash flows, which means the discount rate is not the only thing to check — check the",
+ "crossover first, then the assumptions behind the terminal value, because the terminal",
+ "value carries most of the answer and it rests on a growth rate nobody supplied, so the",
+ "honest move is to put that in the ambiguity register and let the sensitivity stage",
+ "compute the point where the ranking flips, rather than assert one and hope. The chart",
+ "of accounts is the other place this hides — mapping is where the error survives every",
+ "automated check, so that needs a human confirmation and the standards text, not memory."
+].join(" ");
+
+function seeded(seed){let s=seed;return function(){s=(s*1664525+1013904223)%4294967296;return s/4294967296;};}
+
+let revealOn=false;
+function buildRibbon(){
+  const box=document.getElementById("ribbon");box.replaceChildren();
+  const reveal=revealOn;
+
+  function textLine(gutter,tokens,args){
+    const line=document.createElement("div");line.className="rb-line";
+    const g=document.createElement("div");g.className="rb-gutter";g.textContent=gutter;
+    const b=document.createElement("div");b.className="rb-text";
+    const p=document.createElement("div");
+    p.innerHTML=tokens; b.appendChild(p);
+    if(args){
+      const tb=document.createElement("div");tb.className="rb-tokens";
+      args.forEach(function(a){
+        const t=document.createElement("span");t.className="tok "+(a[1]||"");t.textContent=a[0];tb.appendChild(t);
+      });
+      b.appendChild(tb);
+    }
+    line.appendChild(g);line.appendChild(b);return line;
+  }
+  function gate(label,closing){
+    const g=document.createElement("div");g.className="gate";
+    g.textContent=label+(closing?"  (exit anchor)":"  (entry anchor)");
+    return g;
+  }
+  function band(steps){
+    const wrap=document.createElement("div");wrap.className="latent-band";
+    wrap.appendChild(gate("&lt;latent&gt;",false));
+    const f=document.createElement("div");f.className="latent-field";
+    if(reveal){
+      f.classList.add("revealed");
+      const p=document.createElement("div");p.className="latent-pseudo";
+      PSEUDO.split(" ").forEach(function(w,i){
+        const s=document.createElement("span");
+        s.className="frag"+((i%7===3)?" frag-a":"");
+        s.textContent=w+" ";
+        p.appendChild(s);
+      });
+      f.appendChild(p);
+    }else{
+      const rnd=seeded(20261013);
+      for(let i=0;i<steps;i++){
+        const el=document.createElement("i");
+        const h=6+rnd()*26; el.style.height=h.toFixed(1)+"px";
+        el.style.opacity=(0.34+rnd()*0.5).toFixed(2);
+        f.appendChild(el);
+      }
+    }
+    wrap.appendChild(f);
+    const cap=document.createElement("div");cap.className="latent-caption";
+    const b1=document.createElement("b");b1.textContent=steps+" latent steps";
+    const s1=document.createElement("span");s1.textContent="· no token decoding · no text on the wire";
+    const b2=document.createElement("b");b2.textContent="170";
+    const s2=document.createElement("span");s2.textContent="steps replace ≈294 verbalised tokens";
+    cap.appendChild(b1);cap.appendChild(s1);cap.appendChild(b2);cap.appendChild(s2);
+    wrap.appendChild(cap);
+    wrap.appendChild(gate("&lt;/latent&gt;",true));
+    return wrap;
+  }
+
+  box.appendChild(textLine("text · intake",
+    "Four sheets from the <em>Meridian Foods</em> case pack. Two tabs carry a <em>thousands</em> suffix and one mixes peso and peso-nickel costs, so I am treating <em>Revenue</em> and <em>COGS</em> as the only clean pairs and flagging the rest for you to confirm.",
+    [["read_case_pack(sheets=4)","tool"],["profile → 12 anomalies","tool"],["units: thousands","arg"],["currency: PHP","arg"]]));
+
+  box.appendChild(band(LATENT_STEPS));
+
+  box.appendChild(textLine("text · formalization",
+    "The objective is <em>which expansion alternative creates more value</em>. I have drafted the spec with two claims — one <em>descriptive</em> for the modelled cash flows and one <em>prescriptive</em> for the recommendation, and I have left the terminal growth rate open because you have not supplied one.",
+    [["draft_spec(claims=2)","tool"],["ambiguities: 5","tool"]]));
+
+  box.appendChild(textLine("text · method selection",
+    "Capital budgeting fits: NPV with a crossover search, then IRR as the sanity check. I have <em>not</em> picked a framework — SWOT would organise your evidence but compute nothing.",
+    [["route → npv (T1)","tool"],["frameworks: 2 suggested, 0 applied","tool"]]));
+
+  box.appendChild(band(LATENT_STEPS-34));
+
+  box.appendChild(textLine("text · tool call",
+    "Reading the confirmed account mapping so the forecast entries hit the right lines.",
+    [["read_account_mapping()","tool"],["142 accounts","arg"],["confirmed 12 Oct","arg"]]));
+
+  box.appendChild(textLine("text · delivery",
+    "Under the stated assumptions, the net present value of the expansion alternative is <em>computed below</em>. The ranking changes at a discount rate of <em>computed below</em>, which is inside your plausible range — so it is a flipper and goes in the headline.",
+    [["render(spec_hash)","tool"],["digits injected by renderer only","tool"]]));
+
+  document.getElementById("ribbonmeta").textContent = (LATENT_STEPS*2-34)+" latent steps · 1 tool call chain";
+}
+buildRibbon();
+document.getElementById("revealBtn").addEventListener("click",function(){
+  revealOn=!revealOn;
+  this.setAttribute("aria-pressed",revealOn?"true":"false");
+  buildRibbon();
+});
+
+/* ============================================================
+   ARTIFACT LINEAGE
+   ============================================================ */
+const ART=[
+ ["npv_expansion","live","computed","npv(forecast_ledger).npv","7f3a…c91e","3ac9…f10b"],
+ ["npv_hold","live","computed","npv(forecast_ledger).npv","7f3a…c91e","3ac9…f10b"],
+ ["crossover_rate","live","computed","bisection on decision","7f3a…c91e","bisect"],
+ ["wacc","11.4%","assumption","user-owned input + rationale","7f3a…c91e","—"],
+ ["terminal_growth_a","3.0%","assumption","ambiguity register entry","7f3a…c91e","—"],
+ ["capex_line2","₱320,000,000.00","user","journal entry 2027-01-01","7f3a…c91e","81d4…77a2"],
+ ["tax_rate","25%","assumption","jurisdiction-specific, gated","7f3a…c91e","—"],
+ ["net_income_fy27","₱14,025,000.00","computed","statements(journal).net_income","7f3a…c91e","81d4…77a2"]
+];
+(function(){
+  const tb=document.getElementById("artifacts");tb.replaceChildren();
+  ART.forEach(function(a){
+    const tr=document.createElement("tr");
+    const c0=document.createElement("td");c0.className="rowlab";c0.style.fontFamily="var(--mono)";c0.textContent=a[0];
+    const c1=document.createElement("td");c1.style.fontFamily="var(--mono)";
+    if(a[1]==="live"){c1.id="art-"+a[0];c1.textContent="—";}else{c1.textContent=a[1];}
+    const c2=document.createElement("td");const ch=document.createElement("span");ch.className="chip chip-new";ch.textContent=a[2];c2.appendChild(ch);
+    const c3=document.createElement("td");c3.style.fontFamily="var(--mono)";c3.style.fontSize="11px";c3.textContent=a[3];
+    const c4=document.createElement("td");c4.style.fontFamily="var(--mono)";c4.style.fontSize="10px";c4.style.color="var(--ink3)";c4.textContent=a[4]+" / "+a[5];
+    tr.appendChild(c0);tr.appendChild(c1);tr.appendChild(c2);tr.appendChild(c3);tr.appendChild(c4);
+    tb.appendChild(tr);
+  });
+})();
+
+/* ============================================================
+   LEDGER (right rail)
+   ============================================================ */
+const LEDGER=[
+ ["spec","frozen","7f3a…c91e"],["plan","frozen","9b2e…44c0"],["exec","sandboxed","ok"],
+ ["verify","2 amendments","ok"],["sensitivity","flip found","warn"],["draft","tokens only","ok"],
+ ["audit","passed","ok"],["delivered","T2","ok"]
+];
+(function(){
+  const box=document.getElementById("ledger");box.replaceChildren();
+  LEDGER.forEach(function(r){
+    const d=document.createElement("div");
+    d.innerHTML='<span style="color:var(--ink3)">'+r[0].padEnd(11," ")+'</span><span style="color:'+(r[2]==="ok"?"var(--ok)":r[2]==="warn"?"var(--warn)":"var(--ink2)")+'">'+r[1].padEnd(12," ")+'</span><span style="color:var(--ink3)">'+r[2]+'</span>';
+    box.appendChild(d);
+  });
+})();
+
+/* ============================================================
+   FINANCIAL — live valuation
+   ============================================================ */
+const A={capex:320, g:0.03, fcf:[-12.0,38.5,62.4,78.1,91.6]};
+const B={capex:85,  g:0.025,fcf:[14.2,18.6,22.1,24.8,26.9]};
+
+function npv(r,o){
+  let s=0;
+  for(let t=0;t<o.fcf.length;t++) s+=o.fcf[t]/Math.pow(1+r,t+1);
+  const tv=o.fcf[o.fcf.length-1]*(1+o.g)/(r-o.g);
+  return s-o.capex+tv/Math.pow(1+r,o.fcf.length);
+}
+function irr(o){
+  let lo=o.g+0.001, hi=5;
+  if(npv(lo,o)<0) return null;
+  for(let i=0;i<200;i++){const mid=(lo+hi)/2; if(npv(mid,o)>0) lo=mid; else hi=mid;}
+  return (lo+hi)/2;
+}
+function crossover(){
+  let lo=Math.max(A.g,B.g)+0.005, hi=3;
+  const f=function(r){return npv(r,A)-npv(r,B);};
+  if(f(lo)*f(hi)>0) return null;
+  for(let i=0;i<200;i++){const mid=(lo+hi)/2; if(f(lo)*f(mid)<=0) hi=mid; else lo=mid;}
+  return (lo+hi)/2;
+}
+const CROSS=crossover();
+
+function money(v){
+  const s=v<0?"−":"";
+  const a=Math.abs(v);
+  if(a>=1000) return s+"₱"+(a/1000).toFixed(1)+"B";
+  if(a>=1) return s+"₱"+a.toFixed(1)+"M";
+  return s+"₱"+a.toFixed(2)+"M";
+}
+function renderFin(){
+  const r=parseFloat(document.getElementById("wacc").value)/100;
+  document.getElementById("waccval").textContent=(r*100).toFixed(1)+"%";
+  const na=npv(r,A), nb=npv(r,B);
+  const ia=irr(A), ib=irr(B);
+  const lead=na>=nb?"A — expand":"B — hold + refresh";
+
+  const oc=document.getElementById("outcomes");oc.replaceChildren();
+  function cell(label,val,note,cls){
+    const d=document.createElement("div");d.className="outcell";
+    const l=document.createElement("div");l.className="outlabel";l.textContent=label;
+    const v=document.createElement("div");v.className="outval "+(cls||"");v.textContent=val;
+    const n=document.createElement("div");n.className="outnote";n.textContent=note;
+    d.appendChild(l);d.appendChild(v);d.appendChild(n);oc.appendChild(d);
+  }
+  cell("NPV · expand",money(na),"capex ₱320M · g 3.0%",na>=0?"pos":"neg");
+  cell("NPV · hold + refresh",money(nb),"capex ₱85M · g 2.5%",nb>=0?"pos":"neg");
+  cell("IRR · expand",ia?((ia*100).toFixed(1)+"%"):"n/a","on the full cash-flow array");
+  cell("IRR · hold + refresh",ib?((ib*100).toFixed(1)+"%"):"n/a","on the full cash-flow array");
+  cell("NPV gap",money(Math.abs(na-nb)),na>=nb?"expand leads":"hold + refresh leads","");
+  cell("Terminal-value share",((A.fcf[4]*(1+A.g)/(r-A.g)/Math.pow(1+r,5)/(npv(r,A)+A.capex))*100).toFixed(0)+"%","of gross PV — the dominant driver","");
+
+  // keep the artifact lineage in the run console in step with the same engine
+  const set=function(id,v){const el=document.getElementById(id);if(el)el.textContent=v;};
+  set("art-npv_expansion",money(na));
+  set("art-npv_hold",money(nb));
+  set("art-crossover_rate",CROSS?(CROSS*100).toFixed(1)+"%":"none in range");
+  const sx=document.getElementById("sens-cross");
+  if(sx) sx.textContent=CROSS?("crossover at "+(CROSS*100).toFixed(1)+"% — a flipper"):"no crossover in range";
+
+  const fz=document.getElementById("flipzone");fz.replaceChildren();
+  const b=document.createElement("div");
+  const crossed=CROSS&&r>=CROSS;
+  b.className="flipbanner "+(crossed?"yes":"no");
+  const ico=document.createElement("span");ico.textContent=crossed?"▲":"●";
+  const tx=document.createElement("span");
+  if(CROSS){
+    tx.innerHTML=crossed
+      ? "<b>Flipper in the headline.</b> At "+ (r*100).toFixed(1)+"% the discount rate has passed the crossover of <b>"+(CROSS*100).toFixed(1)+"%</b>, so the recommendation flips to "+lead+". The recommendation is therefore stated as conditional on the discount rate, and the crossover sits in the headline rather than the appendix."
+      : "<b>Not a flipper yet.</b> The crossover is at <b>"+(CROSS*100).toFixed(1)+"%</b>; at "+(r*100).toFixed(1)+"% the ranking still favours <b>"+lead+"</b>. Raise the rate to see the recommendation flip — which is exactly the disclosure a fliper requires.";
+  }
+  b.appendChild(ico);b.appendChild(tx);fz.appendChild(b);
+}
+document.getElementById("wacc").addEventListener("input",renderFin);
+renderFin();
+
+/* ============================================================
+   ARCHITECTURE LAYERS
+   ============================================================ */
+const LAYERS=[
+ {n:"6",name:"Delivery surface",sub:"report · live-formula workbook · journal export · provenance appendix · limitations · disclosure summary",st:"extend",
+  items:["The workbook needs live formulas, not pasted values, so an accountant can trace a cell back to an artifact.",
+         "The disclosure-ready summary of what the tool did should ship with every delivery — institutional AI-use policies may require it.",
+         "A 'take this to your accountant' list of judgment calls for non-accountants."]},
+ {n:"5",name:"Agent plane",sub:"mode-aware reasoning service · per-stage thinking budget · provider registry · trace surface",st:"new",
+  items:["One Provider interface, several adapters. The Anthropic one is written but has never run against the live service.",
+         "Mode routing per stage: latent-heavy for profiling and framing, mandatory text for test planning, drafts and every human checkpoint.",
+         "The visible trace is the audit surface — the run log, not the agent's self-report. The paper's monitorability results are the yardstick for it."]},
+ {n:"4",name:"Domain modules",sub:"accounting and financial · statistics · frameworks · research",st:"extend",
+  items:["Accounting: ledger kernel → schedule engines → three statements → reconciliation → analytics.",
+         "Statistics: descriptive, correlation, regression and two-group comparison are built; ANOVA, paired tests, time series and survival are not.",
+         "Research (Stage 7) is blocked on the Smart Researcher manuals and was not reconstructed from memory."]},
+ {n:"3",name:"Computation plane",sub:"containers for T2/T3 · scheduler · queue · resource caps · sandbox registry",st:"new",
+  items:["The current sandbox is process isolation plus policy guards for our own vetted code — it is not a security boundary.",
+         "T2 and T3 need an OS-level container with no network, a read-only filesystem and resource limits (B-019).",
+         "Deployment target — user machine, server or cloud — is an owner decision that changes the container story."]},
+ {n:"2",name:"Case workspace",sub:"entity scope · staleness · spec versions · artifact store · cross-deliverable tie-out",st:"new",
+  items:["This is what turns a one-off tool into a platform: later work builds on earlier work without chat memory.",
+         "Staleness: new period data, a restated source, a changed assumption or a changed library version marks dependent artifacts stale — they are recomputed, not patched.",
+         "A metric for the same entity, period and scope must match across deliverables, or the difference is disclosed with its cause. Otherwise delivery blocks."]},
+ {n:"1",name:"Deterministic core",sub:"orchestrator · spec · claims · artifacts · quantity · methods · ledger · sandbox · re-performance",st:"built",
+  items:["Ten-stage spine: code fixes the order and whether verification runs. Agents are subroutines whose output always passes a check they do not control.",
+         "Typed quantities: a Decimal plus unit, currency, period, scale and precision. Operations on mismatched types raise.",
+         "The renderer is a strict, verified version of the paper's HybridLink — it rejects a metric or period mismatch outright rather than trusting a learned projection."]},
+ {n:"0",name:"Evaluation plane",sub:"core set · trap set · red team · held-out · golden sets · monitors",st:"new",
+  items:["The gate on everything learned, including the post-training path. The manual defers reinforcement learning until the evaluation set exists.",
+         "Metrics must include correct downgrade rate, over-hedging rate, invariant catch rate and numeric-claim match — not answer accuracy alone.",
+         "The trap set must grow beyond the ledger: IRR/NPV sign and root traps, discount-rate-zero, unequal life, and the economic-model regime-change cases."]}
+];
+(function(){
+  const box=document.getElementById("layers");box.replaceChildren();
+  LAYERS.forEach(function(l,idx){
+    const d=document.createElement("div");d.className="layer";
+    const h=document.createElement("div");h.className="layer-head";h.tabIndex=0;h.setAttribute("role","button");
+    const n=document.createElement("div");n.className="layer-n";n.textContent=l.n;
+    const mid=document.createElement("div");
+    const nm=document.createElement("div");nm.className="layer-name";nm.textContent=l.name;
+    const sb=document.createElement("div");sb.className="layer-sub";sb.textContent=l.sub;
+    mid.appendChild(nm);mid.appendChild(sb);
+    const chips=document.createElement("div");
+    const chipCls=l.st==="built"?"chip-ok":l.st==="new"?"chip-new":l.st==="blocked"?"chip-block":"chip-draft";
+    const chipTxt=l.st==="built"?"built":l.st==="new"?"new":l.st==="blocked"?"blocked":"extend";
+    const ch=document.createElement("span");ch.className="chip "+chipCls;ch.textContent=chipTxt;
+    chips.appendChild(ch);
+    h.appendChild(n);h.appendChild(mid);h.appendChild(chips);
+    const b=document.createElement("div");b.className="layer-body";
+    const ul=document.createElement("ul");
+    l.items.forEach(function(it){const li=document.createElement("li");li.textContent=it;ul.appendChild(li);});
+    b.appendChild(ul);
+    d.appendChild(h);d.appendChild(b);
+    function toggle(){d.classList.toggle("open");}
+    h.addEventListener("click",toggle);
+    h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}});
+    box.appendChild(d);
+    if(idx===0||idx===5){d.classList.add("open");}
+  });
+  // rail jump links
+  const jump=document.getElementById("layerjump");
+  LAYERS.forEach(function(l){
+    const it=document.createElement("div");it.className="railitem";
+    const s=document.createElement("span");s.textContent=l.n+"  "+l.name;
+    const r=document.createElement("span");r.className="rn";r.textContent=l.st;
+    it.appendChild(s);it.appendChild(r);
+    it.addEventListener("click",function(){showTab("arch");setTimeout(function(){
+      const nodes=document.querySelectorAll("#layers .layer");
+      if(nodes[LAYERS.indexOf(l)]){nodes[LAYERS.indexOf(l)].classList.add("open");nodes[LAYERS.indexOf(l)].scrollIntoView({behavior:"smooth",block:"center"});}
+    },40);});
+    jump.appendChild(it);
+  });
+})();
+
+/* ============================================================
+   PHASES
+   ============================================================ */
+const PHASES=[
+ ["0","Unblock the owner decisions","Ten open decisions in the log. B-005 (named reviewer) is the keystone: without it, every T1 label stays provisional and the platform has no credible 'standard method' tier. Plus the Stage 7 manuals."],
+ ["1","Platform substrate","Case workspace, auth and tenancy, containers for T2/T3, scheduler, model-version pinning, and the evaluation-plane skeleton. None of this touches the numeric spine."],
+ ["2","Financial vertical","Schedule engines → cash flow by two routes → three statements → multi-period closing and the retained-earnings rollforward → reconciliation → ratios, DuPont, cash conversion."],
+ ["3","Driver ledger and valuation","Drivers → entries → statements → free cash flow → NPV, IRR, WACC, CAPM, enterprise-to-equity bridge. Scenarios as overlays with a diff."],
+ ["4","Economic vertical","Sourced-parameter panel with retrieval dates and provenance, market sizing, elasticity, and the regime-change backtest gate that forecasts across a structural break must clear."],
+ ["5","Agent-plane upgrade","Multi-provider registry, mode-aware routing, thinking budgets, the trace surface, proposal reasoning as readable pseudo-text, and monitors over the run log."],
+ ["6","Post-training","The manual's deferred item, gated exactly like T2-to-T1 promotion: regression set, held-out cases, a named reviewer, a canary. The deterministic spine is frozen and excluded from training."],
+ ["7","Research pipeline","Stage 7, once the Smart Researcher manuals arrive. Blocked until then; not reconstructed from memory."]
+];
+(function(){
+  const tb=document.getElementById("phases");tb.replaceChildren();
+  PHASES.forEach(function(p){
+    const tr=document.createElement("tr");
+    const c0=document.createElement("td");c0.style.fontFamily="var(--mono)";c0.style.width="34px";c0.textContent=p[0];
+    const c1=document.createElement("td");c1.className="rowlab";c1.style.width="180px";c1.textContent=p[1];
+    const c2=document.createElement("td");c2.className="muted";c2.style.fontSize="12px";c2.textContent=p[2];
+    tr.appendChild(c0);tr.appendChild(c1);tr.appendChild(c2);tb.appendChild(tr);
+  });
+})();
+
+/* ============================================================
+   INTEGRATION MAP
+   ============================================================ */
+const MAP=[
+ ["Mode switching — learned entry/exit anchors",
+  "Per-stage routing: latent-heavy for intake profiling and framing enumeration; mandatory text for test planning, drafts and every human checkpoint.",
+  "Mode is not verification. A learned mode policy may change how much is verbalised, but the frozen test plan, thresholds and pass/fail stay in code.",
+  "designed","chip-draft"],
+ ["Interpretable latent mode — pseudo-text",
+  "Expose proposal reasoning as readable pseudo-text rather than only the final proposal, so a monitor can judge the reasoning, not just the answer.",
+  "The paper's key result for an audited system: the hidden band is readable without being the model's chain of thought.",
+  "designed","chip-draft"],
+ ["Continuous working memory across turns",
+  "A case workspace that stores spec versions, artifacts and run logs, so the next turn retrieves instead of re-tokenising the whole trajectory.",
+  "The pipeline already has the storage half. What it lacks is retrieval that carries artifact references, never numbers.",
+  "partly built","chip-draft"],
+ ["Hybrid policy factorization",
+  "RL over model-controlled text positions only; the deterministic spine is frozen and never trained on.",
+  "Holds here by construction — the model's stochasticity is already confined to proposals it cannot verify.",
+  "designed","chip-draft"],
+ ["Exact rollout replay",
+  "The re-performance bundle already records method, version, inputs, outputs and environment — the substrate a replay-based update needs.",
+  "Already in the repo. It is a missing piece of the training path, not of the product.",
+  "built","chip-ok"],
+ ["r_correct · r_format · r_tool",
+  "r_correct from trap-set catch rate and decision-flip correctness; r_format from the draft-audit pass; r_tool from correct tool selection.",
+  "Must be dominated by the trap set. Reward for check-pass rate is gameable: the model learns to propose what passes on clean data.",
+  "designed","chip-draft"],
+ ["No reward for mode usage",
+  "Do not reward the agent for being latent, concise or confident.",
+  "The paper's own discipline, applied literally. Each of those rewards buys a specific failure mode.",
+  "adopted","chip-ok"],
+ ["Self-conditioned HybridSFT",
+  "Teach the spec schema and the reference-token draft format so digits never appear in model output — prevention rather than a post-hoc scan.",
+  "The pipeline already rejects digits; moving it upstream makes the rejection structural instead of reactive.",
+  "designed","chip-draft"],
+ ["Residual alignment (HybridLink)",
+  "Keep the renderer strict. Optionally surface the nearest matching artifact by metric, period and entity when a reference fails — still fail-closed, but ambiguity becomes a first-class output.",
+  "The paper's residual lesson: preserve semantics, learn only the distribution alignment. Our renderer is already the stricter version.",
+  "designed","chip-draft"],
+ ["Causal intervention as an evaluation",
+  "Perturb the latent content, ordering and depth and assert the outputs degrade — the same discipline the trap set already applies to ledgers.",
+  "Transfers the paper's most useful evaluation idea into a domain where it has never been applied.",
+  "designed","chip-draft"],
+ ["Visible-trace monitorability",
+  "Add a weak and a strong monitor over the run log, scored on first-error localisation and answer agreement.",
+  "The run log is already the surface the UI reflects instead of the agent's self-report. This measures it instead of assuming it.",
+  "designed","chip-draft"],
+ ["Training on Qwen3 base models",
+  "Not a v1 dependency. The pipeline is stdlib-only and offline; the paper needs 4B–14B backbones, H100s and 54K curated trajectories.",
+  "Adopt the recipe as a pattern; keep the training itself a later, gated phase.",
+  "rejected","chip-block"]
+];
+(function(){
+  const tb=document.getElementById("maprows");tb.replaceChildren();
+  MAP.forEach(function(m){
+    const tr=document.createElement("tr");
+    const c0=document.createElement("td");c0.className="paper";c0.textContent=m[0];
+    const c1=document.createElement("td");c1.className="here";c1.innerHTML="<b>"+m[1]+"</b>";
+    const c2=document.createElement("td");c2.className="here muted";c2.style.fontSize="12px";c2.textContent=m[2];
+    const c3=document.createElement("td");const ch=document.createElement("span");ch.className="chip "+m[4];ch.textContent=m[3];c3.appendChild(ch);
+    tr.appendChild(c0);tr.appendChild(c1);tr.appendChild(c2);tr.appendChild(c3);tb.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>

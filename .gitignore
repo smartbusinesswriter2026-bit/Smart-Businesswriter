@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Secrets / environment (keys are env-only by design; never commit them)
+.env
+.env.*
+!**/.env.example
+*.key
+*.pem
+
+# Logs, temp and OS noise
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime artefacts: never commit case data, operational state or retrieval logs
+business_pipeline_v0.12/business_pipeline/cases/
+business_pipeline_v0.12/business_pipeline/state/
+business_pipeline_v0.12/business_pipeline/retrieval_log.jsonl

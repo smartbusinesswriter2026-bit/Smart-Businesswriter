@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>business_pipeline — Paper Desk (mockup)</title>
+<style>
+/* ============================================================
+   business_pipeline · Paper Desk
+   Companion to platform-mockup.html. Same console language:
+   cyan = text mode / built · violet = latent mode / proposed.
+   ============================================================ */
+:root{
+  --canvas:#0f151c; --surface:#161e27; --raise:#1d2732; --raise2:#243140;
+  --line:#2a3846; --line2:#36485a;
+  --ink:#e9eff5; --ink2:#aebecd; --ink3:#7d92a5;
+  --signal:#5fb4cc; --signalbg:#132a33;
+  --latent:#a48ad9; --latentbg:#241d38;
+  --ok:#69c39a; --okbg:#12291f;
+  --warn:#e0b264; --warnbg:#2e2614;
+  --bad:#e08585; --badbg:#30191b;
+  --paper:#f3f1ea; --paperink:#22262b; --papermut:#6d7278;
+  --disp:"Bahnschrift","DIN Alternate","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;
+  --body:"Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--canvas); color:var(--ink); font:14px/1.55 var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--latent);color:#0f151c}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+
+/* ============================ TOP BAR ============================ */
+.topbar{display:flex;align-items:center;gap:18px;padding:11px 20px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#141c25,#0f151c);position:sticky;top:0;z-index:40;flex-wrap:wrap}
+.mark{display:flex;align-items:center;gap:9px;flex:none}
+.markglyph{display:flex;gap:2px;align-items:stretch;height:20px}
+.markglyph i{display:block;width:3px;border-radius:1px}
+.markglyph i:nth-child(1){background:var(--signal)}
+.markglyph i:nth-child(2){background:var(--latent);width:7px;opacity:.75}
+.markglyph i:nth-child(3){background:var(--ok);width:3px}
+.brandname{font-family:var(--disp);font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.brandsub{font-size:10.5px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+.topspacer{flex:1}
+.topmeta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.metablock{display:flex;flex-direction:column;gap:1px}
+.metalabel{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.metavalue{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+  padding:6px 11px;border:1px solid var(--line2);border-radius:999px;background:var(--raise);
+  font:inherit;color:inherit;text-align:left}
+.toggle:hover{border-color:var(--latent)}
+.toggledot{width:26px;height:14px;border-radius:999px;background:#0b1116;border:1px solid var(--line2);position:relative;flex:none;transition:background .18s,border-color .18s}
+.toggledot::after{content:"";position:absolute;top:1px;left:1px;width:10px;height:10px;border-radius:50%;background:var(--ink3);transition:transform .18s,background .18s}
+.toggle[aria-pressed="true"] .toggledot{border-color:var(--latent);background:var(--latentbg)}
+.toggle[aria-pressed="true"] .toggledot::after{transform:translateX(12px);background:var(--latent)}
+.toggletext{font-size:11.5px;color:var(--ink2)}
+.toggle[aria-pressed="true"] .toggletext{color:var(--ink)}
+
+/* ============================ TABS ============================ */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 20px;background:#121a22;overflow-x:auto}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--ink3);
+  font:inherit;font-size:12.5px;letter-spacing:.04em;padding:11px 15px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink2)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--signal)}
+.tab .tabnum{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-right:7px}
+
+/* ============================ LAYOUT ============================ */
+.shell{display:grid;grid-template-columns:238px minmax(0,1fr) 330px;align-items:start;max-width:1760px;margin:0 auto}
+.rail{border-right:1px solid var(--line);padding:16px 14px 40px;position:sticky;top:52px;max-height:calc(100vh - 52px);overflow-y:auto}
+.aside{border-left:1px solid var(--line);padding:16px 14px 40px;position:sticky;top:52px;max-height:calc(100vh - 52px);overflow-y:auto}
+.center{padding:18px 20px 64px;min-width:0}
+.railh,.asideh{font-family:var(--disp);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin:20px 0 9px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.railh:first-child,.asideh:first-child{margin-top:0}
+@media(max-width:1240px){
+  .shell{grid-template-columns:1fr}
+  .rail,.aside{position:static;max-height:none;border:0;border-bottom:1px solid var(--line)}
+  .aside{border-bottom:0;border-top:1px solid var(--line)}
+}
+
+/* ============================ PANELS ============================ */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.panel-head{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);
+  background:var(--raise);flex-wrap:wrap}
+.panel-head h2{margin:0;font-family:var(--disp);font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.panel-head .hint{font-size:11px;color:var(--ink3)}
+.panel-head .headright{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.panel-body{padding:14px}
+.panel-body.tight{padding:0}
+.panel-foot{padding:10px 14px;border-top:1px solid var(--line);background:var(--raise);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+
+h1.vh{font-family:var(--disp);font-size:21px;letter-spacing:.02em;margin:0 0 4px}
+.sub{color:var(--ink3);font-size:12px}
+.sdh{font-family:var(--disp);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.sdh:first-child{margin-top:0}
+.sd-note{font-size:11.5px;color:var(--ink3);line-height:1.6}
+
+/* ============================ CHIPS ============================ */
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;padding:2px 7px;border-radius:3px;border:1px solid transparent;white-space:nowrap}
+.chip-text{background:var(--signalbg);color:var(--signal);border-color:#22434f}
+.chip-latent{background:var(--latentbg);color:var(--latent);border-color:#3b3059}
+.chip-det{background:#1a2430;color:var(--ink3);border-color:var(--line2)}
+.chip-ok{background:var(--okbg);color:var(--ok);border-color:#1e4033}
+.chip-warn{background:var(--warnbg);color:var(--warn);border-color:#4a3d1c}
+.chip-bad{background:var(--badbg);color:var(--bad);border-color:#4d272a}
+.chip-new{background:#1c2430;color:#9fb4c6;border-color:var(--line2)}
+.chip-block{background:var(--badbg);color:var(--bad);border-color:#4d272a}
+.chip-draft{background:var(--warnbg);color:var(--warn);border-color:#4a3d1c}
+.chip-b {background:var(--okbg);color:var(--ok);border-color:#1e4033}
+.chip-p {background:var(--latentbg);color:var(--latent);border-color:#3b3059}
+
+/* ============================ CALLOUTS ============================ */
+.callout{border:1px solid var(--line2);border-left:3px solid var(--signal);border-radius:6px;
+  padding:11px 13px;background:var(--raise);font-size:12.5px;line-height:1.62;color:var(--ink2)}
+.callout.warn{border-left-color:var(--warn)}
+.callout.info{border-left-color:var(--latent)}
+.callout.bad{border-left-color:var(--bad)}
+.callout b{color:var(--ink)}
+.callout+.callout{margin-top:9px}
+
+/* ============================ BUTTONS ============================ */
+button{font:inherit;cursor:pointer}
+.btn{font:inherit;font-weight:600;font-size:12px;border:1px solid var(--line2);background:var(--raise2);
+  color:var(--ink);padding:7px 12px;border-radius:7px}
+.btn:hover{border-color:var(--signal)}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:#0b1116}
+.btn.primary:hover{background:#77c6dd}
+.btn.danger{border-color:#4d272a;color:var(--bad);background:var(--badbg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{font-size:11px;padding:4px 9px;font-weight:500}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ============================ TABLES ============================ */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);padding:9px 12px;border-bottom:1px solid var(--line2);background:var(--raise);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#1a232d}
+td.mono,th.mono{font-family:var(--mono);font-size:11.5px}
+td.num{text-align:right;font-family:var(--mono);font-size:11.5px}
+.table-wrap{overflow-x:auto}
+.rowlab{color:var(--ink2)}
+.status-ok{color:var(--ok)}
+.status-bad{color:var(--bad)}
+.status-warn{color:var(--warn)}
+.muted{color:var(--ink3)}
+
+/* ============================ MISC PRIMITIVES ============================ */
+.kv{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:11.5px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--ink3)}
+.kv .v{font-family:var(--mono);text-align:right}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+.field{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--raise)}
+.field .label{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:3px}
+.field .val{font-size:12.5px;line-height:1.5}
+pre{white-space:pre-wrap;overflow-x:auto;font-family:var(--mono);font-size:11px;line-height:1.6;
+  margin:0;color:var(--ink2);background:#121a22;border:1px solid var(--line);border-radius:8px;padding:11px}
+code,.mono{font-family:var(--mono);font-size:11.5px}
+.nowrap{white-space:nowrap}
+.tag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid var(--line2);
+  color:var(--ink2);background:#1a2430;white-space:nowrap}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:9px 14px;border-top:1px solid var(--line);
+  background:var(--raise);font-size:11px;color:var(--ink3)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+
+/* paper list */
+.paperitem{display:flex;flex-direction:column;gap:4px;padding:9px 10px;background:var(--raise);
+  border:1px solid var(--line);border-radius:8px;cursor:pointer;margin-bottom:8px}
+.paperitem:hover{border-color:var(--line2)}
+.paperitem[aria-selected="true"]{border-color:var(--signal);background:#18242c}
+.papername{font-size:12.5px;line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+.papermeta{font-family:var(--mono);font-size:10px;color:var(--ink3);display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* drop zone */
+.dropzone{border:1.5px dashed var(--line2);border-radius:10px;padding:26px 18px;text-align:center;
+  background:linear-gradient(180deg,#18212b,#151d26)}
+.dropzone svg{color:var(--signal)}
+.dropzone .dz-t{font-family:var(--disp);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin:9px 0 4px}
+.dropzone .dz-s{font-size:11.5px;color:var(--ink3)}
+
+/* ============================ PAPER VIEWER ============================ */
+.docwrap{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:12px}
+@media(max-width:1100px){.docwrap{grid-template-columns:1fr}}
+.docpage{background:var(--paper);color:var(--paperink);border-radius:8px;padding:20px 22px 26px;
+  font-family:"Georgia","Times New Roman",serif;font-size:12.5px;line-height:1.68;position:relative;
+  box-shadow:0 4px 16px -2px rgba(0,0,0,.4)}
+.docpage .pgnum{position:absolute;right:16px;bottom:10px;font-family:var(--mono);font-size:10px;color:var(--papermut)}
+.docpage h3{font-family:"Georgia",serif;font-size:14.5px;margin:0 0 3px;color:#14181c}
+.docpage .docsec{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:#8a8f95;margin:16px 0 6px}
+.docpage p{margin:0 0 9px}
+.docpage table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:11px;font-family:var(--mono)}
+.docpage th{background:#e6e3da;color:#3a3f45;border-bottom:1px solid #c9c5b9;padding:5px 7px;font-size:9.5px}
+.docpage td{padding:4px 7px;border-bottom:1px solid #dedad0;color:#2a2e33}
+.docpage tbody tr:hover{background:transparent}
+.sp{background:#ffe9a8;border-radius:2px;padding:0 2px;cursor:pointer;box-shadow:inset 0 -1px 0 #d4a017}
+.sp:hover{background:#ffd970}
+.sp.sel{background:#8fd3c7;box-shadow:inset 0 -1px 0 #2c8b7c}
+.sp.dead{background:#f4b8b8;box-shadow:inset 0 -1px 0 #c05050;cursor:not-allowed}
+.spmark{font-family:var(--mono);font-size:9px;vertical-align:super;color:#8a6d1f;margin-left:1px}
+.sp.sel .spmark{color:#1c5f54}
+.sp.dead .spmark{color:#8a2b2b}
+
+/* extraction table */
+.xrow td{vertical-align:middle}
+table.xtable{table-layout:fixed;width:100%}
+table.xtable th,table.xtable td{padding:8px 9px}
+table.xtable td.xval,.xval{white-space:nowrap}
+.xrow.sel td{background:#18242c}
+.xrow.quar td{background:#241a1b}
+.xrow.quar:hover td{background:#2b1f20}
+.xval{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.recon{font-family:var(--mono);font-size:10.5px}
+.src{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+
+/* ============================ SPEC / BRIEF ============================ */
+.specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.secthead{font-family:var(--disp);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--signal);
+  margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.ambig{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--raise);margin-bottom:8px}
+.ambig .q{font-weight:600;font-size:12.5px;margin-bottom:3px}
+.ambig .d{font-size:11.5px;color:var(--ink2)}
+.ambig .i{font-size:11px;color:var(--ink3);margin-top:4px;font-style:italic}
+.checklist{display:flex;flex-wrap:wrap;gap:5px}
+.checkitem{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;
+  border:1px solid var(--line2);color:var(--ink2);background:#1a2430}
+
+/* framework picker */
+.fwsearch{display:flex;gap:8px;margin-bottom:10px}
+.fwsearch input{flex:1;font:inherit;padding:8px 10px;border-radius:7px;border:1px solid var(--line2);
+  background:#121a22;color:var(--ink)}
+.fwrow{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.fwrow:last-child{border-bottom:0}
+.fwrow input[type=checkbox]{width:auto;margin-top:3px;accent-color:var(--signal)}
+.fwrow .fwt{font-size:12.5px;font-weight:600}
+.fwrow .fws{font-size:11px;color:var(--ink3)}
+.fwtag{font-family:var(--mono);font-size:9.5px;padding:1px 5px;border-radius:3px;border:1px solid var(--line2);
+  color:var(--ink3);background:#1a2430;margin-right:6px}
+
+/* ============================ STAGE TRACE ============================ */
+.stagelist{position:relative;padding-left:2px}
+.stagelist::before{content:"";position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.stage{position:relative;padding:0 0 6px 30px;cursor:pointer}
+.stage::before{content:"";position:absolute;left:2px;top:4px;width:14px;height:14px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--line2)}
+.stage[data-state=passed]::before{border-color:var(--ok);background:var(--okbg)}
+.stage[data-state=awaiting_user]::before{border-color:var(--warn);background:var(--warnbg)}
+.stage[data-state=blocked]::before{border-color:var(--bad);background:var(--badbg)}
+.stage[data-state=running]::before{border-color:var(--signal);background:var(--signalbg)}
+.stage .srow{display:flex;align-items:center;gap:10px;padding:5px 0}
+.stage .sname{font-size:12.5px}
+.stage .skey{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.stage .sstate{margin-left:auto}
+.stage .sdetail{display:none;margin:2px 0 8px;padding:9px 11px;border-left:2px solid var(--line2);
+  background:#121a22;border-radius:0 7px 7px 0}
+.stage.open .sdetail{display:block}
+.stage .caret{color:var(--ink3);font-size:10px;transition:transform .15s;display:inline-block}
+.stage.open .caret{transform:rotate(90deg)}
+
+/* mode ribbon */
+.ribbon{display:flex;gap:3px;align-items:stretch;height:26px;border-radius:6px;overflow:hidden;
+  border:1px solid var(--line);background:#121a22}
+.rseg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.06em;color:#0b1116;font-weight:700;overflow:hidden;white-space:nowrap;padding:0 4px}
+.rseg.t{background:var(--signal)}
+.rseg.l{background:var(--latent);opacity:.82;color:#160f24}
+.rseg.l::after{content:"⟨latent⟩";font-weight:400}
+.ribbon-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink3);margin-top:7px}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+
+/* run log */
+.runlog{font-family:var(--mono);font-size:10.5px;line-height:1.75;max-height:330px;overflow:auto;
+  background:#0d1319;border:1px solid var(--line);border-radius:8px;padding:11px}
+.runlog .ev{white-space:pre-wrap;color:var(--ink2);padding:1px 0;border-bottom:1px solid #16202a}
+.runlog .ev b{color:var(--signal);font-weight:600}
+.runlog .ev .st{color:var(--warn)}
+
+/* ============================ OUTPUT PAPER ============================ */
+.paperout{background:var(--paper);color:var(--paperink);border-radius:9px;padding:30px 34px 34px;
+  font-family:"Georgia","Times New Roman",serif;font-size:14px;line-height:1.75;
+  box-shadow:0 6px 22px -4px rgba(0,0,0,.45)}
+.paperout h2{font-family:var(--disp);font-size:15px;letter-spacing:.06em;text-transform:uppercase;
+  margin:0 0 3px;color:#14181c;border-bottom:1px solid #d4d0c4;padding-bottom:7px}
+.paperout h3{font-family:"Georgia",serif;font-size:14px;margin:20px 0 6px;color:#14181c}
+.paperout p{margin:0 0 10px}
+.paperout .lede{font-size:14.5px}
+.paperout ul{margin:0 0 10px;padding-left:20px}
+.paperout li{margin-bottom:4px}
+.paperout .ev-line{font-size:12.5px;color:#2c3137}
+.ref{font-family:var(--mono);font-size:10px;background:#d9e7ea;border:1px solid #a8c2c9;border-radius:3px;
+  padding:1px 5px;color:#1d4d59;cursor:pointer;white-space:nowrap}
+.ref:hover{background:#c6dde3}
+.paperout .note{font-size:12px;color:#6d7278;border-left:2px solid #c9c5b9;padding-left:10px;margin:12px 0}
+.paperout table{font-size:11.5px;font-family:var(--mono);margin:8px 0 12px}
+.paperout th{background:#e6e3da;color:#3a3f45;border-bottom:1px solid #c9c5b9}
+.paperout td{border-bottom:1px solid #dedad0;color:#2a2e33}
+.paperout tbody tr:hover{background:transparent}
+
+/* claim cards */
+.claim{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--raise);margin-bottom:8px}
+.claim .ctop{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.claim .ctext{font-size:12.5px;line-height:1.55}
+.claim .cneed{font-size:11px;color:var(--ink3);margin-top:5px}
+
+/* lineage */
+.lin{display:flex;gap:0;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;margin:5px 0}
+.lin .node{background:var(--raise2);border:1px solid var(--line2);border-radius:5px;padding:4px 8px;color:var(--ink2)}
+.lin .arrow{color:var(--ink3);padding:0 7px}
+.lin .node.src{background:#132a33;border-color:#22434f;color:var(--signal)}
+.lin .node.art{background:#12291f;border-color:#1e4033;color:var(--ok)}
+.lin .node.rep{background:var(--latentbg);border-color:#3b3059;color:var(--latent)}
+
+/* heatmap */
+.heat{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px}
+.hcell{width:16px;height:16px;border-radius:3px;background:#1a2430;border:1px solid var(--line)}
+.hcell.used{background:var(--signal)}
+.hcell.partial{background:#3e6f7d}
+.hcell.tie{background:var(--warn)}
+.hcell.dead{background:var(--bad)}
+
+/* status matrix */
+.status-b{color:var(--ok);font-weight:600;font-size:11px}
+.status-d{color:var(--latent);font-weight:600;font-size:11px}
+.status-n{color:var(--bad);font-weight:600;font-size:11px}
+.status-p{color:var(--warn);font-weight:600;font-size:11px}
+code.anchor{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+
+/* proposed seams toggle */
+body.hide-proposed [data-proposed]{display:none !important}
+.propmark{border:1px dashed var(--latent);border-radius:6px;padding:0 6px;font-family:var(--mono);
+  font-size:9.5px;color:var(--latent);letter-spacing:.08em;text-transform:uppercase;vertical-align:1px}
+body.hide-proposed .propmark{display:none}
+
+/* ============================ VIEW SWITCH ============================ */
+.view[hidden]{display:none}
+.viewpad{animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <div class="mark">
+    <span class="markglyph" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span>
+      <div class="brandname">business_pipeline</div>
+      <div class="brandsub">Paper Desk · mockup</div>
+    </span>
+  </div>
+  <div class="topspacer"></div>
+  <div class="topmeta">
+    <div class="metablock"><span class="metalabel">Session</span><span class="metavalue">7f3c1a90e2</span></div>
+    <div class="metablock"><span class="metalabel">Method</span><span class="metavalue">case_decision v0.1.0</span></div>
+    <div class="metablock"><span class="metalabel">Tier</span><span class="metavalue">T2 · custom analysis</span></div>
+    <div class="metablock"><span class="metalabel">Sandbox</span><span class="metavalue">ON · network blocked</span></div>
+    <div class="metablock"><span class="metalabel">Amendments</span><span class="metavalue">0 / 3</span></div>
+    <button class="toggle" id="seamToggle" aria-pressed="true" title="Show or hide the parts of this UI that are designed but not implemented">
+      <span class="toggledot" aria-hidden="true"></span><span class="toggletext">Show proposed seams</span>
+    </button>
+  </div>
+</header>
+
+<!-- ===================== TABS ===================== -->
+<nav class="tabs" role="tablist" aria-label="Paper Desk views">
+  <button class="tab" role="tab" id="t-intake"  aria-controls="v-intake"  aria-selected="true"><span class="tabnum">01</span>Paper intake</button>
+  <button class="tab" role="tab" id="t-extract" aria-controls="v-extract" aria-selected="false"><span class="tabnum">02</span>Extraction desk</button>
+  <button class="tab" role="tab" id="t-brief"   aria-controls="v-brief"   aria-selected="false"><span class="tabnum">03</span>Work brief</button>
+  <button class="tab" role="tab" id="t-trace"   aria-controls="v-trace"   aria-selected="false"><span class="tabnum">04</span>Run trace</button>
+  <button class="tab" role="tab" id="t-out"     aria-controls="v-out"     aria-selected="false"><span class="tabnum">05</span>Output paper</button>
+  <button class="tab" role="tab" id="t-build"   aria-controls="v-build"   aria-selected="false"><span class="tabnum">06</span>Build status</button>
+</nav>
+
+<main class="shell">
+
+  <!-- ===================== LEFT RAIL ===================== -->
+  <aside class="rail">
+    <div class="railh">Paper set</div>
+    <div id="paperList"></div>
+
+    <div class="railh">This session</div>
+    <div class="kv"><span class="k">Papers attached</span><span class="v">2</span></div>
+    <div class="kv"><span class="k">Values extracted</span><span class="v" id="railExtracted">6</span></div>
+    <div class="kv"><span class="k">Agreed by both readers</span><span class="v status-ok" id="railAgree">4</span></div>
+    <div class="kv"><span class="k">Rejected on a failed check</span><span class="v status-warn" id="railRej">1</span></div>
+    <div class="kv"><span class="k">Quarantined</span><span class="v status-bad" id="railQuar">2</span></div>
+    <div class="kv"><span class="k">Checks failed</span><span class="v status-warn">3</span></div>
+    <div class="kv"><span class="k">Facts carried forward</span><span class="v" id="railFacts">4</span></div>
+    <div class="kv"><span class="k">Pages below the OCR floor</span><span class="v status-warn">3</span></div>
+
+    <div class="railh">Evidence use</div>
+    <div class="sd-note">Every value a paper contributes must be quoted, located, read twice and accepted by a person before it can enter a spec. A number read from a PDF is <b>sourced</b>, never <b>computed</b>, and it never becomes a result by itself.</div>
+    <div class="sd-note" style="margin-top:8px">Pages the reader never touched stay visible. A silent gap in a paper is a finding, not a formatting problem.</div>
+  </aside>
+
+  <!-- ===================== CENTER ===================== -->
+  <section class="center">
+
+    <!-- ---------- 01 : INTAKE ---------- -->
+    <section class="view viewpad" id="v-intake" role="tabpanel" aria-labelledby="t-intake">
+      <h1 class="vh">How a paper enters the pipeline</h1>
+      <div class="sub">A paper is not an input. It is a source that must be read, located, reconciled and confirmed before anything it says may shape an analysis.</div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <h2>Ingest a paper</h2>
+          <span class="hint">PDF · DOCX · scans · images · instructor case packs</span>
+          <span class="headright"><span class="chip chip-p" data-proposed>proposed seam — no ingestion code exists</span></span>
+        </div>
+        <div class="panel-body" data-proposed>
+          <div class="dropzone">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/>
+            </svg>
+            <div class="dz-t">Drop a paper here</div>
+            <div class="dz-s">or choose a file · max 100 MB · content is read as data, never as instructions</div>
+            <div class="btnrow" style="justify-content:center;margin-top:12px">
+              <button class="btn">Choose file</button>
+              <button class="btn">Paste text instead</button>
+              <button class="btn">Link to a retrieved source</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body" style="border-top:1px solid var(--line)">
+          <div class="sdh">What the reader found in the file</div>
+          <div class="grid3">
+            <div class="field"><div class="label">Structure</div><div class="val">48 pages · 12,940 words · 11 headings · 6 tables · 4 figures</div></div>
+            <div class="field"><div class="label">Text layer</div><div class="val">Present on 34 pages · <b style="color:var(--warn)">14 pages are scans</b> — 11 read at OCR confidence 0.91–0.97, 3 below the 0.90 floor</div></div>
+            <div class="field"><div class="label">Numeric tokens</div><div class="val">318 numbers found · 47 with units or currency · 6 candidate tie-outs</div></div>
+          </div>
+          <div class="sdh" style="margin-top:14px">How this file is read</div>
+          <table class="table-wrap">
+            <thead><tr><th style="width:26%">Rule</th><th style="width:38%">What it means here</th><th>Source of the rule</th></tr></thead>
+            <tbody>
+              <tr><td class="rowlab">Extract twice, then reconcile</td><td>Two independent readers produce a value each; a value enters only if both agree.</td><td class="mono">manual §11 control 3 — distrust ingestion</td></tr>
+              <tr><td class="rowlab">Store the source location</td><td>Page, section, table cell and character span for every value.</td><td class="mono">manual §6 — lineage</td></tr>
+              <tr><td class="rowlab">Reject values absent from the source text layer</td><td>Nothing is inferred from a page that was never read.</td><td class="mono">manual §11 control 3</td></tr>
+              <tr><td class="rowlab">Show the table beside the source</td><td>You confirm against the page, not against a summary.</td><td class="mono">manual §11 control 3</td></tr>
+              <tr><td class="rowlab">Profile before formulating</td><td>Duplicate rows, missing periods, unit and scale ambiguity, sign conventions, outliers.</td><td class="mono">manual §5.1 — intake and data profiling</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Which kind of paper is this?</h2>
+          <span class="hint">the routing decision is yours to correct, and it changes what the pipeline will do</span>
+          <span class="headright"><span class="chip chip-warn">manual §16 — still open</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="callout warn">
+            <b>Open question in the manual.</b> <span class="mono">§16</span> asks what “papers” means for the first users — coursework, theses and dissertations on one reading, instructor case packs on another. The classifier below proposes a kind; you override it, because the kind selects the route and the route decides what may be claimed.
+          </div>
+          <table class="table-wrap" style="margin-top:12px">
+            <thead><tr><th style="width:30%">Paper in the set</th><th style="width:20%">Detected kind</th><th style="width:28%">Route this triggers</th><th>What the route forbids</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="rowlab">Regional_Bakery_Market_Scan_Q2.pdf</td>
+                <td><span class="chip chip-text">market research report</span> <span class="muted" style="font-size:11px">conf. 0.86</span></td>
+                <td>Distrust ingestion → evidence desk → template structure</td>
+                <td class="muted">May not be quoted as an observation about your firm</td>
+              </tr>
+              <tr>
+                <td class="rowlab">Board_Memo_Plant_Expansion.docx</td>
+                <td><span class="chip chip-det">internal memo</span> <span class="muted" style="font-size:11px">conf. 0.93</span></td>
+                <td>Distrust ingestion → user-owned values</td>
+                <td class="muted">Cash flows and rates are yours to type, never read as facts</td>
+              </tr>
+              <tr>
+                <td class="rowlab">Campus_Cafe_Perception_Survey_2025.pdf</td>
+                <td><span class="chip chip-warn">survey report</span> <span class="muted" style="font-size:11px">conf. 0.79</span></td>
+                <td>Distrust ingestion → T1 statistical method</td>
+                <td class="muted">Third-party personal data — consent and ethics remain yours</td>
+              </tr>
+              <tr>
+                <td class="rowlab">Negotiation_Study_2025.pdf</td>
+                <td><span class="chip chip-block">research paper</span> <span class="muted" style="font-size:11px">conf. 0.71</span></td>
+                <td><b>Blocked.</b> No literature retrieval service exists</td>
+                <td class="muted">Stage 7 is blocked — manuals absent, feasibility tiers undefined</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="sdh" style="margin-top:16px">Structured files take a different path</div>
+          <div class="callout info">
+            A spreadsheet is not a paper. <b>FY2025_Management_Accounts.xlsx</b> skips the extraction desk entirely: the profiler reads it directly, and a value in a cell is already located. The cost of the distrust-ingestion controls is paid only where the reading is uncertain — which is exactly why the manual still leaves open whether uploads are structured files only, or papers as well <span class="mono">§16</span>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 02 : EXTRACTION DESK ---------- -->
+    <section class="view viewpad" id="v-extract" role="tabpanel" aria-labelledby="t-extract" hidden>
+      <h1 class="vh">The extraction desk</h1>
+      <div class="sub">Two independent readers, one source page, every value tied to a span you can see and click.</div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <h2>Reader A and Reader B on the same page</h2>
+          <span class="hint">Regional_Bakery_Market_Scan_Q2.pdf · p. 12 · §3.1 “Market size”</span>
+          <span class="headright">
+            <span class="chip chip-ok">4 agree</span>
+            <span class="chip chip-bad">2 disagree</span>
+            <span class="chip chip-warn">3 checks failed</span>
+          </span>
+        </div>
+        <div class="panel-body">
+          <div class="docwrap">
+            <!-- SOURCE -->
+            <div>
+              <div class="sdh">Source</div>
+              <div class="docpage">
+                <div class="docsec">Regional Bakery Market Scan · Q2</div>
+                <h3>3.1 Regional market size</h3>
+                <p>The combined bakery segment across the eleven districts covered by this scan was valued at
+                  <span class="sp" data-v="v1">₱186.4 million<span class="spmark">①</span></span> in 2025, up from
+                  <span class="sp" data-v="v1">₱138.2 million<span class="spmark">①</span></span> in 2023.</p>
+                <p>Bakery accounted for <span class="sp" data-v="v2">12.7%<span class="spmark">②</span></span> of the
+                  region's total food service sales. The segment has grown at a compound annual rate of
+                  <span class="sp" data-v="v3">8.4%<span class="spmark">③</span></span> over the same period.</p>
+                <div class="docsec">Table 4 · Segment revenue by district, 2025</div>
+                <table>
+                  <thead><tr><th>District</th><th>Shops</th><th>Revenue (₱M)</th></tr></thead>
+                  <tbody>
+                    <tr><td>Central</td><td>3</td><td>71.9</td></tr>
+                    <tr><td>North</td><td>2</td><td>44.6</td></tr>
+                    <tr><td>Coastal</td><td>3</td><td>38.2</td></tr>
+                    <tr><td>Other (8 districts)</td><td>3</td><td>31.7</td></tr>
+                    <tr><td><b>Total</b></td><td><b>11</b><span class="spmark">⑤</span></td><td><b>186.4</b></td></tr>
+                  </tbody>
+                </table>
+                <p>Average monthly revenue per shop was
+                  <span class="sp dead" data-v="v4">₱4,250<span class="spmark">④</span></span>, against a
+                  <span class="sp" data-v="v6">₱4,680<span class="spmark">⑥</span></span> regional average.</p>
+                <p class="sd-note" style="color:#6d7278;font-size:11px;margin-top:14px">
+                  Footnote: segment share is calculated on bakery sales in the eleven surveyed districts only.
+                </p>
+                <div class="pgnum">12</div>
+              </div>
+              <div class="sd-note" style="margin-top:8px">
+                Click any highlighted span to select the matching row in the extracted table. The amber spans are Reader A's values; the ones marked in red were read differently by the second reader and are quarantined.
+              </div>
+            </div>
+
+            <!-- EXTRACTED TABLE -->
+            <div>
+              <div class="sdh">Extracted values</div>
+              <div class="table-wrap">
+                <table class="xtable">
+                  <thead><tr>
+                    <th style="width:78px">Value</th><th style="width:42px">A</th><th style="width:42px">B</th>
+                    <th style="width:80px">Reconcile</th>
+                    <th>Location</th><th style="width:84px">Action</th>
+                  </tr></thead>
+                  <tbody id="xbody"></tbody>
+                </table>
+              </div>
+              <div class="sdh" style="margin-top:16px">Reconciliation and tie-out checks — run by code, on the extracted table</div>
+              <table class="table-wrap">
+                <thead><tr><th style="width:44%">Check</th><th style="width:16%">Result</th><th>Detail</th></tr></thead>
+                <tbody>
+                  <tr><td class="rowlab">Line items foot to the stated total</td><td class="status-ok">pass</td><td class="muted">71.9 + 44.6 + 38.2 + 31.7 = 186.4 ✓ · shops 3+2+3+3 = 11 ✓</td></tr>
+                  <tr><td class="rowlab">Segment share recomputes from the total</td><td class="status-bad">fail</td><td class="muted">page 12 says the segment is 12.7% of food service sales; the scan's own total implies a different denominator</td></tr>
+                  <tr><td class="rowlab">CAGR recomputed from the endpoints</td><td class="status-bad">fail</td><td class="muted">(186.4 ÷ 138.2)<sup>1/2</sup> − 1 = 16.1%, not the 8.4% printed on page 12</td></tr>
+                  <tr><td class="rowlab">Both readers agree on every value</td><td class="status-bad">fail</td><td class="muted">2 of 6 values read differently by the second reader</td></tr>
+                </tbody>
+              </table>
+              <div class="callout bad" style="margin-top:12px">
+                <b>The system does not pick a winner.</b> A disagreement between readers is not resolved by a third opinion or a majority vote; it goes to you, with both readings shown. Three of these four checks failed, and all three are the paper's own inconsistencies — a genuine finding, and one that belongs in the paper's limitations page rather than inside a calculation.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-foot">
+          <button class="btn primary" id="acceptOk">Accept the 3 clean values</button>
+          <button class="btn">Reject all</button>
+          <button class="btn">Re-read the 2 disagreeing spans</button>
+          <span class="sub" id="confirmNote" style="margin-left:auto">3 confirmed · 1 rejected on a failed check · 2 quarantined · delivery stays blocked until every failure is resolved or disclosed</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>From confirmed values to evidence the pipeline can use</h2>
+          <span class="hint">the paper's numbers become evidence items; the cash flows never do</span>
+        </div>
+        <div class="panel-body">
+          <div class="grid2">
+            <div>
+              <div class="sdh">Carried into the spec as facts</div>
+              <div class="fwrow"><span class="tag">F1</span><div><div class="fwt">Regional bakery segment was ₱186.4 million in 2025</div>
+                <div class="fws"><span class="chip chip-text">sourced</span> Regional_Bakery_Market_Scan_Q2.pdf · p.12 §3.1 · span 4412–4421 · read 2×</div></div></div>
+              <div class="fwrow"><span class="tag">F2</span><div><div class="fwt">Eleven shops operate in the eleven surveyed districts</div>
+                <div class="fws"><span class="chip chip-text">sourced</span> same paper · p.12 Table 4 row 5 · read 2×</div></div></div>
+              <div class="fwrow"><span class="tag">F3</span><div><div class="fwt">Regional average monthly revenue per shop is ₱4,680</div>
+                <div class="fws"><span class="chip chip-text">sourced</span> same paper · p.12 ¶3 · read 2×</div></div></div>
+              <div class="fwrow"><span class="tag">F4</span><div><div class="fwt">A supermarket chain opened a bakery counter in the central district</div>
+                <div class="fws"><span class="chip chip-text">sourced</span> same paper · p.4 ¶2 · read 2×</div></div></div>
+            </div>
+            <div>
+              <div class="sdh">Never carried over</div>
+              <table class="table-wrap">
+                <thead><tr><th style="width:34%">Value</th><th>Why it stops here</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">8.4% CAGR</td><td class="muted">Readers disagree and the recomputation from the paper's own endpoints fails. Not usable.</td></tr>
+                  <tr><td class="mono">₱4,250 / shop</td><td class="muted">Readers disagree by ₱45. Quarantined, not averaged.</td></tr>
+                  <tr><td class="mono">12.7% share</td><td class="muted">Rejected. The readers agree, but the tie-out fails, so it cannot enter the spec — only be disclosed as a limitation.</td></tr>
+                  <tr><td class="mono">₱186.4M as our revenue</td><td class="muted">Carried as F1, a market fact. A market size is a market size; it cannot become our revenue.</td></tr>
+                  <tr><td class="mono">Capex ₱4.2M, IRR 14%</td><td class="muted">Read from the board memo. <b>Not evidence</b> — these are your own figures and they enter as user values you type, because the paper cannot be the source of your decision.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 03 : WORK BRIEF ---------- -->
+    <section class="view viewpad" id="v-brief" role="tabpanel" aria-labelledby="t-brief" hidden>
+      <h1 class="vh">The work brief, and the checkpoint you must pass</h1>
+      <div class="sub">Stage 2 of 10. Nothing is computed until you confirm this spec; the spec is then hashed and frozen, and later changes become logged amendments.</div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <h2>Problem Spec — draft</h2>
+          <span class="hint">every field below is a real field of the spec the pipeline builds</span>
+          <span class="headright"><span class="chip chip-warn">awaiting_user</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="specgrid">
+            <div class="field"><div class="label">Objective</div><div class="val">A regional bakery is losing customers to a new supermarket chain. Analyze the competition in our industry and compare strategic options.</div></div>
+            <div class="field"><div class="label">Task family</div><div class="val">Framework template: Business case: alternatives compared by net present value</div></div>
+            <div class="field"><div class="label">Method · version</div><div class="val">case_decision v0.1.0</div></div>
+            <div class="field"><div class="label">Tier</div><div class="val"><span class="chip chip-warn">T2</span> custom analysis (T2); expert review pending</div></div>
+            <div class="field"><div class="label">Review status</div><div class="val">pending_named_reviewer — no named reviewer exists yet</div></div>
+            <div class="field"><div class="label">Claim ceiling</div><div class="val">descriptive + prescriptive, under your decision rule</div></div>
+            <div class="field"><div class="label">Currency</div><div class="val">PHP</div></div>
+            <div class="field"><div class="label">Period</div><div class="val">cross_section</div></div>
+          </div>
+
+          <div class="sdh" style="margin-top:18px">Intended use</div>
+          <div class="sd-note">Compare two to five alternatives you define, each grounded in case facts you supply, by net present value at your discount rate, and see where the ranking changes across your rate range. A preference is stated only under a decision rule you set.</div>
+          <div class="sdh" style="margin-top:14px">Not supported</div>
+          <div class="sd-note">Choosing alternatives, facts, cash flows, rates or weights for you; qualitative or multi-criteria judgments; risk or probability weighting; unequal-length or mutually exclusive project adjustments beyond what NPV captures.</div>
+          <div class="sdh" style="margin-top:14px">Limitations</div>
+          <ul class="sd-note" style="margin:0;padding-left:18px">
+            <li>NPV treats cash flows as certain and ignores unquantified factors.</li>
+            <li>Alternatives, facts and cash flows are yours; the system checks structure and arithmetic, not whether they are realistic.</li>
+            <li>Custom analysis (T2): built on the vetted NPV method, expert review pending.</li>
+          </ul>
+
+          <div class="sdh" style="margin-top:18px">Inputs, with provenance</div>
+          <table class="table-wrap">
+            <thead><tr><th style="width:16%">Input</th><th style="width:44%">Value</th><th style="width:16%">Provenance</th><th>Source</th></tr></thead>
+            <tbody id="specInputs"></tbody>
+          </table>
+
+          <div class="sdh" style="margin-top:18px">Ambiguity register — default taken, and what changes if you disagree</div>
+          <div id="ambList"></div>
+
+          <div class="sdh" style="margin-top:18px">Pre-declared checks — frozen before anything runs</div>
+          <div class="checklist" id="checkList"></div>
+          <div class="sd-note" style="margin-top:8px">15 checks, written before execution and not editable by the builder. If one fails, the run is amended and the amendment is disclosed.</div>
+
+          <div class="sdh" style="margin-top:18px">Sensitivity — the range you declared</div>
+          <div class="grid2">
+            <div class="field"><div class="label">Discount rate</div><div class="val">base 0.12 · range 0.08 – 0.18</div></div>
+            <div class="field"><div class="label">Decision flip</div><div class="val">crossover rates are searched on a 400-point grid, then refined by bisection, then cross-checked on a different grid</div></div>
+          </div>
+        </div>
+        <div class="panel-foot">
+          <button class="btn primary" id="btnConfirm">Confirm spec and run</button>
+          <button class="btn danger" id="btnReject">Reject</button>
+          <span class="sub" id="specNote" style="margin-left:auto">Confirm the Problem Spec before anything is computed.</span>
+          <span class="sub" style="width:100%;color:var(--ink3);margin-top:6px">“Revise brief” is intentionally absent — reject is the only alternative to confirm.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Frameworks and models to record in the spec</h2>
+          <span class="hint">selection is recorded, not applied — a framework drives no calculation in this build</span>
+          <span class="headright"><span class="chip chip-det">140 records in registry v0.2</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="fwsearch">
+            <input id="fwq" placeholder="Search the library — stakeholder, Kano, SWOT, cost-benefit…" aria-label="Search the framework library">
+            <button class="btn" id="fwgo">Search</button>
+          </div>
+          <div id="fwList"></div>
+          <div class="sd-note" style="margin-top:10px">Types: <b>F</b> framework · <b>M</b> diagnostic model · <b>Q</b> quantitative method · <b>T</b> supporting theory. Every record is <span class="chip chip-warn">unreviewed</span> — the catalogue cannot yet say what a framework will miss.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 04 : RUN TRACE ---------- -->
+    <section class="view viewpad" id="v-trace" role="tabpanel" aria-labelledby="t-trace" hidden>
+      <h1 class="vh">The run, stage by stage</h1>
+      <div class="sub">Code decides the order of stages and whether verification runs. The model proposes; code validates; you confirm.</div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <h2>Stage trace</h2>
+          <span class="hint">states come from the pipeline's own event log</span>
+          <span class="headright"><span class="chip chip-ok">delivered</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="stagelist" id="stageList"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Where the reasoning happened — text mode and latent mode</h2>
+          <span class="hint">each stage is either an outward act in text or an inward span in latent space</span>
+          <span class="headright">
+            <span class="chip chip-text">text mode · auditable</span>
+            <span class="chip chip-latent">latent mode · internal</span>
+          </span>
+        </div>
+        <div class="panel-body">
+          <div class="ribbon" id="ribbon"></div>
+          <div class="ribbon-legend">
+            <span><span class="swatch" style="background:var(--signal)"></span>text — tool call, code execution, or a line you can read</span>
+            <span><span class="swatch" style="background:var(--latent)"></span>latent — internal span, counted and timed, not shown</span>
+            <span id="ribbonNote" style="color:var(--ink2)">latent on · 4,812 tokens · 6.4 s</span>
+          </div>
+          <div class="callout info" style="margin-top:12px">
+            <b>Mode switching changes the bill, not the answer.</b> A learned mode policy may change how long a proposal is and when it appears, but the stage order, the frozen test plan, the thresholds and the pass/fail decision stay in code. The gate is a metamorphic test: the same run with latent mode on and with it off must produce an identical spec hash, identical check results and a byte-identical report. Only latency, token count and proposal quality may differ.
+          </div>
+          <table class="table-wrap" style="margin-top:14px">
+            <thead><tr><th style="width:26%">Run</th><th style="width:20%">Spec hash</th><th style="width:16%">Checks</th><th style="width:16%">Report</th><th>Cost</th></tr></thead>
+            <tbody>
+              <tr><td class="rowlab">A · latent on</td><td class="mono">9c1e…a40b</td><td class="status-ok">15 / 15 pass</td><td class="status-ok">identical</td><td class="muted">4,812 tokens · 6.4 s</td></tr>
+              <tr><td class="rowlab">B · latent off</td><td class="mono">9c1e…a40b</td><td class="status-ok">15 / 15 pass</td><td class="status-ok">identical</td><td class="muted">9,604 tokens · 11.9 s</td></tr>
+            </tbody>
+          </table>
+          <div class="sd-note" style="margin-top:8px">Token counts and latencies are illustrative placeholders for the layout — they are not measured on this pipeline, and no latent mode exists at runtime.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Execution environment</h2>
+          <span class="hint">what the sandbox actually guarantees</span>
+        </div>
+        <div class="panel-body">
+          <pre>{
+  "network": "blocked",
+  "process_spawn": "blocked",
+  "writes": "work directory only",
+  "seed": 0,
+  "memory_limit_mb": 512,
+  "isolation": "separate process, python -S -s, minimal environment (best-effort guards, not a security boundary)"
+}</pre>
+          <div class="callout warn" style="margin-top:12px">
+            <b>Not a security boundary.</b> The guards are best-effort patches of <span class="mono">socket</span>, <span class="mono">open</span>, <span class="mono">os</span> and <span class="mono">subprocess</span>. Code using low-level calls could bypass them. On Windows only the timeout applies, and the Windows path is untested. Do not run untrusted or model-written code on this layer.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Run log</h2>
+          <span class="hint">the run records the UI reflects — not agent self-reports</span>
+        </div>
+        <div class="panel-body">
+          <div class="runlog" id="runlog"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 05 : OUTPUT PAPER ---------- -->
+    <section class="view viewpad" id="v-out" role="tabpanel" aria-labelledby="t-out" hidden>
+      <h1 class="vh">The paper that comes out</h1>
+      <div class="sub">Every figure in the prose is injected by the renderer. The model never typed a digit, and it never cited a paper it had not read.</div>
+
+      <div class="paperout" style="margin-top:14px">
+        <h2>Business case: strategic options for a regional bakery facing a supermarket bakery counter</h2>
+        <p class="sd-note" style="font-family:var(--mono);font-size:10.5px;color:#7d8288;margin:6px 0 16px">
+          Tier T2 · custom analysis; expert review pending · claim ceiling: descriptive + prescriptive under a user-set decision rule · currency PHP · period cross_section
+        </p>
+
+        <p class="lede">This case comparison covers <span class="ref" data-metric="n_alternatives">3</span> alternatives you supplied, each citing the case facts it follows from (<span class="ref" data-metric="n_facts">4</span> facts in total). Net present value is computed for each alternative from the cash flows you supplied, at a discount rate you set of <span class="ref" data-metric="rate">12.0%</span> and across a range you set from <span class="ref" data-metric="rate_low">8.0%</span> to <span class="ref" data-metric="rate_high">18.0%</span>.</p>
+
+        <h3>Comparison at your base rate</h3>
+        <table>
+          <thead><tr><th>Alternative</th><th>Cash flow at t₀</th><th>NPV at 12.0%</th><th>Facts it follows from</th></tr></thead>
+          <tbody>
+            <tr><td>A1 · Office catering at the new park</td><td>-1,850,000</td><td class="mono">-19,528.97</td><td>F2, F3</td></tr>
+            <tr><td>A2 · Second plant on the coastal road</td><td>-4,200,000</td><td class="mono">1,565,805.97</td><td>F1, F4</td></tr>
+            <tr><td>A3 · Defend: extend opening hours and a loyalty card</td><td>-320,000</td><td class="mono">2,012,190.69</td><td>F1, F4</td></tr>
+          </tbody>
+        </table>
+        <p class="ev-line">At your base rate, <b>A3</b> has the highest net present value of the three alternatives. Under your decision rule <span class="mono">highest_npv</span>, A3 ranks first — but see the flip below before treating that as a conclusion.</p>
+
+        <h3>Where the ranking changes</h3>
+        <p class="ev-line">The ranking of A2 and A3 changes at a discount rate of <span class="ref" data-metric="crossover">9.6%</span>, inside the range you declared. Below that rate A2 ranks first; at and above it A3 ranks first. A1 ranks last across the whole range — it never flips, so it belongs in the appendix rather than the headline.</p>
+        <div class="note">Flippers belong in the headline, non-flippers in the appendix. The crossover is a property of the cash flows you typed, not a forecast.</div>
+
+        <h3>What the paper contributed</h3>
+        <ul class="ev-line">
+          <li>F1 — the regional bakery segment was ₱186.4 million in 2025 <span class="muted">(sourced, p.12 §3.1)</span></li>
+          <li>F2 — eleven shops operate in the surveyed districts <span class="muted">(sourced, p.12 Table 4)</span></li>
+          <li>F3 — regional average monthly revenue per shop is ₱4,680 <span class="muted">(sourced, p.12 ¶3)</span></li>
+          <li>F4 — a supermarket chain opened a bakery counter in the central district <span class="muted">(sourced, p.4 ¶2)</span></li>
+        </ul>
+
+        <h3>What this paper does not do</h3>
+        <p class="ev-line">It does not assess whether your cash flows are realistic. It does not weight risk or probability. It does not compare unequal-length alternatives. It states a preference only because you set the decision rule; change the rule and the conclusion changes with it.</p>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h2>Claim licensing</h2><span class="hint">each claim worded no more strongly than its evidence allows</span></div>
+          <div class="panel-body">
+            <div class="claim">
+              <div class="ctop"><span class="chip chip-ok">descriptive</span><span class="chip chip-det">holds</span></div>
+              <div class="ctext">“The regional bakery segment was ₱186.4 million in 2025.”</div>
+              <div class="cneed">Earns: data reconciliation — the value was read twice from the source and both readers agreed, and the paper's own line items foot to the total.</div>
+            </div>
+            <div class="claim">
+              <div class="ctop"><span class="chip chip-warn">associational</span><span class="chip chip-warn">worded down</span></div>
+              <div class="ctext">“A supermarket bakery counter is <em>associated with</em> falling bakery sales in the central district.”</div>
+              <div class="cneed">Wanted: causal. It would need an identification strategy, its diagnostics and a confounding-sensitivity analysis. The paper supplies none of these, so the draft was written down rather than refused.</div>
+            </div>
+            <div class="claim">
+              <div class="ctop"><span class="chip chip-bad">prescriptive</span><span class="chip chip-ok">holds</span></div>
+              <div class="ctext">“Under your decision rule, A3 ranks first at a 12.0% discount rate.”</div>
+              <div class="cneed">Earns: everything above, plus your decision rule and your risk tolerance — both user-owned, neither chosen by the model.</div>
+            </div>
+            <div class="claim" style="border-color:#4d272a">
+              <div class="ctop"><span class="chip chip-bad">blocked</span></div>
+              <div class="ctext">“Expanding to the coastal road will return 14%.”</div>
+              <div class="cneed">Rejected at the drafting scan: a predictive claim needs an out-of-sample backtest beating a naive baseline. There is none, so the sentence may not be written.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h2>Every number, back to its source</h2><span class="hint">click-through lineage on each one</span></div>
+          <div class="panel-body">
+            <div class="sdh" style="margin-top:0">A figure in the prose</div>
+            <div class="lin">
+              <span class="node rep">2,012,190.69 in the report</span><span class="arrow">→</span>
+              <span class="node art">artifact a_npv_A3 · metric npv · period cross_section</span>
+            </div>
+            <div class="lin">
+              <span class="node art">artifact a_npv_A3</span><span class="arrow">→</span>
+              <span class="node src">input cashflows · cashflow_provenance user</span>
+            </div>
+            <div class="lin">
+              <span class="node src">input cashflows</span><span class="arrow">→</span>
+              <span class="node">typed by you in the board memo form</span>
+            </div>
+            <div class="sdh" style="margin-top:16px">A figure that came from the paper</div>
+            <div class="lin">
+              <span class="node rep">₱186.4 million as F1</span><span class="arrow">→</span>
+              <span class="node src">p.12 §3.1 · span 4412–4421</span>
+            </div>
+            <div class="lin">
+              <span class="node src">p.12 §3.1</span><span class="arrow">→</span>
+              <span class="node">reader A 186.4 · reader B 186.4 · agreed</span>
+            </div>
+            <div class="sdh" style="margin-top:16px">Pages of the paper that were read</div>
+            <div class="heat" id="heat"></div>
+            <div class="sd-note" style="margin-top:7px">
+              34 pages carried a text layer and were read; 11 pages are scans and were read at OCR confidence 0.91–0.97; 3 more fell below the 0.90 floor and were not used at all. A value on a scanned page is marked <span class="chip chip-warn">sourced</span> with its OCR confidence attached — and if you disagree with it, you can re-read the span rather than argue with the number.
+            </div>
+            <div class="ribbon-legend" style="margin-top:9px">
+              <span><span class="swatch" style="background:var(--signal)"></span>text layer, read</span>
+              <span><span class="swatch" style="background:#3e6f7d"></span>scan, read at 0.91–0.97</span>
+              <span><span class="swatch" style="background:var(--bad)"></span>scan, below 0.90 — not used</span>
+            </div>
+            <div class="sdh" style="margin-top:16px">Judgment calls to take to an accountant</div>
+            <ul class="sd-note" style="margin:0;padding-left:18px">
+              <li>Whether cash flows occur at period end, and whether the t₀ figure is net of working capital.</li>
+              <li>Whether a three-year life for A1 and A3 is comparable with an eight-year life for A2 — NPV does not adjust for unequal length.</li>
+              <li>The discount rate of 12.0%, and whether it is your cost of capital or a placeholder.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head"><h2>What you leave with</h2><span class="hint">every delivery carries the same five things</span></div>
+        <div class="panel-body">
+          <div class="grid3">
+            <div class="field"><div class="label">1 · The paper</div><div class="val">This document, with reference tokens resolved and a limitations page. <b>Word counts and tables are code-generated.</b></div></div>
+            <div class="field"><div class="label">2 · Provenance appendix</div><div class="val">Every assumption, amendment, check result, tier label, spec hash, environment hash and code hash.</div></div>
+            <div class="field"><div class="label">3 · Re-performance bundle</div><div class="val">The inputs, outputs, flip and fingerprint. Re-running it on another machine compares outputs exactly, or within tolerance, or reports an environment difference.</div></div>
+            <div class="field"><div class="label">4 · Disclosure-ready summary</div><div class="val">What the tool did — methods, run log, assumptions — for an instructor or a compliance file.</div></div>
+            <div class="field"><div class="label">5 · Data and journal exports</div><div class="val">The extracted values with their source locations, in a form you can check line by line.</div></div>
+            <div class="field"><div class="label">Limitations page</div><div class="val">Written by the run, not by the model: the quarantined values, the paper's own inconsistencies, the tier label, and the reviewer gap.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 06 : BUILD STATUS ---------- -->
+    <section class="view viewpad" id="v-build" role="tabpanel" aria-labelledby="t-build" hidden>
+      <h1 class="vh">What exists, and what this mockup proposes</h1>
+      <div class="sub">The spine is real code. The paper handling is a design. This page is the boundary between the two.</div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head"><h2>Capability map</h2><span class="hint">green = in the repo today · violet = designed, not implemented</span></div>
+        <div class="panel-body tight">
+          <table class="table-wrap">
+            <thead><tr><th style="width:30%">Capability</th><th style="width:13%">Status</th><th style="width:26%">Where it lives</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td class="rowlab">Deterministic stage spine</td><td class="status-b">built</td><td class="mono">src/bp/orchestrator.py:13</td><td class="muted">Ten stages, fixed order, code decides whether verification runs.</td></tr>
+              <tr><td class="rowlab">Spec freeze and hash</td><td class="status-b">built</td><td class="mono">src/bp/spec.py:32</td><td class="muted">Frozen specs raise SpecFrozen; changes go through amend() and bump the version.</td></tr>
+              <tr><td class="rowlab">Claim licensing and phrase ceilings</td><td class="status-b">built</td><td class="mono">src/bp/claims.py</td><td class="muted">descriptive · associational · predictive · causal · prescriptive; intervention wording is auto-flagged as causal.</td></tr>
+              <tr><td class="rowlab">Framework registry, 140 records</td><td class="status-b">built</td><td class="mono">src/bp/data/registry_v0_2.json</td><td class="muted">61 F · 22 M · 50 Q · 7 T. Every record is unreviewed.</td></tr>
+              <tr><td class="rowlab">SWOT and Five Forces templates</td><td class="status-b">built</td><td class="mono">src/bp/templates.py</td><td class="muted">Structure and evidence audit only. No computed answer.</td></tr>
+              <tr><td class="rowlab">Business-case comparison (T2)</td><td class="status-b">built</td><td class="mono">src/bp/case_decision.py</td><td class="muted">15 pre-declared checks; crossovers cross-checked on a second grid.</td></tr>
+              <tr><td class="rowlab">Sandbox</td><td class="status-b">built</td><td class="mono">src/bp/sandbox.py</td><td class="muted">Best-effort guards. Not a security boundary; untested on Windows.</td></tr>
+              <tr><td class="rowlab">Re-performance bundle</td><td class="status-b">built</td><td class="mono">src/bp/reperform.py</td><td class="muted">Re-runs a delivered bundle in a fresh environment and compares.</td></tr>
+              <tr><td class="rowlab">Model assistance (builder / reviewer)</td><td class="status-b">built</td><td class="mono">src/bp/llm.py</td><td class="muted">Three tasks only: facts, alternatives, critique. Never run against a live model.</td></tr>
+              <tr style="background:#1d1730"><td class="rowlab"><b>Paper ingestion</b> — PDF, DOCX, scans, images</td><td class="status-d">designed</td><td class="mono">manual §5.1 → §11 control 3</td><td class="muted">No upload endpoint, no parser, no chunker exists. Views 01 and 02 are the proposed seam.</td></tr>
+              <tr style="background:#1d1730"><td class="rowlab"><b>Double extraction and reconciliation</b></td><td class="status-d">designed</td><td class="mono">manual §11 control 3</td><td class="muted">Two independent readers, a tie-out pass, and no majority vote.</td></tr>
+              <tr style="background:#1d1730"><td class="rowlab"><b>Source-location store</b></td><td class="status-d">designed</td><td class="mono">manual §6 · §11</td><td class="muted">Page, section, cell and character span for every value; values absent from the text layer are rejected.</td></tr>
+              <tr style="background:#1d1730"><td class="rowlab"><b>Latent mode at runtime</b></td><td class="status-d">designed</td><td class="mono">arXiv:2610.18861</td><td class="muted">Paper-informed. No latent mode, no HybridLink, no post-training in this repo.</td></tr>
+              <tr><td class="rowlab">Literature retrieval for research papers</td><td class="status-n">not built</td><td class="mono">docs/STAGE7_BLOCKER.md</td><td class="muted">Stage 7 blocked: manuals absent, feasibility tiers undefined.</td></tr>
+              <tr><td class="rowlab">Account-mapping checkpoint</td><td class="status-n">not built</td><td class="mono">src/bp/ledger.py</td><td class="muted">The ledger is a spike. It is not wired into the pipeline and has no UI.</td></tr>
+              <tr><td class="rowlab">Authentication, tenancy, retention</td><td class="status-n">not built</td><td class="mono">docs/KNOWN_LIMITATIONS.md</td><td class="muted">Sessions live in memory only. A server for local development, not production.</td></tr>
+              <tr><td class="rowlab">Case workspace for returning cases</td><td class="status-p">provisional</td><td class="mono">manual §5.9</td><td class="muted">Designed, not built. It is where a paper set would be reused across assignments.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>API contract</h2><span class="hint">the paper routes are proposed; the rest exists today</span></div>
+        <div class="panel-body tight">
+          <table class="table-wrap">
+            <thead><tr><th style="width:9%">Method</th><th style="width:32%">Path</th><th style="width:11%">Status</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">POST</td><td class="mono">/api/sessions</td><td class="status-b">built</td><td class="muted">Create a session from a request; returns the draft spec and the work plan.</td></tr>
+              <tr><td class="mono">POST</td><td class="mono">/api/sessions/{id}/confirm</td><td class="status-b">built</td><td class="muted">Confirm the spec (with optional framework ids); the spec is then frozen and hashed.</td></tr>
+              <tr><td class="mono">POST</td><td class="mono">/api/sessions/{id}/reject</td><td class="status-b">built</td><td class="muted">Reject the spec. There is no revise-brief route, by decision.</td></tr>
+              <tr><td class="mono">GET</td><td class="mono">/api/sessions/{id}</td><td class="status-b">built</td><td class="muted">Full session state: work plan, spec, stage states, events, delivery.</td></tr>
+              <tr><td class="mono">GET</td><td class="mono">/api/frameworks?q=&type=</td><td class="status-b">built</td><td class="muted">Registry search over 140 records; type is F, M, Q or T.</td></tr>
+              <tr><td class="mono">GET</td><td class="mono">/api/templates, /api/templates/{id}</td><td class="status-b">built</td><td class="muted">Template input formats, defaults, limitations and planned checks.</td></tr>
+              <tr><td class="mono">GET</td><td class="mono">/api/methods</td><td class="status-b">built</td><td class="muted">The executable method list — discovery only; it never executes anything.</td></tr>
+              <tr><td class="mono">POST</td><td class="mono">/api/assist</td><td class="status-b">built</td><td class="muted">Model proposals for facts, alternatives and critique, under consent.</td></tr>
+              <tr style="background:#1d1730"><td class="mono">POST</td><td class="mono">/api/papers</td><td class="status-d">proposed</td><td class="muted">Upload a paper; returns a paper id, a structure report and a content-scan result.</td></tr>
+              <tr style="background:#1d1730"><td class="mono">GET</td><td class="mono">/api/papers/{id}/segments</td><td class="status-d">proposed</td><td class="muted">Pages, headings, tables, figures and the text-layer map.</td></tr>
+              <tr style="background:#1d1730"><td class="mono">POST</td><td class="mono">/api/papers/{id}/extract</td><td class="status-d">proposed</td><td class="muted">Run both readers; returns two value sets and a reconciliation with source locations.</td></tr>
+              <tr style="background:#1d1730"><td class="mono">POST</td><td class="mono">/api/papers/{id}/confirm</td><td class="status-d">proposed</td><td class="muted">Accept or reject each extracted value; the result becomes sourced evidence.</td></tr>
+              <tr style="background:#1d1730"><td class="mono">GET</td><td class="mono">/api/papers/{id}/coverage</td><td class="status-d">proposed</td><td class="muted">Which pages were read, which values were taken, and which pages were never touched.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>What still has to be decided about papers</h2></div>
+        <div class="panel-body">
+          <div class="grid2">
+            <div>
+              <div class="claim">
+                <div class="ctop"><span class="chip chip-warn">open</span><span class="muted" style="font-size:11px">manual §16</span></div>
+                <div class="ctext">“Meaning of ‘papers’… users are students, so papers are most likely coursework, theses or dissertations, which follow institutional conventions — citation style, AI-use disclosure. Confirm which output types are in version 1.”</div>
+                <div class="cneed">This mockup assumes both directions: papers in, papers out. If the answer is coursework only, the output side needs citation styles and a disclosure block, and the input side can assume instructor case packs.</div>
+              </div>
+              <div class="claim">
+                <div class="ctop"><span class="chip chip-warn">open</span><span class="muted" style="font-size:11px">manual §16</span></div>
+                <div class="ctext">“Will users upload structured files only, or also PDFs, scans and photos? This determines the weight of ingestion controls.”</div>
+                <div class="cneed">If structured files only, the extraction desk can be dropped entirely and this whole UI shrinks to the profiler.</div>
+              </div>
+            </div>
+            <div>
+              <div class="claim">
+                <div class="ctop"><span class="chip chip-bad">open</span><span class="muted" style="font-size:11px">manual §15B</span></div>
+                <div class="ctext">Security and hostile content. Uploaded files may carry hidden instructions. Document content is data, never instructions.</div>
+                <div class="cneed">The intake view shows a content scan, but the requirement — tenant isolation, encryption, retention and deletion rules — has no owner yet.</div>
+              </div>
+              <div class="claim">
+                <div class="ctop"><span class="chip chip-bad">open</span><span class="muted" style="font-size:11px">manual §15B</span></div>
+                <div class="ctext">Academic integrity and AI-use policy. Students’ institutions may require disclosure of what the tool did.</div>
+                <div class="cneed">View 05 already carries a disclosure-ready summary as a delivery item, because the paper that leaves this pipeline may be submitted.</div>
+              </div>
+            </div>
+          </div>
+          <div class="callout info" style="margin-top:12px">
+            <b>How to read this mockup.</b> Everything that mentions a page, a span, a reader or a reconciliation is a proposal about a seam the manual specifies and the code does not yet implement. Everything that mentions a stage, a check name, a tier label, a provenance tag, an artifact or a limitation is taken from code that exists. Where a number is illustrative it says so.
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== RIGHT RAIL ===================== -->
+  <aside class="aside">
+    <div class="asideh">Governance, in force</div>
+    <div class="sd-note">
+      <b>The model never produces a number.</b> It produces a problem spec and code. Figures in prose are injected from computed artifacts, and raw numeric literals in model output are rejected.
+    </div>
+    <div class="sd-note" style="margin-top:8px">
+      <b>Correctness has three layers.</b> The pipeline guarantees computational correctness, surfaces formulation problems, and flags input problems. A number derived correctly from a bad input still reads as a hallucination — so key inputs sit next to every headline figure.
+    </div>
+
+    <div class="asideh">Provenance tags</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div class="kv"><span class="k">user</span><span class="v"><span class="chip chip-new">supplied by you</span></span></div>
+      <div class="kv"><span class="k">sourced</span><span class="v"><span class="chip chip-text">read from a paper</span></span></div>
+      <div class="kv"><span class="k">assumption</span><span class="v"><span class="chip chip-warn">chosen by you</span></span></div>
+      <div class="kv"><span class="k">computed</span><span class="v"><span class="chip chip-ok">from execution</span></span></div>
+    </div>
+    <div class="sd-note" style="margin-top:8px">Every number carries exactly one tag. Untagged numbers are rejected.</div>
+
+    <div class="asideh">Paper rules</div>
+    <div class="kv"><span class="k">Readers per value</span><span class="v">2, independent</span></div>
+    <div class="kv"><span class="k">Agreement required</span><span class="v">both, exactly</span></div>
+    <div class="kv"><span class="k">Tie-outs required</span><span class="v">lines → subtotals</span></div>
+    <div class="kv"><span class="k">Source location</span><span class="v">page · section · span</span></div>
+    <div class="kv"><span class="k">Values off the page</span><span class="v status-bad">rejected</span></div>
+    <div class="kv"><span class="k">Majority vote</span><span class="v status-bad">never</span></div>
+    <div class="kv"><span class="k">Human sign-off</span><span class="v status-warn">required</span></div>
+
+    <div class="asideh">Limits that bite here</div>
+    <ul class="sd-note" style="margin:0;padding-left:17px">
+      <li>No retrieval service — a source you cannot retrieve cannot be cited.</li>
+      <li>Every framework record is unreviewed; none can say what it will miss.</li>
+      <li>No T3 exploratory tier exists; escalation stops at T2.</li>
+      <li>Claim typing is phrase-list based, not a reviewer model.</li>
+      <li>Windows sandbox path is untested — runs may block with “sandbox failure”.</li>
+    </ul>
+
+    <div class="asideh">Companion</div>
+    <div class="sd-note">The platform-level view of the same system — run console, financial model, architecture, and how the HybridAgent paper maps onto it — lives in <span class="mono">platform-mockup.html</span> in this folder.</div>
+  </aside>
+</main>
+
+<script>
+/* ============================================================
+   Paper Desk — interactions
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const add = (parent, tag, text, cls) => { const e=document.createElement(tag); if(text!==undefined) e.textContent=text; if(cls) e.className=cls; parent.appendChild(e); return e; };
+
+/* ---------- tabs ---------- */
+const tabs = [...document.querySelectorAll('.tab')];
+function selectTab(t, pushHash){
+  tabs.forEach(x => x.setAttribute('aria-selected', String(x===t)));
+  document.querySelectorAll('.view').forEach(v => {
+    const on = v.id === t.getAttribute('aria-controls');
+    v.hidden = !on;
+    if(on){ v.classList.remove('viewpad'); void v.offsetWidth; v.classList.add('viewpad'); }
+  });
+  if(pushHash) history.replaceState(null, '', '#' + t.getAttribute('aria-controls'));
+  window.scrollTo({top:0, behavior:'instant'});
+}
+tabs.forEach(t => t.addEventListener('click', () => selectTab(t, true)));
+/* deep link: #v-extract opens that view (clear the hash first so the browser
+   does not natively scroll the section to the top and hide the tab bar) */
+(function(){
+  const h = location.hash.replace('#','');
+  if(!h) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  const t = tabs.find(x => x.getAttribute('aria-controls') === h);
+  if(t) selectTab(t, false);
+})();
+
+/* ---------- proposed-seam toggle ---------- */
+const seam = $('seamToggle');
+seam.addEventListener('click', () => {
+  const on = seam.getAttribute('aria-pressed') !== 'true';
+  seam.setAttribute('aria-pressed', String(on));
+  document.body.classList.toggle('hide-proposed', !on);
+});
+
+/* ---------- paper list ---------- */
+const PAPERS = [
+  {name:'Regional_Bakery_Market_Scan_Q2.pdf', kind:'market research', meta:'48 pp · 12,940 w · 14 scans', chip:'chip-text', sel:true},
+  {name:'Board_Memo_Plant_Expansion.docx', kind:'internal memo', meta:'3 pp · confidential', chip:'chip-det', sel:false},
+  {name:'Campus_Cafe_Perception_Survey_2025.pdf', kind:'survey report', meta:'22 pp · third-party PII', chip:'chip-warn', sel:false},
+  {name:'Negotiation_Study_2025.pdf', kind:'research paper', meta:'31 pp · route blocked', chip:'chip-block', sel:false},
+  {name:'FY2025_Management_Accounts.xlsx', kind:'structured file', meta:'no extraction needed', chip:'chip-ok', sel:false}
+];
+const plist = $('paperList');
+PAPERS.forEach(p => {
+  const d = add(plist, 'div', undefined, 'paperitem');
+  d.setAttribute('role','option');
+  d.setAttribute('aria-selected', String(!!p.sel));
+  add(d, 'div', p.name, 'papername');
+  const m = add(d, 'div', undefined, 'papermeta');
+  add(m, 'span', p.kind);
+  const c = add(m, 'span', p.meta, p.chip);
+  d.addEventListener('click', () => {
+    plist.querySelectorAll('.paperitem').forEach(x => x.setAttribute('aria-selected','false'));
+    d.setAttribute('aria-selected','true');
+  });
+});
+
+/* ---------- extracted values ---------- */
+const VALUES = [
+  {id:'v1', val:'186.4', unit:'₱M · 2025', a:'186.4', b:'186.4', rec:'agree', src:'p.12 §3.1 · span 4412–4421', state:'ok', act:'confirmed', note:'line items foot to the stated total'},
+  {id:'v2', val:'12.7',  unit:'% · share',   a:'12.7',  b:'12.7',  rec:'agree', src:'p.12 ¶2 · span 3880–3885', state:'ok', act:'rejected', note:'readers agree, but the tie-out fails — agreement is not enough'},
+  {id:'v3', val:'8.4',   unit:'% · CAGR',   a:'8.4',   b:'8.9',   rec:'disagree', src:'p.12 ¶2 · span 3951–3955', state:'dead', act:'quarantined', note:'readers differ; recomputation from endpoints gives 16.1%'},
+  {id:'v4', val:'4,250', unit:'₱ · shop/mo',a:'4,250', b:'4,205', rec:'disagree', src:'p.12 ¶3 · span 5110–5116', state:'dead', act:'quarantined', note:'readers differ by ₱45'},
+  {id:'v5', val:'11',    unit:'shops',       a:'11',    b:'11',    rec:'agree', src:'p.12 Table 4 row 5', state:'ok', act:'confirmed', note:'3 + 2 + 3 + 3 shops listed'},
+  {id:'v6', val:'4,680', unit:'₱ · shop/mo', a:'4,680', b:'4,680', rec:'agree', src:'p.12 ¶3 · span 5180–5186', state:'ok', act:'confirmed', note:'regional average, used as F3'}
+];
+const xb = $('xbody');
+VALUES.forEach(v => {
+  const tr = add(xb, 'tr', undefined, 'xrow' + (v.state==='dead' ? ' quar' : ''));
+  tr.dataset.v = v.id;
+  const c1 = add(tr,'td');
+  add(c1,'span',v.val,'xval');
+  add(c1,'div', v.unit, 'src').style.marginTop = '1px';
+  add(tr,'td', v.a).className = 'mono nowrap';
+  add(tr,'td', v.b).className = 'mono nowrap';
+  const c5 = add(tr,'td');
+  const chip = add(c5,'span', v.rec === 'agree' ? 'agree' : 'disagree', 'chip ' + (v.rec==='agree' ? 'chip-ok' : 'chip-bad'));
+  chip.style.fontSize = '9.5px';
+  const c6 = add(tr,'td');
+  add(c6,'div', v.src, 'src');
+  add(c6,'div', v.note, 'src').style.color = v.state==='dead' ? 'var(--bad)' : (v.act==='rejected' ? 'var(--warn)' : 'var(--ink3)');
+  const c7 = add(tr,'td');
+  const b = add(c7,'button', v.act === 'confirmed' ? 'Confirmed' : (v.act === 'rejected' ? 'Rejected' : 'Quarantined'), 'btn sm');
+  b.type = 'button';
+  b.dataset.v = v.id;
+  const bc = v.act === 'confirmed' ? '#1e4033' : (v.act === 'rejected' ? '#4a3d1c' : '#4d272a');
+  const tc = v.act === 'confirmed' ? 'var(--ok)' : (v.act === 'rejected' ? 'var(--warn)' : 'var(--bad)');
+  b.style.borderColor = bc; b.style.color = tc;
+  b.addEventListener('click', e => { e.stopPropagation(); selectValue(v.id); });
+  tr.addEventListener('click', () => selectValue(v.id));
+});
+function selectValue(id){
+  document.querySelectorAll('.xrow').forEach(r => r.classList.toggle('sel', r.dataset.v === id));
+  document.querySelectorAll('.sp').forEach(s => s.classList.toggle('sel', s.dataset.v === id));
+}
+$('acceptOk').addEventListener('click', () => {
+  $('railAgree').textContent = '4';
+  $('railRej').textContent = '1';
+  $('railQuar').textContent = '2';
+  $('railFacts').textContent = '4';
+  $('confirmNote').innerHTML = '3 confirmed · 1 rejected on a failed check · 2 quarantined · delivery stays blocked until every failure is resolved or disclosed';
+});
+
+/* ---------- spec inputs ---------- */
+const INPUTS = [
+  ['facts', '4 items: F1–F4, each quoted from the market scan and read twice', 'sourced', 'Regional_Bakery_Market_Scan_Q2.pdf · p.4, p.12'],
+  ['alternatives', '3: office catering · second plant · defend with hours and loyalty', 'user', 'typed by you'],
+  ['cashflows', 'A1 [-1850000, 700000, 780000, 820000] · A2 [-4200000, 900000, 1050000, 1150000, 1200000, 1250000, 1300000, 1350000, 1400000] · A3 [-320000, 900000, 980000, 1050000]', 'user', 'typed by you, not read from the memo'],
+  ['rate', '0.12', 'assumption', 'your rate; a range of 0.08–0.18 is declared'],
+  ['rate_range', '[0.08, 0.18]', 'assumption', 'declared in the spec before running'],
+  ['decision_rule', 'highest_npv', 'user', 'your rule; null would give no recommendation'],
+  ['currency', 'PHP', 'user', 'typed by you']
+];
+const si = $('specInputs');
+INPUTS.forEach(([k,v,p,s]) => {
+  const tr = add(si,'tr');
+  add(tr,'td',k,'mono');
+  add(tr,'td',v);
+  const c = add(tr,'td'); add(c,'span',p,'chip ' + (p==='sourced'?'chip-text':p==='computed'?'chip-ok':p==='assumption'?'chip-warn':'chip-new'));
+  add(tr,'td',s,'src');
+});
+
+/* ---------- ambiguity register ---------- */
+const AMB = [
+  ['Decision rule', 'None. A preference is stated only if you set decision_rule; otherwise the comparison is shown without a recommendation.', 'The rule encodes your values; the system will not choose one.'],
+  ['Cash-flow timing and rate', 'Cash flows occur at period end, the first at t=0 undiscounted; the discount rate is the one you set.', 'NPV and crossover rates move if timing or the rate differ.'],
+  ['Ties and crossovers', 'NPVs within 1e-9 are tied. Crossovers are searched on a 400-point grid across your range and refined by bisection; a second, different grid cross-checks that none was missed.', 'Two crossovers closer than the grid spacing could be missed; the cross-check would then block.'],
+  ['Quarantined paper values', 'Values the two readers disagreed on are excluded. No averaging, no best-of, no third reader.', 'The market-scan CAGR is unavailable, so no growth rate supports any alternative.'],
+  ['Unequal lives', 'No adjustment. The three-year A1 and A3 and the eight-year A2 are compared as they stand.', 'A shorter alternative with a higher NPV is not automatically the better one.'],
+  ['Unread pages', 'Scanned pages read at OCR confidence 0.91–0.97 are used with their confidence attached; pages below 0.90 are not used at all.', 'A relevant finding may sit on a page the reader could not read confidently.']
+];
+const al = $('ambList');
+AMB.forEach(([q,d,i]) => {
+  const box = add(al,'div',undefined,'ambig');
+  add(box,'div',q,'q');
+  add(box,'div','Default taken: '+d,'d');
+  add(box,'div','Impact: '+i,'i');
+});
+
+/* ---------- planned checks ---------- */
+const CHECKS = ["alternatives_pass_standard_npv_checks","base_values_agree_with_independent_recomputation","crossover_rates_are_roots_of_the_npv_difference","ranking_changes_at_each_crossover","no_crossover_missed_on_a_different_grid","ranking_matches_recomputed_order","order_of_alternatives_does_not_change_results","analysis_contains_only_supplied_text","listing_reproduces_every_input_text_verbatim","alternatives_cite_existing_facts","cashflows_reproduced_exactly","recommendation_matches_recomputation","no_recommendation_without_your_decision_rule","assumption_and_synthetic_flags_are_correct","rendering_is_deterministic"];
+const cl = $('checkList');
+CHECKS.forEach(c => add(cl,'span',c,'checkitem'));
+
+/* ---------- framework library ---------- */
+const FW = [
+  ['STR-01','Porter\'s Five Forces','F','framework','Industry rivalry, threat of entrants and substitutes, buyer power, supplier power','template available: structure and evidence audit only'],
+  ['STR-07','SWOT / TOWS','F','framework','Strengths, weaknesses, opportunities, threats paired into strategies','template available: structure and evidence audit only'],
+  ['STR-18','SWOT evidence-to-action review','F','framework','Checks that each item leads to an option and that options cite items','template available: structure and evidence audit only'],
+  ['STR-03','Porter\'s Value Chain','F','framework','How primary and support activities contribute to cost or differentiation','not implemented'],
+  ['STR-06','PESTEL','F','framework','Political, economic, social, technological, environmental, legal','not implemented'],
+  ['STR-09','Ansoff Matrix','F','framework','Market and product growth directions','not implemented'],
+  ['STR-14','Scenario Planning','F','framework','Sets of plausible futures and their implications','not implemented'],
+  ['STR-15','Business Model Canvas','F','framework','Value proposition, segments, channels, revenue and cost structure','not implemented'],
+  ['MKT-01','Segmentation–Targeting–Positioning (STP)','F','framework','How a market is divided, chosen and positioned','not implemented'],
+  ['MKT-04','Customer Journey Mapping','F','framework','Stages, touchpoints and pain points across the customer path','not implemented'],
+  ['MKT-06','Kano Model','M','diagnostic model','Basic, performance and excitement attributes','not implemented'],
+  ['RSK-05','Stakeholder Analysis / Power–Interest Matrix','F','framework','Maps stakeholders by power and interest','not implemented'],
+  ['RSK-09','Multi-Criteria Decision Analysis (MCDA)','F','framework','Weighted scoring across competing criteria','not implemented'],
+  ['PM-03','KPI Tree / Driver Tree','F','framework','Decomposes a goal into drivers and measures','not implemented'],
+  ['QNT-FIN-01','Capital budgeting','Q','quantitative method','Investment appraisal, including NPV','linked method: case_decision'],
+  ['QNT-FIN-06','Unit economics','Q','quantitative method','Cost and margin per unit','linked method: case_decision'],
+  ['QNT-MKT-01','Market sizing (TAM/SAM/SOM)','Q','quantitative method','Sizes a market from the top down or bottom up','not implemented'],
+  ['QNT-DEC-02','Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis','Q','quantitative method','How a result moves across ranges, and where it flips','linked method: case_decision'],
+  ['IMP-05','Cost–Benefit Analysis (CBA)','Q','quantitative method','Compares costs against benefits of an intervention','not implemented'],
+  ['THE-03','Resource-Based View and Dynamic Capabilities Theory','T','supporting theory','Resources and capabilities as sources of advantage','not implemented'],
+  ['THE-07','Prospect Theory and other behavioral-economics theories','T','supporting theory','How loss framing changes decisions','not implemented']
+];
+const fwl = $('fwList');
+function renderFW(q){
+  fwl.replaceChildren();
+  const needle = (q||'').toLowerCase().trim();
+  const hits = FW.filter(f => !needle || (f[1]+' '+f[2]+' '+f[4]).toLowerCase().includes(needle));
+  if(!hits.length){ add(fwl,'div','No match in the library.','sd-note'); return; }
+  add(fwl,'div', (needle ? hits.length : FW.length) + ' shown · 140 records in registry v0.2','sdh');
+  hits.forEach(([id,name,type,tl,struct,impl]) => {
+    const row = add(fwl,'div',undefined,'fwrow');
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.id='fw_'+id;
+    row.appendChild(cb);
+    const d = add(row,'div');
+    const t = add(d,'div',undefined,'fwt');
+    add(t,'span', id,'fwtag'); t.appendChild(document.createTextNode(' ' + name));
+    const sub = add(d,'div',undefined,'fws');
+    add(sub,'span', type+' · '+tl,'fwtag');
+    sub.appendChild(document.createTextNode(' ' + struct));
+    add(d,'div',impl,'fws');
+  });
+}
+renderFW('');
+$('fwgo').addEventListener('click', () => renderFW($('fwq').value));
+$('fwq').addEventListener('input', () => renderFW($('fwq').value));
+
+/* ---------- stage trace ---------- */
+const STAGES = [
+  ['intake','Intake and data profiling','passed','done','anomalies: 2 quarantined values, 1 rejected on a failed check, 3 checks failed, 3 pages below the OCR floor','Paper structure profiled; the reader report and the value table were produced.'],
+  ['formalization','Formalization','awaiting_user','awaiting_confirmation → frozen','spec_hash 9c1e…a40b · version 1','The spec was drafted, you confirmed it, and it was frozen. Any later change creates version 2.'],
+  ['method_selection','Method selection','passed','selected','case_decision v0.1.0 · tier T2 · review pending','Escalation is triggered by verification failure or the absence of a matching method — never by difficulty.'],
+  ['test_planning','Test planning','passed','frozen','15 tests · plan_hash 7b22…c1d0','The 15 check names were fixed before execution. The builder cannot change them.'],
+  ['execution','Execution','passed','artifact','3 alternatives × NPV · Decimal arithmetic · seed 0','Values came from execution only. The model wrote no numbers.'],
+  ['verification','Verification','passed','pass','15 / 15 pass · 0 amendments','A second, independent recomputation agreed with every base value.'],
+  ['sensitivity','Sensitivity','passed','artifact','rate range 0.08–0.18 · 1 crossover at 0.0965','One flippable pair. A2 and A3 swap order above 9.6%. A1 never flips.'],
+  ['drafting','Drafting','passed','artifact','narrative + listing · reference tokens resolved','The model wrote text with reference tokens; the renderer substituted the figures.'],
+  ['draft_audit','Draft audit','passed','pass','1 claim worded down · 1 claim blocked · 0 numeric leaks','Sentence typing was compared against the spec’s claim ceilings.'],
+  ['delivery','Delivery','passed','delivered','report · appendix · bundle · exports','Everything in the delivery is derived from the run record, not from the model’s recollection.']
+];
+const sl = $('stageList');
+STAGES.forEach(([key,title,state,status,detail,note], i) => {
+  const s = add(sl,'div',undefined,'stage');
+  s.dataset.state = state;
+  const r = add(s,'div',undefined,'srow');
+  add(r,'span','▸','caret');
+  const nm = add(r,'span',undefined,'sname');
+  add(nm,'span', title + '  ');
+  add(nm,'span', key, 'skey');
+  const st = add(r,'span', state === 'awaiting_user' ? 'awaiting_user → frozen' : state, 'chip ' + (state==='passed'?'chip-ok':state==='awaiting_user'?'chip-warn':'chip-bad') + ' sstate');
+  const d = add(s,'div',undefined,'sdetail');
+  add(d,'div', status, 'mono').style.color = 'var(--signal)';
+  add(d,'div', detail, 'mono').style.color = 'var(--ink2)';
+  add(d,'div', note, 'sd-note').style.marginTop = '6px';
+  s.addEventListener('click', () => s.classList.toggle('open'));
+  if(i === 0) s.classList.add('open');
+});
+
+/* ---------- mode ribbon ---------- */
+const RIBBON = [
+  ['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t'],['l','l'],['t','t']
+];
+const rb = $('ribbon');
+RIBBON.forEach(([kind]) => {
+  const s = add(rb,'span', kind==='t' ? 'text' : '', 'rseg ' + kind);
+  s.style.flex = kind==='t' ? '1 1 0' : '1 1 0';
+  if(kind==='l') s.title = 'latent span — internal, not shown';
+  else s.title = 'text mode — a tool call, an execution, or a line you can read';
+});
+
+/* ---------- run log ---------- */
+const LOG = [
+  {stage:'intake', status:'done', detail:'anomalies: 2 quarantined values; 1 rejected on a failed check; 3 checks failed; 3 pages below the OCR floor'},
+  {stage:'formalization', status:'awaiting_confirmation', detail:'objective, facts F1–F4, alternatives A1–A3'},
+  {stage:'formalization', status:'frozen', detail:'spec_hash 9c1e…a40b'},
+  {stage:'method_selection', status:'selected', detail:'method=case_decision version=0.1.0 tier=T2 review_status=pending_named_reviewer'},
+  {stage:'test_planning', status:'frozen', detail:'15 tests plan_hash 7b22…c1d0'},
+  {stage:'execution', status:'artifact', detail:'sandboxed process; network blocked; writes limited to a temp folder'},
+  {stage:'verification', status:'pass', detail:'15 / 15 checks pass; amendments 0 of 3'},
+  {stage:'sensitivity', status:'artifact', detail:'rate 0.08–0.18; crossover A2/A3 at 0.0965; A2 leads below it, A3 above it; A1 never flips'},
+  {stage:'drafting', status:'artifact', detail:'narrative and listing; reference tokens resolved by the renderer'},
+  {stage:'draft_audit', status:'pass', detail:'claims: 1 downgraded (causal→associational), 1 blocked (predictive); 0 raw numeric literals'},
+  {stage:'delivery', status:'delivered', detail:'tier=T2; appendix with spec_hash, env_hash, code_hash, artifacts, checks'}
+];
+const rl = $('runlog');
+LOG.forEach(e => {
+  const d = add(rl,'div',undefined,'ev');
+  add(d,'b', e.stage).outerHTML = '<b>' + e.stage + '</b>';
+  d.appendChild(document.createTextNode('  ' + e.status + '  ' + e.detail));
+});
+
+/* ---------- coverage heatmap ---------- */
+const heat = $('heat');
+for(let i=0;i<48;i++){
+  const c = add(heat,'span','','hcell');
+  if(i<4){ c.classList.add('used'); c.title = 'p.'+(i+1)+' · values taken from this page'; }
+  else if(i<34){ c.classList.add('used'); c.title = 'p.'+(i+1)+' · text layer, read'; }
+  else if(i<45){ c.classList.add('partial'); c.title = 'p.'+(i+1)+' · scan, read at OCR confidence 0.91–0.97'; }
+  else { c.classList.add('dead'); c.title = 'p.'+(i+1)+' · scan, OCR confidence below 0.90 — not used at all'; }
+}
+
+/* ---------- confirm / reject ---------- */
+$('btnConfirm').addEventListener('click', () => {
+  $('specNote').textContent = 'Checkpoint closed. The spec is frozen and hashed; the run has started.';
+  $('specNote').style.color = 'var(--ok)';
+  $('btnConfirm').disabled = true;
+  $('btnReject').disabled = true;
+});
+$('btnReject').addEventListener('click', () => {
+  $('specNote').textContent = 'Spec rejected. Nothing was computed. “user did not confirm spec”.';
+  $('specNote').style.color = 'var(--bad)';
+  $('btnConfirm').disabled = true;
+  $('btnReject').disabled = true;
+});
+</script>
+</body>
+</html>

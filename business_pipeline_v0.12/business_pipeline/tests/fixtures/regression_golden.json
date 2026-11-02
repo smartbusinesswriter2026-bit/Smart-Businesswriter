@@ -1,0 +1,297 @@
+[
+ {
+  "name": "classic_five_hand_checked",
+  "method": "ols",
+  "y": [
+   "2",
+   "4",
+   "5",
+   "4",
+   "5"
+  ],
+  "predictors": {
+   "x": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "r_squared": "0.6000000000000001",
+   "adj_r_squared": "0.4666666666666668",
+   "residual_se": "0.8944271909999157",
+   "n": "5.0",
+   "n_excluded": "0.0",
+   "f_stat": "4.500000000000002",
+   "p_f": "0.12402706265755453",
+   "coef_intercept": "2.1999999999999993",
+   "se_intercept": "0.9380831519646861",
+   "p_intercept": "0.10074345608542018",
+   "ci_lower_intercept": "-0.7853992610189109",
+   "ci_upper_intercept": "5.18539926101891",
+   "coef_x": "0.6000000000000001",
+   "se_x": "0.28284271247461906",
+   "p_x": "0.1240270626575546",
+   "ci_lower_x": "-0.3001317452912734",
+   "ci_upper_x": "1.5001317452912737"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); not needed at test time"
+ },
+ {
+  "name": "eight_simple",
+  "method": "ols",
+  "y": [
+   "2",
+   "4",
+   "5",
+   "4",
+   "5",
+   "7",
+   "6",
+   "8"
+  ],
+  "predictors": {
+   "x": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "r_squared": "0.8329743957884661",
+   "adj_r_squared": "0.8051367950865438",
+   "residual_se": "0.8321420055857759",
+   "n": "8.0",
+   "n_excluded": "0.0",
+   "f_stat": "29.922636103151856",
+   "p_f": "0.001557683877467606",
+   "coef_intercept": "1.9642857142857149",
+   "se_intercept": "0.6483998269593441",
+   "p_intercept": "0.023114683834680277",
+   "ci_lower_intercept": "0.3777084934185424",
+   "ci_upper_intercept": "3.550862935152887",
+   "coef_x": "0.702380952380952",
+   "se_x": "0.12840229910605905",
+   "p_x": "0.0015576838774676118",
+   "ci_lower_x": "0.38819184498407383",
+   "ci_upper_x": "1.0165700597778302"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); not needed at test time"
+ },
+ {
+  "name": "two_predictors_ten",
+  "method": "ols",
+  "y": [
+   "52",
+   "55",
+   "61",
+   "58",
+   "70",
+   "72",
+   "69",
+   "80",
+   "66",
+   "74"
+  ],
+  "predictors": {
+   "study_hours": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "4",
+    "6"
+   ],
+   "sleep_hours": [
+    "6",
+    "7",
+    "5",
+    "8",
+    "6",
+    "7",
+    "8",
+    "6",
+    "7",
+    "7"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "r_squared": "0.9325075900575952",
+   "adj_r_squared": "0.9132240443597652",
+   "residual_se": "2.6459197390694147",
+   "n": "10.0",
+   "n_excluded": "0.0",
+   "f_stat": "48.357683004455666",
+   "p_f": "7.987157988429261e-05",
+   "coef_intercept": "63.07575757575754",
+   "se_intercept": "6.29012265871125",
+   "p_intercept": "2.1006893374807188e-05",
+   "ci_lower_intercept": "48.20198099147564",
+   "ci_upper_intercept": "77.94953416003945",
+   "coef_study_hours": "4.03654188948307",
+   "se_study_hours": "0.4104517577362883",
+   "p_study_hours": "2.3881505038231464e-05",
+   "ci_lower_study_hours": "3.065977709030957",
+   "ci_upper_study_hours": "5.007106069935183",
+   "coef_sleep_hours": "-2.379679144385032",
+   "se_sleep_hours": "0.9609728003909649",
+   "p_sleep_hours": "0.042438047072989364",
+   "ci_lower_sleep_hours": "-4.652018733310539",
+   "ci_upper_sleep_hours": "-0.10733955545952467"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); not needed at test time"
+ },
+ {
+  "name": "two_predictors_robust",
+  "method": "ols_robust",
+  "y": [
+   "52",
+   "55",
+   "61",
+   "58",
+   "70",
+   "72",
+   "69",
+   "80",
+   "66",
+   "74"
+  ],
+  "predictors": {
+   "study_hours": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "4",
+    "6"
+   ],
+   "sleep_hours": [
+    "6",
+    "7",
+    "5",
+    "8",
+    "6",
+    "7",
+    "8",
+    "6",
+    "7",
+    "7"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "r_squared": "0.9325075900575952",
+   "adj_r_squared": "0.9132240443597652",
+   "residual_se": "2.6459197390694147",
+   "n": "10.0",
+   "n_excluded": "0.0",
+   "coef_intercept": "63.07575757575754",
+   "se_intercept": "9.186647848337655",
+   "p_intercept": "0.0002385139427048718",
+   "ci_lower_intercept": "41.352787282735655",
+   "ci_upper_intercept": "84.79872786877942",
+   "coef_study_hours": "4.03654188948307",
+   "se_study_hours": "0.36862577926963425",
+   "p_study_hours": "1.1724766324354474e-05",
+   "ci_lower_study_hours": "3.1648804320598045",
+   "ci_upper_study_hours": "4.908203346906336",
+   "coef_sleep_hours": "-2.379679144385032",
+   "se_sleep_hours": "1.3394057419120993",
+   "p_sleep_hours": "0.11887250308393055",
+   "ci_lower_sleep_hours": "-5.546870444433007",
+   "ci_upper_sleep_hours": "0.7875121556629434"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); not needed at test time"
+ },
+ {
+  "name": "missing_codes_rows",
+  "method": "ols",
+  "y": [
+   "52",
+   "55",
+   "61",
+   "99",
+   "70",
+   "72",
+   null,
+   "80",
+   "66",
+   "74",
+   "60"
+  ],
+  "predictors": {
+   "study_hours": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "99",
+    "6",
+    "3"
+   ],
+   "sleep_hours": [
+    "6",
+    "7",
+    "5",
+    "8",
+    "6",
+    "7",
+    "8",
+    "6",
+    "7",
+    "7",
+    "7"
+   ]
+  },
+  "missing_codes": [
+   "99"
+  ],
+  "expected": {
+   "r_squared": "0.990778983421598",
+   "adj_r_squared": "0.9870905767902372",
+   "residual_se": "1.1264155011309636",
+   "n": "8.0",
+   "n_excluded": "3.0",
+   "f_stat": "268.6197815060478",
+   "p_f": "8.164827375074252e-06",
+   "coef_intercept": "50.60396039603962",
+   "se_intercept": "3.6907900043827997",
+   "p_intercept": "3.7028734344119996e-05",
+   "ci_lower_intercept": "41.11648265162512",
+   "ci_upper_intercept": "60.091438140454116",
+   "coef_study_hours": "4.16584158415842",
+   "se_study_hours": "0.18014746507320992",
+   "p_study_hours": "2.8136394749477243e-06",
+   "ci_lower_study_hours": "3.702757782705299",
+   "ci_upper_study_hours": "4.628925385611541",
+   "coef_sleep_hours": "-0.4405940594059353",
+   "se_sleep_hours": "0.5751628801127632",
+   "p_sleep_hours": "0.4782408239275478",
+   "ci_lower_sleep_hours": "-1.9190973115560714",
+   "ci_upper_sleep_hours": "1.037909192744201"
+  },
+  "source": "numpy 2.4.4 + scipy 1.17.1 generated offline (manual 9B.5); not needed at test time"
+ }
+]

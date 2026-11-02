@@ -1,0 +1,436 @@
+# Known limitations (release blockers marked *)
+- * Sandbox is partial (see Stage 5 increment 5): vetted T1 code runs in a guarded child process, but this is NOT a security boundary. T2/T3 (model-written code) still need an OS-level container. Untested on Windows.
+- * No authentication, tenant/case isolation or retention; sessions are in memory only.
+- * No model calls: intake, formalization and drafting are deterministic templates, not model-assisted.
+- Only NPV and break-even are executable (T1). No T2/T3, accounting, statistics, research or framework registry.
+- "Revise brief" is intentionally absent (not built). Reject is the only alternative to confirm.
+- Claim-wording phrase lists are placeholders [UNVERIFIED].
+- Missing sources: v0.3 manual, research-pipeline manuals, frameworks catalogue.
+- Server is for local development, not production.
+
+## Added with the Project management subject (B-116)
+- **Seven of the nine PM tiles are shared appraisal methods, and two are shared delivery methods.** NPV,
+  IRR, discounted payback, project metrics, scenario analysis, business-case decision and trend forecast
+  come from Finance; critical path/PERT and earned value come from the scheduling and project-control
+  methods. The shelf adds no second arithmetic path.
+- **Ten of the 14 delivery records remain read-only.** Balanced Scorecard, strategy map, KPI tree, OKRs,
+  Scrum, Kanban, COBIT, ITIL, DeLone–McLean and TOE give structure and the evidence each one needs; none is
+  filled in, scored or checked. PRINCE2 and PMBOK anchor the charter and risk register; WBS and RACI have
+  their own worksheets.
+- **The four delivery worksheets compute nothing.** The charter and WBS place supplied evidence and name
+  empty blocks; the RACI refuses a cell that does not start R, A, C or I and blocks an activity without
+  exactly one A or at least one R; the risk register records declared labels and computes no probability,
+  expected value or score. No stakeholder/communication-plan or lessons-learned worksheet exists.
+- **The schedule is deterministic.** CPM gives early/late dates, total float and the critical path from
+  declared durations, with PERT expected durations and variance when three-point estimates are declared.
+  There is **no Gantt drawing, resource levelling, crashing, calendars, multi-project scheduling or
+  schedule-risk simulation**, and no Monte Carlo, decision tree, real option or multi-criteria score.
+- **Earned value is arithmetic on one status date.** PV, EV and AC are cumulative figures the student
+  declares; the method does not derive them from the schedule, and it cannot say whether the plan or the
+  scope was right. EAC is one declared convention, not a forecast.
+- **A critical path is not automatically the riskiest path**, and total float is shared: spending it twice
+  is the student's error, not something the method models.
+- **The project-ranking method fails closed when its MIRR check contradicts the NPV sign.** A project with a
+  positive NPV at a high hurdle can still block because MIRR sits below that hurdle; the report is withheld
+  rather than contradicting itself.
+- **A stored appraisal case appears under both Finance and Project management**, because the subject filter
+  is method-based. The case is not tagged with the shelf it was framed under.
+- The PM **groups, glossary, guidance and student guide are teaching and presentation material**; they do not
+  choose the project, validate an estimate or turn a read-only framework into a computed answer.
+
+## Added with the digital marketing lane (B-117, B-121, B-133)
+- The seven digital methods are **arithmetic on declared counts**. Nothing reads Google Analytics, Google Ads, Meta, TikTok or an email platform: the counts, the conversion definition and the attribution window are the student's, and the report says so.
+- **Attribution credit is not causation.** `attribution_split` compares first-click, last-click and linear shares from counts you supply; it does not process touchpoint logs, and no holdout, incrementality or lift test exists.
+- **`ab_test_two_proportion` is one two-sided pooled normal test.** It has no sequential or peeking correction, supports two arms only, needs conversions in both arms, and its interval assumes independent observations - survey weights, clustering and repeated measures are not modelled.
+- **Return on ad spend is attributed revenue over spend**, not profit and not incremental revenue. Break-even return on ad spend is 1 / contribution margin rate and appears only when that margin is declared.
+- **Channel economics allocates nothing.** Shared, brand and overhead spend must be assigned by the student or left out; lifetime value is contribution margin / churn, undiscounted, with no survival curve or saturation effect.
+- **Email opens include machine opens**, so the open rate is an upper bound on reading; no deliverability, consent, spam-complaint or list-deduplication check is performed.
+- **Social and web rates use the platform's own definitions.** Engagement, session and conversion definitions differ between platforms and change over time, and no bot filtering, view-through, sentiment or cross-device identity resolution is applied.
+- **No budget, bid or creative recommendation is made anywhere in the lane.** `MKT-13..MKT-21` are framework records: `MKT-14` (SEO/content), `MKT-21` (automation and lead scoring) and the planning records remain read-only until a worksheet is built.
+- **RFM bands are relative to the file** (B-121). Quintile scores are ranks inside the uploaded customer list, so the same customer can score differently in another dataset; ties share the better band, so bands need not be equal in size, and no external or industry benchmark is applied.
+- **The RFM segments are labels from declared rules**, tried in a fixed order; nothing tests whether a segment is stable over time, differs by more than chance, or predicts next-period value.
+- **Media reach is declared, and combined reach is an estimate** (B-121). `media_plan` uses the random-duplication formula, which assumes different vehicles' audiences overlap only by chance; real overlap is usually higher, so the combined reach is an upper bound. There is no measured overlap, no effective frequency, no wear-out, no scheduling and no recommended buy.
+- **Market share is arithmetic on the market you declare** (B-133). `market_share` divides declared firm sales by declared market sales; the boundary is the student's, no market data or competitor estimate is retrieved, and no share change is tested for significance.
+- **Customer value rests on constant rates** (B-133). `clv_model` sums a constant margin at a constant churn and discount rate over a declared horizon; it fits no survival curve, models no expansion revenue and is not a perpetuity.
+- **Segment profit carries the allocation you chose** (B-133). `customer_profitability` takes the allocated cost as declared, absorbs no fixed cost, applies no depreciation or capital charge, and reports no customer-level or time-series result.
+- **Five marketing worksheets structure evidence and compute nothing** (B-133). The journey map, Kano grid, SERVQUAL grid, paid media plan and measurement plan name empty blocks and cells; they do not derive a Kano category, average a SERVQUAL gap, deploy a tag or read a platform.
+
+## Added with free market-data lookups (B-106, B-109)
+- Five sources are wired: **Frankfurter** for reference FX, the **U.S. Treasury par yield curve** for a risk-free rate, **Alpha Vantage** for equity quotes (the user's own free key; its fundamentals endpoint is premium and is not used), **SEC EDGAR** for US filings and XBRL fundamentals, and the **World Bank** for macro indicators. Yahoo Finance and PSE are **not** used: they have no public licence for this use.
+- Alpha Vantage needs `BP_ALPHAVANTAGE_KEY` for the **quote**; on the free tier it allows 25 requests a day, cached for 24 hours. Without a key the quote refuses and says where to register. The **fundamentals** button reads SEC XBRL instead and needs no key.
+- A retrieved value is **published by the source, not independently verified here**. There is no cross-source check, no correction and no guarantee that the source's terms will stay the same.
+- The value is **never written into a method input automatically**. The panel shows the value, as-of date, source and response SHA-256; the student confirms and types it into the tool.
+- A lookup needs network access. On failure it returns a reason and no value; it does not fall back to a remembered or invented rate. Caches are in memory only and clear on restart.
+- FX is quoted as one unit of the base currency in the quote currency, on the source's latest business day unless a date is given. A Treasury par yield is a **US** rate, not any country's policy or lending rate.
+- **PSE prices, private-company figures and anything the five sources do not cover are manual entries.** The panel says so rather than scraping a site.
+- One observation (or one filing list) is returned at a time; there is no stored price history, chart or portfolio tracker.
+
+## Added with document reading (B-107, B-110)
+- PDF reading uses the **text layer** when there is one; a scanned PDF is rendered with `pypdfium2` and OCR'd with a local **Tesseract**. If either optional reader is absent, the file is stored and reported `ocr_required`.
+- Image OCR runs only when **Tesseract**, `pytesseract` and Pillow are installed locally. The Windows build resolves the engine from `BP_TESSERACT_CMD`, PATH or the usual install folders.
+- `pypdf`, `pypdfium2` and `pytesseract` are **optional product-layer dependencies**. If one is absent, the corresponding extraction is refused with a hint; structured CSV/XLSX ingestion is unaffected.
+- Extracted text is **unverified**: columns, tables, headers and footers can be reordered or garbled, and ligatures, handwriting or unusual fonts may be lost. Check it against the document before using it.
+- Limits are refused, not truncated: 5 MB upload, 50 PDF pages (20 for OCR), 200,000 characters, and encrypted PDFs. DOCX, legacy `.xls`, handwriting and forms are not read.
+- OCR is CPU-bound: a page takes a moment, so a long scan is refused rather than holding the request open.
+- Extracted text is stored beside the payload as `<id>.txt` and is **not** placed into a method input automatically; the user reads, confirms and types what is needed.
+
+
+## Added with the student finance shelf (B-090)
+- Every added finance method is **arithmetic on declared inputs**. Methods still retrieve nothing: the market panel can look up a labelled reference value (B-106), but the student confirms and types it, so a stale or wrong declaration still flows straight through.
+- `time_value` and `loan_amortization` need the rate and term to be declared; there is no rate, term or payment solver. No fees, insurance, taxes, grace periods or variable rates.
+- `bond_analysis` prices a plain fixed-coupon bond **on a coupon date** with no accrued interest, day-count convention, embedded option, credit spread or spot curve. Duration and convexity are local parallel-shift sensitivities.
+- `capm` uses a declared risk-free rate, market return and beta, or estimates beta by OLS from the supplied series; it does not choose an index, test beta stability or model multiple factors. Hamada relevering is arithmetic on the declared debt-to-equity ratio and tax rate.
+- `dupont_analysis` uses period-end balances and one period; no averages, benchmarks or adjustments. The five-step form appears only when EBIT, pre-tax income and tax are all declared, and a zero or negative equity blocks. Comparison is **one declared prior period** (simple relative growth), not a multi-year trend or index series.
+- `trend_analysis` is historical arithmetic on declared periods: the common-size base is revenue and the index base is the first period, so changing either changes every percentage. No adjustment, restatement, accounting-policy alignment, forecast or industry benchmark. A compound rate uses only the endpoints; a net-income CAGR is omitted when the base period is not positive.
+- `multiples_valuation` is **T2**: the peers are declared, not screened. No growth, risk, one-off-item or accounting-basis adjustment; no control premium, liquidity discount or fairness opinion.
+- `working_capital` assumes constant demand and constant order/holding costs; no seasonality, quantity discounts, stock-outs or cash budget. The trade-credit cost is an annualised convention.
+- `portfolio_analysis` is two assets with fixed weights; no multi-asset optimisation, efficient frontier, short selling, transaction costs or forecasting. Sharpe, Treynor and Jensen depend on the declared risk-free rate and benchmark series.
+- `project_metrics` uses declared after-tax cash flows; no tax computation, depreciation shield, working-capital release, unequal-life ranking rule or real options. IRR is reported only when a single root exists.
+- `option_pricing` is **T2**: European exercise only, constant volatility and rate, no jumps, stochastic volatility or credit risk. The binomial tree is a numerical cross-check of the same model, not independent evidence. Implied volatility is not computed.
+- `risk_metrics` reports a quantile and a tail average: VaR is not a maximum loss, the parametric route assumes normality, and the square-root-of-time scaling assumes independent returns. No volatility model, simulation, backtest or credit/liquidity risk.
+- `fx_parity` states the parity identities under their assumptions; it is not a forecast, and it ignores capital controls, transaction costs and risk premia. The quote convention is domestic currency per unit of foreign currency. The hedge comparison is **one declared forward against one expected spot**; no option, swap, rolling programme or hedge accounting.
+- `leverage_analysis` is single-period and assumes the interest is deductible and the firm is profitable enough to use the shield. The Altman Z-score is computed but **no safe/grey/distress cut-off is applied**, because the thresholds are sample-specific and unverified here. EBIT-EPS indifference compares **two** plans only; it does not choose between them, and it ignores risk, covenants and issue costs.
+- `scenario_analysis` changes only the discount rate; it is not a joint scenario, probability-weighted scenario or Monte Carlo simulation.
+- The methods show the formula and the intermediate values a student needs, but they are **not a textbook**: they do not derive the formulas, teach the theory, or mark a student's working. A result is only as good as the declared inputs.
+- The in-app topic groups, study notes, glossary and period badges are **presentation metadata**. They describe the method and its conventions; they do not validate the inputs, choose the right tool, or turn a per-period figure into an annual one.
+- A rate above 100% in any output triggers a **warning note** that rates are decimals, but it does not refuse the run: a declared rate above 100% can be genuine, and refusing it would be a false block.
+
+## Added at Stage 5
+- Statistics: descriptive only, one variable. No inference, intervals, effect sizes, groups, weights, quartiles, .sav input.
+- Golden fixtures are hand-verified; NIST and SPSS reference outputs have not been generated. Provenance of the NumAcc1-style case is [UNVERIFIED].
+- env_hash now fingerprints the interpreter, platform and bp source; it does not pin third-party packages because none are used.
+- Claim typing is still by phrase lists, not a reviewer model.
+- Provenance tags on inputs are declared by the requester and not independently checked.
+- Manual v0.3 features not built: case workspace (5.9), learning loop (10.1), ingestion controls, .sav/.sps handling, 15B items.
+
+## Added with correlation
+- Only two variables, one test; no multiple-comparison correction machinery beyond a declared "none".
+- Normality screen is a skewness/kurtosis screen, not a formal test; linearity and independence are untested.
+- Spearman interval and p-value are approximations; the interval formula is [UNVERIFIED].
+- No power calculation, weights, clustering, partial correlation, or SPSS-default comparison (9B.4 register lists only our own defaults).
+
+## Added with regression
+- OLS only: numeric predictors, up to five; no categorical, interaction, polynomial, weighted, clustered or time-series models.
+- Diagnostics are coarse screens with conventional limits [UNVERIFIED]; they may block valid data or pass flawed models.
+- No out-of-sample validation, so no predictive claims (manual 7); associational ceiling only.
+- No power or sample-size calculation; no multiple-comparison correction.
+
+## Added with group comparison
+- Two independent groups only: no paired data, more than two groups (ANOVA), proportions or counts (chi-square).
+- Mann-Whitney interval and Hedges' g interval are approximations [UNVERIFIED against a published reference].
+- Group-size minimum of three for Welch and about four for a Mann-Whitney interval.
+
+## Added with the sandbox
+- Guards are best-effort (patched socket, open, os and subprocess calls). Code using low-level calls (os.open, ctypes, native extensions) could bypass them. Do not run untrusted or model-written code on this layer.
+- Memory cap uses the POSIX resource module; on Windows only the timeout applies. No CPU-time limit beyond the timeout.
+- Developed and tested on Linux. The Windows path (python -S -s, SYSTEMROOT environment) is untested. If the sandbox fails there, runs block with "sandbox failure" and `--no-sandbox` is a development-only workaround.
+- Builder patching is disabled when the sandbox is on (T1 only). Fallbacks still work.
+- Re-performance compares outputs exactly or within 1e-12; results on another OS or Python version may differ in the last digits of float-derived values and are then reported as within tolerance, or as an environment difference.
+- Unit tests run in-process for speed; sandbox behaviour is covered by tests/test_sandbox.py.
+
+## Added with the registry
+- Recommendations are lexical: they miss paraphrases and can suggest a loosely related item. They suggest; they never apply.
+- Every record is "unreviewed". There is no limitations, contraindication or evidence data, so the system cannot yet say what a framework will miss or how well supported it is.
+- No framework templates: selected frameworks guide a T4 text answer and are recorded in the spec; they do not yet drive a structured analysis.
+- Theory citations must come from retrieved sources; the system has no retrieval of research literature, so supporting theories are pointers only.
+- Evaluation set is small, author-written and not expert-reviewed.
+- Edition and permission checks for standards are flagged, not performed.
+
+## Added with framework templates
+- Only SWOT (with STR-18 audit) and Five Forces have templates; the system cannot check that evidence is accurate or items are correctly classified.
+- Evidence text is limited to 400 characters on one line, 60 items, 20 options, for safe verbatim reproduction.
+- Reports quote your evidence; if it contains personal or confidential data, it appears in the report and bundle.
+- TOWS pairing labels are derived, not judged; options themselves are yours.
+
+## Added with the business-case slice
+- The comparison is only as good as the facts, alternatives, cash flows and rates you enter; the system does not assess realism.
+- NPV only, with certain cash flows; no risk weighting, probabilities, break-even comparison, or unequal-life adjustment.
+- Decision rule "highest_npv" is the only rule; other rules (payback limits, budget constraints, multi-criteria weights) are not implemented.
+- Default alternative ids are positional; supply ids to keep them stable when reordering.
+- No model-assisted steps (no case reading, alternative generation or reviewer challenge).
+
+## Added with the ledger spike
+- The ledger kernel is a spike: not wired into the pipeline, no UI, no mapping-confirmation checkpoint, one period only, no schedules, no cash flow statement, no reconciliation, no standards retrieval.
+- Flags (abnormal balance, contra-name heuristic, missing accrual) are heuristics that suggest items to confirm; they will miss problems and produce false alarms.
+- Mid-year policy changes cannot be detected without a declared input.
+- Beancount was not evaluated; the manual's statements about it are unverified.
+- The research workflow (formerly Stage 7) has a **ratified living manual** but no built stages: `docs/RESEARCH_EVIDENCE_WORKFLOW.md` is the working authority for REW (B-053, R11 ratified), while its stages R0–R8, feasibility tiers and study taxonomy remain PROPOSAL/OPEN until the owner ratifies R1–R10; the ten original blocking questions are preserved there as Q1–Q12.
+- Only the literature retrieval/verification boundary exists (src/bp/literature.py, PROVISIONAL; smoke-tested live against one DOI, not evaluated across sources or formats). It records a response SHA-256 + UTC retrieval time per resolved retrieval (B-054), but keeps no durable retrieval log, so a hash proves what the source served at verification time — not that its metadata is correct, nor that the DOI still resolves later.
+
+## Added with the model provider
+- Never run against a real model. The Anthropic, OpenAI-compatible and DeepSeek adapters are unit-tested with a fake opener only; no live call has been made.
+- Proposal quality is unmeasured; no evaluation set of real cases exists yet (a scaffold with synthetic fixtures was added, `src/bp/evaluate.py`).
+- The quote check prevents additions beyond submitted text but cannot stop quoted injected text; user review is the control.
+- The PII scan is a heuristic. Text leaves the machine when assistance is used; personal data is allowed only with explicit acknowledgment (B-038).
+- Proposals are not reproducible; only their hashes are recorded.
+- Only three tasks (facts, alternatives, critique) and only the business-case flow use assistance; other methods and templates do not.
+- Cost is capped by call count only; no price table.
+
+## Added with ANOVA, Kruskal-Wallis and chi-square
+- ANOVA covers three or more independent groups only; no post-hoc pairwise tests, repeated measures, factorial designs or Welch ANOVA (equal-variance failures switch to Kruskal-Wallis instead).
+- Chi-square is independence-only on count tables; goodness of fit, Fisher's exact and Yates corrections are not implemented, and any expected count below the declared floor (5) blocks the analysis.
+- Skew/kurtosis limits (2/7), Levene level (0.05), eta/epsilon cut-offs (0.01/0.06/0.14), Cramer's V cut-offs (0.1/0.3/0.5) and the expected-count floor (5) are conventions from memory [UNVERIFIED], declared and overridable (B-042).
+- Kruskal-Wallis p-values and Cramer's V use approximations; no confidence interval is reported for the rank-based effect size.
+
+## Added with trend forecasting
+- The forecast is a linear trend only: no seasonality, cycles, external drivers, structural breaks, exponential smoothing or ARIMA, and it extrapolates beyond the observed range.
+- The out-of-sample check holds out a quarter of the series (capped at 3 periods) and reports the recent-past error; it cannot measure future accuracy.
+- The holdout-size rule, minimum series length (6), horizon cap (12) and small-sample wording threshold are placeholders (B-043).
+- Prediction intervals assume independent, roughly normal errors around the trend.
+
+## Added with the Stage 8 schedule engines
+- Schedules cover straight-line, reducing-balance and units-of-production depreciation, level- or fixed-payment loan amortization, straight accruals, asset disposal, prepayments, deferred income, bad-debt allowances with an optional write-off, and revaluation of an asset. Not covered: sum-of-digits depreciation and variable-rate loans. A depreciation `method` is declared; `changes` (a prospective revision of life or residual) is supported by straight-line only, because a revised life has no defined meaning for the other two methods. A bad-debt allowance is an estimate: the owner declares the charge or the closing balance wanted, and the engine computes only the movement. Revaluation offers both permitted presentations (proportionate restatement and elimination) and follows IAS 16.39/16.40, but the engine does **not** track a surplus per asset: the part of a decline that reverses a prior surplus must be declared (`reverses_surplus`), and depreciation after a revaluation is not automatically restated onto the revalued carrying amount. **Disposal and revaluation read a single accumulated-depreciation account**, so two assets that share one accumulated account cannot be disposed of or revalued separately: give each asset its own accumulated-depreciation account. The engine refuses rather than guessing which asset the balance belongs to. **A schedule cannot span a period boundary:** every release, charge or recognition must fall inside the engagement period, so a prepayment or deferred-income balance that outlives the period must be carried into the next period as an opening balance rather than left in a schedule. Depreciation after a revaluation must likewise be declared against the revalued carrying amount; it is not restated automatically.
+- Rounding rules are declared: depreciation's final period absorbs the remainder; interest rounds half-even; a payment never exceeds the balance due (so a large fixed payment repays early); the level annuity rounds up. Amounts beyond the currency places are rejected, never silently rounded.
+- Schedule specs are validated data, but the module is not yet wired into the pipeline, the sandbox, or the workbench, and there is no account-mapping confirmation checkpoint yet.
+- Management accounts only; not GAAP/IFRS-compliant statements (manual 9.5).
+
+## Added with the cash flow statement
+- The cash flow statement covers the period's movements only (opening balances excluded) and its two-route check guards the total change in cash, not the operating/investing/financing split.
+- Activity classification is a declared heuristic: explicit account activity tags win; otherwise income/expense defaults to operating, assets to investing, liabilities/equity to financing. Mixed-counterpart entries are classified operating-first and flagged; cash-to-cash transfers are flagged. The manual's account-mapping checkpoint should replace these defaults.
+- The cash flow check is a separate `cash_flow()` result, not part of the six frozen ledger invariants.
+
+## Added with multi-period closing
+- Closing moves income, expense and declared dividend balances into retained earnings through generated entries the caller posts; accounts with abnormal balances block closing until a human decides.
+- The retained-earnings rollforward (B-034 resolved) and the zero-after-closing check are separate checks, not part of the six frozen ledger invariants.
+- Multi-period support chains one period into the next (closing balances → opening entry → opening-balances invariant), but output is still per-period: no comparative multi-column statements.
+- `statements` omits zero-net accounts, so a closed income/expense account or a fully repaid loan shows nothing rather than zero.
+
+## Added with the declarative engagement
+- The engagement method is T2 custom analysis pending the engine decision (B-032) and a named expert review; the report and the appendix state this.
+- The spec must declare `prior_closing` balances ({} for a first period) and a reporting framework; the kernel posts only what the owner declares (entries, schedules, closing) and never posts silently.
+- Structured results (statements, trial balance, cash flow, flags, export) travel in the appendix; the narrative report carries only scalar totals.
+
+## Added with the reconciliation engine
+- Matching pairs a book movement with a statement line of the same signed amount only; several lines with the same amount are paired first-unused and flagged `ambiguous_match`. No date or reference matching is implemented.
+- Unrecorded statement items (for example bank charges) are listed for the owner to book; they are action items, not failures. The reconciliation ties once the disclosed adjustments are shown.
+- The reconciliation checks are "not applicable" when the engagement supplies no reconciliation; they are counted in `checks_na` rather than silently passing.
+- Reconciliation runs on the engagement's period only; opening balances come from the opening entries and must equal the statement's opening balance.
+
+## Added with the account-mapping checkpoint
+- The second mandatory checkpoint pauses after the spec is frozen and before anything is posted; the owner confirms a mapping table of code, name, type, statement line, role, activity and contra, plus three mapping checks. Rejecting blocks with nothing posted.
+- `Pipeline.run` is a convenience path that confirms both checkpoints automatically (documented); the interactive path through the session/API honours the pause.
+- The checkpoint is logged under the formalization stage (`checkpoint: account_mapping`) rather than as a new stage, so the stage list is unchanged for every method.
+- Mapping checks are structural only (a statement line per account, a cash account, one retained-earnings account); they do not verify that the owner picked the right account for a transaction.
+
+## Added with the policy-change input
+- Only depreciation supports a computed policy change (useful-life and residual-value revisions); other estimate changes are disclosure-only, and retrospective restatement is not implemented (it blocks).
+- A change is applied prospectively from the period containing its date; earlier periods are never restated.
+- An UNDECLARED change remains undetectable from the journal alone — the spike's mid-year-change trap is unchanged; the declared input is the only way the system learns of it.
+- The change total remains exact: the final period absorbs the rounding remainder, so accumulated depreciation still equals cost minus the final residual.
+
+## Added with the statement exports
+- Exports are plain text only (no PDF, XLSX or DOCX); fixed-width formatting is designed for a monospace view and a text download.
+- The income statement is rendered from pre-closing figures while the balance sheet is post-closing, which is the correct pairing for a closed period; the trial balance omits zero-net rows.
+- The cash flow statement presents the direct-route line items and the three activity totals; the indirect route appears only as its agreement check.
+- Statements are management accounts prepared from the declared entries; they are not a GAAP/IFRS presentation and are not assurance.
+
+## Added with logistic regression and Cronbach's alpha (B-074)
+- `logistic_regression` supports **numeric predictors only** (no categorical dummies, interactions or splines), uses large-sample Wald inference and produces **no goodness-of-fit or calibration statistics**. There is no regularisation: complete separation, a single-class outcome or collinearity block the run instead of returning huge or unstable coefficients. Coefficients are log-odds, not effect sizes or probabilities.
+- `reliability_alpha` measures **internal consistency only**: it is not validity, not unidimensionality and not a factor analysis. It uses listwise deletion and the classic formula (sample variances); ordinal items, standardised alpha, confidence intervals and missing-data mechanisms are not modelled.
+
+## Added with cost-benefit, cost-effectiveness and SROI (B-073)
+- All three appraisal methods are **arithmetic on declared valuations**. The system does not monetise an unvalued effect, choose a discount rate, apply deadweight/additionality/attribution adjustments, or assume a willingness-to-pay threshold.
+- `cost_benefit` and `sroi` use one rate for all periods and end-of-period timing; there is no risk adjustment, sensitivity distribution or distributional weighting.
+- `cost_effectiveness` compares each option with the **first-listed comparator** only, on one outcome scale. An option with the same effect as the comparator blocks (undefined ratio); dominance is flagged, not ranked; there is no threshold-based recommendation.
+- SROI is not assurance and does not substitute for an audit.
+
+## Added with ingestion mapping and finance methods (B-071, B-072)
+- Ingestion mapping only handles **list-shaped inputs** (`value_list`, `code_list`, `column_map`); scalar inputs such as a discount rate cannot be mapped from a column. Long-format data (one row per observation with a group label) cannot be turned into the `groups` shape by mapping — the wide layout is required for group columns.
+- Mapped inputs are recorded as owner-supplied with a file/SHA-256 provenance note; the hash identifies the source, it does **not** verify the data, and no conversion, cleaning or imputation is performed by the mapping.
+- `unit_economics` uses a single constant churn rate and a period-value LTV (no discounting, no retention curve, no tax or financing); payback assumes the margin is earned every period.
+- `multi_product_breakeven` assumes one fixed product mix and constant prices/costs; no step costs, capacity limits or price-volume effects. Per-product units are a break-even mix, not a target.
+
+## Added with factorial ANOVA and post-hoc pairwise tests (B-070)
+- `two_way_anova` is **balanced only**: every cell must hold the same number of observations. Unbalanced designs are refused because type I/II/III sums of squares are different conventions and none is ratified; three-way, repeated-measures and ANCOVA designs are not implemented, and factorial assumption checks (normality, homoscedasticity) are not run.
+- An interaction makes the omnibus F tests insufficient: the method does not localise simple effects, and `posthoc_pairwise` is the separate tool for that.
+- `posthoc_pairwise` compares every pair with a **Welch** test and a declared correction (Holm, Bonferroni, or explicitly `none`). There is no Tukey HSD, Dunnett (vs control), Games-Howell or Dunn test, and the family is whatever the user declared — choosing it after seeing the p-values is exactly what a correction cannot repair.
+
+## Added with multi-currency support (B-069)
+- The currency table is a **declared ISO 4217 table** (code, name, minor units) embedded in `src/bp/currency.py`; verify it against the current standard when precision matters. Metals (XAU/XAG/XPT/XPD), testing/no-currency codes (XTS/XXX) and units of account without a minor unit (XDR) are not accepted.
+- **No exchange rate is retrieved, verified, interpolated or triangulated.** A conversion needs a rate the owner declares; its provenance (`user`/`sourced`/`assumption`), optional source and date are recorded as declarations, not facts. A stale rate gives a silently stale amount beyond the caveat text.
+- **One currency per engagement.** The ledger, schedules and statements use a single declared currency; there is **no consolidation, translation, FX revaluation or multi-currency reporting**. That would need retrieved rates plus a translation standard, neither of which is implemented.
+- The converted amount is carried in the request's `currency` field, so that field must be set to the **target** currency for the display label to be right; the appendix always records both codes.
+- Unknown currency codes are now **refused at intake** (previously any string was accepted), which is a deliberate fail-closed behaviour change.
+
+## Added with WACC and DCF valuation (B-068)
+- `wacc` does not estimate anything: the cost of equity and the AFTER-TAX cost of debt are declared inputs, and **no tax is computed** (B-052 still deferred). There is no CAPM, no beta estimation, no target-capital-structure iteration and no leverage-dependent recalculation; market weights are current, not target.
+- One WACC is a single discount rate; it is not appropriate for cash flows of materially different risk.
+- `dcf_valuation` is **arithmetic under declared assumptions**, not a market price or a forecast: the method does not forecast cash flows or choose the rate; timing is end-of-period by default or the explicitly declared mid-year convention (B-078), and the enterprise-to-equity bridge is the separate `equity_bridge` method (B-078). No tax computation and no scenario or real-option analysis.
+- The terminal value typically dominates the answer and rests entirely on the terminal-growth and discount-rate assumptions; the delivery flags a terminal share above three quarters.
+
+## Added with paired and one-sample t-tests (B-067)
+- `paired_t` matches pairs **by position** in the two columns; a mis-sorted file silently pairs the wrong observations and produces a wrong test. There is no signed-rank (Wilcoxon) fallback for non-normal differences.
+- `one_sample_t` compares a mean with a reference the user declares; it cannot say whether the reference is right. There is no one-sided test, trimmed-mean or median test.
+- Both assume approximate normality and independent observations, screened only by wording; neither tests normality. Missing entries are excluded and counted, never imputed.
+
+## Added with structured-file ingestion (B-065)
+- Only **CSV/TSV** and **XLSX** are read. **PDF, scans, images and SPSS `.sav` are refused** with explicit messages: no OCR and no PDF text extraction is implemented, so reading them would be invention. Convert the source or paste its values with the source named.
+- XLSX: the **first sheet** is read by default; `sheet=<name>` (exact, case-sensitive) or `sheet=<n>` (1-based) selects another (B-076). Merged cells are refused by default; the declared `merged="top_left"` policy repeats each anchor value across its range and records the expansion (B-076). Styles beyond date detection and rich text are not handled. Formula cells use the cached value stored in the file; a formula with no cached value is a missing cell.
+- Declared conventions: first non-empty row is the header; headers must be non-empty and unique after trimming; a column mixing numbers and text is typed `mixed` (never coerced); empty/whitespace means missing; dates are normalised to `YYYY-MM-DD` using the workbook date system.
+- Caps are **refused, not truncated**: 5 MB, 1000 data rows, 50 columns.
+- Provenance is table-level (file, SHA-256, data row i and column j, sheet): it says where every value came from, not that the value is correct. The importer performs no type coercion, no imputation and no unit inference.
+- Ingested columns are **not mapped automatically** into a method's inputs: choosing which column is `values`, `y` or `predictors` is the user's decision, so no column semantics are invented.
+
+## Added with the equity bridge and the mid-year DCF convention (B-078)
+- `equity_bridge` subtracts only the claims the owner **declares** (net debt, minority interest, preferred equity). Pension deficits, lease liabilities, options/dilution, contingent liabilities and any other claim are missing unless the owner includes them — the bridge cannot discover them, and it says so.
+- The enterprise value is an input: the method does not value the business, verify the EV, or state a market price, control premium or liquidity discount. A per-share value is reported only when `shares_outstanding` is declared, and no treasury-stock or dilution method is applied.
+- A **negative equity value is reported**, not refused: an enterprise value that does not cover the declared claims is a real result, and refusing it would hide the finding. Negative bridge components are refused because they usually mean a sign error.
+- `dcf_valuation`'s **mid-year convention** (`timing="mid"`) discounts explicit flow t and the terminal value at exponent t−0.5 / n−0.5, i.e. every flow is assumed to arrive mid-period. It is a declared convention, not evidence about actual timing; the default remains end-of-period, so existing valuations and their re-performance bundles keep their numbers. The method still does not choose the rate, growth or timing convention for the owner.
+- The mid-year change applies to `dcf_valuation` only; other discounting methods (`npv`, `cost_benefit`, `sroi`) remain end-of-period with a t=0 first flow and do not accept a timing input.
+
+## Added with IRR and discounted payback (B-077)
+- `irr` reports **one** internal rate of return, found numerically in the declared range -99.99% to 1000%; a root outside that range is treated as absent. When the cash flows change sign more than once the NPV function can cross zero several times, so the method **refuses and lists the roots** instead of picking one — which IRR is "the" IRR is not something the method may decide.
+- IRR is a rate, not a value: it says nothing about the scale of the investment, cannot rank projects by itself, and assumes cash flows are reinvested at the IRR (a convention the method does not verify). It uses the same end-of-period, t=0-first timing as `npv`; unequal period lengths are not modelled.
+- `discounted_payback` is a **liquidity** measure: it ignores every cash flow after the recovery point, so a project that pays back quickly and then loses money still looks acceptable. Interpolation inside the recovering period assumes the flow is spread evenly, and the ordinary payback at rate 0 is the same convention.
+- Discounted payback requires a **negative first cash flow**; a positive first cash flow is refused. An outlay that is never recovered within the declared horizon **blocks** rather than reporting "> n periods" as a number.
+- Neither method discounts at a rate it chooses: the rate (payback) or the cash flows (IRR) are the owner's declared inputs. No tax, financing or mid-year convention is applied.
+
+## Added with XLSX sheet selection and the merged-cell policy (B-076)
+- Sheet selection is by **exact case-sensitive name** or **1-based position**; there is no fuzzy matching, wildcard or "all sheets" mode, and one table still comes from one sheet. Reading every sheet would need a declared concatenation rule (same header? same order?), which does not exist, so it is not offered.
+- The workbook's sheet list is reported (`sheets`, `sheet_index`) but **not** sheet visibility (hidden/very-hidden sheets are selectable if named); a missing worksheet part for the selected sheet is refused rather than falling back to another sheet.
+- Merged cells are **refused by default**: expanding an anchor value across a range repeats data the file only stores once, and silently blanking the range would lose the anchor. The refusal names the ranges and offers the declared `merged="top_left"` alternative.
+- Under `merged="top_left"` the expansion is **a declared convention, not a verified fact**: the anchor value is assumed to apply to the whole range, ranges whose anchor is blank are left blank, and overlapping/nested merges (which Excel does not produce) are refused as malformed. A merged *header* row spans two columns and expands to two identical names, which the duplicate-header rule then refuses — unmerge the header or use a single header column.
+- Merged-cell detection covers the standard `<mergeCells>` element only; an equivalent visual merge simulated with borders or repeated text is invisible to the importer.
+- `merged` and `sheet` are **XLSX-only**: supplying them for CSV/TSV is refused instead of silently ignored. The workbench ingestion card does not yet expose either control (OPEN, design-owner wiring).
+
+## Added with retrieval failover and the drift sweep (B-064)
+- Failover covers only the two configured literature sources (Crossref, then OpenAlex). If both are unreachable the lookup fails with a 502 rather than silently marking the DOI unverified; if both report "not found", the reference stays unverified.
+- The drift sweep is **manual**, bounded (API default 10, cap 25) and network-bound: it re-resolves recent logged DOIs and reports `hash_match` / `hash_differs` / `unresolvable_now` / `unreachable`. There is no scheduled or automatic re-check, and it never rewrites the log.
+- A `hash_differs` result means the source served different bytes since the citation was logged — it is a prompt for a human to re-check the metadata and the citation, not an automatic correction. `hash_match` proves the bytes are identical, not that the record is correct.
+- The sweep uses the same priority order as verification, so a source that is down can make entries `unreachable` even though the log itself is intact.
+- Standards, company-filing and tax source families are still not implemented, and no additional scholarly APIs (arXiv, PubMed, Semantic Scholar, Europe PMC) are configured; adding them needs a source/licensing decision, not more code.
+
+## Added with the weighted summary (B-063)
+- `weighted_summary` produces **summaries only**: weighted mean, weighted standard deviation, effective sample size and design effect. There is **no standard error, confidence interval or test**, because design-based inference needs a declared complex design (stratification, clustering, replicate weights) that is not implemented. The delivery says this explicitly.
+- The weight kind must be declared: `reliability` (precision-style, unbiased weighted variance) or `frequency` (counts of observations). The two give different standard deviations; the convention is stated in the appendix.
+- Weights are not validated. A wrong design weight is used as given, and unequal weights reduce the effective sample size — the design effect shows by how much. Zero, negative, mismatched-length and blank weights are refused rather than silently dropped.
+- This is the only method that accepts weights. Other statistical methods still refuse a `weights` input with a specific reason, so a weighted dataset cannot be analysed as if it were a simple random sample elsewhere.
+
+## Added with the missing-data bounds (B-062)
+- `missing_data_bounds` reports **extreme-case bounds** for the complete-data mean: every missing value at the observed minimum or maximum. The bounds are honest but can be very wide, and a wide bound is the correct answer when little can be assumed.
+- There is **no imputation** and **no MAR/MCAR/MNAR model**. The `mechanism` input is the owner's declaration: it is recorded with a note that it cannot be verified from the data, and it changes no number.
+- The bounds cover the mean only. They say nothing about other statistics, about which mechanism actually holds, or about the direction of bias in an association.
+- The generic missing-data disclosure (listwise deletion) is suppressed for this method because its own convention is stronger; the method's own disclaimer is delivered instead.
+
+## Added with the power and minimum-effect method (B-061)
+- `power_analysis` uses the **normal approximation**: exact when the standard deviations are known or planned, but with sds estimated from a pilot the exact power is somewhat lower (noncentral t is not implemented). This is declared in the template, the caveats and the appendix.
+- It covers a two-sample or one-sample comparison of means only: no proportions, no cluster/weighted/repeated designs, no multiplicity (a family needs a smaller per-test alpha; use `multiple_comparison`), and no correlation or regression power.
+- Power is a property of the planned design, not evidence about a result; a low-power study can still be significant and a high-power one can still fail. The reported "smallest effect at target power" is not a licence to ignore smaller effects.
+
+## Added with the multiple-comparison correction (B-060)
+- `multiple_comparison` corrects a family the user has already declared: it does not decide what the family should be, and choosing the family after seeing the p-values cannot be undone by a correction.
+- Only Holm and Bonferroni are implemented. Both control the family-wise error rate under arbitrary dependence; neither models dependence, and there is no false-discovery-rate control (Benjamini-Hochberg) or resampling correction.
+- The correction changes the reported p-values, not the design: a biased sample, a violated test assumption or a badly specified model stays biased or violated after correction.
+- The existing statistical methods do **not** apply a correction automatically; their honesty block says so and points to `multiple_comparison`. There is no facility to assemble a family across several separate method runs.
+- Power/MDE calculation, missing-data mechanism modelling/imputation and survey weights remain unimplemented (B-057 disclosure still applies to them).
+
+## Added with the retrieval log and provisional citations (B-058)
+- The retrieval log is **local and append-only** (one JSONL file, default `retrieval_log.jsonl`, `BP_RETRIEVAL_LOG` overrides): it is not a shared cache, is not encrypted, has no rotation or retention policy yet, and has no locking between concurrent server instances. It holds DOIs, titles and hashes, not case text.
+- The log records **what the source served at that moment**, not that the metadata is correct, and the source may change afterwards. `reverify` is manual — there is no scheduled drift check.
+- Citations follow the owner-ratified styles **APA 7** and **Harvard (Cite Them Right)** (B-059), but in plain text: italics (journal names, volumes) are not representable, titles are printed as the source returns them rather than case-converted, and author names are inverted only when the source supplies family and given names (Crossref does; OpenAlex returns display names only, and its citations carry a note saying so). There is no bibliography ordering or de-duplication and no in-text citation numbering.
+- Only journal articles and books are fully styled. Any other source type (report, chapter, thesis, dataset) gets a declared generic layout with a note naming the source type, rather than a style that would imply it was handled properly.
+- An unverified reference is always formatted with the `[unverified user-supplied…]` prefix in either style; the system cannot stop that text being pasted elsewhere, but the label is in the text itself.
+- The workbench citation and log views are read-only conveniences over the API; the durable record is the file itself.
+
+## Added with the 9B.3 honesty layer (B-057) — disclosure only, not the fix
+- Every delivered computation now **states** the 9B.3 limits in the report and in an `appendix.honesty` block: missing values are excluded listwise without an established mechanism; multiple hypotheses are not corrected; no power or minimum-detectable-effect is computed; weights, clusters and repeated measures are unsupported and observations are treated as independent.
+- **No number changes.** The actual upgrades are NOT implemented: there is no Holm/Bonferroni or other multiple-comparison correction, no power/MDE calculation, no missing-data mechanism modelling or imputation, and no survey-weight or clustered-data estimation. The disclosure makes the gap visible; it does not close it.
+- Inputs that name an unsupported structure (`weights`, `weight`, `strata`, `cluster(s)`, `repeated`, `id`, `time`, `pair(s)`) are refused with a specific reason at intake, so such a dataset cannot be passed in and silently analysed as independent observations.
+- Single-method runs test one hypothesis (OLS tests one per coefficient, with the family-wise exposure named); there is no facility to combine several methods into one corrected family. Post-hoc pairwise tests do not exist yet, so no correction is applied to comparisons that are not made.
+
+## Added with ratio analysis (B-056)
+- `ratio_analysis` is purely descriptive arithmetic on figures the owner supplies: no benchmark, industry average, cut-off or good/bad verdict is applied, because none is supplied or verified. A ratio being high or low is for the reader and the context to judge.
+- Period-end balances and a 365-day year are declared conventions; average balances or a 360-day year would give different efficiency ratios.
+- A ratio with a missing figure or a zero denominator is reported as not computed with its reason and never estimated; a negative denominator (for example negative equity) is computed and flagged, not hidden or reinterpreted.
+- The supplied figures are not validated against a trial balance here, and no tax computation is performed (net income is used exactly as supplied). Multi-period comparatives, segment and multi-currency analysis are not supported; use `management_accounts` for the bookkeeping-level check.
+
+## Added with the economics micro core (B-097)
+- The five micro methods use **linear** demand and supply curves and a **partial-equilibrium** market. They do not estimate the curves from data, model shifts, expectations, inventories, trade, general equilibrium or dynamics.
+- `elasticity` reports the **arc (midpoint)** elasticity between two declared observations only. It is not a point elasticity, an income elasticity or a cross-price elasticity, and two observations cannot identify a demand curve or prove causality.
+- `tax_incidence` models a **per-unit** tax on sellers. An ad valorem tax, a tax on buyers at a different rate, evasion, administration costs and other markets are not modelled. The economic incidence is determined by the declared slopes, not by the statutory side.
+- `price_control` models a single enforced fixed price. Rationing, queues, black markets, quality changes and dynamic effects are not modelled; the short side determines quantity traded.
+- `market_concentration` treats the declared firms and revenues as the market. It does not define the market, handle import competition or geography, simulate a merger, or apply a legal threshold; HHI uses percentage shares (0-10,000).
+- The student notes and glossary are product-layer guidance, not a reviewed textbook. No teacher or student review has been recorded yet; the release is labelled accordingly until one is.
+- Macro, welfare/public, international/development, behavioural and advanced econometrics are not implemented yet, and the economics diagram renderer is deferred to the next increment.
+
+## Added with the economics macro and firm core (B-098)
+- `cost_curves` describes one declared quadratic cost function at one quantity. It does not estimate costs, model step costs, learning, capacity limits or economies of scope, and the shutdown test assumes a non-negative quadratic term.
+- `profit_maximization` is a single-product, single-period, single-price monopoly or monopoly-like optimum. It does not model price discrimination, strategic interaction, entry or a price-taking firm.
+- `market_power` uses two declared numbers and is not evidence of harm or of a legal violation; the implied elasticity is model-conditional.
+- `national_income` is the expenditure approach only. It cannot cross-check the income or production approach, does not rebase or chain-link, and does not adjust for informal or underground activity.
+- `growth_rate` uses two observations and does not forecast, fit a trend or decompose growth into capital, labour and productivity. The rule of 72 is an approximation.
+- `inflation_cpi` uses two CPI values; it does not construct or rebase the index, adjust for core versus headline inflation, or model expectations. Real wage growth is an index comparison, not a household cost-of-living measure.
+- `unemployment_rate` uses the labour-force definition implied by the declared counts; it does not adjust for discouraged workers, underemployment, informal work or seasonality.
+- `money_multiplier` assumes no excess reserves and a constant reserve ratio and currency drain; it is an identity, not a forecast of the money supply.
+- `fiscal_multiplier` is a closed-economy Keynesian identity with no crowding out, confidence, supply-side effects, lags or open-economy leakages.
+- `budget_debt` uses declared aggregates and holds growth and interest rates constant; it does not model contingent liabilities, off-budget items, debt composition or a sustainability path.
+
+## Added with welfare, international, development, behavioural and game theory (B-099)
+- `externality_pigouvian` and `optimal_pollution` use declared linear marginal-damage/abatement or external-cost curves; they do not estimate damages or value non-monetary effects.
+- `public_good` uses two declared individual benefit schedules and the Samuelson condition; it does not model free riding, contribution games or provision mechanisms.
+- `social_welfare`, `gini_coefficient`, `poverty_measures` and `tax_progressivity` use declared incomes and taxes; no equivalence scales, taxes/transfers, in-kind income, multidimensional poverty or full progressivity index is included.
+- `comparative_advantage` is the two-country, two-good Ricardian model; no transport costs, tariffs, demand differences or increasing returns.
+- `tariff_welfare` is a small-country, partial-equilibrium model; no retaliation, terms-of-trade effect, quota or general-equilibrium effect.
+- `exchange_rate_ppp` and `interest_rate_parity` use declared price levels and rates; PPP is a long-run benchmark, covered parity is an arbitrage condition, and neither is a forecast.
+- `balance_of_payments` checks the declared identity; it does not validate the underlying data or assess sustainability.
+- `hdi` uses the declared UNDP goalposts and does not adjust for inequality or multidimensional poverty.
+- `expected_utility` and `prospect_theory` use declared utility or prospect-theory parameters; they are not estimated and prospect theory is descriptive, not normative.
+- `labour_market` is a simple real-wage and wage-share comparison; no hours, composition, taxes, benefits, bargaining or full labour-share decomposition.
+- `price_discrimination` and `cournot_duopoly` are two-market or two-firm one-shot models; no entry, capacity, differentiation, repeated interaction or collusion.
+- `difference_in_differences` is a two-group, two-period estimate; it cannot test parallel trends and has no covariates, clustering or staggered adoption.
+- `nash_equilibrium` covers pure strategies of a 2x2 game only; mixed strategies, larger games, sequential play and equilibrium selection are not implemented.
+
+## Added with advanced econometrics (B-100)
+- `panel_regression` requires a balanced panel and uses only within-entity variation; time-invariant regressors are absorbed, and no standard errors, clustering or dynamic-panel correction is computed.
+- `instrumental_variables` is just-identified with one endogenous regressor and one excluded instrument; relevance is checked but the exclusion restriction is assumed, not tested, and there is no weak-instrument or over-identification diagnostic.
+- `regression_discontinuity` is a sharp design with a declared bandwidth and a separate local linear fit on each side; it cannot test manipulation, choose an optimal bandwidth or handle a fuzzy design.
+- `probit` uses one predictor and maximum likelihood with Newton-Raphson; separation is refused, and no robust, clustered or bootstrapped standard errors are computed.
+- VAR, cointegration and the remaining time-series estimators are still parked.
+
+## Added with the entrepreneurship shelf (B-104, B-105)
+- `market_sizing` is **top-down arithmetic** on the customers, annual spend and two shares you declare. It does not estimate demand, retrieve census or industry data, test the shares, or grow the market. SOM is not a sales forecast.
+- `startup_capital` adds the declared set-up costs and working capital plus a declared contingency, then subtracts owner equity and one loan. It does not price the equipment, build a costed bill of materials, time the spend, cost the loan, or model equity dilution, grants or supplier credit. A negative amount to raise is reported as a surplus.
+- `cash_runway` uses **one declared net monthly flow**, optionally growing at a constant rate. There is no month-by-month budget, seasonality, one-off purchase, tax timing or financing inflow, and growth is applied to the net flow rather than separately to revenue and costs. A flow that never burns cash **blocks** instead of reporting an infinite runway.
+- `pricing_decision` implements four declared pricing rules. It does not research willingness to pay or competitor prices, estimate a demand response, apply psychological pricing, discounts or tax. The markup-on-cost and margin-on-price conventions give different prices and both are shown.
+- `return_on_investment` uses the **total** net gain over the holding period, not an annual cash flow, and ignores the timing of the flows inside that period. The annualised return is a constant compound rate; a loss of 100% or more has no real annualised rate and is refused when a holding period is declared.
+- The `breakeven` extension reports the margin of safety against **your declared expected volume**, not against a budget or forecast the method verifies. The target profit is pre-tax.
+- **Not built on this shelf:** cohort retention curves, funnel/conversion analysis, market share and penetration measures, multi-input sensitivity and Monte Carlo, pre-money/post-money, dilution and cap tables, and the Business Model Canvas, Lean Canvas and Value Proposition Canvas worksheets (the three catalogue records still read "not implemented"). The only structured worksheet on the shelf is the SWOT evidence review (`STR-18`).
+- The shelf's tool groups, period badges, study notes, glossary and the student guide are **presentation and teaching material**. They do not choose the tool for you, validate a declared share or volume, or turn an assumption into evidence.
+
+## Added with the venture-planning lane (B-108, B-109)
+- The **canvas and marketing-plan worksheets are T4**: they place the evidence you supply, reproduce it verbatim and report the empty blocks. They do not check that a customer segment exists, that a value proposition is attractive, that a claimed link holds, or that the plan will work. No score, ranking or recommendation is produced.
+- `sales_projection` holds price, unit variable cost and period fixed cost **constant** and grows only the volume at one declared rate. It is a projection from your assumptions, not a fitted forecast; no seasonality, step cost, capacity limit, multi-product mix, tax or financing is modelled.
+- `cap_table_round` models **one priced round** with ordinary shares. It does not model convertible notes, SAFEs, bridges, multiple rounds, liquidation preferences, anti-dilution, vesting, pro-rata rights, board seats or any other negotiated clause. The option pool is post-money; the pre-money pool shuffle is a different convention and is not applied. The valuation is an input.
+- `sales_funnel` is arithmetic on the stage counts you declare. It does not choose the stages, estimate conversion, split by channel or cohort, attribute a sale, or test significance. A count that rises blocks rather than being smoothed.
+- `cohort_retention` pools cohorts and weights each by its starting size. Every cohort must be observed for the same number of periods; a period not yet reached must be omitted, not zero-filled. No survival model, reactivation, seasonality, revenue weighting or significance test.
+- `demand_curve` fits a straight line to your price-quantity pairs. It is an **association**, not an identified demand curve: omitted variables, simultaneity and measurement error are not addressed, and the revenue-maximising price exists only when the fitted slope is negative and only within the observed range.
+- `purchase_intent` applies **declared weights** to stated intent. The weights are conventions, not estimates; stated intent overstates purchase; sampling error, non-response and representativeness are not modelled.
+
+## Added with the accounting and operations shelves (B-114, B-115)
+- `standard_cost_variances` is single-product, single-process standard costing on the standards you declare. It does not set standards, compute mix/yield/sales/planning variances, handle several products or post journal entries.
+- `inventory_policy` assumes level annual demand, a constant lead time and constant ordering and holding costs. No quantity discounts, stock-out cost, variable lead time, multi-item constraint or budget cap. Safety stock uses a normal approximation and needs a declared service level and demand SD.
+- `queue_analysis` is **M/M/c** with identical servers, exponential arrivals and service, unlimited waiting room, no priorities or abandonment. At or above servers x service rate the method blocks. It is not a schedule or a simulation.
+- `capacity_analysis` is steady-state capacity with no breaks, changeover, maintenance or scrap, one product and a fixed routing. It is not a schedule or a simulation.
+- The accounting and operations **groups, notes, glossaries and guides are presentation and teaching material**; they do not validate a policy, choose an account or judge a standard.
+
+## Added with scheduling, quality and costing (B-118)
+- `cpm_schedule` uses deterministic durations (or the PERT expected value) and an acyclic declared graph. No resource levelling, calendars, holidays, crashing or simulation; the critical path is the zero-float path, not the riskiest one.
+- `earned_value` takes the three cumulative figures as at one declared status date. One EAC convention at a time; no earned schedule, forecast range, quality or scope performance.
+- `oee_analysis` is one machine or line: no six-big-losses split, TEEP or multi-machine aggregation. Performance above one is reported, not capped.
+- `process_control` is an **I-MR chart only**: no X-bar/R, p, c or u charts, EWMA, CUSUM, multivariate charts or measurement-system analysis. Cp/Cpk use the within-series sigma and the declared specification; no capability threshold is applied.
+- `abc_costing` allocates every pool in full over the declared drivers; no idle/unused-capacity adjustment, activity hierarchy or time-driven ABC.
+- `sales_variances` values mix and yield at budgeted prices with the budget mix as the standard. No market-size or market-share variance, and no explanation of why the movements occurred.
+
+## Needed by some students but deliberately not built (B-120)
+These are not oversights and they are not approximations waiting to be shipped. Each would need a convention the app does not have the right to invent, or is infrastructure rather than a calculation.
+
+- **A jurisdiction tax engine.** `tax_declared` applies the rates and taxable income you declare. It does not implement any country's credits, exemptions, thresholds, progressive bands, NOLCO, withholding, filing or penalties. A student in a taxation course must use the statute and their instructor's worked format.
+- **Audit opinion and audit sampling.** An opinion is judgment. The only arithmetic part is sampling and materiality, which needs a declared confidence, reliability factor and evaluation convention; a generic version would teach a defensible-looking wrong answer. Not built.
+- **Group consolidation.** A consolidated statement needs a declared policy: full goodwill versus proportionate goodwill, NCI at fair value versus proportionate share, and the treatment of intra-group balances and fair-value adjustments. Not built until that policy is declared.
+- **Multi-echelon inventory.** Sizing safety stock across two or more stocking points needs a declared model (guaranteed-service or Clark–Scarf). The single-location EOQ must not be applied to a network as if it were the answer.
+- **A shared session store for multi-instance serving.** Sessions are in memory by design. A durable shared store is feasible, but it is a serving decision with confirmation semantics to preserve, not a computation a student runs.
+
+If an assignment needs one of these, say so in the limitations and show the method you used by hand. That is the same rule the shelf applies to itself.
+
+## Deferred areas
+- Taxation (B-052): out of scope — the pipeline can hold tax balances (accounts + declared entries) but computes no VAT/GST, income tax, deferred tax, capital allowances or tax-aware appraisal, and does not file. Deferred by the owner; see `docs/DECISIONS.md` B-052 for the resume conditions.

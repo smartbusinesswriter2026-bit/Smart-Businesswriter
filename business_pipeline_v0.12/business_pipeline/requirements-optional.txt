@@ -1,0 +1,12 @@
+# Optional product-layer readers (B-107, B-110).
+# The deterministic computation core needs none of these; install them only for PDF/OCR reading.
+pypdf>=6
+pypdfium2>=5
+pytesseract>=0.3
+Pillow>=10
+
+# The OCR engine is a separate native install (free, Apache-2.0):
+#   Windows: https://github.com/UB-Mannheim/tesseract/wiki  (Tesseract 5.x)
+#   macOS:   brew install tesseract
+#   Linux:   sudo apt install tesseract-ocr
+# If tesseract is not on PATH, set BP_TESSERACT_CMD to the full executable path.

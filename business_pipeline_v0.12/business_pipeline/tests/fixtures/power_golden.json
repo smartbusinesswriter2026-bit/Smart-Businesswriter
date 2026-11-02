@@ -1,0 +1,76 @@
+{
+  "generated_by": "scipy.stats.norm (the standard planning reference), offline generation 2026-10-21; not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "cases": [
+    {
+      "name": "two_sample_balanced_power",
+      "inputs": {
+        "design": "two_sample",
+        "effect": "5",
+        "n1": "30",
+        "n2": "40",
+        "sd1": "10",
+        "sd2": "12",
+        "alpha": "0.05",
+        "tails": "two_sided",
+        "target_power": "0.8"
+      },
+      "power": 0.4757056366948951,
+      "mde": 7.376916665618977,
+      "se": 2.6331223544175333,
+      "ncp": 1.8988863132818747,
+      "expected": {
+        "power": 0.4757056366948951,
+        "mde": 7.376916665618977,
+        "se": 2.6331223544175333,
+        "ncp": 1.8988863132818747
+      }
+    },
+    {
+      "name": "one_sample_one_sided",
+      "inputs": {
+        "design": "one_sample",
+        "effect": "3",
+        "n1": "25",
+        "sd1": "8",
+        "alpha": "0.05",
+        "tails": "one_sided",
+        "target_power": "0.8"
+      },
+      "power": 0.5910109842979975,
+      "mde": 3.978359776839018,
+      "se": 1.6,
+      "ncp": 1.875,
+      "expected": {
+        "power": 0.5910109842979975,
+        "mde": 3.978359776839018,
+        "se": 1.6,
+        "ncp": 1.875
+      }
+    },
+    {
+      "name": "two_sample_small_effect",
+      "inputs": {
+        "design": "two_sample",
+        "effect": "2.5",
+        "n1": "25",
+        "n2": "25",
+        "sd1": "10",
+        "sd2": "10",
+        "alpha": "0.01",
+        "tails": "two_sided",
+        "target_power": "0.9"
+      },
+      "power": 0.0455985274874229,
+      "mde": 10.91032068062109,
+      "se": 2.8284271247461903,
+      "ncp": 0.8838834764831843,
+      "expected": {
+        "power": 0.0455985274874229,
+        "mde": 10.91032068062109,
+        "se": 2.8284271247461903,
+        "ncp": 0.8838834764831843
+      }
+    }
+  ]
+}

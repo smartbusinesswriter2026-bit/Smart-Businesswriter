@@ -1,0 +1,192 @@
+[
+ {
+  "name": "classic_five",
+  "method": "pearson",
+  "x": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ],
+  "y": [
+   "2",
+   "4",
+   "5",
+   "4",
+   "5"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "r": "0.7745966692414835",
+   "ci_lower": "-0.34008203518751035",
+   "ci_upper": "0.9842357551507267",
+   "p_value": "0.1240270626575546",
+   "n_pairs": "5.0",
+   "n_excluded": "0.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ },
+ {
+  "name": "study_time_eight",
+  "method": "pearson",
+  "x": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8"
+  ],
+  "y": [
+   "52",
+   "55",
+   "61",
+   "58",
+   "70",
+   "72",
+   "69",
+   "80"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "r": "0.9426709792412139",
+   "ci_lower": "0.7089071470763311",
+   "ci_upper": "0.9898269128179265",
+   "p_value": "0.000451025037005239",
+   "n_pairs": "8.0",
+   "n_excluded": "0.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ },
+ {
+  "name": "pearson_with_missing_code",
+  "method": "pearson",
+  "x": [
+   "1",
+   "2",
+   "99",
+   "4",
+   "5",
+   "6",
+   null,
+   "8"
+  ],
+  "y": [
+   "52",
+   "55",
+   "61",
+   "99",
+   "70",
+   "72",
+   "69",
+   "80"
+  ],
+  "missing_codes": [
+   "99"
+  ],
+  "expected": {
+   "r": "0.9960886337566507",
+   "ci_lower": "0.9392477014904959",
+   "ci_upper": "0.9997548992363557",
+   "p_value": "0.0002934753409022299",
+   "n_pairs": "5.0",
+   "n_excluded": "3.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ },
+ {
+  "name": "spearman_squares_noperfect",
+  "method": "spearman",
+  "x": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ],
+  "y": [
+   "1",
+   "4",
+   "9",
+   "16",
+   "10"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "rho": "0.8999999999999998",
+   "p_value": "0.03738607346849874",
+   "n_pairs": "5.0",
+   "n_excluded": "0.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ },
+ {
+  "name": "spearman_with_ties",
+  "method": "spearman",
+  "x": [
+   "1",
+   "2",
+   "2",
+   "3"
+  ],
+  "y": [
+   "1",
+   "3",
+   "2",
+   "4"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "rho": "0.9486832980505139",
+   "p_value": "0.05131670194948613",
+   "n_pairs": "4.0",
+   "n_excluded": "0.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ },
+ {
+  "name": "spearman_ten",
+  "method": "spearman",
+  "x": [
+   "3",
+   "1",
+   "4",
+   "1",
+   "5",
+   "9",
+   "2",
+   "6",
+   "5",
+   "3"
+  ],
+  "y": [
+   "2",
+   "7",
+   "1",
+   "8",
+   "2",
+   "8",
+   "1",
+   "8",
+   "2",
+   "8"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "rho": "0.13471506281091267",
+   "p_value": "0.7106008805223829",
+   "n_pairs": "10.0",
+   "n_excluded": "0.0"
+  },
+  "source": "scipy 1.17.1 generated offline (manual 9B.5 reference generation); not available at test time",
+  "p_tol": 1e-07
+ }
+]

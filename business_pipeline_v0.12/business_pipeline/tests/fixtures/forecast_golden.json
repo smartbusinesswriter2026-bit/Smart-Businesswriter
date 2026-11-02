@@ -1,0 +1,77 @@
+[
+ {
+  "name": "linear_noise_h3",
+  "method": "trend_forecast",
+  "values": [
+   "10",
+   "12",
+   "11",
+   "14",
+   "13",
+   "16",
+   "15",
+   "18",
+   "17",
+   "20",
+   "19",
+   "22"
+  ],
+  "missing_codes": [],
+  "horizon": 3,
+  "expected": {
+   "intercept": "9.06060606060606",
+   "slope": "1.0034965034965035",
+   "r_squared": "0.9295432915658847",
+   "p_slope": "4.4042244085002994e-07",
+   "residual_se": "1.0447448690909384",
+   "n_excluded": 0.0,
+   "forecast_1": "22.10606060606061",
+   "ci_lower_1": "19.372672962705845",
+   "ci_upper_1": "24.839448249415373",
+   "forecast_2": "23.10955710955711",
+   "ci_lower_2": "20.2807902073562",
+   "ci_upper_2": "25.938324011758016",
+   "forecast_3": "24.113053613053616",
+   "ci_lower_3": "21.179076090156617",
+   "ci_upper_3": "27.047031135950615"
+  },
+  "source": "numpy 2.5.3 + scipy 1.18.1 generated offline (manual 9B.5); intervals from the classical prediction formula"
+ },
+ {
+  "name": "missing_code_h2",
+  "method": "trend_forecast",
+  "values": [
+   "10",
+   "12",
+   "99",
+   "14",
+   "13",
+   "16",
+   "15",
+   "18",
+   "17",
+   "20",
+   "19",
+   "22"
+  ],
+  "missing_codes": [
+   "99"
+  ],
+  "horizon": 2,
+  "expected": {
+   "intercept": "9.373071528751755",
+   "slope": "0.9719495091164094",
+   "r_squared": "0.9277699859747545",
+   "p_slope": "1.9510057919632158e-06",
+   "residual_se": "1.0292587327960507",
+   "n_excluded": 1.0,
+   "forecast_1": "22.008415147265076",
+   "ci_lower_1": "19.267591819704535",
+   "ci_upper_1": "24.749238474825617",
+   "forecast_2": "22.980364656381486",
+   "ci_lower_2": "20.139421337742405",
+   "ci_upper_2": "25.821307975020567"
+  },
+  "source": "numpy 2.5.3 + scipy 1.18.1 generated offline (manual 9B.5); intervals from the classical prediction formula"
+ }
+]

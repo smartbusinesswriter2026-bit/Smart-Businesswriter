@@ -1,0 +1,124 @@
+{
+  "generated_by": "numpy sums of squares + scipy.stats.f.sf (offline generation 2026-10-21); not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "cases": [
+    {
+      "name": "balanced_main_effects",
+      "data": [
+        {
+          "response": "1",
+          "factor_a": "low",
+          "factor_b": "x"
+        },
+        {
+          "response": "3",
+          "factor_a": "low",
+          "factor_b": "x"
+        },
+        {
+          "response": "5",
+          "factor_a": "low",
+          "factor_b": "y"
+        },
+        {
+          "response": "7",
+          "factor_a": "low",
+          "factor_b": "y"
+        },
+        {
+          "response": "3",
+          "factor_a": "high",
+          "factor_b": "x"
+        },
+        {
+          "response": "5",
+          "factor_a": "high",
+          "factor_b": "x"
+        },
+        {
+          "response": "7",
+          "factor_a": "high",
+          "factor_b": "y"
+        },
+        {
+          "response": "9",
+          "factor_a": "high",
+          "factor_b": "y"
+        }
+      ],
+      "expected": {
+        "ss_a": 8.0,
+        "ss_b": 32.0,
+        "ss_ab": 0.0,
+        "ss_error": 8.0,
+        "ss_total": 48.0,
+        "f_a": 4.0,
+        "f_b": 16.0,
+        "f_ab": 0.0,
+        "df_error": 4,
+        "p_a": 0.11611652351681556,
+        "p_b": 0.016130089900092546,
+        "p_ab": 1.0
+      }
+    },
+    {
+      "name": "balanced_interaction",
+      "data": [
+        {
+          "response": "1",
+          "factor_a": "a1",
+          "factor_b": "b1"
+        },
+        {
+          "response": "2",
+          "factor_a": "a1",
+          "factor_b": "b1"
+        },
+        {
+          "response": "3",
+          "factor_a": "a1",
+          "factor_b": "b2"
+        },
+        {
+          "response": "4",
+          "factor_a": "a1",
+          "factor_b": "b2"
+        },
+        {
+          "response": "4",
+          "factor_a": "a2",
+          "factor_b": "b1"
+        },
+        {
+          "response": "5",
+          "factor_a": "a2",
+          "factor_b": "b1"
+        },
+        {
+          "response": "2",
+          "factor_a": "a2",
+          "factor_b": "b2"
+        },
+        {
+          "response": "3",
+          "factor_a": "a2",
+          "factor_b": "b2"
+        }
+      ],
+      "expected": {
+        "ss_a": 2.0,
+        "ss_b": 0.0,
+        "ss_ab": 8.0,
+        "ss_error": 2.0,
+        "ss_total": 12.0,
+        "f_a": 4.0,
+        "f_b": 0.0,
+        "f_ab": 16.0,
+        "df_error": 4,
+        "p_a": 0.11611652351681556,
+        "p_b": 1.0,
+        "p_ab": 0.016130089900092546
+      }
+    }
+  ]
+}
