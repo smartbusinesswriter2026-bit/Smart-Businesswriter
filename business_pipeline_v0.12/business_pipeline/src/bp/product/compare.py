@@ -146,11 +146,11 @@ def render_html(comparison, path):
 <head><meta charset="utf-8"><title>Case comparison</title>
 <style>
 body { font-family: Georgia, 'Times New Roman', serif; margin: 2rem auto; max-width: 60rem; color: #1b1b1b; }
-table { border-collapse: collapse; width: 100%; font-size: .85rem; margin-top: .6rem; }
+table { border-collapse: collapse; width: 100%; font-size:0.91rem; margin-top: .6rem; }
 th, td { border: 1px solid #ddd8cc; padding: .3rem .5rem; text-align: left; vertical-align: top; }
 th { background: #f0eee6; }
-h2 { font-size: 1rem; margin-top: 2rem; }
-footer { margin-top: 2rem; font-size: .78rem; color: #555; }
+h2 { font-size:1.06rem; margin-top: 2rem; }
+footer { margin-top: 2rem; font-size:0.84rem; color: #555; }
 </style></head>
 <body>
 <h1>Comparison of @@CASE@@</h1>

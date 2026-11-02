@@ -358,7 +358,7 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("saveWorksheetDraft", self.html)
         self.assertIn("restoreWorksheetDraft", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
-        self.assertIn("font-size:16.8px", self.html)
+        self.assertIn("font-size:17.8px", self.html)
         # Student orientation: a first-run explainer and structured table editors.
         self.assertIn("How it works", self.html)
         self.assertIn("Start here", self.html)

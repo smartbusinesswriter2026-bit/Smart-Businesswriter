@@ -16,11 +16,11 @@ from hashlib import sha256
 _STYLE = """
 @page { size: A4; margin: 18mm 16mm; }
 body { font-family: Georgia, 'Times New Roman', serif; color: #1b1b1b; line-height: 1.45; }
-h1 { font-size: 18pt; border-bottom: 1px solid #d8d4c8; padding-bottom: 6px; }
-h2 { font-size: 12pt; margin: 20px 0 6px; letter-spacing: .02em; }
+h1 { font-size:19pt; border-bottom: 1px solid #d8d4c8; padding-bottom: 6px; }
+h2 { font-size:13pt; margin: 20px 0 6px; letter-spacing: .02em; }
 pre { white-space: pre-wrap; word-wrap: break-word; font-family: Consolas, ui-monospace, monospace;
-      font-size: 9.5pt; background: #f7f6f1; border: 1px solid #e2ded2; padding: 8px; margin: 0; }
-footer { margin-top: 26px; font-size: 8pt; color: #6b6b6b; }
+      font-size:10.5pt; background: #f7f6f1; border: 1px solid #e2ded2; padding: 8px; margin: 0; }
+footer { margin-top: 26px; font-size:9pt; color: #6b6b6b; }
 """
 
 

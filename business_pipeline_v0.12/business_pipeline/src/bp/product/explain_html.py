@@ -11,18 +11,18 @@ _STYLE = """
 @page { size: A4; margin: 18mm 16mm; }
 body { font-family: Georgia, 'Times New Roman', serif; color: #1b1b1b; line-height: 1.45;
        max-width: 190mm; margin: 0 auto; }
-h1 { font-size: 20pt; margin: 0 0 4px; }
+h1 { font-size:21pt; margin: 0 0 4px; }
 .sub { color: #5b6470; font-style: italic; margin: 0 0 22px; }
-h2 { font-size: 13pt; margin: 24px 0 8px; border-bottom: 1px solid #d8d4c8; padding-bottom: 4px; }
-h3 { font-size: 11.5pt; margin: 18px 0 6px; }
+h2 { font-size:14pt; margin: 24px 0 8px; border-bottom: 1px solid #d8d4c8; padding-bottom: 4px; }
+h3 { font-size:12.5pt; margin: 18px 0 6px; }
 p { margin: 0 0 9px; }
 ul { margin: 0 0 10px 20px; padding: 0; }
 li { margin: 0 0 5px; }
-table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; font-size: 9.5pt; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; font-size:10.5pt; }
 th, td { border: 1px solid #c9d0d8; padding: 5px 7px; text-align: left; vertical-align: top; }
 th { background: #f1f4f8; font-weight: bold; }
 footer { margin-top: 28px; padding-top: 8px; border-top: 1px solid #d8d4c8;
-         font-size: 8pt; color: #6b6b6b; }
+         font-size:9pt; color: #6b6b6b; }
 """
 
 
