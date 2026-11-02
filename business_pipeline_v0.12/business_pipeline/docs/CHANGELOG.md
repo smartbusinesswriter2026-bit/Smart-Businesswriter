@@ -1,3 +1,27 @@
+## Downloads reach the browser: a file, not a path on the server
+
+Reported by the owner: the accounting result panel answered "Spreadsheet exported to
+exports\<id>.xlsx" and nothing arrived in Downloads, and the Word and Markdown buttons refused.
+
+Two page handlers were at fault, and both were in the one place that had never been tested:
+
+- `downloadResultXlsx()` asked the **server** to write the file and showed the server's path. The
+  browser cannot fetch a path, so nothing was downloaded. It now requests `download: true`, which
+  returns `{data, mime, filename}` and is turned into a file by one small `saveDownload()` helper.
+- `downloadSessionPaper()` required a **live session** id. The accounting flow keeps a saved case, so
+  Word and Markdown always answered "there is no delivered session to download". Word now falls back
+  to the case's own export (`docx` / `submission`), and Markdown says plainly that it comes from the
+  delivered session — because a saved case has no Markdown export yet (`docs/KNOWN_LIMITATIONS.md`).
+
+The route's bytes mode existed and worked all along; `tests/test_exports_credits.py` exercised only
+the `destination` mode, so nothing caught the page drifting away from it. Six tests close that hole,
+two of them behavioural: the route is called in process and the returned package is opened — an
+`.xlsx` and, for a submission that carries a computation, the documented **ZIP companion containing
+a real Word file.
+
+- 1.63 (2026-11-03): fix the result-panel downloads (xlsx bytes, Word via the saved case) and pin the export route's download mode, 6 tests E-dl-001…006; no frozen core, method, preset, input, check or number changed.
+
+
 ## A dataset you attached can supply a tool's values — proposed, never run
 
 The frozen core already mapped columns to a method's declared inputs (`ingest.to_method_inputs`,

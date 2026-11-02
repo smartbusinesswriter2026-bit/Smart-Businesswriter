@@ -3219,8 +3219,27 @@ async function downloadChat() {
 /* The paper for a delivered computation.  It is the same record the screen shows, plus the
    student's own declared sources in their own section (B-182: cited, not evidence). */
 async function downloadSessionPaper(fmt) {
-  const id = state.session && state.session.id;
-  if (!id) { toast("There is no delivered session to download."); return; }
+  const sessionId = state.session && state.session.id;
+  if (!sessionId) {
+    // A saved case keeps no live session. Word still comes from the case's own export;
+    // Markdown has no case export yet, so the student is told exactly that instead of
+    // being handed a message about a session they never had.
+    const caseId = state.caseId || state.savedCaseId;
+    if (caseId && fmt === "docx") {
+      try {
+        const r = await post("/api/cases/" + encodeURIComponent(caseId) + "/export",
+                             { kind: "docx", deliverable: "submission", download: true });
+        saveDownload(r);
+        toast("Paper downloaded: " + (r.filename || "paper.docx"));
+      } catch (e) { toast("The paper could not be downloaded: " + (e.message || e)); }
+      return;
+    }
+    toast(fmt === "md"
+      ? "Markdown comes from the delivered session. Run the tool again and press this straight after it delivers."
+      : "There is no delivered session and no saved case to download.");
+    return;
+  }
+  const id = sessionId;
   try {
     const response = await fetch("/api/sessions/" + encodeURIComponent(id) + "/paper", {
       method: "POST",
@@ -8222,11 +8241,27 @@ async function ensureSavedCase() {
 async function downloadResultXlsx() {
   const id = await ensureSavedCase();
   if (!id) return;
-  const destination = "exports/" + id + ".xlsx";
   try {
-    const r = await post("/api/cases/" + id + "/export", { kind: "xlsx", destination: destination });
-    toast("Spreadsheet exported to " + (r.path || destination));
-  } catch (e) { toast("The spreadsheet could not be exported: " + (e.message || e)); }
+    // The browser cannot fetch a server-side path, so the bytes come back in the
+    // response (download: true) and are turned into a file here. Before this, the
+    // page asked the server to WRITE the file and showed its path: nothing reached
+    // the student's Downloads folder.
+    const r = await post("/api/cases/" + encodeURIComponent(id) + "/export",
+                         { kind: "xlsx", deliverable: "workpapers", download: true });
+    saveDownload(r);
+    toast("Spreadsheet downloaded: " + (r.filename || "workpapers.xlsx"));
+  } catch (e) { toast("The spreadsheet could not be downloaded: " + (e.message || e)); }
+}
+
+/* Turn one export response ({data: base64, mime, filename}) into a real download. */
+function saveDownload(payload) {
+  const bin = atob(payload.data || ""), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type: payload.mime || "application/octet-stream" }));
+  const link = document.createElement("a");
+  link.href = url; link.download = payload.filename || "download";
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 async function downloadResultSvg() {
