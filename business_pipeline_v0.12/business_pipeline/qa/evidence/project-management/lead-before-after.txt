@@ -1,0 +1,34 @@
+﻿BEFORE (the old emit, reproduced):
+  Project Charter: The Shift-Roster Replacement Project at a Grocery Retailer
+  November 02, 2026
+  Project Charter: The Shift-Roster Replacement Project at a Grocery Retailer
+  Introduction
+  The decision under examination is whether to proceed with the course of action set out in the brief. This pape
+  The analysis treats each of the 10 blocks in turn: objective, in scope, out of scope, deliverables, sponsor an
+  The argument advanced is that the blocks supported by evidence constrain the decision, and that a block for wh
+  Context and Unit
+  The case concerns the following decision: A grocery retailer is replacing its paper-based shift roster with a 
+  Evidence is limited to the accepted items. A block without an accepted item is recorded as a gap, and an assum
+  Framework Overview
+  lead
+  Objective
+  No source was found for this part; it is written from general background and is not cited.
+
+AFTER (the fix in place):
+  Project Charter: The Shift-Roster Replacement Project at a Grocery Retailer
+  November 02, 2026
+  Project Charter: The Shift-Roster Replacement Project at a Grocery Retailer
+  Introduction
+  The decision under examination is whether to proceed with the course of action set out in the brief. This pape
+  The analysis treats each of the 10 blocks in turn: objective, in scope, out of scope, deliverables, sponsor an
+  The argument advanced is that the blocks supported by evidence constrain the decision, and that a block for wh
+  Context and Unit
+  The case concerns the following decision: A grocery retailer is replacing its paper-based shift roster with a 
+  Evidence is limited to the accepted items. A block without an accepted item is recorded as a gap, and an assum
+  Objective
+  No source was found for this part; it is written from general background and is not cited.
+  Objective is a structural block awaiting evidence.
+  In Scope
+
+token 'lead' present before: True
+token 'lead' present after : False

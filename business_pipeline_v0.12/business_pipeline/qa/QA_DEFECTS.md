@@ -25,6 +25,8 @@ Suite: `tests/test_subject_project_management_acceptance.py` (62 tests).
 | D-PM-03 | marketing (ledgered from this shelf) | `template_servqual` still; `template_customer_journey` repaired; E-pm-057 | MAJOR | DECLARATION | `sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))` → both templates at session start; `['template_servqual']` after `2209822`/B-198 | a block may declare exactly ONE form. The customer journey half was repaired by the marketing lane during this session (D-MKT-04); SERVQUAL's grid is still in both maps and its tile is hidden until that is repaired | `2209822` (their half) | `test_E_pm_057` (asserts the measured pair) | **LEDGERED** — one kind still open, marketing shelf owns it |
 
 | D-PM-04 | project-management | `case_decision` card; E-pm-014 | MINOR | DECLARATION | the card is `kind: compute` and `case_decision` is **not** in `bp.methods.LIBRARY` | it is a **T2 template** (registry `QNT-FIN-01`) that computes NPV inside the template path and delivers through `Pipeline` — declared `compute` is honest | — | `test_E_pm_014` | **NOT A DEFECT** (measured, pinned) |
+| D-PM-05 | project-management | PM-05, PM-06, PM-09, PM-15, PM-16 (and three canvases); E-pm-063 | BLOCKER | GATE | `qa/probe_pm_lead.py`: the charter paper printed a paragraph that was the single word `lead` under "Framework Overview" | eight profiles shipped `'lead': 'lead'` — the key repeated as its own value — and `completion.py` printed it verbatim while its own `_problems` reported "lead short". `_lead_of()` now treats a bare token as a declared absence: the paragraph and heading are omitted (the section survives only for a figure) and "lead short" is reported only for a lead that exists | `session 7` | `test_E_pm_063` | FIXED |
+
 
 ### Session 7 — the shelf's declared gaps
 
@@ -196,7 +198,21 @@ Probes: `qa/probe_mgt_shelf.py` (inventory, one mocked run per profile), `qa/pro
 | D-ENT-10 | core (`server.PRESETS`) | `case` (no `method` key) and `unsupported` (a deliberately unknown method); G-ent-06 | MINOR | CATALOGUE | `server.PRESETS["case"]` has no `method`; `unsupported` blocks with "unknown method 'monte_carlo_valuation'" | both are fixtures for B-181's fail-closed test, not tools; no shelf offers them | — | `test_e_ent_005` iterates the shelf's own presets | **GAP** (G-ent-06) |
 | D-ENT-11 | entrepreneurship (docs) | `CURRICULUM_MAP.md` said "5 worksheets"; `KNOWN_LIMITATIONS.md` said "the only structured worksheet on the shelf is the SWOT evidence review (STR-18)" | MINOR | DOC-DRIFT | the shelf has **6** worksheets, five of them draftable | the shelf grew the canvases (B-106/B-107) and the counts were not carried forward | this session (`docs/CURRICULUM_MAP.md`, `docs/KNOWN_LIMITATIONS.md`) | `test_e_ent_001` (inventory) | FIXED |
 
-**Accepted with a named exception.** The acceptance suite is **106 tests, 106 passed**
+## Cross-shelf — the canvas/grid declaration (owner instruction, 2026-11-03, B-198)
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-MKT-04 | marketing | The **Customer journey map** tile (MKT-04); `test_marketing_worksheets` ×2 | MAJOR | WIRING | before: `templates.describe("template_customer_journey")["form_kind"]` was `canvas` while its builder is `render_matrix` with 8 checks and its example is `{cells, rows, columns}`, so the page rendered a five-block canvas editor and the run was refused | the template was declared in **both** `CANVAS_BLOCKS` and `MATRIX_META`; `describe()` tests the canvas map first, so the grid was labelled a canvas. `docs/OPEN_ISSUES.md` recorded the same class for `template_raci` | this session (`src/bp/templates.py`, `web/index.html`) | `test_every_offered_worksheet_opens_the_form_its_example_is_written_for`; the two existing marketing worksheet rows now pass with **no test edit** | FIXED |
+| D-MKT-07 | marketing | The **SERVQUAL gap grid** tile (MKT-07); G-mkt-01 | MAJOR | WIRING | `describe("template_servqual")["form_kind"]` is still `canvas` although the worksheet is a grid (`MATRIX_META`, `service dimension × measure`) | the same double declaration; the owner chose to **hide the tile** rather than repair the form now | this session (`src/bp/product/subjects.py`) — the tile is removed from the marketing page's `worksheets` | `test_a_hidden_worksheet_stays_registered_and_is_not_offered` (asserts the template, its registry id and its grid declaration survive, and that the defect is still present, so repairing it fails the test until the tile is unhidden) | **HIDDEN** (owner decision B-198; template, record and completion profile untouched) |
+| D-MKT-08 | project-management (ledger owner) | `E-pm-057` / **D-PM-03**, half closed | MINOR | DOC-DRIFT | `set(CANVAS_BLOCKS) & set(MATRIX_META)` was `[journey, servqual]`; it is now `[servqual]` | the project-management session recorded the overlap as their D-PM-03 with "marketing owns the fix"; one of the two is now fixed | this session (`tests/test_subject_project_management_acceptance.py`, one assertion) | the same test, still asserting the remaining declaration | PART-FIXED |
+
+**Accepted with a named exception.** The hidden SERVQUAL tile is not a dropped feature: the
+framework still completes through the conductor and its marketing suite is green. What changed is
+that the page no longer offers an editor that cannot submit.
+
+### Session 6 — accepted with a named exception
+
+The entrepreneurship acceptance suite is **106 tests, 106 passed**
 (`qa/baseline/ent_acceptance.txt`). Two rows are not `PASS` by test and are ledgered instead:
 **E-ent-098** depends on the owner's OCR key being configured, so the test mocks the endpoint and
 proves the wiring, not a live read; **E-ent-056** exercises the composite template through its

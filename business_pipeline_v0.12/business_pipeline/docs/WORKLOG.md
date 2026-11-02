@@ -1,3 +1,33 @@
+## 2026-11-03 — [project-management] Debugging the finished paper: the token `lead`, and a correction to my own reading of the gate
+
+**Ask.** "You must have debugging capability, you must debug project management." Inventory work was
+already done; this pass hunted the artefact instead.
+
+**Found and fixed (D-PM-05, BLOCKER).** Unzipping the produced charter paper and reading it line by
+line showed paragraph 12 was the single word **`lead`**. Root cause: eight profiles (the five
+project-management worksheets plus the Business Model, Lean and Value Proposition canvases) carry
+`'lead': 'lead'` in their outline — the key repeated as its own value — and `complete()` printed it
+verbatim under "Framework Overview", while the pipeline's own `_problems` was already reporting
+"lead short". `completion._lead_of()` now returns "" for a bare token, so the paragraph and its
+heading are omitted (the section survives only when a figure lives there), and "lead short" is
+reported only for a lead that exists. Nothing was invented: the five profiles still need an authored
+lead, and that wording is the profile author's decision. Trap test `test_E_pm_063`; the before/after
+is `qa/evidence/project-management/lead-before-after.txt`. Blast radius measured: 139 entrepreneurship
+tests and 99 shelf/shared tests still green.
+
+**Found, and corrected against myself (no defect).** The same paper showed all ten blocks filled from
+the framework's background. I first concluded the retrieval path was dead for these five worksheets.
+Instrumenting `retrieval.retrieve` disproved it: the gate requires the block's cue in a candidate's
+**title**, my mocks built titles that never carried it, and a realistic title places a sourced item
+(`dropped: 1, items: 1`). The manual's G-pm-01 row now records the correction — an agent's wrong
+reading of a correct gate is itself a defect in the record, and it is now named.
+
+**Also checked and clean:** `_unit()` treats a `unit`-field profile through the country branch (a type
+confusion with no visible symptom — `region` comes out `Global`); the page *does* render the unit
+input and posts `body.unit`, which `api.py` passes as `unit_value`, so the five worksheets are
+usable from the UI; the page renders a real matrix form for `form_kind == "matrix"`.
+
+
 ## 2026-11-03 — [project-management] Delivery and governance: the inventory the owner asked for, two wiring fixes, and the V-01 reading
 
 **Ask.** Debug the project-management shelf (session 7 of 11). Before any code, settle the scope

@@ -1,3 +1,22 @@
+## Project management: the paper stops printing the word "lead" as a paragraph
+
+Session 7 debugging pass, second commit. Build **1.71**.
+
+- **D-PM-05 (BLOCKER, V-06 gate).** The project charter, WBS, risk register, stakeholder plan and
+  lessons learned shipped `'lead': 'lead'` in their outline (as did the Business Model Canvas, Lean
+  Canvas and Value Proposition Canvas), so the produced `.docx` carried a paragraph that was the single
+  word **`lead`** under the framework heading — while the pipeline's own `_problems` already reported
+  "lead short". `completion._lead_of()` now treats a bare token as a **declared absence**: the
+  framework-overview paragraph and its heading are omitted (the section survives only when a figure
+  lives there) and "lead short" is reported only for a lead that exists. No prose is invented — the
+  wording stays the profile author's decision. Trap test `test_E_pm_063`; before/after captured in
+  `qa/evidence/project-management/lead-before-after.txt`.
+- **Measured and corrected, not fixed:** the five worksheets' blocks printed `background` because the
+  evidence pack was empty, **not** because retrieval is dead. Instrumenting `retrieval.retrieve` showed
+  the title-cue gate working as designed; a realistic title places a sourced item (`dropped: 1,
+  items: 1`). The manual's G-pm-01 row now records that correction.
+
+
 ## Project management: the five delivery worksheets stop searching for the word "evidence"
 
 Session 7 of the shelf-by-shelf debug (`SUBJECT = project-management`). Build **1.71**.
@@ -104,7 +123,32 @@ route family or frozen fixture changed; `scripts/econ_shelf.py --check` reports 
 sync”.
 
 
-## The marketing plan moves to the marketing shelf, where it belongs
+## A worksheet is one form: the customer journey opens its grid, and SERVQUAL's tile is hidden
+
+Owner: *"only fix customer journey map; the other SERVQUAL gap grid — hide it."*
+
+- **Customer journey map (MKT-04) fixed.** It is a grid — `MATRIX_META` declares `touchpoint ×
+  stage`, its builder is `render_matrix` with eight checks and its example is written as cells — but
+  it was *also* listed in `CANVAS_BLOCKS`, and `describe()` tests that map first. The page therefore
+  gave it a five-block canvas editor that could never submit. It is now declared only as a grid, and
+  `describe()` publishes the two axis labels so the form reads "Touchpoints" / "Stages" instead of
+  falling back to scenario-planning wording.
+- **SERVQUAL gap grid (MKT-07) hidden, not deleted.** Same double declaration, different decision:
+  the tile is removed from the marketing page's worksheet list. Its template, registry record,
+  matrix declaration and completion profile are untouched, so the framework still runs through the
+  conductor. Repairing it later is one data edit plus putting the id back.
+- **The page offers five worksheets** (MKT-02, 04, 06, 15, 18). `CURRICULUM_MAP`,
+  `QA_DEFECTS.md` (D-MKT-04 FIXED, D-MKT-07 HIDDEN) and `DECISIONS.md` **B-198** record it.
+- **Half of the project-management ledger's D-PM-03 is closed**: `E-pm-057` now pins the single
+  remaining double declaration instead of two.
+- **Two traps added**: a grid may not open a canvas form (it would have caught this defect), and a
+  hidden worksheet must stay registered and stay hidden while the defect exists.
+
+Affected suites (147 tests) pass; page syntax OK. No method, preset, template contract, input,
+check, number or route changed; `tests/fixtures/frozen_contract.json` untouched.
+
+- 1.71 (2026-11-03): the customer journey worksheet opens its grid (one artefact, one form) and the SERVQUAL grid's tile is hidden from the marketing page pending its repair (B-198). No frozen core, method, preset, template contract, input, check, number or route changed.
+
 
 Owner: correction to the entrepreneurship shelf — *"marketing plan: STP and marketing mix should
 belong to marketing, it's already there, so delete that in entrepreneurship."*

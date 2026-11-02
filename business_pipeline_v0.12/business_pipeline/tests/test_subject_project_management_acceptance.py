@@ -11,6 +11,7 @@ second formula, never the method's own output compared with itself.
 import copy
 import io
 import json
+import re
 import sys
 import unittest
 import zipfile
@@ -770,6 +771,31 @@ class GateTest(unittest.TestCase):
         self.assertIn("read-only", guidance)
         for promise in ("fills in a wbs", "assigns responsibilities for you"):
             self.assertNotIn(promise, guidance, promise)
+
+    def test_E_pm_063__the_framework_overview_never_prints_a_placeholder_lead(self):
+        """Trap test for D-PM-05: five profiles shipped `'lead': 'lead'` and the paper
+        printed the literal token under the framework heading while the pipeline's own
+        check reported "lead short"."""
+        placeholders = ["template_project_charter", "template_wbs", "template_risk_register",
+                        "template_stakeholder_plan", "template_lessons_learned"]
+        for template in placeholders:
+            profile = framework_profiles.get(template)
+            self.assertEqual(completion._lead_of(profile["outline"]), "", template)
+            document = completion.draft_bytes(complete(template))
+            with zipfile.ZipFile(io.BytesIO(document)) as archive:
+                text = archive.read("word/document.xml").decode("utf-8")
+            paragraphs = [re.sub(r"<[^>]+>", "", chunk).strip()
+                          for chunk in text.split("</w:p>")]
+            for paragraph in paragraphs:
+                if not paragraph:
+                    continue
+                self.assertNotEqual(paragraph.lower(), "lead", (template, paragraph))
+                self.assertNotEqual(paragraph.lower(), "framework overview", (template, paragraph))
+        # the control: a profile with a real lead still prints it, in full
+        raci = framework_profiles.get("template_raci")
+        lead = completion._lead_of(raci["outline"])
+        self.assertGreaterEqual(len(lead.split()), 20)
+        self.assertIn("RACI", lead)
 
 
 if __name__ == "__main__":

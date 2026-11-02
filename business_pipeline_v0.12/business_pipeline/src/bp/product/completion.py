@@ -677,6 +677,25 @@ CASE_RULE = (" Write generic terms in lower case (for example big data, net zero
              "only a name that appears in the items.")
 
 
+#: A framework-overview lead that is nothing but its own key is a placeholder,
+#: not a paragraph: eight profiles ship ``'lead': 'lead'``.
+_PLACEHOLDER_LEAD = re.compile(r"^[a-z][a-z_]{0,19}$")
+
+
+def _lead_of(outline):
+    """The framework-overview paragraph, or '' when the profile declares a placeholder.
+
+    The five project-management worksheets and three canvases ship
+    ``'lead': 'lead'`` - the key repeated as its own value - so the paper printed
+    the literal token ``lead`` under the framework heading while the pipeline's
+    own check reported "lead short".  A placeholder is a declared absence: the
+    paragraph is omitted, never filled with invented prose, and the profile's
+    author owns the wording (a presentation decision, not the code's).
+    """
+    lead = _clean((outline or {}).get("lead") or "", 1200)
+    return "" if _PLACEHOLDER_LEAD.match(lead) else lead
+
+
 def _unit_noun(framework):
     """The unit of analysis in the profile's own words, as a noun phrase.
 
@@ -865,7 +884,8 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
     merged = {"introduction": (head or {}).get("introduction") or [],
               "thesis": thesis,
               "context": (head or {}).get("context") or [],
-              "lead": (framework.get("outline") or {}).get("lead") or "",
+              "lead": _lead_of(framework.get("outline") or {}),
+
               "groups": {block.get("key"): (answers.get(block.get("key")) or {}).get("paragraphs") or []
                          for block in blocks},
               "discussion": (answers.get("mid") or {}).get("discussion") or [],
@@ -958,8 +978,9 @@ def _problems(data, facts, instruction="", length="mid", keys=None, allow=None, 
             problems.append("%s long (%d)" % (name, count))
     if len(data["introduction"]) != int(profile.get("head_paras", 2)):
         problems.append("introduction has %d paragraph(s)" % len(data["introduction"]))
-    if _words(data["lead"]) < 25:
+    if data["lead"] and _words(data["lead"]) < 25:
         problems.append("lead short")
+
     for key in keys:
         parts = data["groups"].get(key) or []
         if len(parts) != int(profile.get("section_paras", 2)):
@@ -1151,7 +1172,8 @@ def _draft_data(result, length="mid"):
              "a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or "
              "recommendation is produced."),
         ],
-        "lead": outline.get("lead") or "",
+        "lead": _lead_of(outline),
+
         "groups": {},
         "discussion": [
             ("The case supplies " + str(sourced + student + assumptions) + " accepted items across the " + plural +
@@ -1167,7 +1189,8 @@ def _draft_data(result, length="mid"):
             ("The combined reading bears on the decision: the documented conditions must be answered by the "
              "proposed position, and the plan must show how each would be met. " + _article(singular).capitalize() +
              " " + singular + " that appears "
-             "weak in the evidence is not thereby one that can be disregarded; it is a " + singular + " the case "
+             "weak in the evidence is not thereby one that can be disregarded; it is " + _article(singular) +
+            " " + singular + " the case "
              "has not documented."),
             (voice.get("implication_frame") or "") + " The decision itself remains the student's.",
         ],
@@ -1269,10 +1292,18 @@ def _sections(data, blocks, style, citations, result):
                     references.append(item["source"])
     figure = matrix.build(result.get("template"), _figure_cells(blocks),
                           caption=profile.get("label"))
-    sections = [paper.section("Introduction", 1, list(data["introduction"])),
-                paper.section(outline.get("context") or "Case and context", 2, list(data["context"])),
-                paper.section(outline.get("framework") or profile["label"], 1, [data["lead"]],
-                              figure=figure)]
+    headings = [paper.section("Introduction", 1, list(data["introduction"])),
+                paper.section(outline.get("context") or "Case and context", 2,
+                              list(data["context"]))]
+    # A profile whose lead is a placeholder gets no framework-overview paragraph at
+    # all - never the token - and keeps the section only when the framework has a
+    # figure that lives there.
+    if data["lead"] or figure:
+        headings.append(paper.section(outline.get("framework") or profile["label"], 1,
+                                      [data["lead"]] if data["lead"] else [],
+                                      figure=figure))
+    sections = headings
+
     singular = _singular((profile.get("voice") or {}).get("block_plural") or "dimensions")
     for block in blocks:
         key = block.get("key")

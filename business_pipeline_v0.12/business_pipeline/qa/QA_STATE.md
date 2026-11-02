@@ -34,12 +34,18 @@ Inventory confirmed exactly as the work order stated: 18 tools · 6 worksheets �
 | `qa/baseline/pm-*` | Baseline + after measurements, probe output, shelf-test slice |
 | `qa/evidence/project-management/` | The paper, its no-source twin, `paper-read.json` |
 
-### Fixed (2)
+### Fixed (3)
 
 - **D-PM-01** (MAJOR, wiring): five worksheets searched with one shared cue (`evidence`) and a raw-key
   query; 32 blocks now carry their own vocabulary. Trap tests `test_E_pm_049`, `test_E_pm_050`.
 - **D-PM-02** (MAJOR, declaration): RACI's profile said `subject: 'management'` while its catalogue id
   is `PM-10` and two pages carry it. Trap test `test_E_pm_058`.
+- **D-PM-05** (BLOCKER, gate/V-06): the charter, WBS, risk register, stakeholder plan and lessons
+  learned shipped `'lead': 'lead'` and the produced paper **printed the literal token `lead`** as its
+  framework-overview paragraph. `_lead_of()` now treats a bare token as a declared absence and omits
+  the paragraph (no invented prose). Trap test `test_E_pm_063`; before/after in
+  `qa/evidence/project-management/lead-before-after.txt`. Three canvases (BMC, Lean, VPC) shared the
+  same placeholder and are fixed by the same change — 139 entrepreneurship tests still green.
 
 ### Ledgered / declared (4 + 4 gaps)
 
@@ -291,6 +297,24 @@ belongs to another lane; killing it would have interrupted them. The live gates 
 fresh instance of the current code on 8003 (`ent_server_pid.txt`), and the served page on 8001 was
 smoked separately. Nothing in `web/index.html` is cached by the server — it is read per request — so
 the page coverage applies to both.
+
+### Owner follow-up, same day — the two marketing worksheets (B-198)
+
+The owner reviewed the failing set and ruled: **fix the Customer journey map, hide the SERVQUAL
+grid**. Both were declared as a canvas *and* a grid, so the page gave a grid worksheet a canvas
+editor that could never submit.
+
+| | Result |
+|---|---|
+| **MKT-04 Customer journey** | FIXED — declared only as a grid; `describe()` now publishes the axis labels (`touchpoint × stage`) and the form prints them. The two failing marketing worksheet tests flip **with no test edit**. |
+| **MKT-07 SERVQUAL** | **HIDDEN** — the tile is off the marketing page (MKT-02, 04, 06, 15, 18 remain). Its template, registry record, grid declaration and completion profile are untouched, so the framework still completes through the conductor. `D-MKT-07` carries the reason and the reversal. |
+| Traps added | a grid may not open a canvas form; a hidden worksheet must stay registered and stay hidden *while the defect exists* (repairing it fails the test until the tile is unhidden). |
+| Ledger | `D-MKT-04` FIXED, `D-MKT-07` HIDDEN, `D-MKT-08` half of project-management's `D-PM-03` closed (`E-pm-057` now pins one declaration, not two). |
+| Also corrected | `E-mkt-001` (a grid's form is its two axes, not the profile's blocks) and `E-mkt-004` (five worksheets, and MKT-07 named as absent). |
+
+Expected effect on the failure set: 19 → 17. The other 17 were left alone as instructed — the
+registry JSON, the rail literal, the operations example packs and the three stale "no profile"
+premises are untouched and still failing.
 
 **Next subject: `operations` (shelf 7 of 11).** Its top three risks, measured from this session:
 
