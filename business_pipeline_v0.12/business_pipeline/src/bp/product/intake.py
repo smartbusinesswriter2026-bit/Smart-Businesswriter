@@ -45,6 +45,7 @@ import uuid
 from pathlib import Path
 
 from . import documents, sources_file
+from . import rubric as rubric_reader
 
 FORMAT = "bp-intake/1"
 
@@ -71,7 +72,7 @@ MAX_BYTES = 5_000_000
 STATUSES = ("stored", "ingested", "extracted", "ocr_required", "reference_only")
 
 #: What the student said the file is for.  `None` means they have not said; it is never guessed.
-ROLES = ("brief", "dataset", "sources", "reference")
+ROLES = ("brief", "dataset", "sources", "reference", "rubric")
 
 
 
@@ -461,6 +462,56 @@ def use_as_brief(file_id):
     _write_json(_path(file_id), record)
     return {"id": record["id"], "filename": record["filename"], "role": "brief",
             "status": record["status"], "chars": len(text), "text": text, "unverified": True,
+            "method": result.get("method"), "pages": result.get("pages"), "note": record["note"]}
+
+
+def use_as_rubric(file_id):
+    """Read a stored file as the paper's marking guide, and record that it was used.
+
+    The text is read by the same reader ``use_as_brief`` uses, so the same extensions
+    are accepted and the same refusals apply, and it is then parsed by
+    ``bp.product.rubric``.  Nothing is started: the parsed rubric is returned for the
+    student to confirm, and the record keeps the summary the reader produced.  A file
+    whose rubric cannot be read raises with the reader's own reason rather than handing
+    back an empty marking guide.
+    """
+    record = load(file_id)
+    filename, raw = payload(file_id)
+    try:
+        result = documents.extract_document(raw, filename)
+    except documents.DocumentError as error:
+        raise IntakeError(str(error))
+    if result.get("status") != "extracted":
+        record["status"] = "ocr_required"
+        record["error"] = None
+        record["note"] = result.get("reason") or "No text could be read from this document."
+        _write_json(_path(file_id), record)
+        raise IntakeError(record["note"])
+    text = result.get("text") or ""
+    parsed = rubric_reader.parse(text)
+    if not parsed.get("ok"):
+        record["status"] = "extracted"
+        record["note"] = parsed["problems"][0]
+        _write_json(_path(file_id), record)
+        raise IntakeError(parsed["problems"][0])
+    encoded = text.encode("utf-8")
+    _write_bytes(_text_path(file_id), encoded)
+    digest = hashlib.sha256(encoded).hexdigest()
+    criteria = parsed.get("criteria") or []
+    record["status"] = "extracted"
+    record["role"] = "rubric"
+    record["error"] = None
+    record["extraction"] = {"pages": result.get("pages"), "chars": result.get("chars", len(text)),
+                            "method": result.get("method"), "text_sha256": digest}
+    record["rubric"] = rubric_reader.summary(parsed)
+    record["note"] = ("Read as the marking guide: %d criteria. The text is unverified - check the "
+                      "criteria against the file before the paper follows them." % len(criteria))
+    _write_json(_path(file_id), record)
+    return {"id": record["id"], "filename": record["filename"], "role": "rubric",
+            "status": record["status"], "chars": len(text), "text": text,
+            "rubric": parsed, "rubric_summary": record["rubric"],
+            "confirm_required": bool(parsed.get("confirm_required")),
+            "problems": list(parsed.get("problems") or []), "unverified": True,
             "method": result.get("method"), "pages": result.get("pages"), "note": record["note"]}
 
 

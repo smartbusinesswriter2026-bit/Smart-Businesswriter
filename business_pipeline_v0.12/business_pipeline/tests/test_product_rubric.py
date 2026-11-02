@@ -7,14 +7,17 @@ comparison; nothing calls the network, the frozen core or a model.
 """
 
 import json
+import os
 import pathlib
+import shutil
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
 sys.path.insert(0, "src")
 
-from bp.product import completion, paper, rubric  # noqa: E402
+from bp.product import completion, intake, paper, rubric  # noqa: E402
 
 TABLE = """BA 101 - Group Business Report (30% of the course grade)
 
@@ -394,6 +397,81 @@ class RubricCoverageTest(unittest.TestCase):
         report = completion.draft(plain)
         self.assertNotIn("Rubric coverage", [section["heading"] for section in report["sections"]])
         self.assertNotIn("rubric", report)
+
+
+TEXT_RUBRIC = b"""| Criterion | Weight |
+| --- | --- |
+| Market penetration | 50% |
+| Recommendations | 50% |
+"""
+
+
+class RubricUploadTest(unittest.TestCase):
+    """E-rub-029…034: the student hands the rubric over, and nothing is started for them."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="bp-rubric-test-")
+        self.previous = os.environ.get("BP_INTAKE_DIR")
+        os.environ["BP_INTAKE_DIR"] = self.root
+
+    def tearDown(self):
+        if self.previous is None:
+            os.environ.pop("BP_INTAKE_DIR", None)
+        else:
+            os.environ["BP_INTAKE_DIR"] = self.previous
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_e_rub_029__a_rubric_file_is_read_and_recorded_as_the_marking_guide(self):
+        record = intake.save("rubric.txt", TEXT_RUBRIC)
+        used = intake.use_as_rubric(record["id"])
+        self.assertEqual(used["role"], "rubric")
+        self.assertTrue(used["unverified"], "extracted text is never presented as verified")
+        self.assertEqual(len(used["rubric"]["criteria"]), 2)
+        self.assertEqual(used["rubric_summary"]["criteria"], 2)
+        self.assertEqual(intake.load(record["id"])["role"], "rubric",
+                         "the role is recorded on the file itself")
+        self.assertIn("marking guide", intake.load(record["id"])["note"])
+
+    def test_e_rub_030__a_file_with_no_reader_is_refused_and_keeps_its_role(self):
+        record = intake.save("sales.csv", b"region,sales\nnorth,10\n")
+        with self.assertRaises(intake.IntakeError) as refused:
+            intake.use_as_rubric(record["id"])
+        self.assertIn("attach a PDF", str(refused.exception))
+        self.assertIsNone(intake.load(record["id"])["role"],
+                          "a refused file is not labelled as the marking guide")
+
+    def test_e_rub_031__text_that_is_not_a_rubric_is_refused_with_the_readers_reason(self):
+        record = intake.save("notes.txt", b"Please read the case and write a short report about it.")
+        with self.assertRaises(intake.IntakeError) as refused:
+            intake.use_as_rubric(record["id"])
+        self.assertIn("No assessment criterion", str(refused.exception))
+        self.assertIsNone(intake.load(record["id"])["role"])
+
+    def test_e_rub_034__an_unknown_role_is_still_refused(self):
+        with self.assertRaises(ValueError):
+            intake.save("memo.txt", b"hello", role="memo")
+        self.assertIn("rubric", intake.ROLES)
+
+    def test_e_rub_032__the_paper_blocks_while_a_weighted_criterion_is_unaddressed(self):
+        result = _complete(TWO_CRITERIA)
+        report = completion.draft(result)
+        blockers = completion.rubric_blockers(report)
+        self.assertTrue(any("Recommendations" in item for item in blockers), blockers)
+        result["rubric_gate"] = False
+        relaxed = completion.draft(result)
+        self.assertEqual(relaxed["rubric_gate"], "clear")
+        self.assertEqual(completion.rubric_blockers(relaxed), [],
+                         "the student's switch is honoured")
+
+    def test_e_rub_033__the_page_offers_the_action_and_sends_the_rubric_with_the_run(self):
+        page = (pathlib.Path(__file__).resolve().parent.parent / "web" / "index.html").read_text(
+            encoding="utf-8")
+        self.assertIn('data-rubric="', page)
+        self.assertIn("Use as the rubric", page)
+        self.assertIn('useAsRubric', page)
+        self.assertIn('/rubric"', page)
+        self.assertIn("body.rubric = state.rubric", page)
+        self.assertIn("used as the marking guide", page)
 
 
 if __name__ == "__main__":

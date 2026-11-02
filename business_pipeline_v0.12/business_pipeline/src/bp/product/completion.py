@@ -1290,9 +1290,24 @@ def draft(result, style="apa", version="draft", length="mid"):
               "byline": [str(line).strip() for line in (result.get("byline") or []) if str(line or "").strip()]}
     if coverage is not None:
         report["rubric"] = coverage
-        report["rubric_gate"] = coverage["gate"]
+        # The gate is the student's switch: coverage saying "blocked" only stops a
+        # paper when they have not turned the gate off for this run.
+        report["rubric_gate"] = ("blocked" if coverage["gate"] == "blocked"
+                                 and result.get("rubric_gate", True) is not False else "clear")
         report["word_target"] = _word_target(attached, words)
     return report
+
+
+def rubric_blockers(report):
+    """The criteria a finished paper does not address, as blocking sentences.
+
+    Read from the report the paper itself produced, so what blocks the download names
+    exactly the rows the appendix shows.  An empty list means nothing blocks.
+    """
+    if not isinstance(report, dict) or report.get("rubric_gate") != "blocked":
+        return []
+    names = ((report.get("rubric") or {}).get("blocking") or [])
+    return ["the '" + str(name) + "' criterion your rubric states" for name in names]
 
 
 def _word_target(parsed, words):

@@ -4,8 +4,11 @@
 **Ask.** "a rubric to be uploaded which should be followed in writing the paper".
 
 **Built.** `src/bp/product/rubric.py` (reader + coverage), binding in `completion.complete`/`draft`,
-the export gate in `paper.missing`/`check`, `qa/manual/rubric.md` (29 E-rows), `tests/test_product_rubric.py`
-(29 tests), `qa/probe_rubric.py`, `qa/_count.py`. Decision **B-187** (B-186 was taken concurrently).
+the export gate in `paper.missing`/`check`, the upload path (`intake.ROLES` + `use_as_rubric`,
+`POST /api/intake/{id}/rubric`, the **Use as the rubric** button, and `rubric` travelling with
+`/api/cases/frameworks/complete` so the report 409s while a weighted criterion is unaddressed),
+`qa/manual/rubric.md` (35 E-rows), `tests/test_product_rubric.py` (35 tests), `qa/probe_rubric.py`,
+`qa/_count.py`, `qa/check_page_syntax.py`. Decision **B-187** (B-186 was taken concurrently).
 
 **Commits.** `ff3f58d` (reader) · `eb204d1` (coverage, appendix, gate).
 
@@ -202,4 +205,92 @@ starts from *their* closing state, not from a blank shelf. Top three risks, meas
    tightness serialisation, the `icer_{slug}` key). `D-ECO-01…03` already record two of them as
    MAJOR; verify whether they were fixed or ledgered before re-opening them, and check the frozen core
    before writing any formula fix.
+
+
+---
+
+# Session 2 — `economics` (2026-11-02/03) · commits `8bd1e9f`, `6e20fc4`
+
+*This section was written once and then lost when another lane rewrote this file; it is re-appended
+at the end rather than edited in place.*
+
+**Subject chosen by the owner.** The recorded order said `finance` next; the owner's work order
+named `economics` and the owner confirmed it when asked, noting `finance` is being fixed in another
+session. `finance` is deliberately skipped and remains not started.
+
+## Baseline (Phase 0) — measured, not assumed
+
+`ab0be0d`: **2627 tests, 66 failures, 13 errors, 634.8 s**
+(`qa/baseline/2026-11-02-ab0be0d-suite-err.txt`). **None of the 79 named failures belongs to
+economics** — all are worksheet/framework-completion plus one network test, and they carry forward
+to their own shelves' sessions.
+
+## Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/economics.md` | The shelf's missing acceptance manual: 10 sections, **59 generated per-tool contract rows**, **84 E-rows**, scoreboard, declared gaps |
+| `tests/test_subject_economics_acceptance.py` | **83 tests** (59 generated per tool, 24 cross-cutting), incl. 23 worked examples recomputed by hand from the student guide |
+| `qa/probe_econ_*.py`, `qa/build_econ_manual.py` | The reproducible evidence behind every claim in the manual |
+| `qa/baseline/econ_*` | Raw measurements |
+
+**Result:** all **59 tools** deliver through their own preset, every method's own checks pass, every
+computation is deterministic, and every reproduced guide example matches hand arithmetic. The
+shelf's arithmetic layer is sound.
+
+## Defects — `qa/QA_DEFECTS.md` D-ECO-01…09
+
+- **FIXED (B-190):** D-ECO-01 `labour` typed a share and a ratio as money; D-ECO-03 the currency
+  paper printed its source amount with the target currency. Both with trap tests.
+- **FIXED (docs):** D-ECO-08 `CURRICULUM_MAP.md` said 55 tools; the catalogue has 59.
+- **BLOCKED:** D-ECO-02 tightness = `vacancies / unemployment_rate` (a count ÷ a rate). Owner rules
+  the replacement is a modelling decision and the absent-denominator case must refuse with a named
+  gap. E-eco-082.
+- **GAP:** G-eco-01…04 (52 tools without `need` text; no worksheets by design; VAR/cointegration
+  parked; diagram renderer not built).
+- **CLOSED, not reproducible:** D-ECO-09 (session 1's `tax_incidence` units claim) — B-179 fixed the
+  duplicated hooks.
+
+**Two false alarms retired rather than written up:** `@unit` and a `None` `typing` hook are handled
+by `orchestrator.py` (227, 233-234, 270); all 151 `related` ids resolve (131 local, 20 cross-shelf).
+
+## Gates (closing)
+
+**93 passed** across the economics acceptance suite, `test_docs_sync.py` and
+`test_frozen_contract.py` (`qa/baseline/final_gates.txt`). Documented count re-measured to **2910**.
+`scripts/econ_shelf.py --check`: **frozen fixture: in sync**.
+
+## Still uncommitted (owner's condition b)
+
+`docs/DECISIONS.md` (the **B-190** row), `docs/CHANGELOG.md`, `docs/WORKLOG.md`, `docs/HOME.md`,
+`docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`, `qa/QA_STATE.md`, `qa/QA_DEFECTS.md` — written on disk,
+held back because another lane has uncommitted edits in them. Follow-up:
+
+```
+git commit -m "docs(economics): B-190 decision row, CHANGELOG/WORKLOG entries, count 2910 - session 2 of 11" -- \
+  business_pipeline_v0.12/business_pipeline/docs/DECISIONS.md \
+  business_pipeline_v0.12/business_pipeline/docs/CHANGELOG.md \
+  business_pipeline_v0.12/business_pipeline/docs/WORKLOG.md \
+  business_pipeline_v0.12/business_pipeline/docs/HOME.md \
+  business_pipeline_v0.12/business_pipeline/docs/HANDOFF.md \
+  business_pipeline_v0.12/business_pipeline/docs/CONTRIBUTORS.md \
+  business_pipeline_v0.12/business_pipeline/qa/QA_STATE.md \
+  business_pipeline_v0.12/business_pipeline/qa/QA_DEFECTS.md
+```
+
+## Definition of done — §8
+
+Manual complete ✔ · scoreboard 83 PASS / 1 BLOCKED / 0 DISPUTED ✔ · suite passes with no skipped or
+loosened assertion ✔ · no unexplained BLOCKER/MAJOR ✔ · frozen contract unchanged and in sync ✔ ·
+gates green ✔ · deliverable produced through the real path ✔ · **click-through on port 8001 NOT run**
+(no server started; page coverage is the Python contract tests) ✘ — recorded, not claimed.
+
+## Next action
+
+**Session 3 — `finance`.** Three risks, measured here: (1) the unit audit in
+`qa/probe_econ_tools.py` (`suspicious()`) found `labour_market` in one pass — run it first on
+finance's 35 tools, which mix ratios and money far more; (2) template wording can contradict correct
+arithmetic and no numeric check catches it (`qa/probe_econ_reports.py` is that harness); (3) another
+lane is live in this worktree — check `git status` before and after every commit and use path-scoped
+commits.
 

@@ -23,7 +23,8 @@ the student's, not the product's.
 
 | Built now | Not built yet (declared) |
 |---|---|
-| Read a rubric in three layouts (pipe table, numbered/bulleted list, headed criteria) | The upload role and button for a rubric specifically (the intake store has roles; the rubric button does not exist) |
+| Read a rubric in three layouts (pipe table, numbered/bulleted list, headed criteria) | — |
+| Hand the rubric over from the page (**Use as the rubric** on a stored file) and see what was read | — |
 | Carry weight, descriptor, required elements, sections, word budget, citation style | An OCR engine chain, so a scanned rubric can be read |
 | Refuse a rubric it cannot read, **before** any research run, preserving the raw text | A "Recommendations" section the engine writes � the engine never writes advice |
 | Ask the student to confirm an uncertain parse (`confirm_required`) | A score, a mark or a predicted grade of any kind |
@@ -95,6 +96,17 @@ the parsed rubric to the completion result; `completion.draft(result)` then meas
 | Gate on | `paper.missing(state)` names every criterion in `coverage["blocking"]` (a **weighted** criterion that is a gap, or every criterion when the rubric states no weights), so the Word export is blocked with the criterion named (`E-rub-024`). |
 | Gate off | `state["rubric_gate"] = False` demotes every row to a `medium` warning: nothing is required, the rows are still reported, and the choice is recorded on the paper (`E-rub-025`). |
 
+### 3.6 Handing it over: the file, the route and the run
+
+| Step | Rule |
+|---|---|
+| Role | `intake.ROLES` carries `rubric` beside `brief`, `dataset`, `sources` and `reference`; an unknown role is still refused (`E-rub-034`). |
+| Action | A stored PDF, Word, text or image file offers **Use as the rubric** wherever it already offers **Use as the instruction**. Nothing is started by the click. |
+| Route | `POST /api/intake/{id}/rubric` reads the text with the same reader the brief route uses, parses it with `rubric.parse`, records `role: "rubric"` and the parser's summary on the file, and returns the **full parsed rubric** plus `confirm_required` and `problems` (`E-rub-029`). |
+| Refusals | A file with no reader is refused with the reader's own words (`E-rub-030`); text that is not a rubric is refused with `"No assessment criterion could be read…"` (`E-rub-031`). In both cases the file **keeps its previous role**: it is never labelled as a marking guide it is not. |
+| The run | The page holds the parsed rubric in `state.rubric` and sends it as `rubric` with `/api/cases/frameworks/complete`. The completion echoes it back, the draft measures coverage against it, and `/api/cases/frameworks/report` returns **409** naming the criterion while a weighted one is unaddressed (`E-rub-032`). |
+| What the student sees | A toast naming the criteria that were read, the first problem if the parse was uncertain, and "Check it before the paper follows it" — because the text came from a file and is unverified (`E-rub-033`). |
+
 
 ## 4. Expected behaviour — `E-rub-001…018`
 
@@ -129,6 +141,12 @@ the parsed rubric to the completion result; `completion.draft(result)` then meas
 | E-rub-026 | A rubric that cannot be read is refused by `complete` **before** any research run, with the reader's own reason. | B-187 §3.5 (fail fast) |
 | E-rub-027 | Coverage is deterministic (same paper, same rows) and carries no mark, grade or score. | `VALIDATION_HARNESS.md` §5.2 |
 | E-rub-028 | A paper completed without a rubric is unchanged: no appendix, no `rubric` key in the report. | B-187 (no silent behaviour change) |
+| E-rub-029 | A stored rubric file is read as the marking guide: the role `rubric` is recorded on the file, the return carries `unverified: True`, the parsed criteria and the parser's summary. | B-187 §3.6 (role, route) |
+| E-rub-030 | A file with no reader is refused in the reader's own words and **keeps its previous role**. | B-187 §3.6 (refusals) |
+| E-rub-031 | Text that is not a rubric is refused with `No assessment criterion…` and the file is not labelled as a marking guide. | B-187 §3.6 (refusals) |
+| E-rub-032 | The report blocks while a weighted criterion is unaddressed (`completion.rubric_blockers` names it), and the student's switch clears the block. | B-187 §3.6 (the run) |
+| E-rub-033 | The page offers **Use as the rubric**, calls the route, and sends the parsed rubric with the run (`body.rubric`). | B-187 §3.6 (the page) |
+| E-rub-034 | An unknown role is still refused: adding `rubric` did not widen the accepted set arbitrarily. | `intake.ROLES` |
 
 
 ## 5. Traceability matrix
@@ -164,9 +182,15 @@ the parsed rubric to the completion result; `completion.draft(result)` then meas
 | E-rub-026 | `test_e_rub_026__an_unreadable_rubric_is_refused_before_any_research` | PASS |
 | E-rub-027 | `test_e_rub_027__coverage_is_deterministic_and_scores_nothing` | PASS |
 | E-rub-028 | `test_e_rub_028__a_paper_without_a_rubric_is_unchanged` | PASS |
+| E-rub-029 | `test_e_rub_029__a_rubric_file_is_read_and_recorded_as_the_marking_guide` | PASS |
+| E-rub-030 | `test_e_rub_030__a_file_with_no_reader_is_refused_and_keeps_its_role` | PASS |
+| E-rub-031 | `test_e_rub_031__text_that_is_not_a_rubric_is_refused_with_the_readers_reason` | PASS |
+| E-rub-032 | `test_e_rub_032__the_paper_blocks_while_a_weighted_criterion_is_unaddressed` | PASS |
+| E-rub-033 | `test_e_rub_033__the_page_offers_the_action_and_sends_the_rubric_with_the_run` | PASS |
+| E-rub-034 | `test_e_rub_034__an_unknown_role_is_still_refused` | PASS |
 
 
-**Scoreboard: 29 rows, 29 PASS, 0 FAIL, 0 BLOCKED.** Green under both
+**Scoreboard: 35 rows, 35 PASS, 0 FAIL, 0 BLOCKED.** Green under both
 `python -m pytest tests/test_product_rubric.py` (19 passed) and
 `python -m unittest tests.test_product_rubric` (19 OK).
 
@@ -198,7 +222,6 @@ verified by counting `§`, `—`, `•` and the mojibake markers rather than by 
 | Gap | Declared in | Consequence today |
 |---|---|---|
 | **Section injection is not built.** A rubric heading the profile does not have (for example "Recommendations") is reported as a gap, never created as an empty section. | B-187; `docs/KNOWN_LIMITATIONS.md` | The student must add that section themselves; the appendix names it. |
-| **No upload role or button for a rubric specifically.** The intake store has roles and a "use as the instruction" action; a rubric action does not exist yet. | B-187 | The reader and the gate are reachable from the API and the engine, but the page has no rubric button. |
 | **A scanned rubric needs OCR.** The reader takes text. | OCR plan; `requirements-optional.txt` | Unreadable text is refused by name, never guessed. |
 | **Quality is a human judgement.** The reader cannot say whether a criterion is *met well*. | `VALIDATION_HARNESS.md` §5.2 | Stated on the paper; never replaced by a machine score. |
 | **The engine never writes advice.** A rubric demanding "recommendations" gets a named gap, not prose. | B-154; B-187 | The student writes the recommendation; the system only checks whether something is there. |

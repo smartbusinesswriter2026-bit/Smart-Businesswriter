@@ -676,7 +676,7 @@ def handle(method, path, body=None):
             return 200, framework_completion.complete(body.get("template"), body.get("instruction"),
                                                       body.get("region"), body.get("student_items"),
                                                       body.get("industry"), body.get("country"),
-                                                      body.get("unit"))
+                                                      body.get("unit"), body.get("rubric"))
         except ValueError as error:
             return _error(error)
 
@@ -698,6 +698,12 @@ def handle(method, path, body=None):
             if absent:
                 raise FrameworkIncomplete(absent)
             report = framework_completion.draft(body["completion"], body.get("style"), version, length)
+            # A rubric the student attached is part of what the paper must contain:
+            # a weighted criterion the finished paper does not address blocks the
+            # report exactly the way an unsupported dimension does, and names it.
+            blockers = framework_completion.rubric_blockers(report)
+            if blockers:
+                raise FrameworkIncomplete(blockers)
             data = framework_completion.draft_bytes(body["completion"], body.get("style"),
                                                     report=report, length=length)
             document = paper_store.save(data, writing.filename(report), report.get("title"),

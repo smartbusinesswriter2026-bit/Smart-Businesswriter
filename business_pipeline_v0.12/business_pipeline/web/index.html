@@ -295,11 +295,10 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .runbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .runbtn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
 .actionbox.dragging{border-color:var(--green-600);box-shadow:var(--sh-2),0 0 0 3px rgba(2,161,94,.16)}
-/* The chat column: the composer and the conversation under it are one reading
-   column, the width a chat gets in Codex or ChatGPT, instead of a box stretched
-   across the whole shell. Centred, and it collapses to the screen width on a
-   narrow one. */
-.actionbox,#chatcard{max-width:768px;margin-left:auto;margin-right:auto}
+/* The composer and the conversation under it are one column, and that column
+   is the width of the Documents section below it - the full content box, with
+   the same even space on both sides - rather than a narrower box floating in
+   the middle of the page. */
 #chatcard{margin-top:16px}
 #attachbtn{align-self:flex-start;justify-content:center}
 .attachments{display:flex;flex-direction:column;gap:8px;margin-top:12px}
@@ -3675,6 +3674,8 @@ function intakeRow(row) {
       ? '<button class="btn sm" type="button" data-extract="' + esc(id) + '">Extract text</button>' : "") +
     (canBeBrief(row)
       ? '<button class="btn sm" type="button" data-brief="' + esc(id) + '">Use as the instruction</button>' : "") +
+    (canBeBrief(row)
+      ? '<button class="btn sm" type="button" data-rubric="' + esc(id) + '">Use as the rubric</button>' : "") +
     (row.kind === "sources"
       ? '<button class="btn sm" type="button" data-showsources="' + esc(id) + '">Show sources</button>' : "") +
     (row.status === "extracted"
@@ -3683,6 +3684,7 @@ function intakeRow(row) {
   return '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.filename || id) + "</strong>" +
     '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) +
     (row.role === "brief" ? " - used as the instruction" : "") +
+    (row.role === "rubric" ? " - used as the marking guide" : "") +
     (typeof row.n_sources === "number" ? " - " + esc(row.n_sources) + " declared source(s)" : "") +
     "</div>" +
     intakeDetail(row) + '<div data-textbox="' + esc(id) + '"></div></div><div class="row">' + actions + "</div></div>";
@@ -3709,6 +3711,7 @@ async function loadAttachments() {
     $$("[data-extract]", box).forEach((b) => { b.onclick = () => extractAttachment(b.dataset.extract); });
     $$("[data-showtext]", box).forEach((b) => { b.onclick = () => showAttachmentText(b.dataset.showtext); });
     $$("[data-brief]", box).forEach((b) => { b.onclick = () => useAsBrief(b.dataset.brief); });
+    $$("[data-rubric]", box).forEach((b) => { b.onclick = () => useAsRubric(b.dataset.rubric); });
     $$("[data-showsources]", box).forEach((b) => { b.onclick = () => showDeclaredSources(b.dataset.showsources); });
     $$("[data-remove]", box).forEach((b) => { b.onclick = () => removeAttachment(b.dataset.remove); });
   } catch (error) {
@@ -3778,6 +3781,31 @@ async function useAsBrief(id) {
     toast("Read as the instruction: " + (data.chars || 0) +
       " characters. It is unverified - check it before starting the analysis.");
   } catch (error) {
+    toast(error.message || String(error));
+  }
+  loadAttachments();
+}
+
+/* Read a stored file as the paper's marking guide.  The route extracts and parses it;
+   nothing is started here.  The parsed rubric is held in page state and sent with the
+   run, where the paper measures coverage against it and the download is blocked while a
+   weighted criterion is unaddressed.  The student is told what was read, because
+   extracted text is unverified. */
+async function useAsRubric(id) {
+  try {
+    const data = await post("/api/intake/" + encodeURIComponent(id) + "/rubric", {});
+    const parsed = data.rubric || {};
+    state.rubric = parsed;
+    const names = (parsed.criteria || []).map((row) => row.name).filter(Boolean);
+    let message = "Read as the marking guide: " + names.length + " " +
+      (names.length === 1 ? "criterion" : "criteria") +
+      (names.length ? " - " + names.join("; ") : "") + ".";
+    const problems = data.problems || [];
+    if (problems.length) message += " " + problems[0];
+    if (data.confirm_required) message += " Check it before the paper follows it.";
+    toast(message);
+  } catch (error) {
+    state.rubric = null;
     toast(error.message || String(error));
   }
   loadAttachments();
@@ -6778,6 +6806,10 @@ async function completeEvidenceFramework(t) {
   if (!inputs) { note.textContent = ""; return; }
   const body = { template: t.id, instruction: instruction, student_items: inputs.evidence,
                  region: (($("#sourceregion") || {}).value || "") };
+  // The marking guide the student attached, if any, travels with the run: the
+  // completion echoes it back, the draft measures the paper against it, and the
+  // report is refused while a weighted criterion is unaddressed.
+  if (state.rubric) body.rubric = state.rubric;
   // The unit of analysis is the profile's own: a country, an industry, or the
   // process a SIPOC or a value stream map bounds. The pipeline refuses it when
   // it is missing rather than detecting one.

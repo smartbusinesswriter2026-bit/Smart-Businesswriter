@@ -699,6 +699,15 @@ class H(BaseHTTPRequestHandler):
                 try: return self._send(200, product_intake.use_as_brief(im[1]))
                 except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
                 except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
+            im = re.fullmatch(r"/api/intake/([0-9a-f]{12})/rubric", self.path)
+            if im:
+                # Read a stored attachment as the paper's marking guide.  Nothing is
+                # started: the page holds the parsed rubric, shows the student what was
+                # read from it, and follows it only once they confirm.
+                self._body()
+                try: return self._send(200, product_intake.use_as_rubric(im[1]))
+                except product_intake.IntakeNotFound as e: return self._send(404, {"error": str(e)})
+                except product_intake.IntakeError as e: return self._send(422, {"error": str(e)})
             if self.path == "/api/ingest": return self._ingest(self._body(INGEST_MAXBODY))
             if self.path == "/api/literature/verify": return self._literature(self._body())
             m = re.fullmatch(r"/api/sessions/(\w+)/(confirm|reject)", self.path)

@@ -16,9 +16,12 @@
   the paper's own count; `paper.missing`/`paper.check` block export when a **weighted** criterion is a
   gap, and demote every row to a warning when the student turns the gate off.
 - **What is still not built.** A rubric heading the profile does not have is named as a gap, never
-  created as an empty section (no section injection); there is no upload role or button for a rubric
-  specifically (the intake store's roles and its "use as the instruction" action are the surface that
-  exists); and a scanned or photographed rubric needs the OCR chain before it can be read at all.
+  created as an empty section (no section injection); and a scanned or photographed rubric needs the
+  OCR chain before it can be read at all.
+- **The student hands the rubric over from the page.** A stored PDF, Word, text or image file carries a
+  **Use as the rubric** action beside **Use as the instruction**; the route reads and parses it, records
+  the role `rubric` on the file, shows the student the criteria it read (and says the text is
+  unverified), and starts nothing. The parsed rubric then travels with the next framework run.
 - **The reader carries what the document states and nothing else.** A rubric with no weights gives
   `weight: None` on every criterion (never an assumed `1/n`); weights that miss 100 are reported as
   written (never rescaled); a page limit is never converted into a word count; two named citation
