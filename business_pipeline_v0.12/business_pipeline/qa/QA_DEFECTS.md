@@ -239,6 +239,20 @@ references and determinism. Four defects came out of it that no unit test had as
 | D-MGT-14 | management | Every paper whose singular starts with a vowel; E-mgt-050 | MINOR | WORDING | the produced `.docx` read "it is **a element** the case has not documented" | `_draft_data` hard-coded "it is a " + singular; the `_article` helper added for D-MGT-10 covered the other four clauses but not this one | this session (`completion.py`) | `test_E_mgt_050` | FIXED |
 | G-mgt-06 | cross-shelf | 34 blocks on five other profiles still declare the `['evidence']` placeholder (Project Charter, WBS, Risk Register, Stakeholder Plan, Lessons Learned) | GAP | — | `framework_profiles` audit: `cues == ['evidence']` for those profiles | they came from the same WO-3 temp file; the project-management lane is repairing its own (D-PM-xx, `ba3f88a`), so they are measured and left to it | — | — | **GAP** (other lane) |
 
+### Session 5 (continued) — the same bug everywhere, killed at the root
+
+The owner's instruction: *"FIX THIS: 34 cells on five other frameworks … still have the broken
+placeholder word list … PUTANGINA. I ASKED A LOT OF THINGS TO AVOID THIS SHIT ONLY TO HAVE THIS
+AGAIN."* The measure was re-taken over **every profile, not the shelf**: 382 researched blocks,
+**9** that could not accept a source whose title was their own query — 2 on Lessons Learned and 7 on
+operations-family profiles (the other four had already been repaired by that lane). All 9 fixed, and
+the sweep is now a test over all 75 profiles, so a tenth cannot appear quietly.
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-MGT-15 | project-management, operations | Lessons Learned (`went_poorly`, `share`) and FMEA/PDCA/root_cause/S&OP/TOC blocks; E-mgt-048 | BLOCKER | WIRING | `python qa/probe_mgt_debug.py` audit over all 75 profiles: 382 researched blocks, 9 refused their own query | the cue list did not contain the words the query uses (`went wrong` vs "lessons learned what did not go well"; `profit` vs "financial plan implied by an operations plan"), so the gate rejected every source for that cell and it was silently always-a-gap | this session (`framework_profiles.py`) | `tests/test_product_profile_cues.py` — the same sweep, over all 75 profiles, as a test | FIXED |
+| D-MGT-16 | product | Every user download; E-mgt-051 | MAJOR | HONESTY | the workbook and the papers printed `Specification hash: …` / `Outputs hash …` | a hash is the system's marker, not a student's cell; it must stay in the record and never print in a download | the spec-hash removal lane (`spreadsheets.py`, B-199) + this session for the record half | `test_E_mgt_051__the_hash_stays_in_the_record_and_out_of_every_download` | FIXED |
+
 | ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | G-mgt-01 | management | Records, theories, glossary; E-mgt-004 | GAP | — | `detail("management")["records"] == []` | the shelf has no read-only record set by design | — | `test_E_mgt_004__…` | **GAP** (declared) |

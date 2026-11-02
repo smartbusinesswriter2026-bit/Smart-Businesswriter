@@ -667,7 +667,33 @@ class CueReachabilityTest(unittest.TestCase):
                 self.assertTrue(item["citation"], template)
 
 
-    def test_E_mgt_050__no_shelf_paper_prints_a_wrong_article_or_singular(self):
+    def test_E_mgt_051__the_hash_stays_in_the_record_and_out_of_every_download(self):
+        """Owner, 2026-11-03: "use the hash, just don't show it in the file downloaded by users
+        — they are not part of academic papers, they are your markers, so keep it as such"."""
+        from bp.product import spreadsheets
+        delivery = deliver("case_decision", dict(server.PRESETS["case_decision"]["inputs"]))
+        marker = "spec-" + "a" * 59
+        bundle = {"id": "mgt-hash", "title": "Option comparison", "method": "case_decision",
+                  "tier": delivery.tier, "created_at": "2026-11-03T00:00:00+00:00",
+                  "spec_hash": marker, "outputs_hash": marker,
+                  "delivery": {"report": delivery.report, "appendix": delivery.appendix}}
+        downloads = {
+            "csv": spreadsheets.to_csv(bundle),
+            "spreadsheetml": spreadsheets.to_spreadsheetml(bundle),
+            "session-paper": "\n".join(
+                line for _h, lines in __import__("bp.product.session_paper", fromlist=["x"])
+                .sections(bundle["delivery"]) for line in lines),
+            "worksheet": "\n".join(line for _h, lines in deliverables.sections(bundle, "worksheet")
+                                   for line in lines),
+        }
+        for name, text in downloads.items():
+            self.assertNotIn("aaaaaaaaaa", text, "%s shows part of the hash" % name)
+            self.assertNotIn(marker, text, "%s shows the hash" % name)
+        # and the record keeps its marker: the hash is the system's, not the student's
+        self.assertEqual(bundle["spec_hash"], marker)
+        self.assertEqual(bundle["outputs_hash"], marker)
+        self.assertEqual(delivery.appendix.get("spec_hash"), delivery.appendix.get("spec_hash"))
+
         """The article was hard-coded "a", so a vowel-initial singular read "a element"."""
         for sheet in sheets():
             template = sheet["template"]

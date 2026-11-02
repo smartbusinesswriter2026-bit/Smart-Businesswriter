@@ -219,8 +219,9 @@ asserts what someone thought to assert and the harness asserts what a reader can
 | E-mgt-048 | Every researched block accepts a source whose title echoes its own query (168 blocks) | `retrieval._accept`; V-01 | PASS |
 | E-mgt-049 | The three canvas profiles carry a sourced item, with a citation | V-01, V-12 | PASS |
 | E-mgt-050 | No paper prints a wrong article or a broken singular (`a element`, `a activitie`) | manual §4.6 | PASS |
+| E-mgt-051 | The spec hash stays in the record and out of **every** download (CSV, workbook, paper, worksheet) | owner instruction 2026-11-03: “use the hash, just don't show it in the file downloaded by users — they are not part of academic papers, they are your markers, so keep it as such” | PASS |
 
-**Scoreboard: 49 PASS · 1 BLOCKED · 0 DISPUTED · 0 GAP.**
+**Scoreboard: 50 PASS · 1 BLOCKED · 0 DISPUTED · 0 GAP.**
 
 ## 4. DISPUTED rows
 
@@ -263,6 +264,7 @@ paper prints `Npv A1: 2586.47` instead of fifty digits. One row is still `BLOCKE
 | E-mgt-043 | `test_E_mgt_043__the_unreachable_profiles_are_the_measured_eighteen` | E-mgt-047 | `test_E_mgt_047__no_block_declares_a_placeholder_cue_or_a_list_of_cues` |
 | E-mgt-048 | `test_E_mgt_048__every_research_block_accepts_evidence_for_its_own_question` | E-mgt-049 | `test_E_mgt_049__the_three_canvases_carry_a_sourced_item` |
 | E-mgt-050 | `test_E_mgt_050__no_shelf_paper_prints_a_wrong_article_or_singular` | — | — |
+| E-mgt-051 | `test_E_mgt_051__the_hash_stays_in_the_record_and_out_of_every_download` | — | — |
 
 Every row maps to exactly one test; no test is unused and no row is untested.
 

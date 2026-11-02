@@ -1232,7 +1232,7 @@ TOC = {
 
          "fill": "auto",
 
-         "cues": "exploit keep running uptime changeover idle starve block setup",
+         "cues": "exploit keep running uptime changeover idle starve block setup bottleneck losses reduced",
 
          "queries": ["losses at the bottleneck step and how they are reduced"], "category": None,
 
@@ -2212,7 +2212,7 @@ ROOT_CAUSE = {
 
         {"key": "people", "label": "People", "prompt": "Causes rooted in skills, staffing, training or behaviour",
 
-         "fill": "auto", "cues": "people staff training skill shift handover", "queries": ["human factors in process error"],
+         "fill": "auto", "cues": "people staff human factors training skill shift handover error", "queries": ["human factors in process error"],
 
          "category": None, "probe": "state any cause you can evidence in people, training or staffing"},
 
@@ -2470,7 +2470,7 @@ FMEA = {
 
         {"key": "causes", "label": "Causes", "prompt": "Why each failure mode happens", "fill": "auto",
 
-         "cues": "cause reason source because", "queries": ["causes of failure in this process"],
+         "cues": "cause reason failure source because", "queries": ["causes of failure in this process"],
 
          "category": None, "probe": "state why each failure happens"},
 
@@ -2488,7 +2488,7 @@ FMEA = {
 
         {"key": "owners", "label": "Owners and review", "prompt": "Who acts, by when, and when the risk is reviewed again",
 
-         "fill": "auto", "cues": "owner review date responsible follow", "queries": ["assigning ownership for risk actions"],
+         "fill": "auto", "cues": "owner review date responsible follow assigning ownership actions", "queries": ["assigning ownership for risk actions"],
 
          "category": None, "probe": "state who acts, by when, and when the risk is reviewed again"},
 
@@ -2894,13 +2894,13 @@ SALES_AND_OPERATIONS = {
 
         {"key": "financial_plan", "label": "Financial plan", "prompt": "The revenue, cost and margin the plan implies",
 
-         "fill": "auto", "cues": "revenue cost margin budget profit", "queries": ["financial plan implied by an operations plan"],
+         "fill": "auto", "cues": "revenue cost margin budget profit financial plan", "queries": ["financial plan implied by an operations plan"],
 
          "category": None, "probe": "state the revenue, cost and margin the plan implies"},
 
         {"key": "decisions", "label": "Gaps and decisions", "prompt": "Where the plans disagree, and the decision taken",
 
-         "fill": "auto", "cues": "gap conflict decision reconcile trade off", "queries": ["reconciling demand and supply plans"],
+         "fill": "auto", "cues": "gap conflict decision reconcile reconciling demand supply plans trade off", "queries": ["reconciling demand and supply plans"],
 
          "category": None, "probe": "state where the plans disagree, and the decision you took"},
 
@@ -3102,7 +3102,7 @@ PDCA = {
 
         {"key": "check", "label": "Check", "prompt": "What the measure showed, against the target",
 
-         "fill": "auto", "cues": "check measure result compare data before after", "queries": ["measuring the effect of a process change"],
+         "fill": "auto", "cues": "check measure measuring result compare data before after effect change", "queries": ["measuring the effect of a process change"],
 
          "category": None, "probe": "state what the measure showed, against the target"},
 
@@ -10967,7 +10967,7 @@ LESSONS_LEARNED = {'template': 'template_lessons_learned',
              'label': 'What did not go well',
              'prompt': 'What failed, slipped or caused avoidable cost',
              'fill': 'research',
-             'cues': ['went wrong', 'problem', 'shortfall'],
+             'cues': ['went wrong', 'lessons learned', 'failure', 'problem', 'shortfall'],
              'queries': ['lessons learned what did not go well'],
              'category': 'worksheet',
              'probe': 'state the evidence for this block'},
@@ -10999,7 +10999,7 @@ LESSONS_LEARNED = {'template': 'template_lessons_learned',
              'label': 'Who should see this',
              'prompt': 'The teams or roles that need the lesson',
              'fill': 'research',
-             'cues': ['share', 'disseminate', 'knowledge'],
+             'cues': ['share', 'sharing', 'disseminate', 'knowledge', 'lessons learned', 'projects'],
              'queries': ['sharing lessons learned across projects'],
              'category': 'worksheet',
              'probe': 'state the evidence for this block'},
