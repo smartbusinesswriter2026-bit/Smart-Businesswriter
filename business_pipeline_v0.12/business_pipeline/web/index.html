@@ -8697,14 +8697,14 @@ RENDERERS.deliver = function () {
     '<span class="grow"></span><span class="muted">Exports are written by the server; the path it returns is shown as-is.</span></div>' +
     '<div id="delout"></div></div>' +
     '<div class="card"><h3>Report</h3><div class="report" id="delreport">' + (b && b.delivery ? esc(b.delivery.report) : "not recorded") + "</div></div>" +
-    '<div class="card"><h3>Charts</h3><div class="row"><select id="chartkind"><option value="bar">bar</option>' +
+    '<div class="card" style="display:none"><h3>Charts</h3><div class="row"><select id="chartkind"><option value="bar">bar</option>' +
     '<option value="line">line</option><option value="table">table</option>' +
     '<option value="gantt">gantt (CPM schedule)</option></select>' +
     '<select id="chartart"></select><input type="text" id="charttitle" placeholder="Chart title" size="26">' +
     '<button class="btn primary" id="chartbtn">Render chart</button></div>' +
     '<p class="muted">The chart is drawn by the server from the stored values; nothing is computed in the browser.</p>' +
     '<div id="chartout"></div></div>' +
-    '<div class="card"><h3>Export</h3><div class="row"><select id="expkind"><option value="xlsx">xlsx (Excel)</option>' +
+    '<div class="card" style="display:none"><h3>Export</h3><div class="row"><select id="expkind"><option value="xlsx">xlsx (Excel)</option>' +
     '<option value="csv">csv</option>' +
     '<option value="spreadsheetml">spreadsheetml</option><option value="html">html</option></select>' +
     '<input type="text" id="expdest" size="42" placeholder="exports/case.csv"><button class="btn" id="expbtn">Export</button></div>' +
