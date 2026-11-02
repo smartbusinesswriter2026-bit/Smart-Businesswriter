@@ -4211,10 +4211,19 @@ function fieldLabel(name, desc, extra) {
     (tail ? ' - <span class="muted">' + tail + "</span>" : "") + "</label>";
 }
 
-/* Held back on the owner's request (2026-11-02).  The framework picker and the groups
-   listed here are not rendered, and their tiles are not built.  The markup is left in
-   place, so nothing else changes and surfacing them again is this object alone. */
-const HOLD = { picker: true, groups: ["risk and decision analysis"] };
+/* Held back on the owner's request (2026-11-02, extended 2026-11-03).  The framework
+   picker and the groups listed here are not rendered, and their tiles are not built.
+   The markup is left in place, so nothing else changes and surfacing a group again is
+   this object alone.
+
+   2026-11-03: "project delivery and governance" was added.  Those ten entries are
+   read-only records - cards a student can only read, never fill in - and the owner's
+   instruction was to delete them from the page rather than advertise them beside the
+   six worksheets that do work.  The catalogue rows stay; only the page changes.  The
+   Balanced Scorecard comes back as a real worksheet inside a Governance tile. */
+const HOLD = { picker: true,
+               groups: ["risk and decision analysis", "project delivery and governance"] };
+
 
 function isHeldGroup(label) {
   return HOLD.groups.indexOf(String(label || "").trim().toLowerCase()) !== -1;
