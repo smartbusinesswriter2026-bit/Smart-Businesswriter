@@ -329,10 +329,24 @@ def to_method_inputs(table, method_id, mapping):
     if errs: raise IngestError("the mapped columns do not form a valid request for " + method_id + ": " + "; ".join(errs))
     prof = m.profile(out)
     if prof: raise IngestError("the mapped columns fail the method's pre-checks: " + "; ".join(prof))
+    # Which columns actually fed the request, so the session can carry the file and its hash
+    # as a manifest entry and each mapped input can say where it came from (B-071).
+    used = set()
+    for key, target in mapping.items():
+        if key not in out:
+            continue
+        if isinstance(target, str):
+            used.add(target)
+        else:
+            used.update(str(name) for name in target.values())
     return {"method": method_id, "inputs": out,
             "provenance": {"kind": "sourced", "file": table.get("filename"), "sha256": table.get("sha256"),
                            "locator": table.get("provenance", {}).get("locator"),
                            "note": "Values were read from the named file; the pipeline records them as owner-supplied. The file hash identifies the source, it does not verify the data."},
+            "input_provenance": {k: "sourced" for k in out},
+            "data_manifest": [{"kind": "file", "file": table.get("filename"),
+                               "sha256": table.get("sha256"), "columns": sorted(used),
+                               "note": "Read from the named file; the hash identifies the source, it does not verify the data."}],
             "not_mapped": sorted(k for k in m.input_schema if k not in out)}
 
 def decode_request(body):

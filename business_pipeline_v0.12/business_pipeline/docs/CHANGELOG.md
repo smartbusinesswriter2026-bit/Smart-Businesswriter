@@ -1,3 +1,26 @@
+## Ingest: a mapped dataset now keeps its provenance into the specification (B-071)
+
+`bp.ingest.to_method_inputs` already turned named columns into a method request, and it refuses
+loudly (unknown method, unknown column, a scalar input, a `mixed` column feeding a value list, an
+empty mapping). What it did **not** do was survive the last step: the request it returned carried a
+single document-level `provenance` object (`{kind, file, sha256, note}`), while
+`orchestrator.start` reads `provenance` **per input** (`request["provenance"].get(key, "user")`).
+Passing the mapped request straight to a session therefore recorded every value read from the
+file as `"user"` — the specification claimed the student had typed numbers that came out of a
+spreadsheet.
+
+The mapped request now also carries `input_provenance` (`{input: "sourced"}`) and a
+`data_manifest` entry naming the file, its SHA-256 and **only the columns that fed the request**.
+A session built from it records each mapped input as `sourced` and keeps the file hash, so the
+paper can be re-run from the file it actually read.
+
+`tests/test_ingest_pipeline.py` proves the whole chain rather than the mapping alone: a column of
+scores produces the same mean as hand arithmetic (`10.50`) through a real `Pipeline().run`, the
+specification records the input as `sourced` rather than `user`, a two-column map reaches
+`welch_t`, a date column keeps its `date` type, the manifest lists only the used columns, and every
+refusal names its reason. 11 new tests; suite count 2815.
+
+
 ## Intake: a student's own sources are read, listed, and never treated as evidence (B-182)
 
 A `.bib`, `.ris` or `.csv` source list can now be attached and read. The new

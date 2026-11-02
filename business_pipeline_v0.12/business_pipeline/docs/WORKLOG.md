@@ -1,5 +1,24 @@
 [product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
 
+## 2026-11-02 — [ingest] P3: the dataset leg is proven, and its provenance is no longer lost
+
+**Found.** The dataset-to-method path was built (B-065/B-071) and refused bad mappings correctly,
+but it did not survive the hand-off to a session: `to_method_inputs` returned a document-level
+`provenance` object, and `orchestrator.start` reads `provenance` **per input**. So a page forwarding
+the mapped request recorded every value read from the spreadsheet as `"user"` — the specification
+said the student typed numbers that came out of a file. That is a provenance defect, not a cosmetic
+one: the paper's claim about where a figure came from would have been wrong.
+
+**Fixed (additive, product/core boundary unchanged).** The mapped request now also carries
+`input_provenance` (`{input: "sourced"}`) and a `data_manifest` entry with the file name, its
+SHA-256 and only the columns used. Existing callers and tests are unaffected (the keys are new, the
+old ones unchanged).
+
+**Verified.** `tests/test_ingest_pipeline.py` (11 tests): the delivered mean equals hand arithmetic
+(`10.50`), the spec records `sourced`, the two-column map reaches `welch_t`, a date column stays a
+date, the manifest names only used columns, and each refusal names its reason. Suite count 2815.
+
+
 ## 2026-11-02 — [intake] P2: the student's own sources are cited, never evidence
 
 **Did.** `bp.product.sources_file` (stdlib only) reads a declared subset of `.bib`, `.ris` and
