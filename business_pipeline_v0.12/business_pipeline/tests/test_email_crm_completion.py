@@ -48,10 +48,9 @@ class EmailCRMCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_email_crm")
-        self.assertEqual(result["framework"], "Email CRM")
+        self.assertEqual(result["framework"], "Email CRM and Lifecycle")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["list", "segments",
-                          "campaigns", "automation"])
+                         ["list", "segments", "campaigns", "automation"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class EmailCRMCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Email CRM")
+        self.assertEqual(outline["framework"], "Email CRM and Lifecycle")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 

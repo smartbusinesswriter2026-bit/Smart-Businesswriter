@@ -48,10 +48,9 @@ class AttributionCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_attribution")
-        self.assertEqual(result["framework"], "Attribution")
+        self.assertEqual(result["framework"], "Attribution and Campaign Measurement")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["touchpoints", "model",
-                          "credit", "reporting"])
+                         ["touchpoints", "model", "credit", "reporting"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class AttributionCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Attribution")
+        self.assertEqual(outline["framework"], "Attribution and Campaign Measurement")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 

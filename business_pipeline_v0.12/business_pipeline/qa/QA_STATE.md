@@ -1,5 +1,37 @@
 # QA state
 
+---
+
+## Session 6 — `marketing` (started 2026-11-03, in progress)
+
+**Owner instruction:** "8. GO." — the next subject, after the management shelf closed and after the
+owner made the core unfrozen (B-197).
+
+**Baseline, measured.** `subjects.detail("marketing")`: **24 tools, 6 worksheets, 29 records, 0
+theories, 48 glossary terms**; 21 framework profiles carry `subject: "marketing"`. The framework
+completion slice's last **27 failures were all on this shelf** (`qa/baseline/mgt-completion-after.txt`).
+
+**Found and fixed (D-MKT-01).** Every one of the 27 was a **stale expectation, not a product defect**:
+for all 21 marketing profiles the profile, `templates.CANVAS_BLOCKS`/`MATRIX_META`, the paper and the
+prompt agreed with each other, and only the tests named the older, shorter frameworks — the profile
+declares 10 blocks for the marketing plan (4 STP + the 7 Ps) against a test that expected 4, "Kano
+Model" against "Kano", "Technology Acceptance Model" against "TAM". Sixteen test files were aligned
+with the declaration (expected block lists, the framework name, and the prompt's framework name) and
+nothing else was touched. `tests/test_subject_marketing_acceptance.py` is the net under it: five tests
+that assert the profile/form/paper/prompt agreement for **all 21** profiles, so a profile that grows or
+is renamed cannot leave a test behind again.
+
+**Result.** The 16 marketing completion files: **192 passed, 0 failed** (was 27 failed). The new net: 5
+passed. Documented test count re-measured and set to **3151** in `docs/HOME.md`, `docs/HANDOFF.md`,
+`docs/CONTRIBUTORS.md` (the real suite count, as `test_docs_sync.py` requires); `test_docs_sync.py`
+7 passed.
+
+**Not done, and not claimed.** The marketing shelf's acceptance manual (`qa/manual/marketing.md`), its
+full E-row table, its click-through and its defect ledger are **session 6's work and are not written
+yet**. 29 records and 48 glossary terms make it the largest shelf after economics. The next session
+starts from the net and the 21 aligned profiles, not from a blank shelf.
+
+
 ## Session 5 — `management` (2026-11-03) · commit `29d0509`
 
 **Subject chosen by the work order** ("SUBJECT = management, do not start marketing, people, operations

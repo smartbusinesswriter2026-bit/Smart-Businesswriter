@@ -50,8 +50,7 @@ class MeasurementPlanCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_measurement_plan")
         self.assertEqual(result["framework"], "Measurement Plan")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["questions", "metrics",
-                          "events_dimensions", "data_quality"])
+                         ["questions", "metrics", "events_dimensions", "data_quality", "governance"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

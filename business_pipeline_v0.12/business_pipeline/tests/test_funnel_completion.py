@@ -50,8 +50,7 @@ class FunnelCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_funnel")
         self.assertEqual(result["framework"], "Funnel")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["awareness", "interest",
-                          "consideration", "intent"])
+                         ["awareness", "interest", "consideration", "intent", "evaluation", "purchase"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

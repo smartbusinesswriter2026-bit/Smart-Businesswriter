@@ -50,8 +50,7 @@ class RFMCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_rfm")
         self.assertEqual(result["framework"], "RFM")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["recency", "frequency",
-                          "monetary", "recency"])
+                         ["recency", "frequency", "monetary"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

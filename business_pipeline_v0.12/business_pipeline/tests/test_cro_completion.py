@@ -48,10 +48,9 @@ class CROCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_cro")
-        self.assertEqual(result["framework"], "CRO")
+        self.assertEqual(result["framework"], "Conversion Rate Optimisation")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["hypothesis", "variants",
-                          "metrics", "results"])
+                         ["hypothesis", "variants", "metrics", "results"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class CROCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "CRO")
+        self.assertEqual(outline["framework"], "Conversion Rate Optimisation")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 
@@ -138,7 +137,7 @@ class CROCompletionTest(unittest.TestCase):
         profile = dict(completion.LENGTHS["mid"])
         system = completion._system(completion.HEAD_SYSTEM, profile,
                                     completion._profile("template_cro"))
-        self.assertIn("CRO", system)
+        self.assertIn("Conversion Rate Optimisation", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
         self.assertIn("industry", system.lower())

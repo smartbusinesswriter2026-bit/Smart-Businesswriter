@@ -50,8 +50,8 @@ class MarketingPlanCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_marketing_plan")
         self.assertEqual(result["framework"], "Marketing Plan")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["segmentation", "targeting",
-                          "positioning", "product"])
+                         ["segmentation", "targeting", "positioning", "product", "price", "place",
+                          "promotion", "people", "process", "physical_evidence"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

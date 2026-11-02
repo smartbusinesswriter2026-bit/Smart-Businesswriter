@@ -48,10 +48,9 @@ class KanoCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_kano")
-        self.assertEqual(result["framework"], "Kano")
+        self.assertEqual(result["framework"], "Kano Model")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["must_be", "performance",
-                          "attractive", "indifferent"])
+                         ["must_be", "performance", "attractive", "indifferent", "reverse"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class KanoCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Kano")
+        self.assertEqual(outline["framework"], "Kano Model")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 
@@ -138,7 +137,7 @@ class KanoCompletionTest(unittest.TestCase):
         profile = dict(completion.LENGTHS["mid"])
         system = completion._system(completion.HEAD_SYSTEM, profile,
                                     completion._profile("template_kano"))
-        self.assertIn("Kano", system)
+        self.assertIn("Kano Model", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
         self.assertIn("industry", system.lower())

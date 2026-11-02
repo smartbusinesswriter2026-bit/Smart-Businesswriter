@@ -50,8 +50,7 @@ class CustomerJourneyCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_customer_journey")
         self.assertEqual(result["framework"], "Customer Journey")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["awareness", "consideration",
-                          "purchase", "retention"])
+                         ["awareness", "consideration", "purchase", "retention", "advocacy"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

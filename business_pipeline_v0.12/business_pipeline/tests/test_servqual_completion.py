@@ -50,8 +50,7 @@ class SERVQUALCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_servqual")
         self.assertEqual(result["framework"], "SERVQUAL")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["tangibles", "reliability",
-                          "responsiveness", "assurance"])
+                         ["tangibles", "reliability", "responsiveness", "assurance", "empathy"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

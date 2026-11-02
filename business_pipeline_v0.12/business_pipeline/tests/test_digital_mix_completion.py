@@ -48,10 +48,9 @@ class DigitalMixCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_digital_mix")
-        self.assertEqual(result["framework"], "Digital Mix")
+        self.assertEqual(result["framework"], "Digital Marketing Mix")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["owned", "earned",
-                          "paid", "owned"])
+                         ["owned", "earned", "paid"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class DigitalMixCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Digital Mix")
+        self.assertEqual(outline["framework"], "Digital Marketing Mix")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 
@@ -138,7 +137,7 @@ class DigitalMixCompletionTest(unittest.TestCase):
         profile = dict(completion.LENGTHS["mid"])
         system = completion._system(completion.HEAD_SYSTEM, profile,
                                     completion._profile("template_digital_mix"))
-        self.assertIn("Digital Mix", system)
+        self.assertIn("Digital Marketing Mix", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
         self.assertIn("industry", system.lower())

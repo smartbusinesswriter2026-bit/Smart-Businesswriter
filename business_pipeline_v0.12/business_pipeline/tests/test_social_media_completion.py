@@ -48,10 +48,9 @@ class SocialMediaCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
         self.assertEqual(result["template"], "template_social_media")
-        self.assertEqual(result["framework"], "Social Media")
+        self.assertEqual(result["framework"], "Social Media and Influencer")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["platforms", "content",
-                          "engagement", "influencers"])
+                         ["platforms", "content", "engagement", "influencers"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -96,7 +95,7 @@ class SocialMediaCompletionTest(unittest.TestCase):
         for field in ("framework", "context", "discussion", "implications",
                       "limitations", "conclusion", "lead"):
             self.assertTrue(outline.get(field), field)
-        self.assertEqual(outline["framework"], "Social Media")
+        self.assertEqual(outline["framework"], "Social Media and Influencer")
         self.assertFalse(outline["context"].endswith("."))
         self.assertFalse(outline["discussion"].endswith("."))
 

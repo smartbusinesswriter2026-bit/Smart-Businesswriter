@@ -50,8 +50,8 @@ class PaidMediaPlanCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_paid_media_plan")
         self.assertEqual(result["framework"], "Paid Media Plan")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["objective", "audience",
-                          "channels_placements", "budget_bid"])
+                         ["objective", "audience", "channels_placements", "budget_bid", "creative_variants",
+                          "conversion_definition", "measurement"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

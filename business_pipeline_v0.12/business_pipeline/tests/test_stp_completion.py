@@ -50,8 +50,7 @@ class STPCompletionTest(unittest.TestCase):
         self.assertEqual(result["template"], "template_stp")
         self.assertEqual(result["framework"], "STP")
         self.assertEqual([block["key"] for block in result["blocks"]],
-                         ["segmentation", "targeting",
-                          "positioning", "segmentation"])
+                         ["segmentation", "targeting", "positioning"])
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:

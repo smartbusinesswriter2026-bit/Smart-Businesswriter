@@ -119,6 +119,16 @@ behaviour, so a change in either is a red test rather than a silent drift.
 
 ---
 
+## Session 6 — `marketing` (started 2026-11-03; manual and full E-row table not written yet)
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-MKT-01 | marketing | All 16 completion test files; E-mkt-001…005 | MAJOR | DOC-DRIFT | `qa/baseline/mgt-completion-after.txt`: 27 failures, every one on marketing — `test_four_cells_each_carry_a_sourced_item_or_a_named_gap` expected `["segmentation", "targeting", "positioning", "product"]` from a profile that declares ten blocks (4 STP + the 7 Ps), and `outline["framework"]` expected "Kano" from a profile labelled "Kano Model" | the profiles and their forms grew (7 Ps, longer framework names) and the tests kept the old, shorter declarations; measured for **all 21** marketing profiles: profile keys == `templates.CANVAS_BLOCKS`/`MATRIX_META` keys, label == `outline.framework`, and the prompt names the label — so the tests were the only stale copy | this session (`tests/test_*_completion.py` ×16) | `test_E_mkt_001…005` in `tests/test_subject_marketing_acceptance.py` (the profile/form/paper/prompt agreement for all 21 profiles) | FIXED |
+| G-mkt-01 | marketing | Manual, E-rows, click-through, ledger | GAP | — | `qa/manual/marketing.md` does not exist | session 6 is in progress: 24 tools, 29 records, 48 glossary terms and 21 profiles are more than one sitting | — | — | **GAP** (declared, next session) |
+
+
+---
+
 ## Session 4 — `management` (baseline `211b672`, 2932 tests, 66 failures, 13 errors)
 
 Probes: `qa/probe_mgt_shelf.py` (inventory, one mocked run per profile), `qa/probe_mgt_paper.py`
