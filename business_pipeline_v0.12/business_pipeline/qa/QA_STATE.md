@@ -54,11 +54,20 @@ as given and disclosed, not rescaled).
 | Gate | Result |
 |---|---|
 | Shelf acceptance suite | **62 passed** |
+| Shelf acceptance + `test_docs_sync` + `test_frozen_contract` | **72 passed** |
 | Shelf + 19 shared contract modules | 234 passed, 3 failed — all three are baseline failures on other shelves (`qa/baseline/pm-shelf-tests.txt`) |
-| Full suite before / after | 3084 / 40 / 6 → **see `qa/baseline/pm-after-suite-err.txt`** |
+| Full suite before | **3084 tests, 40 failures, 6 errors** (`qa/baseline/pm-before-suite-err.txt`) |
+| Full suite after | **3151 tests, 14 failures, 6 errors** (`qa/baseline/pm-after2-suite-err.txt`) — 33 repaired by the marketing lane's `2209822`, **0 from this shelf**, 1 NEW elsewhere (below) |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** (`qa/baseline/pm-econ-shelf.txt`) |
 | `qa/check_page_syntax.py` | **page syntax: OK** (`qa/baseline/pm-page-syntax.txt`) |
-| `tests/test_docs_sync.py` + `test_frozen_contract.py` | **10 passed** |
+| Live click-through on 8001 | **18 of 18 delivered**, 4 markers, **4 screenshots** |
+
+**The one NEW failure in the after-run is not this shelf's.**
+`test_product_spreadsheets.SpreadsheetTest.test_spreadsheetml_is_a_three_sheet_workbook_of_strings`
+still expects `sha256:spec-abc` in the Case sheet, while the owner's rule removed the
+specification hash from every paper and workbook (P3). It is a foreign-lane stale expectation —
+the same class the marketing lane repaired 27 of in `2209822` — and it is **not** in this
+shelf's tests. Classification: `NEW-UNEXPLAINED→FOREIGN-STALE` (recorded, not fixed here).
 
 ### Next subject and its top three risks
 

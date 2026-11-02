@@ -299,7 +299,7 @@ was converted into a worksheet.
 | Shelf acceptance + `test_docs_sync` + `test_frozen_contract` | **72 passed** | after the marketing lane's commit `2209822` landed |
 | Shelf's own tests + 19 shared contract modules | **234 passed, 3 failed** — all three are baseline failures on other shelves | `qa/baseline/pm-shelf-tests.txt` |
 | Full suite, before | 3084 tests, 40 failures, 6 errors | `qa/baseline/pm-before-suite-err.txt` |
-| Full suite, after | `qa/baseline/pm-after2-suite-err.txt` (started at HEAD `3ebde77`) | see `qa/QA_STATE.md` |
+| Full suite, after | **3151 tests, 14 failures, 6 errors** | `qa/baseline/pm-after2-suite-err.txt` |
 | Framework profiles | 75 before and after (no profile added) | `qa/baseline/pm-probe.txt` |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** | `qa/baseline/pm-econ-shelf.txt` |
 | `qa/check_page_syntax.py` | **page syntax: OK** | `qa/baseline/pm-page-syntax.txt` |
@@ -314,13 +314,13 @@ was converted into a worksheet.
 
 Pushed: `d5e6be3..3ebde77  corpus/merge-v1 -> corpus/merge-v1`.
 
-**The full-suite "after" number is the one measurement this session could not
-finish inside the work order's window.** The marketing lane committed `2209822`
-while the first after-run was in flight, so that run was against a moving tree and
-was discarded; a clean run was started at `3ebde77` and its log path is above.
-What *is* measured and green: the shelf's 62 rows, the 19 shared contract modules,
-`docs_sync`, the frozen contract, `econ_shelf`, the page-syntax gate and the live
-click-through.
+**The full-suite "after" measurement is complete: 3151 tests, 14 failures, 6 errors.**
+33 of the baseline's 40 failures were repaired by the marketing lane's commit
+`2209822`, which landed while this session was open; **none of the remaining 14 is
+on this shelf**. One failure is NEW relative to the baseline and is foreign:
+`test_product_spreadsheets` still expects `sha256:spec-abc` in the Case sheet after
+the owner's rule removed the specification hash — a stale expectation in another
+lane's test, recorded here and not fixed (it is not this shelf's).
 
 ## 9. Lane discipline (another lane is live in this worktree)
 
