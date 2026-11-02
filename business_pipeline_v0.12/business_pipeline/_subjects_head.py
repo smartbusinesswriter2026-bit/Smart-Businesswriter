@@ -3475,14 +3475,16 @@ SUBJECT_DEFS = [
             "It does not prove causality from observational data.",
             "It does not replace a statistician for a complex or clustered design.",
         ],
-        "disciplines": ["statistics and empirical research", "supporting theory"],
+        "disciplines": ["statistics and empirical research"],
         "cross_cutting": True,
         "tools": ["descriptive", "pearson", "spearman", "ols", "ols_robust", "welch",
                   "mann_whitney", "anova", "kruskal_wallis", "chi_square", "factorial",
                   "posthoc", "multicomp", "power", "missing", "paired", "onesample",
                   "logit", "alpha", "weighted", "forecast"],
         "worksheets": [],
-        "catalogue_ids": None,
+        "catalogue_ids": ["QNT-STA-01", "QNT-STA-02", "QNT-STA-03", "QNT-STA-04",
+                          "QNT-STA-05", "QNT-STA-06", "QNT-STA-07", "QNT-STA-08",
+                          "QNT-STA-09", "QNT-STA-10"],
     },
 ]
 

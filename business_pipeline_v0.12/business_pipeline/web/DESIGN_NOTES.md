@@ -20,9 +20,11 @@ The workbench front end is a single self-contained `web/index.html` (no build st
   browser parse the scaffold as the document, which pushes the real `<head>` - and with it the
   four icon links - into the body, where a browser reads no favicon from. The icon links must
   stay inside `<head>`; `tests/test_web_brand_assets.py` holds that.
-- The Home hero mark is 94px tall (67px under 900px), sits 6px lower, and has a 6px gap to the
-  wordmark - the owner's own numbers, so the mark and "Smart Business Writer" read as one
-  lockup. The topbar mark (30px) and the chat button (30px) keep their sizes.
+- The Home hero mark is 103px tall (74px under 900px) and sits 6px lower. The space between
+  the mark and "Smart Business Writer" is the same as the space between that wordmark and
+  "Your reliable business writing assistant" - 25px on each side, measured on the rendered
+  pixels - so the three read as one lockup. The topbar mark (30px) and the chat button
+  (30px) keep their sizes.
 - The A1 screenshot was used for **structure only** (narrow fixed left icon rail, centred hero with the logo above
   a short headline, a large central action box with a secondary controls row inside, a row of quick-action chips
   beneath, a floating circular chat button bottom-right). Its text, claims, pricing and social-proof block were not
