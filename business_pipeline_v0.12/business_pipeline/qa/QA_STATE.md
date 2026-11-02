@@ -200,7 +200,31 @@ with credentials must push them. Recorded rather than worked around.
 - **G-mgt-02.** Change and Organization has a profile, tests and no worksheet row: no page reaches it.
   Adding one changes the catalogue surface — owner decision.
 
-### Next action
+### Debugging the shelf by driving it (owner: "ensure correctness")
+
+`qa/probe_mgt_debug.py` runs **all 30 shelf templates twice** (with evidence and with none),
+strips `word/document.xml`, reads the paper, and checks V-01…V-20, the figure, the citations,
+the references and determinism. It found three defects no unit test had asserted, and one where
+the harness itself was wrong:
+
+| Id | Found by | What it was |
+|---|---|---|
+| D-MGT-12 (BLOCKER) | a source whose title echoes the block's own query was still refused | the three canvas profiles declared `cues: ['evidence']` and `queries: ['<key> evidence']` — a list of cues became the token `"['evidence']"`, so **no** evidence could ever be accepted. 24 blocks now carry a real vocabulary and phrase; `retrieval.cue_words_of` reads a list |
+| D-MGT-13 (MAJOR) | 5 of 168 researched blocks refused their own query | missing cue words (boundaries, axes, communicate) and two queries searching "intervention", a word the gate blocks on purpose |
+| D-MGT-14 (MINOR) | the produced paper read "it is **a element**" | the last hard-coded article; now `_article()` |
+| — | my own harness false positive | `"a activitie" in text` also matches "rot**a activitie**s"; the needles are word-bounded now |
+
+**Measured:** `python qa/probe_mgt_debug.py` → **0 problems** over 30 templates × 2 runs.
+**Framework-completion slice: 539 passed, 0 failed** (60 failing at session start).
+**Full suite: 3162 tests, 10 failures, 5 errors** — from 2932 / 66 / 13 at `211b672`. None of the
+15 remaining problems is on this shelf: 5 registry/catalogue, 4 operations examples, and one each
+in spreadsheets (the spec-hash removal landed without updating that test), paper documents, the
+marketing RFM record, the product rail, the network-dependent sources test and the chat hung-dimension test.
+
+Counts re-measured rather than copied: **18** profiles reachable from no page (SERVQUAL's row left
+the marketing shelf while that lane repairs it), **11** non-draftable, documented suite count **3158 →**
+to be reset by the next lane that changes the suite (the loader counts 3162 with this session's four
+new E-rows).
 
 **Session 6 — `marketing`.** It is the only shelf with failures left in the framework-completion slice
 (27 of 27: attribution, cro, customer_journey, digital_mix, email_crm, funnel, kano, marketing_plan,
