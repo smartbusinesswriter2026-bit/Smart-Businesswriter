@@ -60,3 +60,11 @@ corpus-db/build/_logs/
 # The restore test's working set: a copy of the record, the restored bytes
 # (1.2 GB) and a second Meilisearch data directory. Runtime, rebuildable.
 corpus-db/test_restore/
+
+# Paper output from running the server: one .docx per generated document. The
+# index.json beside them is tracked; the rendered files themselves are runtime
+# output and are rebuilt on demand.
+business_pipeline_v0.12/business_pipeline/documents/*.docx
+
+# A hand-made backup of a source file while a change is in flight.
+*.bak
