@@ -55,6 +55,12 @@ never named the unit of analysis (D-MGT-07), and “a activitie” in every `-ie
 | `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** | — |
 | Artefact read (P6) | value-chain, change-organization, no-source twins, worksheet export — no footer, no diagram promise, byline on the title page, background disclosed | `qa/evidence/management/summary.txt` |
 
+**Push: BLOCKED by this machine, not by the work.** `git push origin corpus/merge-v1` fails with
+`remote: Invalid username or token. Password authentication is not supported for Git operations.` and
+`GIT_TERMINAL_PROMPT=0` (as the work order requires) makes it fail rather than prompt. Both commits are
+in the local tree (`29d0509`, `0217a42`) and the branch is 6 ahead of `origin/corpus/merge-v1`; a lane
+with credentials must push them. Recorded rather than worked around.
+
 ### Left open, deliberately
 
 - **D-MGT-08 / E-mgt-039 (BLOCKED).** Four frozen methods (`npv`, `pearson`, `spearman`,
@@ -66,7 +72,26 @@ never named the unit of analysis (D-MGT-07), and “a activitie” in every `-ie
 - **G-mgt-02.** Change and Organization has a profile, tests and no worksheet row: no page reaches it.
   Adding one changes the catalogue surface — owner decision.
 
-### Coordination hazard, recorded again
+### Next action
+
+**Session 6 — `marketing`.** It is the only shelf with failures left in the framework-completion slice
+(27 of 27: attribution, cro, customer_journey, digital_mix, email_crm, funnel, kano, marketing_plan,
+measurement_plan, paid_media_plan, rfm, servqual, social_media, stp, stp_evidence, tam). Top three
+risks, measured from this session:
+
+1. **The shared prompt fix already repaired twelve of its tests; the rest are real.** The marketing
+   profiles fail on `test_four_cells_each_carry_a_sourced_item_or_a_named_gap` and
+   `test_outline_headings_are_present_and_title_cased` — the same two classes this shelf had, so read
+   each profile's `fill`, its cue sets and its `outline` before touching a test.
+2. **Marketing has the largest profile surface (35 catalogue records, 6 worksheets).** Two of its
+   profiles (kano, measurement_plan, paid_media_plan, servqual, customer_journey) are in the
+   non-draftable twelve, so a paper must be produced for them through the engine while the button stays
+   off — `test_E_mgt_045` is the pattern.
+3. **`framework_profiles.py` is now 640 KB of data in one module and three lanes are editing it.**
+   Check `git status` before and after every commit, stage explicit paths, and re-read a file before
+   editing it: this session had one in-flight `completion.py` edit swept into another lane's commit.
+   The module should become a package — that is an owner decision, not a lane's.
+
 
 Another lane committed three times while this session ran (`839f06e`, `bfd9872`, `d765853`) and
 `839f06e` swept an in-flight edit of `completion.py` into its own commit. Nothing was lost; every
