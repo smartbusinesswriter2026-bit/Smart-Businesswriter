@@ -1,0 +1,18 @@
+﻿6e20fc4|docs(economics): declare what a student can attach on the Economics shelf
+8bd1e9f|fix(economics): B-190 - a share is not money and a conversion must not mislabel its source - verified by test_subject_economics_acceptance (83 tests)
+04b16d8|qa(rubric): record the rubric lane in the QA state - session, commits, gates, open items and the multi-lane hazard
+
+STATUS_OF_MY_PENDING_FILES:
+ M business_pipeline_v0.12/business_pipeline/docs/CHANGELOG.md
+ M business_pipeline_v0.12/business_pipeline/docs/CONTRIBUTORS.md
+ M business_pipeline_v0.12/business_pipeline/docs/DECISIONS.md
+ M business_pipeline_v0.12/business_pipeline/docs/HANDOFF.md
+ M business_pipeline_v0.12/business_pipeline/docs/HOME.md
+ M business_pipeline_v0.12/business_pipeline/docs/WORKLOG.md
+ M business_pipeline_v0.12/business_pipeline/qa/QA_STATE.md
+
+B190_IN_DECISIONS=1
+SESSION2_IN_STATE=1
+CHANGELOG_HAS_ECON=3
+WORKLOG_HAS_ECON=1
+STAGED_TOTAL=0

@@ -1,3 +1,41 @@
+## Economics: a share is not money, and a conversion stops mislabelling its source (owner-approved unfreeze B-190)
+
+- **A frozen method's fall-through unit was printing shares as money (B-190).** `_labour_typing` in
+  `src/bp/methods.py` named only `cpi`, `labour_productivity` and `unemployment_rate`; every other
+  metric inherited the row unit `currency`. So the labour paper read *"the wage share of
+  productivity is PHP 1.82"* for a share of `1.82`, and printed a tightness ratio of `5,000.00` as
+  money. `wage_share_of_productivity` and `labour_market_tightness` are now `("ratio", 4)` and
+  `vacancies` is `("count", 2)`; `real_wage` and `nominal_wage` remain `currency`. The paper now
+  reads *"the real wage is PHP 95.24 and the wage share of productivity is 0.7937."*
+- **A conversion headline contradicted its own arithmetic (B-190).** `_cc_template` rendered the
+  **source** amount with the request currency, so the `currency` preset (USD 1,000 at 0.92, i.e.
+  EUR 920) delivered *"At the declared rate, EUR 1,000.00 converts to EUR 920.00."* The number was
+  right; the label made it look like nothing had happened. The sentence now quotes the converted
+  amount only and points at the appendix for the source amount, both currency codes, the rate and
+  its provenance.
+- **Neither change touches the pinned contract.** No method, input, preset, check, tier, unit,
+  metric or input-schema key moved; `tests/fixtures/frozen_contract.json` is unedited and
+  `scripts/econ_shelf.py --check` still reports *"frozen fixture: in sync"*.
+- **The economics shelf's acceptance manual now exists.** `qa/manual/economics.md`: ten sections,
+  **59 generated per-tool contract rows** (built from `bp.methods.LIBRARY`, never hand-copied), the
+  records/glossary/tiles, and **84 E-rows** with a traceability scoreboard.
+  `tests/test_subject_economics_acceptance.py` enforces the 83 PASS rows in **83 tests**.
+- **What the sweep found, and what it did not.** All **59 tools** deliver through their own preset,
+  every method's own checks pass, every computation is deterministic, and **all 23 reproducible
+  worked examples in `docs/ECONOMICS_STUDENT_GUIDE.md` match hand arithmetic** — the shelf's
+  arithmetic layer is sound. Two label defects and one doc drift were the whole haul;
+  `docs/CURRICULUM_MAP.md` said 55 tools where the catalogue has 59 (**D-ECO-08**, fixed here).
+- **Tightness stays BLOCKED, deliberately (D-ECO-02).** `labour_market_tightness` divides a count by
+  the unemployment **rate** (`300 / 0.06 = 5000`), which is dimensionally meaningless; the standard
+  definition is vacancies per unemployed person (`300 / 30 = 10`). Choosing the replacement — and
+  whether a new input enters the frozen schema — is an owner modelling decision, so it is recorded
+  as `E-eco-082` rather than guessed.
+- **`docs/ECONOMICS_STUDENT_GUIDE.md` now documents what a student can attach** — an instruction, a
+  dataset (`role: dataset`), declared sources (`kind: sources`, B-182) and a rubric (read-only,
+  `confirm_required`) — so the intake work built in the core is visible on this shelf instead of
+  being rebuilt by the next writer.
+
+
 ## The Portfolio Lab teaches itself: four worked cases, click by click
 
 The owner's next step after the audit was teaching: *"make users understand and know how to use it
