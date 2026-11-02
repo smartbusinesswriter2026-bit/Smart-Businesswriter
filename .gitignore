@@ -68,3 +68,10 @@ business_pipeline_v0.12/business_pipeline/documents/*.docx
 
 # A hand-made backup of a source file while a change is in flight.
 *.bak
+
+# Attached student files: briefs, datasets and declared source lists, plus the
+# JSON record written beside each one. This is the runtime attachment directory
+# (BP_INTAKE_DIR, default <repo>/intake/). An upload is the student's own
+# material, not source, so it stays out of git the same way the rendered papers
+# in documents/ do.
+business_pipeline_v0.12/business_pipeline/intake/
