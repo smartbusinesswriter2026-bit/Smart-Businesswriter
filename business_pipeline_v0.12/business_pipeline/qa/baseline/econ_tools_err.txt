@@ -1,0 +1,41 @@
+﻿TYPING_RAISED            descriptive    sd: 'NoneType' object is not callable
+TYPING_RAISED            pearson        r: 'NoneType' object is not callable
+TYPING_RAISED            pearson        r_squared: 'NoneType' object is not callable
+TYPING_RAISED            pearson        ci_lower: 'NoneType' object is not callable
+TYPING_RAISED            pearson        ci_upper: 'NoneType' object is not callable
+TYPING_RAISED            pearson        p_value: 'NoneType' object is not callable
+TYPING_RAISED            pearson        n_pairs: 'NoneType' object is not callable
+TYPING_RAISED            pearson        n_excluded: 'NoneType' object is not callable
+TYPING_RAISED            pearson        confidence_level: 'NoneType' object is not callable
+TYPING_RAISED            pearson        alpha: 'NoneType' object is not callable
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            ols            unit 'coefficient' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            welch          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            anova          unit '@unit' is not a known unit
+UNIT_MISLABEL            power          unit '@unit' is not a known unit
+UNIT_MISLABEL            power          unit '@unit' is not a known unit
+exit=0

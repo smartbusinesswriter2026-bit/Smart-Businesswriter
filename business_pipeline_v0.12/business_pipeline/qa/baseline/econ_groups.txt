@@ -1,0 +1,2 @@
+﻿[('equilibrium', 'market_basics'), ('elasticity', 'market_basics'), ('taxincidence', 'market_basics'), ('pricecontrol', 'market_basics'), ('concentration', 'market_basics'), ('costcurves', 'firm_behaviour'), ('profitmax', 'firm_behaviour'), ('marketpower', 'firm_behaviour'), ('pricediscrimination', 'firm_behaviour'), ('cournot', 'firm_behaviour'), ('nash', 'firm_behaviour'), ('panel', 'behavioural_evidence')]
+n_grouped 59 of 59
