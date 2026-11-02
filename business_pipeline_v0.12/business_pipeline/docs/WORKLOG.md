@@ -1,3 +1,91 @@
+## 2026-11-02 — [ui] Three launchers that behave as one, and Rates and FX as two cards
+
+**Ask.** "MAKE THEIR APPEARANCE UNIFORM WHEN CLICKED… DONT DEFAULT OPEN THE BUSINESS CALCULATOR TO BOLD
+BECAUSE IT IS NOT CLICKED. ANY OF THEM WILL BECOME BOLD WHEN CLICKED." Then, on the *Rates and FX*
+panel: "ACT AS A PROFESSIONAL UI AND UX DESIGNER AND IMPROVE THEIR APPEARANCE… ENSURE THAT THEIR
+FUNCTIONALITIES ARE INTACT."
+
+**Did.** (1) The launcher row was `btn sm primary` / `btn sm` / `btn sm` — the calculator wore
+`primary`, so it read as chosen before any click, and the three did not share a shape. All three are
+`btn sm quicklink` with one `.is-active` state (navy fill, weight 750), set by a single delegated
+listener in the capture phase: clear the row, mark the pressed element, `aria-current="page"`.
+Nothing is bold on arrival. (2) *Rates and FX* was one flex row of eight controls; the maturity
+select sat beside an FX button and nothing said which button read which fields. It is now two
+`.lookupcard` blocks in a `.marketgrid` — FX rate (Base, Quote, Date, then its own button) and
+Treasury par yield (Maturity, then its own button) — with small-caps captions above full-width
+controls and the never-auto-fill sentence moved under a rule at the foot of the panel. All seven ids
+are untouched, so `bindRatesPanel` binds the same handlers and still fills the dropdowns from
+`/api/currencies`.
+
+**Why.** The row was a *pre-selected* control: `primary` is the theme's "this is the action" colour,
+and using it for one of three peers states a preference the product has no basis for. And a mixed
+row is a UI defect with a measurable cost — the reader cannot tell which fields a button consumes, so
+they press *Treasury yield* with an FX base still on screen.
+
+**Verified.** `test_product_subjects.py::test_the_three_ways_in_are_one_control_and_none_starts_chosen`
+(three `quicklink`s, no `primary`, the bold state exists, one handler) and
+`test_market_panels.py::test_rates_and_fx_gives_each_lookup_its_own_card` (two cards, seven ids, no
+`marketrow`, the FX button ordered inside the FX card). Live on **8002**: page 200 at 782,425 bytes
+with both blocks; `/api/currencies` returns the ISO list; `/api/market/fx?base=USD&quote=EUR` →
+0.8942 (2026-11-02); `/api/market/riskfree?maturity=10Y` → 0.0494 (2026-10-30) — both lookups answer
+through the new markup. 2880 tests collected, unchanged; `test_web_inline_script` still parses the
+page. The 77 failures in a full run are the framework-completion build the other session has in
+flight (bcg/aida/kano/rfm/pestel/value-chain families) — none in a file this change touches.
+
+**Open/next.** The active state is momentary by design: pressing a launcher navigates away and the
+shelf re-renders neutral. If the owner wants "the one you last used" to persist across a return, that
+is a stored preference (per shelf, in `sessionStorage`) and a decision, not a style. Still open from
+the finance QA list: the PDF writer, G-fin-05 (`ols_robust` has no preset), D-FIN-12, and the
+V-01…V-20 paper judgement.
+
+
+## 2026-11-02 — [rubric] A rubric can be read, and only what it states is carried
+
+**Ask.** "i forgot something. also a rubric to be uploaded which should be followed in writing the paper"
+
+**Did.** Built the reader that everything else depends on — `src/bp/product/rubric.py` (standard library
+only, offline, JSON-safe) — which parses a marking guide in three layouts (pipe table, numbered or
+bulleted list, headed criteria) into `{criteria[], sections[], word_budget, citation_style,
+total_weight, problems[], confirm_required}`. Six rules stop it inventing a requirement: a weight is read
+only when stated and is `None` otherwise (never an assumed `1/n`); weights that miss 100 are reported,
+never rescaled; a required element comes only from an explicit column or clause, verbatim; a word budget
+comes only from a stated number of words, so `8 pages` stays `None`; sections only from an explicit
+structure label; a citation style only when exactly one is named (two named styles are a problem, not a
+choice). An unreadable rubric is not half-read: `ok: False`, raw text preserved, `confirm_required: True`.
+`qa/manual/rubric.md` is the manual (19 E-rows, all PASS) and `tests/test_product_rubric.py` is the suite
+(19 tests). Decision B-187.
+
+**Why.** The owner's rubric requirement is the one input that changes what the paper must *do* rather than
+what feeds it. Reading has to be exact first: a guessed weight or an invented required element becomes a
+requirement the student never wrote, and it would then be enforced against their own paper.
+
+**Found by the reader's own probe, before the suite existed.** (1) BLOCKER — `WEIGHT_RE` ended in `\b`, so
+`30%` at the end of a table cell never matched and **every percentage weight was silently dropped**
+(`weighted: 0` on a rubric whose weights total 100). (2) MAJOR — an unbulleted lead-in line
+("The report is marked on:") was read as a criterion. Both fixed, both trapped by tests
+(`E-rub-017`, `E-rub-001`, `E-rub-016`).
+
+**Verified.** `pytest tests/test_product_rubric.py` 19 passed; `unittest tests.test_product_rubric` 19 OK;
+`qa/probe_rubric.py` on six realistic documents (table, list, no weights, prose, marks column, page limit)
+shows the intended behaviour for each. Docs kept in step: B-187 in `DECISIONS.md`; the suite count
+re-measured with the gate's own counter (`qa/_count.py`, which calls `test_docs_sync._suite_count()`) at
+**2878**; a `1.60` changelog bullet restores the build that `HOME`/`HANDOFF` had already claimed (HEAD said
+1.60 while its newest changelog entry said 1.59 — that drift is fixed here). No frozen core, method,
+preset, input, check, number, route family or paper rule touched; no new dependency; no network or model
+call.
+
+**Count caveat, stated plainly.** Three lanes write in this worktree at once, so the count is a snapshot:
+`2878` is what the gate counts here, at this commit. It includes ~22 tests sitting in another lane's
+*uncommitted* economics suite, and a clean checkout of this commit holds ~101 fewer because several test
+modules need provisioned runtime data (intake store, document index, corpus) that is not in git — that
+shortfall is a property of the repository, not of this commit, and is worth its own session.
+
+**Open/next.** Binding is **not built**: the outline, the word band and the required elements are not yet
+driven by a parsed rubric, there is no "Rubric coverage" appendix, no export gate on a required criterion,
+and no upload role or button for a rubric specifically. A scanned rubric needs the OCR chain. A rubric
+cannot be scored and never will be — adequacy is a human judgement.
+
+
 ## 2026-11-02 — [portfolio] The Portfolio Lab is rebuilt around tasks, and a student can add any symbol
 
 **Ask.** "I DONT SEE HERE THAT USER CAN ADD ADDITONAL SYMBOLS ASIDE FROM AAPL. ALLOW USERS TO ADD. ALSO ACT AS A PROFESSIONAL UI AND UX DESIGNER AND IMPROVE THE APPEARANCE OF PORTFOLIO LAB. YOU JUST THREW EVERYTHING THERE WITHOUT ANY SENSE OF ORGANZIATION AND DEISGN."

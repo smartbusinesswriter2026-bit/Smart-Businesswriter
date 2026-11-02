@@ -1,3 +1,35 @@
+## A rubric can be read, and only what it states is carried
+
+The owner asked for a rubric to be uploaded and followed when the paper is written. The first
+increment is the reader, because everything else would inherit its mistakes: a guessed weight or an
+invented required element would become a requirement the student never wrote.
+
+`bp/product/rubric.py` (standard library only, offline, JSON-safe) reads a pipe table, a numbered or
+bulleted list, or headed criteria into `{criteria[], sections[], word_budget, citation_style,
+total_weight, problems[], confirm_required}`. Six rules keep it from inventing a requirement: a
+weight is read only when stated (`30%`, `30 marks`, a bare number in a `Weight`/`Marks`/`%` column)
+and is `None` otherwise — never an assumed `1/n`; weights that miss 100 are reported, never rescaled;
+a required element comes only from an explicit column or clause and is carried verbatim; a word
+budget is read only from a stated number of words, so `8 pages` stays `None`; sections come only from
+an explicit structure label; a citation style is named only when exactly one is named, and two named
+styles are a problem rather than a silent choice.
+
+A rubric it cannot read is not half-read: `ok: False` with the raw text preserved and
+`confirm_required: True`, so the student corrects the criteria instead of the pipeline guessing. The
+same flag is set when a parse is usable but uncertain. **Nothing is scored** — there is no mark,
+grade or predicted result in the module.
+
+Two defects were caught by the reader's own probe before the suite existed: `WEIGHT_RE` ended in
+`\b`, so `30%` at the end of a cell never matched and every percentage weight was being silently
+dropped; and an unbulleted lead-in line ("The report is marked on:") was read as a criterion.
+
+**Binding is not built.** The outline, the word band, the required elements, a "Rubric coverage"
+appendix and an export gate on a required criterion are the next increment; until then a rubric
+changes nothing about a paper (`docs/KNOWN_LIMITATIONS.md`).
+
+- 1.60 (2026-11-02): rubric reader (`bp/product/rubric.py`), 19 acceptance tests E-rub-001…018, `qa/manual/rubric.md`, B-187; no frozen core, method, preset, input, check, number or route family changed.
+
+
 ## Input labels: a title, a dash, then the declared description — on every tile
 
 The "Enter figures" form showed the raw schema id jammed against its description:

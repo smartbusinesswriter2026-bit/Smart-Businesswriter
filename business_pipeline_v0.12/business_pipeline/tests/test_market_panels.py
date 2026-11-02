@@ -72,6 +72,21 @@ class PanelSplitTest(unittest.TestCase):
         self.assertIn("Nothing is auto-filled.", _function("ratesPanel"))
         self.assertIn("nothing is auto-filled", _function("securitiesPanel"))
 
+    def test_rates_and_fx_gives_each_lookup_its_own_card(self):
+        """Eight controls in one row left the reader guessing which button read which field."""
+        body = _function("ratesPanel").split("\nfunction ", 1)[0]
+        self.assertIn('<div class="marketgrid">', body)
+        self.assertEqual(body.count('<div class="lookupcard">'), 2, "one card per lookup")
+        for marker in ('id="fxbase"', 'id="fxquote"', 'id="fxdate"', 'id="rfmat"',
+                       'id="fxlookup"', 'id="rflookup"', 'id="ratesout"'):
+            self.assertIn(marker, body, "the handler binds this id: " + marker)
+        self.assertNotIn('class="marketrow"', body, "the single mixed row is gone")
+        # each button follows the fields it actually reads
+        self.assertLess(body.index('id="fxdate"'), body.index('id="fxlookup"'))
+        self.assertLess(body.index('id="rfmat"'), body.index('id="rflookup"'))
+        self.assertLess(body.index('id="fxlookup"'), body.index('id="rfmat"'),
+                        "the FX button must not sit inside the Treasury card")
+
 
 class GlobalProductCopyTest(unittest.TestCase):
     def test_the_market_data_status_note_is_global(self):

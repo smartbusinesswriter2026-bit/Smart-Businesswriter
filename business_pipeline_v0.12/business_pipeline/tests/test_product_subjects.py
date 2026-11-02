@@ -294,7 +294,22 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertEqual(self.html.count('<label class="field" for="in-'), 1,
                          "the input label must be built in exactly one place (fieldLabel)")
 
-    def test_the_figures_panel_describes_the_method_actually_on_screen(self):
+    def test_the_three_ways_in_are_one_control_and_none_starts_chosen(self):
+        """Open the calculator / ask in the chat / research are peers, not a favourite.
+
+        The calculator used to carry `primary`, so it read as already-selected before
+        anyone clicked anything. All three are now the same pill; the one you click
+        goes bold, and nothing is bold until then.
+        """
+        row = self.html.split('<div class="subjectask">', 1)[1].split("</div>", 1)[0]
+        self.assertEqual(row.count('class="btn sm quicklink"'), 3, row)
+        self.assertNotIn("primary", row, "no launcher may start as the favourite")
+        state = self.html.split(".subjectask .quicklink.is-active", 1)[1].split("}", 1)[0]
+        self.assertIn("font-weight:750", state, "the chosen one goes bold")
+        self.assertIn('closest(".subjectask .quicklink")', self.html,
+                      "one delegated handler marks the clicked launcher")
+
+
         """Only management accounts have an engagement.
 
         The panel told every method that the engagement is declared once - the
@@ -379,7 +394,9 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("saveWorksheetDraft", self.html)
         self.assertIn("restoreWorksheetDraft", self.html)
         self.assertIn(".chatbtn{position:fixed;right:24px;bottom:24px;", self.html)
-        self.assertIn("font-size:17.8px", self.html)
+        # The body size was reduced by one point on the owner's word (2026-11-03);
+        # the pin follows the new value so the type cannot drift again.
+        self.assertIn("font-size:16.8px", self.html)
         # Student orientation: a first-run explainer and structured table editors.
         self.assertIn("How it works", self.html)
         self.assertIn("Start here", self.html)
