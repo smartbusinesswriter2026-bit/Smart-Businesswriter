@@ -4190,6 +4190,10 @@ function capabilityCard(item, kind) {
   const domain = (state.subject && state.subject.label) || "This subject";
   const need = (!isSheet && item.need)
     ? '<span class="capneed">You will need: ' + esc(item.need) + "</span>" : "";
+  /* A worksheet with no drafting button says so on the card, before the click:
+     the descriptor carries `draftable` and the shelf's own `draft_note`. */
+  const sheetNote = (isSheet && item.draftable === false)
+    ? '<span class="capneed">' + esc(item.draft_note || "No drafting button: you fill this worksheet by hand.") + "</span>" : "";
   const source = isSheet ? "Worksheet" : (item.preset ? "Worked example" : "Your figures");
   /* Period moved to footer, below the source line */
   const period = (!isSheet && item.period) ? '<span class="lvl">' + esc(item.period) + "</span>" : "";
@@ -4199,8 +4203,9 @@ function capabilityCard(item, kind) {
     '<span class="capdesc">' + esc(item.what) + "</span>" + need +
     '<span class="capfoot">' +
       '<span class="capfoot-row"><span>' + esc(source) + '</span>' + (period ? '<span class="capperiod">' + period + "</span>" : "") + '<span class="capgo">' +
-      (isSheet ? "Open worksheet" : "Use this tool") + " &rarr;</span></span>" +
+      (isSheet ? (item.draftable === false ? "Open worksheet - filled by hand" : "Open worksheet") : "Use this tool") + " &rarr;</span></span>" +
       (need ? '<span class="capfoot-row capneed-row">' + need + "</span>" : "") +
+      (sheetNote ? '<span class="capfoot-row capneed-row">' + sheetNote + "</span>" : "") +
     '</span>' +
   "</button>";
 }

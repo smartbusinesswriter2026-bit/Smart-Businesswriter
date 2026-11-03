@@ -180,20 +180,91 @@ class Inventory(unittest.TestCase):
         self.assertEqual(not_draftable, ["OPS-03"])
 
     def test_E_scl_006__the_not_draftable_worksheet_states_a_reason(self):
-        """Measured pair, ledgered as D-SCL-02.
+        """D-SCL-02, closed: the tile says why it has no drafting button.
 
-        OPS-03 is the one tile with no drafting button (`draftable: False`), yet its
-        catalogue row still reads `worksheet available: structure and evidence audit
-        only`.  Nothing the student sees says *why* the button is absent.  This test
-        pins the measured pair so the next reader re-measures instead of copying a
-        claim; when the wording is fixed the assertion below fails and is updated.
+        Before this, `draftable` was False and nothing on the page said so — the card
+        read "Open worksheet" like the other ten.  The descriptor now carries a
+        `draft_note` derived from what the worksheet needs, and the card renders it.
         """
         served = page()
         sheet = {w["key"]: w for w in served["worksheets"]}["OPS-03"]
-        row = {r["id"]: r for r in served["catalogue"]}["OPS-03"]
         self.assertFalse(sheet["draftable"])
-        self.assertTrue(row["implementation_status"].startswith("worksheet available"), row)
-        self.assertIn("template_value_stream_map", WORKSHEETS.values())
+        self.assertIn("draft_note", sheet)
+        self.assertIn("No drafting button", sheet["draft_note"])
+        self.assertIn("cycle time", sheet["draft_note"].lower())
+        # and every draftable worksheet stays silent about it
+        for other in served["worksheets"]:
+            if other["draftable"]:
+                self.assertIsNone(other.get("draft_note"), other["key"])
+
+    def test_E_scl_066__a_record_whose_calculator_is_elsewhere_says_so(self):
+        """G-scl-01, closed: the page no longer promises a computation it cannot start."""
+        served = page()
+        records = {r["id"]: r for r in served["records"]}
+        for rid in ("OPS-09", "QNT-OPS-05", "QNT-OPS-06"):
+            self.assertIs(records[rid]["tool_here"], False, rid)
+            self.assertIn("calculator is on", records[rid]["status_note"], rid)
+            self.assertIn("not on this page", records[rid]["status_note"], rid)
+        for rid in ("QNT-OPS-01", "QNT-OPS-02", "QNT-OPS-04", "QNT-OPS-08"):
+            self.assertNotIn("tool_here", records[rid], rid)
+            self.assertNotIn("calculator is on", records[rid]["status_note"], rid)
+        # the note names the shelf that does carry it, and it is not this one
+        self.assertIn("Operations management shelf", records["OPS-09"]["status_note"])
+
+    def test_E_scl_067__the_served_page_carries_the_hand_filled_affordance(self):
+        """The UI half of D-SCL-02: the card says it before the click."""
+        import io
+        html = io.open("web/index.html", encoding="utf-8").read()
+        self.assertIn("Open worksheet - filled by hand", html)
+        self.assertIn("item.draft_note", html)
+
+    def test_E_scl_068__a_byline_reaches_the_title_page_and_none_is_invented(self):
+        """D-SCL-05, closed: V-20's byline is now reachable, and never defaulted."""
+        import io
+        import zipfile
+        from unittest import mock
+        from bp.product import completion
+
+        def academic(query, databases=None, limit=10, year_from=None):
+            return {"results": [{"title": "warehouse study " + str(query)[:30],
+                                 "abstract": "The study reports how depots scheduled loading.",
+                                 "authors": "Ada Lovelace", "authors_list": ["Ada Lovelace"],
+                                 "year": 2024, "venue": "Journal of Logistics", "doi": "10.1/x",
+                                 "url": "https://doi.org/10.1/x", "database": "OpenAlex"}],
+                    "errors": [], "skipped": []}
+
+        def web(query, region="Global", limit=10, category=None, fast=False):
+            return {"results": [], "notice": "not configured", "sites": []}
+
+        brief = ("A regional grocery distributor moves 4,000 pallets a month through one "
+                 "warehouse into 180 stores, and the depot manager must show where it loses time.")
+        text = ("The receiving bay books pallets against the purchase order and the pick face "
+                "is replenished twice a day.")
+        profile = completion._profile("template_sipoc")
+        items = [{"block": b["key"], "text": text, "provenance": "user"} for b in profile["blocks"]]
+
+        def paper(byline):
+            with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
+                    mock.patch("bp.product.sources.search_web", side_effect=web):
+                result = completion.complete("template_sipoc", brief, industry="grocery distribution",
+                                             unit_value="the outbound warehouse process",
+                                             student_items=items, byline=byline)
+                data = completion.draft_bytes(result)
+            with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                xml = archive.read("word/document.xml").decode("utf-8")
+            import re
+            return result, re.sub(r"\n{2,}", "\n", re.sub(r"<[^>]+>", "\n", xml))
+
+        named, named_text = paper(["Maria Santos", "De La Salle University"])
+        self.assertEqual(named["byline"], ["Maria Santos", "De La Salle University"])
+        self.assertIn("Maria Santos", named_text)
+        self.assertLess(named_text.index("Maria Santos"), named_text.index("Introduction"))
+
+        blank, blank_text = paper(None)
+        self.assertNotIn("byline", blank)
+        for placeholder in ("Your name", "Student name", "[Name]", "Author"):
+            self.assertNotIn(placeholder, blank_text)
+
 
 
     def test_E_scl_007__nine_records_two_of_them_read_only(self):

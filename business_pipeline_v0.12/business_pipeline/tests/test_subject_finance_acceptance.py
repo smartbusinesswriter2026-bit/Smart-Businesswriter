@@ -527,7 +527,12 @@ class FinanceRecordsAndGuidance(unittest.TestCase):
                                 "profile %s claims the finance shelf" % key)
 
     def test_032__the_shelf_declares_no_tiles_and_that_is_the_recorded_design(self):
-        """E-fin-032: tiles exist only for the shelves that declare them."""
+        """E-fin-032: tiles exist only for the shelves that declare them.
+
+        The list grew when the project-management lane declared tiles for its own
+        shelf (design lane, B-080).  Finance still declares none, which is the
+        invariant this row exists to protect; the expected set is the measured set.
+        """
         self.assertEqual(page()["tiles"], [])
         # The claim is about *this* shelf and about the shape of the tile map, not a frozen
         # list of every shelf that has one: accounting, operations and project management

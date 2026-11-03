@@ -280,7 +280,7 @@ def _sites(profile):
 
 
 def complete(template, instruction, region=None, student_items=None, industry=None, country=None,
-             unit_value=None, rubric=None):
+             unit_value=None, rubric=None, byline=None):
     """Fill a framework from the instruction.  Returns blocks with provenance.
 
     Each part is completed the way its profile says: researched where external
@@ -488,6 +488,12 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                  "summary": {"parts": len(blocks), "filled": len(filled),
                              "gaps": len(blocks) - len(filled)},
                  "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    # V-20: the title page carries the student's OWN lines, or nothing at all.  A
+    # name is never invented and never defaulted: an empty byline is a paper with
+    # no byline block, which is honest, and the student can add one and re-draft.
+    lines = [str(line).strip() for line in (byline or []) if str(line or "").strip()]
+    if lines:
+        completed["byline"] = lines[:6]
     if attached is not None:
         completed["rubric"] = attached
     return completed

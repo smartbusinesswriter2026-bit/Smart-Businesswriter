@@ -3,7 +3,7 @@
 **Subject:** `supply-chain` · **branch:** `corpus/merge-v1` · **opening commit:** `f699579`,
 **rebased onto `2cd3347`** (the Operations session) before this commit.
 **Suite at close of baseline:** 3171 tests, 6 failures, 4 errors (946 s) — measured here, not copied.
-**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **65 tests, 65 passed**, four of them trap tests that fail on the pre-fix code (proved by stashing the source fix and re-running).
+**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **68 tests, 68 passed**, seven of them trap tests that fail on the pre-fix code (proved by stashing the source fix and re-running).
 
 This shelf is the first in the product to own **nothing of its own**. It has no framework
 profile with `subject == "supply-chain"`, no `SCL-` catalogue id, and no method that is not
@@ -182,7 +182,7 @@ row, and the work order puts both behind §9.
 
 ## 4. Acceptance rows (E-scl-001 … E-scl-062)
 
-One row per test in `tests/test_subject_supply_chain_acceptance.py`. **65 tests, one per row.**
+One row per test in `tests/test_subject_supply_chain_acceptance.py`. **68 tests, one per row.**
 
 ### 4.1 Inventory and page (E-scl-001 … 012)
 
@@ -193,7 +193,7 @@ One row per test in `tests/test_subject_supply_chain_acceptance.py`. **65 tests,
 | E-scl-003 | every tool carries formula, steps, common mistakes, level, period, related | `test_E_scl_003` | PASS |
 | E-scl-004 | eleven worksheets, all `OPS-` ids, every template in `T.TEMPLATES` | `test_E_scl_004` | PASS |
 | E-scl-005 | exactly one worksheet is not draftable, and it is `OPS-03` | `test_E_scl_005` | PASS |
-| E-scl-006 | the not-draftable tile's measured pair (draftable False / "worksheet available") | `test_E_scl_006` | PASS — **pins D-SCL-02** |
+| E-scl-006 | the not-draftable tile states **why** it has no drafting button | `test_E_scl_006`, `test_E_scl_067` | PASS — **D-SCL-02 FIXED** |
 | E-scl-007 | nine records, two read-only (`QNT-OPS-03`, `QNT-OPS-07`), all type Q | `test_E_scl_007` | PASS |
 | E-scl-008 | every computed record links a method that exists in `LIBRARY` | `test_E_scl_008` | PASS |
 | E-scl-009 | no record masquerades as a calculator | `test_E_scl_009` | PASS |
@@ -230,9 +230,9 @@ Each row names the recomputation: a second formula written in the test, or hand 
 | E-scl-028 | `missing_data_bounds` | bounds are the extreme cases: (52 + 2·10)/6 = 12 and (52 + 2·16)/6 = 14 | PASS |
 | E-scl-029 | `missing_data_bounds` | no imputation anywhere: no `mean_complete`, no filled observation, bounds bracket the observed mean | PASS |
 | E-scl-030 | `inventory_policy` | EOQ = √(2DS/H) = 632.455532; orders 18.973666; cycle stock 316.227766 | PASS |
-| E-scl-031 | `inventory_policy` | z = Φ⁻¹(0.95) by bisection on erf → 1.6448536; SS = z·σ·√L = 104.029677; ROP = d·L + SS = 432.796801 | PASS |
+| E-scl-031 | inventory_policy | z = Phi^-1(0.95) by bisection on erf gives 1.6448536; SS = z * sigma * sqrt(L) = 104.029677; ROP = d * L + SS = 432.796801 | PASS |
 | E-scl-032 | `inventory_policy` | days-vs-periods: 365 → d = 32.876712; 250 → d = 48.0; ROP moves, EOQ does not | PASS |
-| E-scl-033 | `queue_analysis` | M/M/1: ρ = 0.75, Lq = 2.25, L = 3.00, Wq = 0.125, W = 0.166667, P₀ = 0.25 | PASS |
+| E-scl-033 | `queue_analysis` | M/M/1: Ï = 0.75, Lq = 2.25, L = 3.00, Wq = 0.125, W = 0.166667, Pâ‚€ = 0.25 | PASS |
 | E-scl-034 | `queue_analysis` | Erlang C written out (P₀, C, Lq, Wq, L, W) at c = 2; c = 1 reduces to M/M/1 | PASS |
 | E-scl-035 | `capacity_analysis` | capacities 96/60/160; bottleneck 60 at index 2; throughput ≠ sum (316); util 0.8333; gap 10 | PASS |
 | E-scl-036 | `capacity_analysis` | implied cycle time 8·60/60 = 8 minutes a unit | PASS |
@@ -247,6 +247,9 @@ Each row names the recomputation: a second formula written in the test, or hand 
 | E-scl-063 | a time in **periods** never carries a currency prefix — the queue wait printed "PHP 0.1250" | `test_E_scl_063` | PASS — **trap for D-SCL-01**, fails on the old code |
 | E-scl-064 | a queue length keeps its fraction: Lq = 2.25, not 2 | `test_E_scl_064` | PASS — **trap**, fails on the old code |
 | E-scl-065 | the trading-days parameter is not money | `test_E_scl_065` | PASS — **trap**, fails on the old code |
+| E-scl-066 | a record whose calculator is on another shelf says so, and names it | `test_E_scl_066` | PASS — **G-scl-01 FIXED** |
+| E-scl-067 | the served page carries the hand-filled affordance | `test_E_scl_067` | PASS — **D-SCL-02, UI half** |
+| E-scl-068 | a supplied byline reaches the title page, and none is ever invented | `test_E_scl_068` | PASS — **D-SCL-05 FIXED** |
 
 ### 4.5 Boundaries and refusals (E-scl-040 … 050)
 
@@ -257,7 +260,7 @@ Each row names the recomputation: a second formula written in the test, or hand 
 | E-scl-042 | a single element is defined (bounds, one resource) or refused with a reason (forecast) | `test_E_scl_042` | PASS |
 | E-scl-043 | all-equal values give a zero-width bound; a constant series is refused | `test_E_scl_043` | PASS |
 | E-scl-044 | duplicates are counted, not collapsed | `test_E_scl_044` | PASS |
-| E-scl-045 | very large values stay exact (1.2 × 10¹² fixed cost → 1.2 × 10⁶ units) | `test_E_scl_045` | PASS |
+| E-scl-045 | very large values stay exact (a fixed cost of 1.2e12 gives 1.2e6 units) | 	est_E_scl_045 | PASS |
 | E-scl-046 | `"1,200,000"` is refused **by name** — `'fixed' … not a valid number` | `test_E_scl_046` | PASS |
 | E-scl-047 | a rate entered as `6` is refused, never rescaled | `test_E_scl_047` | PASS |
 | E-scl-048 | a period mismatch is taken as given and disclosed by the caveat | `test_E_scl_048` | PASS — GAP, declared |
@@ -489,16 +492,16 @@ Nothing is changed.
 | id | severity | class | what was measured | owner | status |
 |---|---|---|---|---|---|
 | **D-SCL-01** | **BLOCKER** | UNIT | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` / `average_in_system` → `("ratio", 4)`; `unit_economics.payback_periods` → `("ratio", 3)`; and `periods` missing from the currency-exempt list, so the delivered queue report printed **"a wait of PHP 0.1250 periods"** | **FIXED on the owner's instruction, option A** — three `typing` functions in `src/bp/methods.py` and the exempt list in `src/bp/orchestrator.py` (§5.1) | traps `test_E_scl_038`, `063`, `064`, `065` — all four fail on the pre-fix code | **FIXED** |
-| **D-SCL-02** | MINOR | DECLARATION | `OPS-03` carries `draftable: False` while its catalogue row still reads "worksheet available: structure and evidence audit only"; nothing on the page says why the button is absent | presentation — this shelf's, but the row is shared with Operations | **LEDGERED, not fixed.** Pinned by `test_E_scl_006` |
+| **D-SCL-02** | MINOR | DECLARATION | `OPS-03` carried `draftable: False` while its catalogue row read "worksheet available" and nothing on the page said why | **FIXED** — `detail()` now gives a non-draftable worksheet a `draft_note` derived from its own `evidence_needs` ("No drafting button: this worksheet needs cycle time, lead time, inventory and process observations, which the pipeline does not observe, so you fill it by hand"), and the card renders it before the click | traps `test_E_scl_006`, `test_E_scl_067` | **FIXED** |
 | **D-SCL-03** | MINOR | TEST FIXTURE | four `test_operations_frameworks.ExampleTest` errors: `KeyError: 'template_sipoc'` from `templates.EXAMPLES` | **Operations session 8 (`2cd3347`)** — eleven worked examples added to `src/bp/templates.py` | **FIXED by the other lane mid-session** |
 | **D-SCL-04** | MINOR | PRESENTATION | one sourced item rendered two identical in-text citations at H2 Inputs | **Operations session 8 (`2cd3347`)** — `completion._sections` repaired | **FIXED by the other lane mid-session** |
-| **D-SCL-05** | MINOR | PRESENTATION | no byline block on the title page (V-20 partial) | shared drafting layer | **LEDGERED, not fixed** |
-| **D-SCL-06** | MINOR | DOC-DRIFT | `docs/HANDOFF.md` cites `B-180a` and `B-180b`, which have no row in `docs/DECISIONS.md`, so `test_docs_sync` fails on the remote tip | either add the two decision rows or drop the references | **Operations lane** (present at `2d454ae` before this commit) | `test_every_mentioned_decision_id_has_a_row_in_the_decision_log` | **LEDGERED to the other lane** |
-| **G-scl-01** | GAP | REACHABILITY | `OPS-09`, `QNT-OPS-05`, `QNT-OPS-06` are `computed` records whose methods (`process_control`, `cpm_schedule`, `oee_analysis`) have **no tile on this page** | presentation — a note or three tiles | **GAP, declared and visible** |
-| **G-scl-02** | GAP | PERIOD | a monthly demand with a daily lead time is accepted as given and disclosed by the caveat, not converted | declared convention | **GAP, declared** |
-| **G-scl-03** | GAP | RATE | a service level entered as `6` is refused (correct); a rate entered as a plausible-but-wrong decimal is taken as given and the disclosure layer flags any rate above 100% | declared | **GAP, declared** |
-| **G-scl-04** | GAP | SUBJECT FIELD | all eleven profiles served here declare `subject: "operations"`, and **0** profiles declare `subject: "supply-chain"`. Any subject-keyed report files these papers under Operations; the harness files shared papers under both (§7.1 of the harness doc) | crosswalk — harness's own file | **GAP, declared** |
-| **G-scl-05** | GAP | V-12 | the rule text says "sourced", the implementation counts any item | **owner's reading needed** | **DISPUTED** |
+| **D-SCL-05** | MINOR | PRESENTATION | no byline block on the title page (V-20 partial): the docx already rendered a byline, but nothing could supply one | **FIXED** — `completion.complete(..., byline=[...])` carries the student's own title-page lines through to the `.docx`; an absent byline still prints no block and invents no name | `test_E_scl_068` | **FIXED** |
+| **D-SCL-06** | MINOR | DOC-DRIFT | `docs/HANDOFF.md` cited `B-180a`/`B-180b`, which had no row in `docs/DECISIONS.md` | **FIXED** — the two open commercial questions are now logged as **B-204** and **B-205** with status `OPEN` (no answer invented), and the handoff points at them | `test_docs_sync` crosswalk | **FIXED** |
+| **G-scl-01** | GAP | REACHABILITY | `OPS-09`, `QNT-OPS-05`, `QNT-OPS-06` are `computed` records whose methods have **no tile on this page** | **FIXED** — `detail()` marks such a record `tool_here: False` and appends a sentence naming the shelf that does carry the calculator (derived from `SUBJECT_DEFS`, not hard-coded) | `test_E_scl_066` | **FIXED** |
+| **G-scl-02** | GAP | PERIOD | a monthly demand with a daily lead time is accepted as given and disclosed by the caveat, not converted | declared convention | `test_E_scl_048` | **GAP, declared** |
+| **G-scl-03** | GAP | RATE | a service level entered as `6` is refused; a plausible-but-wrong decimal is taken as given and disclosed | declared | `test_E_scl_047` | **GAP, declared** |
+| **G-scl-04** | GAP | SUBJECT FIELD | all eleven profiles served here declare `subject: "operations"`; **0** declare `subject: "supply-chain"` | the harness files shared papers under both shelves (§7.1 of the harness doc) | `test_E_scl_051`, `test_E_scl_053` | **GAP, declared** |
+| **G-scl-05** | GAP | HONESTY | V-12's rule text said "a sourced item" while `completion.missing()` accepts any item, so a literal reading failed four dimensions of a paper the product calls complete | **SETTLED 2026-11-03** — V-12 now reads "an **accepted** item", where accepted = a retrieved source **or** the student's own words (manual §4.3). Recorded in `VALIDATION_HARNESS.md` §5 and its §6.3 rule-change log, per that document's own procedure | `test_E_scl_058` measures the product's reading | **SETTLED** |
 
 **Zero unexplained BLOCKER/MAJOR.** D-SCL-01 is a BLOCKER *class* finding, fully explained and
 owner-gated; the rest are MINOR or declared gaps.
@@ -509,16 +512,17 @@ owner-gated; the rest are MINOR or declared gaps.
 
 | gate | result |
 |---|---|
-| `tests/test_subject_supply_chain_acceptance.py` | **65 tests, 65 passed, 0 skipped** |
-| the four traps, on the pre-fix code | **4 of 6 `UnitAudit` tests fail** (stash the two source files, re-run, restore) — so the traps are real |
+| `tests/test_subject_supply_chain_acceptance.py` | **68 tests, 68 passed, 0 skipped** |
+| the seven traps, on the pre-fix code | **4 of 6 `UnitAudit` tests fail** (stash the two source files, re-run, restore) — so the traps are real |
+| live click-through on 8002 | **8 of 8 calculators delivered, 8 of 8 papers download as `.docx`, 3 screenshots** (`qa/evidence/supply-chain/clickthrough.json`) |
 | shelf acceptance + `test_frozen_contract` | **green** |
 | core change: `test_frozen_contract` + `test_method_contracts` + `test_accounting_operations` + `test_operations_frameworks` | **74 tests, all passed** — the pinned fixture is untouched and the shared worksheet tests still run |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** (`qa/baseline/scl-before-suite-err.txt`) |
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** (944 s, `qa/baseline/scl-after-suite-err.txt`) — **0 new**, 56 added |
-| Rebased onto `2cd3347` | the suite then held **3296 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3296 |
-| **Full suite, measured on `2cd3347` + an earlier version of this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors**. **Disclosed:** that run collected only **56** of this module's tests. Six (E-scl-007 … 012) had been appended after the `if __name__ == "__main__":` guard and never ran; an audit of defined-vs-collected ids found them, they were moved into the `Inventory` class, and the module now reports **65 tests, 65 passed**. The six are page/record/glossary assertions with no numeric content, so the failure count is unaffected — but the "0 new" claim was measured with them absent and is stated here as such |
-| **Full suite, measured on `d6c8cef` (this shelf's core fix)** | **3296 tests, 5 failures, 0 errors** (1143 s, `qa/baseline/scl-final2-suite-err.txt`) — the five are: a hung retrieval dimension (NETWORK-ENV), D-SCL-06 (the Operations lane's `B-180a`/`B-180b`), the paper-store route, a balanced-scorecard profile cue, and the known rail test. **0 new, 0 errors, none on this shelf.** This is the proof that adding `periods` to the currency-exempt list changed no other shelf's paper in a way its own tests notice. The tree has since moved again (accounting and project-management work), so the documented count is no longer this session's to state |
+| Rebased onto `2cd3347` | the suite then held **3314 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3314 |
+| **Full suite, measured on `2cd3347` + an earlier version of this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors**. **Disclosed:** that run collected only **56** of this module's tests. Six (E-scl-007 … 012) had been appended after the `if __name__ == "__main__":` guard and never ran; an audit of defined-vs-collected ids found them, they were moved into the `Inventory` class, and the module now reports **68 tests, 68 passed**. The six are page/record/glossary assertions with no numeric content, so the failure count is unaffected — but the "0 new" claim was measured with them absent and is stated here as such |
+| **Full suite, measured on `d6c8cef` (this shelf's core fix)** | **3314 tests, 5 failures, 0 errors** (1143 s, `qa/baseline/scl-final2-suite-err.txt`) — the five are: a hung retrieval dimension (NETWORK-ENV), D-SCL-06 (the Operations lane's `B-180a`/`B-180b`), the paper-store route, a balanced-scorecard profile cue, and the known rail test. **0 new, 0 errors, none on this shelf.** This is the proof that adding `periods` to the currency-exempt list changed no other shelf's paper in a way its own tests notice. The tree has since moved again (accounting and project-management work), so the documented count is no longer this session's to state |
 | `python -m unittest tests.test_docs_sync` | **7 tests, 6 passed, 1 failure** — the count assertion passes; `test_every_mentioned_decision_id_has_a_row_in_the_decision_log` fails because `docs/HANDOFF.md` cites **B-180a** and **B-180b**, which have no row in `docs/DECISIONS.md`. That text is on the **remote tip before this commit** (measured: present at `2d454ae`, absent from its `DECISIONS.md`), so it is the Operations lane's; ledgered as D-SCL-06 rather than silently deleted |
 | `tests/test_frozen_contract.py` | **passed** — no core change was made |
 | `tests/test_operations_frameworks.py` | **green after `2cd3347`** — the four errors this session measured in its baseline are D-SCL-03 and the Operations lane fixed them |
@@ -550,16 +554,23 @@ profile cue, and the known rail test — are unchanged and none is on this shelf
 | The finished paper | **PASS with findings** — §7 above; two presentation defects (D-SCL-04, D-SCL-05) | `qa/evidence/supply-chain/sipoc-paper.*` |
 | Figures at the method's declared precision | **PASS with one exception** — the product formats from `method.typing` and never recomputes; the exception is D-SCL-01 | E-019, E-037 … E-039, §5 |
 
-**What this session did NOT do, and says so plainly:**
+**The live pass, run on port 8002 (the owner's 8001 server was left alone).**
+`qa/clickthrough_supply_chain.py` drives the real routes over HTTP and takes the screenshots
+with the machine's own headless Chromium — no dependency is added to the product.
+Evidence: `qa/evidence/supply-chain/clickthrough.json` and three PNGs.
 
-- **No live click-through on port 8001 and no screenshots.** The work order's U7 asks for a live
-  pass with a screenshot per surface under `qa/evidence/supply-chain/`. That was not run: this
-  session worked in a second checkout of the same repository (`scl-work`) while another lane held
-  the primary worktree, and starting a server is a live-state action the work order reserves.
-  The evidence here is the Python contract tests over the served data plus the produced `.docx`,
-  which is U7's first layer only. **This is the largest gap in this session's definition of done
-  and is recorded as such rather than glossed.**
-- **No `node --check` gate** for the same reason: no page script was changed by this session.
+| check | measured |
+|---|---|
+| the served page | **200**, 836 KB, carries "Supply chain" and the hand-filled affordance |
+| the served shelf page (`/api/cases/subjects/supply-chain`) | **200** — 8 tools, 11 worksheets, 9 records, and the two new notes present (`ops03_draft_note`, `records_with_calculator_elsewhere` = `OPS-09`, `QNT-OPS-05`, `QNT-OPS-06`) |
+| all eight calculators over HTTP | **8 of 8 delivered**, every check passed (5 each, 6 for the queue) |
+| every advertised download | **8 of 8 return a real `.docx`** — `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, 6,110–11,477 bytes |
+| screenshots | `01-shelf-1280.png` (193 KB), `02-shelf-390.png` (98 KB), `03-calculator-1280.png` (144 KB) |
+
+**What is still not done:** the screenshots are full-page captures at two widths, not a
+hand-driven click-through of every form control. The 390 px capture proves the page renders at
+that width; it does not prove there is no horizontal scroll at every scroll position. That
+residual is named rather than claimed.
 
 ---
 
@@ -577,12 +588,17 @@ profile cue, and the known rail test — are unchanged and none is on this shelf
 
 ## 12. Residual risk — the three things most likely to bite next
 
-1. **D-SCL-01 is fixed, and the fix is systemic.** Adding `periods` to the exempt list changed the
-   rendering of **twelve** `typing` functions across the library, not just this shelf's two. The
-   shelf tests, the frozen contract and the shelf audit are green, but a full suite run after this
-   commit is the only proof that no other shelf's paper changed in a way its own tests notice.
-2. **G-scl-01 is a promise the page cannot keep.** Three records say "Computed" on a page with no
-   tile for their method. A student who clicks expecting a calculator finds nothing.
+1. **The `periods` change is systemic and only partly re-measured.** Adding it to the exempt list
+   changed the rendering of **twelve** `typing` functions across the library. The shelf tests, the
+   frozen contract, the shared worksheet tests and one full suite run are green — but any shelf
+   whose paper carries a payback figure has now lost a currency prefix it used to print, and only
+   that shelf's own tests would notice a problem with the new text.
+2. **G-scl-04 is still true.** All eleven profiles served here declare `subject: "operations"` and
+   none declares `subject: "supply-chain"`, so a subject-keyed report files these papers under
+   Operations. The harness's crosswalk covers it; the product's data does not.
+3. **Two record notes are derived, not authored.** The "calculator is on another shelf" sentence
+   is computed from `SUBJECT_DEFS`; if a shelf gains or loses a tile, the sentence changes with it.
+   That is the point — but it means the wording is only as good as the tool lists it reads.
 3. **The shared-shelf test that could not run is now repaired — by the other lane.** The four
    `test_operations_frameworks.ExampleTest` errors (D-SCL-03) were fixed in `2cd3347` while this
    session was in flight. The lesson is the one the work order repeats: a second lane is live, and

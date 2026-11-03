@@ -9,7 +9,7 @@ Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
 Build        : 1.77 (see docs/CHANGELOG.md)
-Tests        : 3369 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Tests        : 3372 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -58,8 +58,8 @@ python -m bp.literature drift retrieval_log.jsonl 20
 | B-032 | Ledger engine: custom kernel vs Beancount arm | Accounting tier, tax/valuation |
 | B-052 | Taxation deferred; do not build without resuming the decision | Tax work |
 | REW R1Ã¢â‚¬â€œR10 | Ratify (or not) the proposed stages/checkpoints/taxonomy | Any REW stage build |
-| B-180a | Smart Business Writer **per-tier allowance** (export credits per cycle) and what "unlimited" means at the top | The lower bundle rungs ($18.99 / $35.99 / $59.99) and every stated allowance on either product |
-| B-180b | Whether the lower bundle rungs ship at launch or the $99.99 unlimited bundle ships alone | The size of the bundle SKU set (1 SKU or 4) |
+| B-204 | Smart Business Writer **per-tier allowance** (export credits per cycle) and what "unlimited" means at the top | The lower bundle rungs ($18.99 / $35.99 / $59.99) and every stated allowance on either product |
+| B-205 | Whether the lower bundle rungs ship at launch or the $99.99 unlimited bundle ships alone | The size of the bundle SKU set (1 SKU or 4) |
 
 Do not invent answers to these. If the owner says "go", build only what is listed below as unblocked.
 

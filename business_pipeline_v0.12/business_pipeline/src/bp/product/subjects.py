@@ -4001,6 +4001,40 @@ def catalogue():
     return {"format": FORMAT, "subjects": rows}
 
 
+def _record_shelf_note(row, tool_methods):
+    """What THIS shelf can actually do with a record, said where the student sees it.
+
+    A computed record whose method has no calculator on this page is a promise the
+    page cannot keep unless it says so.  `tool_methods` are the frozen METHOD ids
+    this shelf launches, not the tool keys: a record's `linked_methods` are method
+    ids, so comparing the two vocabularies is what makes this correct.
+    """
+    if row["form"] != "computed" or not row["linked_methods"]:
+        return None
+    if tool_methods & set(row["linked_methods"]):
+        return None
+    carriers = [definition["label"] for definition in SUBJECT_DEFS
+                if set(definition["tools"]) and
+                {TOOL_INFO[key]["method"] for key in definition["tools"]} & set(row["linked_methods"])]
+    where = ("the %s shelf" % carriers[0]) if len(carriers) == 1 else (
+        "another shelf" if not carriers else "the %s shelves" % ", ".join(carriers))
+    return ("The method is computed, but its calculator is on %s, not on this page; "
+            "open it there and the same frozen method runs." % where)
+
+
+def _worksheet_draft_note(sheet):
+    """Why a worksheet has no drafting button, taken from what it needs."""
+    if sheet["draftable"]:
+        return None
+    needs = (CATALOGUE.get(sheet["key"]) or {}).get("evidence_needs") or ""
+    needs = needs.strip().rstrip(".")
+    if needs:
+        sentence = needs[0].lower() + needs[1:]
+        return ("No drafting button: this worksheet needs %s, which the pipeline does not "
+                "observe, so you fill it by hand." % sentence)
+    return "No drafting button: you fill this worksheet by hand."
+
+
 def detail(subject_id):
     """The full subject page: launchable tools, worksheets and catalogue rows.
 
@@ -4027,6 +4061,19 @@ def detail(subject_id):
                if row["id"] not in worksheet_ids and row["form"] != "theory"]
     theories = [row for row in catalogue_rows
                 if row["id"] not in worksheet_ids and row["form"] == "theory"]
+    tool_methods = {TOOL_INFO[key]["method"] for key in definition["tools"]}
+    for row in records:
+        note = _record_shelf_note(row, tool_methods)
+        if note:
+            row["status_note"] = ((row["status_note"].rstrip() + " " + note)
+                                  if row["status_note"] else note)
+            row["tool_here"] = False
+    tools = [_tool(key, definition["id"]) for key in definition["tools"]]
+    sheets = [_worksheet(cid, definition["id"]) for cid in definition["worksheets"]]
+    for sheet in sheets:
+        note = _worksheet_draft_note(sheet)
+        if note:
+            sheet["draft_note"] = note
     return {
         "format": FORMAT,
         "id": definition["id"],
@@ -4039,11 +4086,9 @@ def detail(subject_id):
         "does_not": list(definition.get("does_not", [])),
         "cross_cutting": bool(definition["cross_cutting"]),
         "guidance": definition.get("guidance"),
-        "tools": [_tool(key, definition["id"]) for key in definition["tools"]],
-        "worksheets": [_worksheet(cid, definition["id"]) for cid in definition["worksheets"]],
-        "tiles": _tiles(definition, records,
-                        [_tool(key, definition["id"]) for key in definition["tools"]],
-                        [_worksheet(cid, definition["id"]) for cid in definition["worksheets"]]),
+        "tools": tools,
+        "worksheets": sheets,
+        "tiles": _tiles(definition, records, tools, sheets),
         "catalogue": catalogue_rows,
         "records": records,
         "theories": theories,

@@ -108,7 +108,7 @@ The harness judges papers against this registry. It is seeded from [`CONDUCTOR_M
 | V-09 | No heading level jump; no level-2 heading before a level-1 | manual §8 | `paper.check` (`heading_jump`, `heading_before_h1`) | `enforced` |
 | V-10 | The paper has a Conclusion | manual §8 | `paper.check` (`missing_conclusion`) | `enforced` |
 | V-11 | The paper has a reference list | manual §8 | `paper.check` (`missing_references`) | `enforced` |
-| V-12 | Every dimension has a sourced item **or** a named gap | manual §8 | unit-tested only (`test_four_cells_each_carry_a_sourced_item_or_a_named_gap`) | `proposed` |
+| V-12 | Every dimension has an **accepted** item **or** a named gap. "Accepted" means an item the completion accepted — a retrieved source **or** the student's own words (manual §4.3). Re-measured 2026-11-03: the product treats any item as filling a dimension (`completion.missing`), so a literal "sourced" reading would fail four of five dimensions of a paper the product calls complete | manual §8 | unit-tested only (`test_four_cells_each_carry_a_sourced_item_or_a_named_gap`); `test_E_scl_058` measures the product's reading | `proposed` — **wording settled 2026-11-03, see §6.3** |
 | V-13 | Every reference is cited in the body | manual §8 | none | `proposed` |
 | V-14 | The Introduction states the decision and the thesis | manual §8 | none (a judgement) | `proposed` |
 | V-15 | The Conclusion answers the thesis and introduces no new evidence | manual §8 | none (a judgement) | `proposed` |
@@ -202,6 +202,7 @@ If a change should alter what the product asserts, it is a **computation-lane ch
 
 | Date | Rule | From | To | Evidence | Authority |
 |---|---|---|---|---|---|
+| 2026-11-03 | V-12 | "every dimension has a **sourced** item or a named gap" | "every dimension has an **accepted** item or a named gap", where accepted = a retrieved source **or** the student's own words | Measured on the supply-chain SIPOC paper: 5 dimensions, 1 retrieved item and 4 items of the student's own words, 0 named gaps; `completion.missing()` returned `[]` and the paper exported. A literal "sourced" reading would report **V-12 failed at H2 Suppliers, Process Steps, Outputs, Customers** on a paper the product calls complete. The rule text was the drift, not the product — `CONDUCTOR_MANUAL.md` §4.3 makes the student's inputs authoritative and §4.2 requires a gap to be *substantive* | supply-chain session, on the owner's instruction to close G-scl-05 |
 | 2026-11-02 | — | — | — | registry created from the manual; no rule changed | design owner (proposal) |
 
 ### 6.4 The noise policy
