@@ -37,6 +37,31 @@ Suite: `tests/test_subject_operations_acceptance.py` (46 tests).
 
 ---
 
+
+## Session 10 — `people` (opening `b393743`)
+
+Every row below is measured, not copied: the trap test named in the last column fails if the
+behaviour moves. The manual is `qa/manual/people.md`; the evidence is `qa/evidence/people/`.
+**Nothing in `src/bp/methods.py` was changed this session**, so the pinned fixture is untouched:
+every defect that needs the core is ledgered here and left for the owner's instruction
+(work order §9).
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-PPL-01 | people (+ every shelf offering `cost_effectiveness`, `labour_market`, `power_analysis`) | `programmecost`, `labourtightness`, `power`; E-ppl-023, 047, 051, 052, 053 | **BLOCKER** | UNITS | the delivered CEA report prints `USD 40.00` for an **effect** of 40 and `USD 400.00` for a cost per effect; the tightness figure is 10 / 0.05 = 200.0000 | (a) `_cea_typing` types `icer_*` as `currency`; (b) `src/bp/orchestrator.py:233` sets `cur_here = cur if mu == "@unit"` **before** `mu` is resolved to the base unit, so any `@unit` output takes the request's currency whatever it is; (c) `_labour_typing` calls a count-over-rate a `ratio` and `labour_market_impl` divides `vacancies` by `unemployment_rate`; (d) `_power_typing` types `mde`/`se` as `probability` | — (core change, owner-gated) | `test_E_ppl_023`, `test_E_ppl_047`, `test_E_ppl_051`, `test_E_ppl_052` | **LEDGERED** |
+| D-PPL-02 | people (+ Entrepreneurship) | `trainingroi`; E-ppl-046 | MAJOR | UNITS | a 2.5-year holding period prints "Compounded over **2 years**" beside a return computed on 2.5 years | `_roi_typing` returns `("count", 0)` for `years`, so a fractional period is rounded before it is printed | — (core change, owner-gated) | `test_E_ppl_046` | **LEDGERED** |
+| D-PPL-03 | people (+ Entrepreneurship, Economics) | `programmecost`; E-ppl-050 | MINOR | KEYS | `"Option A"` and `"Option_A"` produce the same `icer_Option_A` key: three options, two ratios, one silently lost | `cea_impl` slugs the option name into the output key and does not make it unique | — (core change, owner-gated) | `test_E_ppl_050` | **LEDGERED** |
+| D-PPL-04 | every shelf's worksheet paper | Kotter paper; manual §8 V-02 | MINOR | WORDING | H2 What the Evidence Shows prints "0 step(s) are recorded as gaps" beside seven "no source was found for this part" lines, and the same sentence said "1 sourced items" | `completion._sections` counts gaps, not unsourced parts, and pluralises by concatenation | — (shared prose; the wording of a paper is the owner's call) | none yet — recorded with its location in manual §8 | **LEDGERED** |
+| G-PPL-01 | people | Reward tile; E-ppl-005 | GAP | SCOPE | the tile is empty and says why, in the tile, in the guidance and in `does_not` | declared and visible | — | `test_E_ppl_005` | **GAP, declared** |
+| G-PPL-02 | people (+ Economics, Operations, Marketing) | `chi_square`; E-ppl-037 | GAP | STATISTICS | a table with a zero row returns chi-squared 0, p = 1.0000, min expected 0, and all six checks pass | `chi_square` reports `min_expected_count` but no check acts on it | — (core change, proposed in manual §4 rank 2) | `test_E_ppl_037` | **GAP, declared** |
+| G-PPL-03 | people | `power`; E-ppl-038 | GAP | SCOPE | the preset objective promises to size a study; the tool reports achieved power and MDE, and *n* is an input | `power_analysis` inverts nothing; the objective string was written for a sample-size tool | — (proposal, manual §4 rank 6) | `test_E_ppl_038` | **GAP, declared** |
+| G-PPL-04 | people | glossary; E-ppl-007 | GAP | CONTENT | the shelf serves no glossary (0 terms) and the page renders no empty section | no `GLOSSARIES["people"]` entry exists | — (content is a curriculum decision, manual §4 rank 5) | `test_E_ppl_007` | **GAP, not declared** |
+| G-PPL-05 | people | `weighted`; E-ppl-032 | GAP | CONVENTION | a weight entered as `40` is used as given; the design effect moves and the caveat says so | declared convention, disclosed in the paper | — | `test_E_ppl_032` | **GAP, declared** |
+| G-PPL-06 | people | `labourtightness`; E-ppl-059 | GAP | CONVENTION | a rate entered as `5` is used as given; the orchestrator's rate hint says so in the paper | declared convention, disclosed in the paper | — | `test_E_ppl_059` | **GAP, declared** |
+
+**Zero unexplained BLOCKER/MAJOR.** D-PPL-01 and D-PPL-02 are fully explained, pinned by tests
+that assert the measured behaviour, and blocked on the owner because the fix is a core change.
+
 ## Session 9 — `supply-chain` (opening `f699579`; the tree moved to `2cd3347` mid-session)
 
 Probes (not committed — they live outside the repo in the session's scratch directory):

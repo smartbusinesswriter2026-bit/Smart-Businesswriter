@@ -20,13 +20,46 @@
 - **The Write Smarter pricing page band waits on the owner's hosted URL** (§4.3 of the bundle
   handoff): advertise it as a pointer to Smart Business Writer, or leave it off.
 
-## Item 11 — People computations defects
-- 11a CEA icer key: code writes `icer_{slug}`; verify serializer/UI/render consumers expect same key.
-- 11b labour-market tightness formula: code uses `vacancies / unemployment_rate`; docs say `vacancies / unemployed`. Resolve intended denominator/units.
-- 11c tightness output: verify serialization/rounding/attachment to output.
+## Item 11 — People computations defects — **SETTLED 2026-11-03**, three defects ledgered
 
-## Item 12 — People computations test coverage
-- New test module for 8 frameworks × 3 engines not added.
+Settled by session 10 (`qa/manual/people.md` §2.1 Q2, §5, §9). The three sub-items did not
+describe three defects: **11a is not a defect at all**, and the two real ones are worse than the
+ledger said.
+
+- **11a — the `icer` key is correct; the unit is not.** `cea_impl` and its reference route build
+  `icer_<slug>` from the same regex and the appendix carries `icer_intensive` intact
+  (`test_E_ppl_049`). What is wrong is that `_cea_typing` declares `icer_*` as `currency`, so a cost
+  **per unit of effect** prints "USD 400.00"; and `src/bp/orchestrator.py:233` takes the request's
+  currency for an `@unit` output **before** it resolves the unit, so an effect of 40 prints
+  "USD 40.00" and a delta "USD 20.000". Ledgered **D-PPL-01** (BLOCKER).
+- **11b — a real defect, and the doc is the one that is right.** `labour_market_impl` divides
+  `vacancies` by `unemployment_rate`: ten vacancies over 5% gives **200.0000**. The documented route
+  cannot even be entered — `unemployed` is refused as an unknown input (`test_E_ppl_047`). The fix
+  changes the input schema, the impl, the template and the checks, so it is a core change and was
+  **not** made; the work order puts it behind stop-and-ask. Ledgered **D-PPL-01**.
+- **11c — the serialization is half right and half missing.** `ratio` is in the currency-exempt
+  tuple, so the figure prints as a bare ratio with no money prefix (`test_E_ppl_053`). But the
+  **number never reaches the paper**: `labour_market_template` interpolates only the real wage and
+  the wage share, so a tool called "Labour market tightness" delivers a report that never states
+  tightness (`test_E_ppl_048`).
+- Also found while settling the above, on shared core methods: `power_analysis.mde`/`se` are typed
+  `probability` when they are outcome-scale quantities, and `return_on_investment.years` is typed
+  `count` at zero decimals so a 2.5-year holding prints "2 years" (**D-PPL-02**), and two option
+  names that normalise to the same slug collapse into one `icer` key (**D-PPL-03**).
+- **Not fixed here**: every one of them is a change in `src/bp/methods.py` (and one ordering bug in
+  `src/bp/orchestrator.py`). `qa/manual/people.md` §4 ranks them with their cost.
+
+## Item 12 — People computations test coverage — **CLOSED as superseded 2026-11-03**
+
+The "8 frameworks × 3 engines" module was never added and is no longer needed.
+`tests/test_people_frameworks.py` loops **all eighteen** people frameworks through each drafting
+variant — outline (`test_the_outline_headings_are_title_cased`), draft
+(`test_the_title_carries_the_framework_prefix_and_drops_the_trailing_period`) and long
+(`test_the_byline_reaches_the_title_page_and_the_length_is_reported`) — and runs a paper with an
+empty block for every one. The 8 × 3 plan predates the shelf growing to 18 frameworks; writing it
+now would cover 8 of 18. The missing limb was a **real `.docx`** produced through
+`completion.draft_bytes` and read back out of the zip, and
+`tests/test_subject_people_acceptance.py` (`test_E_ppl_075`) now does exactly that.
 
 ## Item 14 — Live verification
 - 24-combo matrix not run against live deployment.

@@ -1,5 +1,99 @@
 ﻿# QA state
 
+## Session 10 — `people` (2026-11-03) · branch `corpus/merge-v1`, opening commit `b393743`
+
+**Subject chosen by the work order.** Manual: `qa/manual/people.md` (12 sections, 84 E-rows).
+Suite: `tests/test_subject_people_acceptance.py` (**84 tests, 84 passed, 0 skipped**; 84 defined,
+84 collected). Evidence: `qa/evidence/people/` (the produced `.docx`, its stripped text, the unit
+audit of all ten calculators, the parity transcript).
+
+**This was the last shelf with no manual and no acceptance suite**, and the only shelf carrying
+people-specific arithmetic: `trainingroi`, `labourtightness` and `programmecost` are presets of
+`return_on_investment`, `labour_market` and `cost_effectiveness`, so their defects are the core's.
+
+### Baseline (measured here, not assumed)
+
+| Measure | Documented | Measured |
+|---|---:|---:|
+| Tests | 3409 | **3409** |
+| Failures | — | **1** (`test_sources…test_brave_failure_falls_back_to_firecrawl`, NETWORK-ENV) |
+| Errors | — | **0** |
+| Wall time | — | 1139 s |
+
+Raw output: `qa/baseline/ppl-before-suite-err.txt`. **0 of the 1 is on this shelf.**
+
+**Inventory, re-measured:** 10 tools · 19 worksheets (all draftable) · **6 tiles** (the work order
+said 5 and then listed six — six is the truth) · 0 records · 0 theories · 0 glossary terms ·
+18 profiles with `subject == "people"`, every one reachable.
+
+### The four scope questions, answered
+
+1. **The Reward tile is declared and visible** — the tile's own `note`, the page's `guidance` and
+   `does_not[0]` all say why it is empty. It was not filled.
+2. **Item 11 is settled and three of its findings are real.** 11a's key is correct (the unit is
+   not); 11b divides a count by a rate (10 / 0.05 = **200**); 11c's serialization is right but the
+   number **never reaches the paper**. Ledgered D-PPL-01, D-PPL-02, D-PPL-03.
+3. **No record promises a calculator it cannot start** — the shelf puts no record on the page.
+4. **Every worksheet's group is a declared tile**, and every tile renders exactly its group.
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/people.md` | The **30-item inventory** with a per-item verdict, a **ranked owner-gated proposal** (6 items, nothing built), 84 E-rows reconciled 1:1, the **unit audit** of all 96 outputs, the parity section, the V-01…V-20 reading of one paper, the ledger, the gate table |
+| `tests/test_subject_people_acceptance.py` | 84 tests — independent recomputation for all ten calculators, the unit audit, the boundary and refusal sweep, the parity tests, the page tests |
+| `qa/evidence/people/` | `kotter-paper.docx` (27,166 bytes), `kotter-paper.txt` (1,581 words), `unit-audit.txt`, `parity.txt`, `evidence.json` |
+| `qa/baseline/ppl-before-suite-err.txt`, `ppl-after-suite-err.txt` | Baseline and closing measurements |
+
+### Fixed (2, both presentation) and ledgered (4 + 6 gaps)
+
+- **Presentation, this session:** the Analytics tile said "statistics" while three of its ten
+  calculators are money arithmetic — its `what` now names both; and `docs/CURRICULUM_MAP.md`'s People
+  row now names the ten methods, six tiles and nineteen worksheets it had omitted.
+- **Ledgered, owner-gated:** **D-PPL-01** (BLOCKER, UNITS — the `@unit` currency ordering bug at
+  `src/bp/orchestrator.py:233`, `icer` typed money, `mde`/`se` typed probability, tightness a count
+  over a rate), **D-PPL-02** (MAJOR — `years` typed count at 0 dp, so 2.5 years prints "2"),
+  **D-PPL-03** (MINOR — two option names that slug the same collapse one ratio), **D-PPL-04**
+  (MINOR — "0 step(s) are recorded as gaps" beside seven unsourced parts).
+- **Gaps:** G-PPL-01 Reward tile (declared), G-PPL-02 a zero-row chi-square (declared on the page),
+  G-PPL-03 `power` promises a sample size it does not compute, G-PPL-04 no glossary,
+  G-PPL-05 weights not validated (disclosed), G-PPL-06 a rate entered as 6 (disclosed).
+- **`docs/OPEN_ISSUES.md` Items 11 and 12 are settled:** Item 11 as three defects (above); Item 12
+  **closed as superseded** — `test_people_frameworks` already runs all eighteen frameworks through
+  all three drafting variants, and the new module adds the missing real-`.docx` limb.
+- **No change in `src/bp/methods.py`**, so the pinned fixture is untouched and `econ_shelf --check`
+  still says "frozen fixture: in sync".
+
+### Gates at close
+
+| gate | result |
+|---|---|
+| `tests/test_subject_people_acceptance.py` | **84 tests, 84 passed, 0 skipped** |
+| defined vs collected ids | **84 / 84, none missing** |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
+| `qa/check_page_syntax.py` | **page syntax: OK** |
+| documented test count | **3493** (was 3409; +84 this session), written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
+| full suite | before **3409 tests, 1 failure, 0 errors**; after **3493 tests**, output in `qa/baseline/ppl-after-suite-err.txt` |
+
+---
+
+## Next subject: `marketing` — and its top three risks
+
+`marketing` is the last shelf with a page, a catalogue and calculators but **no acceptance manual**;
+`research` is the one after that.
+
+1. **Reachability will dominate its inventory.** `docs/OPEN_ISSUES.md` Item 15 measures 16 marketing
+   worksheets that are built and offered on no shelf page (they appear as record rows carrying the
+   status "Worksheet" that cannot be opened), plus `STR-19` and `CHG-15` on no page at all. That
+   session must decide which shelf owns each one — a curriculum decision, not a wiring fix.
+2. **Two declared-template defects are already known and unfixed.** `template_servqual` is declared
+   in both `CANVAS_BLOCKS` and `MATRIX_META` (the D-MKT-04 family), and `MKT-07` (SERVQUAL) is
+   deliberately hidden by B-198 — so the suite's green depends on the hiding, not on the form.
+3. **D-PPL-01 will surface there too.** Marketing shares `alpha`, `chi_square`, `power`, `unitecon`,
+   `cohort` and `abtest`; every marketing tool that returns a `@unit` output under a currency
+   request prints that unit with a money prefix, and the unit audit is the only thing that catches
+   it. Run the audit before anything else.
+
 ---
 
 ## Session 10 — `research` (2026-11-03) · branch `corpus/merge-v1`, opening commit `6c7073c`
