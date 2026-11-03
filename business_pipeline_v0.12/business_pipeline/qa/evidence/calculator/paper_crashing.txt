@@ -1,0 +1,38 @@
+Computation: project crashing
+Result
+The normal plan lasts 9.00 periods. Crashing it to the target of 7.00 costs 130.00 and leaves a duration of 7.00. Crashing is a greedy rule: one period at a time, the cheapest critical activity, recomputing the network after each step. It is not a linear-programming optimum. Crash cost is treated as linear between the normal and crash durations; shared or non-linear costs are not modelled. A target below the fully crashed duration or beyond the normal duration is refused or reported unchanged.
+Inputs and results
+What you declared
+Target duration: 7.00
+Activities: Id: A; Normal duration: 5; Crash duration: 3; Crash cost: 100; Predecessors: , Id: B; Normal duration: 4; Crash duration: 2; Crash cost: 80; Predecessors: A, Id: C; Normal duration: 3; Crash duration: 3; Crash cost: 0; Predecessors: A
+What was computed
+Normal duration: 9.00
+Crashed duration: 7.00
+Target duration: 7.00
+Total crash cost: 130.00
+Activity count: 3
+Crash periods A: 1
+Crash cost A: 50.00
+Final duration A: 4.00
+Crash periods B: 2
+Crash cost B: 80.00
+Final duration B: 2.00
+Crash periods C: 0
+Crash cost C: 0.00
+Final duration C: 3.00
+Honesty: what was not done
+this method: Crashing is a greedy rule: one period at a time, the cheapest critical activity, recomputing the network after each step. It is not a linear-programming optimum. Crash cost is treated as linear between the normal and crash durations; shared or non-linear costs are not modelled. A target below the fully crashed duration or beyond the normal duration is refused or reported unchanged.
+Assumptions made
+Crash cost is linear between normal and crash durations.
+Durations are whole periods and the graph is acyclic.
+Crashing one critical activity does not change scope or quality.
+Limitations
+Greedy, not globally optimal.
+No calendars, resource limits, non-linear costs or quality trade-off.
+A target below the fully crashed duration is refused.
+How the figures were checked
+Second implementation agrees.
+Target duration is met.
+Every activity stays within its crash limits.
+Total cost is the sum of the activity costs.
+Recomputed network matches the crashed duration.

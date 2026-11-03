@@ -1,0 +1,41 @@
+Computation: management accounts
+Result
+The engagement posts 6 entries. Net income is 1,650.00; total assets are 6,650.00 against liabilities of 0.00 and equity of 6,650.00. Closing retained earnings are 1,650.00. The cash flow statement shows a net change in cash of 1,650.00 and its two routes agree. 11 of 11 checks passed (0 not applicable), with 0 item(s) flagged for human review. Any reconciliation supplied for the engagement is listed in the appendix with its in-transit and unrecorded items. Any declared policy change is listed in the appendix with its prospective treatment. These are management accounts, not GAAP or IFRS statements and not assurance; this is custom analysis (T2), expert review pending. The ledger engine and the cash-flow classification rules are provisional pending the manual's account-mapping checkpoint and the Beancount comparison (B-032). Flags mark judgment items for a human; the checks guard arithmetic and balance, not business substance.
+Inputs and results
+What you declared
+Spec: Period: Start: 2026-01-01; End: 2026-03-31; Currency: USD; Framework: local; Places: 2; Chart: Code: 1000; Name: Cash; Type: asset; Line: Cash; Role: cash, Code: 3000; Name: Owner capital; Type: equity; Line: Capital; Role: capital, Code: 3100; Name: Retained earnings; Type: equity; Line: Retained earnings; Role: retained_earnings, Code: 4000; Name: Sales; Type: income; Line: Revenue, Code: 5000; Name: Rent; Type: expense; Line: Rent; Prior closing: 1000: 5000; 3000: 5000; Opening: Lines: Account: 1000; Debit: 5000, Account: 3000; Credit: 5000; Entries: Date: 2026-01-15; Description: sale; Lines: Account: 1000; Debit: 2000, Account: 4000; Credit: 2000, Date: 2026-02-28; Description: rent; Lines: Account: 5000; Debit: 500, Account: 1000; Credit: 500, Date: 2026-03-31; Description: deposit in transit; Lines: Account: 1000; Debit: 150, Account: 4000; Credit: 150; Schedules: ; Reconciliation: Account: 1000; Statement: Opening balance: 5000; Closing balance: 6475; Lines: Date: 2026-01-15; Description: sale deposit; Amount: 2000; Direction: in, Date: 2026-02-28; Description: rent cheque; Amount: 500; Direction: out, Date: 2026-03-31; Description: bank charge; Amount: 25; Direction: out
+What was computed
+Net income: 1650.00
+Total assets: 6650.00
+Total liabilities: 0.00
+Total equity: 6650.00
+Retained earnings closing: 1650.00
+Cash net: 1650.00
+Checks passed: 11
+Checks total: 11
+Checks na: 0
+N entries: 6
+N flags: 0
+Honesty: what was not done
+this method: These are management accounts, not GAAP or IFRS statements and not assurance; this is custom analysis (T2), expert review pending. The ledger engine and the cash-flow classification rules are provisional pending the manual's account-mapping checkpoint and the Beancount comparison (B-032). Flags mark judgment items for a human; the checks guard arithmetic and balance, not business substance.
+Assumptions made
+Every entry is balanced and inside the period (enforced by the kernel).
+The chart reflects the owner's account mapping.
+Amounts respect the declared currency places.
+Limitations
+Management accounts only: not GAAP or IFRS statements and not assurance (manual 9.5).
+Cash-flow activity classification is a declared heuristic unless accounts carry explicit activity tags.
+Custom analysis (T2); expert review pending.
+The ledger engine decision is closed: the custom kernel is management accounts v1 (B-032, RESOLVED 2026-10-27); the Beancount comparison was never run.
+How the figures were checked
+Trial balance debits equal credits.
+Assets equal liabilities plus equity.
+Net income agrees across routes.
+Opening balances equal prior closing.
+Statement lines foot to totals.
+Journal hash chain intact.
+Cash flow agrees across routes.
+Retained earnings rollforward.
+Income expense and dividends zero after closing.
+Statement internally consistent.
+Opening balances agree.

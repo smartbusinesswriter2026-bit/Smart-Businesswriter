@@ -1,0 +1,33 @@
+Computation: cash runway
+Result
+With 300,000.00 of opening cash and a monthly net cash flow of -40,000.00, the runway is 7.50 months. The lowest balance within 9 months is -60,000.00 and the funding gap over that horizon is 60,000.00. Runway is arithmetic on the opening cash and the monthly net flow you declared; it is not a forecast of sales or costs. Growth is applied to the declared net flow, so revenue and costs are assumed to move together; a different cost path needs its own run. The funding gap is the cash needed to keep the running balance at zero through the declared target month; it ignores financing costs.
+Inputs and results
+What you declared
+Opening cash: 300000.00
+Monthly net cash flow: -40000.00
+Monthly growth: 0.0000
+Target months: 9
+What was computed
+Opening cash: 300000.00
+Monthly net cash flow: -40000.00
+Monthly growth: 0.0000
+Target months: 9
+Runway months: 7.50
+Lowest cash balance: -60000.00
+Cash at target month: -60000.00
+Funding gap: 60000.00
+Honesty: what was not done
+this method: Runway is arithmetic on the opening cash and the monthly net flow you declared; it is not a forecast of sales or costs. Growth is applied to the declared net flow, so revenue and costs are assumed to move together; a different cost path needs its own run. The funding gap is the cash needed to keep the running balance at zero through the declared target month; it ignores financing costs.
+Assumptions made
+The net flow is the same every month except for the declared growth.
+Month-end receipts and payments; no financing inflow.
+Limitations
+No seasonality, one-off purchases or tax timing.
+Growth is applied to the net flow, not separately to revenue and costs.
+The funding gap ignores the cost of raising the money.
+How the figures were checked
+Second implementation agrees.
+The runway reaches a zero cash balance.
+Zero growth runway is opening cash over the burn.
+A higher burn shortens the runway.
+Funding gap covers the lowest cash balance.

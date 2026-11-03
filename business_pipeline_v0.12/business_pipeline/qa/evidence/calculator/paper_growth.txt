@@ -1,0 +1,31 @@
+Computation: growth rate
+Result
+The compound annual growth rate from 100.00 to 200.00 over 10 periods is 7.18%. At that rate the value doubles in about 10.03 periods. The CAGR is the constant rate that compounds the start value to the end value over the declared number of periods; it is not a forecast. The rule of 72 is an approximation; the exact doubling time is ln(2)/ln(1 + CAGR). No inflation adjustment is made unless the values you supplied are already real.
+Inputs and results
+What you declared
+Start value: 100.00
+End value: 200.00
+Periods: 10
+What was computed
+Start value: 100.00
+End value: 200.00
+Periods: 10
+Total growth: 1.0000
+Cagr: 0.0718
+Doubling time years: 10.03
+Honesty: what was not done
+this method: The CAGR is the constant rate that compounds the start value to the end value over the declared number of periods; it is not a forecast. The rule of 72 is an approximation; the exact doubling time is ln(2)/ln(1 + CAGR). No inflation adjustment is made unless the values you supplied are already real.
+Assumptions made
+The two values are measured on the same basis and currency.
+The periods are equal in length.
+No inflation adjustment is made unless the values are already real.
+Limitations
+Two observations only; no trend or volatility.
+The rule of 72 is approximate.
+No growth-accounting decomposition.
+How the figures were checked
+Second implementation agrees.
+Cagr compounds to the end value.
+Total growth is end over start minus one.
+Doubling time times cagr is approximately 72 percent.
+A higher end value raises cagr.

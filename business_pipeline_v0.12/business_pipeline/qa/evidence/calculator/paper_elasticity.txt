@@ -1,0 +1,35 @@
+Computation: elasticity
+Result
+Between the two declared observations the arc price elasticity of demand is -1.5000, with an absolute value of 1.5000. Total revenue moves from 1,000.00 to 1,120.00, a change of 120.00. Demand is elastic over this range. The elasticity is the arc (midpoint) elasticity between the two observations you declared; a point elasticity at one price needs a demand function. The sign is negative for an ordinary demand curve; the absolute value is the one usually compared with one. No income, cross-price or supply elasticity is computed here.
+Inputs and results
+What you declared
+Quantity 1: 100
+Price 1: 10
+Quantity 2: 140
+Price 2: 8
+What was computed
+Price elasticity: -1.5000
+Absolute elasticity: 1.5000
+Pct change quantity: 0.3333
+Pct change price: -0.2222
+Total revenue 1: 1000.00
+Total revenue 2: 1120.00
+Revenue change: 120.00
+Elastic: 1
+Unit elastic: 0
+Honesty: what was not done
+this method: The elasticity is the arc (midpoint) elasticity between the two observations you declared; a point elasticity at one price needs a demand function. The sign is negative for an ordinary demand curve; the absolute value is the one usually compared with one. No income, cross-price or supply elasticity is computed here.
+Assumptions made
+The two observations lie on the same demand curve.
+All else equal: no income, substitute price or taste change between the observations.
+The arc formula is the agreed convention for a discrete change.
+Limitations
+Arc elasticity only; no point elasticity without a demand function.
+No income, cross-price or supply elasticity.
+Two observations cannot identify a demand curve or prove causality.
+How the figures were checked
+Second implementation agrees.
+Arc elasticity equals percentage changes.
+Swapping the observations leaves the arc elasticity unchanged.
+Revenue change equals new revenue minus old.
+Elastic flag matches the magnitude.

@@ -1,0 +1,38 @@
+Computation: oee analysis
+Result
+Availability is 0.9167, performance 0.8636 and quality 0.9737, for an OEE of 0.7708. OEE is arithmetic on the six figures you declare; the losses are not reclassified or assumed. Performance above one usually means the ideal cycle time or the unit count is wrong; the method reports it rather than capping it. OEE measures one machine or line, not a plant; six big losses and TEEP are not modelled.
+Inputs and results
+What you declared
+Planned production time: 480.00
+Downtime: 40.00
+Ideal cycle time: 0.50
+Total units: 760.00
+Good units: 740.00
+What was computed
+Planned production time: 480.00
+Downtime: 40.00
+Run time: 440.00
+Ideal cycle time: 0.50
+Total units: 760.00
+Good units: 740.00
+Availability: 0.9167
+Performance: 0.8636
+Quality: 0.9737
+Oee: 0.7708
+Scrap units: 20.00
+Theoretical output: 880.00
+Honesty: what was not done
+this method: OEE is arithmetic on the six figures you declare; the losses are not reclassified or assumed. Performance above one usually means the ideal cycle time or the unit count is wrong; the method reports it rather than capping it. OEE measures one machine or line, not a plant; six big losses and TEEP are not modelled.
+Assumptions made
+The planned time, downtime, ideal cycle and counts share one period and one time unit.
+Good units are a subset of total units.
+Limitations
+One machine or line; no TEEP, six-loss split or multi-machine aggregation.
+Performance above one is reported, not capped.
+The inputs are declared, not captured from a machine.
+How the figures were checked
+Second implementation agrees.
+Availability is run time over planned time.
+Performance is ideal cycle times units over run time.
+Quality is good units over total units.
+Oee is the product of the three.

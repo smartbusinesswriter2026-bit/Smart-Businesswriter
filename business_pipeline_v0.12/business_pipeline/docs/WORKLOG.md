@@ -43,6 +43,60 @@ port 8002 with 10 of 10 `.docx` downloads; one Kotter paper read against V-01…
 because these numbers were all *arithmetically* right. And the rebase reality is real — the research lane changed
 `_power_typing` under this session mid-flight, from `probability` to `@unit`, which resolved straight back to
 `probability`; the ledger was corrected rather than the finding dropped.
+## 2026-11-03 — [calculator] The Business Calculator is proved by launching all 148 tools, not by counting them
+
+**Ask.** The work order: the rail panel `#panel-calculator` has a page, a route, a guard and **148
+launchable tools** — and **no acceptance manual and no acceptance suite of its own**. Coverage was
+"complete but unproved": four modules asserted membership (the union of the groups, the preset↔method
+pairs, the method resolution), and nothing ran a tool the way the panel runs it. Prove every applicable
+computation is wired, and prove it *by behaviour*.
+
+**Started from a different tree than the order describes.** The sandbox checkout was on `main`, which
+is ~5,400 files behind and measures **129** tools; the order's branch is `corpus/merge-v1`. A worktree
+on that branch measures **148** — the order's number — so every figure below was re-measured there and
+nothing was copied.
+
+**Ground truth, re-measured at `05efb8f`.** `compute_tools()` **148**; `CALCULATOR_GROUPS` **8 groups /
+206 entries / 148 distinct**; 0 tools missing from the calculator; 0 calculator keys off a subject page;
+144 presets each running the method it claims; **4** typed tools (`kruskal_wallis`, `mann_whitney`,
+`ols_robust`, `spearman`); **131 of 148** keys are not `LIBRARY` ids; 0 preset/method mismatches; one
+documented composite (`case_decision`); `LIBRARY` 142 / `PRESETS` 144 / fixture 142–144. **One number
+did not reproduce: the order says 33 keys sit in more than one group; the tree measures 31**, by two
+independent counts. Recorded DISPUTED, pinned at 31 in the suite, and the taxonomy was not touched.
+
+**The probe, and why it had to be distrusted first.** `qa/probe_calculator.py` resolves **both**
+vocabularies (key *and* method — the 131 trap), launches each tool through `Pipeline.run` →
+`session_paper.docx_bytes` → the text, and reads the gates on the artefact. Its first run reported three
+problems, and **all three were the probe's own**: `descriptive` was flagged for `1e-9` that lives
+inside the declared *limitation* "Float reference comparison tolerance is 1e-9 relative", and the two
+6-dp figures were being *exempted* because they matched their declared precision. Before trusting it I
+pointed it at `operations` (46-test suite green) and `research` (53-test suite green): **14/14 and 21/21,
+zero problems**. Then the exemption was removed — because `DECISIONS.md` **B-214** had already settled
+this exact conflict in favour of the six-decimal ban — and the two remaining findings turned out to be
+real.
+
+**What was actually broken.** `currency_convert.rate` and `real_option`'s four ratios declared
+`("ratio", 6)`, so every currency paper printed `Rate: 0.920000` and every real-option paper
+`Delta: 0.617058`. That is the D-RES-05 defect class, alive on two methods that no shelf suite had ever
+read, precisely because the calculator had no behaviour test. On the owner's instruction ("unfreeze it
+and do what you have to do to fix the error") both declarations moved to 4 dp — **B-217** — and the
+papers read `Rate: 0.9200` / `Delta: 0.6171`. The frozen fixture pins `tier/metric/unit/ceiling/
+test_names/inputs` and **not** precision, so it was not touched: `econ_shelf --check` still says
+"frozen fixture: in sync". A third, smaller defect: an unknown calculator sub-route answered `422 case
+id must be 12 lowercase hex characters` — a fail-closed path with the wrong reason — now `404 unknown
+route …`.
+
+**What is now green.** 148/148 papers pass every gate; 148/148 are byte-identical across two runs; the
+31 shared keys agree from every group that lists them (0 disagreements); the unit sweep finds 0
+disagreements between `typing` and the declared `output_units`/`output_precision`; the four typed tools
+deliver with typed figures and **block naming the missing input** when sent `{}`; the ask router never
+invents a tool. Twelve wiring invariants W-01…W-12 are 25 tests against the real paths, with a negative
+control (`test_E_calc_024`) proving the gates can fail at all.
+
+**Not done, deliberately.** The ask surface still answers `200 + unsupported/no_method` rather than 404
+for an unknown *sentence*: it is a plan, not a lookup, it returns no tool and names why, and "what the
+calculator says when a tool cannot run" is an owner decision (§9), so it was left alone and recorded.
+
 
 ## 2026-11-03 — [design] The bundle becomes a band below the pricing grid, and the page stops naming tiers
 

@@ -1,0 +1,34 @@
+Computation: regression discontinuity
+Result
+The local-linear jump at the cutoff is 6.0000, using 2 observations on the left and 2 on the right. A sharp RDD with a local linear fit on each side and a declared bandwidth; the estimate is the intercept jump at the cutoff. The design assumes no manipulation of the running variable and no other discontinuity at the cutoff, which the method cannot test. No optimal bandwidth selection, bias correction, covariates or fuzzy design is included. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Data: Running: -3; Outcome: 0, Running: -2; Outcome: 1, Running: -1; Outcome: 2, Running: 1; Outcome: 10, Running: 2; Outcome: 11, Running: 3; Outcome: 12
+Cutoff: 0.0000
+Bandwidth: 2.5000
+What was computed
+Estimate: 6.0000
+Left intercept: 3.0000
+Right intercept: 9.0000
+Left slope: 1.0000
+Right slope: 1.0000
+N left: 2
+N right: 2
+Honesty: what was not done
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Treatment is determined by the running variable crossing the cutoff.
+No manipulation of the running variable.
+No other discontinuity at the cutoff.
+Limitations
+No optimal bandwidth, bias correction or covariates.
+Sharp design only; no fuzzy RDD.
+No robust or clustered inference.
+How the figures were checked
+Second implementation agrees.
+Estimate is the right intercept minus the left intercept.
+Shifting the outcome leaves the estimate unchanged.
+The bandwidth excludes observations outside it.
+A positive jump at the cutoff gives a positive estimate.

@@ -1,0 +1,39 @@
+Computation: cap table round
+Result
+At a pre-money valuation of 4,000,000.00 and an investment of 1,000,000.00, the post-money valuation is 5,000,000.00 at 4.00 a share. The investor receives 250,000.00 shares, or 18.00% of the company, and the founders keep 72.00%. The declared option pool takes 10.00% of the fully diluted company. One round only: the pre-money value, the investment and the founders' shares are declared, and no earlier round, convertible note or SAFE is modelled. The option pool is a declared share of the fully diluted post-money company; a pool created before the money (a pool shuffle that lowers the price) is a different convention and is not applied. No liquidation preference, anti-dilution, vesting, pro-rata right, board seat or term-sheet clause is modelled; those are negotiated terms, not arithmetic.
+Inputs and results
+What you declared
+Pre money valuation: 4000000.00
+Investment: 1000000.00
+Founders shares: 1000000.00
+Option pool pct: 0.1000
+What was computed
+Pre money valuation: 4000000.00
+Investment: 1000000.00
+Founders shares: 1000000.00
+Post money valuation: 5000000.00
+Price per share: 4.00
+New shares: 250000.00
+Option pool pct: 0.1000
+Option pool shares: 138888.89
+Total shares: 1388888.89
+Founder pct: 0.7200
+Investor pct: 0.1800
+Pool pct actual: 0.1000
+Founder dilution: 0.2800
+Honesty: what was not done
+this method: One round only: the pre-money value, the investment and the founders' shares are declared, and no earlier round, convertible note or SAFE is modelled. The option pool is a declared share of the fully diluted post-money company; a pool created before the money (a pool shuffle that lowers the price) is a different convention and is not applied. No liquidation preference, anti-dilution, vesting, pro-rata right, board seat or term-sheet clause is modelled; those are negotiated terms, not arithmetic.
+Assumptions made
+The pre-money value and the investment are agreed and declared.
+All existing shares are counted in founders_shares.
+The option pool, if any, is post-money.
+Limitations
+No liquidation preference, anti-dilution, vesting, pro-rata, board or other negotiated term.
+One round only; no note, SAFE or bridge.
+The valuation is an input, not a recommendation.
+How the figures were checked
+Second implementation agrees.
+Post money is pre money plus investment.
+Price per share is pre money over existing shares.
+Investor percentage is new shares over total shares.
+Ownership percentages sum to one.

@@ -1,0 +1,36 @@
+Computation: loan amortization
+Result
+The level payment is 4,151.67 over 60 payments, so the total paid is 249,100.26 and the total interest is 49,100.26. The first payment contains 1,500.00 of interest and 2,651.67 of principal. The effective annual rate is 9.38%. The payment is a level amount computed from the declared principal, rate and term; no fees, insurance, taxes or grace periods are included. The rate is a nominal annual rate divided by the payment frequency; the effective annual rate is stated separately. A quoted bank payment can differ through rounding, day-count conventions or fees, none of which are modelled here.
+Inputs and results
+What you declared
+Principal: 200000.00
+Annual rate: 0.09
+Years: 5.00
+Payments per year: 12.00
+What was computed
+Payment: 4151.67
+Total paid: 249100.26
+Total interest: 49100.26
+Principal: 200000.00
+Periodic rate: 0.0075
+Effective annual rate: 0.0938
+N payments: 60
+First interest: 1500.00
+First principal: 2651.67
+Honesty: what was not done
+this method: The payment is a level amount computed from the declared principal, rate and term; no fees, insurance, taxes or grace periods are included. The rate is a nominal annual rate divided by the payment frequency; the effective annual rate is stated separately. A quoted bank payment can differ through rounding, day-count conventions or fees, none of which are modelled here.
+Assumptions made
+The rate is fixed for the whole term.
+Payments are level and made on time.
+The loan is fully amortized with no balloon.
+Limitations
+No variable, capped or teaser rates.
+No fees, insurance, taxes or penalties.
+No period-by-period schedule; only the first split and the totals are reported.
+How the figures were checked
+Second implementation agrees.
+Zero rate payment is principal over periods.
+Doubling the principal doubles the payment.
+Total interest is payments minus principal.
+The final balance is repaid.
+Effective annual rate follows the payment frequency.

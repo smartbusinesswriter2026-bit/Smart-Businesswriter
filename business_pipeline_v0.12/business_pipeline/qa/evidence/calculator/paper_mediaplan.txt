@@ -1,0 +1,49 @@
+Computation: media plan
+Result
+The plan buys 768.0 gross rating points for 1,830,000.00, a blended cost of 238.28 per thousand impressions, on the first vehicle at 3,333.33 per rating point. Under random duplication the vehicles together reach 661,200 people, an average frequency of 11.62. Reach, average frequency and cost are the figures you declare for each vehicle; the method does not read a media owner's or platform's data. The combined net reach uses the random-duplication formula, which assumes the audiences of different vehicles overlap only by chance; real overlap is usually higher, so the estimate is an upper bound. Rating points add up across vehicles but reach does not: a plan can double its points without doubling its audience. No seasonality, wear-out, scheduling, negotiation or response curve is modelled, and the method does not say which plan to buy.
+Inputs and results
+What you declared
+Population: 1000000
+Vehicles: Name: TV prime time; Reach: 450000; Insertions: 8; Cost: 1200000, Name: Radio drive time; Reach: 300000; Insertions: 12; Cost: 450000, Name: Print weekly; Reach: 120000; Insertions: 4; Cost: 180000
+What was computed
+Reach 1: 450000
+Reach pct 1: 0.4500
+Impressions 1: 3600000
+Grp 1: 360.0
+Cpm 1: 333.33
+Cpp 1: 3333.33
+Reach 2: 300000
+Reach pct 2: 0.3000
+Impressions 2: 3600000
+Grp 2: 360.0
+Cpm 2: 125.00
+Cpp 2: 1250.00
+Reach 3: 120000
+Reach pct 3: 0.1200
+Impressions 3: 480000
+Grp 3: 48.0
+Cpm 3: 375.00
+Cpp 3: 3750.00
+Vehicles: 3
+Population: 1000000
+Total impressions: 7680000.00
+Total grp: 768.0
+Total cost: 1830000.00
+Blended cpm: 238.28
+Net reach: 661200
+Average frequency: 11.62
+Honesty: what was not done
+this method: Reach, average frequency and cost are the figures you declare for each vehicle; the method does not read a media owner's or platform's data. The combined net reach uses the random-duplication formula, which assumes the audiences of different vehicles overlap only by chance; real overlap is usually higher, so the estimate is an upper bound. Rating points add up across vehicles but reach does not: a plan can double its points without doubling its audience. No seasonality, wear-out, scheduling, negotiation or response curve is modelled, and the method does not say which plan to buy.
+Assumptions made
+Reach, insertions and cost are declared for the same population, period and currency.
+Each vehicle's reach counts a person once, however many insertions they saw.
+Limitations
+Declared figures only; no media-owner data and no measured overlap.
+Random duplication overstates combined reach when audiences concentrate.
+No effective-frequency, wear-out, seasonality or response model, and no recommendation.
+How the figures were checked
+Second implementation agrees.
+Grp is reach share times frequency.
+Impressions are reach times frequency.
+Total grp is the sum of the vehicle grp.
+Net reach lies between the largest vehicle and the sum.

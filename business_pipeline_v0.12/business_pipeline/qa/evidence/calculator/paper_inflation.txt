@@ -1,0 +1,35 @@
+Computation: inflation cpi
+Result
+The CPI moves from 100.00 to 105.00, an inflation rate of 5.00%. At a nominal rate of 8.00%, the exact real interest rate is 2.86%. Real wage growth is -0.95%. Inflation is the percentage change in the CPI you declared; the basket and the base period are the owner's choice. The exact real interest rate uses the Fisher relation; the nominal-minus-inflation figure is only an approximation. Real wage growth compares the wage index with the CPI index; it is not a household-specific cost-of-living measure.
+Inputs and results
+What you declared
+Cpi start: 100.00
+Cpi end: 105.00
+Nominal interest rate: 0.0800
+Wage start: 100.00
+Wage end: 104.00
+What was computed
+Cpi start: 100.00
+Cpi end: 105.00
+Inflation rate: 0.0500
+Nominal interest rate: 0.0800
+Real interest rate: 0.0286
+Real interest approximation: 0.0300
+Nominal wage growth: 0.0400
+Real wage growth: -0.0095
+Honesty: what was not done
+this method: Inflation is the percentage change in the CPI you declared; the basket and the base period are the owner's choice. The exact real interest rate uses the Fisher relation; the nominal-minus-inflation figure is only an approximation. Real wage growth compares the wage index with the CPI index; it is not a household-specific cost-of-living measure.
+Assumptions made
+The two CPI values use the same basket and base.
+The nominal rate and the CPI cover the same period.
+Wages, if used, are nominal values for the same period.
+Limitations
+Two CPI values only; no index construction or rebasing.
+No expectations, core measure or household-specific basket.
+Real wage growth is an index comparison, not a full cost-of-living measure.
+How the figures were checked
+Second implementation agrees.
+Inflation is the cpi percentage change.
+Fisher identity holds.
+Approximation gap is the declared identity.
+A higher cpi end raises inflation.

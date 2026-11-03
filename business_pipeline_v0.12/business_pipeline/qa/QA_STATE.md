@@ -1,5 +1,66 @@
 # QA state
 
+## Session 11 — `calculator` (2026-11-03) · branch `corpus/merge-v1`, opening commit `05efb8f`
+
+**Surface chosen by the work order** — not a shelf: the rail panel `#panel-calculator`, its route, its
+guard, and the **148 launchable tools** it offers. Manual: `qa/manual/calculator.md` (10 sections,
+25 E-rows). Suite: `tests/test_calculator_acceptance.py` (**25 tests, 25 passed**). Probe:
+`qa/probe_calculator.py`. Evidence: `qa/evidence/calculator/` (148 delivered papers).
+
+**This surface had no manual and no suite of its own.** Four modules asserted *membership* — the union
+of the groups (`CalculatorGuardTest`), the preset↔method pairs, the method resolution
+(`SubjectToolsResolve`) — and **nothing launched a tool the way the panel launches it**. Coverage was
+complete but unproved.
+
+### Baseline (measured here, not assumed)
+
+| Measure | Documented | Measured |
+|---|---:|---:|
+| Tests | 3564 | **3564** at the opening tree; **3589** after this session's 25 |
+| Failures | — | **3** — all `test_product_intake` PDF cases, `NETWORK-ENV` (optional `pypdf` not installed); 0 on this surface |
+| Errors | — | **1** — the same PDF text-layer case |
+| Wall time | — | 50 s |
+
+**0 of the 4 is on this surface.** Two were the documented env gap (optional `pypdf`), one was
+`test_docs_sync`'s count, which this session moved to 3589 and is now green.
+
+**Inventory, re-measured:** `compute_tools()` **148** · `CALCULATOR_GROUPS` **8 groups / 206 entries /
+148 distinct** · 0 missing from the calculator · 0 keys off a page · 144 presets each running the method
+it claims · **4** typed tools · **131 of 148** keys are not `LIBRARY` ids · 1 composite
+(`case_decision`) · `LIBRARY` 142 / `PRESETS` 144 / fixture in sync. **The work order's "33 shared
+keys" does not reproduce: the tree measures 31** (DISPUTED in the manual, pinned at 31 in the suite).
+
+### Delivered
+
+- **All 148 tools launched and read on the artefact** — `--tools`: 148/148 pass every gate; two runs
+  byte-identical 148/148; the 31 shared keys agree from every group (0 disagreements); unit sweep 0.
+- **The harness was proved before it judged**: `operations` 14/14, `research` 21/21, zero problems —
+  after it had reported three problems of its own (D-CALC-04).
+- **D-CALC-01 / D-CALC-02 fixed (B-217)**: `currency_convert.rate` and `real_option`'s four ratios
+  declared 6 dp and printed `0.920000` / `0.617058`; now 4 dp, `Rate: 0.9200` / `Delta: 0.6171`.
+- **D-CALC-03 fixed**: an unknown calculator route answered `422 case id must be 12 lowercase hex
+  characters`; now `404 unknown route …`.
+- **Twelve wiring invariants W-01…W-12 as 25 tests**, with a negative control (`test_E_calc_024`).
+
+### Next subject and its top three risks
+
+**Next: `marketing`** (the shelf whose B-211 landed while this session's work order was being written;
+it has a manual section in `QA_DEFECTS.md` but **no full E-row table and no acceptance suite yet** —
+the same "complete but unproved" shape this session closed for the calculator).
+
+1. **The six-decimal class is not extinct.** D-RES-05 (B-214) fixed `logistic_regression`; this session
+   found two more under B-217. Any of the 148 tools can declare `("ratio", 6)` again, and only
+   `test_E_calc_013` now catches it *for the calculator surface*. **Risk: a new method ships at 6 dp
+   and no shelf suite reads it.**
+2. **Marketing's 22 calculator entries are 16 distinct tools, most of them shared.** `chi_square`,
+   `alpha`, `forecast`, `power` and `unitecon` are filed on several shelves, so a defect in one of them
+   moves four shelves' papers at once — and marketing's own suite does not exist to notice.
+3. **The ask router's vocabulary is hand-maintained.** `CLUES` / `INPUT_WORDS` in `calc_router.py` are
+   literals; a new tool that nobody adds a clue for is reachable only by exact label, and the failure
+   mode is a silent `unsupported` rather than an error.
+
+
+
 ## Session 10 — `people` (2026-11-03) · branch `corpus/merge-v1`, opening commit `b393743`
 
 **Subject chosen by the work order.** Manual: `qa/manual/people.md` (12 sections, 84 E-rows).

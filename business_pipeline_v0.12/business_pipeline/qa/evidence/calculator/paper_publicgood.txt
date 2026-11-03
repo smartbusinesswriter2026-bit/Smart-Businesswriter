@@ -1,0 +1,34 @@
+Computation: public good
+Result
+The efficient quantity of the public good is 26.67, where the summed marginal benefit equals marginal cost. Total benefit is 3,022.22, total cost is 888.89 and net benefit is 2,133.33. The two individual marginal-benefit schedules are declared linear functions; the social marginal benefit is their vertical sum. The method computes the Samuelson condition only; it does not model free riding, contribution games or government provision. No distributional weights, crowding out or administrative cost is included.
+Inputs and results
+What you declared
+Mb1 intercept: 100.00
+Mb1 slope: 2.00
+Mb2 intercept: 80.00
+Mb2 slope: 3.00
+Mc intercept: 20.00
+Mc slope: 1.00
+What was computed
+Efficient quantity: 26.67
+Social marginal benefit: 46.67
+Marginal cost: 46.67
+Total benefit: 3022.22
+Total cost: 888.89
+Net benefit: 2133.33
+Honesty: what was not done
+this method: The two individual marginal-benefit schedules are declared linear functions; the social marginal benefit is their vertical sum. The method computes the Samuelson condition only; it does not model free riding, contribution games or government provision. No distributional weights, crowding out or administrative cost is included.
+Assumptions made
+Two individuals with declared linear marginal benefits.
+The good is non-rival and non-excludable.
+Marginal cost is linear and positive.
+Limitations
+Two individuals only; no free-riding or contribution game.
+No distributional weights, crowding out or administrative cost.
+The benefit schedules are declared, not estimated.
+How the figures were checked
+Second implementation agrees.
+Samuelson condition holds.
+Total benefit is the area under social marginal benefit.
+Total cost is the area under marginal cost.
+A higher marginal cost lowers the efficient quantity.

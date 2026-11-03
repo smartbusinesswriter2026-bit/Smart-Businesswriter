@@ -1,0 +1,29 @@
+Computation: nash equilibrium
+Result
+The declared two-by-two game has 1 pure-strategy Nash equilibrium or equilibria. The cell flags are in the appendix. A one-shot 2x2 game in pure strategies with ordinal or cardinal payoffs as declared. A tie counts as a weak Nash equilibrium; the method does not select among multiple equilibria. Mixed strategies, repeated games, sequential moves and coalitional games are not modelled. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Row payoffs: 3, 0, 5, 1
+Column payoffs: 3, 5, 0, 1
+What was computed
+Nash 11: 0
+Nash 12: 0
+Nash 21: 0
+Nash 22: 1
+Nash count: 1
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The payoffs are the players' utilities and are comparable only within each player.
+The game is one-shot and simultaneous.
+Each player knows the payoff matrix.
+Limitations
+Pure strategies only; mixed equilibria are not computed.
+2x2 games only.
+Multiple equilibria are reported, not ranked.
+How the figures were checked
+Second implementation agrees.
+Nash count equals the number of flags.
+Prisoners dilemma has one nash.
+Coordination game has two nash.
+Matching pennies has no pure nash.

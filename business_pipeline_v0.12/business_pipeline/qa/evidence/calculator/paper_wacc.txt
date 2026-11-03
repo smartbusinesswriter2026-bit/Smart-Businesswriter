@@ -1,0 +1,30 @@
+Computation: wacc
+Result
+The weighted average cost of capital is 10.60%, with an equity weight of 80.00% and a debt weight of 20.00%. The costs of equity and after-tax debt are inputs; no tax is computed here. The costs of capital are inputs, not estimates made here: the cost of equity and the AFTER-TAX cost of debt must be declared, and no tax is computed by this method. Market values of equity and debt are used for the weights; book values would give different weights and a different WACC. WACC is a single discount rate for a whole firm or project; it is not appropriate for cash flows with materially different risk.
+Inputs and results
+What you declared
+Equity value: 800000.0000
+Debt value: 200000.0000
+Cost of equity: 0.1200
+Cost of debt after tax: 0.0500
+What was computed
+Wacc: 0.1060
+Weight equity: 0.8000
+Weight debt: 0.2000
+Cost of equity: 0.1200
+Cost of debt after tax: 0.0500
+Honesty: what was not done
+this method: The costs of capital are inputs, not estimates made here: the cost of equity and the AFTER-TAX cost of debt must be declared, and no tax is computed by this method. Market values of equity and debt are used for the weights; book values would give different weights and a different WACC. WACC is a single discount rate for a whole firm or project; it is not appropriate for cash flows with materially different risk.
+Assumptions made
+The market values and costs are the owner's declared inputs.
+The same WACC applies to the cash flows it will discount.
+Limitations
+No CAPM or other cost-of-equity model; no tax computation.
+A single WACC does not fit heterogeneous cash flows.
+Weights are current, not target, capital structure.
+How the figures were checked
+Second implementation agrees.
+Weights sum to one.
+Wacc is between the two costs.
+Scaling both market values changes nothing.
+Rising cost of equity raises wacc.

@@ -1,0 +1,51 @@
+Computation: standard cost variances
+Result
+For 4,800.00 units, the material price variance is 4,900.00 and the material usage variance is 3,000.00; the labour rate variance is 7,300.00 and the labour efficiency variance is 4,000.00. The total variance is 46,200.00, with a positive figure unfavourable. A positive variance means actual cost was higher than standard for the output achieved (unfavourable); a negative variance is favourable. The standard quantities and prices are the ones you declare; the method does not set standards or judge whether they are attainable. Only the variances named are computed: material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead. Mix, yield, sales and planning variances are not modelled.
+Inputs and results
+What you declared
+Actual units: 4800.00
+Standard material per unit: 2.0000
+Standard material price: 15.00
+Actual material quantity: 9800.00
+Actual material price: 15.50
+Standard hours per unit: 1.5000
+Standard labour rate: 40.00
+Actual hours: 7300.00
+Actual labour rate: 41.00
+Standard variable overhead rate: 10.00
+Actual variable overhead: 70000.00
+Budgeted fixed overhead: 240000.00
+Actual fixed overhead: 245000.00
+Denominator hours: 8000.00
+What was computed
+Actual units: 4800.00
+Standard material quantity: 9600.00
+Standard hours: 7200.00
+Material price variance: 4900.00
+Material usage variance: 3000.00
+Labour rate variance: 7300.00
+Labour efficiency variance: 4000.00
+Material variance: 7900.00
+Labour variance: 11300.00
+Standard variable overhead rate: 10.00
+Variable overhead spending variance: -3000.00
+Variable overhead efficiency variance: 1000.00
+Standard fixed overhead rate: 30.00
+Fixed overhead spending variance: 5000.00
+Fixed overhead volume variance: 24000.00
+Total variance: 46200.00
+Honesty: what was not done
+this method: A positive variance means actual cost was higher than standard for the output achieved (unfavourable); a negative variance is favourable. The standard quantities and prices are the ones you declare; the method does not set standards or judge whether they are attainable. Only the variances named are computed: material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead. Mix, yield, sales and planning variances are not modelled.
+Assumptions made
+The standards are the declared quantities and prices.
+Actual hours and quantities are for the same period and output.
+Limitations
+No standards setting, mix, yield, sales or planning variances.
+One product and one process only.
+No journal entries or inventory valuation.
+How the figures were checked
+Second implementation agrees.
+Material price and usage sum to the material variance.
+Labour rate and efficiency sum to the labour variance.
+Fixed overhead volume is budget applied.
+Total variance is the sum of the reported variances.

@@ -1,0 +1,50 @@
+Business computation
+Result
+This case comparison covers 2 alternatives you supplied, each citing the case facts it follows from (2 facts in total). Net present value is computed for each alternative from the cash flows you supplied, at a discount rate you set of 8.00% and across a range you set from 2.00% to 25.00%. Expand the shop has a net present value of USD 2,586.47 at the base rate. Office catering has a net present value of USD 2,136.83 at the base rate. By net present value at the base rate the order is Expand the shop, then Office catering. The order of Expand the shop and Office catering changes at a discount rate of 10.16%: Expand the shop has the higher net present value below that rate and Office catering above it. At the low end of your range the highest net present value belongs to Expand the shop, and at the high end to Office catering. Under your stated decision rule (highest net present value) and the inputs you supplied, Expand the shop ranks first at the base rate, but the alternative in first place changes within your range (Expand the shop, Office catering each lead somewhere), so the choice depends on the discount rate. 1 alternatives rest on assumed cash flows rather than user-supplied or sourced figures. The discount rate itself is an assumption. Some inputs are synthetic and illustrative only; they are not observations. Net present value treats the cash flows as certain and ignores factors that you did not quantify. The facts, alternatives, cash flows, decision rule and rates are all yours; the system adds none of them and ranks only by the rule you gave.
+Case facts (yours)
+[F1] A supermarket chain opened a bakery counter nearby — synthetic (illustrative only)
+[F2] An office park opens next year — synthetic (illustrative only)
+Alternatives (yours)
+[A1] Expand the shop — Add seating and extend hours — follows from F1; cash flows: -12000, 3000, 4000, 5000, 6000 (synthetic (illustrative only))
+[A2] Office catering — Deliver lunches to the office park — follows from F2; cash flows: -4000, 1500, 1800, 2000, 2200 (assumption (unsupported))
+Inputs and results
+What you declared
+Currency: USD
+Facts: Text: A supermarket chain opened a bakery counter nearby; Provenance: synthetic, Text: An office park opens next year; Provenance: synthetic
+Alternatives: Name: Expand the shop; Description: Add seating and extend hours; Supports: F1; Cashflows: -12000, 3000, 4000, 5000, 6000; Cashflow provenance: synthetic, Name: Office catering; Description: Deliver lunches to the office park; Supports: F2; Cashflows: -4000, 1500, 1800, 2000, 2200; Cashflow provenance: assumption
+Rate: 0.08
+Rate provenance: assumption
+Rate range: 0.02, 0.25
+Decision rule: highest_npv
+What was computed
+Rate: 0.08
+Rate low: 0.02
+Rate high: 0.25
+Npv A1: 2586.47
+Npv A2: 2136.83
+Cross 1: 0.10
+N facts: 2
+N alternatives: 2
+N crossovers: 1
+N assumed: 1
+N negative: 0
+Limitations
+NPV treats cash flows as certain and ignores unquantified factors.
+Alternatives, facts and cash flows are yours; the system checks structure and arithmetic, not whether they are realistic.
+Custom analysis (T2): built on the vetted NPV method, expert review pending.
+How the figures were checked
+Alternatives pass standard npv checks.
+Base values agree with independent recomputation.
+Crossover rates are roots of the npv difference.
+Ranking changes at each crossover.
+No crossover missed on a different grid.
+Ranking matches recomputed order.
+Order of alternatives does not change results.
+Analysis contains only supplied text.
+Listing reproduces every input text verbatim.
+Alternatives cite existing facts.
+Cashflows reproduced exactly.
+Recommendation matches recomputation.
+No recommendation without your decision rule.
+Assumption and synthetic flags are correct.
+Rendering is deterministic.

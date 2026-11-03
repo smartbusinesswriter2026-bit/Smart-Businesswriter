@@ -1,0 +1,31 @@
+Computation: difference in differences
+Result
+The treated group changed by 20.00 and the control group by 5.00, giving a difference-in-differences estimate of 15.00. A two-group, two-period difference-in-differences on four declared means. The estimate is causal only if the parallel-trends assumption holds; the method cannot test that assumption. No covariates, clustering, weights, repeated cross-sections or staggered adoption is modelled. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Treated pre: 50.00
+Treated post: 70.00
+Control pre: 40.00
+Control post: 45.00
+What was computed
+Treated change: 20.00
+Control change: 5.00
+Did estimate: 15.00
+Honesty: what was not done
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The four means are comparable and measured the same way.
+The control group would have followed the treated group's trend absent treatment.
+No confounding shocks differ between the groups.
+Limitations
+Parallel trends cannot be tested here.
+No covariates, clustering, weights or repeated cross-sections.
+A two-period, two-group design only.
+How the figures were checked
+Second implementation agrees.
+Treated change is post minus pre.
+Control change is post minus pre.
+Did is the difference of the two changes.
+Parallel trends give a zero estimate.

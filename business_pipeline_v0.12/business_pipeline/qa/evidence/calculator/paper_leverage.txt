@@ -1,0 +1,58 @@
+Computation: leverage analysis
+Result
+Earnings per share are 2.80 on declared EBIT of 500,000.00 and interest of 100,000.00, with an interest tax shield of 30,000.00. The degree of financial leverage is 1.2500. Interest cover is 5.0000 times. The Altman Z-score is 4.1350, with its five terms shown above. The two declared financing plans report the same earnings per share at an EBIT of 350,000.00, where both report 1.75. EPS and the degree of financial leverage are single-period arithmetic on the declared EBIT, interest, tax and share count; no dilution, buyback or preference dividend is modelled. The interest tax shield is interest times the tax rate and assumes the interest is deductible and the firm is profitable enough to use it. The Altman Z-score is the classic five-term formula computed from your declared figures; no zone cut-off is applied, because the thresholds are sample-specific and not verified here. The indifference EBIT is where the two declared plans happen to report the same EPS. It is not a recommendation to borrow or to issue shares, and it ignores risk, covenants and issue costs.
+Inputs and results
+What you declared
+Ebit: 500000.00
+Interest expense: 100000.00
+Tax rate: 0.3000
+Debt: 800000.00
+Equity: 1200000.00
+Shares outstanding: 100000
+Working capital: 300000.00
+Retained earnings: 400000.00
+Total assets: 2000000.00
+Total liabilities: 800000.00
+Sales: 3000000.00
+Market value equity: 1800000.00
+Alternative interest expense: 200000.00
+Alternative shares outstanding: 60000.00
+What was computed
+Eps: 2.80
+Earnings before tax: 400000.00
+Interest tax shield: 30000.00
+Debt to equity: 0.6667
+Ebit: 500000.00
+Interest expense: 100000.00
+Tax rate: 0.3000
+Shares outstanding: 100000
+Degree of financial leverage: 1.2500
+Interest cover: 5.0000
+Altman z: 4.1350
+Altman term working capital: 0.18
+Altman term retained earnings: 0.28
+Altman term ebit: 0.82
+Altman term market equity: 1.35
+Altman term sales: 1.50
+Indifference ebit: 350000.00
+Eps at indifference: 1.75
+Alternative eps: 3.50
+Honesty: what was not done
+this method: EPS and the degree of financial leverage are single-period arithmetic on the declared EBIT, interest, tax and share count; no dilution, buyback or preference dividend is modelled. The interest tax shield is interest times the tax rate and assumes the interest is deductible and the firm is profitable enough to use it. The Altman Z-score is the classic five-term formula computed from your declared figures; no zone cut-off is applied, because the thresholds are sample-specific and not verified here. The indifference EBIT is where the two declared plans happen to report the same EPS. It is not a recommendation to borrow or to issue shares, and it ignores risk, covenants and issue costs.
+Assumptions made
+EBIT, interest, tax and the share count are one period's declared figures.
+Interest is tax-deductible and the firm has taxable profit.
+The Altman inputs are all from the same date when used.
+The alternative plan's interest and share count are the only things that change.
+Limitations
+No choice between the plans: the indifference point is arithmetic, not a recommendation.
+No dilution, buyback or preference dividend.
+The Altman Z-score is a model, not a probability of default; no zone cut-off is applied.
+How the figures were checked
+Second implementation agrees.
+Eps is earnings after tax over the shares.
+More interest lowers eps.
+The interest tax shield is interest times the tax rate.
+The degree of financial leverage matches the identity.
+The altman terms sum to the z score.
+The indifference ebit equalises eps across the plans.

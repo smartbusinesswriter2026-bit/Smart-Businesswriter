@@ -1,0 +1,30 @@
+Computation: currency convert
+Result
+At the declared rate, an amount you declared in the source currency converts to 920.00. The source amount, both currency codes, the rate, its provenance and any declared date are recorded in the appendix, and the converted amount is denominated in the target currency. The rate is the owner's declaration and is not retrieved or verified by the system. The exchange rate is a declaration, not a retrieved price: the appendix records the currencies, the rate, its provenance (user, sourced or assumption) and any declared date. The system does not fetch, verify or interpolate exchange rates. The converted amount is only as good as the declared rate and its date; a stale rate produces a stale value, and a sourced rate is the owner's claim, not something this system checked. No conversion happens automatically anywhere else: one engagement still uses one currency, and multi-currency consolidation or translation is not implemented.
+Inputs and results
+What you declared
+Amount: 1000.00
+From currency: USD
+To currency: EUR
+Rate: 0.9200
+Rate provenance: user
+Rate date: 2026-10-20
+What was computed
+Amount: 920.00
+Amount from: 1000.00
+Rate: 0.9200
+Honesty: what was not done
+this method: The exchange rate is a declaration, not a retrieved price: the appendix records the currencies, the rate, its provenance (user, sourced or assumption) and any declared date. The system does not fetch, verify or interpolate exchange rates. The converted amount is only as good as the declared rate and its date; a stale rate produces a stale value, and a sourced rate is the owner's claim, not something this system checked. No conversion happens automatically anywhere else: one engagement still uses one currency, and multi-currency consolidation or translation is not implemented.
+Assumptions made
+The rate is the owner's declaration and describes the instant it is intended for.
+Both currencies are ISO 4217 codes present in the declared table.
+Limitations
+No FX retrieval, verification, interpolation or triangulation; no forward rates.
+One rate per conversion, no spread or fee handling.
+Single-currency engagements only: no consolidation or translation of statements.
+How the figures were checked
+Second implementation agrees.
+Round trip at the inverse rate returns the original.
+Zero amount converts to zero.
+Negative amount converts with the same magnitude.
+Scaling the amount scales the result.

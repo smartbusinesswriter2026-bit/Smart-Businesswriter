@@ -1,0 +1,33 @@
+Computation: balance of payments
+Result
+The current account is -50.00, the capital account is 0.00 and the financial account is 50.00, giving a net balance of 0.00. The three account balances are declared on one sign convention; the method checks that they add up, not that the data are right. A zero net balance is the accounting identity, not evidence of external sustainability. No valuation effects, reserve changes or debt-service analysis is included.
+Inputs and results
+What you declared
+Current account: -50.00
+Capital account: 0.00
+Financial account: 50.00
+Gdp: 1000.00
+What was computed
+Current account: -50.00
+Capital account: 0.00
+Financial account: 50.00
+Errors and omissions: 0.00
+Net balance: 0.00
+Balanced: 1
+Current account to gdp: -0.0500
+Honesty: what was not done
+this method: The three account balances are declared on one sign convention; the method checks that they add up, not that the data are right. A zero net balance is the accounting identity, not evidence of external sustainability. No valuation effects, reserve changes or debt-service analysis is included.
+Assumptions made
+The three account balances use one sign convention and one period.
+Errors and omissions are declared or zero.
+GDP, if used, is on the same basis.
+Limitations
+No reserve valuation, debt-service or sustainability analysis.
+No decomposition into trade, income and transfers.
+The identity does not validate the underlying data.
+How the figures were checked
+Second implementation agrees.
+Net balance is the sum of the accounts.
+A balanced position is flagged.
+A current account deficit needs an offsetting surplus.
+The current account ratio uses gdp.

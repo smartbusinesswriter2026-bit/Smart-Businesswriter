@@ -1,0 +1,43 @@
+Computation: campaign efficiency
+Result
+The campaign recorded 250,000 impressions and 6,000 clicks, a click-through rate of 2.40%, at 10.00 per click and 240.00 per thousand impressions. It produced 220 conversions at 272.73 each, on a conversion rate of 3.67%. Revenue was 150,000.00, so return on ad spend is 2.50 and advertising cost of sales is 40.00%. At the declared contribution margin, break-even return on ad spend is 2.22 and profit after media spend is 7,500.00. Every figure is arithmetic on the counts you declare; the method does not read an ad platform or reconcile its numbers. A conversion is whatever you declared it to be; the rate is not comparable with another campaign that defined it differently. Revenue is attributed to the campaign as you supplied it. No incrementality, overlap or multi-channel effect is modelled.
+Inputs and results
+What you declared
+Impressions: 250000
+Clicks: 6000
+Conversions: 220
+Spend: 60000.00
+Revenue: 150000.00
+Contribution margin rate: 0.4500
+What was computed
+Impressions: 250000
+Clicks: 6000
+Conversions: 220
+Spend: 60000.00
+Revenue: 150000.00
+Ctr: 0.0240
+Cpc: 10.00
+Cpm: 240.00
+Conversion rate: 0.0367
+Cpa: 272.73
+Roas: 2.50
+Acos: 0.4000
+Contribution margin rate: 0.4500
+Break even roas: 2.22
+Profit after media: 7500.00
+Roas gap: 0.28
+Honesty: what was not done
+this method: Every figure is arithmetic on the counts you declare; the method does not read an ad platform or reconcile its numbers. A conversion is whatever you declared it to be; the rate is not comparable with another campaign that defined it differently. Revenue is attributed to the campaign as you supplied it. No incrementality, overlap or multi-channel effect is modelled.
+Assumptions made
+Impressions, clicks, conversions and revenue cover the same campaign and period.
+A conversion is the action you declared, counted once per acquisition.
+Limitations
+Arithmetic on declared counts; no platform read, model or attribution window.
+No incrementality, overlap, view-through or assisted-conversion adjustment.
+Revenue and spend must share a currency and a period.
+How the figures were checked
+Second implementation agrees.
+Ctr is clicks over impressions.
+Cpa is spend over conversions.
+Roas is the inverse of acos.
+Cpc is cpa times conversion rate.

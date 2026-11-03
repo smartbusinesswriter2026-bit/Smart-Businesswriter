@@ -1,0 +1,37 @@
+Computation: time value
+Result
+At the declared rate and compounding, the future value is 412,169.51. The payments alone are worth 206,023.67 today and 277,484.01 at the horizon, and the effective annual rate is 6.14%. Every figure is arithmetic on the amount, payment, rate and periods you declared. The rate is a declared nominal annual rate and is converted to the periodic rate by dividing by the compounding frequency; it is not estimated or verified. Payments are assumed equal and made at the end of each period unless the 'begin' timing was declared; no tax, fees or inflation are modelled. The effective annual rate is a convention (periodic rate compounded m times), not an APR disclosure standard.
+Inputs and results
+What you declared
+Present value: 100000.00
+Payment: 12000.00
+Rate: 0.06
+Periods: 5.00
+Compounding: quarterly
+Timing: end
+What was computed
+Future value: 412169.51
+Present value input: 100000.00
+Present value payments: 206023.67
+Future value payments: 277484.01
+Total payments: 240000.00
+Periodic rate: 0.0150
+Effective annual rate: 0.0614
+N periods: 20
+Annuity factor: 17.1686
+Honesty: what was not done
+this method: The rate is a declared nominal annual rate and is converted to the periodic rate by dividing by the compounding frequency; it is not estimated or verified. Payments are assumed equal and made at the end of each period unless the 'begin' timing was declared; no tax, fees or inflation are modelled. The effective annual rate is a convention (periodic rate compounded m times), not an APR disclosure standard.
+Assumptions made
+The rate, payment and term are the owner's declared inputs.
+Every payment is the same amount and occurs on schedule.
+Interest compounds at the declared frequency.
+Limitations
+No rate or term solver: the rate and number of periods must be declared.
+No growing payments, uneven cash flows or inflation.
+No tax, fees or risk adjustment.
+How the figures were checked
+Second implementation agrees.
+Zero rate is simple addition.
+Present value scales one for one.
+Annuity due is one period ahead.
+Effective annual rate follows compounding.

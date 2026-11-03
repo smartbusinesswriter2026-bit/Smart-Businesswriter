@@ -1,0 +1,57 @@
+Computation: dupont analysis
+Result
+The net margin is 0.0900, asset turnover is 1.6667 and the equity multiplier is 2.4000, giving a three-step return on equity of 0.3600. The five-step decomposition, including the tax and interest burdens, gives 0.3600. Against the declared comparison period, revenue changed by 11.11% and net income by 20.00%, while return on equity moved by 4.09%. DuPont analysis is arithmetic on one period's reported figures; average balances and adjustments are not applied, and a comparison period is used exactly as declared. The equity multiplier reflects the reported capital structure at the period end, not a target or market-value structure. The five-step decomposition is computed only when EBIT, pre-tax income and tax expense are all declared; nothing is inferred. Growth is a simple relative change against one declared prior period, not a compound growth rate or a trend line.
+Inputs and results
+What you declared
+Revenue: 20000.00
+Net income: 1800.00
+Total assets: 12000.0000
+Equity: 5000.0000
+Cost of sales: 12000.0000
+Ebit: 3000.0000
+Pretax income: 2400.0000
+Tax expense: 600.0000
+Prior revenue: 18000.0000
+Prior net income: 1500.0000
+Prior total assets: 11000.0000
+Prior equity: 4700.0000
+What was computed
+Net margin: 0.0900
+Asset turnover: 1.6667
+Equity multiplier: 2.4000
+Return on assets: 0.1500
+Return on equity: 0.3600
+Roe three step: 0.3600
+Revenue: 20000.00
+Net income: 1800.00
+Equity to assets: 0.4167
+Gross margin: 0.4000
+Cost to revenue: 0.6000
+Revenue growth: 0.1111
+Net income growth: 0.2000
+Asset growth: 0.0909
+Equity growth: 0.0638
+Return on equity prior: 0.3191
+Roe change: 0.0409
+Tax burden: 0.7500
+Interest burden: 0.8000
+Operating margin: 0.1500
+Roe five step: 0.3600
+Honesty: what was not done
+this method: DuPont analysis is arithmetic on one period's reported figures; average balances and adjustments are not applied, and a comparison period is used exactly as declared. The equity multiplier reflects the reported capital structure at the period end, not a target or market-value structure. The five-step decomposition is computed only when EBIT, pre-tax income and tax expense are all declared; nothing is inferred. Growth is a simple relative change against one declared prior period, not a compound growth rate or a trend line.
+Assumptions made
+The figures are one period on one accounting basis and in one currency.
+Equity is positive, so the return is interpretable.
+The comparison figures cover the same length of period as the current figures.
+Limitations
+Descriptive arithmetic only; no benchmark, threshold or verdict.
+No average balances; one declared comparison period only, not a multi-year trend.
+A negative equity makes ROE uninterpretable and is refused.
+How the figures were checked
+Second implementation agrees.
+Return on equity is net income over equity.
+The three step product reproduces roe.
+Return on assets is margin times turnover.
+A higher net margin raises roe.
+The five step product reproduces roe.
+Prior period growth rates are relative changes.

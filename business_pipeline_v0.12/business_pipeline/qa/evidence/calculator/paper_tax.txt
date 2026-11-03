@@ -1,0 +1,38 @@
+Computation: tax declared
+Result
+On taxable income of 1,000,000.00 at a declared rate of 25.00%, the income tax is 250,000.00 and the after-tax income is 750,000.00. VAT payable is 60,000.00. The deferred tax is 25,000.00. The total tax charge is 275,000.00. Every rate is declared by you. The method applies no jurisdiction's tax law, credits, exemptions, thresholds, NOLCO or filing rules. Taxable income is the declared figure, not an accounting profit recomputed from the statements; the deferred tax is the declared temporary difference times the declared rate. VAT payable is output tax less input tax, with no timing, classification or refund rules; a negative figure is a credit, not a refund claim.
+Inputs and results
+What you declared
+Taxable income: 1000000.00
+Income tax rate: 0.2500
+Vat output tax: 144000.00
+Vat input tax: 84000.00
+Temporary difference: 100000.00
+Deferred tax rate: 0.2500
+What was computed
+Taxable income: 1000000.00
+Income tax rate: 0.2500
+Income tax: 250000.00
+Net income after tax: 750000.00
+Vat output tax: 144000.00
+Vat input tax: 84000.00
+Vat payable: 60000.00
+Temporary difference: 100000.00
+Deferred tax rate: 0.2500
+Deferred tax: 25000.00
+Total tax charge: 275000.00
+Honesty: what was not done
+this method: Every rate is declared by you. The method applies no jurisdiction's tax law, credits, exemptions, thresholds, NOLCO or filing rules. Taxable income is the declared figure, not an accounting profit recomputed from the statements; the deferred tax is the declared temporary difference times the declared rate. VAT payable is output tax less input tax, with no timing, classification or refund rules; a negative figure is a credit, not a refund claim.
+Assumptions made
+The declared taxable income and rates are the ones that apply to the period.
+VAT output and input are for the same period and the same registration.
+Limitations
+No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.
+No link to the accounting profit or the statements.
+Deferred tax is one declared difference times one declared rate.
+How the figures were checked
+Second implementation agrees.
+Income tax is the rate on positive income.
+Vat payable is output minus input.
+Deferred tax is the rate on the temporary difference.
+Total charge is income tax plus deferred tax.

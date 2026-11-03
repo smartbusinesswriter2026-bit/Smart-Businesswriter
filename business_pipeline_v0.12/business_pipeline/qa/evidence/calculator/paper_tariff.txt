@@ -1,0 +1,37 @@
+Computation: tariff welfare
+Result
+The tariff raises the domestic price to 15.00, with imports of 20.00 and tariff revenue of 100.00. The total deadweight loss is 50.00. The country is a small price-taker in world markets; the tariff is fully passed into the domestic price. The deadweight loss is the textbook production and consumption triangles for a linear partial-equilibrium model. No retaliation, terms-of-trade effect, quota, transport cost or general-equilibrium effect is modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Supply intercept: 20.00
+Supply slope: 2.00
+World price: 10.00
+Tariff per unit: 5.00
+What was computed
+Domestic price: 15.00
+Quantity demanded: 70.00
+Quantity supplied: 50.00
+Imports: 20.00
+Imports free trade: 40.00
+Tariff revenue: 100.00
+Production dwloss: 25.00
+Consumption dwloss: 25.00
+Total dwloss: 50.00
+Honesty: what was not done
+this method: The country is a small price-taker in world markets; the tariff is fully passed into the domestic price. The deadweight loss is the textbook production and consumption triangles for a linear partial-equilibrium model. No retaliation, terms-of-trade effect, quota, transport cost or general-equilibrium effect is modelled.
+Assumptions made
+Linear domestic demand and supply.
+The country is a price-taker in world markets.
+The tariff is a per-unit amount and is fully enforced.
+Limitations
+Small-country, partial-equilibrium model only.
+No retaliation, quota, transport cost or dynamic effect.
+No distributional analysis of producers and consumers.
+How the figures were checked
+Second implementation agrees.
+Domestic price is world price plus tariff.
+Imports equal domestic demand minus supply.
+Tariff revenue equals tariff times imports.
+A higher tariff lowers imports.

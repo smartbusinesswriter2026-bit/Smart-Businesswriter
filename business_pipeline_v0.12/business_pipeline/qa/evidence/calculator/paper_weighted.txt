@@ -1,0 +1,33 @@
+Computation: weighted summary
+Result
+The weighted mean is 3.00 with a weighted standard deviation of 1.41, over 4 observations with a total weight of 6.0000. The effective sample size is 3.0000, so the design effect is 1.3333. No standard error or test is reported: that needs a declared complex design, which this method does not assume. The weight kind is declared: reliability weights treat the weights as precision-style weights (unbiased variance), frequency weights treat them as counts of observations. The two give different standard deviations. Weights are not validated: a design weight recorded incorrectly is used as given, and unequal weights reduce the effective sample size (the reported design effect shows by how much). Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. Weights are applied to the summary only; no standard error, interval or test is computed because that needs a declared complex design (stratification, clustering, replicate weights).
+Inputs and results
+What you declared
+Values: 1, 2, 3, 4
+Weights: 1, 1, 1, 3
+Weight kind: reliability
+What was computed
+N: 4
+N missing: 0
+Sum weights: 6.0000
+Weighted mean: 3.00
+Weighted sd: 1.41
+N eff: 3.0000
+Design effect: 1.3333
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+weights and clusters: Weights are applied to the summary only; no standard error, interval or test is computed because that needs a declared complex design (stratification, clustering, replicate weights).
+Assumptions made
+Each weight is positive and belongs to its value.
+The declared weight kind matches how the weights were produced.
+Missing values are excluded listwise together with their weights.
+Limitations
+Summaries only; no design-based inference, stratification, clustering or replicate weights.
+Weights are not validated; a wrong weight is used as given.
+Reliability and frequency weights give different weighted standard deviations; the kind must be declared.
+How the figures were checked
+Second implementation agrees.
+Equal weights reproduce the unweighted summary.
+Mean is invariant to weight scaling.
+Larger values weighted more raise the mean.
+Design effect is one for equal weights.

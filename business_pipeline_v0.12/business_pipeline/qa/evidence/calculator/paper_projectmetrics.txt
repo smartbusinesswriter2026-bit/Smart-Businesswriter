@@ -1,0 +1,35 @@
+Computation: project metrics
+Result
+The project's net present value is 267.95 and its profitability index is 1.2679, with a modified internal rate of return of 0.16 and an equivalent annual annuity of 84.53. The payback period is 2.50 periods. The internal rate of return is 21.86%. All of these use the same declared cash flows and rates. The cash flows are the owner's declared, after-tax cash flows; no tax, depreciation shield, working-capital release or financing flow is computed. MIRR assumes positive flows are reinvested at the declared finance rate and negative flows are financed at the discount rate; both are conventions, not observations. The profitability index and equivalent annual annuity rank projects only under their stated assumptions; unequal risk, timing or strategic options are not modelled.
+Inputs and results
+What you declared
+Cashflows: -1000, 400, 400, 400, 400
+Rate: 0.1000
+Finance rate: 0.08
+What was computed
+Npv: 267.95
+Profitability index: 1.2679
+Mirr: 0.16
+Equivalent annual annuity: 84.53
+Pv inflows: 1267.95
+Pv outflows: -1000.00
+N periods: 4
+Payback period: 2.50
+Irr: 0.2186
+Honesty: what was not done
+this method: The cash flows are the owner's declared, after-tax cash flows; no tax, depreciation shield, working-capital release or financing flow is computed. MIRR assumes positive flows are reinvested at the declared finance rate and negative flows are financed at the discount rate; both are conventions, not observations. The profitability index and equivalent annual annuity rank projects only under their stated assumptions; unequal risk, timing or strategic options are not modelled.
+Assumptions made
+The cash flows are after tax and after any financing the owner intends to include.
+The discount rate is the right hurdle for this project's risk.
+The first flow is the outlay.
+Limitations
+No tax, depreciation shield or working-capital release.
+Payback ignores everything after recovery; EAA assumes a repeatable project.
+The IRR is reported only when a single root exists.
+How the figures were checked
+Second implementation agrees.
+The profitability index agrees with the npv sign.
+The mirr exceeds the cost of capital only when npv is positive.
+The equivalent annual annuity is the npv spread over the life.
+The payback period is the interpolated recovery.
+The irr sets the npv to zero.

@@ -1,0 +1,23 @@
+Computation: irr
+Result
+The internal rate of return is 21.86%: the discount rate at which the declared cash flows have a net present value of zero (the residual value at that rate is 0.00). A single IRR is reported because the cash flows change sign once; IRR says nothing about the scale of the investment.
+Inputs and results
+What you declared
+Cashflows: -1000, 400, 400, 400, 400
+What was computed
+Irr: 0.2186
+Npv at irr: -0.00
+N roots: 1
+N periods: 5
+Assumptions made
+The cash flows are certain given the inputs and change sign once.
+Limitations
+Single constant rate; IRR ignores project scale and can mislead when comparing projects.
+The root is found numerically in the range -99.99% to 1000%; a root outside that range is treated as absent.
+Several sign changes block instead of choosing a root.
+How the figures were checked
+Second implementation agrees.
+Net present value at the irr is zero.
+Npv is positive below and negative above the irr.
+Scaling the cash flows leaves the irr unchanged.
+Unconventional or signless cash flows are refused.

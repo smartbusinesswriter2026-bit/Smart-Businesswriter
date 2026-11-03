@@ -1,0 +1,46 @@
+Computation: depreciation schedule
+Result
+Depreciation on a cost of 500,000.00 to a salvage value of 50,000.00 over 5 periods totals 450,000.00, leaving a carrying amount of 50,000.00. The schedule is a declared accounting allocation, not a tax depreciation rule or a fair-value estimate. Straight-line divides the depreciable amount evenly; declining balance applies the declared rate to the carrying amount and plugs the final period to salvage. No disposals, revaluations, impairment or mid-year conventions are modelled.
+Inputs and results
+What you declared
+Cost: 500000.00
+Salvage: 50000.00
+Life: 5
+Method: straight_line
+What was computed
+Depreciation 1: 90000.00
+Accumulated 1: 90000.00
+Carrying 1: 410000.00
+Depreciation 2: 90000.00
+Accumulated 2: 180000.00
+Carrying 2: 320000.00
+Depreciation 3: 90000.00
+Accumulated 3: 270000.00
+Carrying 3: 230000.00
+Depreciation 4: 90000.00
+Accumulated 4: 360000.00
+Carrying 4: 140000.00
+Depreciation 5: 90000.00
+Accumulated 5: 450000.00
+Carrying 5: 50000.00
+Cost: 500000.00
+Salvage: 50000.00
+Life: 5
+Rate: 0.4000
+Total depreciation: 450000.00
+Final carrying: 50000.00
+Honesty: what was not done
+this method: The schedule is a declared accounting allocation, not a tax depreciation rule or a fair-value estimate. Straight-line divides the depreciable amount evenly; declining balance applies the declared rate to the carrying amount and plugs the final period to salvage. No disposals, revaluations, impairment or mid-year conventions are modelled.
+Assumptions made
+The asset is held for its full life and the salvage value is the declared figure.
+The method is an accounting allocation, not a tax rule.
+Limitations
+No tax depreciation, mid-year convention, revaluation, impairment or disposal.
+The rate is yours; declining balance plugs the final period to salvage.
+One asset at a time.
+How the figures were checked
+Second implementation agrees.
+Depreciation never takes carrying below salvage.
+Accumulated depreciation is the running total.
+The schedule reaches salvage at the end.
+Period depreciation sums to the total.

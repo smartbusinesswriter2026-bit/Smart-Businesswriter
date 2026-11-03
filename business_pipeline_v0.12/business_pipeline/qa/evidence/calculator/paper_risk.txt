@@ -1,0 +1,42 @@
+Computation: risk metrics
+Result
+At the declared confidence the parametric value at risk is 0.00% and the historical value at risk is 2.55%, or 0.00 on the declared portfolio. The expected shortfall is 3.52% (parametric) and 3.00% (historical). The declared stress return implies a loss of 50,000.00. These are quantiles of the return series and the normal approximation, not guarantees. The parametric route assumes returns are normally distributed; the historical route assumes the observed sample is representative. Neither assumption is tested here. Value at risk is a quantile, not a maximum loss: losses beyond it are exactly what the expected shortfall reports, and both are silent about the shape of the tail beyond the sample. No volatility scaling by square-root-of-time is validated; the horizon scaling is the declared convention, and liquidity, correlation changes and non-linear positions are not modelled. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Returns: 0.01, -0.02, 0.015, 0.00, -0.03, 0.025, 0.01, -0.01, 0.02, -0.005
+Confidence: 0.9500
+Portfolio value: 1000000.00
+Horizon days: 1
+Stress return: -0.05
+What was computed
+Mean return: 0.0015
+Sd return: 0.0178
+Z score: 1.6449
+Parametric var: 0.0000
+Historical var: 0.0255
+Parametric cvar: 0.0352
+Historical cvar: 0.0300
+Var amount: 0.00
+Cvar amount: 35222.34
+Confidence: 0.9500
+Horizon days: 1
+Portfolio value: 1000000.00
+N observations: 10
+Stress loss: 50000.00
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The return series is representative of the risk being measured.
+The parametric route assumes normality; the historical route assumes the sample covers the tail.
+Returns are independent over the scaling horizon.
+Limitations
+VaR is a quantile, not a maximum loss; the tail beyond it is only summarised by expected shortfall.
+No volatility model, simulation or backtest.
+No credit, liquidity or non-linear position risk.
+How the figures were checked
+Second implementation agrees.
+Expected shortfall is at least value at risk.
+A higher confidence raises value at risk.
+Value at risk scales with the portfolio value.
+The historical var is the declared tail quantile.
+A constant return series has only the mean loss.

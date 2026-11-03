@@ -1,0 +1,33 @@
+Computation: cournot duopoly
+Result
+The Cournot quantities are 16.67 and 11.67 at a price of 43.33. Total profit is 827.78. A two-firm, one-shot Cournot game with linear demand and constant marginal costs. The equilibrium is interior; a firm priced out of the market is refused rather than clamped to zero. No entry, capacity, product differentiation, repeated interaction or collusion is modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Marginal cost 1: 10.00
+Marginal cost 2: 20.00
+What was computed
+Quantity 1: 16.67
+Quantity 2: 11.67
+Total output: 28.33
+Price: 43.33
+Profit 1: 555.56
+Profit 2: 272.22
+Total profit: 827.78
+Honesty: what was not done
+this method: A two-firm, one-shot Cournot game with linear demand and constant marginal costs. The equilibrium is interior; a firm priced out of the market is refused rather than clamped to zero. No entry, capacity, product differentiation, repeated interaction or collusion is modelled.
+Assumptions made
+Two firms, homogeneous products and linear demand.
+Constant marginal costs.
+Simultaneous quantity choice and no collusion.
+Limitations
+Two firms only; no entry, capacity or differentiation.
+One-shot game; no repeated interaction or collusion.
+A corner solution is refused.
+How the figures were checked
+Second implementation agrees.
+Firm one is on its best response.
+Firm two is on its best response.
+Symmetric costs give equal quantities.
+A higher own cost lowers own quantity.

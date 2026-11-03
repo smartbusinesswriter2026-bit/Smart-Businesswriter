@@ -1,0 +1,51 @@
+Computation: ab test two proportion
+Result
+Variant A converted at 8.00% and variant B at 9.50%, an absolute lift of 1.50% and a relative lift of 18.75%. The two-sided test gives z = 2.3740 and p = 1.76% against a declared alpha of 5.00%; the 95.00% interval for the difference runs from 0.26% to 2.74%. To detect the declared minimum effect at the declared power, each arm would need 18,869 visitors. Both arms are assumed independent, randomly assigned and observed over the same window. The test is a normal approximation to the two-proportion comparison; it is not a sequential test and has no correction for peeking. A significant difference is evidence of an association in this test, not proof that the change caused it or that it will hold. One hypothesis is tested, so no multiple-comparison correction is applied. The visitors-per-arm figure is the design requirement for the declared minimum effect and power; it is not a post-hoc power claim about the result actually observed. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Visitors a: 4000
+Conversions a: 320
+Visitors b: 4000
+Conversions b: 380
+Alpha: 0.0500
+Power: 0.8000
+Minimum effect: 0.1000
+What was computed
+Visitors a: 4000
+Conversions a: 320
+Visitors b: 4000
+Conversions b: 380
+Rate a: 0.0800
+Rate b: 0.0950
+Absolute lift: 0.0150
+Relative lift: 0.1875
+Pooled rate: 0.0875
+Z: 2.3740
+P value: 0.0176
+Alpha: 0.0500
+Confidence level: 0.9500
+Z critical: 1.9600
+Ci low: 0.0026
+Ci high: 0.0274
+Significant: 1
+Minimum effect: 0.1000
+Target rate: 0.0880
+Required per arm: 18869
+Power: 0.8000
+Honesty: what was not done
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: The visitors-per-arm figure is the design requirement for the declared minimum effect and power; it is not a post-hoc power claim about the result actually observed.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The two arms are independent, randomly assigned and observed over the same window.
+Each visitor is counted once and a conversion is counted once.
+Limitations
+One test, one primary metric and two arms only.
+The normal approximation needs enough conversions in both arms; sparse arms are refused.
+A significant result is evidence of a difference, not proof of cause or of future performance.
+How the figures were checked
+Second implementation agrees.
+Absolute lift is b minus a.
+Relative lift is absolute lift over rate a.
+Z is the difference over the pooled standard error.
+P value is the two sided normal tail.

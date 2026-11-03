@@ -1,0 +1,35 @@
+Computation: cohort retention
+Result
+Across the declared cohorts, first-period retention is 100.00% and the average retention over the curve is 68.16%, giving an average lifetime of 2.73 periods. Retention is pooled across the cohorts you declare; each period is the count you supply over the cohort's starting size. Cohorts must be observed for the same number of periods; a period a cohort has not reached should be left out rather than entered as zero. No survival model, seasonality, reactivation or revenue weighting is applied; the average lifetime is the area under the declared retention curve. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Cohort sizes: 200, 180, 150
+Retained: 200, 140, 110, 90, 180, 130, 100, 60, 150, 120, 95, 70
+What was computed
+Retention 1: 1.0000
+Churn 1: 0.0000
+Retention 2: 0.7358
+Churn 2: 0.2642
+Retention 3: 0.5755
+Churn 3: 0.4245
+Retention 4: 0.4151
+Churn 4: 0.5849
+Average retention: 0.6816
+Average lifetime: 2.73
+Total start: 530
+Total retained 1: 530
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Every cohort is observed for the same number of periods.
+The counts are of customers, not revenue.
+Limitations
+Pooled arithmetic only; no survival model or significance test.
+Cohorts must share a period count; a period not yet reached must be omitted, not zero-filled.
+No reactivation, seasonality or revenue weighting.
+How the figures were checked
+Second implementation agrees.
+First period retention is total retained over total start.
+Retention rates are bounded.
+Average lifetime is the sum of retention rates.
+Period retention is weighted by cohort size.

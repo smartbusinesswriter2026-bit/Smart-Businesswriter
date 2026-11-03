@@ -1,0 +1,44 @@
+Computation: customer profitability
+Result
+Across 3 declared segments, revenue of 9,200,000.00 and declared costs of 7,700,000.00 leave 1,500,000.00, an overall margin of 16.30%. The profitable segments number 2 and the unprofitable 1; the smallest group of leading segments that reaches the declared profit share contains 1 of them. Revenue and both cost lines are the figures you declare; allocating a shared cost is a choice that changes which segments look profitable. Direct and allocated costs are treated as fully variable with the segment; a fixed cost left out of the rows is not recovered anywhere. Profit here is contribution after the declared costs, not accounting profit: no depreciation, tax or capital charge is applied. The concentration count describes this snapshot of declared segments; it does not test whether the concentration is stable or significant.
+Inputs and results
+What you declared
+Segments: Name: Enterprise; Revenue: 5000000; Direct cost: 3000000; Allocated cost: 600000, Name: SME; Revenue: 3000000; Direct cost: 2100000; Allocated cost: 400000, Name: Retail; Revenue: 1200000; Direct cost: 1500000; Allocated cost: 100000
+Concentration threshold: 0.8000
+What was computed
+Segments: 3
+Total revenue: 9200000.00
+Total cost: 7700000.00
+Total profit: 1500000.00
+Overall margin: 0.1630
+Revenue 1: 5000000.00
+Profit 1: 1400000.00
+Margin 1: 0.2800
+Profit share 1: 0.9333
+Revenue 2: 3000000.00
+Profit 2: 500000.00
+Margin 2: 0.1667
+Profit share 2: 0.3333
+Revenue 3: 1200000.00
+Profit 3: -400000.00
+Margin 3: -0.3333
+Profit share 3: -0.2667
+Profitable: 2
+Unprofitable: 1
+Segments for threshold: 1
+Concentration threshold: 0.8000
+Honesty: what was not done
+this method: Revenue and both cost lines are the figures you declare; allocating a shared cost is a choice that changes which segments look profitable. Direct and allocated costs are treated as fully variable with the segment; a fixed cost left out of the rows is not recovered anywhere. Profit here is contribution after the declared costs, not accounting profit: no depreciation, tax or capital charge is applied. The concentration count describes this snapshot of declared segments; it does not test whether the concentration is stable or significant.
+Assumptions made
+Revenue and costs cover the same period and the same segment definition.
+The allocated cost, when declared, is the share you decided is attributable to that segment.
+Limitations
+Declared arithmetic; no allocation rule is chosen for you.
+No fixed-cost absorption, depreciation, tax or capital charge.
+One snapshot: no significance test, no trend and no prediction.
+How the figures were checked
+Second implementation agrees.
+Profit is revenue minus direct and allocated cost.
+Total profit is the sum of the segments.
+Profit shares sum to one when the total is positive.
+Concentration count is the smallest group reaching the threshold.

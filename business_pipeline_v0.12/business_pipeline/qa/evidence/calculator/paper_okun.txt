@@ -1,0 +1,30 @@
+Computation: output gap okun
+Result
+The output gap is 5.00%. At the declared Okun coefficient, the predicted unemployment change is -250.00% percentage points, giving a predicted unemployment rate of 3.50%. The output gap is arithmetic on the two GDP figures you declared; it is not a statistical estimate of potential output. Okun's law is applied with the coefficient you declare; the coefficient is not estimated here. The predicted unemployment change is a rule-of-thumb illustration, not a forecast.
+Inputs and results
+What you declared
+Actual gdp: 1050.0000
+Potential gdp: 1000.0000
+Current unemployment rate: 0.0600
+Okun coefficient: 0.5000
+What was computed
+Output gap: 0.0500
+Predicted unemployment change pp: -2.5000
+Predicted unemployment rate: 0.0350
+Okun coefficient: 0.5000
+Honesty: what was not done
+this method: The output gap is arithmetic on the two GDP figures you declared; it is not a statistical estimate of potential output. Okun's law is applied with the coefficient you declare; the coefficient is not estimated here. The predicted unemployment change is a rule-of-thumb illustration, not a forecast.
+Assumptions made
+Actual and potential GDP are on the same price and currency basis.
+The Okun relation is linear over the relevant range.
+The coefficient is the owner's declared value.
+Limitations
+Potential output is declared, not estimated.
+The Okun coefficient is not estimated here.
+The predicted change is an illustration, not a forecast.
+How the figures were checked
+Second implementation agrees.
+Output gap is actual over potential minus one.
+Zero gap gives zero unemployment change.
+A positive gap lowers the predicted unemployment rate.
+A higher okun coefficient raises the magnitude.

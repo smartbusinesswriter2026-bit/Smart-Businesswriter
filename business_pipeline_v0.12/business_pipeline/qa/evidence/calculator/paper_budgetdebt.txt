@@ -1,0 +1,42 @@
+Computation: budget debt
+Result
+Revenue is 500.00 against total spending of 550.00, an overall balance of -50.00 and a primary balance of -20.00. Debt is 50.00% of GDP. The real interest rate is 0.98%. The balances are arithmetic on the declared revenue, primary spending and interest; the government_spending input excludes interest. The debt-ratio change is the standard interest-growth-primary identity, not a forecast; it holds the declared growth and interest rates constant. No contingent liabilities, off-budget items, currency composition or debt maturity structure is modelled.
+Inputs and results
+What you declared
+Government revenue: 500.00
+Government spending: 520.0000
+Interest payments: 30.00
+Debt stock: 1000.00
+Nominal gdp: 2000.00
+Nominal growth rate: 0.0500
+Inflation rate: 0.0200
+What was computed
+Government revenue: 500.00
+Primary spending: 520.00
+Interest payments: 30.00
+Total spending: 550.00
+Overall balance: -50.00
+Primary balance: -20.00
+Debt stock: 1000.00
+Nominal gdp: 2000.00
+Debt to gdp: 0.5000
+Interest rate: 0.0300
+Primary balance to gdp: -0.0100
+Debt ratio change: 0.0000
+Real interest rate: 0.0098
+Honesty: what was not done
+this method: The balances are arithmetic on the declared revenue, primary spending and interest; the government_spending input excludes interest. The debt-ratio change is the standard interest-growth-primary identity, not a forecast; it holds the declared growth and interest rates constant. No contingent liabilities, off-budget items, currency composition or debt maturity structure is modelled.
+Assumptions made
+The aggregates are one period's declared values in one currency.
+The debt stock is at the start of the period.
+The interest rate is interest paid divided by the debt stock.
+Limitations
+No contingent liabilities, off-budget items or debt composition.
+No forecast path or stochastic stress test.
+The debt-ratio change is an identity, not a sustainability verdict.
+How the figures were checked
+Second implementation agrees.
+Overall balance equals revenue minus total spending.
+Primary balance equals overall balance plus interest.
+Debt ratio equals debt over gdp.
+Debt ratio change follows the interest growth primary identity.

@@ -1,0 +1,30 @@
+Computation: gini coefficient
+Result
+Across 4 incomes the Gini coefficient is 0.2500. The poorest income is 10.00 and the richest is 40.00. The Gini coefficient is computed from the declared incomes; the income definition, unit and population coverage are the owner's choice. It is a single summary of inequality and does not show where in the distribution the differences lie. No equivalence scales, taxes, transfers or in-kind income are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Incomes: 10, 20, 30, 40
+What was computed
+N: 4
+Mean income: 25.00
+Min income: 10.00
+Max income: 40.00
+Gini: 0.2500
+Poorest share: 0.1000
+Richest share: 0.4000
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Incomes are non-negative and cover the intended population.
+Each income belongs to one person or household.
+No equivalence scale is applied.
+Limitations
+One summary measure; it hides where in the distribution inequality lies.
+No taxes, transfers, in-kind income or equivalence scales.
+No decomposition by group or source.
+How the figures were checked
+Second implementation agrees.
+Equal incomes give zero gini.
+Gini is bounded between zero and one.
+Scaling all incomes leaves gini unchanged.
+Reordering the incomes leaves gini unchanged.
