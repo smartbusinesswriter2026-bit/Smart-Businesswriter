@@ -1,4 +1,4 @@
-﻿# HANDOFF Ã¢â‚¬â€ instructions for the next coding agent
+# HANDOFF Ã¢â‚¬â€ instructions for the next coding agent
 
 You are taking over a working repo, not starting one. Read this file first, then `CONDUCTOR_MANUAL.md`, `CONTRIBUTORS.md`, `HOME.md`, and the top three entries of `WORKLOG.md`. Do not re-architect anything; the rules below are the product.
 
@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch master, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.77 (see docs/CHANGELOG.md)
-Tests        : 3372 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.78 (see docs/CHANGELOG.md)
+Tests        : 3403 tests; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -58,20 +58,39 @@ python -m bp.literature drift retrieval_log.jsonl 20
 | B-032 | Ledger engine: custom kernel vs Beancount arm | Accounting tier, tax/valuation |
 | B-052 | Taxation deferred; do not build without resuming the decision | Tax work |
 | REW R1Ã¢â‚¬â€œR10 | Ratify (or not) the proposed stages/checkpoints/taxonomy | Any REW stage build |
-| B-204 | Smart Business Writer **per-tier allowance** (export credits per cycle) and what "unlimited" means at the top | The lower bundle rungs ($18.99 / $35.99 / $59.99) and every stated allowance on either product |
-| B-205 | Whether the lower bundle rungs ship at launch or the $99.99 unlimited bundle ships alone | The size of the bundle SKU set (1 SKU or 4) |
+| B-180a | Smart Business Writer **per-tier allowance** (export credits per cycle) and what "unlimited" means at the top | The lower bundle rungs ($18.99 / $35.99 / $59.99) and every stated allowance on either product |
+| B-180b | Whether the lower bundle rungs ship at launch or the $99.99 unlimited bundle ships alone | The size of the bundle SKU set (1 SKU or 4) |
 
 Do not invent answers to these. If the owner says "go", build only what is listed below as unblocked.
 
 **Already resolved, do not re-litigate:** B-079 (core deterministic backend frozen; unfreeze policy in `BACKEND_CONTRACT.md`) and B-080 (product backend delegated to the design owner as additive work over the frozen core). The computation lane is drained: everything buildable without the frontier model or an owner decision is built and verified (36 methods, 1783 tests).
 
-**Bundle pricing work (design agreed 2026-11-03, nothing built yet):** see
+**Bundle pricing work (design agreed 2026-11-03; the payment side is now built):** see
 [`BUNDLE_PRICING_HANDOFF.md`](BUNDLE_PRICING_HANDOFF.md) — a $99.99/month bundle giving unlimited
 use of Write Smarter *and* Smart Business Writer, sold as one order (one charge), with one shared
 login that works on both products. The handoff holds the price tables, the verified facts (both
 products share one PayPal account; the export wallet is Smart Business Writer's only meter and it
 never refills; the local Write Smarter code on disk is stale), the owner inputs still outstanding,
-the build order I0-I5 and the six things that must be proved against live PayPal.
+the build order I0-I8 and the seven things that must be proved against live PayPal.
+
+**What is built now (B-208, B-209):**
+
+| Piece | Where | State |
+|---|---|---|
+| The bundle tier ($99.99 / $959.90, "Unlimited", both products) | `src/bp/product/billing.py` (`PLANS`, the `agency` key) | Built and tested |
+| A plan change that prorates | `src/bp/product/paypal.py` (`change_plan`), `POST /api/billing/change` | Built and tested |
+| The ledger records a plan change (it was first-wins) | `src/bp/product/billing.py` (`activate`, `_activation`, `current`) | Built and tested |
+| The unlimited wallet (a bundle holder never gets a 402) | `src/bp/product/credits.py`, `src/bp/product/api.py` | Built and tested |
+| The hand-off to the other product (one charge) | `src/bp/product/write_smarter.py` (new), `POST /api/billing/confirm` | Built and tested |
+| The other product's side of the hand-off | Write Smarter's `Backend/bundle-entitlement.js` (new), two service routes, the unlimited pool tier | Built and tested (9 Node tests) |
+| The pricing dialog's fourth card | `web/index.html`, `web/account.html` | Built |
+| The one shared login (I4) | — | **Not built.** It comes after the live charge is proved (owner instruction) |
+
+**Not yet proved against live PayPal** (the seven checks in §6 of the bundle handoff): no real
+$99.99 charge has been taken yet, so the one-charge rule, the proration and the annual bill are
+built and unit-tested but not yet proved on the live merchant account. The live test needs
+`BP_WRITE_SMARTER_URL` and `BP_BUNDLE_HANDOFF_SECRET` set, and a `PAYPAL_PLAN_ID_BUNDLE_RECORD`
+$0 plan created on the Write Smarter side.
 
 ## 5. The work left, in priority order, with acceptance criteria
 

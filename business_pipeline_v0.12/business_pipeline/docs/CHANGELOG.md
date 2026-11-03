@@ -35,6 +35,26 @@ on disk - and two smaller things a reader would notice before a reviewer. Build 
   1.77 - a literal in `web/index.html` that nothing refreshes from `/api/health`. Global chrome,
   three lanes in that file, and one source of truth for the build number is the owner's call.
 
+- 1.78 (2026-11-03): **the SERVQUAL grid declares one form.** `template_servqual` (`MKT-07`) was
+  listed in `CANVAS_BLOCKS` and `MATRIX_META` at the same time, so `describe()` called it a canvas
+  and handed the page a five-block editor, while the template it actually registers is
+  `build_matrix` with the eight grid checks and `rows`/`columns`/`cells` input. It is the last kind
+  carrying the D-MKT-04 class, and the canvas entry was read by nothing but `describe()`: the kind
+  was never in `CANVAS_META`, so no builder ever saw it. The entry is gone, the reason is recorded
+  beside the customer-journey note, and the measured overlap is `[]`.
+  `qa/marketing_shelf_audit.py` re-measures that and the other three claims the audit was sent to
+  prove, so none of them is a remembered number: 16 marketing worksheets are built and offered by no
+  shelf (unchanged - D-PLAN-02 is a curriculum decision and no shelf was wired); RFM is one record
+  under `MKT-08` and `QNT-MKT-04` with `form: worksheet` and its computed half declared in
+  `linked_methods` as `rfm_scoring` (unchanged, and correct - `registry.form()` gives a template link
+  precedence over a linked method); and the marketing-plan door exports 13,853 bytes of `.docx`
+  through its eight sections, with a gate that names plan fields and never `implications`. The
+  SERVQUAL tile stays hidden under B-198: unhiding it is the owner's call, not a consequence of the
+  repair. No method, number, check, gate, record, profile or shelf membership changed.
+  Tests: `test_a_hidden_worksheet_stays_registered_and_is_not_offered` now asserts the single
+  declared form and fails on the pre-repair code; the marketing suites are 80 green.
+  `test_E_pm_057` still asserts the old pair and is the project-management lane's one line to change.
+
 - 1.77 (2026-11-03): the grid width claim is a measurement with an artefact (`qa/measure_pm_grid.py`,
   `grid-form.json`, five screenshots) and a test that reads it (E-pm-081); `test_E_pm_080` asserts
   rule bodies instead of class names; the four grids name their own columns so no two headers read
