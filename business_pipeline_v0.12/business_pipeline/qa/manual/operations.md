@@ -353,18 +353,15 @@ No new dependency, no network call, no model call, no new worksheet, no new reco
 | | Tests | Failures | Errors | Distinct failure names |
 |---|---:|---:|---:|---:|
 | Baseline at `1660f25` + the other lane's in-flight work (`qa/baseline/ops-base-suite-err.txt`) | 3184 | 5 | 4 | 9 |
-| After this session (`qa/baseline/ops-after-suite-err.txt`) | §6.3 | §6.3 | §6.3 | §6.3 |
+| After this session (`qa/baseline/ops-after-suite-err.txt`) | **3236** | **7** | **0** | 7 |
 
 The baseline's four errors were **this shelf's** (`ExampleTest`, `KeyError: 'template_sipoc'`) and are gone.
-The five baseline failures were classified there and then:
-
-| Failure | Class |
-|---|---|
-| `test_chat.ResearchTest.test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking` | KNOWN-HISTORICAL (QA_STATE session 7) |
-| `test_paper_documents.DocumentRouteTest.test_generating_a_paper_saves_it_to_the_store` | KNOWN-HISTORICAL |
-| `test_product_subjects.ServedUiContractTest.test_the_rail_carries_the_portfolio_lab_above_the_calculator` | KNOWN-HISTORICAL |
-| `test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl` | NETWORK-ENV |
-| `test_product_profile_cues.ProfileCueReachabilityTest.test_every_researched_block_accepts_its_own_query` — `template_balanced_scorecard/organisational_capacity` | **NEW-UNEXPLAINED → FOREIGN** (a project-management profile added by `f699579` during this session; its cues do not cover its own query — the D-MGT-15 class, on that lane's data) |
+**7 failures remain at close and none is on this shelf** — the three KNOWN-HISTORICAL ones above, the
+foreign `balanced_scorecard` cue set, and three caused by another lane's in-flight work
+(`docs/BUNDLE_PRICING_HANDOFF.md` missing from HOME's spine, `B-180a`/`B-180b` mentioned in their
+`HANDOFF.md` with no decision row, and `SUBJECT_TILES` gaining `project-management` in their
+uncommitted `subjects.py`). The network failure above stopped failing on its own. Full detail and the
+classification table: `qa/QA_STATE.md`, session 8.
 
 ### 6.3 The tree moved under this session
 

@@ -2,6 +2,128 @@
 
 ---
 
+## Session 8 — `operations` (2026-11-03) · branch `corpus/merge-v1`, opening commit `1660f25`
+
+**Subject chosen by the work order.** Manual: `qa/manual/operations.md` (46 E-rows). Suite:
+`tests/test_subject_operations_acceptance.py` (**46 tests**). Probes: `qa/probe_ops_shelf.py`
+(inventory, forms, records, glossary, block provenance, the auto-fill trap, the eleven papers, the
+fourteen tool papers) and `qa/probe_mgt_debug.py` (repaired, then pointed at this shelf).
+
+### Baseline (measured here, not assumed)
+
+| Measure | Documented | Measured |
+|---|---:|---:|
+| Tests | 3165 | **3184** |
+| Failures | 4 | **5** |
+| Errors | 4 | **4** |
+| Wall time | — | 945 s |
+
+The four errors were **this shelf's** — `test_operations_frameworks.ExampleTest` ×4, `KeyError:
+'template_sipoc'` — exactly as the work order predicted. The five failures were classified in
+`qa/manual/operations.md` §6.2: three KNOWN-HISTORICAL (chat hung dimension, paper store, web rail),
+one NETWORK-ENV (Brave→Firecrawl), and one **NEW-UNEXPLAINED→FOREIGN** —
+`template_balanced_scorecard/organisational_capacity` cannot accept evidence for its own query, a
+profile the project-management lane added in `f699579` while this session ran.
+
+**The baseline is 3184, not the documented 3165**, and the tree already carried another lane's
+in-flight work when the run started; both facts are recorded rather than smoothed. **Inventory
+confirmed exactly as the work order stated:** 14 tools · 11 worksheets (OPS-03 not draftable) ·
+7 records · 0 theories · 20 glossary terms · 11 profiles · all 11 shared with `supply-chain`.
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/operations.md` | one row per tool (14), worksheet (11), record (7), glossary term (20) and UI surface, each citing its source of truth; 46 E-rows reconciled 1:1 with the traceability matrix; the V-01…V-20 reading of the eleven papers; the defect ledger; residual risk |
+| `tests/test_subject_operations_acceptance.py` | 46 tests, 46 passed |
+| `qa/probe_ops_shelf.py` | the reproducible evidence behind every claim, including the auto-fill trap and the eleven + fourteen papers |
+| `qa/evidence/operations/` | the eleven worksheet papers and fourteen tool papers (`.docx` + the `.txt` a reader sees) |
+| `qa/baseline/ops-*` | baseline and after measurements, probe output, acceptance run, completion slice |
+
+### Fixed (5 ledger rows, 3 found only by reading the produced .docx)
+
+- **D-OPS-01** (MAJOR, wiring): no worksheet had a worked example, so `ExampleTest` errored instead
+  of testing. Eleven synthetic examples added, each passing its template's own `validate()` and every
+  check. Trap tests `test_E_ops_007`, `test_E_ops_043`.
+- **D-OPS-03** (BLOCKER, honesty; B-201): the borrowing rule matched the student's sentence against
+  the *retrieval* cue list, so “The manager reviews the change next term” was printed as what PDCA's
+  act stage standardised. A block now declares `quote_cues`; 59 blocks declared; the trap brief
+  produces **0** quotes. Trap tests `test_E_ops_023`, `test_E_ops_037`, `test_E_ops_038`.
+- **D-OPS-02** (MAJOR, honesty): the conclusion named one part both strongest and weakest and ranked
+  the parts. Trap tests `test_E_ops_020`, `test_E_ops_040`.
+- **D-OPS-04** (MAJOR, honesty): every sourced cell printed its citation twice. Trap tests
+  `test_E_ops_016`, `test_E_ops_045`.
+- **D-OPS-05** (MINOR, honesty): a `gap` cell dropped the probe its profile declares. Trap tests
+  `test_E_ops_013`, `test_E_ops_024`.
+
+### Ledgered / declared
+
+D-OPS-06 / G-ops-02 (no worksheet groups: one flat list), D-OPS-07 (a process-unit query repeats the
+unit; shared by four shelves), G-ops-01 (**no figure in any of the eleven papers** — `matrix.LAYOUTS`
+has no operations entry; a presentation decision), G-ops-03 (one brief sentence can fill two adjacent
+SIPOC parts), G-ops-04 (no theories, by design), G-ops-05 (the four shared capabilities).
+
+### Gates at close
+
+| Gate | Result |
+|---|---|
+| Shelf acceptance suite | **46 passed** (`qa/baseline/ops-acceptance-out.txt`) |
+| `test_operations_frameworks` | **50 passed** (was 49 with 4 errors) |
+| Framework-completion slice | **584 passed, 0 failed** (`qa/baseline/ops-completion-slice-out.txt`) |
+| `qa/probe_mgt_debug.py` on this shelf | **0 problems** (`qa/baseline/ops-probe-after-harness-fix.txt`) |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
+| `qa/check_page_syntax.py` | **page syntax: OK** |
+| `test_docs_sync` | **7 passed** (build 1.74; 3236 tests set from the loader) |
+| Full suite | below |
+
+### Full suite
+
+| | Tests | Failures | Errors | Wall time |
+|---|---:|---:|---:|---:|
+| Before (`qa/baseline/ops-base-suite-err.txt`) | 3184 | 5 | 4 | 945 s |
+| After (`qa/baseline/ops-after-suite-err.txt`) | 3236 | **7** | **0** | 1127 s |
+
+**The four errors are gone** — that was this shelf's one defect, `ExampleTest` building eleven
+worksheets that had no example. **None of the seven failures is on this shelf.** All seven classified
+from `qa/baseline/ops-after-failure-names.txt`:
+
+| Failure | Class |
+|---|---|
+| `test_chat.ResearchTest.test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking` | KNOWN-HISTORICAL (in the baseline) |
+| `test_paper_documents.DocumentRouteTest.test_generating_a_paper_saves_it_to_the_store` | KNOWN-HISTORICAL (in the baseline) |
+| `test_product_subjects.ServedUiContractTest.test_the_rail_carries_the_portfolio_lab_above_the_calculator` | KNOWN-HISTORICAL (in the baseline) |
+| `test_product_profile_cues...test_every_researched_block_accepts_its_own_query` | FOREIGN (project-management's `balanced_scorecard`, added in `f699579`; in the baseline) |
+| `test_docs_sync...test_every_doc_file_is_covered_by_the_home_documentation_spine` | FOREIGN — `docs/BUNDLE_PRICING_HANDOFF.md` is another lane's untracked file, absent from HOME's spine |
+| `test_docs_sync...test_every_mentioned_decision_id_has_a_row_in_the_decision_register` | FOREIGN — that lane's in-flight `docs/HANDOFF.md` mentions `B-180a`/`B-180b` with no decision row |
+| `test_subject_finance_acceptance.test_032__the_shelf_declares_no_tiles…` | FOREIGN — `subjects.SUBJECT_TILES` now has `project-management`, from that lane's uncommitted `subjects.py` |
+
+The one baseline failure that is **no longer failing** is the network-dependent
+`test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl` (NETWORK-ENV): the 503 in the
+after-run's log shows the live service answered differently, which is why it is filed as environment,
+not product.
+
+**The documented count is 3236**, set from `unittest.TestLoader().discover("tests")` in the same
+commit, and it includes four tests from another lane's in-flight
+`test_subject_project_management_acceptance.py`. Re-measure from the loader, never from the doc.
+
+### Next subject and its top three risks
+
+**Next: `supply-chain`** — the one shelf with no acceptance manual and no acceptance suite, and it
+shares **all eleven** of this shelf's worksheets.
+
+1. **It inherits every fix in this commit.** `quote_cues`, the citation rule, the conclusion and the
+   `gap` probe all reach its papers. Its brief produces different cells, so re-measure the trap on
+   *its* page rather than assuming the operations measurement carries.
+2. **The shared page is a real coupling.** `OPS-01…08` and `OPS-10…12` sit on both shelves; a change
+   to a shared profile changes a supply-chain paper. `test_E_ops_044` is the pattern for the check.
+3. **Inventory arithmetic is the dangerous part.** `inventory_policy` (EOQ, reorder point) mixes
+   money, shares and periods; recompute by hand first, then by a second formula — never the method's
+   own output against itself. D-OPS-07 (a repeated unit in the query) is still open and will be
+   visible there too.
+
+
+---
+
 ## Session 7 — `project-management` (2026-11-03) · branch `corpus/merge-v1`, opening commit `84490ec`
 
 **Subject chosen by the work order.** Manual: `qa/manual/project-management.md` (62 E-rows).
