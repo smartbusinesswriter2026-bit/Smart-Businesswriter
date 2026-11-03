@@ -10,7 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any, Dict, List
 
-from . import money, signs
+from . import audit, money, signs
 
 
 def _bal(tb, code):
@@ -72,6 +72,14 @@ def project_bs(tb, accounts: Dict[str, Any]) -> List[dict]:
     lines.append({"label": "Total equity", "amount": money.q(equity), "kind": "total"})
     lines.append({"label": "Total liabilities and equity", "amount": money.q(liab + equity), "kind": "total"})
     return lines
+
+
+def explain_is(lines: List[dict]) -> List:
+    out = []
+    for l in lines:
+        out.append(audit.explain(l["label"], l["amount"], kind=l.get("kind", "line"),
+                                account=l.get("account")))
+    return out
 
 
 def project_cf(tb_begin, tb_end, accounts: Dict[str, Any], net_income: Decimal) -> List[dict]:
