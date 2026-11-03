@@ -134,8 +134,9 @@ def _validate_slot(slot: Slot, raw: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 DETECTORS: List[Detector] = [
-    Detector("equity_issuance_cash", r"issued\s+(?P<shares>[\d,]+)\s+common shares for cash[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
-             [Slot("shares", "int"), Slot("amount", "money")]),
+    Detector("equity_issuance_cash", r"(?:invested|issued)\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash\s+(?:in\s+the\s+business\s+)?(?:in\s+exchange\s+for\s+)?(?:common\s+)?(?:shares?|stock)|(?:issued|invested)\s+(?P<shares>[\d,]+)?\s*(?:common\s+)?(?:shares?|stock)\s*(?:for\s+)?cash[, ]*\$?(?P<amount2>[\d,]+(?:\.\d+)?)", 80,
+             [Slot("shares", "int", required=False, default=None), Slot("amount", "money", required=False, default=None),
+              Slot("amount2", "money", required=False, default=None)]),
     Detector("loan_proceeds", r"borrowed\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+from the bank", 80,
              [Slot("amount", "money"), Slot("rate", "percent", required=False, default=None),
               Slot("due_date", "string", required=False, default=None),
@@ -147,8 +148,8 @@ DETECTORS: List[Detector] = [
               Slot("salvage", "money", required=False, default=0),
               Slot("depreciation_convention", "enum", required=False, default=None,
                    values=["full_year", "pro_rata", "half_year"])]),
-    Detector("inventory_purchase", r"purchased inventory on account[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
-             [Slot("amount", "money")]),
+    Detector("inventory_purchase", r"purchased\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+of\s+(?:inventory|supplies)\s+on account|purchased\s+(?:inventory|supplies)\s+on account[, ]*\$?(?P<amount2>[\d,]+(?:\.\d+)?)", 80,
+             [Slot("amount", "money", required=False, default=None), Slot("amount2", "money", required=False, default=None)]),
     Detector("freight_in", r"freight[- ]in\s+(?:of\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)", 90,
              [Slot("amount", "money")]),
     Detector("freight_out", r"freight[- ]out\s+(?:of\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)", 90,
@@ -161,9 +162,9 @@ DETECTORS: List[Detector] = [
                    values=["insurance", "rent", "supplies", "advertising"])]),
     Detector("cash_sale", r"cash sales of \$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money")]),
-    Detector("credit_sale", r"credit sales of \$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
+    Detector("credit_sale", r"(?:credit sales|provided services on account|services on account|sales on account)[:,]?\s*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money")]),
-    Detector("ar_collection", r"collected\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+(?:from\s+)?credit customers", 70,
+    Detector("ar_collection", r"collected\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+(?:cash\s+)?(?:from\s+)?(?:credit )?customers", 70,
              [Slot("amount", "money")]),
     Detector("ap_payment", r"paid suppliers\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+on account", 70,
              [Slot("amount", "money")]),
@@ -179,8 +180,9 @@ DETECTORS: List[Detector] = [
              [Slot("amount", "money"), Slot("type", "string", required=False, default="accrued")]),
     Detector("accrued_revenue", r"completed\s+.+?\s+but\s+.+?\s+not been billed", 80,
              [Slot("amount", "money", required=False, default=None)]),
-    Detector("dividends", r"declared\s+(?:dividends of\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
-             [Slot("amount", "money"), Slot("paid", "string", required=False, default="no")]),
+    Detector("dividends", r"(?:paid\s+a\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash\s+(?:dividend|dividends)|(?:declared\s+)?(?:cash\s+)?(?:dividend|dividends)(?:\s+of\s+)?\$?(?P<amount2>[\d,]+(?:\.\d+)?)", 70,
+             [Slot("amount", "money", required=False, default=None), Slot("paid", "string", required=False, default="yes"),
+              Slot("amount2", "money", required=False, default=None)]),
     Detector("sales_return", r"customer returned goods[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
              [Slot("amount", "money")]),
     Detector("sales_discount", r"customer paid within discount period[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
@@ -211,6 +213,12 @@ DETECTORS: List[Detector] = [
     Detector("periodic_inventory", r"periodic inventory system", 90, []),
     Detector("perpetual_inventory", r"perpetual inventory system", 90, []),
     Detector("full_year_depreciation", r"full year of depreciation is recorded in the year of acquisition", 90, []),
+    Detector("rent_payment", r"paid\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash (?:for\s+)?(?:january\s+)?rent", 80,
+             [Slot("amount", "money")]),
+    Detector("utilities_payment", r"paid\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash (?:for\s+)?utilities", 80,
+             [Slot("amount", "money")]),
+    Detector("salaries_payment", r"(?:incurred\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+in\s+salaries?\s+expense,?\s+paid\s+in\s+cash|paid\s+\$?(?P<amount2>[\d,]+(?:\.\d+)?)\s+cash\s+salaries?", 80,
+             [Slot("amount", "money", required=False, default=None), Slot("amount2", "money", required=False, default=None)]),
 ]
 
 
@@ -344,6 +352,9 @@ TEMPLATES: Dict[str, Callable[[Dict[str, Any]], List[Tuple[str, str, Any]]]] = {
     "bad_debt": lambda s: [("6700", "Dr", s["amount"]), ("1300", "Cr", s["amount"])],
     "warranty": lambda s: [("6800", "Dr", s["amount"]), ("2500", "Cr", s["amount"])],
     "depreciation_sl": lambda s: _dep_lines(s),
+    "rent_payment": lambda s: [("6200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
+    "utilities_payment": lambda s: [("6250", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
+    "salaries_payment": lambda s: [("6100", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
 }
 
 

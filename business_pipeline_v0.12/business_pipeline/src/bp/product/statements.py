@@ -28,6 +28,8 @@ import uuid
 
 from . import cases
 from . import statements_verify
+from .. import statement_detect as sd
+from .. import statement_plan as sp
 from . import verify
 
 FORMAT = "bp-statements/1"
@@ -106,7 +108,7 @@ CUES = (
                      r"\bdepreciate\b|\bdepreciating\b", r"\bcharge depreciation\b",
                      r"\bdepreciation (charge|expense|for the year)\b", r"\bbad debts?\b",
                      r"\bprovision for\b", r"\badjust(ing)? entries?\b")),
-    ("transactions", (r"\bstarted (with|business)\b", r"\bbought\b", r"\bsold\b", r"\bpaid\b",
+    ("transactions", (r"\bstarted (?:\w+\s+)?(?:with|business)\b", r"\bbought\b", r"\bsold\b", r"\bpaid\b",
                       r"\breceived\b", r"\bon credit\b", r"\bpurchased\b")),
 )
 
@@ -149,7 +151,7 @@ CODE_FOR_LINE = {"Cash": "1000", "Trade receivables": "1100", "Inventory": "1200
                  "Supplies": "1350", "Property, plant and equipment": "1500", "Trade payables": "2000",
                  "Accruals": "2100", "Borrowings": "2200", "Capital": "3000", "Retained earnings": "3100",
                  "Dividends": "3200", "Revenue": "4000", "Other income": "4100", "Cost of sales": "5000",
-                 "Operating expenses": "5100", "Finance costs": "5200", "Other expenses": "5300"}
+                 "Operating expenses": "5100", "Utilities Expense": "6250", "Finance costs": "5200", "Other expenses": "5300"}
 
 MONTHS = {m: i + 1 for i, m in enumerate(("january february march april may june july august september "
                                           "october november december").split())}
@@ -269,8 +271,18 @@ def parse_rows(text):
         # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
         label = re.sub(r"[\t$]", " ", label)
         # strip parenthetical qualifiers (and anything after an opening paren) before matching
+        paren_part = re.search(r"\(([^)]*)\)", line[:last.start()])
+        had_date_paren = bool(paren_part) and re.search(
+            r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})\b",
+            paren_part.group(1), re.I)
         label = re.sub(r"\s*\(.*", "", label)
         label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
+        # A parenthetical date (e.g. "(Jan 1)") marks a beginning balance / given fact,
+        # not a trial balance line. Route it to skipped. Other parentheticals (e.g. "(long-term)")
+        # are just qualifiers and the line stays in the trial balance.
+        if had_date_paren:
+            skipped.append(line)
+            continue
         placed = place(label)
         if not placed["candidates"]:
             skipped.append(line)
@@ -947,6 +959,12 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
             # narrative is different — a sentence can carry two figures without being a comparative,
             # and the plan layer is the reader that is meant to handle it.
             raise parser_error
+        # Try the deterministic detector/template layer for transaction narratives before the model
+        if "transactions" in str(parser_error).lower() or "no account" in str(parser_error).lower():
+            tried = _solve_transactions(text, currency=currency, framework=framework,
+                                        ratios=ratios, statements=requested)
+            if tried is not None:
+                return tried
         used = reader if reader is not None else _CORE.get("reader")
         plan_error = None
         if "extract" in _CORE:
@@ -990,6 +1008,105 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                         source, rejected, same_model, requested)
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
     return _record(reading, spec, result, text, source, rejected, same_model, pack, requested)
+
+
+def _solve_transactions(text, currency=None, framework=None, ratios=None, statements=None):
+    """A transaction narrative solved through the deterministic detector/template layer.
+
+    Every transaction claim is matched to a registered detector, journalized through a balanced
+    template, and posted to the ledger. No model is involved; every figure comes from the text.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    matches = sd.detect(text)
+    journalizable = [m for m in matches if sd.journalizable(m)]
+    if not journalizable:
+        return None
+
+    # Build a chart with every account code used by the templates.
+    chart = [
+        {"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "section": "current", "role": "cash"},
+        {"code": "1100", "name": "Trade receivables", "type": "asset", "line": "Trade receivables", "section": "current"},
+        {"code": "1200", "name": "Inventory", "type": "asset", "line": "Inventory", "section": "current"},
+        {"code": "1300", "name": "Prepaid expenses", "type": "asset", "line": "Prepayments", "section": "current"},
+        {"code": "1350", "name": "Supplies", "type": "asset", "line": "Supplies", "section": "current"},
+        {"code": "1500", "name": "Equipment", "type": "asset", "line": "Property, plant and equipment", "section": "non_current"},
+        {"code": "1700", "name": "Accumulated depreciation", "type": "asset", "line": "Property, plant and equipment", "section": "non_current", "contra": True},
+        {"code": "2000", "name": "Trade payables", "type": "liability", "line": "Trade payables", "section": "current"},
+        {"code": "2100", "name": "Loan", "type": "liability", "line": "Borrowings", "section": "non_current"},
+        {"code": "2300", "name": "Accrued expenses", "type": "liability", "line": "Accruals", "section": "current"},
+        {"code": "2400", "name": "Unearned revenue", "type": "liability", "line": "Unearned revenue", "section": "current"},
+        {"code": "3000", "name": "Share capital", "type": "equity", "line": "Capital", "section": "", "role": "capital"},
+        {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "section": "", "role": "retained_earnings"},
+        {"code": "3200", "name": "Dividends", "type": "equity", "line": "Dividends", "section": "", "role": "dividends", "contra": True},
+        {"code": "4000", "name": "Sales revenue", "type": "income", "line": "Revenue", "section": ""},
+        {"code": "5000", "name": "Cost of sales", "type": "expense", "line": "Cost of sales", "section": ""},
+        {"code": "5100", "name": "Operating expenses", "type": "expense", "line": "Operating expenses", "section": ""},
+        {"code": "5200", "name": "Finance costs", "type": "expense", "line": "Finance costs", "section": ""},
+        {"code": "5300", "name": "Other expenses", "type": "expense", "line": "Other expenses", "section": ""},
+        {"code": "6100", "name": "Salaries expense", "type": "expense", "line": "Salaries expense", "section": ""},
+        {"code": "6200", "name": "Rent expense", "type": "expense", "line": "Rent expense", "section": ""},
+        {"code": "6250", "name": "Utilities expense", "type": "expense", "line": "Utilities Expense", "section": ""},
+        {"code": "7100", "name": "Interest expense", "type": "expense", "line": "Interest expense", "section": ""},
+        {"code": "8000", "name": "Income tax expense", "type": "expense", "line": "Income tax", "section": ""},
+    ]
+
+    # Build entries: one journal entry per detector match
+    entries = []
+    for m in journalizable:
+        try:
+            lines = sd.journalize(m.detector_id, m.slots)
+        except sd.DetectError:
+            continue
+        je_lines = []
+        for acct, side, amt in lines:
+            line_dict = {"account": acct}
+            if side == "Dr":
+                line_dict["debit"] = str(amt)
+            else:
+                line_dict["credit"] = str(amt)
+            je_lines.append(line_dict)
+        entries.append({
+            "date": period["end"],
+            "description": m.detector_id,
+            "lines": je_lines,
+        })
+
+    if not entries:
+        raise StatementError("no transaction could be journalized from this text")
+
+    policy = {"rounding": "half_up", "inventory_system": "periodic"}
+    plan = {
+        "period": period, "currency": currency, "framework": framework, "places": 2,
+        "policy": policy,
+        "prior_closing": {}, "opening": [], "entries": entries,
+        "adjustments": [], "schedules": [],
+        "chart": chart, "problem_type": "transactions",
+    }
+    try:
+        result = _core("build")(plan)
+    except StatementError:
+        raise
+    except Exception as error:
+        raise StatementError("the journal did not build: " + str(error)[:400])
+
+    reading = {
+        "problem_type": "transactions",
+        "why": ("Prepared from journal entries detected in the text; every figure was posted by "
+                "the deterministic ledger and checked against the three articulation identities."),
+        "currency": currency, "framework": framework, "derivations": [],
+        "assumptions": [],
+        "missing": ["no adjusting entries were derived (prepaids, depreciation, COGS, tax); "
+                    "only the stated transactions were posted"],
+        "diagnosis": None,
+    }
+    pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
+    record = _record(reading, {}, result, text, "plan",
+                     [], False, pack, statements)
+    record["reading_source"] = "plan"
+    return record
 
 
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):
@@ -1052,7 +1169,7 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
         "diagnosis": None,
     }
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
-    record = _record(reading, result["spec"], result, text, "plan",
+    record = _record(reading, {}, result, text, "plan",
                      extracted.get("unplaceable") or [], False, pack, statements)
     record["reading_source"] = "plan"
     return record

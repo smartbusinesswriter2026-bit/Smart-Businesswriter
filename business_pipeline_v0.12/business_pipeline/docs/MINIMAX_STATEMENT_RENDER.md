@@ -1,11 +1,19 @@
 # The statements render layer — brief for MiniMax
 
-> **Status 2026-11-04 (build 1.97).** The computation lane is done for the shapes the tile supports:
+> **Status 2026-11-04 (build 1.98).** The computation lane is done for the shapes the tile supports:
 > the ledger is always built in full, the request decides what is rendered, and the record carries
-> the audit trail. What is missing is the **presentation**: today the spreadsheet export is a text
-> dump (one string per line in a single sheet). This brief is the contract for turning it into a real
-> workbook. Read `docs/TIPS_FINANCIAL_STATEMENTS.md` §5 first — it is the reasoning behind the rules
-> below. Nothing here asks you to compute a figure.
+> the audit trail. The **presentation** is now built too: `src/bp/product/spreadsheets.py` writes one
+> typed sheet per requested statement, then `Working`, then `Notes` (`docs/WORKLOG.md`, build 1.98).
+> This brief is the contract that build was built against; read `docs/TIPS_FINANCIAL_STATEMENTS.md` §5
+> first — it is the reasoning behind the rules below. Nothing here asks you to compute a figure.
+>
+> **One record-shape change came out of it, and it is named.** The income statement's line totals
+> existed in the record only as *text* ("Operating expenses 67,500"), so a renderer could only have
+> produced that cell by summing the accounts above it — an invented figure. The computation lane now
+> carries what it already computed: `appendix["income_groups"]` (the income statement's lines and
+> totals by the chart's statement line), `appendix["engagement"]` (period, currency, places) and
+> `appendix["cash_flow"]["opening_cash"]`/`["closing_cash"]`. No figure changed and no check was
+> loosened; the fixture was regenerated through `qa/manual/make_statements_fixture.py`.
 
 ---
 
@@ -114,12 +122,19 @@ Where the pieces live:
 | the four statement **texts** (a reference rendering) | `record["statements"][key]`, and `appendix["statements_export"]` |
 | the **typed** trial balance | `appendix["trial_balance"] = {"rows": [...], "total_debits": ..., "total_credits": ...}` |
 | the **typed** journal | `appendix["journal"]` (list of entries with `date`, `description`, `lines[]`) |
+| the income statement's **lines and totals**, typed | `appendix["income_groups"] = {"income": {...}, "expenses": {...}, "total_revenue": ..., "total_expenses": ...}` — the chart's statement line to its figure |
 | balance-sheet **groups and totals** | `appendix["balance_sheet_groups"] = {"groups": {...}, "totals": {...}}` |
 | the cash flow, typed | `appendix["cash_flow"]` (see §6) |
 | the equity roll, typed | `appendix["equity_statement"]` (`accounts`, `by_kind`, `total_opening`, `total_closing`, `total_movement`) |
 | the checks the renderer must not contradict | `record["checks"]`, `appendix["checks"]`, `appendix["cash_flow"]["checks"]` |
 | the account metadata | `record["spec"]["chart"]` (see §4) |
 | the note text | `appendix["statements_export"]["notes"]` |
+| the period, currency and places | `appendix["engagement"] = {"period": {...}, "currency": ..., "places": ...}` |
+| the request the workbook must honour | `appendix["requested"]`, `appendix["hidden"]`, `appendix["cash_flow_withheld_because"]` |
+
+The workbook is built from the **appendix** alone (the download bundle carries the appendix, not the
+whole record), so the request's audit trail travels with it — that is why `requested`, `hidden` and
+the reason a cash flow was withheld are carried there.
 
 `statements_export` keys: `trial_balance`, `income_statement`, `balance_sheet`, `cash_flow`, `notes`,
 `combined`. A key that is empty means the statement was not produced — not "zero".
@@ -296,20 +311,24 @@ Hard list, enforced by review and by tests:
 The work is done when, for the frozen fixture in `tests/fixtures/statements-record.json` (read it
 through `tests/product_statements_fixture.py`, read the workbook back through `tests/xlsx_read.py`):
 
-- [ ] each requested statement is its own sheet, with one row per statement line and amounts as
+- [x] each requested statement is its own sheet, with one row per statement line and amounts as
       numbers — **including the statement of changes in equity**, which the current export omits;
-- [ ] `income_statement` rows sum to the record's `net_income`; `balance_sheet` totals equal the
+- [x] `income_statement` rows sum to the record's `net_income`; `balance_sheet` totals equal the
       record's `total_assets` and `total_liabilities + total_equity`;
-- [ ] the CF sheet is absent when `cash_flow` is null, and the Working sheet carries the reason;
-- [ ] an IS-only request produces exactly one statement sheet;
-- [ ] exporting the same record twice yields identical bytes;
-- [ ] no product module imports a third-party package (`tests/test_product_boundary.py`);
-- [ ] the workbook reads back through `tests/xlsx_read.py` and the three cash-flow reconciliations hold
+- [x] the CF sheet is absent when `cash_flow` is null, and the Working sheet carries the reason;
+- [x] an IS-only request produces exactly one statement sheet;
+- [x] exporting the same record twice yields identical bytes;
+- [x] no product module imports a third-party package (`tests/test_product_boundary.py`);
+- [x] the workbook reads back through `tests/xlsx_read.py` and the three cash-flow reconciliations hold
       against the record's own `cash_flow.checks`;
-- [ ] the workbook contains no figure outside `product_statements_fixture.typed_numbers(record)` —
+- [x] the workbook contains no figure outside `product_statements_fixture.typed_numbers(record)` —
       a renderer that computes a total of its own fails this.
 
 A test that only asserts a file exists is not an acceptance test.
+
+**Every box above is checked by `qa/manual/demo_statements_workbook.py`** (build 1.98), which opens the
+workbook through the read-back harness and asserts each one; `tests/test_statements_render_contract.py`
+holds the same ground in the test suite.
 
 ---
 
@@ -320,3 +339,12 @@ A test that only asserts a file exists is not an acceptance test.
 - PDF, Word or HTML renderings of the statements; the workbook is the deliverable.
 - Editing the record shape. If the record needs a field, ask the computation lane for it; the renderer
   does not add fields to a frozen record.
+
+  **Done in build 1.98, and named here.** The renderer needed one field the record did not hold: the
+  income statement's **line totals**. They existed only as text, so the renderer would have had to sum
+  the accounts above the line — the invented figure §10's last box exists to catch. The computation
+  lane carried what it already computed (`appendix["income_groups"]`, `appendix["engagement"]`,
+  `appendix["cash_flow"]["opening_cash"]`/`["closing_cash"]`), the request's audit trail was carried
+  with the appendix so the workbook knows which statements to write, and the fixture was regenerated
+  through `qa/manual/make_statements_fixture.py`. The renderer itself adds no field and computes no
+  figure.
