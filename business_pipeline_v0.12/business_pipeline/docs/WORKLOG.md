@@ -253,7 +253,35 @@ empty: add the perspectives and the fields for each perspective first."*
 entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
 
 
-## 2026-11-03 — [design] Statements tile, part 3: the tile on the Accounting shelf
+## 2026-11-03 — [product] Statements tile: closed, green at 3409 on the integrated tree
+
+**Closed.** The statements tile is done end to end: the ratio bridge (B-203), the tile backend and its
+four routes (B-204), and the tile on the Accounting shelf (B-205). Two later commits repaired what the
+increment had inherited or exposed: `E_acc_002` now pins the tiled shelf (the owner's instruction
+supersedes "no tiles", and the bite moved to `test_product_statements_tile`), and billing's two stale
+assertions now pin the owner's **Business Bundle** — with a stricter guard than before, since no
+credits label may carry a digit on any tier.
+
+**Final verification on the integrated tree** (the other lanes' merges included):
+
+- `python -m unittest discover -s tests` → **Ran 3409 tests, OK**.
+- `python scripts/econ_shelf.py --check` → **frozen fixture: in sync**.
+- `docs_sync` → 7 tests OK (counts match the measured 3409).
+- The statements surface: 100 tests OK (the three contract files, the tile guard, and the accounting
+  acceptance suite).
+- **Live, through the real server** (`python -m bp.server 8012`): a trial balance with a ratio cue →
+  solved, `trial_balance`, **11 of 11** checks, **13 ratios** computed, the cash-flow statement
+  **withheld with its reason**, and `POST /{id}/replay` → `ok: true` on hash
+  `sha256:190be042f94745e2`.
+
+**Left to the owner, by agreement:** the live model run (a *transaction list*, which is the only path
+that reaches the council; a trial balance never calls a model). `BP_OPENGO_API_KEY`,
+`BP_PROSE_MODEL=kimi-k3`, `BP_COUNCIL_MODEL=deepseek-v4-pro`.
+
+**Named gaps, unchanged and printed rather than hidden:** no file-upload control on the card, `.txt`
+export rather than DOCX, intangible amortisation, suspense/error correction (phase 2), consolidated
+statements, comparatives/segments/multi-currency.
+
 
 **Ask.** *"You write the tiles."* The owner authorised the design half of the increment in this lane
 rather than handing it on, so the tile ships whole.
