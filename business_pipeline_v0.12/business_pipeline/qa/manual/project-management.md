@@ -148,10 +148,10 @@ the form that already exists, so none of this needs a new renderer.
 **Nothing in this table was built.** Converting a record into a worksheet is a
 new profile and needs a design-lane B-number.
 
-## 4. Acceptance rows (E-pm-001 … E-pm-062)
+## 4. Acceptance rows (E-pm-001 … E-pm-081)
 
 One row per test in `tests/test_subject_project_management_acceptance.py`
-(**62 tests, 62 passed**). Every expectation is read from the code, never from
+(**81 tests, 81 passed**). Every expectation is read from the code, never from
 this file; every recomputation is hand arithmetic or a second formula written in
 the test.
 
@@ -281,7 +281,8 @@ second route and this session's hand pass agree.
 | E-pm-077 | the six held records stay hidden in the tile layout — in no tile and in no leftover section | `test_E_pm_077` | PASS (built) |
 | E-pm-078 | no suggestion can be written into an answer box: the advice helper assigns into no field, and every placeholder in the grid form is a short format cue | `test_E_pm_078` | PASS |
 | E-pm-079 | **a grid opens its grid form**: the declared form is tested before the completion profile, in the renderer and in the collector, and the grid's own validator accepts the shape the grid form produces | `test_E_pm_079` | PASS (built) — the trap test for D-PM-06 |
-| E-pm-080 | the grid form has no horizontal scroll at 1280 px or 390 px: both views are built, the narrow one is a labelled card per row, and neither the capability tile nor the top bar may push the page sideways | `test_E_pm_080` | PASS (built) |
+| E-pm-080 | the grid form keeps its layout at 1280 px and 390 px by **rule**, not by name: the wide grid keeps `overflow-x:auto` in its own box, the narrow block hides `.mxgridtablewrap` and shows `.mxcards`, a fixed column count is printed once (never "4 to 4"), and neither the capability tile nor the top bar may push the page sideways | `test_E_pm_080` | PASS (built) |
+| E-pm-081 | **the width evidence is measured and on disk**: `qa/evidence/project-management/grid-form.json` records `scrollWidth` against `clientWidth` for all four grids at both widths, names which view is visible at each, records the refusal state, and cites the five screenshots that exist. The file cannot be deleted or edited to hide a regression without failing | `test_E_pm_081` | PASS (built) — reads the artefact `qa/measure_pm_grid.py` writes |
 
 **E-pm-006 changed, and why.** The row used to assert `tiles: 0` — a measured zero, recorded
 because declaring tiles was "a presentation decision (owner's call)". The owner made that call
@@ -290,7 +291,7 @@ tiles) and the fallback branch was kept in the assertion, because the fallback i
 the shelves that need it. No test was silenced to go green: the row was made *stronger* — it now
 asserts the tile count, the tile branch is live, **and** the fallback still exists.
 
-**Scoreboard: 80 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
+**Scoreboard: 81 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
 No row is DISPUTED: where a measurement contradicted the work order's premise
 (§8 D-PM-01, the crashing arithmetic), the measurement is recorded and the test
 asserts the truth, not the premise.
@@ -377,6 +378,8 @@ from the profile's subject.
 | D-PM-04 | `case_decision` on this shelf; E-pm-014 | MINOR | DECLARATION | the card is `kind: compute` but `case_decision` is not in `bp.methods.LIBRARY` | it is a **T2 template** (`T.TEMPLATES['case_decision']['tier'] == 'T2'`, registry `QNT-FIN-01`) that computes NPV inside the template path, and it delivers through `Pipeline` | — | `test_E_pm_014` | **NOT A DEFECT** — measured and pinned |
 | D-PM-05 | all five `unit`-typed worksheets (and BMC, Lean Canvas, VPC); E-pm-063 | BLOCKER | GATE / HONESTY (V-06) | `qa/probe_pm_lead.py`: the produced charter printed a paragraph that was the single word **`lead`** under the heading "Framework Overview" | eight profiles shipped `'lead': 'lead'` — the outline key repeated as its own value — and `complete()` printed it verbatim while its own `_problems` already reported "lead short". **Fixed in both layers:** the eight leads are now **authored** (56–86 words each, grounded on that profile's own block labels — no case fact, no number, no source), and `_lead_of()` still fails closed on any future stub, so the paragraph-and-heading is omitted rather than printed. "lead short" is now reported only for a lead that exists | this session | `test_E_pm_063` | **FIXED** |
 | D-PM-06 | every grid worksheet on this shelf; E-pm-079 | MAJOR | WIRING / FORM | the four new grids opened the **evidence** form, so a student who typed a grid got the refusal *"rows must be a list of 4 to 6 perspectives"* | `worksheetForm` tested `t.completion` **before** `t.form_kind`, and every PM worksheet carries a completion profile — so the grid's own form was unreachable and the collector submitted `{blocks, links}`, which the grid's validator refuses. The completion profile describes the blocks the *paper* is written from, not the surface the student types into | this session (B-080) | `test_E_pm_079` | **FIXED** — the declared form decides; a grid opens its grid form and collects the grid shape |
+| D-PM-07 | the served-build pill in the top bar (`#buildpill`) | MINOR | DECLARATION (stale) | the page shows **v1.45** while the tree is build **1.76** (`docs/HOME.md`), visible at every width above 460 px | the pill is a literal in `web/index.html` (`<span class="pill" id="buildpill" …>v1.45</span>`) and nothing overwrites it from `/api/health`; it is a dev-facing marker, hidden at ≤460 px by `#buildpill{display:none}`, but at 1280 px it states a build the tree is not | measured while capturing the grid evidence, 2026-11-03 | — | **LEDGERED, not fixed here** — it is global chrome and three lanes hold edits in `web/index.html` this session; one source of truth for the build number is an owner call |
+
 
 
 | G-pm-01 | every `probe`-profile worksheet; V-01/V-12 | MAJOR | HONESTY (owner policy) | `qa/probe_pm_paper.py`: ten of ten H2 blocks carry `background`, no gap **when the evidence pack is empty**; with a title that carries the block's own cue the same block places a sourced item (measured, `dropped: 1, items: 1`) | `completion.py:381-390` fills an unsourced part with the framework's own background on the owner's instruction, and the paper discloses it. **Correction recorded:** this session first read the all-background paper as a dead retrieval path; instrumenting `retrieval.retrieve` showed the gate was working as designed and the mocks were unrealistic | — | `test_E_pm_054`, `paper-read.json` | **GAP** (declared, disclosed) — the owner decides whether it becomes a gap |
@@ -396,8 +399,9 @@ was converted into a worksheet.
 | Gate | Command | Result |
 |---|---|---|
 | Page syntax | `python qa/check_page_syntax.py` | **page syntax: OK** |
-| Shelf acceptance | `python -m pytest tests/test_subject_project_management_acceptance.py -q` | **80 passed** (73 before this session) |
+| Shelf acceptance | `python -m pytest tests/test_subject_project_management_acceptance.py -q` | **81 passed** (73 before this session; 80 when the design lane reported, +1 for E-pm-081) |
 | Served page + docs | `python -m pytest tests/test_product_subjects.py tests/test_web_inline_script.py tests/test_docs_sync.py -q` | see §8.2 |
+| Grid width evidence | `python qa/measure_pm_grid.py 8013` | **8 of 8 grids measured, no sideways scroll**, 5 screenshots written; exit code 0 |
 | Frozen fixture | `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 
 ### 8.2 What the three failures in §8.0 are, and whose they are
@@ -413,16 +417,33 @@ row was fixed here, because the work order asks this lane to set it to the measu
 
 ### 8.3 The live layout, measured
 
-Driven over CDP against a fresh server on port 8078, with the browser cache disabled:
+`qa/measure_pm_grid.py` drives the machine's own Chrome over the DevTools protocol against a
+server it starts itself (port 8013, so it never touches the owner's 8000 or 8021), sets the device
+metrics, opens each grid through the page's own `openWorksheet`, builds it, types into every cell
+and reads `scrollWidth` against `clientWidth`. It writes what it saw to
+`qa/evidence/project-management/grid-form.json`, merges the numbers into `clickthrough.json`, and
+saves five screenshots; `test_E_pm_081` reads that file, so the claim and the artefact cannot drift
+apart.
 
-| width | the grid | `scrollWidth` vs `clientWidth` | the page scrolls sideways? |
+| viewport | the grid | `scrollWidth` vs `clientWidth` | the page scrolls sideways? |
 |---:|---|---|---|
-| 1280 px | a four-column table inside its own scrolling box | 1280 = 1280 | **no** |
-| 390 px | one card per row, every field stacked and labelled | 390 = 390 | **no** |
+| 1280 px | a four-column table inside its own scrolling box (`.mxgridtablewrap`, `overflow-x:auto`) | **1280 = 1280** | **no** |
+| 390 px | one card per row, every field stacked under its own label (`.mxcards` visible, the table hidden) | **375 = 375** | **no** |
+
+The 390 px row reads 375 because Chrome keeps a 15 px classic scrollbar inside the emulated
+viewport: the layout box is 375 px and its scroll width is also 375, which is what "no horizontal
+scroll" means. An earlier hand measurement in this session recorded it as "390 = 390"; the
+conclusion is the same and the number now comes from a script anyone can re-run.
+
+All four grids were measured at both widths, not one: **8 of 8 clean**, and the refusal state was
+measured too — the banner shows, the collector returns null, and no `{}`, `template_` or `undefined`
+reaches the student at either width.
 
 Before this session the page scrolled to **663 px** at 390 px. Two things were wider than the
 screen: the capability tile (566 px inside a 256 px grid) and the top bar. Both now shrink, and
-`test_E_pm_080` pins the rules that keep them shrunk.
+`test_E_pm_080` pins the **rules** that keep them shrunk — it asserts the rule bodies, not the mere
+presence of a class name, so deleting `overflow-x` or the 760 px block fails the suite instead of
+passing it.
 
 ### 8.4 The original gates (session 7, for the record)
 
@@ -577,8 +598,8 @@ a profile, never a branch in the renderer.**
 ```python
 "form_copy": {
     "rows_label": "Perspectives",
-    "cols_label": "Fields for each perspective",
-    "cols_hint": "Exactly four: Objective, Measure, Target, Initiative - one per line",
+    "cols_label": "Objective, measure, target and initiative",
+    "cols_hint": "Exactly four, one per line",
     "intro": ("Write the perspectives you steer by, one per line. …"),
 },
 ```
@@ -592,12 +613,22 @@ the rule.
 
 | template | rows label before | columns label before | rows label now | columns label now |
 |---|---|---|---|---|
-| `template_balanced_scorecard` | Perspective | **Measure field** | Perspectives | Fields for each perspective |
-| `template_strategy_map` | Objective | **Map field** | Objectives | Fields for each objective |
-| `template_kpi_tree` | Metric | **Tree field** | Metrics | Fields for each metric |
-| `template_okrs` | Objective | **OKR field** | Objectives | Fields for each objective |
+| `template_balanced_scorecard` | Perspective | **Measure field** | Perspectives | Objective, measure, target and initiative |
+| `template_strategy_map` | Objective | **Map field** | Objectives | Perspective, objective, driver and measure |
+| `template_kpi_tree` | Metric | **Tree field** | Metrics | Level, metric, formula or definition and source |
+| `template_okrs` | Objective | **OKR field** | Objectives | Key result, baseline, target and source |
 | `template_raci` | Activities | Roles | Activities | Roles (unchanged) |
 | `template_risk_register` | Risks | Fields | Risks | Fields (unchanged) |
+
+The first pass named the columns *"Fields for each perspective"* and so on. That fixed the
+plumbing leak, but it left two grids reading identically, and the header - `rows_label` **against**
+`cols_label` - said "Objectives against Fields for each objective", which is not a sentence a
+student should have to parse. Each grid now names its own four columns, so the header reads
+*"Objectives against Key result, baseline, target and source"*, and `test_E_pm_075` refuses two
+grids that share a column label. The hint carries the count ("Exactly four, one per line") because
+the label now carries the names. The empty state also prints a fixed count once - `4`, not
+`4 to 4` - which is a one-line fix in `matrixEmptyState` that every grid benefits from.
+
 
 ### 11.3 The four states, as designed and as measured
 

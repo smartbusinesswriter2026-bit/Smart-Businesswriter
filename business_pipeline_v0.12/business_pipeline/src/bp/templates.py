@@ -1547,8 +1547,8 @@ MATRIX_META = {
         "extra_help": "Declare exactly four fields per perspective: Objective, Measure, Target and Initiative. The four perspectives of the Balanced Scorecard (financial, customer/stakeholder, internal process, organisational capacity) are associated with Kaplan and Norton; no proprietary instrument is reproduced. Any figure in a cell is yours, and no score, weight or composite index is computed.",
         "form_copy": {
             "rows_label": "Perspectives",
-            "cols_label": "Fields for each perspective",
-            "cols_hint": "Exactly four: Objective, Measure, Target, Initiative - one per line",
+            "cols_label": "Objective, measure, target and initiative",
+            "cols_hint": "Exactly four, one per line",
             "intro": ("Write the perspectives you steer by, one per line. Then four fields for each: "
                       "the objective, the measure that shows it moving, the target you are aiming at "
                       "and the initiative that gets you there. A cell you cannot fill stays empty and "
@@ -1565,8 +1565,8 @@ MATRIX_META = {
         "extra_help": "Declare exactly four fields per objective: Perspective, Objective, Drives (the objective it is meant to move) and Measure. A causal link exists only where you write one; the worksheet records it and never derives a chain, a weight or a score.",
         "form_copy": {
             "rows_label": "Objectives",
-            "cols_label": "Fields for each objective",
-            "cols_hint": "Exactly four: Perspective, Objective, Drives, Measure - one per line",
+            "cols_label": "Perspective, objective, driver and measure",
+            "cols_hint": "Exactly four, one per line",
             "intro": ("Write the objectives you are steering by, one per line, then the four fields for "
                       "each: the perspective it belongs to, the objective itself, the objective it is "
                       "meant to drive and the measure that shows it moving. A link exists only where "
@@ -1584,8 +1584,8 @@ MATRIX_META = {
         "extra_help": "Declare exactly four fields per metric: Level (outcome, driver or input), Metric, Formula or definition, and Source. The worksheet records the decomposition you declare; it computes no value and checks no arithmetic.",
         "form_copy": {
             "rows_label": "Metrics",
-            "cols_label": "Fields for each metric",
-            "cols_hint": "Exactly four: Level, Metric, Formula or definition, Source - one per line",
+            "cols_label": "Level, metric, formula or definition and source",
+            "cols_hint": "Exactly four, one per line",
             "intro": ("Write the metrics on the tree, one per line: the outcome metric at the top, the "
                       "drivers beneath it and the inputs under those. Then the four fields for each: "
                       "the level it sits at, the metric itself, the formula or definition that connects "
@@ -1604,8 +1604,8 @@ MATRIX_META = {
         "extra_help": "Declare exactly four fields per objective: Objective, Key results, Baseline to target, and Source. A key result without a baseline cannot be judged at review, and the audit names it. No attainment score is computed.",
         "form_copy": {
             "rows_label": "Objectives",
-            "cols_label": "Fields for each objective",
-            "cols_hint": "Exactly four: Objective, Key results, Baseline to target, Source - one per line",
+            "cols_label": "Key result, baseline, target and source",
+            "cols_hint": "Exactly four, one per line",
             "intro": ("Write the objectives you commit to, one per line. Then the four fields for each: "
                       "the objective itself, the key results that make it checkable, the baseline and "
                       "target they run from and the source the number is read from. A key result with no "

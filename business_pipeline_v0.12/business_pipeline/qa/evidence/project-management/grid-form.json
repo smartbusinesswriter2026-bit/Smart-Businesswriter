@@ -1,0 +1,284 @@
+{
+ "base": "http://127.0.0.1:8013",
+ "chrome": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+ "subject": "project-management",
+ "url": "http://127.0.0.1:8013/#/subject/project-management",
+ "measured_at": "2026-11-03T11:18:22",
+ "note": "The cell text in the screenshots is a fixed cycle of short phrases typed into the form to prove the grid renders filled. It is not student data and it contains no figures.",
+ "widths": {
+  "1280": {
+   "template_balanced_scorecard": {
+    "template": "template_balanced_scorecard",
+    "rows_label": "Perspectives",
+    "cols_label": "Objective, measure, target and initiative",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the perspectives you steer by, one per line. Then four fields for each: the objective, the measure that shows it moving, the target you are aiming at and the initiative that gets you there. A cell you cannot fill stays empty and is named in the audit. No weights, no score.",
+    "served_copy": {
+     "rows_label": "Perspectives",
+     "cols_label": "Objective, measure, target and initiative",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the perspectives you steer by, one per line. Then four fields for each: the objective, the measure that shows it moving, the target you are aiming at and the initiative that gets you there. A cell you cannot fill stays empty and is named in the audit. No weights, no score."
+    },
+    "cells": 32,
+    "table_visible": true,
+    "cards_visible": false,
+    "aria_label": "Financial - Objective",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "grid_scrollWidth": 1072,
+    "grid_clientWidth": 1072,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 1280,
+     "height": 1600
+    }
+   },
+   "template_strategy_map": {
+    "template": "template_strategy_map",
+    "rows_label": "Objectives",
+    "cols_label": "Perspective, objective, driver and measure",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the objectives you are steering by, one per line, then the four fields for each: the perspective it belongs to, the objective itself, the objective it is meant to drive and the measure that shows it moving. A link exists only where you write it - the map does not draw arrows and does not infer a chain. A cell you cannot fill stays empty and is named in the audit.",
+    "served_copy": {
+     "rows_label": "Objectives",
+     "cols_label": "Perspective, objective, driver and measure",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the objectives you are steering by, one per line, then the four fields for each: the perspective it belongs to, the objective itself, the objective it is meant to drive and the measure that shows it moving. A link exists only where you write it - the map does not draw arrows and does not infer a chain. A cell you cannot fill stays empty and is named in the audit."
+    },
+    "cells": 16,
+    "table_visible": true,
+    "cards_visible": false,
+    "aria_label": "Shorten the order-to-dispatch cycle - Perspective",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "grid_scrollWidth": 1072,
+    "grid_clientWidth": 1072,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 1280,
+     "height": 1600
+    }
+   },
+   "template_kpi_tree": {
+    "template": "template_kpi_tree",
+    "rows_label": "Metrics",
+    "cols_label": "Level, metric, formula or definition and source",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the metrics on the tree, one per line: the outcome metric at the top, the drivers beneath it and the inputs under those. Then the four fields for each: the level it sits at, the metric itself, the formula or definition that connects it and the source the number is read from. The tree records the decomposition you declare and calculates nothing. A metric with no source stays empty and is named in the audit.",
+    "served_copy": {
+     "rows_label": "Metrics",
+     "cols_label": "Level, metric, formula or definition and source",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the metrics on the tree, one per line: the outcome metric at the top, the drivers beneath it and the inputs under those. Then the four fields for each: the level it sits at, the metric itself, the formula or definition that connects it and the source the number is read from. The tree records the decomposition you declare and calculates nothing. A metric with no source stays empty and is named in the audit."
+    },
+    "cells": 24,
+    "table_visible": true,
+    "cards_visible": false,
+    "aria_label": "On-time milestone completion - Level",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "grid_scrollWidth": 1072,
+    "grid_clientWidth": 1072,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 1280,
+     "height": 1600
+    }
+   },
+   "template_okrs": {
+    "template": "template_okrs",
+    "rows_label": "Objectives",
+    "cols_label": "Key result, baseline, target and source",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the objectives you commit to, one per line. Then the four fields for each: the objective itself, the key results that make it checkable, the baseline and target they run from and the source the number is read from. A key result with no baseline is named at audit, and no attainment score is produced. A field you cannot fill stays empty.",
+    "served_copy": {
+     "rows_label": "Objectives",
+     "cols_label": "Key result, baseline, target and source",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the objectives you commit to, one per line. Then the four fields for each: the objective itself, the key results that make it checkable, the baseline and target they run from and the source the number is read from. A key result with no baseline is named at audit, and no attainment score is produced. A field you cannot fill stays empty."
+    },
+    "cells": 16,
+    "table_visible": true,
+    "cards_visible": false,
+    "aria_label": "Cut cost overrun on delivery projects - Objective",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "grid_scrollWidth": 1072,
+    "grid_clientWidth": 1072,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 1280,
+     "height": 1600
+    }
+   }
+  },
+  "390": {
+   "template_balanced_scorecard": {
+    "template": "template_balanced_scorecard",
+    "rows_label": "Perspectives",
+    "cols_label": "Objective, measure, target and initiative",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the perspectives you steer by, one per line. Then four fields for each: the objective, the measure that shows it moving, the target you are aiming at and the initiative that gets you there. A cell you cannot fill stays empty and is named in the audit. No weights, no score.",
+    "served_copy": {
+     "rows_label": "Perspectives",
+     "cols_label": "Objective, measure, target and initiative",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the perspectives you steer by, one per line. Then four fields for each: the objective, the measure that shows it moving, the target you are aiming at and the initiative that gets you there. A cell you cannot fill stays empty and is named in the audit. No weights, no score."
+    },
+    "cells": 32,
+    "table_visible": false,
+    "cards_visible": true,
+    "aria_label": "Financial - Objective",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "bodyScrollWidth": 375,
+    "grid_scrollWidth": 0,
+    "grid_clientWidth": 0,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 390,
+     "height": 1400
+    }
+   },
+   "template_strategy_map": {
+    "template": "template_strategy_map",
+    "rows_label": "Objectives",
+    "cols_label": "Perspective, objective, driver and measure",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the objectives you are steering by, one per line, then the four fields for each: the perspective it belongs to, the objective itself, the objective it is meant to drive and the measure that shows it moving. A link exists only where you write it - the map does not draw arrows and does not infer a chain. A cell you cannot fill stays empty and is named in the audit.",
+    "served_copy": {
+     "rows_label": "Objectives",
+     "cols_label": "Perspective, objective, driver and measure",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the objectives you are steering by, one per line, then the four fields for each: the perspective it belongs to, the objective itself, the objective it is meant to drive and the measure that shows it moving. A link exists only where you write it - the map does not draw arrows and does not infer a chain. A cell you cannot fill stays empty and is named in the audit."
+    },
+    "cells": 16,
+    "table_visible": false,
+    "cards_visible": true,
+    "aria_label": "Shorten the order-to-dispatch cycle - Perspective",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "bodyScrollWidth": 375,
+    "grid_scrollWidth": 0,
+    "grid_clientWidth": 0,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 390,
+     "height": 1400
+    }
+   },
+   "template_kpi_tree": {
+    "template": "template_kpi_tree",
+    "rows_label": "Metrics",
+    "cols_label": "Level, metric, formula or definition and source",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the metrics on the tree, one per line: the outcome metric at the top, the drivers beneath it and the inputs under those. Then the four fields for each: the level it sits at, the metric itself, the formula or definition that connects it and the source the number is read from. The tree records the decomposition you declare and calculates nothing. A metric with no source stays empty and is named in the audit.",
+    "served_copy": {
+     "rows_label": "Metrics",
+     "cols_label": "Level, metric, formula or definition and source",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the metrics on the tree, one per line: the outcome metric at the top, the drivers beneath it and the inputs under those. Then the four fields for each: the level it sits at, the metric itself, the formula or definition that connects it and the source the number is read from. The tree records the decomposition you declare and calculates nothing. A metric with no source stays empty and is named in the audit."
+    },
+    "cells": 24,
+    "table_visible": false,
+    "cards_visible": true,
+    "aria_label": "On-time milestone completion - Level",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "bodyScrollWidth": 375,
+    "grid_scrollWidth": 0,
+    "grid_clientWidth": 0,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 390,
+     "height": 1400
+    }
+   },
+   "template_okrs": {
+    "template": "template_okrs",
+    "rows_label": "Objectives",
+    "cols_label": "Key result, baseline, target and source",
+    "cols_hint": "Exactly four, one per line",
+    "intro": "Write the objectives you commit to, one per line. Then the four fields for each: the objective itself, the key results that make it checkable, the baseline and target they run from and the source the number is read from. A key result with no baseline is named at audit, and no attainment score is produced. A field you cannot fill stays empty.",
+    "served_copy": {
+     "rows_label": "Objectives",
+     "cols_label": "Key result, baseline, target and source",
+     "cols_hint": "Exactly four, one per line",
+     "intro": "Write the objectives you commit to, one per line. Then the four fields for each: the objective itself, the key results that make it checkable, the baseline and target they run from and the source the number is read from. A key result with no baseline is named at audit, and no attainment score is produced. A field you cannot fill stays empty."
+    },
+    "cells": 16,
+    "table_visible": false,
+    "cards_visible": true,
+    "aria_label": "Cut cost overrun on delivery projects - Objective",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "bodyScrollWidth": 375,
+    "grid_scrollWidth": 0,
+    "grid_clientWidth": 0,
+    "sideways": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+     "width": 390,
+     "height": 1400
+    }
+   }
+  }
+ },
+ "refusal": {
+  "1280": {
+   "returned_null": true,
+   "shown": true,
+   "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+   "tokens": false,
+   "scrollWidth": 1280,
+   "clientWidth": 1280
+  },
+  "390": {
+   "returned_null": true,
+   "shown": true,
+   "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+   "tokens": false,
+   "scrollWidth": 375,
+   "clientWidth": 375
+  }
+ },
+ "screenshots": [
+  {
+   "name": "05-grid-form-scorecard-1280.png",
+   "saved": true,
+   "bytes": 112973
+  },
+  {
+   "name": "05-grid-form-okrs-1280.png",
+   "saved": true,
+   "bytes": 104191
+  },
+  {
+   "name": "07-grid-form-refusal-1280.png",
+   "saved": true,
+   "bytes": 105493
+  },
+  {
+   "name": "05-grid-form-scorecard-390.png",
+   "saved": true,
+   "bytes": 66596
+  },
+  {
+   "name": "05-grid-form-okrs-390.png",
+   "saved": true,
+   "bytes": 62949
+  }
+ ],
+ "sideways": []
+}

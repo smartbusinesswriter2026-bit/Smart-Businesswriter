@@ -144,5 +144,99 @@
    "url": "http://127.0.0.1:8001/#/chat"
   }
  ],
- "console": []
+ "console": [],
+ "grid_form": {
+  "measured_at": "2026-11-03T11:18:22",
+  "url": "http://127.0.0.1:8013/#/subject/project-management",
+  "method": "Chrome over the DevTools protocol: scrollWidth against clientWidth",
+  "script": "qa/measure_pm_grid.py",
+  "widths": {
+   "1280": {
+    "template_balanced_scorecard": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 32
+    },
+    "template_strategy_map": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 16
+    },
+    "template_kpi_tree": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 24
+    },
+    "template_okrs": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 16
+    }
+   },
+   "390": {
+    "template_balanced_scorecard": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 32
+    },
+    "template_strategy_map": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 16
+    },
+    "template_kpi_tree": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 24
+    },
+    "template_okrs": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 16
+    }
+   }
+  },
+  "refusal": {
+   "1280": {
+    "returned_null": true,
+    "shown": true,
+    "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+    "tokens": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280
+   },
+   "390": {
+    "returned_null": true,
+    "shown": true,
+    "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+    "tokens": false,
+    "scrollWidth": 375,
+    "clientWidth": 375
+   }
+  },
+  "sideways": [],
+  "screenshots": [
+   "05-grid-form-scorecard-1280.png",
+   "05-grid-form-okrs-1280.png",
+   "07-grid-form-refusal-1280.png",
+   "05-grid-form-scorecard-390.png",
+   "05-grid-form-okrs-390.png"
+  ]
+ }
 }

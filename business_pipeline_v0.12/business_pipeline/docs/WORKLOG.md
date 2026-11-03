@@ -1,3 +1,51 @@
+## 2026-11-03 — [computation] The grid width claim becomes a measurement, and the copy stops repeating itself
+
+**Ask.** The owner's instruction, after the design lane's B-080 report: *"close the gap"* — the
+one gap I had recorded as blocking acceptance was that the grid form's 390 px behaviour was
+*claimed* but never *evidenced*: no screenshot of the grid form existed in
+`qa/evidence/project-management/`, and no script or JSON carried the `scrollWidth` numbers, so the
+next lane could not re-run the check. Two smaller findings were closed in the same pass.
+
+- **The measurement is now a script and an artefact.** `qa/measure_pm_grid.py` starts a workbench
+  in its own process (port 8013 - never the owner's 8000 or 8021), launches the machine's Chrome
+  headless with a DevTools port of its choosing, and drives it over a minimal WebSocket client
+  written against the standard library (no dependency added). It sets the device metrics, opens
+  each of the four grids through the page's own `openWorksheet`, builds the grid, types into every
+  cell, and reads `scrollWidth` against `clientWidth`. Result: **8 of 8 clean** - 1280 px reads
+  1280 = 1280 with the table visible, 390 px reads 375 = 375 with the table hidden and one card per
+  row. (375 because Chrome keeps a 15 px classic scrollbar inside the emulated viewport; the
+  earlier hand-measurement of "390 = 390" reached the same conclusion by a different route.) The
+  refusal state was measured too: banner shown, collector null, no `{}`/`template_`/`undefined` at
+  either width. Five screenshots are written, including the first pictures of the grid form itself.
+- **`test_E_pm_081` makes the artefact load-bearing.** It reads `grid-form.json` and asserts, for
+  both widths and all four grids, that the page does not scroll sideways, that the table is the
+  visible view at 1280 and the cards at 390, and that every screenshot the record cites exists -
+  so the file cannot be deleted or edited to hide a regression.
+- **`test_E_pm_080` now asserts the rules, not the names.** It previously checked that
+  `.mxgridtablewrap`, `.mxcards` and `@media (max-width:760px)` appear somewhere; a later edit
+  could have deleted `overflow-x:auto` or the whole 760 px block and stayed green. It now reads the
+  rule bodies: the wide grid keeps its own scroll box, and the narrow block hides the table and
+  shows the cards, in that order.
+- **The columns label stops repeating the grid above it.** The first pass fixed the plumbing leak
+  ("Measure field", "Map field", "Tree field", "OKR field") with "Fields for each perspective" and
+  "Fields for each objective" - which left two grids reading identically and the header saying
+  *"Objectives against Fields for each objective"*. Each grid now names its own four columns -
+  *"Objective, measure, target and initiative"*, *"Perspective, objective, driver and measure"*,
+  *"Level, metric, formula or definition and source"*, *"Key result, baseline, target and source"* -
+  and the hint carries the count. `test_E_pm_075` refuses two grids that share a column label.
+- **A fixed column count is printed once.** `matrixEmptyState` printed "4 to 4" for every grid
+  whose columns are fixed; it now prints `4`. One line, every grid.
+- **D-PM-07 ledgered, not fixed.** The served-build pill in the top bar reads **v1.45** while the
+  tree is build 1.76 - a literal in `index.html` that nothing refreshes from `/api/health`. It is
+  global chrome and three lanes hold edits in that file, so it is recorded for the owner rather
+  than touched here.
+
+**Measured.** Shelf acceptance **81 tests, 81 passed** (80 before, +E-pm-081); suite **3369**;
+`page syntax: OK`; `frozen fixture: in sync`; `qa/manual/project-management.md` reconciled to both
+new rows and the measured layout table. Its own stale counts ("62 tests, 62 passed" in two places,
+the numbers from session 7) were corrected to 81 in passing.
+
+
 ## 2026-11-03 — [design] The Project management worksheet forms, made professional to fill in
 
 **Ask.** The owner's instruction for the Project management shelf, design lane B-080: *"DO A

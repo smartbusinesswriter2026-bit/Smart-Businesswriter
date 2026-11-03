@@ -983,18 +983,25 @@ class GateTest(unittest.TestCase):
         id: a framework is added by adding a profile.
         """
         expected = {
-            "template_balanced_scorecard": ("Perspectives", "Fields for each perspective"),
-            "template_strategy_map": ("Objectives", "Fields for each objective"),
-            "template_kpi_tree": ("Metrics", "Fields for each metric"),
-            "template_okrs": ("Objectives", "Fields for each objective"),
+            "template_balanced_scorecard": ("Perspectives", "Objective, measure, target and initiative"),
+            "template_strategy_map": ("Objectives", "Perspective, objective, driver and measure"),
+            "template_kpi_tree": ("Metrics", "Level, metric, formula or definition and source"),
+            "template_okrs": ("Objectives", "Key result, baseline, target and source"),
         }
         for template, (rows_label, cols_label) in expected.items():
             copy = T.describe(template)["form_copy"]
             self.assertEqual(copy["rows_label"], rows_label, template)
             self.assertEqual(copy["cols_label"], cols_label, template)
             self.assertGreater(len(copy["intro"].split()), 25, template)
+        # Each grid names its own columns, so the form's header - "<rows> against
+        # <columns>" - says which four fields the student is about to write.  Two
+        # grids reading identically in the header is the thing this pins.
+        self.assertEqual(len({cols for _, cols in expected.values()}), 4,
+                         "no two grids may share a column label")
         html = io.open("web/index.html", encoding="utf-8").read()
         self.assertIn("t.form_copy", html)
+        # the empty state names a fixed count once, not "4 to 4"
+        self.assertIn("meta.min_columns === meta.max_columns", html)
         # the renderer must not name one of these templates
         for template in expected:
             self.assertNotIn('"%s"' % template, html, template)
@@ -1134,11 +1141,65 @@ class GateTest(unittest.TestCase):
         self.assertIn('class="mxfield"', html)
         # every cell input carries a label naming its row and its column
         self.assertIn("aria-label", html)
+        # The RULES, not the names: a wide grid keeps its own scroll box, and the
+        # narrow block swaps the table for the cards.  Asserting only that the
+        # strings appear would let a later edit delete either rule and stay green.
+        self.assertIn(".mxgridtablewrap{overflow-x:auto}", html)
+        self.assertIn(".mxcards{display:none}", html)
+        start = html.index("@media (max-width:760px)")
+        block = html[start:start + 400]
+        self.assertIn(".mxgridtablewrap{display:none}", block, block[:200])
+        self.assertIn(".mxcards{display:block}", block, block[:200])
+        self.assertLess(block.index(".mxgridtablewrap{display:none}"),
+                        block.index(".mxcards{display:block}"))
         # nothing on the page may be wider than the viewport: the tile card and
         # the top bar both used to push the page sideways at 390 px
         self.assertIn(".capcard{all:unset", html)
         self.assertIn("min-width:0;overflow:hidden", html)
         self.assertIn("@media (max-width:460px)", html)
+
+    def test_E_pm_081__the_grid_width_evidence_is_measured_and_on_disk(self):
+        """A width claim without an artefact is a claim, not evidence.
+
+        `qa/measure_pm_grid.py` drives a real Chrome over the DevTools protocol,
+        measures `scrollWidth` against `clientWidth` for the four grids at 1280 px
+        and 390 px, and writes what it saw.  This reads that record, so the file
+        cannot be deleted - or edited to hide a regression - without failing, and
+        it pins which view is the visible one at each width.
+
+        It is a record of a measurement, not a substitute for one: re-run the
+        script when the CSS or the grid markup changes.
+        """
+        path = os.path.join("qa", "evidence", "project-management", "grid-form.json")
+        self.assertTrue(os.path.exists(path), "run qa/measure_pm_grid.py")
+        record = json.load(io.open(path, encoding="utf-8"))
+        for width in ("1280", "390"):
+            self.assertIn(width, record["widths"], width)
+            self.assertEqual(len(record["widths"][width]), 4, width)
+            for template, row in record["widths"][width].items():
+                self.assertNotIn("error", row, (width, template))
+                self.assertLessEqual(row["scrollWidth"], row["clientWidth"],
+                                     (width, template, "the page scrolls sideways"))
+                self.assertEqual(row["cells"] % 4, 0, (width, template))
+                # the view that carries the grid at each width
+                if width == "1280":
+                    self.assertTrue(row["table_visible"], (width, template))
+                    self.assertFalse(row["cards_visible"], (width, template))
+                else:
+                    self.assertFalse(row["table_visible"], (width, template))
+                    self.assertTrue(row["cards_visible"], (width, template))
+                self.assertIn("-", row["aria_label"], (width, template))
+        self.assertEqual(record["sideways"], [], "a grid pushed the page sideways")
+        # the refusal state is part of the form, so it is measured too
+        for width in ("1280", "390"):
+            refusal = record["refusal"][width]
+            self.assertTrue(refusal["shown"], width)
+            self.assertTrue(refusal["returned_null"], width)
+            self.assertFalse(refusal["tokens"], width)
+        # and the screenshots it cites are the ones the walkthrough shows
+        for name in record["screenshots"]:
+            self.assertTrue(os.path.exists(os.path.join(
+                "qa", "evidence", "project-management", name["name"])), name["name"])
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

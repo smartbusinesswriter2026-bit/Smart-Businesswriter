@@ -6988,7 +6988,9 @@ function matrixEmptyState(t) {
   const copy = matrixCopy(t);
   const meta = t.matrix || {};
   const count = (meta.min_columns && meta.max_columns)
-    ? meta.min_columns + " to " + meta.max_columns : "two to six";
+    ? (meta.min_columns === meta.max_columns ? String(meta.min_columns)
+      : meta.min_columns + " to " + meta.max_columns)
+    : "two to six";
   return '<div class="mxempty"><strong>The grid is empty</strong>' +
     "<p>Build it from the two lists above. Each cell holds what you know at that crossing, in your own words. " +
     "Leave a cell empty and it is named in the audit as a gap - it is never filled in for you.</p>" +

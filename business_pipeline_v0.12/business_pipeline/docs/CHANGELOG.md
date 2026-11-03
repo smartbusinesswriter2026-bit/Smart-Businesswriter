@@ -1,3 +1,46 @@
+## The grid width claim becomes a measurement, and the copy stops repeating itself
+
+The design lane's B-080 report was checked line by line instead of taken on trust: every gate
+re-run, the code read, the four labels served and compared. The work stood. What did not stand
+was the **evidence** for the layout claim - no screenshot of the grid form, no script, no numbers
+on disk - and two smaller things a reader would notice before a reviewer. Build **1.77**.
+
+- **The 390 px claim is now measured by a committed script.** `qa/measure_pm_grid.py` starts a
+  workbench in its own process on port 8013 (never 8000 or 8021), launches the machine's Chrome
+  headless with a DevTools port of its choosing, and drives it over a minimal standard-library
+  WebSocket client - no dependency added, no product code touched. It opens each of the four grids
+  through the page's own `openWorksheet`, builds the grid, fills every cell and reads
+  `scrollWidth` against `clientWidth`. **8 of 8 clean**: 1280 px reads 1280 = 1280 (table visible),
+  390 px reads 375 = 375 (table hidden, one card per row). The 375 is Chrome's 15 px classic
+  scrollbar inside the emulated viewport; the conclusion matches the earlier hand-measurement of
+  "390 = 390". The refusal state is measured too - banner shown, collector `null`, no `{}`,
+  `template_` or `undefined` at either width.
+- **`test_E_pm_081` reads the artefact.** `grid-form.json` records both widths for all four grids,
+  names which view is visible at each, and cites five screenshots - three of them the first
+  pictures of the grid form itself. The test fails if the file is missing, if any grid scrolls
+  sideways, or if a cited screenshot is gone, so the claim cannot drift away from the measurement.
+- **`test_E_pm_080` asserts rule bodies, not class names.** It used to pass as long as
+  `.mxgridtablewrap`, `.mxcards` and `@media (max-width:760px)` appeared somewhere in the page; a
+  later edit could delete `overflow-x:auto` or the whole 760 px block and stay green. It now reads
+  the rules: the wide grid keeps its own scroll box, the narrow block hides the table and shows the
+  cards, in that order.
+- **A grid names its own columns.** "Fields for each perspective" fixed the plumbing leak and left
+  two grids identical in the header, which read *"Objectives against Fields for each objective"*.
+  The four grids now read *"Objective, measure, target and initiative"*, *"Perspective, objective,
+  driver and measure"*, *"Level, metric, formula or definition and source"* and *"Key result,
+  baseline, target and source"*, with the count moved into the hint. `test_E_pm_075` refuses two
+  grids that share a column label. `matrixEmptyState` also stops printing "4 to 4" for a fixed
+  count.
+- **D-PM-07 ledgered, not fixed.** The top bar's build pill reads **v1.45** while the tree is build
+  1.77 - a literal in `web/index.html` that nothing refreshes from `/api/health`. Global chrome,
+  three lanes in that file, and one source of truth for the build number is the owner's call.
+
+- 1.77 (2026-11-03): the grid width claim is a measurement with an artefact (`qa/measure_pm_grid.py`,
+  `grid-form.json`, five screenshots) and a test that reads it (E-pm-081); `test_E_pm_080` asserts
+  rule bodies instead of class names; the four grids name their own columns so no two headers read
+  alike; a fixed column count prints once; the manual's own stale test counts are corrected to 81.
+
+
 ## The brief that named no shelf was judged as the wrong shelf, and three tests were lying
 
 Session 7, after the doors landed: the remaining red was triaged line by line instead of
