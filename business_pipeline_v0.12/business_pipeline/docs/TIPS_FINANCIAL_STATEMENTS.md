@@ -521,3 +521,90 @@ existing statement_plan.py projection graph and the statements.py request contra
 implement the DAG and validation layers, and the plan/extract boundary already injects the
 core from bp.server. The remaining gap is the detector/template layer and the runtime state
 machine described here, which is a future build.)
+
+
+
+## Tip 7 â€” Implementation spec: pipeline guards for each LLM weakness (owner tip, 2026-11-04)
+
+(Recorded verbatim. The full spec lives here; it names 22 guards across four parts and a build
+order. Each guard maps to a weakness, states the instruction, gives a schema/function signature,
+a worked example from our case sets, and a gate.)
+
+### Summary table
+
+| Guard | Weakness | Example | Gate |
+|-------|----------|---------|------|
+| G1 Sign convention | Â§1.1 WC signs | AR +15k â†’ âˆ’15k cash | CFO ties to NI + noncash + Î”WC |
+| G2 Decimal arithmetic | Â§1.8 drift | $6,000 Ã— 11/12 = 5,500.00 | Lint forbids float/round |
+| G3 COGS composition | Â§1.4 missing freight | Harbor: 43,500 not 42,000 | PurchasesLedger all fields present |
+| G4 Timing rule engine | Â§1.5 11 vs 12 | Feb 1 â†’ Dec 31 = 11 months | Unit tests for all start dates |
+| G5 Adjustment completeness | Â§1.3 missing accruals | Accrued salaries 3,000 booked | All adjustment claims executed |
+| G6 Double-counting | Â§1.6 bad debt, gains | Bad debt = target âˆ’ existing | check_non_operating_addbacks empty |
+| G7 Convention lock | Â§1.7 mixing | Manifest explicit | No literals outside manifest.py |
+| G8 JE validation | JE structural errors | Template semantics | validate_je empty per JE |
+| G9 Articulation gates | Â§1.2 no tie | All 6 gates pass | Return only if gates empty |
+| G10 Determinism | Â§2.1 non-determinism | Hash stable across runs | 3 runs same hash |
+| G11 Root-cause | Â§2.5 no diagnosis | "AR sign error on JE-07" | Every failure has 7-field diagnostic |
+| G12 Scale test | Â§2.4 degradation | 1000-txn fixture | Same gates as 12-txn |
+| G13 Cross-reconciliation | Â§1.2 deep articulation | Cash from TB and journal agree | 3 cross-checks return None |
+| G14 Audit trail | Â§2.3 no trace | explain(IS, "COGS") returns trace | Every line has trace |
+| G15 Assumptions manifest | Â§1.7 silent defaults | All 4 policies surfaced | No default without warn |
+| G16 Grading | Â§3 unreliable grading | Harbor freight-in error named | Fixture errors detected |
+| G17 Verified generation | Â§3 bad answer keys | Pipeline-generated problems solvable | run_pipeline returns ok |
+| G18 Convention conflict | Â§1.5 contradictions | Annual vs maturity caught | Conflicts return non-empty |
+| G19 Extraction confidence | Â§7.1 low-confidence | 0.62 routed to review | Review queue populated |
+| G20 Extraction grounding | Â§7.1 hallucinations | "salvage=0" caught when not in text | All slots grounded |
+| G21 Template coverage | Â§7.2 silent novel cases | Finance lease named | Unmatched claims surface |
+| G22 Rounding policy | Â§1.8/Â§2.1 mode differences | 2.665 ties handled | Tests confirm policy |
+
+### Build order (per the spec)
+
+Phase 1 â€” Correctness (foundation): G1 Sign convention, G2 Decimal arithmetic, G7 Convention lock,
+G8 JE validation, G4 Timing rule engine, G3 COGS composition.
+
+Phase 2 â€” Verification (catch errors): G9 Articulation gates, G10 Determinism, G11 Root-cause
+diagnostics, G13 Cross-reconciliation, G5 Adjustment completeness, G6 Double-counting,
+G18 Convention conflict.
+
+Phase 3 â€” Trust (make defensible): G14 Audit trail, G15 Assumptions manifest, G16 Grading,
+G17 Verified generation, G12 Scale test, G22 Rounding policy.
+
+Phase 4 â€” Extraction containment (the frontier): G19 Extraction confidence, G20 Extraction
+grounding, G21 Template coverage.
+
+Each phase ships with a fixture pack: (raw_text, expected_claims, expected_matches, expected_JEs,
+expected_TB, expected_statements, expected_diagnostics). The fixture pack is the acceptance test.
+
+### Key implementation notes captured
+
+- G1: tb.balance(code) is debit-positive everywhere; presentation_sign is the ONLY place that flips
+  a sign. Lint forbids -tb.balance and * -1 on tb.balance outside signs.py.
+- G2: Decimal only; round() exactly once at render time via q(); lint forbids float( and round(.
+- G3: PurchasesLedger typed struct with mandatory fields; cogs_periodic requires beginning/ending
+  inventory; freight_in missing while text contains "freight" â†’ REVIEW.
+- G4: months_expired, depreciation_for_year with full_year/pro_rata/half_year; policy resolution
+  returns None (not a default) when unstated â†’ REVIEW.
+- G5: check_adjustment_completeness returns declared-minus-executed; non-empty = fail.
+- G6: bad_debt expense = target âˆ’ existing (BS approach); non-operating gains/losses removed from
+  CFO; non-cash JEs with investing/financing buckets go to supplemental disclosure, not CF sections;
+  unearned revenue balance = receipts âˆ’ earned.
+- G7: Manifest with require() that raises REVIEW on None; no literals outside manifest.py.
+- G8: validate_je with 7 checks incl. template semantics (TEMPLATE_EXPECTED_ACCOUNTS).
+- G9: six gates with root-cause helpers (find_unbalanced_je, diff_account, suspect_section).
+- G10: hash_inputs/hash_outputs, temperature=0, sorted iteration, deterministic topo sort,
+  Decimal rounding, no datetime.now in computation path. CI runs 3x.
+- G11: Diagnostic dataclass with 7 fields (stage, gate, input_ref, expected, actual, hint, severity).
+- G12: 1000-transaction synthetic fixture; same gates as 12-txn; track time/memory/call count.
+- G13: cash from TB vs journal; NI from IS vs TB IS accounts; RE from RE statement vs BS.
+- G14: explain(statement, line) â†’ TraceNode with je_refs and claim_refs; every line traceable.
+- G15: Assumptions manifest tagged explicit_statement/default/user_supplied with span and impact.
+- G16: grade() with Mismatch (violated_rule + hint) and score; find_violated_rule diagnostic engine.
+- G17: generate_problem(spec) renders text then solves via run_pipeline; must return status ok.
+- G18: detect_convention_conflicts flags contradictory policy claims with spans.
+- G19: Match with confidence + slot_confidences; threshold 0.85 routes to review.
+- G20: verify_grounded checks every slot value appears in source text; hallucinated slots fail.
+- G21: check_template_coverage + check_detector_coverage; unmatched transaction claims surface.
+- G22: RoundingPolicy single mode, applied only in renderers; ties tested both directions.
+
+(Implementation deferred to the appropriate stages; this guard set is the acceptance criteria for
+the build. G1 is the next increment.)
