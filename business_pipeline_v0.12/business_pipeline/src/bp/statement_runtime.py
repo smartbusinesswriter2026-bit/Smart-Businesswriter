@@ -35,6 +35,7 @@ class RuntimeResult:
     conflicts: List = field(default_factory=list)
     journal: List = field(default_factory=list)
     trial_balance: Dict[str, Decimal] = field(default_factory=dict)
+    statements: Dict[str, Any] = field(default_factory=dict)
     gates: Dict[str, bool] = field(default_factory=dict)
     review: Optional[Review] = None
     diagnostics: List[str] = field(default_factory=list)
@@ -141,7 +142,48 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
     tb = _post(journal)
     res.trial_balance = tb
     res.journal = journal
-    # double-counting guard (G6): surface any non-operating addback accounts
+    # projection + articulation gates (G9)
+    try:
+        class _TB:
+            def __init__(self, b, journal):
+                self.b = b
+                self.journal = journal
+            def balance(self, code):
+                return self.b.get(code, Decimal(0))
+            @property
+            def total_dr(self):
+                return sum(Decimal(str(l[2])) for l in self.journal if l[1] == "Dr")
+            @property
+            def total_cr(self):
+                return sum(Decimal(str(l[2])) for l in self.journal if l[1] == "Cr")
+        from . import statement_project as proj
+        from . import articulation as art
+        tb_obj = _TB(tb, journal)
+        accounts = {}  # metadata supplied by caller; empty => no projection
+        is_lines = proj.project_is(tb_obj, accounts)
+        ni = next((l["amount"] for l in is_lines if l["label"] == "Net income"), Decimal(0))
+        re_lines = proj.project_re(Decimal(0), ni, Decimal(0))
+        bs_lines = proj.project_bs(tb_obj, accounts)
+        cf_lines = proj.project_cf(tb_obj, tb_obj, accounts, ni)
+        res.statements = {"IS": is_lines, "RE": re_lines, "BS": bs_lines, "CF": cf_lines}
+        # build lightweight result objects for gates
+        is_res = type("IS", (), {"net_income": ni})()
+        re_res = type("RE", (), {"net_income": ni, "closing": re_lines[-1]["amount"]})()
+        bs_res = type("BS", (), {"assets": sum(l["amount"] for l in bs_lines if l["kind"] == "asset"),
+                                 "liabilities": sum(l["amount"] for l in bs_lines if l["kind"] == "liability"),
+                                 "equity": sum(l["amount"] for l in bs_lines if l["kind"] == "equity"),
+                                 "retained_earnings": re_lines[-1]["amount"],
+                                 "cash": _bal(tb_obj, "1000")})()
+        cf_res = type("CF", (), {"ending_cash": cf_lines[-1]["amount"], "cfo": cf_lines[1]["amount"],
+                                 "cfi": cf_lines[2]["amount"], "cff": cf_lines[3]["amount"],
+                                 "net_change": cf_lines[4]["amount"]})()
+        issues = art.run_gates(tb_obj, is_res, re_res, bs_res, cf_res)
+        res.gates["articulation"] = (len(issues) == 0)
+        if issues:
+            res.diagnostics.extend(str(i) for i in issues)
+    except Exception as e:
+        res.diagnostics.append(f"projection error: {e}")
+    # double-counting guard (G6):: surface any non-operating addback accounts
     try:
         from . import double_counting as dc_guard
         accts = [ln[0] for ln in journal]
