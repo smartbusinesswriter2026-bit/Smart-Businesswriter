@@ -38,6 +38,7 @@ class RuntimeResult:
     gates: Dict[str, bool] = field(default_factory=dict)
     review: Optional[Review] = None
     diagnostics: List[str] = field(default_factory=list)
+    review_items: List = field(default_factory=list)
 
 
 def _post(journal):
@@ -77,6 +78,15 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
     # RESOLVE (policies)
     policies = sd.infer_policies(problem_text)
     conflicts = sd.policy_conflicts(problem_text)
+    # convention conflict guard (G18)
+    try:
+        from . import conflicts as cf_guard
+        claim_objs = [type("C", (), {"text": c.text, "span": c.span})() for c in claims]
+        cf_issues = cf_guard.detect_convention_conflicts(claim_objs)
+        if cf_issues:
+            conflicts = conflicts + [(i.input_ref, i.expected, i.actual) for i in cf_issues]
+    except Exception:
+        pass
     res.policies = policies
     res.conflicts = conflicts
     if conflicts:
@@ -84,6 +94,18 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
         res.review = Review("RESOLVE", "contradictory policy claims",
                            "a single value per policy", str(conflicts))
         return res
+    # template coverage guard (G21)
+    try:
+        from . import coverage as cov_guard
+        cov_issues = cov_guard.check_template_coverage(matches, sd.TEMPLATES)
+        if cov_issues:
+            res.status = "review"
+            res.review = Review("JOURNALIZE", "template coverage gap",
+                               "a template per matched detector", str(cov_issues))
+            res.diagnostics.extend(str(i) for i in cov_issues)
+            return res
+    except Exception:
+        pass
     # JOURNALIZE
     journal = []
     for m in matches:
