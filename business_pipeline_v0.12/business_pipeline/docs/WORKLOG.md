@@ -4294,7 +4294,7 @@ only (B-213). Four tools still ship with `preset: null` (typed-input mode, the s
 `ols_robust`), and adding presets is an owner decision.
 
 **Open/next.** The marketing shelf is the last subject without an acceptance manual. Its top
-three risks, and the two owner decisions this session could not take, are in `qa/QA_STATE.md`.
+three risks, and the two owner decisions this session could not take, are in `qa/QA_STATE.md`. **Follow-up session after marketing:** Generic shelf-invariant suite (Option D) — extend `test_shelf_invariants.py` to a full report-only sweep of all 11 shelves, list findings, then choose fixes.
 
 ### Follow-up, same session — the owner answered "YES"
 

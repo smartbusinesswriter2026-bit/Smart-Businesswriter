@@ -154,6 +154,8 @@ B-214 (4 dp; the paper reads `-22.8067`)**.
 2. **Two declared-template defects are already known and unfixed.** `template_servqual` is declared in both `CANVAS_BLOCKS` and `MATRIX_META` (the D-MKT-04 family), and `MKT-07` (SERVQUAL) is deliberately hidden by B-198 — so the suite's green depends on the hiding, not on the form.
 3. **D-PPL-01 will surface there too.** Marketing shares `alpha`, `chi_square`, `power`, `unitecon`, `cohort` and `abtest`; every marketing tool that returns a `@unit` output under a currency request prints that unit with a money prefix, and the unit audit is the only thing that catches it. Run the audit before anything else.
 
+**Follow-up session (after marketing): Generic shelf-invariant suite (Option D).** The `test_shelf_invariants.py` added this session pins 6 invariants. The next session should extend it to a full generic suite that walks `subjects.catalogue()` and asserts for all 11 shelves: tools resolve (preset→method), no record denies a shipped method, every worksheet/tool/record sits in exactly one tile, catalogue row reconciles, tile keys match tool groups, and tiles cover all items. Run in report-only form first, list findings, then choose fixes. This will surface real failures on shelves not opened this session.
+
 ---
 
 
