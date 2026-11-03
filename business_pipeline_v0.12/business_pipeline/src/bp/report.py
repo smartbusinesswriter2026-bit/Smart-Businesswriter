@@ -92,20 +92,20 @@ def trial_balance(j, places=2):
     return "\n".join(out)
 
 def income_statement(pre, j, places=2):
-    inc, exp = pre["income"], pre["expenses"]
+    g = ledger.income_groups(pre); inc, exp = g["income"], g["expenses"]
     out = ["INCOME STATEMENT", f"{j.start} to {j.end}   {j.currency}", "Revenue"]
     out += [_row("  " + k, inc[k], places) for k in sorted(inc)]
-    out.append(_row("Total revenue", sum(inc.values(), D(0)), places))
+    out.append(_row("Total revenue", g["total_revenue"], places))
     out.append("Expenses")
     out += [_row("  " + k, exp[k], places) for k in sorted(exp)]
-    out.append(_row("Total expenses", sum(exp.values(), D(0)), places))
+    out.append(_row("Total expenses", g["total_expenses"], places))
     out.append(_row("Net income", pre["net_income"], places))
-    oci = pre.get("oci") or {}
+    oci = g["oci"]
     if oci:
         out.append("Other comprehensive income")
         out += [_row("  " + k, oci[k], places) for k in sorted(oci)]
-        out.append(_row("Total other comprehensive income", pre["total_oci"], places))
-        out.append(_row("Total comprehensive income", pre["total_comprehensive_income"], places))
+        out.append(_row("Total other comprehensive income", g["total_oci"], places))
+        out.append(_row("Total comprehensive income", g["total_comprehensive_income"], places))
     return "\n".join(out)
 
 def balance_sheet(j, st, places=2):
@@ -163,12 +163,7 @@ def _balance_sheet_flat(j, st, places=2):
     return "\n".join(out)
 
 def cash_flow_statement(j, cf, places=2):
-    cash_open = D(0)
-    for e in j.entries:
-        if not e.opening: continue
-        for l in e.lines:
-            a = j.chart.get(l.account)
-            if a.role == "cash": cash_open += l.amount if l.side == a.normal else -l.amount
+    cash_open = cf["opening_cash"]
     out = ["CASH FLOW STATEMENT", f"{j.start} to {j.end}   {j.currency}"]
     for key, title in (("operating", "Operating activities"), ("investing", "Investing activities"), ("financing", "Financing activities")):
         out.append(title)
@@ -177,7 +172,7 @@ def cash_flow_statement(j, cf, places=2):
         out.append(_row(f"Total {title.lower()}", cf[key], places))
     out.append(_row("Net change in cash", cf["net_direct"], places))
     out.append(_row("Cash at start of period", cash_open, places))
-    out.append(_row("Cash at end of period", cash_open + cf["net_direct"], places))
+    out.append(_row("Cash at end of period", cf["closing_cash"], places))
     return "\n".join(out)
 
 def reconciliation_statement(rec_report, places=2):

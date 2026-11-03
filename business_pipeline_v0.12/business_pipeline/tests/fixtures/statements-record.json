@@ -688,6 +688,8 @@
       "amount": "-2400"
      }
     ],
+    "opening_cash": "0",
+    "closing_cash": "104600",
     "checks": [
      [
       "cash_flow_agrees_across_routes",
@@ -828,6 +830,30 @@
      "credit": "52575.00"
     }
    ],
+   "engagement": {
+    "period": {
+     "start": "2026-01-01",
+     "end": "2026-12-31"
+    },
+    "currency": "USD",
+    "places": 2
+   },
+   "income_groups": {
+    "income": {
+     "Revenue": "200000"
+    },
+    "expenses": {
+     "Cost of sales": "60000.00",
+     "Operating expenses": "67500.00",
+     "Finance costs": "2400",
+     "Tax": "17525.00"
+    },
+    "total_revenue": "200000",
+    "total_expenses": "147425.00",
+    "oci": {},
+    "total_oci": "0",
+    "total_comprehensive_income": "52575.00"
+   },
    "balance_sheet_groups": {
     "groups": {
      "current_assets": {
@@ -2278,7 +2304,15 @@
     "cash_flow": "CASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00",
     "notes": "NOTES\nReporting framework: US_GAAP\nBasis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.\nNet income for the period: 52,575.00\nDeclared policy changes: none",
     "combined": "TRIAL BALANCE\n2026-01-01 to 2026-12-31   USD\nAccount                                                      Debit              Credit\nCash                                                    104,600.00                    \nTrade receivables                                        15,000.00                    \nInventory                                                10,000.00                    \nPrepaid insurance                                           500.00                    \nEquipment                                                60,000.00                    \nAccumulated depreciation                                                     12,000.00\nTrade payables                                                               15,000.00\nLoan                                                                         40,000.00\nTax payable                                                                  17,525.00\nAccrued salaries                                                              3,000.00\nShare capital                                                                50,000.00\nRetained earnings                                                            52,575.00\n                                                        190,100.00          190,100.00\n\nINCOME STATEMENT\n2026-01-01 to 2026-12-31   USD\nRevenue\n  Revenue                                               200,000.00\nTotal revenue                                           200,000.00\nExpenses\n  Cost of sales                                          60,000.00\n  Finance costs                                           2,400.00\n  Operating expenses                                     67,500.00\n  Tax                                                    17,525.00\nTotal expenses                                          147,425.00\nNet income                                               52,575.00\n\nBALANCE SHEET\nAs at 2026-12-31   USD\nCurrent assets\n  Cash                                                  104,600.00\n  Trade receivables                                      15,000.00\n  Inventory                                              10,000.00\n  Prepayments                                               500.00\nTotal current assets                                    130,100.00\nNon-current assets\n  Property, plant and equipment                          48,000.00\nTotal non-current assets                                 48,000.00\nTotal assets                                            178,100.00\nCurrent liabilities\n  Trade payables                                         15,000.00\n  Accruals                                               20,525.00\nTotal current liabilities                                35,525.00\nNon-current liabilities\n  Borrowings                                             40,000.00\nTotal non-current liabilities                            40,000.00\nTotal liabilities                                        75,525.00\nEquity\n  Capital                                                50,000.00\n  Retained earnings                                      52,575.00\nTotal equity                                            102,575.00\nTotal liabilities and equity                            178,100.00\n\nCASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00\n\nNOTES\nReporting framework: US_GAAP\nBasis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.\nNet income for the period: 52,575.00\nDeclared policy changes: none"
-   }
+   },
+   "requested": [
+    "IS",
+    "RE",
+    "BS",
+    "CF"
+   ],
+   "hidden": [],
+   "cash_flow_withheld_because": null
   }
  },
  "statements": {
@@ -2384,5 +2418,5 @@
   }
  ],
  "ratios": null,
- "plan_hash": "sha256:64a5a899dc62488e"
+ "plan_hash": "sha256:b9a294f5958853fa"
 }

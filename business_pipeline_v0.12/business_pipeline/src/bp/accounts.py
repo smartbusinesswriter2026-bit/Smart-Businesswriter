@@ -375,6 +375,8 @@ def build(spec):
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text(),
              "opening_lines_next": _s(ledger.opening_lines(j)),
+             "engagement": _s({"period": {"start": p["start"], "end": p["end"]}, "currency": j.currency, "places": places}),
+             "income_groups": _s(ledger.income_groups(pre)),
              "balance_sheet_groups": _s(bsg), "ratio_figures": ratio_figures(pre, st, bsg, j), "ratio_gaps": _s(list(RATIO_GAPS)),
              "ledgers": _s(ledger.account_ledgers(j)),
              "t_accounts_export": {lg["code"]: report.t_account(lg, places) for lg in ledger.account_ledgers(j)},

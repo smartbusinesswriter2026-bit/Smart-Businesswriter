@@ -209,6 +209,21 @@ def statements(j):
             "oci": sect["oci"], "total_oci": oci, "profit_for_period": ni, "total_comprehensive_income": ni + oci,
             "total_assets": tot("asset"), "total_liabilities": tot("liability"), "total_equity": tot("equity"), "equity_with_current_earnings": tot("equity") + ni}
 
+def income_groups(pre):
+    """The income statement's lines and their totals, by the chart's statement line.
+
+    `pre` is the pre-closing projection `statements()` returns, so these are the lines the income
+    statement shows: the accounts of one chart line rolled up, which is what a statement line is.
+    `report.income_statement` prints them, the record carries them, and a renderer presents them as
+    typed cells — the figures are computed once, here, and never again downstream.  Nothing in this
+    function re-quantises, splits or estimates.
+    """
+    inc, exp = pre["income"], pre["expenses"]
+    return {"income": inc, "expenses": exp,
+            "total_revenue": sum(inc.values(), D(0)), "total_expenses": sum(exp.values(), D(0)),
+            "oci": pre.get("oci") or {}, "total_oci": pre.get("total_oci"),
+            "total_comprehensive_income": pre.get("total_comprehensive_income")}
+
 def _sum_type(j, types, include_opening=True, role=None, only_opening=False):
     t = D(0)
     for e in j.entries:
@@ -280,7 +295,14 @@ def cash_flow(j, st=None):
     d_nca = _sum_type(j, ("asset",), include_opening=False) - d_cash
     indirect = st["net_income"] + _sum_type(j, ("equity",), include_opening=False) + _sum_type(j, ("liability",), include_opening=False) - d_nca
     direct = op + inv + fin
+    opening_cash = D(0)
+    for e in j.entries:                       # the cash the period started with, on its natural side
+        if not e.opening: continue
+        for l in e.lines:
+            a = j.chart.get(l.account)
+            if a.role == "cash": opening_cash += l.amount if l.side == a.normal else -l.amount
     return {"operating": op, "investing": inv, "financing": fin, "net_direct": direct, "net_indirect": indirect, "detail": detail,
+            "opening_cash": opening_cash, "closing_cash": opening_cash + direct,
             "checks": [("cash_flow_agrees_across_routes", direct == indirect, f"direct {direct}, indirect {indirect}")], "flags": fl}
 
 # ---------- Period-end closing and the retained-earnings rollforward (manual 9.3; B-034, B-046) ----------

@@ -825,6 +825,14 @@ def _record(reading, spec, result, text, source, rejected, same_model, ratios, r
     export = appendix.get("statements_export") or {}
     requested, computed, hidden = _scope(requested or statements_verify.STATEMENTS)
     statements = present(result, reading["problem_type"], requested)
+    # The request's audit trail travels with the appendix.  The workbook is built from the appendix
+    # alone (the download bundle carries the appendix, not the whole record), so this is where a
+    # renderer learns which statements were asked for, which were computed but stayed hidden, and
+    # why a statement that was asked for was not presented.
+    appendix = dict(appendix)
+    appendix["requested"] = list(requested)
+    appendix["hidden"] = list(hidden)
+    appendix["cash_flow_withheld_because"] = statements.get("cash_flow_withheld_because")
     problems = statements_verify.verify_output(statements, requested)
     if problems:
         raise StatementError("the core did not return every requested statement: "
