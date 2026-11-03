@@ -22,9 +22,11 @@ NEW = {
     "template_measurement_plan": ("MKT-18", "canvas"),
 }
 #: A worksheet that is registered and complete but **not offered** on the page.
-#: SERVQUAL is filed as both a canvas and a grid, so the page gave it the wrong editor;
-#: the owner hid the tile until that is repaired (B-198).  Its registration facts are
-#: still asserted below, so hiding it cannot hide a broken registration.
+#: SERVQUAL used to be filed as both a canvas and a grid, so the page gave it the wrong
+#: editor; the owner hid the tile until that was repaired (B-198).  The form is repaired
+#: now (D-MKT-07) and the tile stays hidden until the owner unhides it, so what is
+#: asserted below is the repaired single form plus the hiding: hiding it cannot hide a
+#: broken registration, and the double declaration cannot come back unnoticed.
 HIDDEN = {
     "template_servqual": ("MKT-07", "matrix"),
 }
@@ -61,15 +63,20 @@ class Registration(unittest.TestCase):
         self.assertFalse({row["id"] for row in page["records"]} & set(offered))
 
     def test_a_hidden_worksheet_stays_registered_and_is_not_offered(self):
-        """B-198: SERVQUAL's tile is hidden; its template, record and grid are intact."""
+        """B-198 and D-MKT-07: one declared form, and the tile still hidden."""
         for kind, (rid, form) in HIDDEN.items():
             template = T.TEMPLATES[kind]
             self.assertEqual(template["tier"], "T4", kind)
             self.assertEqual(template["registry_ids"], [rid], kind)
             self.assertIn(kind, T.MATRIX_META, "the worksheet is a grid by declaration")
-            self.assertEqual(T.describe(kind)["form_kind"], "canvas",
-                             "still mis-declared as a canvas — that is why the tile is "
-                             "hidden; repair the form and unhide it (D-MKT-07, B-198)")
+            self.assertNotIn(kind, T.CANVAS_BLOCKS,
+                             "a block may declare exactly one form: the canvas entry was the "
+                             "double declaration that handed the page a canvas editor (D-MKT-07)")
+            self.assertEqual(T.describe(kind)["form_kind"], form,
+                             "the page must be handed a grid editor; the tile is hidden by "
+                             "B-198, not by a wrong form declaration")
+            self.assertEqual(T.describe(kind)["blocks"], [],
+                             "a declared grid exposes no canvas blocks to the page")
             self.assertNotIn(rid, [w["catalogue_id"] for w in subjects.detail("marketing")["worksheets"]],
                              "a hidden worksheet must not be offered")
 

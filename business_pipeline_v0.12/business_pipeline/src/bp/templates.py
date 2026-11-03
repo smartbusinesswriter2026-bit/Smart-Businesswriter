@@ -550,6 +550,15 @@ CANVAS_BLOCKS = {
     # stages), declared in MATRIX_META with its row and column labels.  It was in both
     # maps, which made describe() call it a canvas and gave the page the wrong editor
     # (D-MKT-04).  One artefact, one form.
+    #
+    # template_servqual is deliberately NOT here either (D-MKT-07): it is a grid as
+    # well (service dimension x measure).  MATRIX_META declares its axes, its builder
+    # is build_matrix with the eight grid checks, and its example is written as cells;
+    # the five-dimension list that used to sit here was read by nothing but describe(),
+    # which tests this map first and so handed the page a five-block canvas editor for
+    # a grid.  The five dimensions (tangibles, reliability, responsiveness, assurance,
+    # empathy) are rows a student may declare, not a block set.  The tile stays hidden
+    # under B-198; unhiding it is the owner's call, not a consequence of this repair.
     "template_funnel": {
         "awareness": ("Awareness", "How prospects enter the funnel"),
         "interest": ("Interest", "How interest is captured"),
@@ -557,13 +566,6 @@ CANVAS_BLOCKS = {
         "intent": ("Intent", "How intent is formed"),
         "evaluation": ("Evaluation", "How the final decision is made"),
         "purchase": ("Purchase", "How the purchase happens"),
-    },
-    "template_servqual": {
-        "tangibles": ("Tangibles", "Physical facilities, equipment and appearance"),
-        "reliability": ("Reliability", "Ability to perform the promised service dependably"),
-        "responsiveness": ("Responsiveness", "Willingness to help customers and provide prompt service"),
-        "assurance": ("Assurance", "Knowledge and courtesy of employees and their ability to inspire trust"),
-        "empathy": ("Empathy", "Caring, individualised attention the firm provides its customers"),
     },
     "template_rfm": {
         "recency": ("Recency", "How recently the customer purchased"),
