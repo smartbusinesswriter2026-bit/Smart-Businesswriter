@@ -17,7 +17,7 @@ Verified against the code on **2026-11-03**. Anything not verified is marked **o
 | The unlimited wallet — a bundle holder never receives a 402 | `src/bp/product/credits.py`, `src/bp/product/api.py` |
 | The hand-off to the other product, so the charge happens once | `src/bp/product/write_smarter.py` (new), `POST /api/billing/confirm`, `POST /api/billing/cancel` |
 | The other product's side of the hand-off | Write Smarter's `Backend/bundle-entitlement.js` (new), `POST /api/pay/paypal/bundle-entitlement`, `GET /api/pay/paypal/bundle-status`, the unlimited pool tier in `auth.js` |
-| The pricing dialog's fourth card, and the account page | `web/index.html`, `web/account.html` |
+| The bundle **band** below the pricing grid, and the account page | `web/index.html`, `web/account.html` |
 | Tests | `tests/test_product_bundle.py` (37), `tests/test_product_billing.py` (updated), Write Smarter's `Backend/tests/bundle-entitlement.test.mjs` (9) |
 
 **Not built:** the one shared login (I4) — the owner asked for the payment to be proved against
@@ -175,11 +175,15 @@ on the Smart Business Writer side).
 - **Smart Business Writer's checkout has never taken an approved payment** (HANDOFF §3, B-163:
   "the one step never taken is an approved payment, so a real charge is untested"). The bundle's
   first real charge lands here.
-- **Layout facts.** The Smart Business Writer pricing dialog grid is
-  `repeat(4,minmax(0,1fr))` (`web/index.html:425`) — a fifth equal card would wrap ragged, so the
-  bundle is the **fourth card**, not a fifth. The Write Smarter grid is `repeat(3,1fr)`. The Write
-  Smarter stylesheet carries an **unused** `.tier-plus` gold treatment (gold button, navy text) —
-  a ready hook for the bundle row's distinct look.
+- **Layout facts — SUPERSEDED 2026-11-03.** The Smart Business Writer pricing dialog grid was
+  `repeat(4,minmax(0,1fr))` (`web/index.html:425`), so the bundle was drawn as the **fourth card**.
+  The owner looked at the dialog and said the bundle was not visible there, and the reason was
+  structural: *a fourth card in the pricing grid reads as "a fourth tier of this product"*, and the
+  bundle is two products at one price. **The bundle is now a band below the grid**, the three
+  single-product tiers sit in a **three**-column grid, and the band names what the one price buys in
+  each product. The Write Smarter grid is `repeat(3,1fr)`. The Write Smarter stylesheet carries an
+  **unused** `.tier-plus` gold treatment (gold button, navy text) — a ready hook for a band row's
+  distinct look.
 
 ---
 
@@ -239,7 +243,7 @@ real $99.99 charge** before the identity work starts.
 | # | Scope | Where | Acceptance | State |
 |---|---|---|---|---|
 | **I0** | Decision row + D1 amendment | `docs/DECISIONS.md` (next B-number), `HANDOFF.md`, `KNOWN_LIMITATIONS.md`, `WORKLOG.md` | The bundle's price, the one-charge rule, the one-login rule, that the purchase is taken in Smart Business Writer, what it grants and what it does not | **Done** — B-208, B-209 |
-| **I1** | Smart Business Writer: the bundle tier and its checkout | `src/bp/product/billing.py` (`PLANS` — keep the `agency` key so the PayPal plan cache and the ledger stay valid; display name becomes the bundle; add an `unlimited` flag, not a number), `src/bp/product/paypal.py` (the bundle plan, and **a plan-change method that prorates**), `src/bp/product/api.py` (the checkout attaches to the signed-in account; the export route consults the plan), `web/index.html` (the fourth card's copy) | The pricing dialog's bottom-right card is the bundle at $99.99 reading "Unlimited"; one real approved $99.99 charge is recorded **once**; an upgrade from Starter prorates and the recorded tier changes | **Built and tested.** The live charge is §6's job, not done yet. "The checkout attaches to the signed-in account" waits on I4. |
+| **I1** | Smart Business Writer: the bundle tier and its checkout | `src/bp/product/billing.py` (`PLANS` — keep the `agency` key so the PayPal plan cache and the ledger stay valid; display name becomes the bundle; add an `unlimited` flag, not a number), `src/bp/product/paypal.py` (the bundle plan, and **a plan-change method that prorates**), `src/bp/product/api.py` (the checkout attaches to the signed-in account; the export route consults the plan), `web/index.html` (the bundle band below the grid) | The pricing dialog's **band below the grid** is the bundle at $99.99 reading "Both products" and naming what the one price buys in each product; one real approved $99.99 charge is recorded **once**; an upgrade from Starter prorates and the recorded tier changes | **Built and tested.** The live charge is §6's job, not done yet. "The checkout attaches to the signed-in account" waits on I4. |
 | **I2** | The plan-change path and the ledger fix | `src/bp/product/billing.py` (`activate()` must record a tier change for the same subscription id; `current()` and `_activation()` must read the **latest** activation for that id), `src/bp/product/paypal.py` (`change_plan()`), `src/bp/product/api.py` (the change route), tests | Starter → bundle on the same subscription id updates the account page; a trap test fails on the old first-wins code; downgrade credits the unused time | **Built and tested.** The proration itself is PayPal's arithmetic and is passed on untouched (`billing_info.outstanding_balance`); the live proof is §6.3. |
 | **I3** | The Write Smarter side of the payment | live Write Smarter `Backend` (pull from `vps` first): the entitlement endpoint, the Write Smarter-side subscription record created from the vault and switched off, the unlimited grant for the account | One charge appears; the Write Smarter-side record never bills; the account is unlimited on the Write Smarter side | **Built and tested** — `Backend/bundle-entitlement.js`, two service routes, the unlimited pool tier in `auth.js`, 9 Node tests. The live proof is §6.2. |
 | **I4** | One shared login | new `src/bp/product/identity.py`, auth routes, per-account wallet / cases / state, sign-in in the workbench, `web/account.html` rewritten | The same email + password signs in on both products; the plan and the wallet are per account; the workbench still works offline; existing machine-local records migrate without loss | **Not built** — the owner asked for the payment to be proved against live PayPal first |

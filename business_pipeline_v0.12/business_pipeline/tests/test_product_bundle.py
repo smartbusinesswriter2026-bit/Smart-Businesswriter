@@ -590,5 +590,98 @@ class CatalogueCopyTest(BundleTestCase):
             billing.unlimited_for("platinum")
 
 
+# ── the bundle is shown as a band, not as a fourth card ─────────────────────────────────────────
+
+class BundleBandTest(BundleTestCase):
+    """The bundle covers two products, so it is shown **below** the pricing grid.
+
+    A customer reads "two products, one price" from a band and reads "a fourth tier of this
+    product" from a fourth card - and the second reading is the wrong one. These tests pin the
+    split so the band cannot quietly become a card again.
+    """
+
+    def test_the_three_single_product_tiers_are_the_cards(self):
+        self.assertEqual(billing.CARD_TIERS, ("starter", "pro", "studio"))
+        self.assertEqual(billing.BUNDLE_TIER, "agency")
+
+    def test_the_catalogue_says_which_is_the_card_grid_and_which_is_the_band(self):
+        catalogue = billing.catalogue()
+        self.assertEqual(catalogue["card_tiers"], ["starter", "pro", "studio"])
+        self.assertEqual(catalogue["bundle_tier"], "agency")
+
+    def test_the_bundle_is_not_one_of_the_cards(self):
+        catalogue = billing.catalogue()
+        self.assertNotIn(catalogue["bundle_tier"], catalogue["card_tiers"])
+        bundle = [row for row in catalogue["tiers"] if row["tier"] == catalogue["bundle_tier"]][0]
+        self.assertTrue(bundle["bundle"])
+        for row in catalogue["tiers"]:
+            if row["tier"] != catalogue["bundle_tier"]:
+                self.assertFalse(row["bundle"])
+
+    def test_the_bundle_band_lists_both_products_and_what_each_one_gives(self):
+        card = billing.card("agency")
+        names = [product["name"] for product in card["products"]]
+        self.assertEqual(names, ["Write Smarter", "Smart Business Writer"])
+        write_smarter = card["products"][0]
+        self.assertIn("Unlimited Text-Gen", write_smarter["features"])
+        self.assertIn("Unlimited Research Assistant", write_smarter["features"])
+        self.assertIn("Unlimited Humanizer & AI-Detector", write_smarter["features"])
+        self.assertIn("Unlimited Video", write_smarter["features"])
+        self.assertIn("Unlimited use of Source Finder", write_smarter["features"])
+
+    def test_no_band_feature_carries_a_number(self):
+        # The bundle grants no limit, so no feature line may quote a quota or a price.
+        card = billing.card("agency")
+        for product in card["products"]:
+            for line in product["features"]:
+                self.assertFalse(any(character.isdigit() for character in line),
+                                 "%r carries a number nobody agreed" % line)
+
+    def test_the_page_renders_the_band_below_the_grid(self):
+        page = os.path.join(HERE, "..", "web", "index.html")
+        with open(page, encoding="utf-8") as stream:
+            html = stream.read()
+        # The band lives in its own element, after the grid.
+        self.assertIn('id="pmbband"', html)
+        self.assertLess(html.index('id="pmgrid"'), html.index('id="pmbband"'))
+        # The grid itself is three columns now - the bundle is not a fourth card in it.
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr))", html)
+        # The band renders the bundle tier and the two product panels.
+        self.assertIn("pmRenderBundle", html)
+        self.assertIn('class="bproducts"', html)
+        self.assertIn('class="btag"', html)
+
+    def test_the_page_draws_the_cards_and_the_band_from_the_api_not_from_itself(self):
+        # The page must not name the tiers itself: it reads which are cards and which is the
+        # band from the catalogue, and even each tier's colour comes from there - so a price, a
+        # tier or a new rung needs no edit to the page.
+        page = os.path.join(HERE, "..", "web", "index.html")
+        with open(page, encoding="utf-8") as stream:
+            html = stream.read()
+        self.assertIn("pm.plans.card_tiers", html)
+        self.assertIn("pm.plans.bundle_tier", html)
+        self.assertIn("card.color", html)
+        for tier in ("starter", "pro", "studio", "agency"):
+            self.assertNotIn('data-tier="%s"' % tier, html,
+                             "the page names a tier instead of reading it from the catalogue")
+
+    def test_the_account_page_names_the_products_from_the_catalogue_too(self):
+        # The account page must not write the product names into itself either.
+        page = os.path.join(HERE, "..", "web", "account.html")
+        with open(page, encoding="utf-8") as stream:
+            html = stream.read()
+        self.assertIn("cur.products", html)
+        self.assertNotIn("Write Smarter - unlimited, Smart Business Writer - unlimited", html)
+
+    def test_the_current_plan_names_the_products_it_covers(self):
+        billing.activate("agency", "monthly", "I-REAL")
+        current = billing.current()
+        self.assertEqual([product["name"] for product in current["products"]],
+                         ["Write Smarter", "Smart Business Writer"])
+        # A single-product plan covers no second product, so it names none.
+        billing.activate("pro", "monthly", "I-SINGLE")
+        self.assertEqual(billing.current()["products"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

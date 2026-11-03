@@ -461,16 +461,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-switch[aria-checked="true"] i{transform:translateX(23px)}
 .pm-save{display:inline-block;background:var(--green-100);color:var(--green-900);border:1px solid #BFE3D1;
          font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);margin-left:7px}
-.pm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media(max-width:680px){.pm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.pm-grid{grid-template-columns:1fr}}
 .pm-card{position:relative;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 11px 11px;
          display:flex;flex-direction:column;gap:4px;background:var(--surface);box-shadow:var(--sh-1)}
 .pm-card .bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r-md) var(--r-md) 0 0;background:var(--navy-300)}
-.pm-card[data-tier="starter"] .bar{background:var(--navy-500)}
-.pm-card[data-tier="pro"] .bar{background:var(--indigo)}
-.pm-card[data-tier="studio"] .bar{background:var(--teal)}
-.pm-card[data-tier="agency"] .bar{background:var(--green-600)}
+/* Each tier's bar colour comes from the catalogue, so a new tier needs no edit to this page. */
+.pm-card .bar.c-navy{background:var(--navy-500)}
+.pm-card .bar.c-indigo{background:var(--indigo)}
+.pm-card .bar.c-teal{background:var(--teal)}
+.pm-card .bar.c-green{background:var(--green-600)}
 .pm-card .n{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--navy-700);opacity:.7;margin-top:3px}
 .pm-card .p{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--navy-900);white-space:nowrap}
 .pm-card .p small{font-size:13.5px;font-weight:500;letter-spacing:0;opacity:.6;margin-left:3px}
@@ -481,6 +482,30 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-card .cr .v{font-size:13px;font-weight:600;color:var(--navy-900);margin-top:1px}
 .pm-card .cr .v.tbd{color:var(--amber)}
 .pm-card .btn{width:100%;justify-content:center;margin-top:auto;padding:9px 6px;font-size:14.5px}
+/* The bundle band: one price, two products. It sits below the pricing grid because it is not a
+   fourth tier of this product - it is a second product and this one, bought together. */
+.pm-band{margin-top:14px;border:1px solid #BFE3D1;border-radius:var(--r-lg);background:var(--green-100);
+         padding:15px 17px 16px;position:relative;overflow:hidden}
+.pm-band:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--green-600)}
+.pm-band .btop{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:2px}
+.pm-band .btitle{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-900)}
+.pm-band .btag{font-size:11.5px;font-weight:700;background:var(--green-600);color:#fff;border-radius:var(--r-pill);
+               padding:2px 9px;letter-spacing:.02em}
+.pm-band .bprice{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--navy-900)}
+.pm-band .bprice small{font-size:13.5px;font-weight:500;letter-spacing:0;opacity:.65;margin-left:4px}
+.pm-band .bsub{font-size:13.5px;color:var(--navy-700);opacity:.8;margin:0 0 12px}
+.pm-band .bproducts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:560px){.pm-band .bproducts{grid-template-columns:1fr}}
+.pm-band .bp{border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);padding:10px 12px}
+.pm-band .bp .pn{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--navy-700);
+                 opacity:.85;margin-bottom:6px}
+.pm-band .bp ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.pm-band .bp li{font-size:13px;color:var(--navy-700);line-height:1.45;padding-left:17px;position:relative}
+.pm-band .bp li:before{content:"";position:absolute;left:0;top:6px;width:7px;height:7px;border-radius:50%;
+                       background:var(--green-600)}
+.pm-band .bfoot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:13px}
+.pm-band .bfoot .bper{font-size:12px;color:var(--navy-700);opacity:.62}
+.pm-band .btn{width:auto;justify-content:center;padding:9px 18px;font-size:14.5px}
 .pm-note{margin:12px 0 0;font-size:13px;color:var(--navy-700);opacity:.62;text-align:center}
 .pm-view[hidden]{display:none}
 .pm-check{max-width:440px;margin:0 auto;text-align:center}
@@ -1348,7 +1373,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
 
     <div class="pm-view" id="pm-plans">
       <h2 id="pmtitle">Choose your plan</h2>
-      <p class="pm-sub">Every tier runs the same engine. The tiers differ in size, not in honesty.</p>
+      <p class="pm-sub">Every tier runs the same engine. The tiers differ in size, not in honesty. Below them, the bundle covers this product and Write Smarter together.</p>
       <div class="pm-toggle">
         <button class="lab on" id="pmlab-m" type="button">Monthly</button>
         <button class="pm-switch" id="pmswitch" type="button" role="switch" aria-checked="false"
@@ -1356,6 +1381,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <button class="lab" id="pmlab-a" type="button">Annual<span class="pm-save" id="pmsave">Save</span></button>
       </div>
       <div class="pm-grid" id="pmgrid"><p class="pm-note">Loading plans…</p></div>
+      <div id="pmbband"></div>
       <p class="pm-note" id="pmnote"></p>
     </div>
 
@@ -9523,14 +9549,21 @@ async function pmOpen() {
 
 function pmRender() {
   const annual = pm.cycle === "annual";
-  $("#pmgrid").innerHTML = pm.plans.tiers.map((card) => {
+  const tiers = pm.plans.tiers || [];
+  // The bundle is not a card in the grid: it covers two products and is shown as its own band
+  // below the grid, so a customer reads "two products, one price" rather than "a fourth tier".
+  const cardKeys = pm.plans.card_tiers || [];
+  const cards = tiers.filter((card) => cardKeys.indexOf(card.tier) !== -1);
+  const bundle = tiers.find((card) => card.tier === pm.plans.bundle_tier) ||
+                 tiers.find((card) => card.bundle) || null;
+  $("#pmgrid").innerHTML = cards.map((card) => {
     const amount = annual ? card.annual.amount : card.monthly.amount;
     const unlimited = !!card.unlimited;
     const credits = unlimited ? "Unlimited" : (card.credits ? esc(card.credits) : "To be confirmed");
     const includes = (card.includes || []).length
       ? '<div class="inc">' + card.includes.map((line) => esc(line)).join("<br>") + "</div>" : "";
     return '<div class="pm-card" data-tier="' + esc(card.tier) + '">' +
-      '<div class="bar"></div>' +
+      '<div class="bar' + (card.color ? " c-" + esc(card.color) : "") + '"></div>' +
       '<div class="n">' + esc(card.name) + "</div>" +
       '<div class="p">$' + esc(amount) + "</div>" +
       '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
@@ -9541,6 +9574,7 @@ function pmRender() {
       '<button class="btn primary" type="button" data-pm-buy="' + esc(card.tier) + '">Choose</button>' +
     "</div>";
   }).join("");
+  pmRenderBundle(bundle, annual);
   $("#pmsave").textContent = "Save " + pm.plans.annual_discount_percent + "%";
   $("#pmlab-m").classList.toggle("on", !annual);
   $("#pmlab-a").classList.toggle("on", annual);
@@ -9554,6 +9588,33 @@ function pmRender() {
     : "Checkout is not available right now, so nothing can be charged.";
   if (pm.current && pm.current.has_subscription) note = "You are on the " + pm.current.name + " plan. " + note;
   $("#pmnote").textContent = note;
+}
+
+/* The bundle band: one price for two products, and what that price buys in each of them. */
+function pmRenderBundle(bundle, annual) {
+  const host = $("#pmbband");
+  if (!bundle) { host.innerHTML = ""; return; }
+  const amount = annual ? bundle.annual.amount : bundle.monthly.amount;
+  const products = (bundle.products || []).map((product) =>
+    '<div class="bp"><div class="pn">' + esc(product.name) + "</div><ul>" +
+    (product.features || []).map((line) => "<li>" + esc(line) + "</li>").join("") +
+    "</ul></div>").join("");
+  host.innerHTML =
+    '<div class="pm-band" data-tier="' + esc(bundle.tier) + '">' +
+      '<div class="btop">' +
+        '<span class="btitle">' + esc(bundle.name) + "</span>" +
+        '<span class="btag">Both products</span>' +
+        '<span class="bprice">$' + esc(amount) + "<small>" + (annual ? "a year" : "a month") + "</small></span>" +
+      "</div>" +
+      '<p class="bsub">One subscription, one charge, unlimited use of both products.</p>' +
+      '<div class="bproducts">' + products + "</div>" +
+      '<div class="bfoot">' +
+        '<button class="btn primary" type="button" data-pm-buy="' + esc(bundle.tier) + '">Get the bundle</button>' +
+        '<span class="bper">' + (annual
+          ? "Billed once a year. Cancels any time; the period you paid for stays active."
+          : "Billed once a month. Cancels any time; the period you paid for stays active.") + "</span>" +
+      "</div>" +
+    "</div>";
 }
 
 function pmDone(reply) {

@@ -490,9 +490,10 @@ code,.mono{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,mon
       cell.appendChild(price);
       cell.appendChild(annual);
       if (card.unlimited) {
+        // The bundle is not a tier of this product, so it says so here too.
         var unlimited = document.createElement("div");
         unlimited.className = "a";
-        unlimited.textContent = "unlimited on both products";
+        unlimited.textContent = "both products, unlimited";
         cell.appendChild(unlimited);
       }
       host.appendChild(cell);
@@ -526,7 +527,11 @@ code,.mono{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,mon
     row("Billed", cur.cycle === "annual" ? "Yearly" : "Monthly");
     row("Status", cur.status);
     row("Credits", cur.unlimited ? "Unlimited" : (cur.credits === null ? "To be confirmed" : String(cur.credits)));
-    if (cur.unlimited) row("Includes", "Write Smarter - unlimited, Smart Business Writer - unlimited");
+    // The products the plan covers are named by the catalogue, not written into the page.
+    var covers = (cur.products || []).map(function (product) {
+      return product.name + " - unlimited";
+    });
+    if (covers.length) row("Includes", covers.join(", "));
     if (cur.period && cur.period.next_billing) row("Next payment", stamp(cur.period.next_billing));
     // The bundle spans two products, so the other half has a state of its own. A bundle that
     // was paid for but not granted on the other side is shown, not hidden.

@@ -42,6 +42,16 @@ _CENT = Decimal("0.01")
 #: Tier order as shown on the page. The key is what the routes and the ledger use.
 TIERS = ("starter", "pro", "studio", "agency")
 
+#: The tiers that are shown as **cards in the pricing grid**. The bundle is deliberately not one of
+#: them: it covers two products, so it is shown as its own band below the grid (owner instruction,
+#: 2026-11-03) - a customer reads "two products, one price" from a band and reads "a fourth tier of
+#: this product" from a fourth card.
+CARD_TIERS = ("starter", "pro", "studio")
+
+#: The tier that is the bundle. It keeps the ``agency`` key so the PayPal plan cache and every
+#: ledger already written against it stay valid.
+BUNDLE_TIER = "agency"
+
 #: The catalogue. ``monthly`` is the only price written by hand; ``credits`` and ``highlights`` stay
 #: empty until the owner supplies them - see ``billing.py`` in DESIGN_NOTES for where they land.
 #:
@@ -50,13 +60,38 @@ TIERS = ("starter", "pro", "studio", "agency")
 #: ``agency`` key so the PayPal plan cache and every ledger already written against it stay valid;
 #: only the name the customer reads and the allowance it grants changed. ``unlimited`` is a
 #: declaration, not a number: the other three tiers still report no allowance at all.
+#:
+#: The bundle's ``products`` list says what the one price buys. Write Smarter's own feature names
+#: are used verbatim from that product's pricing page, so a customer reads the same words here as
+#: there. The pools are unlimited because the bundle grants no limit at all - they are not a quota
+#: and they do not refill.
 PLANS = {
-    "starter": {"name": "Starter", "monthly": "14.99", "credits": None, "highlights": []},
-    "pro": {"name": "Pro", "monthly": "29.99", "credits": None, "highlights": []},
-    "studio": {"name": "Studio", "monthly": "49.99", "credits": None, "highlights": []},
+    "starter": {"name": "Starter", "monthly": "14.99", "credits": None, "highlights": [],
+                "color": "navy"},
+    "pro": {"name": "Pro", "monthly": "29.99", "credits": None, "highlights": [],
+            "color": "indigo"},
+    "studio": {"name": "Studio", "monthly": "49.99", "credits": None, "highlights": [],
+               "color": "teal"},
     "agency": {"name": "Business Bundle", "monthly": "99.99", "credits": None, "highlights": [],
                "unlimited": True,
-               "includes": ["Write Smarter - unlimited", "Smart Business Writer - unlimited"]},
+               "bundle": True,
+               "color": "green",
+               "includes": ["Write Smarter - unlimited", "Smart Business Writer - unlimited"],
+               "products": [
+                   {"name": "Write Smarter",
+                    "features": [
+                        "Unlimited Text-Gen",
+                        "Unlimited Research Assistant",
+                        "Unlimited Humanizer & AI-Detector",
+                        "Unlimited Video",
+                        "Unlimited use of Source Finder",
+                    ]},
+                   {"name": "Smart Business Writer",
+                    "features": [
+                        "Unlimited exports",
+                        "Every framework, shelf and calculator",
+                    ]},
+               ]},
 }
 
 CYCLES = ("monthly", "annual")
@@ -118,13 +153,23 @@ def card(tier):
             "credits": plan["credits"],
             "credits_label": label,
             "unlimited": unlimited,
+            "bundle": bool(plan.get("bundle")),
+            "color": plan.get("color"),
             "includes": list(plan.get("includes") or []),
+            "products": [dict(product, features=list(product.get("features") or []))
+                         for product in (plan.get("products") or [])],
             "highlights": list(plan["highlights"])}
 
 
 def catalogue():
-    """Every tier, in order, plus the facts a page needs to render the toggle."""
+    """Every tier, in order, plus the facts a page needs to render the toggle.
+
+    The page needs to know **which** tiers are cards and **which** is the band: the bundle covers
+    two products and is shown below the grid, not as a fourth card in it.
+    """
     return {"currency": CURRENCY, "tiers": [card(tier) for tier in TIERS],
+            "card_tiers": list(CARD_TIERS),
+            "bundle_tier": BUNDLE_TIER,
             "annual_discount_percent": _percent(ANNUAL_DISCOUNT * 100),
             "credits_set": all(PLANS[tier]["credits"] is not None for tier in TIERS),
             "notice": "Prices are the owner's configuration. The annual price is 12 months less "
@@ -349,6 +394,10 @@ def current():
             "amount": latest.get("amount"), "currency": latest.get("currency"),
             "payer_email": latest.get("payer_email"), "credits": latest.get("credits"),
             "unlimited": unlimited,
+            # The products this plan covers, so the account page can name them without a second
+            # request and without the page naming them itself.
+            "products": [dict(product, features=list(product.get("features") or []))
+                         for product in (PLANS.get(tier, {}).get("products") or [])],
             "period": latest.get("period") or {}, "since": latest.get("at")}
 
 
