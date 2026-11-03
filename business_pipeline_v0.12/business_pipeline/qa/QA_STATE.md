@@ -79,8 +79,9 @@ said 5 and then listed six — six is the truth) · 0 records · 0 theories · 0
 
 ## Next subject: `marketing` — and its top three risks
 
-`marketing` is the last shelf with a page, a catalogue and calculators but **no acceptance manual**;
-`research` is the one after that.
+`marketing` is the last shelf with a page, a catalogue and calculators but **no acceptance manual**:
+every other shelf now has one — `research` gained its own in a lane that landed while this session was
+in flight, and this shelf's is `qa/manual/people.md`.
 
 1. **Reachability will dominate its inventory.** `docs/OPEN_ISSUES.md` Item 15 measures 16 marketing
    worksheets that are built and offered on no shelf page (they appear as record rows carrying the
