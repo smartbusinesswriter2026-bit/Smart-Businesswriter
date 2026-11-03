@@ -2701,7 +2701,9 @@ PEOPLE_TILES = [
      "what": "Why people do or do not perform, and what the culture of the organisation is.",
      "need": "The performance problem or the culture you are reading."},
     {"key": "analytics", "label": "Analytics",
-     "what": "The declared-input statistics that work on people data.",
+     "what": "The declared-input calculators that work on people data: the statistics for a "
+             "survey or a table of counts, and the money arithmetic for a training return, a "
+             "labour market and a programme's cost.",
      "need": "The numbers you already hold, and the period they cover."},
 ]
 
