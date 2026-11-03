@@ -11,6 +11,18 @@ The Process and Its Boundary
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the parts are properties of that process rather than of the organisation as a whole.
 Evidence is limited to the accepted items. A part without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 SIPOC
+Figure 1. SIPOC
+Suppliers
+•  the lunch service at the meal counter lunch service meal supplier of the input this process depends on (Lovelace, 2024)
+Inputs
+•  the lunch service at the meal counter lunch service meal supply and cost of the input this process consumes (Lovelace, 2024)
+Process steps
+•  The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays.
+Outputs
+•  The counter hands on a packed meal and a payment receipt.
+Customers
+•  The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays.
+Note. The boundary runs left to right: what enters, what happens, what leaves.
 A SIPOC bounds one process: the suppliers that feed it, the inputs it consumes, the steps in the order they happen, the output it hands on and the customer that receives it. Each part is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision the process must serve.
 Suppliers
 Evidence on the lunch service at the meal counter lunch service meal supplier of the input this process depends on. A second sentence follows it. (Lovelace, 2024)
@@ -40,5 +52,5 @@ Conclusion
 The analysis set out to establish, part by part, what the accepted evidence implies for the decision. The parts with evidence are Suppliers (1), Inputs (1), Process steps (1), Outputs (1), Customers (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supplier of the input this process depends on. Journal of Operations Management. 10.1/868262
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply and cost of the input this process consumes. Journal of Operations Management. 10.1/502360
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supplier of the input this process depends on. Journal of Operations Management. 10.1/690133
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply and cost of the input this process consumes. Journal of Operations Management. 10.1/615142

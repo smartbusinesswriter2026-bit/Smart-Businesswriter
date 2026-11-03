@@ -11,6 +11,23 @@ The Value Stream and Its Boundary
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant flow is the one named in the brief; the elements are properties of that flow rather than of the organisation as a whole.
 Evidence is limited to the accepted items. An element without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Value Stream Mapping
+Figure 1. Value stream mapping
+The flow and its times
+Process steps
+•  The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays.
+Cycle and lead times
+No evidence was found for this part, and the instruction does not describe it. What to state: state the times you observed or were given, naming the step each one belongs to.
+What waits, and where the flow stops
+Inventory and work in progress
+No evidence was found for this part, and the instruction does not describe it. What to state: state what waits between the steps, and how much of it.
+Waits and delays
+•  At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection.
+The judgement and the change
+Value-added assessment
+This part is a judgement or a proposal only you can state, so it is left for you and never filled by the pipeline. What to state: judge each step yourself: the customer pays for the steps that change the offer, and this judgement is yours to state and to defend.
+Improvement opportunities
+This part is a judgement or a proposal only you can state, so it is left for you and never filled by the pipeline. What to state: propose the changes yourself, each with the measure that would show whether it worked.
+Note. The flow and its times, what waits, then the judgement and the change.
 A value stream map follows one flow from request to delivery: the steps in order, the time each takes, what waits between them, which steps the customer would pay for, and the improvements proposed against a measure. Each element is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision.
 Process Steps
 The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays.

@@ -11,6 +11,22 @@ The Process and the Problem
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the sections are properties of that problem rather than of the firm.
 Evidence is limited to the accepted items. A section without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 A3 Problem Solving
+Figure 1. A3 problem solving
+Problem
+•  the lunch service at the meal counter lunch service meal operational problem delay defect in this process (Lovelace, 2024)
+Root causes
+•  the lunch service at the meal counter lunch service meal root causes of delay or defect in this process (Lovelace, 2024)
+Current condition
+•  the lunch service at the meal counter lunch service meal current performance and causes of delay in this process (Lovelace, 2024)
+Countermeasures
+•  the lunch service at the meal counter lunch service meal countermeasures that reduce delay or defect in this process (Lovelace, 2024)
+Target condition
+•  the lunch service at the meal counter lunch service meal performance target and benchmark for this process (Lovelace, 2024)
+Plan and owners
+•  the lunch service at the meal counter lunch service meal implementation plan and ownership for a process improvement (Lovelace, 2024)
+Follow-up
+•  the lunch service at the meal counter lunch service meal follow-up measurement of a process improvement (Lovelace, 2024)
+Note. The left column states the gap; the right column answers it.
 An A3 works one problem in one process: the problem as a gap, the current condition, the target, the causes that can be evidenced, the countermeasures proposed, the plan with owners, and the follow-up that tests the effect. Each section is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision.
 Problem
 Evidence on the lunch service at the meal counter lunch service meal operational problem delay defect in this process. A second sentence follows it. (Lovelace, 2024)
@@ -46,10 +62,10 @@ Conclusion
 The analysis set out to establish, section by section, what the accepted evidence implies for the decision. The sections with evidence are Problem (1), Current condition (1), Target condition (1), Root causes (1), Countermeasures (1), Plan and owners (1), Follow-up (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal operational problem delay defect in this process. Journal of Operations Management. 10.1/975729
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal current performance and causes of delay in this process. Journal of Operations Management. 10.1/491882
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal performance target and benchmark for this process. Journal of Operations Management. 10.1/481119
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal root causes of delay or defect in this process. Journal of Operations Management. 10.1/629425
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal countermeasures that reduce delay or defect in this process. Journal of Operations Management. 10.1/776513
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal implementation plan and ownership for a process improvement. Journal of Operations Management. 10.1/430301
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal follow-up measurement of a process improvement. Journal of Operations Management. 10.1/814685
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal operational problem delay defect in this process. Journal of Operations Management. 10.1/931139
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal current performance and causes of delay in this process. Journal of Operations Management. 10.1/190461
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal performance target and benchmark for this process. Journal of Operations Management. 10.1/120271
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal root causes of delay or defect in this process. Journal of Operations Management. 10.1/332503
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal countermeasures that reduce delay or defect in this process. Journal of Operations Management. 10.1/709987
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal implementation plan and ownership for a process improvement. Journal of Operations Management. 10.1/244573
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal follow-up measurement of a process improvement. Journal of Operations Management. 10.1/51780

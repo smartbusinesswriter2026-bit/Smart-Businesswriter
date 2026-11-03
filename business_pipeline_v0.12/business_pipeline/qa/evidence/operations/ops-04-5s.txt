@@ -11,6 +11,18 @@ The Workplace and Its Scope
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant area is the one named in the brief; the steps are properties of that area.
 Evidence is limited to the accepted items. A step without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 5S
+Figure 1. 5S
+Sort
+•  the lunch service at the meal counter lunch service meal workplace organisation and sorting (Lovelace, 2024)
+Set in order
+•  the lunch service at the meal counter lunch service meal workplace layout and visual location marking (Lovelace, 2024)
+Shine
+•  the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace (Lovelace, 2024)
+Standardize
+•  the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace (Lovelace, 2024)
+Sustain
+•  the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits (Lovelace, 2024)
+Note. The five S are read in order; each rests on the one before it.
 5S organises one workplace through five steps - sort, set in order, shine, standardize and sustain. Each is treated in turn, first through the evidence accepted for the case and then through what that evidence implies.
 Sort
 Evidence on the lunch service at the meal counter lunch service meal workplace organisation and sorting. A second sentence follows it. (Lovelace, 2024)
@@ -40,8 +52,8 @@ Conclusion
 The analysis set out to establish, step by step, what the accepted evidence implies for the decision. The steps with evidence are Sort (1), Set in order (1), Shine (1), Standardize (1), Sustain (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace organisation and sorting. Journal of Operations Management. 10.1/816341
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace layout and visual location marking. Journal of Operations Management. 10.1/777790
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace. Journal of Operations Management. 10.1/218947
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace. Journal of Operations Management. 10.1/867079
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits. Journal of Operations Management. 10.1/723713
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace organisation and sorting. Journal of Operations Management. 10.1/428908
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace layout and visual location marking. Journal of Operations Management. 10.1/824826
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace. Journal of Operations Management. 10.1/902370
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace. Journal of Operations Management. 10.1/949438
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits. Journal of Operations Management. 10.1/578119

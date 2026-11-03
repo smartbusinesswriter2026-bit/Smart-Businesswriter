@@ -11,6 +11,16 @@ The Change and Where It Is Tried
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant change is the one named in the brief; the stages are properties of that trial rather than of the organisation.
 Evidence is limited to the accepted items. A stage without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 PDCA
+Figure 1. PDCA
+Plan
+•  the lunch service at the meal counter lunch service meal planning a process change and its target (Lovelace, 2024)
+Do
+•  the lunch service at the meal counter lunch service meal running a small-scale process trial (Lovelace, 2024)
+Check
+•  the lunch service at the meal counter lunch service meal measuring the effect of a process change (Lovelace, 2024)
+Act
+•  the lunch service at the meal counter lunch service meal standardising or abandoning a process change (Lovelace, 2024)
+Note. Plan, do, check and act are one cycle: the act decides the next one.
 PDCA tests one change: the plan states the problem, target and change; the do records what was actually tried; the check compares the measure with the target; the act standardises or abandons. Each stage is treated in turn, first through the evidence accepted for the case.
 Plan
 Evidence on the lunch service at the meal counter lunch service meal planning a process change and its target. A second sentence follows it. (Lovelace, 2024)
@@ -37,7 +47,7 @@ Conclusion
 The analysis set out to establish, stage by stage, what the accepted evidence implies for the decision. The stages with evidence are Plan (1), Do (1), Check (1), Act (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal planning a process change and its target. Journal of Operations Management. 10.1/394271
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal running a small-scale process trial. Journal of Operations Management. 10.1/35354
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal measuring the effect of a process change. Journal of Operations Management. 10.1/295812
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal standardising or abandoning a process change. Journal of Operations Management. 10.1/326933
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal planning a process change and its target. Journal of Operations Management. 10.1/539597
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal running a small-scale process trial. Journal of Operations Management. 10.1/336383
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal measuring the effect of a process change. Journal of Operations Management. 10.1/809977
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal standardising or abandoning a process change. Journal of Operations Management. 10.1/883444

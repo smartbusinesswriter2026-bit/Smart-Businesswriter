@@ -1,4 +1,35 @@
-## Operations management: eleven worksheets that had never been read end to end
+## The statements tile, part 1: the ratio bridge the product layer was not allowed to build
+
+Owner instruction of 2026-11-03, under the standing rule that the core stays unfrozen until the
+owner freezes it again (B-197). Build **1.74** continues.
+
+A new accounting tile takes one instruction box and solves the bookkeeping — trial balance,
+transactions, adjustments or incomplete records — and it is not allowed to add up a statement line
+to feed a ratio. The bridge it needs did not exist, so the core now publishes it:
+
+- **`balance_sheet_groups`** — the current / non-current / unclassified grouping and its totals,
+  computed by the core in the same pass as the statements.
+- **`ratio_figures`** — the values `ratio_analysis` declares as its inputs, *selected* from those
+  totals, from the pre-closing income and expenses, and from the account with role `cash`. Nothing
+  is summed, split or re-rounded outside the core.
+- **`RATIO_GAPS`** — the ten ratios a student may ask for that the registry has no definition for,
+  each named with the inputs it needs (a market value needs a share price and the share count).
+
+Two decisions came out of building it, and both are traps:
+
+- **A current total is published only when every line in that section is classified.** A partly
+  classified balance sheet would publish an understated current total and an undeclared one a zero;
+  both read as facts. Omitted, `ratio_analysis` names the input missing instead — which is what a
+  student should see.
+- **Growth ratios are not gaps**: `dupont_analysis` already computes them from a declared comparison
+  period, so listing them would have been a lie. A test cross-checks `RATIO_GAPS` against the
+  registry, so a gap can never name a ratio the core already computes.
+
+Verified: `test_accounts` **29 tests OK** (8 new, `RatioSelection`), covering the fully classified,
+partly classified and unclassified balance sheets and the determinism of the selection.
+`tests/fixtures/frozen_contract.json` untouched; `scripts/econ_shelf.py --check` → "frozen fixture:
+in sync". No method, preset, route, input, check or number changed.
+
 
 Session 8 of the subject-by-subject validation, on the owner's work order of 2026-11-03
 — *"SUBJECT = operations … Do NOT start marketing, supply-chain, people or any other shelf
@@ -48,12 +79,23 @@ order the defects were found:
   term and UI surface, each citing its source of truth, reconciled 1:1 with the traceability
   matrix — and `tests/test_subject_operations_acceptance.py`, **46 tests, 46 passed**.
 
-Ledgered rather than invented: **G-ops-01** — none of the eleven papers draws a figure,
-because `matrix.LAYOUTS` declares a grid for the strategy and marketing shelves only;
-**G-ops-02/D-OPS-06** — the eleven worksheets carry no `group`, so the page shows one flat
-list; **G-ops-03** — one brief sentence can fill two adjacent SIPOC parts; **D-OPS-07** —
-a process-unit query repeats the unit. The first two are owner/presentation decisions on a
-catalogue surface and are pinned, not patched.
+**Owner follow-up, same day.** The eleven papers drew no figure, which the session had
+ledgered as G-ops-01 because `matrix.LAYOUTS` names a grid for the strategy and marketing
+shelves only. The owner's instruction — *"Build the 11 figure layouts … each paper gets a
+labelled grid built from the items already accepted — no new number, no new evidence"* —
+closes it: **eleven layouts in `matrix.LAYOUTS`** (B-202), one per operations framework, each
+listing every block of its profile exactly once in the framework's own reading order, with
+spans and axes where the framework has them (A3's follow-up spans the page, Kraljic is a
+quadrant on profit impact × supply risk, root cause is the effect, the six categories, then
+the supported cause). The builder writes nothing: a cell carries the block's label and the
+items already accepted or the gap already named. Every one of the eleven papers now reads
+`Figure 1.` with a labelled cell per block, and `test_E_ops_018` fails if a layout drops a
+block, mislabels a cell or leaves a cell with neither a bullet nor a gap.
+
+Ledgered rather than invented: **G-ops-02/D-OPS-06** — the eleven worksheets carry no `group`,
+so the page shows one flat list; **G-ops-03** — one brief sentence can fill two adjacent SIPOC
+parts; **D-OPS-07** — a process-unit query repeats the unit. The first is an
+owner/presentation decision on a catalogue surface and is pinned, not patched.
 
 
 Session 7, fifth pass, on the owner's instruction — *"THIS NEEDS WORKSHEET: Strategy Map,
@@ -122,7 +164,7 @@ of them, the business plan, had a way in. Build **1.73**.
   headings including the projected statements and sensitivity), 14.0 KB (project
   proposal) — and the business plan is unchanged.
 
-- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
+- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
 
 - 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
 

@@ -37,6 +37,7 @@ confirmed exactly as the work order stated:** 14 tools · 11 worksheets (OPS-03 
 | `qa/manual/operations.md` | one row per tool (14), worksheet (11), record (7), glossary term (20) and UI surface, each citing its source of truth; 46 E-rows reconciled 1:1 with the traceability matrix; the V-01…V-20 reading of the eleven papers; the defect ledger; residual risk |
 | `tests/test_subject_operations_acceptance.py` | 46 tests, 46 passed |
 | `qa/probe_ops_shelf.py` | the reproducible evidence behind every claim, including the auto-fill trap and the eleven + fourteen papers |
+| `matrix.LAYOUTS` (eleven layouts) | every worksheet paper now carries its grid: one labelled cell per block, the items already accepted or the gap already named (G-ops-01 closed, B-202) |
 | `qa/evidence/operations/` | the eleven worksheet papers and fourteen tool papers (`.docx` + the `.txt` a reader sees) |
 | `qa/baseline/ops-*` | baseline and after measurements, probe output, acceptance run, completion slice |
 
@@ -55,6 +56,9 @@ confirmed exactly as the work order stated:** 14 tools · 11 worksheets (OPS-03 
   `test_E_ops_016`, `test_E_ops_045`.
 - **D-OPS-05** (MINOR, honesty): a `gap` cell dropped the probe its profile declares. Trap tests
   `test_E_ops_013`, `test_E_ops_024`.
+- **G-ops-01** (declared → FIXED on the owner's instruction): none of the eleven papers drew a
+  figure because `matrix.LAYOUTS` had no operations entry. Eleven layouts added (B-202); trap test
+  `test_E_ops_018` now asserts one labelled cell per block, none empty, and the figure in the paper.
 
 ### Ledgered / declared
 
@@ -102,9 +106,9 @@ The one baseline failure that is **no longer failing** is the network-dependent
 after-run's log shows the live service answered differently, which is why it is filed as environment,
 not product.
 
-**The documented count is 3236**, set from `unittest.TestLoader().discover("tests")` in the same
-commit, and it includes four tests from another lane's in-flight
-`test_subject_project_management_acceptance.py`. Re-measure from the loader, never from the doc.
+**The documented count is 3244**, set from `unittest.TestLoader().discover("tests")` in the same
+commit, and it moves whenever another lane adds a test (it was 3236 an hour earlier for exactly
+that reason). Re-measure from the loader, never from the doc.
 
 ### Next subject and its top three risks
 

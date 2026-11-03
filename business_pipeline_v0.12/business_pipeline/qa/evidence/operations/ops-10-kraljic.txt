@@ -11,6 +11,23 @@ The Portfolio and Its Criteria
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant portfolio is the one named in the brief; the quadrants are properties of those items rather than of the organisation.
 Evidence is limited to the accepted items. A quadrant without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Kraljic Purchasing Portfolio
+Figure 1. Kraljic purchasing portfolio
+How the axes are judged
+Criteria
+•  the lunch service at the meal counter lunch service meal supply risk and profit impact criteria (Lovelace, 2024)
+High profit impact
+Leverage items
+•  the lunch service at the meal counter lunch service meal competitive tendering for leverage items (Lovelace, 2024)
+Strategic items
+•  the lunch service at the meal counter lunch service meal strategic supplier management (Lovelace, 2024)
+Low profit impact
+Non-critical items
+•  the lunch service at the meal counter lunch service meal efficient purchasing of routine items (Lovelace, 2024)
+Bottleneck items
+•  the lunch service at the meal counter lunch service meal managing scarce supply and bottlenecks (Lovelace, 2024)
+Low supply risk
+High supply risk
+Note. Each item is placed by its profit impact and its supply risk.
 The Kraljic portfolio classifies purchases by their profit impact and their supply risk, then records how each class is managed. The criteria are declared first, then each quadrant, first through the evidence accepted for the case and then through what it implies.
 Criteria
 Evidence on the lunch service at the meal counter lunch service meal supply risk and profit impact criteria. A second sentence follows it. (Lovelace, 2024)
@@ -40,8 +57,8 @@ Conclusion
 The analysis set out to establish, quadrant by quadrant, what the accepted evidence implies for the decision. The quadrants with evidence are Criteria (1), Strategic items (1), Leverage items (1), Bottleneck items (1), Non-critical items (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply risk and profit impact criteria. Journal of Operations Management. 10.1/946205
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal strategic supplier management. Journal of Operations Management. 10.1/908534
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal competitive tendering for leverage items. Journal of Operations Management. 10.1/41480
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal managing scarce supply and bottlenecks. Journal of Operations Management. 10.1/274164
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal efficient purchasing of routine items. Journal of Operations Management. 10.1/12398
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply risk and profit impact criteria. Journal of Operations Management. 10.1/823500
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal strategic supplier management. Journal of Operations Management. 10.1/65033
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal competitive tendering for leverage items. Journal of Operations Management. 10.1/591598
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal managing scarce supply and bottlenecks. Journal of Operations Management. 10.1/741347
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal efficient purchasing of routine items. Journal of Operations Management. 10.1/157938

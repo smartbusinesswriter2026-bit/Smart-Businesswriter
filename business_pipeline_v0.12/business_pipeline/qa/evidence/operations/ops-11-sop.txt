@@ -11,6 +11,20 @@ The Plan and Its Scope
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant plan is the one named in the brief; the plans are properties of that product or line rather than of the organisation.
 Evidence is limited to the accepted items. A plan without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Sales and Operations Planning
+Figure 1. Sales and operations planning
+Demand plan
+•  the lunch service at the meal counter lunch service meal demand planning and forecast basis (Lovelace, 2024)
+Supply plan
+•  the lunch service at the meal counter lunch service meal supply planning and constraints (Lovelace, 2024)
+Inventory plan
+•  the lunch service at the meal counter lunch service meal inventory policy and buffers (Lovelace, 2024)
+Capacity plan
+•  the lunch service at the meal counter lunch service meal capacity planning and bottlenecks (Lovelace, 2024)
+Financial plan
+•  the lunch service at the meal counter lunch service meal financial plan implied by an operations plan (Lovelace, 2024)
+Gaps and decisions
+•  the lunch service at the meal counter lunch service meal reconciling demand and supply plans (Lovelace, 2024)
+Note. The plans are read side by side; the last cell records where they disagree.
 Sales and operations planning reconciles five plans - demand, supply, inventory, capacity and financial - into one set of decisions. Each is treated in turn, then the disagreements are named and the decision recorded.
 Demand Plan
 Evidence on the lunch service at the meal counter lunch service meal demand planning and forecast basis. A second sentence follows it. (Lovelace, 2024)
@@ -43,9 +57,9 @@ Conclusion
 The analysis set out to establish, plan by plan, what the accepted evidence implies for the decision. The plans with evidence are Demand plan (1), Supply plan (1), Inventory plan (1), Capacity plan (1), Financial plan (1), Gaps and decisions (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal demand planning and forecast basis. Journal of Operations Management. 10.1/703250
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply planning and constraints. Journal of Operations Management. 10.1/810413
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal inventory policy and buffers. Journal of Operations Management. 10.1/13522
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal capacity planning and bottlenecks. Journal of Operations Management. 10.1/464554
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal financial plan implied by an operations plan. Journal of Operations Management. 10.1/83185
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal reconciling demand and supply plans. Journal of Operations Management. 10.1/130684
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal demand planning and forecast basis. Journal of Operations Management. 10.1/79615
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal supply planning and constraints. Journal of Operations Management. 10.1/657384
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal inventory policy and buffers. Journal of Operations Management. 10.1/604948
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal capacity planning and bottlenecks. Journal of Operations Management. 10.1/686032
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal financial plan implied by an operations plan. Journal of Operations Management. 10.1/926754
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal reconciling demand and supply plans. Journal of Operations Management. 10.1/409335

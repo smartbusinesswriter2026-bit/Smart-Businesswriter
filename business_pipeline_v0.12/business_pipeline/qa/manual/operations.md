@@ -213,7 +213,7 @@ One paper per worksheet was produced through `completion.complete` → `draft` �
 | E-ops-015 | No paper prints an instructional phrase ("add your", "not supplied", "Diagram to draw") | V-06 | PASS |
 | E-ops-016 | Every sourced item carries a source and a citation, and the citation reaches its own section **once** | V-01, V-13 | PASS |
 | E-ops-017 | Every reference printed in References is cited in the body, and no source fills two dimensions | V-01, V-13 | PASS |
-| E-ops-018 | The paper carries one section per block, in the declared order, and — measured, not assumed — **draws no figure at all**: `matrix.LAYOUTS` has no entry for any of the eleven templates (G-ops-01) | V-12; P6; `matrix.LAYOUTS` | PASS |
+| E-ops-018 | The canvas figure carries one labelled cell per block, in the declared order, with the block's accepted items or its named gap — and the figure adds no number and no evidence | V-12; P6; `matrix.LAYOUTS` (closed by owner instruction, 2026-11-03) | PASS |
 | E-ops-019 | Two identical runs produce byte-identical papers (determinism) | core invariant | PASS |
 | E-ops-020 | No paper ranks, scores or recommends: the conclusion states the count of accepted items per part and never which part "carries the most weight" | shelf declaration (no scoring, no ranking) | PASS |
 
@@ -309,7 +309,7 @@ None. Two rows are `GAP` rather than `PASS`, and both are declared rather than d
 | E-ops-015 | `test_E_ops_015__no_paper_prints_an_instructional_phrase` | E-ops-038 | `test_E_ops_038__a_generic_brief_fills_no_part_it_does_not_describe` |
 | E-ops-016 | `test_E_ops_016__every_sourced_item_carries_one_citation_in_its_own_section` | E-ops-039 | `test_E_ops_039__an_honest_brief_still_fills_the_parts_it_describes` |
 | E-ops-017 | `test_E_ops_017__every_reference_is_cited_and_no_source_fills_two_parts` | E-ops-040 | `test_E_ops_040__no_conclusion_ranks_the_parts` |
-| E-ops-018 | `test_E_ops_018__the_paper_carries_a_section_for_every_block_and_no_figure` | E-ops-041 | `test_E_ops_041__a_non_draftable_profile_still_produces_a_paper` |
+| E-ops-018 | `test_E_ops_018__the_figure_carries_one_labelled_cell_per_block` | E-ops-041 | `test_E_ops_041__a_non_draftable_profile_still_produces_a_paper` |
 | E-ops-019 | `test_E_ops_019__two_identical_runs_produce_identical_bytes` | E-ops-042 | `test_E_ops_042__a_run_without_sources_names_every_part_and_fills_nothing` |
 | E-ops-020 | `test_E_ops_020__no_paper_scores_ranks_or_recommends` | E-ops-043 | `test_E_ops_043__every_worksheet_serves_its_example_and_the_example_is_synthetic` |
 | E-ops-021 | `test_E_ops_021__a_research_part_accepts_its_own_vocabulary` | E-ops-044 | `test_E_ops_044__the_supply_chain_shelf_still_serves_and_builds_the_eleven` |
@@ -333,6 +333,7 @@ eleven operations worksheets are also on `supply-chain`, so every edit was re-te
 | The conclusion states a count instead of a ranking (D-OPS-02) | `bp/product/completion.py` (`_draft_data`) | one conclusion serves every shelf | completion slice, 11 papers |
 | The probe's two false positives, and a 14-tool pass | `qa/probe_mgt_debug.py` | it is the harness, not the product | re-run over this shelf: 5 problems → 0 |
 | The shelf's own probe | `qa/probe_ops_shelf.py` | no read-only probe existed for this shelf | it is the evidence behind every number here |
+| Eleven figure layouts for the eleven worksheets | `bp/product/matrix.py` (`LAYOUTS`) | the geometry is declared per template and the builder writes no content | the eleven papers, `test_matrix_figure`, `test_E_ops_018`, the probe (0 problems) |
 
 **Not touched:** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/registry.py`,
 `tests/fixtures/frozen_contract.json`, any preset, any route family, any input schema, `docs/sources/**`.
@@ -346,7 +347,7 @@ No new dependency, no network call, no model call, no new worksheet, no new reco
 | `tests/test_subject_operations_acceptance.py` | — (new) | **46 passed** (`qa/baseline/ops-acceptance-out.txt`) |
 | Framework-completion slice (`-k completion`) | — | **584 passed, 0 failed** (`qa/baseline/ops-completion-slice-out.txt`) |
 | `qa/probe_mgt_debug.py` on 11 worksheets + 14 tools | 5 problems, **all five the harness** | **0 problems** (`qa/baseline/ops-probe-after-harness-fix.txt`) |
-| Full suite | 3184 tests, 5 failures, 4 errors (`qa/baseline/ops-base-suite-err.txt`) | §6.2 |
+| Full suite | 3184 tests, 5 failures, 4 errors (`qa/baseline/ops-base-suite-err.txt`) | 3236 tests, **7 failures, 0 errors** — every failure foreign, classified in §6.2 and in `qa/QA_STATE.md` |
 
 ### 6.2 The full suite, before and after
 
@@ -385,6 +386,7 @@ seven were found only by reading the produced `.docx` (P6), which is why the pro
 | D-OPS-06 | eleven worksheets in one flat list, no groups | UI | **GAP** (G-ops-02) |
 | D-OPS-07 | “the lunch service at the meal counter **lunch service meal** …” in every query | WIRING | **OPEN** (MINOR) |
 | D-OPS-08 | the three count documents said 3165 tests; the loader says 3184 and then 3236 | DOC-DRIFT | FIXED (set from the loader) |
+| G-ops-01 | no figure in any of the eleven papers: `matrix.LAYOUTS` had no operations entry | PRESENTATION | **FIXED** (owner instruction; eleven layouts, B-202) |
 | G-ops-01 | no figure in any of the eleven papers | — | **GAP** (owner decision) |
 | G-ops-03 | one brief sentence printed under two adjacent SIPOC parts | HONESTY | **GAP** (declared) |
 
@@ -407,7 +409,7 @@ seven were found only by reading the produced `.docx` (P6), which is why the pro
 
 | Id | Gap | Why it is not built |
 |---|---|---|
-| G-ops-01 | **No figure in any of the eleven papers.** The canvas is rendered as one section per block | `matrix.LAYOUTS` declares a grid per template for the strategy and marketing shelves; drawing eleven operations layouts is a new presentation surface (design lane, B-080) and an owner decision |
+| G-ops-01 | ~~No figure in any of the eleven papers~~ — **closed 2026-11-03** by owner instruction | eleven layouts now sit in `matrix.LAYOUTS` (B-202): each cell is labelled with the block's own label and carries the items already accepted or the gap already named. No new number, no new evidence |
 | G-ops-02 | The eleven worksheets have no `group`, so the page shows one flat list | adding groups moves a catalogue surface, and three lanes edit `subjects.py`; the measured state is pinned instead |
 | G-ops-03 | One brief sentence can be quoted into two adjacent parts | the match is lexical by design; a paraphrase matcher is not built, and the paper labels every quoted cell as the student's own words |
 | G-ops-04 | The shelf has no theories, and none is claimed | by design: the record sets live on Project management and People |

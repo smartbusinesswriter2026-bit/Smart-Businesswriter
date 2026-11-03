@@ -11,6 +11,20 @@ The Process and Its Failure Modes
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the parts are properties of that process rather than of the firm.
 Evidence is limited to the accepted items. A part without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Failure Mode and Effects Analysis
+Figure 1. FMEA
+Failure modes
+•  the lunch service at the meal counter lunch service meal failure modes in this process (Lovelace, 2024)
+Effects
+•  the lunch service at the meal counter lunch service meal effects of failure on the customer (Lovelace, 2024)
+Causes
+•  the lunch service at the meal counter lunch service meal causes of failure in this process (Lovelace, 2024)
+Current controls
+•  the lunch service at the meal counter lunch service meal prevention and detection controls (Lovelace, 2024)
+Recommended actions
+•  the lunch service at the meal counter lunch service meal risk reduction actions for this process (Lovelace, 2024)
+Owners and review
+•  the lunch service at the meal counter lunch service meal assigning ownership for risk actions (Lovelace, 2024)
+Note. Each failure mode is read across to its effect, cause, control and action; no risk priority number is computed.
 An FMEA lists the ways a process or product can fail, what each failure does, why it happens and what already controls it, then records the actions proposed and who owns them. Each part is treated in turn, first through the evidence accepted for the case and then through what it implies.
 Failure Modes
 Evidence on the lunch service at the meal counter lunch service meal failure modes in this process. A second sentence follows it. (Lovelace, 2024)
@@ -43,9 +57,9 @@ Conclusion
 The analysis set out to establish, part by part, what the accepted evidence implies for the decision. The parts with evidence are Failure modes (1), Effects (1), Causes (1), Current controls (1), Recommended actions (1), Owners and review (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal failure modes in this process. Journal of Operations Management. 10.1/223023
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal effects of failure on the customer. Journal of Operations Management. 10.1/10525
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of failure in this process. Journal of Operations Management. 10.1/15573
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal prevention and detection controls. Journal of Operations Management. 10.1/562074
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal risk reduction actions for this process. Journal of Operations Management. 10.1/296830
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal assigning ownership for risk actions. Journal of Operations Management. 10.1/918030
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal failure modes in this process. Journal of Operations Management. 10.1/534364
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal effects of failure on the customer. Journal of Operations Management. 10.1/321349
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of failure in this process. Journal of Operations Management. 10.1/153420
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal prevention and detection controls. Journal of Operations Management. 10.1/611863
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal risk reduction actions for this process. Journal of Operations Management. 10.1/661441
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal assigning ownership for risk actions. Journal of Operations Management. 10.1/753104

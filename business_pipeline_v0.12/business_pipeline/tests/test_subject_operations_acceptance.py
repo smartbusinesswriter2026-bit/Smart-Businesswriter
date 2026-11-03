@@ -318,22 +318,25 @@ class PaperTest(unittest.TestCase):
                 author = re.split(r"\s*[,(]", str(reference))[0].strip()
                 self.assertIn(author, body, "%s: uncited reference" % sheet["catalogue_id"])
 
-    def test_E_ops_018__the_paper_carries_a_section_for_every_block_and_no_figure(self):
-        """Measured, not assumed: `matrix.LAYOUTS` has no entry for any of the eleven
-        operations templates, so the canvas is rendered as one section per block and the
-        paper draws no figure at all (G-ops-01).  A figure nothing draws is not promised."""
+    def test_E_ops_018__the_figure_carries_one_labelled_cell_per_block(self):
+        """Owner instruction, 2026-11-03: the eleven papers carry their grid (G-ops-01 closed).
+
+        `matrix.LAYOUTS` now declares a layout for each of the eleven templates, so the
+        canvas reaches the paper as a table.  Every cell is labelled with the block's own
+        label and carries either the accepted items or the named gap: the figure adds no
+        number and no evidence, it places what the completion already produced.
+        """
         for sheet in sheets():
             _result, report, text = built(sheet["template"])
             figure = next((s["figure"] for s in report["sections"] if s.get("figure")), None)
-            self.assertIsNone(figure, "%s now draws a figure: update G-ops-01 and this row"
-                              % sheet["catalogue_id"])
-            headings = [section["heading"].lower() for section in report["sections"]]
-            for block in profile(sheet["template"])["blocks"]:
-                self.assertIn(block["label"].lower(), headings,
-                              "%s: no section for block %s"
-                              % (sheet["catalogue_id"], block["key"]))
-            self.assertNotIn("Figure 1", text, sheet["catalogue_id"])
-            self.assertNotIn("Diagram to draw", text, sheet["catalogue_id"])
+            self.assertIsNotNone(figure, "%s draws no figure" % sheet["catalogue_id"])
+            cells = [cell for grid in figure["grids"] for row in grid["rows"] for cell in row]
+            declared = {block["label"] for block in profile(sheet["template"])["blocks"]}
+            self.assertEqual(len(cells), len(declared), sheet["catalogue_id"])
+            self.assertEqual({cell["label"] for cell in cells}, declared, sheet["catalogue_id"])
+            blank = [cell["label"] for cell in cells if not cell["bullets"] and not cell["gap"]]
+            self.assertEqual(blank, [], "%s: an empty cell" % sheet["catalogue_id"])
+            self.assertIn("Figure 1", text, "%s: the figure is not in the paper" % sheet["catalogue_id"])
 
     def test_E_ops_019__two_identical_runs_produce_identical_bytes(self):
         for sheet in sheets()[:3]:

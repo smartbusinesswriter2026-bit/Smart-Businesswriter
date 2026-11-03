@@ -11,6 +11,18 @@ The System and Its Constraint
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant system is the one named in the brief; the steps are properties of that flow rather than of the organisation as a whole.
 Evidence is limited to the accepted items. A step without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Theory of Constraints
+Figure 1. Theory of Constraints
+Identify the constraint
+•  the lunch service at the meal counter lunch service meal bottleneck capacity constraint in this process (Lovelace, 2024)
+Exploit the constraint
+•  the lunch service at the meal counter lunch service meal losses at the bottleneck step and how they are reduced (Lovelace, 2024)
+Subordinate everything else
+•  the lunch service at the meal counter lunch service meal pacing and release policy around a capacity constraint (Lovelace, 2024)
+Elevate the constraint
+•  the lunch service at the meal counter lunch service meal adding capacity at a bottleneck and its effect on throughput (Lovelace, 2024)
+Reassess
+•  the lunch service at the meal counter lunch service meal constraint migration after a capacity change (Lovelace, 2024)
+Note. The five focusing steps are applied in order to one constraint.
 The theory of constraints treats one system at a time: the step that limits output is identified, exploited, protected by the pacing of everything else, elevated if it still binds, and reassessed once it moves. Each step is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision.
 Identify the Constraint
 Evidence on the lunch service at the meal counter lunch service meal bottleneck capacity constraint in this process. A second sentence follows it. (Lovelace, 2024)
@@ -40,8 +52,8 @@ Conclusion
 The analysis set out to establish, step by step, what the accepted evidence implies for the decision. The steps with evidence are Identify the constraint (1), Exploit the constraint (1), Subordinate everything else (1), Elevate the constraint (1), Reassess (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal bottleneck capacity constraint in this process. Journal of Operations Management. 10.1/503234
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal losses at the bottleneck step and how they are reduced. Journal of Operations Management. 10.1/115219
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal pacing and release policy around a capacity constraint. Journal of Operations Management. 10.1/799224
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal adding capacity at a bottleneck and its effect on throughput. Journal of Operations Management. 10.1/654490
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal constraint migration after a capacity change. Journal of Operations Management. 10.1/738223
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal bottleneck capacity constraint in this process. Journal of Operations Management. 10.1/894265
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal losses at the bottleneck step and how they are reduced. Journal of Operations Management. 10.1/752456
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal pacing and release policy around a capacity constraint. Journal of Operations Management. 10.1/946117
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal adding capacity at a bottleneck and its effect on throughput. Journal of Operations Management. 10.1/409418
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal constraint migration after a capacity change. Journal of Operations Management. 10.1/735027

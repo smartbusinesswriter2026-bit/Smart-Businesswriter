@@ -11,6 +11,27 @@ The Process and the Problem
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the categories are properties of that problem rather than of the organisation.
 Evidence is limited to the accepted items. A category without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 Root Cause Analysis
+Figure 1. Root cause analysis
+The effect
+Problem
+•  the lunch service at the meal counter lunch service meal causes of delay or defect in this process (Lovelace, 2024)
+Candidate causes, by category
+People
+•  the lunch service at the meal counter lunch service meal human factors in process error (Lovelace, 2024)
+Process / method
+•  the lunch service at the meal counter lunch service meal process design causes of delay (Lovelace, 2024)
+Equipment
+•  the lunch service at the meal counter lunch service meal equipment reliability and capacity limits (Lovelace, 2024)
+Materials
+•  the lunch service at the meal counter lunch service meal input quality and supply causes (Lovelace, 2024)
+Measurement
+•  the lunch service at the meal counter lunch service meal measurement error and inspection design (Lovelace, 2024)
+Environment
+•  the lunch service at the meal counter lunch service meal workplace environment effects on performance (Lovelace, 2024)
+The cause the evidence supports
+Root cause
+•  the lunch service at the meal counter lunch service meal established causes of this process problem (Lovelace, 2024)
+Note. Candidate causes are gathered by category; the root cause is the one the evidence supports.
 Root cause analysis separates the effect from its causes and tests the candidates until one is supported. The problem is stated first, the candidate causes are gathered under the fishbone categories, and the root cause is recorded only where the evidence supports it.
 Problem
 Evidence on the lunch service at the meal counter lunch service meal causes of delay or defect in this process. A second sentence follows it. (Lovelace, 2024)
@@ -49,11 +70,11 @@ Conclusion
 The analysis set out to establish, category by category, what the accepted evidence implies for the decision. The categories with evidence are Problem (1), People (1), Process / method (1), Equipment (1), Materials (1), Measurement (1), Environment (1), Root cause (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of delay or defect in this process. Journal of Operations Management. 10.1/360872
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal human factors in process error. Journal of Operations Management. 10.1/183158
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal process design causes of delay. Journal of Operations Management. 10.1/184106
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal equipment reliability and capacity limits. Journal of Operations Management. 10.1/755933
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal input quality and supply causes. Journal of Operations Management. 10.1/738345
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal measurement error and inspection design. Journal of Operations Management. 10.1/449487
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace environment effects on performance. Journal of Operations Management. 10.1/692907
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal established causes of this process problem. Journal of Operations Management. 10.1/809548
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of delay or defect in this process. Journal of Operations Management. 10.1/398831
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal human factors in process error. Journal of Operations Management. 10.1/14279
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal process design causes of delay. Journal of Operations Management. 10.1/894014
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal equipment reliability and capacity limits. Journal of Operations Management. 10.1/429848
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal input quality and supply causes. Journal of Operations Management. 10.1/328212
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal measurement error and inspection design. Journal of Operations Management. 10.1/496321
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace environment effects on performance. Journal of Operations Management. 10.1/444156
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal established causes of this process problem. Journal of Operations Management. 10.1/736160

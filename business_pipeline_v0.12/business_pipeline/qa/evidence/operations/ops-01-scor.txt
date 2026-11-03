@@ -11,6 +11,22 @@ The Supply Chain and Its Scope
 The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant chain is the one named in the brief; the processes are properties of that chain rather than of the organisation as a whole.
 Evidence is limited to the accepted items. A process without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
 SCOR
+Figure 1. SCOR
+Plan and enable
+Plan
+•  the lunch service at the meal counter lunch service meal demand and supply planning in this chain (Lovelace, 2024)
+Enable
+•  the lunch service at the meal counter lunch service meal governance and enabling processes in this chain (Lovelace, 2024)
+The processes the goods pass through
+Source
+•  the lunch service at the meal counter lunch service meal procurement and supplier management in this chain (Lovelace, 2024)
+Make
+•  the lunch service at the meal counter lunch service meal production process in this chain (Lovelace, 2024)
+Deliver
+•  the lunch service at the meal counter lunch service meal distribution and delivery in this chain (Lovelace, 2024)
+Return
+•  the lunch service at the meal counter lunch service meal returns and reverse logistics in this chain (Lovelace, 2024)
+Note. Plan and enable govern the four processes the goods pass through.
 SCOR describes a supply chain through six processes - plan, source, make, deliver, return and enable. Each is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision.
 Plan
 Evidence on the lunch service at the meal counter lunch service meal demand and supply planning in this chain. A second sentence follows it. (Lovelace, 2024)
@@ -43,9 +59,9 @@ Conclusion
 The analysis set out to establish, process by process, what the accepted evidence implies for the decision. The processes with evidence are Plan (1), Source (1), Make (1), Deliver (1), Return (1), Enable (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
 The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
 References
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal demand and supply planning in this chain. Journal of Operations Management. 10.1/363646
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal procurement and supplier management in this chain. Journal of Operations Management. 10.1/458237
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal production process in this chain. Journal of Operations Management. 10.1/681786
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal distribution and delivery in this chain. Journal of Operations Management. 10.1/744272
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal returns and reverse logistics in this chain. Journal of Operations Management. 10.1/619655
-Lovelace, A. (2024). the lunch service at the meal counter lunch service meal governance and enabling processes in this chain. Journal of Operations Management. 10.1/336903
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal demand and supply planning in this chain. Journal of Operations Management. 10.1/632307
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal procurement and supplier management in this chain. Journal of Operations Management. 10.1/115483
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal production process in this chain. Journal of Operations Management. 10.1/954607
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal distribution and delivery in this chain. Journal of Operations Management. 10.1/429568
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal returns and reverse logistics in this chain. Journal of Operations Management. 10.1/58433
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal governance and enabling processes in this chain. Journal of Operations Management. 10.1/434878

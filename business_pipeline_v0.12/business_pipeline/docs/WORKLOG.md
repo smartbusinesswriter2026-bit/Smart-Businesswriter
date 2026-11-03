@@ -1,4 +1,37 @@
-## 2026-11-03 — [operations] The shelf nobody had read: eleven worksheets, one probe, five defects
+## 2026-11-03 — [computation] Statements tile, part 1: the ratio bridge
+
+**Ask.** The owner's instruction for a standalone accounting statements tile, checked against the
+pipeline *before* it was built. Reading the code and probing the core found nine defects in the draft
+instruction (the product lane may not import the core; the reading's role and type enums did not match
+`ledger.Account`; a trial balance posted as opening balances fails two invariants; a TB-derived
+cash-flow statement is internally consistent and false; `schedules.amortization` is a loan; the paper
+council's 2,000-token cap truncates a statement reading). The finalised instruction, with the probed
+facts and the eighteen traps, is [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md).
+
+**Why this commit is first.** The tile may not compute. Ratios are the one place where it would have
+had to: `ratio_analysis` needs `current_assets`, `cost_of_sales`, `receivables` and eleven more, and
+`accounts.build` published flat statements by line but not the section totals, so a caller would have
+had to add up lines itself — the boundary BACKEND_CONTRACT §4 forbids.
+
+**Changed.**
+
+1. `accounts.build` publishes `balance_sheet_groups` (the core's own grouping and totals).
+2. `accounts.ratio_figures(pre, st, groups, j)` selects the declared inputs from numbers the core
+   already computed; a figure it cannot select is left out, never estimated.
+3. `accounts.RATIO_GAPS` names the ten ratios the registry does not define, with the inputs each needs.
+4. A current total is published only when every line in that section is classified — otherwise the
+   figure would be an understated total or a misleading zero.
+
+**Verified.** `python -m unittest tests.test_accounts` → **29 tests OK** (8 new in `RatioSelection`).
+`python scripts/econ_shelf.py --check` → "frozen fixture: in sync". `tests/fixtures/frozen_contract.json`
+untouched; no method, preset, route, input, check or number changed.
+
+**Probed before any product code exists**, and recorded as traps in the plan: a TB posted as *opening*
+balances gives **7/11** with two real failures (`net_income_agrees_across_routes`,
+`cash_flow_agrees_across_routes`), while the same TB posted as *one period entry* gives **9/11 with
+`checks_na = 2`** — every applicable check passes. That single fact decides how the tile must compile
+a trial balance, and it would have been an afternoon of debugging to find from the product side.
+
 
 **Ask.** The work order for session 8: *"SUBJECT = operations … do not start any other shelf
 … a mismatch is itself a defect"* — verify, debug and repair the Operations management shelf,
@@ -34,10 +67,22 @@ cue set the project-management lane had just added, not this shelf's.
    it is repaired (quote/gap profiles, `('` in English) and extended with a tool pass.
 7. **`qa/probe_ops_shelf.py`** is new: it produced every number in the manual.
 
-**Ledgered, not built.** G-ops-01 (no figure in any of the eleven papers — `matrix.LAYOUTS`
-has no operations entry), G-ops-02/D-OPS-06 (no worksheet groups, one flat list), G-ops-03
+**Ledgered, not built.** G-ops-02/D-OPS-06 (no worksheet groups, one flat list), G-ops-03
 (one brief sentence can fill two adjacent SIPOC parts), D-OPS-07 (a process-unit query
-repeats the unit). The first two are presentation decisions on a catalogue surface.
+repeats the unit). The first is a presentation decision on a catalogue surface.
+
+**Owner follow-up, same day — the eleven figures.** G-ops-01 was declared, not fixed: none of
+the eleven papers drew a figure, because `matrix.LAYOUTS` names a grid for the strategy and
+marketing shelves only. The owner chose to build them (*"Build the 11 figure layouts (design
+lane, matrix.py): each paper gets a labelled grid built from the items already accepted — no
+new number, no new evidence"*). Eleven layouts added (B-202), one per framework, each listing
+every block of its profile exactly once in the framework's own order; A3's follow-up spans the
+page, Kraljic is a quadrant on profit impact × supply risk, root cause is effect → six
+categories → supported cause. `matrix.build` still writes nothing: a cell takes the caller's
+label, bullets and gap, so the figure can show only what the completion already produced.
+`test_E_ops_018` was rewritten from "no figure, and that is measured" to "one labelled cell per
+block, none empty, and the figure reaches the paper", so it fails if a layout drops or
+mislabels a cell. The probe reports 0 problems and the shelf suite is 46 passed again.
 
 **Left on purpose.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/registry.py`, every
 preset, every route family, every input schema and `tests/fixtures/frozen_contract.json` are
