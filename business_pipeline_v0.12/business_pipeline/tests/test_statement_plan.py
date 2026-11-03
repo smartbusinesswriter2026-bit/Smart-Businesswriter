@@ -578,5 +578,65 @@ class GoldenSuite(unittest.TestCase):
 
 
 
+    def test_a_case_with_reducing_balance_and_a_loan(self):
+        p = plan()
+        p["adjustments"][0] = {"id": "dep", "function": "reducing_balance_depreciation",
+                               "debit": "6400", "credit": "1510",
+                               "params": {"cost": 60000, "residual": 0, "life_years": 5, "rate": "0.40", "convention": "full_year"}}
+        p["entries"].append({"date": "2026-01-02", "description": "Bank loan", "lines": [dr("1000", 40000), cr("2100", 40000)]})
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_a_case_with_units_of_production_and_no_tax(self):
+        p = plan()
+        p["adjustments"][0] = {"id": "dep", "function": "units_of_production_depreciation",
+                               "debit": "6400", "credit": "1510",
+                               "params": {"cost": 60000, "residual": 0, "units_this_period": 1500, "total_estimated_units": 10000}}
+        p["policy"] = {"depreciation": {"convention": "full_year"}, "inventory_system": "periodic",
+                       "explicitly_stated": ["depreciation.convention", "inventory_system"]}
+        p["adjustments"] = [a for a in p["adjustments"] if a["id"] != "tax"]
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+        self.assertEqual(out["pretax_income"], out["net_income"])
+
+    def test_a_case_with_bad_debt_and_a_dividend(self):
+        p = plan()
+        p["chart"].insert(2, sp.account("1110", "Allowance for doubtful debts", "asset", "Trade receivables", "current", contra=True))
+        p["chart"].append(sp.account("3200", "Dividends", "equity", "Dividends", role="dividends"))
+        p["adjustments"].append({"id": "bd", "function": "bad_debt_expense", "debit": "6100", "credit": "1110",
+                                 "params": {"receivables": 15000, "rate": "0.10", "prior_allowance": 0}})
+        p["entries"].append({"date": "2026-12-31", "description": "Dividend", "lines": [dr("3200", 3000), cr("1000", 3000)]})
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_a_case_with_prepaid_rent_and_insurance(self):
+        p = plan()
+        p["chart"].insert(4, sp.account("1310", "Prepaid rent", "asset", "Prepayments", "current"))
+        p["entries"].append({"date": "2026-01-15", "description": "Prepaid rent", "lines": [dr("1310", 12000), cr("1000", 12000)]})
+        p["adjustments"].append({"id": "rent_prepaid", "function": "prepaid_amortization", "debit": "6200", "credit": "1310",
+                                 "params": {"payment": 12000, "months_expired": 6, "total_months": 12}})
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_a_case_with_accrued_interest_and_a_loss(self):
+        p = plan()
+        p["entries"].append({"date": "2026-12-31", "description": "Heavy salaries",
+                             "lines": [dr("6100", 80000), cr("1000", 80000)]})
+        p["entries"].append({"date": "2026-12-31", "description": "Accrued interest",
+                             "lines": [dr("7000", 600), cr("2200", 600)]})
+        out = self._build(p)
+        self.assertTrue(out["pretax_income"] < 0)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_a_case_with_half_year_and_pro_rata_mix(self):
+        p = plan()
+        p["adjustments"][0]["params"]["convention"] = "half_year"
+        p["adjustments"][0]["params"]["months_in_service"] = 6
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+
+
+
 if __name__ == "__main__":
     unittest.main()

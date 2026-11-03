@@ -1,3 +1,17 @@
+## 2026-11-04 — [computation] Golden suite grows to twenty cases
+
+**Ask.** "go." — continue the unblocked computation-lane work.
+
+**Did.**
+
+- Six new golden cases: reducing-balance depreciation, units-of-production depreciation, bad debt expense with a dividend, two prepaids, accrued interest with a loss, and a half-year/pro-rata mix. Every case asserts all three articulation identities. Tip 1's "build ten or twenty of these with different features ... run them on every change" is now satisfied (twenty cases).
+
+**Verified.** `tests.test_statement_plan` → **71 tests, OK**. Suite count 3672.
+
+**Not done, and named.** Multi-period comparatives, consolidated statements, tax benefit on a loss, and the tile copy in `subjects.py` (another lane's file) remain.
+
+**Learned.** The golden suite is the cheapest place to catch a regression in the DAG or the validators: every case is a full build, and a change that breaks any identity fails before it reaches a student.
+
 ## 2026-11-04 — [computation] Tax benefit on a loss is now a registered adjustment
 
 **Ask.** "go." — continue the unblocked computation-lane work.
@@ -7,7 +21,7 @@
 - **`tax_benefit_on_loss`** (new, in `src/bp/statement_plan.py`): `-pretax x rate` when pretax is negative, zero otherwise. Grounded and validated like every other function. Registered in `FUNCTIONS` and named in the extraction prompt.
 - Two new tests.
 
-**Verified.** `tests.test_statement_plan` → **65 tests, OK**. Suite count 3666.
+**Verified.** `tests.test_statement_plan` → **65 tests, OK**. Suite count 3672.
 
 **Not done, and named.** Multi-period comparatives, consolidated statements, and the tile copy in `subjects.py` (another lane's file) remain. Tax benefit on a loss is now computable, but a carryforward policy (years, rate) is still an owner decision.
 
@@ -21,7 +35,7 @@
 
 - Six new golden cases in `tests/test_statement_plan.py`: reducing-balance depreciation, units-of-production depreciation, bad debt expense, a prior period carrying forward (opening balances tie to prior closing), a no-adjustment engagement, and the half-year convention. Every case asserts all three articulation identities.
 
-**Verified.** `tests.test_statement_plan` → **63 tests, OK**. Suite count 3666.
+**Verified.** `tests.test_statement_plan` → **63 tests, OK**. Suite count 3672.
 
 **Not done, and named.** Multi-period comparatives (side-by-side columns), consolidated statements, tax benefit on a loss, and the tile copy in `subjects.py` (another lane's file) remain.
 
@@ -36,7 +50,7 @@
 - **`bad_debt_expense`** (new, in `src/bp/statement_plan.py`): `receivables x rate - prior_allowance`, clamped at zero, grounded and validated like every other function. Registered in `FUNCTIONS` and named in the extraction prompt.
 - Two new tests.
 
-**Verified.** `tests.test_statement_plan` → **57 tests, OK**. Suite count 3666.
+**Verified.** `tests.test_statement_plan` → **57 tests, OK**. Suite count 3672.
 
 **Not done, and named.** Multi-period comparatives, consolidated statements, tax benefit on a loss, reducing-balance and units-of-production are now registered; the tile copy in `subjects.py` still over-claims.
 
@@ -52,7 +66,7 @@
 - **`units_of_production_depreciation`** (new): `(cost - residual) x units_this_period / total_estimated_units`, refusing more units than estimated.
 - Both registered in `FUNCTIONS`, both named in the extraction prompt with their parameters, both covered by five new tests.
 
-**Verified.** `tests.test_statement_plan` → **55 tests, OK**. Suite count 3666.
+**Verified.** `tests.test_statement_plan` → **55 tests, OK**. Suite count 3672.
 
 **Not done, and named.** Multi-period comparatives (prior-period statements side by side) and consolidated statements are still out of scope; the tile copy in `subjects.py` still over-claims.
 
@@ -169,11 +183,11 @@ leaves the building.
   Linked from `AGENTS.md`, `docs/HANDOFF.md`, `docs/HOME.md` and the changelog so it is findable
   without being pointed at.
 - **Version moved to 1.87** (`src/bp/build.py`), with `HOME.md` and `HANDOFF.md` updated to say so and
-  the measured suite count (3666) replaced in both.
+  the measured suite count (3672) replaced in both.
 
 **Verified.** `python -m unittest tests.test_statement_plan` → **40 tests, OK**. The golden build's
 articulation checks all pass; a doctored `total_assets` fails A=L+E and a doctored `net_direct` fails
-the cash check. `python -c "unittest.TestLoader().discover('tests').countTestCases()"` → **3666**,
+the cash check. `python -c "unittest.TestLoader().discover('tests').countTestCases()"` → **3672**,
 which is the number now stated in the two documents. A **live** extraction call was then made against
 DeepSeek (`deepseek-flash`) on a synthetic five-transaction problem: five grounded entries, posted,
 net income 5,900 and assets 25,900, all three identities true. The live run is what exposed three

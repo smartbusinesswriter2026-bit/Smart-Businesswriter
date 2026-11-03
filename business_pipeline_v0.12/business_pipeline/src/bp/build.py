@@ -10,4 +10,4 @@ Bump this when the changelog gets a new `- X.YY (date):` bullet.  Nothing else n
 to change: the page reads it from `/api/health` at boot.
 """
 
-VERSION = "1.94"
+VERSION = "1.95"
