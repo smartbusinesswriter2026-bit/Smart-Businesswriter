@@ -62,7 +62,11 @@ nothing was copied.
 `ols_robust`, `spearman`); **131 of 148** keys are not `LIBRARY` ids; 0 preset/method mismatches; one
 documented composite (`case_decision`); `LIBRARY` 142 / `PRESETS` 144 / fixture 142–144. **One number
 did not reproduce: the order says 33 keys sit in more than one group; the tree measures 31**, by two
-independent counts. Recorded DISPUTED, pinned at 31 in the suite, and the taxonomy was not touched.
+independent counts — and it is now **disproved**, not merely unmatched: parsed across all 36 revisions
+of `subjects.py` the count has taken 13/17/20/24/27/30/31 and has never been 33, and no alternative
+reading of "shared" gives 33 either (method-sharing 31, keys-with-a-shared-method 32, subject-page
+sharing 45, entries−distinct 58). Recorded as a miscount in the work order (§5.1), and the taxonomy
+was not touched.
 
 **The probe, and why it had to be distrusted first.** `qa/probe_calculator.py` resolves **both**
 vocabularies (key *and* method — the 131 trap), launches each tool through `Pipeline.run` →

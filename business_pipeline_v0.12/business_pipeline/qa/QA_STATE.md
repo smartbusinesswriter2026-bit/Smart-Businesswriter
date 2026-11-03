@@ -28,7 +28,9 @@ complete but unproved.
 148 distinct** · 0 missing from the calculator · 0 keys off a page · 144 presets each running the method
 it claims · **4** typed tools · **131 of 148** keys are not `LIBRARY` ids · 1 composite
 (`case_decision`) · `LIBRARY` 142 / `PRESETS` 144 / fixture in sync. **The work order's "33 shared
-keys" does not reproduce: the tree measures 31** (DISPUTED in the manual, pinned at 31 in the suite).
+keys" does not reproduce: the tree measures 31, and the order's number is now disproved across all 36
+revisions of `subjects.py` (never 33; 31 for the last 15) — `qa/manual/calculator.md` §5.1. The total
+**and** the full sharing distribution are pinned in the suite.
 
 ### Delivered
 

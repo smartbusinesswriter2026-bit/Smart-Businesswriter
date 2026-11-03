@@ -133,6 +133,14 @@ class WiringInvariantTest(unittest.TestCase):
         counts = probe.group_count(group_tools())
         self.assertEqual(counts["chi_square"], 5)
         self.assertEqual(counts["forecast"], 6)
+        # Pin the whole sharing distribution, not just the total: a taxonomy edit that
+        # moved one key from 2 groups to 3 would keep the count at 31 and go unnoticed
+        # (which is exactly how the work order's "33" could never be reproduced -- see
+        # qa/manual/calculator.md DISPUTED-1, resolved by scanning all 36 revisions of
+        # subjects.py: the count has been 31 since 2026-11-02 and was never 33).
+        distribution = sorted(__import__("collections").Counter(counts.values()).items())
+        self.assertEqual(distribution, [(1, 117), (2, 19), (3, 5), (4, 1), (5, 4), (6, 2)],
+                         "the sharing distribution moved: re-read the manual's inventory")
         self.assertEqual(probe.shared_report(), [],
                          "a shared key gave a different paper from a different group")
 

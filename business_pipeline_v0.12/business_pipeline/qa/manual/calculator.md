@@ -3,7 +3,8 @@
 **Session: calculator · subject `calculator` (rail panel `#panel-calculator`) · branch `corpus/merge-v1` · written 2026-11-03**
 **Opening commit:** `05efb8f` (marketing's B-211 and research's B-213/B-214 had landed after the work
 order was written; the tree was re-measured, never copied — the work order's *33 shared keys* is the
-one number that does not reproduce, see §5).
+one number that does not reproduce, and it is now **disproved** across all 36 revisions of
+`subjects.py` (§5.1), not merely marked unresolved.)
 **Acceptance suite:** `tests/test_calculator_acceptance.py` — 25 tests, one per PASS row, named
 `test_E_calc_nnn__<behaviour>`.
 **Probe:** `qa/probe_calculator.py` — read-only; writes papers to `qa/evidence/calculator/`.
@@ -59,7 +60,7 @@ green after.
 | Calculator groups | 8 | `CALCULATOR_GROUPS` | **8**, in business-function order |
 | Group entries (with repeats) | 206 | `CALCULATOR_GROUPS` | **206** |
 | Distinct keys in groups | 148 | the same list | **148** — union == `compute_tools()` |
-| Keys listed in more than one group | **33** (order) / **31** (measured) | `group_count()` | **31** — §5 DISPUTED |
+| Keys listed in more than one group | **33** (order) / **31** (measured) | `group_count()` | **31** — the order's 33 is disproved, §5.1 |
 | Tools missing from the calculator | 0 | set difference | **0** |
 | Calculator keys not on a subject page | 0 | set difference | **0** |
 | Tools with a shipped preset | 144 | `server.PRESETS` | **144**, each running the method it claims |
@@ -171,10 +172,59 @@ Every PASS row names the test that proves it. Every test names a row.
 
 | # | Dispute | Evidence | Ruling |
 |---|---|---|---|
-| 1 | The work order states **33** keys are listed in more than one group. | `group_count()` returns **31** on this tree, by two independent methods (counting occurrences and counting distinct groups per key); `chi_square` 5 and `forecast` 6 both agree with the order. 206 − 148 = 58 surplus entries, which 31 keys supply. | **The tree is right, the order is stale.** Recorded, not "fixed": the number is asserted as 31 in E-calc-006 so a real change to the taxonomy still fails the suite. No product change. |
+| 1 | The work order states **33** keys are listed in more than one group. | **Disproved, not just unmatched** — see §5.1: `group_count()` returns **31**, 33 appears in **none** of the 36 historical revisions of `subjects.py`, and no alternative reading of "shared" produces 33 either. | **RESOLVED: the order's 33 is a miscount; the tree is right.** Nothing to change in the product. 31 is pinned exactly, together with the **full sharing distribution** — 117 keys in 1 group, 19 in 2, 5 in 3, 1 in 4, 4 in 5, 2 in 6 — so a taxonomy edit that moved a key from 2 groups to 3 could not hide behind an unchanged total (E-calc-006). |
 | 2 | W-10 says an unknown term returns **404 naming the unknown term**. | `POST /api/cases/calculator/plan` answers **200** with `outcome: "unsupported"`, `tool: null`, `reason: "no_method: no frozen method matches this sentence"`. An unknown *route* answered `422 case id must be 12 lowercase hex characters` (D-CALC-03). | **Split ruling.** The route case was a real defect and is fixed (404 naming the route, E-calc-019). The *plan* case is not a lookup — it is a plan, and a plan that says "no frozen method matches, here are the nearest three, nothing was guessed" is the honest answer; forcing 404 would lose the alternatives. The prompt's own §9 makes "what the calculator says when a tool cannot run" an **owner decision**, so the plan surface was left alone. |
 | 3 | W-08 says "figures at `method.typing(key)` precision" **and** "no `\d\.\d{6,}`". For a method that declares 6 dp these conflict. | `currency_convert.rate` and `real_option.delta` returned `("ratio", 6)`, so the paper obediently printed `0.920000` and `0.617058`. | **`DECISIONS.md` B-214 already settled it**: the *declaration* is the defect, not the renderer ("Six decimals read as an unrounded `Decimal`, which is what P4 exists to prevent"). Both declarations were lowered to 4 dp under B-217 (D-CALC-01/02). |
 | 4 | Two "problems" the probe reported on its first run were the probe's own. | `descriptive` flagged for `1e-9` inside the declared **limitation** "Float reference comparison tolerance is 1e-9 relative"; `currency`/`realoption` flagged for figures at their own declared precision. | **Both were false positives** and the probe was corrected, not the product: the shape gates now read the report and the figure lines, not the declared assumption/limitation/check prose (E-calc-023, E-calc-024). |
+
+### 5.1 The "33 shared keys" number, disproved
+
+The work order states 33 keys are listed in more than one group, and correctly instanced
+`chi_square` in 5 and `forecast` in 6 — *those two are right*. The total is not. Three independent
+tests were run rather than one.
+
+**(a) Every historical revision of `CALCULATOR_GROUPS`.** All 36 revisions of
+`src/bp/product/subjects.py` in the repository were parsed and the sharing count computed for each:
+
+| count | revisions | when |
+|---:|---:|---|
+| 13 | 1 | earliest |
+| 17 | 3 | |
+| 20 | 2 | |
+| 24 | 1 | |
+| 27 | 13 | up to 2026-11-02 |
+| 30 | 1 | `d120ed3` |
+| **31** | **15** | `c220576` (2026-11-02) → `dda7d22` (2026-11-03) |
+| 33 | **0** | — |
+
+The count went **27 → 30 → 31** and has been 31 for the last **15** consecutive revisions. It has
+never been 33.
+
+**(b) Alternative readings of "shared".** Each was measured to see whether the order meant something
+else:
+
+| Reading | Result |
+|---|---:|
+| keys listed in more than one **group** | **31** |
+| distinct **methods** appearing in more than one group | 31 |
+| keys whose **method** is shared (catches `roi`/`trainingroi`, `dcf`/`dcfmid`, …) | 32 |
+| keys listed on more than one **subject page** | 45 |
+| surplus entries (`entries − distinct` = 206 − 148) | 58 |
+| keys duplicated **within** a single group | 0 |
+
+None is 33.
+
+**(c) What is pinned.** E-calc-006 pins the total **and** the distribution
+`117 / 19 / 5 / 1 / 4 / 2` (keys in 1 / 2 / 3 / 4 / 5 / 6 groups). A count-only assertion is weaker
+than it looks: moving one key from two groups to three keeps the total at 31 and changes only the
+distribution. The distribution is what makes the pin resistant, and it is why a future "33" would be
+caught instead of argued about.
+
+**Conclusion.** 33 is recorded as a miscount in the work order. The product needed no change, and the
+only surviving hypothesis is that the order was measured against an uncommitted local edit; the
+committed tree — which the order itself names as the source of truth — says 31 in all 15 recent
+revisions.
+
 
 ## 6. Defects
 

@@ -137,6 +137,9 @@ def inventory():
     print("  entries (with repeats): %d" % sum(len(keys) for _i, _l, keys in ordered))
     print("  distinct keys        : %d" % len(counts))
     print("  shared keys (>1 group): %d" % len(shared))
+    distribution = sorted(__import__("collections").Counter(counts.values()).items())
+    print("  sharing distribution  : %s  (keys -> in that many groups)"
+          % ", ".join("%d keys in %d" % (n, k) for k, n in distribution))
     print("  typed tools (no preset): %d  %s"
           % (len([t for t in tools if not t["preset"]]),
              sorted(t["key"] for t in tools if not t["preset"])))
