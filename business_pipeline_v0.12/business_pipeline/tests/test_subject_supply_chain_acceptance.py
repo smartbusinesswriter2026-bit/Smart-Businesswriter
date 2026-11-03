@@ -196,6 +196,55 @@ class Inventory(unittest.TestCase):
         self.assertIn("template_value_stream_map", WORKSHEETS.values())
 
 
+    def test_E_scl_007__nine_records_two_of_them_read_only(self):
+        records = page()["records"]
+        self.assertEqual([r["id"] for r in records], RECORDS)
+        read_only = [r["id"] for r in records if r["form"] == "read_only"]
+        self.assertEqual(read_only, READ_ONLY_RECORDS)
+        for row in records:
+            self.assertEqual(row["type"], "Q", row["id"])
+
+    def test_E_scl_008__every_computed_record_links_a_method_that_exists(self):
+        for row in page()["records"]:
+            if row["form"] != "computed":
+                continue
+            self.assertTrue(row["linked_methods"], row["id"])
+            for method_id in row["linked_methods"]:
+                self.assertIn(method_id, LIBRARY, (row["id"], method_id))
+
+    def test_E_scl_009__no_record_masquerades_as_a_calculator(self):
+        for row in page()["records"]:
+            if row["form"] == "computed":
+                self.assertTrue(row["linked_methods"], row["id"])
+            else:
+                self.assertEqual(row["linked_methods"], [], row["id"])
+                self.assertIsNone(row["template"], row["id"])
+
+    def test_E_scl_010__the_glossary_carries_twenty_defined_terms(self):
+        glossary = page()["glossary"]
+        self.assertEqual(len(glossary), GLOSSARY_TERMS)
+        for entry in glossary:
+            self.assertTrue(entry["term"].strip())
+            self.assertGreater(len(entry["definition"]), 30, entry["term"])
+
+    def test_E_scl_011__worksheets_records_and_theories_partition_the_catalogue(self):
+        served = page()
+        ids = {r["id"] for r in served["catalogue"]}
+        parts = {w["key"] for w in served["worksheets"]} | {r["id"] for r in served["records"]}
+        parts |= {r["id"] for r in served["theories"]}
+        self.assertEqual(ids, parts)
+        self.assertEqual(len(served["catalogue"]), 20)
+        self.assertEqual(served["theories"], [])
+
+    def test_E_scl_012__the_page_states_the_contract_it_is_judged_against(self):
+        served = page()
+        self.assertEqual(served["label"], "Supply chain & logistics")
+        self.assertIn("inventory and network gaps stated plainly", served["summary"])
+        self.assertTrue(served["guidance"])
+        self.assertIn("network", served["guidance"].lower())
+        self.assertIn("routing", served["guidance"].lower())
+
+
 class Contract(unittest.TestCase):
     """E-scl-013 ... E-scl-019 - the C1 contract on all eight methods."""
 
@@ -834,57 +883,3 @@ class PageAndGuide(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-
-
-
-
-
-    def test_E_scl_007__nine_records_two_of_them_read_only(self):
-        records = page()["records"]
-        self.assertEqual([r["id"] for r in records], RECORDS)
-        read_only = [r["id"] for r in records if r["form"] == "read_only"]
-        self.assertEqual(read_only, READ_ONLY_RECORDS)
-        for row in records:
-            self.assertEqual(row["type"], "Q", row["id"])
-
-    def test_E_scl_008__every_computed_record_links_a_method_that_exists(self):
-        for row in page()["records"]:
-            if row["form"] != "computed":
-                continue
-            self.assertTrue(row["linked_methods"], row["id"])
-            for method_id in row["linked_methods"]:
-                self.assertIn(method_id, LIBRARY, (row["id"], method_id))
-
-    def test_E_scl_009__no_record_masquerades_as_a_calculator(self):
-        for row in page()["records"]:
-            if row["form"] == "computed":
-                self.assertTrue(row["linked_methods"], row["id"])
-            else:
-                self.assertEqual(row["linked_methods"], [], row["id"])
-                self.assertIsNone(row["template"], row["id"])
-
-    def test_E_scl_010__the_glossary_carries_twenty_defined_terms(self):
-        glossary = page()["glossary"]
-        self.assertEqual(len(glossary), GLOSSARY_TERMS)
-        for entry in glossary:
-            self.assertTrue(entry["term"].strip())
-            self.assertGreater(len(entry["definition"]), 30, entry["term"])
-
-    def test_E_scl_011__worksheets_records_and_theories_partition_the_catalogue(self):
-        served = page()
-        ids = {r["id"] for r in served["catalogue"]}
-        parts = {w["key"] for w in served["worksheets"]} | {r["id"] for r in served["records"]}
-        parts |= {r["id"] for r in served["theories"]}
-        self.assertEqual(ids, parts)
-        self.assertEqual(len(served["catalogue"]), 20)
-        self.assertEqual(served["theories"], [])
-
-    def test_E_scl_012__the_page_states_the_contract_it_is_judged_against(self):
-        served = page()
-        self.assertEqual(served["label"], "Supply chain & logistics")
-        self.assertIn("inventory and network gaps stated plainly", served["summary"])
-        self.assertTrue(served["guidance"])
-        self.assertIn("network", served["guidance"].lower())
-        self.assertIn("routing", served["guidance"].lower())

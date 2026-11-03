@@ -3,7 +3,7 @@
 **Subject:** `supply-chain` · **branch:** `corpus/merge-v1` · **opening commit:** `f699579`,
 **rebased onto `2cd3347`** (the Operations session) before this commit.
 **Suite at close of baseline:** 3171 tests, 6 failures, 4 errors (946 s) — measured here, not copied.
-**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **56 tests, 56 passed.**
+**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **62 tests, 62 passed.**
 
 This shelf is the first in the product to own **nothing of its own**. It has no framework
 profile with `subject == "supply-chain"`, no `SCL-` catalogue id, and no method that is not
@@ -182,8 +182,7 @@ row, and the work order puts both behind §9.
 
 ## 4. Acceptance rows (E-scl-001 … E-scl-062)
 
-One row per test in `tests/test_subject_supply_chain_acceptance.py`. **56 tests cover 62 rows**:
-several rows are measured inside a looped test over all eight tools.
+One row per test in `tests/test_subject_supply_chain_acceptance.py`. **62 tests, one per row.**
 
 ### 4.1 Inventory and page (E-scl-001 … 012)
 
@@ -487,13 +486,13 @@ owner-gated; the rest are MINOR or declared gaps.
 
 | gate | result |
 |---|---|
-| `tests/test_subject_supply_chain_acceptance.py` | **56 tests, 56 passed, 0 skipped** |
-| shelf acceptance + `test_frozen_contract` | **green** (56 + frozen-contract tests passed) |
+| `tests/test_subject_supply_chain_acceptance.py` | **62 tests, 62 passed, 0 skipped** |
+| shelf acceptance + `test_frozen_contract` | **green** (62 + frozen-contract tests passed) |
 | Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** (`qa/baseline/scl-before-suite-err.txt`) |
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** (944 s, `qa/baseline/scl-after-suite-err.txt`) — **0 new**, 56 added |
-| Rebased onto `2cd3347` | the suite then held **3287 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3287 |
-| **Full suite, measured on `2cd3347` + this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors, six fewer problems than the baseline** |
-| The tree then moved twice more (`d64cd0c`, `2d454ae`) | the count is unchanged at **3287** (re-measured with `_suite_count()`); the same four failures remain, and the Operations lane's last commits add **one** more — D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row), verified by running `tests.test_docs_sync` on this tree (7 tests, 6 passed). **Five problems, one of them theirs, none on this shelf** |
+| Rebased onto `2cd3347` | the suite then held **3293 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3293 |
+| **Full suite, measured on `2cd3347` + an earlier version of this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors**. **Disclosed:** that run collected only **56** of this module's tests. Six (E-scl-007 … 012) had been appended after the `if __name__ == "__main__":` guard and never ran; an audit of defined-vs-collected ids found them, they were moved into the `Inventory` class, and the module now reports **62 tests, 62 passed**. The six are page/record/glossary assertions with no numeric content, so the failure count is unaffected — but the "0 new" claim was measured with them absent and is stated here as such |
+| The tree then moved twice more (`d64cd0c`, `2d454ae`) | the suite count is now **3293** (re-measured with `_suite_count()`: 3231 upstream + 62 here); the same four failures remain, and the Operations lane's last commits add **one** more — D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row), verified by running `tests.test_docs_sync` on this tree (7 tests, 6 passed). **Five problems, one of them theirs, none on this shelf** |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | `python -m unittest tests.test_docs_sync` | **7 tests, 6 passed, 1 failure** — the count assertion passes; `test_every_mentioned_decision_id_has_a_row_in_the_decision_log` fails because `docs/HANDOFF.md` cites **B-180a** and **B-180b**, which have no row in `docs/DECISIONS.md`. That text is on the **remote tip before this commit** (measured: present at `2d454ae`, absent from its `DECISIONS.md`), so it is the Operations lane's; ledgered as D-SCL-06 rather than silently deleted |
 | `tests/test_frozen_contract.py` | **passed** — no core change was made |

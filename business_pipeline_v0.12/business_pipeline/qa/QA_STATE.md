@@ -5,7 +5,7 @@
 ## Session 9 — `supply-chain` (2026-11-03) · branch `corpus/merge-v1`, opening commit `f699579`, rebased onto `2cd3347`
 
 **Subject chosen by the work order.** Manual: `qa/manual/supply-chain.md` (62 E-rows, 12 sections).
-Suite: `tests/test_subject_supply_chain_acceptance.py` (**56 tests, 56 passed**). Evidence:
+Suite: `tests/test_subject_supply_chain_acceptance.py` (**62 tests, 62 passed**). Evidence:
 `qa/evidence/supply-chain/` (the produced `.docx`, its stripped XML, the unit audit, the parity
 transcript, the worksheet-completion transcript).
 
@@ -29,7 +29,7 @@ rather than as its own work.
 `templates.EXAMPLES`, D-SCL-03, since repaired by the Operations lane), one was the documented
 `test_docs_sync` count drift (fixed here), one is the known rail test, two are foreign-lane
 (paper store, balanced scorecard), two are network-dependent. On the final tree the same suite
-runs **3287 tests with 4 failures and 0 errors**.
+runs **3293 tests with 4 failures and 0 errors**.
 
 **Inventory confirmed exactly as the work order stated:** 8 tools · 11 worksheets (one not
 draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 profiles with
@@ -40,7 +40,7 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 | Artefact | Content |
 |---|---|
 | `qa/manual/supply-chain.md` | The **28-item inventory** with a per-item verdict, a **ranked owner-gated proposal** (7 frameworks, nothing built), 62 E-rows reconciled 1:1, the **unit audit** of every output, the parity table, the V-01…V-20 reading of one paper, the defect ledger, residual risk |
-| `tests/test_subject_supply_chain_acceptance.py` | 56 tests — independent recomputation for all eight methods, the parity test against Operations, the boundary and refusal sweep, the unit audit |
+| `tests/test_subject_supply_chain_acceptance.py` | 62 tests — independent recomputation for all eight methods, the parity test against Operations, the boundary and refusal sweep, the unit audit |
 | `qa/evidence/supply-chain/` | `sipoc-paper.docx` (23,074 bytes), `sipoc-paper.txt`, `unit-audit.txt`, `parity.txt`, `worksheet-completion.txt` |
 | `qa/baseline/scl-*` | Baseline and after measurements |
 
@@ -48,7 +48,7 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 
 - **Documented test count.** `docs/HOME.md`, `docs/HANDOFF.md` and `docs/CONTRIBUTORS.md` said
   3184 tests; the suite held 3171, and `test_docs_sync` failed on it. After the rebase onto
-  `2cd3347` the measured count is **3287**; all three documents now say 3287 and `test_docs_sync`
+  `2cd3347` the measured count is **3293**; all three documents now say 3293 and `test_docs_sync`
   is green (7 passed).
 - **`docs/CURRICULUM_MAP.md` supply-chain row** said the shelf carried "the SIPOC and value stream
   worksheets" when it carries all eleven, and did not name the unbuilt LP/network method. Both
@@ -93,13 +93,14 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 
 | Gate | Result |
 |---|---|
-| Shelf acceptance suite | **56 passed, 0 skipped** |
+| Shelf acceptance suite | **62 passed, 0 skipped** |
 | `test_docs_sync` | **7 tests, 6 passed** — the count assertion passes; the decision-log crosswalk fails on `B-180a`/`B-180b` in `HANDOFF.md`, which the Operations lane added and which has no `DECISIONS.md` row (D-SCL-06, theirs) |
 | `test_frozen_contract` | **passed** (no core change) |
 | Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** |
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** — 0 new, 2 fewer (the docs-count fix and the flaky Brave→Firecrawl network test) |
-| Rebased onto `2cd3347` | **3287 tests** measured; shelf suite re-run green; documents set to 3287 |
-| Full suite on the final tree | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors, 6 fewer problems than the baseline |
+| Rebased onto `2cd3347` | **3293 tests** measured (3231 upstream + 62 here); shelf suite green; documents set to 3293 |
+| Full suite, measured on `2cd3347` + an earlier version of this commit | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors. **Disclosed:** that run collected only 56 of this module's 62 tests; six (E-scl-007 … 012) had been appended after the `if __name__` guard and never ran. Found by auditing defined-vs-collected ids, moved into their class, now 62/62. The six are page/record/glossary assertions with no numeric content, so the failure count stands — but the claim was measured with them absent |
+| Current tree (`2d454ae` + this commit) | 4 upstream failures + D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row, the Operations lane's) = 5, none on this shelf |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | Live click-through on 8001 | **NOT RUN** — see the manual §10; the session's largest gap |
 
