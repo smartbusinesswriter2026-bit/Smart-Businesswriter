@@ -191,7 +191,7 @@ rows.
 
 | Row | Behaviour | Source of truth | Test | Status |
 |---|---|---|---|---|
-| E-res-016 | Every tool delivers, sections print in reading order, and an honesty block prints wherever the method declares one | `session_paper.HEADINGS` | `test_E_res_016…` | PASS for 19; **GAP D-RES-04** for `power` and `missing` |
+| E-res-016 | Every tool delivers, sections print in reading order, and every paper prints the honesty heading | `session_paper.HEADINGS` | `test_E_res_016…` | PASS (21/21; **D-RES-04 closed by B-215**) |
 | E-res-017 | Every declared check is run and printed; none is skipped or renamed | `method.test_names` | `test_E_res_017…` | PASS |
 | E-res-018 | Every paper prints the method's assumptions and limitations | `method.assumptions/limitations` | `test_E_res_018…` | PASS |
 | E-res-019 | Every computed figure prints at the method's declared precision | `method.typing` | `test_E_res_019…` | PASS |
@@ -261,7 +261,7 @@ other answer. None is silently resolved.
 |---|---|---|
 | **D-RES-01 — five records said "Method not built"** | All five are now `computed` and start "partial:", naming the part that ships and the part that does not. `implementation_status` is byte-identical in `subjects.py` and in `registry.py`'s link rules, so the page and the framework API cannot disagree. | Leave them read-only and only soften `status_note`. Rejected: `_record_form` derives `computed` from `linked_methods`, so a read-only record linking a method contradicts the code's own rule and the catalogue-truth test. |
 | **QNT-STA-09 links four methods that live on economics** | The record is `computed`, links `difference_in_differences`, `regression_discontinuity`, `instrumental_variables`, `panel_regression`, and says in its own note that the calculator is on the Economics shelf. | Say nothing on this shelf. Rejected: it denies four shipped methods, which is the exact class the catalogue-truth test exists for. The economics shelf was read and re-tested (§6). |
-| **D-RES-04 — `power` and `missing` print no honesty block** | **Re-measured and corrected.** Both methods already declare `caveats`, and those sentences already print in the Result. What is absent is the *heading*, because the honesty block is a four-field structure (`missing_data`, `multiple_comparisons`, `power`, `weights_and_clusters`) that fills only for inferential methods, and `tests/test_honesty.py:37` pins that key set while `:41` pins `missing_data: None` for `missing_data_bounds` (the method bounds missingness rather than assuming it away). | Add a fifth field for a descriptive method's own caveats. That changes a pinned contract shape, so it is an unfreeze, not a session edit; filling `power` for a method whose paper already says it in prose would also be a stretch of that field's meaning. |
+| **D-RES-04 — `power` and `missing` printed no honesty heading** | **CLOSED (B-215, owner unfreeze).** Re-measured first: both methods already declared `caveats` and those sentences already printed, in the Result — what was absent was the *heading*, because `orchestrator._honesty` fills a fixed four-field structure and fills it only for inferential methods. On the owner's instruction the block gains a fifth field, `this_method`, carrying the method's own caveats, and it is added **only when all four standard fields are empty**, so no paper discloses the same thing twice. The paper now reads "Honesty: what was not done / this method: Power is a planning property of the design, not evidence about the result…". | Do nothing (the caveats were already on the page). Rejected once the owner chose the unfreeze: a paper whose only disclosure sits in the middle of the Result reads as though nothing was withheld, under a heading that does not exist. |
 | **D-RES-05 — `logistic_regression` declared 6 decimal places** | **FIXED (B-214).** The declaration is now 4 dp for coefficients, standard errors and both log-likelihoods, so the paper reads `-22.8067` instead of `-22.806666`. Nothing else moves: the fixture pins `tier/metric/unit/ceiling/test_names/inputs` and **not** precision, `test_honesty`/`test_missing`/`test_frozen_contract` are green, and no other shelf ships logistic regression. | Leave it at 6 and state P4 as "declared precision" only. Rejected because the two promises then stay in conflict on every paper that method writes. |
 | **D3 — the nine null levels** | Left null; the page groups by the four tiles (owner decision B-212). | Fill `intro/intermediate/advanced` for all 21. The owner chose tiles only, so inventing levels would have been a second taxonomy. |
 | **The four typed tools have no preset** | Accepted as a declared mode ("typed inputs"), the same as finance's `ols_robust` (G-fin-05); each is proved on a hand case instead. | Add four presets. That is a new preset, which §8 reserves to the owner. |
@@ -296,18 +296,19 @@ python -m pytest tests\test_subject_research_acceptance.py -q      # 53 passed
 | A dict input renders as words, not a Python repr | `src/bp/product/session_paper.py` (`_render`) | D-RES-03 is a paper-rendering defect; the core returned the right figure and the paper printed it wrong |
 | `BACKEND_CONTRACT.md` §2: 140/142 → 142/144 in four places | docs | D4(b) is doc drift; the fixture was right and was not touched |
 | `logistic_regression` declares **4 dp** instead of 6 for coefficients, standard errors and both log-likelihoods (D-RES-05, **B-214**) | core `src/bp/methods.py` (`_logit_typing`) | this is the one core edit of the session, made only on the owner's instruction: a declared precision that prints `-22.806666` in a student's paper is a wrong number, not a design choice. It touches no route, preset or input schema; the fixture pins `tier/metric/unit/ceiling/test_names/inputs` and **not** precision; and `logistic_regression` is offered by this shelf alone |
+| A fifth honesty field, `this_method`, carries a descriptive method's own caveats (**D-RES-04, B-215**, owner unfreeze) | core `src/bp/orchestrator.py` (after `_honesty`) | the alternative was to leave two papers with no honesty heading while their caveats sat mid-Result. The field is added **only when all four standard fields are empty**, so no paper gains a duplicate, and `tests/test_honesty.py` was rewritten to assert the stronger rule rather than a fixed key set |
 
 Nothing else in `bp/methods.py` was edited: no method, no preset, no input schema, no claim ceiling and
 no test name. The four *other* kinds of core change each move nine other shelves' papers (D6) and stay
 with the owner.
 
-**D-RES-04 was re-measured after this session's first report, and the first report was wrong.** It said
-the two methods "declare an empty `honesty` map therefore no caveats exist". They do exist —
-`_power_caveats` and `_md_caveats` — and they print, in the Result prose. What is absent is the
-*heading*, because `orchestrator._honesty` fills a fixed four-field structure and fills it only for
-inferential methods. `tests/test_honesty.py:37` pins that key set and `:41` pins `missing_data: None`
-for the bounding method, so the "one-line caveats" fix proposed in the first report was not available:
-the caveats were already there, and the shape is pinned.
+**D-RES-04 was re-measured, and the first report was wrong.** It said the two methods "declare an
+empty `honesty` map therefore no caveats exist". They do exist — `_power_caveats` and `_md_caveats` —
+and they printed, in the Result prose. What was absent was the *heading*, because `_honesty` fills a
+fixed four-field structure and fills it only for inferential methods. `tests/test_honesty.py` pinned
+that key set, so the "one-line caveats" fix proposed in the first report was not available. On the
+owner's unfreeze (**B-215**) the structure gained a fifth field rather than a fifth sentence: the paper
+now prints the heading and the caveats beneath it, and the pin was replaced by a stronger rule.
 
 ### 6.2 The full suite, before and after
 
@@ -315,7 +316,7 @@ the caveats were already there, and the shape is pinned.
 |---|---|
 | Baseline at `6c7073c`, before any edit | `unittest.TestLoader().discover("tests")` → **3418** cases; the documented count in `HANDOFF`/`CONTRIBUTORS` said 3478 (stale, and the work order's 3409 was staler still) |
 | After this session's 53-test acceptance file | **3478** measured immediately after the file landed. A live lane's two `test_product_bundle` tests were in the working tree but not committed while this was written, so a scan of the dirty tree reads 3480; the loader, not a document, is the source of truth |
-| A full run on the closing tree | reached **2974 of 3478** with **1 failure** (`test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl` — a network-environment test that is not this shelf's) and **0 errors**, then stalled for more than ten minutes inside `test_subject_management_acceptance.ChangeOrganizationTest` (a foreign shelf). Every suite this session touched was run to completion separately and is green (§6.3) |
+| A full run on the closing tree | reached **2974 of 3478** with **1 failure** (`test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl` — a network-environment test that is not this shelf's) and **0 errors**, then spent more than ten minutes in `test_subject_management_acceptance`, which takes **235 s on its own**; the batch was stopped rather than left to run. Every suite was then run separately: the eight other shelves **493 passed / 136 subtests**, management **50 passed**, this shelf's suite + the core gates **157 passed** |
 
 ### 6.3 Blast radius, and what was re-tested
 
@@ -325,8 +326,7 @@ The shelf is cross-cutting, so the changes above were re-tested against the shel
 |---|---|---|
 | `tests/test_catalogue_truth.py` (6 tests) | the record repair is exactly its subject | green |
 | `tests/test_product_subjects.py` (57 tests) | the slice must match the registry | green |
-| `tests/test_subject_economics_acceptance.py` | `QNT-STA-09` now links four economics methods | green |
-| `tests/test_subject_operations_acceptance.py` | the paper renderer changed for every shelf | green |
+| **All nine other shelf acceptance suites** | the honesty block changed shape for every descriptive method on every shelf (94 of 142), and `session_paper._render` changed for every paper | **543 passed**: accounting, economics, entrepreneurship, finance, marketing, operations, project-management and supply-chain **493 passed / 136 subtests**, management **50 passed** |
 | `qa/probe_research_shelf.py --subject operations --prove` | the harness itself, on a shelf whose 46-test suite is green | 0 problems reported |
 | `scripts/econ_shelf.py --check` | the frozen fixture must stay in sync | `methods: 142`, `presets: 144`, `frozen fixture: in sync` |
 
@@ -340,7 +340,7 @@ crash or silent success.
 | D-RES-01 | MAJOR | Five records said "Method not built" while the page offered a calculator for the area; QNT-STA-09 also denied four methods that ship on economics | **FIXED** | `detail("research")["records"]`; §2.2 | `test_E_res_011`, `012`, `015` |
 | D-RES-02 | TRAP | 13 of 21 `tool["key"]` values are not `LIBRARY` ids, so a probe comparing keys reports 13 false defects | DOCUMENTED, PINNED | `probe_research_shelf.resolution()` | `test_E_res_009` |
 | D-RES-03 | MAJOR | Every paper whose method takes a `column_map` input printed the student's own figures as a Python repr — a P4 breach on the artefact | **FIXED** | `qa/evidence/research/research-welch.txt` (before/after) | `test_E_res_020` |
-| D-RES-04 | MINOR (presentation) | `power` and `missing` print no "Honesty: what was not done" heading. **Re-measured at the owner's request, and this row's first cause was wrong:** both methods *do* declare `caveats`, and those sentences *do* print — in the Result prose. What is missing is a *section*, because the honesty block is a fixed four-field structure (`missing_data`, `multiple_comparisons`, `power`, `weights_and_clusters`) that fills only for inferential methods; `tests/test_honesty.py:37` pins that key set and `:41` pins `missing_data: None` for the bounding method | **OPEN — needs an unfreeze** (a fifth field changes the pinned shape). Proposed and rejected as unsafe: inventing a fifth key, or filling `power` for a method whose paper already says it in prose | `qa/evidence/research/research-power.txt` carries "Power is a planning property of the design…"; `appendix["honesty"]` is all-`None` for both | `test_E_res_016` pins the set |
+| D-RES-04 | MINOR (HONESTY) | `power` and `missing` printed no "Honesty: what was not done" heading. **Re-measured on the owner's instruction, and the first diagnosis was wrong:** both methods *do* declare `caveats` (`_power_caveats`, `_md_caveats`) and those sentences *do* print — in the Result prose. What was missing was the *section*, because the honesty block was a fixed four-field structure filled only for inferential methods | **FIXED (B-215, owner unfreeze)**: a fifth field `this_method` carries a method's own caveats, added only when all four standard fields are empty so nothing is disclosed twice. `tests/test_honesty.py` was strengthened, not loosened: the four standard fields must always be present, the fifth may appear only alone and non-empty, and `ratio_analysis` still carries no inferential notice | `qa/evidence/research/research-power.txt` and `research-missing.txt`: the heading now prints | `test_E_res_016` (every one of the 21 papers prints the heading and discloses something) | FIXED (B-215) |
 | D-RES-05 | MINOR (ROUNDING) | `logistic_regression` declared 6 decimal places, so its paper printed `-22.806666` while the house rule other shelves test for is "no six-decimal figure" | **FIXED (B-214)**: the declaration is 4 dp for coefficients, standard errors and both log-likelihoods; the paper now reads `-22.8067`, and `test_honesty`/`test_missing`/`test_frozen_contract` are unaffected because the fixture pins `tier/metric/unit/ceiling/test_names/inputs`, not precision | `qa/evidence/research/research-logit.txt` (before/after) | `test_E_res_019` now also fails on any `\d\.\d{6,}` |
 | D-RES-06 | MAJOR (page) | 0 groups, 0 tiles and 9 null levels: the page could group by neither topic nor level and fell back to a flat list | **FIXED** (owner decision B-213) | `detail("research")["tiles"]` | `test_E_res_006`, `007`, `010` |
 | D-RES-07 | DOC-DRIFT | `docs/BACKEND_CONTRACT.md` §2 said "140 methods" and "142 presets" in four places; measured 142/144 and the fixture pins 142/144 | **FIXED** (the document, never the fixture) | `scripts/econ_shelf.py --check` | `test_E_res_053` |
@@ -373,7 +373,7 @@ These are gaps, not defects: nothing here is claimed to work.
 | G-res-08 | No glossary and no worksheets on this shelf | by design: it is a calculator shelf; the terms live on the subject shelves that use them |
 | G-res-09 | Nine tools declare no difficulty level | owner decision B-213: the page groups by tile; a second taxonomy was not requested |
 | G-res-10 | Four tools ship with no worked example (`preset: null`) | typed-input mode; adding presets is an owner decision (§8) |
-| G-res-11 | D-RES-04 above | an unfreeze of the honesty block's pinned shape; D-RES-05 is **fixed** (B-214) |
+| G-res-11 | ~~D-RES-04 above~~ | **CLOSED**: D-RES-04 is fixed by B-215 (the fifth honesty field) and D-RES-05 by B-214 (4 dp). No gap remains under this id |
 
 ## 10. Residual risk
 
@@ -381,9 +381,10 @@ These are gaps, not defects: nothing here is claimed to work.
    under B-214; nothing yet checks a declaration against the "no six-decimal figure" house rule
    automatically, so the class recurs every time a method's typing is written. The shelf's own
    `test_E_res_019` now catches it for the 21 methods here, and no other shelf has that assertion.
-2. **Two papers have no honesty heading.** `power` and `missing` carry their caveats in the Result and
-   nothing is hidden, but the heading is absent because the honesty block is a pinned four-field shape.
-   Writing a fifth field is an unfreeze; the manual records it rather than forcing it.
+2. **The honesty block now has a shape that must be kept.** The fifth field is added by one condition in
+   `Pipeline.run` (all four standard fields empty and the method declares caveats). A future method that
+   declares caveats *and* an inferential notice will get only the notice — correct, but easy to
+   mis-remember; `test_honesty` asserts the rule rather than a fixed key set, so it will catch a drift.
 3. **`QNT-STA-09` depends on another shelf staying honest.** If the economics lane ever drops
    `instrumental_variables`, `regression_discontinuity`, `difference_in_differences` or
    `panel_regression`, this record silently becomes a false claim. E-res-012 fails on the day.

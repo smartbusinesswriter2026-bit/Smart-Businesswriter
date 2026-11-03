@@ -22,6 +22,8 @@ Alpha: 0.0500
 Target power: 0.8000
 N1: 30
 N2: 40
+Honesty: what was not done
+this method: Power is calculated under the normal approximation with the standard deviations you supplied; with sds estimated from a pilot, the exact power is somewhat lower (noncentral t, not implemented). Power is a planning property of the design, not evidence about the result: a low-powered study can still be significant and a high-powered one can still fail. The calculation assumes independent observations and a single comparison; it does not account for clustering, weights, repeated measures or multiplicity. A minimum detectable effect is not a justification for ignoring a smaller effect that matters.
 Assumptions made
 Observations are independent within and between groups.
 The standard deviations supplied are the planning values and are positive.

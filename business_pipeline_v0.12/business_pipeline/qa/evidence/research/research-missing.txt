@@ -14,6 +14,8 @@ Mean observed: 13.00
 Bound low: 12.00
 Bound high: 14.00
 Bound width: 2.00
+Honesty: what was not done
+this method: The bounds are the extreme cases: every missing value at the observed minimum, or every one at the observed maximum. They are honest bounds, not estimates, and they can be very wide. No imputation and no MAR/MCAR/MNAR model is used; the declared mechanism is recorded as the owner's declaration and is not verifiable from the data. Bounds cover the complete-data mean only; they say nothing about other statistics or about which mechanism actually holds.
 Assumptions made
 The observed values are correct and the declared missing codes fully identify missing entries.
 Missing values lie somewhere between the observed minimum and maximum.

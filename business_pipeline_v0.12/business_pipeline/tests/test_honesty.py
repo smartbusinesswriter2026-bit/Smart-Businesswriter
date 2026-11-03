@@ -32,9 +32,22 @@ def delivered(req):
 
 class HonestyBlock(unittest.TestCase):
     def test_every_delivered_library_result_carries_the_honesty_block(self):
+        standard = {"missing_data", "multiple_comparisons", "power", "weights_and_clusters"}
         for req in (OLS, ANOVA, DESC, NPV, RATIOS, MULTICOMP, MISSING):
             d = delivered(req)
-            self.assertEqual(set(d.appendix["honesty"]), {"missing_data", "multiple_comparisons", "power", "weights_and_clusters"}, req["method"])
+            h = d.appendix["honesty"]
+            # B-215 (owner unfreeze): the four standard fields are always present. The fifth -- the
+            # method's own caveats -- appears when the method declares caveats AND none of the four
+            # has anything to say; it is never added beside a standard notice, so no paper discloses
+            # the same thing twice.
+            self.assertTrue(standard <= set(h), "%s lost a standard honesty field: %r"
+                            % (req["method"], sorted(h)))
+            self.assertLessEqual(set(h) - standard, {"this_method"},
+                                 "%s carries an unknown honesty field" % req["method"])
+            if "this_method" in h:
+                self.assertFalse(any(h[k] for k in standard),
+                                 "%s repeats a standard notice in the fifth field" % req["method"])
+                self.assertTrue(h["this_method"].strip(), req["method"])
 
     def test_the_missing_data_method_is_not_given_a_contradictory_listwise_notice(self):
         d = delivered(MISSING)
@@ -73,7 +86,10 @@ class HonestyBlock(unittest.TestCase):
 
     def test_ratio_analysis_is_descriptive_and_carries_no_inferential_notices(self):
         h = delivered(RATIOS).appendix["honesty"]
-        self.assertTrue(all(v is None for v in h.values()))
+        # B-215: the fifth field may carry the method's own caveats; the four *inferential* notices
+        # must stay empty for a descriptive method, which is what this test has always meant.
+        for key in ("missing_data", "multiple_comparisons", "power", "weights_and_clusters"):
+            self.assertIsNone(h[key], key)
 
     def test_honesty_is_deterministic_and_json_safe(self):
         import json

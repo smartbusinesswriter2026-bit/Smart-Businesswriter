@@ -266,7 +266,8 @@ class Pipeline:
         for s in filter(None, (x.strip() for x in re.split(r"(?<=[.!?])\s+", template))):
             probs = license_check(s, "prescriptive" if re.search(r"\bshould\b|\brecommend", s, re.I) else m.claim_ceiling)
             if probs: return self._block("draft_audit", f"claim licensing: {probs}", tier)
-        notes = list(m.caveats(outputs, spec.thresholds)) if m.caveats else []
+        own_caveats = list(m.caveats(outputs, spec.thresholds)) if m.caveats else []
+        notes = list(own_caveats)
         rate_hint = None
         for metric, val in outputs.items():
             mu = m.typing(metric)[0] if m.typing else m.output_units.get(metric, base_unit)
@@ -277,6 +278,15 @@ class Pipeline:
         if rate_hint: notes.insert(0, rate_hint)
         honesty, honesty_notes = _honesty(m, inp)
         notes.extend(honesty_notes)
+        # D-RES-04 (B-215, owner unfreeze).  The honesty block is four standard fields, and they are
+        # filled only for an inferential method.  A descriptive method whose own caveats are the only
+        # disclosure it has therefore printed NO honesty heading at all: `power` and `missing` on the
+        # research shelf reported nothing under "what was not done", even though `_power_caveats` and
+        # `_md_caveats` carry exactly those sentences — they went into the result prose and nowhere
+        # else.  The fifth field carries the method's own caveats under the heading, and appears ONLY
+        # when all four are empty, so no paper that already discloses anything gains a duplicate.
+        if not any(honesty.values()) and own_caveats:
+            honesty["this_method"] = " ".join(own_caveats)
         if any(v.get("provenance") == "synthetic" for v in spec.inputs.values()): notes.append(SYNTHETIC_NOTE)
         if used_fallback:
             notes.insert(0, f"Because the pre-declared {used_fallback['check'].replace('_', ' ')} failed, the analysis switched from {used_fallback['from']} to the pre-declared fallback, {used_fallback['to']}. This switch is logged as an amendment.")

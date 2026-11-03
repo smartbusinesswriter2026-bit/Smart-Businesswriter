@@ -112,7 +112,7 @@ live lanes. The documented test count (3478) did not match the loader (3418) at 
 | Measure | Work order | Measured at opening | Measured at close |
 |---|---:|---:|---:|
 | Tests (`TestLoader().discover`) | 3409 | **3418** | **3478** (3480 while a live lane's two uncommitted bundle tests sit in the tree) |
-| Failures / errors | 0 / 0 | **1 / 0 in the 2974 tests a full run reached** — `test_sources…firecrawl_fallback` (NETWORK-ENV, not this shelf) — and the run stalled in `test_subject_management_acceptance` (FOREIGN-LANE) | see `qa/baseline/suite-after-err.txt`; the affected suites were re-run alone |
+| Failures / errors | 0 / 0 | **1 / 0 in the 2974 tests a batch run reached** — `test_sources…firecrawl_fallback` (NETWORK-ENV, not this shelf). The batch was stopped in `test_subject_management_acceptance` (that suite takes 235 s alone); every suite was then run separately and is green | see `qa/baseline/suite-after-err.txt`, `shelves8.txt`, `mgt2.txt` |
 | `LIBRARY` / `PRESETS` / fixture | 142 / 144 / 142–144 | 142 / 144 / 142–144 | unchanged |
 | Tools / worksheets / tiles / records | 21 / 0 / 0 / 10 | 21 / 0 / **0** / 10 (3 computed, 7 read-only) | 21 / 0 / **4** / 10 (**8 computed**, 2 read-only) |
 
@@ -135,9 +135,10 @@ to group anything.
 D-RES-01 (five records denying shipped methods) **FIXED** · D-RES-03 (dict input printed as a Python
 repr in every column-map paper) **FIXED** · D-RES-06 (0 tiles / 0 groups, page could not group) **FIXED
 by B-213** · D-RES-07 (doc said 140/142; measured 142/144) **FIXED in the doc** · D-RES-02 (13 keys are
-not library ids) **PINNED** · D-RES-04 (`power`, `missing` print no honesty heading — **re-measured:
-the caveats exist and print; the heading is a pinned four-field shape**) **OPEN — unfreeze** ·
-D-RES-05 (`logistic_regression` declared 6 dp) **FIXED by B-214 (4 dp; the paper reads `-22.8067`)**.
+not library ids) **PINNED** · D-RES-04 (`power`, `missing` printed no honesty heading — **re-measured:
+the caveats existed, the heading did not**) **FIXED by B-215** (a fifth field `this_method`, added only
+when the four standard fields are empty) · D-RES-05 (`logistic_regression` declared 6 dp) **FIXED by
+B-214 (4 dp; the paper reads `-22.8067`)**.
 
 ### Next subject, and its top three risks
 
@@ -156,12 +157,13 @@ measured on the adjacent shelves:
    `STUDENT_NOTES`; if any lacks a `group`, its page falls back to the flat list exactly as this one
    did, and `scripts/econ_shelf.py --check` does not look at `people` at all.
 
-**Owner decisions:** (a) **D-RES-05 is closed** — on the owner's "yes", `logistic_regression` now
-declares 4 decimal places and its paper reads `-22.8067` (B-214). (b) **D-RES-04 needs an unfreeze, and
-the first diagnosis was wrong**: both methods already declare `caveats` and those sentences already
-print in the Result; what is missing is the *heading*, because `orchestrator._honesty` fills a fixed
-four-field structure for inferential methods only, and `tests/test_honesty.py:37`/`:41` pin that shape.
-Writing a fifth field is a contract change, so it is parked, not forced.
+**Owner decisions:** (a) **D-RES-05 is closed** — `logistic_regression` now declares 4 decimal places
+and its paper reads `-22.8067` (B-214). (b) **D-RES-04 is closed too**, after the owner authorised the
+unfreeze (B-215): the honesty block gained a fifth field `this_method`, carrying a descriptive method's
+own caveats, added only when the four standard fields are empty. `power` and `missing` now print
+"Honesty: what was not done / this method: Power is a planning property of the design…" and
+"…They are honest bounds, not estimates…". `tests/test_honesty.py` was **strengthened** to assert the
+rule rather than a fixed key set, so the drift this session found cannot return silently.
 
 ---
 

@@ -165,7 +165,6 @@ class PaperTest(unittest.TestCase):
 
     def test_E_res_016__every_tool_delivers_a_paper_in_the_declared_order(self):
         order = [heading for _key, heading in session_paper.HEADINGS]
-        missing_honesty = []
         for tool in tools():
             delivery, bundle, text = built(tool)
             self.assertEqual(delivery.status, "delivered", "%s: %s"
@@ -173,19 +172,14 @@ class PaperTest(unittest.TestCase):
             present = [line for line in text.splitlines() if line in order]
             self.assertEqual(present, sorted(present, key=order.index),
                              "%s prints its sections out of order: %r" % (tool["key"], present))
-            for required in ("Result", "Inputs and results", "How the figures were checked"):
+            for required in ("Result", "Inputs and results", "Honesty: what was not done",
+                             "How the figures were checked"):
                 self.assertIn(required, present, "%s has no %r section" % (tool["key"], required))
-            # The honesty block is printed wherever the method declares one.  A method that
-            # declares none is a finding, not a pass: it is named below and carried in the
-            # manual as a gap (D-RES-04), so the day it is written this test fails and the
-            # row is flipped.
-            if any((bundle["appendix"].get("honesty") or {}).values()):
-                self.assertIn("Honesty: what was not done", present, tool["key"])
-            else:
-                missing_honesty.append(tool["key"])
-        self.assertEqual(missing_honesty, ["power", "missing"],
-                         "the set of methods that print no honesty block moved (D-RES-04): %r"
-                         % (missing_honesty,))
+            # B-215 (owner unfreeze): a fifth honesty field carries a descriptive method's own
+            # caveats, so all 21 papers state what they cannot establish.  Before it, `power` and
+            # `missing` printed no honesty heading at all and this test pinned that gap.
+            honesty = bundle["appendix"].get("honesty") or {}
+            self.assertTrue(any(honesty.values()), "%s discloses nothing" % tool["key"])
 
     def test_E_res_017__every_declared_check_is_printed_and_none_is_renamed(self):
         for tool in tools():
