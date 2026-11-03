@@ -403,12 +403,30 @@ def units_of_production_depreciation(params, context):
     return money((cost - residual) * units / total, context.get("places", 2), context.get("rounding", "half_up"))
 
 
+def bad_debt_expense(params, context):
+    """Bad debt expense under the percentage-of-receivables method.
+
+    expense = receivables x rate - prior_allowance. A negative result (a recovery) is reported as
+    zero here; a recovery needs its own entry direction and is not modelled in this increment.
+    """
+    receivables = _dec(params.get("receivables"), "receivables")
+    rate = _dec(params.get("rate"), "rate")
+    prior = _dec(params.get("prior_allowance", 0), "prior_allowance")
+    if receivables < 0 or rate < 0 or rate > 1 or prior < 0:
+        raise PlanError("receivables and prior_allowance must not be negative, and rate must be between 0 and 1")
+    amount = receivables * rate - prior
+    if amount < 0:
+        amount = D(0)
+    return money(amount, context.get("places", 2), context.get("rounding", "half_up"))
+
+
 FUNCTIONS = {
     "straight_line_depreciation": straight_line_depreciation,
     "reducing_balance_depreciation": reducing_balance_depreciation,
     "units_of_production_depreciation": units_of_production_depreciation,
     "prepaid_amortization": prepaid_amortization,
     "periodic_cogs": periodic_cogs,
+    "bad_debt_expense": bad_debt_expense,
     "tax_on_pretax": tax_on_pretax,
 }
 

@@ -43,6 +43,7 @@ REGISTERED ADJUSTMENT FUNCTIONS (use only these, by exact name):
 - units_of_production_depreciation: params {cost, residual (default 0), units_this_period, total_estimated_units}. Amount = (cost - residual) * units_this_period / total_estimated_units.
 - prepaid_amortization: params {payment, months_expired, total_months (default 12)}. Amount = payment * months_expired / total_months.
 - periodic_cogs: params {beginning_inventory (default 0), purchases, ending_inventory}. Amount = beginning + purchases - ending.
+- bad_debt_expense: params {receivables, rate, prior_allowance (default 0)}. Amount = receivables * rate - prior_allowance, clamped at zero. The rate is the percentage of receivables estimated uncollectible.
 - tax_on_pretax: params {} (the rate comes from policy.tax_rate). Amount = pre-tax income * rate; a loss earns no tax.
 Each adjustment needs "debit" and "credit" account codes from the chart, distinct.
 """

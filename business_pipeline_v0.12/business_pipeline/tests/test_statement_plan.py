@@ -143,6 +143,14 @@ class FunctionRegistry(unittest.TestCase):
         with self.assertRaises(sp.PlanError):
             sp.units_of_production_depreciation({"cost": 60000, "units_this_period": 11000, "total_estimated_units": 10000}, {})
 
+    def test_bad_debt_expense(self):
+        # 100,000 receivables x 5% = 5,000 allowance; prior 2,000 -> expense 3,000
+        self.assertEqual(sp.bad_debt_expense({"receivables": 100000, "rate": "0.05", "prior_allowance": 2000}, {}), D("3000.00"))
+
+    def test_bad_debt_expense_clamps_a_recovery_to_zero(self):
+        r = sp.bad_debt_expense({"receivables": 10000, "rate": "0.05", "prior_allowance": 1000}, {})
+        self.assertEqual(r, D("0.00"))
+
 
     def test_the_graph_resolves_in_dependency_order_and_refuses_a_cycle(self):
         nodes = [sp.Node("b", "prepaid_amortization", {"payment": 100, "months_expired": 6}),

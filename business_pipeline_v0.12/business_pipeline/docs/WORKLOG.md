@@ -1,3 +1,18 @@
+## 2026-11-04 — [computation] Bad debt expense under the percentage-of-receivables method
+
+**Ask.** "go." — continue the unblocked computation-lane work.
+
+**Did.**
+
+- **`bad_debt_expense`** (new, in `src/bp/statement_plan.py`): `receivables x rate - prior_allowance`, clamped at zero, grounded and validated like every other function. Registered in `FUNCTIONS` and named in the extraction prompt.
+- Two new tests.
+
+**Verified.** `tests.test_statement_plan` → **57 tests, OK**. Suite count 3658.
+
+**Not done, and named.** Multi-period comparatives, consolidated statements, tax benefit on a loss, reducing-balance and units-of-production are now registered; the tile copy in `subjects.py` still over-claims.
+
+**Learned.** Each new adjustment is one function plus one registry entry plus one prompt line. The DAG does not care what the formula computes.
+
 ## 2026-11-04 — [computation] Two more depreciation methods: reducing-balance and units-of-production
 
 **Ask.** "go." — continue the unblocked computation-lane work.
@@ -8,7 +23,7 @@
 - **`units_of_production_depreciation`** (new): `(cost - residual) x units_this_period / total_estimated_units`, refusing more units than estimated.
 - Both registered in `FUNCTIONS`, both named in the extraction prompt with their parameters, both covered by five new tests.
 
-**Verified.** `tests.test_statement_plan` → **55 tests, OK**. Suite count 3656.
+**Verified.** `tests.test_statement_plan` → **55 tests, OK**. Suite count 3658.
 
 **Not done, and named.** Multi-period comparatives (prior-period statements side by side) and consolidated statements are still out of scope; the tile copy in `subjects.py` still over-claims.
 
@@ -125,11 +140,11 @@ leaves the building.
   Linked from `AGENTS.md`, `docs/HANDOFF.md`, `docs/HOME.md` and the changelog so it is findable
   without being pointed at.
 - **Version moved to 1.87** (`src/bp/build.py`), with `HOME.md` and `HANDOFF.md` updated to say so and
-  the measured suite count (3656) replaced in both.
+  the measured suite count (3658) replaced in both.
 
 **Verified.** `python -m unittest tests.test_statement_plan` → **40 tests, OK**. The golden build's
 articulation checks all pass; a doctored `total_assets` fails A=L+E and a doctored `net_direct` fails
-the cash check. `python -c "unittest.TestLoader().discover('tests').countTestCases()"` → **3656**,
+the cash check. `python -c "unittest.TestLoader().discover('tests').countTestCases()"` → **3658**,
 which is the number now stated in the two documents. A **live** extraction call was then made against
 DeepSeek (`deepseek-flash`) on a synthetic five-transaction problem: five grounded entries, posted,
 net income 5,900 and assets 25,900, all three identities true. The live run is what exposed three
