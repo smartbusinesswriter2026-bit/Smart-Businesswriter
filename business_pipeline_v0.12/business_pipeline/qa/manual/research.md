@@ -306,6 +306,7 @@ work order reserves them to the owner.
 |---|---|
 | Baseline at `6c7073c`, before any edit | `unittest.TestLoader().discover("tests")` → **3418** cases; the documented count in `HANDOFF`/`CONTRIBUTORS` said 3478 (stale, and the work order's 3409 was staler still) |
 | After this session's 53-test acceptance file | **3478** measured immediately after the file landed. A live lane's two `test_product_bundle` tests were in the working tree but not committed while this was written, so a scan of the dirty tree reads 3480; the loader, not a document, is the source of truth |
+| A full run on the closing tree | reached **2974 of 3478** with **1 failure** (`test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl` — a network-environment test that is not this shelf's) and **0 errors**, then stalled for more than ten minutes inside `test_subject_management_acceptance.ChangeOrganizationTest` (a foreign shelf). Every suite this session touched was run to completion separately and is green (§6.3) |
 
 ### 6.3 Blast radius, and what was re-tested
 

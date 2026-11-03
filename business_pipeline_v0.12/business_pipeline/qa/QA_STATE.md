@@ -17,7 +17,7 @@ live lanes. The documented test count (3478) did not match the loader (3418) at 
 | Measure | Work order | Measured at opening | Measured at close |
 |---|---:|---:|---:|
 | Tests (`TestLoader().discover`) | 3409 | **3418** | **3478** (3480 while a live lane's two uncommitted bundle tests sit in the tree) |
-| Failures / errors | 0 / 0 | see `qa/baseline/2026-11-03-research-shelf-suite.txt` | see `qa/baseline/suite-after-err.txt` |
+| Failures / errors | 0 / 0 | **1 / 0 in the 2974 tests a full run reached** — `test_sources…firecrawl_fallback` (NETWORK-ENV, not this shelf) — and the run stalled in `test_subject_management_acceptance` (FOREIGN-LANE) | see `qa/baseline/suite-after-err.txt`; the affected suites were re-run alone |
 | `LIBRARY` / `PRESETS` / fixture | 142 / 144 / 142–144 | 142 / 144 / 142–144 | unchanged |
 | Tools / worksheets / tiles / records | 21 / 0 / 0 / 10 | 21 / 0 / **0** / 10 (3 computed, 7 read-only) | 21 / 0 / **4** / 10 (**8 computed**, 2 read-only) |
 
