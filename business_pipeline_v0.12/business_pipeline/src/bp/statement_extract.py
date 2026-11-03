@@ -39,6 +39,8 @@ Rules, all of them absolute:
 
 REGISTERED ADJUSTMENT FUNCTIONS (use only these, by exact name):
 - straight_line_depreciation: params {cost, residual (default 0), life_years, convention in {full_year, half_year, pro_rata}, months_in_service (required only for pro_rata)}. Amount = (cost - residual) / life_years, prorated by the convention.
+- reducing_balance_depreciation: params {cost, residual (default 0), life_years, rate (optional; defaults to 2/life_years), accumulated (default 0), convention in {full_year, half_year, pro_rata}, months_in_service (required only for pro_rata)}. Amount = (cost - accumulated - residual) * rate, prorated by the convention. Never goes below zero.
+- units_of_production_depreciation: params {cost, residual (default 0), units_this_period, total_estimated_units}. Amount = (cost - residual) * units_this_period / total_estimated_units.
 - prepaid_amortization: params {payment, months_expired, total_months (default 12)}. Amount = payment * months_expired / total_months.
 - periodic_cogs: params {beginning_inventory (default 0), purchases, ending_inventory}. Amount = beginning + purchases - ending.
 - tax_on_pretax: params {} (the rate comes from policy.tax_rate). Amount = pre-tax income * rate; a loss earns no tax.

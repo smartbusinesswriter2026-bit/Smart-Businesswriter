@@ -124,6 +124,26 @@ class FunctionRegistry(unittest.TestCase):
         with self.assertRaises(sp.PlanError):
             sp.straight_line_depreciation({"cost": 60000.0, "life_years": 5}, {})
 
+    def test_reducing_balance_defaults_to_double_declining(self):
+        # 60,000 over 5 years, double declining = 40% -> 24,000 in year 1
+        self.assertEqual(sp.reducing_balance_depreciation({"cost": 60000, "life_years": 5}, {}), D("24000.00"))
+
+    def test_reducing_balance_with_a_declared_rate(self):
+        self.assertEqual(sp.reducing_balance_depreciation({"cost": 100000, "rate": "0.15", "life_years": 10}, {}), D("15000.00"))
+
+    def test_reducing_balance_never_goes_below_zero(self):
+        r = sp.reducing_balance_depreciation({"cost": 1000, "accumulated": 999, "residual": 0, "life_years": 5}, {})
+        self.assertGreaterEqual(r, D(0))
+
+    def test_units_of_production(self):
+        # (60,000 - 0) * 2000 / 10000 = 12,000
+        self.assertEqual(sp.units_of_production_depreciation({"cost": 60000, "units_this_period": 2000, "total_estimated_units": 10000}, {}), D("12000.00"))
+
+    def test_units_of_production_refuses_more_units_than_estimated(self):
+        with self.assertRaises(sp.PlanError):
+            sp.units_of_production_depreciation({"cost": 60000, "units_this_period": 11000, "total_estimated_units": 10000}, {})
+
+
     def test_the_graph_resolves_in_dependency_order_and_refuses_a_cycle(self):
         nodes = [sp.Node("b", "prepaid_amortization", {"payment": 100, "months_expired": 6}),
                  sp.Node("a", "periodic_cogs", {"beginning_inventory": 0, "purchases": {"$ref": "b"}, "ending_inventory": 0})]

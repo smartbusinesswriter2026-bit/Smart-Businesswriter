@@ -348,8 +348,65 @@ def tax_on_pretax(params, context):
     return money(pretax * rate, context.get("places", 2), context.get("rounding", "half_up"))
 
 
+def reducing_balance_depreciation(params, context):
+    """Declining-balance depreciation: (cost - accumulated) x rate, prorated by convention.
+
+    `rate` is the declared annual rate (e.g. 0.20 for 20%). When it is omitted the double-declining
+    rate 2 / life_years is used, which is the common default and is itself a declared convention.
+    `accumulated` is the depreciation already taken in earlier periods (0 for the first year).
+    """
+    cost = _dec(params.get("cost"), "cost")
+    residual = _dec(params.get("residual", 0), "residual")
+    life = _dec(params.get("life_years"), "life_years")
+    accumulated = _dec(params.get("accumulated", 0), "accumulated")
+    if cost < 0 or residual < 0 or life <= 0 or accumulated < 0:
+        raise PlanError("cost, residual and accumulated must not be negative, and life_years must be positive")
+    if residual > cost:
+        raise PlanError("residual cannot exceed cost")
+    if accumulated > cost - residual:
+        raise PlanError("accumulated depreciation cannot exceed cost less residual")
+    if params.get("rate") is None:
+        rate = D(2) / life
+    else:
+        rate = _dec(params["rate"], "rate")
+        if rate < 0 or rate > 1:
+            raise PlanError("rate must be between 0 and 1")
+    convention = params.get("convention") or context.get("policy", {}).get("depreciation", {}).get("convention", "full_year")
+    if convention not in CONVENTIONS:
+        raise PlanError(f"depreciation convention must be one of {list(CONVENTIONS)}")
+    if convention == "full_year":
+        months = D(12)
+    elif convention == "half_year":
+        months = D(6)
+    else:
+        months = _dec(params.get("months_in_service", 0), "months_in_service")
+        if months <= 0 or months > 12:
+            raise PlanError("the pro_rata convention needs months_in_service from 1 to 12")
+    amount = (cost - accumulated - residual) * rate * months / D(12)
+    if amount < 0:
+        amount = D(0)
+    return money(amount, context.get("places", 2), context.get("rounding", "half_up"))
+
+
+def units_of_production_depreciation(params, context):
+    """(cost - residual) x (units_this_period / total_estimated_units)."""
+    cost = _dec(params.get("cost"), "cost")
+    residual = _dec(params.get("residual", 0), "residual")
+    units = _dec(params.get("units_this_period"), "units_this_period")
+    total = _dec(params.get("total_estimated_units"), "total_estimated_units")
+    if cost < 0 or residual < 0 or units < 0 or total <= 0:
+        raise PlanError("cost and residual must not be negative, units must not be negative, total_estimated_units must be positive")
+    if residual > cost:
+        raise PlanError("residual cannot exceed cost")
+    if units > total:
+        raise PlanError("units_this_period cannot exceed total_estimated_units")
+    return money((cost - residual) * units / total, context.get("places", 2), context.get("rounding", "half_up"))
+
+
 FUNCTIONS = {
     "straight_line_depreciation": straight_line_depreciation,
+    "reducing_balance_depreciation": reducing_balance_depreciation,
+    "units_of_production_depreciation": units_of_production_depreciation,
     "prepaid_amortization": prepaid_amortization,
     "periodic_cogs": periodic_cogs,
     "tax_on_pretax": tax_on_pretax,
