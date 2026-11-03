@@ -42,6 +42,11 @@ subscriptions and two charges. That seam is what this session built.
   independent guards: the record's plan is **$0**, and a record PayPal still calls ACTIVE fails the
   grant rather than being reported as switched off. The hand-off client **cannot take a payment** —
   it never calls a PayPal billing endpoint, and a test asserts that.
+- **The vault id is remembered between the two calls.** PayPal names the vault id when it *creates*
+  a subscription and does not always name it when the subscription is *read back* — so the note kept
+  at creation (`state/pending_subscriptions.json`) is what the confirmation falls back on, and it is
+  dropped once the subscription is confirmed. Without that, the bundle would have been granted here
+  and not there, and the failure would have looked like a PayPal problem rather than a missing note.
 - **A failed hand-off never undoes a real payment.** The customer paid and the subscription is
   ACTIVE, so the local grant stands. The failure is reported as a failure of the **other
   product's half**, with the reason, on the confirm reply, on the cancel reply and on the account
@@ -64,7 +69,7 @@ subscriptions and two charges. That seam is what this session built.
   against a made-up total, because "unlimited on both products" has no published sum to discount.
   The account page shows the plan, the allowance and the state of the other product's half.
 
-**Verified.** `tests/test_product_bundle.py` — **34 new tests**: the hand-off carries the vault id
+**Verified.** `tests/test_product_bundle.py` — **37 new tests**: the hand-off carries the vault id
 and the real subscription id and nothing that could take money; a missing vault id, a missing
 setting, a refused call and a body that does not confirm are all failures; the client never calls a
 PayPal billing endpoint; a plan change is recorded against the same subscription id and the account

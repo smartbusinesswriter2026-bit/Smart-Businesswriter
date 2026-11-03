@@ -32,6 +32,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from decimal import Decimal, InvalidOperation
 
 from . import billing
 
@@ -235,6 +236,17 @@ def _plan_name(tier, cycle):
     return "%s - %s (%s)" % (product_name(), billing.PLANS[tier]["name"], cycle)
 
 
+def _plan_cache_key(tier, cycle):
+    """The plan cache key carries the plan's name.
+
+    A PayPal plan id is immutable - it cannot be renamed - so a tier whose name changes needs a new
+    plan that carries the new name, not the old plan reused under a new label. The price hash
+    already covers a price change; this covers the name.
+    """
+    digest = hashlib.sha256(_plan_name(tier, cycle).encode("utf-8")).hexdigest()[:8]
+    return "%s:%s:%s" % (tier, cycle, digest)
+
+
 def _ensure_product(access, opener=None):
     cache = _read_cache()
     if cache.get("env") == _env_name() and cache.get("product_id") and cache.get("catalog") == _catalogue_hash():
@@ -257,7 +269,7 @@ def plan_id(tier, cycle, opener=None):
     if cycle not in billing.CYCLES:
         raise billing.BillingError("unknown billing cycle %r" % cycle)
     cache = _read_cache()
-    key = "%s:%s" % (tier, cycle)
+    key = _plan_cache_key(tier, cycle)
     if (cache.get("env") == _env_name() and cache.get("catalog") == _catalogue_hash()
             and (cache.get("plans") or {}).get(key)):
         return cache["plans"][key]
@@ -292,6 +304,25 @@ def plan_id(tier, cycle, opener=None):
     return created
 
 
+def _vault_id(payload):
+    """The vault id PayPal attached to a subscription, if it attached one.
+
+    The bundle needs it: the other product creates its own record from the same saved payment
+    source and switches that record off. PayPal reports it as ``payment_source.vault_id`` once
+    the browser SDK has vaulted the payment source. When PayPal reports none, that is reported
+    as none - a missing vault id is never invented.
+    """
+    if not isinstance(payload, dict):
+        return None
+    source = payload.get("payment_source")
+    if isinstance(source, dict):
+        vault = source.get("vault_id")
+        if vault:
+            return vault
+    vault = payload.get("vault_id")
+    return vault if vault else None
+
+
 def create_subscription(tier, cycle, opener=None):
     """Create a subscription that is not yet approved. Returns the id the SDK must approve."""
     plan = plan_id(tier, cycle, opener=opener)
@@ -305,7 +336,7 @@ def create_subscription(tier, cycle, opener=None):
     if not subscription_id:
         raise PayPalError("PayPal created no subscription id")
     return {"subscription_id": subscription_id, "plan_id": plan, "tier": tier, "cycle": cycle,
-            "status": payload.get("status")}
+            "status": payload.get("status"), "vault_id": _vault_id(payload)}
 
 
 def _period(payload):
@@ -328,11 +359,70 @@ def get_subscription(subscription_id, opener=None):
     _, payload = _call("GET", "/v1/billing/subscriptions/" + urllib.parse.quote(subscription_id),
                        token=access, opener=opener)
     subscriber = payload.get("subscriber") or {}
+    billing_info = payload.get("billing_info") or {}
     return {"subscription_id": payload.get("id") or subscription_id,
             "status": payload.get("status"),
             "plan_id": payload.get("plan_id"),
             "custom_id": payload.get("custom_id"),
             "payer_email": subscriber.get("email_address") if isinstance(subscriber, dict) else None,
+            "vault_id": _vault_id(payload),
+            "outstanding_balance": billing_info.get("outstanding_balance") if isinstance(billing_info, dict) else None,
+            "period": _period(payload)}
+
+
+def _adjustment(outstanding):
+    """Describe the money PayPal moved when a plan changed.
+
+    ``outstanding_balance`` is PayPal's own number: positive means the difference was charged,
+    negative means the unused part of the period was credited. Nothing is estimated here - when
+    PayPal does not report a balance, this says so rather than inventing one.
+    """
+    if outstanding is None:
+        return {"amount": None, "direction": "unknown",
+                "note": "PayPal reported no outstanding balance for this change."}
+    try:
+        value = Decimal(str(outstanding))
+    except (InvalidOperation, ValueError, ArithmeticError):
+        return {"amount": None, "direction": "unknown",
+                "note": "PayPal reported an outstanding balance this product cannot read."}
+    if value > 0:
+        return {"amount": str(value.quantize(Decimal("0.01"))), "direction": "charged",
+                "note": "PayPal charged the difference for the rest of this period."}
+    if value < 0:
+        return {"amount": str(abs(value).quantize(Decimal("0.01"))), "direction": "credited",
+                "note": "PayPal credited the unused part of this period to the next invoice."}
+    return {"amount": "0.00", "direction": "none",
+            "note": "The price for the rest of this period did not change."}
+
+
+def change_plan(subscription_id, tier, cycle, opener=None):
+    """Change the plan on a live subscription. PayPal prorates the unused part of the period.
+
+    The subscription id does not change - PayPal swaps the plan on it and settles the difference
+    against the saved payment method - so the ledger keeps pointing at the same subscription and
+    only the tier recorded against it moves. PayPal reports the money it moved in
+    ``billing_info.outstanding_balance``; that number is passed on untouched.
+
+    This is the owner's instruction of 2026-11-03: switching plan is "just adjust", not cancel and
+    resubscribe, so the customer is not charged twice and does not lose the period they paid for.
+    """
+    if tier not in billing.PLANS:
+        raise billing.BillingError("unknown tier %r" % tier)
+    if cycle not in billing.CYCLES:
+        raise billing.BillingError("unknown billing cycle %r" % cycle)
+    if not subscription_id or not isinstance(subscription_id, str):
+        raise billing.BillingError("a PayPal subscription id is required")
+    plan = plan_id(tier, cycle, opener=opener)
+    access = token(opener=opener)
+    _, payload = _call("PATCH", "/v1/billing/subscriptions/" + urllib.parse.quote(subscription_id),
+                       token=access, opener=opener, body={"plan_id": plan})
+    billing_info = payload.get("billing_info") or {}
+    outstanding = billing_info.get("outstanding_balance") if isinstance(billing_info, dict) else None
+    return {"subscription_id": payload.get("id") or subscription_id,
+            "plan_id": plan, "tier": tier, "cycle": cycle,
+            "status": payload.get("status"),
+            "outstanding_balance": outstanding,
+            "adjustment": _adjustment(outstanding),
             "period": _period(payload)}
 
 

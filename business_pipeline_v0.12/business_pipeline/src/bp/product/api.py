@@ -10,6 +10,13 @@ The computation owner wired the `/api/cases` prefix into `src/bp/server.py`
 The `/api/billing` family is wired the same way and is dispatched before the
 case routes.
 
+The Business Bundle (owner instruction, 2026-11-03) is **one order and one charge**:
+the money is taken in Smart Business Writer, and the other product is granted the
+same bundle from the same PayPal vault through `write_smarter.py`, so it never takes a
+second payment.  A hand-off that fails is reported as a failure of the *other*
+product's half - it never undoes a real payment and it is never dressed up as a
+success.
+
 Routes:
 
     GET    /api/billing                          -> 200 catalogue, payment config and current plan
@@ -19,8 +26,7 @@ Routes:
     POST   /api/billing/subscribe                -> 201 a PayPal subscription id to approve
     POST   /api/billing/confirm                  -> 200 verified against PayPal, then recorded
     POST   /api/billing/change                   -> 200 PayPal adjusts the plan and prorates the period
-    POST   /api/billing/cancel                   -> 200 PayPal stops billing; the paid period stays
-    GET    /api/cases                            -> 200 {"cases": [summary, ...]}
+    POST   /api/billing/cancel                   -> 200 PayPal stops billing; the paid period stays    GET    /api/cases                            -> 200 {"cases": [summary, ...]}
     GET    /api/cases?subject=<id>               -> 200 {"cases": [summary, ...]}
     GET    /api/cases/subjects                   -> 200 subject gallery
     GET    /api/cases/subjects/{id}              -> 200 subject page
@@ -174,6 +180,68 @@ def _unlimited_plan():
     return billing_module.unlimited_for(tier)
 
 
+def _bundle_handoff(tier, cycle, subscription_id, remote, opener=None):
+    """Tell the other product that the bundle was bought, and grant it there.
+
+    Only the bundle tier crosses over: the other tiers are single-product and have nothing to
+    grant elsewhere.
+
+    A failure here does **not** undo the purchase. The customer paid, PayPal says the
+    subscription is ACTIVE, and the local grant is recorded - so the failure is reported as a
+    failure of the *other* product's half, with the reason. It is never swallowed, and it is
+    never dressed up as a success.
+    """
+    if tier not in billing_module.PLANS or not billing_module.unlimited_for(tier):
+        return {"applicable": False, "granted": False,
+                "note": "this plan is a single-product plan, so nothing is granted on the other product"}
+    from . import write_smarter
+    email = remote.get("payer_email")
+    vault_id = remote.get("vault_id")
+    try:
+        result = write_smarter.grant_bundle(email, vault_id, subscription_id, tier=tier,
+                                            cycle=cycle, opener=opener)
+    except write_smarter.HandoffNotConfigured as error:
+        return {"applicable": True, "granted": False, "configured": False,
+                "error": str(error), "missing": list(error.missing),
+                "note": "The bundle was paid for and is active here. The other product was not "
+                        "told about it, so the second half needs attention."}
+    except write_smarter.HandoffError as error:
+        return {"applicable": True, "granted": False, "configured": True, "error": str(error),
+                "note": "The bundle was paid for and is active here. The other product did not "
+                        "accept the hand-off, so the second half needs attention."}
+    # The answer always carries ``granted``, whatever the other product sent back, so a caller
+    # never has to guess whether the second half was granted.
+    return dict(result, applicable=True, granted=bool(result.get("granted")))
+
+
+def _bundle_revoke(current, subscription_id, opener=None):
+    """Take the grant back on the other product when the bundle is cancelled here.
+
+    "Cancelling one side stops both products" is the owner's rule, so a cancellation that stops
+    only half of it is a failure that must be visible. The cancellation itself is already
+    recorded with PayPal and in the local ledger; this reports the other half.
+    """
+    tier = current.get("tier")
+    if tier not in billing_module.PLANS or not billing_module.unlimited_for(tier):
+        return {"applicable": False, "revoked": False,
+                "note": "this plan is a single-product plan, so there is nothing to revoke elsewhere"}
+    from . import write_smarter
+    email = current.get("payer_email")
+    try:
+        result = write_smarter.revoke_bundle(email=email, billing_subscription_id=subscription_id,
+                                              opener=opener)
+    except write_smarter.HandoffNotConfigured as error:
+        return {"applicable": True, "revoked": False, "configured": False,
+                "error": str(error), "missing": list(error.missing),
+                "note": "The subscription is cancelled here. The other product was not told, so "
+                        "its grant still needs to be taken back."}
+    except write_smarter.HandoffError as error:
+        return {"applicable": True, "revoked": False, "configured": True, "error": str(error),
+                "note": "The subscription is cancelled here. The other product did not accept the "
+                        "revocation, so its grant still needs to be taken back."}
+    return dict(result, applicable=True)
+
+
 def billing(verb, route, body):
     """The `/api/billing` family: the catalogue, checkout and the subscription ledger.
 
@@ -202,7 +270,9 @@ def billing(verb, route, body):
     if segments == ["status"]:
         if verb != "GET":
             return 405, {"error": "method %s is not allowed on the subscription status" % verb}
-        return 200, {"current": billing_module.current(), "paypal": paypal_client.config()}
+        from . import write_smarter
+        return 200, {"current": billing_module.current(), "paypal": paypal_client.config(),
+                     "write_smarter": write_smarter.config()}
 
     if segments == ["subscribe"]:
         if verb != "POST":
@@ -217,6 +287,14 @@ def billing(verb, route, body):
             return _billing_unconfigured(error)
         except paypal_client.PayPalError as error:
             return 502, {"error": str(error), "configured": True}
+        except billing_module.BillingError as error:
+            return _error(error)
+        # PayPal reports the vault id when it creates the subscription, and not always when it is
+        # read back. The bundle needs it, so it is remembered now and picked up at confirmation.
+        try:
+            billing_module.remember_pending(result.get("subscription_id"),
+                                           vault_id=result.get("vault_id"),
+                                           tier=tier, cycle=cycle)
         except billing_module.BillingError as error:
             return _error(error)
         result["price"] = {"amount": billing_module.price(tier, cycle), "cycle": cycle,
@@ -254,9 +332,17 @@ def billing(verb, route, body):
                                                period=remote.get("period"), status=status)
         except billing_module.BillingError as error:
             return _error(error)
+        # The vault id is taken from PayPal's read-back when it carries one, and from the note
+        # kept at creation when it does not - never from anything else.
+        remote = dict(remote)
+        if not remote.get("vault_id"):
+            remote["vault_id"] = billing_module.pending_vault_id(subscription_id)
+        handoff = _bundle_handoff(tier, cycle, subscription_id, remote)
+        billing_module.forget_pending(subscription_id)
         return 200, {"active": True, "recorded": recorded["recorded"], "reused": recorded["reused"],
                      "current": recorded["current"],
                      "credits": billing_module.grant_for(tier, cycle, subscription_id),
+                     "handoff": handoff,
                      "paypal": {"status": status, "plan_id": remote.get("plan_id"),
                                 "period": remote.get("period")}}
 
@@ -319,8 +405,9 @@ def billing(verb, route, body):
             recorded = billing_module.cancel(subscription_id)
         except billing_module.BillingError as error:
             return _error(error)
+        revoke = _bundle_revoke(current, subscription_id)
         return 200, {"cancelled": True, "recorded": recorded["recorded"],
-                     "current": recorded["current"]}
+                     "current": recorded["current"], "handoff": revoke}
 
     return 404, {"error": "unknown route %s" % route}
 

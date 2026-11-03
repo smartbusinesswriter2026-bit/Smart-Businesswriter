@@ -1,4 +1,4 @@
-﻿# Contributors' manual ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â rules for any human or model touching this repository
+# Contributors' manual ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â rules for any human or model touching this repository
 
 **Read this before your first edit.** It is the bridge between the project's rules (`docs/sources/business_pipeline_v0_3.md`, `docs/DECISIONS.md`) and the actual code. It is written for an AI model as much as for a person: if a rule below and a habit of yours conflict, the rule wins.
 
@@ -59,8 +59,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-python -m unittest discover -s tests          # currently 3372 tests; the framework-completion build in flight still fails Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
-python -m unittest discover -s tests          # currently 3372 tests; the framework-completion build in flight still fails Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+python -m unittest discover -s tests          # currently 3406 tests; the framework-completion build in flight still fails Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 

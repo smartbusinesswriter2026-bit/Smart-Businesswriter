@@ -17,6 +17,31 @@ These do not block slice 1 (which is built to the conservative default in the th
 
 **Owner answers (2026-10-21, B-083):** **D1 accepted** — local single-user v1 first ("more improvement later, but I need to see this working first"). **D2 accepted** — cases kept until the owner deletes them, no outbound transfer, model assistance stays opt-in/off by default. **D3 deferred** — the AI-use disclosure export is removed from slice 1 and returns as its own later, separately decided slice; slice 1 does not build it. **D4 open** — the owner asked for an explanation; sign-off is Phase 2 and the record schema does not depend on the wording.
 
+### D1 amended 2026-11-03 (B-209) — the shared login reopens the deployment model
+
+The Business Bundle is **one order, one charge and one login** (B-208). "One login" means the
+same email and password signs in on Smart Business Writer and on Write Smarter, so Smart Business
+Writer now has accounts, a sign-in, a per-account wallet and a reachable HTTPS origin. D1's
+"local single-user v1: one person, one machine, files on disk, no accounts" no longer describes the
+whole product, and the plan says so rather than leaving the two in conflict.
+
+**What changes:**
+
+| | Before (D1, 2026-10-21) | After (B-209) |
+|---|---|---|
+| Deployment | Local single-user v1 | **Hosted multi-user for the bundle** — accounts, tenancy isolation and per-user quota are in scope |
+| Accounts | None | **Per-account wallet, cases and plan**; the existing machine-local records become the first account and migrate without loss |
+| Case store | Local, opaque, one directory | Unchanged — still local and opaque for now; tenancy isolation is the identity slice's work, not the store's |
+| Authentication | None | A sign-in in the workbench, and the same credentials on both products |
+| Outbound calls | None | One outbound call, to the other product, to grant the bundle — and only for the bundle |
+
+**What does not change:** the frozen core, the case bundle as an opaque document, the export gate,
+and every rule about invented numbers. The identity work is deliberately **after** the payment
+work: the owner asked for the payment to be settled and proved against live PayPal first, because
+the login only decides *which account* the subscription attaches to, not whether the charge
+happens. The shared secret that lets the two products talk is server-side only and never appears
+in a page.
+
 ## Phase 1 — slice 1, delegated to the design owner (MiniMax)
 
 Delivered as one product increment against the frozen core, with no unfreeze.

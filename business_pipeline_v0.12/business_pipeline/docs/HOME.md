@@ -1,6 +1,6 @@
-﻿# Home Ã¢â‚¬â€ map of the repository
+# Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.78**, **3403 tests**, 2026-11-03. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.79**, **3406 tests**, 2026-11-03. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -69,6 +69,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`../web/index.html`](../web/index.html) | Workbench shell (vanilla JS) | route tests assert key strings | Ã¢â‚¬â€ |
 | [`product/`](../src/bp/product/) | Product layer: case store, immutable versions, comparison, sign-off, HTML export, ops (health/log/backup), route dispatch, and the subject index + Business Calculator launcher (`subjects.py`, `calc_router.py`, committed `data/calc_inputs_v0_1.json`). Imports no frozen core module and computes no business number | `test_product_*`, `test_launcher` | B-079, B-080, B-086, B-088, B-090, B-132 |
 | [`product/intake.py`](../src/bp/product/intake.py) | Attached-file intake store: immutable bytes under `BP_INTAKE_DIR`, SHA-256, one record per file. It reads nothing; structured files are read by `bp.ingest` through the server and every other file stays `reference_only` | `test_product_intake` | B-080 |
+| [`product/billing.py`](../src/bp/product/billing.py), [`product/paypal.py`](../src/bp/product/paypal.py), [`product/credits.py`](../src/bp/product/credits.py), [`product/write_smarter.py`](../src/bp/product/write_smarter.py) | Pricing and payment: the four tiers and the Business Bundle, PayPal subscriptions and plan changes, the export wallet, and the hand-off that grants the bundle on the other product so there is one charge | `test_product_billing`, `test_product_bundle`, `test_exports_credits` | B-163, B-208, B-209 |
 
 ## 3. By capability and status
 

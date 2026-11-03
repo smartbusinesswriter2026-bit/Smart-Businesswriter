@@ -102,43 +102,53 @@ def exported_artefacts(account="local"):
             if e.get("kind") == "deduct" and e.get("report")}
 
 
-def quote(report, deliverable, kind, account="local"):
+def quote(report, deliverable, kind, account="local", unlimited=False):
     """What one export of this artefact would cost, and why.
 
     The **first export of an artefact is free whatever its format**, and a second format of the same
     artefact is charged. That is the honest rule: a student needs one copy to hand in, and choosing PDF
     rather than Word should not cost them.
+
+    ``unlimited`` is the owner's Business Bundle: it grants no limit, so the export costs nothing
+    and the wallet never blocks. The export is still written to the ledger with a zero amount - the
+    trail of what was produced stays honest, and the balance is unchanged.
     """
     if kind not in PRICE_TABLE:
         raise CreditError(f"unknown export kind {kind!r}; known: {sorted(PRICE_TABLE)}")
     already = exported_artefacts(account)
     free = INCLUDED_FIRST and (report, deliverable) not in already
     cost = 0 if free else int(PRICE_TABLE[kind])
+    if unlimited:
+        cost = 0
     return {"report": report, "deliverable": deliverable, "kind": kind, "cost": cost, "free": free,
-            "price": int(PRICE_TABLE[kind]), "balance": balance(account)}
+            "price": int(PRICE_TABLE[kind]), "balance": balance(account), "unlimited": bool(unlimited)}
 
 
-def charge(report, deliverable, kind, account="local", idem=None):
+def charge(report, deliverable, kind, account="local", idem=None, unlimited=False):
     """Append a deduction for a completed export.
 
     Deduplication happens only when the caller supplies an `idem` key, which is what a retry carries. Without
     one, each call is a genuine new export and is charged.
+
+    An unlimited plan is charged nothing: the entry is appended with a zero amount so the export is
+    still on record, and the balance does not move.
     """
     with LOCK:
         if idem:
             for e in entries(account):
                 if e.get("idem") == idem and e.get("kind") == "deduct":
                     return {"charged": False, "reused": True, "entry": e, "balance": balance(account)}
-        q = quote(report, deliverable, kind, account)
+        q = quote(report, deliverable, kind, account, unlimited=unlimited)
         if q["cost"] > q["balance"]:
             raise InsufficientCredits(q["cost"], q["balance"], kind)
         entry = {"id": uuid.uuid4().hex[:12], "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                 "account": account, "kind": "deduct", "amount": -q["cost"], "reason": "export",
+                 "account": account, "kind": "deduct", "amount": -q["cost"],
+                 "reason": "export" if not q["unlimited"] else "export (unlimited plan)",
                  "report": report, "deliverable": deliverable, "format": kind, "idem": idem,
                  "balance_after": q["balance"] - q["cost"]}
         _append(entry)
         return {"charged": q["cost"] > 0, "reused": False, "entry": entry,
-                "balance": q["balance"] - q["cost"], "free": q["free"]}
+                "balance": q["balance"] - q["cost"], "free": q["free"], "unlimited": q["unlimited"]}
 
 
 def refund(report, deliverable, kind, account="local", reason="export failed"):

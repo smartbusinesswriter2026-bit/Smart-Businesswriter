@@ -13,15 +13,19 @@
   Curated for this product, and deliberately not a copy of any hosted account page.
   What that means here, so a later change does not undo it on autopilot:
 
-  * No sign-in, password, e-mail address, sign-up or sign-out. This product runs as
-    a single local user on one machine; there is no identity to authenticate.
+  * No sign-in, password, e-mail address, sign-up or sign-out **in this build**. This product
+    runs as a single local user on one machine; there is no identity to authenticate yet.
+    The Business Bundle promises one login across both products (B-208), which reopens the
+    deployment model (B-209) — so the identity work is coming, and this page will have to say
+    so when it lands rather than pretend it already does.
   * No analytics, tag manager, tracker or remote font. The workbench makes no
     external network calls, and neither does this page: no font is fetched, no
     script leaves the machine, and every value below is read from this machine's
-    own API.
-  * No subscription, card, top-up or payment history. The pricing tiers shown are
-    read from the local billing catalogue; checkout happens in the workbench's Pricing
-    dialog, inside PayPal, and this server never holds a card or a payment instrument.
+    own API. The one exception is the Business Bundle hand-off, which leaves this
+    server only to grant the bundle on the other product; it carries no case content.
+  * A subscription, card, top-up or payment history **is** shown, and it is read from the local
+    billing catalogue and ledger. Checkout happens in the workbench's Pricing dialog, inside
+    PayPal, and this server never holds a card or a payment instrument.
   * No schema.org / OpenGraph metadata. There is no public URL to point at and no
     verified organisation to claim, so none is asserted.
   * No invented numbers. Every count, path, price and rule on this page is read
@@ -485,6 +489,12 @@ code,.mono{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,mon
       cell.appendChild(name);
       cell.appendChild(price);
       cell.appendChild(annual);
+      if (card.unlimited) {
+        var unlimited = document.createElement("div");
+        unlimited.className = "a";
+        unlimited.textContent = "unlimited on both products";
+        cell.appendChild(unlimited);
+      }
       host.appendChild(cell);
     });
   }).catch(function () { set("#v-balance", "—"); });
@@ -515,8 +525,17 @@ code,.mono{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,mon
     row("Current plan", cur.name || cur.tier);
     row("Billed", cur.cycle === "annual" ? "Yearly" : "Monthly");
     row("Status", cur.status);
-    row("Credits", cur.credits === null ? "To be confirmed" : String(cur.credits));
+    row("Credits", cur.unlimited ? "Unlimited" : (cur.credits === null ? "To be confirmed" : String(cur.credits)));
+    if (cur.unlimited) row("Includes", "Write Smarter - unlimited, Smart Business Writer - unlimited");
     if (cur.period && cur.period.next_billing) row("Next payment", stamp(cur.period.next_billing));
+    // The bundle spans two products, so the other half has a state of its own. A bundle that
+    // was paid for but not granted on the other side is shown, not hidden.
+    var ws = (data && data.write_smarter) || null;
+    if (cur.unlimited && ws) {
+      row("Other product", ws.configured
+        ? "Reached over the network with the shared secret"
+        : "Not connected yet - the bundle is active here, but the other product has not been told");
+    }
     Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (cell) {
       var label = cell.querySelector(".t");
       if (label && label.textContent === (cur.name || "")) cell.classList.add("on");

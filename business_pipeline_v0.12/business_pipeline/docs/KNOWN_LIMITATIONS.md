@@ -609,7 +609,8 @@ If an assignment needs one of these, say so in the limitations and show the meth
 ## Added with pricing and PayPal (B-163)
 - **Live checkout needs an HTTPS origin.** PayPal's live JS SDK generally refuses to render on
   `http://127.0.0.1:8000`. The code does not depend on the origin; a tunnel (or any HTTPS host) is
-  enough. The pricing page says so instead of showing a button that cannot work.
+  enough. The pricing page says so instead of showing a button that cannot work. The owner confirmed
+  on 2026-11-03 that the workbench runs over HTTPS on a VPS, so this origin now exists.
 - **No webhook.** PayPal cannot reach a machine at 127.0.0.1, so a renewal, a failed payment or a
   cancellation made inside PayPal is not pushed to this server. Activation is verified against
   PayPal at approval, `GET /api/billing/status` is a read of the local ledger, and a subscription
@@ -617,16 +618,48 @@ If an assignment needs one of these, say so in the limitations and show the meth
   signature verification; neither is built.
 - **Credit allowances are unset.** Every tier's `credits` is `null` and the page says "to be
   confirmed". `billing.grant_for()` is the wired hook and appends nothing until an allowance exists;
-  no export balance is affected by a subscription today.
+  no export balance is affected by a subscription today. **The Business Bundle is the one exception**
+  (B-208): it grants no limit at all rather than a number, so the export wallet stops blocking for
+  it. A tier whose allowance is still undecided keeps its meter - undecided is not free.
 - **Cancelling is immediate at PayPal and local thereafter.** PayPal stops billing at once and this
   machine keeps the plan and its recorded period, so the paid period is not cut short. There is no
   proration, refund or dunning logic.
 - **The subscription is per machine, not per person.** There is still no identity: the ledger records
   the payer e-mail PayPal reports for reference, and the "current plan" is whatever this machine
-  last activated.
+  last activated. **The shared login that changes this is not built** (B-208 promises it; B-209
+  records it as the amendment to D1).
 - **The secret is only as safe as the file.** `PAYPAL_CLIENT_SECRET` sits in `Backend/.env`, which
   git ignores; it is never returned by an API, logged or printed, but it is readable by anyone who
   can read that file on this machine.
+
+## Added with the Business Bundle (B-208, B-209)
+- **The bundle has never taken a real payment.** The code is built and unit-tested, but the live
+  $99.99 charge - the first real charge this product has taken - has not happened. Every claim
+  about PayPal's behaviour in the bundle path (the proration arithmetic, the vault handoff, the
+  switch-off) is therefore **verified against fixtures, not against the live merchant account**.
+  `docs/BUNDLE_PRICING_HANDOFF.md` §6 lists the seven checks that must be proved.
+- **The one-charge rule depends on three settings the owner must supply.** `BP_WRITE_SMARTER_URL`,
+  `BP_BUNDLE_HANDOFF_SECRET` (the same value on both products) and `PAYPAL_PLAN_ID_BUNDLE_RECORD`
+  (a **$0** PayPal plan on the Write Smarter side). Until they exist the hand-off fails closed with
+  a named reason; it never creates a record that could bill.
+- **A failed hand-off leaves half a bundle, and says so.** The customer paid and the subscription is
+  ACTIVE, so the local grant stands and the payment is never treated as failed. But the other
+  product is not granted, so the reply and the account page report the hand-off's failure with its
+  reason. The bundle is **half granted** until it is retried; nothing retries on its own, because
+  PayPal cannot reach the server.
+- **The bundle is granted per purchase, not per account, until the login exists.** The entitlement
+  is keyed on the customer's e-mail address, so a customer who buys under one address and signs in
+  under another would not be recognised. The shared login (I4) is what fixes this.
+- **The lower rungs are not built.** The $18.99 / $35.99 / $59.99 rungs, the per-tier allowances
+  and the per-cycle credit refill are all deferred by the owner (B-180a, B-180b). Nothing about them
+  is estimated or shown.
+- **The bundle's price is declared, not a discount.** "Unlimited Write Smarter + unlimited Smart
+  Business Writer" has no published sum to take 20% off, so the card carries no "% off" and no
+  "save $" line against a made-up total. Only the annual price ($959.90, derived as twelve months
+  less 20%) is a saving, against the monthly price actually published.
+- **The Write Smarter side's record is a mirror, not a subscription.** It exists so that product can
+  watch the purchase, and it is switched off at PayPal and kept on a $0 plan. Its status is never
+  what decides whether the customer has paid - the **real** subscription id is.
 
 ## Added with the portfolio screening lab (B-184)
 - **The shortlist ranks sourced values; it does not recommend.** Criteria are declared (one-day

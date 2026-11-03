@@ -1,3 +1,60 @@
+## The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
+
+The owner decided on 2026-11-03 that there is a **$99.99/month bundle giving unlimited use of both
+products** — Write Smarter *and* Smart Business Writer — sold as **one order**, charged **once**,
+with **one login** that works on both products. Smart Business Writer's existing $99.99 tier
+becomes the bundle; the lower tiers keep their prices; the purchase is taken in Smart Business
+Writer. The owner asked for **the payment first**: settled and proved against live PayPal before
+the limits, the allowance numbers and the credit refill are built. Build **1.79**.
+
+- **The bundle tier** (`src/bp/product/billing.py`). The `agency` key is kept — a PayPal plan id is
+  immutable, so renaming the plan in place would have billed the old label — and the customer now
+  reads **"Business Bundle"**. It carries an `unlimited` **flag**, not a number: the other three
+  tiers still report `credits: null` and still print "to be confirmed". A tier whose allowance is
+  undecided is **not** unlimited — *undecided is not free*.
+- **A plan change that prorates** (`paypal.change_plan`, `POST /api/billing/change`). PayPal's plan
+  id is swapped on the running subscription and the difference is settled against the saved payment
+  method, so there is no second approval and no lost period. PayPal's own
+  `billing_info.outstanding_balance` is passed on **untouched** and described as charged, credited
+  or unknown — never estimated.
+- **The ledger records the plan change.** It was **first-wins on a subscription id**, so an upgrade
+  on the same PayPal subscription id would never have appeared on the account page, and the
+  cancellation message would have named the tier the customer had left. The activation is now
+  idempotent on the subscription id **and** the tier it carries: a tier change is recorded, a
+  retried confirmation of the same tier is not, and the latest activation is what stands.
+- **The hand-off — the seam that makes "one charge" true** (new `src/bp/product/write_smarter.py`).
+  On approval, PayPal's `payment_source.vault_id` is posted to the hosted Write Smarter service
+  with a shared secret. That service creates **its own** record from the same vault, switches it
+  off, and reads it back to prove it cannot bill. Two independent guards: the record's plan is
+  **$0**, and a record PayPal still calls ACTIVE fails the grant rather than being reported as
+  switched off. The hand-off client **cannot take a payment** — it never calls a PayPal billing
+  endpoint.
+- **A failed hand-off never undoes a real payment.** The customer paid and the subscription is
+  ACTIVE, so the local grant stands; the failure is reported as a failure of the **other product's
+  half**, with the reason, on the confirm reply, the cancel reply and the account page. A missing
+  URL or secret fails closed and names **every** variable that is absent.
+- **Cancelling one side stops both.** Cancelling here revokes the grant on the other product, and
+  the other product reads the **real** subscription's status. The switched-off record is never what
+  decides whether the customer has paid.
+- **The other product's side** (Write Smarter's live `Backend`, pulled from the VPS): a new
+  `bundle-entitlement.js`, two service routes, and an unlimited pool tier in `auth.js`. The bundle
+  SKU is deliberately **not** in the table the checkout sells from — a bundle SKU there would let a
+  customer buy a second live subscription.
+- **The unlimited wallet.** A bundle holder never receives a 402: the export is still written to the
+  ledger with a zero amount, so the trail stays honest and the balance does not move.
+- **The pricing dialog and the account page.** The fourth card reads $99.99 / $959.90 with
+  **"Unlimited"** and names both products; the bundle carries **no "% off" and no "save $"** line
+  against a made-up total.
+- **D1 amended (B-209).** "Local single-user v1: no accounts" no longer describes the whole
+  product, because one login across two products needs accounts and tenancy isolation. That is
+  recorded as an amendment in `docs/PRODUCT_BACKEND_PLAN.md`, and `deploy/README.md` and
+  `web/account.html` were amended with it — both used to promise "no authentication".
+- **Tests**: `tests/test_product_bundle.py` (37 new), Write Smarter's
+  `Backend/tests/bundle-entitlement.test.mjs` (9). **No live charge has been taken yet** — every
+  claim about PayPal's behaviour here is verified against fixtures, and the seven checks in §6 of
+  `docs/BUNDLE_PRICING_HANDOFF.md` are open. No frozen core, method, preset, template contract,
+  input, check, number or route family changed.
+
 ## The grid width claim becomes a measurement, and the copy stops repeating itself
 
 The design lane's B-080 report was checked line by line instead of taken on trust: every gate
@@ -35,6 +92,7 @@ on disk - and two smaller things a reader would notice before a reviewer. Build 
   1.77 - a literal in `web/index.html` that nothing refreshes from `/api/health`. Global chrome,
   three lanes in that file, and one source of truth for the build number is the owner's call.
 
+- 1.79 (2026-11-03): **the Business Bundle is one order, one charge, and the hand-off that makes it true (B-208, B-209).** The owner's decision of 2026-11-03: a $99.99/month bundle giving unlimited use of Write Smarter *and* Smart Business Writer, sold as one order, charged once, with one login on both products. The bundle tier carries an `unlimited` flag rather than a number (the other three tiers still report `credits: null`); a plan change prorates against the running subscription and PayPal's own `outstanding_balance` is passed on untouched; the ledger, which was first-wins on a subscription id and would have hidden every tier change, now records and reads the latest activation; a bundle holder is never blocked by the export wallet; and the new `write_smarter.py` posts PayPal's vault id to the other product, which creates its own record from that vault, switches it off and proves it cannot bill - so there is one charge and not two. The vault id is remembered between creating and confirming, because PayPal names it on the creation response and not always on the read-back. 37 new tests plus 9 on the other product's side. No live charge has been taken yet. No frozen core, method, preset, template contract, input, check, number or route family changed.
 - 1.78 (2026-11-03): **the SERVQUAL grid declares one form.** `template_servqual` (`MKT-07`) was
   listed in `CANVAS_BLOCKS` and `MATRIX_META` at the same time, so `describe()` called it a canvas
   and handed the page a five-block editor, while the template it actually registers is

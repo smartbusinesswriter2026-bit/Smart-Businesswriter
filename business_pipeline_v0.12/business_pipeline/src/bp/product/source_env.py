@@ -41,6 +41,10 @@ ALLOWED = {
     "PAYPAL_CLIENT_ID": "BP_PAYPAL_CLIENT_ID",
     "PAYPAL_CLIENT_SECRET": "BP_PAYPAL_CLIENT_SECRET",
     "PAYPAL_ENV": "BP_PAYPAL_ENV",
+    # The Business Bundle hand-off to the other product: its address and the shared secret
+    # both products carry. The secret is server-side only.
+    "WRITE_SMARTER_URL": "BP_WRITE_SMARTER_URL",
+    "BUNDLE_HANDOFF_SECRET": "BP_BUNDLE_HANDOFF_SECRET",
 }
 DEFAULT_PATHS = (str(PROJECT_ENV), r"D:\AA\Backend\.env", r"D:\AA\AcademicSources\Backend\.env")
 

@@ -44,11 +44,19 @@ TIERS = ("starter", "pro", "studio", "agency")
 
 #: The catalogue. ``monthly`` is the only price written by hand; ``credits`` and ``highlights`` stay
 #: empty until the owner supplies them - see ``billing.py`` in DESIGN_NOTES for where they land.
+#:
+#: The fourth tier is the owner's Business Bundle (owner instruction, 2026-11-03): one subscription
+#: that grants unlimited use of **both** products - this one and Write Smarter. It keeps the
+#: ``agency`` key so the PayPal plan cache and every ledger already written against it stay valid;
+#: only the name the customer reads and the allowance it grants changed. ``unlimited`` is a
+#: declaration, not a number: the other three tiers still report no allowance at all.
 PLANS = {
     "starter": {"name": "Starter", "monthly": "14.99", "credits": None, "highlights": []},
     "pro": {"name": "Pro", "monthly": "29.99", "credits": None, "highlights": []},
     "studio": {"name": "Studio", "monthly": "49.99", "credits": None, "highlights": []},
-    "agency": {"name": "Agency", "monthly": "99.99", "credits": None, "highlights": []},
+    "agency": {"name": "Business Bundle", "monthly": "99.99", "credits": None, "highlights": [],
+               "unlimited": True,
+               "includes": ["Write Smarter - unlimited", "Smart Business Writer - unlimited"]},
 }
 
 CYCLES = ("monthly", "annual")
@@ -96,12 +104,21 @@ def annual_saving(tier):
 def card(tier):
     """One card's payload: the prices, the derived saving and the fields still to be supplied."""
     plan = PLANS[tier]
+    unlimited = bool(plan.get("unlimited"))
+    if unlimited:
+        label = "Unlimited"
+    elif plan["credits"] is None:
+        label = "Credit allowance: to be confirmed"
+    else:
+        label = plan["credits"]
     return {"tier": tier, "name": plan["name"], "currency": CURRENCY,
             "monthly": {"amount": price(tier, "monthly"), "cycle": "monthly"},
             "annual": {"amount": price(tier, "annual"), "cycle": "annual", "months": 12},
             "annual_saving": annual_saving(tier),
             "credits": plan["credits"],
-            "credits_label": "Credit allowance: to be confirmed" if plan["credits"] is None else plan["credits"],
+            "credits_label": label,
+            "unlimited": unlimited,
+            "includes": list(plan.get("includes") or []),
             "highlights": list(plan["highlights"])}
 
 
@@ -112,7 +129,8 @@ def catalogue():
             "credits_set": all(PLANS[tier]["credits"] is not None for tier in TIERS),
             "notice": "Prices are the owner's configuration. The annual price is 12 months less "
                       "the declared discount. Credit allowances are not set yet; they are "
-                      "returned as null rather than estimated."}
+                      "returned as null rather than estimated. The Business Bundle grants no "
+                      "limit on either product, and says so rather than quoting an allowance."}
 
 
 # -- the ledger ----------------------------------------------------------------------------------
@@ -124,6 +142,80 @@ def _state_dir():
 
 def _path():
     return os.path.join(_state_dir(), "subscriptions.jsonl")
+
+
+def _pending_path():
+    return os.path.join(_state_dir(), "pending_subscriptions.json")
+
+
+def _read_pending():
+    """The subscriptions that were created but not yet approved, and their vault ids.
+
+    PayPal reports the vault id on the **creation** response; the read-back of an approved
+    subscription does not always carry it. The Business Bundle needs it - the other product
+    creates its own record from that vault - so it is remembered here between the two calls.
+
+    The file holds only what PayPal already reported for a subscription this machine created. It
+    is a short-lived working note: an entry is dropped once the subscription is confirmed.
+    """
+    path = _pending_path()
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as stream:
+            data = json.load(stream)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _write_pending(data):
+    path = _pending_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as stream:
+        json.dump(data, stream, sort_keys=True, indent=2)
+
+
+def remember_pending(subscription_id, vault_id=None, tier=None, cycle=None):
+    """Remember a subscription this machine created, and the vault id PayPal reported for it.
+
+    Called at creation, because that is the only moment PayPal reliably names the vault.
+    """
+    if not subscription_id or not isinstance(subscription_id, str):
+        raise BillingError("a PayPal subscription id is required")
+    with LOCK:
+        pending = _read_pending()
+        entry = pending.get(subscription_id) or {}
+        if vault_id:
+            entry["vault_id"] = vault_id
+        if tier:
+            entry["tier"] = tier
+        if cycle:
+            entry["cycle"] = cycle
+        pending[subscription_id] = entry
+        _write_pending(pending)
+        return entry
+
+
+def pending_vault_id(subscription_id):
+    """The vault id remembered for a subscription, or None. Never guessed."""
+    if not subscription_id or not isinstance(subscription_id, str):
+        return None
+    entry = _read_pending().get(subscription_id) or {}
+    return entry.get("vault_id") or None
+
+
+def forget_pending(subscription_id):
+    """Drop a subscription's working note once it is confirmed and recorded."""
+    if not subscription_id or not isinstance(subscription_id, str):
+        return False
+    with LOCK:
+        pending = _read_pending()
+        if subscription_id not in pending:
+            return False
+        pending.pop(subscription_id, None)
+        _write_pending(pending)
+        return True
 
 
 def _read():
@@ -161,7 +253,12 @@ def entries(limit=None):
 
 
 def activate(tier, cycle, subscription_id, payer_email=None, period=None, status="ACTIVE"):
-    """Record a paid subscription. Idempotent on the PayPal subscription id.
+    """Record a paid subscription. Idempotent on the subscription id *and* the tier it carries.
+
+    PayPal keeps the same subscription id when the plan changes, so a plan change is a **new**
+    activation of the same subscription - it must be recorded, or the account page would keep
+    reporting the tier the customer left. A retried confirmation of the same tier records
+    nothing new.
 
     ``period`` is whatever PayPal reported (``{"start": ..., "next_billing": ...}``); nothing is
     derived from it beyond keeping the paid-through date for the cancellation message.
@@ -174,14 +271,20 @@ def activate(tier, cycle, subscription_id, payer_email=None, period=None, status
         raise BillingError("unknown billing cycle %r; known: %s" % (cycle, ", ".join(CYCLES)))
     with LOCK:
         for event in _read():
-            if event.get("kind") == "activate" and event.get("subscription_id") == subscription_id:
+            # Idempotent on the subscription id *and* the tier it carries. PayPal keeps the same
+            # subscription id when the plan changes, so a plan change is a new activation of the
+            # same subscription - it must be recorded, while a retried confirmation of the same
+            # tier must not append a second line.
+            if (event.get("kind") == "activate" and event.get("subscription_id") == subscription_id
+                    and event.get("tier") == tier and event.get("cycle") == cycle):
                 return {"recorded": False, "reused": True, "entry": event, "current": current()}
         event = {"id": uuid.uuid4().hex[:12], "at": _now(), "kind": "activate",
                  "subscription_id": subscription_id, "tier": tier, "cycle": cycle,
                  "amount": price(tier, cycle), "currency": CURRENCY,
                  "payer_email": payer_email or None, "status": status,
                  "period": period if isinstance(period, dict) else {},
-                 "credits": PLANS[tier]["credits"], "idem": subscription_id}
+                 "credits": PLANS[tier]["credits"], "unlimited": unlimited_for(tier),
+                 "idem": subscription_id}
         _append(event)
         return {"recorded": True, "reused": False, "entry": event, "current": current()}
 
@@ -203,10 +306,17 @@ def cancel(subscription_id, reason="requested by the subscriber"):
 
 
 def _activation(subscription_id):
+    """The activation that stands for this subscription: the latest one.
+
+    A plan change keeps the PayPal subscription id and appends a new activation carrying the new
+    tier, so the latest line is the plan the customer is on. The cancellation message and the
+    account page must read that line, not the first one.
+    """
+    found = None
     for event in _read():
         if event.get("kind") == "activate" and event.get("subscription_id") == subscription_id:
-            return event
-    return None
+            found = event
+    return found
 
 
 def _cancelled(subscription_id):
@@ -223,17 +333,22 @@ def current():
     activations = [event for event in _read() if event.get("kind") == "activate"]
     if not activations:
         return {"has_subscription": False, "tier": None, "name": None, "cycle": None,
-                "status": "none", "subscription_id": None, "credits": None,
+                "status": "none", "subscription_id": None, "credits": None, "unlimited": False,
                 "period": {}, "since": None}
     latest = activations[-1]
     subscription_id = latest.get("subscription_id")
     cancelled = _cancelled(subscription_id)
-    return {"has_subscription": True, "tier": latest.get("tier"),
-            "name": PLANS.get(latest.get("tier"), {}).get("name"),
+    tier = latest.get("tier")
+    unlimited = bool(latest.get("unlimited"))
+    if not unlimited and tier in PLANS:
+        unlimited = unlimited_for(tier)
+    return {"has_subscription": True, "tier": tier,
+            "name": PLANS.get(tier, {}).get("name"),
             "cycle": latest.get("cycle"), "subscription_id": subscription_id,
             "status": "cancelled" if cancelled else (latest.get("status") or "ACTIVE"),
             "amount": latest.get("amount"), "currency": latest.get("currency"),
             "payer_email": latest.get("payer_email"), "credits": latest.get("credits"),
+            "unlimited": unlimited,
             "period": latest.get("period") or {}, "since": latest.get("at")}
 
 
@@ -244,6 +359,18 @@ def credits_for(tier):
     return PLANS[tier]["credits"]
 
 
+def unlimited_for(tier):
+    """True when the tier grants no limit at all.
+
+    The Business Bundle is the owner's declaration that neither product meters the customer, so
+    the wallet stops blocking for it. A tier that has no allowance set yet is **not** unlimited:
+    it is undecided, and undecided is not free.
+    """
+    if tier not in PLANS:
+        raise BillingError("unknown tier %r" % tier)
+    return bool(PLANS[tier].get("unlimited"))
+
+
 def grant_for(tier, cycle, subscription_id):
     """The hook the credit system will use, wired now and deliberately inert.
 
@@ -251,7 +378,15 @@ def grant_for(tier, cycle, subscription_id):
     ``credits.py``) keyed on ``subscription_id`` so a retry cannot grant twice. Today every tier's
     allowance is ``None``, so nothing is appended and the caller is told why - the product does not
     pretend to have sold credits it has not defined.
+
+    The Business Bundle grants no limit instead of an allowance, and says so: the wallet stops
+    blocking for it rather than pretending to hold a number of credits.
     """
+    if unlimited_for(tier):
+        return {"granted": None, "unlimited": True,
+                "reason": "the %s tier grants no limit, so there is no allowance to grant"
+                          % PLANS[tier]["name"],
+                "subscription_id": subscription_id}
     allowance = credits_for(tier)
     if allowance is None:
         return {"granted": None, "reason": "no credit allowance is set for %r yet" % tier,

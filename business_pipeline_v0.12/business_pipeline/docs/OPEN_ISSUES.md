@@ -1,5 +1,25 @@
 # Open issues (not fixed in this session)
 
+## Item 17 — The Business Bundle's live charge is not taken (2026-11-03)
+- **The code is built and unit-tested; the live merchant account has not been used.** Every claim
+  about PayPal's behaviour in the bundle path is verified against **fixtures**, not against a real
+  charge. `docs/BUNDLE_PRICING_HANDOFF.md` §6 lists the seven checks that must be proved:
+  one approved $99.99 charge; the Write Smarter-side record never bills; an upgrade prorates and
+  the recorded tier changes; cancelling one side stops both; annual bills $959.90 once; a bundle
+  holder is never blocked; the same credentials sign in on both products.
+- **Three settings the owner must supply** (the code fails closed without them, naming each one):
+  `BP_WRITE_SMARTER_URL` (the hosted Write Smarter service) and `BP_BUNDLE_HANDOFF_SECRET` (the
+  same value on both products), plus `PAYPAL_PLAN_ID_BUNDLE_RECORD` — a **$0** PayPal plan on the
+  Write Smarter side, so that even a failed switch-off could not take a second payment. The $0
+  plan is the one setting this product cannot create for itself, because a $0 plan is not a plan it
+  would ever sell.
+- **The shared login is not built** (B-208 promises it; B-209 records it as the amendment to D1).
+  It waits on the live charge, by the owner's instruction: the payment first, then the identity.
+- **The lower rungs are deferred** (B-180a, B-180b): the $18.99 / $35.99 / $59.99 rungs, the
+  per-tier allowances and the per-cycle credit refill. Nothing about them is estimated or shown.
+- **The Write Smarter pricing page band waits on the owner's hosted URL** (§4.3 of the bundle
+  handoff): advertise it as a pointer to Smart Business Writer, or leave it off.
+
 ## Item 11 — People computations defects
 - 11a CEA icer key: code writes `icer_{slug}`; verify serializer/UI/render consumers expect same key.
 - 11b labour-market tightness formula: code uses `vacancies / unemployment_rate`; docs say `vacancies / unemployed`. Resolve intended denominator/units.
