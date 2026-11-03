@@ -73,7 +73,10 @@ def _flatten(value):
 def _render(key, value, method, recorded=None):
     """One figure as a reader can use it: the core's declared precision, no Python repr."""
     from decimal import Decimal, InvalidOperation
-    if isinstance(value, (list, tuple)):
+    if isinstance(value, (dict, list, tuple)):
+        # A column_map input (`{'lecture': ['62', …], 'workshop': […]}`) printed as a
+        # Python repr until D-RES-03: a dict is a figure the student declared, so it is
+        # spelled out like every other one.
         return "%s: %s" % (_plain(key), _flatten(value))
     unit = precision = None
     if method is not None and getattr(method, "typing", None):

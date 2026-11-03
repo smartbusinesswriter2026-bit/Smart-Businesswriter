@@ -1,3 +1,14 @@
+- 1.83 (2026-11-03): **the Research & statistics shelf is verified subject by subject, and five records stop denying methods the page ships.** The shelf is cross-cutting: every other subject's papers cite its numbers. Measured at the opening tree (`6c7073c`): 21 tools, **0 worksheets, 0 tiles**, 10 records (3 computed, 7 read-only), 0 theories, 0 glossary, 8 of 21 tool keys resolving against `LIBRARY`, `LIBRARY` 142 / `PRESETS` 144 and a fixture that pins the same.
+
+  - **D-RES-01 — five records said "Method not built" while the page offered a calculator for the area.** `QNT-STA-02` (power), `-05` (reliability), `-06` (multiple comparison, missing data), `-07` (forecasting) and `-09` (difference-in-differences, regression discontinuity, instrumental variables, panel regression — shipped on the **Economics** shelf) are now `computed`, each with a "partial:" sentence that names the part that ships and the part that does not. The same sentences were added to `registry.METHOD_LINK_RULES`, so the committed slice and the framework API cannot disagree — `test_product_subjects` compares them. `QNT-STA-08` (clustering) and `-10` (SEM) stay read-only because nothing computes them.
+  - **D-RES-06 — the page could group nothing.** 21 tools, 0 groups, 0 tiles and 9 null levels meant `web/index.html` fell back to a flat list. Owner instruction: the tiles are the shelf's own four `start_steps`, verbatim — *Describe the data* (2 tools), *Compare groups* (9), *Relate variables* (6), *Check the design* (4) — and their keys are the tool groups, because `_tiles` matches a calculator to a tile by its group string. The nine null levels stay null: the page now groups by tile, and a second taxonomy was not requested (**B-213**).
+  - **D-RES-03 — every paper with a column-map input printed a Python repr.** `session_paper._render` flattened lists and tuples but not dicts, so a Welch, ANOVA, OLS or logistic paper printed `Groups: {'lecture': ['62', …], 'workshop': […]}` — a P4 breach on the artefact that no numeric test would catch. Dicts are now spelled out like every other declared figure.
+  - **The figures are proved by hand, not by a green test.** `qa/probe_research_shelf.py` re-derives the closed form of every method with its own code (incomplete beta, `erfc`, ranks, sums of squares, the normal CDF) and compares it to the printed paper: **61 figures compared, 0 disagreements**, including Welch–Satterthwaite (`df` 4.959, never `n₁+n₂−2`), the published `P(|T|>2.0 | df 10) = 0.0734`, and `χ²(1) = 4.0 → p = 0.0455`.
+  - **Two measurement traps are now pinned.** 13 of the 21 `tool["key"]` values are not library ids (`welch`→`welch_t`), so a probe that resolves keys reports 13 false defects; and `docs/BACKEND_CONTRACT.md` §2 said "140 methods"/"142 presets" in four places against a measured 142/144 — the **document** was corrected, the fixture was not touched (D-RES-07).
+  - **What is still open, by owner decision.** `power` and `missing` print no "Honesty: what was not done" block because neither declares `caveats` in the core (D-RES-04), and `logistic_regression` declares 6 decimal places, so its paper prints `-22.806666` while the house rule other shelves test for is "no six-decimal figure" (D-RES-05). Both are one core edit each and a nine-shelf blast radius, so both are ledgered and pinned by a test rather than changed here.
+  - **New:** `qa/manual/research.md` (53 E-rows, 10 sections), `tests/test_subject_research_acceptance.py` (53 tests, 53 passed), `qa/probe_research_shelf.py`. Re-tested: economics + operations acceptance (129 passed), `test_catalogue_truth`, `test_product_subjects`, `test_docs_sync` (8), `scripts/econ_shelf.py --check` (frozen fixture in sync).
+
+
 ## The build pill stops claiming a build the tree is not
 
 Found while capturing the grid evidence: the top bar read **v1.45** while the tree was build
@@ -91,9 +102,20 @@ the limits, the allowance numbers and the credit refill are built. Build **1.79*
   customer buy a second live subscription.
 - **The unlimited wallet.** A bundle holder never receives a 402: the export is still written to the
   ledger with a zero amount, so the trail stays honest and the balance does not move.
-- **The pricing dialog and the account page.** The fourth card reads $99.99 / $959.90 with
-  **"Unlimited"** and names both products; the bundle carries **no "% off" and no "save $"** line
-  against a made-up total.
+- **The pricing dialog and the account page.** The bundle carries **no "% off" and no "save $"** line
+  against a made-up total. The account page shows the plan and its allowance.
+- **The bundle is shown as a band below the pricing grid, not as a fourth card.** The owner looked
+  at the dialog and did not see the bundle as one thing, because a fourth card in the grid reads as
+  "a fourth tier of this product" - and the bundle is not that; it is **two** products at one
+  price. The three single-product tiers now sit in a **three**-column grid (Starter, Pro, Studio),
+  and the bundle sits below them in its own band: **$99.99 a month** as one price, tagged "Both
+  products", with what the one price buys in each product side by side — **Write Smarter**'s
+  unlimited Text-Gen, Research Assistant, Humanizer & AI-Detector, Video and Source Finder, and
+  Smart Business Writer's unlimited exports. The band follows the monthly/annual toggle
+  ($959.90 a year) and stacks its two panels on a narrow screen instead of overflowing.
+  The catalogue now says which tiers are cards and which is the band (`card_tiers`, `bundle_tier`),
+  and each tier's colour comes from the catalogue too, so **the page names no tier at all** — a new
+  rung or a price change needs no edit to the page.
 - **D1 amended (B-209).** "Local single-user v1: no accounts" no longer describes the whole
   product, because one login across two products needs accounts and tenancy isolation. That is
   recorded as an amendment in `docs/PRODUCT_BACKEND_PLAN.md`, and `deploy/README.md` and
@@ -141,6 +163,7 @@ on disk - and two smaller things a reader would notice before a reviewer. Build 
   1.77 - a literal in `web/index.html` that nothing refreshes from `/api/health`. Global chrome,
   three lanes in that file, and one source of truth for the build number is the owner's call.
 
+- 1.82 (2026-11-03): **the bundle is a band below the pricing grid, not a fourth card in it.** The owner could not see the bundle in the dialog, and the reason was structural: a fourth card in the same grid reads as "a fourth tier of this product", and the bundle is two products at one price. The three single-product tiers now sit in a three-column grid (Starter, Pro, Studio) and the bundle sits below them in its own band - $99.99 a month as one price, tagged "Both products", with Write Smarter's unlimited Text-Gen, Research Assistant, Humanizer & AI-Detector, Video and Source Finder beside Smart Business Writer's unlimited exports. The band follows the monthly/annual toggle and stacks its two panels on a narrow screen. The catalogue now says which tiers are cards and which is the band (`card_tiers`, `bundle_tier`) and carries each tier's colour, so the page names no tier at all: a new rung or a price change needs no edit to the page. 7 new tests. No price, method, preset, template contract, input, check, number or route family changed.
 - 1.79 (2026-11-03): **the Business Bundle is one order, one charge, and the hand-off that makes it true (B-208, B-209).** The owner's decision of 2026-11-03: a $99.99/month bundle giving unlimited use of Write Smarter *and* Smart Business Writer, sold as one order, charged once, with one login on both products. The bundle tier carries an `unlimited` flag rather than a number (the other three tiers still report `credits: null`); a plan change prorates against the running subscription and PayPal's own `outstanding_balance` is passed on untouched; the ledger, which was first-wins on a subscription id and would have hidden every tier change, now records and reads the latest activation; a bundle holder is never blocked by the export wallet; and the new `write_smarter.py` posts PayPal's vault id to the other product, which creates its own record from that vault, switches it off and proves it cannot bill - so there is one charge and not two. The vault id is remembered between creating and confirming, because PayPal names it on the creation response and not always on the read-back. 37 new tests plus 9 on the other product's side. No live charge has been taken yet. No frozen core, method, preset, template contract, input, check, number or route family changed.
 - 1.78 (2026-11-03): **the SERVQUAL grid declares one form.** `template_servqual` (`MKT-07`) was
   listed in `CANVAS_BLOCKS` and `MATRIX_META` at the same time, so `describe()` called it a canvas

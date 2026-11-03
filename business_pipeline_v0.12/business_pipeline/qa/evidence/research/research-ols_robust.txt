@@ -1,0 +1,51 @@
+Computation: ols robust
+Result
+The model uses 8 complete observations, with 0 excluded as missing, and 1 predictor variable(s). It accounts for 0.905 of the variation in the outcome in this sample (adjusted 0.889), a large effect by the declared thresholds. Each one-unit difference in x is associated with a difference of 0.905 in the outcome, holding the other predictors constant (confidence interval at level 95.00% from 0.653 to 1.157; p-value 0.0001; standardized coefficient 0.951). The intercept is 1.429, the fitted outcome when all predictors are zero, which may lie outside the observed range. Statistical significance and practical importance are separate questions. Caution: the sample is small, so the estimates are imprecise and should be described, not generalized. These are associations; the analysis makes no causal claim and omitted variables could explain the pattern. The diagnostic screens are coarse; inspect residual plots before relying on the model. Standard errors, intervals and p-values use the HC3 robust estimator, and no overall F test is reported. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One coefficient hypothesis is tested, so no multiple-comparison correction is needed. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Y: 2, 4, 5, 4, 5, 7, 8, 9
+Predictors: X: 1, 2, 3, 4, 5, 6, 7, 8
+What was computed
+R squared: 0.905
+Adj r squared: 0.889
+F squared: 9.500
+Residual se: 0.777
+N: 8
+N excluded: 0
+K: 1
+Df residual: 6
+Confidence level: 0.95
+Alpha: 0.05
+Coef intercept: 1.429
+Se intercept: 0.645
+P intercept: 0.0686
+Ci lower intercept: -0.149
+Ci upper intercept: 3.006
+Coef x: 0.905
+Se x: 0.103
+P x: 0.0001
+Ci lower x: 0.653
+Ci upper x: 1.157
+Std beta x: 0.951
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One coefficient hypothesis is tested, so no multiple-comparison correction is needed.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent.
+The outcome is approximately linear in the predictors.
+Limitations
+Linearity, independence, and the correct specification are not tested.
+No interactions, transformations, categorical predictors, weights or clustering.
+At most five predictors.
+F-form Breusch-Pagan and the diagnostic limits are conventions [UNVERIFIED].
+HC3 intervals use t critical values, an approximation in small samples.
+How the figures were checked
+Second implementation agrees.
+Shift changes intercept only.
+Scaling rescales coefficients not significance.
+Row order invariant.
+Incomplete rows excluded not valued.
+Bounded and consistent.
+Cross check partial regression and pearson.

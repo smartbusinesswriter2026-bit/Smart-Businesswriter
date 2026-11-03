@@ -1,3 +1,48 @@
+## 2026-11-03 — [design] The bundle becomes a band below the pricing grid, and the page stops naming tiers
+
+**Ask.** The owner, after the payment side was committed and pushed: *"i dont see teh bundle reflected
+in the UI of smart business writer. the bundle should be below the initial pricing shwoing the price
+if both are bundled including the features of write smarter (only for now, i will ad business
+later)"*.
+
+**Why the bundle was invisible.** Not a rendering bug — a **structural** one. The bundle was the
+fourth card in the same four-column grid as Starter, Pro and Studio, and a fourth card in that grid
+reads as *"a fourth tier of this product"*. The bundle is not that. It is **two** products at one
+price, and the layout was saying the opposite. The fix is not to make the card louder; it is to stop
+the layout contradicting the offer.
+
+**Did.**
+
+- **The three single-product tiers stay in the grid, in three columns.** Starter, Pro and Studio are
+  what they were; the grid is `repeat(3, minmax(0,1fr))` now that the fourth column is gone.
+- **The bundle is its own band, below the grid.** One price — **$99.99 a month** — tagged "Both
+  products", with the line *"One subscription, one charge, unlimited use of both products."* and a
+  **"Get the bundle"** button rather than a generic "Choose", because it is a different act.
+- **The band says what the one price buys, product by product.** Write Smarter's own feature names
+  are used verbatim from that product's pricing page — unlimited Text-Gen, unlimited Research
+  Assistant, unlimited Humanizer & AI-Detector, unlimited Video, unlimited use of Source Finder —
+  beside Smart Business Writer's unlimited exports. Two panels side by side; they stack on a narrow
+  screen rather than overflowing.
+- **The band follows the monthly/annual toggle**: $99.99 a month, $959.90 a year, and the wording
+  changes with it ("Billed once a month" / "Billed once a year").
+- **The page names no tier at all.** The catalogue now says which tiers are cards
+  (`card_tiers`) and which is the band (`bundle_tier`), and carries each tier's colour (`color`). The
+  page reads all of it from `/api/billing/plans`, so a price, a tier or a new rung needs **no edit to
+  the page** — and the CSS tier-colour rules that named `starter`, `pro` and `studio` are gone.
+- **The owner's "only for now, I will add business later" is respected literally.** The band names
+  the two products that exist. Nothing says "and more to come", because that would be a promise about
+  a decision the owner has not made.
+
+**Verified.** 7 new tests in `tests/test_product_bundle.py`: the three card tiers and the bundle
+tier are named by the catalogue and are different sets; the bundle is not one of the cards; the band
+lists both products and what each gives; **no band feature line carries a digit** (the bundle grants
+no limit, so no feature may quote a quota); the page renders the band **after** the grid in the
+markup; the grid is three columns; and the page names no tier — a test that fails on the old
+four-card layout and on any hard-coded tier name. The whole suite green at **3425 tests**, and
+`scripts/ci.py` 3 of 3 steps passed. The dialog was rendered in Chrome and read back: three cards
+(`starter`, `pro`, `studio`), then the band — `$99.99` / "Both products" / Write Smarter's five
+features beside Smart Business Writer's two — at 1280 px and at 420 px, monthly and annual.
+
 ## 2026-11-03 — [product] The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
 
 **Ask.** The owner's decision of 2026-11-03, recorded in full in
@@ -4114,4 +4159,53 @@ the icons being in the middle of the green. `tests/test_product_subjects.py` has
 failure, `test_the_rail_carries_the_portfolio_lab_above_the_calculator`: it asserts the string
 "The free quote limit is reached", which commit `8bd1e9f` removed from the page. It fails the same
 way with or without this change.
+
+
+---
+
+## Session 10 of 11 — `research` (2026-11-03) · opening `6c7073c`
+
+**Asked.** Verify, debug and repair the Research & statistics shelf, subject by subject, without
+opening any other shelf. Ground truth to re-measure (not copy): 21 tools, 0 worksheets, 0 tiles,
+10 records (3 computed / 7 read-only), 0 theories, 0 glossary, catalogue 10, `does_not` 3,
+`start_steps` 4, cross-cutting, `LIBRARY` 142 / `PRESETS` 144 / fixture 142–144, and **no**
+`qa/manual/research.md` and **no** `tests/test_subject_research_acceptance.py`.
+
+**Found before measuring.** The work order's snapshot was stale: HEAD was `6c7073c` (marketing's
+B-211), not `b393743`; the branch was 2 ahead of origin, not in sync; and the loader measured **3418**
+tests, not the documented 3479-or-3409 the documents claimed. Everything below was re-measured.
+
+**Did.** (1) **A probe, proved before it was trusted.** `qa/probe_research_shelf.py` prints the
+inventory, resolves each tool **twice** (`key` vs `method`), reads the ten records, dumps each method's
+declared contract, writes and reads one real paper per tool, and re-derives the figures with its own
+arithmetic. It was pointed at `operations` first (`--subject operations --prove` → 0 problems), because
+warning 2 of the standing list is that a harness is a suspect until it has been pointed at a shelf you
+trust. (2) **The manual**: `qa/manual/research.md`, 10 sections, 53 E-rows, a DISPUTED table and a
+traceability matrix. (3) **The suite**: `tests/test_subject_research_acceptance.py`, 53 tests named
+`test_E_res_nnn__…`, 53 passed. (4) **Five records repaired** (D-RES-01) in both the product slice and
+`registry.METHOD_LINK_RULES`, so the page and `/api/frameworks` cannot disagree. (5) **Four tiles**
+(D-RES-06) from the shelf's own start steps, owner decision B-213. (6) **A paper defect fixed**
+(D-RES-03): a dict input printed as a Python repr in every column-map paper. (7) **Doc drift fixed**
+(D-RES-07): `BACKEND_CONTRACT.md` §2 said 140/142 in four places; measured 142/144; the fixture was not
+touched.
+
+**Verified.** `python -m pytest tests/test_subject_research_acceptance.py -q` → **53 passed**.
+`qa/probe_research_shelf.py --verify` → **61 figures compared, 0 disagreements**, including
+Welch–Satterthwaite df 4.959 (not 5.000), the published `P(|T|>2.0 | df 10) = 0.0734`, `χ² = 4.0 →
+p = 0.0455`, Holm 0.01/0.03/0.04 → 0.03/0.06/0.06 and the OLS slope 38/42. Blast radius re-tested:
+economics + operations acceptance **129 passed**, `test_catalogue_truth` + `test_product_subjects`
+**63 passed**, `test_docs_sync` + this shelf's suite **61 passed**, `scripts/econ_shelf.py --check` →
+`methods: 142`, `presets: 144`, `frozen fixture: in sync`. The loader measured **3418** at the opening
+and **3478** once this session's 53 tests landed (a live lane's two uncommitted bundle tests put the
+dirty tree at 3480). The 21 papers are in `qa/evidence/research/`, docx and text.
+
+**Left open, on purpose.** D-RES-04 (`power` and `missing` print no honesty block) and D-RES-05
+(`logistic_regression` declares 6 dp, so its paper prints six decimals) are both one edit in the
+unfrozen **core** and a nine-shelf blast radius; each is ledgered, explained in the manual and pinned
+by a test that fails the day it changes. The nine null levels stayed null because the owner chose tiles
+only (B-213). Four tools still ship with `preset: null` (typed-input mode, the same as finance's
+`ols_robust`), and adding presets is an owner decision.
+
+**Open/next.** The people shelf is the last subject with no manual and no acceptance suite. Its top
+three risks, and the two owner decisions this session could not take, are in `qa/QA_STATE.md`.
 

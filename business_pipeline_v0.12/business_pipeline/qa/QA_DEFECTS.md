@@ -339,3 +339,25 @@ the sweep is now a test over all 75 profiles, so a tenth cannot appear quietly.
 | Non-draftable profiles overall | 12 | `test_E_mgt_045` |
 
 
+
+---
+
+## Session 10 — `research` (2026-11-03) · opening `6c7073c`, branch `corpus/merge-v1`
+
+Probe: `qa/probe_research_shelf.py` — inventory, **both vocabularies** (`tool["key"]` vs
+`tool["method"]`), the ten records, the declared contract, one real paper per tool, the figures, and an
+**independent re-derivation** of 61 of them. It was proved on `operations` (`--subject operations
+--prove`, 0 problems) before it was trusted on this shelf.
+Manual: `qa/manual/research.md` (53 E-rows). Suite: `tests/test_subject_research_acceptance.py`
+(53 tests, 53 passed). Baseline: 3418 tests at `6c7073c`.
+
+| ID | Subject | Feature / E-id | Severity | Class | Repro | Root cause | Fix commit | Trap test | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-RES-01 | research | QNT-STA-02/05/06/07/09; E-res-011, 012, 015 | MAJOR | HONESTY | `python -c "from bp.product import subjects as s; [print(r['id'], r['form'], r['linked_methods']) for r in s.detail('research')['records'] if r['status_short']=='Method not built']"` → five records, while `power`, `alpha`, `multicomp`, `missing` and `forecast` are on the page and DiD/RDD/IV/panel are on economics | the records were written before those methods shipped and were never re-stated; `implementation_status` is a factual claim the page shows a student | this session (`src/bp/product/subjects.py`, `src/bp/registry.py`) | `test_E_res_011`, `test_E_res_012`, `test_E_res_015` | FIXED |
+| D-RES-02 | research (every probe) | The 21 tools; E-res-009 | MINOR | CATALOGUE | `python -c "from bp.methods import LIBRARY; from bp.product import subjects as s; print(len([t for t in s.detail('research')['tools'] if t['key'] in LIBRARY]))"` → **8**, not 21 | a tool's `key` is the page's name and its `method` is the library id; the two vocabularies diverge in 13 of 21 cases, so a probe that resolves keys reports 13 false defects (this work order warned about exactly this) | this session (`qa/probe_research_shelf.py` resolves both) | `test_E_res_009` (pins 8 keys / 21 methods) | DOCUMENTED, PINNED |
+| D-RES-03 | research (every shelf with a `column_map` input) | Every paper; E-res-020 | MAJOR | ROUNDING | `qa/evidence/research/research-welch.txt` before: `Groups: {'lecture': ['62', …], 'workshop': […]}` | `session_paper._render` flattened lists and tuples but not dicts, so a column-map input fell through to `str(value)` and printed a Python repr — a P4 breach on the artefact, invisible to a test that only checks numbers | this session (`src/bp/product/session_paper.py`) | `test_E_res_020` (no `{'` in any of the 21 papers) | FIXED |
+| D-RES-04 | research | `power`, `missing`; E-res-016 | MINOR | HONESTY | `python -c "…delivery.appendix['honesty']"` → every value empty for both, so `session_paper.sections` prints no "Honesty: what was not done" block | the two methods declare no `caveats` in `bp/methods.py`; writing them changes the **core** and moves nine shelves' papers | — | `test_E_res_016` pins the set (`['power', 'missing']`) and fails the day it changes | **OPEN** (owner decision; core change) |
+| D-RES-05 | research (core contract) | `logit`; E-res-019 | MINOR | ROUNDING | `qa/evidence/research/research-logit.txt`: `Log likelihood: -22.806666`, `Coef size: 0.952917` | `logistic_regression.typing` declares 6 decimal places for the log-likelihood, coefficients and standard errors, so the paper prints exactly what is declared — but the house rule the other shelves test for is "no six-decimal figure in a paper" | — | `test_E_res_019` (declared precision holds) | **OPEN** (owner decision: lower the declaration, or state the rule as "declared precision") |
+| D-RES-06 | research | The whole page; E-res-006, 007, 010 | MAJOR | UI | `python -c "from bp.product import subjects as s; d=s.detail('research'); print(len(d['tiles']), len({t['group'] for t in d['tools']}))"` → `0 1` (one group key, `None`) | 21 tools declared no `group`, 0 tiles, and 9 of 21 no `level`, so `web/index.html` could group by neither and fell back to a flat list | this session (`src/bp/product/subjects.py`; owner decision **B-213**) | `test_E_res_006`, `test_E_res_007`, `test_E_res_010` | FIXED |
+| D-RES-07 | research (docs) | `docs/BACKEND_CONTRACT.md` §2; E-res-053 | MINOR | DOC-DRIFT | the document said "140 methods" and "142 presets" in four places; `scripts/econ_shelf.py --check` measured `methods: 142`, `presets: 144`, `frozen fixture: in sync` | the counts are hand-written prose; the library and the fixture moved and the sentence did not | this session (`docs/BACKEND_CONTRACT.md`) | `test_E_res_053` (142/144 pinned against the fixture) | FIXED |
+

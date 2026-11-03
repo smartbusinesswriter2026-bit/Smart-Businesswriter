@@ -210,6 +210,26 @@ METHOD_LINK_RULES = [
     (r"^SROI-type estimates", ["sroi"],
      "a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; "
      "deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive"),
+    # D-RES-01: these five records read "Method not built" while the page offers a
+    # calculator for the area.  The rule states the part that ships and the part that
+    # does not, so neither the registry nor the subject slice can deny a shipped method.
+    (r"^Sampling, confidence intervals", ["power_analysis"],
+     "power, sample size and the minimum detectable effect are implemented for one-sample and two-sample means; "
+     "sampling design, confidence-interval planning and effect-size planning are not implemented"),
+    (r"^Reliability assessment and factor analysis", ["reliability_alpha"],
+     "Cronbach's alpha for internal consistency is implemented on complete item responses; factor analysis "
+     "(exploratory or confirmatory) and test-retest reliability are not implemented"),
+    (r"^Multiple-comparison correction", ["multiple_comparison", "missing_data_bounds"],
+     "Holm and Bonferroni multiple-comparison correction and worst-case bounds for missing data are implemented; "
+     "sensitivity analysis across missing-data assumptions and multiple imputation are not implemented"),
+    (r"^Time-series forecasting", ["trend_forecast"],
+     "a linear trend forecast with an out-of-sample backtest, a forecast interval and a drift statement is "
+     "implemented; seasonal models, autoregressive (ARIMA) models and structural-break tests are not implemented"),
+    (r"^Causal-inference designs", ["difference_in_differences", "regression_discontinuity",
+                                    "instrumental_variables", "panel_regression"],
+     "difference-in-differences, regression discontinuity, instrumental variables and panel regression are "
+     "implemented on the Economics shelf, each with its identification assumptions disclosed; randomized "
+     "experiments, matching and weighting are not implemented"),
 ]
 
 TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01": "template_five_forces",

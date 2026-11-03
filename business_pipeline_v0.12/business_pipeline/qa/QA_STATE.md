@@ -2,6 +2,71 @@
 
 ---
 
+## Session 10 — `research` (2026-11-03) · branch `corpus/merge-v1`, opening commit `6c7073c`
+
+**Subject chosen by the work order.** Manual: `qa/manual/research.md` (53 E-rows, 10 sections).
+Suite: `tests/test_subject_research_acceptance.py` (**53 tests, 53 passed**). Evidence:
+`qa/evidence/research/` (21 papers, `.docx` and stripped `.txt`), probe `qa/probe_research_shelf.py`.
+
+**The work order's snapshot was stale and that is itself the first finding.** It named `b393743` and
+"in sync"; the tree was `6c7073c` (marketing's B-211) and **2 ahead of origin**, with a dirty tree from
+live lanes. The documented test count (3478) did not match the loader (3418) at the opening.
+
+### Baseline (measured here, not assumed)
+
+| Measure | Work order | Measured at opening | Measured at close |
+|---|---:|---:|---:|
+| Tests (`TestLoader().discover`) | 3409 | **3418** | **3478** (3480 while a live lane's two uncommitted bundle tests sit in the tree) |
+| Failures / errors | 0 / 0 | see `qa/baseline/2026-11-03-research-shelf-suite.txt` | see `qa/baseline/suite-after-err.txt` |
+| `LIBRARY` / `PRESETS` / fixture | 142 / 144 / 142–144 | 142 / 144 / 142–144 | unchanged |
+| Tools / worksheets / tiles / records | 21 / 0 / 0 / 10 | 21 / 0 / **0** / 10 (3 computed, 7 read-only) | 21 / 0 / **4** / 10 (**8 computed**, 2 read-only) |
+
+**Inventory confirmed exactly as the work order stated**, except the two defects it predicted: the
+seven records saying "Method not built" (five of them denied a shipped method) and the page's inability
+to group anything.
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/research.md` | 10 sections: the inventory reconciled against the catalogue, the four tiles, ten record rows, 21 tool rows, 53 E-rows with sources, a DISPUTED table (six judgement calls), the traceability matrix, the defect ledger, declared gaps, residual risk |
+| `tests/test_subject_research_acceptance.py` | 53 tests: the shelf against the catalogue, the two vocabularies (8 keys / 21 methods), record honesty against the registry, eleven paper gates read on the artefact, **20 hand-arithmetic figure rows**, refusals with reasons, and the three shelf-wide traps (including "prove the harness on operations") |
+| `qa/probe_research_shelf.py` | inventory, double resolution, records, contract, papers, figures, `--verify` (61 figures, 0 disagreements), `--subject operations --prove` |
+| `qa/evidence/research/` | the 21 papers as produced |
+| `qa/baseline/` | baseline suite, probe transcripts, pytest digests |
+
+### Defects
+
+D-RES-01 (five records denying shipped methods) **FIXED** · D-RES-03 (dict input printed as a Python
+repr in every column-map paper) **FIXED** · D-RES-06 (0 tiles / 0 groups, page could not group) **FIXED
+by B-213** · D-RES-07 (doc said 140/142; measured 142/144) **FIXED in the doc** · D-RES-02 (13 keys are
+not library ids) **PINNED** · D-RES-04 (`power`, `missing` print no honesty block) **OPEN — owner** ·
+D-RES-05 (`logistic_regression` declares 6 dp) **OPEN — owner**.
+
+### Next subject, and its top three risks
+
+**`people` is the last shelf with no manual and no acceptance suite** (11 shelves, 9 with suites; the
+marketing shelf has a suite but its manual is a stub). Its top three risks, from what this session
+measured on the adjacent shelves:
+
+1. **A shelf can ship a method and deny it in the same page.** `people` carries `alpha`, `weighted`,
+   `descriptive`, `chi_square`, `power`, `pearson`, `ols` — six of which are this shelf's methods. Any
+   `PPL-`/`CHG-` record that says "not implemented" while linking one is the D-RES-01 class again, and
+   `test_catalogue_truth` only catches it where a link exists.
+2. **`people` shares this shelf's calculators, so its figures inherit D-RES-05.** Its `alpha` and
+   `weighted` papers print at 4 dp and its `chi_square`/`power` at their own; a precision change here
+   moves that shelf's papers too.
+3. **The level/tile gap is shelf-wide, not research-only.** Nine of `people`'s ten tools carry
+   `STUDENT_NOTES`; if any lacks a `group`, its page falls back to the flat list exactly as this one
+   did, and `scripts/econ_shelf.py --check` does not look at `people` at all.
+
+**Owner decisions still open from this session:** (a) write `caveats` for `power_analysis` and
+`missing_data_bounds` in the core (D-RES-04); (b) lower `logistic_regression`'s declared precision from
+6 to 4 dp, or state the P4 rule as "declared precision" rather than "no six-decimal figure" (D-RES-05).
+
+---
+
+
 ## Session 9 — `supply-chain` (2026-11-03) · branch `corpus/merge-v1`, opening commit `f699579`, rebased onto `2cd3347`
 
 **Subject chosen by the work order.** Manual: `qa/manual/supply-chain.md` (62 E-rows, 12 sections).

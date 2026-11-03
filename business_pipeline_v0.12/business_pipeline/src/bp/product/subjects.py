@@ -2649,11 +2649,29 @@ ACCOUNTING_TILES = [
      "need": "The taxable income and the declared rate."},
 ]
 
+#: Research & statistics groups: the shelf's own four start_steps, used verbatim as
+#: the four tile keys (owner decision, session 10, B-213).  A cross-cutting shelf has
+#: no business function to group by, so the question a student is asking is the group.
+RESEARCH_GROUPS = {
+    "descriptive": "Describe the data", "weighted": "Describe the data",
+    "welch": "Compare groups", "mann_whitney": "Compare groups",
+    "anova": "Compare groups", "kruskal_wallis": "Compare groups",
+    "chi_square": "Compare groups", "factorial": "Compare groups",
+    "posthoc": "Compare groups", "paired": "Compare groups",
+    "onesample": "Compare groups",
+    "pearson": "Relate variables", "spearman": "Relate variables",
+    "ols": "Relate variables", "ols_robust": "Relate variables",
+    "logit": "Relate variables", "forecast": "Relate variables",
+    "power": "Check the design", "multicomp": "Check the design",
+    "missing": "Check the design", "alpha": "Check the design",
+}
+
 SUBJECT_GROUPS = {"finance": FINANCE_GROUPS, "entrepreneurship": ENTREPRENEURSHIP_GROUPS,
                   "marketing": MARKETING_GROUPS, "accounting": ACCOUNTING_GROUPS,
                   "operations": OPERATIONS_GROUPS, "supply-chain": SUPPLY_CHAIN_GROUPS,
                   "project-management": PROJECT_MANAGEMENT_GROUPS,
-                  "people": PEOPLE_GROUPS, "economics": ECONOMICS_GROUPS}
+                  "people": PEOPLE_GROUPS, "economics": ECONOMICS_GROUPS,
+                  "research": RESEARCH_GROUPS}
 SUBJECT_PERIODS = {"finance": FINANCE_PERIODS, "entrepreneurship": ENTREPRENEURSHIP_PERIODS,
                    "marketing": MARKETING_PERIODS, "accounting": ACCOUNTING_PERIODS,
                    "operations": OPERATIONS_PERIODS, "supply-chain": SUPPLY_CHAIN_PERIODS,
@@ -2998,6 +3016,52 @@ MARKETING_RECORD_GROUPS = {
     "QNT-MKT-11": "Funnel, surveys and testing",            # two-proportion A/B test
 }
 
+#: The Research & statistics shelf.  Its four tiles are the shelf's own four
+#: `start_steps`, quoted, so no new taxonomy is invented for a cross-cutting shelf:
+#: describe the data, compare groups, relate variables, check the design.  The tile
+#: keys ARE the tool groups (`RESEARCH_GROUPS`, declared with the other group maps),
+#: because `_tiles` places a calculator in the tile whose key equals the tool's
+#: group: any other vocabulary would drop all twenty-one calculators out of the page.
+#: Owner decision, session 10 (B-213).
+RESEARCH_TILES = [
+    {"key": "Describe the data", "label": "Describe the data",
+     "what": "What one variable looks like before anything is tested: its centre, its spread, "
+             "its shape, its missing entries, and the same summary when observations carry "
+             "different weights.",
+     "need": "The observations for one variable, and any declared missing codes or weights."},
+    {"key": "Compare groups", "label": "Compare groups",
+     "what": "Whether two or more groups differ: Welch's t-test and its rank alternative, "
+             "one-way and two-way ANOVA with Kruskal-Wallis, chi-square association, post-hoc "
+             "pairwise tests, and paired and one-sample t-tests.",
+     "need": "The observations named by group, or the counts in a contingency table."},
+    {"key": "Relate variables", "label": "Relate variables",
+     "what": "Whether variables move together and how: Pearson and Spearman correlation, "
+             "linear, robust and logistic regression with their diagnostics, and the trend "
+             "forecast that follows a series over time.",
+     "need": "Paired observations of the variables, or the series and the horizon to forecast."},
+    {"key": "Check the design", "label": "Check the design",
+     "what": "Whether the study could have found what it looked for: power and the minimum "
+             "detectable effect, multiple-comparison correction, bounds under missing data, and "
+             "the reliability of an instrument's items.",
+     "need": "The effect you would want to detect and the sample, the p-values or tests you "
+             "already ran, or the item responses."},
+]
+
+#: Which tile each Research record belongs to.  Every record on the shelf is here:
+#: a record with no group is on the page but in no tile.
+RESEARCH_RECORD_GROUPS = {
+    "QNT-STA-01": "Describe the data",     # profiling and descriptive statistics
+    "QNT-STA-02": "Check the design",      # sampling, power, precision
+    "QNT-STA-03": "Compare groups",        # chi-square, t-tests, ANOVA
+    "QNT-STA-04": "Relate variables",      # correlation and regression
+    "QNT-STA-05": "Check the design",      # reliability of an instrument
+    "QNT-STA-06": "Check the design",      # multiple comparisons, missing data
+    "QNT-STA-07": "Relate variables",      # time-series forecasting
+    "QNT-STA-08": "Relate variables",      # clustering and classification
+    "QNT-STA-09": "Check the design",      # causal designs and their assumptions
+    "QNT-STA-10": "Relate variables",      # mediation, moderation, SEM
+}
+
 SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
                             "management": STRATEGY_WORKSHEET_GROUPS,
                             "project-management": PROJECT_MANAGEMENT_WORKSHEET_GROUPS,
@@ -3005,11 +3069,13 @@ SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
                             "marketing": MARKETING_WORKSHEET_GROUPS}
 SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS,
                          "operations": OPERATIONS_RECORD_GROUPS,
-                         "marketing": MARKETING_RECORD_GROUPS}
+                         "marketing": MARKETING_RECORD_GROUPS,
+                         "research": RESEARCH_RECORD_GROUPS}
 SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
                  "management": STRATEGY_TILES, "accounting": ACCOUNTING_TILES,
                  "project-management": PROJECT_MANAGEMENT_TILES,
-                 "operations": OPERATIONS_TILES, "marketing": MARKETING_TILES}
+                 "operations": OPERATIONS_TILES, "marketing": MARKETING_TILES,
+                 "research": RESEARCH_TILES}
 
 #: Plain-language labels for the raw catalogue discipline tags, so the records
 #: table does not show an internal taxonomy name to a student.
@@ -5902,13 +5968,17 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'type': 'Q'},
  'QNT-STA-02': {'disciplines': ['statistics and empirical research'],
                 'evidence_needs': '',
-                'form': 'read_only',
+                'form': 'computed',
                 'id': 'QNT-STA-02',
-                'implementation_status': 'not implemented',
-                'linked_methods': [],
+                'implementation_status': 'partial: power, sample size and the minimum detectable effect are '
+                                         'implemented for one-sample and two-sample means; sampling design, '
+                                         'confidence-interval planning and effect-size planning are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'power_analysis'}],
                 'name': 'Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision analysis',
-                'status_note': 'not implemented',
-                'status_short': 'Method not built',
+                'status_note': 'partial: power, sample size and the minimum detectable effect are implemented for '
+                               'one-sample and two-sample means; sampling design, confidence-interval planning and '
+                               'effect-size planning are not implemented',
+                'status_short': 'Computed',
                 'summary': 'Sampling, confidence intervals, effect sizes, hypothesis tests and power/precision analysis.',
                 'template': None,
                 'type': 'Q'},
@@ -5956,37 +6026,50 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'type': 'Q'},
  'QNT-STA-05': {'disciplines': ['statistics and empirical research'],
                 'evidence_needs': '',
-                'form': 'read_only',
+                'form': 'computed',
                 'id': 'QNT-STA-05',
-                'implementation_status': 'not implemented',
-                'linked_methods': [],
+                'implementation_status': 'partial: Cronbach\'s alpha for internal consistency is implemented on '
+                                         'complete item responses; factor analysis (exploratory or confirmatory) and '
+                                         'test-retest reliability are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'reliability_alpha'}],
                 'name': 'Reliability assessment and factor analysis for instruments when the data and sample support them',
-                'status_note': 'not implemented',
-                'status_short': 'Method not built',
+                'status_note': 'partial: Cronbach\'s alpha for internal consistency is implemented on complete item '
+                               'responses; factor analysis (exploratory or confirmatory) and test-retest reliability '
+                               'are not implemented',
+                'status_short': 'Computed',
                 'summary': 'Reliability assessment and factor analysis for instruments when the data and sample support them.',
                 'template': None,
                 'type': 'Q'},
  'QNT-STA-06': {'disciplines': ['statistics and empirical research'],
                 'evidence_needs': '',
-                'form': 'read_only',
+                'form': 'computed',
                 'id': 'QNT-STA-06',
-                'implementation_status': 'not implemented',
-                'linked_methods': [],
+                'implementation_status': 'partial: Holm and Bonferroni multiple-comparison correction and '
+                                         'worst-case bounds for missing data are implemented; sensitivity analysis '
+                                         'across missing-data assumptions and multiple imputation are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'multiple_comparison'},
+                                   {'coverage': 'partial', 'method_id': 'missing_data_bounds'}],
                 'name': 'Multiple-comparison correction, missing-data analysis and sensitivity checks',
-                'status_note': 'not implemented',
-                'status_short': 'Method not built',
+                'status_note': 'partial: Holm and Bonferroni multiple-comparison correction and worst-case bounds '
+                               'for missing data are implemented; sensitivity analysis across missing-data '
+                               'assumptions and multiple imputation are not implemented',
+                'status_short': 'Computed',
                 'summary': 'Multiple-comparison correction, missing-data analysis and sensitivity checks.',
                 'template': None,
                 'type': 'Q'},
  'QNT-STA-07': {'disciplines': ['statistics and empirical research'],
                 'evidence_needs': '',
-                'form': 'read_only',
+                'form': 'computed',
                 'id': 'QNT-STA-07',
-                'implementation_status': 'not implemented',
-                'linked_methods': [],
+                'implementation_status': 'partial: a linear trend forecast with an out-of-sample backtest, a '
+                                         'forecast interval and a drift statement is implemented; seasonal models, '
+                                         'autoregressive (ARIMA) models and structural-break tests are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'trend_forecast'}],
                 'name': 'Time-series forecasting, backtesting, forecast intervals, drift and structural-break checks',
-                'status_note': 'not implemented',
-                'status_short': 'Method not built',
+                'status_note': 'partial: a linear trend forecast with an out-of-sample backtest, a forecast '
+                               'interval and a drift statement is implemented; seasonal models, autoregressive '
+                               '(ARIMA) models and structural-break tests are not implemented',
+                'status_short': 'Computed',
                 'summary': 'Time-series forecasting, backtesting, forecast intervals, drift and structural-break checks.',
                 'template': None,
                 'type': 'Q'},
@@ -6004,15 +6087,24 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'type': 'Q'},
  'QNT-STA-09': {'disciplines': ['statistics and empirical research'],
                 'evidence_needs': '',
-                'form': 'read_only',
+                'form': 'computed',
                 'id': 'QNT-STA-09',
-                'implementation_status': 'not implemented',
-                'linked_methods': [],
+                'implementation_status': 'partial: difference-in-differences, regression discontinuity, instrumental '
+                                         'variables and panel regression are implemented on the Economics shelf, each '
+                                         'with its identification assumptions disclosed; randomized experiments, '
+                                         'matching and weighting are not implemented',
+                'linked_methods': [{'coverage': 'partial', 'method_id': 'difference_in_differences'},
+                                   {'coverage': 'partial', 'method_id': 'regression_discontinuity'},
+                                   {'coverage': 'partial', 'method_id': 'instrumental_variables'},
+                                   {'coverage': 'partial', 'method_id': 'panel_regression'}],
                 'name': 'Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, '
                         'instrumental variables and matching/weighting—only with explicit identification assumptions and '
                         'diagnostics',
-                'status_note': 'not implemented',
-                'status_short': 'Method not built',
+                'status_note': 'partial: difference-in-differences, regression discontinuity, instrumental variables '
+                               'and panel regression are implemented on the Economics shelf, each with its '
+                               'identification assumptions disclosed; randomized experiments, matching and weighting '
+                               'are not implemented.',
+                'status_short': 'Computed',
                 'summary': 'Causal-inference designs: randomized experiments, difference-in-differences, regression discontinuity, '
                            'instrumental variables and matching/weighting—only with explicit identification assumptions and '
                            'diagnostics.',

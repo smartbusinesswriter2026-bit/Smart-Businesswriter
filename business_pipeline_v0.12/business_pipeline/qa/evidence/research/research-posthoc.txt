@@ -1,0 +1,46 @@
+Computation: posthoc pairwise
+Result
+The declared family has 3 pairwise comparisons. With the declared correction at level 5.00%, 3 adjusted p-values are at or below that level. Each pair is a Welch comparison; the corrected and raw p-values are both in the appendix. Every pair of groups is compared with a Welch t-test (unequal variances assumed); the family-wise correction declared in the request (Holm, Bonferroni or none) is recorded in the appendix. A correction controls the family-wise error rate; it does not fix a biased sample, a violated normality assumption or a family chosen after looking at the data. Pairs are only meaningful for comparisons the study intended; scanning all pairs for the smallest p-value is exactly what the correction is for. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Groups: A: 10, 12, 11, 13; B: 14, 15, 16, 14; C: 18, 17, 19, 20
+Adjust: holm
+Alpha: 0.05
+What was computed
+Diff a b: -3.250
+P raw a b: 0.0080
+Df a b: 5.534
+T a b: -4.044
+Diff a c: -7.000
+P raw a c: 0.0003
+Df a c: 6.000
+T a c: -7.668
+Diff b c: -3.750
+P raw b c: 0.0042
+Df b c: 5.534
+T b c: -4.666
+P adj a b: 0.0085
+P adj a c: 0.0008
+P adj b c: 0.0085
+N pairs: 3
+N rejected: 3
+Alpha: 0.05
+N excluded: 0
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Groups are independent and each observation belongs to one group.
+Within-group observations are approximately normal (not tested).
+Limitations
+Welch pairwise only; no Dunnett, Tukey HSD or Games-Howell.
+Uncorrected p-values are available only when explicitly declared as 'none'.
+The family must be declared before the results are seen.
+How the figures were checked
+Second implementation agrees.
+Adjusted p is never below the raw p.
+Correction matches its definition.
+Pair count is choose k 2.
+Reversing group order keeps the evidence.
