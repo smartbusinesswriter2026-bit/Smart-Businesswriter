@@ -127,6 +127,17 @@ balances gives **7/11** with two real failures (`net_income_agrees_across_routes
 `checks_na = 2`** — every applicable check passes. That single fact decides how the tile must compile
 a trial balance, and it would have been an afternoon of debugging to find from the product side.
 
+**Full suite.** `discover -s tests` = **3246 tests, 9 failures**. None is mine: the four that fail
+standalone are in the in-flight design/operations lanes, two are `docs_sync` failures caused by another
+lane's new document and by `HANDOFF.md` citing a historic lettered decision pair that has no row, and two
+pass alone (order artefacts). All are recorded in [`OPEN_ISSUES.md`](OPEN_ISSUES.md) Item 16 with the
+exact test ids. The eight new tests are counted: discovery went 3238 → 3246.
+
+**Concurrency.** At 09:50 another process wrote this tree: `src/bp/accounts.py` and
+`tests/test_accounts.py` were reverted to HEAD (edits lost) while this lane's doc edits were swept into
+commit `f7eba21`. The code was re-applied and re-verified after the revert, which is why the numbers
+above are measured twice.
+
 
 **Ask.** The work order for session 8: *"SUBJECT = operations … do not start any other shelf
 … a mismatch is itself a defect"* — verify, debug and repair the Operations management shelf,

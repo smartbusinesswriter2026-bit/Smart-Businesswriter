@@ -47,6 +47,63 @@ class Build(unittest.TestCase):
         out = accounts.build(bad); checks = {n: (ok, d) for n, ok, d in out["_checks"]}
         self.assertFalse(checks["opening_balances_equal_prior_closing"][0]); self.assertEqual(out["checks_passed"], D(8))
 
+class RatioSelection(unittest.TestCase):
+    """B-203: the ratio inputs are selected from figures the core computed, never summed by a caller."""
+    def classified(self, drop_section=None):
+        s = copy.deepcopy(SPEC)
+        s["chart"][0]["section"] = "current"          # Cash
+        s["chart"][1]["section"] = "non_current"      # Equipment
+        s["chart"][2]["section"] = "non_current"      # Accumulated depreciation
+        if drop_section is not None: s["chart"][drop_section].pop("section")
+        return s
+    def test_the_grouping_published_is_the_cores_own(self):
+        ap = accounts.build(SPEC)["_appendix"]
+        self.assertEqual(ap["balance_sheet_groups"]["totals"]["equity"], ap["statements"]["equity_with_current_earnings"])
+        self.assertEqual(ap["ratio_figures"]["total_assets"], ap["statements"]["total_assets"])
+        self.assertEqual(D(ap["ratio_figures"]["cash"]), D(6200))
+        self.assertEqual(D(ap["ratio_figures"]["revenue"]), D(2000))
+        self.assertEqual(D(ap["ratio_figures"]["net_income"]), D(300))
+    def test_every_published_figure_is_an_input_the_ratio_method_declares(self):
+        from bp import methods
+        figs = accounts.build(self.classified())["_appendix"]["ratio_figures"]
+        self.assertTrue(set(figs) <= set(methods.LIBRARY["ratio_analysis"].input_schema), sorted(set(figs) - set(methods.LIBRARY["ratio_analysis"].input_schema)))
+        self.assertEqual(methods.validate_inputs(methods.LIBRARY["ratio_analysis"], figs), [])
+        self.assertEqual(methods.LIBRARY["ratio_analysis"].impl(figs)["n_computed"], D(6))
+    def test_a_fully_classified_balance_sheet_publishes_the_current_totals(self):
+        ap = accounts.build(self.classified())["_appendix"]
+        self.assertEqual(D(ap["ratio_figures"]["current_assets"]), D(6200))
+        self.assertEqual(D(ap["ratio_figures"]["current_liabilities"]), D(0))
+    def test_a_line_left_unclassified_omits_the_total_rather_than_understating_it(self):
+        ap = accounts.build(self.classified(drop_section=2))["_appendix"]
+        self.assertNotIn("current_assets", ap["ratio_figures"])
+        # both accounts share the statement line "Equipment", so the line is what is unclassified
+        self.assertEqual(ap["balance_sheet_groups"]["groups"]["unclassified_assets"], {"Equipment": "-1200.00"})
+    def test_an_unclassified_chart_publishes_no_current_total_at_all(self):
+        figs = accounts.build(SPEC)["_appendix"]["ratio_figures"]
+        self.assertNotIn("current_assets", figs)
+        self.assertNotIn("current_liabilities", figs)
+        from bp import methods
+        reasons = {r["ratio"]: r["reason"] for r in methods.LIBRARY["ratio_analysis"].impl(figs)["_appendix"]["not_computed"]}
+        self.assertIn("current_assets", reasons["current_ratio"])
+    def test_a_figure_the_statements_cannot_support_is_named_not_estimated(self):
+        from bp import methods
+        figs = accounts.build(SPEC)["_appendix"]["ratio_figures"]
+        self.assertNotIn("receivables", figs); self.assertNotIn("inventory", figs)
+        reasons = {r["ratio"]: r["reason"] for r in methods.LIBRARY["ratio_analysis"].impl(figs)["_appendix"]["not_computed"]}
+        self.assertIn("receivables", reasons["receivables_days"])
+        self.assertIn("inventory", reasons["inventory_days"])
+    def test_no_gap_names_a_ratio_the_registry_can_already_compute(self):
+        from bp import methods
+        overlap = {r[0] for r in methods._RATIOS} & {g["ratio"] for g in accounts.RATIO_GAPS}
+        self.assertEqual(sorted(overlap), [], "a ratio listed as a gap is in fact computed by the registry")
+        for gap in accounts.RATIO_GAPS:
+            self.assertTrue(gap["needs"], gap); self.assertTrue(gap["why"], gap)
+    def test_the_selection_is_deterministic(self):
+        a, b = accounts.build(self.classified()), accounts.build(self.classified())
+        self.assertEqual(a["_appendix"]["ratio_figures"], b["_appendix"]["ratio_figures"])
+        self.assertEqual(a["_appendix"]["balance_sheet_groups"], b["_appendix"]["balance_sheet_groups"])
+
+
 class Validation(unittest.TestCase):
     def errs(self, mut):
         s = copy.deepcopy(SPEC); mut(s); return " ".join(accounts.validate_spec(s))

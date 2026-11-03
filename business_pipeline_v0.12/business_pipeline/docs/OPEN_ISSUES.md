@@ -31,7 +31,27 @@
 - Project-worksheet registration guards and model-prompt tests: investigate.
 - Pre-existing network-dependent failures: report, do not fix silently.
 
-## Research & statistics / subjects
+## Item 16 — full-suite failures inherited by the statements-tile lane (2026-11-03)
+- Measured at the end of statements-tile commit 1: `discover -s tests` = **3246 tests, 9 failures**.
+  None is in `test_accounts`, `test_ledger`, `test_frozen_contract` or `test_product_boundary`
+  (199 tests, OK), and none touches `accounts.ratio_figures` / `balance_sheet_groups`.
+- **Fail in isolation** (so they are real defects, not order artefacts), all in the in-flight lanes:
+  `test_paper_documents.DocumentRouteTest.test_generating_a_paper_saves_it_to_the_store`;
+  `test_product_profile_cues.ProfileCueReachabilityTest.test_every_researched_block_accepts_its_own_query`;
+  `test_product_subjects.ServedUiContractTest.test_the_rail_carries_the_portfolio_lab_above_the_calculator`;
+  `test_subject_finance_acceptance.FinanceRecordsAndGuidance.test_032__the_shelf_declares_no_tiles_and_that_is_the_recorded_design`.
+- **docs_sync, two failures, both other lanes' artefacts:** `docs/BUNDLE_PRICING_HANDOFF.md` has no row
+  in the `docs/HOME.md` §4 spine; and `docs/HANDOFF.md` cites two historic sub-numbered decision ids
+  (the lettered pair in the B-180 series) that have no row in `docs/DECISIONS.md`. Not fixed here: one is
+  another lane's new document, the other is factual-doc content this lane does not own.
+- **Order-dependent:** `test_product_billing.CatalogueTest.test_four_tiers_in_order` and
+  `test_credits_are_absent_rather_than_invented` fail in the full run and pass alone.
+- **Concurrency incident, recorded so it is not re-debugged:** at 09:50 the working tree was written by
+  another process — `src/bp/accounts.py` and `tests/test_accounts.py` were reverted to HEAD (the
+  uncommitted edits lost, the 8 new tests gone, discovery fell from 3246 to 3238), while this lane's doc
+  edits were swept into commit `f7eba21` (a project-management commit). The code was re-applied and
+  re-verified. Only one writer may own this tree at a time.
+
 - All subject backends pass; no missing wiring detected.
 - Chat paper completion supported by tests.
 

@@ -236,6 +236,84 @@ def account_mapping(spec):
               ("exactly_one_retained_earnings_account", len(re_acc) == 1, "retained earnings accounts: " + ", ".join(re_acc) if re_acc else "no retained earnings account")]
     return {"rows": rows, "checks": checks, "framework": spec["framework"]}
 
+# ---------- Ratio selection (B-203): the figures the statements already computed ----------
+# The product layer never adds up a statement line to feed a ratio.  This block *selects* the
+# values `ratio_analysis` declares as its inputs from numbers the core has already computed, and
+# names the ratios the frozen registry has no definition for.  A figure that cannot be selected is
+# left out, never estimated: the ratio method then reports it as not computed, with its reason.
+# Growth ratios are not listed as gaps: `dupont_analysis` computes them from a declared comparison
+# period.
+
+#: (ratio input, pool it is read from, line-name fragments that identify it).
+#: A declared matcher, not a guess: the first line whose name contains a fragment wins, and a
+#: fragment that matches nothing leaves the figure out of the set.
+_RATIO_LINES = (
+    ("inventory", "asset", ("inventor", "stock")),
+    ("receivables", "asset", ("receivable", "debtor")),
+    ("payables", "liability", ("payable", "creditor")),
+    ("cost_of_sales", "expense", ("cost of sales", "cost of goods", "purchases")),
+    ("interest_expense", "expense", ("interest",)),
+)
+
+#: Ratios a student may ask for that the registry does not define.  Each is named with the inputs
+#: it needs, so the tile can say what is missing instead of inventing a definition or a number.
+RATIO_GAPS = (
+    {"ratio": "market_to_book", "group": "market", "needs": ["share_price", "shares_outstanding"],
+     "why": "a market value needs a share price and the number of shares; neither is part of a trial balance"},
+    {"ratio": "price_earnings", "group": "market", "needs": ["share_price", "shares_outstanding"],
+     "why": "a price-earnings ratio needs a share price"},
+    {"ratio": "earnings_per_share", "group": "market", "needs": ["shares_outstanding"],
+     "why": "a per-share figure needs the number of shares"},
+    {"ratio": "dividend_payout", "group": "market", "needs": ["dividends_declared", "shares_outstanding"],
+     "why": "a payout ratio needs the dividends declared and the number of shares"},
+    {"ratio": "dividend_yield", "group": "market", "needs": ["dividends_declared", "share_price"],
+     "why": "a yield needs the dividends and a share price"},
+    {"ratio": "operating_cash_flow_ratio", "group": "cash flow", "needs": ["operating_cash_flow", "current_liabilities"],
+     "why": "the registry holds no cash-flow ratios; the cash flow statement is recorded but not wired into it"},
+    {"ratio": "free_cash_flow", "group": "cash flow", "needs": ["operating_cash_flow", "capital_expenditure"],
+     "why": "free cash flow needs operating cash flow and capital expenditure, which the registry does not define"},
+    {"ratio": "accruals_ratio", "group": "quality", "needs": ["net_income", "operating_cash_flow", "total_assets"],
+     "why": "an accruals ratio compares accounting profit with cash flow; it is not in the registry"},
+    {"ratio": "altman_z_score", "group": "quality", "needs": ["working_capital", "retained_earnings", "ebit", "market_value_of_equity", "sales", "total_assets"],
+     "why": "a distress score needs five declared inputs, one of them a market value"},
+    {"ratio": "beneish_m_score", "group": "quality", "needs": ["two consecutive periods for eight indices"],
+     "why": "a manipulation score needs two consecutive periods; one period is not enough"},
+)
+
+
+def ratio_figures(pre, st, groups, j):
+    """The ratio inputs the statements support, selected from what the core already computed.
+
+    `pre` is the pre-closing statement set (revenue and expenses are still open there), `st` the
+    post-closing one (the balance sheet then carries the period result), `groups` the balance-sheet
+    grouping and `j` the journal (for the cash role).  Every value is a figure the core produced:
+    nothing is added, split, re-rounded or estimated here.  A figure the statements cannot support
+    is left out, and the ratio method then names it as not computed.
+    """
+    closing = ledger.closing_balances(j)
+    cash = sum((closing.get(code, D(0)) for code, a in j.chart.accounts.items() if a.role == "cash"), D(0))
+    totals, grouped = groups["totals"], groups["groups"]
+    out = {"cash": cash,
+           "total_assets": st["total_assets"], "total_liabilities": st["total_liabilities"],
+           "equity": st["equity_with_current_earnings"], "net_income": pre["net_income"]}
+    # A current figure is published only when *every* line in that section is classified: a partly
+    # classified balance sheet would publish an understated current total, and an undeclared one
+    # would publish a zero.  Both read as facts.  Omitted, the ratio method names the input missing.
+    if groups["classified"] and not grouped["unclassified_assets"]: out["current_assets"] = totals["current_assets"]
+    if groups["classified"] and not grouped["unclassified_liabilities"]: out["current_liabilities"] = totals["current_liabilities"]
+    if pre["income"]: out["revenue"] = sum(pre["income"].values(), D(0))
+    for name, pool_name, fragments in _RATIO_LINES:
+        if pool_name == "asset":
+            pool = {**grouped["current_assets"], **grouped["non_current_assets"], **grouped["unclassified_assets"]}
+        elif pool_name == "liability":
+            pool = {**grouped["current_liabilities"], **grouped["non_current_liabilities"], **grouped["unclassified_liabilities"]}
+        else:
+            pool = pre["expenses"]
+        hit = next((v for line, v in pool.items() if any(f in str(line).lower() for f in fragments)), None)
+        if hit is not None: out[name] = hit
+    return {k: str(v) for k, v in out.items()}
+
+
 def build(spec):
     """Run the engagement: validate, build the chart and journal, post opening + entries + schedules, close the period,
     and return scalar outputs plus a serialized appendix (statements, trial balance, cash flow, checks, flags, export)."""
@@ -277,7 +355,7 @@ def build(spec):
     pre = ledger.statements(j)
     for e in ledger.closing_entries(j, pre):
         j.post(ledger.Entry.make(e["date"], e["description"], e["lines"], places, closing=e["closing"])); n_posted += 1
-    st = ledger.statements(j); cf = ledger.cash_flow(j, st)
+    st = ledger.statements(j); cf = ledger.cash_flow(j, st); bsg = ledger.balance_sheet_groups(j)
     checks = ledger.check_invariants(j, st, spec.get("prior_closing")) + cf["checks"] + ledger.retained_earnings_rollforward(j, pre)
     re_code = next(c for c, a in chart.accounts.items() if a.type == "equity" and a.role == "retained_earnings")
     flags = ledger.flags(j) + cf["flags"] + schedule_flags
@@ -297,6 +375,7 @@ def build(spec):
     extra = {"framework": spec["framework"], "statements": _s(st), "trial_balance": _s(ledger.trial_balance(j)), "cash_flow": _s(cf),
              "checks": _s(checks), "flags": flags, "closing_balances": _s(ledger.closing_balances(j)), "export": j.export_text(),
              "opening_lines_next": _s(ledger.opening_lines(j)),
+             "balance_sheet_groups": _s(bsg), "ratio_figures": ratio_figures(pre, st, bsg, j), "ratio_gaps": _s(list(RATIO_GAPS)),
              "ledgers": _s(ledger.account_ledgers(j)),
              "t_accounts_export": {lg["code"]: report.t_account(lg, places) for lg in ledger.account_ledgers(j)},
              "journal": _s(ledger.journal_view(j)),
