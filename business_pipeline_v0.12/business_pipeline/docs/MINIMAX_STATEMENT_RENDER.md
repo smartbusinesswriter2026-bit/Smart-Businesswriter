@@ -1,6 +1,6 @@
 # The statements render layer — brief for MiniMax
 
-> **Status 2026-11-04 (build 1.96).** The computation lane is done for the shapes the tile supports:
+> **Status 2026-11-04 (build 1.97).** The computation lane is done for the shapes the tile supports:
 > the ledger is always built in full, the request decides what is rendered, and the record carries
 > the audit trail. What is missing is the **presentation**: today the spreadsheet export is a text
 > dump (one string per line in a single sheet). This brief is the contract for turning it into a real
@@ -58,6 +58,25 @@ detail rows.
 
 The tile stores a frozen record (`format: "bp-statements/1"`, `verify.freeze()` adds a
 `plan_hash`). The renderer reads it; it never reconstructs it.
+
+**Build against the frozen fixture, not a live solve.** `tests/fixtures/statements-record.json` is one
+solved engagement with all four statements rendered (net income 52,575, total assets 178,100, cash
+flow 104,600) and all eleven core checks passing. It is deterministic: no key, no network, no clock.
+Regenerate it only after an intended pipeline change:
+
+```text
+python qa/manual/make_statements_fixture.py
+```
+
+`tests/xlsx_read.py` is the read-back harness: `read(bytes)` returns `{sheet name: rows}` with
+`Decimal` for numeric cells and `str` for text, plus `amount()`, `line_value()`, `statement_rows()`,
+`numbers_in_text()` and `find()` for assertions. `tests/product_statements_fixture.py` exposes
+`typed_numbers(record)` — every figure the record holds as a value — which is what your workbook's
+cells are checked against.
+
+`tests/test_statements_render_contract.py` is the contract in executable form (13 tests). Copy its
+`workbook_for()` shape and its "no figure the record does not hold" scan; if your renderer passes those
+two, it is presenting and not inventing.
 
 ```json
 {
@@ -252,6 +271,12 @@ Hard list, enforced by review and by tests:
 
 - One sheet per requested statement, named after it (`Income statement`, `Balance sheet`,
   `Changes in equity`, `Cash flow`), then `Working`, then `Notes`.
+
+  **The equity sheet is one of the four, and the current export drops it.** `_accounting_rows()` copies
+  `statements_export`, which carries trial balance, income statement, balance sheet, cash flow and
+  notes — the statement of changes in equity lives separately in
+  `appendix["equity_statement_export"]` (and typed in `appendix["equity_statement"]`). Add the sheet
+  from those; do not reconstruct the roll from the balance sheet.
 - Column A is the label, column B the amount (right-aligned). A third column for note references only
   when the record has them.
 - Detail rows indent one level; group headings are bold; subtotals bold with a top border; totals bold
@@ -268,20 +293,21 @@ Hard list, enforced by review and by tests:
 
 ## 10. Acceptance
 
-The work is done when, for the fixture engagement in `tests/test_product_statements.py`:
+The work is done when, for the frozen fixture in `tests/fixtures/statements-record.json` (read it
+through `tests/product_statements_fixture.py`, read the workbook back through `tests/xlsx_read.py`):
 
 - [ ] each requested statement is its own sheet, with one row per statement line and amounts as
-      numbers;
+      numbers — **including the statement of changes in equity**, which the current export omits;
 - [ ] `income_statement` rows sum to the record's `net_income`; `balance_sheet` totals equal the
       record's `total_assets` and `total_liabilities + total_equity`;
 - [ ] the CF sheet is absent when `cash_flow` is null, and the Working sheet carries the reason;
 - [ ] an IS-only request produces exactly one statement sheet;
 - [ ] exporting the same record twice yields identical bytes;
 - [ ] no product module imports a third-party package (`tests/test_product_boundary.py`);
-- [ ] a new test reads the produced workbook back (unzip + parse the sheet XML) and asserts the three
-      cash-flow reconciliations against the record's own checks;
-- [ ] the workbook contains no figure that is not in the record (a scan of numeric cells against the
-      record's value strings).
+- [ ] the workbook reads back through `tests/xlsx_read.py` and the three cash-flow reconciliations hold
+      against the record's own `cash_flow.checks`;
+- [ ] the workbook contains no figure outside `product_statements_fixture.typed_numbers(record)` —
+      a renderer that computes a total of its own fails this.
 
 A test that only asserts a file exists is not an acceptance test.
 

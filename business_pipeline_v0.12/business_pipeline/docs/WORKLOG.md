@@ -1,3 +1,22 @@
+## 2026-11-04 — [computation] A frozen statements record and a read-back harness for the render lane (build 1.97)
+
+**Ask.** "a. when youre done, we will tackle handling problems in financial statements" — start the render lane properly: cut a frozen record and a harness so MiniMax builds against a fixed target.
+
+**Did.**
+
+- `tests/fixtures/statements-record.json`: one solved engagement, all four statements rendered, eleven core checks passing, net income 52,575, total assets 178,100, cash flow 104,600. Built from the golden engagement through the real plan layer with the extraction step stubbed, so it needs no key and cannot drift with the clock.
+- `tests/product_statements_fixture.py`: the deterministic builder plus `typed_numbers()`, the set of figures the record holds as values (text renderings excluded).
+- `qa/manual/make_statements_fixture.py`: the one correct way to regenerate it after an intended change.
+- `tests/xlsx_read.py`: unzip-and-read harness (inline strings, shared strings, numeric cells), with `amount()`, `line_value()`, `statement_rows()` and `numbers_in_text()`.
+- `tests/test_statements_render_contract.py`: 13 tests, including the one that matters — every figure in a workbook produced from the record must be a figure the record holds, so a renderer that computes its own total fails.
+- Found a gap while proving it: the current Excel export **omits the statement of changes in equity**, because it copies `statements_export` and the equity text lives in `appendix.equity_statement_export`. Named in the brief, not silently patched.
+
+**Verified.** `tests.test_statements_render_contract` → **13 tests, OK**; rendered fixture regenerates byte-identically; suite count **3708**.
+
+**Not done, and named.** The workbook itself is still the design lane's (one text sheet, no equity sheet, numbers stored as text). The fixture is a record, not a workbook: nothing here changes what the tile shows today.
+
+**Learned.** The cheapest way to keep a hand-off contract honest is to make the fixture *regenerate* inside the test. A fixture that is only read can rot quietly; a fixture that must reproduce itself fails on the same commit that changes it.
+
 ## 2026-11-04 — [computation] The statements render only what the request names (build 1.96)
 
 **Ask.** "continue" — finish the Financial statements tile so it can solve a request for one statement (or a subset), then hand the render layer to the design lane.

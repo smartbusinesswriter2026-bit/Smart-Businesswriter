@@ -7,7 +7,7 @@
 >   projection graph), `src/bp/statement_extract.py` (the one model-touching step, with the grounding
 >   rule) and `src/bp/product/statements.py` (the request: what is rendered, what is hidden).
 > - Tests: `tests/test_statement_plan.py` (71 tests; a hand-derived golden engagement, variants, and
->   the gate proved both ways), `tests/test_product_statements.py` (the request contract: 60 tests
+>   the gate proved both ways), `tests/test_product_statements.py` (the request contract: 64 tests
 >   with its API and boundary modules). Live smoke: `qa/manual/extract-smoke.py`.
 > - The tile these tips are about: Accounting → the first tile, **Financial statements**
 >   (`#/financial-statements`). Its UI state is `docs/HANDOFF_STATEMENTS_TILE.md`; its measured
