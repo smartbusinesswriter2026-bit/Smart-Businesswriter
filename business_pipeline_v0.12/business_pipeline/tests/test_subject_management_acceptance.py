@@ -559,10 +559,14 @@ class ReachabilityTest(unittest.TestCase):
 
     def test_E_mgt_043__the_unreachable_profiles_are_the_measured_eighteen(self):
         measured = self._unreachable()
-        self.assertEqual(len(measured), 18,
-                         "18 on 2026-11-03 (17 before the marketing lane removed the SERVQUAL "
-                         "worksheet row while repairing it, D-MKT-04/B-198); re-measure, do not "
-                         "re-copy the number")
+        # 3 on 2026-11-03: the marketing shelf wired its fifteen dark worksheets
+        # (B-211), so the only profiles no shelf offers are MKT-07 (its tile is hidden
+        # by the owner, B-198), STR-19 (management's own decision) and CHG-15 (change's).
+        # It was 18 before that, and 17 before the marketing lane removed the SERVQUAL
+        # worksheet row while repairing it (D-MKT-04/B-198).  Re-measure; do not re-copy.
+        self.assertEqual(len(measured), 3,
+                         "3 on 2026-11-03 (18 before the marketing shelf wired its fifteen "
+                         "worksheets, B-211); re-measure, do not re-copy the number")
         self.assertIn("template_change_organization", measured,
                       "the Change and Organization profile has no worksheet on any shelf (G-mgt-02)")
 
