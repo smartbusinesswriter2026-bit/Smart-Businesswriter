@@ -218,7 +218,7 @@ SIPOC parts), G-ops-04 (no theories, by design), G-ops-05 (the four shared capab
 | `qa/probe_mgt_debug.py` on this shelf | **0 problems** (`qa/baseline/ops-probe-after-harness-fix.txt`) |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
 | `test_docs_sync` | **7 passed** (build 1.74; 3236 tests set from the loader) |
-| Full suite | below |
+| Full suite | **3409 tests, 0 failures, 0 errors** on the integrated tree |
 
 ### Full suite
 
@@ -226,6 +226,7 @@ SIPOC parts), G-ops-04 (no theories, by design), G-ops-05 (the four shared capab
 |---|---:|---:|---:|---:|
 | Before (`qa/baseline/ops-base-suite-err.txt`) | 3184 | 5 | 4 | 945 s |
 | After (`qa/baseline/ops-after-suite-err.txt`) | 3236 | **7** | **0** | 1127 s |
+| Final, on the integrated tree (`qa/baseline/ops-final-suite-err.txt`) | **3409** | **0** | **0** | 1093 s |
 
 **The four errors are gone** — that was this shelf's one defect, `ExampleTest` building eleven
 worksheets that had no example. **None of the seven failures is on this shelf.** All seven classified
@@ -246,9 +247,9 @@ The one baseline failure that is **no longer failing** is the network-dependent
 after-run's log shows the live service answered differently, which is why it is filed as environment,
 not product.
 
-**The documented count is 3244**, set from `unittest.TestLoader().discover("tests")` in the same
-commit, and it moves whenever another lane adds a test (it was 3236 an hour earlier for exactly
-that reason). Re-measure from the loader, never from the doc.
+**The documented count is 3409**, set from `unittest.TestLoader().discover("tests")` on the integrated
+tree, and the final run is **3409 tests, 0 failures, 0 errors**. Re-measure from the loader, never from
+the doc: the count moved four times while this session ran.
 
 ### Next subject and its top three risks
 

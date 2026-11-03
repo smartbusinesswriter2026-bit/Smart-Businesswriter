@@ -366,7 +366,7 @@ No new dependency, no network call, no model call, no new worksheet, no new reco
 | `tests/test_subject_operations_acceptance.py` | — (new) | **46 passed** (`qa/baseline/ops-acceptance-out.txt`) |
 | Framework-completion slice (`-k completion`) | — | **584 passed, 0 failed** (`qa/baseline/ops-completion-slice-out.txt`) |
 | `qa/probe_mgt_debug.py` on 11 worksheets + 14 tools | 5 problems, **all five the harness** | **0 problems** (`qa/baseline/ops-probe-after-harness-fix.txt`) |
-| Full suite | 3184 tests, 5 failures, 4 errors (`qa/baseline/ops-base-suite-err.txt`) | 3236 tests, **7 failures, 0 errors** — every failure foreign, classified in §6.2 and in `qa/QA_STATE.md` |
+| Full suite | 3184 tests, 5 failures, 4 errors (`qa/baseline/ops-base-suite-err.txt`) | **3409 tests, 0 failures, 0 errors** on the integrated tree (`qa/baseline/ops-final-suite-err.txt`) |
 
 ### 6.2 The full suite, before and after
 
@@ -374,14 +374,13 @@ No new dependency, no network call, no model call, no new worksheet, no new reco
 |---|---:|---:|---:|---:|
 | Baseline at `1660f25` + the other lane's in-flight work (`qa/baseline/ops-base-suite-err.txt`) | 3184 | 5 | 4 | 9 |
 | After this session (`qa/baseline/ops-after-suite-err.txt`) | **3236** | **7** | **0** | 7 |
+| Final, on the integrated tree (`qa/baseline/ops-final-suite-err.txt`) | **3409** | **0** | **0** | 0 |
 
 The baseline's four errors were **this shelf's** (`ExampleTest`, `KeyError: 'template_sipoc'`) and are gone.
-**7 failures remain at close and none is on this shelf** — the three KNOWN-HISTORICAL ones above, the
-foreign `balanced_scorecard` cue set, and three caused by another lane's in-flight work
-(`docs/BUNDLE_PRICING_HANDOFF.md` missing from HOME's spine, `B-180a`/`B-180b` mentioned in their
-`HANDOFF.md` with no decision row, and `SUBJECT_TILES` gaining `project-management` in their
-uncommitted `subjects.py`). The network failure above stopped failing on its own. Full detail and the
-classification table: `qa/QA_STATE.md`, session 8.
+The seven failures the after-run still showed were all foreign — three KNOWN-HISTORICAL, the foreign
+`balanced_scorecard` cue set, and three caused by another lane's in-flight work — and the lanes that owned
+them repaired them as they landed: **the final run on the integrated tree is 3409 tests, 0 failures,
+0 errors** (`qa/baseline/ops-final-suite-err.txt`).
 
 ### 6.3 The tree moved under this session
 
