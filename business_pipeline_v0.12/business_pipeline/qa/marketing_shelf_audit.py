@@ -62,6 +62,12 @@ def s2_unserved():
     page = subjects.detail("marketing")
     print("  marketing page    : worksheets=%d records=%d tools=%d"
           % (len(page["worksheets"]), len(page["records"]), len(page["tools"])))
+    badges = {}
+    for row in page["records"]:
+        if row["id"] in marketing:
+            badges.setdefault(row["status_short"], []).append(row["id"])
+    for badge, ids in sorted(badges.items()):
+        print("  badge %-16s %2d %s" % (badge, len(ids), ", ".join(ids)))
 
 
 def s3_rfm():
