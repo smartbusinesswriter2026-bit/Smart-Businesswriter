@@ -78,7 +78,7 @@ said 5 and then listed six — six is the truth) · 0 records · 0 theories · 0
 | core change slice | `test_frozen_contract`, `test_method_contracts`, `test_people_frameworks`, economics and entrepreneurship acceptance — **234 tests, all passed** |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
-| documented test count | **3565** (3409 at this session's open; +84 here, +71 from the lanes that landed during it), written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
+| documented test count | **3574** (3409 at this session's open; +84 here, +71 from the lanes that landed during it), written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
 | full suite | before **3409 tests, 1 failure, 0 errors**; after the rebase **3564 tests** measured with `test_docs_sync._suite_count()` |
 
 ---
