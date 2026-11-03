@@ -2629,7 +2629,7 @@ PEOPLE_PERIODS = {
 #: rather than a frozen preset.  The four calculator tiles keep the group names the shelf already used,
 #: so every accounting tool lands in exactly one tile and nothing moves because tiles arrived.
 ACCOUNTING_TILES = [
-    {"key": "statements", "label": "Statements", "service": "statements",
+    {"key": "statements", "label": "Financial statements", "service": "statements",
      "what": "Paste the problem as you were given it and get the journal, the trial balance and the "
              "statements, with the full working behind one toggle.",
      "need": "The question as it was set, or the trial balance. One instruction, no fields to fill.",

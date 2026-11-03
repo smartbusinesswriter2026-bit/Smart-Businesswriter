@@ -315,7 +315,40 @@ empty: add the perspectives and the fields for each perspective first."*
 entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
 
 
-## 2026-11-03 — [product] Statements tile: one entity, one period, one set of books (B-212)
+## 2026-11-03 — [product] The tile is named Financial statements; the UI brief is handed to the design lane
+
+**Ask.** The owner's instruction: rename "statements" to "financial statements"; the "Open statements
+tile" link cannot be clicked and should be a tile like the other sections; and since that is a design
+issue, write an instruction file for MiniMax and close the UI/UX gap and the backend check with it.
+
+**Done here (computation lane).**
+
+1. **Renamed.** `ACCOUNTING_TILES[0]["label"]` → **"Financial statements"**. The `key` (`statements`)
+   and `service` (`statements`) are untouched: the renderer, the router and three tests key off them,
+   so they are contract and not copy.
+2. **The brief**: [`MINIMAX_FINANCIAL_STATEMENTS_UI.md`](MINIMAX_FINANCIAL_STATEMENTS_UI.md) — the
+   card in the same grid and idiom as `capabilityCard()`, the address `#/financial-statements` with
+   `#/statements` kept as an alias, the seven click-path checks, the dialog's content contract
+   (201 / 422 / 400), the route table, the live backend transcript, the runbook, the acceptance list,
+   and the tests the design lane must not edit.
+3. **The test is now tolerant of the address spelling** (`href="#/[a-z-]*statements"`,
+   `head === "[a-z-]*statements"`), so the design lane's commit is green on its own without anyone
+   touching `tests/**`.
+4. **The backend was re-verified live** on 8021 while writing the brief, and the transcript is in it:
+   201 solved (11/11 checks, na 2, NI 8,000, assets 10,000, cash flow withheld with its reason, 8
+   ratios on request), 201 for two accounts on one statement line (assets 6,000), 422 for an
+   out-of-balance trial balance (difference 500, `submitted-does-not-balance`, likely), and 400 with
+   the reason for two entities, a comparative column, a consolidation and a Philippine currency.
+
+**Verified.** `test_product_statements_tile` + `test_product_subjects` + `test_subject_accounting_acceptance`
++ `test_docs_sync` = **122 tests OK**.
+
+**Noted for the record.** The tile's link did not respond to clicks. The cause is structural rather
+than a broken handler: `subjectTiles()` renders the service tile as a paragraph with a link inside a
+block that the `setInterval(decorate, 200)` shim re-decorates, so a click can land on a node that is
+about to be replaced. The brief asks for a real card instead, which removes the race rather than
+patching it.
+
 
 **Ask.** The owner's risk, raised at close: *"if two entities' balances are pasted together, the tile
 treats them as one entity — nothing prints 'this is not a consolidated statement'."* Explore and fix.
@@ -4247,4 +4280,37 @@ cause corrected in the manual, the ledger and `QA_STATE`.
 **Verified after the follow-up.** `python -m pytest tests/test_subject_research_acceptance.py
 tests/test_honesty.py tests/test_missing.py tests/test_frozen_contract.py -q` → **77 passed**.
 `qa/probe_research_shelf.py --tools` → 21 papers, 21 delivered, 0 precision problems.
+
+### Follow-up 2, same session — the owner said "yes" again: the honesty unfreeze (B-215)
+
+`_honesty` could not be fixed by writing caveats, because the caveats already existed. The defect was
+the *shape*: four standard fields, filled only for inferential methods. So the shape changed, under
+the owner's authorisation, in the one place that keeps the change small:
+
+- `Pipeline.run` now keeps the method's caveats in `own_caveats` (it already computed them for `notes`);
+- after `_honesty` returns, **if none of the four standard fields has anything to say and the method
+  declares caveats**, the block gains `this_method` = those caveats. A paper that already discloses
+  something never gets it, so nothing is said twice, and the four keys are always present as before.
+
+The artefact, read back from the `.docx`:
+
+```
+POWER    Honesty: what was not done
+         this method: Power is calculated under the normal approximation … Power is a planning
+         property of the design, not evidence about the result …
+MISSING  Honesty: what was not done
+         this method: The bounds are the extreme cases … They are honest bounds, not estimates …
+```
+
+Only two of the 21 evidence papers changed — every other method on this shelf already carried a
+standard notice — which is the blast radius this shelf can see. The rest of the blast radius is the
+other nine shelves, whose descriptive methods now also print the heading; all nine acceptance suites
+were run for it.
+
+**The pin was strengthened, not loosened.** `test_honesty` used to assert an exact key set; it now
+asserts the rule (the four always present, the fifth only alone and non-empty), and
+`test_ratio_analysis_is_descriptive_and_carries_no_inferential_notices` checks the four inferential
+fields directly instead of "every value is None" — which is what its name always meant. Two of my own
+first-draft expectations failed against it and were corrected, not the code: a method with no caveats
+legitimately has no fifth field, and `ratio_analysis` does declare caveats.
 

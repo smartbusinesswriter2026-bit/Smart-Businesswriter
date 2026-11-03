@@ -106,6 +106,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
 | [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff Ã¢â‚¬â€ completing the remaining frameworks | Read before adding a framework profile; it holds the one-dict recipe and the restart rule |
 | [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md) | Living — the approved build instruction for the accounting statements tile | Read before touching the statements tile; update this file when a decision changes |
+| [`MINIMAX_FINANCIAL_STATEMENTS_UI.md`](MINIMAX_FINANCIAL_STATEMENTS_UI.md) | Handoff — the design brief for the Financial statements tile (the card, the click path, the address) | Design lane: read it before changing the tile's UI; the backend contract in it is the computation owner's and is not to be changed |
 | [`BUNDLE_PRICING_HANDOFF.md`](BUNDLE_PRICING_HANDOFF.md) | Living — the agreed bundle-pricing brief for the plans and the paid tiers; nothing is built yet | Read before touching pricing, plans or billing; every price, page change and decision row in it still has to be made |
 | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) | Living record of what a session did **not** fix | Add a row when a defect is parked rather than fixed; never delete an entry, move it when it is closed |
 | [`HOME.md`](HOME.md) | Living Ã¢â‚¬â€ this map | Add a row when you add a module/document |

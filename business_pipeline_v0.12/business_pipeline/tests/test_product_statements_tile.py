@@ -53,11 +53,18 @@ class AccountingTileTest(unittest.TestCase):
         self.assertIn("/api/cases/statements", page)
 
     def test_the_tile_has_its_own_address(self):
-        """The tile is reachable by name: #/statements opens it, so it is never hunted for."""
+        """The tile is reachable by name: its own address opens it, so it is never hunted for.
+
+        The address is presentation: the design owner may name it, so the test pins the
+        *contract* (the tile has an address, the router opens it, the opener is exposed) and not
+        one spelling of that address.
+        """
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             page = stream.read()
-        self.assertIn('href="#/statements"', page, "the tile link must carry the address")
-        self.assertIn('head === "statements"', page, "the router must open the tile from that address")
+        self.assertRegex(page, r'href="#/[a-z-]*statements"',
+                         "the tile link must carry the address")
+        self.assertRegex(page, r'head === "[a-z-]*statements"',
+                         "the router must open the tile from that address")
         self.assertIn("window.openStatementsTile = open;", page,
                       "the tile must expose the opener the router calls")
 
