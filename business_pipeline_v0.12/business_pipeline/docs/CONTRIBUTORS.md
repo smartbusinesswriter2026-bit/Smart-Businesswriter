@@ -59,11 +59,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 ```powershell
 # from the project folder (business_pipeline_v0.12/business_pipeline)
 $env:PYTHONPATH="src"
-<<<<<<< HEAD
 python -m unittest discover -s tests          # currently 3368 tests; the framework-completion build in flight still fails Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
-=======
-python -m unittest discover -s tests          # currently 3368 tests; the framework-completion build in flight still fails Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
->>>>>>> a8f878f (feat(project-management): the worksheet forms are professional to fill in, and the shelf meets them in order - design lane B-080)
 python -m bp.server 8000                     # workbench at http://127.0.0.1:8000
 ```
 

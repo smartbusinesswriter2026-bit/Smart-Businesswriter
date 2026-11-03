@@ -528,7 +528,7 @@
 - An **A3 countermeasure, owner, date or follow-up** that the brief does not state is a named gap. The pipeline proposes none of them, because a remedy aimed at a cause nobody evidenced is a guess dressed as a method.
 - **A part may borrow your sentence only on a declared vocabulary** (B-201, session 8). Each of the eleven operations profiles declares, per part, the words that make a sentence *about that part* (`quote_cues`); the retrieval vocabulary is wider and is not used for borrowing. A brief that only mentions cost, quality or flow therefore fills nothing, and says what to state instead.
 - **Every operations paper now carries its grid** (B-202, session 8). The eleven layouts in `matrix.LAYOUTS` place the block's own label and the items already accepted (or the gap already named); a figure adds no number, no evidence and no judgement of its own.
-- **The eleven operations worksheets carry no page group** (G-ops-02, session 8): the subject page lists them in one flat list, where the management shelf groups its rows.
+- **The eleven operations worksheets are grouped into three tiles** (B-206, session 8): "Process and capacity", "Inventory and planning" and "Quality and evidence", each holding the worksheets, the calculators and the records of one question. The tile names are the shelf's own tool groups, so a calculator and the worksheet that frames the same question sit together.
 - **One sentence of your brief can fill two adjacent parts** (G-ops-03, session 8): a SIPOC process sentence that names the customer is quoted under both Process and Customers, because it describes both. The paper labels every quoted cell as your own words and never presents it as a finding.
 
 ## Needed by some students but deliberately not built (B-120)

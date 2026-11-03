@@ -166,6 +166,7 @@ confirmed exactly as the work order stated:** 14 tools · 11 worksheets (OPS-03 
 | `tests/test_subject_operations_acceptance.py` | 46 tests, 46 passed |
 | `qa/probe_ops_shelf.py` | the reproducible evidence behind every claim, including the auto-fill trap and the eleven + fourteen papers |
 | `matrix.LAYOUTS` (eleven layouts) | every worksheet paper now carries its grid: one labelled cell per block, the items already accepted or the gap already named (G-ops-01 closed, B-202) |
+| `subjects.OPERATIONS_TILES` (three tiles) + the record map | the page groups the shelf: 11 worksheets, 14 calculators and 7 records, each in exactly one tile, nothing dropped (D-OPS-06 / G-ops-02 closed, B-206) |
 | `qa/evidence/operations/` | the eleven worksheet papers and fourteen tool papers (`.docx` + the `.txt` a reader sees) |
 | `qa/baseline/ops-*` | baseline and after measurements, probe output, acceptance run, completion slice |
 
@@ -187,6 +188,10 @@ confirmed exactly as the work order stated:** 14 tools · 11 worksheets (OPS-03 
 - **G-ops-01** (declared → FIXED on the owner's instruction): none of the eleven papers drew a
   figure because `matrix.LAYOUTS` had no operations entry. Eleven layouts added (B-202); trap test
   `test_E_ops_018` now asserts one labelled cell per block, none empty, and the figure in the paper.
+- **D-OPS-06 / G-ops-02** (declared → FIXED on the owner's instruction): the eleven worksheets sat in
+  one flat list while three other shelves group theirs. Three tiles added (B-206) — keys taken from the
+  shelf's own tool groups — plus a record map, so seven computed records are not printed as "read and
+  cite" cards. Trap test `test_E_ops_010`.
 
 ### Ledgered / declared
 

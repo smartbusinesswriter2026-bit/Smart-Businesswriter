@@ -1,6 +1,6 @@
 ﻿# Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.75**, **3368 tests**, 2026-11-03. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.76**, **3368 tests**, 2026-11-03. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -105,6 +105,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`HANDOFF.md`](HANDOFF.md) | Handoff brief for the next coding agent | Read first after CONTRIBUTORS; keep current when state changes |
 | [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff Ã¢â‚¬â€ completing the remaining frameworks | Read before adding a framework profile; it holds the one-dict recipe and the restart rule |
 | [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md) | Living — the approved build instruction for the accounting statements tile | Read before touching the statements tile; update this file when a decision changes |
+| [`BUNDLE_PRICING_HANDOFF.md`](BUNDLE_PRICING_HANDOFF.md) | Living — the agreed bundle-pricing brief for the plans and the paid tiers; nothing is built yet | Read before touching pricing, plans or billing; every price, page change and decision row in it still has to be made |
 | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) | Living record of what a session did **not** fix | Add a row when a defect is parked rather than fixed; never delete an entry, move it when it is closed |
 | [`HOME.md`](HOME.md) | Living Ã¢â‚¬â€ this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |

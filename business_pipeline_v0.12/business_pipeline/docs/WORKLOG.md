@@ -244,6 +244,18 @@ label, bullets and gap, so the figure can show only what the completion already 
 block, none empty, and the figure reaches the paper", so it fails if a layout drops or
 mislabels a cell. The probe reports 0 problems and the shelf suite is 46 passed again.
 
+**Owner follow-up, same day — the three tiles.** *"create a group for them"*: the shelf listed its
+eleven worksheets in one flat list while management, people and project-management group theirs.
+Three tiles added (B-206), and the keys are not a style choice — `_tiles()` places a calculator in
+the tile whose key equals `tool["group"]`, so the keys are the shelf's own tool groups
+(**Process and capacity**, **Inventory and planning**, **Quality and evidence**) and any new
+vocabulary would have taken all fourteen calculators off the page. A **record map** went in with
+them: without it the seven computed records are claimed by no tile, and the page's leftover
+heading prints them as *"read and cite — no worksheet yet"* cards, which is a calculator
+described as something to cite. Measured after the change: 3 tiles holding 4/2/5 worksheets,
+6/4/4 calculators and 3/2/2 records, nothing dropped and nothing twice; `test_E_ops_010` asserts
+it against `detail("operations")`.
+
 **Left on purpose.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/registry.py`, every
 preset, every route family, every input schema and `tests/fixtures/frozen_contract.json` are
 untouched: `scripts/econ_shelf.py --check` still says "frozen fixture: in sync".

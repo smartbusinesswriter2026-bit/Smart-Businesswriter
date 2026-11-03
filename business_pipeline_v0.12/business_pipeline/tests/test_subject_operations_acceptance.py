@@ -225,7 +225,7 @@ class InventoryTest(unittest.TestCase):
         self.assertEqual(entry["theory_count"], len(page()["theories"]))
         self.assertEqual(entry["catalogue_count"], len(sheets()) + len(page()["records"]))
 
-    def test_E_ops_010__all_eleven_worksheets_are_shared_and_none_is_unreachable(self):
+    def test_E_ops_010__all_eleven_worksheets_are_shared_and_the_page_groups_them(self):
         reached = {}
         for row in subjects.catalogue()["subjects"]:
             for sheet in subjects.detail(row["id"])["worksheets"]:
@@ -236,6 +236,31 @@ class InventoryTest(unittest.TestCase):
         ours = {sheet["template"] for sheet in sheets()}
         self.assertEqual(sorted(ours - set(reached)), [],
                          "a template on this shelf is reached by no page")
+
+        # G-ops-02 / D-OPS-06, closed 2026-11-03: the shelf declares three tiles, and
+        # their keys are the shelf's own tool groups, because `_tiles` places a
+        # calculator in the tile whose key equals the tool's group.
+        tiles = page()["tiles"]
+        self.assertEqual([tile["key"] for tile in tiles],
+                         ["Process and capacity", "Inventory and planning",
+                          "Quality and evidence"])
+        self.assertEqual(sorted({sheet["group"] for sheet in sheets()}),
+                         sorted(tile["key"] for tile in tiles))
+
+        def ident(item):
+            return item.get("catalogue_id") or item.get("id") or item.get("key")
+
+        for kind, items in (("worksheets", sheets()), ("tools", page()["tools"]),
+                            ("records", page()["records"])):
+            on_page = sorted(ident(item) for item in items)
+            in_tiles = sorted(ident(item) for tile in tiles for item in tile[kind])
+            self.assertEqual(in_tiles, on_page,
+                             "%s: a tile dropped or duplicated an item" % kind)
+        # and each tile says what it covers and what the student needs first
+        for tile in tiles:
+            self.assertTrue(tile["what"], tile["key"])
+            self.assertTrue(tile["need"], tile["key"])
+            self.assertTrue(tile["worksheets"], "%s is empty" % tile["key"])
 
 
 class PaperTest(unittest.TestCase):

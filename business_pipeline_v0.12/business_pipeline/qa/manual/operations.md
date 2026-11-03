@@ -52,8 +52,8 @@ The dependency this session could not avoid: **eleven of this shelf's worksheets
 | Catalogue records the shelf counts | 18 | `subjects.catalogue()` | **18** = 11 worksheets + 7 records, reconciled |
 | Profiles on the shelf no page reaches | 0 | the sweep in §2.2 | 0 — every shelf template is on a page |
 | Worksheets also shown on another shelf | 11 of 11 | `VALIDATION_HARNESS.md` §7.1 | all eleven are also on `supply-chain` (§2.2) |
-| Worksheet groups | 1 (`None`) | `detail("operations")["worksheets"]` | every row has `group: null`, so the page shows one flat list (D-OPS-06) |
-| Tiles | 0 | `detail("operations")["tiles"]` | 0 |
+| Worksheet groups | 3 tiles | `detail("operations")["tiles"]` | **3** — "Process and capacity", "Inventory and planning", "Quality and evidence" (D-OPS-06 closed) |
+| Tiles | 3 | `detail("operations")["tiles"]` | 3, each with its worksheets, its calculators and its records |
 
 ### 2.1 Worksheets, one row each
 
@@ -86,6 +86,23 @@ fallback did before this session.
 **One worked example per worksheet** now exists in `templates.EXAMPLES` (`test_E_ops_007`). Before this
 session none of the eleven had one, and the four `ExampleTest` cases in
 `tests/test_operations_frameworks.py` errored with `KeyError` instead of testing anything (D-OPS-01).
+
+### 2.1.1 The three tiles, and what sits in each (D-OPS-06, closed 2026-11-03)
+
+The tile keys **are the shelf's own tool-group names** (`OPERATIONS_GROUPS`), because `_tiles()` places a
+calculator in the tile whose key equals the tool's `group`; a different vocabulary would have taken all
+fourteen calculators off the page.
+
+| Tile | Worksheets | Calculators | Records |
+|---|---|---|---|
+| Process and capacity | OPS-01 SCOR, OPS-02 SIPOC, OPS-03 value stream, OPS-06 TOC | `breakeven`, `multibreakeven`, `unitecon`, `queue`, `capacity`, `linebalance` | QNT-OPS-04, QNT-OPS-05, QNT-OPS-08 |
+| Inventory and planning | OPS-10 Kraljic, OPS-11 S&OP | `inventory`, `forecast`, `missing`, `descriptive` | QNT-OPS-01, QNT-OPS-02 |
+| Quality and evidence | OPS-04 5S, OPS-05 A3, OPS-07 root cause, OPS-08 FMEA, OPS-12 PDCA | `oee`, `spc`, `chi_square`, `power` | OPS-09, QNT-OPS-06 |
+
+**Nothing is dropped and nothing is counted twice** — 11 worksheets, 14 calculators and 7 records, each in
+exactly one tile (`test_E_ops_010`). The record map is not decoration: with no record group the seven
+computed records are claimed by no tile, and the page's leftover heading prints them as *"read and cite —
+no worksheet yet"* cards, which is a calculator described as something to cite.
 
 ### 2.2 Shared with another shelf, and reachability
 
@@ -142,7 +159,7 @@ it as read-only: it states what a method computes, it is not a form. Each `linke
 
 | Surface | Where | What this session checked |
 |---|---|---|
-| Subject page | `#/subject/operations` | the 11 rows (one flat list, `group: null` — D-OPS-06), the 14 tools, the 7 records, the 20 terms, the declared `does_not` list (E-ops-001…010) |
+| Subject page | `#/subject/operations` | the three tiles (D-OPS-06 closed), the 11 rows, the 14 tools, the 7 records inside their tiles, the 20 terms, the declared `does_not` list (E-ops-001…010) |
 | Worksheet form | `templates.describe(template)["form_kind"]` | every row renders a canvas form the page knows, and the registry calls it a worksheet (E-ops-005) |
 | Example request | `templates.describe(template)["example_request"]` | every one of the eleven now carries its own worked example (E-ops-007) |
 | Completion → paper | `completion.complete` → `draft` → `draft_bytes` | headings, byline, gaps, figure, citations (E-ops-011…020) |
@@ -197,7 +214,7 @@ be built.
 | E-ops-007 | Every worksheet has a worked example that is labelled synthetic and passes its own `validate()` and every one of its own checks | `templates.EXAMPLES`; `templates.run_template` | PASS |
 | E-ops-008 | The declared `does_not` list is present and specific (no data retrieval, no schedule optimisation, no plant visit) | `detail("operations")["does_not"]` | PASS |
 | E-ops-009 | The catalogue row agrees with the detail page on tools, worksheets, records, theories and the 18 it counts | `subjects.catalogue()` | PASS |
-| E-ops-010 | All eleven worksheets are also on the `supply-chain` shelf, and no template on this shelf is unreachable from a page | `VALIDATION_HARNESS.md` §7.1; the cross-shelf sweep | PASS |
+| E-ops-010 | All eleven worksheets are also on the `supply-chain` shelf, no template is unreachable, and the page groups worksheets, calculators and records into three tiles with nothing dropped | `VALIDATION_HARNESS.md` §7.1; `detail("operations")["tiles"]` | PASS |
 
 ### 3.2 The eleven papers (V-01…V-20, read on the artefact)
 
@@ -279,14 +296,15 @@ acceptance suite adds; the traceability matrix in §5 lists all 46.
 
 ## 4. DISPUTED rows
 
-None. Two rows are `GAP` rather than `PASS`, and both are declared rather than disputed:
+None. One row is `GAP` rather than `PASS`, and it is declared rather than disputed:
 
 - **E-ops-006 / OPS-03.** The value stream map has no “draft it for me” button. That is deliberate — the
   four `quote` cells are the student's own process and the two `gap` cells are their judgement — and the
   paper is still produced (E-ops-041).
-- **The shelf's worksheets have no `group`** (D-OPS-06). All eleven rows carry `group: null`, so the page
-  shows one flat list of eleven. Adding groups is a presentation decision on a catalogue surface, and
-  three lanes are editing `subjects.py`: measured, recorded, not invented.
+
+The worksheet groups are no longer a gap: the shelf declares three tiles (§2.1.1) and the page groups its
+worksheets, calculators and records inside them, with the record map that keeps the seven computed records
+from being printed as "read and cite" cards.
 
 ## 5. Traceability matrix
 
@@ -301,7 +319,7 @@ None. Two rows are `GAP` rather than `PASS`, and both are declared rather than d
 | E-ops-007 | `test_E_ops_007__every_worksheet_has_a_worked_example_that_passes_its_own_checks` | E-ops-030 | `test_E_ops_030__there_is_no_markdown_download_anywhere` |
 | E-ops-008 | `test_E_ops_008__the_declared_does_not_list_is_present_and_specific` | E-ops-031 | `test_E_ops_031__no_block_declares_a_placeholder_cue_or_a_list_of_cues` |
 | E-ops-009 | `test_E_ops_009__the_catalogue_row_agrees_with_the_detail_page` | E-ops-032 | `test_E_ops_032__every_researched_block_accepts_evidence_for_its_own_question` |
-| E-ops-010 | `test_E_ops_010__all_eleven_worksheets_are_shared_and_none_is_unreachable` | E-ops-033 | `test_E_ops_033__no_paper_prints_a_wrong_article_or_a_broken_singular` |
+| E-ops-010 | `test_E_ops_010__all_eleven_worksheets_are_shared_and_the_page_groups_them` | E-ops-033 | `test_E_ops_033__no_paper_prints_a_wrong_article_or_a_broken_singular` |
 | E-ops-011 | `test_E_ops_011__every_worksheet_paper_opens_and_closes_in_the_declared_order` | E-ops-034 | `test_E_ops_034__no_paper_prints_a_python_repr_or_a_raw_decimal` |
 | E-ops-012 | `test_E_ops_012__every_block_carries_an_item_or_a_named_gap` | E-ops-035 | `test_E_ops_035__the_hash_stays_in_the_record_and_out_of_every_download` |
 | E-ops-013 | `test_E_ops_013__a_named_gap_says_what_to_state` | E-ops-036 | `test_E_ops_036__the_probe_reports_no_problem_on_this_shelf` |
@@ -333,6 +351,7 @@ eleven operations worksheets are also on `supply-chain`, so every edit was re-te
 | The conclusion states a count instead of a ranking (D-OPS-02) | `bp/product/completion.py` (`_draft_data`) | one conclusion serves every shelf | completion slice, 11 papers |
 | The probe's two false positives, and a 14-tool pass | `qa/probe_mgt_debug.py` | it is the harness, not the product | re-run over this shelf: 5 problems → 0 |
 | The shelf's own probe | `qa/probe_ops_shelf.py` | no read-only probe existed for this shelf | it is the evidence behind every number here |
+| Three tiles for the shelf, and a record map so no calculator is described as something to cite | `bp/product/subjects.py` (`OPERATIONS_TILES`, `OPERATIONS_WORKSHEET_GROUPS`, `OPERATIONS_RECORD_GROUPS`) | the tile keys must be the shelf's own tool groups or `_tiles()` drops every calculator; the page is generated from `detail()` | `test_E_ops_010`, `test_product_subjects`, `test_people_frameworks`, `test_operations_frameworks` (150 passed) |
 | Eleven figure layouts for the eleven worksheets | `bp/product/matrix.py` (`LAYOUTS`) | the geometry is declared per template and the builder writes no content | the eleven papers, `test_matrix_figure`, `test_E_ops_018`, the probe (0 problems) |
 
 **Not touched:** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/registry.py`,
@@ -383,7 +402,7 @@ seven were found only by reading the produced `.docx` (P6), which is why the pro
 | D-OPS-03 | “The manager reviews the change next term” printed as what PDCA's *act* stage standardised | HONESTY (BLOCKER) | FIXED |
 | D-OPS-04 | “(Lovelace, 2024) (Lovelace, 2024)” in every sourced cell | HONESTY | FIXED |
 | D-OPS-05 | a judgement cell that never said what to state, though the profile declares it | HONESTY | FIXED |
-| D-OPS-06 | eleven worksheets in one flat list, no groups | UI | **GAP** (G-ops-02) |
+| D-OPS-06 | eleven worksheets in one flat list, no groups | UI | **FIXED** (three tiles, B-206) |
 | D-OPS-07 | “the lunch service at the meal counter **lunch service meal** …” in every query | WIRING | **OPEN** (MINOR) |
 | D-OPS-08 | the three count documents said 3165 tests; the loader says 3184 and then 3236 | DOC-DRIFT | FIXED (set from the loader) |
 | G-ops-01 | no figure in any of the eleven papers: `matrix.LAYOUTS` had no operations entry | PRESENTATION | **FIXED** (owner instruction; eleven layouts, B-202) |
@@ -410,7 +429,7 @@ seven were found only by reading the produced `.docx` (P6), which is why the pro
 | Id | Gap | Why it is not built |
 |---|---|---|
 | G-ops-01 | ~~No figure in any of the eleven papers~~ — **closed 2026-11-03** by owner instruction | eleven layouts now sit in `matrix.LAYOUTS` (B-202): each cell is labelled with the block's own label and carries the items already accepted or the gap already named. No new number, no new evidence |
-| G-ops-02 | The eleven worksheets have no `group`, so the page shows one flat list | adding groups moves a catalogue surface, and three lanes edit `subjects.py`; the measured state is pinned instead |
+| G-ops-02 | ~~The eleven worksheets have no `group`, so the page shows one flat list~~ — **closed 2026-11-03** by owner instruction | three tiles now group the shelf (B-206): their keys are the shelf's own tool groups, so each tile holds the worksheets, the calculators and the records of one question. `test_E_ops_010` fails if a tile drops or duplicates an item |
 | G-ops-03 | One brief sentence can be quoted into two adjacent parts | the match is lexical by design; a paraphrase matcher is not built, and the paper labels every quoted cell as the student's own words |
 | G-ops-04 | The shelf has no theories, and none is claimed | by design: the record sets live on Project management and People |
 | G-ops-05 | `inventory_policy`, `queue_analysis` and `capacity_analysis` are also on the supply-chain page | deliberate: four capabilities serve both shelves (`VALIDATION_HARNESS.md` §7.1) |
