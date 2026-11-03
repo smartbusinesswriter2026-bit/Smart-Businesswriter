@@ -6,6 +6,7 @@ from .quantity import Quantity
 from .artifacts import Artifact, ArtifactStore, sha, env_hash
 from .spec import ProblemSpec
 from .methods import LIBRARY, validate_inputs, DataError, decision_flip
+from .methods import PROPORTION_INPUTS, PROPORTION_LIMIT
 from .sandbox import SandboxError
 from . import envpin, registry, templates, currency as currencies
 from .claims import license_check
@@ -275,6 +276,27 @@ class Pipeline:
                 rate_hint = ("A rate above 100% was produced for '" + metric.replace("_", " ") +
                              "'. Rates are entered as decimals: 6% is 0.06, not 6. Check the inputs before relying on this result.")
                 break
+        if rate_hint is None:
+            # G-pm-04, the part the output cannot see.  The hint above fires only when an
+            # OUTPUT is typed `rate`; a measured sweep found two shipped paths where a
+            # hundredfold share error lands on an output that is not, and the run said
+            # nothing: fx_parity with any of its four rates, and portfolio_analysis with a
+            # risk-free rate.  The same sentence is printed from the inputs, against the
+            # curated table.  Nothing is refused and nothing is converted.
+            for key, raw in (inp or {}).items():
+                if (m.name, key) not in PROPORTION_INPUTS:
+                    continue
+                try:
+                    entered = D(str(raw))
+                except (InvalidOperation, ValueError, TypeError):
+                    continue
+                if abs(entered) >= PROPORTION_LIMIT:
+                    rate_hint = ("'" + key.replace("_", " ") + "' looks like a percentage, not "
+                                 "a decimal: " + str(entered) + "% is "
+                                 + str((entered / 100).normalize()) + ". Rates are entered as "
+                                 "decimals: 6% is 0.06, not 6. Check the inputs before relying "
+                                 "on this result.")
+                    break
         if rate_hint: notes.insert(0, rate_hint)
         honesty, honesty_notes = _honesty(m, inp)
         notes.extend(honesty_notes)

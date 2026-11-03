@@ -61,17 +61,23 @@ def _num(x):
     d = D(str(x))
     if not d.is_finite(): raise ValueError("not a finite number")
     return d
-
 # ---------- inputs that ARE a proportion ----------
 # A share, a rate, a tax rate, a volatility: the documentation says "as a decimal" and means
 # it, so a student who types the percentage instead ("6" for 6%) is handed an answer wrong by
-# a hundredfold that looks right.  G-pm-04 recorded this as "the rate is taken as given";
-# these inputs are now refused, with the decimal form spelled out.
+# a hundredfold that looks right.  G-pm-04 recorded this as "the rate is taken as given".
+#
+# The disclosure the product already prints is driven by the OUTPUTS: a run whose output is
+# typed `rate` and lands above 1 says "6% is 0.06, not 6".  That covers most paths and misses
+# two that a measured sweep found: `fx_parity` with any of its four rates and
+# `portfolio_analysis` with a risk-free rate both deliver a hundredfold error with no word,
+# because their outputs are not typed `rate`.  So the orchestrator also reads the INPUTS
+# against this table and prints the same sentence.  Nothing is refused and nothing is
+# converted: the run delivers exactly what was typed, and says what it looks like.
 #
 # The threshold is 2, not 1, on purpose.  A proportion of 1.2 is a real value in several of
-# these methods - a 120% volatility, a 1.5 markup - and refusing it would destroy a
-# capability to catch a typo.  Every percentage a student is likely to type (5, 6, 10, 25,
-# 60, 100) is at or above 2, so the blatant window is caught and the arguable one is left be.
+# these methods - a 120% volatility, a 1.5 markup - and flagging it would be noise that
+# teaches a student to ignore the note.  Every percentage a student is likely to type (5, 6,
+# 10, 25, 60, 100) is at or above 2.
 #
 # Deliberately NOT listed, because they are not shares of one:
 #   trial_balance_check.places              a count of decimal places
@@ -82,57 +88,31 @@ def _num(x):
 #   pricing_decision.markup_rate            1.5 (=150% markup) is ordinary retail practice
 PROPORTION_LIMIT = D("2")
 PROPORTION_INPUTS = frozenset({
-    ("time_value", "rate"),
-    ("loan_amortization", "annual_rate"),
-    ("bond_analysis", "coupon_rate"),
-    ("bond_analysis", "yield_to_maturity"),
-    ("capm", "risk_free_rate"),
-    ("capm", "market_return"),
-    ("capm", "tax_rate"),
-    ("working_capital", "discount_percent"),
-    ("portfolio_analysis", "risk_free_rate"),
-    ("option_pricing", "volatility"),
-    ("option_pricing", "risk_free_rate"),
+    ("time_value", "rate"), ("loan_amortization", "annual_rate"),
+    ("bond_analysis", "coupon_rate"), ("bond_analysis", "yield_to_maturity"),
+    ("capm", "risk_free_rate"), ("capm", "market_return"), ("capm", "tax_rate"),
+    ("working_capital", "discount_percent"), ("portfolio_analysis", "risk_free_rate"),
+    ("option_pricing", "volatility"), ("option_pricing", "risk_free_rate"),
     ("option_pricing", "dividend_yield"),
-    ("fx_parity", "domestic_rate"),
-    ("fx_parity", "foreign_rate"),
-    ("fx_parity", "domestic_inflation"),
-    ("fx_parity", "foreign_inflation"),
+    ("fx_parity", "domestic_rate"), ("fx_parity", "foreign_rate"),
+    ("fx_parity", "domestic_inflation"), ("fx_parity", "foreign_inflation"),
     ("leverage_analysis", "tax_rate"),
-    ("money_multiplier", "reserve_ratio"),
-    ("money_multiplier", "currency_drain_ratio"),
-    ("fiscal_multiplier", "tax_rate"),
-    ("output_gap_okun", "current_unemployment_rate"),
+    ("money_multiplier", "reserve_ratio"), ("money_multiplier", "currency_drain_ratio"),
+    ("fiscal_multiplier", "tax_rate"), ("output_gap_okun", "current_unemployment_rate"),
     ("labour_market", "unemployment_rate"),
-    ("market_sizing", "serviceable_share"),
-    ("market_sizing", "obtainable_share"),
-    ("startup_capital", "contingency_rate"),
-    ("campaign_efficiency", "contribution_margin_rate"),
-    ("clv_model", "churn_rate"),
-    ("tax_declared", "income_tax_rate"),
-    ("proforma_statements", "gross_margin_rate"),
-    ("sales_from_market", "target_share"),
+    ("market_sizing", "serviceable_share"), ("market_sizing", "obtainable_share"),
+    ("startup_capital", "contingency_rate"), ("campaign_efficiency", "contribution_margin_rate"),
+    ("clv_model", "churn_rate"), ("tax_declared", "income_tax_rate"),
+    ("proforma_statements", "gross_margin_rate"), ("sales_from_market", "target_share"),
     ("cap_table_round", "option_pool_pct"),
 })
 
 
 
-def _check(key, v, spec, proportion=False):
+def _check(key, v, spec):
     t, errs = spec["type"], []
     try:
-        if t == "decimal":
-            d = _num(v)
-            if proportion and abs(d) >= PROPORTION_LIMIT:
-                # A student who types the percentage instead of the fraction gets a wrong
-                # answer that looks right (G-pm-04: a rate of 6 read as 600%).  The refusal
-                # names the decimal form rather than silently taking the number as given.
-                errs.append("'%s' = %s: '%s' is a proportion, not a percentage. %s"
-                            % (key, v, key,
-                               ("The decimal form of a percentage is that number over a "
-                                "hundred, so enter %s." % (d / 100).normalize()
-                                if abs(d) <= 100 else
-                                "This method takes the decimal form (between 0 and 1) and "
-                                "never a percentage;")))
+        if t == "decimal": _num(v)
         elif t == "column_map":
             if not isinstance(v, dict) or not v: return [f"'{key}' must be an object of name -> list of values"]
             if len(v) < spec.get("min_columns", 1): errs.append(f"'{key}' needs at least {spec['min_columns']} columns")
@@ -235,7 +215,7 @@ def validate_inputs(m, inp) -> list[str]:
     for k, spec in sch.items():
         if k not in inp:
             if spec.get("required", True): errs.append(f"missing required input '{k}' ({spec['desc']})")
-        else: errs += _check(k, inp[k], spec, proportion=(m.name, k) in PROPORTION_INPUTS)
+        else: errs += _check(k, inp[k], spec)
     return errs
 
 # ---------- NPV ----------
