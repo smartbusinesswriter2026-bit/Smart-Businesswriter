@@ -181,8 +181,6 @@ DETECTORS: List[Detector] = [
              [Slot("amount", "money", required=False, default=None)]),
     Detector("dividends", r"declared\s+(?:dividends of\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money"), Slot("paid", "string", required=False, default="no")]),
-    Detector("cash_sale_simple", r"cash sales of \$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
-             [Slot("amount", "money")]),
     Detector("sales_return", r"customer returned goods[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
              [Slot("amount", "money")]),
     Detector("sales_discount", r"customer paid within discount period[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
