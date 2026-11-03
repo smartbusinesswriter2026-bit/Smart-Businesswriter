@@ -3783,7 +3783,7 @@ SUBJECT_DEFS = [
         "summary": "Test a venture idea: market size, price, break-even, cash and the capital it needs.",
         "guidance": ("This shelf follows the sections of a business plan. Size the market, set a price and find "
                      "break-even, plan the cash and the capital you must raise, then appraise the return. Each tile "
-                     "opens one frozen method; nothing is calculated until you supply and confirm your own figures, "
+                     "opens one published method; nothing is calculated until you supply and confirm your own figures, "
                      "and every result can be exported as an assignment submission."),
         "start_steps": [
             "Start with the business plan: market size, price and break-even.",

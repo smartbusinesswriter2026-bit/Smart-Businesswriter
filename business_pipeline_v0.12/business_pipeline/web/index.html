@@ -1735,8 +1735,8 @@ function renderPortfolioLanding(rows) {
   const out = $("#portfolioout");
   let html = '<section class="pfhero pfhero-landing">' +
     '<span class="pfkicker">Portfolio Lab</span>' +
-    '<h2>Build a book a professor can grade.</h2>' +
-    '<p>Value your own holdings, keep a dated snapshot and export the report. Every figure comes from the frozen method; the app never fetches a price silently.</p>' +
+    '<h2>A book an examiner can follow, figure by figure.</h2>' +
+    '<p>Enter your holdings, choose a valuation date, keep the snapshot and export the report. Every figure comes from the published method, and every price is dated, attributed and used only where you supplied or requested it.</p>' +
     '<div class="pfchoices">' +
       '<button class="pfchoice" type="button" id="pfnewpaper"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8v12H3z"/></svg></span><strong>Investment paper</strong><span>One to five stocks, one dated snapshot, a report you can submit.</span><em>Start a paper \u2192</em></button>' +
       '<button class="pfchoice" type="button" id="pfnewfund"><span class="pficon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h2v12h14v2H4zm4-3V9h2v7H8zm4 0V6h2v10h-2zm4 0v-4h2v4h-2z"/></svg></span><strong>Mock fund journal</strong><span>Weekly snapshots, a decision journal and a time-weighted return.</span><em>Open a fund \u2192</em></button>' +
@@ -4272,7 +4272,7 @@ function subjectTiles(s) {
   let html = '<h3 style="margin-top:0">The tiles</h3>' +
     '<p class="muted">Work down the tiles in the order the decision comes. A worksheet fills itself from your brief and the ' +
     "evidence it can cite; a catalogue-only framework is something to read and cite until the owner builds one; a calculator " +
-    "runs a frozen method on the figures you declare.</p>";
+    "runs a published method on the figures you declare.</p>";
   const placed = new Set();
   tiles.forEach((tile) => {
     const sheets = tile.worksheets || [];
@@ -4871,7 +4871,7 @@ function renderSubject() {
       ? '<h3 style="margin-top:22px">Quantitative Finance</h3>'
       : '<h3 style="margin-top:22px">With computation</h3>';
     html += computedHeading +
-      '<p class="muted">These run a frozen method. Supply the figures and confirm; the server computes the result and its checks.</p>';
+      '<p class="muted">These run a published method. Supply the figures and confirm; the server computes the result and its checks.</p>';
     if (hasGroups) {
       groups.forEach((g) => {
         html += '<h4 class="levelhead">' + esc(g.label) + '</h4><div class="capgrid">' +
@@ -4926,7 +4926,7 @@ function renderSubject() {
   const noted = tools.filter((t) => t.formula);
   if (noted.length) {
     html += '<h3>Study notes</h3><p class="muted">Formula, steps and the mistakes students most often make. ' +
-      'The numbers still come from the frozen method, not from this text.</p>';
+      'The numbers still come from the published method, not from this text.</p>';
     noted.forEach((t) => {
       html += '<details class="studynote"><summary>' + esc(t.label) +
         (t.level ? ' <span class="lvl">' + esc(t.level) + "</span>" : "") + "</summary>" +
@@ -5688,7 +5688,7 @@ async function openWorksheet(template, label, objective) {
 
 RENDERERS.calculator = function () {
   const note = $("#calcnote"), out = $("#calcout");
-  note.innerHTML = loading("Reading the frozen method list");
+  note.innerHTML = loading("Reading the published method list");
   out.innerHTML = "";
   api("/api/cases/calculator").then((d) => {
     state.calculator = d;
@@ -5944,7 +5944,7 @@ async function calcRun() {
   if (preset && preset.currency) body.currency = preset.currency;
   if (preset && preset.period) body.period = preset.period;
   $("#calceq").disabled = true;
-  $("#calcresult").innerHTML = loading("Running the frozen method");
+  $("#calcresult").innerHTML = loading("Running the published method");
   try {
     let current = await post("/api/sessions", body);
     if (current.status === "awaiting_confirmation") current = await post("/api/sessions/" + current.id + "/confirm", {});
