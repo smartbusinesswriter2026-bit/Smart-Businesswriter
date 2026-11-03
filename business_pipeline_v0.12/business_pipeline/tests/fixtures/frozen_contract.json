@@ -1090,6 +1090,7 @@
         "second_implementation_agrees",
         "real_wage_is_nominal_wage_over_the_price_index",
         "wage_share_is_real_wage_over_productivity",
+        "tightness_is_vacancies_over_unemployed",
         "a_higher_cpi_lowers_the_real_wage",
         "a_higher_productivity_lowers_the_wage_share"
       ],
@@ -1099,7 +1100,7 @@
         "cpi",
         "labour_productivity",
         "nominal_wage",
-        "unemployment_rate",
+        "unemployed",
         "vacancies"
       ]
     },

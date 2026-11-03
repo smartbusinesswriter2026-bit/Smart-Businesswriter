@@ -1,3 +1,49 @@
+## 2026-11-03 — [computation] People & organisation: the last shelf gets measured, and four claims its units were making turn out to be false
+
+**Ask.** The work order for the `people` shelf: measure it, write its manual and its acceptance suite, settle
+`docs/OPEN_ISSUES.md` Items 11 and 12, and *do not* touch the core without asking. The owner's instruction when the
+session closed: **"a"** — option A of the four offered, which is the whole core fix.
+
+**Why the fixes are in the core and not on the page.** Three of the shelf's ten calculators are presets of core
+methods (`trainingroi` → `return_on_investment`, `labourtightness` → `labour_market`, `programmecost` →
+`cost_effectiveness`), so their defects are the core's — and every one of them was a **claim the unit made about the
+number** rather than the arithmetic. An effect of 40 was labelled money; a cost *per* effect was labelled money; a
+count divided by a rate was labelled a ratio; a holding period was labelled a count.
+
+**Did.**
+
+- **The `@unit` ordering bug, first.** `orchestrator` set `cur_here = cur if mu == "@unit"` *before* `mu` was resolved,
+  so every `@unit` output took the request's currency whatever it was. The unit is resolved first now, and the currency
+  follows the resolved unit through the existing exempt tuple.
+- **One composite unit, in words.** `currency_per_effect` is the engine's only new unit; `Quantity.display` prints it
+  as "USD 400.00 per unit of effect" and keeps the accounting parentheses for a negative ratio, because the exchange has
+  no symbol for a cost per effect and printing a bare amount is exactly the error being fixed.
+- **Tightness divides by people, not by a rate.** `labour_market` takes an `unemployed` count; tightness is
+  `vacancies / unemployed`; a sixth declared check recomputes it; the caveat says it is a ratio of two counts; and the
+  template now **states the number**, which it never did (Item 11c).
+- **Ten probes, then ten traps.** Each fix was first measured with a throwaway probe (what does it print today?), then
+  written as a trap that asserts the new truth. Stashing the five source files and re-running proves **10 of 11 fail on
+  the old code** — the eleventh, E-ppl-059, is the surviving "a rate is never rescaled" rule, retargeted to the
+  chi-square significance level because the labour tool no longer takes a rate.
+- **The fixture was regenerated, not hand-edited.** `scripts/econ_shelf.py --fixture` wrote 142 methods and 144 presets;
+  `--check` says in sync.
+
+**Files.** `src/bp/methods.py` (cea/roi/power typing; the labour-market impl, check, profile, typing, caveat, template
+and contract), `src/bp/orchestrator.py` (one block), `src/bp/quantity.py` (display), `src/bp/server.py` (the preset),
+`src/bp/product/subjects.py` (one step, one tile description), `tests/fixtures/frozen_contract.json` (regenerated),
+`tests/test_subject_people_acceptance.py` (85 tests), `qa/manual/people.md`, `qa/clickthrough_people.py`,
+`qa/evidence/people/`, `qa/QA_DEFECTS.md`, `qa/QA_STATE.md`, `docs/OPEN_ISSUES.md`, `docs/CURRICULUM_MAP.md`,
+`docs/DECISIONS.md` (B-215), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`.
+
+**Verified.** 85 acceptance tests green; 234 in the frozen-contract, method-contract, people, economics and
+entrepreneurship slice; `econ_shelf --check` in sync; `page syntax: OK`; 10 of 10 calculators delivered over HTTP on
+port 8002 with 10 of 10 `.docx` downloads; one Kotter paper read against V-01…V-20 (no rule failed).
+
+**Learned.** The supply-chain session's lesson held and moved one line: a unit audit is worth more than a number audit,
+because these numbers were all *arithmetically* right. And the rebase reality is real — the research lane changed
+`_power_typing` under this session mid-flight, from `probability` to `@unit`, which resolved straight back to
+`probability`; the ledger was corrected rather than the finding dropped.
+
 ## 2026-11-03 — [design] The bundle becomes a band below the pricing grid, and the page stops naming tiers
 
 **Ask.** The owner, after the payment side was committed and pushed: *"i dont see teh bundle reflected

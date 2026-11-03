@@ -30,8 +30,8 @@ chi_square | chi_square | n_cells | count | 0 | 9 | 9
 chi_square | chi_square | min_expected_count | count | 0 | 25 | 25
 chi_square | chi_square | alpha | rate | 2 | 5.00% | 0.05
 power | power_analysis | power | probability | 4 | 0.4757 | 0.47570563669489524
-power | power_analysis | mde | @unit | 2 | 7.38 | 7.376916665618976
-power | power_analysis | se | @unit | 2 | 2.63 | 2.6331223544175333
+power | power_analysis | mde | units | 2 | 7.38 | 7.376916665618976
+power | power_analysis | se | units | 2 | 2.63 | 2.6331223544175333
 power | power_analysis | ncp | ratio | 3 | 1.899 | 1.8988863132818747
 power | power_analysis | z_alpha | ratio | 3 | 1.960 | 1.9599639845400536
 power | power_analysis | alpha | probability | 4 | 0.0500 | 0.05
@@ -79,20 +79,20 @@ ols | ols | std_beta_sleep_hours | ratio | 3 | -0.251 | -0.251340627785994932927
 trainingroi | return_on_investment | total_investment | currency | 2 | PHP 500,000.00 | 500000
 trainingroi | return_on_investment | net_gain | currency | 2 | PHP 125,000.00 | 125000
 trainingroi | return_on_investment | roi | rate | 4 | 25.00% | 0.25
-trainingroi | return_on_investment | years | count | 0 | 3 | 3
+trainingroi | return_on_investment | years | periods | 2 | 3.00 | 3
 trainingroi | return_on_investment | annualised_roi | rate | 4 | 7.72% | 0.077217345015941860879646
 labourtightness | labour_market | nominal_wage | currency | 2 | PHP 100.00 | 100
 labourtightness | labour_market | cpi | ratio | 4 | 105.0000 | 105
 labourtightness | labour_market | labour_productivity | ratio | 4 | 120.0000 | 120
 labourtightness | labour_market | real_wage | currency | 2 | PHP 95.24 | 95.23809523809523809523809
 labourtightness | labour_market | wage_share_of_productivity | ratio | 4 | 0.7937 | 0.793650793650793650793650
-labourtightness | labour_market | vacancies | count | 2 | 10 | 10
-labourtightness | labour_market | unemployment_rate | rate | 4 | 5.00% | 0.05
-labourtightness | labour_market | labour_market_tightness | ratio | 4 | 200.0000 | 2E+2
-programmecost | cost_effectiveness | comparator_cost | @unit | 2 | USD 10,000.00 | 10000
-programmecost | cost_effectiveness | comparator_effect | @unit | 2 | USD 40.00 | 40
+labourtightness | labour_market | vacancies | count | 0 | 10 | 10
+labourtightness | labour_market | unemployed | count | 0 | 50 | 50
+labourtightness | labour_market | labour_market_tightness | ratio | 4 | 0.2000 | 0.2
+programmecost | cost_effectiveness | comparator_cost | currency | 2 | USD 10,000.00 | 10000
+programmecost | cost_effectiveness | comparator_effect | units | 2 | 40.00 | 40
 programmecost | cost_effectiveness | n_options | count | 0 | 2 | 2
-programmecost | cost_effectiveness | icer_intensive | currency | 2 | USD 400.00 | 400
+programmecost | cost_effectiveness | icer_intensive | currency_per_effect | 2 | USD 400.00 per unit of effect | 400
 programmecost | cost_effectiveness | delta_cost_intensive | currency | 2 | USD 8,000.00 | 8000
-programmecost | cost_effectiveness | delta_effect_intensive | @unit | 3 | USD 20.000 | 20
+programmecost | cost_effectiveness | delta_effect_intensive | units | 3 | 20.000 | 20
 programmecost | cost_effectiveness | dominant_intensive | count | 0 | 0 | 0

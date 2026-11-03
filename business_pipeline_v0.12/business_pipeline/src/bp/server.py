@@ -472,7 +472,7 @@ PRESETS = {
     "prospect": {"objective": "How does prospect theory value this gamble?", "method": "prospect_theory", "currency": "PHP", "period": "annual",
                  "inputs": {"reference_point": "100", "outcomes": ["150", "50"], "probabilities": ["0.5", "0.5"]}},
     "labour": {"objective": "What are the real wage and the wage share?", "method": "labour_market", "currency": "PHP", "period": "annual",
-               "inputs": {"nominal_wage": "100", "cpi": "105", "labour_productivity": "120", "vacancies": "10", "unemployment_rate": "0.05"}},
+               "inputs": {"nominal_wage": "100", "cpi": "105", "labour_productivity": "120", "vacancies": "10", "unemployed": "50"}},
     "pricediscrimination": {"objective": "What prices does third-degree discrimination set?", "method": "price_discrimination", "currency": "PHP", "period": "annual",
                             "inputs": {"demand_intercept_1": "100", "demand_slope_1": "2", "demand_intercept_2": "80", "demand_slope_2": "1", "marginal_cost": "10"}},
     "cournot": {"objective": "What is the Cournot duopoly outcome?", "method": "cournot_duopoly", "currency": "PHP", "period": "annual",

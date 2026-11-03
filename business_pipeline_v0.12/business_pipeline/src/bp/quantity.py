@@ -34,6 +34,11 @@ class Quantity:
         if self.unit == "rate":
             return f"{(self.value * 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_EVEN)}%"
         s = f"{abs(v):,.{self.precision}f}"
+        if self.unit == "currency_per_effect":
+            # B-215: a cost PER UNIT OF EFFECT is not an amount. The unit names its
+            # denominator, so a reader cannot take an incremental ratio for money.
+            prefix = (self.currency + " ") if self.currency else ""
+            return prefix + (f"({s})" if v < 0 else s) + " per unit of effect"
         if self.currency: return f"{self.currency} ({s})" if v < 0 else f"{self.currency} {s}"   # accounting convention (manual 9.5)
         return f"-{s}" if v < 0 else s
 

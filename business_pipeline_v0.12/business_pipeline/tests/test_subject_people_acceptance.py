@@ -34,7 +34,7 @@ sys.path.insert(0, "src")
 
 from bp import server, templates as T                     # noqa: E402
 from bp.methods import DataError, LIBRARY, TOL, validate_inputs   # noqa: E402
-from bp.orchestrator import Pipeline                      # noqa: E402
+from bp.orchestrator import Pipeline, Quantity            # noqa: E402
 from bp.product import completion, framework_profiles, subjects   # noqa: E402
 
 getcontext().prec = 50
@@ -220,7 +220,7 @@ def ANY_UNIT_HINT(metric, unit):
     has no word in the engine's vocabulary, so it is recorded there as a MINOR
     observation rather than failed here.
     """
-    if metric.startswith("icer_") and unit != "currency_per_unit":
+    if metric.startswith("icer_") and unit != "currency_per_effect":
         return True                      # a cost PER UNIT OF EFFECT is not money
     if metric == "comparator_cost" and unit != "currency":
         return True                      # a money amount with no money unit
@@ -310,18 +310,21 @@ class Inventory(unittest.TestCase):
             self.assertTrue(tool["what"], tool["key"])
 
     def test_E_ppl_023__no_output_unit_contradicts_its_own_name(self):
-        """The unit audit: this is the trap for D-PPL-01 and D-PPL-02."""
+        """TRAP (D-PPL-01): before B-215 four fields contradicted their own names -
+        an ICER typed as money, money typed as the undeclared base unit, and an
+        outcome-scale difference and its standard error typed as probabilities."""
         units = declared_units()
         contradictory = sorted(pair for pair, value in units.items()
                                if ANY_UNIT_HINT(pair[1], value[0]))
-        # measured: every field whose declared unit contradicts its own name
-        self.assertEqual(contradictory, [
-            ("power", "mde"),                    # a mean difference typed probability
-            ("power", "se"),                     # a standard error typed probability
-            ("programmecost", "comparator_cost"),  # money typed as the undeclared base unit
-            ("programmecost", "icer_intensive"),   # a cost per effect typed as money
-        ])
-
+        self.assertEqual(contradictory, [],
+                         "a unit that contradicts its own name is a BLOCKER-class finding")
+        # and the four that used to be wrong are now named correctly
+        self.assertEqual(units[("programmecost", "icer_intensive")],
+                         ("currency_per_effect", 2))
+        self.assertEqual(units[("programmecost", "comparator_cost")], ("currency", 2))
+        self.assertEqual(units[("programmecost", "comparator_effect")], ("units", 2))
+        self.assertEqual(units[("power", "mde")], ("units", 2))
+        self.assertEqual(units[("power", "se")], ("units", 2))
     def test_E_ppl_024__the_units_that_are_right_stay_right(self):
         units = declared_units()
         self.assertEqual(units[("alpha", "alpha")], ("ratio", 4))
@@ -332,13 +335,11 @@ class Inventory(unittest.TestCase):
         self.assertEqual(units[("trainingroi", "total_investment")], ("currency", 2))
         self.assertEqual(units[("trainingroi", "roi")], ("rate", 4))
         self.assertEqual(units[("labourtightness", "real_wage")], ("currency", 2))
-        self.assertEqual(units[("labourtightness", "unemployment_rate")], ("rate", 4))
         self.assertEqual(units[("descriptive", "n")], ("count", 0))
-
-
-class Contract(unittest.TestCase):
-    """E-ppl-016 ... E-ppl-024 - the method contract, for all ten tools."""
-
+        # B-215: a holding period is a period, and a count is a count
+        self.assertEqual(units[("trainingroi", "years")], ("periods", 2))
+        self.assertEqual(units[("labourtightness", "vacancies")], ("count", 0))
+        self.assertEqual(units[("labourtightness", "unemployed")], ("count", 0))
     def test_E_ppl_016__use_unsupported_use_assumptions_and_limitations_are_declared(self):
         for key in TOOLS:
             method = LIBRARY[METHODS[key]]
@@ -726,42 +727,46 @@ class Numbers(unittest.TestCase):
         self.assertIn("14.41%", text)
         self.assertTrue(near(1.4 ** (1 / 2.5) - 1, 0.1441, 5e-5))
 
-    def test_E_ppl_046__the_holding_period_echo_is_rounded_to_a_whole_year(self):
-        """D-PPL-02, measured and ledgered: `years` is declared a count at zero decimals,
-        so a 2.5-year holding period prints as "2 years" beside a 2.5-year result.
-        The fix is a unit change in the core and is owner-gated (work order §9)."""
+    def test_E_ppl_046__a_fractional_holding_period_is_printed_not_rounded(self):
+        """TRAP (D-PPL-02): `years` was typed ("count", 0), so a 2.5-year holding
+        printed "Compounded over 2 years" beside a return compounded over 2.5 years."""
         _, decision = delivered({"objective": "Training ROI", "method": "return_on_investment",
                                  "inputs": {"total_investment": "100", "net_gain": "40",
                                             "years": "2.5"},
                                  "currency": "PHP", "period": "annual"})
-        self.assertIn("Compounded over 2 years", decision.report)
-        self.assertNotIn("Compounded over 2.5 years", decision.report)
-        self.assertEqual(LIBRARY["return_on_investment"].typing("years"), ("count", 0))
-
-    def test_E_ppl_047__the_tightness_figure_is_vacancies_over_the_unemployment_rate(self):
-        """D-PPL-01, measured and ledgered: a count divided by a rate, and the paper
-        never prints it.  The denominator the documentation names (`unemployed`) cannot
-        even be entered: it is refused as an unknown input."""
+        self.assertIn("Compounded over 2.50 years", decision.report)
+        self.assertNotIn("Compounded over 2 years", decision.report)
+        self.assertTrue(near(1.4 ** (1 / 2.5) - 1, 0.1441, 5e-5))
+        self.assertEqual(LIBRARY["return_on_investment"].typing("years"), ("periods", 2))
+    def test_E_ppl_047__tightness_is_vacancies_over_unemployed_people(self):
+        """TRAP (Item 11b, D-PPL-01): the denominator used to be an unemployment RATE,
+        so ten vacancies over five per cent printed 200. The documented route -
+        vacancies over unemployed people - could not even be entered."""
         request = preset_request("labourtightness")
         out = LIBRARY["labour_market"].impl(request["inputs"])
         self.assertEqual(request["inputs"]["vacancies"], "10")
-        self.assertEqual(request["inputs"]["unemployment_rate"], "0.05")
-        self.assertEqual(out["labour_market_tightness"], Decimal(200))
+        self.assertEqual(request["inputs"]["unemployed"], "50")
+        self.assertEqual(out["labour_market_tightness"], Decimal("0.2"))
+        self.assertEqual(out["unemployed"], Decimal(50))
+        self.assertNotIn("unemployment_rate", out)
         errors = validate_inputs(LIBRARY["labour_market"],
                                  {"nominal_wage": "100", "cpi": "105",
                                   "labour_productivity": "120",
-                                  "vacancies": "10", "unemployed": "50"})
+                                  "vacancies": "10", "unemployment_rate": "0.05"})
         self.assertEqual(len(errors), 1)
-        self.assertIn("unknown input 'unemployed'", errors[0])
-
-    def test_E_ppl_048__the_tightness_output_never_reaches_the_report(self):
-        """Item 11c, measured: the tile is named for a number the paper does not state."""
+        self.assertIn("unknown input 'unemployment_rate'", errors[0])
+        _, results = run("labour_market", request["inputs"])
+        self.assertIn("tightness_is_vacancies_over_unemployed",
+                      [name for name, ok in results])
+    def test_E_ppl_048__the_tightness_output_reaches_the_report(self):
+        """TRAP (Item 11c): the tool is named for a number the paper never stated."""
         _, decision = delivered(preset_request("labourtightness"))
-        self.assertIn("real wage", decision.report)
-        self.assertNotIn("tight", decision.report.lower())
+        self.assertIn("0.2000 vacancies for each unemployed person", decision.report)
+        self.assertIn("10 vacancies against 50 unemployed", decision.report)
         self.assertIn("labour_market_tightness",
                       [a[0] for a in decision.appendix["artifacts"]])
-
+        _, results = run("labour_market", preset_request("labourtightness")["inputs"])
+        self.assertTrue(all(ok for name, ok in results))
     def test_E_ppl_049__programme_cost_effectiveness_is_the_incremental_ratio(self):
         out = LIBRARY["cost_effectiveness"].impl({"options": [
             {"name": "basic", "cost": "10000", "effect": "40"},
@@ -794,39 +799,51 @@ class Numbers(unittest.TestCase):
         self.assertTrue(near(out["icer_option_a"], (200 - 100) / (20 - 10)))
 
 
+    def test_E_ppl_085__a_cost_per_unit_of_effect_prints_its_denominator(self):
+        """TRAP (B-215): the engine gained one composite unit. It must print as a cost
+        per effect, keep the accounting parentheses for a negative ratio, and never be
+        mistaken for an amount."""
+        ratio = Quantity(Decimal("400"), unit="currency_per_effect", currency="USD", precision=2)
+        self.assertEqual(ratio.display(), "USD 400.00 per unit of effect")
+        negative = Quantity(Decimal("-2"), unit="currency_per_effect", currency="USD", precision=2)
+        self.assertEqual(negative.display(), "USD (2.00) per unit of effect")
+        no_currency = Quantity(Decimal("1.5"), unit="currency_per_effect", precision=2)
+        self.assertEqual(no_currency.display(), "1.50 per unit of effect")
+
+
 class Units(unittest.TestCase):
     """E-ppl-051 ... E-ppl-055 - what the product actually prints, in its own units."""
 
-    def test_E_ppl_051__the_effect_of_a_programme_is_printed_as_money(self):
-        """D-PPL-01, measured: `@unit` takes the request's currency before it resolves
-        the unit, so an effect of 40 prints as "USD 40.00" and a delta of 20 as
-        "USD 20.000".  The fix is owner-gated (work order §9)."""
+    def test_E_ppl_051__an_effect_is_printed_on_its_own_scale_not_as_money(self):
+        """TRAP (D-PPL-01): the orchestrator took the request's currency for an `@unit`
+        output BEFORE resolving the unit, so an effect of 40 printed "USD 40.00"."""
         pipeline, decision = delivered(preset_request("programmecost"))
         shown = {a.id: a.value for a in pipeline.store.all()}
-        self.assertEqual(shown["comparator_effect"].unit, "count")
-        self.assertEqual(shown["comparator_effect"].currency, "USD")
-        self.assertEqual(shown["comparator_effect"].display(), "USD 40.00")
-        self.assertEqual(shown["delta_effect_intensive"].display(), "USD 20.000")
-
-    def test_E_ppl_052__the_comparator_cost_keeps_its_money_and_loses_its_unit(self):
+        self.assertEqual(shown["comparator_effect"].unit, "units")
+        self.assertIsNone(shown["comparator_effect"].currency)
+        self.assertEqual(shown["comparator_effect"].display(), "40.00")
+        self.assertEqual(shown["delta_effect_intensive"].display(), "20.000")
+        self.assertNotIn("USD", decision.report.split("The ratios are in the appendix")[0])
+    def test_E_ppl_052__the_comparator_cost_keeps_its_money_and_the_ratio_names_its_denominator(self):
+        """TRAP (D-PPL-01): the comparator's cost was declared @unit (no money unit) and
+        the ICER was declared plain currency, so a cost per effect printed as an amount."""
         pipeline, decision = delivered(preset_request("programmecost"))
         shown = {a.id: a.value for a in pipeline.store.all()}
+        self.assertEqual(shown["comparator_cost"].unit, "currency")
         self.assertEqual(shown["comparator_cost"].display(), "USD 10,000.00")
-        self.assertEqual(shown["comparator_cost"].unit, "count")
-        self.assertEqual(shown["icer_intensive"].display(), "USD 400.00")
+        self.assertEqual(shown["icer_intensive"].display(), "USD 400.00 per unit of effect")
         self.assertEqual(LIBRARY["cost_effectiveness"].typing("icer_intensive"),
-                         ("currency", 2))
-
-    def test_E_ppl_053__the_tightness_figure_prints_with_no_currency_prefix(self):
-        """The one part of Item 11 the product already gets right: `ratio` is in the
-        currency-exempt list, so 200.0000 is printed as a bare ratio."""
+                         ("currency_per_effect", 2))
+    def test_E_ppl_053__a_ratio_of_two_counts_prints_with_no_currency_prefix(self):
+        """`ratio` is in the currency-exempt tuple, and tightness is now a ratio of like
+        units: ten vacancies over fifty unemployed people is 0.2000."""
         pipeline, decision = delivered(preset_request("labourtightness"))
         shown = {a.id: a.value for a in pipeline.store.all()}
-        self.assertEqual(shown["labour_market_tightness"].display(), "200.0000")
+        self.assertEqual(shown["labour_market_tightness"].display(), "0.2000")
         self.assertIsNone(shown["labour_market_tightness"].currency)
-        self.assertEqual(shown["unemployment_rate"].display(), "5.00%")
+        self.assertEqual(shown["vacancies"].display(), "10")
+        self.assertEqual(shown["unemployed"].display(), "50")
         self.assertEqual(shown["real_wage"].display(), "PHP 95.24")
-
     def test_E_ppl_054__every_delivered_figure_is_printed_at_its_declared_precision(self):
         for key in TOOLS:
             pipeline, decision = delivered(preset_request(key))
@@ -879,23 +896,24 @@ class Refusals(unittest.TestCase):
         self.assertTrue(errors)
         self.assertIn("not a number", errors[0])
 
-    def test_E_ppl_059__a_rate_entered_as_6_is_refused_or_disclosed(self):
-        """A rate entered as 5 is taken as given and the paper says so, in words."""
+    def test_E_ppl_059__a_significance_level_entered_as_5_is_refused_by_name(self):
+        """A rate entered as `5` is never rescaled. The labour tool no longer takes a
+        rate at all (Item 11b), so the rule is measured on a rate that remains: the
+        significance level of the chi-square test."""
+        decision = refused({"objective": "x", "method": "chi_square",
+                            "inputs": {"table": [[1, 2], [3, 4]], "alpha": "5"},
+                            "period": "cross_section"})
+        self.assertEqual(decision.status, "blocked")
+        self.assertIn("alpha must be between 0 and 1", decision.blocked_reason)
+    def test_E_ppl_060__a_zero_or_negative_denominator_is_refused_by_the_method(self):
         request = preset_request("labourtightness")
-        _, decision = delivered({**request,
-                                 "inputs": {**request["inputs"], "unemployment_rate": "5"}})
-        self.assertIn("A rate above 100% was produced for 'unemployment rate'", decision.report)
-        self.assertIn("6% is 0.06, not 6", decision.report)
-
-    def test_E_ppl_060__a_negative_or_zero_rate_is_refused_by_the_method(self):
-        request = preset_request("labourtightness")
-        for value in ("0", "-0.05"):
+        for value in ("0", "-5"):
             with self.assertRaises(DataError):
-                LIBRARY["labour_market"].impl({**request["inputs"],
-                                               "unemployment_rate": value})
+                LIBRARY["labour_market"].impl({**request["inputs"], "unemployed": value})
         with self.assertRaises(DataError):
             LIBRARY["labour_market"].impl({**request["inputs"], "vacancies": "-1"})
-
+        self.assertTrue(validate_inputs(LIBRARY["labour_market"],
+                                        {**request["inputs"], "unemployed": "not a number"}))
     def test_E_ppl_061__very_large_values_stay_exact(self):
         out = LIBRARY["descriptive_stats"].impl({"values": ["1200000000", "1200000002"]})
         self.assertEqual(out["mean"], Decimal(1200000001))

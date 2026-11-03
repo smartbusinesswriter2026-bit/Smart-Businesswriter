@@ -2453,11 +2453,17 @@ def cea_profile(inp):
         return ["cost-effectiveness inputs are malformed: options must be records of name, cost and effect"]
 
 def _cea_typing(metric):
-    if metric in ("n_options",): return ("count", 0)
-    if metric.startswith(("icer_", "delta_cost_")): return ("currency", 2)
-    if metric.startswith("delta_effect_"): return ("@unit", 3)
-    if metric.startswith("dominant_"): return ("count", 0)
-    return ("@unit", 2)
+    # B-215: an incremental cost-effectiveness ratio is a cost per unit of effect, not an
+    # amount; the comparator's cost is money; an effect and an effect difference are on
+    # the declared outcome scale, which the engine calls `units`; a dominance flag is a
+    # count. Before this, every one of them inherited the request's currency, so an
+    # effect of 40 printed "USD 40.00" and the ratio printed as plain money.
+    if metric in ("n_options", "dominant_") or metric.startswith("dominant_"): return ("count", 0)
+    if metric.startswith("icer_"): return ("currency_per_effect", 2)
+    if metric == "comparator_cost" or metric.startswith("delta_cost_"): return ("currency", 2)
+    if metric == "comparator_effect": return ("units", 2)
+    if metric.startswith("delta_effect_"): return ("units", 3)
+    return ("units", 2)
 
 def cea_caveats(out, th):
     return ["An incremental cost-effectiveness ratio compares each option with the first-listed comparator only; it says nothing about options against each other unless one is the baseline.",
@@ -3306,7 +3312,7 @@ def _power_profile(inp):
 
 def _power_typing(metric):
     if metric in ("n1", "n2"): return ("count", 0)
-    if metric in ("se", "mde"): return ("@unit", 2)
+    if metric in ("se", "mde"): return ("units", 2)   # B-215: an outcome-scale difference, not a probability
     if metric in ("power", "alpha", "target_power"): return ("probability", 4)
     return ("ratio", 3)
 
@@ -7648,13 +7654,17 @@ def labour_market_impl(inp):
     real = wage / (cpi / 100)
     out = {"nominal_wage": wage, "cpi": cpi, "labour_productivity": productivity,
            "real_wage": real, "wage_share_of_productivity": real / productivity}
-    if inp.get("vacancies") is not None and inp.get("unemployment_rate") is not None:
-        vacancies, unemployment = D(str(inp["vacancies"])), D(str(inp["unemployment_rate"]))
-        if vacancies < 0 or unemployment <= 0:
-            raise DataError("vacancies must be non-negative and unemployment_rate must be positive")
+    if inp.get("vacancies") is not None and inp.get("unemployed") is not None:
+        # B-215: tightness is a ratio of two COUNTS - vacancies divided by unemployed
+        # people. Before this the denominator was an unemployment RATE, so ten vacancies
+        # over five per cent printed as 200: a count divided by a rate, which is not a
+        # ratio of like units and has no reading.
+        vacancies, unemployed = D(str(inp["vacancies"])), D(str(inp["unemployed"]))
+        if vacancies < 0 or unemployed <= 0:
+            raise DataError("vacancies must be non-negative and unemployed must be a positive count of people")
         out["vacancies"] = vacancies
-        out["unemployment_rate"] = unemployment
-        out["labour_market_tightness"] = vacancies / unemployment
+        out["unemployed"] = unemployed
+        out["labour_market_tightness"] = vacancies / unemployed
     return out
 
 
@@ -7672,6 +7682,9 @@ def labour_market_tests(inp, impl):
         ("second_implementation_agrees", all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
         ("real_wage_is_nominal_wage_over_the_price_index", _close(base["real_wage"], wage / (cpi / 100)), "the real wage deflates the nominal wage by the CPI"),
         ("wage_share_is_real_wage_over_productivity", _close(base["wage_share_of_productivity"], base["real_wage"] / prod), "the wage share compares the real wage with productivity"),
+        ("tightness_is_vacancies_over_unemployed",
+         "labour_market_tightness" not in base or _close(base["labour_market_tightness"], D(str(inp["vacancies"])) / D(str(inp["unemployed"]))),
+         "tightness divides a vacancy count by an unemployment count"),
         ("a_higher_cpi_lowers_the_real_wage", impl({**inp, "cpi": str(cpi + 1)})["real_wage"] < base["real_wage"], "a higher price level lowers the real wage"),
         ("a_higher_productivity_lowers_the_wage_share", impl({**inp, "labour_productivity": str(prod + 1)})["wage_share_of_productivity"] < base["wage_share_of_productivity"], "higher productivity lowers the wage share for a fixed real wage"),
     ]
@@ -7688,8 +7701,8 @@ def labour_market_profile(inp):
             return ["labour_productivity must be positive"]
         if inp.get("vacancies") is not None and D(str(inp["vacancies"])) < 0:
             return ["vacancies must be non-negative"]
-        if inp.get("unemployment_rate") is not None and D(str(inp["unemployment_rate"])) <= 0:
-            return ["unemployment_rate must be positive"]
+        if inp.get("unemployed") is not None and D(str(inp["unemployed"])) <= 0:
+            return ["unemployed must be a positive count of people"]
         return []
     except (InvalidOperation, ValueError, TypeError, KeyError):
         return ["labour-market inputs are malformed: nominal_wage, cpi and labour_productivity are required numbers"]
@@ -7702,23 +7715,27 @@ def _labour_typing(metric):
     if metric in ("cpi", "labour_productivity", "wage_share_of_productivity",
                   "labour_market_tightness"):
         return ("ratio", 4)
-    if metric == "vacancies":
-        return ("count", 2)
-    if metric in ("unemployment_rate",):
-        return ("rate", 4)
+    if metric in ("vacancies", "unemployed"):
+        return ("count", 0)                      # B-215: counts, and `unemployment_rate` is gone
     return ("currency", 2)
 
 
 def labour_market_caveats(out, th):
     return ["The real wage deflates the declared nominal wage by the declared CPI; the CPI and productivity figures are the owner's.",
             "The wage share is a simple comparison with labour productivity, not a full labour-share decomposition.",
-            "No taxes, benefits, hours, composition or bargaining model is included."]
+            "No taxes, benefits, hours, composition or bargaining model is included.",
+            "Tightness is the vacancies you declare divided by the unemployed you declare: a ratio of two counts, not a rate divided by anything, and not a measure of your own headcount gap."]
 
 
 def labour_market_template(out, P, th):
     tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
-    return ("The real wage is " + tok("real_wage") + " and the wage share of productivity is " +
-            tok("wage_share_of_productivity") + ".")
+    t = ("The real wage is " + tok("real_wage") + " and the wage share of productivity is " +
+         tok("wage_share_of_productivity") + ".")
+    if "labour_market_tightness" in out:
+        t += (" The labour market is tight at " + tok("labour_market_tightness") +
+              " vacancies for each unemployed person: " + tok("vacancies") + " vacancies against " +
+              tok("unemployed") + " unemployed.")
+    return t
 
 
 # ---------- Electives: price discrimination, oligopoly, impact evaluation and games (B-099) ----------
@@ -9016,7 +9033,9 @@ def return_on_investment_profile(inp):
 
 def _roi_typing(metric):
     if metric == "years":
-        return ("count", 0)
+        # B-215: a holding period is not a count. At ("count", 0) a 2.5-year holding
+        # printed "2 years" beside a return compounded over 2.5 years.
+        return ("periods", 2)
     if metric in ("total_investment", "net_gain"):
         return ("currency", 2)
     return ("rate", 4)
@@ -16257,20 +16276,21 @@ LIBRARY = {
                   labour_market_profile, "real_wage", "currency", None,
                   ("second_implementation_agrees", "real_wage_is_nominal_wage_over_the_price_index",
                    "wage_share_is_real_wage_over_productivity",
+                   "tightness_is_vacancies_over_unemployed",
                    "a_higher_cpi_lowers_the_real_wage",
                    "a_higher_productivity_lowers_the_wage_share"),
                   category="labour economics",
-                  intended_use="Real wage, wage share of productivity and optional labour-market tightness from declared nominal wage, CPI, productivity and vacancy/unemployment figures.",
-                  unsupported_use="Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; a full labour-market model.",
+                  intended_use="Real wage, wage share of productivity and optional labour-market tightness - vacancies per unemployed person - from a declared nominal wage, CPI, productivity, vacancy count and unemployment count.",
+                  unsupported_use="Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; an unemployment rate or a labour-force survey; a full labour-market model.",
                   input_schema={"nominal_wage": {"type": "decimal", "desc": "nominal wage"},
                                 "cpi": {"type": "decimal", "desc": "consumer price index, base 100"},
                                 "labour_productivity": {"type": "decimal", "desc": "output per worker"},
                                 "vacancies": {"type": "decimal", "required": False, "desc": "optional vacancy count"},
-                                "unemployment_rate": {"type": "decimal", "required": False, "desc": "optional unemployment rate as a fraction for tightness"}},
+                                "unemployed": {"type": "decimal", "required": False, "desc": "optional unemployment count: the number of unemployed people, for the vacancy-to-unemployed ratio"}},
                   defaults=({"question": "Real wage", "default_chosen": "Nominal wage divided by the CPI divided by one hundred.", "impact": "A different price index or base year changes the real wage."},
                             {"question": "Wage share", "default_chosen": "Real wage divided by labour productivity, a simple comparison rather than a full labour-share decomposition.", "impact": "A full decomposition would need compensation and value-added data."}),
                   assumptions=("The nominal wage, CPI and productivity cover the same period and population.", "The CPI is an index with a base of 100.", "Productivity is output per worker."),
-                  limitations=("No hours, composition, taxes, benefits or bargaining.", "The wage share is a simple ratio, not a full decomposition.", "No regional or sectoral breakdown."),
+                  limitations=("No hours, composition, taxes, benefits or bargaining.", "The wage share is a simple ratio, not a full decomposition.", "No regional or sectoral breakdown.", "Tightness needs an unemployment COUNT; an unemployment rate is not an input, because a count divided by a rate has no reading."),
                   default_period="annual", caveats=labour_market_caveats, template=labour_market_template,
                   claim_ceiling="descriptive", typing=_labour_typing),
     "price_discrimination": Method("price_discrimination", "T1", price_discrimination_impl,

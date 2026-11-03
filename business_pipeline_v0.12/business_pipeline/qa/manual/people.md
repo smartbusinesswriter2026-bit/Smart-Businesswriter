@@ -2,8 +2,9 @@
 
 **Subject:** `people` · **branch:** `corpus/merge-v1` · **opening commit:** `b393743`
 **Suite at baseline:** 3409 tests, 1 failure, 0 errors (1139 s) — measured here, not copied.
-**Acceptance suite:** `tests/test_subject_people_acceptance.py` — **84 tests, 84 passed**, 84 of 84
-definitions collected (the defined-vs-collected id audit is in §11).
+**Acceptance suite:** `tests/test_subject_people_acceptance.py` — **85 tests, 85 passed**, 85 of 85
+definitions collected (the defined-vs-collected id audit is in §11). **10 of the 11 trap tests fail on the
+pre-fix code**, proved by stashing the source.
 **Evidence:** `qa/evidence/people/` — the produced `.docx`, its stripped text, the unit audit of
 all ten calculators, the parity transcript.
 
@@ -32,7 +33,7 @@ the defects below are defects of that placement and of the core contract it reli
 | Wall time | — | 1139 s | — |
 | `scripts/econ_shelf.py --check` | in sync | **frozen fixture: in sync** | — |
 | `qa/check_page_syntax.py` | OK | **page syntax: OK** | — |
-| `test_docs_sync._suite_count()` | — | **3409** | **3564** after this session's 84 tests and the 71 the other lanes landed during it |
+| `test_docs_sync._suite_count()` | — | **3409** | **3565** after this session's 85 tests and the 71 the other lanes landed during it |
 
 Raw output: `qa/baseline/ppl-before-suite-err.txt`.
 
@@ -56,7 +57,7 @@ Raw output: `qa/baseline/ppl-before-suite-err.txt`.
 | Theories on the page | — | **0** | — |
 | Glossary terms | — | **0** | the shelf serves no glossary (§6) |
 | Acceptance manual | none | **this file** | — |
-| Dedicated acceptance suite | none | **84 tests** | `tests/test_subject_people_acceptance.py` |
+| Dedicated acceptance suite | none | **85 tests** | `tests/test_subject_people_acceptance.py` |
 
 ---
 
@@ -98,8 +99,8 @@ They are presets of core methods, and the answer differs field by field:
 | Item | Verdict |
 |---|---|
 | **11a** "a CEA `icer` key the serializer may not match" | **The key is not the defect.** `cea_impl` and its reference route both build `icer_<slug>` from the same regex, and the appendix carries `icer_intensive` intact (`test_E_ppl_049`). The real defect is the **unit**: `icer_` is typed `("currency", 2)` and prints `USD 400.00` for a cost **per unit of effect** (§5, D-PPL-01) |
-| **11b** the tightness formula | **A real defect.** The code divides `vacancies` by `unemployment_rate` — a **count by a rate**: 10 vacancies over 5% prints **200.0000**. The documented route (`vacancies / unemployed`) cannot be entered at all: `unemployed` is refused as an unknown input (`test_E_ppl_047`) |
-| **11c** the tightness output's serialization | **Partly right, and worse than expected.** The unit is right (`ratio`, 4 dp, no currency prefix — `ratio` is already in the orchestrator's exempt tuple: `test_E_ppl_053`). But the **output never reaches the report**: the tool is called "Labour market tightness" and the delivered paper states only the real wage and the wage share (`test_E_ppl_048`). The number exists in the appendix and nowhere a student reads |
+| **11b** the tightness formula | **A real defect, and it was the doc that was right.** The code divided `vacancies` by `unemployment_rate` — a **count by a rate**: 10 vacancies over 5% printed **200.0000**, and the documented route could not be entered at all. **FIXED (B-215):** the input is an `unemployed` count, tightness is `vacancies / unemployed` = **0.2000**, `unemployment_rate` is refused as an unknown input, and a sixth declared check recomputes it (`test_E_ppl_047`) |
+| **11c** the tightness output's serialization | **The unit was right and the paper was empty.** `ratio` is in the orchestrator's exempt tuple, so it never carried a currency (`test_E_ppl_053`); but the number **never reached the report**. **FIXED (B-215):** the template states it — "tight at 0.2000 vacancies for each unemployed person: 10 vacancies against 50 unemployed" (`test_E_ppl_048`) |
 
 **Q3. Does every record on this page have a calculator on this page?**
 
@@ -223,17 +224,17 @@ would be the dishonesty that list exists to prevent.
 | `labourtightness` | `labour_market` | `nominal_wage`, `real_wage` (currency, 2) · `cpi`, `labour_productivity`, `wage_share_of_productivity`, `labour_market_tightness` (ratio, 4) · `vacancies` (count, 0) · `unemployment_rate` (rate, 4) |
 | `programmecost` | `cost_effectiveness` | **`comparator_cost` (@unit, 2)** · `comparator_effect` (@unit, 2) · `n_options` (count, 0) · **`icer_*` (currency, 2)** · `delta_cost_*` (currency, 2) · `delta_effect_*` (@unit, 3) · `dominant_*` (count, 0) |
 
-### 5.1 Fields whose declared unit contradicts their own name
+### 5.1 Fields whose declared unit contradicted their own name — all fixed (B-215)
 
 | tool | field | declared | printed | why it is wrong | severity |
 |---|---|---|---|---|---|
-| `programmecost` | `icer_intensive` | `currency` | **USD 400.00** | an incremental cost **per unit of effect** is not money; it has no word in the engine's vocabulary, so `currency` is the wrong claim and "USD 1,000.00 per point" is what a reader needs | **BLOCKER** (D-PPL-01) |
-| `programmecost` | `comparator_effect` | `@unit` → `count` | **USD 40.00** | the orchestrator takes the request's currency **before** it resolves `@unit`, so a non-money number prints with a money prefix and no scale | **BLOCKER** (D-PPL-01) |
-| `programmecost` | `delta_effect_intensive` | `@unit` → `count` | **USD 20.000** | same root cause as the row above | **BLOCKER** (D-PPL-01) |
-| `programmecost` | `comparator_cost` | `@unit` → `count` | USD 10,000.00 | a money amount declared with no money unit; it only looks right because the request carried a currency | **BLOCKER** (D-PPL-01) |
-| `labourtightness` | `labour_market_tightness` | `ratio`, 4 | 200.0000 | the unit is right and the **arithmetic** is not: ten vacancies divided by a 5% rate. A count over a rate is not a ratio of like units (Item 11b) | **BLOCKER** (D-PPL-01) |
-| `power` | `mde`, `se` | `@unit` → `probability` | 7.38, 2.63 | an outcome-scale difference and its standard error are not probabilities. **A lane that landed during this session changed the declaration from `probability` to `@unit`; the resolution did not move** — `power_analysis`'s own `unit` is `probability`, so `@unit` resolves back to it and the figure still prints with no scale. Re-measured after the rebase | **MAJOR** (D-PPL-01, shared core) |
-| `trainingroi` | `years` | `count`, 0 | "2" for a 2.5-year holding | a holding period is not a count, and zero decimals silently rounds the number the paper then states | **MAJOR** (D-PPL-02) |
+| `programmecost` | `icer_intensive` | `currency` → **`currency_per_effect`** | **USD 400.00** → **USD 400.00 per unit of effect** | an incremental cost **per unit of effect** is not money. The engine gained one composite unit for it, printed in words | **BLOCKER → FIXED** (D-PPL-01, B-215) |
+| `programmecost` | `comparator_effect` | `@unit` → `count` → **`units`** | **USD 40.00** → **40.00** | the orchestrator took the request's currency **before** it resolved `@unit`. The unit is resolved first now | **BLOCKER → FIXED** (D-PPL-01, B-215) |
+| `programmecost` | `delta_effect_intensive` | `@unit` → `count` → **`units`** | **USD 20.000** → **20.000** | same root cause as the row above | **BLOCKER → FIXED** (D-PPL-01, B-215) |
+| `programmecost` | `comparator_cost` | `@unit` → `count` → **`currency`** | USD 10,000.00 | a money amount declared with no money unit; it looked right only because the request carried a currency | **BLOCKER → FIXED** (D-PPL-01, B-215) |
+| `labourtightness` | `labour_market_tightness` | `ratio`, 4 | 200.0000 → **0.2000** | the unit was right and the **arithmetic** was not: ten vacancies divided by a 5% rate. It is now vacancies ÷ unemployed people — a ratio of like units (Item 11b) | **BLOCKER → FIXED** (D-PPL-01, B-215) |
+| `power` | `mde`, `se` | `@unit` → `probability` → **`units`** | 7.38, 2.63 | an outcome-scale difference and its standard error are not probabilities. A lane that landed mid-session moved the declaration to `@unit`, which resolved straight back to `probability`; they are `units` now | **MAJOR → FIXED** (D-PPL-01, B-215) |
+| `trainingroi` | `years` | `count`, 0 → **`periods`, 2** | "2" → **"2.50"** | a holding period is not a count, and zero decimals silently rounded the number the paper then stated | **MAJOR → FIXED** (D-PPL-02, B-215) |
 | `alpha` | `sum_item_variance`, `total_variance` | `ratio`, 4 | 3.6250, 10.8393 | a variance of points has no word in the engine's vocabulary. Recorded as an observation rather than failed: the alternative (`points`) would print a variance as if it were a score | MINOR, recorded |
 
 **Nothing else contradicts its name**: a share is a `ratio`, a p-value a `probability`, an *n* and a
@@ -250,7 +251,8 @@ resolved).
 
 ## 6. Acceptance rows — E-ppl-001 … E-ppl-084
 
-One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 rows, 84 collected.**
+One row per test in `tests/test_subject_people_acceptance.py`. **85 tests, 85 rows, 85 collected.**
+Rows marked **TRAP** fail on the pre-fix code.
 
 ### 6.1 Inventory, catalogue and page (E-ppl-001 … 015)
 
@@ -283,8 +285,8 @@ One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 ro
 | E-ppl-020 | every tool has a server preset for the same method, and the preset validates | `test_E_ppl_020` | PASS |
 | E-ppl-021 | every tool declares the period its inputs are read in | `test_E_ppl_021` | PASS |
 | E-ppl-022 | every output declares a unit and an integer precision ≤ 6 | `test_E_ppl_022` | PASS |
-| E-ppl-023 | **no output unit contradicts its own name** — the measured four are named | `test_E_ppl_023` | PASS — **D-PPL-01 pin** |
-| E-ppl-024 | the units that are right stay right (alpha, p, df, r, currency, rate, count) | `test_E_ppl_024` | PASS |
+| E-ppl-023 | **no output unit contradicts its own name** — the four that did are named and corrected | `test_E_ppl_023` | PASS — **TRAP, D-PPL-01 fixed** |
+| E-ppl-024 | the units that are right stay right (alpha, p, df, r, currency, rate, count, periods, units) | `test_E_ppl_024` | PASS — **TRAP** |
 
 ### 6.3 Numbers, recomputed independently (E-ppl-025 … 050)
 
@@ -311,19 +313,19 @@ One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 ro
 | E-ppl-043 | `ols` | collinear predictors are refused | PASS |
 | E-ppl-044 | `trainingroi` | ROI = gain/investment, annualised = (1+ROI)^(1/years) − 1; zero and negative investment refused | PASS |
 | E-ppl-045 | `trainingroi` | the paper declares the gain is a total over the holding period and states 14.41% for 2.5 years | PASS |
-| E-ppl-046 | `trainingroi` | **the 2.5-year holding prints as "2 years"** — `years` is a count at 0 dp | PASS — **D-PPL-02 pin** |
-| E-ppl-047 | `labourtightness` | tightness = 10 / 0.05 = 200; `unemployed` is refused as an unknown input | PASS — **D-PPL-01 pin** |
-| E-ppl-048 | `labourtightness` | the tightness figure reaches the appendix and never the report | PASS — **Item 11c pin** |
+| E-ppl-046 | `trainingroi` | a 2.5-year holding prints **"2.50 years"**, and `years` is a period | PASS — **TRAP, D-PPL-02 fixed** |
+| E-ppl-047 | `labourtightness` | tightness = 10 / 50 = **0.2**; `unemployment_rate` is refused as an unknown input; the declared check runs | PASS — **TRAP, Item 11b fixed** |
+| E-ppl-048 | `labourtightness` | the report states "0.2000 vacancies for each unemployed person: 10 vacancies against 50 unemployed" | PASS — **TRAP, Item 11c fixed** |
 | E-ppl-049 | `programmecost` | ICER = (18,000 − 10,000)/(60 − 40) = 400; dominance; the same-effect refusal | PASS |
 | E-ppl-050 | `programmecost` | two option names that normalise the same collapse into one key: 3 options, 2 ratios | PASS — **D-PPL-03 pin** |
 
-### 6.4 What the product prints (E-ppl-051 … 055)
+### 6.4 What the product prints (E-ppl-051 … 055, 085)
 
 | id | behaviour | evidence | status |
 |---|---|---|---|
-| E-ppl-051 | an effect of 40 prints as **"USD 40.00"** and a delta of 20 as "USD 20.000" | `test_E_ppl_051` | PASS — **D-PPL-01 pin** |
-| E-ppl-052 | the comparator cost prints "USD 10,000.00" carrying unit `count`; the ICER prints "USD 400.00" | `test_E_ppl_052` | PASS — **D-PPL-01 pin** |
-| E-ppl-053 | the tightness figure prints "200.0000" with **no** currency prefix | `test_E_ppl_053` | PASS — the part Item 11 already gets right |
+| E-ppl-051 | an effect of 40 prints as **"40.00"** on its own scale, never as money | `test_E_ppl_051` | PASS — **TRAP, D-PPL-01 fixed** |
+| E-ppl-052 | the comparator cost is `currency`; the ICER prints **"USD 400.00 per unit of effect"** | `test_E_ppl_052` | PASS — **TRAP, D-PPL-01 fixed** |
+| E-ppl-053 | the tightness figure prints "0.2000" with **no** currency prefix; the two counts print as counts | `test_E_ppl_053` | PASS — **TRAP** |
 | E-ppl-054 | every delivered figure prints at its declared precision | `test_E_ppl_054` | PASS (the count-with-currency case is D-PPL-01 and is pinned there) |
 | E-ppl-055 | a currency label changes no number (identical `outputs_hash` under PHP and USD) | `test_E_ppl_055` | PASS |
 
@@ -334,8 +336,8 @@ One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 ro
 | E-ppl-056 | an empty list is refused by validation for all four list-taking methods | `test_E_ppl_056` | PASS |
 | E-ppl-057 | one element is defined (descriptive) or refused with a reason (weighted, cost-effectiveness) | `test_E_ppl_057` | PASS |
 | E-ppl-058 | `"1,200,000"` is refused **by name** — "not a number", never read silently | `test_E_ppl_058` | PASS |
-| E-ppl-059 | a rate entered as `5` is taken as given and the paper says so in words | `test_E_ppl_059` | PASS — **G-PPL-06, declared** |
-| E-ppl-060 | a zero or negative rate and a negative vacancy count are refused | `test_E_ppl_060` | PASS |
+| E-ppl-059 | a significance level entered as `5` is refused by name, never rescaled | `test_E_ppl_059` | PASS (not a trap: this rule never changed) |
+| E-ppl-060 | a zero or negative unemployment count and a negative vacancy count are refused | `test_E_ppl_060` | PASS — **TRAP** |
 | E-ppl-061 | very large values stay exact (mean 1,200,000,001; SD √2) | `test_E_ppl_061` | PASS |
 | E-ppl-062 | duplicates are counted, not collapsed | `test_E_ppl_062` | PASS |
 | E-ppl-063 | an unknown input is refused with the reason it is not modelled ("survey weights") | `test_E_ppl_063` | PASS |
@@ -375,12 +377,13 @@ One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 ro
 | E-ppl-082 | every tool's `need` is one distinct line | `test_E_ppl_082` | PASS |
 | E-ppl-083 | the calculator form is labelled from the frozen schema's own description | `test_E_ppl_083` | PASS |
 | E-ppl-084 | the empty and refusal states are designed: a named empty cell, a refusal that names the missing input | `test_E_ppl_084` | PASS |
+| E-ppl-085 | a cost **per unit of effect** prints its denominator, and a negative ratio keeps its accounting parentheses | `test_E_ppl_085` | PASS — **TRAP, B-215** |
 
 ### 6.9 Strict reconciliation — every item, one cited E-row
 
 **Tools (10)** — `alpha` E-025…028, E-017, E-023 · `weighted` E-029…032 · `descriptive` E-033, E-034 ·
 `chi_square` E-035…037 · `power` E-038, E-039 · `pearson` E-040, E-041 · `ols` E-042, E-043 ·
-`trainingroi` E-044…046 · `labourtightness` E-047, E-048, E-053 · `programmecost` E-049…052.
+`trainingroi` E-044…046 · `labourtightness` E-047, E-048, E-053 · `programmecost` E-049…052, E-085.
 
 **Worksheets (19)** — E-009 (the set and the templates), E-010 (all draftable), E-003 and E-011
 (the tiles), E-012 (every profile reachable), E-074 and E-075 (the shared ones).
@@ -394,24 +397,28 @@ One row per test in `tests/test_subject_people_acceptance.py`. **84 tests, 84 ro
 
 ---
 
-## 7. What this session changed — three presentation fixes, no core change
+## 7. What this session changed — one core fix (B-215) and two presentation fixes
 
-| # | change | file | layer | why not the frozen core |
+| # | change | file | layer | why there |
 |---|---|---|---|---|
-| 1 | **The Analytics tile now describes its own members.** It said "The declared-input *statistics* that work on people data" while three of its ten calculators are money arithmetic (`trainingroi`, `labourtightness`, `programmecost`). It now says what it holds: "…the statistics for a survey or a table of counts, and the money arithmetic for a training return, a labour market and a programme's cost." | `src/bp/product/subjects.py` (`PEOPLE_TILES`) | presentation (the tile's own `what`) | no number moves and the method contract is untouched; the work order gives tile notes and labels to this session |
-| 2 | **`docs/CURRICULUM_MAP.md` now names this shelf.** Its People row listed seven methods and no worksheets, no tiles and no people-specific calculators | `docs/CURRICULUM_MAP.md` | documentation | a doc that disagrees with the page is the defect; the page is right |
-| 3 | `qa/manual/people.md`, `tests/test_subject_people_acceptance.py`, the ledger rows, `qa/evidence/people/` | — | QA surface | — |
+| 1 | **The `@unit` ordering bug.** The orchestrator took the request's currency for an `@unit` output **before** resolving the unit, so an effect of 40 printed "USD 40.00" and a 20-point difference "USD 20.000" | `src/bp/orchestrator.py` (one block) | **core** | the unit is the thing being declared; the currency must follow it, not precede it |
+| 2 | **One composite unit.** `currency_per_effect`; `Quantity.display` prints "USD 400.00 per unit of effect" and keeps the accounting parentheses for a negative ratio | `src/bp/quantity.py` | **core** | a cost per effect has no symbol in the exchange, so it is printed in words — printing a bare amount *is* the defect |
+| 3 | **The CEA typing.** ICER → `currency_per_effect`; comparator cost → `currency`; comparator effect and every effect difference → `units` | `src/bp/methods.py` (`_cea_typing`) | **core** | an effect is on the declared outcome scale, which the engine already calls `units` |
+| 4 | **`mde`/`se` are `units`, not a probability** | `src/bp/methods.py` (`_power_typing`) | **core** | an outcome-scale difference and its standard error are not probabilities |
+| 5 | **`years` is a period**, `("periods", 2)` | `src/bp/methods.py` (`_roi_typing`) | **core** | a holding period is not a count, and 0 dp silently rounded it |
+| 6 | **Tightness divides by an unemployment count.** Input `unemployed`; `vacancies / unemployed`; a sixth declared check; a template sentence that states the figure; a caveat that says it is a ratio of two counts | `src/bp/methods.py` (`labour_market_*`, the method contract), `src/bp/server.py` (the preset) | **core** | Item 11b — a count over a rate has no reading |
+| 7 | **The Analytics tile now describes its own members** — it said "statistics" while three of its ten calculators are money arithmetic | `src/bp/product/subjects.py` (`PEOPLE_TILES`) | presentation | no number moves; the work order gives tile notes to this session |
+| 8 | **`docs/CURRICULUM_MAP.md`'s People row** now names the ten methods, six tiles and nineteen worksheets | docs | documentation | a doc that disagrees with the page is the defect |
+| 9 | **One step of the tightness tool** said "enter … the unemployment rate" against its own formula "tightness = vacancies / unemployed" — it now names the count | `src/bp/product/subjects.py` | presentation | the page was contradicting the method |
 
-**Nothing in `src/bp/methods.py` was touched**, so the pinned fixture is untouched and
-`test_frozen_contract` stays green (§10). Every defect that *would* need the core is ledgered and
-left for your instruction (§9), because the work order puts a method change behind stop-and-ask and
-two of the three change arithmetic, not formatting.
+**Why the core items were not done first.** They were behind stop-and-ask, so the session measured
+them, ledgered them, and closed with a single question. The owner answered **option A — all of it**
+(B-215), and the six core changes above were made after that answer, in one commit, with the frozen
+fixture regenerated by its own script (`scripts/econ_shelf.py --fixture`: 142 methods, 144 presets).
 
 **No worksheet was edited.** The thirteen `CHG-` worksheets and `PM-10` belong to the Management &
 strategy and Project management sessions; §6.7 pins that they are declared identically on both
-shelves, and §4 proposes nothing that would move them.
-
----
+shelves.
 
 ## 8. The paper, read against V-01 … V-20
 
@@ -459,8 +466,8 @@ wording is yours.
 
 | id | subject | feature / E-id | severity | class | what was measured | why not fixed here | trap test | status |
 |---|---|---|---|---|---|---|---|---|
-| **D-PPL-01** | people (+ every shelf offering `cost_effectiveness`, `labour_market`, `power_analysis`) | `programmecost`, `labourtightness`; E-023, E-047, E-051…053 | **BLOCKER** | UNITS | `icer_*` typed `currency` and printed "USD 400.00" for a cost per effect; `@unit` takes the request currency **before** resolving the unit, so an effect of 40 prints "USD 40.00" and a delta "USD 20.000"; `comparator_cost` declared `@unit`→`count`; `power_analysis.mde`/`se` declared `@unit` but resolved against a `probability` base unit; tightness = vacancies ÷ unemployment **rate** = 200 | the fix is in `src/bp/methods.py` (`_cea_typing`, `_labour_typing`, `_power_typing`) and one ordering bug at `src/bp/orchestrator.py:233` — a core change, behind stop-and-ask | `test_E_ppl_023`, `test_E_ppl_047`, `test_E_ppl_051`, `test_E_ppl_052` | **LEDGERED** |
-| **D-PPL-02** | people (+ Entrepreneurship) | `trainingroi`; E-046 | MAJOR | UNITS | `years` is typed `("count", 0)`, so a 2.5-year holding period prints "Compounded over **2 years**" beside a return computed on 2.5 years | one tuple in `_roi_typing` (`periods`, or `count` at 2 dp) — core change | `test_E_ppl_046` | **LEDGERED** |
+| **D-PPL-01** | people (+ every shelf offering `cost_effectiveness`, `labour_market`, `power_analysis`) | `programmecost`, `labourtightness`; E-023, E-047, E-051…053 | **BLOCKER** | UNITS | `icer_*` typed `currency` and printed "USD 400.00" for a cost per effect; `@unit` takes the request currency **before** resolving the unit, so an effect of 40 prints "USD 40.00" and a delta "USD 20.000"; `comparator_cost` declared `@unit`→`count`; `power_analysis.mde`/`se` declared `@unit` but resolved against a `probability` base unit; tightness = vacancies ÷ unemployment **rate** = 200 | resolved **B-215**, on the owner's instruction (option A) — `src/bp/methods.py` (`_cea_typing`, `_labour_typing`, `_power_typing`, the labour-market impl/check/profile/caveat/template/contract), `src/bp/orchestrator.py` (one block), `src/bp/quantity.py` (the composite unit), `src/bp/server.py` (the preset); fixture regenerated | `test_E_ppl_023`, `047`, `051`, `052`, `053`, `060`, `085` — every one fails on the pre-fix code | **FIXED** |
+| **D-PPL-02** | people (+ Entrepreneurship) | `trainingroi`; E-046 | MAJOR | UNITS | `years` is typed `("count", 0)`, so a 2.5-year holding period prints "Compounded over **2 years**" beside a return computed on 2.5 years | resolved **B-215** — one tuple in `_roi_typing` (`periods`, 2) | `test_E_ppl_046` — fails on the pre-fix code | **FIXED** |
 | **D-PPL-03** | people (+ Entrepreneurship, Economics) | `programmecost`; E-050 | MINOR | KEYS | an option name is slugged into the output key, so "Option A" and "Option_A" collide and one option's ratio silently replaces the other's: 3 options yield 2 ratios | a uniqueness suffix in `cea_impl` — core change | `test_E_ppl_050` | **LEDGERED** |
 | **D-PPL-04** | every shelf's worksheet paper | Kotter paper §8 V-02 | MINOR | WORDING | H2 What the Evidence Shows prints "0 step(s) are recorded as gaps" beside seven "no source was found for this part" lines; the same sentence said "1 sourced items" | shared prose in `completion._sections`; the wording of a paper is the owner's call | recorded in §8 with its location; a pluralisation test would trap it | **LEDGERED** |
 | G-PPL-01 | people | Reward tile; E-005 | GAP | SCOPE | the tile is empty and says why | declared and visible — the design working | `test_E_ppl_005` | **GAP, declared** |
@@ -468,10 +475,11 @@ wording is yours.
 | G-PPL-03 | people | `power`; E-038, E-039 | GAP | SCOPE | the preset objective says "size a study to detect a stated effect" while the tool reports achieved power and MDE; *n* is an input | needs a core inversion; proposal §4 rank 6 | `test_E_ppl_038` | **GAP, declared** |
 | G-PPL-04 | people | glossary; E-007 | GAP | CONTENT | no glossary is served (0 terms) and the page renders no empty section | nothing promised; the content is a curriculum decision, proposal §4 rank 5 | `test_E_ppl_007` | **GAP, not declared** |
 | G-PPL-05 | people | `weighted`; E-032 | GAP | CONVENTION | a weight entered as `40` is used as given and shifts the design effect; the caveat says "Weights are not validated… used as given" | declared convention | `test_E_ppl_032` | **GAP, declared** |
-| G-PPL-06 | people | `labourtightness`; E-059 | GAP | CONVENTION | a rate entered as `5` is taken as given, and the orchestrator's rate hint says so in the paper | declared convention | `test_E_ppl_059` | **GAP, declared** |
+| G-PPL-06 | people | `labourtightness`; E-059 | GAP | CONVENTION | the tool no longer takes a rate at all (Item 11b fixed); the rule is still measured on the chi-square significance level, where a `5` is refused by name | closed by the fix | `test_E_ppl_059` | **CLOSED (no longer applicable)** |
 
-**Zero unexplained BLOCKER/MAJOR.** D-PPL-01 and D-PPL-02 are explained in full, pinned by traps
-that assert the measured behaviour, and owner-gated. Everything else is MINOR or a declared gap.
+**Zero unexplained BLOCKER/MAJOR, and none open.** D-PPL-01 and D-PPL-02 are fixed under B-215 and
+pinned by traps that fail on the pre-fix code. D-PPL-03 and D-PPL-04 stay ledgered as MINOR with their
+locations.
 
 ### 9.1 Item 12 — decided, not deferred
 
@@ -497,12 +505,14 @@ of the zip (§8). Item 12 is **closed as superseded**, with the counts above as 
 
 | gate | result |
 |---|---|
-| `tests/test_subject_people_acceptance.py` | **84 tests, 84 passed, 0 skipped, 0 failed** |
-| definitions vs collected ids | **84 defined, 84 collected, 0 missing** (§11) |
-| shelf slice + the new module | **252 tests**: 1 failure before the count was updated (the documented test count), **0 after** it was set to 3493 |
+| `tests/test_subject_people_acceptance.py` | **85 tests, 85 passed, 0 skipped, 0 failed** |
+| definitions vs collected ids | **85 defined, 85 collected, 0 missing** (§11) |
+| the traps, on the pre-fix code | **10 of 11 fail** (stash the five source files, re-run, restore); the eleventh is the surviving rate rule |
+| shelf slice + the new module | **254 tests, 0 failures** on the rebased tree |
+| core change: `test_frozen_contract` + `test_method_contracts` + `test_people_frameworks` + economics and entrepreneurship acceptance | **234 tests, all passed** — the fixture was regenerated by `--fixture`, not hand-edited |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** (142 methods, 144 presets) |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
-| `test_docs_sync` count | **3564** measured from the loader on the rebased tree and written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
+| `test_docs_sync` count | **3565** measured from the loader and written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
 | Full suite before | **3409 tests, 1 failure, 0 errors** (`qa/baseline/ppl-before-suite-err.txt`, 1139 s) |
 | Full suite after | **3564 tests** on the rebased tree (measured with `test_docs_sync._suite_count()`); the shelf slice re-runs green on it |
 | Evidence | `qa/evidence/people/kotter-paper.docx`, `kotter-paper.txt`, `unit-audit.txt`, `parity.txt`, `evidence.json`, three screenshots |
@@ -541,8 +551,8 @@ do text edits in Python, never through PowerShell's pipeline.
 ## 11. The collected-vs-defined audit
 
 ```
-re.findall(r"def (test_\w+)", source)   → 84
-the -v report's collected ids           → 84
+re.findall(r"def (test_\w+)", source)   → 85
+the -v report's collected ids           → 85
 set difference                          → none
 ```
 
@@ -555,35 +565,27 @@ Nothing follows an `if __name__ == "__main__":` block; the module has no such bl
 | item | state |
 |---|---|
 | `qa/manual/people.md` reconciled 1:1 with `detail("people")` | **done** — 10 tools, 19 worksheets, 0 records, 0 glossary terms, each with a cited E-row (§3, §6.9) |
-| Traceability matrix all PASS | **done** — 84 rows; every non-PASS item carries a ledger id |
+| Traceability matrix all PASS | **done** — 85 rows; every non-PASS item carries a ledger id |
 | Full item inventory with a per-item verdict | **done** (§3) |
 | Ranked, owner-gated proposal — nothing built | **done** (§4) |
-| `tests/test_subject_people_acceptance.py` green, nothing skipped | **done** (84/84) |
+| `tests/test_subject_people_acceptance.py` green, nothing skipped | **done** (85/85, 10 traps fail on the pre-fix code) |
 | Unit audit table + parity test | **done** (§5, §6.7 — Management carries none of the ten calculators, so the calculator limb is tested against Economics and Operations, and §6.7 says so) |
-| Zero unexplained BLOCKER/MAJOR | **done** (§9) |
+| Zero unexplained BLOCKER/MAJOR | **done** — D-PPL-01 and D-PPL-02 fixed under B-215; two MINORs ledgered with their locations (§9) |
 | Full suite: no new failures, count recorded | **done** (§10, §12) |
-| `econ_shelf` in sync · `docs_sync` green · docs in the same commits | **done** |
+| `econ_shelf` in sync · `docs_sync` green · docs in the same commits | **done** — the fixture was regenerated by `--fixture` in the same commit as the code |
 | One worksheet paper produced and judged V-01…V-20 | **done** (§8) |
 | Click-through evidence | **done** — `qa/evidence/people/` |
 | `qa/QA_STATE.md` states the next subject and its top three risks | **done** |
 
-### 12.1 The questions this session leaves open
+### 12.1 What is left, and who owns it
 
-1. **The three core defects (D-PPL-01/02/03) and Item 11b.** All four are one-line-to-one-function
-   changes in `src/bp/methods.py` (and one ordering bug in `src/bp/orchestrator.py:233`). The work
-   order puts every one of them behind stop-and-ask, so none was made; §4 ranks them with their cost.
-2. **The two curriculum proposals** — a reward worksheet to fill the empty tile (rank 3) and four
-   declared-input people methods (rank 4). Neither is built.
-3. **The glossary** (G-PPL-04) — content the owner must write or approve; §4 rank 5.
-
-
-
-
-
-
-
-
-
-
-
-
+1. **D-PPL-03 (MINOR):** two option names that normalise to the same slug collapse one `icer` key —
+   3 options yield 2 ratios. Recorded with its location; a uniqueness suffix in `cea_impl` is the fix,
+   and it is a curriculum-neutral core change awaiting a session that wants it.
+2. **D-PPL-04 (MINOR):** a worksheet paper prints "0 step(s) are recorded as gaps" beside seven
+   unsourced parts. Shared prose in `completion._sections`; the wording of a paper is the owner's call.
+3. **The curriculum proposals (nothing built):** a reward worksheet to fill the empty tile, four
+   declared-input people methods (`turnover_rate`, `cost_per_hire`, `compa_ratio`, `span_of_control`),
+   a People glossary, and a sample-size output for `power`. Ranked in §4.
+4. **`marketing` is the next subject** — the last shelf with a page, a catalogue and calculators but no
+   acceptance manual (`qa/QA_STATE.md` names it with its top three risks).

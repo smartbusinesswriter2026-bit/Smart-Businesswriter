@@ -1626,7 +1626,7 @@ ENTREPRENEURSHIP_NOTES = {
         "level": "advanced",
         "formula": "Real wage = nominal wage / (CPI / 100); wage share = real wage / labour productivity; tightness = vacancies / unemployed.",
         "steps": ["Enter the nominal wage, the CPI and labour productivity for the same period and the same population.",
-                  "Enter vacancies and the unemployment rate for the labour market you are describing.",
+                  "Enter the vacancy count and the number of unemployed people for the labour market you are describing.",
                   "Read the real wage, the wage share of productivity and how tight the market is.",
                   "Say which labour market the figures describe: the method has no regional or sector breakdown."],
         "common_mistakes": ["Mixing periods or populations between the wage, the price index and productivity.",

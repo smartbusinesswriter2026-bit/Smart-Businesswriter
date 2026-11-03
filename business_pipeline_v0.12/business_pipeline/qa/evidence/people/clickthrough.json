@@ -2,7 +2,7 @@
  "base": "http://127.0.0.1:8002",
  "page": {
   "status": 200,
-  "bytes": 848986,
+  "bytes": 854022,
   "markers": {
    "People & organisation": false,
    "Strategy and design": false,
@@ -113,7 +113,7 @@
    "report_text": "Across 4 items and 8 complete responses the reliability is 0.8874. It measures internal consistency of these items, not validity or a single factor. Cronbach's ",
    "paper_status": 200,
    "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-   "paper_bytes": 7118
+   "paper_bytes": 7036
   },
   "weighted": {
    "status": "delivered",
@@ -173,27 +173,27 @@
    "report_text": "The model uses 10 complete observations, with 0 excluded as missing, and 2 predictor variable(s). It accounts for 0.933 of the variation in the outcome in this ",
    "paper_status": 200,
    "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-   "paper_bytes": 14201
+   "paper_bytes": 14151
   },
   "trainingroi": {
    "status": "delivered",
    "checks": 5,
    "checks_all_pass": true,
    "report": true,
-   "report_text": "A net gain of PHP 125,000.00 on an investment of PHP 500,000.00 gives a return on investment of 25.00%. Compounded over 3 years, the annualised return is 7.72%.",
+   "report_text": "A net gain of PHP 125,000.00 on an investment of PHP 500,000.00 gives a return on investment of 25.00%. Compounded over 3.00 years, the annualised return is 7.7",
    "paper_status": 200,
    "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-   "paper_bytes": 6373
+   "paper_bytes": 6382
   },
   "labourtightness": {
    "status": "delivered",
-   "checks": 5,
+   "checks": 6,
    "checks_all_pass": true,
    "report": true,
-   "report_text": "The real wage is PHP 95.24 and the wage share of productivity is 0.7937. The real wage deflates the declared nominal wage by the declared CPI; the CPI and produ",
+   "report_text": "The real wage is PHP 95.24 and the wage share of productivity is 0.7937. The labour market is tight at 0.2000 vacancies for each unemployed person: 10 vacancies",
    "paper_status": 200,
    "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-   "paper_bytes": 7168
+   "paper_bytes": 7864
   },
   "programmecost": {
    "status": "delivered",
