@@ -948,7 +948,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
   <span class="pill" id="pricingpill" style="cursor:pointer" title="Plans and prices">Pricing</span>
   <span class="pill" id="accountpill" style="cursor:pointer" title="Local single-user mode">My account</span>
   <span class="pill" id="signuppill" style="cursor:pointer" title="Coming soon">Sign up</span>
-  <span class="pill" id="buildpill" title="Served build: student shelves, framework worksheets, student guides, the conductor's new frameworks and the capability-selected computations, the Portfolio Lab, paste/CSV import, the mock fund, optional quotes, clear checks, provider fallbacks, local keys">v1.45</span>
+  <span class="pill" id="buildpill" title="Served build"></span>
   <span class="pill" id="healthpill"><span class="dot"></span><span>local</span></span>
   <label class="locale"><span class="visually-hidden">Language</span>
     <select id="locale">
@@ -9752,10 +9752,24 @@ async function boot() {
   $("#locale").onchange = (e) => { state.locale = e.target.value; try { localStorage.setItem("bp-locale", state.locale); } catch (err) {} };
   try { const l = localStorage.getItem("bp-locale"); if (l && LOCALES[l]) { state.locale = l; $("#locale").value = l; } } catch (e) {}
 
+  const paintBuild = (build) => {
+    /* The build number comes from the server, never from a literal in this page: a
+       pill that states a build the tree is not looks current and is wrong (D-PM-06's
+       sibling, D-PM-07).  `/api/health` reports `bp.build.VERSION`, which the docs
+       test pins to the newest changelog entry, so the pill and the docs agree. */
+    const pill = $("#buildpill");
+    if (!pill) return;
+    pill.textContent = build ? "v" + build : "";
+    pill.title = build
+      ? "Served build v" + build + ": the tree answering you. Every response is computed "
+        + "from the checkout on disk, so a reload is the only way to see a newer one."
+      : "Served build: the server did not report a build number.";
+  };
   const results = await Promise.allSettled([
     api("/api/presets").then((d) => { state.presets = d || {}; }),
     api("/api/methods").then((d) => { state.methods = d || []; }),
-    api("/api/currencies").then((d) => { state.currencies = (d && d.currencies) || []; })
+    api("/api/currencies").then((d) => { state.currencies = (d && d.currencies) || []; }),
+    api("/api/health").then((d) => { state.health = d || null; paintBuild(d && d.build); })
   ]);
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length) {

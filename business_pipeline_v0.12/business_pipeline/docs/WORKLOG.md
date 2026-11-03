@@ -157,6 +157,15 @@ CLOSED. That is the discipline the manual asks for: an expectation may change wh
 genuinely changed, and the change is recorded, never silenced. It also shows why the full suite is
 part of the job: the gate list was green while this row was red.
 
+**Then D-PM-07, which I had ledgered as "an owner call".** The owner said close it. It was smaller
+than the ledger entry implied: `bp/build.py` holds the number, `/api/health` reports it, the page
+paints the pill from it at boot, and the markup now carries no number at all - so a stale one
+cannot be typed back in. Two tests hold it: `bp.build.VERSION` must equal the newest changelog
+build (the same number HOME and HANDOFF already must state), and `test_E_pm_081` requires the
+painted pill in a real browser to read `v` + that constant. Measured after the fix: **v1.80** at
+1280 px and at 390 px. Build 1.80.
+
+
 
 ## 2026-11-03 — [design] The Project management worksheet forms, made professional to fill in
 

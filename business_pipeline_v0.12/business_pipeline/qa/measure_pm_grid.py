@@ -307,6 +307,22 @@ def focus_grid(page):
     time.sleep(0.25)
 
 
+def build_pill(page):
+    """The top bar's build pill, as the student sees it.
+
+    It is painted from `/api/health` after boot, so this waits for the number to
+    arrive rather than reading an empty span.  D-PM-07 was a literal here; the
+    pill must now state the build the server reports.
+    """
+    for _ in range(40):
+        text = page.script("(() => { const p = document.getElementById('buildpill'); "
+                           "return p ? p.textContent.trim() : null; })()", await_promise=False)
+        if text:
+            return text
+        time.sleep(0.15)
+    return text
+
+
 def shot(page, name):
     answer = page.call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})
     path = os.path.join(OUT, name)
@@ -349,6 +365,7 @@ def main(port):
             page.call("Emulation.setDeviceMetricsOverride", {
                 "width": width, "height": height, "deviceScaleFactor": 1, "mobile": False})
             load(page, base + "/?viewport=%d#/subject/" % width + SUBJECT)
+            report.setdefault("build_pill", {})[str(width)] = build_pill(page)
             for grid in GRIDS:
                 measured = drive(page, grid)
                 measured["viewport"] = {"width": width, "height": height}
@@ -393,6 +410,7 @@ def main(port):
                        for width, rows in report["widths"].items()},
             "refusal": report["refusal"],
             "sideways": report["sideways"],
+            "build_pill": report.get("build_pill", {}),
             "screenshots": [row["name"] for row in report["screenshots"]],
         }
         with open(carried, "w", encoding="utf-8") as handle:
@@ -407,6 +425,8 @@ def main(port):
         for width, row in report["refusal"].items():
             print("%5s px  refusal: shown=%s null=%s token=%s"
                   % (width, row.get("shown"), row.get("returned_null"), row.get("tokens")))
+        print("build pill: " + ", ".join("%s px -> %s" % (w, p)
+                                         for w, p in (report.get("build_pill") or {}).items()))
         print("screenshots: " + ", ".join(row["name"] for row in report["screenshots"]))
         return 1 if report["sideways"] else 0
     finally:

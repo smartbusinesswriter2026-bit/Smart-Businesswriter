@@ -1207,6 +1207,11 @@ class GateTest(unittest.TestCase):
         for name in record["screenshots"]:
             self.assertTrue(os.path.exists(os.path.join(
                 "qa", "evidence", "project-management", name["name"])), name["name"])
+        # the top bar states the build the server reports, not a literal (D-PM-07)
+        from bp import build as build_info
+        self.assertTrue(record.get("build_pill"), "run qa/measure_pm_grid.py")
+        for width, pill in record["build_pill"].items():
+            self.assertEqual(pill, "v" + build_info.VERSION, width)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

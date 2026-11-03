@@ -22,6 +22,7 @@ from pathlib import Path
 
 from . import cases as case_store
 from . import versions as version_store
+from .. import build as build_info
 
 FORMAT = "bp-ops/1"
 MAX_LOG_PATH = 200
@@ -128,6 +129,10 @@ def health(extra=None):
         checks = [{"name": "case_store", "ok": False, "detail": str(problem)}]
     log_path = request_log_path()
     report = {"format": FORMAT, "status": "ok" if not problems else "degraded",
+              # The build the tree actually is, so the page's pill cannot state a
+              # different one.  `bp.build.VERSION` is pinned to the newest changelog
+              # build by tests/test_docs_sync.py (D-PM-07).
+              "build": build_info.VERSION,
               "checked_at": _now_iso(), "product": {"state_dir": str(state_dir())},
               "case_store": store,
               "request_log": {"enabled": log_path is not None, "path": str(log_path) if log_path else None},

@@ -229,6 +229,30 @@ class DocsStateSyncTest(unittest.TestCase):
             "docs/HANDOFF.md says build %s, but the newest changelog entry is %s" % (handoff, build),
         )
 
+    def test_the_served_build_is_the_newest_changelog_build(self):
+        """The top bar cannot state a build the tree is not (D-PM-07).
+
+        The pill read "v1.45" for many builds because the number was a literal in
+        `web/index.html` that nothing refreshed.  It now comes from `/api/health`,
+        which reports `bp.build.VERSION`, and this pins that constant to the newest
+        changelog entry - the same number HOME.md and HANDOFF.md must state - so the
+        three cannot drift apart again.
+        """
+        from bp import build as build_info
+        from bp.product import ops
+        newest = _newest_build(_read(DOCS / "CHANGELOG.md"))
+        self.assertEqual(build_info.VERSION, newest,
+                         "bp/build.py says %s, the newest changelog entry is %s"
+                         % (build_info.VERSION, newest))
+        report = ops.health({"sandbox": "on"})
+        self.assertEqual(report.get("build"), newest, "the health report states another build")
+        page = _read(REPO / "web" / "index.html")
+        # the number is painted from the server, not written into the markup
+        self.assertIn('id="buildpill"', page)
+        self.assertIn("paintBuild(", page)
+        self.assertIn("/api/health", page)
+        self.assertNotIn(">v1.45<", page)
+
     # -- 3. every decision id mentioned must exist in the register ------------
     def test_every_mentioned_decision_id_has_a_row_in_the_decision_register(self):
         mentioned = {}

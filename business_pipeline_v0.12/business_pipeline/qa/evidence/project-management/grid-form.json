@@ -3,7 +3,7 @@
  "chrome": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
  "subject": "project-management",
  "url": "http://127.0.0.1:8013/#/subject/project-management",
- "measured_at": "2026-11-03T11:18:22",
+ "measured_at": "2026-11-03T20:05:59",
  "note": "The cell text in the screenshots is a fixed cycle of short phrases typed into the form to prove the grid renders filled. It is not student data and it contains no figures.",
  "widths": {
   "1280": {
@@ -257,17 +257,17 @@
   {
    "name": "05-grid-form-scorecard-1280.png",
    "saved": true,
-   "bytes": 112973
+   "bytes": 112990
   },
   {
    "name": "05-grid-form-okrs-1280.png",
    "saved": true,
-   "bytes": 104191
+   "bytes": 104208
   },
   {
    "name": "07-grid-form-refusal-1280.png",
    "saved": true,
-   "bytes": 105493
+   "bytes": 105510
   },
   {
    "name": "05-grid-form-scorecard-390.png",
@@ -280,5 +280,9 @@
    "bytes": 62949
   }
  ],
- "sideways": []
+ "sideways": [],
+ "build_pill": {
+  "1280": "v1.80",
+  "390": "v1.80"
+ }
 }

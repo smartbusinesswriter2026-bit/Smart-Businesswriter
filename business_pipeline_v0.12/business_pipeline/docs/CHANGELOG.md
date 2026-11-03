@@ -1,3 +1,29 @@
+## The build pill stops claiming a build the tree is not
+
+Found while capturing the grid evidence: the top bar read **v1.45** while the tree was build
+1.76. A number that is always wrong, and always looks current, is worse than no number. Build
+**1.80**.
+
+- **One source for the build, and two tests that hold it there.** `bp/build.py` holds
+  `VERSION`; `/api/health` reports it; the page paints the pill from that at boot. The markup
+  carries no number at all, so a stale one cannot be typed back in. `bp.build.VERSION` must equal
+  the newest `docs/CHANGELOG.md` build - the same number `HOME.md` and `HANDOFF.md` already must
+  state - and `test_the_served_build_is_the_newest_changelog_build` fails when it does not. The
+  pill's `title` now says what the number means (the tree answering you, computed from the
+  checkout on disk) instead of listing features that drift.
+- **The pill is measured, not asserted.** `qa/measure_pm_grid.py` reads the painted pill in a real
+  browser alongside the grid widths and records it in `grid-form.json`, and `test_E_pm_081`
+  requires it to read `v` + the constant at both widths. Measured: **v1.80 at 1280 px and at
+  390 px**.
+- **D-PM-07 closes.** It was ledgered as "an owner call" when three lanes held edits in
+  `web/index.html`; the fix turned out to be smaller than the ledger entry feared, and it removes
+  a whole class of drift rather than one stale string.
+
+- 1.80 (2026-11-03): the build number has one source (`bp/build.py`, served by `/api/health`,
+  painted by the page), two tests pin it to the changelog and to the browser, and the top bar's
+  pill no longer states a build the tree is not (D-PM-07).
+
+
 ## The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
 
 The owner decided on 2026-11-03 that there is a **$99.99/month bundle giving unlimited use of both
