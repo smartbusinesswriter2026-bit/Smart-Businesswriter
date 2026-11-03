@@ -52,7 +52,8 @@ def _post(journal):
     return tb
 
 
-def run(problem_text: str, chart: Optional[Dict[str, Any]] = None) -> RuntimeResult:
+def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
+        adjustments: Optional[List[Dict[str, Any]]] = None) -> RuntimeResult:
     res = RuntimeResult(status="ok")
     # INGEST
     if not isinstance(problem_text, str) or not problem_text.strip():
@@ -96,10 +97,16 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None) -> RuntimeRes
                                m.detector_id)
             return res
         journal.extend(lines)
-    res.journal = journal
-    # POST
+    # POST (transactions)
+    tb = _post(journal)
+    # apply adjustments (each: {"debit": code, "credit": code, "amount": value})
+    for adj in (adjustments or []):
+        amt = Decimal(str(adj["amount"]))
+        journal.append((adj["debit"], "Dr", amt))
+        journal.append((adj["credit"], "Cr", amt))
     tb = _post(journal)
     res.trial_balance = tb
+    res.journal = journal
     # gate: balanced
     total_dr = sum((Decimal(str(a)) for a, s, _ in []), Decimal(0))  # placeholder
     # compute debits/credits from journal
