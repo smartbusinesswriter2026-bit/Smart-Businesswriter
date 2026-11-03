@@ -32,7 +32,7 @@ the defects below are defects of that placement and of the core contract it reli
 | Wall time | — | 1139 s | — |
 | `scripts/econ_shelf.py --check` | in sync | **frozen fixture: in sync** | — |
 | `qa/check_page_syntax.py` | OK | **page syntax: OK** | — |
-| `test_docs_sync._suite_count()` | — | **3409** | now 3493 with this session's 84 tests |
+| `test_docs_sync._suite_count()` | — | **3409** | **3564** after this session's 84 tests and the 71 the other lanes landed during it |
 
 Raw output: `qa/baseline/ppl-before-suite-err.txt`.
 
@@ -232,7 +232,7 @@ would be the dishonesty that list exists to prevent.
 | `programmecost` | `delta_effect_intensive` | `@unit` → `count` | **USD 20.000** | same root cause as the row above | **BLOCKER** (D-PPL-01) |
 | `programmecost` | `comparator_cost` | `@unit` → `count` | USD 10,000.00 | a money amount declared with no money unit; it only looks right because the request carried a currency | **BLOCKER** (D-PPL-01) |
 | `labourtightness` | `labour_market_tightness` | `ratio`, 4 | 200.0000 | the unit is right and the **arithmetic** is not: ten vacancies divided by a 5% rate. A count over a rate is not a ratio of like units (Item 11b) | **BLOCKER** (D-PPL-01) |
-| `power` | `mde`, `se` | `probability` | 7.38, 2.63 | an outcome-scale difference and its standard error are not probabilities; the request already declared `points` | **MAJOR** (D-PPL-01, shared core) |
+| `power` | `mde`, `se` | `@unit` → `probability` | 7.38, 2.63 | an outcome-scale difference and its standard error are not probabilities. **A lane that landed during this session changed the declaration from `probability` to `@unit`; the resolution did not move** — `power_analysis`'s own `unit` is `probability`, so `@unit` resolves back to it and the figure still prints with no scale. Re-measured after the rebase | **MAJOR** (D-PPL-01, shared core) |
 | `trainingroi` | `years` | `count`, 0 | "2" for a 2.5-year holding | a holding period is not a count, and zero decimals silently rounds the number the paper then states | **MAJOR** (D-PPL-02) |
 | `alpha` | `sum_item_variance`, `total_variance` | `ratio`, 4 | 3.6250, 10.8393 | a variance of points has no word in the engine's vocabulary. Recorded as an observation rather than failed: the alternative (`points`) would print a variance as if it were a score | MINOR, recorded |
 
@@ -459,7 +459,7 @@ wording is yours.
 
 | id | subject | feature / E-id | severity | class | what was measured | why not fixed here | trap test | status |
 |---|---|---|---|---|---|---|---|---|
-| **D-PPL-01** | people (+ every shelf offering `cost_effectiveness`, `labour_market`, `power_analysis`) | `programmecost`, `labourtightness`; E-023, E-047, E-051…053 | **BLOCKER** | UNITS | `icer_*` typed `currency` and printed "USD 400.00" for a cost per effect; `@unit` takes the request currency **before** resolving the unit, so an effect of 40 prints "USD 40.00" and a delta "USD 20.000"; `comparator_cost` declared `@unit`→`count`; `power_analysis.mde`/`se` typed `probability`; tightness = vacancies ÷ unemployment **rate** = 200 | the fix is in `src/bp/methods.py` (`_cea_typing`, `_labour_typing`, `_power_typing`) and one ordering bug at `src/bp/orchestrator.py:233` — a core change, behind stop-and-ask | `test_E_ppl_023`, `test_E_ppl_047`, `test_E_ppl_051`, `test_E_ppl_052` | **LEDGERED** |
+| **D-PPL-01** | people (+ every shelf offering `cost_effectiveness`, `labour_market`, `power_analysis`) | `programmecost`, `labourtightness`; E-023, E-047, E-051…053 | **BLOCKER** | UNITS | `icer_*` typed `currency` and printed "USD 400.00" for a cost per effect; `@unit` takes the request currency **before** resolving the unit, so an effect of 40 prints "USD 40.00" and a delta "USD 20.000"; `comparator_cost` declared `@unit`→`count`; `power_analysis.mde`/`se` declared `@unit` but resolved against a `probability` base unit; tightness = vacancies ÷ unemployment **rate** = 200 | the fix is in `src/bp/methods.py` (`_cea_typing`, `_labour_typing`, `_power_typing`) and one ordering bug at `src/bp/orchestrator.py:233` — a core change, behind stop-and-ask | `test_E_ppl_023`, `test_E_ppl_047`, `test_E_ppl_051`, `test_E_ppl_052` | **LEDGERED** |
 | **D-PPL-02** | people (+ Entrepreneurship) | `trainingroi`; E-046 | MAJOR | UNITS | `years` is typed `("count", 0)`, so a 2.5-year holding period prints "Compounded over **2 years**" beside a return computed on 2.5 years | one tuple in `_roi_typing` (`periods`, or `count` at 2 dp) — core change | `test_E_ppl_046` | **LEDGERED** |
 | **D-PPL-03** | people (+ Entrepreneurship, Economics) | `programmecost`; E-050 | MINOR | KEYS | an option name is slugged into the output key, so "Option A" and "Option_A" collide and one option's ratio silently replaces the other's: 3 options yield 2 ratios | a uniqueness suffix in `cea_impl` — core change | `test_E_ppl_050` | **LEDGERED** |
 | **D-PPL-04** | every shelf's worksheet paper | Kotter paper §8 V-02 | MINOR | WORDING | H2 What the Evidence Shows prints "0 step(s) are recorded as gaps" beside seven "no source was found for this part" lines; the same sentence said "1 sourced items" | shared prose in `completion._sections`; the wording of a paper is the owner's call | recorded in §8 with its location; a pluralisation test would trap it | **LEDGERED** |
@@ -502,9 +502,9 @@ of the zip (§8). Item 12 is **closed as superseded**, with the counts above as 
 | shelf slice + the new module | **252 tests**: 1 failure before the count was updated (the documented test count), **0 after** it was set to 3493 |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** (142 methods, 144 presets) |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
-| `test_docs_sync` count | **3493** measured from the loader and written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
+| `test_docs_sync` count | **3564** measured from the loader on the rebased tree and written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
 | Full suite before | **3409 tests, 1 failure, 0 errors** (`qa/baseline/ppl-before-suite-err.txt`, 1139 s) |
-| Full suite after | **3493 tests** — recorded in §12 with the failure count measured on the closing tree |
+| Full suite after | **3564 tests** on the rebased tree (measured with `test_docs_sync._suite_count()`); the shelf slice re-runs green on it |
 | Evidence | `qa/evidence/people/kotter-paper.docx`, `kotter-paper.txt`, `unit-audit.txt`, `parity.txt`, `evidence.json`, three screenshots |
 
 ### 10.1 The live click-through, on port 8002 (never 8000, 8021 or 8001)

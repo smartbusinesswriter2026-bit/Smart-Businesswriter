@@ -72,8 +72,8 @@ said 5 and then listed six — six is the truth) · 0 records · 0 theories · 0
 | defined vs collected ids | **84 / 84, none missing** |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
-| documented test count | **3493** (was 3409; +84 this session), written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
-| full suite | before **3409 tests, 1 failure, 0 errors**; after **3493 tests**, output in `qa/baseline/ppl-after-suite-err.txt` |
+| documented test count | **3564** (3409 at this session's open; +84 here, +71 from the lanes that landed during it), written into `HOME.md`, `HANDOFF.md`, `CONTRIBUTORS.md` |
+| full suite | before **3409 tests, 1 failure, 0 errors**; after the rebase **3564 tests** measured with `test_docs_sync._suite_count()` |
 
 ---
 
