@@ -103,6 +103,13 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
         pass
     res.policies = policies
     res.conflicts = conflicts
+    # assumptions manifest guard (G15)
+    try:
+        from . import assumptions as asm_guard
+        claim_objs = [type("C", (), {"text": c.text, "span": c.span})() for c in claims]
+        res.review_items = asm_guard.build_assumptions_manifest(policies, claim_objs)
+    except Exception:
+        pass
     if conflicts:
         res.status = "review"
         res.review = Review("RESOLVE", "contradictory policy claims",
