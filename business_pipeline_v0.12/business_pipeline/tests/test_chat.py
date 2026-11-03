@@ -121,7 +121,7 @@ class ResearchTest(unittest.TestCase):
     def test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking(self, research_one):
         import time as _time
 
-        def slow(state, dimension):
+        def slow(state, dimension, corpus_doc_counts=None):
             _time.sleep(0.2)
             return {"dimension": dimension, "found": [], "errors": [], "skipped": [],
                     "notice": None, "dropped": 0, "elapsed": 0.2, "academic_cached": False,

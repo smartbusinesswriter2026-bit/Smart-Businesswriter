@@ -11108,7 +11108,11 @@ BALANCED_SCORECARD = {'template': 'template_balanced_scorecard',
              'prompt': 'The skills, systems and culture the other three depend on',
              'fill': 'research',
              'cues': ['training', 'skills', 'capability', 'culture', 'system'],
-             'queries': ['learning and growth perspective objective measure target'],
+             # The query carries the block's own vocabulary.  It used to read "learning and
+             # growth perspective objective measure target", which shares not one word with
+             # these cues, so the block could never accept evidence for its own question
+             # (D-PLAN-04, found by tests/test_product_profile_cues.py).
+             'queries': ['organisational capacity training skills culture perspective objective measure target'],
              'category': 'worksheet',
              'probe': 'state the evidence for this perspective'}],
  'outline': {'framework': 'Framework overview',

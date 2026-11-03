@@ -126,8 +126,11 @@ def subject_fit(text, subject="management"):
     if _words(text) & set(hints):
         return True, None
     label = SUBJECT_LABELS.get(subject, subject)
-    return False, ("This does not look like a %s instruction. Name the %s question, or open "
-                   "the shelf the brief belongs to." % (label, label))
+    # "an entrepreneurship instruction", not "a entrepreneurship": the shelf's own name
+    # decides the article, and the label is what the student reads.
+    article = "an" if str(label)[:1].lower() in "aeiou" else "a"
+    return False, ("This does not look like %s %s instruction. Name the %s question, or open "
+                   "the shelf the brief belongs to." % (article, label, label))
 
 
 def five_forces_fit(text, industry=""):

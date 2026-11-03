@@ -1,3 +1,44 @@
+## The brief that named no shelf was judged as the wrong shelf, and three tests were lying
+
+Session 7, after the doors landed: the remaining red was triaged line by line instead of
+assumed. Two of the failures were the product's fault, three were tests asserting what the
+code no longer did, and one was a test that passed alone and failed in the suite. Build
+**1.76**.
+
+- **A brief that names no shelf is no longer refused for not being a management brief.**
+  `chat.start`'s signature defaulted `subject` to `"management"` and then handed that
+  invented shelf to `guard.subject_fit`, so `POST /api/cases/chat {"brief": "What
+  political, economic and social pressures affect coffee growers in Ethiopia…"}` answered
+  *"This does not look like a management or strategy instruction"* before asking a single
+  question (D-PLAN-03). The guard now receives the shelf the student actually named; an
+  unnamed shelf is not refused, a named one still is, with the shelf to use instead. The
+  refusal also stops saying "a entrepreneurship" — the article follows the shelf's name.
+- **One Balanced Scorecard perspective could never carry evidence** (D-PLAN-04). Its
+  `organisational_capacity` block searched `"learning and growth perspective objective
+  measure target"` while its cues were `training, skills, capability, culture, system` —
+  not one word in common, so every retrieved source was discarded and the dimension was
+  permanently a named gap. The query now uses the block's own vocabulary, and the same
+  block accepts its own query (measured: 0 items → 1).
+- **Three tests were stale, not the code** (D-PLAN-06): the rail test demanded the "free
+  quote limit" line the owner had deleted in `8bd1e9f`; the paper-store route test mocked
+  the completion module whole, so the route's newer rubric gate read a truthy `MagicMock`
+  and refused with 409; and the research-deadline stub still took two arguments after
+  `_research_one` gained `corpus_doc_counts`, so every dimension "failed" instantly and no
+  timeout was ever exercised. Each is fixed at the test, and the rubric gate — which had
+  never been tested — now has a test that a weighed criterion returns 409 and writes
+  nothing.
+- **A provider test passed alone and failed in the suite** (D-PLAN-05):
+  `sources._CACHE` is one process-wide cache with a 600 s TTL, so an earlier test's answer
+  was serving the Brave→Firecrawl fallback assertion. New `tests/conftest.py` clears it
+  between tests; the cache itself is untouched.
+- **The unserved worksheets are now a ledger, not a memory** (D-PLAN-02): a test pins the
+  measured set of 18 built-but-unoffered worksheets, so wiring one fails the test until
+  the list is updated and a *new* invisible worksheet fails it immediately. Which shelf
+  owns each one stays a curriculum decision — marketing is not ours to move.
+
+- 1.76 (2026-11-03): a brief with no shelf is no longer refused as the wrong shelf; one scorecard perspective can carry evidence again; three stale tests and one cached provider test corrected; the unserved worksheets are trapped. No method, number, gate or shelf membership changed.
+
+
 - 1.75 (2026-11-03): **The Project management worksheet forms are professional to fill in, and the shelf meets them in order.** Owner instruction: *"DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* Design lane B-080. **The four grids learn their own labels.** A grid's right-hand label was the internal plumbing: the Balanced Scorecard read "Measure field", the Strategy Map "Map field", the KPI tree "Tree field" and OKRs "OKR field". Each grid now declares a `form_copy` object beside its own geometry in `MATRIX_META` - the row label, the column label, the hint under the column label and the sentence that explains what belongs in the grid - and the server publishes it on the template payload. The page reads it; it does not branch on a template id. The three older branches in `matrixForm` stay as the floor for a grid that declares no copy. **A grid now opens its grid form.** This is the defect this session found and fixed: every Project management worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before* `t.form_kind`, so the four grids opened the evidence form - which collects `{blocks, links}`, a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A student typed a grid and the run was refused. The declared form now decides: a grid opens the grid form, and the grid's shape is what is collected. **The four states are designed, not accidental.** *Empty*: the grid says what belongs in a cell and that an unfilled cell is named in the audit. *Loading*: the panel says it is opening the worksheet instead of showing a blank card. *Error*: a template the server would not serve is named. *Refusal*: the audit's own reason, in a sentence, beside the form - never a raw dump and never a template token. **The grid reads at 390 px.** A four-column grid with four to twelve rows is wide, so on a narrow screen it collapses into one card per row, each field stacked under its own label; on a wide screen it is a table inside its own scrolling box. Every cell carries a label naming its row and its column. The page no longer scrolls sideways at 390 px: the capability tile and the top bar both used to push it, and both now shrink. **The shelf has tiles.** The Project management page measured `tiles: 0` and fell back to groups. It now declares seven tiles in the order a student meets the work: **Governance** (the Balanced Scorecard, the Strategy Map, the KPI Tree and the OKRs - the Scorecard first, because the other three hang off it), **Delivery documents** (the charter, the work breakdown structure and the risk register), **People and governance roles** (the RACI, the stakeholder plan and the lessons learned), then **Appraise the business case**, **Compare the options**, **Project cost and benefit** and **Schedule and control** - the last four keeping the group names the shelf already used, so no calculator moved. All ten worksheets and all eighteen calculators land in exactly one tile, and nothing is orphaned. The six held records - Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE - stay catalogued and off the page: the owner's hold now covers the leftover section too, which is the one place a held record could have reappeared. The shelf copy says the measured truth: ten completing worksheets and six read-only records, and the product invents no durations, probabilities, weights or owners. **No number, check, citation rule or gate moved.** Every figure, every check and the frozen contract are untouched; no method, preset or core file was edited. Tests: 7 new rows (E-pm-074…080), the shelf suite 80. `qa/check_page_syntax.py` -> page syntax: OK; `scripts/econ_shelf.py --check` -> frozen fixture: in sync.
 
 ## The statements tile, part 3: the tile on the Accounting shelf
@@ -173,7 +214,7 @@ instruction was *"create a group for them"*, and the grouping is not a preferenc
 places a calculator in the tile whose key equals the tool's `group`, so the three tile keys are
 the shelf's own tool groups — **Process and capacity**, **Inventory and planning**, **Quality and
 evidence** — and each tile now holds the worksheets, the calculators and the records of one
-question. A **record map** went in with them (B-204): without it the seven computed records are
+question. A **record map** went in with them (B-206): without it the seven computed records are
 claimed by no tile and the page's leftover heading prints them as *"read and cite — no worksheet
 yet"* cards, which is a calculator described as something to cite. `test_E_ops_010` asserts the
 three keys in page order and that no worksheet, calculator or record is dropped or duplicated.
@@ -245,7 +286,7 @@ of them, the business plan, had a way in. Build **1.73**.
   headings including the projected statements and sensitivity), 14.0 KB (project
   proposal) — and the business plan is unchanged.
 
-- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), three tiles so the page groups its worksheets with the calculators and records that answer the same question (B-204), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
+- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), three tiles so the page groups its worksheets with the calculators and records that answer the same question (B-206), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
 
 - 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
 

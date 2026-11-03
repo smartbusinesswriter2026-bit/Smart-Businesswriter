@@ -381,7 +381,15 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('id="pffetch"', self.html)
         self.assertIn("function fetchPrices", self.html)
         self.assertIn("/api/market/status", self.html)
-        self.assertIn("The free quote limit is reached", self.html)
+
+    def test_the_free_quote_copy_the_owner_removed_stays_removed(self):
+        """Commit `8bd1e9f` deleted the "The free quote limit is reached" line from the page.
+
+        The rail test used to require it here, so a deliberate owner edit turned into a
+        red suite (D-PLAN-06).  The page is the one that is right; this pins the removal so
+        the copy cannot creep back in unseen.
+        """
+        self.assertNotIn("The free quote limit is reached", self.html)
 
     def test_no_reviewer_surface_remains_in_the_served_page(self):
         for gone in ('data-tab="signoff"', "Reviewer name", "Sign-off", "Review status", "pending_named_reviewer"):

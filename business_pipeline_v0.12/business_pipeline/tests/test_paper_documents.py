@@ -122,6 +122,10 @@ class DocumentRouteTest(unittest.TestCase):
                                          "framework": "Five Forces", "byline": []}
         completion.draft_bytes.return_value = b"docx-bytes"
         completion.missing.return_value = []
+        # The route grew a rubric gate after this test was written.  The module is mocked
+        # whole, so an unset `rubric_blockers` is a truthy MagicMock and the route refuses
+        # with 409 before it saves anything.  The gate is tested on purpose below.
+        completion.rubric_blockers.return_value = []
         body = {"completion": {"instruction": "A case.", "template": "template_five_forces",
                                "blocks": [{"key": key, "label": key, "items": [
                                    {"text": "Evidence.", "provenance": "user"}]}
@@ -132,6 +136,26 @@ class DocumentRouteTest(unittest.TestCase):
         self.assertEqual(payload["document"]["title"], "A Paper")
         record, data = paper_store.read(payload["document"]["id"])
         self.assertEqual(data, b"docx-bytes")
+
+    @mock.patch("bp.product.api.framework_completion")
+    def test_a_rubric_criterion_the_paper_does_not_address_stops_the_save(self, completion):
+        """The gate the test above has to get past: a weighed criterion blocks the write."""
+        completion.missing.return_value = []
+        completion.rubric_blockers.return_value = ["the 'implementation' criterion your rubric states"]
+        before = {row["id"] for row in paper_store.listing()["documents"]}
+        body = {"completion": {"instruction": "A case.", "template": "template_five_forces",
+                               "blocks": [{"key": key, "label": key, "items": [
+                                   {"text": "Evidence.", "provenance": "user"}]}
+                                   for key in ("rivalry", "entrants", "substitutes", "buyers", "suppliers")]},
+                "style": "apa", "version": "full"}
+        code, payload = api.handle("POST", "/api/cases/frameworks/report", body)
+        self.assertEqual(code, 409)
+        self.assertIn("implementation", payload["error"])
+        self.assertEqual(payload["missing"], ["the 'implementation' criterion your rubric states"])
+        # The report is composed (so the coverage can be measured), then refused: nothing
+        # new reaches the store.
+        after = {row["id"] for row in paper_store.listing()["documents"]}
+        self.assertEqual(after, before)
 
 
 if __name__ == "__main__":

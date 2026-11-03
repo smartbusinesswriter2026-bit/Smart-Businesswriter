@@ -768,7 +768,7 @@ def _defaults(brief):
     return {"decision": _clean(brief, 500), "geography": geography, "period": period, "style": style}
 
 
-def start(brief, subject="management", framework=None, profile=None, level="shs", mode="strict",
+def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
           words=None, rubric=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
 
@@ -818,10 +818,14 @@ def start(brief, subject="management", framework=None, profile=None, level="shs"
     if not open_mode:
         # The computation boundary runs first: it can name the shelf the brief belongs
         # to ("use the Accounting shelf"), which is more useful than the vocabulary's
-        # generic refusal for the same brief.
-        fits, message = guard.computation_boundary(brief, subject or "management")
+        # generic refusal for the same brief.  The shelf checked is the one the student
+        # named — nothing is invented here.  Defaulting an unnamed brief to
+        # "management" and then refusing it for not being a management brief turned an
+        # ordinary coffee-shop brief into `not_supported` (D-PLAN-03); an unnamed shelf
+        # is not refused, a named one still is, with the shelf to use instead.
+        fits, message = guard.computation_boundary(brief, subject or "")
         if fits:
-            fits, message = guard.subject_fit(brief, subject or "management")
+            fits, message = guard.subject_fit(brief, subject or "")
         if not fits and framework in ("breakeven", "vrio"):
             # A break-even paper and a resource audit are not management briefs; the
             # framework is explicit, so the subject guard would refuse a legitimate paper.

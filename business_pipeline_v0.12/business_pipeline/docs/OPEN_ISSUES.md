@@ -22,7 +22,9 @@
 - MKT-07 (SERVQUAL) is deliberately hidden by B-198 until its block form is repaired.
 - Not a defect in the engine: every one of them completes through the conductor. It needs a
   curriculum decision about which shelf owns each worksheet, then one line per shelf list.
-- Ledgered as D-PLAN-02 in `qa/QA_DEFECTS.md`.
+- Ledgered as D-PLAN-02 in `qa/QA_DEFECTS.md`, and pinned by
+  `tests/test_worksheet_reachability.py`: the test holds the measured set, so wiring one
+  of them fails until the list is updated and a *new* unserved worksheet fails at once.
 
 ## Full-suite failures (58)
 - Project worksheets: `template_raci` was in both CANVAS_BLOCKS and MATRIX_META (fixed by removal from CANVAS). `template_customer_journey` was the same defect and is now fixed — it is a grid and is declared only as one (D-MKT-04, B-198). `template_servqual` is **still** declared in both; its marketing tile is hidden until its form is repaired (D-MKT-07), so the page offers five worksheets and the framework still completes through the conductor.
