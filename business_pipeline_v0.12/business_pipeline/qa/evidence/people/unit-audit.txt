@@ -1,0 +1,98 @@
+tool | method | metric | unit | precision | displayed | value
+--- | --- | --- | --- | --- | --- | ---
+alpha | reliability_alpha | alpha | ratio | 4 | 0.8874 | 0.887424492037342119714442
+alpha | reliability_alpha | k_items | count | 0 | 4 | 4
+alpha | reliability_alpha | n | count | 0 | 8 | 8
+alpha | reliability_alpha | n_excluded | count | 0 | 0 | 0
+alpha | reliability_alpha | sum_item_variance | ratio | 4 | 3.6250 | 3.625000000000000000000000
+alpha | reliability_alpha | total_variance | ratio | 4 | 10.8393 | 10.83928571428571428571428
+weighted | weighted_summary | n | count | 0 | 4 | 4
+weighted | weighted_summary | n_missing | count | 0 | 0 | 0
+weighted | weighted_summary | sum_weights | ratio | 4 | 6.0000 | 6.0
+weighted | weighted_summary | weighted_mean | @unit | 2 | 3.00 | 3
+weighted | weighted_summary | weighted_sd | @unit | 2 | 1.41 | 1.414213562373095048801688
+weighted | weighted_summary | n_eff | ratio | 4 | 3.0000 | 3.0
+weighted | weighted_summary | design_effect | ratio | 4 | 1.3333 | 1.3333333333333333
+descriptive | descriptive_stats | n | count | 0 | 6 | 6
+descriptive | descriptive_stats | n_missing | count | 0 | 1 | 1
+descriptive | descriptive_stats | mean | @unit | 2 | 78.83 | 78.83333333333333333333333
+descriptive | descriptive_stats | median | @unit | 2 | 79.00 | 79
+descriptive | descriptive_stats | minimum | @unit | 2 | 68.00 | 68
+descriptive | descriptive_stats | maximum | @unit | 2 | 90.00 | 90
+descriptive | descriptive_stats | variance | @unit | 2 | 66.97 | 66.96666666666666666666666
+descriptive | descriptive_stats | sd | @unit | 2 | 8.18 | 8.183316361150084894514818
+chi_square | chi_square | chi_squared | ratio | 3 | 56.000 | 56.00000000000000000000000
+chi_square | chi_square | df | count | 0 | 4 | 4
+chi_square | chi_square | p_value | probability | 4 | 0.0000 | 2.00517603101266E-11
+chi_square | chi_square | cramers_v | ratio | 3 | 0.306 | 0.305505046330389333772536
+chi_square | chi_square | n_total | count | 0 | 300 | 300
+chi_square | chi_square | n_cells | count | 0 | 9 | 9
+chi_square | chi_square | min_expected_count | count | 0 | 25 | 25
+chi_square | chi_square | alpha | rate | 2 | 5.00% | 0.05
+power | power_analysis | power | probability | 4 | 0.4757 | 0.47570563669489524
+power | power_analysis | mde | @unit | 2 | 7.38 | 7.376916665618976
+power | power_analysis | se | @unit | 2 | 2.63 | 2.6331223544175333
+power | power_analysis | ncp | ratio | 3 | 1.899 | 1.8988863132818747
+power | power_analysis | z_alpha | ratio | 3 | 1.960 | 1.9599639845400536
+power | power_analysis | alpha | probability | 4 | 0.0500 | 0.05
+power | power_analysis | target_power | probability | 4 | 0.8000 | 0.8
+power | power_analysis | n1 | count | 0 | 30 | 30
+power | power_analysis | n2 | count | 0 | 40 | 40
+pearson | pearson | r | correlation | 3 | 0.943 | 0.942670979241214136770056
+pearson | pearson | r_squared | ratio | 3 | 0.889 | 0.888628575103589573973521
+pearson | pearson | ci_lower | ratio | 3 | 0.709 | 0.7089071470763322
+pearson | pearson | ci_upper | ratio | 3 | 0.990 | 0.9898269128179266
+pearson | pearson | p_value | probability | 4 | 0.0005 | 0.0004510250370052371
+pearson | pearson | n_pairs | count | 0 | 8 | 8
+pearson | pearson | n_excluded | count | 0 | 0 | 0
+pearson | pearson | confidence_level | rate | 2 | 95.00% | 0.95
+pearson | pearson | alpha | rate | 2 | 5.00% | 0.05
+ols | ols | r_squared | ratio | 3 | 0.933 | 0.932507590057595323439438
+ols | ols | adj_r_squared | ratio | 3 | 0.913 | 0.913224044359765415850706
+ols | ols | f_squared | ratio | 3 | 13.816 | 13.81648085841593161771392
+ols | ols | f_stat | ratio | 3 | 48.358 | 48.35768300445576066199872
+ols | ols | p_f | probability | 4 | 0.0001 | 0.00007987157988429207
+ols | ols | residual_se | coefficient | 3 | 2.646 | 2.645919739069412504028397
+ols | ols | n | count | 0 | 10 | 10
+ols | ols | n_excluded | count | 0 | 0 | 0
+ols | ols | k | count | 0 | 2 | 2
+ols | ols | df_residual | count | 0 | 7 | 7
+ols | ols | confidence_level | rate | 2 | 95.00% | 0.95
+ols | ols | alpha | rate | 2 | 5.00% | 0.05
+ols | ols | coef_intercept | coefficient | 3 | 63.076 | 63.07575757575757575757575
+ols | ols | se_intercept | coefficient | 3 | 6.290 | 6.290122658711224722248876
+ols | ols | p_intercept | probability | 4 | 0.0000 | 0.00002100689337480653
+ols | ols | ci_lower_intercept | coefficient | 3 | 48.202 | 48.20198099147572701319119
+ols | ols | ci_upper_intercept | coefficient | 3 | 77.950 | 77.94953416003942450196032
+ols | ols | coef_study_hours | coefficient | 3 | 4.037 | 4.036541889483065953654188
+ols | ols | se_study_hours | coefficient | 3 | 0.410 | 0.410451757736287898980009
+ols | ols | p_study_hours | probability | 4 | 0.0000 | 0.000023881505038231535
+ols | ols | ci_lower_study_hours | coefficient | 3 | 3.066 | 3.065977709030953079798513
+ols | ols | ci_upper_study_hours | coefficient | 3 | 5.007 | 5.007106069935178827509863
+ols | ols | std_beta_study_hours | ratio | 3 | 0.998 | 0.998165903014849981780073
+ols | ols | coef_sleep_hours | coefficient | 3 | -2.380 | -2.37967914438502673796791
+ols | ols | se_sleep_hours | coefficient | 3 | 0.961 | 0.960972800390961064146069
+ols | ols | p_sleep_hours | probability | 4 | 0.0424 | 0.04243804707298909
+ols | ols | ci_lower_sleep_hours | coefficient | 3 | -4.652 | -4.65201873331052581292423
+ols | ols | ci_upper_sleep_hours | coefficient | 3 | -0.107 | -0.10733955545952766301159
+ols | ols | std_beta_sleep_hours | ratio | 3 | -0.251 | -0.25134062778599493292749
+trainingroi | return_on_investment | total_investment | currency | 2 | PHP 500,000.00 | 500000
+trainingroi | return_on_investment | net_gain | currency | 2 | PHP 125,000.00 | 125000
+trainingroi | return_on_investment | roi | rate | 4 | 25.00% | 0.25
+trainingroi | return_on_investment | years | count | 0 | 3 | 3
+trainingroi | return_on_investment | annualised_roi | rate | 4 | 7.72% | 0.077217345015941860879646
+labourtightness | labour_market | nominal_wage | currency | 2 | PHP 100.00 | 100
+labourtightness | labour_market | cpi | ratio | 4 | 105.0000 | 105
+labourtightness | labour_market | labour_productivity | ratio | 4 | 120.0000 | 120
+labourtightness | labour_market | real_wage | currency | 2 | PHP 95.24 | 95.23809523809523809523809
+labourtightness | labour_market | wage_share_of_productivity | ratio | 4 | 0.7937 | 0.793650793650793650793650
+labourtightness | labour_market | vacancies | count | 2 | 10 | 10
+labourtightness | labour_market | unemployment_rate | rate | 4 | 5.00% | 0.05
+labourtightness | labour_market | labour_market_tightness | ratio | 4 | 200.0000 | 2E+2
+programmecost | cost_effectiveness | comparator_cost | @unit | 2 | USD 10,000.00 | 10000
+programmecost | cost_effectiveness | comparator_effect | @unit | 2 | USD 40.00 | 40
+programmecost | cost_effectiveness | n_options | count | 0 | 2 | 2
+programmecost | cost_effectiveness | icer_intensive | currency | 2 | USD 400.00 | 400
+programmecost | cost_effectiveness | delta_cost_intensive | currency | 2 | USD 8,000.00 | 8000
+programmecost | cost_effectiveness | delta_effect_intensive | @unit | 3 | USD 20.000 | 20
+programmecost | cost_effectiveness | dominant_intensive | count | 0 | 0 | 0

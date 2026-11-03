@@ -1,0 +1,9 @@
+# The same preset on this shelf and on the shelf that also declares it
+
+chi_square     8d3f24fe1aad262435866400aba22cea47eec11fdf164f6777e83325996841bd  identical=True
+descriptive    49e24e13119068c7cbb2dfd715170d79fdf307f1b4231d40476796c4265082bc  identical=True
+power          8a873dec59aa98fc8a2e99a4b3ad74621e768adc39277f80061204daff72aed8  identical=True
+pearson        a5b0650071b0328e0b486e8ea3964bd61cb64501c15b9f31d898c34e7605e68f  identical=True
+ols            58c6862af9fcc47f1d862f4620adb53b988156deff54533ee32ab273c19a022d  identical=True
+
+Management & strategy declares these tools: ['case_decision']

@@ -1,0 +1,51 @@
+Kotter Eight-Step Change Review: The Campus Meal Card Is Moving to a Contactless System and the Manager Has to Plan the Change
+November 03, 2026
+
+Kotter Eight-Step Change Review: The Campus Meal Card Is Moving to a Contactless System and the Manager Has to Plan the Change
+Introduction
+The decision under examination is whether to proceed with the course of action set out in the brief. The unit of analysis is the change rather than the firm, because a change programme is a sequence whose steps depend on each other rather than a set of independent initiatives. The evidence base is confined to the items accepted for the case.
+The analysis treats each of the 8 steps in turn: create urgency, form a powerful coalition, create a vision for change, communicate the vision, empower others to act, plan for and create short-term wins, consolidate gains and produce more change, institutionalize new approaches. Each is established from the accepted evidence and then interpreted, with attention to its effect on the decision.
+The argument advanced is that the steps supported by evidence constrain the decision, and that a step for which no evidence is recorded cannot be treated as favourable. The conclusion returns to this proposition.
+The Change and the Decision
+The case concerns the following decision: The campus meal card is moving to a contactless system and the manager has to plan the change. The relevant change is the one named in the brief; the steps belong to that programme rather than to the organisation's change activity in general.
+Evidence is limited to the accepted items. A step without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
+Kotter Eight-Step Change Model
+A change review reads a programme against the steps of a change sequence: making the case urgent, forming a coalition, setting a vision, communicating it, removing the barriers, producing an early result, consolidating that result and anchoring the change in the way the organisation works. Each step is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision the review must serve.
+Create Urgency
+No source was found for this part; it is written from general background and is not cited.
+Urgency is the case for change: why it cannot wait, and what happens if it does. Change programmes fail here more often than at any later stage, because a change that is urgent for one part of the organisation is not urgent for the parts it will disturb. The relevant question is whether the case for change is made in terms the people who must act on it already accept as real.
+Form a Powerful Coalition
+Evidence on the stages of team development and what a manager can observe at each one. A second sentence follows it. (Lovelace, 2024)
+The coalition is the group that must lead the change, and the reason it is that group rather than another. A change carried by one leader is a change that stops when the leader does, and a change carried by a group that does not include those who lose from it is a change that will be lost to them. The relevant question is whether the coalition includes the authority to decide and the people whose agreement the change depends on.
+Create a Vision for Change
+No source was found for this part; it is written from general background and is not cited.
+The vision is where the organisation is aiming once the change is made, stated so that people can tell whether it has been reached. A vision that lists programmes is not a vision because it cannot be judged; the test is whether the work of the organisation can be said to have moved towards it. The relevant question is whether the stated aim is one that the people doing the work can recognise in their own work.
+Communicate the Vision
+No source was found for this part; it is written from general background and is not cited.
+Communicating the vision is how the aim reaches people: what is said, through which channels, and how often the message can be expected to have been heard. Communication is usually measured by what was sent rather than by what was understood, and the two diverge most sharply in a change that alters what people are asked to do. The relevant question is whether the people affected have been told in terms they can apply to their own work.
+Empower Others to Act
+No source was found for this part; it is written from general background and is not cited.
+Empowering others to act means removing what stops people acting: an approval that will not be given, a rule that has not been changed, a decision that is still reserved to a senior manager. Obstacles that stay in place make the change nominal, and the organisation discovers this when the change has been announced and nothing has moved. The relevant question is whether the barriers have been identified and who is able to remove them.
+Plan for and Create Short-Term Wins
+No source was found for this part; it is written from general background and is not cited.
+Short-term wins are the early results that show the change is working. They do more than demonstrate progress: they buy the credibility that the later, harder stages of a change depend on, and they build the support that carries it through the period when the visible excitement has gone. The relevant question is whether the early results are real and visible, rather than announced.
+Consolidate Gains and Produce More Change
+No source was found for this part; it is written from general background and is not cited.
+Consolidating gains means using the early wins to go further, because a change that stops at the first success settles for what was easy. Consolidation is where the momentum built in the early stages is converted into the next, harder stage of the programme. The relevant question is whether the organisation has a second and third wave of change planned, or whether the early win has become the finish line.
+Institutionalize New Approaches
+No source was found for this part; it is written from general background and is not cited.
+Institutionalizing means anchoring the new way of working in how the organisation operates day to day: the routines, the budgets, the measures and the standards that will keep it in place after the programme ends. A change that rests on the attention of a programme team is dependent on that team's existence. The relevant question is whether the change has been written into the way the organisation works, or whether it still depends on the people who introduced it.
+Discussion
+What the Evidence Shows
+The case supplies 8 accepted items across the steps: 1 sourced items, 0 items of the student's own evidence and 7 case assumptions. The steps carrying evidence are Create urgency (1), Form a powerful coalition (1), Create a vision for change (1), Communicate the vision (1), Empower others to act (1), Plan for and create short-term wins (1), Consolidate gains and produce more change (1), Institutionalize new approaches (1), while 0 step(s) are recorded as gaps.
+Read together, the steps show where the programme stands rather than a programme that must be followed, and a change may be stalled at a step without having failed at it. A step without evidence carries no weight in the assessment, because a gap is not a finding and cannot be read as either a strength or a weakness.
+Implications for the Decision
+The combined reading bears on the decision: the documented conditions must be answered by the proposed position, and the plan must show how each would be met. A step that appears weak in the evidence is not thereby one that can be disregarded; it is a step the case has not documented.
+A decision about the change has to match the step the programme has reached: the support a programme needs at one step is not the support it needs at another. The decision itself remains the student's.
+Limitations
+The analysis does not rate the steps, compute an aggregate score or recommend a decision, because the accepted items do not support a quantitative comparison across them. Several steps may rest on a single item, which limits the weight they can bear; an assumption is not a source and a gap is not a finding. The student must verify every item before submission.
+Conclusion
+The analysis set out to establish, step by step, what the accepted evidence implies for the decision. The steps with evidence are Create urgency (1), Form a powerful coalition (1), Create a vision for change (1), Communicate the vision (1), Empower others to act (1), Plan for and create short-term wins (1), Consolidate gains and produce more change (1), Institutionalize new approaches (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
+The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
+References
+Lovelace, A. (2024). Team development and the stages of group life: moving the campus meal card to a contact. Journal of Organisational Behaviour. 10.1/people-evidence

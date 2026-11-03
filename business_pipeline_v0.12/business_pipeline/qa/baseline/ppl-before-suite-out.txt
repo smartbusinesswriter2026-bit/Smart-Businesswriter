@@ -1,0 +1,16 @@
+
+tool           method                      checks  words
+breakeven      breakeven                        5    182
+multibreakeven multi_product_breakeven          5    227
+unitecon       unit_economics                   5    211
+forecast       trend_forecast                   5    523
+inventory      inventory_policy                 5    314
+queue          queue_analysis                   6    253
+capacity       capacity_analysis                5    249
+linebalance    line_balancing                   5    282
+oee            oee_analysis                     5    222
+spc            process_control                  5    338
+chi_square     chi_square                       6    385
+power          power_analysis                   5    280
+missing        missing_data_bounds              5    271
+descriptive    descriptive_stats                6    218
