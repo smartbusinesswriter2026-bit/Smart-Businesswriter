@@ -699,4 +699,5 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - Ratios cover the core's 15 plus DuPont 3-step and 5-step. Market, cash-flow, quality/forensic and
   growth ratios are named with the input they need, never estimated.
 - The export is plain text: a DOCX wrapper is not wired yet. Single entity only; no comparative period,
-  segment or multi-currency analysis.
+  segment or multi-currency analysis. A second set of balances, a second period, a comparative column or
+  a consolidation mention is **refused by name with the reason** (B-212), not merged and not crashed on.

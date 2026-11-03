@@ -16,7 +16,7 @@ Companion documents: [`HOME.md`](HOME.md) (map of everything), [`WORKLOG.md`](WO
 8. **No runtime third-party imports.** Runtime is the Python standard library only. `scipy`/`numpy` are used *offline* to generate golden fixtures and are never imported by `src/`.
 9. **The supplied sources are read-only.** Anything under `docs/sources/` is authority material. Do not edit it; record your amendment in `DECISIONS.md`.
 10. **Every change is traceable.** One increment = one commit = one CHANGELOG entry = one WORKLOG entry = (if it decides something) one B-xxx decision.
-11. **The product is global.** It never names a home exchange or a home country. No PSE/PSEi name, no Philippine place name, no Philippine-specific example, currency or market claim; examples use neutral places and USD. Introduce no new country-specific default (B-177). The ISO 3166 country list used for geography detection and the ISO 4217 currency table are universal reference data, not a home-market reference: keep both complete.
+11. **The product is global.** It never names a home exchange or a home country. No PSE/PSEi name, no Philippine place name, no Philippine-specific example, currency or market claim; examples use neutral places and USD. Introduce no new country-specific default (B-177). The ISO 3418 country list used for geography detection and the ISO 4217 currency table are universal reference data, not a home-market reference: keep both complete.
 
 ## 1A. Model ownership: computation vs design (owner directive, B-066)
 

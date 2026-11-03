@@ -345,8 +345,12 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('class="rt-label"', self.html)
         self.assertNotIn(">Collapse<", self.html)
         self.assertIn('id="buildpill"', self.html)
-        self.assertRegex(self.html, r'id="buildpill"[^>]*>v\d+\.\d+<',
-                         "the build pill must carry the served version")
+        # The pill is painted at run time from the build the server reports (D-PM-07): a literal in the
+        # markup read "v1.45" while the tree was 1.76, and a number that is always wrong still looks
+        # current.  test_docs_sync pins bp.build.VERSION to the newest changelog entry, so the number is
+        # still held; what must not disappear is the wiring that paints it.
+        self.assertIn('"v" + build', self.html,
+                      "the build pill must be painted from the build the server reports")
         self.assertIn("levelhead", self.html)
         self.assertIn("studynote", self.html)
         self.assertIn("capcard .lvl", self.html)

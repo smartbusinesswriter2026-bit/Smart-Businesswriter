@@ -124,3 +124,5 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
   statements (B-032 stays open).
 - **Not a gap:** a ratio the registry cannot support is printed with the input it needs, and a label the
   vocabulary does not know is shown rather than dropped.
+- **Refused rather than merged (B-212):** two sets of balances, more than one period, a comparative
+  column or a consolidation mention. Each refusal names the cause and what to do instead.

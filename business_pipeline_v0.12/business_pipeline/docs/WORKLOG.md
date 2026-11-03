@@ -262,7 +262,41 @@ empty: add the perspectives and the fields for each perspective first."*
 entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
 
 
-## 2026-11-03 — [product] Statements tile: closed, green at 3409 on the integrated tree
+## 2026-11-03 — [product] Statements tile: one entity, one period, one set of books (B-212)
+
+**Ask.** The owner's risk, raised at close: *"if two entities' balances are pasted together, the tile
+treats them as one entity — nothing prints 'this is not a consolidated statement'."* Explore and fix.
+
+**Probed first, and the finding was not the risk as stated.** Two balanced entities do not merge
+silently — they **crash**, and so does a *legitimate* trial balance with two cash-type accounts
+(`Cash 5,000 / Bank 1,000 / Capital 6,000` → unhandled `CheckError` → 500), because `tb_rows` named
+every row by its statement line, so both accounts became "Cash". The cases that did not crash were
+caught by accident and explained with the wrong message.
+
+**Fixed.**
+
+1. `tb_rows` names each row by its own label and code, and the chart's account identity includes the
+   label: two accounts may share a statement line; only a repeated account is a duplicate.
+2. The diagnosis call is contained; a core refusal becomes a named refusal, and the route has a
+   last-resort guard (a bug is a clean 500, never a stack trace).
+3. A preflight refuses, before the chart is built and before any model is asked: a repeated account
+   (two sets of balances — the case that *balances*), more than one period, two figures on one line,
+   or a consolidation mention. A year inside a label is not mistaken for a comparative.
+
+**The eight-case matrix, measured:** cash+bank solves (assets 6,000); two entities refused ("appears
+twice … one set at a time"); two columns refused (comparative); two periods refused (2025-12-31,
+2026-12-31); consolidated refused; `Loan 2026 5,000` solves (no false comparative); a normal trial
+balance solves; garbage refused with the classification reason.
+
+**Verified.** `test_product_statements` 22 OK (6 new), `test_product_statements_api` 11 OK (1 new:
+eight malformed shapes, all 4xx, none 5xx), `test_product_subjects` + `test_docs_sync` 62 OK — after
+repairing that suite's stale build-pill assertion, which the other lane's D-PM-07 change obsoleted
+(the pill is painted from `bp.build.VERSION`; the test now requires the wiring, and the version stays
+pinned by `test_docs_sync`).
+
+**Also noted.** B-206 was taken by the other lane's bundle work while I wrote this, so the decision row
+is **B-212**; the fix commit's message says B-206 and this records the correction.
+
 
 **Closed.** The statements tile is done end to end: the ratio bridge (B-203), the tile backend and its
 four routes (B-204), and the tile on the Accounting shelf (B-205). Two later commits repaired what the

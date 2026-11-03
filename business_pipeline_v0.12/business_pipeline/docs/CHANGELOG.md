@@ -220,7 +220,38 @@ code no longer did, and one was a test that passed alone and failed in the suite
 
 - 1.75 (2026-11-03): **The Project management worksheet forms are professional to fill in, and the shelf meets them in order.** Owner instruction: *"DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* Design lane B-080. **The four grids learn their own labels.** A grid's right-hand label was the internal plumbing: the Balanced Scorecard read "Measure field", the Strategy Map "Map field", the KPI tree "Tree field" and OKRs "OKR field". Each grid now declares a `form_copy` object beside its own geometry in `MATRIX_META` - the row label, the column label, the hint under the column label and the sentence that explains what belongs in the grid - and the server publishes it on the template payload. The page reads it; it does not branch on a template id. The three older branches in `matrixForm` stay as the floor for a grid that declares no copy. **A grid now opens its grid form.** This is the defect this session found and fixed: every Project management worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before* `t.form_kind`, so the four grids opened the evidence form - which collects `{blocks, links}`, a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A student typed a grid and the run was refused. The declared form now decides: a grid opens the grid form, and the grid's shape is what is collected. **The four states are designed, not accidental.** *Empty*: the grid says what belongs in a cell and that an unfilled cell is named in the audit. *Loading*: the panel says it is opening the worksheet instead of showing a blank card. *Error*: a template the server would not serve is named. *Refusal*: the audit's own reason, in a sentence, beside the form - never a raw dump and never a template token. **The grid reads at 390 px.** A four-column grid with four to twelve rows is wide, so on a narrow screen it collapses into one card per row, each field stacked under its own label; on a wide screen it is a table inside its own scrolling box. Every cell carries a label naming its row and its column. The page no longer scrolls sideways at 390 px: the capability tile and the top bar both used to push it, and both now shrink. **The shelf has tiles.** The Project management page measured `tiles: 0` and fell back to groups. It now declares seven tiles in the order a student meets the work: **Governance** (the Balanced Scorecard, the Strategy Map, the KPI Tree and the OKRs - the Scorecard first, because the other three hang off it), **Delivery documents** (the charter, the work breakdown structure and the risk register), **People and governance roles** (the RACI, the stakeholder plan and the lessons learned), then **Appraise the business case**, **Compare the options**, **Project cost and benefit** and **Schedule and control** - the last four keeping the group names the shelf already used, so no calculator moved. All ten worksheets and all eighteen calculators land in exactly one tile, and nothing is orphaned. The six held records - Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE - stay catalogued and off the page: the owner's hold now covers the leftover section too, which is the one place a held record could have reappeared. The shelf copy says the measured truth: ten completing worksheets and six read-only records, and the product invents no durations, probabilities, weights or owners. **No number, check, citation rule or gate moved.** Every figure, every check and the frozen contract are untouched; no method, preset or core file was edited. Tests: 7 new rows (E-pm-074…080), the shelf suite 80. `qa/check_page_syntax.py` -> page syntax: OK; `scripts/econ_shelf.py --check` -> frozen fixture: in sync.
 
-## The statements tile: closed
+## The statements tile: one entity, one period, and no crash on a legitimate trial balance (B-212)
+
+The risk that was left open at close: two entities pasted together could be added into one statement
+that looks right. Probing it found **worse** than a silent merge, and the diagnosis was not the one I
+had written down.
+
+- **A legitimate trial balance crashed.** `Cash 5,000 / Bank 1,000 / Capital 6,000` raised an
+  unhandled `CheckError` — a 500 — because every row was named by its *statement line*, so both
+  accounts became "Cash" and the core refused the duplicate it was shown.
+- **Two entities crashed** from the same root cause, and the merged cases that did not crash were
+  caught by accident and explained with the wrong message ("I could not find an account").
+
+Three changes:
+
+1. **Rows carry their own identity.** `tb_rows` names each row by its label and code; the chart's
+   account identity includes the label. Two accounts may share a statement line (the ledger supports
+   it, and a trial balance expects it); only a repeated account is a duplicate.
+2. **Refusals are contained.** A core refusal becomes a named refusal, and the route has a
+   last-resort guard so a bug is a clean 500 and never a stack trace.
+3. **A preflight names what this tile will not do**, before the chart is built and before any model is
+   asked: two sets of balances (a repeated account — the case that *balances*, so no invariant can
+   catch it), two periods, two figures on one line, or a consolidation mention. Each refusal says what
+   to do instead. A year inside a label is not mistaken for a comparative.
+
+Verified: `test_product_statements` **22 OK** (6 new), `test_product_statements_api` **11 OK** (1 new:
+eight malformed shapes all answer 4xx, none 5xx), `test_product_subjects` + `test_docs_sync` 62 OK.
+
+Also repaired here, because the suite must be green to close: `test_product_subjects` asserted a
+literal `v1.74` in the build pill, which the other lane's D-PM-07 change replaced with a pill painted
+from `bp.build.VERSION`. The assertion now requires the *wiring* that paints it, and the version
+itself stays pinned by `test_docs_sync`.
+
 
 The tile ships whole and the shelf is green on the integrated tree: `discover -s tests` → **Ran 3409
 tests, OK**, `econ_shelf --check` → **frozen fixture: in sync**, `docs_sync` OK. Proved live through
