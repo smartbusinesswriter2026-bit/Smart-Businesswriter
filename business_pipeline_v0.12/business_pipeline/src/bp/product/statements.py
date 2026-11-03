@@ -128,8 +128,12 @@ RULES = (
     (r"^(accrued expenses?|accruals?|accrued\b.*)$", "liability", "current", "Accruals", "", "operating", False),
     (r"\bowner'?s?\b", "equity", "", "Capital", "capital", "financing", False),
     (r"^(capital|share capital|equity|owner'?s? capital)$", "equity", "", "Capital", "capital", "financing", False),
-    (r"^(retained earnings?|accumulated (profit|earnings)|revenue reserve)$", "equity", "", "Retained earnings", "retained_earnings", "", False),
-    (r"^(drawings?|dividends?)$", "equity", "", "Dividends", "dividends", "financing", False),
+    (r"^(retained earnings?|accumulated (profit|earnings)|revenue reserve)(\s*\(.*\))?$", "equity", "", "Retained earnings", "retained_earnings", "", False),
+(r"^(supplies|prepaid supplies|supplies on hand)$", "asset", "current", "Supplies", "", "operating", False),
+(r"^(unearned revenue|deferred revenue|unearned income)(\s*\(.*\))?$", "liability", "current", "Accruals", "", "operating", False),
+(r"^(notes payable|notes payable.*|long.term (debt|notes? payable)|long.term debt)(\s*\(.*\))?$", "liability", "non_current", "Borrowings", "", "financing", False),
+(r"^(common stock|share capital|capital stock)(\s*\(.*\))?$", "equity", "", "Capital", "capital", "financing", False),
+    (r"^(drawings?|dividends?)$", "equity", "", "Dividends", "dividends", "financing", True),
     (r"^(sales|revenue|turnover|fees earned|service revenue)$", "income", "", "Revenue", "", "operating", False),
     (r"\bincom(e|es)\b|\bgains?\b", "income", "", "Other income", "", "operating", False),
     (r"^(purchases?|cost of (sales|goods sold)|cogs)$", "expense", "", "Cost of sales", "", "operating", False),
@@ -142,9 +146,9 @@ RULES = (
 #: Internal chart codes.  The statements print the `line`, never the code, so these are
 #: house-keeping rather than a numbering convention the student has to match.
 CODE_FOR_LINE = {"Cash": "1000", "Trade receivables": "1100", "Inventory": "1200", "Prepayments": "1300",
-                 "Property, plant and equipment": "1500", "Trade payables": "2000", "Accruals": "2100",
-                 "Borrowings": "2200", "Capital": "3000", "Retained earnings": "3100", "Dividends": "3200",
-                 "Revenue": "4000", "Other income": "4100", "Cost of sales": "5000",
+                 "Supplies": "1350", "Property, plant and equipment": "1500", "Trade payables": "2000",
+                 "Accruals": "2100", "Borrowings": "2200", "Capital": "3000", "Retained earnings": "3100",
+                 "Dividends": "3200", "Revenue": "4000", "Other income": "4100", "Cost of sales": "5000",
                  "Operating expenses": "5100", "Finance costs": "5200", "Other expenses": "5300"}
 
 MONTHS = {m: i + 1 for i, m in enumerate(("january february march april may june july august september "
@@ -192,6 +196,14 @@ def period_of(text):
         return {"start": year + "-01-01", "end": iso.group(0)}, "derived", _sentence(text, iso.start())
     named = re.search(r"\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|"
                       r"october|november|december)\.?\s+(\d{4})\b", text, re.I)
+    if not named:
+        named = re.search(r"\b(january|february|march|april|may|june|july|august|september|"
+                          r"october|november|december)\.?\s+(\d{1,2}),?\s+(\d{4})\b", text, re.I)
+        if named:
+            month, day, year = named.group(1), int(named.group(2)), named.group(3)
+            month = MONTHS[month.lower()]
+            end = "%s-%02d-%02d" % (year, month, day)
+            return {"start": year + "-01-01", "end": end}, "derived", _sentence(text, named.start())
     if named:
         day, month, year = int(named.group(1)), MONTHS[named.group(2).lower()], named.group(3)
         end = "%s-%02d-%02d" % (year, month, day)
@@ -253,7 +265,12 @@ def parse_rows(text):
         last = found[-1]
         amount = last.group(0)
         label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", line[:last.start()]), flags=re.I)
-        label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I).strip(" .,:-|()[]")
+        label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
+        # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
+        label = re.sub(r"[\t$]", " ", label)
+        # strip parenthetical qualifiers (and anything after an opening paren) before matching
+        label = re.sub(r"\s*\(.*", "", label)
+        label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
         placed = place(label)
         if not placed["candidates"]:
             skipped.append(line)
