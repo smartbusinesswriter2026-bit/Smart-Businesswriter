@@ -216,6 +216,16 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
         return res
     # VALIDATE: at least one articulation gate recorded
     res.gates["has_journal"] = bool(journal)
+    # cross-reconciliation guard (G13): cash from TB vs journal
+    try:
+        from . import reconcile2 as r2_guard
+        journal_cash = sum(Decimal(str(l[2])) for l in journal if l[0] == "1000" and l[1] == "Dr") - \
+                       sum(Decimal(str(l[2])) for l in journal if l[0] == "1000" and l[1] == "Cr")
+        d = r2_guard.reconcile_cash_two_ways(tb.get("1000", Decimal(0)), journal_cash)
+        if d is not None:
+            res.diagnostics.append(str(d))
+    except Exception:
+        pass
     # determinism guard (G10)
     try:
         from . import determinism as det_guard
