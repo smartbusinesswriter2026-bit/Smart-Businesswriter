@@ -107,12 +107,13 @@ class MarketingProfileAlignmentTest(unittest.TestCase):
 
     def test_E_mkt_004__every_shelf_worksheet_resolves_to_a_profile(self):
         page = subjects.detail("marketing")
-        # Five, not six: the SERVQUAL gap grid (MKT-07) is hidden from the page until its
-        # form is repaired — it is filed as both a canvas and a grid, so the page gave it
-        # the wrong editor (D-MKT-07, owner decision B-198).  Its template, record and
-        # completion profile are untouched, so the framework still runs through the
-        # conductor; only the tile is gone.
-        self.assertEqual(len(page["worksheets"]), 5)
+        # Twenty: the fifteen worksheets that D-PLAN-02 held dark are wired now, and the
+        # five that were always offered are still first.  The SERVQUAL gap grid (MKT-07)
+        # is the one that stays hidden - its form is repaired (D-MKT-07) but its tile is
+        # still hidden by the owner's B-198, so it is carried as a record.  Its template,
+        # record and completion profile are untouched, so the framework still runs
+        # through the conductor.
+        self.assertEqual(len(page["worksheets"]), 20)
         self.assertNotIn("MKT-07", [sheet["catalogue_id"] for sheet in page["worksheets"]])
         for sheet in page["worksheets"]:
             self.assertIn(sheet["template"], framework_profiles.PROFILES, sheet["catalogue_id"])

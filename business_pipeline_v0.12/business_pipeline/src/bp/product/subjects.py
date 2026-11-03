@@ -2908,16 +2908,108 @@ OPERATIONS_RECORD_GROUPS = {
     "QNT-OPS-05": "Process and capacity",
 }
 
+#: The Marketing shelf's four tiles.  Their keys are the shelf's own tool groups
+#: exactly (`Market size and demand`, `Customer economics and retention`, `Campaigns,
+#: channels and web analytics`, `Funnel, surveys and testing`): `_tiles` places a
+#: calculator in the tile whose key equals the tool's group, so any other vocabulary
+#: would drop all twenty-four calculators out of the page.  A worksheet sits with the
+#: calculators that answer the same question, so a student meets one question and
+#: everything that answers it in the same place.  Until this session the shelf declared
+#: no tiles and fell back to a flat grid of five worksheets and four tool groups.
+MARKETING_TILES = [
+    {"key": "Market size and demand", "label": "Market size and demand",
+     "what": "Whether there is a market and who it is: the size of it (TAM/SAM/SOM), share and "
+             "growth, the demand curve and its elasticity, what buyers say they intend to buy and "
+             "the forecast that follows, and the frameworks that say how the market is segmented, "
+             "targeted and positioned - STP and its evidence check, acceptance of a new product "
+             "(TAM and UTAUT), brand equity, and the plan that pulls them together.",
+     "need": "The market or segment you are sizing, the figures you already hold for it, and the "
+             "customers you are claiming."},
+    {"key": "Customer economics and retention", "label": "Customer economics and retention",
+     "what": "What a customer is worth and whether they come back: unit economics, unit and "
+             "multi-product break-even, cohort retention, the recency-frequency-monetary view of "
+             "the customer base, customer lifetime value and profit by customer.",
+     "need": "The transaction or subscription history you hold, the window you are measuring over, "
+             "and the costs that attach to serving a customer."},
+    {"key": "Campaigns, channels and web analytics", "label": "Campaigns, channels and web analytics",
+     "what": "Where the marketing is spent and what it returns: campaign and media efficiency, "
+             "attribution across touchpoints, channel CAC, LTV and payback, email list health, "
+             "social engagement, web traffic and conversion, and the digital worksheets that plan "
+             "and instrument them - the owned/earned/paid mix, SEO and content, email and lifecycle, "
+             "social and influencer, attribution, the measurement plan and marketing automation.",
+     "need": "The campaign or channel you ran, the spend and results you recorded, and the window "
+             "each figure covers."},
+    {"key": "Funnel, surveys and testing", "label": "Funnel, surveys and testing",
+     "what": "What moves a customer from noticing to buying, and what the evidence says it was: the "
+             "funnel and its stage volumes, A/B test design with power and sample size, the "
+             "two-proportion test, reliability (alpha) and chi-square, and the worksheets that "
+             "record the stages and the instrument - AIDA, the funnel, the customer journey map, "
+             "Kano and conversion-rate optimisation.",
+     "need": "The stages or the test you are running, the counts at each stage or arm, and the "
+             "decisions you are comparing."},
+]
+
+#: Which tile each Marketing worksheet belongs to.  Every worksheet the shelf offers is
+#: here.  MKT-07 is deliberately absent: its form is repaired but its tile is hidden by
+#: B-198, so it is carried as a record rather than offered, and `_tiles` shows it nowhere
+#: instead of in a tile it cannot be opened from.
+MARKETING_WORKSHEET_GROUPS = {
+    "MKT-01": "Market size and demand",                  # STP
+    "MKT-02": "Market size and demand",                  # marketing plan (STP and the mix)
+    "MKT-06": "Market size and demand",                  # Kano
+    "MKT-09": "Market size and demand",                  # TAM
+    "MKT-10": "Market size and demand",                  # UTAUT
+    "MKT-11": "Market size and demand",                  # brand equity
+    "MKT-12": "Market size and demand",                  # STP-to-positioning evidence check
+    "MKT-08": "Customer economics and retention",        # RFM
+    "MKT-13": "Campaigns, channels and web analytics",   # digital marketing mix
+    "MKT-14": "Campaigns, channels and web analytics",   # SEO and content
+    "MKT-15": "Campaigns, channels and web analytics",   # paid media plan
+    "MKT-16": "Campaigns, channels and web analytics",   # email, CRM and lifecycle
+    "MKT-17": "Campaigns, channels and web analytics",   # social media and influencer
+    "MKT-18": "Campaigns, channels and web analytics",   # measurement plan
+    "MKT-19": "Campaigns, channels and web analytics",   # attribution and campaign measurement
+    "MKT-21": "Campaigns, channels and web analytics",   # marketing automation and lead scoring
+    "MKT-03": "Funnel, surveys and testing",             # AIDA
+    "MKT-04": "Funnel, surveys and testing",             # customer journey
+    "MKT-05": "Funnel, surveys and testing",             # funnel
+    "MKT-20": "Funnel, surveys and testing",             # CRO and landing pages
+}
+
+#: Which tile each Marketing read-only record belongs to.  Without this map the fourteen
+#: computed records are claimed by no tile and the page's leftover heading prints them as
+#: "read and cite" cards: a calculator described as something to cite.  A record states
+#: what a method computes, so it sits with the calculators of its own group.  MKT-07 is
+#: absent for the reason given above: it is the one hidden tile (B-198).
+MARKETING_RECORD_GROUPS = {
+    "QNT-MKT-01": "Market size and demand",                 # market sizing
+    "QNT-MKT-02": "Market size and demand",                 # market share and growth
+    "QNT-MKT-05": "Market size and demand",                 # demand forecasting
+    "QNT-MKT-03": "Customer economics and retention",       # cohort retention
+    "QNT-MKT-07": "Customer economics and retention",       # customer profitability
+    "QNT-MKT-08": "Campaigns, channels and web analytics",  # campaign performance
+    "QNT-MKT-09": "Campaigns, channels and web analytics",  # channel CAC, LTV, payback
+    "QNT-MKT-10": "Campaigns, channels and web analytics",  # attribution credit
+    "QNT-MKT-12": "Campaigns, channels and web analytics",  # email list health
+    "QNT-MKT-13": "Campaigns, channels and web analytics",  # social engagement
+    "QNT-MKT-14": "Campaigns, channels and web analytics",  # web analytics
+    "QNT-MKT-15": "Campaigns, channels and web analytics",  # media planning
+    "QNT-MKT-06": "Funnel, surveys and testing",            # A/B design and power
+    "QNT-MKT-11": "Funnel, surveys and testing",            # two-proportion A/B test
+}
+
 SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
                             "management": STRATEGY_WORKSHEET_GROUPS,
                             "project-management": PROJECT_MANAGEMENT_WORKSHEET_GROUPS,
-                            "operations": OPERATIONS_WORKSHEET_GROUPS}
+                            "operations": OPERATIONS_WORKSHEET_GROUPS,
+                            "marketing": MARKETING_WORKSHEET_GROUPS}
 SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS,
-                         "operations": OPERATIONS_RECORD_GROUPS}
+                         "operations": OPERATIONS_RECORD_GROUPS,
+                         "marketing": MARKETING_RECORD_GROUPS}
 SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
                  "management": STRATEGY_TILES, "accounting": ACCOUNTING_TILES,
                  "project-management": PROJECT_MANAGEMENT_TILES,
-                 "operations": OPERATIONS_TILES}
+                 "operations": OPERATIONS_TILES, "marketing": MARKETING_TILES}
 
 #: Plain-language labels for the raw catalogue discipline tags, so the records
 #: table does not show an internal taxonomy name to a student.
@@ -3736,7 +3828,10 @@ SUBJECT_DEFS = [
                   "unitecon", "multibreakeven", "cohort", "rfm", "clv", "custprofit",
                   "campaign", "attribution", "channelecon", "email", "social", "web", "mediaplan",
                   "funnel", "abtest", "alpha", "chi_square", "power"],
-        "worksheets": ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18"],
+        "worksheets": ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18",
+                       "MKT-01", "MKT-03", "MKT-05", "MKT-08", "MKT-09", "MKT-10", "MKT-11",
+                       "MKT-12", "MKT-13", "MKT-14", "MKT-16", "MKT-17", "MKT-19", "MKT-20",
+                       "MKT-21"],
         "catalogue_ids": None,
     },
     {
@@ -4342,6 +4437,32 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'summary': 'Compare organizational structure/configuration patterns',
             'template': 'template_mintzberg',
             'type': 'M'},
+ 'CHG-14': {'disciplines': ['change and organization'],
+            'evidence_needs': 'Role clarity and stakeholder confirmation; usually no calculations required',
+            'form': 'read_only',
+            'id': 'CHG-14',
+            'implementation_status': 'read-only record: no worksheet yet',
+            'linked_methods': [],
+            'name': 'RACI responsibility matrix',
+            'status_note': 'read-only record: no worksheet yet',
+            'status_short': 'No worksheet yet',
+            'summary': 'Responsible, Accountable, Consulted and Informed roles',
+            'template': None,
+            'type': 'F'},
+ 'CHG-15': {'disciplines': ['change and organization'],
+            'evidence_needs': 'Evidence about readiness and resistance from the people affected and from comparable changes; no '
+                              'readiness score is computed',
+            'form': 'worksheet',
+            'id': 'CHG-15',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'linked_methods': [],
+            'name': 'Change and organization review',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
+            'summary': 'The kind of change, the readiness of the organization, the points of resistance and the support the change '
+                       'needs',
+            'template': 'template_change_organization',
+            'type': 'F'},
  'IMP-03': {'disciplines': ['public, nonprofit and impact evaluation'],
             'evidence_needs': 'Baselines, targets, attribution/contribution limits and data quality',
             'form': 'read_only',
@@ -4405,15 +4526,15 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'Q'},
  'MKT-01': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Segment size/profitability, needs and fit, competition, segment-selection criteria',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-01',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Segmentation–Targeting–Positioning (STP)',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Customer segments, target selection, and desired market position',
-            'template': None,
+            'template': 'template_stp',
             'type': 'F'},
  'MKT-02': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Customer, competitor and cost evidence; price and channel economics as appropriate',
@@ -4429,15 +4550,15 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'F'},
  'MKT-03': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Funnel/conversion data if available; avoid assuming all customers move linearly through stages',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-03',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'AIDA',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Attention, Interest, Desire, Action as a simplified communication journey',
-            'template': None,
+            'template': 'template_aida',
             'type': 'M'},
  'MKT-04': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Interviews, observations, service logs, funnel metrics, customer feedback',
@@ -4453,15 +4574,15 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'F'},
  'MKT-05': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Stage definitions, conversion rates, cohort/time windows, leakage analysis',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-05',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Marketing / Sales Funnel',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Conversion through defined stages',
-            'template': None,
+            'template': 'template_funnel',
             'type': 'M'},
  'MKT-06': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Appropriate survey design and customer samples; classifications can vary by segment and time',
@@ -4489,95 +4610,97 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'M'},
  'MKT-08': {'disciplines': ['marketing and customers', 'market and customer analytics'],
             'evidence_needs': 'Transaction data, window definitions, scoring method and checks for biased segments',
-            'form': 'computed',
+            'form': 'worksheet',
             'id': 'MKT-08',
-            'implementation_status': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are '
-                                     "computed from a declared customer list, with each segment's size and the mean scores; "
-                                     'external benchmarks, clustering, segment stability over time and next-period value are not '
-                                     'implemented',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed '
+                                     'method is also registered for this record: quintile recency, frequency and monetary scores '
+                                     'and the eleven named segments are computed from a declared customer list, with each '
+                                     "segment's size and the mean scores; external benchmarks, clustering, segment stability over "
+                                     'time and next-period value are not implemented',
             'linked_methods': [{'coverage': 'partial', 'method_id': 'rfm_scoring'}],
             'name': 'RFM Segmentation',
-            'status_note': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are computed '
-                           "from a declared customer list, with each segment's size and the mean scores; external benchmarks, "
-                           'clustering, segment stability over time and next-period value are not implemented',
-            'status_short': 'Computed',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed method is '
+                           'also registered for this record: quintile recency, frequency and monetary scores and the eleven named '
+                           "segments are computed from a declared customer list, with each segment's size and the mean scores; "
+                           'external benchmarks, clustering, segment stability over time and next-period value are not implemented',
+            'status_short': 'Worksheet',
             'summary': 'Customer groups based on recency, frequency and monetary value',
-            'template': None,
+            'template': 'template_rfm',
             'type': 'Q'},
  'MKT-09': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Validated scales and appropriate study design if used for empirical assessment',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-09',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Technology Acceptance Model (TAM)',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Perceived usefulness/ease of use and related technology-acceptance constructs',
-            'template': None,
+            'template': 'template_tam',
             'type': 'M'},
  'MKT-10': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Validated measurement scales and research design; not a generic checklist for all adoption problems',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-10',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'UTAUT',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Structured constructs associated with technology acceptance and use',
-            'template': None,
+            'template': 'template_utaut',
             'type': 'M'},
  'MKT-11': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Customer research and clearly defined measurement; choose a specified model rather than mixing '
                               'variants',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-11',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Brand Equity Assessment',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Selected dimensions of brand knowledge, associations, perceived quality and loyalty',
-            'template': None,
+            'template': 'template_brand_equity',
             'type': 'M'},
  'MKT-12': {'disciplines': ['marketing and customers'],
             'evidence_needs': 'Research on target segments and competitive alternatives',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-12',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'STP-to-positioning evidence check',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Check that target choice, customer evidence and positioning claim align',
-            'template': None,
+            'template': 'template_stp_evidence',
             'type': 'F'},
  'MKT-13': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Channel inventory, audience and reach evidence, cost data and a declared objective for each channel',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-13',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Digital marketing mix: owned, earned and paid channels',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'The channels you control, the channels others create and the channels you pay for, with the role and '
                        'budget of each',
-            'template': None,
+            'template': 'template_digital_mix',
             'type': 'F'},
  'MKT-14': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Keyword and search-demand evidence, page inventory, content calendar, ranking and traffic data',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-14',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'SEO and content marketing plan',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'The content that answers a search or customer question, the keywords it targets and the page that carries '
                        'it',
-            'template': None,
+            'template': 'template_seo_content',
             'type': 'F'},
  'MKT-15': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Platform cost data, audience definitions, creative variants and a declared conversion definition',
@@ -4593,27 +4716,27 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'type': 'F'},
  'MKT-16': {'disciplines': ['digital marketing'],
             'evidence_needs': 'List and consent records, send/open/click counts, unsubscribe and bounce counts, revenue by journey',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-16',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Email, CRM and lifecycle marketing',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'List growth, segmentation, journey stages and the message sent at each stage',
-            'template': None,
+            'template': 'template_email_crm',
             'type': 'M'},
  'MKT-17': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Reach, engagement and follower data; creator terms, fees and disclosure requirements',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-17',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Social media and influencer marketing',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'Owned posts, community activity and creator partnerships, with the metric each is judged on',
-            'template': None,
+            'template': 'template_social_media',
             'type': 'M'},
  'MKT-18': {'disciplines': ['digital marketing'],
             'evidence_needs': 'A defined event taxonomy, tool access, consent and data-quality checks',
@@ -4630,48 +4753,54 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
  'MKT-19': {'disciplines': ['digital marketing'],
             'evidence_needs': 'UTM discipline, touchpoint logs, conversion definitions, a declared attribution model and, for '
                               'causality, a holdout or experiment',
-            'form': 'computed',
+            'form': 'worksheet',
             'id': 'MKT-19',
-            'implementation_status': 'partial: first-click, last-click and linear shares are compared from declared credit counts, '
-                                     'with the spread per channel; touchpoint logs, time-decay, position-based and data-driven '
-                                     'models, holdouts and incrementality are not implemented',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed '
+                                     'method is also registered for this record: first-click, last-click and linear shares are '
+                                     'compared from declared credit counts, with the spread per channel; touchpoint logs, '
+                                     'time-decay, position-based and data-driven models, holdouts and incrementality are not '
+                                     'implemented',
             'linked_methods': [{'coverage': 'partial', 'method_id': 'attribution_split'}],
             'name': 'Attribution and campaign measurement',
-            'status_note': 'partial: first-click, last-click and linear shares are compared from declared credit counts, with the '
-                           'spread per channel; touchpoint logs, time-decay, position-based and data-driven models, holdouts and '
-                           'incrementality are not implemented',
-            'status_short': 'Computed',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed method is '
+                           'also registered for this record: first-click, last-click and linear shares are compared from declared '
+                           'credit counts, with the spread per channel; touchpoint logs, time-decay, position-based and '
+                           'data-driven models, holdouts and incrementality are not implemented',
+            'status_short': 'Worksheet',
             'summary': 'Which touchpoints receive credit, under which rule, and what the campaign changed',
-            'template': None,
+            'template': 'template_attribution',
             'type': 'Q'},
  'MKT-20': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Baseline conversion counts, traffic split, test duration and a declared minimum detectable effect',
-            'form': 'computed',
+            'form': 'worksheet',
             'id': 'MKT-20',
-            'implementation_status': 'partial: the two-proportion comparison, its interval and the sample each arm needs are '
-                                     'implemented, with a separate sample-size and power method; sequential tests, more than two '
-                                     'arms, qualitative research and a design recommendation are not implemented',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed '
+                                     'method is also registered for this record: the two-proportion comparison, its interval and '
+                                     'the sample each arm needs are implemented, with a separate sample-size and power method; '
+                                     'sequential tests, more than two arms, qualitative research and a design recommendation are '
+                                     'not implemented',
             'linked_methods': [{'coverage': 'partial', 'method_id': 'ab_test_two_proportion'},
                                {'coverage': 'partial', 'method_id': 'power_analysis'}],
             'name': 'Conversion-rate optimisation and landing-page testing',
-            'status_note': 'partial: the two-proportion comparison, its interval and the sample each arm needs are implemented, '
-                           'with a separate sample-size and power method; sequential tests, more than two arms, qualitative '
-                           'research and a design recommendation are not implemented',
-            'status_short': 'Computed',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours. A computed method is '
+                           'also registered for this record: the two-proportion comparison, its interval and the sample each arm '
+                           'needs are implemented, with a separate sample-size and power method; sequential tests, more than two '
+                           'arms, qualitative research and a design recommendation are not implemented',
+            'status_short': 'Worksheet',
             'summary': 'The page or step to change, the hypothesis and the test that decides it',
-            'template': None,
+            'template': 'template_cro',
             'type': 'Q'},
  'MKT-21': {'disciplines': ['digital marketing'],
             'evidence_needs': 'Lead-source and behaviour data, stage definitions (MQL/SQL), sales feedback and score validation',
-            'form': 'read_only',
+            'form': 'worksheet',
             'id': 'MKT-21',
-            'implementation_status': 'read-only record: no worksheet yet',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
             'linked_methods': [],
             'name': 'Marketing automation and lead scoring',
-            'status_note': 'read-only record: no worksheet yet',
-            'status_short': 'No worksheet yet',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
             'summary': 'The rules that move a lead between stages and the score that qualifies it',
-            'template': None,
+            'template': 'template_marketing_automation',
             'type': 'F'},
  'OPS-01': {'disciplines': ['operations and supply chain'],
             'evidence_needs': 'Defined process scope, metrics, data definitions and benchmarks; verify the applicable version and '
@@ -5174,11 +5303,16 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'evidence_needs': '',
                 'form': 'computed',
                 'id': 'QNT-EVL-01',
-                'implementation_status': 'partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented',
+                'implementation_status': 'partial: discounted cost-benefit (net present value and benefit-cost ratio) and '
+                                         'cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are '
+                                         'implemented; non-market valuation, distributional weights and unmonetised effects are '
+                                         'not implemented',
                 'linked_methods': [{'coverage': 'partial', 'method_id': 'cost_benefit'},
                                    {'coverage': 'partial', 'method_id': 'cost_effectiveness'}],
                 'name': 'Cost–benefit and cost-effectiveness calculations',
-                'status_note': 'partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness (cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, distributional weights and unmonetised effects are not implemented',
+                'status_note': 'partial: discounted cost-benefit (net present value and benefit-cost ratio) and cost-effectiveness '
+                               '(cost per unit of effect, incremental ratios and dominance) are implemented; non-market valuation, '
+                               'distributional weights and unmonetised effects are not implemented',
                 'status_short': 'Computed',
                 'summary': 'Cost–benefit and cost-effectiveness calculations.',
                 'template': None,
@@ -5187,11 +5321,15 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'evidence_needs': '',
                 'form': 'computed',
                 'id': 'QNT-EVL-02',
-                'implementation_status': 'partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented',
+                'implementation_status': 'partial: discounting of declared costs and benefits at a declared rate, with '
+                                         'low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over '
+                                         'every valuation assumption is not implemented',
                 'linked_methods': [{'coverage': 'partial', 'method_id': 'npv'},
                                    {'coverage': 'partial', 'method_id': 'dcf_valuation'}],
                 'name': 'Discounting of costs and benefits, sensitivity to valuation assumptions',
-                'status_note': 'partial: discounting of declared costs and benefits at a declared rate, with low/high-rate sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption is not implemented',
+                'status_note': 'partial: discounting of declared costs and benefits at a declared rate, with low/high-rate '
+                               'sensitivity, is implemented; a probabilistic sensitivity analysis over every valuation assumption '
+                               'is not implemented',
                 'status_short': 'Computed',
                 'summary': 'Discounting of costs and benefits, sensitivity to valuation assumptions.',
                 'template': None,
@@ -5200,10 +5338,14 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'evidence_needs': '',
                 'form': 'computed',
                 'id': 'QNT-EVL-03',
-                'implementation_status': 'partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented',
+                'implementation_status': 'partial: a two-group, two-period difference-in-differences estimate with its standard '
+                                         'error is implemented; parallel trends cannot be proven from the data, and staggered '
+                                         'adoption, covariates and clustering are not implemented',
                 'linked_methods': [{'coverage': 'partial', 'method_id': 'difference_in_differences'}],
                 'name': 'Difference-in-differences and other impact-estimation methods when assumptions and data support them',
-                'status_note': 'partial: a two-group, two-period difference-in-differences estimate with its standard error is implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates and clustering are not implemented',
+                'status_note': 'partial: a two-group, two-period difference-in-differences estimate with its standard error is '
+                               'implemented; parallel trends cannot be proven from the data, and staggered adoption, covariates '
+                               'and clustering are not implemented',
                 'status_short': 'Computed',
                 'summary': 'Difference-in-differences and other impact-estimation methods when assumptions and data support them.',
                 'template': None,
@@ -5224,11 +5366,15 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
                 'evidence_needs': '',
                 'form': 'computed',
                 'id': 'QNT-EVL-05',
-                'implementation_status': 'partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive',
+                'implementation_status': 'partial: a social return on investment ratio from declared benefits, investment and '
+                                         'attribution inputs is implemented; deadweight, displacement and drop-off must be '
+                                         'declared, and the result is assumption-sensitive',
                 'linked_methods': [{'coverage': 'partial', 'method_id': 'sroi'}],
                 'name': 'SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and '
                         'monetization assumptions',
-                'status_note': 'partial: a social return on investment ratio from declared benefits, investment and attribution inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is assumption-sensitive',
+                'status_note': 'partial: a social return on investment ratio from declared benefits, investment and attribution '
+                               'inputs is implemented; deadweight, displacement and drop-off must be declared, and the result is '
+                               'assumption-sensitive',
                 'status_short': 'Computed',
                 'summary': 'SROI-type estimates only with transparent attribution, deadweight, displacement, drop-off and '
                            'monetization assumptions.',
@@ -6218,6 +6364,34 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'status_short': 'Worksheet',
             'summary': 'Audit each SWOT item for evidence, materiality, and resulting strategic options',
             'template': 'template_swot',
+            'type': 'F'},
+ 'STR-19': {'disciplines': ['strategy'],
+            'evidence_needs': 'Evidence that the difference is valued by the segment and that the segment is reachable; a '
+                              'positioning claim is a hypothesis to test',
+            'form': 'worksheet',
+            'id': 'STR-19',
+            'implementation_status': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'linked_methods': [],
+            'name': 'Strategic positioning review',
+            'status_note': 'worksheet available: structure and evidence audit only; the evidence is yours',
+            'status_short': 'Worksheet',
+            'summary': 'The place claimed in the market, the difference it rests on, the value promised and the segment it is '
+                       'aimed at',
+            'template': 'template_strategic_positioning',
+            'type': 'F'},
+ 'STR-20': {'disciplines': ['strategy'],
+            'evidence_needs': 'Evidence that the plan produces the intended pattern and that the position holds in the market; a '
+                              'strategy is read, not scored',
+            'form': 'read_only',
+            'id': 'STR-20',
+            'implementation_status': 'read-only record: no worksheet yet',
+            'linked_methods': [],
+            'name': 'Strategy framework: perspective, position, plan and pattern',
+            'status_note': 'read-only record: no worksheet yet',
+            'status_short': 'No worksheet yet',
+            'summary': 'A strategy read through its perspective, the position it claims, the plan that delivers it and the pattern '
+                       'of behaviour it creates',
+            'template': None,
             'type': 'F'},
  'THE-01': {'disciplines': ['supporting theory'],
             'evidence_needs': '',

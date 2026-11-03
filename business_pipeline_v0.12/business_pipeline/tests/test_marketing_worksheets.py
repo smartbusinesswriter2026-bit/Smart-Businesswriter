@@ -56,11 +56,41 @@ class Registration(unittest.TestCase):
             self.assertTrue(described["defaults"], kind)
             self.assertEqual(len(described["planned_checks"]), 8 if kind in T.MATRIX_META else 9, kind)
 
-    def test_the_marketing_page_offers_five_worksheets_and_no_duplicate_rows(self):
+    def test_the_marketing_page_offers_twenty_worksheets_and_no_duplicate_rows(self):
         page = subjects.detail("marketing")
         offered = [w["catalogue_id"] for w in page["worksheets"]]
-        self.assertEqual(offered, ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18"])
+        # The five that were offered before keep their positions; the fifteen that
+        # D-PLAN-02 held dark are appended, so nothing that worked moved.
+        self.assertEqual(offered, ["MKT-02", "MKT-04", "MKT-06", "MKT-15", "MKT-18",
+                                   "MKT-01", "MKT-03", "MKT-05", "MKT-08", "MKT-09",
+                                   "MKT-10", "MKT-11", "MKT-12", "MKT-13", "MKT-14",
+                                   "MKT-16", "MKT-17", "MKT-19", "MKT-20", "MKT-21"])
         self.assertFalse({row["id"] for row in page["records"]} & set(offered))
+
+    def test_every_offered_worksheet_and_every_calculator_sits_in_exactly_one_tile(self):
+        """The shelf's tiles are what the owner asked for before the fifteen were wired.
+
+        A worksheet dropped from `MARKETING_WORKSHEET_GROUPS` would still be offered but
+        appear in no tile, and a tile key that stopped matching the tool groups would drop
+        every calculator: both fail here rather than on the page.
+        """
+        page = subjects.detail("marketing")
+        self.assertEqual([tile["key"] for tile in page["tiles"]],
+                         ["Market size and demand", "Customer economics and retention",
+                          "Campaigns, channels and web analytics", "Funnel, surveys and testing"])
+        sheets, tools, records = [], [], []
+        for tile in page["tiles"]:
+            self.assertTrue(tile["what"], tile["key"])
+            self.assertTrue(tile["need"], tile["key"])
+            sheets += [sheet["catalogue_id"] for sheet in tile["worksheets"]]
+            tools += [tool["key"] for tool in tile["tools"]]
+            records += [row["id"] for row in tile["records"]]
+        self.assertEqual(sorted(sheets), sorted(w["catalogue_id"] for w in page["worksheets"]),
+                         "a worksheet is in no tile, or in two")
+        self.assertEqual(sorted(tools), sorted(tool["key"] for tool in page["tools"]),
+                         "a calculator is in no tile, or in two")
+        # Every record is in a tile, except the one tile the owner hid (B-198).
+        self.assertEqual(sorted(records + ["MKT-07"]), sorted(row["id"] for row in page["records"]))
 
     def test_a_hidden_worksheet_stays_registered_and_is_not_offered(self):
         """B-198 and D-MKT-07: one declared form, and the tile still hidden."""

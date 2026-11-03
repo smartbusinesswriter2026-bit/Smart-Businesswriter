@@ -3,9 +3,10 @@
 `subjects.WORKSHEETS` holds every T4 worksheet the product can complete, but a student
 reaches one only through a shelf's `worksheets` list.  Measured in session 7: 76
 worksheet entries, 58 reachable, **18 built and offered nowhere** — 16 marketing rows
-that a page badges "Worksheet" in a card that cannot be opened, plus STR-19 and CHG-15
-which appear on no page at all (D-PLAN-02).  MKT-07 is deliberate: B-198 hid its tile
-until its block form is repaired.
+plus STR-19 and CHG-15, which appear on no page at all (D-PLAN-02).  Session 8 wired the
+fifteen marketing rows the ledger held (B-211), so the measured set is now **three**:
+MKT-07, which B-198 keeps hidden until the owner unhides it, and STR-19 and CHG-15, which
+are the management and change shelves' own curriculum decision.
 
 Which shelf should own each one is a curriculum decision, not a code decision, so this
 test is a **shrinking ledger**: it pins the measured set.  Wiring one of them fails this
@@ -27,8 +28,7 @@ from bp.product import subjects  # noqa: E402
 #: shelf lists it; never add one without a ledger row in qa/QA_DEFECTS.md.
 KNOWN_UNSERVED = {
     "CHG-15",  # change and organisation review - no shelf lists it, no tile shows it
-    "MKT-01", "MKT-03", "MKT-05", "MKT-07", "MKT-08", "MKT-09", "MKT-10", "MKT-11",
-    "MKT-12", "MKT-13", "MKT-14", "MKT-16", "MKT-17", "MKT-19", "MKT-20", "MKT-21",
+    "MKT-07",  # SERVQUAL: form repaired (D-MKT-07), tile still hidden by the owner (B-198)
     "STR-19",  # strategic positioning - no shelf lists it, no tile shows it
 }
 

@@ -60,8 +60,11 @@ def s2_unserved():
     print("  unserved total    :", len(unserved), unserved)
     print("  unserved marketing:", len(marketing), marketing)
     page = subjects.detail("marketing")
-    print("  marketing page    : worksheets=%d records=%d tools=%d"
-          % (len(page["worksheets"]), len(page["records"]), len(page["tools"])))
+    print("  marketing page    : worksheets=%d records=%d tools=%d tiles=%d"
+          % (len(page["worksheets"]), len(page["records"]), len(page["tools"]), len(page["tiles"])))
+    for tile in page["tiles"]:
+        print("  tile %-38s worksheets=%d tools=%d records=%d"
+              % (tile["key"], len(tile["worksheets"]), len(tile["tools"]), len(tile["records"])))
     badges = {}
     for row in page["records"]:
         if row["id"] in marketing:

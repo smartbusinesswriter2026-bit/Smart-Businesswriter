@@ -19,6 +19,29 @@ Found while capturing the grid evidence: the top bar read **v1.45** while the tr
   `web/index.html`; the fix turned out to be smaller than the ledger entry feared, and it removes
   a whole class of drift rather than one stale string.
 
+- 1.81 (2026-11-03): **the fifteen marketing worksheets that no shelf offered are wired, and the
+  shelf declares tiles first.** Owner instruction: *"wire all 15 but group them into tiles first
+  (the shelf declares no tiles today)."* The marketing page now carries **20 worksheets, 15
+  records, 24 tools and 4 tiles** (was 5 / 30 / 24 / 0): the five it always offered are unchanged
+  and first, and the fifteen D-PLAN-02 held dark follow them. The four tiles are keyed to the
+  shelf's own existing tool groups - `Market size and demand`, `Customer economics and retention`,
+  `Campaigns, channels and web analytics`, `Funnel, surveys and testing` - because `_tiles`
+  matches a calculator to a tile by its group string, so inventing new names would have dropped
+  all twenty-four calculators off the page. All 20 worksheets and all 14 computed records are
+  placed, so nothing is orphaned and no calculator is left described as something to cite.
+  **The stale slice had to move with it.** `CATALOGUE` is generated from the registry, and it
+  still described fifteen of those records as "No worksheet yet" (12) or "Computed" (3);
+  regenerating it is what makes the wired rows say what they are, and the generator's docstring
+  claimed `tests/test_product_subjects.py` guarded that drift when that file compares the registry
+  with itself. **Nothing else moved.** `MKT-07` stays out of the shelf and out of both tile maps:
+  its form is repaired (D-MKT-07) but its tile is still hidden by B-198, and unhiding it is the
+  owner's call. `STR-19` and `CHG-15` were not touched - they are the management and change
+  shelves' own decision - and the shrinking ledger is now three ids. No method, preset, number,
+  check, gate or route changed.
+  Tests: `test_every_offered_worksheet_and_every_calculator_sits_in_exactly_one_tile` (a worksheet
+  dropped from the group map, a tile key that stops matching the tool groups, or an ungrouped
+  record fails it), plus the three-id ledger; `qa/marketing_shelf_audit.py` measures it all.
+
 - 1.80 (2026-11-03): the build number has one source (`bp/build.py`, served by `/api/health`,
   painted by the page), two tests pin it to the changelog and to the browser, and the top bar's
   pill no longer states a build the tree is not (D-PM-07).

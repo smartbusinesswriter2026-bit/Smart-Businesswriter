@@ -391,10 +391,11 @@ class MarketingShelf(unittest.TestCase):
     def test_the_page_shows_digital_marketing_as_its_own_record_group(self):
         page = subjects.detail("marketing")
         labels = [row["discipline_label"] for row in page["records"]]
-        self.assertEqual(labels.count("Digital marketing"), 14)
-        # Nine, not eight: with MKT-07's tile hidden (B-198) its catalogue row is shown on
-        # the page as a record instead of being suppressed as an offered worksheet.
-        self.assertEqual(labels.count("Marketing frameworks"), 9)
+        # Fifteen records left this list when the shelf wired them as worksheets
+        # (D-PLAN-02), so what remains is the fourteen computed records plus MKT-07,
+        # whose tile is still hidden by B-198.
+        self.assertEqual(labels.count("Digital marketing"), 7)
+        self.assertEqual(labels.count("Marketing frameworks"), 1)
         self.assertEqual(labels.count("Customer and market analytics"), 7)
 
     def test_the_digital_frameworks_and_methods_are_in_the_catalogue(self):
