@@ -21,6 +21,28 @@ def _plan_method(method_id, inputs):
 
 
 product_api.attach_methods(_plan_method, methods.describe)
+from .product import statements as product_statements, statements_council as product_statement_council
+
+
+def _statement_reader(text):
+    """Read a statement instruction with the model council, or say plainly that none is configured."""
+    if not product_statement_council.available():
+        raise product_statement_council.CouncilError(
+            "no model is configured (set BP_OPENGO_API_KEY), so only a trial balance can be read")
+    return product_statement_council.read(text)
+
+
+# The statements tile reaches the core through these callables, so the product package never imports
+# the frozen core (tests/test_product_boundary.py).  The reader is the model council; the tile's own
+# parser runs first and is exact on a trial balance, whatever the reader says.
+product_statements.attach_core(
+    solve=lambda spec: methods.LIBRARY["management_accounts"].impl({"spec": spec}),
+    diagnose=lambda rows, places: methods.LIBRARY["trial_balance_check"].impl(
+        {"journal": None, "trial_balance": rows, "places": places}),
+    ratio_analysis=lambda figures: methods.LIBRARY["ratio_analysis"].impl(figures),
+    dupont=lambda inputs: methods.LIBRARY["dupont_analysis"].impl(inputs),
+    reader=_statement_reader,
+)
 from .sandbox import SubprocessSandbox
 
 ASSIST_RUNS = {}

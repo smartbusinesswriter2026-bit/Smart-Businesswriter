@@ -650,3 +650,20 @@ If an assignment needs one of these, say so in the limitations and show the meth
   the shortlist shows the gap instead of a price.
 - **The lab lives in the Portfolio Lab**, not on the Finance page (one home for the UI; the market
   data panels remain split per B-177).
+
+## Added with the statements tile (B-204)
+- A trial balance is read by a declared grammar and a ~19-rule account vocabulary. A label outside it
+  is named in the working and left out, never guessed; but a genuinely novel name that the vocabulary
+  places on the wrong line is a misclassification the checks cannot catch, because both placements
+  balance.
+- A transaction list still needs the model reader. With no BP_OPENGO_API_KEY the tile solves a trial
+  balance only, and says so in the refusal instead of half-reading the problem.
+- The cash-flow statement is **withheld** for a trial-balance problem and for an incomplete record, with
+  the reason printed: one period-entry trial balance yields a statement that is internally consistent
+  and false. It is presented for a transaction list, where the flows are declared.
+- Intangible-asset amortisation is not modelled: schedules.amortization is a loan amortisation.
+  Consolidated statements, suspense accounts and error correction are out of scope (phase 2).
+- Ratios cover the core's 15 plus DuPont 3-step and 5-step. Market, cash-flow, quality/forensic and
+  growth ratios are named with the input they need, never estimated.
+- The export is plain text: a DOCX wrapper is not wired yet. Single entity only; no comparative period,
+  segment or multi-currency analysis.

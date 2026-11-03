@@ -1,6 +1,51 @@
 - 1.75 (2026-11-03): **The Project management worksheet forms are professional to fill in, and the shelf meets them in order.** Owner instruction: *"DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* Design lane B-080. **The four grids learn their own labels.** A grid's right-hand label was the internal plumbing: the Balanced Scorecard read "Measure field", the Strategy Map "Map field", the KPI tree "Tree field" and OKRs "OKR field". Each grid now declares a `form_copy` object beside its own geometry in `MATRIX_META` - the row label, the column label, the hint under the column label and the sentence that explains what belongs in the grid - and the server publishes it on the template payload. The page reads it; it does not branch on a template id. The three older branches in `matrixForm` stay as the floor for a grid that declares no copy. **A grid now opens its grid form.** This is the defect this session found and fixed: every Project management worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before* `t.form_kind`, so the four grids opened the evidence form - which collects `{blocks, links}`, a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A student typed a grid and the run was refused. The declared form now decides: a grid opens the grid form, and the grid's shape is what is collected. **The four states are designed, not accidental.** *Empty*: the grid says what belongs in a cell and that an unfilled cell is named in the audit. *Loading*: the panel says it is opening the worksheet instead of showing a blank card. *Error*: a template the server would not serve is named. *Refusal*: the audit's own reason, in a sentence, beside the form - never a raw dump and never a template token. **The grid reads at 390 px.** A four-column grid with four to twelve rows is wide, so on a narrow screen it collapses into one card per row, each field stacked under its own label; on a wide screen it is a table inside its own scrolling box. Every cell carries a label naming its row and its column. The page no longer scrolls sideways at 390 px: the capability tile and the top bar both used to push it, and both now shrink. **The shelf has tiles.** The Project management page measured `tiles: 0` and fell back to groups. It now declares seven tiles in the order a student meets the work: **Governance** (the Balanced Scorecard, the Strategy Map, the KPI Tree and the OKRs - the Scorecard first, because the other three hang off it), **Delivery documents** (the charter, the work breakdown structure and the risk register), **People and governance roles** (the RACI, the stakeholder plan and the lessons learned), then **Appraise the business case**, **Compare the options**, **Project cost and benefit** and **Schedule and control** - the last four keeping the group names the shelf already used, so no calculator moved. All ten worksheets and all eighteen calculators land in exactly one tile, and nothing is orphaned. The six held records - Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE - stay catalogued and off the page: the owner's hold now covers the leftover section too, which is the one place a held record could have reappeared. The shelf copy says the measured truth: ten completing worksheets and six read-only records, and the product invents no durations, probabilities, weights or owners. **No number, check, citation rule or gate moved.** Every figure, every check and the frozen contract are untouched; no method, preset or core file was edited. Tests: 7 new rows (E-pm-074…080), the shelf suite 80. `qa/check_page_syntax.py` -> page syntax: OK; `scripts/econ_shelf.py --check` -> frozen fixture: in sync.
 
-## The statements tile, part 1: the ratio bridge the product layer was not allowed to build
+## The statements tile, part 2: one instruction in, the statements and the working out
+
+Build **1.74** continues, under the standing rule that the core stays unfrozen until the owner freezes
+it again (B-197). The tile itself is now real: `src/bp/product/statements.py`,
+`statements_verify.py`, `statements_council.py`, and four routes on the case route
+(`POST/GET /api/cases/statements`, `GET /{id}`, `POST /{id}/export`, `POST /{id}/replay`).
+
+What it does with one pasted instruction:
+
+- **classifies** the problem (trial balance, transactions, adjustments, incomplete records) and says
+  which cue decided it;
+- **reads** every figure and account with the exact text it came from: a declared grammar and a
+  ~19-rule chart vocabulary first, because that is exact and free on a table; a model only when the
+  grammar cannot read the problem, with a second seat arguing the **contested** labels only;
+- **compiles** the reading into the engagement spec the core accepts and **calls the core** — the tile
+  computes nothing;
+- **presents** the income statement, the statement of changes in equity, the balance sheet and the
+  trial balance as the core rendered them, plus the journal, the T-accounts, the derivations and the
+  assumptions behind one toggle;
+- **diagnoses** an imbalance from the core's own `trial_balance_check` — difference 500, finding
+  `submitted-does-not-balance`, "likely" — and never plugs it;
+- **derives** the missing capital in an incomplete record from that same difference, labelled
+  `derived` with its identity;
+- **computes ratios** only when the instruction asks, and names every ratio the registry cannot
+  support with the input it needs;
+- **freezes** the record with `verify.freeze` and replays it byte-identically.
+
+Three decisions, all from probing the core rather than assuming:
+
+- **A trial balance is posted as one period entry.** As opening balances the same figures fail two
+  core invariants (7/11); as one entry they pass every applicable check (9/11 with `checks_na = 2`).
+- **Its cash-flow statement is withheld**, and the reason is printed. The core will produce one from
+  a single period entry, and it is false: the whole cash balance reads as a period inflow.
+- **A dissent never wins by arguing.** The ranking is declared — vocabulary rule, then the literal
+  standard rule, then the marker convention, then the dissent — and the dissent is recorded so a
+  marker can see what was considered.
+
+The verifier caught two bugs in my own reader while building it, which is the point of it: a
+synthesised retained-earnings account with no quote, and two accounts sharing one statement line
+(equipment and its accumulated depreciation now carry distinct names and codes).
+
+Verified: **41 new tests** — `test_product_statements` (16), `test_product_statements_council` (15),
+`test_product_statements_api` (10) — plus the 219-test affected set (statements, product boundary,
+frozen contract, accounts) green. `tests/fixtures/frozen_contract.json` untouched; no method, preset,
+input, check or number changed.
+
 
 Owner instruction of 2026-11-03, under the standing rule that the core stays unfrozen until the
 owner freezes it again (B-197). Build **1.74** continues.

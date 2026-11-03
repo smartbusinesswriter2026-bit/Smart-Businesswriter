@@ -111,3 +111,16 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
 - Pick the **next framework templates** (B-028) for section D.
 - Decide the **ledger engine** (B-032) before tax/valuation sit on the ledger for real.
 - **Ratify the remaining research-manual proposals** R1–R10 (B-053; R11 already ratified), or supply the original Smart Researcher manuals and it will be reconciled against them.
+
+## Accounting - the statements tile (B-204)
+- **Present:** one instruction in; four problem types (trial balance, transactions, adjustments,
+  incomplete records); income statement, statement of changes in equity, balance sheet and trial
+  balance from the core; journal, T-accounts, derivations and assumptions behind a toggle; imbalance
+  diagnosed and never plugged; the missing capital of an incomplete record derived from the core's own
+  difference; ratios on request; a frozen, replayable record; four routes on the case route.
+- **Named gaps:** the cash-flow statement is withheld for a trial-balance input (a prior balance sheet
+  or the flows are needed); intangible amortisation, suspense and error correction; market, cash-flow,
+  quality and growth ratios; DOCX export; comparatives, segments and multi-currency; consolidated
+  statements (B-032 stays open).
+- **Not a gap:** a ratio the registry cannot support is printed with the input it needs, and a label the
+  vocabulary does not know is shown rather than dropped.

@@ -93,7 +93,38 @@ empty: add the perspectives and the fields for each perspective first."*
 entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
 
 
-## 2026-11-03 — [computation] Statements tile, part 1: the ratio bridge
+## 2026-11-03 — [product] Statements tile, part 2: the tile itself
+
+**Ask.** Build the accounting statements tile against [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md):
+one instruction box, no field-filling, the four problem types solved end to end, the statements from
+the core, the working behind a toggle, an imbalance diagnosed and never plugged, and a frozen record.
+
+**Built.** `statements.py` (classification, grammar, chart vocabulary, compile, present, diagnose,
+derive, ratios on request, freeze, store, replay), `statements_verify.py` (six checks), and
+`statements_council.py` (one model reading, a dissent on contested labels only, declared ranking).
+Four routes ride on the case route, so `server.py` gained one attachment and no new route family.
+
+**Decisions, each probed rather than assumed** (B-204):
+
+1. **A trial balance is posted as one period entry.** As opening balances the same figures score
+   7/11 with two real failures; as one entry, 9/11 with `checks_na = 2` — every applicable check.
+2. **The cash-flow statement is withheld for a trial-balance problem**, with the reason printed: the
+   core will happily render one and it is false (the whole cash balance reads as a period inflow).
+3. **The verdict is ranked, not voted.** Vocabulary rule > literal standard rule > marker convention
+   > dissent; the dissent is recorded and never applied. The student gets one answer.
+
+**Bugs the verifier caught in my own reader** (both fixed, both are why the verifier exists): a
+synthesised retained-earnings account with no quote; and two accounts sharing one statement line, so
+equipment and its accumulated depreciation now carry distinct names and codes.
+
+**Verified.** 41 new tests: `test_product_statements` 16 OK, `test_product_statements_council` 15 OK,
+`test_product_statements_api` 10 OK. Affected set (statements + product boundary + frozen contract +
+accounts) **219 tests OK**. `econ_shelf --check` → "frozen fixture: in sync". No method, preset, input,
+check or number changed; `tests/fixtures/frozen_contract.json` untouched.
+
+**Noted, not fixed.** Part 1 (the ratio bridge) was committed as `d8ad274`; the shared failures in the
+other lanes are recorded in [`OPEN_ISSUES.md`](OPEN_ISSUES.md) Item 16.
+
 
 **Ask.** The owner's instruction for a standalone accounting statements tile, checked against the
 pipeline *before* it was built. Reading the code and probing the core found nine defects in the draft

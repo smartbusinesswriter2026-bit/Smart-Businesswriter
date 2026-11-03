@@ -18,6 +18,7 @@ Routes:
     GET    /api/billing/status                   -> 200 the plan this machine is on
     POST   /api/billing/subscribe                -> 201 a PayPal subscription id to approve
     POST   /api/billing/confirm                  -> 200 verified against PayPal, then recorded
+    POST   /api/billing/change                   -> 200 PayPal adjusts the plan and prorates the period
     POST   /api/billing/cancel                   -> 200 PayPal stops billing; the paid period stays
     GET    /api/cases                            -> 200 {"cases": [summary, ...]}
     GET    /api/cases?subject=<id>               -> 200 {"cases": [summary, ...]}
@@ -93,6 +94,7 @@ from . import writing
 from . import instruments as instrument_store
 from . import screener
 from . import prefill as prefill_builder
+from . import statements
 
 
 def attach_compute(fn):
@@ -107,6 +109,10 @@ def attach_methods(run, describe=None):
 
 CASE_ROUTE = "/api/cases"
 BILLING_ROUTE = "/api/billing"
+
+#: The statements tile rides on the case route, so it needs no new route family in `server.py`
+#: (BACKEND_CONTRACT section 4: new product routes live here, not in the frozen server).
+STATEMENTS_SEGMENT = "statements"
 
 #: file extension and MIME type per export kind, for the download path
 _SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml", "xlsx": "xlsx"}
@@ -154,6 +160,18 @@ def _error(error):
 def _billing_unconfigured(error):
     """A missing PayPal credential is a 503 that names the variable, never a 500 or a fake success."""
     return 503, {"error": str(error), "configured": False, "missing": list(error.missing)}
+
+
+def _unlimited_plan():
+    """True when the plan on this machine grants no limit.
+
+    The owner's Business Bundle does. A tier whose allowance has not been decided is **not**
+    unlimited: undecided is not free, so the wallet keeps its meter until the owner sets one.
+    """
+    tier = billing_module.current().get("tier")
+    if not tier or tier not in billing_module.PLANS:
+        return False
+    return billing_module.unlimited_for(tier)
 
 
 def billing(verb, route, body):
@@ -242,6 +260,47 @@ def billing(verb, route, body):
                      "paypal": {"status": status, "plan_id": remote.get("plan_id"),
                                 "period": remote.get("period")}}
 
+    if segments == ["change"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on change" % verb}
+        if not isinstance(body, dict):
+            return 422, {"error": "a request object is required"}
+        tier = str(body.get("tier") or "").strip().lower()
+        cycle = str(body.get("cycle") or body.get("billing_cycle") or "monthly").strip().lower()
+        current = billing_module.current()
+        subscription_id = body.get("subscription_id") or current.get("subscription_id")
+        if not subscription_id:
+            return 404, {"error": "this machine has no subscription to change"}
+        try:
+            changed = paypal_client.change_plan(subscription_id, tier, cycle)
+        except paypal_client.PayPalNotConfigured as error:
+            return _billing_unconfigured(error)
+        except paypal_client.PayPalError as error:
+            return 502, {"error": str(error), "configured": True}
+        except billing_module.BillingError as error:
+            return _error(error)
+        status = (changed.get("status") or "").upper()
+        if status and status != "ACTIVE":
+            return 409, {"error": "PayPal reports this subscription as %s, so the plan was not changed"
+                                  % (status or "unknown"), "status": status,
+                         "subscription_id": subscription_id}
+        try:
+            # PayPal keeps the subscription id across a plan change, so this records the new tier
+            # against the same subscription. The amount stored is the declared price of the new
+            # plan; what PayPal actually charged or credited is in the adjustment, untouched.
+            recorded = billing_module.activate(tier, cycle, subscription_id,
+                                               payer_email=current.get("payer_email"),
+                                               period=changed.get("period"), status=status or "ACTIVE")
+        except billing_module.BillingError as error:
+            return _error(error)
+        return 200, {"changed": True, "recorded": recorded["recorded"], "reused": recorded["reused"],
+                     "current": recorded["current"],
+                     "credits": billing_module.grant_for(tier, cycle, subscription_id),
+                     "adjustment": changed.get("adjustment"),
+                     "paypal": {"status": status, "plan_id": changed.get("plan_id"),
+                                "outstanding_balance": changed.get("outstanding_balance"),
+                                "period": changed.get("period")}}
+
     if segments == ["cancel"]:
         if verb != "POST":
             return 405, {"error": "method %s is not allowed on cancel" % verb}
@@ -276,6 +335,10 @@ def handle(method, path, body=None):
     query = _query(path)
     if segments is None:
         return 404, {"error": "unknown route %s" % route}
+
+    # -- the statements tile (B-204): a product service on the case route ------------
+    if segments and segments[0] == STATEMENTS_SEGMENT:
+        return statements.handle(verb, segments[1:], body)
 
     # -- the case collection -------------------------------------------------
     if not segments:
@@ -949,10 +1012,11 @@ def handle(method, path, body=None):
             kind = body["kind"]
             deliverable = body.get("deliverable") or deliverables.infer(kind)
             deliverables.check_pair(deliverable, kind)          # refuses a pair that cannot carry the artefact
+            unlimited = _unlimited_plan()
             if body.get("quote_only"):
                 return 200, {"deliverable": deliverable, "kind": kind,
-                             "quote": credits.quote(case_id, deliverable, kind)}
-            quote = credits.quote(case_id, deliverable, kind)
+                             "quote": credits.quote(case_id, deliverable, kind, unlimited=unlimited)}
+            quote = credits.quote(case_id, deliverable, kind, unlimited=unlimited)
             if quote["cost"] > quote["balance"]:
                 return 402, {"error": "%s as %s costs %d credit(s); the balance is %d"
                                       % (deliverable, kind, quote["cost"], quote["balance"]), "quote": quote}
@@ -984,13 +1048,15 @@ def handle(method, path, body=None):
                 else:
                     result.update({"filename": os.path.basename(destination), "mime": _MIME[kind],
                                    "data": base64.b64encode(payload).decode("ascii")})
-                result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"))
+                result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"),
+                                                   unlimited=unlimited)
                 return 200, result
             destination = body["destination"]
             result = deliverables.write_export(bundle, deliverable, kind, destination)
             # charge only after the file exists: a failed export costs nothing. An idempotency key
             # supplied by the caller makes a retry free; without one, each export is a new export.
-            result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"))
+            result["credits"] = credits.charge(case_id, deliverable, kind, idem=body.get("idempotency_key"),
+                                               unlimited=unlimited)
             return 200, result
         except deliverables.DeliverableError as error:
             return 422, {"error": str(error)}
