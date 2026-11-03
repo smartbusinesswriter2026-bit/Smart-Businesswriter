@@ -183,6 +183,36 @@ DETECTORS: List[Detector] = [
              [Slot("amount", "money"), Slot("paid", "string", required=False, default="no")]),
     Detector("cash_sale_simple", r"cash sales of \$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money")]),
+    Detector("sales_return", r"customer returned goods[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
+             [Slot("amount", "money")]),
+    Detector("sales_discount", r"customer paid within discount period[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
+             [Slot("amount", "money")]),
+    Detector("purchase_discount", r"terms\s+(?P<terms>[\d/]+,\s*n/\d+)", 80,
+             [Slot("terms", "string")]),
+    Detector("asset_disposal", r"sold\s+(?P<asset>.+?)\s+for\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash", 80,
+             [Slot("asset", "string"), Slot("amount", "money")]),
+    Detector("unearned_earned", r"by (?:Dec\.?\s*31|year[- ]end)\s+(?P<months>\d+)\s+of\s+(?P<total>\d+)\s+months .*?earned", 80,
+             [Slot("months", "int"), Slot("total", "int")]),
+    Detector("accrued_revenue", r"completed\s+.+?\s+but\s+.+?\s+not been billed[, ]*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 80,
+             [Slot("amount", "money")]),
+    Detector("bad_debt", r"estimate uncollectible (?:as\s+)?(?P<rate>[\d.]+)%\s+of (?:accounts receivable|receivables)", 80,
+             [Slot("rate", "percent")]),
+    Detector("warranty", r"warranty of\s+(?P<rate>[\d.]+)%", 80,
+             [Slot("rate", "percent")]),
+    Detector("depreciation_sl", r"depreciate\s+\$?(?P<cost>[\d,]+(?:\.\d+)?)\s+.*?over\s+(?P<life>\d+)\s+years", 80,
+             [Slot("cost", "money"), Slot("life", "int"),
+              Slot("salvage", "money", required=False, default=0),
+              Slot("convention", "enum", required=False, default=None,
+                   values=["full_year", "pro_rata", "half_year"])]),
+    Detector("interest_paid_at_maturity", r"interest .* paid .* at maturity", 100,
+             [Slot("principal", "money", required=False, default=None),
+              Slot("rate", "percent", required=False, default=None)]),
+    Detector("interest_paid_annually", r"interest paid annually", 90, []),
+    Detector("fob_shipping_point", r"FOB shipping point", 90, []),
+    Detector("fob_destination", r"FOB destination", 90, []),
+    Detector("periodic_inventory", r"periodic inventory system", 90, []),
+    Detector("perpetual_inventory", r"perpetual inventory system", 90, []),
+    Detector("full_year_depreciation", r"full year of depreciation is recorded in the year of acquisition", 90, []),
 ]
 
 
@@ -255,7 +285,50 @@ TEMPLATES: Dict[str, Callable[[Dict[str, Any]], List[Tuple[str, str, Any]]]] = {
     "accrued_expense": lambda s: [("6700", "Dr", s["amount"]), ("2300", "Cr", s["amount"])],
     "dividends": lambda s: [("3200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "physical_count": lambda s: [],  # given fact, no JE
+    "sales_return": lambda s: [("4100", "Dr", s["amount"]), ("1100", "Cr", s["amount"])],
+    "sales_discount": lambda s: [("4200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
+    "asset_disposal": lambda s: [("1000", "Dr", s["amount"]), ("1500", "Cr", s["amount"])],
+    "unearned_earned": lambda s: [("2400", "Dr", s["amount"]), ("4000", "Cr", s["amount"])],
+    "accrued_revenue": lambda s: [("1150", "Dr", s["amount"]), ("4000", "Cr", s["amount"])],
+    "bad_debt": lambda s: [("6700", "Dr", s["amount"]), ("1300", "Cr", s["amount"])],
+    "warranty": lambda s: [("6800", "Dr", s["amount"]), ("2500", "Cr", s["amount"])],
+    "depreciation_sl": lambda s: _dep_lines(s),
 }
+
+
+def _dep_lines(s):
+    from decimal import Decimal as D
+    cost = D(str(s["cost"]))
+    life = D(str(s["life"]))
+    salvage = D(str(s.get("salvage", 0) or 0))
+    amount = (cost - salvage) / life
+    # quantise to 2 decimals
+    amount = amount.quantize(D("0.01"))
+    return [("6700", "Dr", amount), ("1700", "Cr", amount)]
+
+
+def months_expired(coverage_start: str, coverage_end: str, year_end_month: int = 12) -> int:
+    """Months of a coverage period that fall within the calendar year ending in year_end_month."""
+    # Minimal: parse YYYY-MM-DD or MM/YYYY; count months from start month to year_end.
+    import datetime
+    def parse(s):
+        for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%B %d, %Y"):
+            try:
+                return datetime.datetime.strptime(s, fmt)
+            except ValueError:
+                continue
+        return None
+    start = parse(coverage_start)
+    end = parse(coverage_end)
+    if start is None or end is None:
+        raise DetectError("cannot parse coverage dates")
+    # months from start month to December (year_end_month=12)
+    months = (12 - start.month + 1)
+    if months < 0:
+        months = 0
+    if months > 12:
+        months = 12
+    return months
 
 
 def journalize(detector_id: str, slots: Dict[str, Any],

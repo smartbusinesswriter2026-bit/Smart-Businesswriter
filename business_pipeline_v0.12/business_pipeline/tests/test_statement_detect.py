@@ -76,6 +76,32 @@ class SlotValidation(unittest.TestCase):
         self.assertEqual(sd._int("12"), 12)
 
 
+class MoreDetectors(unittest.TestCase):
+    def test_depreciation_sl(self):
+        ms = sd.detect("Depreciate 60,000 over 5 years.")
+        self.assertTrue(any(m.detector_id == "depreciation_sl" for m in ms))
+        m = next(m for m in ms if m.detector_id == "depreciation_sl")
+        lines = sd.journalize("depreciation_sl", m.slots)
+        self.assertEqual(lines[0][2], __import__("decimal").Decimal("12000.00"))
+
+    def test_fob_and_inventory_policy(self):
+        ms = sd.detect("FOB shipping point. Periodic inventory system.")
+        ids = {m.detector_id for m in ms}
+        self.assertIn("fob_shipping_point", ids)
+        self.assertIn("periodic_inventory", ids)
+
+    def test_interest_at_maturity(self):
+        ms = sd.detect("Interest is paid in full at maturity.")
+        self.assertTrue(any(m.detector_id == "interest_paid_at_maturity" for m in ms))
+
+    def test_bad_debt(self):
+        ms = sd.detect("Estimate uncollectible as 5% of accounts receivable.")
+        self.assertTrue(any(m.detector_id == "bad_debt" for m in ms))
+
+    def test_months_expired(self):
+        self.assertEqual(sd.months_expired("2025-02-01", "2026-01-31", 12), 11)
+
+
 class DetectIntegration(unittest.TestCase):
     def test_northstar_transactions(self):
         text = ("Issued 50,000 common shares for cash, 50,000. "
