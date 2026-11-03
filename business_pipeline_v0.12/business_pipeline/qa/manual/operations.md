@@ -384,6 +384,7 @@ seven were found only by reading the produced `.docx` (P6), which is why the pro
 | D-OPS-05 | a judgement cell that never said what to state, though the profile declares it | HONESTY | FIXED |
 | D-OPS-06 | eleven worksheets in one flat list, no groups | UI | **GAP** (G-ops-02) |
 | D-OPS-07 | “the lunch service at the meal counter **lunch service meal** …” in every query | WIRING | **OPEN** (MINOR) |
+| D-OPS-08 | the three count documents said 3165 tests; the loader says 3184 and then 3236 | DOC-DRIFT | FIXED (set from the loader) |
 | G-ops-01 | no figure in any of the eleven papers | — | **GAP** (owner decision) |
 | G-ops-03 | one brief sentence printed under two adjacent SIPOC parts | HONESTY | **GAP** (declared) |
 
