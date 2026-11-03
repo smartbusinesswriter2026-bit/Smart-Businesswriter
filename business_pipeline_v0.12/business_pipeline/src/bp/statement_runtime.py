@@ -66,6 +66,17 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
     res.claims = claims
     # DETECT
     matches = sd.detect(problem_text)
+    # extraction grounding guard (G20)
+    try:
+        from . import extraction as ext_guard
+        for m in matches:
+            issues = ext_guard.verify_grounded(
+                ext_guard.Match(m.detector_id, "", m.slots, m.confidence,
+                               {}, m.span), problem_text)
+            if issues:
+                res.diagnostics.append(f"ungrounded slots in {m.detector_id}: {issues}")
+    except Exception:
+        pass
     res.matches = matches
     # generic-only matches are not journalizable; if every transaction claim has only
     # generic matches, route to review
