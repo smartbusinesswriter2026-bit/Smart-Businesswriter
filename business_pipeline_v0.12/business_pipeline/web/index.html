@@ -476,6 +476,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-card .p small{font-size:13.5px;font-weight:500;letter-spacing:0;opacity:.6;margin-left:3px}
 .pm-card .per{font-size:12px;color:var(--navy-700);opacity:.62;min-height:14px}
 .pm-card .cr{background:var(--sunken);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 8px;margin:2px 0 5px}
+.pm-card .inc{margin:0 0 6px;font-size:11.5px;line-height:1.5;color:var(--navy-700);opacity:.85}
 .pm-card .cr .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-700);opacity:.6}
 .pm-card .cr .v{font-size:13px;font-weight:600;color:var(--navy-900);margin-top:1px}
 .pm-card .cr .v.tbd{color:var(--amber)}
@@ -1376,9 +1377,9 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
           <div class="t">Subscription active</div>
           <div class="pm-kv"><span class="k">Plan</span><span class="v" id="pmdone-plan">—</span></div>
           <div class="pm-kv"><span class="k">Billed</span><span class="v" id="pmdone-bill">—</span></div>
-          <div class="pm-kv"><span class="k">Credits</span><span class="v" id="pmdone-cr">To be confirmed</span></div>
-          <p style="margin-top:10px">Your plan is recorded here. Credits are added by the export wallet
-            once the allowance for this tier is set.</p>
+          <div class="pm-kv"><span class="k">Allowance</span><span class="v" id="pmdone-cr">To be confirmed</span></div>
+          <p id="pmdone-note" style="margin-top:8px;font-size:13px;color:var(--navy-700);opacity:.85"></p>
+          <p style="margin-top:10px" id="pmdone-copy">Your plan is recorded here.</p>
           <button class="btn primary" type="button" id="pmdone-close" style="width:100%">Done</button>
         </div>
         <div id="pmck-fail" hidden>
@@ -4245,7 +4246,12 @@ function subjectTiles(s) {
     if (tile.need) {
       html += '<p class="muted" style="margin:0 0 8px"><strong>Before you start:</strong> ' + esc(tile.need) + "</p>";
     }
-    if (!sheets.length && !rows.length && !tools.length) {
+    /* A service tile runs the statements tile rather than a frozen preset (B-204). */
+    if (tile.service === "statements") {
+      html += '<p style="margin:0 0 8px"><button class="btn" type="button" data-statements-open="1">' +
+        "Open the statements tile</button></p>";
+    }
+    if (!sheets.length && !rows.length && !tools.length && !tile.service) {
       html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
       return;
     }
@@ -9512,14 +9518,18 @@ function pmRender() {
   const annual = pm.cycle === "annual";
   $("#pmgrid").innerHTML = pm.plans.tiers.map((card) => {
     const amount = annual ? card.annual.amount : card.monthly.amount;
-    const credits = card.credits ? esc(card.credits) : "To be confirmed";
+    const unlimited = !!card.unlimited;
+    const credits = unlimited ? "Unlimited" : (card.credits ? esc(card.credits) : "To be confirmed");
+    const includes = (card.includes || []).length
+      ? '<div class="inc">' + card.includes.map((line) => esc(line)).join("<br>") + "</div>" : "";
     return '<div class="pm-card" data-tier="' + esc(card.tier) + '">' +
       '<div class="bar"></div>' +
       '<div class="n">' + esc(card.name) + "</div>" +
       '<div class="p">$' + esc(amount) + "</div>" +
       '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
-      '<div class="cr"><div class="k">Credits</div><div class="v' + (card.credits ? "" : " tbd") + '">' +
+      '<div class="cr"><div class="k">' + (unlimited ? "Limits" : "Credits") + '</div><div class="v' + (card.credits || unlimited ? "" : " tbd") + '">' +
         credits + "</div></div>" +
+      includes +
       (annual ? '<div class="per">saves $' + esc(card.annual_saving.amount) + " a year</div>" : "") +
       '<button class="btn primary" type="button" data-pm-buy="' + esc(card.tier) + '">Choose</button>' +
     "</div>";
@@ -9539,6 +9549,22 @@ function pmRender() {
   $("#pmnote").textContent = note;
 }
 
+function pmDone(reply) {
+  const plan = (reply.current && reply.current.name) || (pm.chosen && pm.chosen.name) || "";
+  const cr = reply.credits || {};
+  const unlimited = !!(cr.unlimited || (reply.current && reply.current.unlimited));
+  $("#pmdone-plan").textContent = plan;
+  $("#pmdone-bill").textContent = pm.cycle === "annual" ? "Yearly" : "Monthly";
+  $("#pmdone-cr").textContent = unlimited ? "Unlimited" : (cr.granted ? String(cr.granted) : "To be confirmed");
+  $("#pmdone-copy").textContent = unlimited
+    ? "Your plan is recorded here. This tier grants no limit, so the export wallet never blocks you."
+    : "Your plan is recorded here. Credits are added by the export wallet once the allowance for this tier is set.";
+  const adj = reply.adjustment;
+  $("#pmdone-note").textContent = (adj && adj.direction && adj.direction !== "unknown")
+    ? adj.note + (adj.amount ? " (" + adj.amount + " USD)" : "") : "";
+  pmShow("done");
+}
+
 function pmCheckout(tier) {
   pm.chosen = (pm.plans.tiers || []).find((card) => card.tier === tier);
   if (!pm.chosen) return;
@@ -9552,6 +9578,27 @@ function pmCheckout(tier) {
       ((pm.config && pm.config.missing) || []).map((name) => "<span class='mono'>" + esc(name) + "</span>").join(", ") +
       ". Add them to <span class='mono'>Backend/.env</span> and restart the server. Nothing was charged.";
     pmShow("config");
+    return;
+  }
+  // Already on a plan and choosing another tier: PayPal adjusts the plan on the running
+  // subscription and prorates the unused part of the period. There is no second approval and no
+  // second charge - the customer keeps the period they have already paid for.
+  if (pm.current && pm.current.has_subscription && pm.current.tier !== tier) {
+    pmShow("busy");
+    $("#pmbusy").textContent = "Adjusting your plan…";
+    post("/api/billing/change", { tier: tier, cycle: pm.cycle }).then((reply) => {
+      pm.current = reply.current;
+      pmDone(reply);
+    }).catch((error) => {
+      $("#pmfail").textContent = "The plan was not changed: " + (error && error.message ? error.message : String(error));
+      pmShow("fail");
+    });
+    return;
+  }
+  if (pm.current && pm.current.has_subscription && pm.current.tier === tier) {
+    pmShow("busy");
+    $("#pmbusy").textContent = "You are already on this plan. Nothing was charged.";
+    setTimeout(() => { $("#pm-plans").hidden = false; $("#pm-check").hidden = true; pmShow("ready"); }, 1200);
     return;
   }
   $("#pmck-copy").textContent = "Approve the subscription in PayPal. You can cancel at any time and keep the period you have paid for.";
@@ -9598,11 +9645,7 @@ function pmMount() {
         return post("/api/billing/confirm", { subscription_id: data.subscriptionID })
           .then((reply) => {
             pm.current = reply.current;
-            $("#pmdone-plan").textContent = (reply.current && reply.current.name) || pm.chosen.name;
-            $("#pmdone-bill").textContent = pm.cycle === "annual" ? "Yearly" : "Monthly";
-            $("#pmdone-cr").textContent = (reply.credits && reply.credits.granted)
-              ? String(reply.credits.granted) : "To be confirmed";
-            pmShow("done");
+            pmDone(reply);
           });
       },
       onCancel: () => pmShow("ready"),
@@ -9839,5 +9882,237 @@ if (new URLSearchParams(location.search).get("pricing")) {
   decorate();
   console.log('tile-close-shim v3 ready');
 })();
+</script>
+<script id="statements-tile">
+/* The statements tile (B-204): one instruction in, the statements and the working out.
+   Presentation only. Every figure below is a string the server returned from a frozen record, so the
+   toggle and the buttons cannot change a number: they choose which recorded text is shown. */
+(function () {
+  var box = null;
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined && text !== null) node.textContent = String(text);
+    return node;
+  }
+  function panel() {
+    if (box) { return box; }
+    box = el("div");
+    box.id = "statementspanel";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-label", "Statements tile");
+    box.style.cssText = "position:fixed;inset:4vh 4vw;z-index:60;background:var(--navy-800,#12161C);" +
+      "border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:22px;overflow:auto;" +
+      "box-shadow:0 30px 80px rgba(0,0,0,.55)";
+    document.body.appendChild(box);
+    return box;
+  }
+  function close() { if (box) { box.remove(); box = null; } }
+  function bar(title) {
+    var row = el("div");
+    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px";
+    row.appendChild(el("h3", "", title));
+    var shut = el("button", "btn sm", "Close");
+    shut.type = "button";
+    shut.onclick = close;
+    row.appendChild(shut);
+    return row;
+  }
+  function open() {
+    var host = panel();
+    host.innerHTML = "";
+    host.appendChild(bar("Statements: one problem, solved"));
+    host.appendChild(el("p", "muted", "Paste the question as you were given it, or your trial balance. " +
+      "The tile classifies it, does the bookkeeping and shows the statements with the working behind one toggle."));
+    var input = el("textarea");
+    input.id = "statementsinput";
+    input.placeholder = "The following trial balance was extracted at 31 December 2026.\nCash 7,000\nCapital 7,000";
+    input.style.cssText = "width:100%;min-height:150px;font:13px/1.5 ui-monospace,monospace;padding:12px;" +
+      "border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:inherit";
+    host.appendChild(input);
+    var row = el("div");
+    row.style.cssText = "display:flex;gap:10px;align-items:center;margin:12px 0";
+    var go = el("button", "btn", "Solve it");
+    go.type = "button";
+    go.onclick = function () { solve(input.value, host, go); };
+    row.appendChild(go);
+    row.appendChild(el("span", "muted", "No fields to fill, and no totals to balance yourself."));
+    host.appendChild(row);
+    var out = el("div");
+    out.id = "statementsout";
+    host.appendChild(out);
+    input.focus();
+  }
+  function solve(text, host, button) {
+    var out = host.querySelector("#statementsout");
+    out.textContent = "Working…";
+    button.disabled = true;
+    fetch("/api/cases/statements", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({instruction: text})
+    }).then(function (answer) {
+      return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+    }).then(function (result) {
+      button.disabled = false;
+      out.innerHTML = "";
+      if (result.status === 400) {
+        out.appendChild(el("p", "", result.body.error || "That could not be read."));
+        return;
+      }
+      render(out, result.body);
+    }).catch(function (error) {
+      button.disabled = false;
+      out.textContent = "The server did not answer: " + error;
+    });
+  }
+  function pre(text) {
+    var node = el("pre");
+    node.textContent = text || "";
+    node.style.cssText = "white-space:pre-wrap;font:12.5px/1.55 ui-monospace,monospace;" +
+      "background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:10px;" +
+      "padding:14px;margin:10px 0;overflow:auto";
+    return node;
+  }
+  function workingText(record) {
+    var parts = [record.statements_only || ""];
+    var w = record.working || {};
+    if (w.journal) { parts.push("JOURNAL\n" + w.journal); }
+    if (w.trial_balance) { parts.push(w.trial_balance); }
+    Object.keys(w.t_accounts || {}).sort().forEach(function (code) { parts.push(w.t_accounts[code]); });
+    (w.derivations || []).forEach(function (d) {
+      parts.push("DERIVATION: " + d.figure + "\n  identity: " + d.identity + "\n  working: " + d.working);
+    });
+    (w.assumptions || []).forEach(function (a) {
+      parts.push("ASSUMPTION: " + a.text + "\n  basis: " + a.basis);
+    });
+    (w.missing || []).forEach(function (m) {
+      parts.push("NOT IN THE INSTRUCTION: " + m.what + "\n  why: " + m.why);
+    });
+    return parts.join("\n\n");
+  }
+  function download(name, text) {
+    var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
+  }
+  function render(out, record) {
+    var meta = el("p", "muted");
+    meta.textContent = String(record.problem_type || "unread") + " / read by " +
+      String(record.reading_source || "?") + " / " + (record.solved ? "solved" : "not solved");
+    out.appendChild(meta);
+    if (record.why) { out.appendChild(el("p", "muted", record.why)); }
+    if (!record.solved) {
+      out.appendChild(el("p", "", record.refusal || "These figures do not build into statements."));
+      var diagnosis = record.diagnosis;
+      if (diagnosis) {
+        var card = el("div");
+        card.style.cssText = "border-left:3px solid #E8A13A;padding:10px 14px;margin:12px 0;" +
+          "background:rgba(232,161,58,.08)";
+        card.appendChild(el("strong", "", "Out by: " + diagnosis.difference));
+        (diagnosis.findings || []).forEach(function (finding) {
+          card.appendChild(el("p", "muted", "(" + finding.confidence + ") " + finding.detail));
+        });
+        if ((diagnosis.cannot_prove || []).length) {
+          card.appendChild(el("p", "muted", "What the check cannot prove: " +
+            diagnosis.cannot_prove.join(" ")));
+        }
+        out.appendChild(card);
+      }
+      ((record.working || {}).missing || []).forEach(function (gap) {
+        out.appendChild(el("p", "muted", "Not in the instruction: " + gap.what + " - " + gap.why));
+      });
+      return;
+    }
+    var toggle = el("div");
+    toggle.style.cssText = "display:flex;gap:8px;margin:14px 0 4px";
+    var view = el("div");
+    var buttons = {};
+    function show(kind) {
+      view.innerHTML = "";
+      view.appendChild(pre(kind === "working" ? workingText(record) : record.statements_only));
+      Object.keys(buttons).forEach(function (key) {
+        buttons[key].style.opacity = key === kind ? "1" : ".55";
+        buttons[key].setAttribute("aria-pressed", key === kind ? "true" : "false");
+      });
+    }
+    [["working", "Working"], ["statements", "Statements only"]].forEach(function (pair) {
+      var button = el("button", "btn sm", pair[1]);
+      button.type = "button";
+      button.onclick = function () { show(pair[0]); };
+      buttons[pair[0]] = button;
+      toggle.appendChild(button);
+    });
+    out.appendChild(toggle);
+    out.appendChild(view);
+    show("working");
+    var withheld = (record.statements || {}).cash_flow_withheld_because;
+    if (withheld) { out.appendChild(el("p", "muted", "Cash flow statement withheld: " + withheld)); }
+    if (record.same_model_disclosure) {
+      out.appendChild(el("p", "muted", "Both seats resolved to the same model, so the second opinion " +
+        "is not independent."));
+    }
+    (record.rejected || []).forEach(function (item) {
+      if (item.alternative) {
+        out.appendChild(el("p", "muted", "Considered and not used: " + item.item + " as " +
+          item.alternative + " (" + (item.why || "") + ")"));
+      }
+    });
+    if (record.ratios) {
+      var pack = el("div");
+      pack.appendChild(el("h4", "", "Ratios you asked for"));
+      (record.ratios.computed || []).forEach(function (row) {
+        pack.appendChild(el("p", "muted", row.ratio + ": " + row.value + " (" + row.definition + ")"));
+      });
+      (record.ratios.named_unsupported || []).forEach(function (row) {
+        pack.appendChild(el("p", "muted", row.ratio + " - not computed: " + row.reason));
+      });
+      out.appendChild(pack);
+    }
+    var foot = el("div");
+    foot.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:14px";
+    function act(label, body) {
+      var button = el("button", "btn sm", label);
+      button.type = "button";
+      button.onclick = body;
+      foot.appendChild(button);
+    }
+    act("Download the statements", function () {
+      download("statements-" + record.id + ".txt", record.statements_only);
+    });
+    act("Download the working", function () {
+      download("statements-" + record.id + "-working.txt", workingText(record));
+    });
+    act("Replay this record", function () {
+      fetch("/api/cases/statements/" + record.id + "/replay", {method: "POST"})
+        .then(function (answer) { return answer.json(); })
+        .then(function (body) {
+          out.appendChild(el("p", "muted", body.ok ? "Replay matches: the record reproduces exactly."
+            : "Replay drifted: " + JSON.stringify(body)));
+        });
+    });
+    out.appendChild(foot);
+    var checks = record.checks || [];
+    var passed = checks.filter(function (check) { return check.ok; }).length;
+    out.appendChild(el("p", "muted", passed + " of " + checks.length + " core checks passed" +
+      (record.core && record.core.scalars ? " (" + record.core.scalars.checks_na + " not applicable)" : "")));
+  }
+  document.addEventListener("click", function (event) {
+    var trigger = event.target.closest("[data-statements-open]");
+    if (trigger) { event.preventDefault(); open(); }
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") { close(); }
+  });
+
+  }
+
+})();
 </script></body>
+
 </html>

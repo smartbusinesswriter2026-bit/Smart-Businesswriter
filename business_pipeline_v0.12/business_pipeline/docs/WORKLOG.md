@@ -93,7 +93,30 @@ empty: add the perspectives and the fields for each perspective first."*
 entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
 
 
-## 2026-11-03 — [product] Statements tile, part 2: the tile itself
+## 2026-11-03 — [design] Statements tile, part 3: the tile on the Accounting shelf
+
+**Ask.** *"You write the tiles."* The owner authorised the design half of the increment in this lane
+rather than handing it on, so the tile ships whole.
+
+**Built.** `subjects.ACCOUNTING_TILES` (five tiles, the first a service), `_tiles()` passing `service`
+through, one render hook in `web/index.html` for a service tile, and a self-contained
+`<script id="statements-tile">` block: instruction box, Solve, the type-and-why line, the statements,
+a **Working / Statements only** toggle, an inline diagnosis card for a refused problem, the withheld
+cash-flow note, ratios when asked, two downloads and a replay.
+
+**Presentation only.** Every string on the card is what the server recorded; the toggle chooses which
+recorded text is shown, so it cannot change a figure. The download uses the server's own
+`statements_only` / working text rather than reassembling anything in the browser.
+
+**The trap that was avoided.** Adding a tile list to a shelf that had none flips the page from groups
+to tiles, and a tool in no tile vanishes — the lesson the project-management shelf recorded. The four
+calculator tiles are therefore keyed by the group names the shelf already used, and a new test asserts
+every accounting tool lands in exactly one tile.
+
+**Verified.** `test_product_statements_tile` 6 tests OK; `test_product_subjects` + `test_product_routes`
+59 tests OK; suite discovery 3368 tests and the count digits updated in HOME/HANDOFF/CONTRIBUTORS.
+No method, preset, input, check or number changed.
+
 
 **Ask.** Build the accounting statements tile against [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md):
 one instruction box, no field-filling, the four problem types solved end to end, the statements from

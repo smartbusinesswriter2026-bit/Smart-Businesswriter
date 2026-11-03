@@ -2624,6 +2624,31 @@ PEOPLE_PERIODS = {
     "trainingroi": "per period", "labourtightness": "annual", "programmecost": "annual",
 }
 
+#: The tiles the Accounting page shows, in the order a student meets them (B-204).  The first tile is
+#: a **service**, not a launcher: it runs the statements tile (one instruction in, the statements out)
+#: rather than a frozen preset.  The four calculator tiles keep the group names the shelf already used,
+#: so every accounting tool lands in exactly one tile and nothing moves because tiles arrived.
+ACCOUNTING_TILES = [
+    {"key": "statements", "label": "Statements", "service": "statements",
+     "what": "Paste the problem as you were given it and get the journal, the trial balance and the "
+             "statements, with the full working behind one toggle.",
+     "need": "The question as it was set, or the trial balance. One instruction, no fields to fill.",
+     "note": "The tile does the bookkeeping and shows its working; it never asks you to balance anything."},
+    {"key": "Bookkeeping and statements", "label": "Bookkeeping and statements",
+     "what": "Prepare the management accounts from a declared engagement, or check a trial balance "
+             "against your own journal.",
+     "need": "The chart, the opening balances and the entries, or the trial balance and its journal."},
+    {"key": "Cost and variance analysis", "label": "Cost and variance analysis",
+     "what": "Standard cost variances, activity-based costing, sales variances and break-even.",
+     "need": "The standards, the actuals, or the cost and price structure."},
+    {"key": "Working capital and financing", "label": "Working capital and financing",
+     "what": "The cash conversion cycle, loan amortisation and the trend across declared periods.",
+     "need": "The working-capital balances, the loan terms, or two declared periods."},
+    {"key": "Tax and reporting", "label": "Tax and reporting",
+     "what": "Income tax at a declared rate.",
+     "need": "The taxable income and the declared rate."},
+]
+
 SUBJECT_GROUPS = {"finance": FINANCE_GROUPS, "entrepreneurship": ENTREPRENEURSHIP_GROUPS,
                   "marketing": MARKETING_GROUPS, "accounting": ACCOUNTING_GROUPS,
                   "operations": OPERATIONS_GROUPS, "supply-chain": SUPPLY_CHAIN_GROUPS,
@@ -2833,13 +2858,66 @@ PROJECT_MANAGEMENT_WORKSHEET_GROUPS = {
     "PM-16": "people_and_roles",
 }
 
+#: The Operations shelf.  Three tiles, and their keys are the shelf's own tool
+#: groups (`OPERATIONS_GROUPS`) exactly: `_tiles` places a calculator in the tile
+#: whose key equals the tool's group, so any other vocabulary would drop all
+#: fourteen calculators out of the page.  A worksheet sits with the calculators
+#: that answer the same question, so a student meets one question and every tool
+#: for it in the same place.
+OPERATIONS_TILES = [
+    {"key": "Process and capacity", "label": "Process and capacity",
+     "what": "Map the process, find where it is limited, and see how the work flows: "
+             "SCOR's six processes, the SIPOC boundary, the value stream and its waits, "
+             "and the constraint the theory of constraints works on.",
+     "need": "The process or the chain, named in a few words, and what enters and leaves it."},
+    {"key": "Inventory and planning", "label": "Inventory and planning",
+     "what": "What is bought, how much is held, and the plan that sets demand against "
+             "supply: the Kraljic portfolio and the sales and operations plan.",
+     "need": "The items, the demand you plan for, and the terms you buy on."},
+    {"key": "Quality and evidence", "label": "Quality and evidence",
+     "what": "Find the cause, prevent the failure, standardise the improvement and hold "
+             "the evidence: 5S, the A3, root cause analysis, FMEA and PDCA.",
+     "need": "The problem or the failure you are investigating, and the measure you already keep."},
+]
+
+#: Which tile each Operations worksheet belongs to.  Every worksheet on the shelf
+#: is here; a worksheet without a group would be on the page but in no tile.
+OPERATIONS_WORKSHEET_GROUPS = {
+    "OPS-01": "Process and capacity",    # SCOR
+    "OPS-02": "Process and capacity",    # SIPOC
+    "OPS-03": "Process and capacity",    # value stream map
+    "OPS-06": "Process and capacity",    # theory of constraints
+    "OPS-10": "Inventory and planning",  # Kraljic
+    "OPS-11": "Inventory and planning",  # S&OP
+    "OPS-04": "Quality and evidence",    # 5S
+    "OPS-05": "Quality and evidence",    # A3
+    "OPS-07": "Quality and evidence",    # root cause
+    "OPS-08": "Quality and evidence",    # FMEA
+    "OPS-12": "Quality and evidence",    # PDCA
+}
+
+#: Which tile each Operations read-only record belongs to.  Without this map the
+#: seven computed records are claimed by no tile, and the page's leftover heading
+#: prints them as "read and cite - no worksheet yet" cards: a calculator described
+#: as something to cite.  A record is a statement of what a method computes, so it
+#: sits with the calculators of its own group.
+OPERATIONS_RECORD_GROUPS = {
+    "OPS-09": "Quality and evidence", "QNT-OPS-06": "Quality and evidence",
+    "QNT-OPS-01": "Inventory and planning", "QNT-OPS-02": "Inventory and planning",
+    "QNT-OPS-04": "Process and capacity", "QNT-OPS-08": "Process and capacity",
+    "QNT-OPS-05": "Process and capacity",
+}
+
 SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
                             "management": STRATEGY_WORKSHEET_GROUPS,
-                            "project-management": PROJECT_MANAGEMENT_WORKSHEET_GROUPS}
-SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS}
+                            "project-management": PROJECT_MANAGEMENT_WORKSHEET_GROUPS,
+                            "operations": OPERATIONS_WORKSHEET_GROUPS}
+SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS,
+                         "operations": OPERATIONS_RECORD_GROUPS}
 SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
-                 "management": STRATEGY_TILES,
-                 "project-management": PROJECT_MANAGEMENT_TILES}
+                 "management": STRATEGY_TILES, "accounting": ACCOUNTING_TILES,
+                 "project-management": PROJECT_MANAGEMENT_TILES,
+                 "operations": OPERATIONS_TILES}
 
 #: Plain-language labels for the raw catalogue discipline tags, so the records
 #: table does not show an internal taxonomy name to a student.
@@ -3841,6 +3919,7 @@ def _tiles(definition, records, tools, sheets):
         out.append({
             "key": tile["key"], "label": tile["label"], "what": tile["what"],
             "need": tile.get("need"), "note": tile.get("note"),
+            "service": tile.get("service"),
             "worksheets": [sheet for sheet in sheets if sheet.get("group") == tile["key"]],
             "tools": [tool for tool in tools if tool.get("group") == tile["key"]],
             "records": [row for row in records if record_groups.get(row["id"]) == tile["key"]],

@@ -1,6 +1,31 @@
 - 1.75 (2026-11-03): **The Project management worksheet forms are professional to fill in, and the shelf meets them in order.** Owner instruction: *"DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* Design lane B-080. **The four grids learn their own labels.** A grid's right-hand label was the internal plumbing: the Balanced Scorecard read "Measure field", the Strategy Map "Map field", the KPI tree "Tree field" and OKRs "OKR field". Each grid now declares a `form_copy` object beside its own geometry in `MATRIX_META` - the row label, the column label, the hint under the column label and the sentence that explains what belongs in the grid - and the server publishes it on the template payload. The page reads it; it does not branch on a template id. The three older branches in `matrixForm` stay as the floor for a grid that declares no copy. **A grid now opens its grid form.** This is the defect this session found and fixed: every Project management worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before* `t.form_kind`, so the four grids opened the evidence form - which collects `{blocks, links}`, a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A student typed a grid and the run was refused. The declared form now decides: a grid opens the grid form, and the grid's shape is what is collected. **The four states are designed, not accidental.** *Empty*: the grid says what belongs in a cell and that an unfilled cell is named in the audit. *Loading*: the panel says it is opening the worksheet instead of showing a blank card. *Error*: a template the server would not serve is named. *Refusal*: the audit's own reason, in a sentence, beside the form - never a raw dump and never a template token. **The grid reads at 390 px.** A four-column grid with four to twelve rows is wide, so on a narrow screen it collapses into one card per row, each field stacked under its own label; on a wide screen it is a table inside its own scrolling box. Every cell carries a label naming its row and its column. The page no longer scrolls sideways at 390 px: the capability tile and the top bar both used to push it, and both now shrink. **The shelf has tiles.** The Project management page measured `tiles: 0` and fell back to groups. It now declares seven tiles in the order a student meets the work: **Governance** (the Balanced Scorecard, the Strategy Map, the KPI Tree and the OKRs - the Scorecard first, because the other three hang off it), **Delivery documents** (the charter, the work breakdown structure and the risk register), **People and governance roles** (the RACI, the stakeholder plan and the lessons learned), then **Appraise the business case**, **Compare the options**, **Project cost and benefit** and **Schedule and control** - the last four keeping the group names the shelf already used, so no calculator moved. All ten worksheets and all eighteen calculators land in exactly one tile, and nothing is orphaned. The six held records - Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE - stay catalogued and off the page: the owner's hold now covers the leftover section too, which is the one place a held record could have reappeared. The shelf copy says the measured truth: ten completing worksheets and six read-only records, and the product invents no durations, probabilities, weights or owners. **No number, check, citation rule or gate moved.** Every figure, every check and the frozen contract are untouched; no method, preset or core file was edited. Tests: 7 new rows (E-pm-074…080), the shelf suite 80. `qa/check_page_syntax.py` -> page syntax: OK; `scripts/econ_shelf.py --check` -> frozen fixture: in sync.
 
-## The statements tile, part 2: one instruction in, the statements and the working out
+## The statements tile, part 3: the tile on the Accounting shelf
+
+The Accounting shelf had four groups and no tiles. It now has five tiles, the first of which is the
+statements tile — the first **service** tile in the product (B-205): it runs no frozen preset, so it
+carries `service: "statements"` instead of pretending to be a calculator.
+
+- **Paste the problem, press Solve.** One box, no fields, no totals to balance. The card shows the
+  type it chose and why, the statements, and a **Working / Statements only** toggle. The toggle picks
+  which recorded text is shown, so it cannot change a figure.
+- **A refused problem is diagnosed on the card**: "Out by: 500", the finding with its confidence word,
+  and what the check cannot prove. Never a plugged line.
+- **The withheld cash flow says so**, in place, rather than showing a figure that would be wrong.
+- **Ratios appear only when asked**, with the unsupported ones named under the computed ones.
+- **Download the statements, download the working, replay the record** — replay prints whether the
+  frozen record still reproduces.
+- **A same-model note** appears when both seats resolved to one model, because one model is not a
+  second opinion.
+
+Adding tiles to a shelf that had none is the trap: a tool in no tile disappears from the page. The new
+guard test asserts that every accounting tool lands in exactly one tile, that every existing group
+still has one, and that no other subject gained the tile. `test_product_subjects` and
+`test_product_routes` stay green (59 tests).
+
+Verified: `test_product_statements_tile` 6 tests OK; the tile UI is presentation only, driven by the
+strings the server recorded.
+
 
 Build **1.74** continues, under the standing rule that the core stays unfrozen until the owner freezes
 it again (B-197). The tile itself is now real: `src/bp/product/statements.py`,
@@ -139,10 +164,19 @@ items already accepted or the gap already named. Every one of the eleven papers 
 `Figure 1.` with a labelled cell per block, and `test_E_ops_018` fails if a layout drops a
 block, mislabels a cell or leaves a cell with neither a bullet nor a gap.
 
-Ledgered rather than invented: **G-ops-02/D-OPS-06** — the eleven worksheets carry no `group`,
-so the page shows one flat list; **G-ops-03** — one brief sentence can fill two adjacent SIPOC
-parts; **D-OPS-07** — a process-unit query repeats the unit. The first is an
-owner/presentation decision on a catalogue surface and is pinned, not patched.
+Ledgered rather than invented: **G-ops-03** — one brief sentence can fill two adjacent SIPOC
+parts; **D-OPS-07** — a process-unit query repeats the unit. Both are MINOR and pinned.
+
+**Owner follow-up, same day — the three tiles.** The shelf listed its eleven worksheets in one
+flat list while the management, people and project-management shelves grouped theirs. The owner's
+instruction was *"create a group for them"*, and the grouping is not a preference: `_tiles()`
+places a calculator in the tile whose key equals the tool's `group`, so the three tile keys are
+the shelf's own tool groups — **Process and capacity**, **Inventory and planning**, **Quality and
+evidence** — and each tile now holds the worksheets, the calculators and the records of one
+question. A **record map** went in with them (B-204): without it the seven computed records are
+claimed by no tile and the page's leftover heading prints them as *"read and cite — no worksheet
+yet"* cards, which is a calculator described as something to cite. `test_E_ops_010` asserts the
+three keys in page order and that no worksheet, calculator or record is dropped or duplicated.
 
 
 Session 7, fifth pass, on the owner's instruction — *"THIS NEEDS WORKSHEET: Strategy Map,
@@ -211,7 +245,7 @@ of them, the business plan, had a way in. Build **1.73**.
   headings including the projected statements and sensitivity), 14.0 KB (project
   proposal) — and the business plan is unchanged.
 
-- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
+- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), three tiles so the page groups its worksheets with the calculators and records that answer the same question (B-204), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
 
 - 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
 
