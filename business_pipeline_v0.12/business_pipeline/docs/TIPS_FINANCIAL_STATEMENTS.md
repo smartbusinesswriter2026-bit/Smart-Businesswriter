@@ -360,3 +360,84 @@ Then read, in this order:
 The next increment is the render layer, and it belongs to MiniMax: `docs/MINIMAX_STATEMENT_RENDER.md`
 is the brief. The computation side is done for the shapes the tile supports; what remains is the
 spreadsheet the student downloads and the line-spec renderer over the frozen record.
+
+
+
+## Tip 5 â€” How to solve problems involving financial statements (owner tip, 2026-11-04)
+
+(Solving financial-statement problems is a process, not a single skill. Different problem types
+require different entry points, but they share a common logic. Below is the complete framework.)
+
+### The universal problem-solving framework (five steps)
+
+1. **Identify the goal** â€” what exactly is being asked (prepare a statement, find a missing figure,
+   analyze performance, correct an error). Prevents wasted computation.
+2. **Map the given data** â€” list every figure and classify it (transaction, adjustment, beginning
+   balance, ratio, â€¦). Reveals what you have and what you must derive.
+3. **Choose the tool** â€” the right statement, formula or framework (accounting equation, cost-flow
+   formula, ratio, cash-flow logic). Ensures method matches problem type.
+4. **Work systematically** â€” follow the statement's structural order (revenues â†’ expenses â†’ net
+   income; or operating â†’ investing â†’ financing). Prevents omissions and double-counting.
+5. **Verify with a check** â€” balance check (A = L + E), cash reconciliation, or reasonableness test.
+   Catches arithmetic and logic errors before submission.
+
+### Problem types
+
+**Type 1 â€” Preparing statements from transactions.** Set up a worksheet, journalize, post, adjust,
+compute adjusted balances, then IS â†’ RE â†’ BS â†’ CF. Key links: net income â†’ RE; ending RE â†’ BS;
+ending cash on CF = BS cash.
+
+**Type 2 â€” Reconstructing missing figures.** Write the formula, substitute knowns, solve, cross-check
+with a second relation. Core formulas: COGS = BI + purchases âˆ’ EI; gross profit = revenue âˆ’ COGS;
+net income = revenue âˆ’ expenses; A = L + E; ending RE = beginning RE + NI âˆ’ dividends; current ratio,
+D/E, ROA, inventory turnover, CFO = NI + non-cash âˆ’ increase in NWC.
+
+**Type 3 â€” Ratio analysis.** Classify into liquidity / solvency / profitability / efficiency; compute
+with correct year's figures (averages for balance-sheet items when instructed); compare across years,
+against competitors, against industry; interpret what the number means and connect the ratios.
+
+**Type 4 â€” Correcting errors.** Identify the erroneous entry and the correct one; compute the
+correcting entry; trace through statements (NI, assets, liabilities/equity, cash); adjust each.
+Common patterns: equipment expensed, revenue recorded but not delivered, depreciation omitted,
+ending inventory overstated, accrued expense not recorded.
+
+**Type 5 â€” Statement of cash flows (indirect).** NI + add-backs (depreciation, amortization, bad
+debt) âˆ’ gains + losses; adjust working capital (CA increase subtract, CA decrease add, CL increase
+add, CL decrease subtract); then investing (proceeds âˆ’ capex) and financing (borrowing/issuance âˆ’
+repayments/dividends); reconcile beginning + change = ending cash = BS cash.
+
+**Type 6 â€” From a trial balance.** Separate IS accounts (revenue/expense) from BS accounts (assets/
+liabilities/equity); IS first, then RE, then BS; verify debits = credits and the sheet balances.
+
+**Type 7 â€” Integrated case problems.** Read the whole case once without computing; build a numbered
+transaction log; journalize; post; adjust; prepare IS â†’ RE â†’ BS â†’ CF; run the three checks; write
+the analysis/memo last.
+
+### Common pitfalls
+
+- Forgetting to adjust prepaids for the correct number of months.
+- Recording the full insurance/rent payment as an expense instead of splitting.
+- Omitting accrued expenses.
+- Computing tax on operating income instead of pre-tax income.
+- Sign errors in the cash-flow statement.
+- Double-counting a transaction.
+- Not showing supporting computations.
+
+### Compact checklist
+
+â–¡ Goal identified and deliverable listed
+â–¡ All given data classified (transaction / adjustment / beginning balance / ratio)
+â–¡ Correct statement order followed (IS â†’ RE â†’ BS â†’ CF)
+â–¡ Adjustments recorded separately from transactions
+â–¡ Tax computed on pre-tax income
+â–¡ Balance sheet balances (A = L + E)
+â–¡ Ending cash on CF statement = cash on balance sheet
+â–¡ Net income on IS = net income on RE statement
+â–¡ All supporting computations shown
+â–¡ Analysis/memo references specific figures or ratios
+
+(Added to the tips doc as Tip 5. The implementation gap this points at is the problem-solving *mode*
+of the tile: today the tile prepares statements from a narrative; this tip describes a broader
+capability â€” reconstruction, ratio analysis, error correction, integrated cases â€” that the tile
+does not yet cover. Recorded here as a durable requirement; implementation deferred until the render
+lane lands.)

@@ -1,4 +1,10 @@
-## 2026-11-04 — [computation] A frozen statements record and a read-back harness for the render lane (build 1.97)
+## 2026-11-04 — [owner tip] Tip 5 recorded: how to solve problems involving financial statements
+
+**Ask.** The owner pasted the full problem-solving framework (universal five steps; seven problem types — preparing from transactions, reconstructing missing figures, ratio analysis, error correction, cash-flow statement, from a trial balance, integrated cases; common pitfalls; compact checklist) and said they might add more later.
+
+**Did.** Appended it verbatim as **Tip 5** to `docs/TIPS_FINANCIAL_STATEMENTS.md` under a `## Tip 5` heading, with a short note that this points at a broader problem-solving *mode* the tile does not yet cover (reconstruction, ratio analysis, error correction, integrated cases), deferred until the render lane lands.
+
+**Noted.** The tile today only prepares statements from a narrative; Tip 5 names the gap, it does not close it. No code change.
 
 **Ask.** "a. when youre done, we will tackle handling problems in financial statements" — start the render lane properly: cut a frozen record and a harness so MiniMax builds against a fixed target.
 
