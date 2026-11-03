@@ -587,6 +587,16 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .capcard .lvl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
               border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;
               flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+/* ---------- the Financial statements tile's workspace ----------
+   The tile is a workspace in the page, like the other tiles' workspaces, so it is painted with
+   the page's own surfaces: the sunken panel for recorded text, the page's border and ink. */
+.statementsprint{white-space:pre-wrap;font:12.5px/1.55 ui-monospace,monospace;background:var(--sunken);
+  border:1px solid var(--border);border-radius:10px;padding:14px;margin:10px 0;overflow:auto;color:var(--text)}
+#statementsout .toggle{margin:14px 0 4px}
+#statementsout .stmtsbox{border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;
+  margin:12px 0;background:var(--sunken)}
+#statementsout .stmtsbox h4{margin:0 0 6px}
+#statementsout .stmtsbox p{margin:2px 0}
 /* Level-1 group headings on a subject page ("Bookkeeping and statements", "Cost and
    variance analysis", ...). Two devices, not one: a green bar at the start of the line
    that the eye catches while scanning, and a hairline rule under the whole heading that
@@ -689,8 +699,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ---------- business calculator shell (display + keypad) ---------- */
 .calcgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start;margin-top:6px}
 @media (max-width:980px){.calcgrid{grid-template-columns:1fr}}
+.calcgrid > div:first-child { position: sticky; top: 70px; }
 .calcdisplay{border:1px solid var(--navy-300);background:linear-gradient(180deg,#FBFDFF,#F3F7FB);border-radius:var(--r-md);
-             padding:12px 14px;position:sticky;top:70px}
+             padding:12px 14px;}
 .calcdisplay .line{font-family:var(--mono);font-size:16.6px;line-height:1.6;white-space:pre-wrap;min-height:66px}
 .calcdisplay .line .dim{color:var(--text-3)}
 .calcdisplay .line .live{background:#FFF3C4;border-radius:3px;padding:0 2px;font-weight:600}
@@ -1312,6 +1323,34 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
       </div>
       <div id="checkout"></div>
     </section>
+
+    <!-- The statements tile's own workspace.  It is a panel like every other workspace on this
+         page (the workbench, the Business Calculator, the trial-balance check), not a window
+         over it: the tile opens in the page's own light theme and in the page's own flow. -->
+    <section class="panel" id="panel-statements" hidden aria-labelledby="statements-title">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px">
+          <div>
+            <h2 id="statements-title" style="margin:0">Financial statements</h2>
+            <p class="sub" style="margin:4px 0 0">Paste a trial balance &mdash; one account per line, as
+              &ldquo;Cash 5,000&rdquo; or &ldquo;Capital 5,000 Cr&rdquo; &mdash; and the tile does the bookkeeping and shows the
+              statements with the working behind one toggle.</p>
+          </div>
+          <div class="row" style="gap:8px;align-items:center;justify-content:flex-end">
+            <span class="badge mute" id="statementsbadge" hidden></span>
+            <button class="btn sm" id="statementsback" type="button">Back to the shelf</button>
+          </div>
+        </div>
+        <label class="field" for="statementsinput">Your trial balance &mdash; one account per line, with its debit or credit</label>
+        <textarea id="statementsinput" rows="7" spellcheck="false" placeholder="The following trial balance was extracted at 31 December 2026.&#10;Cash 7,000&#10;Capital 7,000"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="statementsgo" type="button">Solve it</button>
+          <button class="btn" id="statementsdemo" type="button">Use an example</button>
+          <span class="muted">One instruction, no fields to fill, and no totals to balance yourself.</span>
+        </div>
+        <div id="statementsout"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -1331,19 +1370,22 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
       <p class="sub">A local workbench that calls the local API. Every number shown is computed by the method library
         and printed exactly as the server returned it. Nothing is calculated in the browser.</p>
       <h3>How it works</h3>
-      <p class="sub">Describe the case in the box on Home and press the arrow. The chat asks only what it still
-        needs, proposes a plan you confirm, then finds the evidence and drafts the section.<br>
+      <p class="sub">Pick what you need from the rail. A subject page holds that subject's tiles; a tile is either a
+        tool you fill in or a workspace with its own instructions. Describe the case in the box on Home and press the
+        arrow if you want the guided paper instead: the chat asks only what it still needs, proposes a plan you
+        confirm, then finds the evidence and drafts the section.<br>
         Figures come from the subject rail or the Business Calculator: pick a subject, enter your numbers, and
         the method library computes the answer with its checks, its limits and an export you can submit.<br>
         Every number is computed by the method library and printed exactly as the server returned it. Nothing is
         calculated in the browser.</p>
       <h3>Which one do I need?</h3>
-      <p class="sub"><strong>Guided paper</strong> for a full PESTEL, SWOT or combined paper with sources.
+      <p class="sub"><strong>Financial statements</strong> to prepare the statements and the working from a trial balance.
         <strong>Subjects</strong> for one topic and its tools, such as break-even or a ratio.
         <strong>Business Calculator</strong> for one calculation.
+        <strong>Check</strong> for a trial balance against your journal.
         <strong>Business plan</strong> for the plan sections and financial blocks.
         <strong>Portfolio</strong> for a dated valuation of your holdings and prices.
-        <strong>Check</strong> for a trial balance against your journal.</p>
+        <strong>Guided paper</strong> for a full PESTEL, SWOT or combined paper with sources.</p>
       <p class="sub">Every subject page has a <strong>Student guide</strong> with a Start here path, what to prepare
         and what the shelf does not do.</p>
       <h3>Key words</h3>
@@ -1534,11 +1576,11 @@ const state = {
 /* "chat" is not a panel any more: the chat renders on the Home page. The router
    sends both #/chat and #/home there, so an old link still lands in the right
    place instead of a blank screen. */
-const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status"];
+const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status", "statements"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
-const SUBJECT_WORKSPACE = ["new", "results", "deliver"];
+const SUBJECT_WORKSPACE = ["new", "results", "deliver", "statements"];
 
 /* ---------- language ---------- */
 const LOCALES = {
@@ -1602,7 +1644,9 @@ function activate(id) {
   document.title = "Smart BusinessWriter - " + (id === "subject" && state.subjectId ? state.subjectId : id);
   const target = (id === "subject" && state.subjectId)
     ? "#/subject/" + encodeURIComponent(state.subjectId)
-    : (id === "case" && state.caseId)
+    : (id === "statements")
+      ? "#/financial-statements"
+      : (id === "case" && state.caseId)
       ? "#/case/" + encodeURIComponent(state.caseId)
       : (id === "portfolio" && state.portfolioId)
         ? "#/portfolio/" + encodeURIComponent(state.portfolioId)
@@ -1655,9 +1699,10 @@ function route() {
     show("subject");
     return;
   }
-  if (head === "statements") {
-    /* The statements tile has its own address: #/statements opens it directly, so a student can
-       bookmark or share it instead of hunting for a tile on a shelf page. */
+  if (head === "financial-statements" || head === "statements") {
+    /* The statements tile has its own address: #/financial-statements opens it directly, so a student can
+       bookmark or share it instead of hunting for a tile on a shelf page.  #/statements stays as the
+       alias it has always been - a URL is a bookmark, and anything already pasted keeps working. */
     if (typeof window.openStatementsTile === "function") {
       window.openStatementsTile();
     } else {
@@ -4246,6 +4291,22 @@ function capabilityCard(item, kind) {
   "</button>";
 }
 
+/* The statements tile is a service, not a frozen preset, so it has no tool entry to
+   pass through capabilityCard().  It is built from the same parts and in the same
+   order: the same head, the same description, the same foot.  The card itself is the
+   link, so the whole tile is the target rather than a small control inside a
+   paragraph, and the card carries the address so the tile can be bookmarked. */
+function statementsCard(tile) {
+  return '<a class="capcard" href="#/financial-statements" data-statements-open="1">' +
+    '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' +
+      iconSvg("worksheet") + "</span>" +
+      "<strong>" + esc(tile.label) + "</strong></span>" +
+    '<span class="capdesc">' + esc(tile.what) + "</span>" +
+    '<span class="capfoot"><span class="capfoot-row"><span>One instruction</span>' +
+      '<span class="capgo">Open &rarr;</span></span></span>' +
+  "</a>";
+}
+
 function frameworkCard(row, kind, domain, actionOverride) {
   const theory = kind === "theory";
   const method = kind === "method";
@@ -4283,15 +4344,21 @@ function subjectTiles(s) {
     const tools = tile.tools || [];
     rows.forEach((row) => placed.add(row.id));
     html += '<h4 class="levelhead">' + esc(tile.label) + ' <button class="btn sm danger" data-close-tile="' + esc(tile.key) + '" type="button" title="Remove ' + esc(tile.label) + ' from this shelf" aria-label="Remove ' + esc(tile.label) + ' from this shelf">&times;</button></h4>';
-    html += '<p class="muted" style="margin:2px 0 6px">' + esc(tile.what) + "</p>";
+    /* A service tile is one card, not a group of cards, so the card carries the
+       description and the paragraph above the grid would say the same sentence
+       twice.  A group tile keeps its summary paragraph. */
+    if (!tile.service) {
+      html += '<p class="muted" style="margin:2px 0 6px">' + esc(tile.what) + "</p>";
+    }
     if (tile.need) {
       html += '<p class="muted" style="margin:0 0 8px"><strong>Before you start:</strong> ' + esc(tile.need) + "</p>";
     }
-    /* A service tile runs the statements tile rather than a frozen preset (B-204).  It is a link, so
-       the tile has its own address: #/statements. */
+    /* A service tile runs the statements tile rather than a frozen preset (B-204).  It is a
+       card in the same grid as every other tile, and the whole card is the link, so a click
+       never has to land on a small control inside a paragraph.  The card carries the address
+       #/financial-statements, so the tile has a name a student can copy or bookmark. */
     if (tile.service === "statements") {
-      html += '<p style="margin:0 0 8px"><a class="btn" href="#/statements" data-statements-open="1">' +
-        "Open the statements tile</a></p>";
+      html += '<div class="capgrid">' + statementsCard(tile) + "</div>";
     }
     if (!sheets.length && !rows.length && !tools.length && !tile.service) {
       html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
@@ -5799,7 +5866,12 @@ function renderCalculator() {
    (readInputs) parses them back for the request. No arithmetic here. */
 function calcValueText(value) {
   if (value === null || value === undefined) return "";
-  if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
+  if (Array.isArray(value)) {
+    // An array of objects (records/rows/column_map values) must round-trip as
+    // JSON so readInputs can parse it back; String() would write "[object Object]".
+    if (value.length && typeof value[0] === "object") return JSON.stringify(value, null, 1);
+    return value.map((v) => String(v)).join(", ");
+  }
   if (typeof value === "object") return JSON.stringify(value, null, 1);
   return String(value);
 }
@@ -5814,10 +5886,23 @@ function calcField(name, spec) {
       '<input type="text" id="in-' + esc(name) + '" data-type="' + esc(type) + '" value="' + esc(value) +
       '" placeholder="comma separated"></div>';
   }
+  // Provide specific placeholder examples for complex JSON types
+  let placeholder = "{}";
+  if (type === "records") {
+    placeholder = '[{"name": "Product A", "units": "1000"}, {"name": "Product B", "units": "500"}]';
+  } else if (type === "rows") {
+    placeholder = '[{"id": "A", "time": "5", "predecessors": ""}, {"id": "B", "time": "3", "predecessors": "A"}]';
+  } else if (type === "column_map") {
+    placeholder = '{"Group A": [1, 2, 3], "Group B": [4, 5, 6]}';
+  } else if (type === "engagement_spec") {
+    placeholder = '{"period": {"start": "2026-01-01", "end": "2026-12-31"}, "currency": "USD", "framework": "IFRS", "places": 2, "chart": [{"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "role": "cash"}], "prior_closing": {"1000": "1000"}, "opening": [{"description": "opening", "lines": [{"account": "1000", "debit": "1000"}]}], "entries": [], "schedules": []}';
+  } else if (type === "count_table") {
+    placeholder = '[{"category": "A", "count": "10"}, {"category": "B", "count": "20"}]';
+  }
   if (type === "object" || type === "array" || type === "records" || type === "rows" ||
       type === "column_map" || type === "count_table" || type === "engagement_spec") {
     return '<div class="stack" style="gap:4px">' + label +
-      '<textarea id="in-' + esc(name) + '" data-type="' + esc(type) + '" rows="3" placeholder="{}">' + esc(value) + "</textarea></div>";
+      '<textarea id="in-' + esc(name) + '" data-type="' + esc(type) + '" rows="4" placeholder="' + esc(placeholder) + '">' + esc(value) + "</textarea></div>";
   }
   if (type === "boolean") {
     return '<div class="row"><input type="checkbox" id="in-' + esc(name) + '" data-type="boolean"' +
@@ -8535,7 +8620,18 @@ const RESULT_KEYS = {
   multi_criteria: [["best_index", "Best alternative (number)"], ["best_total", "Best weighted total"]],
   monte_carlo: [["mean_result", "Mean result"], ["p50_result", "Median"], ["p90_result", "P90"],
     ["probability_positive", "Share positive"]],
-  npv: [["npv", "Net present value"], ["irr", "IRR"]]
+  npv: [["npv", "Net present value"], ["irr", "IRR"]],
+  ols: [
+    ["r_squared", "R-squared"], ["adj_r_squared", "Adjusted R-squared"],
+    ["f_stat", "F statistic"], ["p_f", "Overall F p-value"],
+    ["residual_se", "Residual standard error"], ["n", "Observations"],
+    ["n_excluded", "Excluded as missing"]
+  ],
+  ols_robust: [
+    ["r_squared", "R-squared"], ["adj_r_squared", "Adjusted R-squared"],
+    ["residual_se", "Residual standard error"], ["n", "Observations"],
+    ["n_excluded", "Excluded as missing"]
+  ],
 };
 
 function resultHighlights(ap) {
@@ -8559,6 +8655,60 @@ function resultHighlights(ap) {
     Object.keys(outputs).slice(0, 6).forEach((key) => rows.push([key.replace(/_/g, " "), String(outputs[key])]));
   }
   return rows;
+}
+
+/* Render a clean, scannable regression block (fit metrics + a coefficients
+   table) so the linear-regression result is read as a model, not a scattered
+   list of raw keys. */
+function renderRegressionBlock(ap) {
+  const method = (ap.method && ap.method.id) || "";
+  if (method !== "ols" && method !== "ols_robust") return "";
+  const outputs = (ap.reperform && ap.reperform.outputs) || {};
+  const terms = [];
+  Object.keys(outputs).forEach((key) => {
+    if (key.indexOf("coef_") === 0) {
+      const name = key.slice(5);
+      const coef = outputs[key];
+      if (coef === undefined) return;
+      terms.push({
+        name: name,
+        coef: coef,
+        se: outputs["se_" + name],
+        lo: outputs["ci_lower_" + name],
+        hi: outputs["ci_upper_" + name],
+        p: outputs["p_" + name],
+        sb: outputs["std_beta_" + name]
+      });
+    }
+  });
+  if (!terms.length) return "";
+  const n2 = (v, d) => (v === null || v === undefined || v === "") ? "n/a" : Number(v).toFixed(d || 4);
+  const pText = (p) => (p === null || p === undefined || p === "") ? "n/a"
+    : (Number(p) < 0.0001 ? "below reporting floor" : Number(p).toFixed(4));
+  const rows = terms.map((t) =>
+    "<tr><td>" + esc(t.name) + "</td>" +
+    "<td>" + n2(t.coef) + "</td>" +
+    "<td>" + n2(t.se) + "</td>" +
+    "<td>" + (t.lo === undefined || t.hi === undefined ? "n/a" : n2(t.lo) + " to " + n2(t.hi)) + "</td>" +
+    "<td>" + esc(pText(t.p)) + "</td>" +
+    "<td>" + n2(t.sb) + "</td></tr>").join("");
+  const fit = [
+    ["n", "Observations (complete)"], ["n_excluded", "Excluded as missing"],
+    ["k", "Predictors"], ["r_squared", "R-squared"],
+    ["adj_r_squared", "Adjusted R-squared"], ["f_stat", "F statistic"],
+    ["p_f", "Overall F p-value"], ["residual_se", "Residual standard error"]
+  ].filter(([k]) => outputs[k] !== undefined).map(([k, label]) => {
+    let v = outputs[k];
+    if (k === "p_f") v = pText(v); else v = n2(v);
+    return "<tr><th>" + esc(label) + "</th><td>" + esc(v) + "</td></tr>";
+  }).join("");
+  return '<div class="card" style="margin-top:14px">' +
+    '<h3 style="margin:0 0 8px">Regression coefficients</h3>' +
+    '<div class="tablewrap"><table><caption>Ordinary least squares estimates</caption>' +
+    '<thead><tr><th>Predictor</th><th>Coefficient</th><th>Std error</th><th>95% confidence interval</th><th>p-value</th><th>Standardised β</th></tr></thead>' +
+    '<tbody>' + rows + "</tbody></table></div>" +
+    (fit ? '<h3 style="margin:12px 0 6px">Fit</h3><div class="tablewrap"><table><tbody>' + fit + "</tbody></table></div>" : "") +
+    '</div>';
 }
 
 function resultBodyHtml(d, withActions) {
@@ -8585,6 +8735,7 @@ function resultBodyHtml(d, withActions) {
       highlights.map(([label, value]) => "<tr><th>" + esc(label) + "</th><td>" + esc(value) + "</td></tr>").join("") +
       "</tbody></table></div>";
   }
+  html += renderRegressionBlock(ap);
   if (honestyKeys.length) {
     html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
       "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>");
@@ -9979,66 +10130,70 @@ if (new URLSearchParams(location.search).get("pricing")) {
 <script id="statements-tile">
 /* The statements tile (B-204): one instruction in, the statements and the working out.
    Presentation only. Every figure below is a string the server returned from a frozen record, so the
-   toggle and the buttons cannot change a number: they choose which recorded text is shown. */
+   toggle and the buttons cannot change a number: they choose which recorded text is shown.
+
+   The tile opens a workspace IN the page, the same way the other tiles' workspaces open: the panel is
+   switched to, and the page's own light theme, cards and buttons carry it.  It is not a window floating
+   over the shelf, so a student who opens a management-account tool and a student who opens this are
+   looking at the same kind of page in the same colours. */
 (function () {
-  var box = null;
+  var bound = false;
+
+  /* A worked example, the same way the trial-balance check offers one: a real trial balance
+     that balances, so the student sees the shape the tile reads and the answer it gives.  It is
+     the Ashgrove Supplies case, worked through in `qa/manual/statements-case-study.md`.  The
+     figures are the example's own; the engine computes every number in the answer. */
+  var EXAMPLE = "The following trial balance was extracted at 31 December 2026.\n" +
+    "Equipment 30,000\nCash 15,900\nTrade receivables 18,400\nInventory 22,600\n" +
+    "Cost of sales 84,000\nWages 19,000\nRent 8,000\nUtilities 3,200\nDepreciation 3,000\n" +
+    "Interest expense 1,200\nTrade payables 14,800 Cr\nLoan 12,000 Cr\nCapital 20,000 Cr\n" +
+    "Retained earnings 8,000 Cr\nSales 140,000 Cr\nOther income 1,500 Cr\n" +
+    "Accumulated depreciation 9,000 Cr";
+
   function el(tag, cls, text) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
     if (text !== undefined && text !== null) node.textContent = String(text);
     return node;
   }
-  function panel() {
-    if (box) { return box; }
-    box = el("div");
-    box.id = "statementspanel";
-    box.setAttribute("role", "dialog");
-    box.setAttribute("aria-label", "Statements tile");
-    box.style.cssText = "position:fixed;inset:4vh 4vw;z-index:60;background:var(--navy-800,#12161C);" +
-      "border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:22px;overflow:auto;" +
-      "box-shadow:0 30px 80px rgba(0,0,0,.55)";
-    document.body.appendChild(box);
-    return box;
+  function out() { return document.getElementById("statementsout"); }
+  function field() { return document.getElementById("statementsinput"); }
+
+  function bind() {
+    if (bound) { return; }
+    bound = true;
+    var go = document.getElementById("statementsgo");
+    if (go) { go.onclick = function () { solve(field().value, go); }; }
+    var demo = document.getElementById("statementsdemo");
+    if (demo) {
+      demo.onclick = function () {
+        var f = field();
+        if (!f) { return; }
+        f.value = EXAMPLE;
+        f.focus();
+      };
+    }
+    var back = document.getElementById("statementsback");
+    if (back) {
+      back.onclick = function () {
+        location.hash = "#/subject/" + encodeURIComponent(state.subjectId || "accounting");
+      };
+    }
   }
-  function close() { if (box) { box.remove(); box = null; } }
-  function bar(title) {
-    var row = el("div");
-    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px";
-    row.appendChild(el("h3", "", title));
-    var shut = el("button", "btn sm", "Close");
-    shut.type = "button";
-    shut.onclick = close;
-    row.appendChild(shut);
-    return row;
-  }
+
+  /* The router calls this when the address is #/financial-statements (or its legacy
+     alias #/statements).  The opener is what the router reaches for, so it must be
+     exposed on window before the first route can fire. */
   function open() {
-    var host = panel();
-    host.innerHTML = "";
-    host.appendChild(bar("Statements: one problem, solved"));
-    host.appendChild(el("p", "muted", "Paste the question as you were given it, or your trial balance. " +
-      "The tile classifies it, does the bookkeeping and shows the statements with the working behind one toggle."));
-    var input = el("textarea");
-    input.id = "statementsinput";
-    input.placeholder = "The following trial balance was extracted at 31 December 2026.\nCash 7,000\nCapital 7,000";
-    input.style.cssText = "width:100%;min-height:150px;font:13px/1.5 ui-monospace,monospace;padding:12px;" +
-      "border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:inherit";
-    host.appendChild(input);
-    var row = el("div");
-    row.style.cssText = "display:flex;gap:10px;align-items:center;margin:12px 0";
-    var go = el("button", "btn", "Solve it");
-    go.type = "button";
-    go.onclick = function () { solve(input.value, host, go); };
-    row.appendChild(go);
-    row.appendChild(el("span", "muted", "No fields to fill, and no totals to balance yourself."));
-    host.appendChild(row);
-    var out = el("div");
-    out.id = "statementsout";
-    host.appendChild(out);
-    input.focus();
+    bind();
+    show("statements");
+    var f = field();
+    if (f && !f.value) { f.focus(); }
   }
-  function solve(text, host, button) {
-    var out = host.querySelector("#statementsout");
-    out.textContent = "Working…";
+  function solve(text, button) {
+    var host = out();
+    host.innerHTML = "";
+    host.appendChild(el("p", "muted", "Working…"));
     button.disabled = true;
     fetch("/api/cases/statements", {
       method: "POST",
@@ -10048,23 +10203,35 @@ if (new URLSearchParams(location.search).get("pricing")) {
       return answer.json().then(function (body) { return {status: answer.status, body: body}; });
     }).then(function (result) {
       button.disabled = false;
-      out.innerHTML = "";
+      host.innerHTML = "";
       if (result.status === 400) {
-        out.appendChild(el("p", "", result.body.error || "That could not be read."));
+        /* The backend's own reason is shown, in its words: it knows why it refused and the page
+           must not paraphrase a refusal it does not own.  The shape the tile reads is added
+           under it, because a refusal the student cannot act on is a dead end. */
+        host.innerHTML = banner("blocked", "The tile could not read this",
+          "<div>" + esc(result.body.error || "The instruction could not be read.") + "</div>" +
+          "<p class=\"muted\" style=\"margin:8px 0 0\">The tile reads one trial balance for one period, " +
+          "one account per line, as &ldquo;Cash 5,000&rdquo; or &ldquo;Capital 5,000 Cr&rdquo;. " +
+          "Press <strong>Use an example</strong> to see the shape it reads.</p>");
         return;
       }
-      render(out, result.body);
+      if (result.status >= 500) {
+        host.innerHTML = banner("blocked", "The server could not answer",
+          "<div>The request failed with status " + result.status + ". Nothing has been calculated " +
+          "and nothing has been guessed.</div>");
+        return;
+      }
+      render(host, result.body);
     }).catch(function (error) {
       button.disabled = false;
-      out.textContent = "The server did not answer: " + error;
+      host.textContent = "The server did not answer: " + error;
     });
   }
+  /* The recorded text, in the page's own sunken surface.  It is monospaced because it is
+     the statements as the server printed them, not because the page is a code view. */
   function pre(text) {
-    var node = el("pre");
+    var node = el("pre", "statementsprint");
     node.textContent = text || "";
-    node.style.cssText = "white-space:pre-wrap;font:12.5px/1.55 ui-monospace,monospace;" +
-      "background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:10px;" +
-      "padding:14px;margin:10px 0;overflow:auto";
     return node;
   }
   function workingText(record) {
@@ -10094,70 +10261,74 @@ if (new URLSearchParams(location.search).get("pricing")) {
     link.click();
     setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
   }
-  function render(out, record) {
-    var meta = el("p", "muted");
-    meta.textContent = String(record.problem_type || "unread") + " / read by " +
-      String(record.reading_source || "?") + " / " + (record.solved ? "solved" : "not solved");
-    out.appendChild(meta);
-    if (record.why) { out.appendChild(el("p", "muted", record.why)); }
+  function render(host, record) {
+    var badge = document.getElementById("statementsbadge");
+    if (badge) {
+      badge.textContent = String(record.problem_type || "unread") + " / read by " +
+        String(record.reading_source || "?") + " / " + (record.solved ? "solved" : "not solved");
+      badge.hidden = false;
+    }
+    if (record.why) { host.appendChild(el("p", "muted", record.why)); }
     if (!record.solved) {
-      out.appendChild(el("p", "", record.refusal || "These figures do not build into statements."));
+      host.appendChild(el("p", "", record.refusal || "These figures do not build into statements."));
       var diagnosis = record.diagnosis;
       if (diagnosis) {
         var card = el("div");
-        card.style.cssText = "border-left:3px solid #E8A13A;padding:10px 14px;margin:12px 0;" +
-          "background:rgba(232,161,58,.08)";
-        card.appendChild(el("strong", "", "Out by: " + diagnosis.difference));
+        var body = "";
         (diagnosis.findings || []).forEach(function (finding) {
-          card.appendChild(el("p", "muted", "(" + finding.confidence + ") " + finding.detail));
+          body += "<p class=\"muted\" style=\"margin:6px 0 0\">(" + esc(finding.confidence) + ") " +
+            esc(finding.detail) + "</p>";
         });
         if ((diagnosis.cannot_prove || []).length) {
-          card.appendChild(el("p", "muted", "What the check cannot prove: " +
-            diagnosis.cannot_prove.join(" ")));
+          body += "<p class=\"muted\" style=\"margin:6px 0 0\">What the check cannot prove: " +
+            esc(diagnosis.cannot_prove.join(" ")) + "</p>";
         }
-        out.appendChild(card);
+        card.innerHTML = banner("honesty", "Out by: " + diagnosis.difference, body);
+        host.appendChild(card);
       }
       ((record.working || {}).missing || []).forEach(function (gap) {
-        out.appendChild(el("p", "muted", "Not in the instruction: " + gap.what + " - " + gap.why));
+        host.appendChild(el("p", "muted", "Not in the instruction: " + gap.what + " - " + gap.why));
       });
       return;
     }
-    var toggle = el("div");
-    toggle.style.cssText = "display:flex;gap:8px;margin:14px 0 4px";
+    /* The toggle is the page's own: a pill of two buttons, the pressed one filled. */
+    var toggle = el("div", "toggle");
+    toggle.setAttribute("role", "group");
+    toggle.setAttribute("aria-label", "What to show");
     var view = el("div");
     var buttons = {};
-    function show(kind) {
+    function showView(kind) {
       view.innerHTML = "";
       view.appendChild(pre(kind === "working" ? workingText(record) : record.statements_only));
       Object.keys(buttons).forEach(function (key) {
-        buttons[key].style.opacity = key === kind ? "1" : ".55";
         buttons[key].setAttribute("aria-pressed", key === kind ? "true" : "false");
       });
     }
     [["working", "Working"], ["statements", "Statements only"]].forEach(function (pair) {
-      var button = el("button", "btn sm", pair[1]);
+      var button = el("button", "", pair[1]);
       button.type = "button";
-      button.onclick = function () { show(pair[0]); };
+      button.setAttribute("aria-pressed", "false");
+      button.onclick = function () { showView(pair[0]); };
       buttons[pair[0]] = button;
       toggle.appendChild(button);
     });
-    out.appendChild(toggle);
-    out.appendChild(view);
-    show("working");
+    host.appendChild(toggle);
+    host.appendChild(view);
+    showView("working");
     var withheld = (record.statements || {}).cash_flow_withheld_because;
-    if (withheld) { out.appendChild(el("p", "muted", "Cash flow statement withheld: " + withheld)); }
+    if (withheld) { host.appendChild(el("p", "muted", "Cash flow statement withheld: " + withheld)); }
     if (record.same_model_disclosure) {
-      out.appendChild(el("p", "muted", "Both seats resolved to the same model, so the second opinion " +
+      host.appendChild(el("p", "muted", "Both seats resolved to the same model, so the second opinion " +
         "is not independent."));
     }
     (record.rejected || []).forEach(function (item) {
       if (item.alternative) {
-        out.appendChild(el("p", "muted", "Considered and not used: " + item.item + " as " +
+        host.appendChild(el("p", "muted", "Considered and not used: " + item.item + " as " +
           item.alternative + " (" + (item.why || "") + ")"));
       }
     });
     if (record.ratios) {
-      var pack = el("div");
+      var pack = el("div", "stmtsbox");
       pack.appendChild(el("h4", "", "Ratios you asked for"));
       (record.ratios.computed || []).forEach(function (row) {
         pack.appendChild(el("p", "muted", row.ratio + ": " + row.value + " (" + row.definition + ")"));
@@ -10165,10 +10336,32 @@ if (new URLSearchParams(location.search).get("pricing")) {
       (record.ratios.named_unsupported || []).forEach(function (row) {
         pack.appendChild(el("p", "muted", row.ratio + " - not computed: " + row.reason));
       });
-      out.appendChild(pack);
+      host.appendChild(pack);
     }
-    var foot = el("div");
-    foot.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:14px";
+    /* The download goes through the server's own export, so the file is the one the stored
+       record exports and it carries the server's own filename.  A failure is said, not hidden:
+       the student is told the file did not arrive rather than given something else. */
+    function fetchExport(format, label, filename) {
+      fetch("/api/cases/statements/" + record.id + "/export", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({format: format})
+      }).then(function (answer) {
+        return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+      }).then(function (result) {
+        if (result.status !== 200 || !result.body.text) {
+          host.appendChild(el("p", "muted", label + ": the server did not return a file (" +
+            ((result.body && result.body.error) || result.status) + ")."));
+          return;
+        }
+        download(filename || result.body.filename, result.body.text);
+        host.appendChild(el("p", "muted", label + ": " + (filename || result.body.filename) + " is ready."));
+      }).catch(function (error) {
+        host.appendChild(el("p", "muted", label + ": the server did not answer (" + error + ")."));
+      });
+    }
+    var foot = el("div", "row");
+    foot.style.marginTop = "14px";
     function act(label, body) {
       var button = el("button", "btn sm", label);
       button.type = "button";
@@ -10176,44 +10369,46 @@ if (new URLSearchParams(location.search).get("pricing")) {
       foot.appendChild(button);
     }
     act("Download the statements", function () {
-      download("statements-" + record.id + ".txt", record.statements_only);
+      fetchExport("statements_only", "Download the statements");
     });
     act("Download the working", function () {
-      download("statements-" + record.id + "-working.txt", workingText(record));
+      fetchExport("working", "Download the working", "statements-" + record.id + "-working.txt");
     });
     act("Replay this record", function () {
       fetch("/api/cases/statements/" + record.id + "/replay", {method: "POST"})
         .then(function (answer) { return answer.json(); })
         .then(function (body) {
-          out.appendChild(el("p", "muted", body.ok ? "Replay matches: the record reproduces exactly."
+          host.appendChild(el("p", "muted", body.ok ? "Replay matches: the record reproduces exactly."
             : "Replay drifted: " + JSON.stringify(body)));
         });
     });
-    out.appendChild(foot);
+    host.appendChild(foot);
     var checks = record.checks || [];
     var passed = checks.filter(function (check) { return check.ok; }).length;
-    out.appendChild(el("p", "muted", passed + " of " + checks.length + " core checks passed" +
+    host.appendChild(el("p", "muted", passed + " of " + checks.length + " core checks passed" +
       (record.core && record.core.scalars ? " (" + record.core.scalars.checks_na + " not applicable)" : "")));
   }
   document.addEventListener("click", function (event) {
+    if (!event.target || !event.target.closest) { return; }
     var trigger = event.target.closest("[data-statements-open]");
     if (!trigger) return;
-    /* The link carries the address (#/statements), so the hash is allowed to change and the router
-       opens the tile from it.  That way the tile has a name a student can copy or bookmark. */
-    if (trigger.tagName !== "A") {
-      event.preventDefault();
+    /* The card carries the address, so the tile has a name a student can copy or bookmark.
+       The workspace is opened here and not left to the router alone: a click on a card whose
+       address is already the canonical one changes no hash, so no hashchange fires, and the
+       tile would look dead.  Setting the address from here keeps the two paths the same. */
+    event.preventDefault();
+    if (location.hash !== "#/financial-statements") {
+      location.hash = "#/financial-statements";
+    } else {
       open();
-      if (location.hash !== "#/statements") location.hash = "#/statements";
     }
   });
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") { close(); }
-  });
-  /* The router calls this when the address is #/statements. */
+  /* The router calls this when the address is #/financial-statements (or its legacy
+     alias #/statements).  The opener is what the router reaches for, so it must be
+     exposed on window before the first route can fire. */
   window.openStatementsTile = open;
 
-  }
-
+  bind();
 })();
 </script></body>
 

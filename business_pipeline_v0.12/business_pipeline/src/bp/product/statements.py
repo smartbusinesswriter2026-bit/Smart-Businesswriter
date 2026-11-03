@@ -724,15 +724,20 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
     try:
         reading = read_deterministic(text, currency=currency, framework=framework)
         rows = reading.pop("_rows", []) or []
-    except StatementRefused:
-        raise                      # no model can rescue two sets of balances or two periods
+    except StatementRefused as error:
+        parser_error = error
+        reading = None
     except StatementError as error:
         parser_error = error
         reading = None
     if reading is None:
         used = reader if reader is not None else _CORE.get("reader")
         if used is None:
-            raise StatementError(str(parser_error))
+            try:
+                return _solve_narrative(text, currency=currency, framework=framework, ratios=ratios)
+            except StatementError as error:
+                raise StatementError(str(parser_error) + " — and the plan layer could not read it either: "
+                                    + str(error))
         try:
             answer = used(text)
         except Exception as error:
@@ -759,6 +764,91 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
                         source, rejected, same_model)
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
     return _record(reading, spec, result, text, source, rejected, same_model, pack)
+
+
+def _models_for_extraction():
+    """A model for the extraction step, or None when none is configured."""
+    try:
+        import bp.llm as llm
+    except Exception:
+        return None
+    models = llm.from_env()
+    if models is not None:
+        return models
+    import os
+    if os.environ.get("DEEPSEEK_API_KEY"):
+        return llm.Models(llm.DeepSeekProvider("deepseek-chat"),
+                          config=llm.LLMConfig(enabled=True))
+    return None
+
+
+def _solve_narrative(text, currency=None, framework=None, ratios=None):
+    """A narrative (not a trial balance) solved through the plan layer.
+
+    The deterministic parser could not read this instruction, so the model is asked to structure it
+    into journal lines; the ledger then posts them, and the three articulation identities decide
+    whether the record is allowed out. Only the *stated* transactions are posted — adjusting entries
+    are not derived here, and that is named in the record's `missing`.
+    """
+    try:
+        import bp.statement_extract as sx
+        import bp.statement_plan as sp
+    except Exception as error:
+        raise StatementError("the plan layer is unavailable: " + str(error)[:120])
+    models = _models_for_extraction()
+    if models is None:
+        raise StatementError("no model is configured, so only a trial balance can be read. "
+                             "Set DEEPSEEK_API_KEY (or BP_LLM_PROVIDER + BP_LLM_MODEL).")
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+    try:
+        extracted = sx.extract(text, sp.DEFAULT_CHART, models, consent=True,
+                               period=period, default_date=period["end"])
+    except sx.ExtractionError as error:
+        raise StatementError("the model could not read this as a journal: " + str(error))
+    policy = extracted.get("policy") or {}
+    stated = list(policy.get("explicitly_stated") or [])
+    if "tax_rate" in policy and "tax_rate" not in stated:
+        stated.append("tax_rate")
+    dep = policy.get("depreciation") or {}
+    if "convention" in dep and "depreciation.convention" not in stated:
+        stated.append("depreciation.convention")
+    if "inventory_system" in policy and "inventory_system" not in stated:
+        stated.append("inventory_system")
+    policy["explicitly_stated"] = stated
+    dep = policy.setdefault("depreciation", {})
+    dep.setdefault("method", "straight_line")
+    dep.setdefault("convention", "pro_rata")
+    policy.setdefault("inventory_system", "periodic")
+    policy.setdefault("rounding", "half_up")
+    plan = {
+        "period": period, "currency": currency, "framework": framework, "places": 2,
+        "chart": sp.DEFAULT_CHART, "policy": policy,
+        "prior_closing": {}, "opening": [], "entries": extracted["entries"],
+        "adjustments": extracted.get("adjustments", []), "schedules": [],
+        "problem_type": "transactions",
+    }
+    try:
+        result = sp.build(plan)
+    except sp.PlanError as error:
+        raise StatementError("the journal did not build: " + str(error))
+    reading = {
+        "problem_type": "transactions",
+        "why": ("Prepared from a journal the model extracted; every figure was posted by the "
+                "deterministic ledger and checked against the three articulation identities."),
+        "currency": currency, "framework": framework, "derivations": [],
+        "assumptions": [a["assumption"] for a in result["assumptions"]["assumed"]],
+        "missing": (["adjusting entries derived: " + ", ".join(a["id"] for a in extracted.get("adjustments", []))]
+                    if extracted.get("adjustments") else
+                    ["no adjusting entries were derived (prepaids, depreciation, COGS, tax); only the stated transactions were posted"]),
+        "diagnosis": None,
+    }
+    pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
+    record = _record(reading, result["spec"], result, text, "plan",
+                     extracted.get("unplaceable") or [], False, pack)
+    record["reading_source"] = "plan"
+    return record
 
 
 ID_RE = re.compile(r"[0-9a-f]{12}")

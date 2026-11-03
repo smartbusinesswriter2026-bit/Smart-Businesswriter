@@ -1,3 +1,278 @@
+## 2026-11-04 — [computation] The tile now derives the adjusting entries, not only the stated ones
+
+**Ask.** "go." — wire adjustment derivation into the extraction boundary so the tile computes
+prepaids, depreciation, COGS and tax from the text, not only the stated transactions.
+
+**Did.**
+
+- **`statement_extract` now emits adjustment specs.** The contract grew a second block:
+  `adjustments` (id, function, debit, credit, params, source_text) and `policy` (tax_rate,
+  depreciation convention, inventory system). The prompt names the four registered functions and
+  their parameters and forbids computing an amount.
+- **Every parameter is grounded.** A number in `params` must appear in the source text; the only
+  exceptions are declared defaults (residual 0, beginning inventory 0, total months 12). A parameter
+  the model invents is refused.
+- **`to_policy` normalises** the flat `depreciation_convention` a model may emit into the nested
+  shape, and converts `tax_rate` to a string so the plan's `Decimal`-only rule holds.
+- **`_solve_narrative` feeds the adjustments and policy into the plan**, which computes them in the
+  DAG and settles tax in the second pass.
+- **Entry shape is accepted two ways**: the `lines` array and the `{debit, credit, amount}` shorthand
+  the model actually emits, both normalised to one side per line.
+
+**Verified.** A synthetic 11-clause problem (capital 50,000, equipment 60,000 over 5 years, prepaid
+insurance 6,000, inventory 70,000 with ending 10,000, sales 200,000, collections/payables, salaries,
+rent, interest, accrued salaries, tax rate 25%) now returns depreciation 12,000, prepaid 5,500, COGS
+60,000 and tax 17,400 on a pre-tax income of 69,600, with net income 52,200, assets 137,600 and all
+eleven checks passing. The live smoke (`qa/manual/extract-smoke.py`) still passes on the simpler
+narrative.
+
+**Not done, and named.** Reducing-balance depreciation is refused, not approximated. A loss earns no
+tax benefit. Multi-period and consolidated statements are out of scope. The tile copy in `subjects.py`
+still over-claims. Tuning across many problems has not been done.
+
+**Learned.** A model will invent a default (`residual: 0`, `beginning_inventory: 0`) and present it
+as a stated figure. The grounding rule would reject it - and should - unless the default is declared
+up front. Declaring the defaults is cheaper than fighting the model, and it makes the assumption
+manifest accurate.
+
+## 2026-11-04 — [computation] The tile now reads a narrative, not only a trial balance
+
+**Ask.** "go." — wire `statement_extract` + `statement_plan` behind `POST /api/cases/statements` so a pasted
+assignment, not only a trial balance, is solved.
+
+**Did.**
+
+- **`_solve_narrative` in `src/bp/product/statements.py` (new).** When the deterministic reader
+  refuses (or is absent), the model extracts a journal from the default chart
+  (`bp.statement_plan.DEFAULT_CHART`), the plan compiles it with no adjustments, and the ledger posts it.
+  The record carries `reading_source: "plan"` and names the missing adjustments.
+- **`solve()` now rescues a `StatementRefused`** — the refusal for two figures on one line or two
+  periods is exactly the case the narrative path can handle; a genuinely unworkable input still raises.
+- **`statement_plan.build` returns `spec`**, so the product layer can freeze the same record shape.
+- **`_models_for_extraction()`** uses `bp.llm.from_env()` and falls back to `DEEPSEEK_API_KEY`.
+
+**Verified.** A synthetic narrative ("started the business with 20,000 cash; sold 9,500 for cash; paid
+rent 1,200 and salaries 2,400") returns a full statement set: net income 5,900, assets 25,900, cash
+22,900, all eleven checks passing, all three identities true. The tile's existing tests
+(`test_product_statements_tile`, 55) still pass; the docs-sync suite still passes.
+
+**Not done, and named.** Adjusting-entry derivation from text (prepaid amortization, depreciation,
+COGS, tax) is not wired — only the stated transactions are posted, and that is named in the record's
+`missing`. Multi-period and consolidated statements are out of scope. The tile copy in `subjects.py`
+still over-claims ("the question as you were given it") and that file is another lane's.
+
+**Learned.** The deterministic reader's `StatementRefused` for "two figures on one line" is not a
+failure of the input — it is a signal that the input is a narrative, which is precisely what the plan
+layer exists to handle. Treating it as a fall-through trigger, rather than a dead end, is what makes
+the tile solve assignments at all.
+
+## 2026-11-04 — [computation] The two statement tips become code: a model reads language, the engine does arithmetic, three identities decide what may be printed
+
+**Ask.** The owner supplied two tips on creating and solving financial statements, and asked that
+they be studied, recorded so the next model can find them, and implemented generically — *"dont
+hardcode north star text only use what is learned from it. this should be generic."* The hard rule
+retained: **no invented numbers.** Prior lane rules were lifted for this work.
+
+**Why the shape is what it is.** The tile already prepared statements from a trial balance
+(`docs/HANDOFF_STATEMENTS_TILE.md`, `qa/manual/statements-case-study.md`) and refused everything else,
+because its reading layer parses one trial balance and nothing more. The tips say the missing
+capability is not a bigger prompt: it is a **split of responsibility** — the model translates language
+into balanced journal lines, code computes every derived figure, and checks decide whether the answer
+leaves the building.
+
+**Did.**
+
+- **`src/bp/statement_plan.py` (new).** The generic layer, with no engagement inside it:
+  `account()`/`validate_chart()` for the chart-of-accounts table; `validate_entries()` for the strict
+  journal schema (it uses the ledger's own balance rule rather than a copy); a policy registry
+  (`POLICY_DEFAULTS`, `validate_policy`, `manifest`) that prints every assumption the text did not
+  state; an adjustment DAG (`Node`, `toposort`, `evaluate`) with deterministic ordering, `$ref`
+  dependencies and a cycle refusal; and four registered functions — `straight_line_depreciation`
+  (full-year / half-year / pro-rata), `prepaid_amortization`, `periodic_cogs`, `tax_on_pretax`.
+- **`build()` compiles, then gates.** It resolves the declared adjustments into entries, calls
+  `accounts.build`, settles **tax in a second pass** after the other adjustments (tax cannot precede
+  COGS), and then runs `articulation()`. A failed identity raises `PlanError` naming the check; the
+  record is not returned.
+- **The three identities are the ones the owner named**, including the strongest: receipts minus
+  payments equals ending cash, computed independently of the accrual statements.
+- **`src/bp/statement_extract.py` (new) is the only model-touching step.** The contract is stated as
+  data and as a prompt; `parse()` refuses anything that is not a JSON object; `validate()` checks chart
+  membership, the balance rule and a required `source_text`; and **every amount must literally appear
+  in the problem text**. A derived figure is refused with a sentence saying derived amounts belong to
+  the adjustment stage. `extract()` uses `bp.llm` and accepts nothing partially.
+- **`tests/test_statement_plan.py` (new, 40 tests).** A golden engagement assembled from declared
+  parameters, hand-derived expected figures (pre-tax 70,100.00; tax 17,525.00; net income 52,575.00;
+  assets 178,100.00; liabilities 75,525.00; equity 102,575.00; operating cash flow 74,600), variants
+  for dividends, perpetual inventory and a loss, and the gate proved **both ways** on doctored records.
+- **`docs/TIPS_FINANCIAL_STATEMENTS.md` (new)** records both tips verbatim in substance, the mapping
+  from tip to code, the measured figures, the deliberate omissions, and a pick-up block at the top.
+  Linked from `AGENTS.md`, `docs/HANDOFF.md`, `docs/HOME.md` and the changelog so it is findable
+  without being pointed at.
+- **Version moved to 1.87** (`src/bp/build.py`), with `HOME.md` and `HANDOFF.md` updated to say so and
+  the measured suite count (3651) replaced in both.
+
+**Verified.** `python -m unittest tests.test_statement_plan` → **40 tests, OK**. The golden build's
+articulation checks all pass; a doctored `total_assets` fails A=L+E and a doctored `net_direct` fails
+the cash check. `python -c "unittest.TestLoader().discover('tests').countTestCases()"` → **3651**,
+which is the number now stated in the two documents. A **live** extraction call was then made against
+DeepSeek (`deepseek-flash`) on a synthetic five-transaction problem: five grounded entries, posted,
+net income 5,900 and assets 25,900, all three identities true. The live run is what exposed three
+gaps the unit tests could not — the schema-legal `{debit: 0, credit: x}` line, `code` used instead of
+`account`, and a problem that states no date — and all three are now handled and tested.
+
+**Not done, and named.** Extraction is proved on one synthetic problem, not tuned across many, and is
+not yet wired to the tile. The tile still reads one trial balance until the extraction and plan layers
+are wired behind `POST /api/cases/statements`. Reducing-balance depreciation is refused, not
+approximated. A loss earns no tax benefit. Multi-period, comparative and consolidated statements are
+out of scope. The two Ashgrove display defects (28-decimal ratios; "other" for brought-forward
+retained earnings) remain, and are recorded in the case study.
+
+**Learned.** The cheapest way to make "no invented numbers" survive a model is not to trust a prompt:
+it is to require each proposed amount to be a substring of the source. That one rule moves every
+derived figure into code by construction, which is exactly what both tips asked for.
+
+## 2026-11-04 — [design] The Financial statements tile is a card, it was dead because of a brace, and it now says what it can actually do
+
+**Ask.** The design owner's brief (`docs/MINIMAX_FINANCIAL_STATEMENTS_UI.md`, B-080): close the UI/UX gap on the
+accounting shelf's statements tile. It is a service tile, not a frozen preset, so it never looked like the
+other tiles; the brief asked for a real card, a canonical address, and the seven click-path proofs. The owner's
+second instruction, after seeing the result: **the tile is black where every other tile is light, it floats when
+the other tiles do not, and it cannot solve a basic accounting problem** — harmonise its colour theme with the
+other tiles, make it open like "management of accounts" rather than floating, and make it able to prepare and
+download financial statements. The third instruction: **decouple it from PESTEL and SWOT.**
+
+**Why the order of the work changed.** The brief's diagnosis was that the tile "is a paragraph, not a tile" and
+that the link does not respond to clicks. Both are true, and neither is the cause. The cause is that
+`web/index.html` ended the `<script id="statements-tile">` block with a stray `}` and then `})();` — the IIFE
+body was closed twice. **The whole block was a syntax error, so none of it ran**: the dialog was never built, the
+click handler was never registered, and `window.openStatementsTile` was never defined. The link could not have
+worked as an anchor or as a card. The first increment is therefore the brace, not the card.
+
+**Did.**
+
+- **The brace.** `web/index.html` — one `}` removed. Node's parser: `block 3 [statements-tile] -> SYNTAX ERROR:
+  Unexpected token '}'` before, `SYNTAX OK` after. The router's `head === "statements"` branch had been falling
+  through to its `else` on every load, registering a `load` listener that called an undefined function.
+- **The card.** The service tile now renders as a `.capcard` in the same `.capgrid` as every other tile —
+  `.caphead` (icon + title) + `.capdesc` + `.capfoot` (the honest label "One instruction", and the `Open →`
+  affordance) — and the **whole card** is the link. Measured: **506×149**, the same box as the other cards. The
+  tile's own description paragraph is suppressed for a service tile, because the card now carries that sentence
+  and the page would otherwise say it twice.
+- **The address.** `#/financial-statements` is canonical; `#/statements` stays as the alias it has always been. The
+  click opens the workspace **itself** rather than leaving it to the hash — a click on a card whose address is
+  already canonical changes no hash, so no `hashchange` fires and the tile would look dead. One open per click,
+  never two.
+- **It no longer floats.** The tile was a `position:fixed` modal appended to `<body>` — a window over the shelf,
+  the way a *framework record* opens, not the way a *tool* opens. It is now a real panel, `panel-statements`, in
+  `PANELS` and in `SUBJECT_WORKSPACE`, with its own markup in the body: the same `.card`, `.sub`, `.field`,
+  `.badge`, `.toggle` and `.btn` components every other workspace uses. A student who opens a management-account
+  tool and a student who opens this are now looking at the same kind of page. "Back to the shelf" sits at the top
+  next to the title; the house's own tile-close button still closes it from the bottom, as it does everywhere.
+- **It no longer floats dark.** The old panel painted a navy ground (`--navy-800`, `#12161C`) while the page's
+  text is near-black (`--text`, `#0C243E`) — about **1.2:1**, and it had never been seen by anyone because the
+  syntax error meant it had never rendered. The workspace is painted with the page's own surfaces now:
+  `--surface` cards, `--sunken` for the recorded text, `--border` rules, `.toggle` for the Working / Statements
+  only switch, `.badge` for the type line, and the page's own amber `.banner.honesty` for the diagnosis.
+- **The tile's copy now says what it can actually do.** It used to promise "the question as you were given it",
+  which over-claims: the reading layer reads a **trial balance**, and only that. The copy now names the shape —
+  one account per line, as "Cash 5,000" or "Capital 5,000 Cr" — and a **Use an example** button fills in a
+  balanced trial balance so the student sees the shape and the answer at once, the way the trial-balance check
+  page already offers one.
+- **A refusal is now actionable.** The backend's own words are shown, unchanged, because the page must not
+  paraphrase a refusal it does not own; under it the page says the shape the tile reads and points at the
+  example. A 5xx now says the server could not answer rather than being rendered as "these figures do not build".
+- **The gate that let it through is now a gate.** `qa/check_page_syntax.py` matched only `<script>` tags with no
+  attributes and checked only the **last** match, so the page's two tagged blocks were never parsed. It now checks
+  every inline block and names each one. Proved both ways: `3 of 3 blocks parsed` on the current page, and the same
+  gate against the pre-fix page reports `FAILED in statements-tile`.
+- **The backend is untouched and re-measured.** The brief's transcript reproduced exactly over HTTP: **34 of 34
+  checks pass** (201 with `ni 8000`, `assets 10000`, `checks 11/11`, `checks_na 2`, `cash_flow` null with the
+  withheld note, all three statements; 201 with ratios `computed 8` / `named_unsupported 7`; 422 with the 500
+  difference; 400 with "two sets of balances … one set at a time"; export 200 `statements_only`; replay 200 `ok`).
+  No 5xx anywhere.
+- **Seven click-path proofs, in a browser.** Clicking the card opens the workspace; a cold tab on
+  `#/financial-statements` opens it; `#/statements` still opens it; "Back to the shelf" returns to the accounting
+  shelf and the page behind is unchanged; after six seconds the card is still the same node and a click inside the
+  workspace is not replaced under the cursor; Tab reaches the card and Enter opens it; the console holds one
+  informational line and no errors. **Escape no longer closes it**: that was a modal affordance and the tile is not
+  a modal any more.
+- **Decoupled from PESTEL and SWOT.** The tile's own code never touched the chat, the plan or a framework —
+  measured: **0** occurrences of `chat`, `plan`, `framework`, `pestel`, `swot`, `session` or `delivery` in the
+  statements block. The tie the owner saw was the **Help panel's own map**, which read *"Guided paper for a full
+  PESTEL, SWOT or combined paper with sources"* first and **never mentioned the statements tile at all**. The map now
+  leads with what the product can do — Financial statements, Subjects, Business Calculator, Check — and the guided
+  paper is one option among seven instead of the frame around everything else.
+
+**What the tile can actually solve, measured rather than assumed.** Seven realistic student inputs were posted to
+`POST /api/cases/statements` and the answers recorded:
+
+| the student pastes | what came back |
+|---|---|
+| a bare trial balance | **201 solved** — `ni 8000`, `assets 10000`, `checks 11/11`, cash flow withheld and named |
+| a single-year transactions narrative | **400** "this carries more than one period (2026-01-01, 2026-12-31)" |
+| an adjustments narrative (depreciation + accrual) | **400** "this puts two figures on one line … which is a comparative" |
+| a ratio question with figures but no trial balance | **400** "an account has no code; (total assets): every asset and liability needs a section" |
+| a cash-flow narrative | **16.9 s, then 400** "the chart needs exactly one retained-earnings account, found 0" |
+| an exam question with a preamble before the figures | **422** "does not balance: debits 17000, credits 19026" — the preamble was read as account rows |
+| a trial balance in EUR | **400** "this product answers in USD only" (a deliberate rule) |
+
+**So the tile reads one trial balance, and only one.** `src/bp/product/statements.py` reads it with a deterministic
+parser, and anything the parser cannot read needs the model reader — `bp/server.py` attaches it, and it needs
+`BP_OPENGO_API_KEY`, which is not configured here: *"no model is configured (set BP_OPENGO_API_KEY), so only a trial
+balance can be read."* **The owner is right that the tile cannot solve a basic accounting problem.** It can prepare
+statements and the working from a trial balance; it cannot yet read a transaction narrative, an adjustments
+problem, a cash-flow problem or an exam question with a preamble. The reading layer is the reason, and it is in
+`src/**` — the computation lane's — so it is a request below, not a change made here.
+
+**What the tree already had, and what I did not touch.** The working tree carried another lane's uncommitted
+`src/**` edits (`PRESETS` emptied for `abc`/`salesvar`/`multibreakeven`/`accounts`, `tbcheck` pulled from the
+accounting calculator group) and its own edits to `web/index.html`. Measured, not assumed: a clean `HEAD` checkout
+runs these three modules **114 tests, OK**; `HEAD` **plus only those two dirty `src/**` files** reproduces the
+identical **16 failures and 2 errors**; the current tree adds **none**. Those failures are `src/**`, they are
+another lane's, and they are recorded in `docs/HANDOFF_STATEMENTS_TILE.md` so nobody re-derives them.
+
+**Requests to the computation owner** (recorded, not made):
+
+- **[computation] The reading layer is the reason the tile "cannot solve a basic accounting problem."** The seven
+  reproductions in the table above are all in `src/bp/product/statements.py` (the reading), not in the page. Four
+  defects:
+  1. **An exam-question preamble is read as account rows.** "Prepare the income statement for the year ended
+     31 December 2026 from the following trial balance, and show your working." followed by a trial balance →
+     **422**, "does not balance: debits 17000, credits 19026" — the difference being the words of the question. A
+     question and a trial balance pasted together is the **normal** way a student pastes an exam question.
+  2. **One year is read as two periods.** A single-year transaction narrative names 1 January and 31 December and
+     is refused as "more than one period". One period's start and its end are one period.
+  3. **An adjustments sentence is read as a comparative.** "the equipment is depreciated at 20% a year; $1,500 of
+     income is still unpaid" is refused because one line carries two figures.
+  4. **Two refusals name the wrong thing.** A ratio question is refused with "an account has no code" and a
+     cash-flow narrative with "the chart needs exactly one retained-earnings account, found 0" — neither student
+     mentioned a chart. The second also takes **16.9 seconds** to refuse, which reads as a hang.
+
+  The reading is where the widening belongs: the parser is exact on a trial balance and should stay exact, but the
+  preflight has to let a preamble through and read the figures out of a narrative. **The alternative is one line of
+  configuration** — `BP_OPENGO_API_KEY` enables the model reader, which is the path the module's own docstring
+  describes ("A transaction list and an adjusting-entry narrative need the model reader"). Either fix makes the
+  tile able to prepare statements from an exam question, which is what the tile is for.
+- **[computation] The tile's own description over-claims.** `ACCOUNTING_TILES[0]["what"]` says "Paste the problem as
+  you were given it" and `["need"]` says "The question as it was set, or the trial balance" — but the tile reads a
+  trial balance. The page copy is now exact; these two strings are in `src/bp/product/subjects.py` and are the
+  computation lane's to change. Suggested: `what` → "Paste a trial balance, one account per line, and get the
+  journal, the trial balance and the statements, with the full working behind one toggle."; `need` → "A trial
+  balance, one account per line. One instruction, no fields to fill."
+- **[computation] `scripts/ci.py` carries the same page-syntax hole.** `_node_check` matches
+  `re.findall(r"<script>(.*?)</script>", html, re.S)` and writes `scripts[-1]`, so the page's two tagged blocks are
+  never parsed and the CI gate could not have caught D-ACC-11 either. The fix is the one line
+  `qa/check_page_syntax.py` now uses: match every `<script …>` block and check each. `scripts/ci.py` is the
+  computation lane's file, so it has not been edited here.
+- **[computation] `src/bp/build.py` is at `VERSION = "1.85"` and this entry is 1.86.** Every prior release commit
+  moved the two together (`2980681`, `dda7d22`, `3dadb37`). `src/**` is the computation lane's, so the bump is
+  requested rather than made — and D-PM-07 (the pill must report the build the server reports, from one source)
+  says it should not be left behind.
+
+**New:** `docs/HANDOFF_STATEMENTS_TILE.md`; `qa/check_page_syntax.py` rewritten; `qa/QA_DEFECTS.md` carries
+D-ACC-11. `src/**` and `tests/**` untouched.
+
+
 ## 2026-11-03 — [computation] People & organisation: the last shelf gets measured, and four claims its units were making turn out to be false
 
 **Ask.** The work order for the `people` shelf: measure it, write its manual and its acceptance suite, settle

@@ -21,6 +21,13 @@ Before working on the business writer chat, read:
   what you are building, the three ways the corpus fills itself, the build in order with
   "you do / you see / it means", what it costs, and what it cannot do. It points at
   `DATABASE.md` for the exact commands and at `CORPUS_DB.md` for the reasoning.
+- `business_pipeline_v0.12/business_pipeline/docs/TIPS_FINANCIAL_STATEMENTS.md` — **the owner's two
+  tips on creating and solving financial statements, and the generic layer built from them.**
+  Read before any work on the Financial statements tile, statement preparation, journal extraction
+  or adjustment computation. Code: `src/bp/statement_plan.py`, `src/bp/statement_extract.py`;
+  tests: `tests/test_statement_plan.py`; tile state: `docs/HANDOFF_STATEMENTS_TILE.md`; measured
+  worked case: `qa/manual/statements-case-study.md`; earlier probe:
+  `qa/manual/tip-northstar-probe.py`.
 
 The chat is the macro conductor: it owns the decision, thesis, framework stack,
 computation blocks and paper plan. Subject modules provide frameworks and
