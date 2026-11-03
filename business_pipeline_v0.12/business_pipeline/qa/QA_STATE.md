@@ -116,7 +116,7 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** — 0 new, 2 fewer (the docs-count fix and the flaky Brave→Firecrawl network test) |
 | Rebased onto `2cd3347` | **3314 tests** measured (3231 upstream + 68 here); shelf suite green; documents set to 3314 |
 | Full suite, measured on `2cd3347` + an earlier version of this commit | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors. **Disclosed:** that run collected only 56 of this module's tests; six (E-scl-007 … 012) had been appended after the `if __name__` guard and never ran. Found by auditing defined-vs-collected ids, moved into their class, and three traps were added on top. The six are page/record/glossary assertions with no numeric content, so the failure count stands — but the claim was measured with them absent |
-| Current tree, measured on `d6c8cef` (this shelf's core fix) | **3314 tests, 5 failures, 0 errors** (1143 s, `qa/baseline/scl-final2-suite-err.txt`) — a hung retrieval dimension, D-SCL-06 (theirs), the paper-store route, a balanced-scorecard cue, and the known rail test. **0 new, 0 errors, none on this shelf** |
+| Full suite, final tree (`c910d27`) | **3372 tests, 1 failure, 9 errors** — all ten in the Business Bundle lane's in-flight billing/export tests (`KeyError: 'unlimited'`); zero diff between my commit and its parent on billing/exports/credits. **None on this shelf** |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | Live click-through on 8001 | **NOT RUN** — see the manual §10; the session's largest gap |
 
