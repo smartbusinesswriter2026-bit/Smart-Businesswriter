@@ -101,10 +101,13 @@ class BillingTestCase(unittest.TestCase):
 class CatalogueTest(BillingTestCase):
     def test_four_tiers_in_order(self):
         data = billing.catalogue()
+        # The keys are stable ("agency") so the PayPal plan cache and every ledger already written
+        # against it stay valid; the owner renamed what the customer reads to "Business Bundle"
+        # (one subscription covering both products, 2026-11-03), so the name is what changed here.
         self.assertEqual([row["tier"] for row in data["tiers"]],
                          ["starter", "pro", "studio", "agency"])
         self.assertEqual([row["name"] for row in data["tiers"]],
-                         ["Starter", "Pro", "Studio", "Agency"])
+                         ["Starter", "Pro", "Studio", "Business Bundle"])
 
     def test_monthly_prices_are_the_owners_numbers(self):
         self.assertEqual([row["monthly"]["amount"] for row in billing.catalogue()["tiers"]],
@@ -130,8 +133,16 @@ class CatalogueTest(BillingTestCase):
 
     def test_credits_are_absent_rather_than_invented(self):
         for row in billing.catalogue()["tiers"]:
-            self.assertIsNone(row["credits"])
-            self.assertIn("to be confirmed", row["credits_label"].lower())
+            self.assertIsNone(row["credits"], "a credit number must never be invented")
+            label = row["credits_label"].lower()
+            if row["unlimited"]:
+                # The Business Bundle grants unlimited use of both products by owner declaration
+                # (2026-11-03): a declared allowance, not a number this code made up.
+                self.assertIn("unlimited", label)
+            else:
+                self.assertIn("to be confirmed", label)
+            self.assertFalse(any(character.isdigit() for character in label),
+                             row["credits_label"] + " carries a number nobody agreed")
         self.assertFalse(billing.catalogue()["credits_set"])
 
     def test_an_unknown_tier_or_cycle_is_refused(self):
