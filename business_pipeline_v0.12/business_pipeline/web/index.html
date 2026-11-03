@@ -2579,8 +2579,7 @@ RENDERERS.home = function () {
       "</div>" +
       '<div id="attachments" class="attachments" aria-live="polite"></div>' +
     "</div>" +
-    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>' +
-    '<div class="card" id="homedocs" style="margin-top:16px"></div>';
+    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>';
   $("#run").onclick = startChat;
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
@@ -2590,111 +2589,7 @@ RENDERERS.home = function () {
   bindAttachments(p);
   loadAttachments();
   renderChat();
-  loadHomeDocuments();
 };
-
-/* ---------- the student's papers, listed on Home ---------- */
-async function loadHomeDocuments() {
-  const box = document.getElementById("homedocs");
-  if (!box) return;
-  box.innerHTML = '<div class="sechead"><h3>Documents</h3></div>' +
-    '<p class="muted" style="margin-bottom:0">Loading...</p>';
-  try {
-    const data = await api("/api/cases/documents");
-    state.homeDocs = (data && data.documents) || [];
-    renderHomeDocuments();
-  } catch (error) {
-    box.innerHTML = '<div class="sechead"><h3>Documents</h3></div><p class="muted" style="margin-bottom:0">' +
-      esc(error && error.message ? error.message : String(error)) + "</p>";
-  }
-}
-
-/* The samples are grouped, not listed: one worked example with three lengths,
-   and the other samples in one quiet section. An explainer is a link on its
-   paper's row, never a row of its own. */
-function renderHomeDocuments() {
-  const box = document.getElementById("homedocs");
-  if (!box) return;
-  const rows = state.homeDocs || [];
-  const mine = rows.filter((row) => !row.sample);
-  const samples = rows.filter((row) => row.sample);
-
-  const lengths = [
-    { key: "short", label: "Short", range: "600-1,200" },
-    { key: "mid", label: "Mid", range: "1,200-2,500" },
-    { key: "long", label: "Long", range: "2,500-5,000" },
-  ];
-  const example = {};
-  lengths.forEach((length) => {
-    const paper = samples.find((row) => new RegExp("-" + length.key + "\\.docx$", "i").test(row.filename));
-    const explainer = samples.find((row) =>
-      new RegExp("-" + length.key + "-explainer\\.docx$", "i").test(row.filename));
-    if (paper) example[length.key] = { paper: paper, explainer: explainer };
-  });
-  const used = new Set();
-  Object.keys(example).forEach((key) => {
-    used.add(example[key].paper.filename);
-    if (example[key].explainer) used.add(example[key].explainer.filename);
-  });
-  const others = samples.filter((row) => !used.has(row.filename));
-  const chosen = lengths.find((length) => length.key === state.homeLength && example[length.key]) ||
-    lengths.find((length) => example[length.key]);
-
-  const size = (row) => Math.max(1, Math.round((row.size || 0) / 1024)) + " KB";
-  const meta = (row) => [row.framework, row.version, size(row), fmtDate(row.created)]
-    .filter(Boolean).map(esc).join(" \u00b7 ");
-  const paperLink = (row) => '<a class="doclink" href="' + esc(row.download) + '" download="' +
-    esc(row.filename) + '">Open the paper</a>';
-  const explainerLink = (row) => row ? '<a class="doclink quiet" href="' + esc(row.download) +
-    '" download="' + esc(row.filename) + '">How it was solved</a>' : "";
-
-  let html = '<div class="sechead"><h3>Documents</h3>' +
-    '<span class="muted">Word files, ready to open</span></div><div class="docs">';
-
-  if (mine.length) {
-    html += '<section><div class="sechead"><h4 class="levelhead" style="margin:0">Your papers</h4></div>' +
-      mine.map((row) => '<div class="docrow"><div class="docmain"><strong>' + esc(row.title) + '</strong>' +
-        '<div class="docmeta">' + meta(row) + (row.words ? " \u00b7 " + esc(String(row.words)) + " words" : "") +
-        '</div></div><div class="doclinks">' + paperLink(row) + '</div></div>').join("") + '</section>';
-  }
-
-  if (Object.keys(example).length) {
-    const current = example[chosen.key];
-    const baseTitle = String(current.paper.title || "").replace(/\s+-\s+(Short|Mid|Long)\s*\([^)]*\)\s*$/i, "");
-    html += '<section class="worked"><div class="exhead"><span class="extitle">Worked example</span>' +
-      '<span class="muted">One framework, one computation, three lengths</span></div>' +
-      '<div class="row" style="justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">' +
-      '<div class="docmain"><strong>' + esc(baseTitle) + '</strong>' +
-      '<div class="docmeta">' + esc(current.paper.framework || "") + " \u00b7 " +
-      esc(chosen.label) + " (" + esc(chosen.range) + " words) \u00b7 " + size(current.paper) + '</div></div>' +
-      '<div class="doclinks">' + paperLink(current.paper) + explainerLink(current.explainer) + '</div></div>' +
-      '<div class="seg" role="group" aria-label="Worked example length" style="margin-top:12px">' +
-      lengths.filter((length) => example[length.key]).map((length) =>
-        '<button type="button" data-sample-length="' + esc(length.key) + '" aria-pressed="' +
-        (length.key === chosen.key ? "true" : "false") + '">' + esc(length.label) +
-        ' <span class="muted">' + esc(length.range) + "</span></button>").join("") +
-      "</div></section>";
-  }
-
-  if (others.length) {
-    html += '<section><div class="sechead"><h4 class="levelhead" style="margin:0">More samples</h4></div>' +
-      others.map((row) => '<div class="docrow"><div class="docmain"><strong>' + esc(row.title) + '</strong>' +
-        '<div class="docmeta">' + meta(row) + '</div></div><div class="doclinks">' + paperLink(row) +
-        '</div></div>').join("") + "</section>";
-  }
-
-  if (!mine.length && !Object.keys(example).length && !others.length) {
-    html += '<div class="emptydocs">No papers yet. Describe a case above and the paper appears here.</div>';
-  }
-  box.innerHTML = html + "</div>";
-
-  box.querySelectorAll("[data-sample-length]").forEach((button) => {
-    button.onclick = () => {
-      state.homeLength = button.dataset.sampleLength;
-      renderHomeDocuments();
-    };
-  });
-}
 
 /* ---------- the deterministic conductor, rendered on the Home page ---------- */
 /* There is no Chat panel any more: the composer is the Home box (`#objective`)
