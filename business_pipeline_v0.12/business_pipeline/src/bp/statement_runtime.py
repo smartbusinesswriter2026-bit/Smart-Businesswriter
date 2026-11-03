@@ -36,6 +36,7 @@ class RuntimeResult:
     journal: List = field(default_factory=list)
     trial_balance: Dict[str, Decimal] = field(default_factory=dict)
     statements: Dict[str, Any] = field(default_factory=dict)
+    output_hash: str = ""
     gates: Dict[str, bool] = field(default_factory=dict)
     review: Optional[Review] = None
     diagnostics: List[str] = field(default_factory=list)
@@ -215,5 +216,11 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
         return res
     # VALIDATE: at least one articulation gate recorded
     res.gates["has_journal"] = bool(journal)
+    # determinism guard (G10)
+    try:
+        from . import determinism as det_guard
+        res.output_hash = det_guard.hash_outputs(res.statements, res.trial_balance)
+    except Exception:
+        pass
     res.status = "ok"
     return res
