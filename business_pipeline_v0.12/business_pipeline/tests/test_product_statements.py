@@ -13,7 +13,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from bp import methods  # noqa: E402
-from bp.product import statements  # noqa: E402
+from bp.product import statements, statements_verify  # noqa: E402
 
 
 def attach():
@@ -29,6 +29,192 @@ TB = ("The following trial balance was extracted at 31 December 2026.\n"
       "Cash 7,000\nTrade receivables 3,000\nInventory 1,500\nEquipment 10,000\n"
       "Accumulated depreciation 2,000\nTrade payables 2,500\nCapital 13,000\n"
       "Sales 9,000\nPurchases 4,000\nRent 1,000")
+
+
+class RequestTest(unittest.TestCase):
+    """Tip 3: the request picks what is rendered; the ledger is always built in full.
+
+    Compute scope is not output scope.  A "balance sheet only" request still computes the income
+    statement and the equity roll, and the record says so; a "cash flow only" request drags in the
+    whole stack.  What the student sees is only what they asked for.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        attach()
+        cls.full = statements.solve(TB)
+        cls.is_only = statements.solve(TB + "\nShow only the income statement.")
+        cls.bs_only = statements.solve(TB + "\nPrepare the balance sheet only.")
+        cls.cf_only = statements.solve(TB + "\nI only want the cash flow statement.")
+
+    def test_the_default_is_still_the_full_set(self):
+        self.assertEqual(self.full["requested"], ["IS", "RE", "BS", "CF"])
+        self.assertEqual(self.full["computed"], ["IS", "RE", "BS", "CF"])
+        self.assertEqual(self.full["hidden"], [])
+
+    def test_an_income_statement_request_stands_alone(self):
+        record = self.is_only
+        self.assertTrue(record["solved"], record.get("refusal"))
+        self.assertEqual(record["requested"], ["IS"])
+        self.assertEqual(record["computed"], ["IS"])
+        self.assertEqual(record["hidden"], [])
+        self.assertIn("INCOME STATEMENT", record["statements"]["income_statement"])
+        self.assertEqual(record["statements"]["balance_sheet"], "")
+        self.assertEqual(record["statements"]["equity"], "")
+        self.assertIsNone(record["statements"]["cash_flow"])
+        self.assertIsNone(record["statements"]["cash_flow_withheld_because"])
+        self.assertNotIn("BALANCE SHEET", record["statements_only"])
+
+    def test_a_balance_sheet_request_computes_what_it_needs_and_hides_it(self):
+        record = self.bs_only
+        self.assertTrue(record["solved"], record.get("refusal"))
+        self.assertEqual(record["requested"], ["BS"])
+        self.assertEqual(record["computed"], ["IS", "RE", "BS"],
+                         "a balance sheet drags in net income and the equity roll")
+        self.assertEqual(record["hidden"], ["IS", "RE"])
+        self.assertIn("BALANCE SHEET", record["statements"]["balance_sheet"])
+        self.assertEqual(record["statements"]["income_statement"], "")
+        self.assertEqual(record["statements"]["equity"], "")
+        self.assertNotIn("INCOME STATEMENT", record["statements_only"])
+
+    def test_a_cash_flow_request_requires_the_whole_ledger_and_is_withheld_here(self):
+        record = self.cf_only
+        self.assertEqual(record["requested"], ["CF"])
+        self.assertEqual(record["computed"], ["IS", "RE", "BS", "CF"],
+                         "the cash flow statement is downstream of everything")
+        self.assertEqual(record["hidden"], ["IS", "RE", "BS"])
+        self.assertIsNone(record["statements"]["cash_flow"])
+        self.assertIn("prior balance sheet", record["statements"]["cash_flow_withheld_because"])
+        self.assertEqual(record["warnings"][0]["statement"], "CF")
+
+    def test_the_numbers_do_not_drift_between_a_partial_and_a_full_run(self):
+        self.assertEqual(self.is_only["core"]["scalars"], self.full["core"]["scalars"])
+        self.assertEqual(self.bs_only["core"]["scalars"], self.full["core"]["scalars"])
+        self.assertEqual(self.is_only["statements"]["income_statement"],
+                         self.full["statements"]["income_statement"])
+        self.assertEqual(self.bs_only["statements"]["balance_sheet"],
+                         self.full["statements"]["balance_sheet"])
+
+    def test_an_explicit_request_wins_over_the_instruction_text(self):
+        record = statements.solve(TB + "\nShow only the balance sheet.", statements=["IS"])
+        self.assertEqual(record["requested"], ["IS"])
+
+    def test_the_record_keys_and_short_codes_are_both_accepted(self):
+        record = statements.solve(TB, statements=["income_statement", "cash-flow"])
+        self.assertEqual(record["requested"], ["IS", "CF"])
+        for code in ("IS", "RE", "BS", "CF"):
+            self.assertEqual(statements._statement_code(code.lower()), code, code)
+        with self.assertRaises(statements.StatementError):
+            statements.solve(TB, statements=["PL"])
+
+    def test_detection_needs_a_request_not_just_a_mention(self):
+        self.assertIsNone(statements.wants_statements(TB))
+        self.assertIsNone(statements.wants_statements("The balance sheet showed cash of 5,000."))
+        self.assertEqual(statements.wants_statements("only the balance sheet"), ("BS",))
+        self.assertEqual(statements.wants_statements("prepare the income statement and balance sheet"),
+                         ("IS", "BS"))
+        self.assertEqual(statements.wants_statements("give me the cash flow statement"), ("CF",))
+
+    def test_the_product_dependency_table_matches_the_plan_layer(self):
+        from bp import statement_plan  # the test may import the core; the product package may not
+        self.assertEqual({code: tuple(requires["requires"])
+                          for code, requires in statement_plan.PROJECTIONS.items()},
+                         {code: tuple(requires) for code, requires in statements.PROJECTIONS.items()})
+        self.assertEqual(statement_plan.dependency_closure(["BS"]), ["IS", "RE", "BS"])
+        self.assertEqual(statement_plan.dependency_closure(["IS"]), ["IS"])
+        self.assertEqual(statement_plan.dependency_closure(["CF"]), ["IS", "RE", "BS", "CF"])
+
+
+class OutputVerifierTest(unittest.TestCase):
+    """A single-statement record is complete when that statement is present, and only then."""
+
+    @staticmethod
+    def blank():
+        return {"income_statement": "", "balance_sheet": "", "equity": "", "cash_flow": None,
+                "cash_flow_withheld_because": None}
+
+    def test_one_requested_statement_is_a_complete_record(self):
+        record = self.blank()
+        record["income_statement"] = "INCOME STATEMENT"
+        self.assertEqual(statements_verify.verify_output(record, ["IS"]), [])
+
+    def test_a_missing_requested_statement_is_a_problem(self):
+        problems = statements_verify.verify_output(self.blank(), ["IS"])
+        self.assertEqual([problem["check"] for problem in problems], ["output"])
+        self.assertIn("requested but is empty", problems[0]["detail"])
+
+    def test_a_statement_computed_but_not_requested_must_not_be_rendered(self):
+        record = self.blank()
+        record["income_statement"] = "INCOME STATEMENT"
+        record["balance_sheet"] = "BALANCE SHEET"
+        problems = statements_verify.verify_output(record, ["IS"])
+        self.assertTrue(any("not requested" in problem["detail"] for problem in problems))
+
+    def test_a_withheld_cash_flow_needs_its_reason(self):
+        record = self.blank()
+        self.assertTrue(statements_verify.verify_output(record, ["CF"]),
+                        "an empty cash flow with no reason is a silent gap")
+        record["cash_flow_withheld_because"] = "one trial balance; no prior period to compare"
+        self.assertEqual(statements_verify.verify_output(record, ["CF"]), [])
+
+
+class PlanLayerTest(unittest.TestCase):
+    """A narrative goes to the plan layer first; a refusal there is final, a missing model is not."""
+
+    NARRATIVE = "The owner started business on 2 January 2026 with cash of 50,000."
+
+    def setUp(self):
+        attach()
+        from bp import statement_plan
+        self.plan = statement_plan
+        self.previous = {key: statements._CORE.get(key) for key in ("extract", "build", "reader")}
+        statements.attach_core(
+            extract=lambda text, period: {
+                "entries": [{"date": "2026-01-02", "description": "Owner invested cash",
+                             "lines": [{"account": "1000", "debit": "50000"},
+                                       {"account": "3000", "credit": "50000"}]}],
+                "adjustments": [], "policy": {"fiscal_year_end": "2026-12-31"}, "unplaceable": []},
+            build=lambda plan: statement_plan.build(
+                dict(plan, chart=statement_plan.DEFAULT_CHART)),
+            reader=lambda text: (_ for _ in ()).throw(
+                AssertionError("the council must not be asked when the plan layer can read it")))
+
+    def tearDown(self):
+        for key, value in self.previous.items():
+            if value is None:
+                statements._CORE.pop(key, None)
+            else:
+                statements._CORE[key] = value
+
+    def test_a_narrative_is_solved_by_the_plan_layer(self):
+        record = statements.solve(self.NARRATIVE)
+        self.assertTrue(record["solved"], record.get("refusal"))
+        self.assertEqual(record["reading_source"], "plan")
+        self.assertEqual(record["core"]["scalars"]["total_assets"], "50000")
+        self.assertIn("INCOME STATEMENT", record["statements"]["income_statement"])
+
+    def test_the_request_scope_applies_to_a_narrative_too(self):
+        record = statements.solve(self.NARRATIVE, statements=["BS"])
+        self.assertEqual(record["requested"], ["BS"])
+        self.assertEqual(record["computed"], ["IS", "RE", "BS"])
+        self.assertEqual(record["hidden"], ["IS", "RE"])
+        self.assertEqual(record["statements"]["income_statement"], "")
+
+    def test_a_missing_model_falls_through_to_the_next_reader(self):
+        statements.attach_core(extract=lambda text, period: (_ for _ in ()).throw(
+            statements.NoModel("no model is configured")))
+        statements.attach_core(reader=lambda text: (_ for _ in ()).throw(RuntimeError("council down")))
+        with self.assertRaises(statements.StatementError) as caught:
+            statements.solve(self.NARRATIVE)
+        self.assertIn("no model is configured", str(caught.exception))
+        self.assertIn("council down", str(caught.exception))
+
+    def test_a_plan_refusal_is_not_retried_by_another_reader(self):
+        statements.attach_core(extract=lambda text, period: (_ for _ in ()).throw(
+            statements.StatementError("grounding: months_expired is not in the instruction")))
+        with self.assertRaises(statements.StatementError) as caught:
+            statements.solve(self.NARRATIVE)
+        self.assertIn("grounding", str(caught.exception))
 
 
 class SolveTest(unittest.TestCase):

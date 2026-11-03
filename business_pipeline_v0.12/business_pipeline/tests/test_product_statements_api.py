@@ -87,6 +87,53 @@ class RouteTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("JOURNAL", payload["text"])
 
+    def test_a_request_renders_only_the_statements_it_names(self):
+        status, record = self.post(TB, statements=["BS"])
+        self.assertEqual(status, 201, record)
+        self.assertEqual(record["requested"], ["BS"])
+        self.assertEqual(record["computed"], ["IS", "RE", "BS"])
+        self.assertEqual(record["hidden"], ["IS", "RE"])
+        self.assertIn("BALANCE SHEET", record["statements_only"])
+        self.assertNotIn("INCOME STATEMENT", record["statements_only"])
+
+    def test_the_request_can_come_from_the_instruction_itself(self):
+        status, record = self.post(TB + "\nShow only the balance sheet.")
+        self.assertEqual(status, 201, record)
+        self.assertEqual(record["requested"], ["BS"])
+
+    def test_a_cash_flow_request_on_a_trial_balance_is_withheld_not_faked(self):
+        status, record = self.post(TB, statements=["CF"])
+        self.assertEqual(status, 201, record)
+        self.assertIsNone(record["statements"]["cash_flow"])
+        self.assertIn("prior balance sheet", record["statements"]["cash_flow_withheld_because"])
+        self.assertEqual(record["warnings"][0]["statement"], "CF")
+
+    def test_the_export_can_be_one_statement(self):
+        _status, record = self.post(TB, statements=["IS", "BS"])
+        status, payload = api.handle("POST", "/api/cases/statements/" + record["id"] + "/export",
+                                     {"statement": "BS"})
+        self.assertEqual(status, 200, payload)
+        self.assertEqual(payload["statement"], "BS")
+        self.assertIn("BALANCE SHEET", payload["text"])
+        self.assertNotIn("INCOME STATEMENT", payload["text"])
+        self.assertTrue(payload["filename"].startswith("bs-"))
+
+    def test_exporting_a_statement_the_record_did_not_render_is_refused(self):
+        _status, record = self.post(TB, statements=["IS"])
+        status, payload = api.handle("POST", "/api/cases/statements/" + record["id"] + "/export",
+                                     {"statement": "BS"})
+        self.assertEqual(status, 409)
+        self.assertIn("not in this record", payload["error"])
+        self.assertEqual(payload["rendered"], ["IS"])
+
+    def test_an_unknown_statement_code_is_refused(self):
+        _status, record = self.post(TB)
+        status, payload = api.handle("POST", "/api/cases/statements/" + record["id"] + "/export",
+                                     {"statement": "PL"})
+        self.assertEqual(status, 400)
+        self.assertIn("IS, RE, BS or CF", payload["error"])
+        self.assertEqual(self.post(TB, statements=["PL"])[0], 400)
+
     def test_a_refused_record_cannot_be_exported(self):
         _status, record = self.post(BAD)
         status, payload = api.handle("POST", "/api/cases/statements/" + record["id"] + "/export", {})

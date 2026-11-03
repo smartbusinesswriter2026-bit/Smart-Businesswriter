@@ -1,21 +1,27 @@
-# The two tips, and what the pipeline now does with them
+# The four tips, and what the pipeline now does with them
 
-> **PICK UP HERE (next model).** This file is the record of the owner's two tips on creating and
+> **PICK UP HERE (next model).** This file is the record of the owner's four tips on creating and
 > solving financial statements, and of the generic layer built from them.
 >
-> - Code: `src/bp/statement_plan.py` (policy, chart, journal, adjustment DAG, articulation gate)
->   and `src/bp/statement_extract.py` (the one model-touching step, with the grounding rule).
+> - Code: `src/bp/statement_plan.py` (policy, chart, journal, adjustment DAG, articulation gate,
+>   projection graph), `src/bp/statement_extract.py` (the one model-touching step, with the grounding
+>   rule) and `src/bp/product/statements.py` (the request: what is rendered, what is hidden).
 > - Tests: `tests/test_statement_plan.py` (71 tests; a hand-derived golden engagement, variants, and
->   the gate proved both ways). Live smoke: `qa/manual/extract-smoke.py` (one real model call).
+>   the gate proved both ways), `tests/test_product_statements.py` (the request contract: 60 tests
+>   with its API and boundary modules). Live smoke: `qa/manual/extract-smoke.py`.
 > - The tile these tips are about: Accounting → the first tile, **Financial statements**
 >   (`#/financial-statements`). Its UI state is `docs/HANDOFF_STATEMENTS_TILE.md`; its measured
 >   worked case is `qa/manual/statements-case-study.md`.
+> - The render layer (declarative line specs, `cf_bucket` cash-flow reconciler, the Excel file) is
+>   **MiniMax's**. The brief it builds against is `docs/MINIMAX_STATEMENT_RENDER.md`.
 > - The earlier probe of the second tip is `qa/manual/tip-northstar-probe.py` (measurement only).
 >
-> **Status 2026-11-04:** the generic layer is built and tested, and the extraction boundary has been
-> **run once against DeepSeek** on a synthetic problem (5 entries, posted, net income tied). Live
-> extraction is not yet tuned or wired to the tile. Nothing in the product hard-codes the worked
-> example; the example is used only as a test fixture.
+> **Status 2026-11-04 (build 1.96):** the computation-side contract is built and tested. The ledger
+> is always computed in full; the request decides only what is rendered, and the record carries
+> `requested` / `computed` / `hidden` as its audit trail. The plan layer is now genuinely wired to
+> the tile (build 1.88's path was unreachable in production; 1.96 injects it through `bp.server`).
+> Live extraction is proved on two synthetic problems only; it is not tuned broadly. Nothing in the
+> product hard-codes the worked example; the example is used only as a test fixture.
 
 ---
 
@@ -106,7 +112,121 @@ Two things Tip 2 flagged as needed before production, both honoured here:
 
 ---
 
-## 4. What is now built (and where)
+## 4. Tip 3 — compute scope is not output scope
+
+The second pair of tips answers "what if a student only wants one statement?". The mistake to avoid
+is two code paths — one that "just does the income statement" and one that "does everything". Two
+paths drift: an IS net income that does not match the equity roll, a balance sheet that does not
+balance. Tip 3's rule is the compiler rule:
+
+> Always parse and type-check; emit only the requested target.
+
+So the ledger is **always** built in full (it is aggregation, near-zero marginal cost, and it is what
+makes every rendered statement articulate). What varies is which **projections** are rendered, and
+which upstream projections are force-computed silently to keep them articulate.
+
+### The dependency graph
+
+```text
+TB + DAG env ──► IS ──► RE ──► BS ──► CF
+                  │      │      │
+                  └──────┴──────┴──► (CF needs NI + ΔWC)
+```
+
+| Requested | Minimum work | Why |
+|---|---|---|
+| `IS` | the trial balance | an income statement stands alone |
+| `RE` | IS + beginning RE + dividends | the roll-forward needs net income |
+| `BS` | everything: all accounts, ending RE | RE closes through net income |
+| `CF` (indirect) | IS + two balance sheets + non-cash detail | ΔWC and the cash endpoints |
+
+The asymmetry is the product insight: **the income statement is the only statement that stands
+alone.** A "balance sheet only" request is more expensive than an "income statement only" request.
+
+### Two axes of "partial" — only one is safe
+
+| Axis | Meaning | Safe? |
+|---|---|---|
+| partial **output** | full data extracted, user wants some statements | yes — gate rendering |
+| partial **input**, IS only | user gave revenue/expense data and wants the IS | yes — the IS is self-contained |
+| partial **input** + downstream | user gave partial data but wants a BS | only with plugs, and every plug must be named |
+
+The code names the four shapes in `classify()`: `full_compute_partial_render`, `standalone_is`,
+`requires_full_ledger`, `requires_plugs`. The tile only ever takes the first two; a plug is not
+something it will do silently, because "no invented numbers" is the harder rule.
+
+### The three properties the design buys
+
+1. **Idempotency.** The same `(transactions, adjustments, policy)` yields the same trial balance
+   whichever statements were requested. Partial output never changes the underlying numbers.
+2. **No drift.** Asking for the IS and later for the BS re-renders the same ledger; it does not
+   recompute a different one. `tests/test_product_statements.py` asserts the scalar records are
+   equal across partial and full runs.
+3. **Auditability.** The record says what was computed but hidden. When a client asks "where did the
+   retained earnings figure come from?", the answer is in `computed`/`hidden`, not in a support
+   email.
+
+### What was adopted, and what is deliberately deferred
+
+Adopted now (computation lane):
+
+- the projection graph and `dependency_closure()` in `src/bp/statement_plan.py`;
+- `classify()` for the four request shapes;
+- request-scoped `present()`;
+- `requested` / `computed` / `hidden` / `warnings` on the record;
+- `verify_output()`, so a single-statement record is complete when that statement is present and an
+  unrequested statement never leaks into the rendered set;
+- instruction-text intent detection (`wants_statements()`), conservative: a mention is not a request;
+- export of one statement.
+
+Deferred on purpose:
+
+- **plug mode** (`strict_articulation: false` with a `plugs` dict). The product never invents a
+  figure, so there is nothing for the tile to plug; `classify()` names the shape for any future
+  caller that is allowed to.
+- **`comparative` and multi-period requests.** Out of scope until comparatives are modelled.
+- **per-statement extraction prompts.** Tip 3 warns that "ignore balance-sheet items" is wrong (a
+  loan brings interest, equipment brings depreciation). The tile therefore always extracts the whole
+  journal and renders selectively, which is the tip's own "when in doubt" rule.
+
+---
+
+## 5. Tip 4 — the render layer (MiniMax's, specified here)
+
+Tip 4 supplies the output design. Three ideas drive it:
+
+1. **Every statement is a declarative line spec plus subtotal rules.** The model never composes a
+   statement; it emits account metadata and line specs once per engagement. A renderer is a walk over
+   the spec.
+2. **`cf_bucket` on each account is the entire cash-flow reconciler.** Working-capital changes,
+   non-cash addbacks and investing/financing splits are queries over metadata, not per-statement
+   logic. One `_delta_wc()` walks the metadata and needs no account-specific branch.
+3. **Signs are handled once, at the trial-balance boundary.** Past `tb.balance()` everything is
+   presentation. No renderer flips a sign.
+
+The metadata is the contract: `type`, `subtype`, `normal`, `statement`, `cf_bucket`, `bs_section`,
+`bs_order`, `is_label`, `is_order`, `is_group`, `is_subtract`. The IS ordering, the BS sections, the
+subtotal bases and the CF working-capital list are all filters/sorts over that dict — no hardcoded
+per-statement account lists.
+
+The cash flow is the interesting renderer because it produces three reconciliations as a side effect:
+
+- CFO + CFI + CFF = the change in cash;
+- that change equals the balance-sheet cash movement;
+- ending cash in the statement equals the cash line on the balance sheet.
+
+If any fires, the statement is not rendered. That is the same rule the computation lane already
+enforces in `statement_plan.articulation()`, seen from the render side.
+
+**Where this lives:** the render layer is MiniMax's to build — declarative line specs over the
+frozen record, and the Excel/spreadsheet format the student downloads. The tips' renderer code is a
+*specification of what the output must contain*, not a format decision. The handoff brief is
+`docs/MINIMAX_STATEMENT_RENDER.md`: it states the record shape, the metadata it can rely on, the
+three reconciliations it must preserve, and what it may not change.
+
+---
+
+## 6. What is now built (and where)
 
 `src/bp/statement_plan.py`:
 
@@ -116,10 +236,11 @@ Two things Tip 2 flagged as needed before production, both honoured here:
 | `validate_entries()` | the strict journal schema, using the ledger's own balance rule |
 | `money()`, `POLICY_DEFAULTS`, `manifest()`, `validate_policy()` | the policy registry and the visible assumptions list |
 | `Node`, `toposort()`, `evaluate()` | the adjustment DAG: deterministic order, `$ref` dependencies, cycle refusal |
-| `straight_line_depreciation`, `prepaid_amortization`, `periodic_cogs`, `tax_on_pretax` | the four rule-based adjustments (plus `half_year` / `full_year` / `pro_rata` conventions) |
+| `straight_line_depreciation`, `reducing_balance_depreciation`, `units_of_production_depreciation`, `prepaid_amortization`, `periodic_cogs`, `bad_debt_expense`, `tax_on_pretax`, `tax_benefit_on_loss` | the eight rule-based adjustments (plus `half_year` / `full_year` / `pro_rata` conventions); the registry also carries `none` |
 | `resolve_adjustments()` | an adjustment becomes one balanced entry; a zero amount posts nothing and is reported |
 | `build()` | compile → `accounts.build` → two-pass tax → articulation gate |
 | `articulation()` | the three identities, including the two-way cash check |
+| `PROJECTIONS`, `dependency_closure()`, `classify()` | Tip 3: what must be computed for a request, in topological order, and the four request shapes |
 
 `src/bp/statement_extract.py`:
 
@@ -135,9 +256,28 @@ source text. An amount it derived — the 11/12 expired portion, the tax, the CO
 those belong to the adjustment stage. That is how "no invented numbers" stays true with a model in the
 loop.
 
+`src/bp/product/statements.py` (the request, not the computation):
+
+| Function | Tip it implements |
+|---|---|
+| `wants_statements()` | Tip 3: the statements the instruction asks to see, or `None` for the full set; a mention is not a request |
+| `_requested_statements()` | an explicit `statements` argument wins over the text; accepts `IS/RE/BS/CF` and the record keys |
+| `PROJECTIONS`, `_scope()` | the rendered set, the computed closure and the hidden middle, without importing the core |
+| `present(..., requested)` | Tip 3: the core's rendered text, scoped to the request |
+| `_record(..., requested)` | `requested` / `computed` / `hidden` / `warnings` on the frozen record |
+| `_reads_as_balances()` | a balances refusal stays a refusal; a transaction narrative is a job for the plan layer |
+| `NoModel` | "nothing is configured" is retryable; a substantive refusal is final |
+
+`src/bp/product/statements_verify.py`:
+
+| Function | Tip it implements |
+|---|---|
+| `verify_reading()` | the seven reading checks (provenance, filing, chart, balance, articulation, completeness) |
+| `verify_output()` | Tip 3: every requested statement is present, nothing unrequested leaked in, and a withheld cash flow carries its reason |
+
 ---
 
-## 5. Evidence that it works
+## 7. Evidence that it works
 
 The golden engagement in `tests/test_statement_plan.py` is **built from parameters**, not transcribed:
 capital 50,000, loan 40,000, equipment 60,000, inventory 70,000 on credit, insurance 6,000 prepaid,
@@ -171,52 +311,52 @@ through the same core: net income **42,075**, total assets **164,100**, operatin
 
 ---
 
-## 6. What is deliberately not built
+## 8. What is deliberately not built
 
-- **Live extraction tuning.** `extract()` now emits **adjustment specs** as well as journal
-  entries: the model identifies the parameters (cost, life, convention, prepaid payment and months,
-  inventory counts, tax rate) and names the function; the validator refuses any parameter that is not
-  in the source text unless it is a declared default (residual 0, beginning inventory 0, total months
-  12). `to_policy` normalises the flat `depreciation_convention` a model may emit into the nested
-  shape. The adjustment DAG then computes the amounts and posts them; a tax adjustment is settled in
-  the second pass. This has been run once on a synthetic 11-clause problem and produced depreciation
-  12,000, prepaid 5,500, COGS 60,000 and tax on a pre-tax income of 69,600, with all eleven checks
-  passing. It is not tuned across many problems and is not wired to the tile.
-- **Reducing-balance / units-of-production depreciation.** Only straight-line is registered; the
-  policy validator refuses any other method rather than pretending.
-- **A tax benefit on a loss.** A loss computes no tax and says so; no deferred tax is modelled.
+- **Live extraction tuning.** `extract()` emits **adjustment specs** as well as journal entries: the
+  model identifies the parameters (cost, life, convention, rate, prepaid payment and months, inventory
+  counts, receivables balance and rate, tax rate) and names the function; the validator refuses any
+  parameter that is not in the source text unless it is a declared default (residual 0, beginning
+  inventory 0, total months 12). `to_policy` normalises the flat `depreciation_convention` a model may
+  emit into the nested shape. The adjustment DAG then computes the amounts and posts them; a tax
+  adjustment is settled in the second pass. This has been run on a synthetic 11-clause problem and on
+  the smoke script; it is not tuned across many problems, and its accuracy on a real student's wording
+  is unmeasured.
 - **Multi-period comparatives, prior-period adjustment, consolidated statements, OCI depth.**
   Single entity, single period. `ledger` already carries OCI plumbing; the plan layer does not use it.
-- **The tile's reading layer.** The tile now reads **transaction narratives** as well as trial
-  balances, and **derives adjusting entries** from the text: prepaids, depreciation, COGS and tax are
-  extracted as parameters, computed by the DAG, and posted, with the three articulation identities
-  gating the output. It has been run once on a synthetic 11-clause problem (depreciation 12,000,
-  prepaid 5,500, COGS 60,000, tax 17,400) and is not tuned across many problems. Multi-period and
-  consolidated statements are out of scope.
-- **Two display defects recorded in the Ashgrove case study**: ratios print at 28 decimals instead of
-  the declared 3 dp, and brought-forward retained earnings is labelled "other" with truncated roll-
-  forward labels. Both are in the record-packing code, not the browser.
+  Comparatives are refused with a named reason rather than merged.
+- **Plug mode.** `classify()` names `requires_plugs` for a caller that is allowed to invent a balancing
+  figure. The tile never plugs, because "no invented numbers" is the harder rule.
+- **The render layer (declarative line specs, the `cf_bucket` reconciler, the Excel file).** This is
+  MiniMax's lane; the brief is `docs/MINIMAX_STATEMENT_RENDER.md`. The record already carries the
+  metadata it needs, and the three cash-flow reconciliations are already enforced by
+  `articulation()`, so the renderer presents what is proved rather than proving it again.
+- **The tile's reading path is only as good as its reader.** A trial balance is exact and
+  deterministic. A transaction narrative depends on the model's extraction; when no model is
+  configured, the tile says so and refuses instead of guessing.
 
 ---
 
-## 7. How to pick it up
+## 9. How to pick it up
 
 ```powershell
 Set-Location "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline"
 $env:PYTHONPATH="src"
-python -m unittest tests.test_statement_plan -v      # 71 tests, no key, no network
-python qa/manual/extract-smoke.py                    # optional: one live model call (needs DEEPSEEK_API_KEY)
+$env:DEEPSEEK_API_KEY=""        # shape tests must not make live calls
+python -m unittest tests.test_statement_plan -v        # 71 tests, no key, no network
+python -m unittest tests.test_product_statements -v    # the request contract
+python qa/manual/extract-smoke.py                      # optional: one live model call
 ```
 
 Then read, in this order:
 
 1. `tests/test_statement_plan.py` — the contract, executable.
-2. `src/bp/statement_plan.py` — the layer itself.
+2. `src/bp/statement_plan.py` — the layer itself, including the projection graph.
 3. `src/bp/statement_extract.py` — the model boundary and the grounding rule.
-4. `src/bp/ledger.py` §"cash flow", §"closing", §"check_invariants" — the kernel this stands on.
-5. `qa/manual/statements-case-study.md` — what the tile does today, measured.
+4. `src/bp/product/statements.py` — the request, the scoped render and the audit trail.
+5. `src/bp/ledger.py` §"cash flow", §"closing", §"check_invariants" — the kernel this stands on.
+6. `qa/manual/statements-case-study.md` — what the tile does today, measured.
 
-The next increment, in the order the tips imply: wire `statement_extract` + `statement_plan` behind
-`POST /api/cases/statements` as an alternative intake (trial balance **or** narrative), returning the
-same record shape the tile already renders, with the assumptions manifest and the articulation checks
-in the payload.
+The next increment is the render layer, and it belongs to MiniMax: `docs/MINIMAX_STATEMENT_RENDER.md`
+is the brief. The computation side is done for the shapes the tile supports; what remains is the
+spreadsheet the student downloads and the line-spec renderer over the frozen record.

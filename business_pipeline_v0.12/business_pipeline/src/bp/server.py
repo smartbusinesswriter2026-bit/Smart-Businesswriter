@@ -22,6 +22,7 @@ def _plan_method(method_id, inputs):
 
 product_api.attach_methods(_plan_method, methods.describe)
 from .product import statements as product_statements, statements_council as product_statement_council
+from . import statement_extract, statement_plan
 
 
 def _statement_reader(text):
@@ -30,6 +31,40 @@ def _statement_reader(text):
         raise product_statement_council.CouncilError(
             "no model is configured (set BP_OPENGO_API_KEY), so only a trial balance can be read")
     return product_statement_council.read(text)
+
+
+def _statement_models():
+    """A model for journal extraction, or None when none is configured."""
+    models = llm.from_env()
+    if models is not None:
+        return models
+    if os.environ.get("DEEPSEEK_API_KEY"):
+        return llm.Models(llm.DeepSeekProvider("deepseek-chat"),
+                          config=llm.LLMConfig(enabled=True))
+    return None
+
+
+def _statement_extract(text, period):
+    """Structure a narrative into a grounded journal, or say plainly why no model is configured.
+
+    The plan layer lives here, beside the core it compiles into, so the product package never
+    imports it (`tests/test_product_boundary.py`).  The model is asked for language only; every
+    derived figure is computed later by the adjustment DAG.
+    """
+    models = _statement_models()
+    if models is None:
+        raise product_statements.NoModel(
+            "no model is configured, so only a trial balance can be read. "
+            "Set DEEPSEEK_API_KEY (or BP_LLM_PROVIDER + BP_LLM_MODEL).")
+    return statement_extract.extract(text, statement_plan.DEFAULT_CHART, models, consent=True,
+                                     period=period, default_date=period["end"])
+
+
+def _statement_build(plan):
+    """Compile a journal into the full ledger, with the articulation gate."""
+    plan = dict(plan)
+    plan.setdefault("chart", statement_plan.DEFAULT_CHART)
+    return statement_plan.build(plan)
 
 
 # The statements tile reaches the core through these callables, so the product package never imports
@@ -42,6 +77,8 @@ product_statements.attach_core(
     ratio_analysis=lambda figures: methods.LIBRARY["ratio_analysis"].impl(figures),
     dupont=lambda inputs: methods.LIBRARY["dupont_analysis"].impl(inputs),
     reader=_statement_reader,
+    extract=_statement_extract,
+    build=_statement_build,
 )
 from .sandbox import SubprocessSandbox
 

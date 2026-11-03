@@ -17,6 +17,10 @@ is called.  Six checks, each of which can fail:
    closing equity in the statement of changes in equity equals the balance sheet's equity;
 6. **completeness** — when the core refused, the reading says what is missing.
 
+The seventh check is a later pass over the *solved record*: `verify_output()` confirms that exactly
+the requested statements were rendered, so a single-statement record is complete when that statement
+is present (Tip 3 — compute scope is not output scope).
+
 Nothing here computes a business result; the totals come from the core.
 """
 
@@ -28,6 +32,11 @@ FORMAT = "bp-statements-verify/1"
 PROBLEM_TYPES = ("trial_balance", "transactions", "adjustments", "incomplete_records")
 TYPES = ("asset", "liability", "equity", "income", "expense", "oci")
 CURRENCY = "USD"
+
+#: The four statements, keyed by the short code a request uses.  `RE` is the statement of changes in
+#: equity; the tile's record key for it is `equity`, its historical name.
+STATEMENT_KEYS = {"IS": "income_statement", "RE": "equity", "BS": "balance_sheet", "CF": "cash_flow"}
+STATEMENTS = ("IS", "RE", "BS", "CF")
 
 #: The core's own checks that make a statement set articulate.  A failure in any of them is a
 #: refusal, never a silent correction.
@@ -141,5 +150,45 @@ def verify_reading(reading, instruction, currency=None, result=None, refusal=Non
 
     if refusal is not None and not (reading.get("missing") or []):
         problem("completeness", "the accounts do not build, so the reading must say what is missing")
+    return problems
+
+
+def verify_output(statements, requested=None):
+    """Check a solved record's output against the request: rendered if and only if requested.
+
+    Tip 3 separates *compute scope* from *output scope*: the ledger is always built in full, and what
+    varies is which projections are rendered.  So a single-statement record is **complete** when that
+    one statement is present — the others are not missing, they were never asked for.  Conversely a
+    statement that was computed only to keep a downstream one articulate must not leak into the
+    rendered set; the record's `computed`/`hidden` trail is where that fact belongs.
+
+    The cash flow statement has one declared exception: the tile withholds it for a single trial
+    balance (the core would render a false one).  A withheld statement is acceptable only with the
+    reason attached, never as a silent empty section.
+    """
+    problems = []
+    if not isinstance(statements, dict):
+        return [{"check": "output", "detail": "a solved record must carry its statements"}]
+    wanted = list(requested or STATEMENTS)
+    for code in wanted:
+        key = STATEMENT_KEYS[code]
+        text = statements.get(key)
+        if code == "CF" and not text:
+            if not statements.get("cash_flow_withheld_because"):
+                problems.append({"check": "output",
+                                 "detail": "the cash flow statement was requested but is neither "
+                                           "rendered nor withheld with a reason"})
+            continue
+        if not text:
+            problems.append({"check": "output",
+                             "detail": key.replace("_", " ") + " was requested but is empty"})
+    for code in STATEMENTS:
+        if code in wanted:
+            continue
+        key = STATEMENT_KEYS[code]
+        if statements.get(key):
+            problems.append({"check": "output",
+                             "detail": key.replace("_", " ") + " was rendered although it was not "
+                                                               "requested"})
     return problems
 

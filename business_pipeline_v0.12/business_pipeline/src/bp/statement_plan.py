@@ -196,6 +196,67 @@ def validate_entries(entries, chart, places=2):
 
 
 # ---------------------------------------------------------------------------
+# Partial statement requests: compute scope != output scope (Tip 3)
+# ---------------------------------------------------------------------------
+# The ledger is always built in full. What varies is which projections are rendered and which
+# upstream projections are computed silently to keep them articulate. IS is the only statement
+# that stands alone; BS drags in RE (which drags in IS); CF drags in IS + BS.
+
+PROJECTIONS = {
+    "IS": {"requires": []},
+    "RE": {"requires": ["IS"]},
+    "BS": {"requires": ["RE"]},
+    "CF": {"requires": ["IS", "BS"]},
+}
+
+ALL_STATEMENTS = ("IS", "RE", "BS", "CF")
+
+
+def dependency_closure(requested):
+    """Topologically ordered closure: everything that must be computed (not just rendered)."""
+    seen = set()
+    order = []
+    def visit(k):
+        if k in seen:
+            return
+        seen.add(k)
+        for dep in PROJECTIONS[k]["requires"]:
+            visit(dep)
+        order.append(k)
+    for k in requested:
+        if k not in PROJECTIONS:
+            raise PlanError(f"unknown statement {k!r}; known: {sorted(PROJECTIONS)}")
+        visit(k)
+    return order
+
+
+def classify(requested, extraction_coverage):
+    """Classify a request given what the extraction actually found.
+
+    Returns one of:
+      - "full_compute_partial_render": extraction complete; safe to compute everything and render
+        only the requested statements.
+      - "standalone_is": only IS requested and the data is IS-self-contained; the cheap path.
+      - "requires_full_ledger": CF (or BS with gaps) requested; the full ledger is mandatory.
+      - "requires_plugs": downstream statement requested with incomplete data; render only with
+        explicit, logged plugs.
+    """
+    requested = list(requested or [])
+    if not requested:
+        raise PlanError("at least one statement must be requested")
+    if extraction_coverage is None:
+        extraction_coverage = {"complete": True}
+    complete = bool(extraction_coverage.get("complete", True))
+    if complete:
+        return "full_compute_partial_render"
+    if requested == ["IS"]:
+        return "standalone_is"
+    if "CF" in requested:
+        return "requires_full_ledger"
+    return "requires_plugs"
+
+
+# ---------------------------------------------------------------------------
 # Adjustment DAG (tip 2, "plugs are first-class nodes, not free-text adjustments")
 # ---------------------------------------------------------------------------
 

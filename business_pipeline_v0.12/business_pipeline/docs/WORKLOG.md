@@ -1,3 +1,23 @@
+## 2026-11-04 — [computation] The statements render only what the request names (build 1.96)
+
+**Ask.** "continue" — finish the Financial statements tile so it can solve a request for one statement (or a subset), then hand the render layer to the design lane.
+
+**Did.**
+
+- **Tip 3, adopted.** Compute scope is not output scope. `present(result, problem_type, requested)` now renders only the requested statements while the ledger is always built in full. The dependency graph (`IS` stands alone; `RE` needs `IS`; `BS` needs `RE`; `CF` needs `IS` + `BS`) is declared in `statement_plan.PROJECTIONS` with `dependency_closure()` and `classify()`.
+- **The request is read, conservatively.** `wants_statements()` needs a limiting word ("only", "just", "skip", "without") or a directive verb ("prepare", "show", "give me") in the same clause as the statement name; a mention is not a request. An explicit `statements` argument wins and accepts `IS/RE/BS/CF` or the record keys.
+- **The record carries the audit trail.** `requested` / `computed` / `hidden` / `warnings`: a BS-only run reports `computed: ["IS", "RE", "BS"]`, `hidden: ["IS", "RE"]`. `verify_output()` refuses to freeze a record that leaks an unrequested statement or withholds the cash flow without a reason.
+- **Export can be one statement.** `POST /api/cases/statements/{id}/export` accepts `{"statement": "BS"}`; a statement the record did not render is a 409 that lists what it did render, and an unknown code is a 400.
+- **The boundary violation is fixed.** `statements.py` imported `bp.llm`/`bp.statement_plan` lazily; the plan layer's `extract`/`build` are now injected by `bp.server` like the rest of the core. This repaired five red boundary/scope tests that were failing at HEAD.
+- **The plan layer is actually reachable.** Before this build the council reader short-circuited it; now the plan layer is tried first for a narrative, a substantive refusal there is final, and `NoModel` is the only reason to try another reader. A `StatementRefused` (two periods, two entities, a consolidation) is no longer softened into "the reading failed".
+- 23 new tests: `RequestTest`, `OutputVerifierTest`, `PlanLayerTest`, and six route tests.
+
+**Verified.** `tests.test_product_statements`, `..._api`, `..._council`, `..._tile`, `test_product_boundary`, `test_statement_plan`, `test_equity_statement`, `test_reperform_statements` → **173 tests, OK** with `DEEPSEEK_API_KEY` cleared. Suite count **3695** (loaded by `TestLoader().discover`). Full-suite run in flight at commit time.
+
+**Not done, and named.** The render layer is the design lane's (`docs/MINIMAX_STATEMENT_RENDER.md`): the Excel export is still a text dump in one sheet. Plug mode and comparatives are deliberately unbuilt; `classify()` names `requires_plugs` so a future caller can see the shape, and the tile never plugs. Live extraction is proved on two synthetic problems only.
+
+**Learned.** Two readers with two grounding contracts always drift, and the weaker one silently wins if it is tried first. The fix was ordering plus a distinct `NoModel`: "nothing is configured" is retryable, "this amount is not in the instruction" is final.
+
 ## 2026-11-04 — [computation] Golden suite grows to twenty cases
 
 **Ask.** "go." — continue the unblocked computation-lane work.

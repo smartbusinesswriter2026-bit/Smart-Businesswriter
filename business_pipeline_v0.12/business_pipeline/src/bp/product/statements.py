@@ -27,6 +27,7 @@ import tempfile
 import uuid
 
 from . import cases
+from . import statements_verify
 from . import verify
 
 FORMAT = "bp-statements/1"
@@ -47,6 +48,14 @@ class CoreNotAttached(StatementError):
     """`server.py` did not inject the frozen core, so the tile refuses instead of guessing."""
 
 
+class NoModel(StatementError):
+    """No model is configured for the plan layer; another reader may still be available.
+
+    Distinct from a substantive refusal: "nothing is configured" is a reason to try the next reader,
+    while "this amount is not in the instruction" is final and must never be retried elsewhere.
+    """
+
+
 class StatementRefused(StatementError):
     """A reading the tile refuses outright.
 
@@ -59,10 +68,15 @@ class StatementRefused(StatementError):
 _CORE = {}
 
 
-def attach_core(solve=None, diagnose=None, ratio_analysis=None, dupont=None, reader=None):
-    """Attach the frozen-core callables and the optional model reader (called from `bp.server`)."""
+def attach_core(solve=None, diagnose=None, ratio_analysis=None, dupont=None, reader=None,
+                extract=None, build=None):
+    """Attach the frozen-core callables (called from `bp.server`).
+
+    `extract` and `build` are the plan layer, injected for the same reason as the rest: the product
+    package computes nothing and imports no core module (`tests/test_product_boundary.py`).
+    """
     for name, fn in (("solve", solve), ("diagnose", diagnose), ("ratio_analysis", ratio_analysis),
-                     ("dupont", dupont), ("reader", reader)):
+                     ("dupont", dupont), ("reader", reader), ("extract", extract), ("build", build)):
         if fn is not None:
             _CORE[name] = fn
     return sorted(_CORE)
@@ -488,9 +502,137 @@ CASH_FLOW_WITHHELD = ("a cash flow statement needs the period's flows or a prior
                       "as a figure that would be wrong")
 
 
+def _reads_as_balances(text):
+    """Whether the instruction reads as a set of balances rather than a transaction narrative.
+
+    The preflight refusals (comparatives, two periods, a consolidation) are about *balances*: a
+    narrative sentence may legitimately carry two figures, and the plan layer is its reader.
+    """
+    try:
+        kind, _cue, _sentence_text = classify(text)
+    except StatementError:
+        return True
+    return kind != "transactions"
+
+
 def wants_ratios(text):
     """Whether the instruction asks for ratios (any cue)."""
     return any(re.search(pattern, str(text or ""), re.I) for pattern in RATIO_CUES)
+
+
+#: How a student names a statement in the instruction box.  `RE` is the statement of changes in
+#: equity; "retained earnings statement" is the same statement under its older name.
+_STATEMENT_WORDS = (
+    ("IS", re.compile(r"\bincome statement\b|\bstatement of (?:profit or loss|profit and loss|income|"
+                      r"financial performance|comprehensive income)\b|\bprofit and loss account\b|"
+                      r"\bp&l\b|\btrading account\b", re.I)),
+    ("RE", re.compile(r"\bstatement of changes in equity\b|\bstatement of (?:retained earnings|"
+                      r"owners'? equity|stockholders'? equity|shareholders'? equity)\b|"
+                      r"\bretained earnings statement\b|\bequity statement\b", re.I)),
+    ("BS", re.compile(r"\bbalance sheet\b|\bstatement of financial position\b", re.I)),
+    ("CF", re.compile(r"\bcash ?flows? statement\b|\bstatement of cash ?flows?\b|\bcash ?flow\b", re.I)),
+)
+
+#: A student who wants **only** some statements says so with one of these words.
+_ONLY = re.compile(r"\b(only|just|solely|instead|skip|omit|leave out|no need for|without|"
+                   r"don'?t (?:show|need|present|want)|do not (?:show|need|present|want))\b", re.I)
+
+#: A student who directs the tile to produce a statement has asked for it even without "only".
+_DIRECTIVE = re.compile(r"\b(prepare|show|give|present|produce|display|send|want|need|compute|draft|"
+                        r"can i (?:see|get|have))\b", re.I)
+
+#: The request schema's vocabulary: the short codes, and the record keys the tile already uses.
+_ALIASES = {"IS": "IS", "INCOME": "IS", "INCOME_STATEMENT": "IS",
+            "RE": "RE", "EQUITY": "RE", "RETAINED_EARNINGS": "RE", "CHANGES_IN_EQUITY": "RE",
+            "BS": "BS", "BALANCE": "BS", "BALANCE_SHEET": "BS",
+            "CF": "CF", "CASH_FLOW": "CF", "CASHFLOW": "CF"}
+
+
+def _clauses(text):
+    """The instruction split into the sentences a request can live in."""
+    return [part.strip() for part in re.split(r"[.;\n]+", str(text or "")) if part.strip()]
+
+
+def wants_statements(text):
+    """The statements an instruction asks to see, or None when it asks for the full set.
+
+    Detection is deliberately conservative.  Naming a statement is not a request: a trial balance
+    whose text mentions "the balance sheet showed" is still a full engagement.  A statement counts
+    as requested when its clause also carries a limiting word ("only", "just", "instead of", "skip",
+    "don't show", "without") or a directive verb ("prepare", "show", "give me").  A clause that only
+    reports a figure asks for nothing.
+    """
+    found = []
+    for clause in _clauses(text):
+        codes = [code for code, pattern in _STATEMENT_WORDS if pattern.search(clause)]
+        if not codes:
+            continue
+        if _ONLY.search(clause) or _DIRECTIVE.search(clause):
+            found.extend(code for code in codes if code not in found)
+    if not found:
+        return None
+    return tuple(code for code in statements_verify.STATEMENTS if code in found)
+
+
+def _statement_code(item):
+    """Map one request entry ("IS", "income_statement", "cash flow") to its short code, or None."""
+    key = "_".join(str(item or "").strip().upper().replace("-", " ").split())
+    return _ALIASES.get(key)
+
+
+def _requested_statements(declared, text):
+    """Resolve the request: an explicit list wins over what the instruction text asks for.
+
+    The default is the full set, which is what the tile has always shown; partial rendering is an
+    opt-in.  The request decides **what is rendered**, never what is computed (Tip 3).
+    """
+    if declared is None or (isinstance(declared, str) and not declared.strip()):
+        asked = wants_statements(text)
+        return tuple(asked) if asked else statements_verify.STATEMENTS
+    if isinstance(declared, str):
+        declared = [declared]
+    if not isinstance(declared, (list, tuple)):
+        raise StatementError("statements must be a list of codes: IS, RE, BS, CF")
+    out = []
+    for item in declared:
+        code = _statement_code(item)
+        if code is None:
+            raise StatementError("'" + str(item) + "' is not a statement. Use IS (income statement), "
+                                 "RE (statement of changes in equity), BS (balance sheet) or CF (cash "
+                                 "flow statement).")
+        if code not in out:
+            out.append(code)
+    if not out:
+        raise StatementError("at least one statement must be requested")
+    return tuple(out)
+
+
+#: What each statement needs before it can be rendered (Tip 3).  The computation lane's authority is
+#: `bp.statement_plan.PROJECTIONS`; a test pins the two tables together, so the product layer can
+#: resolve a request without importing the core (its boundary rule).
+PROJECTIONS = {"IS": (), "RE": ("IS",), "BS": ("RE",), "CF": ("IS", "BS")}
+
+
+def _scope(requested):
+    """What must be computed for the request, and what is computed but hidden (Tip 3).
+
+    IS stands alone, BS drags in RE and IS, CF drags in almost everything.  Only the *rendered* set
+    is the student's; the rest is the audit trail.
+    """
+    seen, closure = set(), []
+
+    def visit(code):
+        if code in seen:
+            return
+        seen.add(code)
+        for dependency in PROJECTIONS[code]:
+            visit(dependency)
+        closure.append(code)
+
+    for code in requested:
+        visit(code)
+    return list(requested), closure, [code for code in closure if code not in requested]
+
 
 
 def compile_spec(reading):
@@ -520,20 +662,32 @@ def compile_spec(reading):
             "schedules": reading.get("schedules") or []}
 
 
-def present(result, problem_type):
-    """The statements a reader is shown, from the core's rendered text, with the cash-flow rule."""
+def present(result, problem_type, requested=None):
+    """The statements a reader is shown, from the core's rendered text, scoped to the request.
+
+    The core always computes every statement; this picks which ones are rendered (Tip 3).  The trial
+    balance and the notes stay with the working, so they are carried here but never part of the
+    submission view.  The cash flow rule is unchanged and now also request-gated: it is shown only
+    for a transactions problem, and only when it was asked for.
+    """
     appendix = result.get("_appendix") or {}
     export = appendix.get("statements_export") or {}
+    wanted = list(requested or statements_verify.STATEMENTS)
     out = {"trial_balance": export.get("trial_balance", ""),
-           "income_statement": export.get("income_statement", ""),
-           "balance_sheet": export.get("balance_sheet", ""),
-           "equity": appendix.get("equity_statement_export", ""),
+           "income_statement": "", "balance_sheet": "", "equity": "",
            "notes": export.get("notes", ""),
            "cash_flow": None, "cash_flow_withheld_because": None}
-    if problem_type == "transactions":
-        out["cash_flow"] = export.get("cash_flow")
-    else:
-        out["cash_flow_withheld_because"] = CASH_FLOW_WITHHELD
+    if "IS" in wanted:
+        out["income_statement"] = export.get("income_statement", "")
+    if "RE" in wanted:
+        out["equity"] = appendix.get("equity_statement_export", "")
+    if "BS" in wanted:
+        out["balance_sheet"] = export.get("balance_sheet", "")
+    if "CF" in wanted:
+        if problem_type == "transactions" and export.get("cash_flow"):
+            out["cash_flow"] = export.get("cash_flow")
+        else:
+            out["cash_flow_withheld_because"] = CASH_FLOW_WITHHELD
     return out
 
 
@@ -660,11 +814,26 @@ def ratio_pack(result, text):
     return {"requested": True, "computed": computed, "named_unsupported": named, "figures": figures}
 
 
-def _record(reading, spec, result, text, source, rejected, same_model, ratios):
-    """The frozen record of a solved problem: the reading, the spec, the core's output, both views."""
+def _record(reading, spec, result, text, source, rejected, same_model, ratios, requested=None):
+    """The frozen record of a solved problem: the reading, the spec, the core's output, both views.
+
+    It also carries the request's audit trail (Tip 3): what was asked for, everything that had to be
+    computed to render it, and which of those were computed but hidden.  A statement that was only
+    needed to make a downstream one articulate never appears in the rendered set.
+    """
     appendix = result.get("_appendix") or {}
     export = appendix.get("statements_export") or {}
-    statements = present(result, reading["problem_type"])
+    requested, computed, hidden = _scope(requested or statements_verify.STATEMENTS)
+    statements = present(result, reading["problem_type"], requested)
+    problems = statements_verify.verify_output(statements, requested)
+    if problems:
+        raise StatementError("the core did not return every requested statement: "
+                             + "; ".join(str(problem.get("detail")) for problem in problems[:3]))
+    warnings = []
+    if "CF" in requested and not statements.get("cash_flow"):
+        warnings.append({"statement": "CF",
+                         "reason": statements.get("cash_flow_withheld_because")
+                         or "the cash flow statement could not be prepared from this instruction"})
     record = {
         "format": FORMAT, "solved": True, "refusal": None,
         "instruction": text, "instruction_hash": verify.brief_hash(text),
@@ -672,6 +841,7 @@ def _record(reading, spec, result, text, source, rejected, same_model, ratios):
         "reading": reading, "reading_source": source,
         "same_model_disclosure": bool(same_model), "rejected": rejected,
         "spec": spec,
+        "requested": requested, "computed": computed, "hidden": hidden, "warnings": warnings,
         "core": {"scalars": {key: str(value) for key, value in result.items()
                              if not str(key).startswith("_")},
                  "appendix": appendix},
@@ -691,7 +861,7 @@ def _record(reading, spec, result, text, source, rejected, same_model, ratios):
     return verify.freeze(record)
 
 
-def _refusal(text, reading, spec, message, source, rejected, same_model):
+def _refusal(text, reading, spec, message, source, rejected, same_model, requested=None):
     """A record that says what is wrong instead of showing a number that would be wrong."""
     reading = reading or {}
     record = {
@@ -701,6 +871,8 @@ def _refusal(text, reading, spec, message, source, rejected, same_model):
         "reading": reading, "reading_source": source,
         "same_model_disclosure": bool(same_model), "rejected": rejected,
         "spec": spec or {},
+        "requested": list(requested or statements_verify.STATEMENTS),
+        "computed": [], "hidden": [], "warnings": [],
         "core": None, "statements": None, "statements_only": "",
         "working": {"journal": "", "trial_balance": "", "t_accounts": {},
                     "derivations": reading.get("derivations") or [],
@@ -712,12 +884,16 @@ def _refusal(text, reading, spec, message, source, rejected, same_model):
     return verify.freeze(record)
 
 
-def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
+def solve(instruction, currency=None, framework=None, ratios=None, reader=None, statements=None):
     """Solve one instruction and return a frozen record.
 
     The deterministic reader goes first because it is exact on a trial balance; the model reader is
     used when it cannot read the problem (a transaction list, an adjusting-entry narrative), and
     every reading — either source — passes the verifier before the core is called.
+
+    `statements` is the output request (`["IS"]`, `["BS", "CF"]`, ...).  It defaults to the full set,
+    or to what the instruction itself asks for ("only the balance sheet").  It never changes what is
+    computed — the ledger is always built in full (Tip 3).
     """
     text = str(instruction or "").strip()
     if len(text) < 10:
@@ -727,6 +903,7 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
         raise StatementError("'" + blocked + "' is a currency or a place this product does not use. It "
                              "works in USD with neutral places: restate the figures in USD and it will "
                              "solve them.")
+    requested = _requested_statements(statements, text)
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
     parser_error = None
     try:
@@ -739,16 +916,33 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
         parser_error = error
         reading = None
     if reading is None:
+        if isinstance(parser_error, StatementRefused) and _reads_as_balances(text):
+            # A refusal is a refusal: no model reading can rescue two periods, two entities or a
+            # consolidation, so it must not be softened into "the reading failed".  A *transaction*
+            # narrative is different — a sentence can carry two figures without being a comparative,
+            # and the plan layer is the reader that is meant to handle it.
+            raise parser_error
         used = reader if reader is not None else _CORE.get("reader")
-        if used is None:
+        plan_error = None
+        if "extract" in _CORE:
             try:
-                return _solve_narrative(text, currency=currency, framework=framework, ratios=ratios)
-            except StatementError as error:
+                return _solve_narrative(text, currency=currency, framework=framework, ratios=ratios,
+                                        statements=requested)
+            except NoModel as error:
+                plan_error = error
+            except StatementError:
+                raise           # a substantive plan-layer refusal is final
+        if used is None:
+            if plan_error is not None:
                 raise StatementError(str(parser_error) + " — and the plan layer could not read it either: "
-                                    + str(error))
+                                    + str(plan_error))
+            raise StatementError(str(parser_error) + " — and no model is configured to read it")
         try:
             answer = used(text)
         except Exception as error:
+            if plan_error is not None:
+                raise StatementError("the model reading failed (" + str(error)[:160] + "), and the "
+                                     "plan layer could not read it either: " + str(plan_error))
             raise StatementError("the model reading failed (" + str(error)[:160] + "), and the "
                                  "deterministic reader could not read this either: " + str(parser_error))
         reading = answer.get("reading") if isinstance(answer, dict) else None
@@ -757,7 +951,6 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
         source = answer.get("source") or "council"
         rejected = answer.get("rejected") or []
         same_model = bool(answer.get("same_model"))
-    from . import statements_verify
     problems = statements_verify.verify_reading(reading, text, reading.get("currency"))
     if problems:
         raise StatementError("the reading was refused: " + "; ".join(
@@ -769,52 +962,31 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
         result = _core("solve")(spec)
     except Exception as error:
         return _refusal(text, reading, spec, "the accounts do not build: " + str(error)[:400],
-                        source, rejected, same_model)
+                        source, rejected, same_model, requested)
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
-    return _record(reading, spec, result, text, source, rejected, same_model, pack)
+    return _record(reading, spec, result, text, source, rejected, same_model, pack, requested)
 
 
-def _models_for_extraction():
-    """A model for the extraction step, or None when none is configured."""
-    try:
-        import bp.llm as llm
-    except Exception:
-        return None
-    models = llm.from_env()
-    if models is not None:
-        return models
-    import os
-    if os.environ.get("DEEPSEEK_API_KEY"):
-        return llm.Models(llm.DeepSeekProvider("deepseek-chat"),
-                          config=llm.LLMConfig(enabled=True))
-    return None
-
-
-def _solve_narrative(text, currency=None, framework=None, ratios=None):
+def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):
     """A narrative (not a trial balance) solved through the plan layer.
 
     The deterministic parser could not read this instruction, so the model is asked to structure it
     into journal lines; the ledger then posts them, and the three articulation identities decide
     whether the record is allowed out. Only the *stated* transactions are posted — adjusting entries
     are not derived here, and that is named in the record's `missing`.
+
+    Both plan-layer steps are injected (`extract`, `build`): the model call and the ledger build stay
+    outside this package.
     """
-    try:
-        import bp.statement_extract as sx
-        import bp.statement_plan as sp
-    except Exception as error:
-        raise StatementError("the plan layer is unavailable: " + str(error)[:120])
-    models = _models_for_extraction()
-    if models is None:
-        raise StatementError("no model is configured, so only a trial balance can be read. "
-                             "Set DEEPSEEK_API_KEY (or BP_LLM_PROVIDER + BP_LLM_MODEL).")
     currency = currency or currency_of(text) or DEFAULT_CURRENCY
     framework = framework_of(text, framework)
     period = period_of(text)[0]
     try:
-        extracted = sx.extract(text, sp.DEFAULT_CHART, models, consent=True,
-                               period=period, default_date=period["end"])
-    except sx.ExtractionError as error:
-        raise StatementError("the model could not read this as a journal: " + str(error))
+        extracted = _core("extract")(text, period)
+    except StatementError:
+        raise
+    except Exception as error:
+        raise StatementError("the model could not read this as a journal: " + str(error)[:200])
     policy = extracted.get("policy") or {}
     stated = list(policy.get("explicitly_stated") or [])
     if "tax_rate" in policy and "tax_rate" not in stated:
@@ -832,15 +1004,17 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None):
     policy.setdefault("rounding", "half_up")
     plan = {
         "period": period, "currency": currency, "framework": framework, "places": 2,
-        "chart": sp.DEFAULT_CHART, "policy": policy,
+        "policy": policy,
         "prior_closing": {}, "opening": [], "entries": extracted["entries"],
         "adjustments": extracted.get("adjustments", []), "schedules": [],
         "problem_type": "transactions",
     }
     try:
-        result = sp.build(plan)
-    except sp.PlanError as error:
-        raise StatementError("the journal did not build: " + str(error))
+        result = _core("build")(plan)
+    except StatementError:
+        raise
+    except Exception as error:
+        raise StatementError("the journal did not build: " + str(error)[:400])
     reading = {
         "problem_type": "transactions",
         "why": ("Prepared from a journal the model extracted; every figure was posted by the "
@@ -854,7 +1028,7 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None):
     }
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
     record = _record(reading, result["spec"], result, text, "plan",
-                     extracted.get("unplaceable") or [], False, pack)
+                     extracted.get("unplaceable") or [], False, pack, statements)
     record["reading_source"] = "plan"
     return record
 
@@ -957,7 +1131,7 @@ def replay(record):
     if not spec:
         return {"ok": False, "reason": "the record carries no spec"}
     result = _core("solve")(spec)
-    fresh = present(result, record.get("problem_type"))
+    fresh = present(result, record.get("problem_type"), record.get("requested"))
     before = record.get("statements") or {}
     keys = ("income_statement", "balance_sheet", "trial_balance", "equity")
     same = all(before.get(key) == fresh.get(key) for key in keys)
@@ -979,7 +1153,8 @@ def handle(verb, segments, body=None):
         if verb == "POST":
             try:
                 record = solve(body.get("instruction"), currency=body.get("currency"),
-                               framework=body.get("framework"), ratios=body.get("ratios"))
+                               framework=body.get("framework"), ratios=body.get("ratios"),
+                               statements=body.get("statements"))
             except StatementError as error:
                 return 400, {"error": str(error)}
             except Exception as error:      # a bug is a clean 500, never a stack trace to the browser
@@ -1006,8 +1181,27 @@ def handle(verb, segments, body=None):
             return 409, {"error": "there is nothing to export: " + str(record.get("refusal")),
                          "missing": (record.get("working") or {}).get("missing") or []}
         view = "working" if str(body.get("format") or "").lower() == "working" else "statements_only"
+        rendered = [code for code in (record.get("requested") or [])
+                    if (record.get("statements") or {}).get(statements_verify.STATEMENT_KEYS[code])]
+        wanted = _statement_code(body.get("statement")) if body.get("statement") else None
+        if body.get("statement") and wanted is None:
+            return 400, {"error": "'" + str(body.get("statement")) + "' is not a statement. Use IS, RE, "
+                                  "BS or CF.", "rendered": rendered}
+        if wanted is not None:
+            if view == "working":
+                return 400, {"error": "a single statement is a submission view; ask for the working as "
+                                      "a whole or for one statement, not both"}
+            text = (record.get("statements") or {}).get(statements_verify.STATEMENT_KEYS[wanted]) or ""
+            if not text:
+                reason = (record.get("statements") or {}).get("cash_flow_withheld_because")
+                return 409, {"error": "that statement is not in this record: "
+                                      + (reason or "it was not requested, so it was not rendered"),
+                             "rendered": rendered}
+            return 200, {"format": "text", "view": view, "statement": wanted, "text": text,
+                         "filename": wanted.lower() + "-" + str(record.get("id")) + ".txt"}
         text = working_text(record) if view == "working" else (record.get("statements_only") or "")
-        return 200, {"format": "text", "view": view, "text": text,
+        return 200, {"format": "text", "view": view, "statement": None, "text": text,
+                     "rendered": rendered,
                      "filename": "statements-" + str(record.get("id")) + ".txt"}
     if len(segments) == 2 and segments[1] == "replay":
         if verb != "POST":
