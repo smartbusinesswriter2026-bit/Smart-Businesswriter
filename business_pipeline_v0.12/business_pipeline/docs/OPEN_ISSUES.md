@@ -33,10 +33,27 @@
 - Project-worksheet registration guards and model-prompt tests: investigate.
 - Pre-existing network-dependent failures: report, do not fix silently.
 
-## Item 16 — full-suite failures inherited by the statements-tile lane (2026-11-03)
-- Measured at the end of statements-tile commit 1: `discover -s tests` = **3246 tests, 9 failures**.
-  None is in `test_accounts`, `test_ledger`, `test_frozen_contract` or `test_product_boundary`
-  (199 tests, OK), and none touches `accounts.ratio_figures` / `balance_sheet_groups`.
+## Item 16 — full-suite failures inherited by the statements-tile lane (2026-11-03) — **CLOSED 2026-11-03**
+- **Closed: the whole suite is green — `Ran 3369 tests`, `OK`.** What each failure turned out to be:
+  - `test_product_billing.CatalogueTest.test_four_tiers_in_order` and
+    `test_credits_are_absent_rather_than_invented`: **stale assertions, not a defect.** The owner
+    renamed the fourth tier to **Business Bundle** (one subscription covering both products, keeping
+    the `agency` key so the PayPal plan cache and existing ledgers stay valid) and declared its
+    allowance **Unlimited**. The tests now assert the stable keys and the new name, and one of them is
+    stricter than before: no credits label may carry a digit, on any tier.
+  - `test_subject_finance_acceptance…test_032` and both `docs_sync` checks: fixed by the other lane
+    (the `B-180a`/`B-180b` decision rows and the `BUNDLE_PRICING_HANDOFF.md` spine row now exist);
+    verified green from here.
+  - `test_subject_accounting_acceptance…test_E_acc_002`: **mine, and deliberate.** It required
+    `detail["tiles"] == []` ("the shelf declares no tiles"); the owner's instruction for the
+    statements tile supersedes that design (B-205), so the expectation changed visibly and the bite it
+    carried moved to `tests/test_product_statements_tile.py` (every accounting tool in exactly one
+    tile, every group tiled, no other subject gaining the tile).
+- Kept for the record: at 09:50 the working tree was written by another process — `src/bp/accounts.py`
+  and `tests/test_accounts.py` were reverted to HEAD (edits lost) while this lane's doc edits were
+  swept into commit `f7eba21`. Everything is committed now, so the same loss cannot recur; the lesson
+  stands: only one writer may own this tree at a time.
+
 - **Fail in isolation** (so they are real defects, not order artefacts), all in the in-flight lanes:
   `test_paper_documents.DocumentRouteTest.test_generating_a_paper_saves_it_to_the_store`;
   `test_product_profile_cues.ProfileCueReachabilityTest.test_every_researched_block_accepts_its_own_query`;
