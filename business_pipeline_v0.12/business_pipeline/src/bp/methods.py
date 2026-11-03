@@ -2190,7 +2190,10 @@ def _logit_typing(metric):
     if metric in ("n", "n_excluded", "iterations"): return ("count", 0)
     if metric.startswith("p_"): return ("probability", 4)
     if metric.startswith("odds_ratio_") or metric == "mcfadden_r2": return ("ratio", 4)
-    if metric.startswith("coef_") or metric.startswith("se_") or metric.startswith("log_likelihood") or metric == "ll_null": return ("ratio", 6)
+    # D-RES-05 (B-214): coefficients, standard errors and the two log-likelihoods were declared at
+    # six decimal places, so every logistic paper printed -22.806666.  A student reads four; six
+    # decimals look like an unrounded Decimal and trip the house rule the other shelves test for.
+    if metric.startswith("coef_") or metric.startswith("se_") or metric.startswith("log_likelihood") or metric == "ll_null": return ("ratio", 4)
     return ("@unit", 4)
 
 def logit_caveats(out, th):

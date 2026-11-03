@@ -4209,3 +4209,34 @@ only (B-213). Four tools still ship with `preset: null` (typed-input mode, the s
 **Open/next.** The people shelf is the last subject with no manual and no acceptance suite. Its top
 three risks, and the two owner decisions this session could not take, are in `qa/QA_STATE.md`.
 
+### Follow-up, same session — the owner answered "YES"
+
+Two core questions were put; the answer was yes, and the answers are not symmetric:
+
+**(1) D-RES-05 — closed.** `logistic_regression` declared six decimal places for its coefficients,
+standard errors and both log-likelihoods, so every logistic paper printed `-22.806666`. It now declares
+four (`_logit_typing`, **B-214**) and the paper reads `-22.8067`. Before touching it I measured the two
+things that could have made it an unfreeze: the frozen fixture pins `tier`, `metric`, `unit`,
+`claim_ceiling`, `test_names` and `inputs` and **not** precision (so no fixture edit, and none was
+made), and `logistic_regression` is offered by this shelf alone (so no other page moves). Nothing in
+`tests/` pinned the six-decimal strings. Verified: research suite + `test_honesty` + `test_missing` +
+`test_frozen_contract` **77 passed**; the 21 papers regenerated, **0 precision problems**, and
+`logit` no longer matches `\d\.\d{6,}`. E-res-019 now also bans six-decimal figures outright.
+
+**(2) D-RES-04 — re-measured, and my first diagnosis was wrong.** I had reported that `power` and
+`missing` "declare an empty `honesty` map", implying the caveats did not exist. They do:
+`_power_caveats` and `_md_caveats`, and both sentences print — in the Result prose ("Power is a
+planning property of the design, not evidence about the result"; "They are honest bounds, not
+estimates"). What is absent is the *heading*: `orchestrator._honesty` fills a fixed four-field
+structure (`missing_data`, `multiple_comparisons`, `power`, `weights_and_clusters`) and fills it only
+for inferential methods, and both are `descriptive` with no assumption checks. `tests/test_honesty.py:37`
+pins that key set and `:41` pins `missing_data: None` for the bounding method, so a fifth field is a
+contract change — an unfreeze, not a session edit — and filling `power` for a method whose paper
+already says it in prose would stretch that field's meaning. A census showed **94 of 142 methods** would
+gain a block under the naive fix, which is exactly why it is not one. The row stays **OPEN**, with the
+cause corrected in the manual, the ledger and `QA_STATE`.
+
+**Verified after the follow-up.** `python -m pytest tests/test_subject_research_acceptance.py
+tests/test_honesty.py tests/test_missing.py tests/test_frozen_contract.py -q` → **77 passed**.
+`qa/probe_research_shelf.py --tools` → 21 papers, 21 delivered, 0 precision problems.
+

@@ -40,8 +40,9 @@ to group anything.
 D-RES-01 (five records denying shipped methods) **FIXED** · D-RES-03 (dict input printed as a Python
 repr in every column-map paper) **FIXED** · D-RES-06 (0 tiles / 0 groups, page could not group) **FIXED
 by B-213** · D-RES-07 (doc said 140/142; measured 142/144) **FIXED in the doc** · D-RES-02 (13 keys are
-not library ids) **PINNED** · D-RES-04 (`power`, `missing` print no honesty block) **OPEN — owner** ·
-D-RES-05 (`logistic_regression` declares 6 dp) **OPEN — owner**.
+not library ids) **PINNED** · D-RES-04 (`power`, `missing` print no honesty heading — **re-measured:
+the caveats exist and print; the heading is a pinned four-field shape**) **OPEN — unfreeze** ·
+D-RES-05 (`logistic_regression` declared 6 dp) **FIXED by B-214 (4 dp; the paper reads `-22.8067`)**.
 
 ### Next subject, and its top three risks
 
@@ -60,9 +61,12 @@ measured on the adjacent shelves:
    `STUDENT_NOTES`; if any lacks a `group`, its page falls back to the flat list exactly as this one
    did, and `scripts/econ_shelf.py --check` does not look at `people` at all.
 
-**Owner decisions still open from this session:** (a) write `caveats` for `power_analysis` and
-`missing_data_bounds` in the core (D-RES-04); (b) lower `logistic_regression`'s declared precision from
-6 to 4 dp, or state the P4 rule as "declared precision" rather than "no six-decimal figure" (D-RES-05).
+**Owner decisions:** (a) **D-RES-05 is closed** — on the owner's "yes", `logistic_regression` now
+declares 4 decimal places and its paper reads `-22.8067` (B-214). (b) **D-RES-04 needs an unfreeze, and
+the first diagnosis was wrong**: both methods already declare `caveats` and those sentences already
+print in the Result; what is missing is the *heading*, because `orchestrator._honesty` fills a fixed
+four-field structure for inferential methods only, and `tests/test_honesty.py:37`/`:41` pin that shape.
+Writing a fifth field is a contract change, so it is parked, not forced.
 
 ---
 

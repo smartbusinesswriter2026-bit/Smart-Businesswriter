@@ -217,6 +217,11 @@ class PaperTest(unittest.TestCase):
                                % tool["key"])
             self.assertEqual(mismatched, 0, "%s printed a figure at the wrong precision"
                              % tool["key"])
+            # D-RES-05 (B-214): a figure at six or more decimals reads as an unrounded Decimal.
+            # The declaration is what makes it right; this asserts no method on this shelf
+            # declares that many, so the paper cannot print one.
+            self.assertNotRegex(text, r"\d\.\d{6,}",
+                                "%s prints a figure at six or more decimal places" % tool["key"])
 
     def test_E_res_020__no_paper_prints_a_python_repr(self):
         for tool in tools():
