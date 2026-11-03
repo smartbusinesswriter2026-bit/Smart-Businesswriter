@@ -54,7 +54,8 @@ def _post(journal):
 
 
 def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
-        adjustments: Optional[List[Dict[str, Any]]] = None) -> RuntimeResult:
+        adjustments: Optional[List[Dict[str, Any]]] = None,
+        executed_adjustments: Optional[List[str]] = None) -> RuntimeResult:
     res = RuntimeResult(status="ok")
     # INGEST
     if not isinstance(problem_text, str) or not problem_text.strip():
@@ -140,6 +141,15 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
     tb = _post(journal)
     res.trial_balance = tb
     res.journal = journal
+    # adjustment completeness guard (G5)
+    try:
+        from . import completeness as comp_guard
+        claim_objs = [type("C", (), {"text": c.text, "kind": c.kind})() for c in claims]
+        missing = comp_guard.check_adjustment_completeness(claim_objs, executed_adjustments or [])
+        if missing:
+            res.diagnostics.append(f"adjustment completeness: missing {missing}")
+    except Exception:
+        pass
     # gate: balanced
     total_dr = sum((Decimal(str(a)) for a, s, _ in []), Decimal(0))  # placeholder
     # compute debits/credits from journal
