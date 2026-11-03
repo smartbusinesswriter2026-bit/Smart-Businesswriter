@@ -310,7 +310,7 @@ class Inventory(unittest.TestCase):
             self.assertTrue(tool["what"], tool["key"])
 
     def test_E_ppl_023__no_output_unit_contradicts_its_own_name(self):
-        """TRAP (D-PPL-01): before B-215 four fields contradicted their own names -
+        """TRAP (D-PPL-01): before B-216 four fields contradicted their own names -
         an ICER typed as money, money typed as the undeclared base unit, and an
         outcome-scale difference and its standard error typed as probabilities."""
         units = declared_units()
@@ -336,7 +336,7 @@ class Inventory(unittest.TestCase):
         self.assertEqual(units[("trainingroi", "roi")], ("rate", 4))
         self.assertEqual(units[("labourtightness", "real_wage")], ("currency", 2))
         self.assertEqual(units[("descriptive", "n")], ("count", 0))
-        # B-215: a holding period is a period, and a count is a count
+        # B-216: a holding period is a period, and a count is a count
         self.assertEqual(units[("trainingroi", "years")], ("periods", 2))
         self.assertEqual(units[("labourtightness", "vacancies")], ("count", 0))
         self.assertEqual(units[("labourtightness", "unemployed")], ("count", 0))
@@ -800,7 +800,7 @@ class Numbers(unittest.TestCase):
 
 
     def test_E_ppl_085__a_cost_per_unit_of_effect_prints_its_denominator(self):
-        """TRAP (B-215): the engine gained one composite unit. It must print as a cost
+        """TRAP (B-216): the engine gained one composite unit. It must print as a cost
         per effect, keep the accounting parentheses for a negative ratio, and never be
         mistaken for an amount."""
         ratio = Quantity(Decimal("400"), unit="currency_per_effect", currency="USD", precision=2)

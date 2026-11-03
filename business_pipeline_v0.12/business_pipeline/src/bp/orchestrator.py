@@ -230,7 +230,7 @@ class Pipeline:
             if mu == "currency" and "precision" not in request and cur:
                 try: prec = currencies.minor_units(cur)
                 except currencies.CurrencyError: pass
-            if mu == "@unit": mu = base_unit          # B-215: the unit is resolved BEFORE the currency,
+            if mu == "@unit": mu = base_unit          # B-216: the unit is resolved BEFORE the currency,
             q = Quantity(val, unit=mu,                # so a declared unit can never inherit a currency it does not use
                          currency=None if mu in ("count", "units", "correlation", "probability", "rate", "coefficient", "ratio", "days", "periods") else cur,
                          period=period, precision=prec)

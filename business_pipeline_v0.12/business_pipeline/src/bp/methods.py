@@ -2453,7 +2453,7 @@ def cea_profile(inp):
         return ["cost-effectiveness inputs are malformed: options must be records of name, cost and effect"]
 
 def _cea_typing(metric):
-    # B-215: an incremental cost-effectiveness ratio is a cost per unit of effect, not an
+    # B-216: an incremental cost-effectiveness ratio is a cost per unit of effect, not an
     # amount; the comparator's cost is money; an effect and an effect difference are on
     # the declared outcome scale, which the engine calls `units`; a dominance flag is a
     # count. Before this, every one of them inherited the request's currency, so an
@@ -3312,7 +3312,7 @@ def _power_profile(inp):
 
 def _power_typing(metric):
     if metric in ("n1", "n2"): return ("count", 0)
-    if metric in ("se", "mde"): return ("units", 2)   # B-215: an outcome-scale difference, not a probability
+    if metric in ("se", "mde"): return ("units", 2)   # B-216: an outcome-scale difference, not a probability
     if metric in ("power", "alpha", "target_power"): return ("probability", 4)
     return ("ratio", 3)
 
@@ -7655,7 +7655,7 @@ def labour_market_impl(inp):
     out = {"nominal_wage": wage, "cpi": cpi, "labour_productivity": productivity,
            "real_wage": real, "wage_share_of_productivity": real / productivity}
     if inp.get("vacancies") is not None and inp.get("unemployed") is not None:
-        # B-215: tightness is a ratio of two COUNTS - vacancies divided by unemployed
+        # B-216: tightness is a ratio of two COUNTS - vacancies divided by unemployed
         # people. Before this the denominator was an unemployment RATE, so ten vacancies
         # over five per cent printed as 200: a count divided by a rate, which is not a
         # ratio of like units and has no reading.
@@ -7716,7 +7716,7 @@ def _labour_typing(metric):
                   "labour_market_tightness"):
         return ("ratio", 4)
     if metric in ("vacancies", "unemployed"):
-        return ("count", 0)                      # B-215: counts, and `unemployment_rate` is gone
+        return ("count", 0)                      # B-216: counts, and `unemployment_rate` is gone
     return ("currency", 2)
 
 
@@ -9033,7 +9033,7 @@ def return_on_investment_profile(inp):
 
 def _roi_typing(metric):
     if metric == "years":
-        # B-215: a holding period is not a count. At ("count", 0) a 2.5-year holding
+        # B-216: a holding period is not a count. At ("count", 0) a 2.5-year holding
         # printed "2 years" beside a return compounded over 2.5 years.
         return ("periods", 2)
     if metric in ("total_investment", "net_gain"):

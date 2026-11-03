@@ -45,12 +45,12 @@ said 5 and then listed six — six is the truth) · 0 records · 0 theories · 0
 | `qa/evidence/people/` | `kotter-paper.docx` (27,166 bytes), `kotter-paper.txt` (1,581 words), `unit-audit.txt`, `parity.txt`, `evidence.json` |
 | `qa/baseline/ppl-before-suite-err.txt`, `ppl-after-suite-err.txt` | Baseline and closing measurements |
 
-### Fixed — one core change (B-215, the owner's option A) and two presentation fixes
+### Fixed — one core change (B-216, the owner's option A) and two presentation fixes
 
 - **Presentation, this session:** the Analytics tile said "statistics" while three of its ten
   calculators are money arithmetic — its `what` now names both; and `docs/CURRICULUM_MAP.md`'s People
   row now names the ten methods, six tiles and nineteen worksheets it had omitted.
-- **Core, on the owner's instruction (option A) — B-215:** the `@unit` currency ordering bug
+- **Core, on the owner's instruction (option A) — B-216:** the `@unit` currency ordering bug
   (`orchestrator`), one new composite unit `currency_per_effect` (`quantity.display`), the CEA typing
   (ICER → cost-per-effect, effects → `units`), `mde`/`se` → `units`, `years` → `(periods, 2)`, and
   Item 11b — `labour_market` now divides by an `unemployed` **count** (tightness **0.2000**), with a

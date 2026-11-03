@@ -33,7 +33,7 @@ and contract), `src/bp/orchestrator.py` (one block), `src/bp/quantity.py` (displ
 `src/bp/product/subjects.py` (one step, one tile description), `tests/fixtures/frozen_contract.json` (regenerated),
 `tests/test_subject_people_acceptance.py` (85 tests), `qa/manual/people.md`, `qa/clickthrough_people.py`,
 `qa/evidence/people/`, `qa/QA_DEFECTS.md`, `qa/QA_STATE.md`, `docs/OPEN_ISSUES.md`, `docs/CURRICULUM_MAP.md`,
-`docs/DECISIONS.md` (B-215), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`.
+`docs/DECISIONS.md` (B-216), `docs/CHANGELOG.md`, `docs/HOME.md`, `docs/HANDOFF.md`, `docs/CONTRIBUTORS.md`.
 
 **Verified.** 85 acceptance tests green; 234 in the frozen-contract, method-contract, people, economics and
 entrepreneurship slice; `econ_shelf --check` in sync; `page syntax: OK`; 10 of 10 calculators delivered over HTTP on
