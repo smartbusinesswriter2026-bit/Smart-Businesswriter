@@ -111,6 +111,24 @@ class RouteTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual([row["id"] for row in payload["records"]], [record["id"]])
 
+    def test_no_input_shape_produces_a_server_error(self):
+        """Every refusal is a 4xx: a crash is not something a student can act on."""
+        shapes = ["hello there", "",
+                  "Trial balance at 31 December 2026.\nCash 5,000\nCapital 5,000\nCash 2,000",
+                  "Trial balance at 31 December 2026.\nCash 5,000 7,000\nCapital 5,000 7,000",
+                  "Trial balance at 31 December 2026.\nCash 5,000\nCapital 4,000",
+                  "Prepare the consolidated statements. Cash 5,000. Capital 5,000.",
+                  "Trial balance at 31 December 2026.\nCash\nCapital",
+                  "Cash 5,000"]
+        for text in shapes:
+            with self.subTest(text=text[:40]):
+                status, payload = self.post(text)
+                self.assertLess(status, 500, "%s produced %s: %s" % (text[:40], status, payload))
+                # a 400 carries "error"; a 422 is a refusal record, which carries "refusal" and the
+                # diagnosis.  Either way the student is told why.
+                self.assertTrue(payload.get("error") or payload.get("refusal"),
+                                "a refusal must say why: %s" % status)
+
     def test_the_statements_modules_import_no_frozen_core_module(self):
         for name in ("statements.py", "statements_verify.py", "statements_council.py"):
             with open(os.path.join(PRODUCT_DIR, name), encoding="utf-8") as stream:

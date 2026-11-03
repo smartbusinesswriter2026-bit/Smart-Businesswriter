@@ -151,6 +151,62 @@ class SolveTest(unittest.TestCase):
         self.assertIsNone(placed["placement"])
 
 
+class ScopeTest(unittest.TestCase):
+    """What the tile refuses, because a merged statement from two sets of books looks plausible."""
+    @classmethod
+    def setUpClass(cls):
+        attach()
+
+    def refused(self, text):
+        with self.assertRaises(statements.StatementRefused) as caught:
+            statements.solve(text)
+        return str(caught.exception)
+
+    def test_a_second_set_of_balances_is_refused_and_not_merged(self):
+        alpha = "Trial balance at 31 December 2026.\nCash 5,000\nCapital 5,000"
+        beta = "Trial balance at 31 December 2026.\nCash 2,000\nCapital 2,000"
+        # each entity balances on its own, so no arithmetic invariant can catch the pair: the merged
+        # trial balance balances too, which is exactly why the refusal has to be about the shape
+        self.assertTrue(statements.solve(alpha)["solved"])
+        self.assertTrue(statements.solve(beta)["solved"])
+        message = self.refused("The following trial balances were extracted at 31 December 2026.\n"
+                               "Alpha Ltd\nCash 5,000\nCapital 5,000\n"
+                               "Beta Ltd\nCash 2,000\nCapital 2,000")
+        self.assertIn("appears twice", message)
+        self.assertIn("one set at a time", message)
+
+    def test_two_accounts_on_one_statement_line_still_solve(self):
+        record = statements.solve("Trial balance at 31 December 2026.\n"
+                                  "Cash 5,000\nBank 1,000\nCapital 6,000")
+        self.assertTrue(record["solved"], record.get("refusal"))
+        self.assertEqual(record["core"]["scalars"]["total_assets"], "6000")
+        lines = [account["line"] for account in record["spec"]["chart"]]
+        self.assertEqual(lines.count("Cash"), 2, "both accounts report on the Cash line")
+        self.assertEqual(len({account["code"] for account in record["spec"]["chart"]}), len(lines),
+                         "two accounts on one line still get distinct codes")
+
+    def test_a_comparative_column_is_refused(self):
+        message = self.refused("Trial balance at 31 December 2026.\nCash 5,000 7,000\nCapital 5,000 7,000")
+        self.assertIn("two figures on one line", message)
+        self.assertIn("comparative", message)
+
+    def test_two_periods_are_refused(self):
+        message = self.refused("Trial balance at 31 December 2026.\nCash 5,000\nCapital 5,000\n"
+                               "Trial balance at 31 December 2025.\nCash 4,000\nCapital 4,000")
+        self.assertIn("more than one period", message)
+        self.assertIn("Comparatives are not supported", message)
+
+    def test_consolidated_statements_are_refused(self):
+        message = self.refused("Prepare the consolidated financial statements. Cash 5,000. Capital 5,000.")
+        self.assertIn("consolidated", message)
+        self.assertIn("outside this tile", message)
+
+    def test_a_year_inside_a_label_is_not_mistaken_for_a_comparative(self):
+        record = statements.solve("Trial balance at 31 December 2026.\n"
+                                  "Cash 5,000\nCapital 4,000\nLoan 2026 1,000")
+        self.assertTrue(record["solved"], record.get("refusal"))
+        self.assertEqual(record["core"]["scalars"]["total_assets"], "5000")
+
+
 if __name__ == "__main__":
     unittest.main()
-

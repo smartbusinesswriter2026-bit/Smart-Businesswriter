@@ -47,6 +47,15 @@ class CoreNotAttached(StatementError):
     """`server.py` did not inject the frozen core, so the tile refuses instead of guessing."""
 
 
+class StatementRefused(StatementError):
+    """A reading the tile refuses outright.
+
+    Distinct from a plain `StatementError` because no model reading can rescue it: two sets of
+    balances, two periods, or a consolidation are **not one entity's one trial balance**, and asking
+    a model about them would only produce a merged statement that looks right and is not.
+    """
+
+
 _CORE = {}
 
 
@@ -293,8 +302,11 @@ def build_chart(rows):
     chart, seen = [], {}
     for row in rows:
         placed = row["placed"]["placement"]
-        signature = (placed["line"], placed["type"], placed["role"], placed["contra"],
-                     placed["section"], placed["activity"])
+        # The account's own label is part of its identity: "Cash" and "Bank" are two accounts that
+        # happen to share one statement line, which the ledger supports and a trial balance expects.
+        # Two rows with the *same* label are one account, which is how a second set of books shows up.
+        signature = (_norm_label(row["label"]), placed["line"], placed["type"], placed["role"],
+                     placed["contra"], placed["section"], placed["activity"])
         code = seen.get(signature)
         if code is None:
             account = {"code": _free_code(CODE_FOR_LINE.get(placed["line"], "9000"), chart),
@@ -319,12 +331,86 @@ def build_chart(rows):
     return chart
 
 
+#: Words that mark group accounts.  Consolidated statements are out of scope, and a merged statement
+#: built from two entities' books looks plausible, so a mention is refused rather than solved.
+CONSOLIDATION = re.compile(r"\b(consolidated|consolidation|group accounts?|intra-?group|"
+                           r"on acquisition|goodwill on|non-?controlling interest|eliminations?)\b", re.I)
+
+
+def periods_in(text):
+    """Every distinct period the text names: full dates, written dates, or a stated year."""
+    source = str(text or "")
+    ends = set()
+    for match in re.finditer(r"\b(\d{4})-(\d{2})-(\d{2})\b", source):
+        ends.add(match.group(0))
+    for match in re.finditer(r"\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|"
+                             r"september|october|november|december)\.?\s+((?:19|20)\d{2})\b", source, re.I):
+        ends.add("%s-%02d-%02d" % (match.group(3), MONTHS[match.group(2).lower()], int(match.group(1))))
+    if not ends:
+        ends = set(re.findall(r"\b(?:year (?:ended|to)|for the year|financial year)\D{0,12}((?:19|20)\d{2})\b",
+                              source, re.I))
+    return ends
+
+
+def column_lines(text):
+    """Lines that carry two figures for one account: a comparative, which this tile does not support.
+
+    A year inside a label ("Loan 2026 5,000") is not a second figure, so year-like tokens are removed
+    before the figures are counted; what remains is a label plus two amounts.
+    """
+    out = []
+    for raw in str(text or "").splitlines():
+        without_years = re.sub(r"\b(?:19|20)\d{2}\b", " ", raw)
+        if len(MONEY.findall(without_years)) < 2:
+            continue
+        label = MONEY.sub(" ", without_years).strip(" .,:-|()[]")
+        if place(label)["candidates"]:
+            out.append(raw.strip())
+    return out
+
+
+def preflight(text):
+    """Refuse the shapes that are not one entity's one trial balance, from the text alone.
+
+    Runs before anything is classified, so a two-column comparative or a group-accounts mention is
+    answered with its real cause instead of "I could not find an account", and before the chart is
+    built, so a refused reading never reaches the core or a model.
+    """
+    marker = CONSOLIDATION.search(str(text or ""))
+    if marker:
+        raise StatementRefused("this mentions '" + marker.group(0) + "', so it reads as consolidated or "
+                               "group accounts. Consolidated statements are outside this tile: solve one "
+                               "entity's own books.")
+    periods = periods_in(text)
+    if len(periods) > 1:
+        raise StatementRefused("this carries more than one period (" + ", ".join(sorted(periods)) + "). "
+                               "Comparatives are not supported: give one period's figures.")
+    columns = column_lines(text)
+    if columns:
+        raise StatementRefused("this puts two figures on one line ('" + columns[0][:60] + "'), which is a "
+                               "comparative. Give one period's figures.")
+
+
+def preflight_rows(rows):
+    """Refuse a reading that lists one account twice: that is two sets of balances, not one."""
+    seen = set()
+    for row in rows:
+        key = _norm_label(row["label"])
+        if key in seen:
+            raise StatementRefused("the account '" + row["label"] + "' appears twice, and a trial balance "
+                                   "lists each account once. Two sets of balances - two entities, or the "
+                                   "same books pasted twice - cannot be added together: solve one set at a "
+                                   "time.")
+        seen.add(key)
+
+
 def read_deterministic(text, currency=None, framework=None):
     """A reading of a trial-balance-shaped instruction, with no model involved.
 
     A transaction list and an adjusting-entry narrative need the model reader: this function says
     so instead of half-reading them.
     """
+    preflight(text)
     kind, cue, sentence = classify(text)
     if kind not in ("trial_balance", "adjustments", "incomplete_records"):
         raise StatementError("this reads as a " + kind.replace("_", " ") + " problem; that needs the "
@@ -333,6 +419,7 @@ def read_deterministic(text, currency=None, framework=None):
     if not rows:
         raise StatementError("I could not find an account with a balance in this text. Write one "
                              "account per line, as 'Cash 5,000' or 'Capital 5,000 Cr'.")
+    preflight_rows(rows)
     chart = build_chart(rows)
     period, period_source, _quote = period_of(text)
     places = max([2] + [_decimals(row["written"]) for row in rows])
@@ -377,15 +464,16 @@ def read_deterministic(text, currency=None, framework=None):
 def tb_rows(rows, places=2):
     """The rows in the shape the core's trial-balance check expects: name, code, and one side.
 
-    The side comes from `_resolve`, so posting the journal and diagnosing the trial balance can
-    never disagree about which side a row sits on.  Nothing is totalled here: the core's diagnosis
-    is what reports whether the two sides agree.
+    Each row is named by its **own label and code**, never by the statement line it maps to.  Two
+    accounts may share a line — "Cash" and "Bank" both report as Cash — and that is a legitimate
+    trial balance; naming both "Cash" made the core refuse it as a duplicate.  With the account's own
+    name, the core's duplicate check fires only on a real duplicate, which is the signal that the
+    text holds two sets of books.
     """
     out = []
     for row in rows:
         key, amount = _resolve(row)
-        line = row["placed"]["placement"]["line"]
-        out.append({"name": line, "code": row.get("code") or CODE_FOR_LINE.get(line, ""), key: amount})
+        out.append({"name": row["label"], "code": row.get("code") or "", key: amount})
     return out
 
 
@@ -464,7 +552,16 @@ def _diagnose(rows, places):
     `_appendix` (see `methods.tbcheck_impl`); both are read here, and a missing key is an error
     rather than a silent zero — a diagnosis that quietly reads "balanced" is worse than no diagnosis.
     """
-    report = _core("diagnose")(tb_rows(rows, places), places)
+    try:
+        report = _core("diagnose")(tb_rows(rows, places), places)
+    except Exception as error:
+        # A core refusal is a refusal of these figures, never a crash: the tile says what is wrong.
+        text = str(error)
+        if "listed more than once" in text:
+            raise StatementRefused("the same account appears twice, and a trial balance lists each "
+                                   "account once. Two sets of balances cannot be added together: solve "
+                                   "one set at a time.")
+        raise StatementError("the trial-balance check refused these figures: " + text[:200])
     difference = report.get("submitted_balance_difference")
     if difference is None:
         difference = (report.get("amounts") or {}).get("submitted_balance_difference")
@@ -627,6 +724,8 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None):
     try:
         reading = read_deterministic(text, currency=currency, framework=framework)
         rows = reading.pop("_rows", []) or []
+    except StatementRefused:
+        raise                      # no model can rescue two sets of balances or two periods
     except StatementError as error:
         parser_error = error
         reading = None
@@ -785,6 +884,9 @@ def handle(verb, segments, body=None):
                                framework=body.get("framework"), ratios=body.get("ratios"))
             except StatementError as error:
                 return 400, {"error": str(error)}
+            except Exception as error:      # a bug is a clean 500, never a stack trace to the browser
+                return 500, {"error": "the statements tile failed: " + type(error).__name__ + ": "
+                                      + str(error)[:200]}
             stored = save(record)
             return (201 if stored.get("solved") else 422), stored
         return 405, {"error": "method " + str(verb) + " is not allowed on the statements collection"}
