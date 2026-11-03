@@ -384,6 +384,8 @@ def _equity_kind(j, account, code, e):
         if any(o.type in ("income", "expense") for o in others): return "profit for the period"
         if any(o.type == "oci" for o in others): return "other comprehensive income"
         if any(o.role == "dividends" for o in others): return "dividends"
+    if account.role == "retained_earnings":
+        return "brought forward"
     return "other"
 
 def changes_in_equity(j):

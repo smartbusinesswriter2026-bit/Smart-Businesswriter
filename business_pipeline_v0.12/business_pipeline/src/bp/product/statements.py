@@ -643,6 +643,14 @@ def ratio_pack(result, text):
         return None
     pack = _core("ratio_analysis")(figures)
     computed = list((pack.get("_appendix") or {}).get("ratios") or [])
+    for row in computed:
+        unit = row.get("unit")
+        places = 1 if unit == "days" else 3
+        try:
+            from decimal import Decimal as _D
+            row["value"] = str(_D(str(row.get("value"))).quantize(_D("0.1") if places == 1 else _D("0.001")))
+        except Exception:
+            pass
     named = [{"ratio": row.get("ratio"), "reason": row.get("reason"), "needs": []}
              for row in (pack.get("_appendix") or {}).get("not_computed") or []]
     for gap in appendix.get("ratio_gaps") or []:

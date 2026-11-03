@@ -53,7 +53,7 @@ def statement_of_equity(eq, places=2):
             out.append("  no movement in the period")
         for m in row["movements"]:
             mark = " (closing)" if m.get("closing_entry") else ""
-            out.append(f"  {m['date']}  {m['kind'][:22]:<22}{_num(m['amount'], places):>16}  {m['description'][:34]}{mark}")
+            out.append(f"  {m['date']}  {m['kind'][:22]:<22}{_num(m['amount'], places):>16}  {m['description'][:60]}{mark}")
         out.append(_row("  Closing balance", row["closing"], places))
         out.append("")
     out.append(_row("Total opening", eq["total_opening"], places))
