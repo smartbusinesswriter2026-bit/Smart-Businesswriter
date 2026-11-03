@@ -33,7 +33,7 @@ Raw: `qa/baseline/pm-before-suite-err.txt`, names in
 ## 2. The shelf as measured
 
 18 compute tools · **10 worksheets** · **6 records** · 0 theories · 23 glossary terms ·
-**tiles: 0** · 79 framework profiles overall.
+**tiles: 7** · 79 framework profiles overall.
 
 *Re-measured twice on 2026-11-03: first the Balanced Scorecard, then the Strategy Map, the
 KPI Tree and OKRs, stopped being read-only records and became completing worksheets. That
@@ -42,6 +42,12 @@ is why the shelf now shows ten worksheets and six records instead of six and ten
 *This section was re-measured after the owner's 2026-11-03 instruction: the Balanced
 Scorecard stopped being a read-only record and became a completing worksheet (PM-01),
 which is why the shelf now shows seven worksheets and nine records instead of six and ten.*
+
+*Re-measured a third time on 2026-11-03 (design lane B-080, *"USE TILES"*): the shelf declared
+**tiles: 0** and fell back to grouping by discipline. It now declares **seven tiles** — the
+three worksheet tiles a student meets first, then the four calculator tiles the shelf already
+used. Nothing left the shelf: all ten worksheets and all eighteen calculators land in exactly
+one tile, and the six held records land in none. See §2.3 and §11.*
 
 ### 2.0 The owner's instruction of 2026-11-03, and what changed
 
@@ -58,24 +64,39 @@ THEM"*, followed by *"YES BUILD THIS: Build the Balanced Scorecard as a real wor
 
 `qa/baseline/pm-probe.txt` is the raw probe (`python qa/probe_pm_shelf.py --blocks --refusals`).
 
-### 2.1 "tiles: 0" — explained, and it is not a UI defect
+### 2.1 The tiles — measured, and nothing lost
 
-`subjects.SUBJECT_TILES` declares tiles for `people`, `economics` and `management`
-only (`src/bp/product/subjects.py:2775-2776`). `project-management` is absent, so
-`_tiles()` returns `[]` and `web/index.html:4649` takes the fallback branch
-(`if ((s.tiles || []).length) … else …`). The fallback is a real, ordered layout:
+`subjects.SUBJECT_TILES` now declares `project-management` (design lane B-080, 2026-11-03,
+*"USE TILES"*). The shelf declares **seven tiles** and the page takes the tile branch
+(`if ((s.tiles || []).length)`) instead of the grouped fallback.
 
-1. **"Complete a framework"** — the six worksheets first, because they complete
-   themselves from the brief (`index.html:4660-4670`);
-2. the ten records grouped by `discipline_label` — one heading,
-   *Project delivery and governance – 10*;
-3. **"With computation"** — the eighteen calculators grouped by `tool["group"]`
-   (Appraise the business case, Plan the delivery, Control delivery, Compare the
-   options, …).
+| # | tile key | tile label | worksheets | calculators |
+|---:|---|---|---|---|
+| 1 | `governance` | Governance | PM-01, PM-02, PM-03, PM-04 | — |
+| 2 | `delivery_documents` | Delivery documents | PM-05, PM-09, PM-06 | — |
+| 3 | `people_and_roles` | People and governance roles | PM-10, PM-15, PM-16 | — |
+| 4 | `Appraise the business case` | Appraise the business case | — | npv, irr, dpayback, projectmetrics, realoption, montecarlo |
+| 5 | `Compare the options` | Compare the options | — | scenario, case_decision, decisiontree, mcda |
+| 6 | `Project cost and benefit` | Project cost and benefit | — | forecast |
+| 7 | `Schedule and control` | Schedule and control | — | cpm, evm, leveling, crashing, calendar, multiproject, schedrisk |
 
-So the shelf *has* navigable structure; it groups by discipline and tool group
-rather than by declared tiles. Recorded as a measured zero (E-pm-006), not fixed:
-declaring tiles is a presentation decision (owner's call, §9).
+**Why this order.** The three worksheet tiles come first because the documents a project needs
+are written before it is appraised or scheduled; within Governance the Balanced Scorecard comes
+first because the Strategy Map, the KPI Tree and the OKRs hang off it. The four calculator tiles
+keep **the group names the shelf already used** (`PROJECT_MANAGEMENT_GROUPS`), so a calculator
+that already had a home on the page keeps it: a tile is where its group was, and nothing moved
+because tiles arrived.
+
+**The count check, and the trap test that guards it.** 10 worksheets + 18 calculators = 28 items,
+and the tiles carry 10 + 18. Each item lands in exactly one tile, and each tile's `key` equals
+the `group` its items declare. `E-pm-076` asserts all of that, including that no tile holds a
+worksheet or a calculator twice — it is the test that stops a page shipping with a calculator
+missing. `E-pm-077` asserts the six held records stay out of the tiles.
+
+**The hold now covers the whole page.** The tile change moved the records out of the grouped
+list, so the page's "Other catalogued frameworks" leftover section became the one place a held
+record could have reappeared. It is filtered by `isHeldGroup(row.discipline_label)` now, and
+each tile's own record list is filtered too. The hold itself (`HOLD.groups`) is unchanged.
 
 ### 2.2 The 16-item inventory — the deliverable of this session
 
@@ -254,8 +275,22 @@ second route and this session's hand pass agree.
 | E-pm-071 | the Strategy Map, KPI Tree and OKRs are declared T4 matrix worksheets linked to PM-02/03/04, each `form == "worksheet"` and offered on the shelf | `test_E_pm_071` | PASS (built) |
 | E-pm-072 | each of the three passes all eight shared checks, computes no score, weight, attainment or ranking, and names a deleted cell instead of filling it | `test_E_pm_072` | PASS |
 | E-pm-073 | each produces a paper with its own vocabulary — its authored lead, its own block labels, a Conclusion and References | `test_E_pm_073` | PASS |
+| E-pm-074 | every matrix worksheet with a PM registry id declares all four `form_copy` keys, and the column label is the framework's own vocabulary — never "Measure field", "Map field", "Tree field" or "OKR field" | `test_E_pm_074` | PASS (built) |
+| E-pm-075 | the page reads `t.form_copy` and the renderer names none of these four templates; the four labels and their introductions are served | `test_E_pm_075` | PASS (built) |
+| E-pm-076 | the page declares tiles and loses nothing: every worksheet and every one of the eighteen calculators lands in exactly one tile, whose key equals the `group` the item declares | `test_E_pm_076` | PASS (built) |
+| E-pm-077 | the six held records stay hidden in the tile layout — in no tile and in no leftover section | `test_E_pm_077` | PASS (built) |
+| E-pm-078 | no suggestion can be written into an answer box: the advice helper assigns into no field, and every placeholder in the grid form is a short format cue | `test_E_pm_078` | PASS |
+| E-pm-079 | **a grid opens its grid form**: the declared form is tested before the completion profile, in the renderer and in the collector, and the grid's own validator accepts the shape the grid form produces | `test_E_pm_079` | PASS (built) — the trap test for D-PM-06 |
+| E-pm-080 | the grid form has no horizontal scroll at 1280 px or 390 px: both views are built, the narrow one is a labelled card per row, and neither the capability tile nor the top bar may push the page sideways | `test_E_pm_080` | PASS (built) |
 
-**Scoreboard: 73 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
+**E-pm-006 changed, and why.** The row used to assert `tiles: 0` — a measured zero, recorded
+because declaring tiles was "a presentation decision (owner's call)". The owner made that call
+on 2026-11-03 (*"USE TILES"*), so the expectation was rewritten to the measured truth (seven
+tiles) and the fallback branch was kept in the assertion, because the fallback is still there for
+the shelves that need it. No test was silenced to go green: the row was made *stronger* — it now
+asserts the tile count, the tile branch is live, **and** the fallback still exists.
+
+**Scoreboard: 80 PASS · 0 DISPUTED · 0 BLOCKED · 4 declared gaps (G-pm-01…04).**
 No row is DISPUTED: where a measurement contradicted the work order's premise
 (§8 D-PM-01, the crashing arithmetic), the measurement is recorded and the test
 asserts the truth, not the premise.
@@ -341,6 +376,7 @@ from the profile's subject.
 
 | D-PM-04 | `case_decision` on this shelf; E-pm-014 | MINOR | DECLARATION | the card is `kind: compute` but `case_decision` is not in `bp.methods.LIBRARY` | it is a **T2 template** (`T.TEMPLATES['case_decision']['tier'] == 'T2'`, registry `QNT-FIN-01`) that computes NPV inside the template path, and it delivers through `Pipeline` | — | `test_E_pm_014` | **NOT A DEFECT** — measured and pinned |
 | D-PM-05 | all five `unit`-typed worksheets (and BMC, Lean Canvas, VPC); E-pm-063 | BLOCKER | GATE / HONESTY (V-06) | `qa/probe_pm_lead.py`: the produced charter printed a paragraph that was the single word **`lead`** under the heading "Framework Overview" | eight profiles shipped `'lead': 'lead'` — the outline key repeated as its own value — and `complete()` printed it verbatim while its own `_problems` already reported "lead short". **Fixed in both layers:** the eight leads are now **authored** (56–86 words each, grounded on that profile's own block labels — no case fact, no number, no source), and `_lead_of()` still fails closed on any future stub, so the paragraph-and-heading is omitted rather than printed. "lead short" is now reported only for a lead that exists | this session | `test_E_pm_063` | **FIXED** |
+| D-PM-06 | every grid worksheet on this shelf; E-pm-079 | MAJOR | WIRING / FORM | the four new grids opened the **evidence** form, so a student who typed a grid got the refusal *"rows must be a list of 4 to 6 perspectives"* | `worksheetForm` tested `t.completion` **before** `t.form_kind`, and every PM worksheet carries a completion profile — so the grid's own form was unreachable and the collector submitted `{blocks, links}`, which the grid's validator refuses. The completion profile describes the blocks the *paper* is written from, not the surface the student types into | this session (B-080) | `test_E_pm_079` | **FIXED** — the declared form decides; a grid opens its grid form and collects the grid shape |
 
 
 | G-pm-01 | every `probe`-profile worksheet; V-01/V-12 | MAJOR | HONESTY (owner policy) | `qa/probe_pm_paper.py`: ten of ten H2 blocks carry `background`, no gap **when the evidence pack is empty**; with a title that carries the block's own cue the same block places a sourced item (measured, `dropped: 1, items: 1`) | `completion.py:381-390` fills an unsourced part with the framework's own background on the owner's instruction, and the paper discloses it. **Correction recorded:** this session first read the all-background paper as a dead retrieval path; instrumenting `retrieval.retrieve` showed the gate was working as designed and the mocks were unrealistic | — | `test_E_pm_054`, `paper-read.json` | **GAP** (declared, disclosed) — the owner decides whether it becomes a gap |
@@ -354,6 +390,41 @@ not touched (no change was needed — every numeric reading held up), and no rec
 was converted into a worksheet.
 
 ## 8. Gate results
+
+### 8.0 The 2026-11-03 (B-080) gates, re-measured
+
+| Gate | Command | Result |
+|---|---|---|
+| Page syntax | `python qa/check_page_syntax.py` | **page syntax: OK** |
+| Shelf acceptance | `python -m pytest tests/test_subject_project_management_acceptance.py -q` | **80 passed** (73 before this session) |
+| Served page + docs | `python -m pytest tests/test_product_subjects.py tests/test_web_inline_script.py tests/test_docs_sync.py -q` | see §8.2 |
+| Frozen fixture | `python scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
+
+### 8.2 What the three failures in §8.0 are, and whose they are
+
+`test_product_subjects.py` has the one known baseline failure — the served rail
+(`test_the_rail_carries_the_portfolio_lab_above_the_calculator`) — which is **not** this lane's and
+was red before this session. `test_docs_sync.py` had three failures at HEAD before this session
+began, all introduced by the other live lane's commits (`d64cd0c`, `52b90e8`): the documented
+test count, the documentation spine not covering `STATEMENTS_TILE_PLAN.md`, and the decision
+ids `B-180a`, `B-180b` and `B-207` mentioned without a row in `DECISIONS.md`. The **test count**
+row was fixed here, because the work order asks this lane to set it to the measured value
+(3246). The other two are the other lane's documents and are recorded, not touched.
+
+### 8.3 The live layout, measured
+
+Driven over CDP against a fresh server on port 8078, with the browser cache disabled:
+
+| width | the grid | `scrollWidth` vs `clientWidth` | the page scrolls sideways? |
+|---:|---|---|---|
+| 1280 px | a four-column table inside its own scrolling box | 1280 = 1280 | **no** |
+| 390 px | one card per row, every field stacked and labelled | 390 = 390 | **no** |
+
+Before this session the page scrolled to **663 px** at 390 px. Two things were wider than the
+screen: the capability tile (566 px inside a 256 px grid) and the top bar. Both now shrink, and
+`test_E_pm_080` pins the rules that keep them shrunk.
+
+### 8.4 The original gates (session 7, for the record)
 
 | Gate | Result | Evidence |
 |---|---|---|
@@ -493,4 +564,64 @@ Every term is asserted for presence and for a definition by `E-pm-004` and
 
 **Counts asserted:** 18 + 6 + 10 + 23 = **57 items reconciled**, each with at
 least one cited E-row; `E-pm-001`…`E-pm-003` assert the counts themselves.
+
+## 11. The worksheet form — professional to fill in (design lane B-080, 2026-11-03)
+
+### 11.1 Where the form's copy lives
+
+The copy is **data**, not code. Each grid declares a `form_copy` object beside its own geometry
+in `MATRIX_META`, and `describe()` publishes it on the template payload, so the page reads it and
+never asks which framework it is drawing. The repo rule holds: **adding a framework means adding
+a profile, never a branch in the renderer.**
+
+```python
+"form_copy": {
+    "rows_label": "Perspectives",
+    "cols_label": "Fields for each perspective",
+    "cols_hint": "Exactly four: Objective, Measure, Target, Initiative - one per line",
+    "intro": ("Write the perspectives you steer by, one per line. …"),
+},
+```
+
+Every matrix template declares one, not only the four PM ones — the RACI, the risk register, the
+scenario matrix, the strategic group map, the customer journey and the SERVQUAL grid — so the
+three older branches in `matrixForm` are now the **floor** for a grid that declares no copy, not
+the rule.
+
+### 11.2 The labels, before and after
+
+| template | rows label before | columns label before | rows label now | columns label now |
+|---|---|---|---|---|
+| `template_balanced_scorecard` | Perspective | **Measure field** | Perspectives | Fields for each perspective |
+| `template_strategy_map` | Objective | **Map field** | Objectives | Fields for each objective |
+| `template_kpi_tree` | Metric | **Tree field** | Metrics | Fields for each metric |
+| `template_okrs` | Objective | **OKR field** | Objectives | Fields for each objective |
+| `template_raci` | Activities | Roles | Activities | Roles (unchanged) |
+| `template_risk_register` | Risks | Fields | Risks | Fields (unchanged) |
+
+### 11.3 The four states, as designed and as measured
+
+| state | what the student sees | measured live |
+|---|---|---|
+| **empty** | the grid says what belongs in a cell and that an unfilled cell is named in the audit | *"The grid is empty … Leave a cell empty and it is named in the audit as a gap - it is never filled in for you."* |
+| **loading** | the panel says it is opening the worksheet — never a blank card | `openWorksheet` writes a loading card before it awaits the payload |
+| **error** | a template the server would not serve is named, and the student is told to go back | *"This worksheet could not be opened … Nothing has been filled in and nothing has been guessed."* |
+| **refusal** | the audit's own reason, in a sentence, beside the form | *"THIS GRID CANNOT BE RUN YET — The grid is empty: add the perspectives and the fields for each perspective first."* |
+
+A refusal is **never** a raw JSON dump and **never** a template token.
+
+### 11.4 The grid at 1280 px and 390 px
+
+A four-column grid with four to twelve rows is wide. On a wide screen it is a table inside its
+own scrolling box (`.mxgridtablewrap`), so the page itself never scrolls sideways. At 760 px and
+below it becomes **one card per row**, each field stacked under its own label (`.mxcards`), and
+the table is hidden — the two views are the same fields, so what the student typed in one is what
+the other reads. Every cell input carries an `aria-label` naming its row and its column.
+
+### 11.5 What did not change
+
+No number, no check, no citation rule and no gate moved. No method, preset, template contract,
+input or frozen-contract entry changed. `src/bp/methods.py`, `docs/sources/**` and
+`tests/fixtures/frozen_contract.json` were not touched.
+
 

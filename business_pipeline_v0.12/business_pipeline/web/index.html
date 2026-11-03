@@ -105,6 +105,45 @@ label.field{display:block;font-size:15.4px;color:var(--text-2);margin:0 0 4px}
 .wsheet .whint{font-size:14.8px;color:var(--text-2);font-variant-numeric:tabular-nums}
 .wsheet .wlinks{border-bottom:0}
 
+/* ---------- the declared-grid form ----------
+   A grid is wide: four fields across, four to twelve rows down.  On a wide
+   screen it is a table inside its own scrolling box, so the page itself never
+   scrolls sideways.  On a narrow screen (390 px) it becomes one card per row,
+   each field stacked and labelled: the same inputs, in the same order, with no
+   horizontal scroll anywhere. */
+.mxgrid{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.mxgridhead{padding:12px 14px;border-bottom:1px solid var(--border);background:var(--sunken)}
+.mxgridhead strong{display:block;font-size:16px;color:var(--text)}
+.mxgridhead span{display:block;font-size:14.8px;line-height:1.5;color:var(--text-2);margin-top:3px}
+.mxgridtablewrap{overflow-x:auto}
+.mxgrid table{border-collapse:collapse;width:100%;min-width:640px;font-size:15.4px}
+.mxgrid table caption{text-align:left;font-size:14.6px;color:var(--text-2);padding:0 0 8px}
+.mxgrid th,.mxgrid td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+.mxgrid thead th{background:var(--green-100);color:var(--green-700);font-weight:650;font-size:14.6px}
+.mxgrid tbody th{background:var(--sunken);font-weight:650;color:var(--text);width:190px}
+.mxgrid td input{width:100%;min-width:150px;font-size:15.4px;padding:7px 9px;background:#fff;color:var(--text)}
+.mxgrid td input:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 3px rgba(2,161,94,.14)}
+/* The narrow view: one card per row, each field stacked under its own label. */
+.mxcards{display:none}
+.mxcard{border-bottom:1px solid var(--border);padding:12px 14px}
+.mxcard:last-child{border-bottom:0}
+.mxcard>h4{font-size:15.4px;color:var(--text);margin:0 0 8px;font-weight:700}
+.mxfield{margin-bottom:9px}
+.mxfield:last-child{margin-bottom:0}
+.mxfield label{display:block;font-size:13.8px;font-weight:650;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.mxfield input{width:100%;font-size:15.4px;padding:8px 10px;background:#fff;color:var(--text)}
+.mxfield input:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 3px rgba(2,161,94,.14)}
+@media (max-width:760px){
+  .mxgridtablewrap{display:none}
+  .mxcards{display:block}
+}
+.mxempty{border:1px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;background:var(--sunken)}
+.mxempty strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+.mxempty p{margin:0 0 6px;font-size:15.4px;line-height:1.55;color:var(--text-2);max-width:70ch}
+.mxempty p:last-child{margin-bottom:0}
+.mxnote{font-size:14.8px;line-height:1.55;color:var(--text-2);margin:8px 0 0}
+
 /* ---------- a framework that completes itself ---------- */
 .stepbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 .stepbar .step{display:inline-flex;align-items:center;gap:7px;font-size:15.6px;color:var(--text-2);
@@ -487,10 +526,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .capgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px;margin:10px 0 4px}
 .capcard{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;background:var(--surface);
          border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:14px 15px;
+         min-width:0;overflow:hidden;
          transition:border-color .12s ease,box-shadow .12s ease,transform .12s ease}
 .capcard:hover{border-color:var(--navy-300);box-shadow:var(--sh-2);transform:translateY(-1px)}
 .capcard:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:var(--r-lg)}
-.capcard .caphead{display:flex;align-items:center;gap:10px}
+.capcard .caphead{display:flex;align-items:center;gap:10px;min-width:0}
+.capcard .caphead strong{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .capcard .capicon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
                   background:var(--navy-100);color:var(--navy-900);flex:0 0 auto}
 .capcard .capicon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -499,7 +540,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .shield .capicon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .capcard strong{font-size:17.2px;color:var(--navy-900);display:block;line-height:1.3}
 .capcard p,.capcard .capdesc{margin:0;font-size:15.4px;color:var(--text-2);line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-.capcard .capneed{display:block;margin-top:6px;font-size:14.6px;line-height:1.45;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.capcard .capneed{display:block;margin-top:6px;font-size:14.6px;line-height:1.45;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .startsteps{margin:8px 0 4px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
 .startsteps h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:16.4px;color:var(--text)}
 .startsteps .guidesteps{margin:4px 0 2px 18px;font-size:15.4px;line-height:1.55}
@@ -514,8 +555,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .studentguide{margin:0 0 14px}
 .studentguide h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:17.2px;color:var(--navy-900)}
 .capcard .capfoot{margin-top:auto;padding-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
-                  font-size:14.2px;color:var(--text-3)}
-.capcard .capfoot-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+                  font-size:14.2px;color:var(--text-3);min-width:0;max-width:100%}
+.capcard .capfoot-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0}
 .capcard .capgo{color:var(--navy-500);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
 .capcard .lvl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
               border:1px solid var(--border);border-radius:999px;padding:1px 6px;white-space:nowrap;
@@ -710,6 +751,21 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
   .wsheet .wmeta{flex-direction:column;align-items:stretch}
   .wsheet .wmeta input[type=text]{min-width:0;width:100%}
   .wsheet textarea.wtext{min-height:96px}
+}
+
+/* At 390 px the top bar carried more than the width: the wordmark, the build
+   and health pills and the language selector together were wider than the
+   screen, so the whole page scrolled sideways.  The brand keeps its mark and
+   its name; the build pill and the language selector step aside.  Nothing is
+   removed from the page - the build pill is a dev-facing marker and the
+   language picker is still reachable from the footer-sized selector. */
+@media (max-width:460px){
+  .topbar{gap:8px;padding:0 10px}
+  .wordmark{font-size:16.4px}
+  #buildpill{display:none}
+  .locale{flex:0 1 auto;min-width:0;overflow:hidden}
+  .locale select{max-width:78px;font-size:14px;padding:4px 2px}
+  .pill{font-size:14px;padding:3px 8px}
 }
 
 
@@ -4178,7 +4234,10 @@ function subjectTiles(s) {
   const placed = new Set();
   tiles.forEach((tile) => {
     const sheets = tile.worksheets || [];
-    const rows = tile.records || [];
+    /* A held group is not rendered in a tile either: the owner's hold applies
+       to the whole page, not to one section of it. */
+    const rows = (tile.records || []).filter((row) => !isHeldGroup(
+      row.discipline_label || ((row.disciplines || [])[0] || "")));
     const tools = tile.tools || [];
     rows.forEach((row) => placed.add(row.id));
     html += '<h4 class="levelhead">' + esc(tile.label) + ' <button class="btn sm danger" data-close-tile="' + esc(tile.key) + '" type="button" title="Remove ' + esc(tile.label) + ' from this shelf" aria-label="Remove ' + esc(tile.label) + ' from this shelf">&times;</button></h4>';
@@ -4214,8 +4273,11 @@ function subjectTiles(s) {
         '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
     }
   });
-  /* Nothing is dropped: a record no tile claimed is still shown. */
-  const left = (s.records || []).filter((row) => !placed.has(row.id));
+  /* Nothing is dropped: a record no tile claimed is still shown - unless the
+     owner has held its group back.  A held group is not rendered anywhere on
+     the page, and the leftover section must not bring it back. */
+  const left = (s.records || []).filter((row) => !placed.has(row.id) && !isHeldGroup(
+    row.discipline_label || ((row.disciplines || [])[0] || "")));
   if (left.length) {
     html += '<h4 class="levelhead">Other catalogued frameworks - ' + left.length + "</h4>" +
       '<div class="capgrid">' + left.map((row) => frameworkCard(row, "framework", row.discipline_label || "Other",
@@ -5550,6 +5612,14 @@ async function openWorksheet(template, label, objective) {
   state.session = null;
   state.delivery = null;
   state.worksheet = null;
+  /* The loading state: the panel says it is opening the worksheet instead of
+     showing an empty card.  The error state: a template the server would not
+     serve is named, not left as a blank screen. */
+  show("new");
+  $("#panel-new").innerHTML = '<div class="card">' +
+    '<h2>' + esc(label || template) + "</h2>" +
+    '<p class="sub">' + esc(objective || "") + "</p>" +
+    '<p class="muted">' + loading("Opening the worksheet") + "</p></div>";
   try {
     const t = await api("/api/templates/" + encodeURIComponent(template));
     state.worksheet = t;
@@ -5558,7 +5628,12 @@ async function openWorksheet(template, label, objective) {
     show("new");
     renderNew();
   } catch (e) {
-    $("#panel-subject").insertAdjacentHTML("afterbegin", errorBanner(e));
+    $("#panel-new").innerHTML = '<div class="card">' +
+      '<h2>' + esc(label || template) + "</h2>" +
+      banner("blocked", "This worksheet could not be opened",
+        "<div>" + esc(e.message || String(e)) + "</div>" +
+        "<p class=\"muted\" style=\"margin:8px 0 0\">Nothing has been filled in and nothing has been guessed. " +
+        "Go back to the shelf and pick the worksheet again.</p>") + "</div>";
   }
 }
 
@@ -6814,7 +6889,17 @@ function swotForm(t) {
     )).join("") + "</div>";
 }
 
-function matrixForm(t) {
+/* The grid form: a grid of the student's own evidence, in the framework's own
+   vocabulary.  The copy comes from the server - `t.form_copy` - so the page
+   never has to know which framework it is drawing: adding a framework means
+   adding a profile, never a branch in this renderer.  A grid that declares no
+   copy falls back to the older wording, which stays for the templates that
+   have not declared any yet. */
+function matrixCopy(t) {
+  /* The three older branches stay as the fallback: a grid that declares no
+     `form_copy` still gets a readable form.  They are no longer the only
+     source of the wording - every grid now declares its own - so they are
+     the floor, not the rule. */
   const grouped = t.id === "template_strategic_group_map";
   const raci = t.id === "template_raci";
   const risk = t.id === "template_risk_register";
@@ -6839,41 +6924,114 @@ function matrixForm(t) {
         ? "List the competitors you have evidence for, the group you assign to each, and the two axes with a reason for each. Placing a competitor is your judgment."
         : "List the " + rowsLabel.toLowerCase() + " you have evidence for, then the " + colsLabel.toLowerCase() +
           " that organise them. Each cell records what you know happens at that crossing, with its source; the grid is your evidence, not a diagram, and nothing is scored.";
+  /* The server's own copy wins.  It is the framework's vocabulary, written by
+     the framework's author, and it is the only place a new grid's wording
+     lives. */
+  const declared = t.form_copy || {};
+  /* The format cue for a cell.  A RACI grid wants the letter that goes in the
+     cell; a risk register wants a label, a response or an owner; every other
+     grid wants the student's own words. */
+  const cellHint = meta.raci ? "R, A, C or I"
+    : /owner/i.test(String(declared.cols_hint || "")) ? "your label, response or owner"
+    : "assumption";
+  return {
+    rowsLabel: declared.rows_label || rowsLabel,
+    colsLabel: declared.cols_label || colsLabel,
+    colsHint: declared.cols_hint || colsHint,
+    intro: declared.intro || intro,
+    cellHint: cellHint
+  };
+}
+
+function matrixForm(t) {
+  /* Whether the grid asks for a group per row and a reason per column is
+     declared by the grid, not by its id: a new grid that needs them says so. */
+  const meta = t.matrix || {};
+  const grouped = !!meta.require_groups;
+  const justified = !!meta.require_rationale;
+  const copy = matrixCopy(t);
+  const rowsLabel = copy.rowsLabel;
+  const colsLabel = copy.colsLabel;
+  const colsHint = copy.colsHint;
+  const intro = copy.intro;
   return '<div class="wsheet">' + (t.before ? '<p class="sub">' + esc(t.before) + "</p>" : "") +
-    '<p class="wintro">' + intro + "</p>" +
+    '<p class="wintro">' + esc(intro) + "</p>" +
     '<div class="wblock"><label class="field" for="mx-rows"><strong class="wtitle">' +
-      rowsLabel +
+      esc(rowsLabel) +
       '</strong><span class="wprompt">One per line</span></label>' +
       '<textarea class="wtext" id="mx-rows" rows="3" placeholder="One per line"></textarea>' +
-      (grouped ? '<div class="wmeta"><input type="text" id="mx-groups" placeholder="group for each competitor, in the same order" style="flex:1"></div>' : "") +
+      (grouped ? '<div class="wmeta"><input type="text" id="mx-groups" placeholder="group for each ' +
+        esc(String(rowsLabel).toLowerCase()) + ', in the same order" style="flex:1"></div>' : "") +
     "</div>" +
     '<div class="wblock"><label class="field" for="mx-cols"><strong class="wtitle">' +
-      colsLabel + '</strong><span class="wprompt">' +
-      colsHint + "</span></label>" +
+      esc(colsLabel) + '</strong><span class="wprompt">' +
+      esc(colsHint) + "</span></label>" +
       '<textarea class="wtext" id="mx-cols" rows="3" placeholder="One per line"></textarea>' +
-      (grouped ? '<div class="wmeta"><input type="text" id="mx-rationale" placeholder="why each axis, in the same order" style="flex:1"></div>' : "") +
+      (justified ? '<div class="wmeta"><input type="text" id="mx-rationale" placeholder="why each ' +
+        esc(String(colsLabel).toLowerCase()) + ', in the same order" style="flex:1"></div>' : "") +
     "</div>" +
     '<div class="row"><button class="btn sm" type="button" id="mx-build">Build the grid</button></div>' +
+    '<div id="mx-refusal" hidden style="margin-top:12px"></div>' +
     '<div id="mx-grid"></div></div>';
 }
 
+/* The empty state of the grid: it says what belongs in a cell and that a cell
+   left empty is named in the audit.  It is not a blank card - a student who has
+   not typed yet is told what the grid is for. */
+function matrixEmptyState(t) {
+  const copy = matrixCopy(t);
+  const meta = t.matrix || {};
+  const count = (meta.min_columns && meta.max_columns)
+    ? meta.min_columns + " to " + meta.max_columns : "two to six";
+  return '<div class="mxempty"><strong>The grid is empty</strong>' +
+    "<p>Build it from the two lists above. Each cell holds what you know at that crossing, in your own words. " +
+    "Leave a cell empty and it is named in the audit as a gap - it is never filled in for you.</p>" +
+    "<p>" + esc(copy.colsLabel) + ": " + esc(count) + ", one per line.</p></div>";
+}
+
+/* The grid itself.  On a wide screen it is a table inside its own scrolling
+   box, so the page never scrolls sideways; on a narrow screen the same inputs
+   become one card per row, each field stacked under its own label.  The two
+   views are the same fields, so what the student typed in one is what the
+   other reads. */
 function buildMatrixGrid() {
   const rows = linesOf("mx-rows"), columns = linesOf("mx-cols");
   const grid = document.getElementById("mx-grid");
+  if (!grid) return;
+  const t = state.worksheet || {};
+  /* A fresh grid clears the last refusal: the reason it gave was about what
+     was missing then. */
+  const refusal = document.getElementById("mx-refusal");
+  if (refusal) { refusal.innerHTML = ""; refusal.hidden = true; }
   if (!rows.length || !columns.length) {
-    grid.innerHTML = '<p class="muted">Add the rows and columns first.</p>';
+    grid.innerHTML = matrixEmptyState(t);
     return;
   }
-  const kind = state.worksheet && state.worksheet.id;
-  const placeholder = kind === "template_raci" ? "R, A, C or I"
-    : kind === "template_risk_register" ? "your label, response or owner" : "assumption";
-  let html = '<div class="tablewrap"><table><caption>What you assume in each cell</caption><thead><tr><th></th>' +
+  const copy = matrixCopy(t);
+  const placeholder = copy.cellHint;
+  let html = '<div class="mxgrid"><div class="mxgridhead"><strong>' + esc(copy.rowsLabel) +
+    " against " + esc(copy.colsLabel) + "</strong>" +
+    "<span>Each cell is what you can evidence at that crossing. A cell you leave empty is named in the audit.</span></div>";
+  /* The wide view. */
+  html += '<div class="mxgridtablewrap"><table><caption>What you can evidence at each crossing</caption><thead><tr><th>' +
+    esc(copy.rowsLabel) + "</th>" +
     columns.map((column) => "<th>" + esc(column) + "</th>").join("") + "</tr></thead><tbody>";
   rows.forEach((row, r) => {
     html += "<tr><th>" + esc(row) + "</th>" + columns.map((column, c) =>
-      '<td><input type="text" id="mx-cell-' + r + "-" + c + '" placeholder="' + placeholder + '"></td>').join("") + "</tr>";
+      '<td><input type="text" id="mx-cell-' + r + "-" + c + '" placeholder="' + placeholder +
+      '" aria-label="' + esc(row + " - " + column) + '"></td>').join("") + "</tr>";
   });
-  grid.innerHTML = html + "</tbody></table></div>";
+  html += "</tbody></table></div>";
+  /* The narrow view: one card per row, each field labelled. */
+  html += '<div class="mxcards">';
+  rows.forEach((row, r) => {
+    html += '<div class="mxcard"><h4>' + esc(row) + "</h4>" + columns.map((column, c) =>
+      '<div class="mxfield"><label for="mxc-cell-' + r + "-" + c + '">' + esc(column) + "</label>" +
+      '<input type="text" id="mxc-cell-' + r + "-" + c + '" placeholder="' + placeholder +
+      '" aria-label="' + esc(row + " - " + column) + '"></div>').join("") + "</div>";
+  });
+  html += "</div></div>";
+  grid.innerHTML = html;
 }
 
 function vrioResourceCard(n) {
@@ -7348,8 +7506,13 @@ document.addEventListener("change", (event) => {
 
 function worksheetForm(t) {
   if (t.form_kind === "swot") return swotForm(t);
-  if (t.completion) return evidenceWorksheetForm(t);
+  /* A grid opens its grid form.  Its completion profile describes the blocks the
+     paper is written from, not the surface the student types into: a grid is
+     answered as rows against columns, and the evidence form would submit
+     {blocks, links}, which the grid's own validator refuses.  So the declared
+     form wins, and every grid - new or old - gets the same form. */
   if (t.form_kind === "matrix") return matrixForm(t);
+  if (t.completion) return evidenceWorksheetForm(t);
   if (t.form_kind === "vrio") return vrioForm(t);
   if (!t.blocks || !t.blocks.length) {
     return '<p class="muted">This worksheet has no guided form yet. Nothing is shown as raw code; ask for the guided form to be added.</p>';
@@ -7462,23 +7625,56 @@ function collectSwotInputs() {
   return { evidence: evidence };
 }
 
-function collectMatrixInputs(t) {
-  const grouped = t.id === "template_strategic_group_map";
+/* What the grid form is missing, in the student's words.  A form that cannot
+   be filled says which of its own parts is absent - never a raw dump of the
+   request, and never a template token. */
+function matrixMissing(t) {
+  const copy = matrixCopy(t);
   const rows = linesOf("mx-rows"), columns = linesOf("mx-cols");
-  if (!rows.length || !columns.length) { toast("Add the rows and columns first."); return null; }
+  if (!rows.length && !columns.length) {
+    return "The grid is empty: add the " + copy.rowsLabel.toLowerCase() +
+      " and the " + copy.colsLabel.toLowerCase() + " first.";
+  }
+  if (!rows.length) return "Add at least one " + copy.rowsLabel.toLowerCase() + ".";
+  if (!columns.length) return "Add the " + copy.colsLabel.toLowerCase() + ": " + copy.colsHint + ".";
+  return "";
+}
+
+function collectMatrixInputs(t) {
+  const meta = t.matrix || {};
+  const grouped = !!meta.require_groups;
+  const justified = !!meta.require_rationale;
+  const rows = linesOf("mx-rows"), columns = linesOf("mx-cols");
+  const missing = matrixMissing(t);
+  if (missing) { toast(missing); matrixShowRefusal(missing); return null; }
   const groups = grouped ? linesOf("mx-groups") : [];
-  const rationales = grouped ? linesOf("mx-rationale") : [];
-  if (grouped && (groups.length !== rows.length || rationales.length !== columns.length)) {
-    toast("Add one group per competitor and one reason per axis.");
+  const rationales = justified ? linesOf("mx-rationale") : [];
+  if (grouped && groups.length !== rows.length) {
+    const why = "Add one group for each " + matrixCopy(t).rowsLabel.toLowerCase() + ".";
+    toast(why); matrixShowRefusal(why);
+    return null;
+  }
+  if (justified && rationales.length !== columns.length) {
+    const why = "Add one reason for each " + matrixCopy(t).colsLabel.toLowerCase() + ".";
+    toast(why); matrixShowRefusal(why);
     return null;
   }
   const cells = [];
   rows.forEach((row, r) => columns.forEach((column, c) => {
-    const el = document.getElementById("mx-cell-" + r + "-" + c);
+    /* The wide view and the narrow view are the same fields, so the page
+       reads whichever one it rendered. */
+    const el = document.getElementById("mx-cell-" + r + "-" + c) ||
+      document.getElementById("mxc-cell-" + r + "-" + c);
     const text = el ? el.value.trim() : "";
     if (text) cells.push({ row: "R" + (r + 1), column: "C" + (c + 1), text: text, provenance: "user" });
   }));
-  if (!cells.length) { toast("Build the grid and fill at least one cell."); return null; }
+  if (!cells.length) {
+    const why = "The grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - " +
+      "an empty cell is named in the audit, never filled in for you.";
+    toast("Build the grid and fill at least one cell.");
+    matrixShowRefusal(why);
+    return null;
+  }
   return {
     rows: rows.map((text, i) => {
       const row = { id: "R" + (i + 1), text: text, provenance: "user" };
@@ -7487,11 +7683,22 @@ function collectMatrixInputs(t) {
     }),
     columns: columns.map((text, i) => {
       const column = { id: "C" + (i + 1), text: text, provenance: "user" };
-      if (grouped) column.rationale = rationales[i];
+      if (justified) column.rationale = rationales[i];
       return column;
     }),
     cells: cells
   };
+}
+
+/* The refusal state: the reason the form cannot be run, in a sentence, next to
+   the form.  It is the same reason the audit would give, so the student reads
+   one language. */
+function matrixShowRefusal(reason) {
+  const box = document.getElementById("mx-refusal");
+  if (!box) return;
+  box.innerHTML = banner("blocked", "This grid cannot be run yet",
+    "<div>" + esc(reason) + "</div>");
+  box.hidden = false;
 }
 
 function collectVrioInputs() {
@@ -7525,6 +7732,12 @@ function collectVrioInputs() {
 
 function collectWorksheetInputs() {
   const t = state.worksheet; if (!t) return null;
+  /* The declared form decides what is collected.  A grid is answered as rows
+     against columns, so it collects the grid shape - the evidence shape would
+     be refused by the grid's own validator. */
+  if (t.form_kind === "swot") return collectSwotInputs();
+  if (t.form_kind === "matrix") return collectMatrixInputs(t);
+  if (t.form_kind === "vrio") return collectVrioInputs();
   if (t.completion) {
     const collected = collectEvidenceInputs(t);
     if (!collected) return null;
@@ -7537,9 +7750,6 @@ function collectWorksheetInputs() {
     if (typed) state.evInstruction = typed;
     return collected.inputs;
   }
-  if (t.form_kind === "swot") return collectSwotInputs();
-  if (t.form_kind === "matrix") return collectMatrixInputs(t);
-  if (t.form_kind === "vrio") return collectVrioInputs();
   if (!t.blocks || !t.blocks.length) return null;
   const probe = document.getElementById("wb-" + t.blocks[0].key);
   if (!probe) return (state.tool && state.tool.inputs) || null;
@@ -8027,18 +8237,32 @@ function renderNew() {
   const s = state.session;
   if (!s && state.worksheet) {
     const t = state.worksheet;
-    const completing = !!t.completion;
+    /* A worksheet completes itself from a brief only when it is answered as
+       evidence blocks.  A grid is answered as rows against columns, so the
+       student fills it in by hand and it is not offered as a completing
+       worksheet: the two paths collect different shapes. */
+    const completing = !!t.completion && t.form_kind !== "matrix";
+    /* The refusal state: the server refused this run, so it names what was
+       missing - in the audit's own words, never a raw dump and never a token. */
+    const refused = state.delivery && state.delivery.status === "blocked"
+      ? banner("blocked", "The worksheet refused these answers",
+          "<div>" + esc(state.delivery.blocked_reason || "The worksheet could not run what you entered.") + "</div>" +
+          "<p class=\"muted\" style=\"margin:8px 0 0\">Nothing was added and nothing was scored. " +
+          "Correct the answer below and run it again.</p>")
+      : "";
     $("#panel-new").innerHTML = '<div class="card"><h2>' + esc(state.tool && state.tool.label ? state.tool.label : t.name) + "</h2>" +
       (completing ? '<p class="pill ok" style="margin:6px 0 0"><span class="dot"></span>Completes itself from your brief</p>' : "") +
       '<p class="sub">' + esc(state.tool && state.tool.objective ? state.tool.objective : "") + "</p>" +
       '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
         '<button class="btn sm" id="toolcalc">Business Calculator</button></div></div>' +
       (completing
-        ? '<div id="figures">' + worksheetForm(t) + "</div>" +
+        ? '<div id="figures">' + (refused ? '<div style="margin:0 0 12px">' + refused + "</div>" : "") +
+          worksheetForm(t) + "</div>" +
           '<div class="row" style="margin-top:10px"><button class="btn" id="apply">Run the worksheet</button>' +
           '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>'
         : '<div class="card" id="figures"><h2>Fill in the worksheet</h2>' +
           '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>' +
+          (refused ? '<div style="margin:0 0 12px">' + refused + "</div>" : "") +
           '<div class="row" style="margin:0 0 10px"><button class="btn primary" id="apply">Run the worksheet</button>' +
           '<button class="btn" id="wsdiscard" type="button">Discard draft</button></div>' +
           worksheetForm(t) + "</div>");

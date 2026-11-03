@@ -116,13 +116,23 @@ class InventoryTest(unittest.TestCase):
             self.assertTrue(row["term"].strip())
             self.assertGreater(len(row["definition"].split()), 6, row["term"])
 
-    def test_E_pm_006__the_shelf_declares_no_tiles_and_the_page_falls_back_to_groups(self):
-        """A measured zero, not a hidden one: the page groups by fallback."""
-        self.assertEqual(page()["tiles"], [])
-        self.assertNotIn(SUBJECT, subjects.SUBJECT_TILES)
+    def test_E_pm_006__the_shelf_declares_its_tiles_and_the_page_renders_them(self):
+        """The measured zero became a measured seven: the shelf now has tiles.
+
+        The owner's instruction of 2026-11-03 was "USE TILES".  The shelf
+        measured `tiles: 0` before and falls back to groups; it declares seven
+        tiles now, so the page takes the tile branch and the fallback is only
+        there for the shelves that still need it.  The expectation changed
+        because the shelf genuinely changed, not because the test was
+        silenced: E-pm-076 and E-pm-077 pin what the tiles must contain.
+        """
+        tiles = page()["tiles"]
+        self.assertEqual(len(tiles), 7)
+        self.assertIn(SUBJECT, subjects.SUBJECT_TILES)
         html = io.open("web/index.html", encoding="utf-8").read()
         self.assertIn("if ((s.tiles || []).length) {", html)
-        self.assertIn("Complete a framework", html)          # worksheets lead the fallback
+        self.assertIn("The tiles", html)                      # the tile branch is live
+        self.assertIn("Complete a framework", html)          # the fallback is still there
 
     def test_E_pm_007__every_worksheet_on_the_shelf_is_draftable(self):
         self.assertEqual([s["catalogue_id"] for s in page()["worksheets"]
@@ -926,6 +936,209 @@ class GateTest(unittest.TestCase):
             self.assertIn(block_label, text, template)
             self.assertIn("Conclusion", text, template)
             self.assertIn("References", text, template)
+
+    # -- the form copy and the tiles -----------------------------------------
+
+    def test_E_pm_074__every_matrix_worksheet_carries_form_copy(self):
+        """The form's own copy comes from the data, not from the renderer.
+
+        A grid's right-hand label used to leak the plumbing: the Scorecard read
+        "Measure field", the Strategy Map "Map field", the KPI tree "Tree field"
+        and OKRs "OKR field".  Each matrix template with a PM registry id now
+        declares the four copy keys, and the column label is the framework's own
+        vocabulary - never the internal phrase.
+        """
+        internal = ("measure field", "tree field", "map field", "okr field")
+        checked = 0
+        for template, meta in sorted(T.MATRIX_META.items()):
+            ids = meta.get("registry_ids") or []
+            if not any(str(rid).startswith("PM-") for rid in ids):
+                continue
+            checked += 1
+            copy = meta.get("form_copy")
+            self.assertIsNotNone(copy, template)
+            for key in ("rows_label", "cols_label", "cols_hint", "intro"):
+                self.assertIn(key, copy, template)
+                self.assertTrue(str(copy[key]).strip(), (template, key))
+            label = str(copy["cols_label"]).strip().lower()
+            for phrase in internal:
+                self.assertNotIn(phrase, label, (template, label))
+            # a label that is only the plumbing word is not a label either
+            self.assertNotEqual(label, "field", template)
+            # and the label says what the fields are, or points at the hint
+            if label in ("fields", "field"):
+                self.assertRegex(str(copy["cols_hint"]).lower(),
+                                 r"likelihood|impact|response|owner",
+                                 template)
+            # the same copy is what the server serves
+            served = T.describe(template).get("form_copy")
+            self.assertEqual(served, copy, template)
+        self.assertGreaterEqual(checked, 4)
+
+    def test_E_pm_075__the_form_renders_the_copy_from_the_server(self):
+        """The page reads `form_copy`; it does not branch on a template id.
+
+        The four labels and their introductions are served, the page reads the
+        `form_copy` key, and the renderer has gained no new hardcoded template
+        id: a framework is added by adding a profile.
+        """
+        expected = {
+            "template_balanced_scorecard": ("Perspectives", "Fields for each perspective"),
+            "template_strategy_map": ("Objectives", "Fields for each objective"),
+            "template_kpi_tree": ("Metrics", "Fields for each metric"),
+            "template_okrs": ("Objectives", "Fields for each objective"),
+        }
+        for template, (rows_label, cols_label) in expected.items():
+            copy = T.describe(template)["form_copy"]
+            self.assertEqual(copy["rows_label"], rows_label, template)
+            self.assertEqual(copy["cols_label"], cols_label, template)
+            self.assertGreater(len(copy["intro"].split()), 25, template)
+        html = io.open("web/index.html", encoding="utf-8").read()
+        self.assertIn("t.form_copy", html)
+        # the renderer must not name one of these templates
+        for template in expected:
+            self.assertNotIn('"%s"' % template, html, template)
+        # and the old internal labels are gone from the page's copy
+        for phrase in ("Measure field", "Map field", "Tree field", "OKR field"):
+            self.assertNotIn(phrase, html, phrase)
+
+    def test_E_pm_076__the_pm_page_declares_tiles_and_loses_nothing(self):
+        """The trap test for a tile change: nothing may vanish from the page.
+
+        Every worksheet and every one of the eighteen calculators must land in
+        exactly one tile, and the tile must carry the key its item declares.
+        """
+        shelf = page()
+        tiles = shelf["tiles"]
+        self.assertTrue(tiles)
+        sheet_ids = [sheet["catalogue_id"] for sheet in shelf["worksheets"]]
+        tool_keys = [tool["key"] for tool in shelf["tools"]]
+        self.assertEqual(len(sheet_ids), 10)
+        self.assertEqual(len(tool_keys), 18)
+        placed_sheets = []
+        placed_tools = []
+        for tile in tiles:
+            self.assertTrue(tile["key"] and tile["label"] and tile.get("what"), tile)
+            self.assertTrue(tile.get("need"), tile["key"])
+            for sheet in tile["worksheets"]:
+                self.assertEqual(sheet.get("group"), tile["key"], sheet["catalogue_id"])
+                placed_sheets.append(sheet["catalogue_id"])
+            for tool in tile["tools"]:
+                self.assertEqual(tool.get("group"), tile["key"], tool["key"])
+                placed_tools.append(tool["key"])
+        self.assertEqual(sorted(placed_sheets), sorted(sheet_ids))
+        self.assertEqual(sorted(placed_tools), sorted(tool_keys))
+        self.assertEqual(len(placed_sheets), len(set(placed_sheets)))
+        self.assertEqual(len(placed_tools), len(set(placed_tools)))
+        # the worksheets are in the order the student meets them
+        governance = next(tile for tile in tiles if tile["key"] == "governance")
+        self.assertEqual([sheet["catalogue_id"] for sheet in governance["worksheets"]],
+                         ["PM-01", "PM-02", "PM-03", "PM-04"])
+
+    def test_E_pm_077__the_held_records_stay_hidden_in_the_tile_layout(self):
+        """The owner's hold covers the whole page, tiles included.
+
+        A tile change moved the records out of the grouped list, so the leftover
+        section became the one place a held record could reappear.  It is
+        filtered by the held group now, and no tile claims one either.
+        """
+        held = ["PM-07", "PM-08", "PM-11", "PM-12", "PM-13", "PM-14"]
+        shelf = page()
+        for tile in shelf["tiles"]:
+            for row in tile["records"]:
+                self.assertNotIn(row["id"], held, tile["key"])
+        html = io.open("web/index.html", encoding="utf-8").read()
+        # the leftover section filters the held group out
+        self.assertIn("!isHeldGroup(", html)
+        # and the six records are still catalogued and still read-only
+        records = {row["id"]: row for row in shelf["records"]}
+        for rid in held:
+            self.assertIn(rid, records)
+            self.assertEqual(records[rid]["form"], "read_only", rid)
+        # the hold itself is unchanged
+        self.assertIn('"project delivery and governance"', html)
+
+    def test_E_pm_078__no_suggestion_can_be_written_into_an_answer_box(self):
+        """The authoring help may only be rendered, never written into a field.
+
+        The advice panel is a prompt.  If a button wrote it into the textarea,
+        the prompt would become the student's own evidence - so the function
+        that renders it may not assign to any input's value.
+        """
+        html = io.open("web/index.html", encoding="utf-8").read()
+        start = html.index("function adviceHtml")
+        body = html[start:html.index("function evidenceBlocks", start)]
+        self.assertNotIn(".value =", body)
+        self.assertNotIn(".value=", body)
+        self.assertNotIn("setAttribute", body)
+        # and no other advice-bearing helper writes into a field either
+        for helper in ("adviceHtml", "matrixCopy", "matrixEmptyState"):
+            self.assertIn("function %s" % helper, html)
+        matrix_body = html[html.index("function matrixForm"):html.index("function vrioResourceCard")]
+        self.assertNotIn(".value =", matrix_body)
+        # a placeholder may say the FORMAT of the answer, never suggest the
+        # answer: every literal placeholder in the grid form is a short cue
+        for match in re.finditer(r'placeholder="([^"+]*?)"\s*[,>)]', matrix_body):
+            hint = match.group(1)
+            self.assertLessEqual(len(hint.split()), 8, hint)
+            self.assertNotIn("?", hint)
+        # the grid's own cells carry a format cue, and never a value
+        self.assertIn('placeholder="\' + placeholder', matrix_body)
+        for value in ("Break even", "Meals sold", "Students collect"):
+            self.assertNotIn(value, matrix_body, value)
+
+    def test_E_pm_079__a_grid_opens_its_grid_form_and_never_the_evidence_form(self):
+        """Trap test for the defect this session found and fixed.
+
+        Every Project management worksheet carries a completion profile, and
+        `worksheetForm` tested `t.completion` before `t.form_kind`.  So the four
+        grids opened the evidence form, which collects {blocks, links} - a shape
+        the grid's own validator refuses with "rows must be a list of 4 to 6
+        perspectives".  The student typed a grid and the run was refused.
+
+        So: a grid opens the grid form, the grid's shape is what is collected,
+        and the grid's own validator accepts what the grid form produces.
+        """
+        html = io.open("web/index.html", encoding="utf-8").read()
+        form = html[html.index("function worksheetForm"):html.index("function collectEvidenceInputs")]
+        matrix_at = form.index('t.form_kind === "matrix"')
+        completion_at = form.index("t.completion")
+        self.assertLess(matrix_at, completion_at,
+                        "a grid must be routed to its grid form before the evidence form")
+        collect = html[html.index("function collectWorksheetInputs"):html.index("const ROW_COLUMNS")]
+        self.assertLess(collect.index('t.form_kind === "matrix"'),
+                        collect.index("t.completion"),
+                        "a grid must collect the grid shape before the evidence shape")
+        # and the shape the grid form collects is the shape the grid validates
+        for template in ("template_balanced_scorecard", "template_strategy_map",
+                         "template_kpi_tree", "template_okrs", "template_raci",
+                         "template_risk_register"):
+            example = copy.deepcopy(T.EXAMPLES[template])["inputs"]
+            self.assertEqual(set(example), {"rows", "columns", "cells"}, template)
+            self.assertEqual(T.TEMPLATES[template]["validate"](example), [], template)
+
+    def test_E_pm_080__the_grid_form_has_no_horizontal_scroll_at_1280_or_390(self):
+        """The two widths that are checked: the page must not scroll sideways.
+
+        The grid is wide - four fields across, four to twelve rows down - so at
+        390 px it collapses into one card per row instead of a table.  The
+        markup carries both views and the page-level rule that switches them.
+        """
+        html = io.open("web/index.html", encoding="utf-8").read()
+        # both views are built, and only one is visible at a time
+        self.assertIn("mxgridtablewrap", html)
+        self.assertIn("mxcards", html)
+        self.assertIn("@media (max-width:760px)", html)
+        # the narrow view is a card per row, each field labelled
+        self.assertIn('class="mxcard"', html)
+        self.assertIn('class="mxfield"', html)
+        # every cell input carries a label naming its row and its column
+        self.assertIn("aria-label", html)
+        # nothing on the page may be wider than the viewport: the tile card and
+        # the top bar both used to push the page sideways at 390 px
+        self.assertIn(".capcard{all:unset", html)
+        self.assertIn("min-width:0;overflow:hidden", html)
+        self.assertIn("@media (max-width:460px)", html)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

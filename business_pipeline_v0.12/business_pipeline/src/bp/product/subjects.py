@@ -2769,11 +2769,77 @@ STRATEGY_WORKSHEET_GROUPS = {
     "CHG-13": "change_organisation",
 }
 
+#: The tiles the Project management page shows, in the order a student meets
+#: the work: first the governance of the project, then the documents that
+#: deliver it, then the people who carry it, and the calculators beside each
+#: stage.  A tile names the work it covers and what the student needs before
+#: starting; a tile with nothing in it is shown empty and says so, because a
+#: missing capability is named rather than hidden.
+#:
+#: The three calculator tiles keep the group names the shelf already used
+#: ("Appraise the business case", "Compare the options", "Schedule and
+#: control"), so a calculator that already had a home on the page keeps it: a
+#: tile is where its group was, and nothing moves because tiles arrived.
+PROJECT_MANAGEMENT_TILES = [
+    {"key": "governance", "label": "Governance",
+     "what": "How the project is steered and how it will be judged: the perspectives you "
+             "answer for, the objectives you are steering by, the metric tree that carries them "
+             "and the objectives you commit to.",
+     "need": "The unit the project steers, the objectives it is accountable for, and the "
+             "measures and targets that are already agreed."},
+    {"key": "delivery_documents", "label": "Delivery documents",
+     "what": "The documents a project is authorised and controlled by: the charter that says "
+             "what is in and out of scope, the work breakdown that breaks it into packages, and "
+             "the register of what could go wrong.",
+     "need": "The scope statement, the sponsor, the deliverables and the risks you already know about."},
+    {"key": "people_and_roles", "label": "People and governance roles",
+     "what": "Who is affected, who answers for what, and what the project learned: the "
+             "responsibility matrix, the stakeholder engagement plan and the lessons learned "
+             "at close.",
+     "need": "The confirmed roles and decision rights, the people affected by the project, and "
+             "the records of what happened."},
+    {"key": "Appraise the business case", "label": "Appraise the business case",
+     "what": "What the project is worth and when it pays back: net present value, the rate it "
+             "earns, discounted payback, profitability and equivalent annual annuity, the option "
+             "to wait, the Monte Carlo range, and the costs and benefits you will report.",
+     "need": "The cash flows or costs and benefits over the project life, and the discount rate "
+             "you are asked to use."},
+    {"key": "Compare the options", "label": "Compare the options",
+     "what": "The alternatives before the board: scenarios against the assumption that turns the "
+             "decision, a decision tree, a weighted decision matrix and the case decision itself.",
+     "need": "The alternatives, the outcome of each under each assumption, and the rule you are "
+             "asked to apply."},
+    {"key": "Project cost and benefit", "label": "Project cost and benefit",
+     "what": "The trend you project the costs and benefits on: the series you already hold, "
+             "extended on the pattern it has shown so far.",
+     "need": "The series itself and the period it covers. The projection follows the pattern you "
+             "supply; it does not judge whether the plan is good."},
+    {"key": "Schedule and control", "label": "Schedule and control",
+     "what": "The plan and how it is tracked: the critical path, resource levelling, crashing, "
+             "calendars, shared projects, earned value, and the schedule risk range.",
+     "need": "The activities, their durations and their dependencies, and the status figures for "
+             "the date you are reporting."},
+]
+
+#: Which tile each Project management worksheet belongs to.  The worksheets are
+#: grouped by the work they do: the four that govern the project, the three
+#: documents that deliver it, and the three that carry the people in it.
+PROJECT_MANAGEMENT_WORKSHEET_GROUPS = {
+    "PM-01": "governance", "PM-02": "governance",
+    "PM-03": "governance", "PM-04": "governance",
+    "PM-05": "delivery_documents", "PM-09": "delivery_documents",
+    "PM-06": "delivery_documents",
+    "PM-10": "people_and_roles", "PM-15": "people_and_roles",
+    "PM-16": "people_and_roles",
+}
+
 SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
-                            "management": STRATEGY_WORKSHEET_GROUPS}
+                            "management": STRATEGY_WORKSHEET_GROUPS,
+                            "project-management": PROJECT_MANAGEMENT_WORKSHEET_GROUPS}
 SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS}
 SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
-                 "management": STRATEGY_TILES}
+                 "management": STRATEGY_TILES,
+                 "project-management": PROJECT_MANAGEMENT_TILES}
 
 #: Plain-language labels for the raw catalogue discipline tags, so the records
 #: table does not show an internal taxonomy name to a student.
@@ -3420,9 +3486,10 @@ SUBJECT_DEFS = [
         "id": "project-management",
         "label": "Project management",
         "icon": "project",
-        "summary": ("Scope a project, test its business case, compare the options, plan and control the "
-                    "schedule, and record the delivery documents."),
+        "summary": ("Govern a project, record the documents that deliver it, appraise its "
+                    "business case, compare the options, and plan and control the schedule."),
         "start_steps": [
+            "Govern the project: a balanced scorecard, a strategy map, a KPI tree and a set of OKRs.",
             "Write the project charter: what the project is for, what is in and out of scope, and who authorises it.",
             "Appraise the business case: NPV, IRR, payback and the option to invest or delay.",
             "Compare the options: scenario analysis, a decision tree or the weighted decision matrix.",
@@ -3434,18 +3501,31 @@ SUBJECT_DEFS = [
             "It does not invent durations, probabilities, weights, owners or terminal values; you declare them.",
             "It does not choose the project or the option for you beyond the declared rule.",
             "It does not level resources optimally, level across calendars or simulate correlated risks.",
+            "It does not score, weight or rank your objectives, measures or risks; an empty cell is named, never filled.",
         ],
-        "guidance": ("This shelf follows the project lifecycle an assignment usually asks for. Start with "
-                     "the business case: discount the project's cash flows (NPV), find the rate it earns "
-                     "(IRR), see when it pays back, and rank it on profitability index, MIRR and equivalent "
-                     "annual annuity. Then compare options under different assumptions and find the "
-                     "assumption the decision turns on, and project the costs and benefits you will report. "
-                     "Plan the delivery with the critical path and PERT, then track it with earned value: "
-                     "schedule and cost variances, SPI and CPI, and the estimate at completion. You supply "
-                     "and confirm every figure; the engine returns the calculation with its checks, and you "
-                     "can export the result as your submission. The 14 delivery frameworks below are "
-                     "read-only for now: they give you the structure and the evidence each one needs, but "
-                     "the product does not assign responsibilities or fill in a WBS, RACI or risk register."),
+        "guidance": ("This shelf follows the project lifecycle an assignment usually asks for, and it "
+                     "is laid out in tiles you meet in that order. The three worksheet tiles come "
+                     "first, because the documents a project needs are written before it is "
+                     "appraised or scheduled. Governance holds the four frameworks that say how the "
+                     "project is steered and judged: the balanced scorecard, the strategy map, the "
+                     "KPI tree and the OKRs. Delivery documents hold the charter, the work breakdown "
+                     "structure and the risk register. People and governance roles hold the RACI, the "
+                     "stakeholder engagement plan and the lessons learned. Then the calculators: "
+                     "start with the business case, discounting the project's cash flows (NPV), "
+                     "finding the rate it earns (IRR), seeing when it pays back, and ranking it on "
+                     "profitability index, MIRR and equivalent annual annuity; compare options under "
+                     "different assumptions and find the assumption the decision turns on; project "
+                     "the costs and benefits you will report; plan the delivery with the critical "
+                     "path and PERT; and track it with earned value - schedule and cost variances, "
+                     "SPI and CPI, and the estimate at completion. You supply and confirm every "
+                     "figure; the engine returns the calculation with its checks, and you can export "
+                     "the result as your submission. Ten of the frameworks on this shelf are "
+                     "completing worksheets: you fill them in and they audit what you wrote, "
+                     "naming the empty cells rather than filling them. Six more - Scrum, Kanban, "
+                     "COBIT, ITIL, DeLone-McLean and the TOE framework - stay read-only "
+                     "records, catalogued and held off the page for now: they give you the "
+                     "structure and the evidence each one needs, but there is no worksheet to "
+                     "complete them in yet."),
         "disciplines": ["performance, projects and technology governance"],
         "cross_cutting": False,
         "tools": ["npv", "irr", "dpayback", "projectmetrics", "scenario", "case_decision", "forecast",

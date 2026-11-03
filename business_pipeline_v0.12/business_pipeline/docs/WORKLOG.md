@@ -1,3 +1,98 @@
+## 2026-11-03 — [design] The Project management worksheet forms, made professional to fill in
+
+**Ask.** The owner's instruction for the Project management shelf, design lane B-080: *"DO A
+PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* The four new grids (PM-01
+Balanced Scorecard, PM-02 Strategy Map, PM-03 KPI Tree, PM-04 OKRs) were correct, tested and
+shipped — the data, the checks and the paper all work. The forms the student types into were
+generic, and the shelf had no tile grouping.
+
+**What was measured before anything changed.** 18 calculators · 10 worksheets · 6 records ·
+0 theories · 23 glossary terms · **tiles: 0**. The suite ran **3185 tests with 6 failures**
+(`test_the_rail_carries_the_portfolio_lab_above_the_calculator` — the known baseline rail
+failure — plus `test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking`,
+`test_generating_a_paper_saves_it_to_the_store`, `test_every_researched_block_accepts_its_own_query`,
+`test_brave_failure_falls_back_to_firecrawl` (network) and `test_documented_test_count_matches_the_real_suite`).
+
+**The defect this session found, which the work order did not name.** Every Project management
+worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before*
+`t.form_kind`. So the four grids opened the **evidence** form — which collects `{blocks, links}`,
+a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A
+student filled in a grid and the run was refused. `collectWorksheetInputs` had the same ordering.
+Proven from the code and the live page, not inferred:
+
+```
+template_balanced_scorecard validate({'blocks': {...}, 'links': []})
+  -> ["'rows' must be a list of 4 to 6 perspectives"]
+template_balanced_scorecard validate(EXAMPLE['inputs'])   # {rows, columns, cells}
+  -> []                                                    # delivers
+```
+
+**Changed.**
+
+1. `src/bp/templates.py` — every matrix template declares a `form_copy` object beside its own
+   geometry: the row label, the column label, the hint under the column label, and the sentence
+   that explains what belongs in the grid. `describe()` publishes it on the template payload, and
+   publishes the grid's `require_groups`, `require_rationale` and `raci` flags so the page stops
+   branching on a template id.
+2. `web/index.html` — `matrixForm` reads `t.form_copy` and keeps the three older branches as the
+   floor for a grid that declares no copy. A grid opens its grid form; the grid's shape is what is
+   collected. Four designed states: empty (the grid says what belongs in a cell and that an
+   unfilled cell is named in the audit), loading (the panel says it is opening the worksheet),
+   error (a template the server would not serve is named), refusal (the audit's reason in a
+   sentence beside the form). The grid is a table inside its own scrolling box on a wide screen
+   and one card per row at 760 px and below, every cell carrying a label naming its row and its
+   column.
+3. `src/bp/product/subjects.py` — `PROJECT_MANAGEMENT_TILES` (seven), the worksheet groups, and the
+   tile registered on `SUBJECT_TILES`. The four calculator tiles keep the group names the shelf
+   already used, so no calculator moved: **Appraise the business case**, **Compare the options**,
+   **Project cost and benefit**, **Schedule and control**.
+4. `web/index.html` — the shelf page renders the tiles; the held-group filter now covers the
+   leftover section and each tile's own records, because the tile change moved the records out of
+   the grouped list and the leftover section became the one place a held record could reappear.
+5. `src/bp/product/subjects.py` — the shelf summary and guidance now say the measured truth: ten
+   completing worksheets and six read-only records, and the product invents no durations,
+   probabilities, weights or owners.
+6. `tests/test_subject_project_management_acceptance.py` — seven new rows, E-pm-074…080, and
+   **E-pm-006 changed** because the shelf genuinely changed: `tiles: 0` became seven tiles, so the
+   expectation was rewritten to the measured truth and the fallback branch was kept.
+
+**The four labels and intros as they render.**
+
+| framework | rows label | columns label | intro |
+|---|---|---|---|
+| Balanced Scorecard | Perspectives | Fields for each perspective | Write the perspectives you steer by, one per line. Then four fields for each: the objective, the measure that shows it moving, the target you are aiming at and the initiative that gets you there. A cell you cannot fill stays empty and is named in the audit. No weights, no score. |
+| Strategy Map | Objectives | Fields for each objective | Write the objectives you are steering by, one per line, then the four fields for each: the perspective it belongs to, the objective itself, the objective it is meant to drive and the measure that shows it moving. A link exists only where you write it - the map does not draw arrows and does not infer a chain. A cell you cannot fill stays empty and is named in the audit. |
+| KPI Tree | Metrics | Fields for each metric | Write the metrics on the tree, one per line: the outcome metric at the top, the drivers beneath it and the inputs under those. Then the four fields for each: the level it sits at, the metric itself, the formula or definition that connects it and the source the number is read from. The tree records the decomposition you declare and calculates nothing. A metric with no source stays empty and is named in the audit. |
+| OKRs | Objectives | Fields for each objective | Write the objectives you commit to, one per line. Then the four fields for each: the objective itself, the key results that make it checkable, the baseline and target they run from and the source the number is read from. A key result with no baseline is named at audit, and no attainment score is produced. A field you cannot fill stays empty. |
+
+**The tile map.** Governance → PM-01, PM-02, PM-03, PM-04 (Scorecard first: the other three hang
+off it) · Delivery documents → PM-05, PM-09, PM-06 · People and governance roles → PM-10, PM-15,
+PM-16 · Appraise the business case → npv, irr, dpayback, projectmetrics, realoption, montecarlo ·
+Compare the options → scenario, case_decision, decisiontree, mcda · Project cost and benefit →
+forecast · Schedule and control → cpm, evm, leveling, crashing, calendar, multiproject, schedrisk.
+
+**Count check: nothing is orphaned.** 10 worksheets + 18 calculators = 28 items, and the tiles
+carry 10 + 18. Every item lands in exactly one tile, and each tile's key equals the `group` its
+items declare (E-pm-076). The six held records land in no tile and in no leftover section
+(E-pm-077).
+
+**Verified.** `python qa/check_page_syntax.py` → **page syntax: OK**.
+`python -m pytest tests/test_subject_project_management_acceptance.py -q` → **80 passed**
+(73 before this session, seven new). `python scripts/econ_shelf.py --check` → **frozen fixture: in
+sync**. Live over CDP against a fresh server on port 8078: at **1280 px** the grid is a four-column
+table with the framework's own column headers and `scrollWidth == clientWidth`; at **390 px** it is
+one card per row with every field stacked and labelled, and `scrollWidth == clientWidth` — **the
+page does not scroll sideways at either width**. Before this session the page scrolled to 663 px
+at 390 px: the capability tile (566 px inside a 256 px grid) and the top bar were both wider than
+the screen, and both now shrink. The empty state renders
+*"The grid is empty … Leave a cell empty and it is named in the audit as a gap - it is never filled
+in for you."*, and pressing Run on an empty grid gives *"THIS GRID CANNOT BE RUN YET — The grid is
+empty: add the perspectives and the fields for each perspective first."*
+
+**No number moved.** No method, preset, template contract, input, check, gate or frozen-contract
+entry changed. `src/bp/methods.py` and `tests/fixtures/frozen_contract.json` were not touched.
+
+
 ## 2026-11-03 — [computation] Statements tile, part 1: the ratio bridge
 
 **Ask.** The owner's instruction for a standalone accounting statements tile, checked against the
