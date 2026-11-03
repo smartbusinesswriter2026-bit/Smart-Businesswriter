@@ -1,0 +1,39 @@
+Computation: multi project schedule
+Result
+The shared-resource plan finishes in 8.00 periods across 2 projects and 4 activities. Projects are sequenced by declared priority, then early start, longest duration and id; a different priority changes the plan. One resource per activity, whole-period durations and demands, no preemption, no calendars and no inter-project dependencies. Shared resources delay projects; the reported delay is against each project's own unconstrained CPM duration.
+Inputs and results
+What you declared
+Resources: Name: crew; Capacity: 2
+Projects: Name: alpha; Priority: 1; Activities: Id: A; Duration: 2; Resource: crew; Demand: 2; Predecessors: , Id: B; Duration: 2; Resource: crew; Demand: 2; Predecessors: A, Name: beta; Priority: 2; Activities: Id: X; Duration: 2; Resource: crew; Demand: 1; Predecessors: , Id: Y; Duration: 2; Resource: crew; Demand: 1; Predecessors: X
+What was computed
+Overall duration: 8.00
+Project count: 2
+Activity count: 4
+Finish alpha: 4.00
+Delay alpha: 0.00
+Start alpha A: 0.00
+Finish alpha A: 2.00
+Start alpha B: 2.00
+Finish alpha B: 4.00
+Finish beta: 8.00
+Delay beta: 4.00
+Start beta X: 4.00
+Finish beta X: 6.00
+Start beta Y: 6.00
+Finish beta Y: 8.00
+Honesty: what was not done
+this method: Projects are sequenced by declared priority, then early start, longest duration and id; a different priority changes the plan. One resource per activity, whole-period durations and demands, no preemption, no calendars and no inter-project dependencies. Shared resources delay projects; the reported delay is against each project's own unconstrained CPM duration.
+Assumptions made
+Projects share only the declared resources.
+Durations, demands and capacities are whole periods.
+Each project graph is acyclic.
+Limitations
+Greedy serial scheduling, not an optimal multi-project plan.
+No calendars, preemption, inter-project dependencies or multiple resources per activity.
+The priority rule is fixed, not chosen.
+How the figures were checked
+Second implementation agrees.
+No period exceeds a resource capacity.
+Precedence within each project is respected.
+No project finishes before its unconstrained duration.
+Every activity is scheduled exactly once.

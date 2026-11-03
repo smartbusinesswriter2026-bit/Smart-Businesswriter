@@ -1,0 +1,31 @@
+Computation: multi product breakeven
+Result
+The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of 10,500.00 at the declared mix. The per-product break-even units are in the appendix. Break-even assumes a fixed product mix and constant unit prices and costs; a change in mix changes the weighted contribution and therefore the break-even. The per-product units are the break-even mix, not a target or a forecast. No step costs, capacity limits or tax are modelled.
+Inputs and results
+What you declared
+Fixed costs: 6000.00
+Products: Name: coffee; Price: 5; Variable cost: 2; Mix units: 3, Name: cake; Price: 6; Variable cost: 3; Mix units: 1
+What was computed
+Weighted contribution: 3.0000
+Breakeven total units: 2000.00
+Breakeven revenue: 10500.00
+Fixed costs: 6000.00
+Total mix units: 4.00
+Units coffee: 1500.00
+Units cake: 500.00
+Honesty: what was not done
+this method: Break-even assumes a fixed product mix and constant unit prices and costs; a change in mix changes the weighted contribution and therefore the break-even. The per-product units are the break-even mix, not a target or a forecast. No step costs, capacity limits or tax are modelled.
+Assumptions made
+Each product's price and variable cost are constant.
+The declared mix is the mix that will be sold.
+Fixed costs do not change with volume.
+Limitations
+One break-even point for one declared mix; no capacity limits or step costs.
+No tax, financing or working-capital effects.
+Per-product units are a break-even mix, not a target.
+How the figures were checked
+Second implementation agrees.
+Weighted contribution is the mix weighted margin.
+Profit at break even is zero.
+Scaling fixed costs scales break even units.
+Per product units sum to the total.

@@ -1,0 +1,33 @@
+Computation: demand supply equilibrium
+Result
+The declared demand and supply curves meet at a price of 20.00 and a quantity of 60.00. Consumer surplus is 900.00 and producer surplus is 900.00, a total surplus of 1,800.00. The result is arithmetic on the two linear curves you declared (Qd = a - bP, Qs = c + dP); it is only as good as those curves. Consumer and producer surplus are geometric areas under the declared curves, not measured welfare; taxes, externalities and market power are absent. No dynamics, expectations, inventory or trade are modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Supply intercept: 20.00
+Supply slope: 2.00
+What was computed
+Equilibrium price: 20.00
+Equilibrium quantity: 60.00
+Demand choke price: 50.00
+Supply floor price: -10.00
+Consumer surplus: 900.00
+Producer surplus: 900.00
+Total surplus: 1800.00
+Honesty: what was not done
+this method: The result is arithmetic on the two linear curves you declared (Qd = a - bP, Qs = c + dP); it is only as good as those curves. Consumer and producer surplus are geometric areas under the declared curves, not measured welfare; taxes, externalities and market power are absent. No dynamics, expectations, inventory or trade are modelled.
+Assumptions made
+Demand slopes down and supply slopes up, both linearly.
+All else equal: no shifts, taxes, externalities or market power.
+The curves are the owner's declared functions, not estimated from data.
+Limitations
+Linear curves only; no dynamics, expectations or general equilibrium.
+Surplus is geometric area, not a measured welfare change.
+No tax, subsidy, price control or externality is included.
+How the figures were checked
+Second implementation agrees.
+Quantity demanded equals quantity supplied.
+Consumer surplus is the triangle.
+Producer surplus is the triangle.
+Total surplus is consumer plus producer.

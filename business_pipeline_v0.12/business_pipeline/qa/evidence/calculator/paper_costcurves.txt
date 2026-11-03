@@ -1,0 +1,39 @@
+Computation: cost curves
+Result
+At a quantity of 20.00, average cost is 70.00, average variable cost is 20.00 and marginal cost is 30.00. Total revenue is 800.00 and profit is -600.00. The cost function is the declared quadratic TC = fixed + linear x Q + quadratic x Q squared; the result is only as good as that function. Average and marginal cost are arithmetic at the quantity you declared, not a claim about the whole range. The shutdown price is the minimum average variable cost, which is the linear cost when the quadratic term is non-negative.
+Inputs and results
+What you declared
+Fixed cost: 1000.00
+Linear cost: 10.00
+Quadratic cost: 0.50
+Quantity: 20.00
+Price: 40.00
+What was computed
+Total cost: 1400.00
+Fixed cost: 1000.00
+Variable cost: 400.00
+Average cost: 70.00
+Average variable cost: 20.00
+Average fixed cost: 50.00
+Marginal cost: 30.00
+Quantity: 20.00
+Price: 40.00
+Total revenue: 800.00
+Profit: -600.00
+Shutdown: 0
+Honesty: what was not done
+this method: The cost function is the declared quadratic TC = fixed + linear x Q + quadratic x Q squared; the result is only as good as that function. Average and marginal cost are arithmetic at the quantity you declared, not a claim about the whole range. The shutdown price is the minimum average variable cost, which is the linear cost when the quadratic term is non-negative.
+Assumptions made
+The declared quadratic cost function describes the relevant range.
+Fixed cost does not change with quantity.
+The quantity is positive.
+Limitations
+One quantity only; no cost schedule across quantities.
+No step costs, capacity limits, learning or economies of scope.
+The shutdown test assumes the quadratic term is non-negative.
+How the figures were checked
+Second implementation agrees.
+Marginal cost is the derivative of total cost.
+Average cost equals total cost over quantity.
+Average cost equals average fixed plus average variable.
+Average variable cost excludes fixed cost.

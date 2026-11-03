@@ -1,0 +1,34 @@
+Computation: scenario analysis
+Result
+The base-case net present value is 267.95. Across the declared rate range it is 418.38 at the low rate and 35.49 at the high rate, a swing of 382.89. The decision flips at a discount rate of 21.86%. Only the discount rate changes between the scenarios. The two scenarios change only the discount rate; the cash flows are held fixed, so this is not a full scenario analysis of revenue, cost and timing. The break-even rate is the single internal rate of return of the declared cash flows; when the flows change sign more than once no single break-even rate is reported. A range around one input says nothing about the joint effect of several inputs changing together; a simulation or a full scenario model is a different method.
+Inputs and results
+What you declared
+Cashflows: -1000, 400, 400, 400, 400
+Discount rate: 0.1000
+Rate low: 0.0500
+Rate high: 0.2000
+What was computed
+Npv base: 267.95
+Npv at low rate: 418.38
+Npv at high rate: 35.49
+Swing: 382.89
+Discount rate: 0.1000
+Rate low: 0.0500
+Rate high: 0.2000
+Breakeven rate: 0.2186
+Honesty: what was not done
+this method: The two scenarios change only the discount rate; the cash flows are held fixed, so this is not a full scenario analysis of revenue, cost and timing. The break-even rate is the single internal rate of return of the declared cash flows; when the flows change sign more than once no single break-even rate is reported. A range around one input says nothing about the joint effect of several inputs changing together; a simulation or a full scenario model is a different method.
+Assumptions made
+The cash flows are the same in every scenario.
+The low rate is below the high rate.
+A single discount rate applies to every flow.
+Limitations
+One-input sensitivity only, not a joint scenario.
+No probabilities, simulation or correlation between inputs.
+No tax, financing or mid-year timing.
+How the figures were checked
+Second implementation agrees.
+The base case matches the npv function.
+A higher discount rate lowers the value.
+The swing is the difference between the scenarios.
+The breakeven rate sets the npv to zero.

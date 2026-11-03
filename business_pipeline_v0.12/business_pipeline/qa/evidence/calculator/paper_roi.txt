@@ -1,0 +1,29 @@
+Computation: return on investment
+Result
+A net gain of 125,000.00 on an investment of 500,000.00 gives a return on investment of 25.00%. Compounded over 3.00 years, the annualised return is 7.72%. The net gain is the total gain you declared over the whole holding period, net of the investment; it is not an annual cash flow. The annualised return is the constant yearly rate that compounds to the total return; it is not a forecast and it ignores the timing of the flows. The method does not compute tax, depreciation or the cost of capital; use the appraisal tools for a discounted decision.
+Inputs and results
+What you declared
+Total investment: 500000.00
+Net gain: 125000.00
+Years: 3.00
+What was computed
+Total investment: 500000.00
+Net gain: 125000.00
+Roi: 0.2500
+Years: 3.00
+Annualised roi: 0.0772
+Honesty: what was not done
+this method: The net gain is the total gain you declared over the whole holding period, net of the investment; it is not an annual cash flow. The annualised return is the constant yearly rate that compounds to the total return; it is not a forecast and it ignores the timing of the flows. The method does not compute tax, depreciation or the cost of capital; use the appraisal tools for a discounted decision.
+Assumptions made
+The net gain and investment are the owner's declared figures.
+The holding period is a constant number of years.
+Limitations
+No discounting, tax or depreciation.
+Ignores the timing of the flows inside the period.
+A loss of 100% or more has no real annualised rate and is refused when years is declared.
+How the figures were checked
+Second implementation agrees.
+Roi is net gain over total investment.
+Doubling the net gain doubles the roi.
+Annualised roi compounds to the total return.
+A loss gives a negative roi.

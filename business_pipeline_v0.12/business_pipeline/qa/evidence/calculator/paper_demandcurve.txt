@@ -1,0 +1,35 @@
+Computation: demand curve
+Result
+Fitting quantity on price gives a slope of -12.0000 with an R-squared of 1.0000, so at the mean price of 30.00 the elasticity is -1.2857. Within the fitted line, revenue is highest at a price of 26.67. The fit is an association between the prices and quantities you observed, not an identified demand curve; omitted variables, simultaneity and measurement error are not addressed. A line is imposed on the data; a non-linear or kinked demand pattern will not be captured. The revenue-maximising price exists only when the fitted slope is negative, and it is arithmetic on the fit, not a pricing recommendation. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Prices: 20, 25, 30, 35, 40
+Quantities: 400, 340, 280, 220, 160
+What was computed
+Intercept: 640.0000
+Slope: -12.0000
+R squared: 1.0000
+Mean price: 30.00
+Mean quantity: 280.00
+Elasticity at mean: -1.2857
+Revenue max price: 26.67
+Revenue max quantity: 320.00
+Revenue max revenue: 8533.33
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The pairs are comparable observations of the same market in the same period basis.
+The relationship is approximately linear within the observed range.
+Limitations
+No identification, omitted-variable or endogeneity correction.
+Constant price or constant quantity blocks the fit.
+The revenue-maximising price exists only for a negative fitted slope and only within the fitted line.
+How the figures were checked
+Second implementation agrees.
+Slope is the covariance over the variance.
+Fitted line passes through the means.
+R squared is bounded and matches the residuals.
+Revenue maximising price sets marginal revenue to zero.

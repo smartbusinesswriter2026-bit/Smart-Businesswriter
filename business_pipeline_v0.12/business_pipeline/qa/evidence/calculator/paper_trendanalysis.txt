@@ -1,0 +1,46 @@
+Computation: trend analysis
+Result
+Over the declared periods revenue grew at a compound rate of 10.00%, with the latest period 10.00% above the previous one and an index of 133.1000 against the base period. In the latest period, cost of sales was 0.5710 of revenue, operating expenses were 0.1953, the gross margin was 42.90% and the net margin was 14.27%, a net-margin change of 2.27% against the base period. Net income grew at a compound rate of 16.55%. The analysis is historical arithmetic on the figures you declared; no adjustment, restatement, reclassification or accounting-policy alignment is applied. A compound growth rate depends only on the first and last values and ignores the path between them; a single good or bad endpoint moves it sharply. The common-size base is revenue, and the index base is the first period you declared. Changing either base changes every percentage. A net-income CAGR is reported only when the first period's net income is positive; a negative base makes the compound rate undefined. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Years: 2022, 2023, 2024, 2025
+Revenue: 1000, 1100, 1210, 1331
+Cost of sales: 600, 650, 710, 760
+Operating expenses: 200, 220, 240, 260
+Net income: 120, 140, 160, 190
+Total assets: 2000, 2100, 2250, 2400
+Equity: 900, 980, 1080, 1200
+What was computed
+N periods: 4
+Revenue cagr: 0.1000
+Revenue growth latest: 0.1000
+Revenue index latest: 133.1000
+Gross margin latest: 0.4290
+Operating margin latest: 0.2337
+Net margin latest: 0.1427
+Common size cost of sales: 0.5710
+Common size operating expenses: 0.1953
+Gross margin change: 0.0290
+Net margin change: 0.0227
+Net income cagr: 0.1655
+Net income index latest: 158.3333
+Net income growth total: 0.5833
+Equity to assets latest: 0.5000
+Asset growth latest: 0.0667
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Revenue is positive in every period, because it is the common-size base.
+The periods are consecutive and in increasing order.
+The figures are as reported, on one accounting basis and in one currency.
+Limitations
+Historical arithmetic only; no adjustment, restatement or forecast.
+CAGR uses only the endpoints and ignores the path.
+A net-income CAGR is omitted when the base period's net income is not positive.
+How the figures were checked
+Second implementation agrees.
+The cagr compounds the first period to the last.
+The common size lines and the operating margin sum to one.
+The index is the latest value over the base times one hundred.
+The latest growth is the change from the previous period.
+The margin change is the difference between the endpoints.

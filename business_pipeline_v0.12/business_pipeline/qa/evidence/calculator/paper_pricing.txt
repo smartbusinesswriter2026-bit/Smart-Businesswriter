@@ -1,0 +1,39 @@
+Computation: pricing decision
+Result
+At a unit cost of 15.00 and a declared markup of 60.00%, the cost-plus price is 24.00. At the declared volume the break-even price is 22.50. A target margin of 37.50% on the price gives 24.00. To earn the declared target profit, the price must be 25.83. Every price is arithmetic on the declared unit cost, fixed cost, volume and rate; the method does not research what customers will pay. Cost-plus marks up the cost; the target-margin price divides by one minus the margin on price. The two rules give different prices and the report shows both. No competitor price, willingness-to-pay estimate or demand response is used; price elasticity is a separate method.
+Inputs and results
+What you declared
+Unit cost: 15.00
+Fixed cost: 45000.00
+Expected units: 6000.00
+Markup rate: 0.6000
+Target margin rate: 0.3750
+Target profit: 20000.00
+What was computed
+Unit cost: 15.00
+Fixed cost: 45000.00
+Expected units: 6000.00
+Markup rate: 0.6000
+Total cost: 135000.00
+Cost plus price: 24.00
+Gross margin at cost plus: 0.3750
+Break even price: 22.50
+Target margin rate: 0.3750
+Margin price: 24.00
+Target profit: 20000.00
+Target return price: 25.83
+Honesty: what was not done
+this method: Every price is arithmetic on the declared unit cost, fixed cost, volume and rate; the method does not research what customers will pay. Cost-plus marks up the cost; the target-margin price divides by one minus the margin on price. The two rules give different prices and the report shows both. No competitor price, willingness-to-pay estimate or demand response is used; price elasticity is a separate method.
+Assumptions made
+Unit cost and fixed cost are constant over the declared range.
+The expected volume is the owner's declared figure.
+Limitations
+No demand response, competitor price or price elasticity.
+No discounts, VAT or other taxes.
+A target-return price is arithmetic, not a recommendation.
+How the figures were checked
+Second implementation agrees.
+Cost plus price is unit cost times one plus markup.
+Break even price covers the total cost.
+Margin price recovers the declared margin.
+Target return price covers cost and declared profit.

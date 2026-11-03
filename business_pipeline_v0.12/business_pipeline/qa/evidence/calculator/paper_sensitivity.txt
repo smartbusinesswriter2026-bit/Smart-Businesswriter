@@ -1,0 +1,39 @@
+Computation: sensitivity table
+Result
+At the declared base case the profit is 350,000.00; the table reports profit for each declared price and volume change. The table changes price and volume only; cost changes need a separate table or a declared second run. Each cell is profit at the same declared unit cost and fixed cost; no demand response to price is modelled. A table is arithmetic on declared changes, not a forecast or a probability. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Base price: 120.00
+Base units: 10000.00
+Base variable cost: 55.00
+Base fixed cost: 300000.00
+Price changes: -0.1, 0, 0.1
+Volume changes: -0.2, 0, 0.2
+What was computed
+Base profit: 350000.00
+Base price: 120.00
+Base units: 10000.00
+Profit 1 1: 124000.00
+Profit 1 2: 230000.00
+Profit 1 3: 336000.00
+Profit 2 1: 220000.00
+Profit 2 2: 350000.00
+Profit 2 3: 480000.00
+Profit 3 1: 316000.00
+Profit 3 2: 470000.00
+Profit 3 3: 624000.00
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The base figures and the declared changes are the owner's inputs.
+Unit cost and fixed cost stay constant across the table.
+Limitations
+No cost changes, demand response or probabilities.
+One product and one period.
+The table is descriptive; it does not choose a scenario.
+How the figures were checked
+Second implementation agrees.
+Base profit is the declared base case.
+A higher price raises profit at a positive margin.
+A higher volume raises profit at a positive margin.
+Every cell is the profit identity.

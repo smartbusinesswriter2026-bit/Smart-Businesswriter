@@ -469,6 +469,11 @@ def handle(method, path, body=None):
             return 200, calc_router.plan(text)
         except calc_router.PlanError as error:
             return _error(error)
+    if segments and segments[0] == "calculator":
+        # W-10 (D-CALC-03): an unknown calculator sub-route used to fall through to the
+        # case-id parser and answer `422 case id must be 12 lowercase hex characters`,
+        # which names neither the route nor the mistake.  Fail closed, naming the route.
+        return 404, {"error": "unknown route /api/cases/%s" % "/".join(segments)}
     # -- screening a student's candidate list (product layer, ported B-184) ---
     if segments == ["screen"]:
         if verb != "POST":

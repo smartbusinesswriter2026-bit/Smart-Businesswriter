@@ -1,0 +1,38 @@
+Computation: real option
+Result
+The option value is 14.79 against an intrinsic value of 0.00, with a delta of 0.6171 on 5 steps. The lattice is a Cox-Ross-Rubinstein binomial with a declared volatility, rate, horizon and step count; the project value and investment are yours. A real option is not a traded option: no market price, no continuous hedging and no replication argument is available. More steps change the value slightly; the model does not calibrate volatility or estimate the underlying distribution.
+Inputs and results
+What you declared
+Underlying value: 100.00
+Investment cost: 100.00
+Volatility: 0.30
+Risk free rate: 0.05
+Steps: 5
+Horizon years: 1.00
+Option type: call
+Exercise: american
+What was computed
+Option value: 14.79
+Intrinsic value: 0.00
+Delta: 0.6171
+Up factor: 1.1436
+Down factor: 0.8744
+Risk neutral probability: 0.5039
+Steps: 5
+Terminal nodes: 6
+Honesty: what was not done
+this method: The lattice is a Cox-Ross-Rubinstein binomial with a declared volatility, rate, horizon and step count; the project value and investment are yours. A real option is not a traded option: no market price, no continuous hedging and no replication argument is available. More steps change the value slightly; the model does not calibrate volatility or estimate the underlying distribution.
+Assumptions made
+The project value follows a binomial lattice with constant volatility and rate.
+The option is on the declared project value, not a traded asset.
+Exercise is European or American as declared.
+Limitations
+No volatility calibration or estimation.
+No continuous hedging or market-price comparison.
+One option at a time; no compound or interacting options.
+How the figures were checked
+Second implementation agrees.
+The option is worth at least its intrinsic value.
+The value respects its upper bound.
+The risk neutral probability is a probability.
+Delta has the sign of the option.

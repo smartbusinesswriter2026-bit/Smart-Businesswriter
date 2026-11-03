@@ -1,0 +1,35 @@
+Computation: externality pigouvian
+Result
+The private market produces 60.00 at a price of 20.00; the social optimum is 56.00. The Pigouvian tax is 4.00 per unit and the deadweight loss is 8.00. The external cost is a declared per-unit value; the method does not estimate damages or value non-monetary effects. The Pigouvian tax equals the marginal external cost at the social optimum in this linear partial-equilibrium model. No abatement technology, monitoring cost, tax interaction or general-equilibrium effect is modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Supply intercept: 20.00
+Supply slope: 2.00
+Marginal external cost: 4.00
+What was computed
+Market price: 20.00
+Market quantity: 60.00
+Social consumer price: 22.00
+Social producer price: 18.00
+Social quantity: 56.00
+External cost: 4.00
+Pigouvian tax: 4.00
+Deadweight loss: 8.00
+Honesty: what was not done
+this method: The external cost is a declared per-unit value; the method does not estimate damages or value non-monetary effects. The Pigouvian tax equals the marginal external cost at the social optimum in this linear partial-equilibrium model. No abatement technology, monitoring cost, tax interaction or general-equilibrium effect is modelled.
+Assumptions made
+Linear private demand and supply; a constant per-unit external cost.
+The external cost is known and additively separable.
+Partial equilibrium with no other distortions.
+Limitations
+No damage estimation, non-monetary valuation or abatement technology.
+No tax interaction, enforcement cost or distributional analysis.
+The tax is a declared Pigouvian benchmark, not an observed policy.
+How the figures were checked
+Second implementation agrees.
+Market quantity uses the private curves.
+Social quantity equates demand to private supply plus external cost.
+Pigouvian tax equals the marginal external cost.
+A higher external cost lowers the social quantity.

@@ -1,0 +1,30 @@
+Computation: poverty measures
+Result
+With a declared poverty line, 2 of 4 incomes are below it. The headcount ratio is 50.00%, the poverty gap is 20.00% and the squared gap is 10.00%. The poverty line is the owner's declared value; the headcount, gap and squared gap are sensitive to it. The measures count incomes below the line and do not identify who is poor or for how long. No equivalence scales, taxes, transfers or non-monetary deprivation are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Incomes: 10, 20, 30, 40
+Poverty line: 25.0000
+What was computed
+N: 4
+Poor count: 2
+Headcount ratio: 0.5000
+Poverty gap: 0.2000
+Squared gap: 0.1000
+Total gap: 20.00
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Incomes are non-negative and cover the intended population.
+The poverty line is fixed and comparable across the observations.
+No equivalence scale is applied.
+Limitations
+No multidimensional or transient poverty analysis.
+No taxes, transfers, in-kind income or equivalence scales.
+The line is a declared choice.
+How the figures were checked
+Second implementation agrees.
+Headcount is the share below the line.
+Poverty gap is the average normalised shortfall.
+Squared gap is the average squared shortfall.
+A higher poverty line raises the headcount.

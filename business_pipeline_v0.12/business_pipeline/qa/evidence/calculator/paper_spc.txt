@@ -1,0 +1,37 @@
+Computation: process control
+Result
+The mean is 10.2500 with an estimated sigma of 1.3931, giving control limits of 6.0707 to 14.4293. 0 points fall outside the limits. Against the declared specification, Cp is 0.7178 and Cpk is 0.6580. The chart is an individuals chart with moving ranges (I-MR); subgroup charts, p-charts and EWMA are not computed. Control limits describe the variation of the series you supplied; they do not prove the process is capable or stable in future. Cp and Cpk use the estimated sigma and the specification limits you declare; no capability threshold is applied. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Values: 10, 11, 9, 10, 12, 9, 10, 11
+Spec lower: 7.00
+Spec upper: 13.00
+What was computed
+N: 8
+Mean: 10.2500
+Average moving range: 1.5714
+Sigma estimate: 1.3931
+Upper control limit: 14.4293
+Lower control limit: 6.0707
+Out of control: 0
+Longest run: 2
+Run signal: 0
+Spec lower: 7.00
+Spec upper: 13.00
+Cp: 0.7178
+Cpk: 0.6580
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Observations are in time order and come from one process.
+The process is approximately stable apart from the signals reported.
+Limitations
+I-MR only; no subgroup charts, EWMA, CUSUM or multivariate charts.
+Capability uses the within-series sigma and the declared specification; no threshold is applied.
+The chart is descriptive; it does not prove future stability.
+How the figures were checked
+Second implementation agrees.
+Limits are the mean plus or minus three sigma.
+Sigma is the average moving range over one point one two eight.
+Out of control points are counted against the limits.
+Cpk is the distance to the nearer limit.

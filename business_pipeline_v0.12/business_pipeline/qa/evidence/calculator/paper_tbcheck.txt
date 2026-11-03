@@ -1,0 +1,34 @@
+Computation: trial balance check
+Result
+The check found 0 differing line(s), 0 present only in the journal and 0 present only in the trial balance, with a net difference of 0.00 and 0 finding(s). A balanced trial balance is not proof of correct entries. This compares two declared figures; it does not decide which one is right. A balanced trial balance is not proof of correct entries. Custom analysis (T2); expert review pending (B-005).
+Inputs and results
+What you declared
+Journal: Period: Start: 2026-01-01; End: 2026-03-31; Currency: USD; Framework: IFRS; Places: 2; Chart: Code: 1000; Name: Cash; Type: asset; Line: Cash; Role: cash, Code: 3000; Name: Capital; Type: equity; Line: Capital; Role: capital, Code: 3100; Name: Retained earnings; Type: equity; Line: Retained earnings; Role: retained_earnings; Prior closing: 1000: 1000; 3000: 1000; Opening: Description: opening; Lines: Account: 1000; Debit: 1000, Account: 3000; Credit: 1000; Entries: Date: 2026-02-01; Description: capital introduced; Lines: Account: 1000; Debit: 500, Account: 3000; Credit: 500; Schedules:
+Trial balance: Code: 1000; Name: Cash; Debit: 1500; Credit: 0, Code: 3000; Name: Capital; Debit: 0; Credit: 1500
+What was computed
+N submitted: 2
+N rebuilt: 2
+N matched: 2
+N differing: 0
+N missing submitted: 0
+N missing rebuilt: 0
+N findings: 0
+Total absolute difference: 0.00
+Difference net: 0.00
+Submitted balance difference: 0.00
+Honesty: what was not done
+this method: This compares two declared figures; it does not decide which one is right. A balanced trial balance is not proof of correct entries. Custom analysis (T2); expert review pending (B-005).
+Assumptions made
+Both inputs are the student's own declared figures.
+An account code, where given, means the same account on both sides.
+Limitations
+A balanced trial balance is not proof of correct entries: errors of principle, commission, original entry, omission, reversal and compensating errors all leave it balanced.
+Candidate causes are heuristics labelled as such, never conclusions.
+It cannot check amounts against source documents, and it corrects nothing.
+Custom analysis (T2); expert review pending.
+How the figures were checked
+Every row is matched or explained.
+Second route agrees.
+Net difference agrees with lines.
+Submitted balance difference agrees.
+Divisibility rule is reported not concluded.

@@ -1,0 +1,29 @@
+Computation: market concentration
+Result
+Across 5 declared firms the HHI is 2,650 and the four-firm concentration ratio is 90.00. The equivalent number of equal-sized firms is 3.77. The firms and revenues you declared are treated as the market; the tool does not define the market for you. HHI uses percentage shares, so it runs from zero to ten thousand; fractions would give a different scale. No import competition, geographic segmentation, merger simulation or legal threshold is applied.
+Inputs and results
+What you declared
+Firm revenues: 40, 25, 15, 10, 10
+What was computed
+N firms: 5
+Total revenue: 100.00
+Hhi: 2650
+Cr1: 40.00
+Cr4: 90.00
+Effective n: 3.77
+Honesty: what was not done
+this method: The firms and revenues you declared are treated as the market; the tool does not define the market for you. HHI uses percentage shares, so it runs from zero to ten thousand; fractions would give a different scale. No import competition, geographic segmentation, merger simulation or legal threshold is applied.
+Assumptions made
+The declared revenues cover the relevant market.
+Each firm's revenue is its market sales, not total corporate revenue across other markets.
+The market boundary is the owner's judgement.
+Limitations
+No market definition, import competition or geographic segmentation.
+No merger simulation, entry or dynamic effects.
+No legal threshold is applied; any threshold is a convention the user supplies.
+How the figures were checked
+Second implementation agrees.
+Hhi equals the sum of squared shares.
+Cr4 is the sum of the four largest shares.
+Shares sum to one hundred.
+Effective n times hhi equals ten thousand.

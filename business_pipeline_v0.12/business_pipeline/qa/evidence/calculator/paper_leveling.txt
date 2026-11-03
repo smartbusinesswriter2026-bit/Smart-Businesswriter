@@ -1,0 +1,44 @@
+Computation: resource leveling
+Result
+The resource-constrained plan finishes in 7.00 periods, against 5.00 without resource limits, a delay of 2.00 periods. 2 periods were over capacity before levelling and 0 after. Levelling is serial and non-preemptive: activities keep their duration and are delayed until their declared resource has capacity. The order is by early start, then longest duration, then activity id; a different priority rule can produce a different, equally valid plan. Only one resource per activity and whole-period durations and demands are supported; calendars, multiple resources per activity and preemption are not.
+Inputs and results
+What you declared
+Resources: Name: crew; Capacity: 2
+Activities: Id: A; Duration: 2; Resource: crew; Demand: 2; Predecessors: , Id: B; Duration: 2; Resource: crew; Demand: 2; Predecessors: A, Id: C; Duration: 2; Resource: crew; Demand: 1; Predecessors: A, Id: D; Duration: 1; Resource: crew; Demand: 1; Predecessors: B,C
+What was computed
+Cpm duration: 5.00
+Levelled duration: 7.00
+Levelling delay: 2.00
+Activity count: 4
+Overallocated periods before: 2
+Overallocated periods after: 0
+Peak demand before: 3
+Peak demand after: 2
+Lv start A: 0.00
+Lv finish A: 2.00
+Lv delay A: 0.00
+Lv start B: 2.00
+Lv finish B: 4.00
+Lv delay B: 0.00
+Lv start C: 4.00
+Lv finish C: 6.00
+Lv delay C: 2.00
+Lv start D: 6.00
+Lv finish D: 7.00
+Lv delay D: 2.00
+Honesty: what was not done
+this method: Levelling is serial and non-preemptive: activities keep their duration and are delayed until their declared resource has capacity. The order is by early start, then longest duration, then activity id; a different priority rule can produce a different, equally valid plan. Only one resource per activity and whole-period durations and demands are supported; calendars, multiple resources per activity and preemption are not.
+Assumptions made
+Each activity consumes one declared resource at a constant demand for its whole duration.
+Capacities are constant over the project.
+Durations and demands are whole periods.
+Limitations
+Greedy serial levelling, not an optimal scheduler.
+No calendars, multiple resources per activity, preemption or resource smoothing.
+The priority rule is fixed, not chosen.
+How the figures were checked
+Second implementation agrees.
+No period exceeds a resource capacity.
+Precedence is respected.
+No activity starts before its cpm early start.
+Levelling never shortens the project.

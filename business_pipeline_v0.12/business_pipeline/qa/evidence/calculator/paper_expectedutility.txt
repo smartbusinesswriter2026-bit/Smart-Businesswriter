@@ -1,0 +1,31 @@
+Computation: expected utility
+Result
+The expected value is 100.00, the expected utility is -0.01 and the certainty equivalent is 75.00. The risk premium is 25.00. The utility function and risk-aversion parameter are declared, not estimated; the result is conditional on them. CRRA utility is defined only for positive outcomes; zero or negative wealth blocks. The certainty equivalent and risk premium are model-based, not market prices. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Outcomes: 50, 150
+Probabilities: 0.5, 0.5
+Utility function: crra
+Risk aversion: 2.0000
+What was computed
+Expected value: 100.00
+Expected utility: -0.01
+Certainty equivalent: 75.00
+Risk premium: 25.00
+Risk aversion: 2.0000
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Probabilities are known and sum to one.
+Outcomes are positive final wealth levels.
+The utility function and risk aversion are the owner's declared values.
+Limitations
+No probability weighting, ambiguity or reference dependence.
+CRRA is defined only for positive outcomes.
+The utility parameters are not estimated.
+How the figures were checked
+Second implementation agrees.
+Expected value is the probability weighted outcome.
+Risk neutral certainty equivalent equals expected value.
+A risky gamble has a positive risk premium under crra.
+A higher risk aversion lowers the certainty equivalent.

@@ -1,0 +1,39 @@
+Computation: bond analysis
+Result
+At the declared yield the bond price is 1,148.77, with a current yield of 6.96%. The Macaulay duration is 7.2863 years and the modified duration is 7.0740, so a one-basis-point parallel rise in yield moves the price by about 0.81. The price is arithmetic on the declared coupon, maturity and yield; it is not a traded quote. The bond is a plain fixed-coupon bond priced between coupon dates with no accrued interest; settlement, day-count and ex-coupon conventions are not modelled. The yield is a single declared or solved yield to maturity, not a spot curve; a credit spread, liquidity premium or tax treatment is not added. Duration and convexity are local price sensitivities under a parallel shift in yield; they are not a forecast of the price.
+Inputs and results
+What you declared
+Face value: 1000.00
+Coupon rate: 0.08
+Years to maturity: 10.00
+Yield to maturity: 0.0600
+Payments per year: 2.00
+What was computed
+Price: 1148.77
+Yield to maturity: 0.0600
+Macaulay duration: 7.2863
+Modified duration: 7.0740
+Convexity: 63.9233
+Dv01: 0.81
+Current yield: 0.0696
+Coupon payment: 40.00
+N payments: 20
+Face value: 1000.00
+Honesty: what was not done
+this method: The bond is a plain fixed-coupon bond priced between coupon dates with no accrued interest; settlement, day-count and ex-coupon conventions are not modelled. The yield is a single declared or solved yield to maturity, not a spot curve; a credit spread, liquidity premium or tax treatment is not added. Duration and convexity are local price sensitivities under a parallel shift in yield; they are not a forecast of the price.
+Assumptions made
+The bond is plain-vanilla: fixed coupon, fixed maturity, no embedded options.
+One yield to maturity discounts every cash flow.
+The price is on a coupon date.
+Limitations
+No accrued interest or day-count convention.
+No credit, liquidity or tax adjustment.
+Duration and convexity are local parallel-shift sensitivities, not forecasts.
+How the figures were checked
+Second implementation agrees.
+A par bond prices at face value.
+A higher yield lowers the price.
+Modified duration is macaulay over one plus the periodic yield.
+Duration is below the maturity in years.
+Convexity is positive.
+The solved yield reproduces the price.

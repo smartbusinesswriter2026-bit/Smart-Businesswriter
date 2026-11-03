@@ -1,0 +1,32 @@
+Computation: optimal pollution
+Result
+The optimal emission level is 18.00, where marginal damage equals marginal abatement cost. The pollution tax is 46.00 and total damage is 504.00. The marginal-damage and marginal-abatement functions are declared linear curves; the result is only as good as those curves. The optimal tax is the marginal damage at the optimum, not a market price or an observed tax. No monitoring, enforcement, technological change or distributional effect is modelled.
+Inputs and results
+What you declared
+Marginal damage intercept: 10.00
+Marginal damage slope: 2.00
+Marginal abatement intercept: 100.00
+Marginal abatement slope: 3.00
+What was computed
+Optimal emissions: 18.00
+Marginal damage: 46.00
+Marginal abatement cost: 46.00
+Pollution tax: 46.00
+Total damage: 504.00
+Total abatement cost: 1314.00
+Honesty: what was not done
+this method: The marginal-damage and marginal-abatement functions are declared linear curves; the result is only as good as those curves. The optimal tax is the marginal damage at the optimum, not a market price or an observed tax. No monitoring, enforcement, technological change or distributional effect is modelled.
+Assumptions made
+Linear marginal damage and marginal abatement cost.
+One pollutant and one period.
+The curves are the owner's declared functions.
+Limitations
+No damage or abatement estimation.
+No multiple pollutants, thresholds or technological change.
+No distributional or enforcement analysis.
+How the figures were checked
+Second implementation agrees.
+Marginal damage equals marginal abatement cost.
+Pollution tax equals marginal damage.
+Total damage is the area under marginal damage.
+A higher damage intercept lowers optimal emissions.

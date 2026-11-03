@@ -2083,7 +2083,11 @@ def _cc_profile(inp):
         return ["currency-conversion inputs are malformed: amount, from_currency, to_currency and rate are required"]
 
 def _cc_typing(metric):
-    return ("ratio", 6) if metric == "rate" else ("currency", 2)
+    # B-217 (owner instruction, 2026-11-03: "unfreeze it and do what you have to do to fix
+    # the error"): the rate declared ("ratio", 6) and so printed `Rate: 0.920000` on every
+    # currency paper -- D-CALC-01, the same class as D-RES-05.  The declaration is the
+    # defect, not the renderer (B-214 precedent): 4 dp, the library's ratio convention.
+    return ("ratio", 4) if metric == "rate" else ("currency", 2)
 
 def _cc_caveats(out, th):
     return ["The exchange rate is a declaration, not a retrieved price: the appendix records the currencies, the rate, its provenance (user, sourced or assumption) and any declared date. The system does not fetch, verify or interpolate exchange rates.",
@@ -13043,8 +13047,11 @@ def real_option_profile(inp):
 def _real_option_typing(metric):
     if metric in ("steps", "terminal_nodes"):
         return ("count", 0)
+    # B-217: delta/risk-neutral probability/the two factors declared ("ratio", 6) and so
+    # printed `Delta: 0.617058` -- D-CALC-02, the D-RES-05 class again.  4 dp is the
+    # library's ratio convention and the precision the paper now carries.
     if metric in ("delta", "risk_neutral_probability", "up_factor", "down_factor"):
-        return ("ratio", 6)
+        return ("ratio", 4)
     return ("currency", 2)
 
 

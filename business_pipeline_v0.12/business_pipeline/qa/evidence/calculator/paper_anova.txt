@@ -1,0 +1,49 @@
+Computation: anova
+Result
+The analysis compares 3 groups. Group lecture has 8 valid observations with a mean of 68.625; Group workshop has 9 valid observations with a mean of 77.444; Group online has 7 valid observations with a mean of 61.857; 0 entries were excluded as missing. One-way ANOVA gives F(2, 21) = 25.611 with a p-value below the reporting floor. At the declared significance level of 5.00% the group means are statistically significantly different. Eta-squared is 0.709, a large effect by the declared thresholds. Statistical significance and practical importance are separate questions. Caution: the sample is small, so these estimates are imprecise and should be described, not generalized. A difference among group means does not show that group membership produces it; assignment and other differences between groups were not assessed, and no causal claim is made. The normality and equal-variance screens are coarse; inspect the data before relying on the result. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Groups: Lecture: 62, 70, 68, 75, 66, 71, 64, 73; Workshop: 72, 78, 74, 85, 80, 77, 69, 83, 79; Online: 60, 63, 58, 66, 61, 65, 60
+Missing codes:
+What was computed
+F stat: 25.611
+Df between: 2
+Df within: 21
+P value: 0.0000
+Eta squared: 0.709
+N groups: 3
+N total: 24
+N excluded: 0
+Grand mean: 69.958
+Alpha: 0.05
+N lecture: 8
+Mean lecture: 68.625
+Sd lecture: 4.470
+N workshop: 9
+Mean workshop: 77.444
+Sd workshop: 5.126
+N online: 7
+Mean online: 61.857
+Sd online: 2.911
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent within and between groups.
+Group distributions are approximately normal (screened by skewness and kurtosis only).
+Group variances are approximately equal (screened by Levene's test).
+Limitations
+Normality and Levene screen limits are conventional placeholders [UNVERIFIED].
+Independence is not tested.
+No post-hoc pairwise comparisons or repeated-measures designs.
+Eta-squared is a sample effect size and is not bias-corrected.
+How the figures were checked
+Second implementation agrees.
+Within group permutation invariant.
+Group relabeling invariant.
+Equal shift leaves F and effect unchanged.
+Positive scale equivariance.
+Missing entries excluded not valued.
+Bounded and consistent.

@@ -1,0 +1,24 @@
+Computation: discounted payback
+Result
+The discounted cash flows recover the initial outlay after 3.02 periods (during period 4), and the net present value over the whole horizon is 267.95. Discounted payback is a liquidity measure: it ignores every cash flow after the recovery point.
+Inputs and results
+What you declared
+Cashflows: -1000, 400, 400, 400, 400
+Rate: 0.10
+What was computed
+Discounted payback: 3.02
+Recovered in period: 4
+Net present value: 267.95
+N periods: 5
+Assumptions made
+Cash flows occur at period ends; the recovering period's flow is spread evenly.
+Limitations
+Ignores every cash flow after the payback point, so it measures liquidity, not value.
+Within-period interpolation is a declared convention, not a data fact.
+A higher rate can push recovery beyond the horizon, which blocks instead of reporting 'never within the horizon' as a number.
+How the figures were checked
+Second implementation agrees.
+Zero rate equals undiscounted payback.
+A higher rate cannot shorten payback.
+Scaling the cash flows leaves payback unchanged.
+Unrecovered outlays are refused.

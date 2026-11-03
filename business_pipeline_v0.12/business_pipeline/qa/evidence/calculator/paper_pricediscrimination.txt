@@ -1,0 +1,35 @@
+Computation: price discrimination
+Result
+The first market sells 22.50 at 55.00 and the second sells 35.00 at 45.00. Total profit is 2,237.50. Third-degree price discrimination with two separated linear markets and constant marginal cost. The markets must be separable and resale must be impossible; arbitrage would undermine the prices. No fixed cost, capacity constraint, menu cost or welfare comparison with a single price is computed.
+Inputs and results
+What you declared
+Demand intercept 1: 100.00
+Demand slope 1: 2.00
+Demand intercept 2: 80.00
+Demand slope 2: 1.00
+Marginal cost: 10.00
+What was computed
+Quantity 1: 22.50
+Price 1: 55.00
+Quantity 2: 35.00
+Price 2: 45.00
+Revenue 1: 1237.50
+Revenue 2: 1575.00
+Total revenue: 2812.50
+Total profit: 2237.50
+Honesty: what was not done
+this method: Third-degree price discrimination with two separated linear markets and constant marginal cost. The markets must be separable and resale must be impossible; arbitrage would undermine the prices. No fixed cost, capacity constraint, menu cost or welfare comparison with a single price is computed.
+Assumptions made
+The two markets are separable and resale is impossible.
+Demand is linear and marginal cost is constant.
+The firm can set a different price in each market.
+Limitations
+No arbitrage, capacity, menu cost or fixed cost.
+No welfare comparison with a single price.
+Two markets only.
+How the figures were checked
+Second implementation agrees.
+Marginal revenue equals marginal cost in market one.
+Marginal revenue equals marginal cost in market two.
+Total revenue is the sum of market revenues.
+A higher marginal cost lowers both quantities.

@@ -1,0 +1,31 @@
+Computation: comparative advantage
+Result
+Country A's opportunity cost of good one is 2.0000 units of good two; country B's is 1.6667. The lower opportunity cost indicates comparative advantage in good one. The model uses two countries, two goods and constant unit labour requirements; it is the Ricardian textbook case. Opportunity costs are ratios of labour requirements; absolute advantage does not determine the pattern of trade. No transport cost, tariffs, demand differences or increasing returns are included.
+Inputs and results
+What you declared
+Countries: Name: A; Good 1 hours: 2; Good 2 hours: 1, Name: B; Good 1 hours: 5; Good 2 hours: 3
+What was computed
+Oc a good1: 2.0000
+Oc a good2: 0.5000
+Oc b good1: 1.6667
+Oc b good2: 0.6000
+A has advantage good1: 0
+B has advantage good1: 1
+A has advantage good2: 1
+B has advantage good2: 0
+Honesty: what was not done
+this method: The model uses two countries, two goods and constant unit labour requirements; it is the Ricardian textbook case. Opportunity costs are ratios of labour requirements; absolute advantage does not determine the pattern of trade. No transport cost, tariffs, demand differences or increasing returns are included.
+Assumptions made
+Unit labour requirements are constant and the only input.
+Two countries and two goods.
+Labour is mobile within a country and immobile between countries.
+Limitations
+No transport costs, tariffs, demand or increasing returns.
+Two countries and two goods only.
+No distributional analysis of the gains from trade.
+How the figures were checked
+Second implementation agrees.
+Opportunity costs are reciprocals.
+Exactly one country has advantage in each good.
+Scaling a countrys hours leaves its opportunity cost unchanged.
+Absolute advantage does not determine comparative advantage.

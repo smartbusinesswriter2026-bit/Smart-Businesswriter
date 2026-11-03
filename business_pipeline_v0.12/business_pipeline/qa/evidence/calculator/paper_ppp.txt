@@ -1,0 +1,32 @@
+Computation: exchange rate ppp
+Result
+The PPP rate is 50.0000 and the real exchange rate is 1.1000, a misalignment of 10.00%. Relative PPP implies an expected depreciation of 1.96%. Absolute PPP compares declared price levels; it is not a test of whether PPP holds in practice. The real exchange rate is 1 at PPP; values above 1 mean the foreign currency looks expensive on this basket. Relative PPP uses the declared inflation rates and a one-period horizon; no transport costs, tariffs or non-tradables are included.
+Inputs and results
+What you declared
+Price domestic: 5000.0000
+Price foreign: 100.0000
+Nominal rate: 55.0000
+Domestic inflation: 0.0400
+Foreign inflation: 0.0200
+What was computed
+Ppp rate: 50.0000
+Real exchange rate: 1.1000
+Misalignment: 0.1000
+Expected nominal rate: 56.0784
+Expected depreciation: 0.0196
+Honesty: what was not done
+this method: Absolute PPP compares declared price levels; it is not a test of whether PPP holds in practice. The real exchange rate is 1 at PPP; values above 1 mean the foreign currency looks expensive on this basket. Relative PPP uses the declared inflation rates and a one-period horizon; no transport costs, tariffs or non-tradables are included.
+Assumptions made
+The two price levels cover comparable baskets.
+The nominal rate is domestic per foreign.
+Relative PPP uses one period and the declared inflation rates.
+Limitations
+No transport costs, tariffs, non-tradables or Balassa-Samuelson effect.
+The price levels are declared, not retrieved.
+PPP is a long-run benchmark, not a forecast.
+How the figures were checked
+Second implementation agrees.
+Ppp rate is the domestic price over the foreign price.
+Real exchange rate is nominal over ppp.
+Nominal rate equal to ppp gives zero misalignment.
+A higher domestic price raises the ppp rate.

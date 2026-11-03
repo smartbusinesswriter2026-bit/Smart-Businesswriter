@@ -1,0 +1,31 @@
+Computation: portfolio performance
+Result
+Across 2 periods the portfolio's time-weighted return is 0.0100, from a starting NAV of 10,000.00 to a final NAV of 10,100.00. The best period was 0.0250 and the worst -0.0146, with 0.00 of external flow. The return chains the declared period returns. The external flow is treated as occurring at the start of its period; a flow at another time is not modelled. No fees, tax, dividends or corporate actions are applied; the return is the declared NAV change net of flows. A benchmark is the level the student declares; the benchmark return is descriptive, not a promise. Past performance is not a forecast, and the time-weighted return is a record, not advice. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Periods: Label: week 1; Start nav: 10000; End nav: 10250; Flow: 0, Label: week 2; Start nav: 10250; End nav: 10100; Flow: 0
+What was computed
+N periods: 2
+Twr: 0.0100
+Total flow: 0.00
+Start nav: 10000.00
+Final nav: 10100.00
+Best period: 0.0250
+Worst period: -0.0146
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Each period's start NAV is the previous period's end NAV unless the student declares otherwise.
+The flow is the only external cash movement in the period.
+Any benchmark level is declared by the student for the same dates.
+Limitations
+No fees, tax, dividends or corporate actions.
+No money-weighted return, forecast or recommendation.
+A flow is modelled at the start of its period only; intra-period timing is not represented.
+How the figures were checked
+Second implementation agrees.
+Twr equals the product of end over base.
+A period with no flow returns the nav ratio.
+Geometric mean lies between best and worst.
+Benchmark chains the same way.
+Final nav matches the last period.

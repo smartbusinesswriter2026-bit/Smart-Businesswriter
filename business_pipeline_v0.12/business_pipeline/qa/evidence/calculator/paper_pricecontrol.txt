@@ -1,0 +1,39 @@
+Computation: price control
+Result
+The declared control price of 15.00 binds. Quantity traded is 50.00, with a shortage of 20.00 and a surplus of 0.00; the deadweight loss is 50.00. The control is a single fixed price that is enforced; a ceiling binds only below equilibrium and a floor only above it. The short side of the market determines quantity traded; the long side's notional quantity is reported but not traded. No rationing, queues, black markets, quality changes or general-equilibrium effects are modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Supply intercept: 20.00
+Supply slope: 2.00
+Control price: 15.00
+Control type: ceiling
+What was computed
+Equilibrium price: 20.00
+Equilibrium quantity: 60.00
+Control price: 15.00
+Binding: 1
+Quantity demanded at control: 70.00
+Quantity supplied at control: 50.00
+Quantity traded: 50.00
+Quantity gap: 20.00
+Shortage: 20.00
+Surplus: 0.00
+Deadweight loss: 50.00
+Honesty: what was not done
+this method: The control is a single fixed price that is enforced; a ceiling binds only below equilibrium and a floor only above it. The short side of the market determines quantity traded; the long side's notional quantity is reported but not traded. No rationing, queues, black markets, quality changes or general-equilibrium effects are modelled.
+Assumptions made
+Linear demand and supply, all else equal.
+The control is a single fixed price that is enforced.
+The market is competitive and partial equilibrium.
+Limitations
+No rationing, queues, black markets or quality adjustment.
+No dynamics or general-equilibrium effects.
+Deadweight loss is the triangle between the declared linear curves.
+How the figures were checked
+Second implementation agrees.
+A non binding control leaves the market unchanged.
+A binding ceiling creates a shortage.
+A binding floor creates a surplus.
+Deadweight loss is the triangle.

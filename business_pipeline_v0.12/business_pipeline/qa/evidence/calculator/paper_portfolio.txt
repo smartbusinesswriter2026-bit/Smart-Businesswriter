@@ -1,0 +1,42 @@
+Computation: portfolio analysis
+Result
+The portfolio's expected return is 1.70% with a standard deviation of 1.40%, and the two assets' correlation is 0.8303. The Sharpe ratio is -0.2141, the beta against the declared market series is 0.9375 and Jensen's alpha is 0.64%. Every figure is computed from your return series and declared weights. Returns are supplied as decimal rates and are treated as a single period; the mean and standard deviation are the sample's, not forecasts. The portfolio is two assets with declared weights; covariance is the sample covariance of the paired observations, and no risk-free lending or borrowing portfolio is constructed. Sharpe, Treynor and Jensen use the declared risk-free rate and the declared market series; the system does not choose a benchmark or verify that it is appropriate. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Returns a: 0.02, 0.03, -0.01, 0.04, 0.01, 0.02
+Returns b: 0.01, 0.02, 0.00, 0.03, 0.02, 0.01
+Weight a: 0.6000
+Risk free rate: 0.0200
+Returns market: 0.01, 0.02, -0.02, 0.03, 0.00, 0.02
+What was computed
+Mean a: 0.0183
+Mean b: 0.0150
+Sd a: 0.0172
+Sd b: 0.0105
+Covariance: 0.0002
+Correlation: 0.8303
+Portfolio return: 0.0170
+Portfolio sd: 0.0140
+Sharpe ratio: -0.2141
+Beta: 0.9375
+Market return: 0.0100
+Jensen alpha: 0.0064
+N periods: 6
+Treynor ratio: -0.0032
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The two return series are aligned by position and cover the same periods.
+Weights sum to one and are held constant (no rebalancing is modelled).
+The market series is the appropriate benchmark.
+Limitations
+Two assets only; no multi-asset optimisation or efficient frontier.
+Sample statistics, not forecasts; no normality or stability test.
+No transaction costs, taxes or short selling.
+How the figures were checked
+Second implementation agrees.
+The correlation lies between minus one and one.
+A full weight reproduces the first asset.
+The portfolio variance identity holds.
+Beta is the covariance over the market variance.
+A higher return raises the sharpe ratio.

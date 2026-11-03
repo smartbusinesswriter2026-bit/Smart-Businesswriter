@@ -1,0 +1,32 @@
+Computation: money multiplier
+Result
+With a monetary base of 100.00 and a reserve ratio of 0.1000, the simple money multiplier is 10.0000 and the currency-adjusted multiplier is 7.0000. The implied money supply is 700.00. The money multiplier is a declared reserve-ratio identity, not a forecast of the money supply. The simple multiplier assumes no currency drain and no excess reserves; the extended multiplier adds a declared currency drain but still assumes no excess reserves. Banks are assumed to lend to the reserve requirement; the model does not include capital, liquidity or demand constraints.
+Inputs and results
+What you declared
+Monetary base: 100.00
+Reserve ratio: 0.1000
+Currency drain ratio: 0.0500
+What was computed
+Monetary base: 100.00
+Reserve ratio: 0.1000
+Currency drain ratio: 0.0500
+Simple money multiplier: 10.0000
+Extended money multiplier: 7.0000
+Money supply simple: 1000.00
+Money supply extended: 700.00
+Honesty: what was not done
+this method: The money multiplier is a declared reserve-ratio identity, not a forecast of the money supply. The simple multiplier assumes no currency drain and no excess reserves; the extended multiplier adds a declared currency drain but still assumes no excess reserves. Banks are assumed to lend to the reserve requirement; the model does not include capital, liquidity or demand constraints.
+Assumptions made
+The reserve ratio is binding and constant.
+Banks lend all available funds above reserves.
+The currency drain is a constant fraction of deposits.
+Limitations
+No excess reserves, capital or liquidity constraints.
+No central-bank policy reaction or interest rate.
+The multiplier is an identity, not a forecast.
+How the figures were checked
+Second implementation agrees.
+Simple multiplier is one over the reserve ratio.
+Extended multiplier is the currency adjusted formula.
+Money supply is the base times the multiplier.
+A higher reserve ratio lowers the simple multiplier.

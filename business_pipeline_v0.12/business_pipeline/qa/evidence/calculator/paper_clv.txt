@@ -1,0 +1,38 @@
+Computation: clv model
+Result
+Over a declared horizon of 24 periods at a 10.00% discount rate, a customer worth 1,500.00 of margin per period and churning at 4.00% is worth 10,305.92 today. Undiscounted, the same customer is worth 23,422.00. At the declared acquisition cost of 9,000.00, value per unit of acquisition cost is 1.15 and the cost is recovered in 7 periods. The margin, churn and discount rate are declared constants; a real customer's margin and churn change over time and by segment. Value is summed over the declared horizon only, so a longer horizon raises the figure; the horizon is a choice, not a fact. Churn is a constant probability per period, which cannot represent a cohort whose risk rises or falls. Payback is measured in the same periods as the margin and is not discounted, so it is a cash-timing view, not a value.
+Inputs and results
+What you declared
+Margin per period: 1500.00
+Churn rate: 0.0400
+Discount rate: 0.1000
+Horizon periods: 24
+Acquisition cost: 9000.00
+What was computed
+Margin per period: 1500.00
+Churn rate: 0.0400
+Horizon periods: 24
+Discount rate: 0.1000
+Clv undiscounted: 23422.00
+Clv discounted: 10305.92
+Discount effect: 13116.08
+Acquisition cost: 9000.00
+Ltv cac: 1.15
+Payback within horizon: 1
+Payback periods: 7
+Honesty: what was not done
+this method: The margin, churn and discount rate are declared constants; a real customer's margin and churn change over time and by segment. Value is summed over the declared horizon only, so a longer horizon raises the figure; the horizon is a choice, not a fact. Churn is a constant probability per period, which cannot represent a cohort whose risk rises or falls. Payback is measured in the same periods as the margin and is not discounted, so it is a cash-timing view, not a value.
+Assumptions made
+The margin, the churn rate and the discount rate stay constant for every period in the horizon.
+Churn reduces the chance of a purchase in later periods, not the margin of a customer who stays.
+Limitations
+Declared constants only; no fitting, no survival curve and no segment model.
+Value stops at the declared horizon, so it is not a perpetuity.
+No expansion revenue, cost-to-serve change, tax or capital charge.
+Payback is undiscounted and only reported when an acquisition cost is declared.
+How the figures were checked
+Second implementation agrees.
+Undiscounted value is the closed form annuity.
+Discounting never increases the value.
+A single period is the margin over one plus the rate.
+Payback is the first period whose cumulative margin covers the cost.

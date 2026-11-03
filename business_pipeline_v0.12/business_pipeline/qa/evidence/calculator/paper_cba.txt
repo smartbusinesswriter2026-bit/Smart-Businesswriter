@@ -1,0 +1,30 @@
+Computation: cost benefit
+Result
+Over 3 periods the present value of benefits is 80,812.01 against present-value costs of 65,327.72, a net present value of 15,484.29. The benefit-cost ratio is 1.237. The appraisal is arithmetic on the costs and benefits you declared; monetising a non-monetised effect is your valuation choice, not the system's. The discount rate is an input, not an estimated social or financial rate; changing it can reverse the sign of the net value. No tax, financing, risk adjustment or sensitivity distribution is included unless supplied as declared flows. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Costs: 50000, 10000, 10000
+Benefits: 20000, 30000, 40000
+Discount rate: 0.05
+What was computed
+Pv costs: 65327.72
+Pv benefits: 80812.01
+Net present value: 15484.29
+N periods: 3
+Discount rate: 0.05
+Benefit cost ratio: 1.237
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Costs and benefits are the owner's declared values on one basis.
+The declared rate is the appropriate social or financial discount rate.
+Limitations
+No monetisation of non-monetised effects, no risk adjustment and no distributional analysis.
+One rate for all periods; no mid-period timing.
+No tax or financing effects.
+How the figures were checked
+Second implementation agrees.
+Net value is present value of benefits minus costs.
+Zero discount rate gives undiscounted sums.
+Scaling the benefits scales the benefit side.
+A higher discount rate lowers the present value.

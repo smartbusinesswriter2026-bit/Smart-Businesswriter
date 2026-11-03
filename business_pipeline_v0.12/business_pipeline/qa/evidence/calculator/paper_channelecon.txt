@@ -1,0 +1,46 @@
+Computation: channel economics
+Result
+Across the declared channels, 110,000.00 bought 730 customers, a blended acquisition cost of 150.68. The first declared channel pays back its acquisition cost in 1.00 periods and returns 25.00 of lifetime value per unit of acquisition cost. Every channel is measured on its own declared spend, customers, margin and churn; the method does not allocate shared or brand spend. LTV is the declared margin divided by churn, a period value with no discounting; it is not a modelled lifetime. No cross-channel effect, saturation, incrementality or diminishing return is modelled; shifting budget may change these numbers.
+Inputs and results
+What you declared
+Channels: Name: search; Spend: 60000; New customers: 400; Contribution margin: 150; Churn rate: 0.04, Name: social; Spend: 35000; New customers: 180; Contribution margin: 95; Churn rate: 0.06, Name: referral; Spend: 15000; New customers: 150; Contribution margin: 150; Churn rate: 0.03
+What was computed
+Total spend: 110000.00
+Total customers: 730
+Blended cac: 150.68
+Spend 1: 60000
+Customers 1: 400
+Cac 1: 150.00
+Payback 1: 1.00
+Ltv 1: 3750.00
+Ltv cac 1: 25.00
+Spend share 1: 0.5455
+Spend 2: 35000
+Customers 2: 180
+Cac 2: 194.44
+Payback 2: 2.05
+Ltv 2: 1583.33
+Ltv cac 2: 8.14
+Spend share 2: 0.3182
+Spend 3: 15000
+Customers 3: 150
+Cac 3: 100.00
+Payback 3: 0.67
+Ltv 3: 5000.00
+Ltv cac 3: 50.00
+Spend share 3: 0.1364
+Honesty: what was not done
+this method: Every channel is measured on its own declared spend, customers, margin and churn; the method does not allocate shared or brand spend. LTV is the declared margin divided by churn, a period value with no discounting; it is not a modelled lifetime. No cross-channel effect, saturation, incrementality or diminishing return is modelled; shifting budget may change these numbers.
+Assumptions made
+Customers are attributed to the channel that won them, with no double counting.
+The contribution margin and churn are stable for the period.
+Limitations
+Arithmetic on declared channel rows; no model, allocation or significance test.
+No saturation, seasonality, cross-channel effect or incrementality.
+Lifetime value is a single-rate period value, not a survival model.
+How the figures were checked
+Second implementation agrees.
+Cac is spend over customers.
+Payback is cac over margin.
+Spend shares sum to one.
+Blended cac is total spend over total customers.

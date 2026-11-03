@@ -1,0 +1,74 @@
+Computation: sales projection
+Result
+Starting from 300.00 units at 120.00 and growing at 5.00% a period, the projection covers 12 periods, with total revenue of 573,016.55 and total profit of 166,383.97. Every period uses the declared price, unit variable cost and period fixed cost; only the volume grows, at the declared rate. Revenue is units times price. It is a projection from your assumptions, not a forecast the method fits or validates. No tax, financing, working-capital timing or seasonality is modelled; a month-by-month budget with different flows needs its own schedule.
+Inputs and results
+What you declared
+Start units: 300.00
+Price: 120.00
+Unit variable cost: 55.00
+Fixed cost per period: 12000.00
+Growth rate: 0.0500
+Periods: 12
+What was computed
+Start units: 300.00
+Price: 120.00
+Unit variable cost: 55.00
+Fixed cost per period: 12000.00
+Growth rate: 0.0500
+Periods: 12
+Units 1: 300.00
+Revenue 1: 36000.00
+Profit 1: 7500.00
+Units 2: 315.00
+Revenue 2: 37800.00
+Profit 2: 8475.00
+Units 3: 330.75
+Revenue 3: 39690.00
+Profit 3: 9498.75
+Units 4: 347.29
+Revenue 4: 41674.50
+Profit 4: 10573.69
+Units 5: 364.65
+Revenue 5: 43758.22
+Profit 5: 11702.37
+Units 6: 382.88
+Revenue 6: 45946.14
+Profit 6: 12887.49
+Units 7: 402.03
+Revenue 7: 48243.44
+Profit 7: 14131.86
+Units 8: 422.13
+Revenue 8: 50655.62
+Profit 8: 15438.46
+Units 9: 443.24
+Revenue 9: 53188.40
+Profit 9: 16810.38
+Units 10: 465.40
+Revenue 10: 55847.82
+Profit 10: 18250.90
+Units 11: 488.67
+Revenue 11: 58640.21
+Profit 11: 19763.45
+Units 12: 513.10
+Revenue 12: 61572.22
+Profit 12: 21351.62
+Total units: 4775.14
+Total revenue: 573016.55
+Total variable cost: 262632.59
+Total fixed cost: 144000.00
+Total profit: 166383.97
+Honesty: what was not done
+this method: Every period uses the declared price, unit variable cost and period fixed cost; only the volume grows, at the declared rate. Revenue is units times price. It is a projection from your assumptions, not a forecast the method fits or validates. No tax, financing, working-capital timing or seasonality is modelled; a month-by-month budget with different flows needs its own schedule.
+Assumptions made
+Price, unit variable cost and fixed cost are constant over the horizon.
+The declared growth applies to volume and nothing else.
+Limitations
+A projection from your assumptions, not a fitted forecast.
+No seasonality, step costs, capacity limit or multi-product mix.
+No tax, financing or cash timing.
+How the figures were checked
+Second implementation agrees.
+First period revenue is start units times price.
+Units grow at the declared rate.
+Profit is revenue minus variable and fixed cost.
+Total profit is the sum of period profits.

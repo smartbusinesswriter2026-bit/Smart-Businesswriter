@@ -1,0 +1,32 @@
+Computation: social welfare
+Result
+Across 4 incomes the mean is 25.00; utilitarian welfare is 100.00, Rawlsian welfare is 10.00 and Nash welfare is 22.13. The selected social-welfare value is 100.00. The welfare functions use declared incomes as the utility argument; they do not estimate individual utility. Utilitarian, Rawlsian and Nash welfare are different ethical criteria; the selected one is a choice, not a fact. No equivalence scales, household composition or non-income dimensions are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Incomes: 10, 20, 30, 40
+Welfare function: utilitarian
+What was computed
+N: 4
+Mean income: 25.00
+Min income: 10.00
+Max income: 40.00
+Utilitarian welfare: 100.00
+Rawlsian welfare: 10.00
+Nash welfare: 22.13
+Social welfare: 100.00
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Incomes are positive and comparable across the people listed.
+Income is a sufficient proxy for the welfare argument.
+The selected function is the intended ethical criterion.
+Limitations
+No equivalence scales, household composition or non-income dimensions.
+No interpersonal utility comparison beyond the declared incomes.
+The welfare function is a normative choice.
+How the figures were checked
+Welfare measures agree with their definitions.
+Utilitarian is the sum of incomes.
+Rawlsian is the minimum income.
+Nash is the geometric mean.
+A transfer from the richest to the poorest does not lower nash welfare.

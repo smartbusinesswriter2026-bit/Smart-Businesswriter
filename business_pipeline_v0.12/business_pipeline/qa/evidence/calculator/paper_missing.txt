@@ -1,0 +1,31 @@
+Computation: missing data bounds
+Result
+The observed values have a mean of 13.00, with 2 of the entries missing (0.3333 of the total). Under the extreme-case convention the complete-data mean lies between 12.00 and 14.00. The declared missing-data mechanism is recorded as a declaration, not as a verified fact. The bounds are the extreme cases: every missing value at the observed minimum, or every one at the observed maximum. They are honest bounds, not estimates, and they can be very wide. No imputation and no MAR/MCAR/MNAR model is used; the declared mechanism is recorded as the owner's declaration and is not verifiable from the data. Bounds cover the complete-data mean only; they say nothing about other statistics or about which mechanism actually holds.
+Inputs and results
+What you declared
+Values: 10, 12, , 14, 99, 16
+Missing codes: 99
+Mechanism: unknown
+What was computed
+N valid: 4
+N missing: 2
+Pct missing: 0.3333
+Mean observed: 13.00
+Bound low: 12.00
+Bound high: 14.00
+Bound width: 2.00
+Honesty: what was not done
+this method: The bounds are the extreme cases: every missing value at the observed minimum, or every one at the observed maximum. They are honest bounds, not estimates, and they can be very wide. No imputation and no MAR/MCAR/MNAR model is used; the declared mechanism is recorded as the owner's declaration and is not verifiable from the data. Bounds cover the complete-data mean only; they say nothing about other statistics or about which mechanism actually holds.
+Assumptions made
+The observed values are correct and the declared missing codes fully identify missing entries.
+Missing values lie somewhere between the observed minimum and maximum.
+Limitations
+Bounds cover the mean only; they are not estimates and imply no probabilistic mechanism.
+No imputation, no MAR/MCAR/MNAR model and no verification of the declared mechanism.
+With many missing values the bounds can be so wide as to be uninformative, which is the honest answer.
+How the figures were checked
+Bounds bracket the observed mean.
+Bounds are the extreme cases.
+Bounds widen with more missing values.
+Percentage is missing over total.
+No missing values means a zero width bound.

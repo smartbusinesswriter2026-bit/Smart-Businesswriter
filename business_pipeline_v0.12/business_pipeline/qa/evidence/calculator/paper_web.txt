@@ -1,0 +1,50 @@
+Computation: web analytics
+Result
+The declared channels brought 75,000 sessions and 2,850 conversions, a blended conversion rate of 3.80% and 18.27 of revenue per session. Organic search recorded 4.00% click-through from 600,000 impressions. Sessions, conversions and revenue are the numbers you declare; a session definition or attribution window that differs between channels makes the comparison unfair. Direct traffic and unattributed sessions are only visible if you declare them as a channel. No attribution, incrementality or bot filtering is applied; revenue is assigned to the channel that reported it.
+Inputs and results
+What you declared
+Channels: Name: organic search; Sessions: 42000; Conversions: 1350; Revenue: 680000, Name: paid search; Sessions: 24000; Conversions: 960; Revenue: 430000, Name: email; Sessions: 9000; Conversions: 540; Revenue: 260000
+Organic impressions: 600000
+Organic clicks: 24000
+What was computed
+Total sessions: 75000
+Total conversions: 2850
+Total revenue: 1370000.00
+Blended conversion rate: 0.0380
+Revenue per session: 18.27
+Sessions 1: 42000
+Conversions 1: 1350
+Revenue 1: 680000.00
+Session share 1: 0.5600
+Conversion rate 1: 0.0321
+Revenue per session 1: 16.19
+Sessions 2: 24000
+Conversions 2: 960
+Revenue 2: 430000.00
+Session share 2: 0.3200
+Conversion rate 2: 0.0400
+Revenue per session 2: 17.92
+Sessions 3: 9000
+Conversions 3: 540
+Revenue 3: 260000.00
+Session share 3: 0.1200
+Conversion rate 3: 0.0600
+Revenue per session 3: 28.89
+Organic impressions: 600000
+Organic clicks: 24000
+Organic ctr: 0.0400
+Honesty: what was not done
+this method: Sessions, conversions and revenue are the numbers you declare; a session definition or attribution window that differs between channels makes the comparison unfair. Direct traffic and unattributed sessions are only visible if you declare them as a channel. No attribution, incrementality or bot filtering is applied; revenue is assigned to the channel that reported it.
+Assumptions made
+Each session belongs to exactly one declared channel.
+Conversions and revenue cover the same period as the sessions.
+Limitations
+Declared-count arithmetic; no platform read, attribution window or bot filter.
+Channel definitions and consent rules may not be comparable.
+No cross-device identity resolution or incrementality.
+How the figures were checked
+Second implementation agrees.
+Session shares sum to one.
+Conversion rate is conversions over sessions.
+Blended conversion rate is total conversions over total sessions.
+Revenue per session is revenue over sessions.

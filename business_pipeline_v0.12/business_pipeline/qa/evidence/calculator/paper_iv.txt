@@ -1,0 +1,33 @@
+Computation: instrumental variables
+Result
+The just-identified IV slope is 1.4605; the first-stage slope is 0.9048 and the OLS slope is 1.4079. A just-identified IV estimator with one endogenous regressor and one excluded instrument; there is no over-identification test. The estimate is causal only if the instrument is relevant and satisfies the exclusion restriction, which the method cannot test. No controls, robust or clustered standard errors, weak-instrument diagnostics or panel structure are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Y: 3, 5, 7, 6, 8, 10, 11, 13
+X: 2, 4, 5, 4, 5, 7, 8, 9
+Z: 1, 2, 3, 4, 5, 6, 7, 8
+What was computed
+Iv slope: 1.4605
+Iv intercept: -0.1579
+First stage slope: 0.9048
+Ols slope: 1.4079
+N: 8
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The instrument is relevant and satisfies the exclusion restriction.
+The relationship is linear with a constant effect.
+Observations are independent.
+Limitations
+One instrument and one endogenous regressor only.
+No weak-instrument diagnostics or over-identification test.
+No controls, robust or clustered standard errors.
+How the figures were checked
+Second implementation agrees.
+Iv slope is the covariance ratio.
+First stage slope is the instrument on the regressor.
+Scaling the instrument leaves the iv slope unchanged.
+Adding a constant to y shifts the intercept not the slope.

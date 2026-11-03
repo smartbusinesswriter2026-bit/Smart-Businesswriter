@@ -1,0 +1,51 @@
+Computation: two way anova
+Result
+The balanced two-way ANOVA over 8 observations has an F of 4.000 for the first factor with a p-value of 0.1161, an F of 16.000 for the second factor with a p-value of 0.0161, and an interaction F of 0.000 with a p-value of 1.0000. The decomposition is reported in the appendix; no post-hoc comparison is implied by an omnibus test. Balanced two-way ANOVA only: unequal cell counts are refused because the sums of squares would depend on a type-of-SS convention the manual does not fix. A significant interaction means the simple effect of one factor depends on the level of the other; the omnibus tests alone do not say where the difference lies (use the post-hoc pairwise method for the groups you intended). Assumptions (normality, equal variances, independence) are not tested; the design and the cell sizes must be checked by the person who collected the data. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Data: Response: 1; Factor a: low; Factor b: x, Response: 3; Factor a: low; Factor b: x, Response: 5; Factor a: low; Factor b: y, Response: 7; Factor a: low; Factor b: y, Response: 3; Factor a: high; Factor b: x, Response: 5; Factor a: high; Factor b: x, Response: 7; Factor a: high; Factor b: y, Response: 9; Factor a: high; Factor b: y
+What was computed
+Ss a: 8.000
+Ss b: 32.000
+Ss ab: 0.000
+Ss error: 8.000
+Ss total: 48.000
+Ms a: 8.000
+Ms b: 32.000
+Ms ab: 0.000
+Ms error: 2.000
+F a: 4.000
+F b: 16.000
+F ab: 0.000
+Df a: 1
+Df b: 1
+Df ab: 1
+Df error: 4
+Partial eta2 a: 0.500
+Partial eta2 b: 0.800
+Partial eta2 ab: 0.000
+N: 8
+N cell: 2
+N excluded: 0
+Mean grand: 5.000
+P a: 0.1161
+P b: 0.0161
+P ab: 1.0000
+Honesty: what was not done
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent.
+The response is approximately normal within cells and the cell variances are similar (not tested).
+The design is balanced by construction.
+Limitations
+Balanced two-way only; no three-way, repeated measures or ANCOVA.
+Assumption checks (normality, homoscedasticity) are not run for factorial designs.
+An interaction means simple effects differ; the omnibus test does not localise them.
+How the figures were checked
+Second implementation agrees.
+Sums of squares decompose the total.
+F equals mean square over mean square error.
+Shifting every response leaves the effects unchanged.
+Scaling every response scales sums of squares keeps f.

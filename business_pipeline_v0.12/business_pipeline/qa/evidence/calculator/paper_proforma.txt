@@ -1,0 +1,108 @@
+Computation: proforma statements
+Result
+Across the declared periods, revenue totals 4,500,000.00 and net income totals 360,000.00, closing with cash of 337,671.23 and equity of 610,000.00. The statements are built from the declared revenue, margin, costs, depreciation, interest and principal (or the declared opening loan), tax rate and working-capital days; nothing is forecast. Working capital uses receivable, inventory and payable days on revenue and cost of sales; no tax payable, dividends or new borrowing beyond the opening loan is modelled. The balance sheet must balance at opening and in every period; an unbalanced opening balance is refused with the equity that would balance it. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Revenue: 1200000, 1500000, 1800000
+Gross margin rate: 0.4000
+Operating costs: 300000, 320000, 340000
+Depreciation: 90000, 90000, 90000
+Interest: 40000, 30000, 20000
+Principal repayment: 100000, 100000, 100000
+Capex: 0, 0, 0
+Tax rate: 0.2500
+Receivable days: 30.00
+Inventory days: 45.00
+Payable days: 30.00
+Opening cash: 200000.00
+Opening fixed assets: 450000.00
+Opening receivables: 0.00
+Opening inventory: 0.00
+Opening payables: 0.00
+Opening loan: 400000.00
+Opening equity: 250000.00
+What was computed
+Total revenue: 4500000.00
+Total net income: 360000.00
+Revenue 1: 1200000.00
+Gross profit 1: 480000.00
+Operating profit 1: 90000.00
+Interest 1: 40000.00
+Principal repayment 1: 100000.00
+Pre tax profit 1: 50000.00
+Tax 1: 12500.00
+Net income 1: 37500.00
+Cash from operations 1: -719.18
+Cash from investing 1: 0.00
+Cash from financing 1: -100000.00
+Net cash flow 1: -100719.18
+Closing cash 1: 99280.82
+Receivables 1: 98630.14
+Inventory 1: 88767.12
+Fixed assets 1: 360000.00
+Total assets 1: 646678.08
+Payables 1: 59178.08
+Loan 1: 300000.00
+Total liabilities 1: 359178.08
+Equity 1: 287500.00
+Revenue 2: 1500000.00
+Gross profit 2: 600000.00
+Operating profit 2: 190000.00
+Interest 2: 30000.00
+Principal repayment 2: 100000.00
+Pre tax profit 2: 160000.00
+Tax 2: 40000.00
+Net income 2: 120000.00
+Cash from operations 2: 177945.21
+Cash from investing 2: 0.00
+Cash from financing 2: -100000.00
+Net cash flow 2: 77945.21
+Closing cash 2: 177226.03
+Receivables 2: 123287.67
+Inventory 2: 110958.90
+Fixed assets 2: 270000.00
+Total assets 2: 681472.60
+Payables 2: 73972.60
+Loan 2: 200000.00
+Total liabilities 2: 273972.60
+Equity 2: 407500.00
+Revenue 3: 1800000.00
+Gross profit 3: 720000.00
+Operating profit 3: 290000.00
+Interest 3: 20000.00
+Principal repayment 3: 100000.00
+Pre tax profit 3: 270000.00
+Tax 3: 67500.00
+Net income 3: 202500.00
+Cash from operations 3: 260445.21
+Cash from investing 3: 0.00
+Cash from financing 3: -100000.00
+Net cash flow 3: 160445.21
+Closing cash 3: 337671.23
+Receivables 3: 147945.21
+Inventory 3: 133150.68
+Fixed assets 3: 180000.00
+Total assets 3: 798767.12
+Payables 3: 88767.12
+Loan 3: 100000.00
+Total liabilities 3: 188767.12
+Equity 3: 610000.00
+Closing cash final: 337671.23
+Closing equity final: 610000.00
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Revenue, margin, costs and depreciation are declared for each period; interest and principal follow declared lists or the declared opening loan terms.
+Working capital follows the declared days on revenue and cost of sales.
+Tax applies to positive pre-tax profit at the declared rate.
+Limitations
+No forecast, tax payable, dividends, new borrowing beyond the opening loan, deferred tax or disposals.
+One product and one currency; annual periods only.
+The balance check is an identity only when the declared inputs are internally consistent.
+How the figures were checked
+Second implementation agrees.
+Gross profit is revenue times the margin.
+Net income is operating profit less interest and tax.
+The balance sheet balances every period.
+Cash and equity roll forward.
+A declared loan is repaid in full.
