@@ -578,11 +578,14 @@ def unit_contradictions():
             unit = method.typing(metric)[0]
             if metric.endswith("_days") and unit != "days":
                 found[(method.name, metric)] = unit
+            elif metric.endswith("_periods") and unit not in ("periods", "count"):
+                found[(method.name, metric)] = unit
             elif metric.endswith("_rate") and unit not in ("rate", "count"):
                 found[(method.name, metric)] = unit
             elif metric.endswith("_pct") and unit not in ("ratio", "rate", "probability"):
                 found[(method.name, metric)] = unit
-            elif metric in COUNT_NAMES and unit not in ("count", "units"):
+            elif (metric in COUNT_NAMES and unit not in ("count", "units")
+                  and not (unit == "days" and "day" in metric)):
                 found[(method.name, metric)] = unit
     return found
 
@@ -601,23 +604,46 @@ class UnitAudit(unittest.TestCase):
                 self.assertIn(unit, UNITS, (method.name, metric))
                 self.assertLessEqual(precision, 6, (method.name, metric))
 
-    def test_E_scl_038__the_known_unit_contradictions_are_exactly_these(self):
-        """Measured pair, ledgered as D-SCL-01 (BLOCKER class: the B-190 family).
+    def test_E_scl_038__no_output_unit_contradicts_its_own_name(self):
+        """D-SCL-01, fixed on the owner's instruction (2026-11-03).
 
-        `days_per_year` is a count of trading days and is typed as **currency**, so
-        the paper can print it with a money prefix.  `average_in_queue` and
-        `average_in_system` are counts of customers and are typed as **ratio**.
-        Both live in `_inventory_typing` / `_queue_typing` in `src/bp/methods.py`,
-        which is the frozen core: fixing them needs the owner's word (§9).
-
-        The assertion is deliberately exact.  When the units are corrected this
-        test fails and the next reader re-measures instead of copying the claim.
+        Before the fix this set was exactly three entries: `days_per_year` typed
+        currency, and `average_in_queue` / `average_in_system` typed ratio — and the
+        delivered queue report read "a wait of **PHP 0.1250 periods**".  The fix is
+        in `_inventory_typing`, `_queue_typing` and `_unit_typing` in
+        `src/bp/methods.py`, plus `periods` added to the currency-exempt list in
+        `src/bp/orchestrator.py`.  This test fails on the old code and is the trap
+        that keeps the contradiction from returning.
         """
-        self.assertEqual(unit_contradictions(), {
-            ("inventory_policy", "days_per_year"): "currency",
-            ("queue_analysis", "average_in_queue"): "ratio",
-            ("queue_analysis", "average_in_system"): "ratio",
-        })
+        self.assertEqual(unit_contradictions(), {})
+
+    def test_E_scl_063__a_time_in_periods_never_carries_a_currency(self):
+        """Trap for the orchestrator half of D-SCL-01: the queue wait printed 'PHP'."""
+        queue = delivered(preset_request("queue"))
+        self.assertIn("0.1250 periods", queue.report)
+        self.assertNotIn("PHP 0.1250", queue.report)
+        self.assertNotIn("PHP 0.1667", queue.report)
+        # and the payback period, which is now typed periods as well
+        unit = delivered(preset_request("unitecon"))
+        self.assertIn("2.162 periods", unit.report)
+        self.assertNotIn("USD 2.162", unit.report)
+
+    def test_E_scl_064__a_queue_length_keeps_its_fraction(self):
+        """Trap for the typing half: Lq = 2.25 must not be rounded to 2 by a count unit."""
+        queue = LIBRARY["queue_analysis"]
+        self.assertEqual(queue.typing("average_in_queue"), ("units", 2))
+        self.assertEqual(queue.typing("average_in_system"), ("units", 2))
+        out, _ = run("queue_analysis", {"arrival_rate": "18", "service_rate": "24"})
+        self.assertAlmostEqual(float(out["average_in_queue"]), 2.25, places=9)
+        rendered = delivered(preset_request("queue")).report
+        self.assertIn("2.25 customers", rendered)
+
+    def test_E_scl_065__the_trading_days_parameter_is_not_money(self):
+        """Trap for the fall-through that typed a day count as currency."""
+        inventory = LIBRARY["inventory_policy"]
+        self.assertEqual(inventory.typing("days_per_year"), ("days", 0))
+        self.assertEqual(inventory.typing("lead_time_days"), ("days", 2))
+        self.assertEqual(inventory.typing("total_annual_cost"), ("currency", 2))
 
     def test_E_scl_039__the_units_that_are_right_stay_right(self):
         inventory = LIBRARY["inventory_policy"]

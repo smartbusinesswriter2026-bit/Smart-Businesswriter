@@ -3,7 +3,7 @@
 **Subject:** `supply-chain` · **branch:** `corpus/merge-v1` · **opening commit:** `f699579`,
 **rebased onto `2cd3347`** (the Operations session) before this commit.
 **Suite at close of baseline:** 3171 tests, 6 failures, 4 errors (946 s) — measured here, not copied.
-**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **62 tests, 62 passed.**
+**Acceptance suite:** `tests/test_subject_supply_chain_acceptance.py` — **65 tests, 65 passed**, four of them trap tests that fail on the pre-fix code (proved by stashing the source fix and re-running).
 
 This shelf is the first in the product to own **nothing of its own**. It has no framework
 profile with `subject == "supply-chain"`, no `SCL-` catalogue id, and no method that is not
@@ -182,7 +182,7 @@ row, and the work order puts both behind §9.
 
 ## 4. Acceptance rows (E-scl-001 … E-scl-062)
 
-One row per test in `tests/test_subject_supply_chain_acceptance.py`. **62 tests, one per row.**
+One row per test in `tests/test_subject_supply_chain_acceptance.py`. **65 tests, one per row.**
 
 ### 4.1 Inventory and page (E-scl-001 … 012)
 
@@ -242,8 +242,11 @@ Each row names the recomputation: a second formula written in the test, or hand 
 | id | behaviour | evidence | status |
 |---|---|---|---|
 | E-scl-037 | every declared unit is in the engine's vocabulary; precision ≤ 6 | `test_E_scl_037` | PASS |
-| E-scl-038 | the unit contradictions are **exactly** the three measured ones | `test_E_scl_038` | PASS — **pins D-SCL-01** |
+| E-scl-038 | **no** output unit contradicts its own name (was: exactly three did) | `test_E_scl_038` | PASS — **D-SCL-01 FIXED**, this is its trap |
 | E-scl-039 | the units that are right stay right (days, rate, units, currency, ratio, periods, probability, count) | `test_E_scl_039` | PASS |
+| E-scl-063 | a time in **periods** never carries a currency prefix — the queue wait printed "PHP 0.1250" | `test_E_scl_063` | PASS — **trap for D-SCL-01**, fails on the old code |
+| E-scl-064 | a queue length keeps its fraction: Lq = 2.25, not 2 | `test_E_scl_064` | PASS — **trap**, fails on the old code |
+| E-scl-065 | the trading-days parameter is not money | `test_E_scl_065` | PASS — **trap**, fails on the old code |
 
 ### 4.5 Boundaries and refusals (E-scl-040 … 050)
 
@@ -323,7 +326,7 @@ E-008 · `QNT-OPS-03` E-007, E-009, E-061 · `QNT-OPS-04` E-007, E-008 · `QNT-O
 | | `breakeven_revenue`, `fixed_costs`, `weighted_contribution` | currency | 2 | yes |
 | `unit_economics` | `unit_margin`, `ltv`, `price`, `variable_cost`, `acquisition_cost` | currency | 2 | yes |
 | | `margin_pct`, `ltv_cac` | ratio | 4 / 2 | yes |
-| | `payback_periods` | periods | 2 | yes |
+| | `payback_periods` | periods | 3 | yes — **was `ratio`, fixed (D-SCL-01)** |
 | | `churn_rate` | rate | 4 | yes |
 | `trend_forecast` | `slope`, `intercept`, `forecast_1..3`, `mae_holdout`, `residual_se`, `ci_lower_*`, `ci_upper_*` | `@unit` (from the request) | 3 | yes |
 | | `r_squared` | ratio | 3 | yes |
@@ -336,12 +339,12 @@ E-008 · `QNT-OPS-03` E-007, E-009, E-061 · `QNT-OPS-04` E-007, E-008 · `QNT-O
 | | `service_level` | rate | 4 | yes |
 | | `safety_factor` | ratio | 4 | yes |
 | | `orders_per_year` | units | 2 | **mild** — a count of orders typed "units" |
-| | **`days_per_year`** | **currency** | 2 | **NO — BLOCKER class (D-SCL-01)** |
+| | `days_per_year` | days | 0 | yes — **was `currency`, fixed (D-SCL-01)** |
 | `queue_analysis` | `utilisation`, `offered_load`, `probability_empty`, `probability_waiting` | ratio | 4 | yes |
 | | `average_wait_in_queue`, `average_time_in_system` | periods | 4 | yes |
 | | `arrival_rate`, `service_rate`, `servers` | count | 4 | mild — a rate typed as a count |
-| | **`average_in_queue`** | **ratio** | 4 | **NO — a customer count typed a ratio (D-SCL-01)** |
-| | **`average_in_system`** | **ratio** | 4 | **NO — a customer count typed a ratio (D-SCL-01)** |
+| | `average_in_queue` | units | 2 | yes — **was `ratio`, fixed (D-SCL-01)** |
+| | `average_in_system` | units | 2 | yes — **was `ratio`, fixed (D-SCL-01)** |
 | `capacity_analysis` | `capacity_1..3`, `max_output`, `capacity_gap`, `demand` | units | 2 | yes |
 | | `utilisation_1..3`, `bottleneck_utilisation` | ratio | 4 | yes |
 | | `bottleneck_index` | count | 0 | yes |
@@ -349,21 +352,41 @@ E-008 · `QNT-OPS-03` E-007, E-009, E-061 · `QNT-OPS-04` E-007, E-008 · `QNT-O
 | | `pct_missing` | probability | 4 | yes |
 | | `n_valid`, `n_missing` | count | 0 | yes |
 
-### 5.1 The contradiction that reaches a student's paper
+### 5.1 The contradiction that reached a student's paper — and the fix
 
-`queue_analysis.average_wait_in_queue` is typed **`periods`**, and `periods` is **not** in the
-currency-exempt list at `src/bp/orchestrator.py:235`. The delivered report therefore reads:
+Before the fix, `queue_analysis.average_wait_in_queue` was typed `periods` and `periods` was
+**not** in the currency-exempt list at `src/bp/orchestrator.py:235`, so the delivered report read:
 
 > "…with 2.2500 customers waiting on average and a wait of **PHP 0.1250 periods**."
 
-A waiting time in periods is printed with a money prefix. That is the B-190 family: a declared
-unit that contradicts the value and reaches the export. `days_per_year` (typed currency) is the
-same class and would print `PHP 365.00` wherever that figure is rendered through
-`Quantity.display()`.
+A waiting time in periods printed with a money prefix — the B-190 family, student-visible.
+`days_per_year` was typed `currency`, `average_in_queue` / `average_in_system` were typed
+`ratio`, and `payback_periods` was typed `ratio`.
 
-**All three live in `src/bp/methods.py` / `src/bp/orchestrator.py` — the core.** The work order
-puts a core change behind §9, so **nothing is changed here**. `test_E_scl_038` pins the exact
-measured set so the fix cannot land silently.
+**Fixed on the owner's instruction (option A, 2026-11-03).** Four edits, all in the core:
+
+| file | change |
+|---|---|
+| `src/bp/methods.py` `_queue_typing` | `average_in_queue`, `average_in_system` → `("units", 2)` |
+| `src/bp/methods.py` `_inventory_typing` | `days_per_year` → `("days", 0)` (it had fallen through to currency) |
+| `src/bp/methods.py` `_unit_typing` | `payback_periods` split out of `ltv_cac` → `("periods", 3)` |
+| `src/bp/orchestrator.py:235` | `"periods"` added to the currency-exempt units — this is the systemic half: **twelve** `typing` functions across the library return `periods`, and every one of them was acquiring a currency prefix wherever `Quantity.display()` rendered it |
+
+**Why `units` and not `count` for the two queue lengths.** The orchestrator renders a `count` at
+zero decimals (`if mu == "count": prec = 0`), which would turn Lq = 2.25 into **2** — replacing a
+wrong unit with a wrong number. `units` keeps the fraction, carries no currency, and the test
+rule accepts it for a count. That reasoning is in the source comment and in `test_E_scl_064`.
+
+**Measured after the fix:**
+
+- queue report: *"…with **2.25 customers** waiting on average and a wait of **0.1250 periods**."*
+- unit economics: *"payback takes **2.162 periods**"* — unchanged text, now honestly typed.
+- `days_per_year`: `("days", 0)`, no money prefix anywhere.
+
+**The traps prove they would have caught it.** Stashing the two source files and re-running
+`UnitAudit` fails **four** of its six tests (E-scl-038, 063, 064, 065); restoring them passes all
+six. `tests/test_frozen_contract.py` stays green and `scripts/econ_shelf.py --check` still says
+"frozen fixture: in sync" — the fixture pins the method set, not these typing tables.
 
 ---
 
@@ -465,7 +488,7 @@ Nothing is changed.
 
 | id | severity | class | what was measured | owner | status |
 |---|---|---|---|---|---|
-| **D-SCL-01** | **BLOCKER** | UNIT | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` and `average_in_system` → `("ratio", 4)`. The queue report prints **"a wait of PHP 0.1250 periods"**. `_inventory_typing` / `_queue_typing` in `src/bp/methods.py` fall through to a default; `periods` is also missing from the currency-exempt list at `src/bp/orchestrator.py:235` | core — **owner-gated (§9)** | **LEDGERED, not fixed.** Pinned by `test_E_scl_038` |
+| **D-SCL-01** | **BLOCKER** | UNIT | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` / `average_in_system` → `("ratio", 4)`; `unit_economics.payback_periods` → `("ratio", 3)`; and `periods` missing from the currency-exempt list, so the delivered queue report printed **"a wait of PHP 0.1250 periods"** | **FIXED on the owner's instruction, option A** — three `typing` functions in `src/bp/methods.py` and the exempt list in `src/bp/orchestrator.py` (§5.1) | traps `test_E_scl_038`, `063`, `064`, `065` — all four fail on the pre-fix code | **FIXED** |
 | **D-SCL-02** | MINOR | DECLARATION | `OPS-03` carries `draftable: False` while its catalogue row still reads "worksheet available: structure and evidence audit only"; nothing on the page says why the button is absent | presentation — this shelf's, but the row is shared with Operations | **LEDGERED, not fixed.** Pinned by `test_E_scl_006` |
 | **D-SCL-03** | MINOR | TEST FIXTURE | four `test_operations_frameworks.ExampleTest` errors: `KeyError: 'template_sipoc'` from `templates.EXAMPLES` | **Operations session 8 (`2cd3347`)** — eleven worked examples added to `src/bp/templates.py` | **FIXED by the other lane mid-session** |
 | **D-SCL-04** | MINOR | PRESENTATION | one sourced item rendered two identical in-text citations at H2 Inputs | **Operations session 8 (`2cd3347`)** — `completion._sections` repaired | **FIXED by the other lane mid-session** |
@@ -486,14 +509,16 @@ owner-gated; the rest are MINOR or declared gaps.
 
 | gate | result |
 |---|---|
-| `tests/test_subject_supply_chain_acceptance.py` | **62 tests, 62 passed, 0 skipped** |
-| shelf acceptance + `test_frozen_contract` | **green** (62 + frozen-contract tests passed) |
+| `tests/test_subject_supply_chain_acceptance.py` | **65 tests, 65 passed, 0 skipped** |
+| the four traps, on the pre-fix code | **4 of 6 `UnitAudit` tests fail** (stash the two source files, re-run, restore) — so the traps are real |
+| shelf acceptance + `test_frozen_contract` | **green** |
+| core change: `test_frozen_contract` + `test_method_contracts` + `test_accounting_operations` + `test_operations_frameworks` | **74 tests, all passed** — the pinned fixture is untouched and the shared worksheet tests still run |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** (`qa/baseline/scl-before-suite-err.txt`) |
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** (944 s, `qa/baseline/scl-after-suite-err.txt`) — **0 new**, 56 added |
-| Rebased onto `2cd3347` | the suite then held **3293 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3293 |
-| **Full suite, measured on `2cd3347` + an earlier version of this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors**. **Disclosed:** that run collected only **56** of this module's tests. Six (E-scl-007 … 012) had been appended after the `if __name__ == "__main__":` guard and never ran; an audit of defined-vs-collected ids found them, they were moved into the `Inventory` class, and the module now reports **62 tests, 62 passed**. The six are page/record/glossary assertions with no numeric content, so the failure count is unaffected — but the "0 new" claim was measured with them absent and is stated here as such |
-| The tree then moved twice more (`d64cd0c`, `2d454ae`) | the suite count is now **3293** (re-measured with `_suite_count()`: 3231 upstream + 62 here); the same four failures remain, and the Operations lane's last commits add **one** more — D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row), verified by running `tests.test_docs_sync` on this tree (7 tests, 6 passed). **Five problems, one of them theirs, none on this shelf** |
-| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
+| Rebased onto `2cd3347` | the suite then held **3296 tests** (measured with `test_docs_sync._suite_count()`); the shelf suite was re-run green on that tree and the documents were set to 3296 |
+| **Full suite, measured on `2cd3347` + an earlier version of this commit** | **3287 tests, 4 failures, 0 errors** (1108 s, `qa/baseline/scl-final-suite-err.txt`) — **0 new, 0 errors**. **Disclosed:** that run collected only **56** of this module's tests. Six (E-scl-007 … 012) had been appended after the `if __name__ == "__main__":` guard and never ran; an audit of defined-vs-collected ids found them, they were moved into the `Inventory` class, and the module now reports **65 tests, 65 passed**. The six are page/record/glossary assertions with no numeric content, so the failure count is unaffected — but the "0 new" claim was measured with them absent and is stated here as such |
+| The tree then moved twice more (`d64cd0c`, `2d454ae`) | the suite count is now **3296** (re-measured with `_suite_count()`: 3231 upstream + 65 here); the same four failures remain, and the Operations lane's last commits add **one** more — D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row), verified by running `tests.test_docs_sync` on this tree (7 tests, 6 passed). **Five problems, one of them theirs, none on this shelf** |
 | `python -m unittest tests.test_docs_sync` | **7 tests, 6 passed, 1 failure** — the count assertion passes; `test_every_mentioned_decision_id_has_a_row_in_the_decision_log` fails because `docs/HANDOFF.md` cites **B-180a** and **B-180b**, which have no row in `docs/DECISIONS.md`. That text is on the **remote tip before this commit** (measured: present at `2d454ae`, absent from its `DECISIONS.md`), so it is the Operations lane's; ledgered as D-SCL-06 rather than silently deleted |
 | `tests/test_frozen_contract.py` | **passed** — no core change was made |
 | `tests/test_operations_frameworks.py` | **green after `2cd3347`** — the four errors this session measured in its baseline are D-SCL-03 and the Operations lane fixed them |
@@ -552,11 +577,10 @@ profile cue, and the known rail test — are unchanged and none is on this shelf
 
 ## 12. Residual risk — the three things most likely to bite next
 
-1. **D-SCL-01 is still live.** A logistics student can export a paper containing
-   "a wait of PHP 0.1250 periods" today. It is one fall-through branch in `_queue_typing` and one
-   missing word in the orchestrator's exempt list, but it is core and it is owner-gated. Until it
-   is fixed, `test_E_scl_038` will keep asserting the wrong units *on purpose* — a future reader
-   must not mistake that for approval.
+1. **D-SCL-01 is fixed, and the fix is systemic.** Adding `periods` to the exempt list changed the
+   rendering of **twelve** `typing` functions across the library, not just this shelf's two. The
+   shelf tests, the frozen contract and the shelf audit are green, but a full suite run after this
+   commit is the only proof that no other shelf's paper changed in a way its own tests notice.
 2. **G-scl-01 is a promise the page cannot keep.** Three records say "Computed" on a page with no
    tile for their method. A student who clicks expecting a calculator finds nothing.
 3. **The shared-shelf test that could not run is now repaired — by the other lane.** The four

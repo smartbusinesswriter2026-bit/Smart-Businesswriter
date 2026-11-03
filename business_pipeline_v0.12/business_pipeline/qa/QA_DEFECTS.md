@@ -45,7 +45,7 @@ refusal sweep, and the produced `.docx`. Evidence: `qa/evidence/supply-chain/`.
 
 | id | shelf | subject | severity | class | what was measured | what it must do | owner | trap test | status |
 |---|---|---|---|---|---|---|---|---|---|
-| D-SCL-01 | supply-chain | `queue_analysis`, `inventory_policy`; E-scl-038 | **BLOCKER** | UNITS | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` and `average_in_system` → `("ratio", 4)`. The delivered report prints **"a wait of PHP 0.1250 periods"** because `periods` is absent from the currency-exempt list at `src/bp/orchestrator.py:235`, and `_queue_typing` / `_inventory_typing` fall through to a default | a count of days is `count`/`days`, a count of customers is `count`, and a time in periods carries no currency prefix | **core — owner-gated (work order §9)** | `test_E_scl_038` (pins the wrong units deliberately; invert it when fixed) | **BLOCKED** |
+| D-SCL-01 | supply-chain | `queue_analysis`, `inventory_policy`, `unit_economics`; E-scl-038, 063, 064, 065 | **BLOCKER** | UNITS | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` / `average_in_system` → `("ratio", 4)`; `unit_economics.payback_periods` → `("ratio", 3)`; `periods` absent from the currency-exempt list at `src/bp/orchestrator.py:235`, so the delivered queue report printed **"a wait of PHP 0.1250 periods"** | a count of days is `days`, a count of customers is a count that keeps its fraction, a payback is `periods`, and a time in periods carries no currency prefix | **this session, on the owner's instruction (option A)** — `src/bp/methods.py` ×3, `src/bp/orchestrator.py` ×1 | `test_E_scl_038`, `063`, `064`, `065` — all four fail on the pre-fix code (proved by stashing the source) | **FIXED** |
 | D-SCL-02 | supply-chain | `OPS-03`; E-scl-006 | MINOR | CATALOGUE | the tile is `draftable: False` while its catalogue row reads "worksheet available: structure and evidence audit only"; nothing on the page says why the button is missing | the row says the drafting button is off, and why | this shelf (presentation), row shared with Operations | `test_E_scl_006` | **LEDGERED** |
 | D-SCL-03 | supply-chain (shared) | `test_operations_frameworks`; §1.1 rows 1–4 | MINOR | WIRING | four errors: `KeyError: 'template_sipoc'` from `templates.EXAMPLES` — the `OPS-` example fixtures did not exist, so four worksheet behaviours were unverified on both shelves | restore the fixtures or retire the four tests with a reason; never leave a test that cannot run | **Operations session 8** (`2cd3347`, `src/bp/templates.py`) | `test_E_ops_007`, `test_E_ops_043` | **FIXED by the Operations lane mid-session** |
 | D-SCL-04 | supply-chain (shared) | paper drafting; §7 V-13 | MINOR | UI | a block with exactly one sourced item rendered its in-text citation twice: "(Lovelace, 2024) (Lovelace, 2024)" at H2 Inputs | one citation per sourced item | **Operations session 8** (`2cd3347`, `src/bp/product/completion.py`) | `test_E_ops_016`, `test_E_ops_045` | **FIXED by the Operations lane mid-session** |
@@ -56,9 +56,11 @@ refusal sweep, and the produced `.docx`. Evidence: `qa/evidence/supply-chain/`.
 | G-scl-04 | supply-chain | all 11 profiles; §2.2 | GAP | CATALOGUE | every profile served here declares `subject: "operations"`; **0** declare `subject: "supply-chain"`, so a subject-keyed report files these papers under Operations | the harness files shared papers under both shelves (§7.1 of the harness doc) | crosswalk — the harness's own file | `test_E_scl_051`, `test_E_scl_053` | **GAP** |
 | G-scl-05 | supply-chain | V-12; §7.1 | GAP | HONESTY | the rule text says "a sourced item", `completion.missing()` accepts any item including the student's own words, so a literal V-12 pass and a product pass disagree on four dimensions | the owner's reading of "sourced" | **owner** | — | **DISPUTED** |
 
-**Fixed this session (2):** the documented test count (3184 → 3227 in `HOME.md`, `HANDOFF.md`,
-`CONTRIBUTORS.md`; `test_docs_sync` now passes) and the `CURRICULUM_MAP.md` supply-chain row
-(it now names all eleven worksheets and the unbuilt LP/network method; `test_E_scl_062`).
+**Fixed this session (3):** **D-SCL-01**, the BLOCKER unit defect, on the owner's instruction
+(option A) — three `typing` functions and the orchestrator's currency-exempt list, with four traps
+that fail on the pre-fix code; the documented test count (now 3296 in `HOME.md`, `HANDOFF.md`,
+`CONTRIBUTORS.md`); and the `CURRICULUM_MAP.md` supply-chain row (all eleven worksheets, and the
+unbuilt LP/network method named; `test_E_scl_062`).
 
 ---
 

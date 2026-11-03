@@ -5,7 +5,7 @@
 ## Session 9 — `supply-chain` (2026-11-03) · branch `corpus/merge-v1`, opening commit `f699579`, rebased onto `2cd3347`
 
 **Subject chosen by the work order.** Manual: `qa/manual/supply-chain.md` (62 E-rows, 12 sections).
-Suite: `tests/test_subject_supply_chain_acceptance.py` (**62 tests, 62 passed**). Evidence:
+Suite: `tests/test_subject_supply_chain_acceptance.py` (**65 tests, 65 passed**). Evidence:
 `qa/evidence/supply-chain/` (the produced `.docx`, its stripped XML, the unit audit, the parity
 transcript, the worksheet-completion transcript).
 
@@ -29,7 +29,7 @@ rather than as its own work.
 `templates.EXAMPLES`, D-SCL-03, since repaired by the Operations lane), one was the documented
 `test_docs_sync` count drift (fixed here), one is the known rail test, two are foreign-lane
 (paper store, balanced scorecard), two are network-dependent. On the final tree the same suite
-runs **3293 tests with 4 failures and 0 errors**.
+runs **3296 tests with 4 failures and 0 errors**.
 
 **Inventory confirmed exactly as the work order stated:** 8 tools · 11 worksheets (one not
 draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 profiles with
@@ -40,27 +40,35 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 | Artefact | Content |
 |---|---|
 | `qa/manual/supply-chain.md` | The **28-item inventory** with a per-item verdict, a **ranked owner-gated proposal** (7 frameworks, nothing built), 62 E-rows reconciled 1:1, the **unit audit** of every output, the parity table, the V-01…V-20 reading of one paper, the defect ledger, residual risk |
-| `tests/test_subject_supply_chain_acceptance.py` | 62 tests — independent recomputation for all eight methods, the parity test against Operations, the boundary and refusal sweep, the unit audit |
+| `tests/test_subject_supply_chain_acceptance.py` | 65 tests — independent recomputation for all eight methods, the parity test against Operations, the boundary and refusal sweep, the unit audit with four traps |
 | `qa/evidence/supply-chain/` | `sipoc-paper.docx` (23,074 bytes), `sipoc-paper.txt`, `unit-audit.txt`, `parity.txt`, `worksheet-completion.txt` |
 | `qa/baseline/scl-*` | Baseline and after measurements |
 
-### Fixed (2)
+### Fixed (3)
 
+- **D-SCL-01 (BLOCKER, UNITS) — the core fix, on the owner's instruction (option A).**
+  `queue_analysis.average_in_queue` / `average_in_system` were typed `ratio`,
+  `inventory_policy.days_per_year` was typed `currency`, `unit_economics.payback_periods` was
+  typed `ratio`, and `periods` was absent from the currency-exempt list — so the delivered queue
+  report read **"a wait of PHP 0.1250 periods"**. Fixed in three `typing` functions in
+  `src/bp/methods.py` and one tuple in `src/bp/orchestrator.py`. Four trap tests (`test_E_scl_038`,
+  `063`, `064`, `065`) fail on the pre-fix code, proved by stashing the source and re-running.
+  `test_frozen_contract`, `test_method_contracts`, `test_accounting_operations` and
+  `test_operations_frameworks`: **74 tests, all passed**; `econ_shelf --check`: **in sync**.
 - **Documented test count.** `docs/HOME.md`, `docs/HANDOFF.md` and `docs/CONTRIBUTORS.md` said
   3184 tests; the suite held 3171, and `test_docs_sync` failed on it. After the rebase onto
-  `2cd3347` the measured count is **3293**; all three documents now say 3293 and `test_docs_sync`
-  is green (7 passed).
+  `2d454ae` the measured count is **3296**; all three documents now say 3296 and `test_docs_sync`'s
+  count assertion passes.
 - **`docs/CURRICULUM_MAP.md` supply-chain row** said the shelf carried "the SIPOC and value stream
   worksheets" when it carries all eleven, and did not name the unbuilt LP/network method. Both
   corrected; pinned by `test_E_scl_062`.
 
 ### Ledgered / declared (5 defects + 5 gaps)
 
-- **D-SCL-01 (BLOCKER class, UNIT).** `inventory_policy.days_per_year` is typed `currency`;
-  `queue_analysis.average_in_queue` / `average_in_system` are typed `ratio`. The delivered queue
-  report prints **"a wait of PHP 0.1250 periods"** — the B-190 family, student-visible. Core
-  (`src/bp/methods.py`, `src/bp/orchestrator.py`), so **owner-gated and not fixed**; pinned by
-  `test_E_scl_038`, which asserts the wrong units deliberately and must be inverted when fixed.
+- **D-SCL-01 (BLOCKER class, UNIT) — FIXED on the owner's instruction (option A).** `days_per_year`
+  typed currency, the two queue lengths typed ratio, `payback_periods` typed ratio, and `periods`
+  absent from the currency-exempt list — the delivered queue report read "a wait of PHP 0.1250
+  periods". Three `typing` functions and one tuple; four traps that fail on the old code.
 - **D-SCL-02 (MINOR, declaration).** `OPS-03` has no drafting button while its catalogue row still
   reads "worksheet available"; nothing says why. Pinned by `test_E_scl_006`.
 - **D-SCL-03 (MINOR, test fixture) — FIXED by the Operations session `2cd3347`.** Four
@@ -93,13 +101,13 @@ draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 
 
 | Gate | Result |
 |---|---|
-| Shelf acceptance suite | **62 passed, 0 skipped** |
+| Shelf acceptance suite | **65 passed, 0 skipped** |
 | `test_docs_sync` | **7 tests, 6 passed** — the count assertion passes; the decision-log crosswalk fails on `B-180a`/`B-180b` in `HANDOFF.md`, which the Operations lane added and which has no `DECISIONS.md` row (D-SCL-06, theirs) |
 | `test_frozen_contract` | **passed** (no core change) |
 | Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** |
 | Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** — 0 new, 2 fewer (the docs-count fix and the flaky Brave→Firecrawl network test) |
-| Rebased onto `2cd3347` | **3293 tests** measured (3231 upstream + 62 here); shelf suite green; documents set to 3293 |
-| Full suite, measured on `2cd3347` + an earlier version of this commit | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors. **Disclosed:** that run collected only 56 of this module's 62 tests; six (E-scl-007 … 012) had been appended after the `if __name__` guard and never ran. Found by auditing defined-vs-collected ids, moved into their class, now 62/62. The six are page/record/glossary assertions with no numeric content, so the failure count stands — but the claim was measured with them absent |
+| Rebased onto `2cd3347` | **3296 tests** measured (3231 upstream + 62 here); shelf suite green; documents set to 3296 |
+| Full suite, measured on `2cd3347` + an earlier version of this commit | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors. **Disclosed:** that run collected only 56 of this module's tests; six (E-scl-007 … 012) had been appended after the `if __name__` guard and never ran. Found by auditing defined-vs-collected ids, moved into their class, and three traps were added on top. The six are page/record/glossary assertions with no numeric content, so the failure count stands — but the claim was measured with them absent |
 | Current tree (`2d454ae` + this commit) | 4 upstream failures + D-SCL-06 (`B-180a`/`B-180b` in `HANDOFF.md` with no `DECISIONS.md` row, the Operations lane's) = 5, none on this shelf |
 | `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | Live click-through on 8001 | **NOT RUN** — see the manual §10; the session's largest gap |
@@ -195,7 +203,6 @@ SIPOC parts), G-ops-04 (no theories, by design), G-ops-05 (the four shared capab
 | `test_operations_frameworks` | **50 passed** (was 49 with 4 errors) |
 | Framework-completion slice | **584 passed, 0 failed** (`qa/baseline/ops-completion-slice-out.txt`) |
 | `qa/probe_mgt_debug.py` on this shelf | **0 problems** (`qa/baseline/ops-probe-after-harness-fix.txt`) |
-| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
 | `qa/check_page_syntax.py` | **page syntax: OK** |
 | `test_docs_sync` | **7 passed** (build 1.74; 3236 tests set from the loader) |
 | Full suite | below |
@@ -312,7 +319,6 @@ as given and disclosed, not rescaled).
 | Shelf + 19 shared contract modules | 234 passed, 3 failed — all three are baseline failures on other shelves (`qa/baseline/pm-shelf-tests.txt`) |
 | Full suite before | **3084 tests, 40 failures, 6 errors** (`qa/baseline/pm-before-suite-err.txt`) |
 | Full suite after | **3151 tests, 14 failures, 6 errors** (`qa/baseline/pm-after2-suite-err.txt`) — 33 repaired by the marketing lane's `2209822`, **0 from this shelf**, 1 NEW elsewhere (below) |
-| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** (`qa/baseline/pm-econ-shelf.txt`) |
 | `qa/check_page_syntax.py` | **page syntax: OK** (`qa/baseline/pm-page-syntax.txt`) |
 | Live click-through on 8001 | **18 of 18 delivered**, 4 markers, **4 screenshots** |
 

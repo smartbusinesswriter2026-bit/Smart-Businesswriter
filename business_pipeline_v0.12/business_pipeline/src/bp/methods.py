@@ -2514,7 +2514,8 @@ def unit_econ_profile(inp):
 def _unit_typing(metric):
     if metric in ("price", "variable_cost", "acquisition_cost", "unit_margin", "ltv"): return ("currency", 2)
     if metric in ("margin_pct", "churn_rate"): return ("rate", 4)
-    if metric in ("payback_periods", "ltv_cac"): return ("ratio", 3)
+    if metric == "payback_periods": return ("periods", 3)
+    if metric == "ltv_cac": return ("ratio", 3)
     return ("@unit", 2)
 
 def unit_econ_caveats(out, th):
@@ -11267,6 +11268,9 @@ def _inventory_typing(metric):
         return ("ratio", 4)
     if metric == "lead_time_days":
         return ("days", 2)
+    if metric == "days_per_year":
+        # a count of trading days, never money: it used to fall through to currency
+        return ("days", 0)
     return ("currency", 2)
 
 def inventory_policy_caveats(out, th):
@@ -11377,6 +11381,11 @@ def _queue_typing(metric):
         return ("count", 4)
     if metric in ("average_wait_in_queue", "average_time_in_system"):
         return ("periods", 4)
+    if metric in ("average_in_queue", "average_in_system"):
+        # a count of customers, never a share.  "units" and not "count" because the
+        # orchestrator renders a count at zero decimals, which would turn Lq = 2.25
+        # into 2; the queue length is an average and must keep its fraction.
+        return ("units", 2)
     return ("ratio", 4)
 
 def queue_analysis_caveats(out, th):
