@@ -1675,7 +1675,7 @@ def chi2_typing(metric):
     if metric == "alpha": return "rate", 2
     if metric in ("chi_squared", "cramers_v"): return "ratio", 3
     if metric.startswith("n_") or metric.startswith("df") or metric == "min_expected_count": return "count", 0
-    return "@unit", 3
+    return "ratio", 3  # B-216: unknown metrics default to ratio, not @unit (which would inherit request currency)
 
 def _eta_size(x, th):
     a = abs(x); g = lambda k, d: D(str(th.get(k, d)))
@@ -1865,7 +1865,7 @@ def forecast_typing(metric):
     if metric in ("confidence_level", "coverage_holdout"): return "rate", 2
     if metric == "r_squared": return "ratio", 3
     if metric.startswith("n_") or metric == "horizon": return "count", 0
-    return "@unit", 3
+    return "ratio", 3  # B-216: unknown metrics default to ratio, not @unit (which would inherit request currency)
 
 def forecast_caveats(out, th):
     c = []
@@ -2576,7 +2576,7 @@ def _unit_typing(metric):
     if metric in ("margin_pct", "churn_rate"): return ("rate", 4)
     if metric == "payback_periods": return ("periods", 3)
     if metric == "ltv_cac": return ("ratio", 3)
-    return ("@unit", 2)
+    return ("ratio", 3)  # B-216: unknown metrics default to ratio, not @unit (which would inherit request currency)
 
 def unit_econ_caveats(out, th):
     return ["The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; none of them is estimated by a model.",
