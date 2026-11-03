@@ -43,6 +43,14 @@ four-card layout and on any hard-coded tier name. The whole suite green at **342
 (`starter`, `pro`, `studio`), then the band — `$99.99` / "Both products" / Write Smarter's five
 features beside Smart Business Writer's two — at 1280 px and at 420 px, monthly and annual.
 
+**The claim is on disk, not in a sentence.** `qa/measure_pricing_band.py` starts a workbench on its
+own port, drives the machine's Chrome headless over a DevTools port with a minimal
+standard-library WebSocket client (no dependency added), opens the pricing dialog, and reads back
+**the rendered DOM**: how many cards are in the grid, which tiers they are, whether the band is
+present, what it says, and that it comes **after** the grid. It writes three PNGs and
+`qa/evidence/pricing/pricing-band.json` — six checks, all passing — so a later edit to the markup
+cannot hide the band without failing the measurement.
+
 ## 2026-11-03 — [product] The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
 
 **Ask.** The owner's decision of 2026-11-03, recorded in full in

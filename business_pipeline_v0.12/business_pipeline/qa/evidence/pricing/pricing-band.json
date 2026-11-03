@@ -1,0 +1,32 @@
+{
+  "checks": [
+    {
+      "check": "the grid holds the three single-product tiers",
+      "ok": true
+    },
+    {
+      "check": "the bundle band is present",
+      "ok": true
+    },
+    {
+      "check": "the band comes after the grid",
+      "ok": true
+    },
+    {
+      "check": "the band names both products",
+      "ok": true
+    },
+    {
+      "check": "the band names Write Smarter's features",
+      "ok": true
+    },
+    {
+      "check": "the band's button buys the bundle tier",
+      "ok": true
+    }
+  ],
+  "chrome": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "failures": 0,
+  "shots": [],
+  "url": "http://127.0.0.1:8077"
+}
