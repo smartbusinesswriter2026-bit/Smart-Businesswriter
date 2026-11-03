@@ -521,5 +521,55 @@ class GoldenSuite(unittest.TestCase):
         self.assertEqual(out["total_equity"], D("97575.00"))
         self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
 
+    def test_reducing_balance_depreciation_in_a_full_engagement(self):
+        p = plan()
+        p["adjustments"][0] = {"id": "dep", "function": "reducing_balance_depreciation",
+                               "debit": "6400", "credit": "1510",
+                               "params": {"cost": 60000, "residual": 0, "life_years": 5, "convention": "full_year"}}
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_units_of_production_in_a_full_engagement(self):
+        p = plan()
+        p["adjustments"][0] = {"id": "dep", "function": "units_of_production_depreciation",
+                               "debit": "6400", "credit": "1510",
+                               "params": {"cost": 60000, "residual": 0, "units_this_period": 2000, "total_estimated_units": 10000}}
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_bad_debt_in_a_full_engagement(self):
+        p = plan()
+        p["chart"].insert(2, sp.account("1110", "Allowance for doubtful debts", "asset", "Trade receivables", "current", contra=True))
+        p["adjustments"].append({"id": "bd", "function": "bad_debt_expense", "debit": "6100", "credit": "1110",
+                                 "params": {"receivables": 15000, "rate": "0.05", "prior_allowance": 0}})
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+    def test_a_prior_period_carries_forward(self):
+        p = plan()
+        p["prior_closing"] = {"1000": "5000", "1500": "1200", "3000": "6200"}
+        p["opening"] = [{"lines": [{"account": "1000", "debit": "5000"}, {"account": "1500", "debit": "1200"}, {"account": "3000", "credit": "6200"}]}]
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+        checks = {n: ok for n, ok, _ in out["_checks"]}
+        self.assertTrue(checks.get("opening_balances_equal_prior_closing", True))
+
+    def test_no_adjustments_still_builds_and_ties(self):
+        p = plan()
+        p["adjustments"] = []
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+        self.assertEqual(out["pretax_income"], out["net_income"])
+
+    def test_a_half_year_convention(self):
+        p = plan()
+        p["policy"]["depreciation"]["convention"] = "half_year"
+        p["adjustments"][0]["params"]["convention"] = "half_year"
+        out = self._build(p)
+        self.assertTrue(all(ok for _, ok, _ in out["articulation"]))
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
