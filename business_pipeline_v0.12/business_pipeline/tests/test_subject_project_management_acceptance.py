@@ -740,16 +740,23 @@ def results_of(template, inputs):
 class GateTest(unittest.TestCase):
     """E-pm-057 ... E-pm-062 : the page, the paper and the registry."""
 
-    def test_E_pm_057__two_registry_kinds_are_still_declared_in_two_forms(self):
-        """The K1 audit, ledgered as D-PM-03: marketing owns the fix, not this shelf.
+    def test_E_pm_057__no_template_is_declared_as_two_kinds_of_form(self):
+        """The K1 audit, ledgered as D-PM-03 - closed on 2026-11-03 by the marketing lane.
 
-        Half of it was closed on 2026-11-03: the customer journey map is a grid and is
-        now declared only as one (D-MKT-04).  The SERVQUAL grid is still in both maps, and
-        its tile is hidden from the marketing page until that is repaired (B-198), so the
-        remaining declaration is recorded here rather than silently tolerated.
+        A template declared in both `CANVAS_BLOCKS` and `MATRIX_META` is handed two
+        different form shapes, so the page can collect a shape the template's own
+        validator refuses.  The customer journey map was repaired first (D-MKT-04) and the
+        SERVQUAL grid last (`c0399e9`, "the SERVQUAL grid declares one form, and the page
+        is handed a grid"), so the intersection is empty now.
+
+        The row changed from "the remaining defect is this one template" to "no template
+        may be declared twice", which is the invariant the ledger entry existed to reach:
+        the expectation moved because the defect closed, and the assertion is now the
+        timeless one rather than a record of a known fault.  The id is kept so the
+        manual's row still points at one test.
         """
         both = sorted(set(T.CANVAS_BLOCKS) & set(T.MATRIX_META))
-        self.assertEqual(both, ["template_servqual"])
+        self.assertEqual(both, [], "a template must declare one form, not two")
         for template in WORKSHEETS.values():
             self.assertNotIn(template, both)
 

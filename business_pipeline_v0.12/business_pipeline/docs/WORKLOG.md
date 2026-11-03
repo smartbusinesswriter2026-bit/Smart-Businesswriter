@@ -1,3 +1,100 @@
+## 2026-11-03 — [product] The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
+
+**Ask.** The owner's decision of 2026-11-03, recorded in full in
+[`BUNDLE_PRICING_HANDOFF.md`](BUNDLE_PRICING_HANDOFF.md): a **$99.99/month bundle that gives
+unlimited use of both products** — Write Smarter *and* Smart Business Writer — sold as **one
+order**, charged **once**, with **one login** that works on both products. Smart Business Writer's
+existing $99.99 tier becomes the bundle; the lower tiers keep their prices; the purchase happens
+in Smart Business Writer. The owner asked for **the payment first**: settled and proved against
+live PayPal before the limits, the allowance numbers and the credit refill are built.
+
+**What was already in the tree when this session started.** The design lane had already written the
+bundle tier into `billing.py`, the plan-change path into `paypal.py`, the ledger fix, the unlimited
+wallet and the pricing dialog's fourth card — but none of it was committed, none of it was
+documented, and the **seam between the two products did not exist**: nothing read PayPal's vault
+id, and nothing called the other product. Without that seam the bundle would have been two
+subscriptions and two charges. That seam is what this session built.
+
+**Did.**
+
+- **The bundle tier** (`src/bp/product/billing.py`). The `agency` key is kept — a PayPal plan id is
+  immutable, so renaming the plan in place would have billed the old label — and the customer now
+  reads **"Business Bundle"**. It carries an `unlimited` **flag**, not a number: the other three
+  tiers still report `credits: null` and still print "to be confirmed". The card's `includes` names
+  both products. `unlimited_for()` refuses an unknown tier, and a tier whose allowance is undecided
+  is **not** unlimited — *undecided is not free*.
+- **A plan change that prorates** (`paypal.change_plan`, `POST /api/billing/change`). PayPal's plan
+  id is swapped on the running subscription and the difference is settled against the saved payment
+  method, so there is no second approval and no lost period. PayPal's own
+  `billing_info.outstanding_balance` is passed on **untouched** and described as charged, credited
+  or unknown — never estimated. The pricing dialog now takes this path when the customer is already
+  on a plan, instead of asking for a new approval.
+- **The ledger records the plan change** (`billing.activate`, `_activation`, `current`). This was
+  the trap in the handoff: the ledger was **first-wins on a subscription id**, so an upgrade from
+  Starter to the bundle on the same PayPal subscription id would never have appeared on the account
+  page, and the cancellation message would have named the tier the customer had left. The activation
+  is now idempotent on the subscription id **and** the tier it carries: a tier change is recorded, a
+  retried confirmation of the same tier is not, and the latest activation is what stands.
+- **The hand-off — the seam that makes "one charge" true** (new `src/bp/product/write_smarter.py`).
+  On approval, PayPal's `payment_source.vault_id` is read from the subscription and posted to the
+  hosted Write Smarter service with a shared secret. That service creates **its own** subscription
+  record from the same vault, switches it off, and reads it back to prove it cannot bill. Two
+  independent guards: the record's plan is **$0**, and a record PayPal still calls ACTIVE fails the
+  grant rather than being reported as switched off. The hand-off client **cannot take a payment** —
+  it never calls a PayPal billing endpoint, and a test asserts that.
+- **A failed hand-off never undoes a real payment.** The customer paid and the subscription is
+  ACTIVE, so the local grant stands. The failure is reported as a failure of the **other
+  product's half**, with the reason, on the confirm reply, on the cancel reply and on the account
+  page. A missing URL or secret fails closed and names **every** variable that is absent; a refused
+  call, an unreachable service or a body that does not confirm the grant are all failures.
+- **Cancelling one side stops both.** Cancelling here revokes the grant on the other product, and
+  the other product reads the **real** subscription's status, so a cancellation made there stops
+  this one too. The switched-off record is never what decides whether the customer has paid.
+- **The other product's side** (Write Smarter's live `Backend`, pulled from the VPS): a new
+  `bundle-entitlement.js`, two service routes (`bundle-entitlement`, `bundle-status`), and an
+  unlimited pool tier in `auth.js` so the bundle carries no cap on any pool. The bundle SKU is
+  deliberately **not** in the table the checkout sells from — a bundle SKU there would let a
+  customer buy a second live subscription, which is the exact double charge the bundle exists to
+  prevent.
+- **The unlimited wallet.** A bundle holder never receives a 402: the export is still written to the
+  ledger with a zero amount, so the trail of what was produced stays honest and the balance does not
+  move. The ordinary tiers keep their meter.
+- **The pricing dialog and the account page.** The fourth card reads $99.99 / $959.90 with
+  **"Unlimited"** and names both products; the bundle carries **no "% off" and no "save $"** line
+  against a made-up total, because "unlimited on both products" has no published sum to discount.
+  The account page shows the plan, the allowance and the state of the other product's half.
+
+**Verified.** `tests/test_product_bundle.py` — **34 new tests**: the hand-off carries the vault id
+and the real subscription id and nothing that could take money; a missing vault id, a missing
+setting, a refused call and a body that does not confirm are all failures; the client never calls a
+PayPal billing endpoint; a plan change is recorded against the same subscription id and the account
+page reads the new tier; a downgrade moves the tier back and drops the unlimited grant; the
+adjustment reports PayPal's number untouched; the cancel route revokes on the other product and a
+failed revocation is reported without undoing the cancellation; a bundle holder is never blocked by
+the wallet and a tier whose allowance is undecided still is; the bundle card reads Unlimited and no
+other card claims a limit. The existing `tests/test_product_billing.py` was updated for the renamed
+tier (the owner renamed what the customer reads; the stable keys stayed). Write Smarter's own
+`Backend/tests/bundle-entitlement.test.mjs` — **9 tests**: the bundle is granted here and never
+bought, every pool is unlimited, a grant creates the record and switches it off, a record PayPal
+still calls ACTIVE fails the grant, a missing bundle-record plan is refused rather than guessed, the
+entitlement follows the real subscription and not the record, an unreadable subscription grants
+nothing, and a revocation takes the grant back.
+
+**Not done, and named as such.** **No live charge has been taken.** Every claim about PayPal's
+behaviour in this path is verified against fixtures, not against the live merchant account; the
+seven checks in §6 of the bundle handoff are still open. The **shared login is not built** — the
+owner asked for the payment to be proved first, and the login only decides *which account* the
+subscription attaches to. The lower rungs, the per-tier allowances and the per-cycle refill are
+deferred by the owner (B-180a, B-180b). The Write Smarter pricing page band waits on the owner's
+hosted URL.
+
+**D1 amended (B-209).** "Local single-user v1: no accounts" no longer describes the whole product,
+because one login across two products needs accounts, tenancy isolation and a per-user quota. That
+is recorded as an amendment in `docs/PRODUCT_BACKEND_PLAN.md` rather than smuggled in, and
+`deploy/README.md` and `web/account.html` were amended with it — both used to promise "no
+authentication" and now say what is true: the identity work is coming, and it comes after the
+payment is proved.
+
 ## 2026-11-03 — [computation] The grid width claim becomes a measurement, and the copy stops repeating itself
 
 **Ask.** The owner's instruction, after the design lane's B-080 report: *"close the gap"* — the
@@ -44,6 +141,16 @@ next lane could not re-run the check. Two smaller findings were closed in the sa
 `page syntax: OK`; `frozen fixture: in sync`; `qa/manual/project-management.md` reconciled to both
 new rows and the measured layout table. Its own stale counts ("62 tests, 62 passed" in two places,
 the numbers from session 7) were corrected to 81 in passing.
+
+**And one trap of the trade, found by running the full suite rather than the gate list.**
+`test_E_pm_057` asserted that *"the one registry kind still declared in two forms is
+`template_servqual`"* — an expectation written to record a known fault (D-PM-03). The marketing
+lane closed that fault in `c0399e9` mid-session, so the test began failing **because the defect
+was fixed**. The row was rewritten to the invariant it was reaching for — no template may be
+declared in `CANVAS_BLOCKS` and `MATRIX_META` at once — and the ledger entry moved from LEDGERED to
+CLOSED. That is the discipline the manual asks for: an expectation may change when the shelf
+genuinely changed, and the change is recorded, never silenced. It also shows why the full suite is
+part of the job: the gate list was green while this row was red.
 
 
 ## 2026-11-03 — [design] The Project management worksheet forms, made professional to fill in
