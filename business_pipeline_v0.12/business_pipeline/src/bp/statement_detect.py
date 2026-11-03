@@ -217,6 +217,59 @@ DETECTORS: List[Detector] = [
 
 
 # ---------------------------------------------------------------------------
+# Claim parsing (tip 9.2): split a problem into atomic claims
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class Claim:
+    id: str
+    text: str
+    kind: str  # transaction | adjustment_info | policy | given_fact
+    span: Tuple[int, int]
+
+
+_POLICY_PHRASES = (
+    "full year of depreciation", "interest paid annually", "interest is paid in full at maturity",
+    "periodic inventory system", "perpetual inventory system", "FOB shipping point",
+    "FOB destination", "tax rate", "no dividends", "gross method", "net method",
+)
+_GIVEN_FACT_PHRASES = (
+    "physical inventory count", "ending inventory", "tax rate is", "beginning inventory",
+    "residual value", "useful life",
+)
+_ADJUSTMENT_PHRASES = (
+    "record depreciation", "record adjusting", "accrued", "prepaid", "amortize",
+    "depreciate", "year-end adjustment",
+)
+
+
+def parse_claims(text: str) -> List[Claim]:
+    if not isinstance(text, str) or not text.strip():
+        return []
+    # split on sentence boundaries
+    spans = []
+    for m in re.finditer(r"[^.!?]+[.!?]?", text):
+        seg = m.group(0).strip()
+        if not seg:
+            continue
+        spans.append((seg, m.span()))
+    claims: List[Claim] = []
+    for i, (seg, sp) in enumerate(spans, start=1):
+        low = seg.lower()
+        if any(p in low for p in _POLICY_PHRASES):
+            kind = "policy"
+        elif any(p in low for p in _GIVEN_FACT_PHRASES):
+            kind = "given_fact"
+        elif any(p in low for p in _ADJUSTMENT_PHRASES):
+            kind = "adjustment_info"
+        else:
+            kind = "transaction"
+        claims.append(Claim(id=f"C{i}", text=seg, kind=kind, span=sp))
+    return claims
+
+
+# ---------------------------------------------------------------------------
 # Detection
 # ---------------------------------------------------------------------------
 
@@ -305,6 +358,51 @@ def _dep_lines(s):
     # quantise to 2 decimals
     amount = amount.quantize(D("0.01"))
     return [("6700", "Dr", amount), ("1700", "Cr", amount)]
+
+
+# ---------------------------------------------------------------------------
+# Policy inference (tip 9.4)
+# ---------------------------------------------------------------------------
+
+
+POLICY_INFERENCE = [
+    (r"full year of depreciation is recorded in the year of acquisition",
+     "depreciation.convention", "full_year"),
+    (r"interest paid annually", "interest.timing", "annual"),
+    (r"interest .* paid .* at maturity", "interest.timing", "at_maturity"),
+    (r"periodic inventory system", "inventory.system", "periodic"),
+    (r"perpetual inventory system", "inventory.system", "perpetual"),
+    (r"FOB shipping point", "freight.responsibility", "buyer"),
+    (r"FOB destination", "freight.responsibility", "seller"),
+    (r"gross method", "purchase_discount.method", "gross"),
+    (r"net method", "purchase_discount.method", "net"),
+]
+
+
+def infer_policies(text: str) -> dict:
+    """Return {policy_key: value} inferred from explicit phrases in the text."""
+    out = {}
+    conflicts = []
+    by_key = {}
+    for pattern, key, value in POLICY_INFERENCE:
+        if re.search(pattern, text, re.IGNORECASE):
+            if key in by_key and by_key[key] != value:
+                conflicts.append((key, by_key[key], value))
+            by_key[key] = value
+            out[key] = value
+    return out
+
+
+def policy_conflicts(text: str) -> list:
+    """Return list of (policy_key, value_a, value_b) for contradictory phrases."""
+    by_key = {}
+    conflicts = []
+    for pattern, key, value in POLICY_INFERENCE:
+        if re.search(pattern, text, re.IGNORECASE):
+            if key in by_key and by_key[key] != value:
+                conflicts.append((key, by_key[key], value))
+            by_key[key] = value
+    return conflicts
 
 
 def months_expired(coverage_start: str, coverage_end: str, year_end_month: int = 12) -> int:

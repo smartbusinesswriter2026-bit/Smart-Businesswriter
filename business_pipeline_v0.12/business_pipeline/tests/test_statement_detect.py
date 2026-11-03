@@ -102,6 +102,23 @@ class MoreDetectors(unittest.TestCase):
         self.assertEqual(sd.months_expired("2025-02-01", "2026-01-31", 12), 11)
 
 
+class ClaimsAndPolicy(unittest.TestCase):
+    def test_parse_claims(self):
+        claims = sd.parse_claims("Cash sales of 50. Tax rate is 25%.")
+        self.assertEqual(len(claims), 2)
+        kinds = {c.kind for c in claims}
+        self.assertIn("policy", kinds)
+
+    def test_infer_policies(self):
+        p = sd.infer_policies("A full year of depreciation is recorded in the year of acquisition. Periodic inventory system.")
+        self.assertEqual(p["depreciation.convention"], "full_year")
+        self.assertEqual(p["inventory.system"], "periodic")
+
+    def test_policy_conflict(self):
+        cs = sd.policy_conflicts("Interest paid annually. Interest is paid in full at maturity.")
+        self.assertTrue(any(c[0] == "interest.timing" for c in cs))
+
+
 class DetectIntegration(unittest.TestCase):
     def test_northstar_transactions(self):
         text = ("Issued 50,000 common shares for cash, 50,000. "
