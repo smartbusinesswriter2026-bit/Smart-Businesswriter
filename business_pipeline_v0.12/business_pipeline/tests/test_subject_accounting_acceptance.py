@@ -221,8 +221,13 @@ class ShelfShapeTest(unittest.TestCase):
         self.assertEqual(definition["worksheets"], [])
         self.assertEqual(detail["worksheets"], [])
         self.assertEqual(detail["theories"], [])
-        self.assertEqual(detail["tiles"], [],
-                         "the shelf declares no tiles; the page groups the tools instead")
+        # B-205 (owner instruction, 2026-11-03): the shelf now declares tiles, the first of them a
+        # SERVICE that runs the statements tile.  This assertion used to require `tiles == []`; that
+        # design is superseded by the owner's instruction, and the bite it carried (nothing appears
+        # on the page that cannot work, and no tool is lost) is now held by
+        # tests/test_product_statements_tile.py, which fails if any accounting tool lands in no tile.
+        self.assertEqual([tile["key"] for tile in detail["tiles"]][0], "statements")
+        self.assertEqual(detail["tiles"][0]["service"], "statements")
         self.assertEqual({item["group"] for item in detail["tools"]}, GROUPS)
 
     def test_E_acc_011__tool_notes_and_related_ids_resolve(self):
