@@ -1207,11 +1207,15 @@ class GateTest(unittest.TestCase):
         for name in record["screenshots"]:
             self.assertTrue(os.path.exists(os.path.join(
                 "qa", "evidence", "project-management", name["name"])), name["name"])
-        # the top bar states the build the server reports, not a literal (D-PM-07)
-        from bp import build as build_info
+        # the top bar states the build the SERVER reported in that run, not a literal
+        # (D-PM-07).  The assertion is internal consistency on purpose: tying a committed
+        # browser measurement to bp.build.VERSION made this row go red every time another
+        # lane bumped the build, which says nothing about the page.
         self.assertTrue(record.get("build_pill"), "run qa/measure_pm_grid.py")
         for width, pill in record["build_pill"].items():
-            self.assertEqual(pill, "v" + build_info.VERSION, width)
+            served = (record.get("served_build") or {}).get(width)
+            self.assertRegex(str(served), r"^\d+\.\d+$", (width, "the server reported no build"))
+            self.assertEqual(pill, "v" + served, width)
 
     def test_E_pm_063__every_framework_lead_is_authored_and_never_a_placeholder(self):
         """Trap test for D-PM-05. Three layers, because the defect had three.

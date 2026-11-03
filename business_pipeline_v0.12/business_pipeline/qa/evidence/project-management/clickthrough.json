@@ -146,7 +146,7 @@
  ],
  "console": [],
  "grid_form": {
-  "measured_at": "2026-11-03T20:33:27",
+  "measured_at": "2026-11-03T20:58:44",
   "url": "http://127.0.0.1:8013/#/subject/project-management",
   "method": "Chrome over the DevTools protocol: scrollWidth against clientWidth",
   "script": "qa/measure_pm_grid.py",
@@ -232,8 +232,12 @@
   },
   "sideways": [],
   "build_pill": {
-   "1280": "v1.82",
-   "390": "v1.82"
+   "1280": "v1.83",
+   "390": "v1.83"
+  },
+  "served_build": {
+   "1280": "1.83",
+   "390": "1.83"
   },
   "screenshots": [
    "05-grid-form-scorecard-1280.png",

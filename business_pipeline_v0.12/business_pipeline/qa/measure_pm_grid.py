@@ -366,6 +366,8 @@ def main(port):
                 "width": width, "height": height, "deviceScaleFactor": 1, "mobile": False})
             load(page, base + "/?viewport=%d#/subject/" % width + SUBJECT)
             report.setdefault("build_pill", {})[str(width)] = build_pill(page)
+            report.setdefault("served_build", {})[str(width)] = page.script(
+                "(() => (state.health && state.health.build) || null)()", await_promise=False)
             for grid in GRIDS:
                 measured = drive(page, grid)
                 measured["viewport"] = {"width": width, "height": height}
@@ -411,6 +413,7 @@ def main(port):
             "refusal": report["refusal"],
             "sideways": report["sideways"],
             "build_pill": report.get("build_pill", {}),
+            "served_build": report.get("served_build", {}),
             "screenshots": [row["name"] for row in report["screenshots"]],
         }
         with open(carried, "w", encoding="utf-8") as handle:
