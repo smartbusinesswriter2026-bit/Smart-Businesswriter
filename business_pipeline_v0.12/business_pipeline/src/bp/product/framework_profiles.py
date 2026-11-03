@@ -11776,3 +11776,115 @@ ADVICE = {
     },
 }
 
+
+# ---------------------------------------------------------------------------
+# The quote vocabulary (D-OPS-03)
+# ---------------------------------------------------------------------------
+# `cues` is the vocabulary a *retrieved source* is accepted on, and it needs the
+# words a query uses.  It is the wrong vocabulary to decide whether a sentence of
+# the student's own brief answers a part: every brief on an operations shelf says
+# "change", "review", "cost", "quality" or "flow" somewhere, so a single shared
+# token put "The manager reviews the change next term" into the PDCA cell asking
+# what was standardised, and put "we must cut cost without losing quality" into
+# the root-cause cell about inputs.  D-MGT-03 was the same defect on the
+# management shelf, and the owner graded it BLOCKER: invented evidence is the one
+# thing the product may not do.
+#
+# The fix is a declaration, not a heuristic: the Operations shelf's profiles say,
+# per part, which words make a sentence *about that part*.  `completion.
+# _quote_block` matches only these when they are declared.  An empty string means
+# the part is never taken from the brief at all, because only a figure, a source
+# or the student's own worksheet can answer it.
+QUOTE_CUES = {
+    "template_scor": {
+        "plan": "forecast replenish schedule",
+        "source": "supplier procurement purchasing vendor contract",
+        "make": "production assembly manufacturing",
+        "deliver": "deliver distribution transport logistics shipping",
+        "return": "return reverse recall warranty credit",
+        "enable": "governance compliance contract",
+    },
+    "template_sipoc": {
+        "process": "step order prepare assemble pack serve collect take",
+        "outputs": "output outputs parcel receipt hands produced passed",
+        "customers": "customer client student guest passenger receives collects",
+    },
+    "template_value_stream_map": {
+        "process_steps": "step order prepare assemble pack take collect deliver receive store",
+        "cycle_and_lead_times": "cycle lead minutes seconds hours turnaround",
+        "inventory_wip": "inventory stock wip batch backlog pile storage freezer shelf",
+        "waits_delays": "wait waiting delay queue handoff bottleneck stalled",
+    },
+    "template_5s": {
+        "sort": "sort removed unnecessary clutter unused broken excess discard",
+        "set_in_order": "place location label mark arrangement layout",
+        "shine": "clean cleaned inspect maintenance wash wipe spill",
+        "standardize": "standard procedure checklist photograph posted",
+        "sustain": "audit habit sustain discipline",
+    },
+    "template_a3": {
+        "problem": "problem defect delay error complaint gap",
+        "current_condition": "current currently present queue observed data",
+        "target": "target goal reduce increase within",
+        "causes": "cause root why because reason driver factor",
+        "countermeasures": "countermeasure fix redesign separate combine simplify eliminate introduce",
+        "plan": "owner responsible week month depends",
+        "follow_up": "followup follow-up verify revisit audit",
+    },
+    "template_toc": {
+        "identify": "constraint bottleneck throughput slowest starved",
+        "exploit": "exploit uptime idle changeover losses",
+        "subordinate": "subordinate pace release buffer drum rope",
+        "elevate": "elevate invest outsource capex",
+        "reassess": "reassess moved shifted inertia",
+    },
+    "template_root_cause": {
+        "problem": "problem defect error delay complaint",
+        "people": "staff training skill handover operator behaviour",
+        "process": "process method procedure sequence workflow",
+        "equipment": "equipment machine tool maintenance breakdown",
+        "materials": "material input specification raw components",
+        "measurement": "measurement metric calibration inspection gauge",
+        "environment": "environment layout light heat noise space",
+        "root_cause": "root cause confirmed verified proved",
+    },
+    "template_fmea": {
+        "failure_modes": "failure mode wrong missing",
+        "effects": "effect consequence impact",
+        "causes": "cause reason because",
+        "controls": "control prevention detection inspection",
+        "actions": "action mitigate reduce redesign",
+        "owners": "owner accountable assigned responsible",
+    },
+    "template_kraljic": {
+        "criteria": "criteria threshold spend",
+        "strategic": "strategic sole critical partnership",
+        "leverage": "leverage tender competition",
+        "bottleneck": "bottleneck scarce single",
+        "non_critical": "routine catalogue noncritical non-critical",
+    },
+    "template_sop": {
+        "demand_plan": "forecast volume",
+        "supply_plan": "production capacity constraint",
+        "inventory_plan": "inventory stock buffer safety",
+        "capacity_plan": "capacity hours staffing",
+        "financial_plan": "revenue margin profit budget",
+        "decisions": "conflict reconcile trade",
+    },
+    "template_pdca": {
+        "plan": "problem target hypothesis",
+        "do": "trial pilot implemented ran",
+        "check": "measured result compared",
+        "act": "standardise standardised adopt abandon",
+    },
+}
+
+for _template, _parts in QUOTE_CUES.items():
+    _profile = PROFILES.get(_template)
+    if _profile is None:
+        continue
+    for _block in _profile["blocks"]:
+        if _block["key"] in _parts:
+            _block["quote_cues"] = _parts[_block["key"]]
+
+

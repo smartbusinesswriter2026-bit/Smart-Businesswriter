@@ -48,9 +48,20 @@ NEW = {
 }
 
 #: A brief that already describes the process, so the `quote` parts have
-#: something honest to quote and the student need not type it twice.
+#: something honest to quote and the student need not type it twice.  The second
+#: sentence states the times because a times cell has to be given a time: the old
+#: brief filled it on the word "takes" in "takes an order", which is D-OPS-03.
+#: The third states the output, because "packs the meal" names the meal and not
+#: what the process hands on — quoting it into Outputs was the same defect.
 BRIEF = ("The lunch service at the meal counter takes an order, assembles and packs the meal, then the "
-         "student collects and pays. Bread arrives from one regional bakery every morning before opening.")
+         "student collects and pays. Taking an order takes about a minute, packing four and the noon "
+         "wait twelve minutes. The counter hands on a packed meal and a payment receipt. "
+         "Bread arrives from one regional bakery every morning before opening.")
+#: The same brief with no time anywhere in it: what the times cell must refuse.
+BRIEF_NO_TIMES = ("The lunch service at the meal counter takes an order, assembles and packs the meal, "
+                  "then the student collects and pays. The counter hands on a packed meal and a "
+                  "payment receipt. Bread arrives from one regional bakery every morning before "
+                  "opening.")
 PROCESS = "the lunch service at the meal counter"
 
 
@@ -239,7 +250,10 @@ class CompletionTest(unittest.TestCase):
         for key in ("process", "outputs", "customers"):
             self.assertTrue(blocks[key]["items"], key)
             self.assertEqual(blocks[key]["items"][0]["provenance"], "student", key)
-            self.assertIn("lunch service", blocks[key]["items"][0]["text"], key)
+            # the quote is the student's own sentence, not a paraphrase and not a
+            # different part's sentence: "packs the meal" names the meal, and the
+            # output cell now needs the sentence that actually states the output
+            self.assertIn(blocks[key]["items"][0]["text"], BRIEF, key)
 
     def test_a_quoted_item_is_the_students_own_words_not_a_paraphrase(self):
         result = complete_sipoc()
@@ -274,6 +288,18 @@ class CompletionTest(unittest.TestCase):
         for key in ("value_added", "improvements"):
             self.assertEqual(blocks[key]["items"], [], key)
             self.assertIn("only you can state", blocks[key]["gap"].lower(), key)
+
+    def test_a_times_cell_is_not_filled_by_the_word_takes(self):
+        """D-OPS-03: `takes an order` is not a duration, and the cell must not say it is."""
+        result = complete_vsm(BRIEF_NO_TIMES)
+        blocks = {block["key"]: block for block in result["blocks"]}
+        self.assertEqual(blocks["cycle_and_lead_times"]["items"], [])
+        self.assertIn("No evidence was found", blocks["cycle_and_lead_times"]["gap"])
+        self.assertIn("What to state", blocks["cycle_and_lead_times"]["gap"])
+        # the step cell still holds the student's own sentence: the fix narrows the
+        # match, it does not switch the fallback off
+        self.assertTrue(blocks["process_steps"]["items"])
+        self.assertEqual(blocks["process_steps"]["items"][0]["provenance"], "student")
 
     def test_the_process_is_never_detected_only_declared(self):
         with self.assertRaises(ValueError) as error:

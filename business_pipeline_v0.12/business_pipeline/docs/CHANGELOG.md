@@ -1,4 +1,60 @@
-## Project management: the Strategy Map, the KPI Tree and OKRs become worksheets
+## Operations management: eleven worksheets that had never been read end to end
+
+Session 8 of the subject-by-subject validation, on the owner's work order of 2026-11-03
+— *"SUBJECT = operations … Do NOT start marketing, supply-chain, people or any other shelf
+this session"* — and under the owner's standing rule that *"the core is UNFROZEN until I
+freeze it again"* (B-197). Build **1.74**.
+
+The shelf measured as the work order said it would: **14 tools, 11 worksheets, 7
+read-only records, 0 theories, 20 glossary terms, 11 profiles, 0 worked examples**, and
+the four full-suite errors of the day were this shelf's. What the session did, in the
+order the defects were found:
+
+- **Eleven worked examples** (`templates.EXAMPLES`, D-OPS-01). None of the eleven
+  templates had one — 69 examples existed for other shelves — so
+  `test_operations_frameworks.ExampleTest` errored with `KeyError: 'template_sipoc'`
+  instead of testing anything. Each new example is a *synthetic* campus-meal-counter case,
+  labelled illustrative, and it passes its template's own `validate()` **and** every one
+  of its own checks. Four errors → **50 passed**.
+- **The borrowing rule is now declared, not inferred** (B-201, D-OPS-03). A block's `cues`
+  is the vocabulary a *source* is accepted on, and it holds the words every brief uses
+  ("change", "review", "cost", "quality", "flow"). Matching the student's sentence against
+  it printed "The manager reviews the change next term" as what the PDCA *act* stage
+  standardised and "we must cut cost without losing quality" as a root cause *in inputs* —
+  the D-MGT-03 class the owner graded BLOCKER. Blocks may now declare `quote_cues`; the
+  eleven operations profiles declare one per part (59 blocks) and the trap brief produces
+  **zero** quotes.
+- **A `gap` cell says what to state** (D-OPS-05). The value stream map's judgement and
+  proposal cells declared a probe that never reached the paper.
+- **No paper prints its citation twice** (D-OPS-04). Every sourced cell read
+  "(Lovelace, 2024) (Lovelace, 2024)": the item line carried the citation and the block
+  appended it again.
+- **The conclusion states a count, not a ranking** (D-OPS-02). Every operations paper
+  ended "… and Problem carries the most weight … while Problem carries the least", because
+  `index(max())` and `index(min())` name the same part when every part carries one item —
+  and the shelf declares that it never ranks.
+- **The harness, repaired before it was trusted** (`qa/probe_mgt_debug.py`). It reported 5
+  problems on this shelf and all five were its own: it alarmed "no sourced item" on a
+  `quote`/`gap` profile (a value stream map is the student's own process) and it treated
+  `('` and `')` in ordinary English as a Python repr. It now checks whether the profile
+  actually researches, narrows the needles to `{'`/`['`/`'}`/`']`/`,'`, and carries a
+  fourteen-tool pass (`preset` → `Pipeline.run` → `session_paper.docx_bytes` → the text).
+  **0 problems** over 11 worksheets × (evidence, no evidence, determinism) and 14 tools.
+- **The shelf's own probe** (`qa/probe_ops_shelf.py`, new): inventory reconciled against
+  the catalogue, forms, records, glossary, block provenance, the auto-fill trap, and the
+  eleven worksheet papers plus fourteen tool papers written to `qa/evidence/operations/`
+  and read back from `word/document.xml` (P6).
+- **`qa/manual/operations.md`** — 46 E-rows, one row per tool, worksheet, record, glossary
+  term and UI surface, each citing its source of truth, reconciled 1:1 with the traceability
+  matrix — and `tests/test_subject_operations_acceptance.py`, **46 tests, 46 passed**.
+
+Ledgered rather than invented: **G-ops-01** — none of the eleven papers draws a figure,
+because `matrix.LAYOUTS` declares a grid for the strategy and marketing shelves only;
+**G-ops-02/D-OPS-06** — the eleven worksheets carry no `group`, so the page shows one flat
+list; **G-ops-03** — one brief sentence can fill two adjacent SIPOC parts; **D-OPS-07** —
+a process-unit query repeats the unit. The first two are owner/presentation decisions on a
+catalogue surface and are pinned, not patched.
+
 
 Session 7, fifth pass, on the owner's instruction — *"THIS NEEDS WORKSHEET: Strategy Map,
 KPI Tree, OKRs. DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* Build **1.71**.
@@ -65,6 +121,8 @@ of them, the business plan, had a way in. Build **1.73**.
   exports a Word file — 14.0 KB (marketing plan), 20.7 KB (feasibility study, 14
   headings including the projected statements and sensitivity), 14.0 KB (project
   proposal) — and the business plan is unchanged.
+
+- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
 
 - 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
 

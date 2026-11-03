@@ -1,0 +1,34 @@
+Computation: chi square
+Result
+The table has 300 observations across 9 cells. The chi-square test of independence gives chi-squared = 56.000 with 4 degree(s) of freedom and a p-value below the reporting floor. At the declared significance level of 5.00% the row and column variables are statistically significantly associated. Cramer's V is 0.306, a medium association by the declared thresholds. The smallest expected count is 25. Statistical significance and practical importance are separate questions. An association between the row and column variables does not show that one causes the other. The test treats the counts as independent observations of a single sample. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Table: 45, 30, 25, 20, 40, 40, 10, 20, 70
+What was computed
+Chi squared: 56.000
+Df: 4
+P value: 0.0000
+Cramers v: 0.306
+N total: 300
+N cells: 9
+Min expected count: 25
+Alpha: 0.05
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent and each is counted in exactly one cell.
+Expected counts are large enough (screened; at least 5).
+Limitations
+The p-value is an approximation; exact tests are not implemented.
+No Yates continuity correction for 2x2 tables.
+Cramer's V cut-offs are coarse [UNVERIFIED].
+How the figures were checked
+Second implementation agrees.
+Row order invariant.
+Transpose invariant.
+Uniform scaling scales chi2 keeps V.
+Independence gives zero chi2.
+Bounded and consistent.

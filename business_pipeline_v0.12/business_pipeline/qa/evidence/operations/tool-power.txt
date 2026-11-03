@@ -1,0 +1,38 @@
+Computation: power analysis
+Result
+At the stated effect the design has power 0.4757 against a declared alpha of 0.0500 (target power 0.8000). The smallest effect that reaches that target power is 7.38, with a standard error of 2.63 for that effect. Power is calculated under the normal approximation and describes the planned design, not any observed result. Power is calculated under the normal approximation with the standard deviations you supplied; with sds estimated from a pilot, the exact power is somewhat lower (noncentral t, not implemented). Power is a planning property of the design, not evidence about the result: a low-powered study can still be significant and a high-powered one can still fail. The calculation assumes independent observations and a single comparison; it does not account for clustering, weights, repeated measures or multiplicity. A minimum detectable effect is not a justification for ignoring a smaller effect that matters.
+Inputs and results
+What you declared
+Design: two_sample
+Effect: 5.000
+N1: 30
+N2: 40
+Sd1: 10.000
+Sd2: 12.000
+Alpha: 0.0500
+Tails: two_sided
+Target power: 0.8000
+What was computed
+Power: 0.4757
+Mde: 7.38
+Se: 2.63
+Ncp: 1.899
+Z alpha: 1.960
+Alpha: 0.0500
+Target power: 0.8000
+N1: 30
+N2: 40
+Assumptions made
+Observations are independent within and between groups.
+The standard deviations supplied are the planning values and are positive.
+A single test at the declared alpha, with the declared number of tails.
+Limitations
+Normal approximation; no noncentral t exactness.
+No clustering, weights or repeated measures.
+Power describes the design, not the study's actual outcome.
+How the figures were checked
+Second implementation agrees.
+Power at zero effect equals alpha.
+Power increases with effect size.
+Power increases with sample size.
+Mde decreases with sample size.

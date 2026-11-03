@@ -1,0 +1,59 @@
+Root Cause Analysis: The Lunch Service at the Meal Counter Takes an Order
+A Student
+Example University
+November 03, 2026
+Root Cause Analysis: The Lunch Service at the Meal Counter Takes an Order
+Introduction
+The decision under examination is whether to proceed with the course of action set out in the brief. The unit of analysis is one problem in one process, because a cause is only a cause of a specific effect in a specific flow. The evidence base is confined to the items accepted for the case.
+The analysis treats each of the 8 categories in turn: problem, people, process / method, equipment, materials, measurement, environment, root cause. Each is established from the accepted evidence and then interpreted, with attention to its effect on the decision.
+The argument advanced is that the categories supported by evidence constrain the decision, and that a category for which no evidence is recorded cannot be treated as favourable. The conclusion returns to this proposition.
+The Process and the Problem
+The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the categories are properties of that problem rather than of the organisation.
+Evidence is limited to the accepted items. A category without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
+Root Cause Analysis
+Root cause analysis separates the effect from its causes and tests the candidates until one is supported. The problem is stated first, the candidate causes are gathered under the fishbone categories, and the root cause is recorded only where the evidence supports it.
+Problem
+Evidence on the lunch service at the meal counter lunch service meal causes of delay or defect in this process. A second sentence follows it. (Lovelace, 2024)
+The problem is the effect, stated with where and when it happens. A problem stated without a location or a time cannot be checked against the process. The relevant question is whether the statement could be observed.
+People
+Evidence on the lunch service at the meal counter lunch service meal human factors in process error. A second sentence follows it. (Lovelace, 2024)
+People causes are about skills, staffing and handover rather than about blame. The relevant question is whether the evidence points to a capability or a behaviour, and which.
+Process / Method
+Evidence on the lunch service at the meal counter lunch service meal process design causes of delay. A second sentence follows it. (Lovelace, 2024)
+Process causes are in the design of the work: sequence, hand-offs, batching. The relevant question is whether the step as designed can produce the effect.
+Equipment
+Evidence on the lunch service at the meal counter lunch service meal equipment reliability and capacity limits. A second sentence follows it. (Lovelace, 2024)
+Equipment causes are capacity, reliability and maintenance. A machine at its limit makes the effect structural rather than occasional. The relevant question is whether the equipment can meet the demand placed on it.
+Materials
+Evidence on the lunch service at the meal counter lunch service meal input quality and supply causes. A second sentence follows it. (Lovelace, 2024)
+Material causes are in the inputs: specification, quality, supply. The relevant question is whether the input the process receives is the one it was designed for.
+Measurement
+Evidence on the lunch service at the meal counter lunch service meal measurement error and inspection design. A second sentence follows it. (Lovelace, 2024)
+Measurement causes are in how the work is judged: the gauge, the inspection, the standard. A measure that is wrong makes the problem look like something else. The relevant question is whether the measure can see the effect.
+Environment
+Evidence on the lunch service at the meal counter lunch service meal workplace environment effects on performance. A second sentence follows it. (Lovelace, 2024)
+Environment causes are layout, light, heat, noise and space. The relevant question is whether the surroundings make the work harder than it need be.
+Root Cause
+Evidence on the lunch service at the meal counter lunch service meal established causes of this process problem. A second sentence follows it. (Lovelace, 2024)
+The root cause is the one the evidence supports, with the test that showed it. A cause that has not been tested is the strongest hypothesis, not the answer. The relevant question is what would have shown the cause to be wrong.
+Discussion
+What the Evidence Shows About the Causes
+The case supplies 8 accepted items across the categories: 8 sourced items, 0 items of the student's own evidence and 0 case assumptions. The categories carrying evidence are Problem (1), People (1), Process / method (1), Equipment (1), Materials (1), Measurement (1), Environment (1), Root cause (1), while 0 category(s) are recorded as gaps.
+Read together, the categories describe a problem in which some causes are evidenced and others are not, and a category without evidence cannot be treated as cleared. A category without evidence carries no weight in the assessment, because a gap is not a finding and cannot be read as either a strength or a weakness.
+Implications for the Decision the Cause Supports
+The combined reading bears on the decision: the documented conditions must be answered by the proposed position, and the plan must show how each would be met. A category that appears weak in the evidence is not thereby one that can be disregarded; it is a category the case has not documented.
+A remedy has to answer the cause the evidence supports: a cause that is only a hypothesis may be worth testing, but it is not yet a reason to change the process. The decision itself remains the student's.
+Limitations
+The analysis does not rate the categories, compute an aggregate score or recommend a decision, because the accepted items do not support a quantitative comparison across them. Several categories may rest on a single item, which limits the weight they can bear; an assumption is not a source and a gap is not a finding. The student must verify every item before submission.
+Conclusion
+The analysis set out to establish, category by category, what the accepted evidence implies for the decision. The categories with evidence are Problem (1), People (1), Process / method (1), Equipment (1), Materials (1), Measurement (1), Environment (1), Root cause (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
+The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
+References
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of delay or defect in this process. Journal of Operations Management. 10.1/360872
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal human factors in process error. Journal of Operations Management. 10.1/183158
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal process design causes of delay. Journal of Operations Management. 10.1/184106
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal equipment reliability and capacity limits. Journal of Operations Management. 10.1/755933
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal input quality and supply causes. Journal of Operations Management. 10.1/738345
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal measurement error and inspection design. Journal of Operations Management. 10.1/449487
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace environment effects on performance. Journal of Operations Management. 10.1/692907
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal established causes of this process problem. Journal of Operations Management. 10.1/809548

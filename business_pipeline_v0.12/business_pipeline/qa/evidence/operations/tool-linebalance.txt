@@ -1,0 +1,38 @@
+Computation: line balancing
+Result
+The declared tasks total 21.00 against a cycle time of 10.00, so at least 3 stations are needed; the heuristic uses 3, with 9.00 idle time and an efficiency of 0.7000. The assignment uses the declared heuristic (longest task time or ranked positional weight); it is a good packing, not a proven optimum. Task times, precedence and the cycle time are yours; no learning curve, fatigue, parallel stations or mixed-model line is modelled. The lower bound is total work over the cycle time rounded up; idle time and efficiency are measured against the stations the heuristic used.
+Inputs and results
+What you declared
+Cycle time: 10.00
+Rule: longest_time
+Tasks: Id: A; Time: 5; Predecessors: , Id: B; Time: 3; Predecessors: A, Id: C; Time: 4; Predecessors: A, Id: D; Time: 2; Predecessors: B, Id: E; Time: 3; Predecessors: C, Id: F; Time: 4; Predecessors: D,E
+What was computed
+Total time: 21.00
+Cycle time: 10.00
+Task count: 6
+Stations: 3
+Lower bound stations: 3
+Idle time: 9.00
+Efficiency: 0.7000
+Load 1: 9.00
+Load 2: 8.00
+Load 3: 4.00
+Station A: 1
+Station B: 2
+Station C: 1
+Station D: 2
+Station E: 2
+Station F: 3
+Assumptions made
+Task times are deterministic and the precedence graph is acyclic.
+One unit is processed at a time and every station is available for the full cycle time.
+Limitations
+A heuristic packing, not an optimal solution.
+No parallel stations, mixed-model lines, variability or ergonomics.
+Efficiency is measured against the stations the heuristic used.
+How the figures were checked
+Second implementation agrees.
+Every task is assigned once.
+No station exceeds the cycle time.
+Precedence is respected.
+Stations are at least the lower bound.

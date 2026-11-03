@@ -1,0 +1,32 @@
+Computation: capacity analysis
+Result
+The process capacity is 60.00 units, set by the bottleneck resource at position 2. At the declared demand of 50.00, the bottleneck runs at 0.8333 and the capacity gap is 10.00. Capacity is available hours times sixty over minutes per unit, with no allowance for breaks, maintenance, scrap or changeover. The bottleneck is the resource with the smallest capacity; the method does not schedule work, buffer or batch it. Demand is a flat figure for the same period as the available hours; a changing mix or routing needs its own run per product.
+Inputs and results
+What you declared
+Resources: Name: cutting; Available hours: 8; Minutes per unit: 5, Name: assembly; Available hours: 8; Minutes per unit: 8, Name: packing; Available hours: 8; Minutes per unit: 3
+Demand: 50.00
+What was computed
+Max output: 60.00
+Bottleneck index: 2
+Capacity 1: 96.00
+Capacity 2: 60.00
+Capacity 3: 160.00
+Demand: 50.00
+Capacity gap: 10.00
+Utilisation 1: 0.5208
+Utilisation 2: 0.8333
+Utilisation 3: 0.3125
+Bottleneck utilisation: 0.8333
+Assumptions made
+Every resource is available for the declared hours and works at the declared minutes per unit.
+One product passes through every resource once.
+Limitations
+No scheduling, batching, changeover, scrap or maintenance.
+Single product and a fixed routing.
+Capacity is steady-state, not a queue simulation.
+How the figures were checked
+Second implementation agrees.
+Capacity is available minutes over minutes per unit.
+Bottleneck is the smallest capacity.
+Utilisation is demand over capacity.
+The reported bottleneck index points at the smallest capacity.

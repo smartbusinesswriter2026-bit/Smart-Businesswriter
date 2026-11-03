@@ -1,3 +1,52 @@
+## 2026-11-03 — [operations] The shelf nobody had read: eleven worksheets, one probe, five defects
+
+**Ask.** The work order for session 8: *"SUBJECT = operations … do not start any other shelf
+… a mismatch is itself a defect"* — verify, debug and repair the Operations management shelf,
+produce one paper per worksheet and read all eleven against V-01…V-20, and fix nothing
+without a trap test.
+
+**Measured first.** `subjects.detail("operations")` → 14 tools, 11 worksheets (only OPS-03
+not draftable), 7 read-only records, 0 theories, 20 glossary terms, 11 profiles, every
+worksheet also on `supply-chain`; `detail["worksheets"]` groups all `None`. Full suite at
+the opening commit, on the tree that answered: **3184 tests, 5 failures, 4 errors** — and
+the 4 errors were this shelf's (`ExampleTest`, `KeyError: 'template_sipoc'`), because none
+of the eleven templates had a worked example. The 5th failure was a `balanced_scorecard`
+cue set the project-management lane had just added, not this shelf's.
+
+**Fixed (7 ledger rows, 4 found only by reading the produced .docx).**
+
+1. **D-OPS-01 — eleven worked examples** (`templates.EXAMPLES`). Each passes its template's
+   own `validate()` and every check: that is what `ExampleTest` was trying to do when it
+   errored. Four errors → 50 passed in `test_operations_frameworks`.
+2. **D-OPS-03 — the auto trap** (BLOCKER, B-201). The probe that answers "what can this cell
+   borrow from the brief?" was the *retrieval* cue list, which holds "change", "review",
+   "cost", "quality", "flow". Before: the trap brief filled `a3.countermeasures`,
+   `a3.follow_up`, `toc.subordinate`, `toc.reassess`, `root_cause.materials`,
+   `sop.financial_plan`, `pdca.plan`, `pdca.check` and `pdca.act`. After: **0**. Fixed by
+   declaring `quote_cues` per part (59 blocks) and matching only that when declared.
+3. **D-OPS-02 — the conclusion ranked the parts** and named one part both strongest and
+   weakest. It now states the count and says a count is not a weight.
+4. **D-OPS-04 — every sourced cell printed its citation twice.** The block's citations were
+   appended to a paragraph whose lines already carried them.
+5. **D-OPS-05 — a `gap` cell dropped its probe**: the value stream map's two judgement
+   cells said "only you can state" and not what to state.
+6. **The harness** (`qa/probe_mgt_debug.py`) reported 5 problems and all five were its own;
+   it is repaired (quote/gap profiles, `('` in English) and extended with a tool pass.
+7. **`qa/probe_ops_shelf.py`** is new: it produced every number in the manual.
+
+**Ledgered, not built.** G-ops-01 (no figure in any of the eleven papers — `matrix.LAYOUTS`
+has no operations entry), G-ops-02/D-OPS-06 (no worksheet groups, one flat list), G-ops-03
+(one brief sentence can fill two adjacent SIPOC parts), D-OPS-07 (a process-unit query
+repeats the unit). The first two are presentation decisions on a catalogue surface.
+
+**Left on purpose.** `src/bp/methods.py`, `src/bp/server.py`, `src/bp/registry.py`, every
+preset, every route family, every input schema and `tests/fixtures/frozen_contract.json` are
+untouched: `scripts/econ_shelf.py --check` still says "frozen fixture: in sync".
+
+**Test count.** 46 tests in the new acceptance suite, plus one trap test in
+`test_operations_frameworks.py` (50 tests there). The documented count was set from
+`unittest.TestLoader().discover("tests")` in the same commit.
+
 ## 2026-11-03 — [project-management] Model-assisted writing: help a student complete the framework without inventing a word of it
 
 **Ask.** "Can you do a model assisted writing there? Provide suggestions for the user to complete

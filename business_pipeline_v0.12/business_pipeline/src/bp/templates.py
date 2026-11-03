@@ -1438,6 +1438,15 @@ MATRIX_META = {
         "intended_use": "Set two to four plausible scenarios against the drivers that distinguish them, record what you assume about each driver in each scenario, and audit the cells that are still empty.",
         "unsupported_use": "Forecasting, assigning probabilities or choosing the most likely scenario; inventing drivers or evidence; deciding a robust action for you.",
         "extra_help": "A cell states the direction or condition you assume for that driver in that scenario. Scenarios are not forecasts and carry no probability.",
+        "form_copy": {
+            "rows_label": "Scenarios",
+            "cols_label": "Drivers",
+            "cols_hint": "Two to six, one per line",
+            "intro": ("List the scenarios you are planning for, then the drivers that distinguish them. "
+                      "Each cell records what you assume about that driver in that scenario. Scenarios "
+                      "are not forecasts and carry no probability, so no cell is scored. A cell you "
+                      "cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_strategic_group_map": {
         "name": "Strategic group map with a declared-axis audit", "short": "strategic group map",
@@ -1447,6 +1456,15 @@ MATRIX_META = {
         "intended_use": "List the competitors you have evidence for, declare and justify the two axes, place each competitor on both, and record the strategic group you assign.",
         "unsupported_use": "Choosing the axes or the groups for you; inventing competitor data; drawing or computing a position; scoring or ranking competitors.",
         "extra_help": "Exactly two axes are required, each with a one-line rationale. Placing a competitor is your judgment; the system only records and audits it.",
+        "form_copy": {
+            "rows_label": "Competitors",
+            "cols_label": "Two axes",
+            "cols_hint": "Exactly two, one per line",
+            "intro": ("List the competitors you have evidence for, the group you assign to each, and "
+                      "the two axes with a reason for each. Placing a competitor is your judgment; "
+                      "the worksheet records and audits it, and draws and scores nothing. A cell you "
+                      "cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_customer_journey": {
         "name": "Customer journey map with an evidence audit", "short": "journey map",
@@ -1456,6 +1474,15 @@ MATRIX_META = {
         "intended_use": "Lay the touchpoints you have evidence for against the journey stages you declare, record what the customer does, sees or feels at each crossing, and audit the cells you could not fill.",
         "unsupported_use": "Inventing stages, touchpoints or customer feelings; scoring friction or emotion; drawing a journey diagram; deciding where to intervene.",
         "extra_help": "A cell records what you know happens at that touchpoint in that stage, with its provenance. The stages and touchpoints are yours; nothing is plotted and no friction or sentiment score is computed.",
+        "form_copy": {
+            "rows_label": "Touchpoints",
+            "cols_label": "Stages",
+            "cols_hint": "Two to six, one per line",
+            "intro": ("List the touchpoints you have evidence for, then the stages of the journey they "
+                      "sit in. Each cell records what the customer does, sees or feels at that "
+                      "crossing, with its source. Nothing is plotted and no friction or sentiment "
+                      "score is computed. A cell you cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_servqual": {
         "name": "Service-quality gap grid with an evidence audit", "short": "SERVQUAL grid",
@@ -1465,6 +1492,15 @@ MATRIX_META = {
         "intended_use": "Record, for each service dimension you declare, the expectation, the perception and the gap you concluded, with the evidence behind each, and audit the cells that are still empty.",
         "unsupported_use": "Computing an average, a weighted score or an overall service-quality index; designing the questionnaire; inventing responses; deciding what to improve.",
         "extra_help": "The conventional columns are the expectation, the perception and the gap; any numbers in a cell are yours, and the worksheet computes no average or score. The five SERVQUAL dimensions (tangibles, reliability, responsiveness, assurance, empathy) are associated with Parasuraman, Zeithaml and Berry; no proprietary instrument is reproduced.",
+        "form_copy": {
+            "rows_label": "Service dimensions",
+            "cols_label": "Measures",
+            "cols_hint": "Three to five, one per line",
+            "intro": ("List the service dimensions you have evidence for, then the measures you took "
+                      "on each: the expectation, the perception and the gap you concluded. Any number "
+                      "in a cell is yours; the worksheet computes no average and no score. A cell you "
+                      "cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_raci": {
         "name": "RACI responsibility matrix with a declared-role audit", "short": "RACI matrix",
@@ -1474,6 +1510,15 @@ MATRIX_META = {
         "intended_use": "List the activities and the roles you have confirmed, then assign R, A, C or I to each cell: responsible does the work, accountable owns the outcome, consulted gives input, informed is kept up to date.",
         "unsupported_use": "Deciding who should be accountable; inventing roles or decision rights; scoring or ranking roles; enforcing an organisation chart or a single-A rule you have not declared.",
         "extra_help": "Each cell starts with one letter, R, A, C or I, optionally followed by a note (for example 'R - prepares the draft'). Every activity must have exactly one A and at least one R; the audit names any activity without them. A cell with no letter stays empty and is named.",
+        "form_copy": {
+            "rows_label": "Activities",
+            "cols_label": "Roles",
+            "cols_hint": "One role per line",
+            "intro": ("List the activities and the roles you have confirmed. Then write R, A, C or I in each "
+                      "cell: R does the work, A owns the outcome, C is consulted, I is informed. Every "
+                      "activity needs exactly one A and at least one R. A cell you cannot fill stays empty "
+                      "and is named in the audit."),
+        },
     },
     "template_risk_register": {
         "name": "Risk register with a declared-response audit", "short": "risk register",
@@ -1483,6 +1528,14 @@ MATRIX_META = {
         "intended_use": "List each risk, then record the likelihood and impact labels you declare, the response you will take and the owner. Audit which cells are still empty.",
         "unsupported_use": "Assigning probabilities, computing an expected loss or a risk score, ranking risks for you, or inventing a response or owner.",
         "extra_help": "Declare exactly four fields: Likelihood (your label), Impact (your label), Response and Owner. No probability, expected value or risk score is computed; an empty cell is named and stays empty.",
+        "form_copy": {
+            "rows_label": "Risks",
+            "cols_label": "Fields",
+            "cols_hint": "Four fields: likelihood, impact, response, owner",
+            "intro": ("List the risks, then choose four fields: likelihood (your label), impact (your label), "
+                      "response and owner. Likelihood and impact are labels you declare; no probability "
+                      "or score is computed. A cell you cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_balanced_scorecard": {
         "name": "Balanced Scorecard with a declared-measure audit", "short": "balanced scorecard",
@@ -1492,6 +1545,15 @@ MATRIX_META = {
         "intended_use": "Declare the perspectives you are steering the project by, then record for each one the objective, the measure, the target and the initiative you have evidence for, and audit the cells that are still empty.",
         "unsupported_use": "Weighting the perspectives, scoring or ranking objectives, computing a composite index, inventing a measure or a target, or choosing the strategy for you.",
         "extra_help": "Declare exactly four fields per perspective: Objective, Measure, Target and Initiative. The four perspectives of the Balanced Scorecard (financial, customer/stakeholder, internal process, organisational capacity) are associated with Kaplan and Norton; no proprietary instrument is reproduced. Any figure in a cell is yours, and no score, weight or composite index is computed.",
+        "form_copy": {
+            "rows_label": "Perspectives",
+            "cols_label": "Fields for each perspective",
+            "cols_hint": "Exactly four: Objective, Measure, Target, Initiative - one per line",
+            "intro": ("Write the perspectives you steer by, one per line. Then four fields for each: "
+                      "the objective, the measure that shows it moving, the target you are aiming at "
+                      "and the initiative that gets you there. A cell you cannot fill stays empty and "
+                      "is named in the audit. No weights, no score."),
+        },
     },
     "template_strategy_map": {
         "name": "Strategy map with a declared cause-and-effect audit", "short": "strategy map",
@@ -1501,6 +1563,16 @@ MATRIX_META = {
         "intended_use": "List the objectives you are steering by, place each in the perspective it belongs to, declare which other objective it drives, and record the measure that shows it moving. Audit the objectives with no driver and the cells that are still empty.",
         "unsupported_use": "Drawing the arrows for you, inferring a causal link you have not declared, weighting or ranking objectives, or inventing a measure.",
         "extra_help": "Declare exactly four fields per objective: Perspective, Objective, Drives (the objective it is meant to move) and Measure. A causal link exists only where you write one; the worksheet records it and never derives a chain, a weight or a score.",
+        "form_copy": {
+            "rows_label": "Objectives",
+            "cols_label": "Fields for each objective",
+            "cols_hint": "Exactly four: Perspective, Objective, Drives, Measure - one per line",
+            "intro": ("Write the objectives you are steering by, one per line, then the four fields for "
+                      "each: the perspective it belongs to, the objective itself, the objective it is "
+                      "meant to drive and the measure that shows it moving. A link exists only where "
+                      "you write it - the map does not draw arrows and does not infer a chain. A cell "
+                      "you cannot fill stays empty and is named in the audit."),
+        },
     },
     "template_kpi_tree": {
         "name": "KPI tree with a declared-formula audit", "short": "KPI tree",
@@ -1510,6 +1582,17 @@ MATRIX_META = {
         "intended_use": "Record the outcome metric at the top of the tree, then the drivers it decomposes into and the inputs beneath them, with the formula or definition that connects each level and where the number comes from.",
         "unsupported_use": "Calculating a metric from raw data, choosing the drivers for you, weighting the branches, or inventing a source.",
         "extra_help": "Declare exactly four fields per metric: Level (outcome, driver or input), Metric, Formula or definition, and Source. The worksheet records the decomposition you declare; it computes no value and checks no arithmetic.",
+        "form_copy": {
+            "rows_label": "Metrics",
+            "cols_label": "Fields for each metric",
+            "cols_hint": "Exactly four: Level, Metric, Formula or definition, Source - one per line",
+            "intro": ("Write the metrics on the tree, one per line: the outcome metric at the top, the "
+                      "drivers beneath it and the inputs under those. Then the four fields for each: "
+                      "the level it sits at, the metric itself, the formula or definition that connects "
+                      "it and the source the number is read from. The tree records the decomposition "
+                      "you declare and calculates nothing. A metric with no source stays empty and is "
+                      "named in the audit."),
+        },
     },
     "template_okrs": {
         "name": "OKR set with a declared-baseline audit", "short": "OKRs",
@@ -1519,6 +1602,16 @@ MATRIX_META = {
         "intended_use": "State each objective, then the key results under it with a baseline, a target and the source the number is read from. Audit the key results that have no baseline and the cells that are still empty.",
         "unsupported_use": "Turning an OKR into a score, an attainment percentage or a ranking; inventing a baseline or a target; writing your key results for you.",
         "extra_help": "Declare exactly four fields per objective: Objective, Key results, Baseline to target, and Source. A key result without a baseline cannot be judged at review, and the audit names it. No attainment score is computed.",
+        "form_copy": {
+            "rows_label": "Objectives",
+            "cols_label": "Fields for each objective",
+            "cols_hint": "Exactly four: Objective, Key results, Baseline to target, Source - one per line",
+            "intro": ("Write the objectives you commit to, one per line. Then the four fields for each: "
+                      "the objective itself, the key results that make it checkable, the baseline and "
+                      "target they run from and the source the number is read from. A key result with no "
+                      "baseline is named at audit, and no attainment score is produced. A field you "
+                      "cannot fill stays empty."),
+        },
     },
 }
 
@@ -2061,10 +2154,18 @@ def describe(kind):
     grid = MATRIX_META.get(kind)
     matrix = ({"row_label": grid.get("row_label"), "column_label": grid.get("column_label"),
                "min_rows": grid.get("min_rows"), "max_rows": grid.get("max_rows"),
-               "min_columns": grid.get("min_columns"), "max_columns": grid.get("max_columns")}
+               "min_columns": grid.get("min_columns"), "max_columns": grid.get("max_columns"),
+               "require_groups": bool(grid.get("require_groups")),
+               "require_rationale": bool(grid.get("require_rationale")),
+               "raci": bool(grid.get("raci"))}
               if grid else None)
+    # `form_copy` is the form's own copy, declared beside the grid: the labels the
+    # student reads and the sentence that explains what belongs in the grid.  The
+    # page reads it and falls back to its older wording when a grid has none, so
+    # adding a framework means adding a profile, never a branch in the renderer.
+    form_copy = dict(grid["form_copy"]) if grid and grid.get("form_copy") else None
     return {"id": t["id"], "version": t["version"], "name": t["name"], "registry_ids": t["registry_ids"], "tier": t.get("tier", "T4"), "intended_use": t["intended_use"], "unsupported_use": t["unsupported_use"],
-            "input_help": t["input_help"], "blocks": blocks, "form_kind": form_kind, "matrix": matrix,
+            "input_help": t["input_help"], "blocks": blocks, "form_kind": form_kind, "matrix": matrix, "form_copy": form_copy,
             "defaults": list(t["defaults"]), "limitations": list(t["limitations"]), "planned_checks": list(t["test_names"]), "example_request": EXAMPLES.get(kind)}
 
 BAKERY = "Illustrative bakery case (synthetic)"
@@ -2701,6 +2802,101 @@ EXAMPLES = {
             "facilitating_conditions": [{"text": "The counter has one phone that staff cannot leave unattended", "provenance": "synthetic"}]
         }
 }},
+    # ---- Operations management (session 8) --------------------------------------
+    # Eleven worked examples, one per worksheet on the Operations shelf.  Each is a
+    # *synthetic* illustrative case (the campus meal counter the shelf's own unit
+    # examples already use), and each satisfies its template's own `validate()`:
+    # `tests/test_operations_frameworks.py::ExampleTest` runs it through
+    # `run_template` and requires every declared check to pass.  They are examples,
+    # not advice: nothing here is a finding about a real business, and the figure
+    # the paper draws is built from these items, never from a model.
+    "template_scor": {"objective": "Map the meal counter's supply chain across the six SCOR processes", "method": "template_scor", "inputs": {
+        "blocks": {
+            "plan": [{"text": "Orders are forecast from last week's counter totals and the prep list is set the evening before", "provenance": "synthetic"}],
+            "source": [{"text": "Bread comes from one regional bakery each morning; vegetables from the wholesale market twice a week", "provenance": "synthetic"}],
+            "make": [{"text": "Meals are cooked to order on a single line, packed at the counter and handed over", "provenance": "synthetic"}],
+            "deliver": [{"text": "Students collect at the counter; there is no delivery beyond the campus gate", "provenance": "synthetic"}],
+            "return": [{"text": "A meal that is sent back is remade and the reason is written on the day sheet", "provenance": "synthetic"}],
+            "enable": [{"text": "One supervisor holds the food-safety log, the supplier list and the rota", "provenance": "synthetic"}]}}},
+    "template_sipoc": {"objective": "Bound the lunch service at the meal counter from supplier to customer", "method": "template_sipoc", "inputs": {
+        "blocks": {
+            "suppliers": [{"text": "A regional bakery supplies bread; the wholesale market supplies vegetables; the estate office provides the counter", "provenance": "synthetic"}],
+            "inputs": [{"text": "Bread, vegetables, gas, one oven, the food-safety licence and the day's order list", "provenance": "synthetic"}],
+            "process": [{"text": "The order is taken, the meal is assembled and packed, and the student collects and pays", "provenance": "synthetic"}],
+            "outputs": [{"text": "A packed hot meal and a payment receipt", "provenance": "synthetic"}],
+            "customers": [{"text": "Students on the lunch break, and the supervisor who reviews the day sheet", "provenance": "synthetic"}]}}},
+    "template_value_stream_map": {"objective": "Follow one lunch order from request to collection at the meal counter", "method": "template_value_stream_map", "inputs": {
+        "blocks": {
+            "process_steps": [{"text": "Take the order, assemble the meal, pack it, and the student collects and pays", "provenance": "synthetic"}],
+            "cycle_and_lead_times": [{"text": "Taking the order takes about a minute, assembling and packing four, and the wait at noon is twelve", "provenance": "synthetic"}],
+            "inventory_wip": [{"text": "Packed meals wait on the shelf in a batch of roughly fifteen before collection", "provenance": "synthetic"}],
+            "waits_delays": [{"text": "The flow stops in front of the oven, which bakes one tray at a time, and again at payment", "provenance": "synthetic"}],
+            "value_added": [{"text": "Cooking and packing change the meal; waiting for the oven and for payment do not (my judgement)", "provenance": "synthetic"}],
+            "improvements": [{"text": "Load the oven trays before the noon peak and measure the change in the noon wait", "provenance": "synthetic"}]}}},
+    "template_5s": {"objective": "Audit the meal counter against the five S", "method": "template_5s", "inputs": {
+        "blocks": {
+            "sort": [{"text": "Serving trays, spare menus and a broken card reader were taken off the counter bench", "provenance": "synthetic"}],
+            "set_in_order": [{"text": "Bread, trays, receipts and cleaning cloths each have a marked place under the bench", "provenance": "synthetic"}],
+            "shine": [{"text": "The oven and the counter are cleaned and inspected at close, and the log is signed", "provenance": "synthetic"}],
+            "standardize": [{"text": "A photograph of the bench with its marked places is posted at the door", "provenance": "synthetic"}],
+            "sustain": [{"text": "The supervisor audits the bench every Friday and writes the result on the day sheet", "provenance": "synthetic"}]}}},
+    "template_a3": {"objective": "State and counter the noon queue at the meal counter on one page", "method": "template_a3", "inputs": {
+        "blocks": {
+            "problem": [{"text": "At the noon peak the wait for a packed meal reaches twelve minutes against a five-minute standard", "provenance": "synthetic"}],
+            "current_condition": [{"text": "One oven bakes one tray at a time, and orders are only taken at the counter", "provenance": "synthetic"}],
+            "target": [{"text": "Hold the noon wait under five minutes without buying a second oven", "provenance": "synthetic"}],
+            "causes": [{"text": "Orders are taken only at the counter, so cooking cannot start before a student reaches it", "provenance": "synthetic"}],
+            "countermeasures": [{"text": "Take orders by phone from the break before noon and cook to those orders in one batch", "provenance": "synthetic"}],
+            "plan": [{"text": "The supervisor opens the phone line in week one and the kitchen tries two batches a day in week two", "provenance": "synthetic"}],
+            "follow_up": [{"text": "The noon wait is logged daily and reviewed after four weeks; a wait above eight minutes reopens the analysis", "provenance": "synthetic"}]}}},
+    "template_toc": {"objective": "Find and exploit the constraint at the meal counter", "method": "template_toc", "inputs": {
+        "blocks": {
+            "identify": [{"text": "The oven limits the counter: it bakes one tray at a time and no other step serves more meals than it bakes", "provenance": "synthetic"}],
+            "exploit": [{"text": "The oven never idles at noon: trays are loaded before the peak and the supervisor keeps it fed", "provenance": "synthetic"}],
+            "subordinate": [{"text": "Assembling and packing are paced to the oven's tray, not to the number of staff at the counter", "provenance": "synthetic"}],
+            "elevate": [{"text": "A second tray shelf shortens loading; the test is whether meals per hour rise at the same staff level", "provenance": "synthetic"}],
+            "reassess": [{"text": "If loading stops being the loss, the constraint may move to payment, where one reader serves every collection", "provenance": "synthetic"}]}}},
+    "template_root_cause": {"objective": "Trace the late noon hand-over at the meal counter to a cause", "method": "template_root_cause", "inputs": {
+        "blocks": {
+            "problem": [{"text": "Meals are handed over late at the noon peak, at the counter beside the main gate, every weekday", "provenance": "synthetic"}],
+            "people": [{"text": "Two of the three counter staff are new and take longer to assemble a meal", "provenance": "synthetic"}],
+            "process": [{"text": "Orders are taken only at the counter, so cooking cannot start until a student arrives", "provenance": "synthetic", "id": "PRC"}],
+            "equipment": [{"text": "The single oven bakes one tray at a time and has no second shelf", "provenance": "synthetic"}],
+            "materials": [{"text": "Bread arrives after the peak twice a week, so the first batch is delayed", "provenance": "synthetic"}],
+            "measurement": [{"text": "The wait is timed from collection, not from arrival, so the queue is not counted", "provenance": "synthetic"}],
+            "environment": [{"text": "The counter faces the gate and the noon sun, and the serving area has no shade", "provenance": "assumption"}],
+            "root_cause": [{"text": "Taking orders only at the counter is the cause the timings support; the oven and the rota add to it", "provenance": "synthetic", "id": "RC"}]},
+        "links": [{"from": "PRC", "to": "RC"}]}},
+    "template_fmea": {"objective": "Anticipate how the meal counter fails at the noon peak", "method": "template_fmea", "inputs": {
+        "blocks": {
+            "failure_modes": [{"text": "A meal is packed with the wrong filling; the card reader fails at collection; the bread runs out", "provenance": "synthetic"}],
+            "effects": [{"text": "The wrong filling means a complaint and a remake; a failed reader lengthens the queue; a sell-out loses the sale", "provenance": "synthetic"}],
+            "causes": [{"text": "The filling is called out verbally; there is no spare reader; bread arrives once a day", "provenance": "synthetic"}],
+            "controls": [{"text": "The day sheet records remakes, the reader is tested at opening, and the bread order is fixed weekly", "provenance": "synthetic"}],
+            "actions": [{"text": "Read the filling back to the student, keep one spare reader at the counter and raise the Tuesday bread order", "provenance": "synthetic"}],
+            "owners": [{"text": "The counter supervisor owns the first two actions and reviews them at the weekly rota meeting", "provenance": "synthetic"}]}}},
+    "template_kraljic": {"objective": "Place what the meal counter buys on the Kraljic portfolio", "method": "template_kraljic", "inputs": {
+        "blocks": {
+            "criteria": [{"text": "Profit impact is the share of meal cost; supply risk is how many alternative suppliers can serve within a week", "provenance": "synthetic"}],
+            "strategic": [{"text": "Bread from the single regional bakery: a high cost share and no alternative supplier at short notice", "provenance": "synthetic"}],
+            "leverage": [{"text": "Vegetables from the wholesale market: a high cost share with several sellers", "provenance": "synthetic"}],
+            "bottleneck": [{"text": "The gas contract for the oven: a low cost share with one supplier for the building", "provenance": "synthetic"}],
+            "non_critical": [{"text": "Packaging, receipts and cleaning cloths: a low cost share with many sellers", "provenance": "synthetic"}]}}},
+    "template_sop": {"objective": "Set the five plans of the meal counter beside each other", "method": "template_sop", "inputs": {
+        "blocks": {
+            "demand_plan": [{"text": "The plan assumes the same number of meals as last term, with a peak of ninety at noon", "provenance": "synthetic"}],
+            "supply_plan": [{"text": "One oven, three counter staff and one bread delivery a day can serve the peak if two batches are pre-loaded", "provenance": "synthetic"}],
+            "inventory_plan": [{"text": "Half a day of bread and a day of dry goods are held; nothing perishable is held overnight", "provenance": "synthetic"}],
+            "capacity_plan": [{"text": "Capacity binds at the oven during the noon hour, not at the counter", "provenance": "synthetic"}],
+            "financial_plan": [{"text": "At the current price the plan holds its margin only if no second oven is bought this term", "provenance": "synthetic"}],
+            "decisions": [{"text": "The plans disagree on the peak: demand needs two pre-loaded batches, so the kitchen shifts prep earlier", "provenance": "synthetic"}]}}},
+    "template_pdca": {"objective": "Run one improvement cycle on the noon wait at the meal counter", "method": "template_pdca", "inputs": {
+        "blocks": {
+            "plan": [{"text": "Reduce the noon wait from twelve minutes to five by taking phone orders before the break", "provenance": "synthetic"}],
+            "do": [{"text": "The phone line ran for three weeks at the main gate counter only", "provenance": "synthetic"}],
+            "check": [{"text": "The noon wait fell to seven minutes on four of five days; Wednesday stayed at eleven", "provenance": "synthetic"}],
+            "act": [{"text": "The change is written into the opening checklist, and Wednesday is the next cycle's problem", "provenance": "synthetic"}]}}},
+
 }
 
 

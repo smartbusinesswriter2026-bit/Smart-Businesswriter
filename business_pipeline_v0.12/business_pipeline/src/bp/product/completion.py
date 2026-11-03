@@ -195,8 +195,19 @@ def _quote_block(profile, block, instruction):
     not retype it into the worksheet.  Nothing is paraphrased, reworded or
     inferred: a sentence that does not mention the block's cues is not borrowed
     for it, and a part with no matching sentence is a named gap.
+
+    **What may be borrowed is declared, not inferred from the retrieval cues.**
+    `cues` is the vocabulary a *source* is accepted on, and it carries words every
+    business brief uses ("change", "review", "cost", "quality", "flow"), so
+    matching on it quoted "The manager reviews the change next term" into a cell
+    asking what was standardised (D-OPS-03, the same class as D-MGT-03).  A block
+    may declare `quote_cues`: the words that make a sentence *about this part*.
+    When it does, only those are matched; an empty declaration means the part is
+    never taken from the brief at all (it is a judgement or a figure), and the
+    block falls through to the research path and then to a named gap.
     """
-    cues = set(str(block.get("cues") or "").lower().split())
+    declared = block.get("quote_cues")
+    cues = set(str(block.get("cues") if declared is None else declared or "").lower().split())
     items = []
     for sentence in _SENTENCE.split(instruction):
         text = _clean(sentence, 600)
@@ -214,8 +225,13 @@ def _gap_note(profile, block):
     probe = notes.get("probe") or block.get("probe")
     fill = framework_profiles.fill_of(block)
     if fill == "gap":
+        # D-OPS-04: the sentence says the part is the student's, but a gap must also
+        # say *what* to state (V-02).  Both `gap` blocks in the corpus are the value
+        # stream map's judgement and proposal cells, and both declare a probe that
+        # never reached the paper.
         return ("This part is a judgement or a proposal only you can state, so it is left for you and never "
-                "filled by the pipeline.")
+                "filled by the pipeline."
+                + ((" What to state: " + probe + ".") if probe else ""))
     background = (profile.get("assumption") == "probe"
                   and all(framework_profiles.fill_of(item) == "research" for item in profile["blocks"]))
     if background:
@@ -1177,8 +1193,22 @@ def _draft_data(result, length="mid"):
             else:
                 assumptions += 1
     listed = ", ".join("%s (%d)" % (label, count) for label, count in zip(labels, counts)) or "no dimension"
-    strongest = labels[counts.index(max(counts))] if counts else "none of the dimensions"
-    weakest = labels[counts.index(min(counts))] if counts else "none of the dimensions"
+    #: How the accepted items are spread over the parts.  This line used to read
+    #: "X carries the most weight ... while X carries the least": it ranked the
+    #: parts, which the shelf declares it never does, and `index(max())` and
+    #: `index(min())` name the *same* part whenever every count is equal — which is
+    #: what an operations completion usually produces, one item per part.  A count
+    #: of items is a fact; "weight" was a claim, so the fact is what is printed.
+    if not counts:
+        spread = ""
+    elif max(counts) == min(counts):
+        spread = ("Each of them carries the same number of accepted items, so on this "
+                  "evidence none is better supported than another.")
+    else:
+        spread = ("%s carries the most accepted items (%d) and %s the fewest (%d); a count "
+                  "of items is not a measure of how much each one settles."
+                  % (labels[counts.index(max(counts))], max(counts),
+                     labels[counts.index(min(counts))], min(counts)))
     plural = voice.get("block_plural") or "dimensions"
     singular = _singular(plural)
     interaction = (voice.get("interaction") or "").strip()
@@ -1235,8 +1265,8 @@ def _draft_data(result, length="mid"):
         ],
         "conclusion": [
             ("The analysis set out to establish, " + singular + " by " + singular + ", what the accepted evidence "
-             "implies for the decision. The " + plural + " with evidence are " + listed + ", and " + strongest +
-             " carries the most weight in the reading offered here, while " + weakest + " carries the least."),
+             "implies for the decision. The " + plural + " with evidence are " + listed + "."
+             + ((" " + spread) if spread else "")),
             ("The proposition advanced in the introduction is supported only to the extent that the items reach. "
              "The paper does not make the decision; it identifies the conditions that any justification must "
              "address."),
@@ -1350,7 +1380,17 @@ def _sections(data, blocks, style, citations, result):
                      if _kind(item) == "sourced" and item.get("source")]
         cites = list(dict.fromkeys(cite for cite in cites if cite))
         if cites and paragraphs:
-            paragraphs[0] = paragraphs[0].rstrip() + " " + " ".join(cites)
+            # The block's own item lines already carry their citation (a sourced
+            # item is printed as text + citation above).  Appending the block's
+            # citations again printed "(Lovelace, 2024) (Lovelace, 2024)" in every
+            # evidenced cell of every framework paper: a reader sees a doubled
+            # reference, and the second copy is the product talking, not the source.
+            # A citation that is genuinely missing is still added, so the guarantee
+            # that every reference reaches its own section has not moved.
+            line = paragraphs[0].rstrip()
+            missing = [cite for cite in cites if cite not in line]
+            if missing:
+                paragraphs[0] = line + " " + " ".join(missing)
         sections.append(paper.section(block.get("label") or key, 2, paragraphs))
     sections += [
         paper.section("Discussion", 1),

@@ -1,0 +1,51 @@
+SCOR Supply-Chain Analysis: The Lunch Service at the Meal Counter Takes an Order
+A Student
+Example University
+November 03, 2026
+SCOR Supply-Chain Analysis: The Lunch Service at the Meal Counter Takes an Order
+Introduction
+The decision under examination is whether to proceed with the course of action set out in the brief. The unit of analysis is the chain rather than the firm, because a supply chain is a sequence of processes that only works when each hands on to the next. The evidence base is confined to the items accepted for the case.
+The analysis treats each of the 6 processes in turn: plan, source, make, deliver, return, enable. Each is established from the accepted evidence and then interpreted, with attention to its effect on the decision.
+The argument advanced is that the processes supported by evidence constrain the decision, and that a process for which no evidence is recorded cannot be treated as favourable. The conclusion returns to this proposition.
+The Supply Chain and Its Scope
+The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant chain is the one named in the brief; the processes are properties of that chain rather than of the organisation as a whole.
+Evidence is limited to the accepted items. A process without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
+SCOR
+SCOR describes a supply chain through six processes - plan, source, make, deliver, return and enable. Each is treated in turn, first through the evidence accepted for the case and then through what that evidence implies for the decision.
+Plan
+Evidence on the lunch service at the meal counter lunch service meal demand and supply planning in this chain. A second sentence follows it. (Lovelace, 2024)
+Planning is where demand and supply are reconciled. Without it each process optimises itself and the chain holds inventory instead of information. The relevant question is whether a plan exists and what it is based on.
+Source
+Evidence on the lunch service at the meal counter lunch service meal procurement and supplier management in this chain. A second sentence follows it. (Lovelace, 2024)
+Sourcing determines what the chain may consume and on what terms. A single source for a critical input moves the chain's risk onto that supplier. The relevant question is whether the declared sourcing can hold at the rate the plan assumes.
+Make
+Evidence on the lunch service at the meal counter lunch service meal production process in this chain. A second sentence follows it. (Lovelace, 2024)
+Making turns inputs into the offer. Its capacity and quality set what the chain can promise downstream. The relevant question is whether making can deliver what the plan sells.
+Deliver
+Evidence on the lunch service at the meal counter lunch service meal distribution and delivery in this chain. A second sentence follows it. (Lovelace, 2024)
+Delivery moves the offer to the customer, and its reliability is what the customer experiences. The relevant question is whether delivery can meet the promise the plan makes.
+Return
+Evidence on the lunch service at the meal counter lunch service meal returns and reverse logistics in this chain. A second sentence follows it. (Lovelace, 2024)
+Returns close the loop: defects, recalls and credits. A chain without a return path pays for them somewhere else. The relevant question is what comes back and whether the chain can absorb it.
+Enable
+Evidence on the lunch service at the meal counter lunch service meal governance and enabling processes in this chain. A second sentence follows it. (Lovelace, 2024)
+Enabling processes - rules, data, contracts, people - are what let the other five work together. The relevant question is whether the enabling layer is in place.
+Discussion
+What the Evidence Shows About the Chain
+The case supplies 6 accepted items across the processes: 6 sourced items, 0 items of the student's own evidence and 0 case assumptions. The processes carrying evidence are Plan (1), Source (1), Make (1), Deliver (1), Return (1), Enable (1), while 0 process(s) are recorded as gaps.
+Read together, the processes describe a chain in which some conditions are evidenced and others are not, and a process without accepted evidence cannot be treated as sound. A process without evidence carries no weight in the assessment, because a gap is not a finding and cannot be read as either a strength or a weakness.
+Implications for the Decision the Chain Must Serve
+The combined reading bears on the decision: the documented conditions must be answered by the proposed position, and the plan must show how each would be met. A process that appears weak in the evidence is not thereby one that can be disregarded; it is a process the case has not documented.
+A decision the chain must serve has to satisfy the processes the evidence shows: demand must be planned against supply, sourcing must hold, and delivery must reach the customer the plan names. The decision itself remains the student's.
+Limitations
+The analysis does not rate the processes, compute an aggregate score or recommend a decision, because the accepted items do not support a quantitative comparison across them. Several processes may rest on a single item, which limits the weight they can bear; an assumption is not a source and a gap is not a finding. The student must verify every item before submission.
+Conclusion
+The analysis set out to establish, process by process, what the accepted evidence implies for the decision. The processes with evidence are Plan (1), Source (1), Make (1), Deliver (1), Return (1), Enable (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
+The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
+References
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal demand and supply planning in this chain. Journal of Operations Management. 10.1/363646
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal procurement and supplier management in this chain. Journal of Operations Management. 10.1/458237
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal production process in this chain. Journal of Operations Management. 10.1/681786
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal distribution and delivery in this chain. Journal of Operations Management. 10.1/744272
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal returns and reverse logistics in this chain. Journal of Operations Management. 10.1/619655
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal governance and enabling processes in this chain. Journal of Operations Management. 10.1/336903

@@ -23,7 +23,10 @@ from unittest import mock
 
 sys.path.insert(0, "src")
 
-from bp.product import api, completion, framework_profiles as P, paper, subjects  # noqa: E402
+from bp import server  # noqa: E402
+from bp.orchestrator import Pipeline  # noqa: E402
+from bp.product import (api, completion, framework_profiles as P, paper,  # noqa: E402
+                        session_paper, subjects)
 
 INDUSTRY = "grocery retail"
 BRIEFS = {
@@ -35,7 +38,11 @@ BRIEFS = {
     "unit": "The campus shop is reviewing its offer before deciding whether to change it.",
 }
 LONG = re.compile(r"\d\.\d{6,}")
-REPR = ("{'", "['", "('", "'}", "']", "')")
+#: Shapes a Python `repr` leaves in a paper and English never does.  `('` and `')`
+#: were here until the operations session: they fire on ordinary parenthetical
+#: English ("A problem stated as a solution ('we need a second oven') hides the
+#: gap"), which is a harness false positive, not a product defect.
+REPR = ("{'", "['", "'}", "']", ",'")
 TITLES = (
     "Overhead costs and administrative support functions in grocery retail",
     "Recruitment and training practices in grocery retail",
@@ -195,6 +202,12 @@ def check(template, sources, problems):
 def deep(template, result, report, text, problems, sources=True):
     """What a reader can check beyond the shape: evidence, references, the figure."""
     profile = P.PROFILES[template]
+    #: A `quote` or `gap` cell is the student's own process: a sourced item is not
+    #: expected there, so the "no evidence reached the paper" alarm applies only to
+    #: a profile that researches for at least one of its own parts.  A value stream
+    #: map has no such part, and alarming on it was the harness's own false positive.
+    researched = [block["key"] for block in profile["blocks"]
+                  if P.fill_of(block) in ("research", "auto")]
     sourced = [(block["key"], item) for block in result["blocks"]
                for item in block["items"] if item.get("provenance") == "sourced"]
     if sourced:
@@ -224,7 +237,7 @@ def deep(template, result, report, text, problems, sources=True):
                         if cite not in section_text:
                             problems.append((template, block["key"],
                                              "citation %r missing from its section" % cite))
-    elif sources:
+    elif sources and researched:
         problems.append((template, "evidence", "no sourced item reached the paper"))
 
     # a named gap must say what to state, not just that something is missing
@@ -304,6 +317,71 @@ def routes(problems):
         problems.append((template, "route", "an unknown template was accepted"))
 
 
+def tool_paper(preset_id):
+    """The shelf's compute tool, driven the way the page drives it.
+
+    preset -> Pipeline.run -> session_paper.docx_bytes -> the text a reader holds.
+    """
+    preset = server.PRESETS[preset_id]
+    request = {"objective": preset.get("objective") or "operations probe",
+               "method": preset["method"], "inputs": dict(preset["inputs"])}
+    delivery = Pipeline().run(request, lambda spec: True)
+    if delivery.status != "delivered":
+        raise RuntimeError("blocked: %s" % delivery.blocked_reason)
+    bundle = {"report": delivery.report, "appendix": delivery.appendix}
+    #: The sections that carry a computed figure.  A declared tolerance in the
+    #: Limitations prose ("Float reference comparison tolerance is 1e-9 relative")
+    #: is the method describing itself, not a figure, so the scientific-notation
+    #: alarm is scoped here and not to the whole paper.
+    figures = "\n".join(line for heading, lines in session_paper.sections(bundle)
+                        if heading in ("Result", "Inputs and results")
+                        for line in lines)
+    return delivery, bundle, text_of(session_paper.docx_bytes(bundle)), figures
+
+
+def tools(problems):
+    """Every compute tool on the shelf: delivered, readable, and free of a raw figure."""
+    print("\n%-14s %-26s %7s %6s" % ("tool", "method", "checks", "words"))
+    for tool in subjects.detail("operations")["tools"]:
+        key, preset_id = tool["key"], tool["preset"]
+        try:
+            delivery, bundle, text, figures = tool_paper(preset_id)
+        except Exception as error:                              # noqa: BLE001
+            problems.append((key, "tool", "PRESET %s RAISED: %s" % (preset_id, error)))
+            continue
+        again = tool_paper(preset_id)
+        if again[2] != text:
+            problems.append((key, "tool", "two identical runs produced a different paper"))
+        appendix = delivery.appendix
+        if not appendix.get("tests"):
+            problems.append((key, "tool", "the delivery carries no checks"))
+        if not delivery.report.strip():
+            problems.append((key, "tool", "the delivery carries no report"))
+        for where, body in (("report", delivery.report), ("paper", text)):
+            if not body.strip():
+                problems.append((key, where, "empty"))
+                continue
+            hit = LONG.search(body)
+            if hit:
+                problems.append((key, where, "raw decimal %r" % hit.group(0)))
+            for mark in REPR:
+                if mark in body:
+                    problems.append((key, where, "Python repr %r" % mark))
+            for fragment in ("How this was produced", "Specification hash", "Code hash",
+                             "Outputs hash", "Document hash", "Specification"):
+                if fragment in body:
+                    problems.append((key, where, "specification footer %r" % fragment))
+            if "Diagram to draw" in body:
+                problems.append((key, where, "promises a diagram"))
+            for placeholder in paper.META:
+                if placeholder in body.lower():
+                    problems.append((key, where, "placeholder %r printed" % placeholder))
+        if re.search(r"\d[eE][+-]\d", figures):
+            problems.append((key, "figure", "scientific notation in a computed figure"))
+        print("%-14s %-26s %7d %6d" % (key, tool["method"], len(appendix.get("tests") or []),
+                                       len(text.split())))
+
+
 def main(argv):
     shelf = {sheet["template"] for sheet in subjects.detail("management")["worksheets"]}
     templates = argv or sorted(shelf)
@@ -316,6 +394,7 @@ def main(argv):
         if report:
             print("%-34s %-8s %7d %6d" % (template, "ok", len(result["blocks"]), report["words"]))
     routes(problems)
+    tools(problems)
     print("\n%d problem(s)" % len(problems))
     for template, where, what in problems:
         print("  %-34s %-12s %s" % (template, where[:12], what[:150]))
