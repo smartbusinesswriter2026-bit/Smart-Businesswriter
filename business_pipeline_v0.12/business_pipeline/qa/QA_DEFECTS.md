@@ -370,7 +370,7 @@ the sweep is now a test over all 75 profiles, so a tenth cannot appear quietly.
 
 ---
 
-## Session 10 — `research` (2026-11-03) · opening `6c7073c`, branch `corpus/merge-v1`
+## Session 11 — `research` (2026-11-03) · opening `6c7073c`, branch `corpus/merge-v1`
 
 Probe: `qa/probe_research_shelf.py` — inventory, **both vocabularies** (`tool["key"]` vs
 `tool["method"]`), the ten records, the declared contract, one real paper per tool, the figures, and an

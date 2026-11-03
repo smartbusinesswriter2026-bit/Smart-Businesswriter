@@ -1,4 +1,4 @@
-﻿# QA state
+# QA state
 
 ## Session 10 — `people` (2026-11-03) · branch `corpus/merge-v1`, opening commit `b393743`
 
@@ -103,7 +103,7 @@ in flight, and this shelf's is `qa/manual/people.md`.
 
 ---
 
-## Session 10 — `research` (2026-11-03) · branch `corpus/merge-v1`, opening commit `6c7073c`
+## Session 11 — `research` (2026-11-03) · branch `corpus/merge-v1`, opening commit `6c7073c`
 
 **Subject chosen by the work order.** Manual: `qa/manual/research.md` (53 E-rows, 10 sections).
 Suite: `tests/test_subject_research_acceptance.py` (**53 tests, 53 passed**). Evidence:
@@ -148,28 +148,11 @@ B-214 (4 dp; the paper reads `-22.8067`)**.
 
 ### Next subject, and its top three risks
 
-**`people` is the last shelf with no manual and no acceptance suite** (11 shelves, 9 with suites; the
-marketing shelf has a suite but its manual is a stub). Its top three risks, from what this session
-measured on the adjacent shelves:
+**`marketing` is the last shelf without an acceptance manual** (11 shelves, 10 with manuals; the People shelf has `qa/manual/people.md` at 51,696 bytes with 84 acceptance tests, and the Research shelf has `qa/manual/research.md` with 53 E-rows). Its top three risks, from what this session measured on the adjacent shelves:
 
-1. **A shelf can ship a method and deny it in the same page.** `people` carries `alpha`, `weighted`,
-   `descriptive`, `chi_square`, `power`, `pearson`, `ols` — six of which are this shelf's methods. Any
-   `PPL-`/`CHG-` record that says "not implemented" while linking one is the D-RES-01 class again, and
-   `test_catalogue_truth` only catches it where a link exists.
-2. **`people` shares this shelf's calculators, so its figures inherit D-RES-05.** Its `alpha` and
-   `weighted` papers print at 4 dp and its `chi_square`/`power` at their own; a precision change here
-   moves that shelf's papers too.
-3. **The level/tile gap is shelf-wide, not research-only.** Nine of `people`'s ten tools carry
-   `STUDENT_NOTES`; if any lacks a `group`, its page falls back to the flat list exactly as this one
-   did, and `scripts/econ_shelf.py --check` does not look at `people` at all.
-
-**Owner decisions:** (a) **D-RES-05 is closed** — `logistic_regression` now declares 4 decimal places
-and its paper reads `-22.8067` (B-214). (b) **D-RES-04 is closed too**, after the owner authorised the
-unfreeze (B-215): the honesty block gained a fifth field `this_method`, carrying a descriptive method's
-own caveats, added only when the four standard fields are empty. `power` and `missing` now print
-"Honesty: what was not done / this method: Power is a planning property of the design…" and
-"…They are honest bounds, not estimates…". `tests/test_honesty.py` was **strengthened** to assert the
-rule rather than a fixed key set, so the drift this session found cannot return silently.
+1. **Reachability will dominate its inventory.** `docs/OPEN_ISSUES.md` Item 15 measures 16 marketing worksheets that are built and offered on no shelf page (they appear as record rows carrying the status "Worksheet" that cannot be opened), plus `STR-19` and `CHG-15` on no page at all. That session must decide which shelf owns each one — a curriculum decision, not a wiring fix.
+2. **Two declared-template defects are already known and unfixed.** `template_servqual` is declared in both `CANVAS_BLOCKS` and `MATRIX_META` (the D-MKT-04 family), and `MKT-07` (SERVQUAL) is deliberately hidden by B-198 — so the suite's green depends on the hiding, not on the form.
+3. **D-PPL-01 will surface there too.** Marketing shares `alpha`, `chi_square`, `power`, `unitecon`, `cohort` and `abtest`; every marketing tool that returns a `@unit` output under a currency request prints that unit with a money prefix, and the unit audit is the only thing that catches it. Run the audit before anything else.
 
 ---
 

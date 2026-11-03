@@ -4250,7 +4250,7 @@ way with or without this change.
 
 ---
 
-## Session 10 of 11 — `research` (2026-11-03) · opening `6c7073c`
+## Session 11 of 11 — `research` (2026-11-03) · opening `6c7073c`
 
 **Asked.** Verify, debug and repair the Research & statistics shelf, subject by subject, without
 opening any other shelf. Ground truth to re-measure (not copy): 21 tools, 0 worksheets, 0 tiles,
@@ -4293,7 +4293,7 @@ by a test that fails the day it changes. The nine null levels stayed null becaus
 only (B-213). Four tools still ship with `preset: null` (typed-input mode, the same as finance's
 `ols_robust`), and adding presets is an owner decision.
 
-**Open/next.** The people shelf is the last subject with no manual and no acceptance suite. Its top
+**Open/next.** The marketing shelf is the last subject without an acceptance manual. Its top
 three risks, and the two owner decisions this session could not take, are in `qa/QA_STATE.md`.
 
 ### Follow-up, same session — the owner answered "YES"
