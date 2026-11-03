@@ -52,6 +52,15 @@ class AccountingTileTest(unittest.TestCase):
         self.assertIn('id="statements-tile"', page)
         self.assertIn("/api/cases/statements", page)
 
+    def test_the_tile_has_its_own_address(self):
+        """The tile is reachable by name: #/statements opens it, so it is never hunted for."""
+        with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
+            page = stream.read()
+        self.assertIn('href="#/statements"', page, "the tile link must carry the address")
+        self.assertIn('head === "statements"', page, "the router must open the tile from that address")
+        self.assertIn("window.openStatementsTile = open;", page,
+                      "the tile must expose the opener the router calls")
+
     def test_no_other_subject_gained_a_statements_tile(self):
         for subject in ("finance", "economics", "management", "operations", "marketing", "people"):
             keys = [tile["key"] for tile in subjects.detail(subject)["tiles"]]

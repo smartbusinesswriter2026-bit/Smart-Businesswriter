@@ -1655,6 +1655,16 @@ function route() {
     show("subject");
     return;
   }
+  if (head === "statements") {
+    /* The statements tile has its own address: #/statements opens it directly, so a student can
+       bookmark or share it instead of hunting for a tile on a shelf page. */
+    if (typeof window.openStatementsTile === "function") {
+      window.openStatementsTile();
+    } else {
+      window.addEventListener("load", function () { window.openStatementsTile(); });
+    }
+    return;
+  }
   if (head === "case" && parts[1]) {
     state.caseId = decodeURIComponent(parts[1]);
     show("case");
@@ -4277,10 +4287,11 @@ function subjectTiles(s) {
     if (tile.need) {
       html += '<p class="muted" style="margin:0 0 8px"><strong>Before you start:</strong> ' + esc(tile.need) + "</p>";
     }
-    /* A service tile runs the statements tile rather than a frozen preset (B-204). */
+    /* A service tile runs the statements tile rather than a frozen preset (B-204).  It is a link, so
+       the tile has its own address: #/statements. */
     if (tile.service === "statements") {
-      html += '<p style="margin:0 0 8px"><button class="btn" type="button" data-statements-open="1">' +
-        "Open the statements tile</button></p>";
+      html += '<p style="margin:0 0 8px"><a class="btn" href="#/statements" data-statements-open="1">' +
+        "Open the statements tile</a></p>";
     }
     if (!sheets.length && !rows.length && !tools.length && !tile.service) {
       html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
@@ -10186,11 +10197,20 @@ if (new URLSearchParams(location.search).get("pricing")) {
   }
   document.addEventListener("click", function (event) {
     var trigger = event.target.closest("[data-statements-open]");
-    if (trigger) { event.preventDefault(); open(); }
+    if (!trigger) return;
+    /* The link carries the address (#/statements), so the hash is allowed to change and the router
+       opens the tile from it.  That way the tile has a name a student can copy or bookmark. */
+    if (trigger.tagName !== "A") {
+      event.preventDefault();
+      open();
+      if (location.hash !== "#/statements") location.hash = "#/statements";
+    }
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") { close(); }
   });
+  /* The router calls this when the address is #/statements. */
+  window.openStatementsTile = open;
 
   }
 
