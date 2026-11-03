@@ -141,6 +141,15 @@ def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
     tb = _post(journal)
     res.trial_balance = tb
     res.journal = journal
+    # double-counting guard (G6): surface any non-operating addback accounts
+    try:
+        from . import double_counting as dc_guard
+        accts = [ln[0] for ln in journal]
+        addbacks = dc_guard.check_non_operating_addbacks(accts)
+        if addbacks:
+            res.diagnostics.append(f"non-operating addbacks present: {addbacks}")
+    except Exception:
+        pass
     # adjustment completeness guard (G5)
     try:
         from . import completeness as comp_guard
