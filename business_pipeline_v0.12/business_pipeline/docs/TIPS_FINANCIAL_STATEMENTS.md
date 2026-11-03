@@ -5,7 +5,7 @@
 >
 > - Code: `src/bp/statement_plan.py` (policy, chart, journal, adjustment DAG, articulation gate)
 >   and `src/bp/statement_extract.py` (the one model-touching step, with the grounding rule).
-> - Tests: `tests/test_statement_plan.py` (63 tests; a hand-derived golden engagement, variants, and
+> - Tests: `tests/test_statement_plan.py` (65 tests; a hand-derived golden engagement, variants, and
 >   the gate proved both ways). Live smoke: `qa/manual/extract-smoke.py` (one real model call).
 > - The tile these tips are about: Accounting → the first tile, **Financial statements**
 >   (`#/financial-statements`). Its UI state is `docs/HANDOFF_STATEMENTS_TILE.md`; its measured
@@ -204,7 +204,7 @@ through the same core: net income **42,075**, total assets **164,100**, operatin
 ```powershell
 Set-Location "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline"
 $env:PYTHONPATH="src"
-python -m unittest tests.test_statement_plan -v      # 63 tests, no key, no network
+python -m unittest tests.test_statement_plan -v      # 65 tests, no key, no network
 python qa/manual/extract-smoke.py                    # optional: one live model call (needs DEEPSEEK_API_KEY)
 ```
 

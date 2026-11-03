@@ -147,6 +147,13 @@ class FunctionRegistry(unittest.TestCase):
         # 100,000 receivables x 5% = 5,000 allowance; prior 2,000 -> expense 3,000
         self.assertEqual(sp.bad_debt_expense({"receivables": 100000, "rate": "0.05", "prior_allowance": 2000}, {}), D("3000.00"))
 
+
+    def test_tax_benefit_on_loss_computes_a_benefit(self):
+        self.assertEqual(sp.tax_benefit_on_loss({"pretax_income": -10000, "rate": "0.25"}, {}), D("2500.00"))
+
+    def test_tax_benefit_on_loss_is_zero_on_a_profit(self):
+        self.assertEqual(sp.tax_benefit_on_loss({"pretax_income": 10000, "rate": "0.25"}, {}), D("0.00"))
+
     def test_bad_debt_expense_clamps_a_recovery_to_zero(self):
         r = sp.bad_debt_expense({"receivables": 10000, "rate": "0.05", "prior_allowance": 1000}, {})
         self.assertEqual(r, D("0.00"))

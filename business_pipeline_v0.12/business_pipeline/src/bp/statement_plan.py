@@ -420,6 +420,23 @@ def bad_debt_expense(params, context):
     return money(amount, context.get("places", 2), context.get("rounding", "half_up"))
 
 
+def tax_benefit_on_loss(params, context):
+    """A tax benefit (deferred tax asset) arising from a tax loss.
+
+    benefit = -pretax_income x rate, when pretax_income < 0; otherwise zero. A loss is not a tax
+    benefit unless the jurisdiction allows a carryback or carryforward; this function computes the
+    arithmetic only and never invents a policy. The policy (carryback vs carryforward, years) is an
+    owner decision and must be stated in the problem text.
+    """
+    pretax = _dec(params.get("pretax_income", context.get("pretax_income", 0)), "pretax_income")
+    rate = _dec(params.get("rate", context.get("policy", {}).get("tax_rate")), "tax rate")
+    if rate < 0 or rate > 1:
+        raise PlanError("tax rate must be between 0 and 1")
+    if pretax >= 0:
+        return D(0)
+    return money(-pretax * rate, context.get("places", 2), context.get("rounding", "half_up"))
+
+
 FUNCTIONS = {
     "straight_line_depreciation": straight_line_depreciation,
     "reducing_balance_depreciation": reducing_balance_depreciation,
@@ -428,6 +445,7 @@ FUNCTIONS = {
     "periodic_cogs": periodic_cogs,
     "bad_debt_expense": bad_debt_expense,
     "tax_on_pretax": tax_on_pretax,
+    "tax_benefit_on_loss": tax_benefit_on_loss,
 }
 
 

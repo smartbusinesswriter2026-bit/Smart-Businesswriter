@@ -45,6 +45,7 @@ REGISTERED ADJUSTMENT FUNCTIONS (use only these, by exact name):
 - periodic_cogs: params {beginning_inventory (default 0), purchases, ending_inventory}. Amount = beginning + purchases - ending.
 - bad_debt_expense: params {receivables, rate, prior_allowance (default 0)}. Amount = receivables * rate - prior_allowance, clamped at zero. The rate is the percentage of receivables estimated uncollectible.
 - tax_on_pretax: params {} (the rate comes from policy.tax_rate). Amount = pre-tax income * rate; a loss earns no tax.
+- tax_benefit_on_loss: params {pretax_income, rate (optional; defaults to policy.tax_rate)}. Amount = -pretax * rate when pretax < 0, otherwise zero. Only emit when the text states a loss carryback or carryforward policy.
 Each adjustment needs "debit" and "credit" account codes from the chart, distinct.
 """
 
