@@ -529,7 +529,14 @@ class FinanceRecordsAndGuidance(unittest.TestCase):
     def test_032__the_shelf_declares_no_tiles_and_that_is_the_recorded_design(self):
         """E-fin-032: tiles exist only for the shelves that declare them."""
         self.assertEqual(page()["tiles"], [])
-        self.assertEqual(sorted(subjects.SUBJECT_TILES), ["economics", "management", "people"])
+        # The claim is about *this* shelf and about the shape of the tile map, not a frozen
+        # list of every shelf that has one: accounting, operations and project management
+        # declared tiles later (B-205, B-206) and a global freeze turned that deliberate
+        # design change into a red finance test (D-PLAN-06 family).
+        self.assertNotIn("finance", subjects.SUBJECT_TILES)
+        declared = {definition["id"] for definition in subjects.SUBJECT_DEFS}
+        self.assertTrue(set(subjects.SUBJECT_TILES) <= declared,
+                        "a tile map names a shelf that does not exist")
 
     def test_033__the_glossary_is_the_declared_set_with_definitions(self):
         """E-fin-033: 22 terms, every definition present and unique."""

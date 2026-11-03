@@ -36,6 +36,15 @@ code no longer did, and one was a test that passed alone and failed in the suite
   the list is updated and a *new* invisible worksheet fails it immediately. Which shelf
   owns each one stays a curriculum decision — marketing is not ours to move.
 
+- **Two more traps closed on the way out.** The finance acceptance test froze the *global*
+  tile map at three shelves, so accounting, operations and project management declaring
+  tiles (B-205, B-206) turned a finance test red that only ever meant "this shelf has
+  none"; it now asserts that (`finance` absent from `SUBJECT_TILES`, every tile key a
+  declared shelf) and is green again. And `HANDOFF.md` cited `B-180a` / `B-180b` — the
+  per-tier allowance and the bundle SKU set — with no register row, which the docs spine
+  fails on; both are now **PARKED** rows in `docs/DECISIONS.md`, quoting the owner question
+  as HANDOFF states it and inventing no answer.
+
 - 1.76 (2026-11-03): a brief with no shelf is no longer refused as the wrong shelf; one scorecard perspective can carry evidence again; three stale tests and one cached provider test corrected; the unserved worksheets are trapped. No method, number, gate or shelf membership changed.
 
 
