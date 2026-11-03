@@ -1,0 +1,228 @@
+﻿=== C1 CONTRACT ===
+
+-- breakeven -> breakeven
+   tier=T1 metric='breakeven_units' unit='units' ceiling='descriptive'
+   test_names(5)=['profit_at_breakeven_is_zero', 'contribution_margin_is_price_minus_variable', 'breakeven_revenue_is_units_times_price', 'margin_of_safety_is_expected_units_minus_breakeven', 'target_profit_raises_the_required_units']
+   intended_use: OK(189 chars)
+   unsupported_use: OK(115 chars)
+   assumptions(2): OK
+   limitations(3): OK
+   input_schema(5) missing type/desc: none
+      fixed                  decimal        req=True  total fixed cost
+      price                  decimal        req=True  price per unit
+      variable               decimal        req=True  variable cost per unit
+      expected_units         decimal        req=False optional expected sales volume, for the margin of safety
+      target_profit          decimal        req=False optional pre-tax profit target, for the required volume
+
+-- multibreakeven -> multi_product_breakeven
+   tier=T1 metric='breakeven_total_units' unit='units' ceiling='descriptive'
+   test_names(5)=['second_implementation_agrees', 'weighted_contribution_is_the_mix_weighted_margin', 'profit_at_break_even_is_zero', 'scaling_fixed_costs_scales_break_even_units', 'per_product_units_sum_to_the_total']
+   intended_use: OK(136 chars)
+   unsupported_use: OK(122 chars)
+   assumptions(3): OK
+   limitations(3): OK
+   input_schema(2) missing type/desc: none
+      fixed_costs            decimal        req=True  total fixed costs for the period
+      products               records        req=True  two or more products with a declared mix (mix_units are the relative q
+
+-- unitecon -> unit_economics
+   tier=T1 metric='unit_margin' unit='currency' ceiling='descriptive'
+   test_names(5)=['second_implementation_agrees', 'margin_is_price_minus_variable_cost', 'payback_is_acquisition_cost_over_margin', 'raising_price_raises_margin_by_the_same_amount', 'lower_churn_raises_ltv']
+   intended_use: OK(125 chars)
+   unsupported_use: OK(149 chars)
+   assumptions(2): OK
+   limitations(3): OK
+   input_schema(4) missing type/desc: none
+      price                  decimal        req=True  price per unit
+      variable_cost          decimal        req=True  variable cost per unit
+      acquisition_cost       decimal        req=True  cost to acquire one customer
+      churn_rate             decimal        req=False period churn in (0,1); if supplied, LTV = unit margin / churn
+
+-- forecast -> trend_forecast
+   tier=T1 metric='forecast_1' unit='from_request' ceiling='predictive'
+   test_names(5)=['second_implementation_agrees', 'out_of_sample_check_agrees', 'shift_moves_intercept_and_forecasts_not_slope', 'positive_scale_equivariance', 'bounded_and_consistent']
+   intended_use: OK(163 chars)
+   unsupported_use: OK(133 chars)
+   assumptions(3): OK
+   limitations(3): OK
+   input_schema(4) missing type/desc: none
+      values                 value_list     req=True  the time series in period order; blank or null counts as missing at th
+      horizon                decimal        req=False number of periods ahead to forecast, default 3 (a whole number from 1 
+      missing_codes          code_list      req=False user-defined missing codes
+      confidence_level       decimal        req=False default 0.95
+
+-- inventory -> inventory_policy
+   tier=T1 metric='economic_order_quantity' unit='units' ceiling='descriptive'
+   test_names(5)=['second_implementation_agrees', 'eoq_is_the_square_root_formula', 'doubling_demand_raises_the_eoq_by_the_square_root_of_two', 'reorder_point_covers_lead_time_demand', 'a_higher_service_level_never_lowers_safety_stock']
+   intended_use: OK(180 chars)
+   unsupported_use: OK(135 chars)
+   assumptions(3): OK
+   limitations(3): OK
+   input_schema(7) missing type/desc: none
+      annual_demand          decimal        req=True  units demanded in a year
+      order_cost             decimal        req=True  cost of placing one order
+      holding_cost_per_unit  decimal        req=True  cost of holding one unit for a year
+      lead_time_days         decimal        req=True  supplier lead time in days
+      days_per_year          decimal        req=False trading days in a year, default 365
+      service_level          decimal        req=False optional service level between zero and one, e.g. 0.95
+      daily_demand_sd        decimal        req=False optional standard deviation of daily demand, for safety stock
+
+-- queue -> queue_analysis
+   tier=T1 metric='utilisation' unit='ratio' ceiling='descriptive'
+   test_names(6)=['second_implementation_agrees', 'utilisation_is_arrival_over_servers_times_service', 'little_law_holds_in_the_system', 'little_law_holds_in_the_queue', 'queue_length_is_wait_probability_times_rho_over_one_minus_rho', 'one_server_matches_the_mm1_formula']
+   intended_use: OK(183 chars)
+   unsupported_use: OK(142 chars)
+   assumptions(3): OK
+   limitations(3): OK
+   input_schema(3) missing type/desc: none
+      arrival_rate           decimal        req=True  average arrivals per period
+      service_rate           decimal        req=True  average customers served per period by one server
+      servers                decimal        req=False number of interchangeable servers, default 1 (a whole number from 1 to
+
+-- capacity -> capacity_analysis
+   tier=T1 metric='max_output' unit='units' ceiling='descriptive'
+   test_names(5)=['second_implementation_agrees', 'capacity_is_available_minutes_over_minutes_per_unit', 'bottleneck_is_the_smallest_capacity', 'utilisation_is_demand_over_capacity', 'the_reported_bottleneck_index_points_at_the_smallest_capacity']
+   intended_use: OK(176 chars)
+   unsupported_use: OK(148 chars)
+   assumptions(2): OK
+   limitations(3): OK
+   input_schema(2) missing type/desc: none
+      resources              records        req=True  one record per resource: a name, the hours available in the period and
+      demand                 decimal        req=False optional demand for the period, for utilisation and the capacity gap
+
+-- missing -> missing_data_bounds
+   tier=T1 metric='pct_missing' unit='probability' ceiling='descriptive'
+   test_names(5)=['bounds_bracket_the_observed_mean', 'bounds_are_the_extreme_cases', 'bounds_widen_with_more_missing_values', 'percentage_is_missing_over_total', 'no_missing_values_means_a_zero_width_bound']
+   intended_use: OK(220 chars)
+   unsupported_use: OK(122 chars)
+   assumptions(2): OK
+   limitations(3): OK
+   input_schema(3) missing type/desc: none
+      values                 value_list     req=True  the observations; blank or null counts as missing
+      missing_codes          code_list      req=False user-defined missing codes such as 99; never read as values
+      mechanism              enum           req=False the mechanism you declare (recorded, not verified); default unknown
+
+
+=== PRESET -> IMPL -> TYPING ===
+
+-- breakeven | preset breakeven | found: True
+   inputs: {"fixed": "1000", "price": "20", "variable": "10"}
+   output keys: ['breakeven_revenue', 'breakeven_units', 'contribution_margin', 'contribution_margin_ratio']
+      breakeven_revenue            typing=('currency', 2)        precision=None   units=None
+      breakeven_units              typing=('units', 2)           precision=None   units=None
+      contribution_margin          typing=('currency', 2)        precision=None   units=None
+      contribution_margin_ratio    typing=('ratio', 4)           precision=None   units=None
+
+-- multibreakeven | preset multibreakeven | found: True
+   inputs: {"fixed_costs": "6000", "products": [{"mix_units": "3", "name": "coffee", "price": "5", "variable_cost": "2"}, {"mix_units": "1", "name": "cake", "price": "6", "variable_cost": "3"}]}
+   output keys: ['breakeven_revenue', 'breakeven_total_units', 'fixed_costs', 'total_mix_units', 'units_cake', 'units_coffee', 'weighted_contribution']
+      breakeven_revenue            typing=('currency', 2)        precision=None   units=None
+      breakeven_total_units        typing=('units', 2)           precision=None   units=None
+      fixed_costs                  typing=('currency', 2)        precision=None   units=None
+      total_mix_units              typing=('units', 2)           precision=None   units=None
+      units_cake                   typing=('units', 2)           precision=None   units=None
+      units_coffee                 typing=('units', 2)           precision=None   units=None
+      weighted_contribution        typing=('ratio', 4)           precision=None   units=None
+
+-- unitecon | preset unitecon | found: True
+   inputs: {"acquisition_cost": "80", "churn_rate": "0.04", "price": "49", "variable_cost": "12"}
+   output keys: ['acquisition_cost', 'churn_rate', 'ltv', 'ltv_cac', 'margin_pct', 'payback_periods', 'price', 'unit_margin', 'variable_cost']
+      acquisition_cost             typing=('currency', 2)        precision=None   units=None
+      churn_rate                   typing=('rate', 4)            precision=None   units=None
+      ltv                          typing=('currency', 2)        precision=None   units=None
+      ltv_cac                      typing=('ratio', 3)           precision=None   units=None
+      margin_pct                   typing=('rate', 4)            precision=None   units=None
+      payback_periods              typing=('ratio', 3)           precision=None   units=None
+      price                        typing=('currency', 2)        precision=None   units=None
+      unit_margin                  typing=('currency', 2)        precision=None   units=None
+      variable_cost                typing=('currency', 2)        precision=None   units=None
+
+-- forecast | preset forecast | found: True
+   inputs: {"horizon": "3", "missing_codes": [], "values": ["10", "12", "11", "14", "13", "16", "15", "18", "17", "20", "19", "22"]}
+   output keys: ['ci_lower_1', 'ci_lower_2', 'ci_lower_3', 'ci_upper_1', 'ci_upper_2', 'ci_upper_3', 'confidence_level', 'coverage_holdout', 'forecast_1', 'forecast_2', 'forecast_3', 'horizon', 'intercept', 'mae_holdout', 'n_excluded', 'n_fitted', 'n_holdout', 'p_slope', 'r_squared', 'residual_se', 'slope']
+      ci_lower_1                   typing=('@unit', 3)           precision=None   units=None
+      ci_lower_2                   typing=('@unit', 3)           precision=None   units=None
+      ci_lower_3                   typing=('@unit', 3)           precision=None   units=None
+      ci_upper_1                   typing=('@unit', 3)           precision=None   units=None
+      ci_upper_2                   typing=('@unit', 3)           precision=None   units=None
+      ci_upper_3                   typing=('@unit', 3)           precision=None   units=None
+      confidence_level             typing=('rate', 2)            precision=None   units=None
+      coverage_holdout             typing=('rate', 2)            precision=None   units=None
+      forecast_1                   typing=('@unit', 3)           precision=None   units=None
+      forecast_2                   typing=('@unit', 3)           precision=None   units=None
+      forecast_3                   typing=('@unit', 3)           precision=None   units=None
+      horizon                      typing=('count', 0)           precision=None   units=None
+      intercept                    typing=('@unit', 3)           precision=None   units=None
+      mae_holdout                  typing=('@unit', 3)           precision=None   units=None
+      n_excluded                   typing=('count', 0)           precision=None   units=None
+      n_fitted                     typing=('count', 0)           precision=None   units=None
+      n_holdout                    typing=('count', 0)           precision=None   units=None
+      p_slope                      typing=('probability', 4)     precision=None   units=None
+      r_squared                    typing=('ratio', 3)           precision=None   units=None
+      residual_se                  typing=('@unit', 3)           precision=None   units=None
+      slope                        typing=('@unit', 3)           precision=None   units=None
+
+-- inventory | preset inventory | found: True
+   inputs: {"annual_demand": "12000", "daily_demand_sd": "20", "holding_cost_per_unit": "30", "lead_time_days": "10", "order_cost": "500", "service_level": "0.95"}
+   output keys: ['annual_demand', 'annual_holding_cost', 'annual_ordering_cost', 'average_inventory', 'cycle_stock', 'daily_demand', 'daily_demand_sd', 'days_per_year', 'economic_order_quantity', 'holding_cost_per_unit', 'lead_time_days', 'order_cost', 'orders_per_year', 'reorder_point', 'safety_factor', 'safety_stock', 'service_level', 'total_annual_cost']
+      annual_demand                typing=('units', 2)           precision=None   units=None
+      annual_holding_cost          typing=('currency', 2)        precision=None   units=None
+      annual_ordering_cost         typing=('currency', 2)        precision=None   units=None
+      average_inventory            typing=('units', 2)           precision=None   units=None
+      cycle_stock                  typing=('units', 2)           precision=None   units=None
+      daily_demand                 typing=('units', 2)           precision=None   units=None
+      daily_demand_sd              typing=('units', 2)           precision=None   units=None
+      days_per_year                typing=('currency', 2)        precision=None   units=None
+      economic_order_quantity      typing=('units', 2)           precision=None   units=None
+      holding_cost_per_unit        typing=('currency', 2)        precision=None   units=None
+      lead_time_days               typing=('days', 2)            precision=None   units=None
+      order_cost                   typing=('currency', 2)        precision=None   units=None
+      orders_per_year              typing=('units', 2)           precision=None   units=None
+      reorder_point                typing=('units', 2)           precision=None   units=None
+      safety_factor                typing=('ratio', 4)           precision=None   units=None
+      safety_stock                 typing=('units', 2)           precision=None   units=None
+      service_level                typing=('rate', 4)            precision=None   units=None
+      total_annual_cost            typing=('currency', 2)        precision=None   units=None
+
+-- queue | preset queue | found: True
+   inputs: {"arrival_rate": "18", "service_rate": "24"}
+   output keys: ['arrival_rate', 'average_in_queue', 'average_in_system', 'average_time_in_system', 'average_wait_in_queue', 'offered_load', 'probability_empty', 'probability_waiting', 'servers', 'service_rate', 'utilisation']
+      arrival_rate                 typing=('count', 4)           precision=None   units=None
+      average_in_queue             typing=('ratio', 4)           precision=None   units=None
+      average_in_system            typing=('ratio', 4)           precision=None   units=None
+      average_time_in_system       typing=('periods', 4)         precision=None   units=None
+      average_wait_in_queue        typing=('periods', 4)         precision=None   units=None
+      offered_load                 typing=('ratio', 4)           precision=None   units=None
+      probability_empty            typing=('ratio', 4)           precision=None   units=None
+      probability_waiting          typing=('ratio', 4)           precision=None   units=None
+      servers                      typing=('count', 4)           precision=None   units=None
+      service_rate                 typing=('count', 4)           precision=None   units=None
+      utilisation                  typing=('ratio', 4)           precision=None   units=None
+
+-- capacity | preset capacity | found: True
+   inputs: {"demand": "50", "resources": [{"available_hours": "8", "minutes_per_unit": "5", "name": "cutting"}, {"available_hours": "8", "minutes_per_unit": "8", "name": "assembly"}, {"available_hours": "8", "minutes_per_unit": "3", "name": "packing"}]}
+   output keys: ['bottleneck_index', 'bottleneck_utilisation', 'capacity_1', 'capacity_2', 'capacity_3', 'capacity_gap', 'demand', 'max_output', 'utilisation_1', 'utilisation_2', 'utilisation_3']
+      bottleneck_index             typing=('count', 0)           precision=None   units=None
+      bottleneck_utilisation       typing=('ratio', 4)           precision=None   units=None
+      capacity_1                   typing=('units', 2)           precision=None   units=None
+      capacity_2                   typing=('units', 2)           precision=None   units=None
+      capacity_3                   typing=('units', 2)           precision=None   units=None
+      capacity_gap                 typing=('units', 2)           precision=None   units=None
+      demand                       typing=('units', 2)           precision=None   units=None
+      max_output                   typing=('units', 2)           precision=None   units=None
+      utilisation_1                typing=('ratio', 4)           precision=None   units=None
+      utilisation_2                typing=('ratio', 4)           precision=None   units=None
+      utilisation_3                typing=('ratio', 4)           precision=None   units=None
+
+-- missing | preset missing | found: True
+   inputs: {"mechanism": "unknown", "missing_codes": ["99"], "values": ["10", "12", "", "14", "99", "16"]}
+   output keys: ['_appendix', '_checks', 'bound_high', 'bound_low', 'bound_width', 'mean_observed', 'n_missing', 'n_valid', 'pct_missing']
+      _appendix                    typing=('@unit', 2)           precision=None   units=None
+      _checks                      typing=('@unit', 2)           precision=None   units=None
+      bound_high                   typing=('@unit', 2)           precision=None   units=None
+      bound_low                    typing=('@unit', 2)           precision=None   units=None
+      bound_width                  typing=('@unit', 2)           precision=None   units=None
+      mean_observed                typing=('@unit', 2)           precision=None   units=None
+      n_missing                    typing=('count', 0)           precision=None   units=None
+      n_valid                      typing=('count', 0)           precision=None   units=None
+      pct_missing                  typing=('probability', 4)     precision=None   units=None

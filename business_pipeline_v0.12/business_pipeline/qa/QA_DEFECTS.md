@@ -35,6 +35,32 @@ Suite: `tests/test_subject_operations_acceptance.py` (46 tests).
 | G-ops-01 | operations | Every worksheet paper; E-ops-018 | GAP → **FIXED** | PRESENTATION | before: `next((s["figure"] for s in report["sections"] if s.get("figure")), None)` was `None` for **all eleven** papers, because `matrix.LAYOUTS` had no operations entry | the figure geometry is declared per template for the strategy and marketing shelves only; the owner's instruction of 2026-11-03 was to build the eleven grids from the items already accepted, with no new number and no new evidence | `matrix.LAYOUTS` (eleven layouts) + `test_E_ops_018` | `test_E_ops_018__the_figure_carries_one_labelled_cell_per_block` (fails if a layout drops a block, mislabels a cell or leaves it blank) | FIXED (B-202) |
 
 
+---
+
+## Session 9 — `supply-chain` (opening `f699579`; the tree moved to `2cd3347` mid-session)
+
+Probes (not committed — they live outside the repo in the session's scratch directory):
+shelf inventory, unit audit via `method.typing`, parity transcript, worksheet completion,
+refusal sweep, and the produced `.docx`. Evidence: `qa/evidence/supply-chain/`.
+
+| id | shelf | subject | severity | class | what was measured | what it must do | owner | trap test | status |
+|---|---|---|---|---|---|---|---|---|---|
+| D-SCL-01 | supply-chain | `queue_analysis`, `inventory_policy`; E-scl-038 | **BLOCKER** | UNITS | `inventory_policy.days_per_year` → `("currency", 2)`; `queue_analysis.average_in_queue` and `average_in_system` → `("ratio", 4)`. The delivered report prints **"a wait of PHP 0.1250 periods"** because `periods` is absent from the currency-exempt list at `src/bp/orchestrator.py:235`, and `_queue_typing` / `_inventory_typing` fall through to a default | a count of days is `count`/`days`, a count of customers is `count`, and a time in periods carries no currency prefix | **core — owner-gated (work order §9)** | `test_E_scl_038` (pins the wrong units deliberately; invert it when fixed) | **BLOCKED** |
+| D-SCL-02 | supply-chain | `OPS-03`; E-scl-006 | MINOR | CATALOGUE | the tile is `draftable: False` while its catalogue row reads "worksheet available: structure and evidence audit only"; nothing on the page says why the button is missing | the row says the drafting button is off, and why | this shelf (presentation), row shared with Operations | `test_E_scl_006` | **LEDGERED** |
+| D-SCL-03 | supply-chain (shared) | `test_operations_frameworks`; §1.1 rows 1–4 | MINOR | WIRING | four errors: `KeyError: 'template_sipoc'` from `templates.EXAMPLES` — the `OPS-` example fixtures did not exist, so four worksheet behaviours were unverified on both shelves | restore the fixtures or retire the four tests with a reason; never leave a test that cannot run | **Operations session 8** (`2cd3347`, `src/bp/templates.py`) | `test_E_ops_007`, `test_E_ops_043` | **FIXED by the Operations lane mid-session** |
+| D-SCL-04 | supply-chain (shared) | paper drafting; §7 V-13 | MINOR | UI | a block with exactly one sourced item rendered its in-text citation twice: "(Lovelace, 2024) (Lovelace, 2024)" at H2 Inputs | one citation per sourced item | **Operations session 8** (`2cd3347`, `src/bp/product/completion.py`) | `test_E_ops_016`, `test_E_ops_045` | **FIXED by the Operations lane mid-session** |
+| D-SCL-05 | supply-chain (shared) | paper title page; §7 V-20 | MINOR | UI | no byline block: the title page carries title and date only, so a student has nowhere to put their name | a byline block that the student fills | shared drafting layer | — | **LEDGERED** |
+| G-scl-01 | supply-chain | `OPS-09`, `QNT-OPS-05`, `QNT-OPS-06` | GAP | WIRING | three `computed` records link `process_control`, `cpm_schedule` and `oee_analysis`, none of which has a tile on this page | a note naming the Operations shelf, or the three tiles | this shelf (presentation) | `test_E_scl_008` measures the link | **GAP** |
+| G-scl-02 | supply-chain | `inventory_policy`; E-scl-048 | GAP | UNITS | a monthly demand with a daily lead time is accepted as given; the caveat states the level-demand and constant-lead-time convention | disclosed, never silently converted | declared | `test_E_scl_048` | **GAP** |
+| G-scl-03 | supply-chain | all eight tools; E-scl-047 | GAP | VALIDATION | a rate entered as `6` is refused; a plausible-but-wrong decimal (0.6 for 6%) is taken as given, and the disclosure layer flags any rate above 100% | taken as given and disclosed | declared | `test_E_scl_047` | **GAP** |
+| G-scl-04 | supply-chain | all 11 profiles; §2.2 | GAP | CATALOGUE | every profile served here declares `subject: "operations"`; **0** declare `subject: "supply-chain"`, so a subject-keyed report files these papers under Operations | the harness files shared papers under both shelves (§7.1 of the harness doc) | crosswalk — the harness's own file | `test_E_scl_051`, `test_E_scl_053` | **GAP** |
+| G-scl-05 | supply-chain | V-12; §7.1 | GAP | HONESTY | the rule text says "a sourced item", `completion.missing()` accepts any item including the student's own words, so a literal V-12 pass and a product pass disagree on four dimensions | the owner's reading of "sourced" | **owner** | — | **DISPUTED** |
+
+**Fixed this session (2):** the documented test count (3184 → 3227 in `HOME.md`, `HANDOFF.md`,
+`CONTRIBUTORS.md`; `test_docs_sync` now passes) and the `CURRICULUM_MAP.md` supply-chain row
+(it now names all eleven worksheets and the unbuilt LP/network method; `test_E_scl_062`).
+
+---
 
 ## Session 7 — `project-management` (opening `84490ec`, 3084 tests, 40 failures, 6 errors)
 

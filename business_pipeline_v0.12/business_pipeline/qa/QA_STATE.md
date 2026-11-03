@@ -2,6 +2,125 @@
 
 ---
 
+## Session 9 — `supply-chain` (2026-11-03) · branch `corpus/merge-v1`, opening commit `f699579`, rebased onto `2cd3347`
+
+**Subject chosen by the work order.** Manual: `qa/manual/supply-chain.md` (62 E-rows, 12 sections).
+Suite: `tests/test_subject_supply_chain_acceptance.py` (**56 tests, 56 passed**). Evidence:
+`qa/evidence/supply-chain/` (the produced `.docx`, its stripped XML, the unit audit, the parity
+transcript, the worksheet-completion transcript).
+
+**A second lane closed two of this session's findings while it was in flight.** The Operations
+session (`2cd3347`, "the shelf is verified end to end") repaired `templates.EXAMPLES` (D-SCL-03)
+and the duplicated in-text citation in `completion._sections` (D-SCL-04). This session rebased
+onto it, re-produced its evidence paper and re-read it, and records both as fixed by that lane
+rather than as its own work.
+
+### Baseline (measured here, not assumed)
+
+| Measure | Documented | Measured |
+|---|---:|---:|
+| Tests | 3184 | **3171** |
+| Failures | 1 known | **6** |
+| Errors | — | **4** |
+| Wall time | — | 946 s |
+
+10 problems, all classified in the manual §1.1: **0 on this shelf**. Four were
+`test_operations_frameworks.ExampleTest` errors (`KeyError: 'template_sipoc'` — stale
+`templates.EXAMPLES`, D-SCL-03, since repaired by the Operations lane), one was the documented
+`test_docs_sync` count drift (fixed here), one is the known rail test, two are foreign-lane
+(paper store, balanced scorecard), two are network-dependent. On the final tree the same suite
+runs **3287 tests with 4 failures and 0 errors**.
+
+**Inventory confirmed exactly as the work order stated:** 8 tools · 11 worksheets (one not
+draftable) · 9 records (two read-only) · 0 theories · 20 glossary terms · 0 profiles with
+`subject == "supply-chain"`.
+
+### Delivered
+
+| Artefact | Content |
+|---|---|
+| `qa/manual/supply-chain.md` | The **28-item inventory** with a per-item verdict, a **ranked owner-gated proposal** (7 frameworks, nothing built), 62 E-rows reconciled 1:1, the **unit audit** of every output, the parity table, the V-01…V-20 reading of one paper, the defect ledger, residual risk |
+| `tests/test_subject_supply_chain_acceptance.py` | 56 tests — independent recomputation for all eight methods, the parity test against Operations, the boundary and refusal sweep, the unit audit |
+| `qa/evidence/supply-chain/` | `sipoc-paper.docx` (23,074 bytes), `sipoc-paper.txt`, `unit-audit.txt`, `parity.txt`, `worksheet-completion.txt` |
+| `qa/baseline/scl-*` | Baseline and after measurements |
+
+### Fixed (2)
+
+- **Documented test count.** `docs/HOME.md`, `docs/HANDOFF.md` and `docs/CONTRIBUTORS.md` said
+  3184 tests; the suite held 3171, and `test_docs_sync` failed on it. After the rebase onto
+  `2cd3347` the measured count is **3287**; all three documents now say 3287 and `test_docs_sync`
+  is green (7 passed).
+- **`docs/CURRICULUM_MAP.md` supply-chain row** said the shelf carried "the SIPOC and value stream
+  worksheets" when it carries all eleven, and did not name the unbuilt LP/network method. Both
+  corrected; pinned by `test_E_scl_062`.
+
+### Ledgered / declared (5 defects + 5 gaps)
+
+- **D-SCL-01 (BLOCKER class, UNIT).** `inventory_policy.days_per_year` is typed `currency`;
+  `queue_analysis.average_in_queue` / `average_in_system` are typed `ratio`. The delivered queue
+  report prints **"a wait of PHP 0.1250 periods"** — the B-190 family, student-visible. Core
+  (`src/bp/methods.py`, `src/bp/orchestrator.py`), so **owner-gated and not fixed**; pinned by
+  `test_E_scl_038`, which asserts the wrong units deliberately and must be inverted when fixed.
+- **D-SCL-02 (MINOR, declaration).** `OPS-03` has no drafting button while its catalogue row still
+  reads "worksheet available"; nothing says why. Pinned by `test_E_scl_006`.
+- **D-SCL-03 (MINOR, test fixture) — FIXED by the Operations session `2cd3347`.** Four
+  `test_operations_frameworks` errors (`KeyError: 'template_sipoc'`) meant the shared worksheet
+  test could not run; the other lane added the eleven worked examples.
+- **D-SCL-04 (MINOR, presentation) — FIXED by the Operations session `2cd3347`.** A block with one
+  sourced item printed its in-text citation twice; the re-produced paper cites once.
+- **D-SCL-05 (MINOR, presentation).** No byline block on the title page (V-20 partial).
+- **G-scl-01** three `computed` records (`OPS-09`, `QNT-OPS-05`, `QNT-OPS-06`) link methods with
+  **no tile on this page**. **G-scl-02** a monthly demand with a daily lead time is taken as given
+  and disclosed, not converted. **G-scl-03** a plausible-but-wrong decimal rate is taken as given
+  and disclosed. **G-scl-04** all eleven profiles served here declare `subject: "operations"`;
+  zero declare `subject: "supply-chain"`. **G-scl-05** V-12's word "sourced" means one thing in
+  the rule text and another in `completion.missing()` — **DISPUTED, owner's reading needed**.
+
+### The scope question, settled
+
+1. **Are the gaps stated where the student sees them? Yes.** `QNT-OPS-03` (LP/network
+   optimisation) and `QNT-OPS-07` (SPC measurement checks) both **render on this page** as
+   read-only records, because this shelf derives its catalogue from the discipline tags while
+   Operations lists its ids explicitly and omits both. That is the shelf being deliberately wider
+   than Operations, and it is the design working. **No defect.**
+2. **Frameworks of its own?** Seven proposed and ranked (safety-stock policy, ABC–XYZ, supplier
+   scorecard, bullwhip, network design, reverse logistics, Incoterms). **Nothing built.**
+3. **`missing_data_bounds` placement?** Defensible and stays — settled on one line of the method's
+   own output ("Under the extreme-case convention the complete-data mean lies between 12.00 and
+   14.00"), which is a demand-planning sentence, not a statistics one. No owner decision needed.
+
+### Gates at close
+
+| Gate | Result |
+|---|---|
+| Shelf acceptance suite | **56 passed, 0 skipped** |
+| `test_docs_sync` | **7 tests, 6 passed** — the count assertion passes; the decision-log crosswalk fails on `B-180a`/`B-180b` in `HANDOFF.md`, which the Operations lane added and which has no `DECISIONS.md` row (D-SCL-06, theirs) |
+| `test_frozen_contract` | **passed** (no core change) |
+| Full suite before (opening tree `f699579`) | **3171 tests, 6 failures, 4 errors** |
+| Full suite after (pre-rebase tree) | **3227 tests, 4 failures, 4 errors** — 0 new, 2 fewer (the docs-count fix and the flaky Brave→Firecrawl network test) |
+| Rebased onto `2cd3347` | **3287 tests** measured; shelf suite re-run green; documents set to 3287 |
+| Full suite on the final tree | **3287 tests, 4 failures, 0 errors** — 0 new, 0 errors, 6 fewer problems than the baseline |
+| `scripts/econ_shelf.py --check` | **frozen fixture: in sync** |
+| Live click-through on 8001 | **NOT RUN** — see the manual §10; the session's largest gap |
+
+### Next subject and its top three risks
+
+**Next: `people` (People & organisation).** It is the last shelf that owns its own framework
+profiles (18 of them) and has neither an acceptance manual nor an acceptance suite; `operations`
+was closed by the other lane in `2cd3347` while this session ran, and `marketing` is still open
+from session 6.
+
+1. **D-SCL-01 is still live on every shelf that shows `queue_analysis`.** A paper can contain
+   "a wait of PHP 0.1250 periods" today. The fix is core and owner-gated; whoever takes the next
+   shelf should ask for it once and let it land for all shelves together.
+2. **The `subject` field is empty for most of the product.** 0 profiles declare `supply-chain`;
+   the harness still has no canonical crosswalk (§7 of the harness doc), so a subject-by-subject
+   report depends on a hand-kept map.
+3. **A finding can be fixed underneath you.** Two of this session's five defects were repaired by
+   another lane mid-flight. Re-read before you commit, and re-measure before you report.
+
+---
+
 ## Session 8 — `operations` (2026-11-03) · branch `corpus/merge-v1`, opening commit `1660f25`
 
 **Subject chosen by the work order.** Manual: `qa/manual/operations.md` (46 E-rows). Suite:

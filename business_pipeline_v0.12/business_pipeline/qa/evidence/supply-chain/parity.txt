@@ -1,0 +1,65 @@
+﻿=== TOOL METADATA: supply-chain vs operations ===
+  breakeven      sc(group=Cost and mix period=per period) op(group=Process and capacity period=per period) match=True
+  multibreakeven sc(group=Cost and mix period=per period) op(group=Process and capacity period=per period) match=True
+  unitecon       sc(group=Cost and mix period=per period) op(group=Process and capacity period=per period) match=True
+  forecast       sc(group=Demand and planning period=per period) op(group=Inventory and planning period=per period) match=True
+  inventory      sc(group=Inventory and network period=annual) op(group=Inventory and planning period=annual) match=True
+  queue          sc(group=Inventory and network period=per period) op(group=Process and capacity period=per period) match=True
+  capacity       sc(group=Inventory and network period=per period) op(group=Process and capacity period=per period) match=True
+  missing        sc(group=Demand and planning period=per observation) op(group=Inventory and planning period=per observation) match=True
+
+=== WORKSHOPS: supply-chain vs operations ===
+  sc worksheets: ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+  op worksheets: ['OPS-01', 'OPS-02', 'OPS-03', 'OPS-04', 'OPS-05', 'OPS-06', 'OPS-07', 'OPS-08', 'OPS-10', 'OPS-11', 'OPS-12']
+  identical sets: True
+   OPS-01   template=template_scor                  draftable(sc=True op=True) same_label=True
+   OPS-02   template=template_sipoc                 draftable(sc=True op=True) same_label=True
+   OPS-03   template=template_value_stream_map      draftable(sc=False op=False) same_label=True
+   OPS-04   template=template_5s                    draftable(sc=True op=True) same_label=True
+   OPS-05   template=template_a3                    draftable(sc=True op=True) same_label=True
+   OPS-06   template=template_toc                   draftable(sc=True op=True) same_label=True
+   OPS-07   template=template_root_cause            draftable(sc=True op=True) same_label=True
+   OPS-08   template=template_fmea                  draftable(sc=True op=True) same_label=True
+   OPS-10   template=template_kraljic               draftable(sc=True op=True) same_label=True
+   OPS-11   template=template_sop                   draftable(sc=True op=True) same_label=True
+   OPS-12   template=template_pdca                  draftable(sc=True op=True) same_label=True
+
+=== RECORDS: supply-chain vs operations ===
+  sc records: [('OPS-09', 'computed'), ('QNT-OPS-01', 'computed'), ('QNT-OPS-02', 'computed'), ('QNT-OPS-03', 'read_only'), ('QNT-OPS-04', 'computed'), ('QNT-OPS-05', 'computed'), ('QNT-OPS-06', 'computed'), ('QNT-OPS-07', 'read_only'), ('QNT-OPS-08', 'computed')]
+  op records: [('OPS-09', 'computed'), ('QNT-OPS-01', 'computed'), ('QNT-OPS-02', 'computed'), ('QNT-OPS-04', 'computed'), ('QNT-OPS-05', 'computed'), ('QNT-OPS-06', 'computed'), ('QNT-OPS-08', 'computed')]
+
+=== PRESET RUN: appendix + outputs_hash ===
+  breakeven      status=delivered  outputs_hash=adce05621c0528a82feeb777a82f2cd086be2301902df09d9265969a887cad6e
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: At a contribution margin of 10.00 per unit, the business breaks even at 100.00 units, or 2,000.00 of sales. Break-even assumes constant unit price, constant variable cost and constant fixed cost over the relevant range. The margin of safety is measured against
+  multibreakeven status=delivered  outputs_hash=36012cd6748ee1c930a03e51e02ac3de5b566abd49bbd53fd7df9178d25445e6
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of USD 10,500.00 at the declared mix. The per-product break-even units are in the appendix. Break-even assumes a fixed product mix and constant unit prices 
+  unitecon       status=delivered  outputs_hash=70c22ba18fc452b29b5400700ca954f7c0dd19423bc33f7e45677d8757c5b6bb
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: The unit contribution margin is USD 37.00 (a margin rate of 75.51%), and payback takes 2.162 periods. At the declared churn rate the lifetime value is USD 925.00. The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; 
+  forecast       status=delivered  outputs_hash=2f9118b25bfc8614233a9280d5808a87faa260c94bafc6440d54c89db41097ff
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: The fitted linear trend on 12 observations has a slope of 1.003 per period and accounts for 0.930 of the variation in the series (0 entries excluded as missing). The forecast for the next 3 period(s) is 22.106 (interval at level 95.00% from 19.373 to 24.839); 
+  inventory      status=delivered  outputs_hash=09836a2abc6d45992cfe5f67f4d65b04f1f431dd3ef6a54df032762d9009f1aa
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: At an annual demand of 12,000.00, an order cost of PHP 500.00 and a holding cost of PHP 30.00 a unit, the economic order quantity is 632.46, ordered 18.97 times a year at a total cost of PHP 22,094.56. At the declared service level the safety stock is 104.03 a
+  queue          status=delivered  outputs_hash=d366d14f7dc122fb51a393b2bae422da962ec31a555e03116410bbf20976326c
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: At an arrival rate of 18 and 1 servers each serving 24, utilisation is 0.7500, with 2.2500 customers waiting on average and a wait of PHP 0.1250 periods. The model is a multi-server queue with random arrivals and service times (M/M/c), with constant average ra
+  capacity       status=delivered  outputs_hash=9fd6d84fe7f8a54bb6e547ed80fbf8e96a189db7f280326e021b04eb1add569b
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: The process capacity is 60.00 units, set by the bottleneck resource at position 2. At the declared demand of 50.00, the bottleneck runs at 0.8333 and the capacity gap is 10.00. Capacity is available hours times sixty over minutes per unit, with no allowance fo
+  missing        status=delivered  outputs_hash=04bd1f486853c6666914b9978cdd8e5756ec993a28e50caf77c69072ecfc2ce5
+      tests all pass: True
+      unresolved token in report: False
+      report snippet: The observed values have a mean of 13.00, with 2 of the entries missing (0.3333 of the total). Under the extreme-case convention the complete-data mean lies between 12.00 and 14.00. The declared missing-data mechanism is recorded as a declaration, not as a ver
+
+=== DISPLAY CHECK: does a currency-typed count print as money? ===
