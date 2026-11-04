@@ -10273,13 +10273,13 @@ if (new URLSearchParams(location.search).get("pricing")) {
       button.onclick = body;
       foot.appendChild(button);
     }
-    act("Download the statements", function () {
+    act(".docx", function () {
       fetchExport("statements_only", "Download the statements");
     });
-    act("Download the working", function () {
+    act(".xls", function () {
       fetchExport("working", "Download the working", "statements-" + record.id + "-working.txt");
     });
-    act("Replay this record", function () {
+    act("Explanation file", function () {
       fetch("/api/cases/statements/" + record.id + "/replay", {method: "POST"})
         .then(function (answer) { return answer.json(); })
         .then(function (body) {

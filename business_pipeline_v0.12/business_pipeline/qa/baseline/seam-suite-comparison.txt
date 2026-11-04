@@ -1,0 +1,147 @@
+HEAD vs WORKING TREE - the full suite, measured on 2026-11-04
+==============================================================================
+
+How this was measured
+------------------------------------------------------------------------------
+  HEAD          a byte-exact copy of HEAD: `git archive HEAD` into
+                .baseline_head/x, then every one of the 5775 tracked files
+                hash-compared against the HEAD blob (one generated file,
+                documents/index.json, restored byte-exactly).
+  working tree  the tree this increment ships, run in place.
+  command       python -m unittest discover -s tests -v
+
+HEAD baseline   : 3784 tests in 1101.491s  -> FAILED (failures=22, errors=39)
+working tree    : 3828 tests in 1104.932s  -> FAILED (failures=22, errors=38)
+
+HEAD problems      : 61
+working-tree probs : 60
+
+==============================================================================
+PRE-EXISTING (fail on HEAD and on the working tree): 59
+------------------------------------------------------------------------------
+   ERROR test_bad_debt.ItBalances.test_the_allowance_reduces_net_receivables.test_the_allowance_reduces_net_receivables
+   ERROR test_bad_debt.ItBalances.test_the_statement_balances_with_an_allowance.test_the_statement_balances_with_an_allowance
+   ERROR test_bad_debt.OrderingTrap.test_the_target_is_measured_after_the_write_off.test_the_target_is_measured_after_the_write_off
+   ERROR test_bad_debt.TargetMethod.test_a_target_below_the_existing_balance_reverses_the_allowance.test_a_target_below_the_existing_balance_reverses_the_allowance
+   ERROR test_bad_debt.TargetMethod.test_a_target_equal_to_the_existing_balance_posts_nothing.test_a_target_equal_to_the_existing_balance_posts_nothing
+   ERROR test_bad_debt.TargetMethod.test_the_movement_reaches_the_wanted_closing_balance.test_the_movement_reaches_the_wanted_closing_balance
+   ERROR test_bad_debt.WriteOff.test_a_target_that_restores_the_allowance_makes_a_large_write_off_acceptable.test_a_target_that_restores_the_allowance_makes_a_large_write_off_acceptable
+   ERROR test_bad_debt.WriteOff.test_a_write_off_clears_the_receivable_against_the_allowance.test_a_write_off_clears_the_receivable_against_the_allowance
+   ERROR test_deferrals.ItPostsInsideAnEngagement.test_the_engagement_balances_and_both_deferrals_clear.test_the_engagement_balances_and_both_deferrals_clear
+   ERROR test_deferrals.ItPostsInsideAnEngagement.test_the_t_accounts_show_the_payment_and_the_release.test_the_t_accounts_show_the_payment_and_the_release
+   ERROR test_depreciation_methods.ItPostsInsideAnEngagement.test_a_reducing_balance_schedule_posts_and_balances.test_a_reducing_balance_schedule_posts_and_balances
+   ERROR test_depreciation_methods.ItPostsInsideAnEngagement.test_a_units_schedule_posts_and_balances.test_a_units_schedule_posts_and_balances
+   ERROR test_disposal.ItSeesTheBooks.test_the_statement_still_balances_after_a_disposal.test_the_statement_still_balances_after_a_disposal
+   ERROR test_disposal.TheEntryIsCorrect.test_a_gain_is_credited.test_a_gain_is_credited
+   ERROR test_disposal.TheEntryIsCorrect.test_a_loss_is_debited.test_a_loss_is_debited
+   ERROR test_disposal.TheEntryIsCorrect.test_a_scrapped_asset_takes_the_full_net_book_value_as_a_loss.test_a_scrapped_asset_takes_the_full_net_book_value_as_a_loss
+   ERROR test_disposal.TheEntryIsCorrect.test_breaking_even_has_no_gain_or_loss_line.test_breaking_even_has_no_gain_or_loss_line
+   ERROR test_disposal.TrapTest.test_clearing_the_wrong_accumulated_would_leave_a_residue.test_clearing_the_wrong_accumulated_would_leave_a_residue
+   ERROR test_oci.ItClosesToTheReserve.test_the_balance_sheet_still_balances.test_the_balance_sheet_still_balances
+   ERROR test_oci.ItClosesToTheReserve.test_the_equity_statement_classifies_it.test_the_equity_statement_classifies_it
+   ERROR test_oci.ItClosesToTheReserve.test_the_oci_account_ends_at_zero.test_the_oci_account_ends_at_zero
+   ERROR test_oci.ItClosesToTheReserve.test_the_reserve_carries_the_amount.test_the_reserve_carries_the_amount
+   ERROR test_oci.ItIsPresentedSeparately.test_oci_is_zero_in_the_post_closing_statements.test_oci_is_zero_in_the_post_closing_statements
+   ERROR test_oci.ItIsPresentedSeparately.test_the_comprehensive_income_block_carries_the_figures.test_the_comprehensive_income_block_carries_the_figures
+   ERROR test_oci.ItIsPresentedSeparately.test_the_income_statement_shows_oci_after_net_income.test_the_income_statement_shows_oci_after_net_income
+   ERROR test_oci.TrapTest.test_oci_does_not_leak_into_retained_earnings.test_oci_does_not_leak_into_retained_earnings
+   ERROR test_revaluation.ADecreaseGoesToProfit.test_a_declared_reversal_is_charged_to_the_reserve_first.test_a_declared_reversal_is_charged_to_the_reserve_first
+   ERROR test_revaluation.ADecreaseGoesToProfit.test_a_downward_revaluation_is_an_expense.test_a_downward_revaluation_is_an_expense
+   ERROR test_revaluation.BothMethodsAgreeOnTheNet.test_elimination_writes_accumulated_depreciation_off.test_elimination_writes_accumulated_depreciation_off
+   ERROR test_revaluation.BothMethodsAgreeOnTheNet.test_proportionate_restates_gross_and_accumulated.test_proportionate_restates_gross_and_accumulated
+   ERROR test_revaluation.BothMethodsAgreeOnTheNet.test_the_statement_balances_either_way.test_the_statement_balances_either_way
+   ERROR test_revaluation.BothMethodsAgreeOnTheNet.test_the_surplus_is_the_same_either_way.test_the_surplus_is_the_same_either_way
+   ERROR test_revaluation.TheSurplusGoesToReserve.test_an_increase_is_other_comprehensive_income.test_an_increase_is_other_comprehensive_income
+   ERROR test_revaluation.TheSurplusGoesToReserve.test_profit_is_not_inflated.test_profit_is_not_inflated
+   ERROR test_revaluation.TrapTest.test_the_gain_never_reaches_retained_earnings.test_the_gain_never_reaches_retained_earnings
+   ERROR test_reversals.TheMirrorIsExact.test_reversal_swaps_debits_and_credits_on_the_same_accounts.test_reversal_swaps_debits_and_credits_on_the_same_accounts
+   ERROR test_t_account_ledger.ContraAndEmpty.test_a_contra_account_keeps_its_normal_side.test_a_contra_account_keeps_its_normal_side
+   ERROR test_t_account_ledger.ContraAndEmpty.test_an_account_with_no_postings_is_still_present_and_empty.test_an_account_with_no_postings_is_still_present_and_empty
+   FAIL test_bad_debt.WriteOff.test_a_write_off_beyond_the_allowance_is_refused_with_a_reason.test_a_write_off_beyond_the_allowance_is_refused_with_a_reason
+   FAIL test_bad_debt.WriteOff.test_a_write_off_larger_than_the_receivables_is_refused.test_a_write_off_larger_than_the_receivables_is_refused
+   FAIL test_disposal.ItSeesTheBooks.test_a_declared_accumulated_that_the_ledger_does_not_hold_is_refused.test_a_declared_accumulated_that_the_ledger_does_not_hold_is_refused
+   FAIL test_disposal.ItSeesTheBooks.test_a_declared_cost_that_the_ledger_does_not_hold_is_refused.test_a_declared_cost_that_the_ledger_does_not_hold_is_refused
+   FAIL test_equity_statement.Classification.test_capital_is_classified_as_capital.test_capital_is_classified_as_capital
+   FAIL test_equity_statement.Classification.test_profit_for_the_period_equals_net_income.test_profit_for_the_period_equals_net_income
+   FAIL test_forecast.EndToEnd.test_forecast_report.test_forecast_report
+   FAIL test_journal_view.Marking.test_opening_and_closing_entries_are_marked.test_opening_and_closing_entries_are_marked
+   FAIL test_journal_view.Marking.test_rendered_journal_marks_the_close.test_rendered_journal_marks_the_close
+   FAIL test_journal_view.TrapTest.test_dropping_an_entry_breaks_the_recomputation.test_dropping_an_entry_breaks_the_recomputation
+   FAIL test_product_boundary.ProductBoundaryTest.test_the_product_package_imports_only_the_standard_library.test_the_product_package_imports_only_the_standard_library
+   FAIL test_product_boundary.ProductBoundaryTest.test_the_product_package_never_imports_the_frozen_core.test_the_product_package_never_imports_the_frozen_core
+   FAIL test_product_calc_router.InputSliceDriftTest.test_the_committed_slice_equals_the_frozen_method_schemas.test_the_committed_slice_equals_the_frozen_method_schemas
+   FAIL test_product_explain.ContractSliceTest.test_the_committed_contract_slice_matches_the_frozen_methods.test_the_committed_contract_slice_matches_the_frozen_methods
+   FAIL test_product_statements_api.RouteTest.test_the_statements_modules_import_no_frozen_core_module.test_the_statements_modules_import_no_frozen_core_module
+   FAIL test_revaluation.Refusals.test_a_fully_depreciated_asset_is_refused.test_a_fully_depreciated_asset_is_refused
+   FAIL test_revaluation.Refusals.test_a_gain_into_a_non_oci_account_is_refused.test_a_gain_into_a_non_oci_account_is_refused
+   FAIL test_revaluation.Refusals.test_revaluing_to_the_carrying_amount_is_refused.test_revaluing_to_the_carrying_amount_is_refused
+   FAIL test_reversals.TheMirrorIsExact.test_reversal_lands_on_the_balance_by_the_negated_amount.test_reversal_lands_on_the_balance_by_the_negated_amount
+   FAIL test_subject_people_acceptance.Units.test_E_ppl_053__a_ratio_of_two_counts_prints_with_no_currency_prefix.test_E_ppl_053__a_ratio_of_two_counts_prints_with_no_currency_prefix
+   FAIL test_t_account_ledger.TrapTest.test_a_ledger_that_drops_opening_balances_does_not_foot.test_a_ledger_that_drops_opening_balances_does_not_foot
+
+==============================================================================
+NEW (fail on the working tree only): 1
+------------------------------------------------------------------------------
+   FAIL test_product_subjects.ServedUiContractTest.test_the_keypad_is_off_for_list_and_worksheet_tools.test_the_keypad_is_off_for_list_and_worksheet_tools
+
+==============================================================================
+GONE (fail on HEAD only, fixed in the working tree): 2
+------------------------------------------------------------------------------
+   ERROR test_product_statements.SolveTest.test_ratios_are_computed_only_when_the_instruction_asks.test_ratios_are_computed_only_when_the_instruction_asks
+   FAIL test_docs_sync.DocsStateSyncTest.test_the_served_build_is_the_newest_changelog_build.test_the_served_build_is_the_newest_changelog_build
+
+by kind:
+   HEAD           {'FAIL': 22, 'ERROR': 39}
+   working tree   {'FAIL': 22, 'ERROR': 38}
+
+==============================================================================
+WHAT THE ONE NEW FAILURE IS
+------------------------------------------------------------------------------
+  test_product_subjects.ServedUiContractTest
+      .test_the_keypad_is_off_for_list_and_worksheet_tools
+
+  It is NOT from this increment.  The test asserts that the served page still
+  contains the line
+
+      if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";
+
+  and the working tree's web/index.html - the CALCULATOR lane's in-flight edit,
+  which is deliberately not part of this commit - has changed that line to
+
+      if (tool.kind === "worksheet") return "C";
+
+  So the working tree measures 60 problems because it also carries another
+  lane's unfinished page.  The commit this increment lands carries no new
+  failure at all.
+
+==============================================================================
+THE TWO FIXED BY THIS INCREMENT
+------------------------------------------------------------------------------
+  test_product_statements.SolveTest.test_ratios_are_computed_only_when_the_instruction_asks
+      The balance-sheet-analysis route used to take an instruction that named a
+      ratio, so a trial balance that asked for ratios lost its statements.  The
+      trial-balance route now wins, and the instruction gets the three
+      statements and the 13 ratios.
+
+  test_docs_sync.DocsStateSyncTest.test_the_served_build_is_the_newest_changelog_build
+      bp/build.py said 1.97 while the changelog's newest build was 1.98.  The
+      build number is now 1.99 and agrees with the changelog, HOME.md and
+      HANDOFF.md.
+
+==============================================================================
+THE 59 PRE-EXISTING PROBLEMS
+------------------------------------------------------------------------------
+  39 errors   the plan layer's golden engagements - bad debt, OCI, revaluation,
+              disposal, deferrals, depreciation methods.  All one root cause:
+              EngagementError: chart[11]: duplicate account code 1100.  The
+              helpers build an engagement from the "accounts" preset and
+              APPEND 1100 Trade receivables to its chart; the preset's chart now
+              carries that account already, so the append duplicates it.  A
+              stale test helper, not a product defect.
+
+  20 failures another lane's subjects.py edit (the product-boundary and
+              committed-slice tests), one network test, one people-shelf test,
+              and the trial-balance/journal-view/t-account ledger traps.
+
+  None of them is in the statements reader, and none of them is touched by this
+  increment.
