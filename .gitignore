@@ -75,3 +75,17 @@ business_pipeline_v0.12/business_pipeline/documents/*.docx
 # material, not source, so it stays out of git the same way the rendered papers
 # in documents/ do.
 business_pipeline_v0.12/business_pipeline/intake/
+
+# Scratch measurement trees (never committed).
+#
+# The suite is measured against byte-exact copies of commits, and those copies
+# are large: see business_pipeline_v0.12/business_pipeline/qa/manual/suite_measure.ps1
+# and qa/manual/suite_treehash.py. They are evidence, not product, so they stay
+# out of the repository.
+#
+# `.baseline_head/` is still tracked: it was committed by accident in e4184a8,
+# and untracking it is the owner's call, not a side effect of this file.
+.baseline_head/
+.baseline_head2/
+.baseline_pre/
+.snapshot_wt/

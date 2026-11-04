@@ -1,3 +1,58 @@
+## 2026-11-05 — [computation] The measurement is re-run on pinned trees, and the documents are corrected to it (build 1.99)
+
+**Ask.** Finish the increment: update the manual to the true current state, update CHANGELOG/WORKLOG/HOME/HANDOFF and the
+build number, run the final full suite on the working tree, write the HEAD-vs-working-tree comparison, and land the
+increment as one commit.
+
+**Did.**
+
+- **The measurement is a script, and every tree it runs on is pinned.** `qa/manual/suite_measure.ps1` builds each
+  baseline with `git archive`, snapshots the working tree, and runs the suite in all three;
+  `qa/manual/suite_treehash.py` proves a copy byte-exact by comparing its git tree hash with its commit's own tree
+  hash; `qa/manual/suite_compare.py` turns the three runs into the separation of pre-existing from new.
+  **The earlier comparison for this increment was measured on a tree that matches no commit in this history** — its
+  `src/bp/product/statements.py` is `c4e98db`'s blob while it has no `statement_chart.py` at all — so the word "HEAD"
+  in it was wrong by the time the suite ran, and the failure it called "new, and it is not mine" was measured against a
+  tree that was never HEAD.
+- **Three trees, three numbers.** The pre-increment baseline `d938095` (build 1.98), the current HEAD `f1bb0c5`, and a
+  snapshot of the working tree: **3784 tests / 25 failures / 40 errors** at the baseline, **3828 tests / 27 failures /
+  38 errors** at HEAD and at the working tree. The working tree is measured **in the snapshot**, so a second session
+  working in the same tree cannot move the numbers underneath the measurement.
+- **The increment fixes five and brings five.** Against the pre-increment baseline: **58 pre-existing**, **5 fixed** (the
+  detector's `decimal.InvalidOperation` crash in two tests, the runtime's ok-path, the detector contract, and the served
+  build number), **5 new**. The five new are named in `docs/OPEN_ISSUES.md` (Item 18): three are the product-boundary
+  rule (`src/bp/product/statements.py:1084` imports `bp.product.income_statement` absolutely, and the boundary tests
+  read that as the frozen core — a one-line relative import closes all three), one is the calculator's keypad contract
+  (`e4184a8` changed the fit rule and the committed test still asserts the old line), and one is this increment's own
+  new test, which passes alone and fails in the suite because `bp.server` wires the product module.
+  **The increment adds 44 tests and five new failures.**
+- **The claims that were wrong are corrected, not deleted.** The 1.99 changelog entry, the entry below, and
+  `docs/FINANCIAL_COMPUTATIONS_MANUAL.md` now say what the suite does: the old comparison's "HEAD" was the
+  pre-increment commit; "1 is new, and it is not mine" was wrong in both halves — it is this increment's, and it came
+  from a committed change; "adds 44 tests and no new failure" was wrong; "`web/index.html` is not in this build" was
+  wrong, `e4184a8` carried the calculator's fit-class change into it; and "a route that computes nothing does not
+  answer" holds only while the product module is unwired.
+- **The measurement scripts are committed, so the next one is a run and not an argument.**
+  `qa/manual/suite_measure.ps1`, `qa/manual/suite_treehash.py`, `qa/manual/suite_compare.py`,
+  `qa/manual/suite_count_gap.py` and `qa/manual/probe_route_test_order.py` are the evidence.
+
+**Verified.**
+
+- **The suite, three ways.** The numbers above, from `qa/baseline/seam-suite-comparison.txt`.
+- **The docs-state contract.** `tests.test_docs_sync.py` → **8 tests, OK** after the edits: the count in `docs/HOME.md`,
+  `docs/HANDOFF.md` and `docs/CONTRIBUTORS.md` is the real 3828, and the build in `src/bp/build.py`, `docs/HOME.md`,
+  `docs/HANDOFF.md` and the newest changelog entry is 1.99.
+
+**Not done, and named.**
+
+- **The five new failures** — `docs/OPEN_ISSUES.md` Item 18. Three of them want a one-line code change; the keypad one
+  is a behaviour decision; the reader-seams one is a decision about what the route should do in the shipped
+  configuration. None is fixed here.
+- **The 40 golden-engagement errors are still red**, and they are older than this increment: `src/bp/server.py` and
+  `src/bp/accounts.py` are unchanged by it, so the `accounts` preset that carries the richer chart — and the
+  `chart[11]: duplicate account code 1100` that follows — was already there at the pre-increment baseline. The fix is a
+  split of the fixture between the two families of tests, and it belongs to whoever owns that lane.
+
 ## 2026-11-04 — [computation] The reader stops refusing what it can read (build 1.99)
 
 **Ask.** Finish the work in flight: (1) run the full suite on HEAD and on the working tree and separate the
@@ -28,25 +83,43 @@ pre-existing failures from the new ones; (2) update the owner's case study with 
   of the number; the topological sort resolved nothing because it looked dependencies up by spec id while
   `depends_on` names output names; and values did not travel between sections, so seventy-two specs reported a gap
   for something already known. `tests/test_financial_computations.py` (new) holds all of it.
-- **A route that computes nothing does not answer.** The engine returned a record even when it had computed nothing,
-  so it answered with a sheet of gaps in place of the reader's answer.
-- **The documents are rewritten to the measurement.** The manual claimed "2 pre-existing failures only" where HEAD
-  has 61; claimed the narrative reader "REQUIRES a configured LLM" when the deterministic layer reads a narrative;
+- **A route that computes nothing does not answer — while the product module is unwired.** The engine returned a record
+  even when it had computed nothing, so it answered with a sheet of gaps in place of the reader's answer. It now hands
+  the instruction back. **The test that proves it passes alone and fails in the suite**, because `bp.server` wires the
+  product module and a wired module answers that instruction on the transactions route instead of refusing, so the test
+  exercises a configuration the product never ships in. It is named in `docs/OPEN_ISSUES.md` (Item 18) and is not fixed
+  here.
+- **The documents are rewritten to the measurement.** The manual claimed "2 pre-existing failures only" where the
+  suite has 65; claimed the narrative reader "REQUIRES a configured LLM" when the deterministic layer reads a narrative;
   and claimed the integrated case solver was "NOT BUILT" when it is six seams, all closed. The case study is
   re-measured, and its two recorded defects (ratios at 28 decimals, brought-forward retained earnings labelled
   "other") are fixed, so the case now says so.
 
 **Verified.**
 
-- **The suite, on HEAD and on the working tree.** A byte-exact copy of HEAD (`git archive` into `.baseline_head/`;
-  every one of 5775 tracked files hash-compared against the HEAD blob, with one generated file restored byte-exactly)
-  and the working tree: **3784 tests on HEAD, 22 failures and 39 errors**. The separation of pre-existing from new
-  is in `qa/baseline/seam-suite-comparison.txt`. The 39 errors are the plan layer's golden engagements (bad debt,
-  OCI, revaluation, disposal, deferrals, depreciation methods) and 5 of the failures are the product-boundary and
-  committed-slice tests; both groups are pre-existing on HEAD and are recorded, not hidden.
-- **The new tests.** `tests.test_financial_computations` → 16 tests; `tests.test_statement_reader_seams` → 24;
+- **The suite, three ways, on trees that are pinned.** A byte-exact copy of the pre-increment commit `d938095` (build
+  1.98), a byte-exact copy of the current HEAD `f1bb0c5`, and a snapshot of the working tree. A copy is proven
+  byte-exact by comparing its git tree hash with its commit's own tree hash (`qa/manual/suite_treehash.py`), and the
+  suite is run by `qa/manual/suite_measure.ps1`. **The pre-increment baseline: 3784 tests, 25 failures and 40 errors;
+  the current HEAD: 3828 tests, 27 failures and 38 errors; the working tree: 3828 tests, 27 failures and 38 errors.**
+  Against the pre-increment baseline, of the 63 tests that fail in the working tree: **58 are pre-existing** (fail on
+  both), **5 are fixed by this increment** — the detector's `decimal.InvalidOperation` crash in two tests
+  (`test_credit_sale_detected`, `test_northstar_transactions`), the runtime's ok-path, the detector contract, and
+  `test_the_served_build_is_the_newest_changelog_build`, which found `bp/build.py` claiming 1.97 against a changelog at
+  1.98 — and **5 are new**. **This increment adds 44 tests and five new failures.** The five are the three
+  product-boundary failures (`src/bp/product/statements.py:1084` imports `bp.product.income_statement` absolutely, and
+  the boundary rule reads that as the frozen core), the calculator's keypad contract
+  (`test_the_keypad_is_off_for_list_and_worksheet_tools` — `e4184a8` changed the fit rule and the committed test still
+  asserts the old line), and this increment's own `test_a_route_that_computed_nothing_does_not_answer`, which passes
+  alone and fails in the suite because `bp.server` wires the product module. Against the **current HEAD** the working
+  tree changes nothing: 0 new, 0 fixed. The 40 errors are the plan layer's golden engagements, all with the same root
+  cause (`chart[11]: duplicate account code 1100`), and they are older than this increment: `src/bp/server.py` and
+  `src/bp/accounts.py` are unchanged by it. The separation is in `qa/baseline/seam-suite-comparison.txt`.
+- **The new tests.** `tests.test_financial_computations` → 16 tests; `tests.test_statement_reader_seams` → 25;
   `tests.test_statement_detect` → 3 new (the two wordings of a figure, and the named failure). The increment's own
-  modules: **66 tests, OK**.
+  modules: **67 tests, OK** when they are run on their own. **One of them is red in the full suite** —
+  `test_a_route_that_computed_nothing_does_not_answer` — because `bp.server` wires the product module; see
+  `docs/OPEN_ISSUES.md` (Item 18).
 - **The case, over HTTP, with no model configured.** A five-clause transactions narrative → **201 solved**, 11 of 11
   checks, the period from the text's own dates, rent and salaries on their own lines. An exam question with a
   preamble → **201 solved**. A trial balance plus the ratio line → **201 solved**, the three statements and 13
@@ -65,14 +138,19 @@ pre-existing failures from the new ones; (2) update the owner's case study with 
   instead of implied.
 - **The adjustments still need a model.** Depreciation conventions, prepaid amortisation and tax are derived by the
   plan layer's model step. A key opens that door; it does not repair the reader, which no longer needs it.
-- **The plan layer's golden engagements still fail on HEAD** — 39 errors in the bad-debt, OCI, revaluation, disposal,
+- **The plan layer's golden engagements still fail** — 40 errors in the bad-debt, OCI, revaluation, disposal,
   deferral and depreciation-method modules, all with the same root cause: `EngagementError: chart[11]: duplicate
   account code 1100`. The helpers in those modules build an engagement from the `accounts` preset and **append**
   `1100 Trade receivables` to its chart; the preset's chart now carries that account already, so the append
-  duplicates it. It is a stale test helper, not a product defect — and it is **pre-existing on HEAD**, so this
-  increment neither caused nor fixed it. It is the largest group of red in the tree and somebody owns it.
-- **`web/index.html` is not in this build.** The working tree carries another lane's calculator edits (the sticky
-  shell and the `management_accounts` fit class). They are somebody's in-flight work and were left untouched.
+  duplicates it. It is a stale test helper, not a product defect — and it is **older than this increment**, because
+  `src/bp/server.py` and `src/bp/accounts.py` are unchanged by it, so this increment neither caused nor fixed it. It
+  is the largest group of red in the tree and somebody owns it.
+- **`web/index.html` is in this build, and it carries the calculator's fit-class change.** Commit `e4184a8` brought the
+  sticky shell and the `management_accounts` fit class into the tree, so the earlier note that the file "is not in this
+  build" was wrong. The change itself is deliberate — `management_accounts` now runs the same frozen ledger kernel as any
+  other method, so its `engagement_spec` input fits the "takes a list / JSON form" path — but the committed test still
+  asserts the old line, and that is why `test_the_keypad_is_off_for_list_and_worksheet_tools` is red. It is named in
+  `docs/OPEN_ISSUES.md` (Item 18).
 
 **Learned.** Four defects in a module with no test module is not a coincidence — it is what "no test module" means.
 The engine's formulas were complete and its behaviour was unknown, and the four defects were each invisible from

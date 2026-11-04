@@ -280,19 +280,23 @@ python -m unittest tests.test_statement_plan tests.test_statement_detect tests.t
 
 ### Run the full suite
 ```powershell
+$env:PYTHONPATH = "src"
 python -m unittest discover -s tests
 # Expect "OK" line. pwsh may print [exit code: 1] from ResourceWarnings — read the OK line, not the exit code.
+# PYTHONPATH matters. Without it the first test module imported fails with "ModuleNotFoundError: No module named
+# 'bp'", its 8 tests never run, and the suite reports "Ran 3821 tests" instead of "Ran 3828 tests".
 ```
 
 ### Compare a working tree against HEAD (the step-7 measurement)
 ```powershell
-# 1. a byte-exact HEAD copy
-git archive HEAD | tar -x -C .baseline_head/x
-# 2. the full suite on both
-python -m unittest discover -s tests -v            # in .baseline_head/x/.../business_pipeline
-python -m unittest discover -s tests -v            # in the working tree
-# 3. compare the two failure lists
-python qa/manual/compare_suites.py <head.err> <wt.err>
+# 1. build the two baseline trees, snapshot the working tree, run the suite in all three
+powershell -File qa/manual/suite_measure.ps1 -Pre d938095 -Head f1bb0c5
+# 2. prove each copy is byte-exact to its commit: its git tree hash against the commit's own tree hash
+python qa/manual/suite_treehash.py D:\SMART BUSINESSWRITER D:\SMART BUSINESSWRITER\.baseline_pre\x d938095
+python qa/manual/suite_treehash.py D:\SMART BUSINESSWRITER D:\SMART BUSINESSWRITER\.baseline_head2\x f1bb0c5
+# 3. separate the pre-existing failures from the new ones
+python qa/manual/suite_compare.py qa/baseline/seam-suite-comparison.txt
+```
 ```
 
 ### Start the workbench
@@ -360,24 +364,44 @@ print('gaps:', pack.gaps)
 | `tests/test_statements_render_contract.py` | Render contract: workbook from frozen record, no invented figures |
 | `tests/xlsx_read.py` | Read-back harness for workbook cells |
 
-### The HEAD baseline, measured
+### The baseline, measured (2026-11-05)
 
-**The full suite on a byte-exact copy of HEAD (2026-11-04): 3784 tests, 22 failures and 39 errors.** The previous
-version of this manual claimed "3784 tests, 2 pre-existing failures only". That was wrong: the suite was measured on a
-tree that was not HEAD, and 59 problems went uncounted. The pre-existing problems fall into these groups:
+**The full suite, run three ways on pinned trees.** A copy of a commit is byte-exact when its git tree hash equals that
+commit's own tree hash; `qa/manual/suite_treehash.py` makes that check, and `qa/manual/suite_measure.ps1` builds each
+copy and runs the suite in it.
+
+| tree | what it is | result |
+|---|---|---|
+| the pre-increment baseline | a byte-exact copy of `d938095` ("build 1.98: detector/runtime layer wired") | **3784 tests, 25 failures, 40 errors** |
+| the current HEAD | a byte-exact copy of `f1bb0c5` | **3828 tests, 27 failures, 38 errors** |
+| the working tree | a snapshot of it, measured in the snapshot so a second session cannot move the numbers | **3828 tests, 27 failures, 38 errors** |
+
+The earlier version of this manual claimed "3784 tests, 2 pre-existing failures only". That was wrong: the suite was
+measured on a tree that was not HEAD, and 59 problems went uncounted. The pre-existing problems fall into these groups:
 
 | group | count | note |
 |---|---|---|
-| the plan layer's golden engagements (bad debt, OCI, revaluation, disposal, deferrals, depreciation methods) | 39 errors | all with one root cause: `EngagementError: chart[11]: duplicate account code 1100`. The helpers build an engagement from the `accounts` preset and **append** `1100 Trade receivables` to its chart; the preset's chart now carries that account already, so the append duplicates it. A stale test helper, not a product defect — and pre-existing on HEAD |
+| the plan layer's golden engagements (bad debt, OCI, revaluation, disposal, deferrals, depreciation methods) | 40 errors | all with one root cause: `EngagementError: chart[11]: duplicate account code 1100`. The helpers build an engagement from the `accounts` preset and **append** `1100 Trade receivables` to its chart; the preset's chart now carries that account already, so the append duplicates it. A stale test helper, not a product defect — and older than this increment: `src/bp/server.py` and `src/bp/accounts.py` are unchanged by it |
 | the product-boundary and committed-slice tests | 5 failures | another lane's `subjects.py` edit |
 | `test_the_served_build_is_the_newest_changelog_build` | 1 failure | `bp/build.py` said 1.97 while the changelog's newest was 1.98 |
 | the calculator, forecast and product-package tests | 4 failures | another lane, and one network test |
 
 The two failures this manual used to name are real — `test_ratios_are_computed_only_when_the_instruction_asks` and
-`test_the_statements_modules_import_no_frozen_core_module` — but they are two of sixty-one, not two of two.
+`test_the_statements_modules_import_no_frozen_core_module` — but they are two of sixty-three, not two of two.
 
-The working tree's own numbers, and the separation of pre-existing from new, are recorded in
-`qa/baseline/seam-suite-comparison.txt` and in the WORKLOG entry for this increment.
+**Against the pre-increment baseline: of the 63 tests that fail in the working tree, 58 are pre-existing, 5 are fixed
+by this increment, and 5 are new.** The five fixed are the detector's `decimal.InvalidOperation` crash (two tests), the
+runtime's ok-path, the detector contract, and the served build number. **This increment adds 44 tests and five new
+failures**, and the five are named in `docs/OPEN_ISSUES.md` (Item 18):
+
+| new failure | why | what would close it |
+|---|---|---|
+| `test_product_boundary.ProductBoundaryTest.test_the_product_package_imports_only_the_standard_library`, `...never_imports_the_frozen_core`, `test_product_statements_api.RouteTest.test_the_statements_modules_import_no_frozen_core_module` | `src/bp/product/statements.py:1084` imports `bp.product.income_statement` absolutely, and the boundary rule reads any `bp.`-prefixed import as the product reaching into the frozen core | one line: `from .income_statement import parse_problem as _isp_parse` — the rule ignores relative imports, and that module already uses them at its lines 31-32 |
+| `test_product_subjects.ServedUiContractTest.test_the_keypad_is_off_for_list_and_worksheet_tools` | `e4184a8` changed the calculator's fit rule so `management_accounts` is no longer forced to the no-keypad path; the committed test still asserts the old line | restore the special case, or update the committed test — the second is editing the verifier to get green, so it is the owner's call |
+| `tests.test_statement_reader_seams.RouteTest.test_a_route_that_computed_nothing_does_not_answer` | this increment's own new test: it passes alone and fails in the suite, because `bp.server` wires the product module and a wired module answers that instruction instead of refusing | decide what the route does in the shipped configuration, and assert that |
+
+**Against the current HEAD the working tree changes nothing: 0 new, 0 fixed.** The full separation is in
+`qa/baseline/seam-suite-comparison.txt`.
 
 ---
 

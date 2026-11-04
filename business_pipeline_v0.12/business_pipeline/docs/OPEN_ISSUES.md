@@ -1,5 +1,40 @@
 # Open issues (not fixed in this session)
 
+## Item 18 — five failures are new in the 1.99 increment (2026-11-05) — **not fixed here**
+
+- **The measurement is the evidence.** The suite was run on a byte-exact copy of the pre-increment commit `d938095`, on a
+  byte-exact copy of the current HEAD `f1bb0c5`, and on a snapshot of the working tree. Each copy is proven byte-exact by
+  comparing its git tree hash with its commit's own tree hash (`qa/manual/suite_treehash.py`); the runs are
+  `qa/manual/suite_measure.ps1`; the separation is in `qa/baseline/seam-suite-comparison.txt`. The earlier comparison for
+  this increment was measured on a tree that matches **no commit in this history**, so its "1 is new, and it is not mine"
+  could not be trusted. This one can.
+- **Three are one rule: the product package may not import `bp.` at all.** `src/bp/product/statements.py:1084` does
+  `from bp.product.income_statement import parse_problem as _isp_parse`, and the boundary tests read any `bp.`-prefixed
+  import as the product reaching into the frozen core. So these are red:
+  `test_product_boundary.ProductBoundaryTest.test_the_product_package_imports_only_the_standard_library`,
+  `test_product_boundary.ProductBoundaryTest.test_the_product_package_never_imports_the_frozen_core`, and
+  `test_product_statements_api.RouteTest.test_the_statements_modules_import_no_frozen_core_module`.
+  **The fix is one line** — `from .income_statement import parse_problem as _isp_parse` — because the boundary rule ignores
+  relative imports, and that module already uses relative imports at its lines 31-32. Not taken here: the statements lane
+  is being worked in another session, and changing code is not this commit's business.
+- **One is the calculator's keypad contract.**
+  `test_product_subjects.ServedUiContractTest.test_the_keypad_is_off_for_list_and_worksheet_tools` asserts that
+  `web/index.html` still reads
+  `if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";`. Commit `e4184a8` changed that line
+  **deliberately** — `management_accounts` now runs the same frozen ledger kernel as any other method, so its
+  `engagement_spec` input fits the "takes a list / JSON form" path and the special case came out — and the committed test
+  was not updated with it. There are exactly two ways to close it: restore the special case, or update the committed test.
+  The second is editing the verifier to get green, which the repository forbids; the first is a behaviour change in the
+  design lane. That is an owner's call, so it is named here.
+- **One is this increment's own new test.**
+  `tests.test_statement_reader_seams.RouteTest.test_a_route_that_computed_nothing_does_not_answer` **passes alone and fails
+  in the suite**. The cause is import order: `bp.server` wires the product module, and once it has,
+  `statements.solve("Compute the cash conversion cycle for the period.")` answers with `problem_type="transactions"`
+  instead of refusing; unwired, it raises `StatementError` as the test expects. The test therefore exercises the product
+  module in a configuration the product never ships in. Measured by `qa/manual/probe_route_test_order.py`.
+- **None of the five is fixed here.** The first three want a one-line code change, the fourth is a behaviour decision, and
+  the fifth is a decision about what the test should assert against the shipped configuration.
+
 ## Item 17 — The Business Bundle's live charge is not taken (2026-11-03)
 - **The code is built and unit-tested; the live merchant account has not been used.** Every claim
   about PayPal's behaviour in the bundle path is verified against **fixtures**, not against a real
