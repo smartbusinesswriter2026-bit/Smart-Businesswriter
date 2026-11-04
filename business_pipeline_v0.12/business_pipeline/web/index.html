@@ -1186,7 +1186,6 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
           <div>
             <div class="row" style="justify-content:space-between;align-items:flex-start">
               <div><h3 id="calcname" style="margin:0"></h3><p class="muted" id="calcwhat" style="margin:4px 0 0"></p></div>
-              <span class="badge" id="calctier"></span>
             </div>
             <div class="grid2" id="calcinputs" style="margin-top:12px"></div>
             <div class="row" style="margin-top:14px">
@@ -5728,7 +5727,6 @@ function renderCalculator() {
         const on = state.calcTool && state.calcTool.key === t.key;
         const fitTitle = fit === "A" ? "Keypad" : (fit === "B" ? "Takes a list" : "Opens a worksheet");
         return '<div class="toolrow calcrow' + (on ? " on" : "") + '">' +
-          '<span class="fitbadge ' + fit.toLowerCase() + '" title="' + fitTitle + '">' + fit + "</span>" +
           '<button class="calctool" type="button" data-calctool="' + esc(t.key) + '"><strong>' + esc(t.label) + "</strong>" +
           "<span>" + esc(t.what) + (t.preset ? " <em>preset example available</em>" : " <em>enter your figures</em>") + "</span></button>" +
           "</div>";
@@ -5816,7 +5814,7 @@ function renderCalcShell() {
   const fit = calcFitOf(tool);
   $("#calcname").textContent = tool.label;
   $("#calcwhat").textContent = tool.what || (m && m.intended_use) || "";
-  $("#calctier").textContent = (m ? m.tier : "T4") + (m ? " / v" + m.version : "");
+  $("#calctier").textContent = "";
   $("#calcinputs").innerHTML = Object.keys(schema).length
     ? Object.keys(schema).map((n) => calcField(n, schema[n])).join("")
     : '<p class="muted">This method declares no inputs.</p>';
