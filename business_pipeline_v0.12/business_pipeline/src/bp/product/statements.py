@@ -27,6 +27,8 @@ import tempfile
 import uuid
 
 from . import cases
+from . import income_statement as is_mod
+from .income_statement import detect_income_statement
 from . import statements_verify
 from .. import statement_detect as sd
 from .. import statement_plan as sp
@@ -941,6 +943,15 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                              "works in USD with neutral places: restate the figures in USD and it will "
                              "solve them.")
     requested = _requested_statements(statements, text)
+    # Try the deterministic multi-step income statement computation first,
+    # before the trial-balance reader.  A list of accounts with amounts that
+    # doesn't balance as a trial balance is an income-statement computation,
+    # not a statement-preparation problem.
+    if detect_income_statement(text):
+        tried = _solve_income_statement(text, currency=currency, framework=framework,
+                                        ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
     parser_error = None
     try:
@@ -959,6 +970,12 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
             # narrative is different — a sentence can carry two figures without being a comparative,
             # and the plan layer is the reader that is meant to handle it.
             raise parser_error
+        # Try the deterministic multi-step income statement computation before transactions/model.
+        if detect_income_statement(text):
+            tried = _solve_income_statement(text, currency=currency, framework=framework,
+                                            ratios=ratios, statements=requested)
+            if tried is not None:
+                return tried
         # Try the deterministic detector/template layer for transaction narratives before the model
         if "transactions" in str(parser_error).lower() or "no account" in str(parser_error).lower():
             tried = _solve_transactions(text, currency=currency, framework=framework,
@@ -1107,6 +1124,140 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
                      [], False, pack, statements)
     record["reading_source"] = "plan"
     return record
+
+
+def _solve_income_statement(text, currency=None, framework=None, ratios=None, statements=None):
+    """Compute a multi-step income statement from given account balances.
+
+    The problem gives account names and amounts (revenue, contra-revenue, COGS,
+    operating expenses, non-operating items, tax rate).  The engine computes
+    Net Sales → Gross Profit → Operating Income → Income Before Tax → Net Income
+    deterministically, with no model involvement.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    lines, tax_rate = is_mod.parse_problem(text)
+    result = is_mod.compute_income_statement(lines, tax_rate)
+
+    statement_text = is_mod.render_income_statement(result, period["end"], currency)
+
+    # Build computation checks (articulation identities for the multi-step IS)
+    checks = [
+        ("net_sales_equals_revenue_minus_contra",
+         result.net_sales == result.cogs + result.gross_profit,
+         f"net sales {result.net_sales} = cogs {result.cogs} + gross profit {result.gross_profit}"),
+        ("gross_profit_equals_net_sales_minus_cogs",
+         result.gross_profit == result.net_sales - result.cogs,
+         f"gross profit {result.gross_profit} = net sales {result.net_sales} - cogs {result.cogs}"),
+        ("operating_income_equals_gross_profit_minus_opex",
+         result.operating_income == result.gross_profit - result.operating_expenses,
+         f"operating income {result.operating_income} = gross profit {result.gross_profit} - opex {result.operating_expenses}"),
+        ("income_before_tax_equals_operating_income_plus_non_operating",
+         result.income_before_tax == result.operating_income + result.non_operating_revenue - result.non_operating_expense,
+         f"income before tax {result.income_before_tax} = operating income {result.operating_income} + non-op rev {result.non_operating_revenue} - non-op exp {result.non_operating_expense}"),
+        ("net_income_equals_pretax_minus_tax",
+         result.net_income == result.income_before_tax - result.income_tax,
+         f"net income {result.net_income} = pre-tax {result.income_before_tax} - tax {result.income_tax}"),
+    ]
+
+    # Revenue total for display (gross sales before contra-revenue)
+    gross_revenue = sum(l.amount for l in lines if l.kind == "revenue")
+
+    appendix = {
+        "statements_export": {
+            "income_statement": statement_text,
+            "income_groups": {
+                "revenue": str(gross_revenue),
+                "contra_revenue": str(sum(l.amount for l in lines if l.kind == "contra_revenue")),
+                "cogs": str(result.cogs),
+                "operating_expenses": str(result.operating_expenses),
+                "non_operating_revenue": str(result.non_operating_revenue),
+                "non_operating_expense": str(result.non_operating_expense),
+            },
+            "net_sales": str(result.net_sales),
+            "gross_profit": str(result.gross_profit),
+            "operating_income": str(result.operating_income),
+            "income_before_tax": str(result.income_before_tax),
+            "income_tax": str(result.income_tax),
+            "net_income": str(result.net_income),
+        },
+        "engagement": {
+            "period": {"start": period["start"], "end": period["end"]},
+            "currency": currency,
+            "places": 2,
+        },
+    }
+
+    reading = {
+        "problem_type": "income_statement",
+        "why": "multi-step income statement computation from declared account balances",
+        "currency": currency,
+        "framework": framework,
+        "period": period,
+        "derivations": [],
+        "assumptions": [f"tax rate {result.tax_rate * 100:.0f}% applied to pre-tax income"],
+        "missing": [],
+        "diagnosis": None,
+    }
+
+    scalars = {
+        "net_income": str(result.net_income),
+        "net_sales": str(result.net_sales),
+        "gross_profit": str(result.gross_profit),
+        "operating_income": str(result.operating_income),
+        "income_before_tax": str(result.income_before_tax),
+        "income_tax": str(result.income_tax),
+        "cogs": str(result.cogs),
+        "operating_expenses": str(result.operating_expenses),
+    }
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = ["IS"]
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "IS"]
+
+    statements_out = {}
+    if "IS" in requested_list:
+        statements_out["income_statement"] = statement_text
+
+    record = {
+        "format": FORMAT,
+        "solved": True,
+        "refusal": None,
+        "instruction": text,
+        "instruction_hash": verify.brief_hash(text),
+        "problem_type": "income_statement",
+        "why": reading["why"],
+        "reading": reading,
+        "reading_source": "plan",
+        "same_model_disclosure": False,
+        "rejected": [],
+        "spec": {},
+        "requested": requested_list,
+        "computed": computed,
+        "hidden": hidden,
+        "warnings": [],
+        "core": {
+            "scalars": scalars,
+            "appendix": appendix,
+        },
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {
+            "journal": "",
+            "trial_balance": "",
+            "t_accounts": {},
+            "derivations": [],
+            "assumptions": reading["assumptions"],
+            "missing": [],
+        },
+        "diagnosis": None,
+        "checks": [{"name": name, "ok": bool(ok), "detail": detail}
+                   for name, ok, detail in checks],
+        "ratios": None,
+    }
+    return verify.freeze(record)
 
 
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):

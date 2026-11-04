@@ -162,7 +162,7 @@ DETECTORS: List[Detector] = [
                    values=["insurance", "rent", "supplies", "advertising"])]),
     Detector("cash_sale", r"cash sales of \$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money")]),
-    Detector("credit_sale", r"(?:credit sales|provided services on account|services on account|sales on account)[:,]?\s*\$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
+    Detector("credit_sale", r"(?:credit sales|provided services on account|services on account|sales on account)[:,]?\s*(?:of\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)", 70,
              [Slot("amount", "money")]),
     Detector("ar_collection", r"collected\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+(?:cash\s+)?(?:from\s+)?(?:credit )?customers", 70,
              [Slot("amount", "money")]),
