@@ -1,6 +1,6 @@
 # Open issues (not fixed in this session)
 
-## Item 18 — five failures are new in the 1.99 increment (2026-11-05) — **not fixed here**
+## Item 18 — five failures were new in the 1.99 increment (2026-11-05) — **CLOSED 2026-11-05: all five fixed, none new**
 
 - **The measurement is the evidence.** The suite was run on a byte-exact copy of the pre-increment commit `d938095`, on a
   byte-exact copy of the current HEAD `f1bb0c5`, and on a snapshot of the working tree. Each copy is proven byte-exact by
@@ -32,8 +32,39 @@
   `statements.solve("Compute the cash conversion cycle for the period.")` answers with `problem_type="transactions"`
   instead of refusing; unwired, it raises `StatementError` as the test expects. The test therefore exercises the product
   module in a configuration the product never ships in. Measured by `qa/manual/probe_route_test_order.py`.
-- **None of the five is fixed here.** The first three want a one-line code change, the fourth is a behaviour decision, and
-  the fifth is a decision about what the test should assert against the shipped configuration.
+- **FIXED 2026-11-05 — the three boundary tests.** `src/bp/product/statements.py:1084` is now
+  `from .income_statement import parse_problem as _isp_parse`. The three boundary tests are green.
+- **FIXED 2026-11-05 — the instrument that computed nothing.** `statements.solve()` now records
+  `computation_named = bool(fc.detect_sections(text)) and not _reads_as_trial_balance(text)` and, when the engine
+  produced nothing and no transaction could be posted, raises the refusal **before** the plan layer or the model is
+  asked. It is the "a route that computed nothing does not answer" rule, enforced at the point where the model used to
+  take the instruction: *"this names a financial computation, but the instruction declares none of the figures it
+  needs; state the figures and the tile will compute them"*. `qa/manual/probe_route_test_order.py` now refuses both
+  unwired and after `bp.server` is imported, and the test passes alone and in the suite.
+- **FIXED 2026-11-05 — a fourth hole the same reading opened, found by the route tests.** In the **shipped**
+  configuration (the workbench attaches the plan layer) an instruction that declares nothing was not refused: it was
+  answered with a full set of statements whose every figure was **zero**, marked `solved`. Three shapes were enough:
+  `"hello there"`, the header of a trial balance with no rows, and `"Cash 5,000"`. `tests/test_product_statements_api.py`
+  had been red on exactly that in the full suite — `test_an_instruction_the_tile_cannot_read_is_a_named_refusal` (201
+  instead of 400) and the three subtests of `test_no_input_shape_produces_a_server_error`. `_solve_narrative` now
+  refuses when no line of the extracted entries or adjustments carries a non-zero figure: *"this instruction names no
+  transaction and declares no figure, so there is nothing to post…"*. All four tests are green, alone and wired;
+  measured by `qa/manual/probe_empty_instruction.py`.
+- **FIXED 2026-11-05 — the calculator's keypad contract, on the owner's decision.** The owner chose the first of the two
+  ways: the committed test now asserts the deliberate fit rule instead of the removed special case.
+  `tests/test_product_subjects.py:ServedUiContractTest.test_the_keypad_is_off_for_list_and_worksheet_tools` asserts
+  `if (tool.kind === "worksheet") return "C";`, that `engagement_spec` takes the list/JSON path (`"B"`), and that
+  `tool.method === "management_accounts"` no longer appears at all — so a silent restoration of the special case fails
+  the test as loudly as its removal did. The other three assertions of the test are unchanged.
+- **Measured after the fix (2026-11-05):** the full suite is `Ran 3828 tests`, `FAILED (failures=19, errors=38)` — the
+  same test count as at HEAD `f1bb0c5` (no test of the suite was added; one stale assertion was corrected on the owner's
+  instruction), **nine failures fixed** (three boundary, one seam, four route, one keypad) **and no new failure** against
+  the HEAD measurement of 27 failures / 38 errors. One **flake** appeared in that run and it is in neither set:
+  `test_product_compare.CompareTest.test_the_html_export_copies_the_stored_values` asserts the exported HTML does not
+  contain `'999'`, and the randomly generated case id of that run (`51528e75999b`) does; it passes alone. It is a
+  name-level defect in that test, not a product defect. What remains is the golden-engagement cluster
+  (`docs/OPEN_ISSUES.md`, "the fixture split belongs to whoever owns that lane"), two committed-slice drift tests, the
+  people ratio-prefix test, one forecast test and that flake — all red at HEAD before this session except the flake.
 
 ## Item 17 — The Business Bundle's live charge is not taken (2026-11-03)
 - **The code is built and unit-tested; the live merchant account has not been used.** Every claim

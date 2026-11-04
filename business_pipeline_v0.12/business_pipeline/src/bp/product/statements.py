@@ -1081,7 +1081,7 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     # a mix of IS and BS accounts is a trial balance and goes through
     # read_deterministic instead.
     if detect_income_statement(text):
-        from bp.product.income_statement import parse_problem as _isp_parse
+        from .income_statement import parse_problem as _isp_parse
         try:
             _islines, _ = _isp_parse(text)
             has_bs = any(l.kind in ("current_asset", "non_current_asset",
@@ -1124,7 +1124,8 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     # Try the comprehensive financial computation engine (sections A-K).
     # A trial balance is read exactly, and it carries the ratios itself, so it
     # does not go to the engine.
-    if fc.detect_sections(text) and not _reads_as_trial_balance(text):
+    computation_named = bool(fc.detect_sections(text)) and not _reads_as_trial_balance(text)
+    if computation_named:
         tried = _solve_financial_computations(text, currency=currency, framework=framework,
                                               ratios=ratios, statements=requested)
         if tried is not None:
@@ -1159,6 +1160,16 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                                         ratios=ratios, statements=requested)
             if tried is not None:
                 return tried
+        # The instruction named a financial computation (a section of the engine) but
+        # declares none of the figures that computation needs, and there is no
+        # transaction to post.  The model must not answer a computation question with
+        # figures it invented, so the tile refuses and says what is missing.  This is
+        # the "a route that computed nothing does not answer" rule, enforced at the
+        # point where the model reader would otherwise take the instruction.
+        if computation_named:
+            raise StatementError("this names a financial computation, but the instruction "
+                                 "declares none of the figures it needs; state the figures and "
+                                 "the tile will compute them")
         used = reader if reader is not None else _CORE.get("reader")
         plan_error = None
         if "extract" in _CORE:
@@ -2068,6 +2079,34 @@ def _solve_financial_computations(text, currency=None, framework=None, ratios=No
     return verify.freeze(record)
 
 
+def _posted_a_figure(entries):
+    """Whether any journal line in these entries declares a non-zero figure.
+
+    The plan layer answers a sentence that carries no transaction with a plan that has no entries;
+    built into the ledger it produces a full set of statements whose every figure is zero.  A zero
+    statement set is not a solution — the instruction declared nothing — so it is refused instead
+    of shown.  Every real narrative has at least one non-zero amount on a line.
+    """
+    for entry in entries or []:
+        if not isinstance(entry, dict):
+            continue
+        for line in entry.get("lines") or []:
+            if not isinstance(line, dict):
+                continue
+            for side in ("debit", "credit"):
+                raw = str(line.get(side) or "").strip()
+                if not raw:
+                    continue
+                try:
+                    if Decimal(raw) != 0:
+                        return True
+                except (ArithmeticError, TypeError, ValueError):
+                    # It declares something the ledger will judge; the build raises its own,
+                    # clearer reason ("amount must be a positive finite number").
+                    return True
+    return False
+
+
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):
     """A narrative (not a trial balance) solved through the plan layer.
 
@@ -2088,6 +2127,11 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
         raise
     except Exception as error:
         raise StatementError("the model could not read this as a journal: " + str(error)[:200])
+    if not _posted_a_figure(list(extracted.get("entries") or []) +
+                            list(extracted.get("adjustments") or [])):
+        raise StatementError("this instruction names no transaction and declares no figure, so there "
+                             "is nothing to post; state the transactions and the tile will build the "
+                             "statements")
     policy = extracted.get("policy") or {}
     stated = list(policy.get("explicitly_stated") or [])
     if "tax_rate" in policy and "tax_rate" not in stated:

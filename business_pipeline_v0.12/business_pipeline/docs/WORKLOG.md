@@ -1,3 +1,55 @@
+## 2026-11-05 — [statements] The tile refuses what declares nothing, and the boundary import is relative
+
+**Ask.** The statements tile answers basic accounting problems badly: it should refuse what it cannot read, not present
+a set of statements. Fix what is understood, and hold the rest for the owner.
+
+**Did.** Three defects in `src/bp/product/statements.py`, and one stale assertion corrected on the owner's instruction.
+
+- **The boundary rule (three tests).** `solve()` imported `bp.product.income_statement` absolutely, which the product
+  boundary reads as the product reaching into the frozen core. It is now `from .income_statement import ...`. The three
+  boundary tests (`test_product_boundary` ×2, `test_product_statements_api.RouteTest`) are green.
+- **A computation that computed nothing does not answer (one test).** `solve()` now records
+  `computation_named = bool(fc.detect_sections(text)) and not _reads_as_trial_balance(text)` and, when the engine
+  produced nothing and no transaction can be posted, raises the refusal **before** the plan layer or the model can
+  answer: *"this names a financial computation, but the instruction declares none of the figures it needs; state the
+  figures and the tile will compute them"*. Before the fix the same text was answered by the model as a transactions
+  problem once `bp.server` had wired the tile — which is why the test passed alone and failed in the suite.
+  `qa/manual/probe_route_test_order.py` now refuses in both configurations.
+- **A sentence that declares nothing had been answered with a full set of zero statements (four tests).** With the plan
+  layer attached, the workbench's configuration, `_solve_narrative` built a plan with no entries, posted it to the
+  ledger, and returned statements whose every figure was zero, marked `solved`. Three shapes showed it: `"hello there"`,
+  a trial-balance header with no rows, and `"Cash 5,000"`. `_solve_narrative` now refuses when no line of the extracted
+  entries or adjustments carries a non-zero figure — *"this instruction names no transaction and declares no figure, so
+  there is nothing to post…"* — which is the "gaps are named, never filled" rule applied to an empty reading. The four
+  route tests that were red on this are green. Evidence: `qa/manual/probe_empty_instruction.py`.
+- **The keypad contract (one test), on the owner's decision.** `e4184a8` removed the `management_accounts` special case
+  from `web/index.html:calcFitOf` deliberately; the committed test still asserted it. The owner chose to correct the
+  test, not the page: it now asserts the current fit rule, that `engagement_spec` takes the list/JSON path, and that the
+  special case does not appear at all.
+
+**Verified.**
+
+- **The statements lane.** `tests.test_product_statements`, `…_api`, `…_tile`, `…_council`, `test_statement_reader_seams`,
+  `test_statement_plan`, `test_financial_computations`, `test_product_boundary` → **198 tests, OK**;
+  `tests.test_product_subjects` → **54 tests, OK**.
+- **The product families.** `discover -p "test_product_*.py"` → 564 tests, 2 failures, both red at HEAD before this
+  session (the two committed-slice drift tests).
+- **The full suite, measured against HEAD `f1bb0c5`.** `Ran 3828 tests`, `FAILED (failures=19, errors=38)`; the HEAD
+  measurement in `docs/OPEN_ISSUES.md` Item 18 was 27 failures / 38 errors on the same 3828 tests, so this session
+  **fixes nine and adds no failure** (and the stale `unittest.loader._FailedTest.test_academic_docx` load error is gone
+  too). The separation was read by test id from the two run logs, not by counting lines.
+- **One flake surfaced, and it is not this session's.** `test_product_compare.CompareTest.test_the_html_export_copies_the_stored_values`
+  failed in that run only because the generated case id — `51528e75999b` — contains the `'999'` the test forbids in the
+  exported HTML; it passes alone (5 tests, OK). It is a name-level flake in that test, recorded in
+  `docs/OPEN_ISSUES.md` Item 18 rather than fixed here.
+
+**Not done, and named.**
+- **The golden-engagement cluster** (the `accounts` preset carries a richer chart and the statement modules append their
+  own accounts to a copy of it, so `chart[11]: duplicate account code 1200` follows) is older than this session and
+  belongs to that lane; the fix is the fixture split, not a code change here.
+- **Two committed-slice drift tests** (`test_product_calc_router.InputSliceDriftTest`,
+  `test_product_explain.ContractSliceTest`) are red at HEAD and untouched here.
+
 ## 2026-11-05 — [computation] The measurement is re-run on pinned trees, and the documents are corrected to it (build 1.99)
 
 **Ask.** Finish the increment: update the manual to the true current state, update CHANGELOG/WORKLOG/HOME/HANDOFF and the

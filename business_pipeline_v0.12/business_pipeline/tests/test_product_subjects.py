@@ -572,7 +572,12 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Open the recorded case", self.html)
 
     def test_the_keypad_is_off_for_list_and_worksheet_tools(self):
-        self.assertIn('if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";', self.html)
+        self.assertIn('if (tool.kind === "worksheet") return "C";', self.html)
+        # e4184a8 removed the `management_accounts` special case on purpose: the method runs the same
+        # frozen ledger kernel as any other, and its one `spec` input is a JSON declaration, so it takes
+        # the list/JSON form ("B") instead of the keypad.  This test used to assert the removed line.
+        self.assertIn('t === "object" || t === "array" || t === "engagement_spec";', self.html)
+        self.assertNotIn('tool.method === "management_accounts"', self.html)
         self.assertIn('b.disabled = fit !== "A";', self.html)
         self.assertIn('$("#calceq").disabled = fit === "C";', self.html)
         self.assertIn('class="fitbadge ', self.html)
