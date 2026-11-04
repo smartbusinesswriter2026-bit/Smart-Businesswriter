@@ -1153,19 +1153,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
     <section class="panel" id="panel-calculator" hidden aria-labelledby="calculator-title">
       <div class="card">
         <h2 id="calculator-title">Business Calculator</h2>
-        <p class="sub">Launch a frozen financial or business calculation. The Business Calculator arranges the inputs and calls
-          the same method the subject page uses; <strong>it computes nothing itself</strong>.</p>
         <div id="calcnote"></div>
-        <details class="studynote" id="calclimits">
-          <summary>What it can't do</summary>
-          <p class="muted">This is every calculation the engine actually holds, not every calculation a business course names. It runs a recorded method and returns that method's delivery; it computes nothing in the page.</p>
-          <ul>
-            <li><strong>Bare arithmetic</strong> - <code>2 + 2</code> or <code>15% of 84,000</code> is not enabled. Pressing <code>=</code> runs a declared method, never an expression.</li>
-            <li><strong>Tax law</strong> - tax is computed only from rates you declare; no jurisdiction's credits, thresholds or filing rules are applied.</li>
-            <li><strong>Market data</strong> - no share prices or market forecasts. A trend forecast uses the series you supply.</li>
-            <li><strong>Advice</strong> - the engine values the cash flows and figures you declare; it does not recommend a loan, an investment or a purchase.</li>
-          </ul>
-        </details>
         <div class="calcbar">
           <label class="visually-hidden" for="calcq">Search the Business Calculator</label>
           <input type="search" id="calcq" placeholder="Search a calculation (NPV, WACC, break-even, t-test, ...)">
@@ -5656,7 +5644,6 @@ RENDERERS.calculator = function () {
       return;
     }
     state.calcGroup = state.calcGroup || d.groups[0].id;
-    note.innerHTML = banner("honesty", "What this Business Calculator is", "<div>" + esc(d.note) + "</div>");
     $("#calcgroups").innerHTML = d.groups.map((g) =>
       '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
     $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
