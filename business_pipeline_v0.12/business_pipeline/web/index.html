@@ -5324,7 +5324,7 @@ function plRenderPrefill(data) {
   const gaps = (data.gaps || []).map((g) => "<li>" + esc(g) + "</li>").join("");
   box.innerHTML = '<div class="banner ' + (data.ready ? "ok" : "blocked") + '"><strong>' +
       (data.ready ? "Inputs ready to confirm" : "Not ready yet") + "</strong><div>Target " + esc(data.target) +
-      " (" + esc(data.method) + ")</div>" + (gaps ? '<ul class="muted">' + gaps + "</ul>" : "") + "</div>" +
+      "</div>" + (gaps ? '<ul class="muted">' + gaps + "</ul>" : "") + "</div>" +
     (data.ready ? '<div class="row" style="margin:6px 0"><button class="btn primary" type="button" id="plopenincalc">Open in the Business Calculator</button></div>' : "") +
     '<p class="muted">These are inputs only. Opening the calculator only fills the fields; you still press = to run it, and the app never fills or runs a method silently.</p>' +
     '<div class="tablewrap"><pre style="white-space:pre-wrap;margin:0">' + esc(JSON.stringify(data.inputs, null, 2)) + "</pre></div>";
@@ -5743,7 +5743,7 @@ function renderCalculator() {
         return '<div class="toolrow calcrow' + (on ? " on" : "") + '">' +
           '<span class="fitbadge ' + fit.toLowerCase() + '" title="' + fitTitle + '">' + fit + "</span>" +
           '<button class="calctool" type="button" data-calctool="' + esc(t.key) + '"><strong>' + esc(t.label) + "</strong>" +
-          "<span>" + esc(t.what) + " <em>Method: " + esc(t.method) + (t.preset ? ", preset " + esc(t.preset) : ", typed inputs") + "</em></span></button>" +
+          "<span>" + esc(t.what) + (t.preset ? " <em>preset example available</em>" : " <em>enter your figures</em>") + "</span></button>" +
           "</div>";
       }).join("")
     : '<p class="muted">No calculation in this group matches that search.</p>';
@@ -5869,7 +5869,7 @@ function renderCalcLine() {
   const vals = keys.map((k) => (state.calcValues[k] || "").trim() || "\u2014");
   const body = tool.label + "\n  " + head + "\n  " + vals.join("   ");
   $("#calcline").innerHTML = esc(body).replace(/\u2014/g, '<span class="dim">\u2014</span>');
-  $("#calcunit").textContent = tool.method ? "method " + tool.method : "";
+  $("#calcunit").textContent = "";
   const empty = fit === "A" && keys.some((k) => !(state.calcValues[k] || "").trim());
   $("#calcsaid").textContent = empty
     ? "Fill the figures, then press = . Nothing is calculated until the engine answers."

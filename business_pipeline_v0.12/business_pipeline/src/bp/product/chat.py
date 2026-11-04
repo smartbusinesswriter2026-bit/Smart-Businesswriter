@@ -2315,9 +2315,9 @@ def research(state):
             if placed >= 3:
                 break
         if placed == 0:
-            reason = ("research timed out before this dimension returned evidence"
+            reason = ("Research timed out before this dimension returned evidence"
                       if batch.get("timed_out")
-                      else "no retrieved source supplied an abstract sentence for this dimension")
+                      else "No retrieved source supplied an abstract sentence for this dimension")
             gaps.append({"dimension": dimension["key"], "label": dimension["label"], "reason": reason})
     if timed_out:
         notes.append("Research stopped after %d seconds; incomplete dimensions are named as gaps." % RESEARCH_DEADLINE)

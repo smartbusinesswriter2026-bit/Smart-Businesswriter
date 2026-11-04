@@ -619,31 +619,31 @@ def plan(text):
     for phrase in INSTRUCTION:
         if _has(norm, phrase):
             return _payload("out_of_scope", text,
-                            "instruction: the message reads as an instruction, and a message can "
+                            "Instruction: the message reads as an instruction, and a message can "
                             "never change what this calculator does")
     # 2. bare arithmetic is the parked decision, not a feature
     if _is_bare_arithmetic(norm):
         return _payload("out_of_scope", text,
-                        "bare_arithmetic: the calculator runs recorded business methods and does "
+                        "Bare arithmetic: the calculator runs recorded business methods and does "
                         "not evaluate expressions")
     # 3. algebra homework is not a business computation
     if re.search(r"\b(solve|equation|algebra)\b", norm) and "=" in norm:
         return _payload("out_of_scope", text,
-                        "not_business: this calculator runs recorded business methods (finance, "
+                        "Not business: this calculator runs recorded business methods (finance, "
                         "accounting, economics, operations, marketing, people, statistics); an "
                         "algebra problem is not one of them")
     # 4. other subjects and personal advice are outside what this engine is
     for phrase in NON_BUSINESS:
         if _has(norm, phrase):
             return _payload("out_of_scope", text,
-                            "not_business: this calculator runs recorded business methods (finance, "
+                            "Not business: this calculator runs recorded business methods (finance, "
                             "accounting, economics, operations, marketing, people, statistics); '" +
                             phrase + "' is not one of them")
     # 4. business, but nothing frozen computes it
     topics = _unsupported_topics(norm)
     if topics:
         return _payload("unsupported", text,
-                        "not_built: " + ", ".join(topics) + " - no frozen method computes this, and "
+                        "Not built: " + ", ".join(topics) + " - no frozen method computes this, and "
                         "the calculator will not estimate it",
                         alternatives=[_alt(k) for k in ("npv", "ratios", "forecast")])
 
@@ -655,21 +655,21 @@ def plan(text):
     if len(ranked) >= 2 and ranked[1][1] >= 4 and ranked[0][1] - ranked[1][1] <= 1:
         alternatives = [key for key, value in ranked[:3] if value >= 4]
         return _payload("choose", text,
-                        "ambiguous: more than one frozen method fits, and the calculator does not guess",
+                        "Ambiguous: more than one frozen method fits, and the calculator does not guess",
                         alternatives=[_alt(k) for k in alternatives])
     if ranked and ranked[0][1] >= 4:
         tool = ranked[0][0]
         inputs, missing, notes = _extract(norm, tool)
         if missing:
-            return _payload("need_inputs", text, "missing: " + ", ".join(missing), tool=tool,
+            return _payload("need_inputs", text, "Missing: " + ", ".join(missing), tool=tool,
                             inputs=inputs, missing=missing, notes=notes)
-        return _payload("run", text, "ready: confirm and the method runs", tool=tool,
+        return _payload("run", text, "Ready: confirm and the method runs", tool=tool,
                         inputs=inputs, notes=notes)
     if clues:
-        return _payload("choose", text, "ambiguous: the sentence names a family, not a method",
+        return _payload("choose", text, "Ambiguous: the sentence names a family, not a method",
                         alternatives=[_alt(k) for k in list(dict.fromkeys(clues))[:3]])
     nearest = [key for key, value in ranked[:3]]
-    return _payload("unsupported", text, "no_method: no frozen method matches this sentence",
+    return _payload("unsupported", text, "No method: no frozen method matches this sentence",
                     alternatives=[_alt(k) for k in nearest])
 
 
