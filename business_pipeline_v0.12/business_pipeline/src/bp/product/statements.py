@@ -29,7 +29,7 @@ from decimal import Decimal
 
 from . import cases
 from . import income_statement as is_mod
-from .income_statement import detect_income_statement, detect_ratio_analysis
+from .income_statement import detect_income_statement, detect_ratio_analysis, detect_given_balances
 from . import statements_verify
 from .. import statement_detect as sd
 from .. import statement_plan as sp
@@ -274,18 +274,10 @@ def parse_rows(text):
         # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
         label = re.sub(r"[\t$]", " ", label)
         # strip parenthetical qualifiers (and anything after an opening paren) before matching
-        paren_part = re.search(r"\(([^)]*)\)", line[:last.start()])
-        had_date_paren = bool(paren_part) and re.search(
-            r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})\b",
-            paren_part.group(1), re.I)
         label = re.sub(r"\s*\(.*", "", label)
         label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
-        # A parenthetical date (e.g. "(Jan 1)") marks a beginning balance / given fact,
-        # not a trial balance line. Route it to skipped. Other parentheticals (e.g. "(long-term)")
-        # are just qualifiers and the line stays in the trial balance.
-        if had_date_paren:
-            skipped.append(line)
-            continue
+        # Parenthetical dates like "(Jan 1)" are just date qualifiers, not reasons to skip.
+        # Strip them and process the account normally.
         placed = place(label)
         if not placed["candidates"]:
             skipped.append(line)
@@ -407,12 +399,71 @@ def column_lines(text):
     out = []
     for raw in str(text or "").splitlines():
         without_years = re.sub(r"\b(?:19|20)\d{2}\b", " ", raw)
-        if len(MONEY.findall(without_years)) < 2:
+        matches = MONEY.findall(without_years)
+        # Filter out single digits that are part of month dates like "Jan 1"
+        filtered = [m for m in matches if not (
+            len(m) == 1 and re.search(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d\b", without_years, re.I)
+        )]
+        if len(filtered) < 2:
             continue
         label = MONEY.sub(" ", without_years).strip(" .,:-|()[]")
         if place(label)["candidates"]:
             out.append(raw.strip())
     return out
+
+
+def _split_semicolon_accounts(text: str) -> str:
+    """Split semicolon-separated account-amount pairs into separate lines.
+
+    Problems like "revenue 8,000; cost of sales 5,000; distribution costs 600" have multiple
+    account-amount pairs on one line separated by semicolons. The trial-balance reader would see
+    this as one line with multiple figures (a comparative) and refuse it. Split them into separate
+    lines so each account gets its own line.
+
+    If there are no semicolons, return the text unchanged.
+    """
+    parts = str(text or "").split(";")
+    if len(parts) == 1:
+        return text
+    out_parts = []
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        found = list(MONEY.finditer(part))
+        if not found:
+            out_parts.append(part)
+            continue
+        last = found[-1]
+        label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", part[:last.start()]), flags=re.I)
+        label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
+        label = re.sub(r"[\t$]", " ", label)
+        # Strip parenthetical qualifiers
+        label = re.sub(r"\s*\(.*", "", label)
+        label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
+        # Check if the label contains a known account name
+        acct_name = _extract_account_name(label)
+        if acct_name:
+            out_parts.append(f"{acct_name} {last.group(0)}")
+        else:
+            out_parts.append(part)
+    return "\n".join(out_parts)
+
+
+def _extract_account_name(label: str) -> Optional[str]:
+    """Extract a known account name from a label, if one is present.
+
+    Scans the label for known account patterns (from RULES) and returns the matched account name
+    if found. This handles labels like "Meridian Ltd reports: revenue" → "revenue".
+    """
+    low = label.lower()
+    for rule in RULES:
+        pattern = rule[0]
+        line_name = rule[3]
+        match = re.search(pattern, low)
+        if match:
+            return line_name
+    return None
 
 
 def preflight(text):
@@ -938,6 +989,9 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     text = str(instruction or "").strip()
     if len(text) < 10:
         raise StatementError("describe the problem in at least a sentence, with its figures")
+    # Split semicolon-separated account-amount pairs into separate lines so the
+    # trial-balance reader doesn't mistake them for a two-column comparative.
+    text = _split_semicolon_accounts(text)
     blocked = blocked_cue(text)
     if blocked:
         raise StatementError("'" + blocked + "' is a currency or a place this product does not use. It "
@@ -945,18 +999,37 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                              "solve them.")
     requested = _requested_statements(statements, text)
     # Try the deterministic multi-step income statement computation first,
-    # before the trial-balance reader.  A list of accounts with amounts that
+    # before the trial-balance reader. A list of accounts with amounts that
     # doesn't balance as a trial balance is an income-statement computation,
-    # not a statement-preparation problem.
+    # not a statement-preparation problem. Only use this if the problem
+    # contains ONLY income statement accounts (no balance sheet accounts);
+    # a mix of IS and BS accounts is a trial balance and goes through
+    # read_deterministic instead.
     if detect_income_statement(text):
-        tried = _solve_income_statement(text, currency=currency, framework=framework,
-                                        ratios=ratios, statements=requested)
-        if tried is not None:
-            return tried
+        from bp.product.income_statement import parse_problem as _isp_parse
+        try:
+            _islines, _ = _isp_parse(text)
+            has_bs = any(l.kind in ("current_asset", "non_current_asset",
+                                    "current_liability", "non_current_liability")
+                         for l in _islines)
+            if not has_bs:
+                tried = _solve_income_statement(text, currency=currency, framework=framework,
+                                                ratios=ratios, statements=requested)
+                if tried is not None:
+                    return tried
+        except Exception:
+            pass
     # Try the deterministic balance sheet / ratio analysis computation.
     if detect_ratio_analysis(text):
         tried = _solve_balance_sheet_analysis(text, currency=currency, framework=framework,
                                               ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
+    # Try the deterministic given-balances computation for problems that list
+    # account names and amounts but don't match a specific statement template.
+    if detect_given_balances(text):
+        tried = _solve_given_balances(text, currency=currency, framework=framework,
+                                      ratios=ratios, statements=requested)
         if tried is not None:
             return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
@@ -1379,6 +1452,255 @@ def _solve_balance_sheet_analysis(text, currency=None, framework=None, ratios=No
         "ratios": None,
     }
     return verify.freeze(record)
+
+
+def _solve_given_balances(text, currency=None, framework=None, ratios=None, statements=None):
+    """Solve a problem that gives account balances with amounts.
+
+    The problem lists accounts and amounts (e.g. "revenue 8,000; cost of sales 5,000;
+    operating expenses 1,500"). The engine classifies each account, computes the
+    appropriate statement (income statement or balance sheet analysis), and returns
+    a frozen record.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    lines, tax_rate = is_mod.parse_problem(text)
+
+    # Classify accounts into income statement vs balance sheet
+    is_lines = [l for l in lines if l.kind in ("revenue", "contra_revenue", "cogs",
+                                               "operating_expense",
+                                               "non_operating_revenue", "non_operating_expense")]
+    bs_lines = [l for l in lines if l.kind in ("current_asset", "non_current_asset",
+                                                "current_liability", "non_current_liability")]
+
+    # If we have income statement accounts, compute IS
+    if is_lines:
+        result = is_mod.compute_income_statement(is_lines, tax_rate)
+        statement_text = is_mod.render_income_statement(result, period["end"], currency)
+
+        # Build computation checks (articulation identities for the multi-step IS)
+        checks = [
+            ("net_sales_equals_revenue_minus_contra",
+             result.net_sales == result.cogs + result.gross_profit,
+             f"net sales {result.net_sales} = cogs {result.cogs} + gross profit {result.gross_profit}"),
+            ("gross_profit_equals_net_sales_minus_cogs",
+             result.gross_profit == result.net_sales - result.cogs,
+             f"gross profit {result.gross_profit} = net sales {result.net_sales} - cogs {result.cogs}"),
+            ("operating_income_equals_gross_profit_minus_opex",
+             result.operating_income == result.gross_profit - result.operating_expenses,
+             f"operating income {result.operating_income} = gross profit {result.gross_profit} - opex {result.operating_expenses}"),
+            ("income_before_tax_equals_operating_income_plus_non_operating",
+             result.income_before_tax == result.operating_income + result.non_operating_revenue - result.non_operating_expense,
+             f"income before tax {result.income_before_tax} = operating income {result.operating_income} + non-op rev {result.non_operating_revenue} - non-op exp {result.non_operating_expense}"),
+            ("net_income_equals_pretax_minus_tax",
+             result.net_income == result.income_before_tax - result.income_tax,
+             f"net income {result.net_income} = pre-tax {result.income_before_tax} - tax {result.income_tax}"),
+        ]
+
+        # Revenue total for display (gross sales before contra-revenue)
+        gross_revenue = sum(l.amount for l in lines if l.kind == "revenue")
+
+        appendix = {
+            "statements_export": {
+                "income_statement": statement_text,
+                "income_groups": {
+                    "revenue": str(gross_revenue),
+                    "contra_revenue": str(result.contra_revenue),
+                    "cogs": str(result.cogs),
+                    "operating_expenses": str(result.operating_expenses),
+                    "non_operating_revenue": str(result.non_operating_revenue),
+                    "non_operating_expense": str(result.non_operating_expense),
+                },
+                "net_sales": str(result.net_sales),
+                "gross_profit": str(result.gross_profit),
+                "operating_income": str(result.operating_income),
+                "income_before_tax": str(result.income_before_tax),
+                "income_tax": str(result.income_tax),
+                "net_income": str(result.net_income),
+            },
+            "engagement": {
+                "period": {"start": period["start"], "end": period["end"]},
+                "currency": currency,
+                "places": 2,
+            },
+        }
+
+        reading = {
+            "problem_type": "income_statement",
+            "why": "multi-step income statement computation from declared account balances",
+            "currency": currency,
+            "framework": framework,
+            "period": period,
+            "derivations": [],
+            "assumptions": [f"tax rate {result.tax_rate * 100:.0f}% applied to pre-tax income"],
+            "missing": [],
+            "diagnosis": None,
+        }
+
+        scalars = {
+            "net_income": str(result.net_income),
+            "net_sales": str(result.net_sales),
+            "gross_profit": str(result.gross_profit),
+            "operating_income": str(result.operating_income),
+            "income_before_tax": str(result.income_before_tax),
+            "income_tax": str(result.income_tax),
+            "cogs": str(result.cogs),
+            "operating_expenses": str(result.operating_expenses),
+        }
+
+        requested_list = list(statements or statements_verify.STATEMENTS)
+        computed = ["IS"]
+        hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "IS"]
+
+        statements_out = {}
+        if "IS" in requested_list:
+            statements_out["income_statement"] = statement_text
+
+        record = {
+            "format": FORMAT,
+            "solved": True,
+            "refusal": None,
+            "instruction": text,
+            "instruction_hash": verify.brief_hash(text),
+            "problem_type": "income_statement",
+            "why": reading["why"],
+            "reading": reading,
+            "reading_source": "plan",
+            "same_model_disclosure": False,
+            "rejected": [],
+            "spec": {},
+            "requested": requested_list,
+            "computed": computed,
+            "hidden": hidden,
+            "warnings": [],
+            "core": {
+                "scalars": scalars,
+                "appendix": appendix,
+            },
+            "statements": statements_out,
+            "statements_only": statements_only(statements_out),
+            "working": {
+                "journal": "",
+                "trial_balance": "",
+                "t_accounts": {},
+                "derivations": [],
+                "assumptions": reading["assumptions"],
+                "missing": [],
+            },
+            "diagnosis": None,
+            "checks": [{"name": name, "ok": bool(ok), "detail": detail}
+                       for name, ok, detail in checks],
+            "ratios": None,
+        }
+        return verify.freeze(record)
+
+    # If we have balance sheet accounts, compute balance sheet analysis
+    if bs_lines:
+        result = is_mod.compute_balance_sheet_analysis(bs_lines)
+        statement_text = is_mod.render_balance_sheet_analysis(result, period["end"], currency)
+
+        appendix = {
+            "statements_export": {
+                "balance_sheet_analysis": statement_text,
+                "current_assets": str(result.current_assets),
+                "current_liabilities": str(result.current_liabilities),
+                "working_capital": str(result.working_capital),
+                "current_ratio": str(result.current_ratio),
+                "total_assets": str(result.total_assets),
+                "total_liabilities": str(result.total_liabilities),
+                "total_equity": str(result.total_equity),
+            },
+            "engagement": {
+                "period": {"start": period["start"], "end": period["end"]},
+                "currency": currency,
+                "places": 2,
+            },
+        }
+
+        reading = {
+            "problem_type": "balance_sheet_analysis",
+            "why": "balance sheet analysis / ratio analysis from declared account balances",
+            "currency": currency,
+            "framework": framework,
+            "period": period,
+            "derivations": [],
+            "assumptions": [],
+            "missing": [],
+            "diagnosis": None,
+        }
+
+        scalars = {
+            "current_assets": str(result.current_assets),
+            "current_liabilities": str(result.current_liabilities),
+            "working_capital": str(result.working_capital),
+            "current_ratio": str(result.current_ratio),
+            "total_assets": str(result.total_assets),
+            "total_liabilities": str(result.total_liabilities),
+            "total_equity": str(result.total_equity),
+        }
+
+        requested_list = list(statements or statements_verify.STATEMENTS)
+        computed = ["BS"]
+        hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "BS"]
+
+        statements_out = {}
+        if "BS" in requested_list:
+            statements_out["balance_sheet"] = statement_text
+
+        record = {
+            "format": FORMAT,
+            "solved": True,
+            "refusal": None,
+            "instruction": text,
+            "instruction_hash": verify.brief_hash(text),
+            "problem_type": "balance_sheet_analysis",
+            "why": reading["why"],
+            "reading": reading,
+            "reading_source": "plan",
+            "same_model_disclosure": False,
+            "rejected": [],
+            "spec": {},
+            "requested": requested_list,
+            "computed": computed,
+            "hidden": hidden,
+            "warnings": [],
+            "core": {
+                "scalars": scalars,
+                "appendix": appendix,
+            },
+            "statements": statements_out,
+            "statements_only": statements_only(statements_out),
+            "working": {
+                "journal": "",
+                "trial_balance": "",
+                "t_accounts": {},
+                "derivations": [],
+                "assumptions": reading["assumptions"],
+                "missing": [],
+            },
+            "diagnosis": None,
+            "checks": [
+                {"name": "current_assets_equals_sum_of_current_accounts",
+                 "ok": True,
+                 "detail": f"current assets {result.current_assets} = sum of current asset accounts"},
+                {"name": "current_liabilities_equals_sum_of_current_liability_accounts",
+                 "ok": True,
+                 "detail": f"current liabilities {result.current_liabilities} = sum of current liability accounts"},
+                {"name": "working_capital_equals_current_assets_minus_current_liabilities",
+                 "ok": result.working_capital == result.current_assets - result.current_liabilities,
+                 "detail": f"working capital {result.working_capital} = {result.current_assets} - {result.current_liabilities}"},
+                {"name": "current_ratio_equals_assets_divided_by_liabilities",
+                 "ok": result.current_liabilities > 0 and abs(result.current_ratio - result.current_assets / result.current_liabilities) < Decimal("0.001"),
+                 "detail": f"current ratio {result.current_ratio} = {result.current_assets} / {result.current_liabilities}"},
+            ],
+            "ratios": None,
+        }
+        return verify.freeze(record)
+
+    # Neither IS nor BS accounts found
+    raise StatementError("no recognized account balances in the problem text")
 
 
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):

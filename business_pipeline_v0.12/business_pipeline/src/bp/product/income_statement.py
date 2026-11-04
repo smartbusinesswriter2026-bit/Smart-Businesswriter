@@ -29,6 +29,48 @@ from typing import Any, Dict, List, Optional, Tuple
 MONEY = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 
 
+#: Detectors for multi-step income statement problems.
+INCOME_STATEMENT_DETECTORS = [
+    (r"multi.step\s+income\s+statement", "multi_step"),
+    (r"income\s+statement\s+components", "multi_step"),
+    (r"net\s+sales", "multi_step"),
+    (r"gross\s+profit", "multi_step"),
+    (r"operating\s+income", "multi_step"),
+    (r"income\s+before\s+tax", "multi_step"),
+    (r"cost\s+of\s+goods\s+sold", "multi_step"),
+    (r"sales\s+returns", "multi_step"),
+]
+
+
+def detect_income_statement(text: str) -> bool:
+    """Return True if the problem reads as a multi-step income statement computation."""
+    low = text.lower()
+    for pattern, _ in INCOME_STATEMENT_DETECTORS:
+        if re.search(pattern, low):
+            return True
+    return False
+
+
+#: Detectors for ratio analysis / balance sheet analysis problems.
+RATIO_DETECTORS = [
+    (r"current\s+ratio", "ratio"),
+    (r"working\s+capital", "ratio"),
+    (r"current\s+assets", "ratio"),
+    (r"current\s+liabilities", "ratio"),
+    (r"liquidity", "ratio"),
+    (r"balance\s+sheet\s+analysis", "ratio"),
+]
+
+
+def detect_ratio_analysis(text: str) -> bool:
+    """Return True if the problem reads as a ratio analysis / balance sheet analysis."""
+    low = text.lower()
+    for pattern, _ in RATIO_DETECTORS:
+        if re.search(pattern, low):
+            return True
+    return False
+
+
 @dataclass
 class AccountLine:
     """One parsed line from the problem: account name, raw amount, classification."""
@@ -94,23 +136,30 @@ RATIO_DETECTORS = [
     (r"balance\s+sheet\s+analysis", "ratio"),
 ]
 
+#: Detectors for "given account balances" problems — a list of accounts with
+#: amounts where the task is to compute a statement from them. Fires when
+#: the text contains multiple known account names with amounts.
+GIVEN_BALANCES_DETECTORS = [
+    (r"\brevenue\s+\$?[\d,]", "given_balances"),
+    (r"\bcost of (sales|goods sold)\s+\$?[\d,]", "given_balances"),
+    (r"\b(distribution|administrative|operating)\s+expenses?\s+\$?[\d,]", "given_balances"),
+    (r"\b(interest|depreciation|amortization|impairment)\s+(expense|loss)\s+\$?[\d,]", "given_balances"),
+    (r"\b(gain|loss)\s+on\s+sale\s+\$?[\d,]", "given_balances"),
+    (r"\b(cash|accounts? receivable|inventory|supplies|equipment|land|building)\s+\$?[\d,]", "given_balances"),
+    (r"\b(accounts? payable|notes? payable|loan|borrowings)\s+\$?[\d,]", "given_balances"),
+    (r"\b(unearned|deferred)\s+revenue\s+\$?[\d,]", "given_balances"),
+    (r"\b(common stock|share capital|retained earnings|dividends)\s+\$?[\d,]", "given_balances"),
+]
 
-def detect_income_statement(text: str) -> bool:
-    """Return True if the problem reads as a multi-step income statement computation."""
+
+def detect_given_balances(text: str) -> bool:
+    """Return True if the problem lists multiple account balances with amounts."""
     low = text.lower()
-    for pattern, _ in INCOME_STATEMENT_DETECTORS:
+    matches = 0
+    for pattern, _ in GIVEN_BALANCES_DETECTORS:
         if re.search(pattern, low):
-            return True
-    return False
-
-
-def detect_ratio_analysis(text: str) -> bool:
-    """Return True if the problem reads as a ratio analysis / balance sheet analysis."""
-    low = text.lower()
-    for pattern, _ in RATIO_DETECTORS:
-        if re.search(pattern, low):
-            return True
-    return False
+            matches += 1
+    return matches >= 2  # Need at least 2 account types to be a "given balances" problem
 
 
 def _money(text: str) -> Optional[Decimal]:
@@ -151,8 +200,8 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"sales\s+(returns|allowances)", a) or re.search(r"sales\s+discounts?", a):
         return ("contra_revenue", "Sales Returns & Allowances")
 
-    # Revenue (must end in "revenue" or be exactly "sales"/"turnover")
-    if re.search(r"revenue$", a) or re.search(r"^(sales|turnover)$", a):
+    # Revenue (must end in "revenue" but NOT "unearned revenue")
+    if re.search(r"revenue$", a) and not re.search(r"unearned\s+revenue", a):
         return ("revenue", "Sales Revenue")
 
     # COGS
@@ -171,29 +220,55 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"^(interest (expense|paid)|finance costs?)$", a):
         return ("non_operating_expense", "Interest Expense")
 
-    # Tax rate — only if explicitly a tax account
-    if re.search(r"\btax\b", a):
-        return ("tax_rate", "Income Tax Expense")
-
-    # Balance sheet classification
+    # Balance sheet: current assets
     if re.search(r"^(cash|bank|cash at bank|bank account)$", a):
         return ("current_asset", "Cash")
     if re.search(r"^(trade receivables?|receivables?|accounts? receivable|sundry debtors)$", a):
         return ("current_asset", "Accounts Receivable")
+    if re.search(r"^(contract asset)$", a):
+        return ("current_asset", "Contract Asset")
     if re.search(r"^(inventor(y|ies)|stock|closing stock)$", a):
         return ("current_asset", "Inventory")
     if re.search(r"^(prepaid\s+expenses?|prepaids?)$", a):
         return ("current_asset", "Prepaid Expenses")
-    if re.search(r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant)$", a) and not re.search(r"accumulated", a):
-        return ("non_current_asset", "Equipment (net)")
+    # Balance sheet: non-current assets
+    if re.search(r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|office equipment|freehold property)$", a) and not re.search(r"accumulated", a):
+        return ("non_current_asset", "Property, plant and equipment")
+    if re.search(r"^(deferred tax asset)$", a):
+        return ("non_current_asset", "Deferred Tax Asset")
+    # Balance sheet: current liabilities
     if re.search(r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors)$", a):
         return ("current_liability", "Accounts Payable")
-    if re.search(r"^(notes payable|short.term notes? payable)$", a):
-        return ("current_liability", "Short-term Notes Payable")
+    if re.search(r"^(contract liability)$", a):
+        return ("current_liability", "Contract Liability")
     if re.search(r"^(accrued (expenses?|liabilities?|liability)|accruals?)$", a):
         return ("current_liability", "Accrued Liabilities")
+    if re.search(r"^(bank overdraft)$", a):
+        return ("current_liability", "Bank Overdraft")
+    if re.search(r"^(short.term notes? payable)$", a):
+        return ("current_liability", "Short-term Notes Payable")
+    if re.search(r"^(warranty provision|warranty liability)$", a):
+        return ("current_liability", "Warranty Provision")
+    if re.search(r"^(lease liability)$", a):
+        return ("current_liability", "Lease Liability (current)")
+    # Balance sheet: non-current liabilities
     if re.search(r"^(long.term (debt|notes? payable)|long.term debt|long.term loan)$", a):
         return ("non_current_liability", "Long-term Debt")
+    if re.search(r"^(deferred tax liability)$", a):
+        return ("non_current_liability", "Deferred Tax Liability")
+    if re.search(r"^(lease liability)$", a):
+        return ("non_current_liability", "Lease Liability (non-current)")
+    # Balance sheet: equity
+    if re.search(r"^(common stock|share capital|capital stock|share premium)$", a):
+        return ("equity", "Share Capital")
+    if re.search(r"^(treasury shares?|treasury stock)$", a):
+        return ("equity", "Treasury Shares")
+    if re.search(r"^(retained earnings?|accumulated (profit|earnings)|revenue reserve|revaluation reserve|translation reserve)$", a):
+        return ("equity", "Retained Earnings")
+
+    # Tax rate — only if explicitly a tax account
+    if re.search(r"\btax\b", a):
+        return ("tax_rate", "Income Tax Expense")
 
     # Generic expense fallback
     if re.search(r"\b(expense|cost)\b", a):
